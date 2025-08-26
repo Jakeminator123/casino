@@ -51,6 +51,8 @@ export default function App() {
   const [joinCode, setJoinCode] = useState('');
   const [game, setGame] = useState<GameState | null>(null);
   const [showBetModal, setShowBetModal] = useState(false);
+  const [opponentBet, setOpponentBet] = useState<number | null>(null);
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [betAmount, setBetAmount] = useState(50);
   const [chat, setChat] = useState<Array<{ from: string; message: string }>>([]);
   const dragged = useRef<{ id: number; from: string } | null>(null);
@@ -95,9 +97,19 @@ export default function App() {
 
     s.on('ready_to_bet', () => {
       setShowBetModal(true);
+      setOpponentBet(null);
+      setWaitingForOpponent(false);
     });
 
-    s.on('bet_placed', () => {});
+    s.on('bet_placed', (data: { player_id: number; amount: number }) => {
+      if (data.player_id !== myPlayerId) {
+        setOpponentBet(data.amount);
+        setBetAmount(data.amount); // Auto-match opponent's bet
+        setWaitingForOpponent(false);
+      } else {
+        setWaitingForOpponent(true);
+      }
+    });
 
     s.on('game_started', (state: GameState) => {
       setGame(state);
@@ -105,45 +117,69 @@ export default function App() {
     });
 
     s.on('game_state', (state: GameState) => {
-      // Check if turn/river cards were just dealt
-      if (game && state.phase === 'showdown' && game.phase === 'placing') {
-        // Animate community cards being revealed with staggered timing (1.2s each)
+      // Check if we're entering showdown phase
+      if (game && state.phase === 'showdown' && game.phase !== 'showdown') {
+        // Animate ALL hidden cards being revealed
         setTimeout(() => {
-          document.querySelectorAll('.community-cards').forEach((communityDiv, boardIdx) => {
-            const cards = communityDiv.querySelectorAll('.card');
-            // Turn card (index 3) - starts after board delay
-            if (cards[3]) {
+          const suitSymbols: Record<string, string> = { c: '♣', d: '♦', h: '♥', s: '♠' };
+          const suitColors: Record<string, string> = { '♣': 'black', '♦': 'red', '♥': 'red', '♠': 'black' };
+          
+          // Flip all Turn and River cards (4th and 5th community cards)
+          document.querySelectorAll('.board').forEach((board, boardIdx) => {
+            // Turn cards
+            const turnCards = board.querySelectorAll('.community-cards .card.reveal-on-flip');
+            turnCards.forEach((card, idx) => {
               setTimeout(() => {
-                cards[3].classList.add('revealing');
-                setTimeout(() => cards[3].classList.remove('revealing'), 1200);
-              }, boardIdx * 400 + 500);
-            }
-            // River card (index 4) - starts 1.2s after turn
-            if (cards[4]) {
-              setTimeout(() => {
-                cards[4].classList.add('revealing');
-                setTimeout(() => cards[4].classList.remove('revealing'), 1200);
-              }, boardIdx * 400 + 1700);
-            }
+                card.classList.add('revealing');
+                setTimeout(() => {
+                  const rank = card.getAttribute('data-rank');
+                  const suit = card.getAttribute('data-suit');
+                  const suitSymbol = suitSymbols[suit ?? ''] ?? '?';
+                  const color = suitColors[suitSymbol] ?? 'black';
+                  
+                  card.classList.remove('back', 'reveal-on-flip', 'revealing');
+                  card.classList.add('card', color);
+                  card.textContent = (rank ?? '?') + suitSymbol;
+                  (card as HTMLElement).style.background = 'white';
+                  (card as HTMLElement).style.color = color === 'red' ? '#e74c3c' : '#2c3e50';
+                }, 600);
+              }, boardIdx * 200 + idx * 800); // Stagger between boards and between turn/river
+            });
           });
+          
+          // Flip opponent cards after community cards
+          setTimeout(() => {
+            document.querySelectorAll('.player-cards[data-owner="opponent"] .card.opponent-card').forEach((card, idx) => {
+              setTimeout(() => {
+                card.classList.add('revealing');
+                setTimeout(() => {
+                  const rank = card.getAttribute('data-rank');
+                  const suit = card.getAttribute('data-suit');
+                  const suitSymbol = suitSymbols[suit ?? ''] ?? '?';
+                  const color = suitColors[suitSymbol] ?? 'black';
+                  
+                  card.classList.remove('back', 'opponent-card', 'revealing');
+                  card.classList.add('card', color);
+                  card.textContent = (rank ?? '?') + suitSymbol;
+                  (card as HTMLElement).style.background = 'white';
+                  (card as HTMLElement).style.color = color === 'red' ? '#e74c3c' : '#2c3e50';
+                }, 600);
+              }, Math.floor(idx / 2) * 200); // Stagger per board
+            });
+          }, 2000); // Start after community cards
         }, 300);
       }
       setGame(state);
     });
 
     s.on('showdown_results', (data: ShowdownResult) => {
-      // Add staggered card flip animations for opponent cards reveal
-      document.querySelectorAll('.player-cards[data-owner="opponent"] .card').forEach((card, idx) => {
-        setTimeout(() => {
-          card.classList.add('revealing');
-          setTimeout(() => card.classList.remove('revealing'), 1200);
-        }, idx * 300 + 1000); // 300ms between each card, start after 1s
-      });
-      
-      setShowdownResults(data);
-      setShowingShowdown(true);
-      // Hide after 12 seconds (longer for new animations)
-      setTimeout(() => setShowingShowdown(false), 12000);
+      // Delay overlay to appear after all cards have been revealed
+      setTimeout(() => {
+        setShowdownResults(data);
+        setShowingShowdown(true);
+        // Hide after 12 seconds
+        setTimeout(() => setShowingShowdown(false), 12000);
+      }, 3500); // Wait for all card animations to complete
     });
 
     s.on('error', (data: any) => {
@@ -194,7 +230,12 @@ export default function App() {
     const bankroll = me?.bankroll ?? 1000;
     setBetAmount(Math.min(50, bankroll));
   }, [me?.bankroll]);
-  const placeBet = () => socket?.emit('place_bet', { amount: betAmount });
+  const placeBet = () => {
+    socket?.emit('place_bet', { amount: betAmount });
+    if (!opponentBet) {
+      setWaitingForOpponent(true);
+    }
+  };
 
   // DnD helpers
   const allowDrag = game?.phase === 'placing' && game?.current_player === myPlayerId;
@@ -212,6 +253,21 @@ export default function App() {
     e.preventDefault();
     if (!dragged.current) return;
     socket?.emit('move_card', { card_id: dragged.current.id, from: dragged.current.from, to });
+    dragged.current = null;
+  };
+
+  // Touch support for mobile
+  const handleTouchStart = (id: number, from: string) => (e: React.TouchEvent) => {
+    if (!allowDrag) return;
+    e.preventDefault();
+    dragged.current = { id, from };
+    (e.target as HTMLElement).classList.add('dragging');
+  };
+  const handleTouchEnd = (to: string) => (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (!dragged.current) return;
+    socket?.emit('move_card', { card_id: dragged.current.id, from: dragged.current.from, to });
+    (e.target as HTMLElement).classList.remove('dragging');
     dragged.current = null;
   };
 
@@ -258,6 +314,7 @@ export default function App() {
         canDrag={Boolean(allowDrag && c && c.id != null)}
         onDragStart={c && c.id != null ? handleDragStart(c.id, 'hand') : undefined}
         onDragEnd={handleDragEnd}
+        onTouchStart={c && c.id != null ? handleTouchStart(c.id, 'hand') : undefined}
       />
     ));
   };
@@ -325,6 +382,9 @@ export default function App() {
                 onDragEnd={handleDragEnd}
                 onDragOver={onDragOver}
                 onDrop={handleDrop}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                gamePhase={game?.phase}
               />
             ))}
           </div>
@@ -341,7 +401,11 @@ export default function App() {
               <span>{(me?.name ?? 'You') + ' (You)'}</span>
               <span className="player-bankroll">${me?.bankroll ?? 1000}</span>
             </div>
-            <div className="player-hand" data-location="hand" onDragOver={onDragOver} onDrop={handleDrop('hand')}>
+            <div className="player-hand" data-location="hand" 
+              onDragOver={onDragOver} 
+              onDrop={handleDrop('hand')}
+              onTouchEnd={(e) => handleTouchEnd('hand')(e)}
+            >
               {renderHand()}
             </div>
           </div>
@@ -367,9 +431,42 @@ export default function App() {
               <div className="modal-content">
                 <h2>Place Your Bet</h2>
                 <p>Your bankroll: ${me?.bankroll ?? 1000}</p>
-                <input className="bet-input" type="number" min={10} max={me?.bankroll ?? 1000} value={betAmount} onChange={e => setBetAmount(parseInt(e.target.value || '0', 10))} />
+                {opponentBet && (
+                  <div className="opponent-bet-info">
+                    <p style={{ color: '#f39c12', fontWeight: 'bold' }}>
+                      Opponent bet: ${opponentBet}
+                    </p>
+                    <p style={{ fontSize: '0.9em', color: '#95a5a6' }}>
+                      You must match this bet to continue
+                    </p>
+                  </div>
+                )}
+                {waitingForOpponent && !opponentBet && (
+                  <p style={{ color: '#3498db' }}>Waiting for opponent to bet...</p>
+                )}
+                <input 
+                  className="bet-input" 
+                  type="number" 
+                  min={opponentBet || 10} 
+                  max={me?.bankroll ?? 1000} 
+                  value={betAmount} 
+                  onChange={e => {
+                    const val = parseInt(e.target.value || '0', 10);
+                    if (!opponentBet || val >= opponentBet) {
+                      setBetAmount(val);
+                    }
+                  }}
+                  disabled={waitingForOpponent && !opponentBet}
+                />
                 <br />
-                <button onClick={placeBet}>Place Bet</button>
+                <button 
+                  onClick={placeBet} 
+                  disabled={(opponentBet && betAmount < opponentBet) || (waitingForOpponent && !opponentBet)}
+                >
+                  {waitingForOpponent && !opponentBet ? 'Waiting...' : 
+                   opponentBet ? `Match Bet ($${betAmount})` : 
+                   `Place Bet ($${betAmount})`}
+                </button>
               </div>
             </div>
           )}

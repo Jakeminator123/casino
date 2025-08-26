@@ -195,7 +195,25 @@ def handle_place_bet(data):
     
     game.pending_bets[player_id] = bet_amount
     
+    # Always emit bet_placed so both players know
+    emit('bet_placed', {
+        'player_id': player_id,
+        'amount': bet_amount
+    }, room=room_id)
+    
     if len(game.pending_bets) == 2:
+        # Check if bets match
+        bets = list(game.pending_bets.values())
+        if bets[0] != bets[1]:
+            # Bets don't match, need to re-bet
+            emit('error', {'message': f'Bets must match! One player bet ${bets[0]}, the other ${bets[1]}. Both need to bet the same amount.'}, room=room_id)
+            # Clear the lower bet, keep the higher as requirement
+            max_bet = max(bets)
+            for pid in list(game.pending_bets.keys()):
+                if game.pending_bets[pid] < max_bet:
+                    del game.pending_bets[pid]
+            return
+            
         if game.place_bets(game.pending_bets):
             game.start_game()
             game.pending_bets = {}
@@ -207,11 +225,6 @@ def handle_place_bet(data):
                                 room=sid)
             
             print(f'🎲 Game started in room {room_id}')
-    else:
-        emit('bet_placed', {
-            'player_id': player_id,
-            'amount': bet_amount
-        }, room=room_id)
 
 @socketio.on('move_card')
 def handle_move_card(data):

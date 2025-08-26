@@ -19,9 +19,12 @@ type BoardProps = {
   onDragEnd: (e: React.DragEvent) => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (to: string) => (e: React.DragEvent) => void;
+  onTouchStart?: (id: number, from: string) => (e: React.TouchEvent) => void;
+  onTouchEnd?: (to: string) => (e: React.TouchEvent) => void;
+  gamePhase?: string;
 };
 
-export default function BoardComponent({ id, board, myPlayerId, allowDrag, onDragStart, onDragEnd, onDragOver, onDrop }: BoardProps) {
+export default function BoardComponent({ id, board, myPlayerId, allowDrag, onDragStart, onDragEnd, onDragOver, onDrop, onTouchStart, onTouchEnd, gamePhase }: BoardProps) {
   if (!board) return null;
   
   const actualType = board.actual_type || board.type;
@@ -51,14 +54,45 @@ export default function BoardComponent({ id, board, myPlayerId, allowDrag, onDra
         Board {id} <span className={`board-type ${cls}`}>{label}</span>
       </div>
       <div className="community-cards">
-        {(board.community || []).map((c, idx) => (
-          <CardView key={idx} card={c} canDrag={false} />
-        ))}
+        {[0, 1, 2, 3, 4].map((idx) => {
+          const c = (board.community || [])[idx];
+          // Turn (idx 3) and River (idx 4) should ALWAYS be hidden until showdown
+          const isTurnOrRiver = idx === 3 || idx === 4;
+          const shouldHideInitially = isTurnOrRiver && !!c && !!c.rank && (gamePhase !== 'showdown' && gamePhase !== 'complete');
+          
+          if (!c) {
+            // If Turn/River not yet dealt, show back design instead of empty white
+            if (isTurnOrRiver) {
+              return <div key={idx} className="card back placeholder" />;
+            }
+            // For flop slots that aren't yet filled (shouldn't happen), keep empty
+            return <div key={idx} className="card empty" />;
+          }
+          
+          return (
+            <CardView 
+              key={idx} 
+              card={c} 
+              canDrag={false}
+              initiallyHidden={shouldHideInitially}
+              cardIndex={idx}
+            />
+          );
+        })}
       </div>
       <div className="player-cards" data-board={id} data-owner="opponent">
-        {oppCards.map((c, idx) => (
-          <CardView key={idx} card={c} canDrag={false} />
-        ))}
+        {oppCards.map((c, idx) => {
+          // Show opponent cards as backs until showdown/complete
+          const hideOpponentCard = gamePhase !== 'showdown' && gamePhase !== 'complete' && c && !c.hidden;
+          return (
+            <CardView 
+              key={idx} 
+              card={c} 
+              canDrag={false}
+              isOpponentCard={hideOpponentCard}
+            />
+          );
+        })}
       </div>
       <div
         className="player-cards"
@@ -66,6 +100,7 @@ export default function BoardComponent({ id, board, myPlayerId, allowDrag, onDra
         data-owner="me"
         onDragOver={onDragOver}
         onDrop={onDrop(`board-${id}`)}
+        onTouchEnd={onTouchEnd?.(`board-${id}`)}
       >
         {myCards.map((c, idx) => (
           <CardView
@@ -74,6 +109,7 @@ export default function BoardComponent({ id, board, myPlayerId, allowDrag, onDra
             canDrag={Boolean(allowDrag && c && c.id != null)}
             onDragStart={c && c.id != null ? onDragStart(c.id, `board-${id}`) : undefined}
             onDragEnd={onDragEnd}
+            onTouchStart={c && c.id != null ? onTouchStart?.(c.id, `board-${id}`) : undefined}
           />
         ))}
       </div>
