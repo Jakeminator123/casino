@@ -26,6 +26,11 @@ echo.
 echo    Starting LOCAL game server...
 echo    ────────────────────────────────────────────────
 echo.
+echo    Building React frontend...
+pushd frontend\app
+call npm install --no-fund --no-audit >nul 2>&1
+call npm run build >nul 2>&1
+popd
 cd backend
 echo    Checking dependencies...
 pip install -r requirements.txt >nul 2>&1
@@ -64,6 +69,11 @@ echo.
 echo    Starting ONLINE game server...
 echo    ────────────────────────────────────────────────
 echo.
+echo    Building React frontend...
+pushd frontend\app
+call npm install --no-fund --no-audit >nul 2>&1
+call npm run build >nul 2>&1
+popd
 cd backend
 echo    Checking dependencies...
 pip install -r requirements.txt >nul 2>&1

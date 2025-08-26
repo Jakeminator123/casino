@@ -4,7 +4,7 @@ services:
     env: python
     region: frankfurt  # Change to your preferred region
     plan: free  # Start with free tier
-    buildCommand: "pip install -r eight_cards_poker/backend/requirements.txt"
+    buildCommand: "pip install -r eight_cards_poker/backend/requirements.txt && cd eight_cards_poker/frontend/app && npm ci && npm run build"
     startCommand: "cd eight_cards_poker/backend && python app.py"
     envVars:
       - key: PORT

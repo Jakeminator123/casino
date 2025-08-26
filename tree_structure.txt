@@ -1,0 +1,31 @@
+casino
+├── .gitignore
+├── casino.code-workspace
+├── eight_cards_poker
+│   ├── .gitignore
+│   ├── backend
+│   │   ├── __pycache__
+│   │   │   └── game_engine.cpython-312.pyc
+│   │   ├── app.py
+│   │   ├── app_simple.py
+│   │   ├── game_engine.py
+│   │   ├── old
+│   │   └── requirements.txt
+│   ├── frontend
+│   │   └── index.html
+│   ├── info
+│   │   ├── 1.jpg
+│   │   ├── 2.jpg
+│   │   ├── 3.jpg
+│   │   ├── eight_cards_poker_rules_advanced.txt
+│   │   ├── eight_cards_poker_rules_simple.txt
+│   │   └── structure.txt
+│   ├── ngrok.exe
+│   ├── old
+│   ├── START_GAME.bat
+│   ├── start_multiplayer.bat
+│   ├── start_multiplayer_ngrok.bat
+│   └── TROUBLESHOOTING.txt
+├── render.yaml
+├── tree_structure.txt
+└── tree_v2.py

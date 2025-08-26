@@ -17,7 +17,7 @@ import random
 import string
 from typing import Dict
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'frontend', 'app', 'dist'))
 app.config['SECRET_KEY'] = 'dev-secret-key-simple'
 
 # Maximum CORS compatibility
@@ -25,13 +25,13 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Use threading mode - no eventlet needed!
 socketio = SocketIO(
-    app, 
+    app,
     cors_allowed_origins="*",
     async_mode='threading',
     ping_timeout=60,
     ping_interval=25,
-    logger=True,
-    engineio_logger=True
+    logger=False,
+    engineio_logger=False
 )
 
 # Store active game rooms
@@ -43,11 +43,32 @@ def generate_room_id() -> str:
     """Generate a random 6-character room ID"""
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
+@app.after_request
+def add_no_cache_headers(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 @app.route('/')
 def index():
-    """Serve the game client"""
-    frontend_path = os.path.join(os.path.dirname(__file__), '..', 'frontend')
-    return send_from_directory(frontend_path, 'index.html')
+    """Serve the game client (built React app in prod)"""
+    dist_path = app.static_folder
+    index_path = os.path.join(dist_path, 'index.html')
+    if os.path.exists(index_path):
+        return send_from_directory(dist_path, 'index.html')
+    # fallback to legacy static
+    legacy_frontend = os.path.join(os.path.dirname(__file__), '..', 'frontend')
+    return send_from_directory(legacy_frontend, 'index.html')
+
+@app.route('/assets/<path:path>')
+def serve_assets(path):
+    """Serve built assets from Vite prod build"""
+    dist_assets = os.path.join(app.static_folder, 'assets')
+    if os.path.exists(dist_assets):
+        return send_from_directory(dist_assets, path)
+    legacy_static = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'static')
+    return send_from_directory(legacy_static, path)
 
 @app.route('/health')
 def health():
