@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: eight-cards-poker
+    env: python
+    region: frankfurt  # Change to your preferred region
+    plan: free  # Start with free tier
+    buildCommand: "pip install -r eight_cards_poker/backend/requirements.txt"
+    startCommand: "cd eight_cards_poker/backend && python app.py"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.11

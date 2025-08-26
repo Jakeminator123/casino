@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eight Cards Poker - Multiplayer v2.0</title>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 2.5rem;
+        }
+
+        /* Lobby/Menu Styles */
+        .lobby {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .lobby h2 {
+            margin-bottom: 30px;
+        }
+
+        .lobby-input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: none;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .lobby-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .lobby-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .room-code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .room-code-display {
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: #f39c12;
+        }
+
+        /* Game Styles */
+        .game-container {
+            width: 100%;
+            max-width: 1400px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            display: none;
+        }
+
+        .boards-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .board {
+            background: rgba(0, 100, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            min-width: 350px;
+            flex: 1;
+            position: relative;
+        }
+
+        .board-header {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .board-type {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        .board-type.nlhe {
+            background: #3498db;
+        }
+
+        .board-type.plo {
+            background: #e74c3c;
+        }
+
+        .board-type.pending {
+            background: #95a5a6;
+        }
+
+        .community-cards {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            min-height: 90px;
+        }
+        
+        .player-cards {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            min-height: 90px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .player-cards.active {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .player-cards.drag-over {
+            background: rgba(243, 156, 18, 0.3);
+            border-color: #f39c12;
+        }
+
+        .card {
+            width: 60px;
+            height: 85px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            user-select: none;
+        }
+
+        .card.draggable {
+            cursor: grab;
+        }
+
+        .card.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .card:hover.draggable {
+            transform: translateY(-10px) scale(1.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .card.red {
+            color: #e74c3c;
+        }
+
+        .card.black {
+            color: #2c3e50;
+        }
+
+        .card.back {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: transparent;
+            cursor: default;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.3), 0 4px 8px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .card.back::after {
+            content: '';
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            border-radius: 6px;
+            top: 15%;
+            left: 15%;
+            background: repeating-linear-gradient(45deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 6px, rgba(0,0,0,0.05) 6px, rgba(0,0,0,0.05) 12px);
+        }
+
+        .player-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .player-header {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-bankroll {
+            font-size: 1rem;
+            color: #f39c12;
+        }
+
+        .player-hand {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            min-height: 100px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .player-hand.active {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .player-hand.drag-over {
+            background: rgba(52, 152, 219, 0.3);
+            border-color: #3498db;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .info-panel {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .pot-info {
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 10px;
+        }
+
+        .phase-indicator {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+        }
+
+        .chat-messages {
+            height: 200px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        .status-connected {
+            background: #2ecc71;
+        }
+
+        .status-waiting {
+            background: #f39c12;
+        }
+
+        .status-disconnected {
+            background: #e74c3c;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .bet-input {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1.1rem;
+            margin: 10px;
+            width: 150px;
+            text-align: center;
+        }
+
+        /* Showdown animations and result styles */
+        .card-reveal {
+            animation: flipIn 0.6s ease;
+        }
+
+        @keyframes flipIn {
+            0% {
+                transform: rotateY(90deg) scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: rotateY(45deg) scale(0.9);
+            }
+            100% {
+                transform: rotateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .result-board {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+
+        .result-board.winner {
+            border: 2px solid #2ecc71;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.3);
+            background: rgba(46, 204, 113, 0.1);
+        }
+
+        .result-board h3 {
+            margin-bottom: 10px;
+            color: #f39c12;
+        }
+
+        .sweep-banner {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.8rem;
+            font-weight: bold;
+            animation: pulse 2s infinite, slideIn 0.5s ease;
+            text-align: center;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 0 20px rgba(243, 156, 18, 0.4);
+            }
+            50% { 
+                transform: scale(1.05); 
+                box-shadow: 0 0 40px rgba(243, 156, 18, 0.6);
+            }
+        }
+
+        #results {
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+
+        #results.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🎰 Eight Cards Poker - Multiplayer 🎰</h1>
+    
+    <!-- Lobby Screen -->
+    <div class="lobby" id="lobby">
+        <h2>Welcome to Eight Cards Poker</h2>
+        
+        <input type="text" id="player-name" class="lobby-input" placeholder="Enter your name" value="Player">
+        
+        <div style="margin: 30px 0;">
+            <button class="lobby-button" onclick="createRoom()">Create New Room</button>
+            <div style="margin: 20px 0; color: rgba(255,255,255,0.5);">— OR —</div>
+            <input type="text" id="join-room-code" class="lobby-input" placeholder="Enter Room Code" maxlength="6" style="text-transform: uppercase;">
+            <button class="lobby-button" onclick="joinRoom()">Join Room</button>
+        </div>
+        
+        <div class="room-code" id="room-info" style="display: none;">
+            <p>Share this code with your opponent:</p>
+            <div class="room-code-display" id="room-code"></div>
+            <p id="waiting-message" style="margin-top: 15px; color: #f39c12;">Waiting for opponent...</p>
+        </div>
+    </div>
+    
+    <!-- Game Screen -->
+    <div class="game-container" id="game">
+        <div class="info-panel">
+            <div class="pot-info">POT: $<span id="pot-amount">0</span></div>
+            <div class="phase-indicator">
+                <span id="phase">Waiting to start</span>
+                <span class="status-indicator status-connected" id="connection-status"></span>
+            </div>
+            <div>Room: <span id="game-room-code" style="font-weight: bold;"></span></div>
+        </div>
+
+        <div class="boards-container">
+            <div class="board" id="board-A" data-board="A">
+                <div class="board-header">
+                    Board A
+                    <span class="board-type pending" id="type-A">?</span>
+                </div>
+                <div class="community-cards" id="community-A"></div>
+                <div class="player-cards" id="opponent-cards-A" data-board="A" data-owner="opponent"></div>
+                <div class="player-cards" id="my-cards-A" data-board="A" data-owner="me"></div>
+            </div>
+            
+            <div class="board" id="board-B" data-board="B">
+                <div class="board-header">
+                    Board B
+                    <span class="board-type pending" id="type-B">?</span>
+                </div>
+                <div class="community-cards" id="community-B"></div>
+                <div class="player-cards" id="opponent-cards-B" data-board="B" data-owner="opponent"></div>
+                <div class="player-cards" id="my-cards-B" data-board="B" data-owner="me"></div>
+            </div>
+            
+            <div class="board" id="board-C" data-board="C">
+                <div class="board-header">
+                    Board C
+                    <span class="board-type pending" id="type-C">?</span>
+                </div>
+                <div class="community-cards" id="community-C"></div>
+                <div class="player-cards" id="opponent-cards-C" data-board="C" data-owner="opponent"></div>
+                <div class="player-cards" id="my-cards-C" data-board="C" data-owner="me"></div>
+            </div>
+        </div>
+
+        <div class="player-section">
+            <div class="player-header">
+                <span id="opponent-name">Opponent</span>
+                <span class="player-bankroll">$<span id="opponent-bankroll">1000</span></span>
+            </div>
+        </div>
+
+        <div class="player-section">
+            <div class="player-header">
+                <span id="my-name">You</span>
+                <span class="player-bankroll">$<span id="my-bankroll">1000</span></span>
+            </div>
+            <div class="player-hand" id="my-hand" data-location="hand"></div>
+        </div>
+
+        <div class="controls">
+            <button id="confirm-btn" onclick="confirmPlacement()" style="display:none">Confirm Placement</button>
+            <button id="rematch-btn" onclick="requestRematch()" style="display:none">Play Again</button>
+        </div>
+        
+        <div id="results" style="display: none;"></div>
+    </div>
+
+    <!-- Betting Modal -->
+    <div class="modal" id="bet-modal">
+        <div class="modal-content">
+            <h2>Place Your Bet</h2>
+            <p>Your bankroll: $<span id="bet-bankroll">1000</span></p>
+            <input type="number" id="bet-amount" class="bet-input" min="10" max="1000" value="50">
+            <br>
+            <button onclick="placeBet()">Place Bet</button>
+        </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-container" id="chat" style="display: none;">
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="Type message..." onkeypress="handleChatKey(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let socket = null;
+        let myPlayerId = null;
+        let currentRoomId = null;
+        let gameState = null;
+        let draggedCard = null;
+        let draggedFrom = null;
+
+        // Card suits
+        const SUITS = {'c': '♣', 'd': '♦', 'h': '♥', 's': '♠'};
+        const SUIT_COLORS = {'♣': 'black', '♦': 'red', '♥': 'red', '♠': 'black'};
+
+        // Initialize Socket.IO
+        function initSocket() {
+            console.log('Eight Cards Poker v2.0 - Enhanced with winner hands display');
+            // Connect to backend - works with localhost, ngrok, or deployed
+            const backendUrl = window.location.origin;
+            
+            socket = io(backendUrl, {
+                transports: ['websocket', 'polling'],
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000
+            });
+
+            socket.on('connected', (data) => {
+                console.log('Connected:', data.session_id);
+                document.getElementById('connection-status').className = 'status-indicator status-connected';
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected');
+                document.getElementById('connection-status').className = 'status-indicator status-disconnected';
+            });
+
+            socket.on('room_created', (data) => {
+                currentRoomId = data.room_id;
+                myPlayerId = data.player_id;
+                document.getElementById('room-code').textContent = currentRoomId;
+                document.getElementById('room-info').style.display = 'block';
+            });
+
+            socket.on('room_joined', (data) => {
+                currentRoomId = data.room_id;
+                myPlayerId = data.player_id;
+                showGame();
+            });
+
+            socket.on('player_joined', (data) => {
+                if (data.player_id !== myPlayerId) {
+                    document.getElementById('waiting-message').style.display = 'none';
+                    addChatMessage('System', `${data.player_name} joined the room`);
+                }
+            });
+
+            socket.on('player_left', (data) => {
+                addChatMessage('System', 'Opponent disconnected');
+            });
+
+            socket.on('ready_to_bet', () => {
+                showBettingModal();
+            });
+
+            socket.on('bet_placed', (data) => {
+                if (data.player_id !== myPlayerId) {
+                    addChatMessage('System', `Opponent bet $${data.amount}`);
+                }
+            });
+
+            socket.on('game_started', (data) => {
+                gameState = data;
+                showGame();
+                renderGame();
+                document.getElementById('bet-modal').classList.remove('show');
+            });
+
+            socket.on('game_state', (data) => {
+                console.log('Received game state:', data);
+                gameState = data;
+                renderGame();
+            });
+
+            socket.on('showdown_results', (data) => {
+                console.log('Showdown results received:', data);
+                // Animate reveal of turn and river, then show results
+                animateShowdown(data);
+            });
+
+            socket.on('error', (data) => {
+                console.error('Server error:', data);
+                alert('Error: ' + data.message);
+            });
+
+            socket.on('chat_message', (data) => {
+                addChatMessage(data.player_name, data.message);
+            });
+
+            socket.on('rematch_requested', (data) => {
+                if (data.player_id !== myPlayerId) {
+                    addChatMessage('System', 'Opponent wants a rematch!');
+                }
+            });
+
+            socket.on('ready_to_bet', () => {
+                // Reset for new game
+                document.getElementById('results').style.display = 'none';
+                document.getElementById('rematch-btn').style.display = 'none';
+                showBettingModal();
+            });
+        }
+
+        // Lobby functions
+        function createRoom() {
+            const playerName = document.getElementById('player-name').value || 'Player';
+            socket.emit('create_room', { player_name: playerName });
+        }
+
+        function joinRoom() {
+            const playerName = document.getElementById('player-name').value || 'Player';
+            const roomCode = document.getElementById('join-room-code').value.toUpperCase();
+            
+            if (roomCode.length !== 6) {
+                alert('Please enter a valid 6-character room code');
+                return;
+            }
+            
+            socket.emit('join_room', { 
+                room_id: roomCode,
+                player_name: playerName 
+            });
+        }
+
+        function showGame() {
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            document.getElementById('chat').style.display = 'block';
+            document.getElementById('game-room-code').textContent = currentRoomId;
+            setupDragAndDrop();
+        }
+
+        function showBettingModal() {
+            const bankroll = gameState?.players[myPlayerId]?.bankroll || 1000;
+            document.getElementById('bet-bankroll').textContent = bankroll;
+            document.getElementById('bet-amount').max = bankroll;
+            document.getElementById('bet-amount').value = Math.min(50, bankroll);
+            document.getElementById('bet-modal').classList.add('show');
+        }
+
+        function placeBet() {
+            const amount = parseInt(document.getElementById('bet-amount').value);
+            socket.emit('place_bet', { amount });
+        }
+
+        // Rendering
+        function renderGame() {
+            if (!gameState) return;
+
+            // Update pot and phase
+            document.getElementById('pot-amount').textContent = gameState.pot;
+            document.getElementById('phase').textContent = getPhaseText(gameState.phase);
+
+            // Update players
+            const me = gameState.players[myPlayerId];
+            const opponent = gameState.players[myPlayerId === 1 ? 2 : 1];
+            
+            if (me) {
+                document.getElementById('my-name').textContent = me.name + ' (You)';
+                document.getElementById('my-bankroll').textContent = me.bankroll;
+                renderHand(me.hand);
+            }
+            
+            if (opponent) {
+                document.getElementById('opponent-name').textContent = opponent.name;
+                document.getElementById('opponent-bankroll').textContent = opponent.bankroll;
+            }
+
+            // Render boards
+            ['A', 'B', 'C'].forEach(boardId => {
+                renderBoard(boardId);
+            });
+
+            // Show/hide controls
+            updateControls();
+        }
+
+        function renderBoard(boardId) {
+            const board = gameState.boards[boardId];
+            if (!board) return;
+
+            // Update type - handle mixed PLO/NL cases
+            const typeEl = document.getElementById(`type-${boardId}`);
+            const actualType = board.actual_type || board.type;
+            
+            if (actualType === 'both_plo' || board.type === 'plo') {
+                typeEl.textContent = 'PLO';
+                typeEl.className = 'board-type plo';
+            } else if (actualType === 'p1_plo') {
+                typeEl.textContent = 'P1:PLO';
+                typeEl.className = 'board-type plo';
+                typeEl.title = 'Player 1: PLO, Player 2: NL';
+            } else if (actualType === 'p2_plo') {
+                typeEl.textContent = 'P2:PLO';
+                typeEl.className = 'board-type plo';
+                typeEl.title = 'Player 1: NL, Player 2: PLO';
+            } else if (board.type === 'nlhe') {
+                typeEl.textContent = 'NLHE';
+                typeEl.className = 'board-type nlhe';
+            } else {
+                typeEl.textContent = '?';
+                typeEl.className = 'board-type pending';
+            }
+
+            // Render community cards
+            const communityDiv = document.getElementById(`community-${boardId}`);
+            communityDiv.innerHTML = '';
+            if (board.community && board.community.length > 0) {
+                board.community.forEach(card => {
+                    if (card) {
+                        communityDiv.appendChild(createCardElement(card, false));
+                    }
+                });
+            }
+
+            // Render player cards - with safety checks
+            const myCards = myPlayerId === 1 ? board.p1_cards : board.p2_cards;
+            const opponentCards = myPlayerId === 1 ? board.p2_cards : board.p1_cards;
+
+            const myCardsDiv = document.getElementById(`my-cards-${boardId}`);
+            if (myCardsDiv) {
+                myCardsDiv.innerHTML = '';
+                if (myCards && Array.isArray(myCards)) {
+                    myCards.forEach(card => {
+                        if (card && !card.hidden) {
+                            const cardEl = createCardElement(card, true, `board-${boardId}`);
+                            myCardsDiv.appendChild(cardEl);
+                        }
+                    });
+                }
+            }
+
+            const opponentCardsDiv = document.getElementById(`opponent-cards-${boardId}`);
+            if (opponentCardsDiv) {
+                opponentCardsDiv.innerHTML = '';
+                if (opponentCards && Array.isArray(opponentCards)) {
+                    opponentCards.forEach(card => {
+                        if (card) {
+                            if (card.hidden) {
+                                opponentCardsDiv.appendChild(createBackCard());
+                            } else {
+                                opponentCardsDiv.appendChild(createCardElement(card, false));
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        function renderHand(cards) {
+            const handDiv = document.getElementById('my-hand');
+            handDiv.innerHTML = '';
+            
+            if (!cards || cards.length === 0) {
+                handDiv.innerHTML = '<div style="color: rgba(255,255,255,0.3);">Your cards will appear here</div>';
+                return;
+            }
+
+            cards.forEach(card => {
+                const cardEl = createCardElement(card, true, 'hand');
+                handDiv.appendChild(cardEl);
+            });
+        }
+
+        function createCardElement(card, draggable, location) {
+            if (!card) {
+                console.warn('Tried to create card element with null card');
+                return document.createElement('div');
+            }
+            
+            const div = document.createElement('div');
+            const suitSymbol = SUITS[card.suit] || '?';
+            const color = SUIT_COLORS[suitSymbol] || 'black';
+            
+            div.className = `card ${color}`;
+            div.textContent = `${card.rank || '?'}${suitSymbol}`;
+            div.dataset.cardId = card.id !== undefined ? card.id : -1;
+            div.dataset.location = location || 'unknown';
+            
+            if (draggable && gameState && gameState.phase === 'placing' && gameState.current_player === myPlayerId) {
+                div.classList.add('draggable');
+                div.draggable = true;
+                div.addEventListener('dragstart', handleDragStart);
+                div.addEventListener('dragend', handleDragEnd);
+            }
+            
+            return div;
+        }
+
+        function createBackCard() {
+            const div = document.createElement('div');
+            div.className = 'card back';
+            return div;
+        }
+
+        // Drag and Drop
+        function setupDragAndDrop() {
+            // Setup board drop zones
+            ['A', 'B', 'C'].forEach(boardId => {
+                const dropZone = document.getElementById(`my-cards-${boardId}`);
+                if (!dropZone) {
+                    console.warn(`Drop zone not found: my-cards-${boardId}`);
+                    return;
+                }
+                
+                dropZone.addEventListener('dragover', (e) => {
+                    if (gameState?.phase !== 'placing') return;
+                    if (gameState?.current_player !== myPlayerId) return;
+                    
+                    e.preventDefault();
+                    dropZone.classList.add('drag-over');
+                });
+                
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('drag-over');
+                });
+                
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('drag-over');
+                    handleDrop(e, `board-${boardId}`);
+                });
+            });
+
+            // Setup hand drop zone
+            const handZone = document.getElementById('my-hand');
+            if (!handZone) {
+                console.warn('Hand zone not found');
+                return;
+            }
+            
+            handZone.addEventListener('dragover', (e) => {
+                if (gameState?.phase !== 'placing') return;
+                if (gameState?.current_player !== myPlayerId) return;
+                if (!draggedFrom || !draggedFrom.includes('board')) return;
+                
+                e.preventDefault();
+                handZone.classList.add('drag-over');
+            });
+            
+            handZone.addEventListener('dragleave', () => {
+                handZone.classList.remove('drag-over');
+            });
+            
+            handZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                handZone.classList.remove('drag-over');
+                handleDrop(e, 'hand');
+            });
+        }
+
+        function handleDragStart(e) {
+            const cardId = e.target.dataset.cardId;
+            const location = e.target.dataset.location;
+            
+            console.log('Drag start - Card ID:', cardId, 'From:', location);
+            
+            if (cardId === undefined || location === undefined) {
+                console.error('Missing card ID or location in drag start');
+                e.preventDefault();
+                return;
+            }
+            
+            draggedCard = parseInt(cardId);
+            draggedFrom = location;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            draggedCard = null;
+            draggedFrom = null;
+        }
+
+        function handleDrop(e, to) {
+            if (draggedCard === null || draggedCard === undefined || !draggedFrom) {
+                console.log('Drop cancelled - no card or source');
+                return;
+            }
+            
+            console.log(`Moving card ${draggedCard} from ${draggedFrom} to ${to}`);
+            
+            socket.emit('move_card', {
+                card_id: draggedCard,
+                from: draggedFrom,
+                to: to
+            });
+            
+            // Clear drag state
+            draggedCard = null;
+            draggedFrom = null;
+        }
+
+        // Controls
+        function updateControls() {
+            const confirmBtn = document.getElementById('confirm-btn');
+            const rematchBtn = document.getElementById('rematch-btn');
+            
+            if (gameState?.phase === 'placing' && gameState?.current_player === myPlayerId) {
+                // Check if placement is valid
+                const totalPlaced = ['A', 'B', 'C'].reduce((sum, boardId) => {
+                    const board = gameState.boards[boardId];
+                    const cards = myPlayerId === 1 ? board.p1_cards : board.p2_cards;
+                    return sum + cards.length;
+                }, 0);
+                
+                if (totalPlaced === 8) {
+                    confirmBtn.style.display = 'inline-block';
+                } else {
+                    confirmBtn.style.display = 'none';
+                }
+            } else {
+                confirmBtn.style.display = 'none';
+            }
+            
+            if (gameState?.phase === 'complete') {
+                rematchBtn.style.display = 'inline-block';
+            } else {
+                rematchBtn.style.display = 'none';
+            }
+        }
+
+        function confirmPlacement() {
+            socket.emit('confirm_placement', {});
+        }
+
+        function requestRematch() {
+            // Hide results and reset UI
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('rematch-btn').style.display = 'none';
+            document.getElementById('phase').textContent = 'Requesting rematch...';
+            
+            // Clear any remaining cards from UI
+            ['A', 'B', 'C'].forEach(boardId => {
+                const myDiv = document.getElementById(`my-cards-${boardId}`);
+                const oppDiv = document.getElementById(`opponent-cards-${boardId}`);
+                if (myDiv) myDiv.innerHTML = '';
+                if (oppDiv) oppDiv.innerHTML = '';
+            });
+            
+            const handDiv = document.getElementById('my-hand');
+            if (handDiv) handDiv.innerHTML = '<div style="color: rgba(255,255,255,0.3);">Waiting for new game...</div>';
+            
+            socket.emit('request_rematch', {});
+        }
+
+        function getPhaseText(phase) {
+            switch(phase) {
+                case 'waiting': return 'Waiting for players';
+                case 'betting': return 'Place your bets';
+                case 'placing': return gameState?.current_player === myPlayerId ? 'Your turn - Place your cards' : 'Opponent is placing cards';
+                case 'showdown': return 'Showdown!';
+                case 'complete': return 'Game complete';
+                default: return phase;
+            }
+        }
+
+        function animateShowdown(results) {
+            // First, ensure we're in showdown phase
+            document.getElementById('phase').textContent = 'Revealing cards...';
+            document.getElementById('confirm-btn').style.display = 'none';
+            
+            // Animate the reveal of remaining community cards
+            let delay = 0;
+            const boards = ['A', 'B', 'C'];
+            
+            // Prepare: show backs for turn and river before flipping
+            boards.forEach(boardId => {
+                const communityDiv = document.getElementById(`community-${boardId}`);
+                if (!communityDiv) return;
+                const cards = communityDiv.querySelectorAll('.card');
+                if (cards[3] && !cards[3].classList.contains('back')) {
+                    cards[3].classList.add('back');
+                }
+                if (cards[4] && !cards[4].classList.contains('back')) {
+                    cards[4].classList.add('back');
+                }
+            });
+            
+            boards.forEach((boardId, index) => {
+                setTimeout(() => {
+                    // Add animation class to community cards
+                    const communityDiv = document.getElementById(`community-${boardId}`);
+                    const cards = communityDiv.querySelectorAll('.card');
+                    
+                    // Prepare and flip opponent hole cards on this board
+                    const oppDiv = document.getElementById(`opponent-cards-${boardId}`);
+                    if (oppDiv) {
+                        const oppCards = oppDiv.querySelectorAll('.card');
+                        oppCards.forEach(c => c.classList.add('back'));
+                    }
+                    
+                    // Animate turn (4th card)
+                    if (cards[3]) {
+                        cards[3].classList.remove('back');
+                        cards[3].classList.add('card-reveal');
+                    }
+                    
+                    // Animate river (5th card) after a delay
+                    setTimeout(() => {
+                        if (cards[4]) {
+                            cards[4].classList.remove('back');
+                            cards[4].classList.add('card-reveal');
+                        }
+                        // Flip opponent cards shortly after river
+                        if (oppDiv) {
+                            const oppCards = Array.from(oppDiv.querySelectorAll('.card'));
+                            oppCards.forEach((c, i) => {
+                                setTimeout(() => {
+                                    c.classList.remove('back');
+                                    c.classList.add('card-reveal');
+                                }, i * 150);
+                            });
+                        }
+                    }, 600);
+                    
+                }, delay);
+                delay += 1200; // 1.2 seconds between boards
+            });
+            
+            // Show final results after all cards revealed
+            setTimeout(() => {
+                // Make sure results container is visible before rendering
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.style.display = 'block';
+                showFinalResults(results);
+            }, delay + 1000);
+        }
+        
+        function showFinalResults(data) {
+            console.log('ShowFinalResults data:', data);  // Debug logging
+            document.getElementById('phase').textContent = 'Game Complete!';
+            
+            const resultsDiv = document.getElementById('results');
+            // ensure visible
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '';
+            
+            // Check for sweep bonus
+            if (data.sweep_bonus) {
+                const sweepDiv = document.createElement('div');
+                sweepDiv.className = 'sweep-banner';
+                const winner = data.p1_total > data.p2_total ? 'Player 1' : 'Player 2';
+                sweepDiv.innerHTML = `🎉 ${winner} SWEEPS ALL BOARDS! 2X POT BONUS! 🎉`;
+                resultsDiv.appendChild(sweepDiv);
+            }
+            
+            // Title
+            const title = document.createElement('h2');
+            title.style.textAlign = 'center';
+            title.style.marginTop = '20px';
+            title.textContent = '🏆 Showdown Results 🏆';
+            resultsDiv.appendChild(title);
+            
+            // Show results for each board
+            data.results.forEach(result => {
+                const boardDiv = document.createElement('div');
+                boardDiv.className = 'result-board';
+                if (result.winner === myPlayerId) {
+                    boardDiv.classList.add('winner');
+                }
+                
+                // Determine board type display (handles mixed PLO/NL cases)
+                let boardTypeDisplay = result.type.toUpperCase();
+                if (result.type.includes('p1_plo') || result.type.includes('p2_plo')) {
+                    boardTypeDisplay = `P1: ${result.p1_type || 'NL'} vs P2: ${result.p2_type || 'NL'}`;
+                } else if (result.type === 'both_plo') {
+                    boardTypeDisplay = 'PLO';
+                }
+                
+                // Winner display with winning hand
+                let winnerText = '';
+                if (result.winner === 1) {
+                    winnerText = `✅ Player 1 Wins with ${result.winner_hand}!`;
+                } else if (result.winner === 2) {
+                    winnerText = `✅ Player 2 Wins with ${result.winner_hand}!`;
+                } else {
+                    winnerText = `🤝 Split Pot! (${result.winner_hand})`;
+                }
+                
+                boardDiv.innerHTML = `
+                    <h3>Board ${result.board} (${boardTypeDisplay}) - Pot: $${result.pot}</h3>
+                    <p><strong>Player 1 (${result.p1_type || 'NL'}):</strong> ${result.p1_hand}</p>
+                    <p><strong>Player 2 (${result.p2_type || 'NL'}):</strong> ${result.p2_hand}</p>
+                    <p style="font-size: 1.2rem; color: ${result.winner === 1 ? '#2ecc71' : result.winner === 2 ? '#e74c3c' : '#f39c12'}; font-weight: bold;">
+                        ${winnerText}
+                    </p>
+                `;
+                
+                resultsDiv.appendChild(boardDiv);
+            });
+            
+            // Final totals
+            const totalsDiv = document.createElement('div');
+            totalsDiv.style.cssText = 'display: flex; justify-content: space-around; margin: 30px 0; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 15px;';
+            
+            const p1Won = data.p1_total > data.p2_total;
+            const p2Won = data.p2_total > data.p1_total;
+            
+            totalsDiv.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 2.5rem; font-weight: bold; color: ${p1Won ? '#2ecc71' : '#fff'}">
+                        $${data.p1_total}
+                    </div>
+                    <div style="font-size: 1.1rem; margin-top: 10px;">Player 1 ${p1Won ? '🏆' : ''}</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2.5rem; font-weight: bold; color: ${p2Won ? '#2ecc71' : '#fff'}">
+                        $${data.p2_total}
+                    </div>
+                    <div style="font-size: 1.1rem; margin-top: 10px;">Player 2 ${p2Won ? '🏆' : ''}</div>
+                </div>
+            `;
+            
+            resultsDiv.appendChild(totalsDiv);
+            
+            // Overall winner
+            const winnerDiv = document.createElement('div');
+            winnerDiv.style.cssText = 'text-align: center; font-size: 1.8rem; margin: 20px 0; font-weight: bold;';
+            
+            if (p1Won) {
+                winnerDiv.innerHTML = '🎉 Player 1 Wins the Game! 🎉';
+                winnerDiv.style.color = '#2ecc71';
+            } else if (p2Won) {
+                winnerDiv.innerHTML = '🎉 Player 2 Wins the Game! 🎉';
+                winnerDiv.style.color = '#2ecc71';
+            } else {
+                winnerDiv.innerHTML = '🤝 It\'s a Tie!';
+                winnerDiv.style.color = '#f39c12';
+            }
+            
+            resultsDiv.appendChild(winnerDiv);
+            
+            // Update bankrolls
+            if (data.final_bankrolls) {
+                document.getElementById('my-bankroll').textContent = 
+                    data.final_bankrolls[myPlayerId];
+                document.getElementById('opponent-bankroll').textContent = 
+                    data.final_bankrolls[myPlayerId === 1 ? 2 : 1];
+            }
+            
+            // Show results
+            resultsDiv.classList.add('show');
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Show rematch button
+            document.getElementById('rematch-btn').style.display = 'inline-block';
+        }
+
+        // Chat
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                socket.emit('send_message', { message });
+                input.value = '';
+            }
+        }
+
+        function handleChatKey(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function addChatMessage(sender, message) {
+            const chatDiv = document.getElementById('chat-messages');
+            const msgEl = document.createElement('div');
+            msgEl.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            chatDiv.appendChild(msgEl);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        // Initialize
+        window.onload = () => {
+            initSocket();
+        };
+    </script>
+</body>
+</html>

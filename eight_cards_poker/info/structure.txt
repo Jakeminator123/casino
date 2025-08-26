@@ -1,0 +1,51 @@
+När jag är klar med html-testversion så ska react byggas. me innan dess kan det vara bra för AI-agenten att hå koll på "ungefär" 
+hur jag vill att min mappstruktur ska vara.
+
+-------
+
+eight_cards_poker/
+├─ pyproject.toml                # (valfritt) paketmetadata/dep (poetry/pdm) eller requirements.txt
+├─ requirements.txt              # fastapi, uvicorn (senare), rich (om du vill), etc.
+├─ README.md
+│
+├─ engine/                       # 🔧 Ren spelmotor (ingen print/IO)
+│  ├─ __init__.py
+│  ├─ cards.py                   # Card, Deck
+│  ├─ rules.py                   # Evaluator (NLHE/PLO), handranking
+│  ├─ domain.py                  # Player, Board, GameState, konstanter
+│  ├─ events.py                  # Event-typer, datamodeller (pydantic/dataclass)
+│  ├─ engine.py                  # State machine + valideringar + event-emission
+│  └─ config.py                  # Konfigflaggor (burn, odd chips rule, seed, etc.)
+│
+├─ adapters/                     # 🔌 “Ports & Adapters” – olika I/O-lager
+│  ├─ __init__.py
+│  ├─ cli/
+│  │  ├─ __init__.py
+│  │  └─ main.py                 # Dagens ASCII/CLI (använder engine.events som input/output)
+│  ├─ ws/                        # (senare) WebSocket/HTTP API
+│  │  ├─ __init__.py
+│  │  ├─ server.py               # FastAPI/Starlette app, exponerar /state och ws:/events
+│  │  └─ schemas.py              # Pydantic-scheman för JSON över nätet (återanvänder engine.events)
+│  └─ storage/                   # (valfritt) logger/replay, filpersistens
+│     ├─ __init__.py
+│     └─ recorder.py             # Spara eventloggar för replay/tester
+│
+├─ tests/                        # ✅ Enhetstester
+│  ├─ __init__.py
+│  ├─ test_rules.py              # evaluator-test (NLHE/PLO)
+│  ├─ test_assignment.py         # 2/2/4-validering
+│  └─ test_runout.py             # runout & pottfördelning
+│
+└─ frontend/                     # (senare) React-klient – separerat från motorn
+   ├─ package.json
+   ├─ vite.config.ts
+   ├─ src/
+   │  ├─ main.tsx
+   │  ├─ App.tsx
+   │  ├─ api.ts                  # ansluter till ws://localhost:8000/events & GET /state
+   │  ├─ types.ts                # delar Event- och State-typer (samma form som backend JSON)
+   │  └─ components/
+   │     ├─ Board.tsx
+   │     ├─ PlayerPanel.tsx
+   │     └─ PotSummary.tsx
+   └─ public/

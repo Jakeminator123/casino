@@ -1,0 +1,227 @@
+# Eight Cards Poker – Spelspec & Motor-API (MVP)
+
+> **Version:** 0.1 (tolkning av Jakobs bilder + text)
+> **Syfte:** Bygga en *headless* spelmotor som går att testa i CMD. Frontend (React) kopplas på senare via event-ström/websocket.
+
+---
+
+## Kort översikt
+
+* Två spelare får **8 privata kort** var från **en enda 52-kortslek**.
+* Det finns **tre separata brädor** (Board A, B, C).
+  Vid start vänds **endast floppen** (3 kort) upp på alla tre brädor.
+  Turn och river för varje bräda hålls dolda tills *efter* att spelarna har placerat sina hålkort.
+* **Placering av hålkort (assignment-fasen):** Spelarna turas om. Varje spelare ska totalt placera
+
+  * **4 kort på exakt en bräda** → den brädan blir **PLO-brädan** (Omaha-regler) för *alla* spelare, och
+  * **2 kort på var och en** av de **två återstående brädorna** → dessa två brädor spelas som **NLHE** (Hold’em-regler).
+* **Betting:** All insats sker **före** spelet börjar (tänk *flip*/fördefinierad pott). Ingen vidare betting under förloppet.
+* När båda spelare har låst sina placeringar:
+  **Turn och river** vänds upp **bräda för bräda** och varje bräda avgör en **tredjedel av totala potten** (1/3, 1/3, 1/3).
+  Delade potter per bräda hanteras enligt standard (avrundning/odd chips).
+
+> Bildtolkning: spelarna lägger sina 8 kort “under” respektive bräda (två, två, fyra). I slutbilden visas att spelare 2 vinner 2 av 3 brädor ⇒ tar 2/3 av potten.
+
+---
+
+## Regler i detalj
+
+### 1) Setup
+
+* En lek, 52 kort, inga jokrar.
+* Båda spelare postar insats/entree **innan** deal (pott = `buy_in_p1 + buy_in_p2`).
+* Bestäm en **startspelare** (dealer/aktör) för assignment-fasen. Rotera mellan händer.
+
+### 2) Deal
+
+1. Blanda.
+2. Dela **8 privata kort** till spelare 1 och **8** till spelare 2 (växelvis eller block, ingen skillnad för motorn).
+3. Lägg ut **3×3 flop-kort** synliga: `flop[A]`, `flop[B]`, `flop[C]`.
+   (Inga burns i MVP. Kan konfigureras.)
+
+### 3) Assignment-fasen (placera hålkort)
+
+* **Mål per spelare:** exakt **4 kort** till *en* vald bräda (**PLO-brädan**), och **2 kort** till vardera av de andra två brädorna (**NLHE-brädor**).
+* **Synlighet:** Placeringar är **dolda för motståndaren** tills båda har **låst**. UI kan visa räkne-info (t.ex. “2/4 kort placerade på B”).
+* **Turordning:** Spelare agerar **växelvis**.
+  Rekommenderad taktik/UX: på en spelares tur gör hen **hela sin placering** (2+2+4) i ett svep och låser. Nästa spelare matchar (måste lägga **4** på **samma PLO-bräda** som redan valts).
+  *Alternativ* (konfig): lägg i delsteg (t.ex. 2 kort åt gången) men med samma slutkrav.
+* **Validering:** Motorn måste säkerställa att en spelares 8 kort används exakt en gång och att PLO-brädan blir gemensam.
+
+### 4) Runout & showdown
+
+* När *båda* spelare har låst:
+  För varje bräda i bestämd ordning (A→B→C):
+
+  1. Vänd **turn** och **river** (2 kort).
+  2. Bedöm händer enligt brädans regel:
+
+     * **NLHE-bräda:** bästa 5 av 7 (2 hole + 5 bräda, men man *kan* använda 0–2 hålkort som i Texas Hold’em).
+     * **PLO-bräda:** exakt **2 av 4 hålkort** + exakt **3 av 5** brädkort.
+  3. Tilldela **1/3 av potten** till vinnaren/vinnarna på aktuell bräda (split vid lika).
+     Eventuella **udda marker** (odd chips) – standardregel: till spelaren **närmast knappen** med aktiv roll denna hand (konfigurerbart).
+
+### 5) Handens slut
+
+* Summera resultat (t.ex. spelare 2 vann 2/3, spelare 1 1/3).
+* För nästa hand: byt startspelare/dealer.
+
+---
+
+## Kantfall / klargöranden (MVP-antaganden)
+
+* **Antal spelare:** MVP är **heads-up** (2 spelare).
+  (Utökning till 3–4 möjliga – lek räcker fortfarande: 8×4 = 32 privata + 15 brädkort = 47 + ev. burns.)
+* **Burns:** Inga burns i MVP. Kan aktiveras per street som i klassisk poker (`burn + flop/turn/river`).
+* **PLO-bräda är gemensam:** Den **första** spelaren som placerar **4** på en bräda **låser** den brädan som PLO för båda.
+  Den andra spelaren **måste** också lägga **4** på den brädan.
+* **Timeouts/AFK:** Om en spelare inte slutför placering inom tidsgräns ⇒ auto-fold/auto-random placement (konfig).
+* **Kortslut:** Motorn garanterar unikhet – ett och samma fysiska kort kan inte finnas på två ställen.
+* **Reveal-policy:** Efter att båda låst visas **endast** vilka kort som placerats på respektive bräda – fortfarande privata tills showdown. (Frontend kan visa baksidor, counts etc.)
+
+---
+
+## Spelmotor – arkitektur
+
+**Headless + eventdriven.** Motorn ska inte
+`printa` direkt; den ska **emitta events** och hålla intern state.
+En **ConsoleRenderer**/adapter kan översätta events till CMD-utskrift nu, och en **WebSocket-adapter** kan mata React senare.
+
+### Domänobjekt (MVP)
+
+* `Card{rank, suit}`
+* `Deck{cards, shuffle(seed?)}`
+* `Player{id, name, stack, eight_cards[8]}`
+* `Board{id in {A,B,C}, kind in {NLHE,PLO}, flop[3], turn?, river?, assignments: {player_id: [Card]}}`
+* `Game{players[2], boards[3], pot_total, street in {SETUP, DEAL, ASSIGN, RUNOUT_A, RUNOUT_B, RUNOUT_C, SHOWDOWN, COMPLETE}}`
+
+### Viktiga invariants
+
+* `sum(len(assignments[p])) == 8` per spelare.
+* Exakt **en** `board.kind == PLO`, exakt **två** `board.kind == NLHE`.
+* Alla `Card` unika globalt.
+
+### Event-typer (för CLI/React)
+
+```json
+{
+  "HAND_STARTED": {"dealer": "P1"},
+  "CARDS_DEALT": {"to": "P1", "count": 8},
+  "FLOP_DEALT": {"board": "A|B|C", "cards": ["7h","Td","3c"]},
+  "ASSIGN_PLACED": {"player": "P1", "board": "B", "cards": ["Ah","Kh"], "partial": {"B":2, "A":2, "C":4}},
+  "ASSIGN_LOCKED": {"player": "P1"},
+  "BOARD_KIND_LOCKED": {"board": "C", "kind": "PLO"},
+  "TURN_RIVER_DEALT": {"board": "A", "turn":"Qs", "river":"2h"},
+  "BOARD_RESULT": {"board": "A", "kind": "NLHE", "winner_ids": [2], "hand_desc": {"P2": "flush Q-high"}, "subpot": 100},
+  "HAND_RESULT": {"payouts": {"P1": -33, "P2": +33}}
+}
+```
+
+### State machine (text)
+
+```
+SETUP → DEAL → ASSIGN → RUNOUT_A → RUNOUT_B → RUNOUT_C → SHOWDOWN → COMPLETE
+                     └───────────────(när båda har låst)────────────────────┘
+```
+
+### Valideringsregler (pseudo)
+
+```python
+assert len(player.cards) == 8
+assert set(player.cards).isdisjoint(all_other_visible_cards)
+assert sum(len(assign[b]) for b in boards) == 8
+assert len(assign[plo_board]) == 4
+assert all(len(assign[b]) == 2 for b in nlhe_boards)
+```
+
+### Handutvärdering
+
+* Plugga in en evaluator som kan:
+
+  * NLHE: bästa 5 av 7.
+  * PLO: exakt 2 av 4 + 3 av 5.
+* API-förslag: `evaluate(board_kind, board_cards_5, player_hole)` → `(rank_code, tiebreak, text)`
+
+---
+
+## CMD-körning (dev-läge)
+
+* `Engine` tar en `on_event(event)` callback.
+* `ConsoleRenderer` skriver ut läsbara rader (för Windows 11 CMD/PowerShell).
+* Seedad `Deck(seed=42)` för reproducerbara tester.
+
+**Exempel-scenario (verbalt):**
+
+1. Start hand → dela 8/8.
+2. Floppar vänds på A, B, C.
+3. P1 (först) placerar 4 på **B** (låser B som PLO), samt 2 på A och 2 på C. `ASSIGN_LOCKED(P1)`
+4. P2 placerar också 4 på **B**, 2 på A, 2 på C. `ASSIGN_LOCKED(P2)`
+5. RUNOUT\_A: vänd turn+river → räkna NLHE → dela **1/3 pott**.
+6. RUNOUT\_B: vänd turn+river → räkna **PLO** → dela **1/3 pott**.
+7. RUNOUT\_C: samma som A → dela **1/3 pott**.
+8. Summering & stack-uppdatering.
+
+---
+
+## Datamodeller (TypeScript-ish, för senare frontend)
+
+```ts
+type BoardId = "A" | "B" | "C";
+
+type Card = `${"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9"|"T"|"J"|"Q"|"K"|"A"}${"c"|"d"|"h"|"s"}`;
+
+interface BoardState {
+  id: BoardId;
+  kind: "NLHE" | "PLO";            // sätts när någon lägger 4 kort där
+  flop: [Card, Card, Card];
+  turn?: Card;
+  river?: Card;
+  assignments: Record<PlayerId, Card[]>; // 2/2/4 per spelare
+}
+
+interface GameState {
+  players: { id: PlayerId; name: string; }[];
+  potTotal: number; // delas i tre lika subpots
+  boards: Record<BoardId, BoardState>;
+  phase: "SETUP"|"DEAL"|"ASSIGN"|"RUNOUT_A"|"RUNOUT_B"|"RUNOUT_C"|"SHOWDOWN"|"COMPLETE";
+  actor?: PlayerId; // vems tur i ASSIGN
+}
+```
+
+---
+
+## Konfigurationsflaggor
+
+* `burn_cards: none | classic` (default: none)
+* `assignment_mode: full_turn | stepwise` (default: `full_turn`)
+* `runout_order: A,B,C | C,B,A | PLO_last` (default: `A,B,C`)
+* `odd_chips_rule: nearest_to_button | first_seat | random` (default: `nearest_to_button`)
+
+---
+
+## Testfall (MVP)
+
+1. **Basflöde:** HU, seed=42, P1 väljer B som PLO, båda placerar korrekt, inga lika händer. Förväntan: tre `BOARD_RESULT`, summering = 1/3 + 1/3 + 1/3.
+2. **Split på en bräda:** två spelare delar NLHE-brädan A ⇒ pottA/2 vardera.
+3. **Felplacering:** P2 försöker lägga 3 kort på A i HU ⇒ `VALIDATION_ERROR`.
+4. **Fel PLO-val:** P2 försöker lägga 4 på C när B redan är låst som PLO ⇒ `VALIDATION_ERROR`.
+5. **Timeout:** P1 överskrider tid i assignment ⇒ auto-random placement (om aktiverat).
+
+---
+
+## Öppna punkter / där vi kan välja
+
+* **Turordning i assignment:** hela placeringen på en gång (*snabbt*) vs parvis (*mer interaktion*).
+* **Runout-ordning:** kanske visa PLO-brädan sist för dramatik.
+* **Burn-kort:** på/av.
+* **HUD/visning i CLI:** visa counts (2/2/4), men håll korten dolda tills showdown.
+
+---
+
+## Nästa steg
+
+1. Jag kodar ett litet `PokerEngineEightCards` (Python) med event-API enligt ovan + en `ConsoleRenderer`.
+2. Lägger in *dummy* handutvärdering först (för att köra igenom flödet), sedan pluggbar riktig evaluator för NLHE/PLO.
+3. Enkel FastAPI-WS-adapter (valfritt) för att kunna koppla på React.
+
+> Säg till vad du vill jag börjar med: **ren motor**, **motor + CLI-demo**, eller **motor + WS + minimal React-vy**.

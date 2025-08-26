@@ -1,0 +1,91 @@
+# Eight Cards Poker – Spelspec (MVP, utan React)
+
+**Version:** 0.2 (rensad för CLI/Motor)
+
+## Översikt
+- Två spelare får **8 privata kort** var från **en 52-kortslek**.
+- Det finns **tre brädor**: A, B, C. Vid start vänds **floppen (3 kort)** upp på alla tre.
+- Spelarna placerar sina 8 kort på brädorna: **4 kort** på **exakt en** bräda (blir **PLO-brädan**), och **2 kort** på **var och en** av de andra **två brädorna** (blir **NLHE-brädor**).
+- All insats/pott bestäms **innan** spelet (ingen betting under spelet).
+- När båda har låst sina placeringar vänds **turn & river** för varje bräda och vinnare avgörs per bräda. Varje bräda betalar **1/3 av potten** (avrundning kan konfigureras).
+
+## Regler
+### Setup
+- En lek, inga jokrar.
+- Varje spelare startar med en bankroll (t.ex. $1000).
+- Innan varje hand satsar båda spelarna från sin bankroll till potten.
+- Bestäm startspelare (växla mellan händer).
+
+### Deal
+1. Blanda.
+2. Dela **8** kort till vardera spelaren.
+3. Lägg ut **3** flop-kort synliga på **A, B, C**. (MVP: inga burn-kort.)
+
+### Assignment-fas (placering av hålkort)
+- Varje spelare måste använda **alla sina 8 kort** exakt en gång: **4** på **en** bräda (blir **PLO**), och **2** på var av de två andra (blir **NLHE**).
+- **Automatisk bräd-bestämning:** Den första brädan som får 4 kort från någon spelare blir automatiskt PLO-brädan. De andra två blir NLHE.
+- Turordning: Spelare agerar växelvis. Drag-and-drop i digital version gör placeringen intuitiv.
+- Placeringar kan döljas tills båda låst (andra spelaren ser bara kortens baksidor).
+
+### Runout & Showdown
+- För varje bräda (A→B→C som standard):
+  1. Vänd **turn** och **river** (2 kort).
+  2. Utvärdera händer:
+     - **NLHE-bräda:** bästa 5 av 7.
+     - **PLO-bräda:** exakt **2 av 4** hål + **3 av 5** brädkort.
+  3. Tilldela **1/3** av potten till vinnaren/vinnarna för den brädan.
+
+### Avrundning / udda marker
+- Standard: udda marker på en subpott går till spelaren **närmast knappen** (kan konfigureras; CLI-prototypen ger odd chips till spelare 1).
+
+### Specialregel: SWEEP BONUS
+- **Om en spelare vinner ALLA TRE brädorna får de 2X POTTEN!**
+- Detta uppmuntrar aggressivt spel och skapar spännande "allt eller inget" situationer.
+- Exempel: Om potten är $100 och en spelare vinner alla tre brädor får de $200 istället för $100.
+
+## Motor-arkitektur (headless)
+- Motorn håller state och **emittar events** (ingen `print` i kärnan). Olika adaptrar kan lyssna:
+  - **CLI-renderer** (ASCII i CMD)
+  - (Senare: nätverksadapter om man vill)
+
+### Event-typer (exempel)
+HAND_STARTED { dealer }
+CARDS_DEALT { to, count }
+FLOP_DEALT { board, cards }
+ASSIGN_PLACED { player, board, cards, partial_counts }
+ASSIGN_LOCKED { player }
+BOARD_KIND_LOCKED { board, kind }
+TURN_RIVER_DEALT { board, turn, river }
+BOARD_RESULT { board, kind, winner_ids, hand_desc, subpot }
+HAND_RESULT { payouts }
+
+markdown
+Copy
+Edit
+
+### Validering
+- Unika kort globalt.
+- Per spelare: exakt 8 kort placerade; exakt en bräda med 4 kort (PLO) och två brädor med 2 kort (NLHE).
+- Båda spelare använder **samma** PLO-bräda.
+
+## Konfig (MVP)
+- `burn_cards`: `none | classic` (default `none`)
+- `runout_order`: `A,B,C` (default)
+- `odd_chips_rule`: `p1_default | nearest_to_button`
+
+## Testfall
+1. Basflöde: korrekt 2/2/4 placeringar, tre resultat, summering 1/3 vardera.
+2. Split på en bräda (t.ex. samma femkortshand) ⇒ dela subpott.
+3. Felplacering (3 kort på NLHE) ⇒ valideringsfel.
+4. Fel PLO-val av spelare 2 ⇒ valideringsfel.
+
+## CLI-prototyp
+- En fristående Python-fil som:
+  - Delar ut 8/8, visar floppar på A,B,C.
+  - Låter båda spelare mata in 4/2/2 (med validering).
+  - Vänder turn & river, utvärderar händer och skriver resultat per bräda och total.
+- Evaluatorn är **riktig 5-kortsrankning** (straight flush→högsta kort). För NLHE testas alla 5-kombos av 7; för PLO exakt 2+3-kombos.
+
+## Körning
+- Windows 11: `py -3 eight_cards_cli.py`
+- Flagga `--seed` kan anges för reproducerbarhet.
