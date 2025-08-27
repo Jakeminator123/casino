@@ -12,6 +12,9 @@ type ShowdownResult = {
     p2_type?: 'PLO' | 'NL';
     pot: number;
     winning_cards?: string[]; // Cards that made the winning hand
+    p1_used_cards?: number[];
+    p2_used_cards?: number[];
+    winner_used_cards?: number[];
   }>;
   p1_total: number;
   p2_total: number;

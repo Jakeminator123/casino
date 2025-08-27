@@ -20,11 +20,10 @@ type BoardProps = {
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (to: string) => (e: React.DragEvent) => void;
   onTouchStart?: (id: number, from: string) => (e: React.TouchEvent) => void;
-  onTouchEnd?: (to: string) => (e: React.TouchEvent) => void;
   gamePhase?: string;
 };
 
-export default function BoardComponent({ id, board, myPlayerId, allowDrag, onDragStart, onDragEnd, onDragOver, onDrop, onTouchStart, onTouchEnd, gamePhase }: BoardProps) {
+export default function BoardComponent({ id, board, myPlayerId, allowDrag, onDragStart, onDragEnd, onDragOver, onDrop, onTouchStart, gamePhase }: BoardProps) {
   if (!board) return null;
   
   const actualType = board.actual_type || board.type;
@@ -100,7 +99,6 @@ export default function BoardComponent({ id, board, myPlayerId, allowDrag, onDra
         data-owner="me"
         onDragOver={onDragOver}
         onDrop={onDrop(`board-${id}`)}
-        onTouchEnd={onTouchEnd?.(`board-${id}`)}
       >
         {myCards.map((c, idx) => (
           <CardView

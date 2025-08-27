@@ -10,13 +10,21 @@ import os
 import random
 import string
 from typing import Dict
-from game_engine import GameEngine, GamePhase
+from game_engine import GameEngine, GamePhase, BoardType
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), '..', 'frontend', 'app', 'dist'))
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 CORS(app, origins="*")
-# Use threading mode for compatibility with Python 3.12+
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+# Use threading mode for compatibility with Python 3.12+ and add robust ping settings
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode='threading',
+    ping_timeout=60,
+    ping_interval=25,
+    logger=False,
+    engineio_logger=False
+)
 
 # Store active game rooms
 game_rooms: Dict[str, GameEngine] = {}
@@ -33,6 +41,9 @@ def add_no_cache_headers(response):
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
+    # Force CSS/JS reload
+    if response.content_type and ('css' in response.content_type or 'javascript' in response.content_type):
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
 
 @app.route('/')
@@ -181,50 +192,64 @@ def handle_join_room(data):
 
 @socketio.on('place_bet')
 def handle_place_bet(data):
-    """Handle bet placement"""
+    """Handle bet placement with matching-bet enforcement"""
     if request.sid not in sessions:
         emit('error', {'message': 'Not in a game'})
         return
-    
+
     session = sessions[request.sid]
     room_id = session['room_id']
     player_id = session['player_id']
     bet_amount = data.get('amount', 50)
-    
+
     if room_id not in game_rooms:
         emit('error', {'message': 'Game not found'})
         return
-    
+
     game = game_rooms[room_id]
-    
+
     # Store bet intent
     if not hasattr(game, 'pending_bets'):
         game.pending_bets = {}
-    
+
     game.pending_bets[player_id] = bet_amount
-    
-    # Check if both players have bet
+
+    # Always inform room about the bet
+    emit('bet_placed', {
+        'player_id': player_id,
+        'amount': bet_amount
+    }, room=room_id)
+
+    # Proceed only when both players have bet
     if len(game.pending_bets) == 2:
+        bets = list(game.pending_bets.values())
+        if bets[0] != bets[1]:
+            # Require matching bets for simplicity
+            emit('error', {
+                'message': f'Bets must match! One player bet ${bets[0]}, the other ${bets[1]}. Both need to bet the same amount.'
+            }, room=room_id)
+
+            # Clear the lower bet so both can rebid to the higher
+            max_bet = max(bets)
+            for pid in list(game.pending_bets.keys()):
+                if game.pending_bets[pid] < max_bet:
+                    del game.pending_bets[pid]
+            return
+
+        # Bets match → place and start game
         if game.place_bets(game.pending_bets):
             game.start_game()
             game.pending_bets = {}
-            
+
             # Send updated game state to all players
             for sid, sess in sessions.items():
                 if sess['room_id'] == room_id:
-                    socketio.emit('game_started', 
-                                game.get_game_state(sess['player_id']),
-                                room=sid)
-            
+                    socketio.emit('game_started',
+                                   game.get_game_state(sess['player_id']),
+                                   room=sid)
             print(f'Game started in room {room_id}')
         else:
             emit('error', {'message': 'Invalid bet amount'}, room=room_id)
-    else:
-        # Notify that we're waiting for other player
-        emit('bet_placed', {
-            'player_id': player_id,
-            'amount': bet_amount
-        }, room=room_id)
 
 @socketio.on('move_card')
 def handle_move_card(data):
@@ -291,36 +316,43 @@ def handle_confirm_placement(data):
 
 @socketio.on('request_rematch')
 def handle_rematch(data):
-    """Handle rematch request"""
+    """Handle rematch request and fully reset boards"""
     if request.sid not in sessions:
         return
-    
+
     session = sessions[request.sid]
     room_id = session['room_id']
     player_id = session['player_id']
-    
+
     if room_id not in game_rooms:
         return
-    
+
     game = game_rooms[room_id]
-    
+
     # Track rematch requests
     if not hasattr(game, 'rematch_requests'):
         game.rematch_requests = set()
-    
+
     game.rematch_requests.add(player_id)
-    
+
     if len(game.rematch_requests) == 2:
         # Both want rematch - reset for new game
         game.rematch_requests = set()
-        game.phase = GamePhase.BETTING
-        
+        game.phase = GamePhase.WAITING
+
         # Reset player bets and ready status
         for player in game.players.values():
             player.bet = 0
             player.ready = False
             player.hand = []
-        
+
+        # Clear boards completely
+        for board in game.boards.values():
+            board.community = []
+            board.p1_cards = []
+            board.p2_cards = []
+            board.type = BoardType.PENDING
+
         emit('ready_to_bet', {}, room=room_id)
     else:
         emit('rematch_requested', {'player_id': player_id}, room=room_id)

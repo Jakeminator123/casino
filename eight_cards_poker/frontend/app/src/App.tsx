@@ -58,6 +58,17 @@ export default function App() {
   const dragged = useRef<{ id: number; from: string } | null>(null);
   const [showdownResults, setShowdownResults] = useState<ShowdownResult | null>(null);
   const [showingShowdown, setShowingShowdown] = useState(false);
+  const activeDropZoneRef = useRef<HTMLElement | null>(null);
+  const draggingElRef = useRef<HTMLElement | null>(null);
+  const [chatOpen, setChatOpen] = useState(true);
+
+  // Open chat by default on desktop, closed on mobile
+  useEffect(() => {
+    const setInitialChat = () => setChatOpen(window.innerWidth >= 768);
+    setInitialChat();
+    window.addEventListener('resize', setInitialChat);
+    return () => window.removeEventListener('resize', setInitialChat);
+  }, []);
 
   // Initialize Socket.IO
   useEffect(() => {
@@ -124,28 +135,28 @@ export default function App() {
           const suitSymbols: Record<string, string> = { c: '♣', d: '♦', h: '♥', s: '♠' };
           const suitColors: Record<string, string> = { '♣': 'black', '♦': 'red', '♥': 'red', '♠': 'black' };
           
-          // Flip all Turn and River cards (4th and 5th community cards)
-          document.querySelectorAll('.board').forEach((board, boardIdx) => {
-            // Turn cards
-            const turnCards = board.querySelectorAll('.community-cards .card.reveal-on-flip');
-            turnCards.forEach((card, idx) => {
-              setTimeout(() => {
-                card.classList.add('revealing');
+                      // Flip all Turn and River cards (4th and 5th community cards)
+            document.querySelectorAll('.board').forEach((board, boardIdx) => {
+              // Turn cards
+              const turnCards = board.querySelectorAll('.community-cards .card.reveal-on-flip');
+              turnCards.forEach((card, idx) => {
                 setTimeout(() => {
-                  const rank = card.getAttribute('data-rank');
-                  const suit = card.getAttribute('data-suit');
-                  const suitSymbol = suitSymbols[suit ?? ''] ?? '?';
-                  const color = suitColors[suitSymbol] ?? 'black';
-                  
-                  card.classList.remove('back', 'reveal-on-flip', 'revealing');
-                  card.classList.add('card', color);
-                  card.textContent = (rank ?? '?') + suitSymbol;
-                  (card as HTMLElement).style.background = 'white';
-                  (card as HTMLElement).style.color = color === 'red' ? '#e74c3c' : '#2c3e50';
-                }, 600);
-              }, boardIdx * 200 + idx * 800); // Stagger between boards and between turn/river
+                  card.classList.add('revealing');
+                  setTimeout(() => {
+                    const rank = card.getAttribute('data-rank');
+                    const suit = card.getAttribute('data-suit');
+                    const suitSymbol = suitSymbols[suit ?? ''] ?? '?';
+                    const color = suitColors[suitSymbol] ?? 'black';
+                    
+                    card.classList.remove('back', 'reveal-on-flip');
+                    card.classList.add(color);
+                    card.textContent = (rank ?? '?') + suitSymbol;
+                    (card as HTMLElement).style.background = 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #ffffff 100%)';
+                    (card as HTMLElement).style.color = color === 'red' ? '#e74c3c' : '#2c3e50';
+                  }, 1200);
+                }, boardIdx * 200 + idx * 800); // Stagger between boards and between turn/river
+              });
             });
-          });
           
           // Flip opponent cards after community cards
           setTimeout(() => {
@@ -177,6 +188,40 @@ export default function App() {
       setTimeout(() => {
         setShowdownResults(data);
         setShowingShowdown(true);
+        
+        // Highlight winning cards on each board
+        data.results.forEach((result, idx) => {
+          setTimeout(() => {
+            // Get all cards in the board
+            const boards = document.querySelectorAll('.board');
+            const board = boards[['A', 'B', 'C'].indexOf(result.board)];
+            if (!board) return;
+            
+            // Mark winning/unused cards
+            const allCards = board.querySelectorAll('.card:not(.back)');
+            allCards.forEach((card) => {
+              const cardEl = card as HTMLElement;
+              
+              // Check if this is a winning card
+              let isWinningCard = false;
+              if (result.winner === myPlayerId) {
+                // For simplicity, highlight all community cards on winning boards
+                // In a full implementation, we'd check card IDs
+                if (cardEl.closest('.community-cards')) {
+                  isWinningCard = true;
+                }
+              }
+              
+              if (isWinningCard) {
+                cardEl.classList.add('winning-card');
+              } else if (cardEl.closest('.community-cards') && result.winner !== myPlayerId && result.winner !== 0) {
+                // Dim community cards on boards where we lost
+                cardEl.classList.add('unused-card');
+              }
+            });
+          }, 4000 + idx * 500); // After reveal animations
+        });
+        
         // Hide after 12 seconds
         setTimeout(() => setShowingShowdown(false), 12000);
       }, 3500); // Wait for all card animations to complete
@@ -261,14 +306,101 @@ export default function App() {
     if (!allowDrag) return;
     e.preventDefault();
     dragged.current = { id, from };
-    (e.target as HTMLElement).classList.add('dragging');
-  };
-  const handleTouchEnd = (to: string) => (e: React.TouchEvent) => {
-    e.preventDefault();
-    if (!dragged.current) return;
-    socket?.emit('move_card', { card_id: dragged.current.id, from: dragged.current.from, to });
-    (e.target as HTMLElement).classList.remove('dragging');
-    dragged.current = null;
+    const targetEl = e.target as HTMLElement;
+    targetEl.classList.add('dragging');
+    draggingElRef.current = targetEl;
+
+    // Create floating card clone for visual feedback
+    const touch = e.touches[0];
+    const clone = targetEl.cloneNode(true) as HTMLElement;
+    clone.style.position = 'fixed';
+    clone.style.pointerEvents = 'none';
+    clone.style.zIndex = '10000';
+    clone.style.left = `${touch.clientX - 20}px`;
+    clone.style.top = `${touch.clientY - 28}px`;
+    clone.classList.add('dragging-clone');
+    document.body.appendChild(clone);
+
+    const highlightDropZone = (el: HTMLElement | null) => {
+      if (activeDropZoneRef.current && activeDropZoneRef.current !== el) {
+        activeDropZoneRef.current.classList.remove('active');
+      }
+      if (el && activeDropZoneRef.current !== el) {
+        el.classList.add('active');
+      }
+      activeDropZoneRef.current = el;
+    };
+
+    const findDropTargetFromPoint = (x: number, y: number): { to: string | null; el: HTMLElement | null } => {
+      // Temporarily hide clone to check what's underneath
+      if (clone) clone.style.display = 'none';
+      const el = document.elementFromPoint(x, y) as HTMLElement | null;
+      if (clone) clone.style.display = '';
+      
+      if (!el) return { to: null, el: null };
+      const boardZone = el.closest('.player-cards[data-owner="me"]') as HTMLElement | null;
+      if (boardZone && boardZone.dataset.board) {
+        return { to: `board-${boardZone.dataset.board}`, el: boardZone };
+      }
+      const handZone = el.closest('.player-hand[data-location="hand"]') as HTMLElement | null;
+      if (handZone) {
+        return { to: 'hand', el: handZone };
+      }
+      return { to: null, el: null };
+    };
+
+    const onMove = (ev: TouchEvent) => {
+      if (!dragged.current) return;
+      if (ev.cancelable) ev.preventDefault();
+      const t = ev.touches[0];
+      if (!t) return;
+      
+      // Move clone with finger
+      if (clone) {
+        clone.style.left = `${t.clientX - 20}px`;
+        clone.style.top = `${t.clientY - 28}px`;
+      }
+      
+      const { el } = findDropTargetFromPoint(t.clientX, t.clientY);
+      highlightDropZone(el);
+    };
+
+    const onEnd = (ev: TouchEvent) => {
+      if (ev.cancelable) ev.preventDefault();
+      const t = ev.changedTouches[0];
+      const moved = dragged.current;
+      dragged.current = null;
+      
+      // Remove clone
+      if (clone && clone.parentNode) {
+        clone.parentNode.removeChild(clone);
+      }
+      
+      if (draggingElRef.current) {
+        draggingElRef.current.classList.remove('dragging');
+        draggingElRef.current = null;
+      }
+      window.removeEventListener('touchmove', onMove, { capture: false } as any);
+      window.removeEventListener('touchend', onEnd, { capture: false } as any);
+      if (!moved || !t) {
+        if (activeDropZoneRef.current) {
+          activeDropZoneRef.current.classList.remove('active');
+          activeDropZoneRef.current = null;
+        }
+        return;
+      }
+      const { to } = findDropTargetFromPoint(t.clientX, t.clientY);
+      if (to && to !== moved.from) {
+        socket?.emit('move_card', { card_id: moved.id, from: moved.from, to });
+      }
+      if (activeDropZoneRef.current) {
+        activeDropZoneRef.current.classList.remove('active');
+        activeDropZoneRef.current = null;
+      }
+    };
+
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onEnd, { passive: false });
   };
 
   const onDragOver = (e: React.DragEvent) => {
@@ -383,7 +515,6 @@ export default function App() {
                 onDragOver={onDragOver}
                 onDrop={handleDrop}
                 onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
                 gamePhase={game?.phase}
               />
             ))}
@@ -404,7 +535,6 @@ export default function App() {
             <div className="player-hand" data-location="hand" 
               onDragOver={onDragOver} 
               onDrop={handleDrop('hand')}
-              onTouchEnd={(e) => handleTouchEnd('hand')(e)}
             >
               {renderHand()}
             </div>
@@ -416,7 +546,7 @@ export default function App() {
           </div>
 
           {/* Chat */}
-          <div className="chat-container">
+          <div className={`chat-container ${chatOpen ? 'open' : 'closed'}`}>
             <div className="chat-messages">
               {chat.map((m, idx) => (
                 <div key={idx}><strong>{m.from}:</strong> {m.message}</div>
@@ -424,6 +554,15 @@ export default function App() {
             </div>
             <ChatInput onSend={sendMessage} />
           </div>
+
+          {/* Chat Toggle */}
+          <button 
+            className={`chat-toggle ${showConfirm ? 'with-confirm' : ''}`}
+            aria-label={chatOpen ? 'Close chat' : 'Open chat'}
+            onClick={() => setChatOpen(v => !v)}
+          >
+            {chatOpen ? '✕' : '💬'}
+          </button>
 
           {/* Betting Modal */}
           {showBetModal && (

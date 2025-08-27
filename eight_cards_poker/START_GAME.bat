@@ -29,6 +29,8 @@ echo.
 echo    Building React frontend...
 pushd frontend\app
 call npm install --no-fund --no-audit >nul 2>&1
+echo    Cleaning old build...
+rmdir /s /q dist >nul 2>&1
 call npm run build >nul 2>&1
 popd
 cd backend
@@ -45,7 +47,7 @@ echo    ╚═══════════════════════
 echo.
 echo    Press Ctrl+C to stop the server
 echo.
-python app_simple.py
+python app.py
 goto :eof
 
 :ONLINE  
@@ -72,6 +74,8 @@ echo.
 echo    Building React frontend...
 pushd frontend\app
 call npm install --no-fund --no-audit >nul 2>&1
+echo    Cleaning old build...
+rmdir /s /q dist >nul 2>&1
 call npm run build >nul 2>&1
 popd
 cd backend
@@ -79,7 +83,7 @@ echo    Checking dependencies...
 pip install -r requirements.txt >nul 2>&1
 
 :: Start server in background
-start /B python app_simple.py >nul 2>&1
+start /B python app.py >nul 2>&1
 timeout /t 3 /nobreak >nul
 
 cls

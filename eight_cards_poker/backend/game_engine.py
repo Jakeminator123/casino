@@ -388,7 +388,10 @@ class GameEngine:
                 'p2_hand': p2_eval['name'] if p2_eval else 'No valid hand',
                 'p1_type': 'PLO' if p1_is_plo else 'NL',  # Show what rules P1 used
                 'p2_type': 'PLO' if p2_is_plo else 'NL',  # Show what rules P2 used
-                'pot': subpot
+                'pot': subpot,
+                'p1_used_cards': p1_eval.get('used_cards', []) if p1_eval else [],
+                'p2_used_cards': p2_eval.get('used_cards', []) if p2_eval else [],
+                'winner_used_cards': p1_eval.get('used_cards', []) if winner == 1 else p2_eval.get('used_cards', []) if winner == 2 else []
             })
 
         # Calculate payouts with sweep bonus
@@ -443,9 +446,10 @@ class GameEngine:
         import itertools
 
         if not hole_cards or not community:
-            return {'rank': 0, 'value': 0, 'name': 'No cards'}
+            return {'rank': 0, 'value': 0, 'name': 'No cards', 'cards': [], 'used_cards': []}
 
         best_eval = None
+        best_cards = []
 
         if is_plo:
             # PLO: Must use exactly 2 hole and 3 community
@@ -456,6 +460,7 @@ class GameEngine:
                     if best_eval is None or eval['rank'] > best_eval['rank'] or \
                        (eval['rank'] == best_eval['rank'] and eval['value'] > best_eval['value']):
                         best_eval = eval
+                        best_cards = hand
         else:
             # NLHE: Best 5 of 7
             all_cards = hole_cards + community
@@ -464,8 +469,15 @@ class GameEngine:
                 if best_eval is None or eval['rank'] > best_eval['rank'] or \
                    (eval['rank'] == best_eval['rank'] and eval['value'] > best_eval['value']):
                     best_eval = eval
+                    best_cards = list(combo)
 
-        return best_eval if best_eval else {'rank': 0, 'value': 0, 'name': 'No valid hand'}
+        if best_eval:
+            best_eval['cards'] = best_cards
+            # Mark which cards were used
+            best_eval['used_cards'] = [c.id for c in best_cards]
+            return best_eval
+        
+        return {'rank': 0, 'value': 0, 'name': 'No valid hand', 'cards': [], 'used_cards': []}
 
     def _eval_five_cards(self, cards: List[Card]) -> Dict:
         """Basic 5-card poker hand evaluation"""
