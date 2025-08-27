@@ -278,7 +278,7 @@ button:active:not(:disabled) { transform: translateY(-1px) scale(1.02); }
 .chat-container { position: fixed; bottom: 20px; right: 20px; width: 300px; background: rgba(0,0,0,0.8); border-radius: 15px; padding: 15px; transition: transform 0.25s ease, opacity 0.25s ease; z-index: 1500; }
 .chat-container.closed { transform: translateY(120%); opacity: 0; pointer-events: none; }
 .chat-container.open { transform: translateY(0); opacity: 1; }
-.chat-toggle { position: fixed; bottom: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background: #ffd700; color: #1a1a2e; z-index: 1600; border: none; box-shadow: 0 6px 20px rgba(0,0,0,0.4); font-size: 20px; display: flex; align-items: center; justify-content: center; transition: bottom 0.3s ease; }
+.chat-toggle { position: fixed; bottom: 20px; left: 20px; width: 44px; height: 44px; border-radius: 50%; background: #ffd700; color: #1a1a2e; z-index: 1600; border: none; box-shadow: 0 6px 20px rgba(0,0,0,0.4); font-size: 20px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
 .chat-toggle.with-confirm { bottom: 80px; }
 .chat-messages { height: 200px; overflow-y: auto; margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
 .chat-input { display: flex; gap: 10px; }
@@ -722,7 +722,8 @@ button:active:not(:disabled) { transform: translateY(-1px) scale(1.02); }
   }
   
   .chat-toggle { 
-    right: 12px; 
+    left: 12px; 
+    right: auto;
     bottom: 12px; 
     width: 50px;
     height: 50px;
@@ -731,7 +732,7 @@ button:active:not(:disabled) { transform: translateY(-1px) scale(1.02); }
   
   .chat-toggle.with-confirm { 
     bottom: auto;
-    top: 12px;
+    top: 70px;
   }
   
   .lobby {

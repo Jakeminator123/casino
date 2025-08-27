@@ -153,8 +153,8 @@ export default function App() {
                     card.textContent = (rank ?? '?') + suitSymbol;
                     (card as HTMLElement).style.background = 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #ffffff 100%)';
                     (card as HTMLElement).style.color = color === 'red' ? '#e74c3c' : '#2c3e50';
-                  }, 1200);
-                }, boardIdx * 200 + idx * 800); // Stagger between boards and between turn/river
+                  }, 1800);
+                }, boardIdx * 500 + idx * 1500); // Slower stagger between boards and between turn/river
               });
             });
           
@@ -172,12 +172,12 @@ export default function App() {
                   card.classList.remove('back', 'opponent-card', 'revealing');
                   card.classList.add('card', color);
                   card.textContent = (rank ?? '?') + suitSymbol;
-                  (card as HTMLElement).style.background = 'white';
+                  (card as HTMLElement).style.background = 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #ffffff 100%)';
                   (card as HTMLElement).style.color = color === 'red' ? '#e74c3c' : '#2c3e50';
-                }, 600);
-              }, Math.floor(idx / 2) * 200); // Stagger per board
+                }, 1200);
+              }, Math.floor(idx / 2) * 400); // Slower stagger per board
             });
-          }, 2000); // Start after community cards
+          }, 4000); // Start after community cards
         }, 300);
       }
       setGame(state);
@@ -219,12 +219,12 @@ export default function App() {
                 cardEl.classList.add('unused-card');
               }
             });
-          }, 4000 + idx * 500); // After reveal animations
+          }, 6000 + idx * 800); // Much later, after all reveal animations
         });
         
-        // Hide after 12 seconds
-        setTimeout(() => setShowingShowdown(false), 12000);
-      }, 3500); // Wait for all card animations to complete
+        // Hide after 18 seconds (adjusted for slower animations)
+        setTimeout(() => setShowingShowdown(false), 18000);
+      }, 5000); // Wait for all card animations to complete
     });
 
     s.on('error', (data: any) => {
