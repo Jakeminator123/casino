@@ -468,6 +468,28 @@
         "note": "",
         "at": "2026-11-20T11:07:16.474Z"
       }
+    },
+    {
+      "id": "a21-marke",
+      "kind": "beslut",
+      "question": "A2.1 med kortets märke: ska nya filmer från A2.1 göras från den?",
+      "leads": "Ja betyder att beställningar från A2.1 får märkta kort som från A2.3, medan de åtta filmer som finns behåller sitt omärkta kort",
+      "proof": "a21-marke-20261126",
+      "file": "2-kortet-fore-och-efter.png",
+      "chips": [
+        {
+          "value": "ja",
+          "label": "Ja, från den"
+        },
+        {
+          "value": "nej",
+          "label": "Nej, omärkt kort"
+        }
+      ],
+      "asked": "2026-11-26",
+      "from": "Claude Code (A2.1 med märke)",
+      "cost": "Ingen kostnad: märket är ritat lokalt.",
+      "answer": null
     }
   ]
 }

@@ -4090,6 +4090,22 @@
             "from": "Runways API, Nano Banana 2.1 (uppdrag 490eb7e9); utanför Beställ, liggaren .runtime/vinkelprov-p4c2/api/ledger.json (vinkelprov-p4c2-still-oga-7); original.png bredvid bilden",
             "when": "2026-11-24"
           }
+        },
+        {
+          "id": "paow-nyp-tatuerad-marke",
+          "role": "ankare-2.1",
+          "name": "Nyp, tatuerade händer, kort med märke (prov)",
+          "path": "assets/anchors/paow-nyp-tatuerad-marke/anchor.png",
+          "node": "READY",
+          "state": "kandidat",
+          "note": "Tatuerads A2.1 ändrad bara på kortet i skons fönster: gula sidans märke (fylld röd cirkel i mitten, rosa kryss nära kortänden) ritat med projektets mått och färger, som A2.3 med märke. 465 bildpunkter ändrade; fingrarna och allt annat är A2.1:s. Beställningen ser märket (backMarkSeen). Inte sedd av en oberoende granskare. Kvittot ligger bredvid bilden.",
+          "source": {
+            "from": "paow-nyp-tatuerad (återskapad 2026-11-25 ur Runways film paow-ingang-2-1-tatuerad-01-01, sista rutan) med märket ritat lokalt",
+            "when": "2026-11-26"
+          },
+          "builtOn": [
+            "paow-nyp-tatuerad"
+          ]
         }
       ]
     },

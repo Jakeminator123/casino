@@ -55,9 +55,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Nästa steg
 
-0. **Det tatuerade materialet** (väntar på Jakob, nedan): kopieras det hit eller görs det om? Görs det om tas
-   tagningarnas poster bort med `node tools/register.ts remove <id> --why "<text>"`, så att domarna står kvar i
-   `data/motions-removed.jsonl`.
+0. **Det tatuerade materialet:** ankarna och 37 filmer är återskapade här ur Runway (väntar på Jakob, nedan). Det som
+   återstår på den stationära: kopieras det hit eller görs det om? Görs det om tas tagningarnas poster bort med
+   `node tools/register.ts remove <id> --why "<text>"`, så att domarna står kvar i `data/motions-removed.jsonl`.
 1. **Film:** fyll Tatuerad från A2.3: plats 7 (händerna vände inte kortet) och filmen som vänder upp D.C1 (utkastet
    `paow-halkort-06`). Sedan A2.1 igen med EN pilot som han ser i spelstorlek först. En nästan bra film görs om "bara
    litegranna"; givens tid cirka 1,3 s ut och 0,8 s tillbaka (2026-11-23, 2026-11-24).
@@ -116,17 +116,20 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 ## Väntar på Jakob
 
 - Det som bara finns på den stationära, och som registren behåller tills han har bestämt om det kopieras hit eller görs
-  nytt: 130 bra eller spelade tagningar utan film (Tatuerad: alla 21 spelade steg, alla 25 talfilmer och 5 av stolarnas
-  steg; Tatuerad nyp: alla 8 steg; Casinos och Ingångens talfilmer, 24 av 25; därtill 47 bra som inget steg spelar),
-  ankarbilderna (A1 `paow-vila-tatuerad`, A2.1 `paow-nyp-tatuerad`, A2.3 `paow-ankare-2-3-d` med stolarnas sex och
-  `paow-ankare-2-3-marke`), keystones och hans egna bilder, kortets textur, 43 av dockans referensfilmer och spelets
-  fyra munlappar. En beställning behöver ankarna, texturen och dockans filmer.
-- 51 filmer från 20–24 november som Runway ännu hade, hämtade 2026-11-25 till
-  `../slask/blackjack-dealer/granska/runway-20261125/` (Runway behåller ett uppdrag cirka fem dygn): bland dem
-  Tatuerad nyps ingång och sex givar, A2.3-d:s givar och stolarnas. Ur dem den tatuerade A2.1 och A2.3-d som rutor
-  (`rutor/`). Han väljer om de förs in på sina poster.
-- Kortet `tatuerat-a21-ny` i Beslut (2026-11-25): en ny A2.1 med tatuerade händer, kandidaten `paow-nyp-tatuerad-2`
-  (provet `a21-tatuerad-ny-20261125`).
+  nytt: 82 bra tagningar utan film (Tatuerad 54, varav alla 25 talfilmer, vilan `paow-vila-tat-09-01` och fem delade
+  vilor; Casinos och Ingångens 25 talfilmer; 3 utanför träden), ankarnas originalfiler, keystones och hans egna
+  bilder, kortets textur, 43 av dockans referensfilmer och spelets fyra munlappar. En beställning behöver texturen och
+  dockans filmer.
+- Återskapat här ur Runways leveranser (2026-11-25; Runway behåller en leverans cirka fem dygn, och den hämtas gratis
+  med uppdragets id): ankarna A1 `paow-vila-tatuerad`, A2.1 `paow-nyp-tatuerad`, A2.3 `paow-ankare-2-3-d`, `-c` och
+  `-marke` och stolarnas sex, som rutor ur filmerna, och 37 filmer genom `tools/film-after.ts`: Tatuerad har film
+  på disken för 20 av 36 steg, Tatuerad nyp för alla sina 8. Samma rutor som originalen men inte samma filer:
+  posterna bär de nya filernas sha256, domarna är orörda, och ursprunget står i `assets/motions/<klipp>/generation.json`
+  och ankarnas `receipt.json`.
+- Kortet `a21-marke` i Beslut (2026-11-26): A2.1 med kortets märke, kandidaten `paow-nyp-tatuerad-marke` (provet
+  `a21-marke-20261126`). Med hans ja får beställningar från A2.1 märkta kort.
+- Fem stolfilmer ur Runway utan post och utan dom i `../slask/blackjack-dealer/granska/runway-20261125/` (stol 1,
+  stol 2 två, stol 7 två; stol 2 har ingen annan film): döms och förs in, eller raderas. Stol 6:s film väntar i Granska.
 - Handbytet: bilderna före och efter i `../slask/blackjack-dealer/granska/handled/` väntar på hans ögon. Fem av hans
   sparade standarder (plats 2 kort 1, plats 4 kort 1, plats 5 båda korten, plats 6 kort 2) bär en handvinkel från det
   gamla greppet och ger handleden 26–59° med det nya; Återställ eller reglaget på 17° och Spara som standard rättar dem
@@ -144,7 +147,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   `lift.ts`, `deal-film.ts`, `pose-film.ts`, `doll-pose.ts`, `docka-hand.ts`).
 - Trädet Tatuerad har ingen egen film för A2.3 → A3P4C2: de godkända tagningarna dit (`…-p4-c2-h24-cykel-…`,
   `…-p4-c2-stol-…`) ligger inte i trädet, så Inspelning och Scen visar den spelet spelar. Han väljer om de ska in.
-- På den stationära: hans dom på `paow-giv-2-3-d-03-01` och `paow-halkort-05-01`, den neutrala
+- Hans dom på `paow-giv-2-3-d-03-01` och `paow-halkort-05-01` (filmerna finns nu här). På den stationära: den neutrala
   `paow-tal-blackjack-sv-14`, stolsserien (Prov `stolsserien-p4c2-20261124`) och andelarna för skjut och nyp i Karta.
 
 ## Kända brister
