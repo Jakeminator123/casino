@@ -126,8 +126,8 @@ inget. `npm run stada` raderar det i slasken som är äldre än sju dygn men lä
 - Arbeta i repots vanliga utcheckning på `main`; en gren eller ett eget träd bara när ett arbete uttryckligen måste
   isoleras, och det slås sedan ihop eller tas bort.
 - Huvudagenten är chatten Jakob arbetar med: den committar och pushar. Underagenter och andra chattar skriver bara i
-  egna filer, säger vilka de tar och lämnar över med en fillista. En skribent per fil. Jakobs plan, domar och
-  orderutkast skrivs aldrig över.
+  egna filer, säger vilka de tar (en annan chatt i casino-repots `inbox/`) och lämnar över med en fillista. En
+  skribent per fil. Jakobs plan, domar och orderutkast skrivs aldrig över.
 - Kontrollen före push: `npm run hooks:install` installerar casino-repots `.githooks/pre-push` för hela repot. Den
   stoppar hemligheter, `.env`-filer (utom `.env.example` med tomma värden), media och filer över 5 MB i de utgående
   commitarna och kör `npm test` i de projekt som har ändrats. `npm run check` kör samma sak före en push. Inget

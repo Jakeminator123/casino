@@ -64,6 +64,18 @@ Jakobs budget delas av alla chattar och underagenter, och kvaliteten får inte b
   projektets överlämning gör starten billig.
 - Inga stora utskrifter: sök fram stället först, läs avsnitt i stället för hela filer.
 
+## Flera chattar samtidigt
+
+Chattar kan inte prata med varandra, och en chatt är bara vaken medan den svarar. Därför lämnar varje chatt som
+arbetar en kort lapp i `inbox/` (Jakob 2026-11-25): en lapp per chatt, aldrig i Git, borta av sig själv efter tolv
+timmar.
+- I Cursor sköter hookarna det (`.cursor/hooks.json`): lappen skrivs när Jakob skickar en prompt, de andras lappar
+  visas för agenten efter nästa verktygsanrop och igen när någon ändras, och där står vad chatten heter.
+- I andra verktyg: kör `node inbox/inbox.ts` när en omgång börjar och före en commit, och välj ett kort eget namn.
+- Säg vad du gör och vilka filer du tar med `node inbox/inbox.ts skriv <chatt> "<text>"`, ett meddelande till de andra
+  med `till`, och ta bort lappen med `klar` när arbetet är pushat. En fil som en annan chatt har tagit rör du inte;
+  en chatt i taget kör kontrollen och pushar.
+
 ## Dokumentation nerifrån och upp
 
 - Varje projekt beskriver sig självt: regler i sin `AGENTS.md`, mappar och körning i sin README. Där är källan;

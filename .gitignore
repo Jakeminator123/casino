@@ -1,6 +1,11 @@
 # The casino repo is public. This file holds back what no project may push; each project's own .gitignore adds to it.
 slask/
 
+# The inbox: one short note per chat that is working, with the first words of what Jakob asked it (inbox/inbox.ts,
+# which is the only file there that Git keeps)
+/inbox/*
+!/inbox/inbox.ts
+
 # Secrets, wherever they are (the example file with empty values may go in)
 .env*
 !.env.example
