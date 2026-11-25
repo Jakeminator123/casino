@@ -23,7 +23,8 @@
 // A click in the picture (no drag) chooses the place nearest the point of the felt under the pointer, as its button does.
 // Embedded in the studio (?inbaddad=1, Bordet's Kortplan: one picture, the 3D one, Jakob 2026-11-25) the doll is the dealer
 // chosen there, the plan is the studio's draft as it is changed, the page is the picture alone and the controls stand in the
-// studio's own column (the end of this file); a place can be moved on the felt by hand while the studio asks for it.
+// studio's own column (the end of this file); a place can be moved on the felt by hand while the studio asks for it, and the
+// dealer's film of the card's deal can be laid over the doll in "Filmens kamera" (the film over the doll, below).
 // window.docklabb is for a test that looks at the page: ready, facts() of what is shown, and at(place): where a place lies in the picture.
 import {createLabStage, type LabStage, type Touch, type ViewName} from './lab-stage.ts';
 import {DEALER_CARD, NO_STEER, TURN_AT_PLACE, cardInFilmsShoe, cardTempoMost, cardTempoOf, layDeal, placeFrom, planPoint, recipeOf, shares, sideOf, sideOfPlan, standardName, type Entry, type Side, type LaidDeal, type PoseFilm, type Recipe, type Steer, type Stored} from './lay.ts';
@@ -46,7 +47,7 @@ type Motion = Read & {doll?: string; lab?: Record<string, unknown>; cycle?: unkn
 type Standard = {name: string; doll: string; place: string; savedAt: string};
 /** What a saved standard carries of how it was made: the recipe, the sliders, for "Naturlig" the shoulders and elbows (`naturlig`, which a standard saved before has not), the landing and the turn where they are not the default (`landing`, landing.ts; `turn`, turn-in-hand.ts), and with its return the return (`back`). */
 type SavedLab = {recipe?: string; steer?: Steer; bodyAsked?: [number, number, number]; shortMm?: number; naturlig?: {knobs?: Partial<Knobs>; bodyShare?: number}; landing?: unknown; turn?: unknown; back?: unknown};
-/** An element of the picture, which is always this page's own (#stage, #frame, #views, #joints, #grip, #note, #play, #scrub, #clock, #speed, #loop). */
+/** An element of the picture, which is always this page's own (#stage, #frame, #views, #joints, #grip, #note, #play, #scrub, #clock, #speed, #loop, and the film over the doll: #film, #filmKnob, #filmShare, #filmShown, #filmNote). */
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 // The controls: everything under one root, which embedded may stand in the page around (attach, below); so a control is
 // always looked up through the root, never through this page's document.
@@ -79,7 +80,7 @@ const knobsOf = (k?: Partial<Knobs>): Knobs => ({shoulderR: [...(k?.shoulderR ??
 
 // The plan in use: the saved one (GET /dealer3d/plan), until the page around sends its draft (takePlan). `planNo` counts the
 // plans taken, so that a laying begun on one is dropped once another has come.
-let plan = await get('/dealer3d/plan').catch(e => { $('note').textContent = 'Docklabbet kunde inte läsa kortplanen.'; throw e; }) as Plan, planText = JSON.stringify(plan), planNo = 0;
+let plan = await get('/dealer3d/plan').catch(e => { $('note').textContent = 'Dockan kunde inte läsa kortplanen.'; throw e; }) as Plan, planText = JSON.stringify(plan), planNo = 0;
 const lens = filmLens();
 /** The side the plan has a dealer's card lie with (null for a player's card, or where the plan says none). */
 const planSide = (id: string): Side | null => DEALER_CARD.test(id) ? sideOfPlan(plan, id) : null;
@@ -304,9 +305,12 @@ function paint() {
   if (deal && now?.bodyShare !== null && now?.bodyShare !== undefined && now.bodyShare < 0.995) notes.push(`kroppen tar ${Math.round(now.bodyShare * 100)} % av styrningen, längre når inte armen`);
   if (deal && now?.shortMm) warns.push(`armen räcker inte, ${comma(now.shortMm)} mm`); const laidAs = (now?.deal ?? now?.motion) as {elbowForced?: unknown[]; throughShoe?: number} | undefined; // a saved standard carries what its laying said
   if (deal && laidAs?.elbowForced?.length) warns.push('armbågen tvingad'); if (deal && laidAs?.throughShoe) warns.push('handen går genom skon');
+  // A deal that could not be laid is said in the picture too, not only under Styr: the stage then still shows the last motion
+  // that could (at first the pose to A2.3), and beside a film that reads as the doll doing something else (Jakob 2026-11-25).
+  if (deal && fault) warns.unshift(`given går inte att lägga (${fault}): bilden visar ${now ? 'den senaste som gick' : 'ställningen, inte given'}`);
   const note = $('note'); note.replaceChildren(); const strong = document.createElement('b'); strong.textContent = `${DOLLS[state.doll]} · ${what}`; note.append(strong);
   if (notes.length) note.append(` · ${notes.join(' · ')}`); if (warns.length) { const w = document.createElement('span'); w.className = 'warn'; w.textContent = ` · ${warns.join(' · ')}`; note.append(w); }
-  transport(); grip(true);
+  transport(); grip(true); paintFilm();
 }
 function transport() {
   const deal = state.shown.kind === 'deal', length = stage?.duration() ?? 0;
@@ -438,7 +442,7 @@ function layAgain(ms = 120) { clearTimeout(layLater); layLater = setTimeout(() =
 const planShaped = (p: unknown): p is Plan => { const t = (p as {targets?: unknown} | null)?.targets; return !!t && typeof t === 'object' && Object.keys(t).length > 0
   && Object.values(t as Record<string, {geometry?: {native?: {u?: unknown; v?: unknown}}} | null>).every(x => Number.isFinite(x?.geometry?.native?.u) && Number.isFinite(x?.geometry?.native?.v)); };
 function takePlan(next: unknown) {
-  if (!planShaped(next)) { console.warn('Docklabbet: en kortplan utan platser togs inte emot.'); return; }
+  if (!planShaped(next)) { console.warn('Dockan: en kortplan utan platser togs inte emot.'); return; }
   const text = JSON.stringify(next); if (text === planText) return;
   plan = next; planText = text; planNo++; laid = null; builtLast = null;
   stage?.setPlan(plan, moving ? {id: moving.place, at: moving.at} : undefined);
@@ -459,6 +463,67 @@ function attach() {
 }
 if (embedded) { attach(); addEventListener('pagehide', () => { if (root.ownerDocument !== document) root.remove(); }); }
 
+// The film over the doll (embedded only; Jakob 2026-11-25: "så man kan jämföra videos som är skapade med tex dockan", the
+// doll, the table and a film in one and the same view): the page around names the dealer's film of the card's deal
+// ({film}, the end of this file), and the slider "Filmen" lays it over the picture, 0 % none (nothing is loaded) to 100 %
+// the film alone. It lies exactly over the canvas and is seen only in "Filmens kamera" as that view puts the camera: turned,
+// zoomed, moved or another view, the picture is no longer the film's, and the film is hidden until "Filmens kamera" is
+// chosen again (lab-stage.ts atFilm). Only under a deal: a pose has no film of its own. The lab's clock drives it: the
+// film's time is the lab's (from `start`, at its own `speed` and the chosen speed), set while scrubbed or paused, and while
+// playing kept within about 0,05 s by nudging its rate, sought only when it is far off. Past the deal's end (`end`, where
+// its return begins in the file) it holds its last frame; with the return shown ("Giv och återgång") it plays on to the
+// file's end. The page on its own has no film and no slider.
+type Film = {src: string; label: string; start: number; end: number; speed: number};
+const video = $<HTMLVideoElement>('film'), filmKnob = $('filmKnob'), filmShare = $<HTMLInputElement>('filmShare');
+let film: Film | null = null, share = 0, filmFault = false, filmSaid = '';
+const finite = (v: unknown, or: number) => typeof v === 'number' && Number.isFinite(v) ? v : or;
+/** The film the page around names (a path on this server, and the words for it), or null: none for the card. */
+function takeFilm(said: unknown) {
+  const f = said as Partial<Film> | null, ok = !!f && typeof f.src === 'string' && f.src.startsWith('/') && !f.src.startsWith('//') && typeof f.label === 'string';
+  const next: Film | null = ok ? {src: f!.src!, label: f!.label!, start: Math.max(0, finite(f!.start, 0)), end: finite(f!.end, Infinity), speed: finite(f!.speed, 1) > 0 ? finite(f!.speed, 1) : 1} : null;
+  if (JSON.stringify(next) === JSON.stringify(film)) return;
+  film = next; filmFault = false; loadFilm(); paintFilm();
+}
+/** The film is loaded only while it is asked for (a film named and the slider above 0); else nothing is. */
+function loadFilm() {
+  const want = film && share > 0 ? film.src : null;
+  if (want === video.getAttribute('src')) return;
+  video.pause(); if (want) video.src = want; else { video.removeAttribute('src'); video.load(); }
+}
+/** Whether the film is seen now: named, the slider above 0, a deal shown, and the picture the film's camera's own. */
+const filmSeen = () => !!film && share > 0 && !filmFault && state.shown.kind === 'deal' && !!stage?.atFilm();
+/** Where in the file the film stands for the lab's time, and the last time it is held at (the deal's last frame, or with the return shown the file's). */
+function filmAt() {
+  const f = film!, length = Number.isFinite(video.duration) ? video.duration : Infinity, hold = Math.max(f.start, ((now?.back ?? state.back) ? length : Math.min(f.end, length)) - 0.01);
+  return {at: Math.min(hold, f.start + Math.min(state.t, stage?.duration() ?? state.t) * f.speed), hold};
+}
+/** The slider and the line over the picture. */
+function paintFilm() {
+  filmKnob.hidden = !embedded; filmKnob.classList.toggle('off', !film); filmShare.disabled = !film;
+  filmKnob.title = film ? 'Dealerns film av given över dockan: 0 % ingen, 100 % bara filmen. Syns bara i Filmens kamera.' : 'Ingen film till kortet på den här datorn: trädet har ingen, eller den finns inte här.';
+  $('filmShown').textContent = `${Math.round(share * 100)} %`;
+  const seen = filmSeen(), note = $('filmNote');
+  const said = share <= 0 ? '' : !film ? 'Ingen film till det här kortet' : filmFault ? `Filmen kunde inte spelas · ${film.label}`
+    : `Filmen · ${film.label} · ${Math.round(share * 100)} %${seen ? '' : state.shown.kind !== 'deal' ? ' · syns under en giv' : ' · syns bara i Filmens kamera'}`;
+  if (said !== filmSaid) { filmSaid = said; note.textContent = said; note.hidden = !said; }
+}
+filmShare.addEventListener('input', () => { share = Number(filmShare.value) / 100; video.style.opacity = String(share); loadFilm(); paintFilm(); });
+video.addEventListener('error', () => { if (video.getAttribute('src')) { filmFault = true; paintFilm(); } });
+/** Every picture: the film shown or hidden, and its time kept to the lab's. */
+function syncFilm() {
+  const seen = filmSeen(); if (video.hidden === seen) { video.hidden = !seen; paintFilm(); }
+  if (!seen) { if (!video.paused) video.pause(); return; }
+  if (video.readyState < HTMLMediaElement.HAVE_METADATA) return;
+  const {at, hold} = filmAt(), rate = state.speed * film!.speed;
+  if (!state.playing || at >= hold) { if (!video.paused) video.pause(); if (!video.seeking && Math.abs(video.currentTime - at) > 0.004) video.currentTime = at; return; }
+  const drift = at - video.currentTime;
+  if (video.paused || Math.abs(drift) > 0.25) { if (!video.seeking) video.currentTime = at; video.playbackRate = rate; if (video.paused) void video.play().catch(() => {}); return; }
+  // (a small drift is taken up within a second or so by playing a little faster or slower, never by seeking every picture)
+  const nudged = Math.abs(drift) > 0.03 ? rate * (1 + Math.max(-0.2, Math.min(0.2, drift * 2))) : rate;
+  if (Math.abs(video.playbackRate - nudged) > 0.005) video.playbackRate = nudged;
+}
+paintFilm();
+
 // The clock: the time runs while it plays (a breath on the last picture before a loop begins again), and the stage is drawn only when something has changed.
 let last = performance.now();
 function tick(ms: number) {
@@ -467,10 +532,11 @@ function tick(ms: number) {
     if (state.playing) { const length = stage.duration(); state.t += dt * state.speed;
       if (state.t >= length + (state.loop ? 0.5 : 0)) { if (state.loop) state.t = 0; else { state.t = length; state.playing = false; paint(); } }
       stage.setTime(Math.min(state.t, length)); transport(); grip(); }
-    if (stage.needsDraw()) stage.draw(); }
+    if (stage.needsDraw()) stage.draw();
+    if (embedded) syncFilm(); }
   requestAnimationFrame(tick);
 }
-try { await setDoll(state.doll); } catch (e) { $('note').textContent = `Docklabbet kunde inte starta: ${String((e as Error).message ?? e)}`; throw e; }
+try { await setDoll(state.doll); } catch (e) { $('note').textContent = `Dockan kunde inte starta: ${String((e as Error).message ?? e)}`; throw e; }
 requestAnimationFrame(tick);
 // (?spela=1: Bordet's "Spela kortbanan" opened the lab, which then plays the deal from the start)
 if (asked.get('spela') === '1') void play();
@@ -482,6 +548,9 @@ if (asked.get('spela') === '1') void play();
   gripYaw: R() ? gripYawsOf(R()!, state.steer, wayShown()) : null, cycle: (now?.motion.cycle as {readyFrom?: number} | undefined) ?? null, landing: state.landing, landed: now?.landed ?? null, landingNote: ctl('landingNote').textContent, turn: state.turn, turned: now?.turned ?? null, turnNote: ctl('turnNote').textContent,
   // Where the controls stand (this page's own column, or the studio's), whether a place can be moved by hand, and where the chosen place lies on the felt.
   controls: root.ownerDocument === document ? 'sidan' : 'studion', flytta, spot: spotNow(state.place),
+  // The film over the doll: the one named, the slider, whether it is seen, what is loaded, its time against the lab's and where it should stand, and its box against the canvas's (client pixels).
+  film: (() => { const box = (e: Element) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; };
+    return {named: film, share, seen: !video.hidden, atFilm: stage?.atFilm() ?? false, loaded: video.getAttribute('src'), ready: video.readyState, paused: video.paused, rate: video.playbackRate, videoTime: video.currentTime, labTime: state.t, want: film && video.readyState ? filmAt().at : null, fault: filmFault, slider: {hidden: filmKnob.hidden, disabled: filmShare.disabled, title: filmKnob.title}, note: $('filmNote').hidden ? '' : $('filmNote').textContent, video: box(video), canvas: box($('stage'))}; })(),
   // What "Naturlig" did, over the whole deal: the hands' least gap, the wrists' most bend, the thumb's most gap from the card while the forefinger is on it (to the beat the card lies), and the fingertips on the card now.
   natural: now?.receipt ? (() => { const f = now.receipt!.frames, h = Math.ceil(((now.motion as {beats?: {h: number}[]}).beats?.[0]?.h) ?? f.length), held = f.filter(x => x.i <= h && x.touching.includes('R1'));
     return {apartMm: Math.min(...f.map(x => x.apartMm)), wristDeg: Math.max(...f.map(x => Math.max(...x.wristDeg))), thumbCardMm: held.length ? Math.max(...held.map(x => x.thumbCardMm[1])) : null, throughCard: f.reduce((s, x) => s + x.throughCard[1], 0)}; })() : null,
@@ -497,12 +566,15 @@ if (asked.get('spela') === '1') void play();
 // tree's anchor, studio/lib/bordet.ts treeAnchor), except where sliders are moved and not saved: the deal then stays, and the
 // answer names the card still shown; `play`: its "Spela kortbanan", the deal played from the start. {plan}: the studio's
 // draft (takePlan). {attach: true}: the controls attached again (attach). {flytta: boolean}: whether a place can be moved
-// by hand (false until it is said).
+// by hand (false until it is said). {film: {src, label, start, end, speed} | null}: the dealer's film of the card's deal (a
+// path on this server; its words; the seconds of the deal in the file, `end` where its return begins; the speed it is
+// watched at), or none (takeFilm).
 if (embedded) {
   hear = e => {
     const said = (e.data as {docklabb?: Record<string, unknown>} | null)?.docklabb;
     if (e.source !== parent || e.origin !== location.origin || !said || typeof said !== 'object') return;
     if ('plan' in said) takePlan(said.plan);
+    if ('film' in said) takeFilm(said.film);
     if (said.attach === true) attach();
     if (typeof said.flytta === 'boolean') { flytta = said.flytta; if (!flytta) { endMove(); $('stage').style.cursor = ''; } }
     if (typeof said.place === 'string') { const place = said.place, free = untouched() || !!now?.saved, entry = said.entry === 'A2.1' || said.entry === 'A2.3' ? said.entry : null;

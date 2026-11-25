@@ -45,7 +45,7 @@ const REQUIRED = ['id', 'kind', 'question', 'leads', 'chips', 'asked', 'from', '
 // A path of this machine or an e-mail address: neither belongs in the public repo.
 const MACHINE_PATH = /(?:\b[A-Za-z]:[\\/]|\\\\[A-Za-z0-9]|(?<![\w.])\/(?:Users|home|mnt|tmp|var|private)\/)/;
 const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/;
-// A page of the lab, named from the server's root without a leading slash: "game.html?table=casino", "studio/prov/?prov=x".
+// A page of the lab, named from the server's root without a leading slash: "game.html?table=casino", "studio/granska/?prov=x".
 const PAGE = /^[a-z0-9][a-z0-9._-]*(?:\/[a-z0-9][a-z0-9._-]*)*\/?(?:\?[A-Za-z0-9._~=&%+,:-]*)?$/;
 // An address outside, shown as text to open on the phone: "dealer-lake.vercel.app/trailer", https:// optional.
 const LINK = /^(?:https:\/\/)?(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}(?:\/[A-Za-z0-9._~/?=&%+,:-]*)?$/;

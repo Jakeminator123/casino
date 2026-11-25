@@ -27,7 +27,7 @@ import { motionRegister } from "../../tools/register-store.ts";
 import { STEPS, openEndWords, readCutChecks, seatWords, type BankFacts, type OrdersAnswer } from "../../src/order-model.ts";
 import { productionList, readProduction } from "../../tools/produce.ts";
 import { REFERENCE_ABSENT, lastPictureOf, recipeFor } from "../../src/order-methods.ts";
-import { NO_MODEL, cardWishes, filmRow, type FilmWish, type RowChoice } from "../lib/bordet.ts";
+import { NO_MODEL, filmRow, type FilmWish, type RowChoice } from "../lib/bordet.ts";
 
 const repo = path.resolve(import.meta.dirname, "../..");
 const base = os.tmpdir();
@@ -147,10 +147,7 @@ test("Bordet's row and the store agree for every standard step and card, and the
     const inList = production.rows.find((r) => r.step === step.key && r.target === target);
     if (step.key === "RETUR-2.3") {
       assert.ok(step.off, `${key}: disabled in Beställ's form`);
-      // A card's three films go from the guide tree's anchor: a card dealt from A2.3 lists its return to 2.3, as a row that
-      // is ordered with the command (it finds the approved deal and its frozen last picture); from A2.1 the card has none.
-      assert.ok(!cardWishes(target!, "2.1").some((w) => w.step === step.key), `${key}: absent from a card dealt from A2.1`);
-      assert.ok(cardWishes(target!, "2.3").some((w) => w.step === step.key), `${key}: listed for a card dealt from A2.3`);
+      // A row that is ordered with the command (it finds the approved deal and its frozen last picture), never from the row.
       const listedRow = rowOf(wish);
       assert.ok(!listedRow.orderable && listedRow.body === null && listedRow.why, `${key}: listed, and not sent from the row`);
       assert.equal(inList, undefined, `${key}: absent from the standard production list`);

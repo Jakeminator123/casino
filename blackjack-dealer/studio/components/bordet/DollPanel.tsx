@@ -14,6 +14,10 @@
 //                 {attach: true}          lay the controls into the host: when the lab is ready and when a host is mounted anew
 //                 {flytta}                true while step 1 is open and the plan can be changed: the card's place can be
 //                                          dragged on the felt
+//                 {film}                  the dealer's film of the card's deal, {src, label, start, end, speed} (useDollFilm),
+//                                          or null where the card has none on this computer: the lab's slider "Filmen" lays
+//                                          it over the doll in "Filmens kamera" (Jakob 2026-11-25: "så man kan jämföra videos
+//                                          som är skapade med tex dockan"); sent when the lab is ready and when it changes
 //   from the lab  {ready: true}           it has started: all of the above is sent then (what is sent before its script runs
 //                                          is lost), and again after every new load of the frame
 //                 {place, entry}          a card or a pose chosen there (also by a click in the picture), and its answer to
@@ -33,9 +37,11 @@ import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "r
 import { DOLLS } from "../../../dealer3d/src/doll.ts";
 import { genitive, type OrdersAnswer } from "../../../src/order-model.ts";
 import { SHOE, type Place, type PlacementPlan } from "../../../src/placement-model.ts";
+import type { cardFilm } from "../../lib/bordet.ts";
 import { dollFilms, takesOf, type DollGroup } from "../../lib/doll-films.ts";
 import type { Ledger } from "../../lib/ledger.ts";
 import { swedishMoment } from "../../lib/mode.ts";
+import { nodeCode } from "../../lib/names.ts";
 import { placeCode, placeFromCode } from "../../lib/placement.ts";
 import { ErrorState, SegmentedControl, Skeleton, cn } from "../ui";
 import { DollFilms } from "./DollFilms";
@@ -122,8 +128,41 @@ export const DollControls = forwardRef<HTMLDivElement, { hidden: boolean }>(func
   return <div ref={ref} data-docklabb-styr hidden={hidden} className="docklabb-host" />;
 });
 
+/**
+ * The film the lab's slider "Filmen" lays over the doll: the path on this server, its words (the step and whose film, never a
+ * file's name), and the deal's seconds in the file (`end`: where its return begins) and the speed it is watched at.
+ */
+export type DollFilm = { src: string; label: string; start: number; end: number; speed: number };
+
+/**
+ * The card's film for the doll's picture (lib/bordet.ts cardFilm, for the chosen card, tree and dealer), once the server
+ * has said that its file is on this computer (most media is not: a 404 is a card without a film).
+ */
+export function useDollFilm(found: ReturnType<typeof cardFilm>, treeName: string | null): DollFilm | null {
+  const film = useMemo<DollFilm | null>(() => {
+    if (!found) return null;
+    const { part, own, waits } = found;
+    const whose = own && treeName ? `ur trädet ${treeName}` : `den spelet spelar${treeName ? `, ${genitive(treeName)} egen saknas` : ""}`;
+    return { src: part.path, label: `${nodeCode(part.from)} → ${nodeCode(part.to)} · ${whose}${waits ? " · väntar på din dom" : ""}`, start: part.start / part.fps, end: part.end / part.fps, speed: part.speed };
+  }, [found, treeName]);
+  const src = film?.src ?? null;
+  const [here, setHere] = useState<{ src: string; ok: boolean } | null>(null);
+  useEffect(() => {
+    if (!src) return;
+    let live = true;
+    fetch(src, { method: "HEAD", cache: "no-store" }).then(
+      (r) => live && setHere({ src, ok: r.ok }),
+      () => live && setHere({ src, ok: false }),
+    );
+    return () => {
+      live = false;
+    };
+  }, [src]);
+  return film && here?.src === film.src && here.ok ? film : null;
+}
+
 export function DollStage({
-  place, entry, play, plan, flytta, host, films, dealer, orders, ordersRead, groups, onPlace, onEntry, onSaved, onMoved,
+  place, entry, play, plan, flytta, film, host, films, dealer, orders, ordersRead, groups, onPlace, onEntry, onSaved, onMoved,
 }: {
   place: Place;
   /** The pose the doll deals the card from: the guide tree's anchor, where the lab has it (A2.1 or A2.3), else null. */
@@ -134,6 +173,8 @@ export function DollStage({
   plan: PlacementPlan;
   /** The card's place may be dragged in the picture (step 1 open, the plan changeable). */
   flytta: boolean;
+  /** The dealer's film of the card's deal, for the lab's slider "Filmen" (useDollFilm), or null: none on this computer. */
+  film: DollFilm | null;
   /** Step 2's host for the lab's controls (DollControls), or null while none is mounted. */
   host: HTMLElement | null;
   /** The doll's films for the card are shown instead of the picture. */
@@ -163,9 +204,9 @@ export function DollStage({
   const isReady = useCallback(() => !!frame.current?.contentWindow && readyWindow.current === frame.current.contentWindow, []);
 
   // What is told when the lab says it is ready, and what is done with what it says: the newest of each.
-  const latest = useRef({ place, entry, plan, flytta, onPlace, onEntry, onSaved, onMoved });
+  const latest = useRef({ place, entry, plan, flytta, film, onPlace, onEntry, onSaved, onMoved });
   useEffect(() => {
-    latest.current = { place, entry, plan, flytta, onPlace, onEntry, onSaved, onMoved };
+    latest.current = { place, entry, plan, flytta, film, onPlace, onEntry, onSaved, onMoved };
   });
   useEffect(() => {
     const hear = (event: MessageEvent) => {
@@ -180,6 +221,7 @@ export function DollStage({
         post({ plan: now.plan });
         if (now.place !== SHOE) post({ place: now.place, ...(now.entry ? { entry: now.entry } : {}) });
         post({ flytta: now.flytta });
+        post({ film: now.film });
       }
       const moved = s.moved as { place?: unknown; u?: unknown; v?: unknown } | null | undefined;
       if (moved && typeof moved === "object") {
@@ -223,6 +265,10 @@ export function DollStage({
   useEffect(() => {
     if (isReady()) post({ flytta });
   }, [flytta, isReady, post]);
+  // The card's film, when the card, the tree or the dealer gives another (or none).
+  useEffect(() => {
+    if (isReady()) post({ film });
+  }, [film, isReady, post]);
 
   const chosen = ingang ? ENTRY : place;
   const group = groups.find((g) => (g.place ?? ENTRY) === chosen) ?? null;

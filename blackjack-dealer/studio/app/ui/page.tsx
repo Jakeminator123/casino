@@ -333,7 +333,7 @@ export default function Kit() {
                 <div className="grid grid-cols-2 gap-4">
                   <TextField label="Med ikon" icon={<Search />} placeholder="Sök tagning…" />
                   <TextField label="Fokus" className="border-brass/70 ring-3 ring-brass/15" defaultValue="P4C1" />
-                  <TextField label="Fel" defaultValue="A2 - P4C1" error="”A2” kan vara A2.1 (nyp) eller A2.2 (hand över): skriv vilken." />
+                  <TextField label="Fel" defaultValue="A2 - P4C1" error="”A2” kan vara A2.1 (nyp) eller A2.3 (två händer): skriv vilken." />
                   <TextField label="Avstängd" defaultValue="Kan inte ändras" disabled />
                 </div>
                 <TextArea label="Anteckning" value={note} onChange={(event) => setNote(event.target.value)} maxLength={1500} counter hint="Sparas med beslutet" />

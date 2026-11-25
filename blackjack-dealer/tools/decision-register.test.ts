@@ -56,7 +56,7 @@ test('chips, proof, file, page, link and dates are checked', () => {
   assert.ok(one({file: 'a.mp4'}).some(p => p.includes('kräver proof')));
   assert.ok(one({proof: 'Paow mun', file: '../a.mp4'}).length === 2);
   for (const page of ['/game.html', 'http://x.se/a', '../tools/preview.ts', 'studio/../x', 'a b.html']) assert.ok(one({page}).some(p => p.includes('.page')), page);
-  for (const page of ['game.html', 'game.html?table=casino&dealer=paow', 'studio/prov/?prov=paow-mun&fil=a.mp4']) assert.deepEqual(one({page}), [], page);
+  for (const page of ['game.html', 'game.html?table=casino&dealer=paow', 'studio/granska/?prov=paow-mun&fil=a.mp4']) assert.deepEqual(one({page}), [], page);
   for (const link of ['javascript:alert(1)', 'http://dealer-lake.vercel.app', 'localhost/x', 'a b.se']) assert.ok(one({link}).some(p => p.includes('.link')), link);
   for (const link of ['dealer-lake.vercel.app/trailer', 'https://github.com/settings/billing']) assert.deepEqual(one({link}), [], link);
   for (const asked of ['2026-11-31', '17 nov', 20261117]) assert.ok(one({asked}).some(p => p.includes('.asked')), String(asked));

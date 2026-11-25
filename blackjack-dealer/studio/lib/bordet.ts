@@ -1,8 +1,8 @@
 // Bordet (/bordet/): the lab's one view of the table, where a card's place, its way there and the films to order are set in
 // one frame (Jakob 2026-11-17: "Scen och placering bör ha samma typ av vy, och på högersidan ska man kunna ändra och laborera
 // med detta. Detta ska också vara underlaget för beställning av nya filmer."). Pure helpers for it: the anchor a card's films
-// go from (the guide tree's, treeAnchor), step 2's folded line, the card and round Scen plays, and the list of films to
-// order (step 3): a card's three films from that anchor, each in his notation, with its step's one recipe
+// go from (the guide tree's, treeAnchor), the film the picture lays over the doll (cardFilm), step 2's folded line, the card
+// and round Scen plays, and the films to order (step 3): each in his notation, with its step's one recipe
 // (data/order-methods.json), what the store will resolve for it (lineOf, from the same pure functions the store uses), its five
 // marks (first picture, last picture, reference film, text, price), its text and price as the order freezes them, and the
 // choices sent for a server preview: the dealer, the step and the card, and over them only his deliberate exceptions.
@@ -10,8 +10,10 @@
 // what to do; a deal to a seat with no last picture yet goes without one, as the store makes it, a return waits for the deal
 // whose last frame it starts in, and a recipe's status and its reference film only inform (Jakob 2026-11-23,
 // "Rensa bort regler och låsningar som blockerar"). Nothing here composes an order: the store does, as for every draft. No
-// DOM, no network; tests in studio/tests/bordet-line.test.ts (the rows and the stops) and studio/tests/line-same.test.ts.
-import type { Graph } from "../../src/clip-graph.ts";
+// DOM, no network; tests in studio/tests/bordet-line.test.ts (the rows and the stops) and studio/tests/line-same.test.ts, and
+// for the film over the doll in studio/tests/tree-path.test.ts.
+import { resolveRound, type Graph } from "../../src/clip-graph.ts";
+import type { TreeView } from "../../src/dealer-trees.ts";
 import {
   ANCHOR_NODE, ANCHOR_ROLE, LANDS_LABEL, a3Candidates, a3Name, costOf, credits, defaultFlip, genitive, giveEndOf, handsOf, landingOf, modelFor, paramsOf, referenceCandidates, seatEndOf, seatWords, stepOf,
   type Anchor, type BankFacts, type DealerLook, type FlipAxis, type HandChoice, type ModelDef, type PlanAnswer, type Policy, type RefCandidate, type SeatEnd, type Shape, type StepDef, type StepKey, type TextStyle,
@@ -21,6 +23,7 @@ import { TEMPLATE_VERSION, orderPrompt } from "../../src/order-prompts.ts";
 import type { Place, Side } from "../../src/placement-model.ts";
 import { SHOE } from "../../src/placement-model.ts";
 import { dealAnchor, type NewOrderInput } from "./orders.ts";
+import { partsOf, playable, type PlayPart } from "./parts.ts";
 import { START_PLACE } from "./placement.ts";
 import { SCENE_KEYS } from "./scene-keys.ts";
 import { nodeCode } from "./names.ts";
@@ -66,6 +69,29 @@ export function roundFor(card: string, dealer: string, from: Exclude<Anchor, "1"
   return `${at} - ${nodeCode(card)} - ${at}`;
 }
 
+// ── The film over the doll ──────────────────────────────────────────────────
+/**
+ * The film Kortplan's picture can lay over the doll (Jakob 2026-11-25: "så man kan jämföra videos som är skapade med tex
+ * dockan"): the dealer's deal to the card from the tree's anchor at the shoe, the frames of it that are played. The tree's own
+ * film on the step where it has one that holds (finns: its take locked, a stand-in's from its own anchor, as Karta plays a
+ * path, lib/tree-path.ts), else the game's own choice for the card's round from that anchor, as Bordet's Scen plays it
+ * (resolveRound). Only the card's own film: a seat's film played for its second card lays the card on the first card's place
+ * (src/dealer-trees.ts gameFilm leaves it out too). Null where there is none, or the bank has no file of it on this computer
+ * (the part's gap). `own`: the film is the tree's own; `waits`: it waits for his verdict (the game plays such a film where
+ * it has no other).
+ */
+export function cardFilm(graph: Graph | null, view: Pick<TreeView, "hub" | "steps"> | null, place: Place): { part: PlayPart & { path: string }; own: boolean; waits: boolean } | null {
+  if (!graph || place === SHOE) return null;
+  const hub = view?.hub ?? ANCHOR_NODE["2.3"];
+  const step = view?.steps.find((s) => s.kind === "giv" && s.card === place) ?? null;
+  const take = step?.state === "finns" ? step.take : null;
+  const from = take && step?.via ? step.via : hub;
+  const [deal] = resolveRound(graph, [{ from, to: place, ...(take ? { take } : {}) }, { from: place, to: from }]);
+  if (!deal || deal.film !== deal.edge || (take && deal.take?.id !== take)) return null;
+  const [part] = partsOf([deal]);
+  return playable(part) ? { part, own: !!take, waits: deal.take?.decision === "PENDING" } : null;
+}
+
 // ── Step 2: what steers the motion ──────────────────────────────────────────
 /** Step 2's line when folded: the anchor the card goes from and how it lies ("A2.3 · Stängt → öppet"). */
 export function stepTwoSummary(place: Place, from: Exclude<Anchor, "1">, endSide: Side | null): string {
@@ -77,16 +103,6 @@ export function stepTwoSummary(place: Place, from: Exclude<Anchor, "1">, endSide
 /** One film on the list: a step, and the card it is about (null for a step without one). */
 export type FilmWish = { step: StepKey; target: string | null };
 export const wishKey = (w: FilmWish) => `${w.step}@${w.target ?? ""}`;
-
-/**
- * The films a card can have, three, all from one anchor (`from`, treeAnchor): the deal, the return to the same anchor and the
- * return to rest. From A2.3: A2.3 → A3P4C2, A3P4C2 → A2.3, A3P4C2 → A1. A film that lacks something (no recipe, or the
- * return to 2.3, which the command orders) stays on the list, and its row says what to do. The shoe has none.
- */
-export function cardWishes(place: Place, from: Exclude<Anchor, "1">): FilmWish[] {
-  if (place === SHOE) return [];
-  return ([`GIV-${from}`, `RETUR-${from}`, "RETUR-1"] as StepKey[]).filter((k) => stepOf(k)).map((step) => ({ step, target: place }));
-}
 
 /** The bank's edges a film is filed under, as nodes: a deal tur och retur gives anchor → card → anchor. */
 function nodesOf(step: StepDef, target: string | null, shape: Shape | null): string[] {
@@ -416,30 +432,6 @@ export function referenceName(c: Pick<RefCandidate, "dealer" | "edge" | "goesTo"
 export const referenceRole = (line: Pick<Line, "recipe" | "style">): string => (line.recipe?.template === 14 && line.style === "KORT" ? "grov vägledning, naturlig rörelse går före" : "rörelsen följer filmen");
 /** "dockans film" or "referensfilm": a reference film by whose it is, for the choice "Med dockans film". */
 export const referenceOwner = (c: Pick<RefCandidate, "kind" | "dealer">): string => (c.kind === "RENDERED" || c.dealer === "docka" ? "dockans film" : "referensfilm");
-
-/**
- * "3 filmer · 1 kan beställas · 64 krediter" (the price of those that can), for the foot of the list and step 3's line.
- * Where none is ready it says that ("3 filmer · ingen klar att beställa"), not that they cannot be ordered: each row says
- * what to do, or what it waits for.
- */
-export function sumWords(rows: readonly Pick<FilmRow, "cost" | "orderable">[]): string {
-  if (!rows.length) return "Inga filmer";
-  const can = rows.filter((r) => r.orderable), total = can.reduce((s, r) => s + (r.cost ?? 0), 0);
-  const films = `${rows.length} ${rows.length === 1 ? "film" : "filmer"}`;
-  return can.length ? `${films} · ${can.length} kan beställas · ${credits(total)} krediter` : `${films} · ${rows.length === 1 ? "inte" : "ingen"} klar att beställa`;
-}
-
-/**
- * Bordet's Beställ with the queue shown and Beställ's own words kept, for Beställ's old address (app/bestall/page.tsx):
- * /bestall/?order=x leads to /bordet/?lage=bestall&ko=1&order=x.
- */
-export function bordetOrderAddress(params: { forEach(fn: (value: string, key: string) => void): void }): string {
-  const p = new URLSearchParams({ lage: "bestall", ko: "1" });
-  params.forEach((value, key) => {
-    if (key !== "lage" && key !== "ko") p.append(key, value);
-  });
-  return `/bordet/?${p.toString()}`;
-}
 
 /**
  * Granska filmen: a film's last order (of the same dealer, step and card, not set aside) whose takes are shown beside

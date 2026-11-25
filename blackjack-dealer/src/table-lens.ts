@@ -12,7 +12,7 @@
 // its film size and shape (dealer3d/src/camera.ts, lensForFocal) which draws her knuckles, shoulders and pupils nearest
 // their real sizes (dealer3d/src/world.ts, filmLens; dealer3d/tests/standard.test.ts holds the numbers below to that fit).
 // Two things that took no part in the fit agree with it: the shoe drawn on the film's comes out 0.44 m long, and the card
-// standing in the shoe's window is 0.93 of a real card's length. FILM, CARD, TABLE_LENS and SHOE are the standard the doll,
+// standing in the shoe's window is 0.93 of a real card's length. FILM, CARD, TABLE_LENS, SHOE and TRAY are the standard the doll,
 // the card plan, the orders' last picture and the 3D scene's Standard share; who follows it, and where it is left: docs/SYSTEM.md,
 // "Standarden: en kamera, ett bord, ett kort".
 export const FILM = {width: 1764, height: 1174};
@@ -180,6 +180,15 @@ export function shoeCardQuad(centre: Pixel | null = null, grow = 1, lens: Lens =
   const q = cardInSpace(at, card.up, card.across, grow).map(p => see(eye, p)!), area = q.reduce((s, p, i) => { const n = q[(i + 1) % 4]; return s + p.x * n.y - n.x * p.y; }, 0);
   return area >= 0 ? q : [q[1], q[0], q[3], q[2]]; // clockwise on screen (y runs down), the upper short side first
 }
+
+// ---- the chip tray ----------------------------------------------------------------------------------------------
+/**
+ * The dealer's chip tray, sunk into the table at her edge where the films' hands rest: metres across the table (x, image
+ * right positive; it ends short of the shoe) and from the dealer-side edge toward the players (s), and how deep the recess is.
+ * Part of the standard since Jakob 2026-11-25 ("Sko, markerlåda och annat ... de färdiga och standarliserade måtten på allt"):
+ * a look may draw another tray over it (src/game3d-tray.ts, a model of his), but this is where and how large the tray is.
+ */
+export const TRAY = {x0: -0.3, x1: 0.24, s0: 0, s1: 0.1, depth: 0.03};
 
 // ---- the family of lenses ---------------------------------------------------------------------------------------
 // The card lying at seat 4 has its film size and shape under a whole family of lenses, from a wide one close by to a long

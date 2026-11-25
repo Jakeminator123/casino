@@ -12,7 +12,7 @@
 //   PUT /dealer3d/standard/<name>.json     save one: "Spara som standard" on the page
 // A standard is a motion in the form of dealer3d/data/*.json for one doll, one entry and one place, named <doll>-<place>
 // from A2.3 (paow-p6c1, standard-dc1; every standard saved before the entries) and <doll>-a2-1-<place> from A2.1
-// (paow-a2-1-p4c1; a2-2 is kept for A2.2), so that `node dealer3d/tools/render-reference.ts --motion dealer3d/standard/<name>.json`
+// (paow-a2-1-p4c1), so that `node dealer3d/tools/render-reference.ts --motion dealer3d/standard/<name>.json`
 // films exactly what was saved. The write is narrow: only into dealer3d/standard/, only a name of that pattern, only from
 // the lab's own origin, only JSON of a motion's shape that names the same doll, entry (`lab.from`, A2.3 if left out) and place as its name, at most 1.5 MB;
 // written beside the target and renamed over it. Nothing else under the repo is written by these routes.
@@ -24,14 +24,14 @@ import type {IncomingMessage, ServerResponse} from 'node:http';
 
 export const STANDARDS = 'dealer3d/standard';
 const BODY_LIMIT = 1_500_000, MOST_FRAMES = 900;
-const NAME = /^([a-z][a-z0-9]{1,15})-(?:a2-([12])-)?(p[1-7]c[12]|dc[123])$/;
+const NAME = /^([a-z][a-z0-9]{1,15})-(?:a2-(1)-)?(p[1-7]c[12]|dc[123])$/;
 // A motion's own fields (dealer3d/tools/deal-film.ts and doll-pose.ts write these), and `lab`: what the page laid it from.
 const KEYS = new Set(['about', 'film', 'pose', 'poseFilm', 'places', 'pace', 'rightAt', 'to', 'loose', 'fps', 'frameCount', 'leavesShoe', 'edge', 'folds', 'rests', 'handSize', 'palm', 'throughShoe', 'elbowForced', 'hip', 'beats', 'turns', 'laid', 'frames', 'doll', 'lab']);
 class Refused extends Error { status: number; constructor(status: number, message: string) { super(message); this.status = status; } }
 
 /** The plan's name of a place from a standard's: p6c1 is P6.C1, dc3 is D.C3. */
 export const placeOf = (short: string) => short.startsWith('d') ? `D.C${short[2]}` : `P${short[1]}.C${short[3]}`;
-/** The entry a standard's name says its deal begins in: A2.1 or A2.2 where the name has a2-1 or a2-2, else A2.3. */
+/** The entry a standard's name says its deal begins in: A2.1 where the name has a2-1, else A2.3. */
 const entryOf = (m: RegExpExecArray) => `A2.${m[2] ?? 3}`;
 const vec = (v: unknown) => Array.isArray(v) && v.length === 3 && v.every(x => typeof x === 'number' && Number.isFinite(x));
 const limb = (l: unknown) => { const a = l as {s?: unknown; e?: unknown; w?: unknown; p?: unknown} | null; return !!a && typeof a === 'object' && vec(a.s) && vec(a.e) && vec(a.w) && Array.isArray(a.p) && a.p.length === 21 && a.p.every(vec); };
@@ -105,7 +105,7 @@ export function dollLabRoutes(options: {root: string; origin: string}) {
       else send(res, 404, 'text/plain; charset=utf-8', 'Finns inte.');
     } catch (error) {
       req.resume(); // what is left of a refused body is let through, so that the answer reaches the sender
-      if (!res.headersSent) json(res, error instanceof Refused ? error.status : 500, {error: error instanceof Refused ? error.message : 'Något gick fel i docklabbet.'});
+      if (!res.headersSent) json(res, error instanceof Refused ? error.status : 500, {error: error instanceof Refused ? error.message : 'Något gick fel hos dockan.'});
       else res.end();
     }
     return true;

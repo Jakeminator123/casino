@@ -3,7 +3,8 @@
 // marked. Nothing of the doll or the room is drawn here: that is the stage's; this file adds the camera, the marks on the
 // joints and on the fingertips that touch the card, the place that is lit, the places' outlines kept to the plan in use
 // (setPlan: the studio's draft, as it is changed; each turned on the felt as the studio draws it), the point of the felt
-// under the pointer (pick), and one place's outline moved by hand (movePlace).
+// under the pointer (pick), one place's outline moved by hand (movePlace), and whether the picture is the film's camera's own
+// (atFilm: docka.ts lays the dealer's film over it only then).
 //
 // What it borrows of the stage that the stage does not hand out, all of it in createLabStage's first lines and nowhere
 // else: the scene (taken as the stage adds its first light to it), the renderer (taken at one drawing of the stage's own),
@@ -113,6 +114,9 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
   const camera = new T.PerspectiveCamera(fovYDeg(film.focalPx), FILM.width / FILM.height, 0.2, 30), controls = new OrbitControls(camera, canvas);
   controls.enableDamping = false; controls.minDistance = 0.25; controls.maxDistance = 9; controls.maxPolarAngle = Math.PI * 0.52; controls.zoomSpeed = 1.2; controls.rotateSpeed = 0.9;
   let target = 'P4.C1', now = 0, dirty = true, follow: Vec3 | null = null; controls.addEventListener('change', () => { dirty = true; });
+  // Where "Filmens kamera" put the camera, until another view is chosen: the picture is the film's own only while the
+  // camera stands there (atFilm), so that a film laid over it lies true.
+  let home: {p: T.Vector3; t: T.Vector3; fov: number} | null = null;
   /** The two frames the time stands between, and how far from the first. */
   const between = () => { const at = Math.min(read.frameCount - 1, now * read.fps), i = Math.min(read.frameCount - 2, Math.floor(at)); return {a: read.frames[i], b: read.frames[i + 1], k: at - i}; };
   const cardNow = (): Vec3 => { const {a, b, k} = between(); return mix(a.card.c, b.card.c, k); };
@@ -125,9 +129,9 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
   const chest: Vec3 = mix(mix(body.shoulders[0], body.shoulders[1], 0.5), body.hip, 0.3), table: Vec3 = [edge[0], 0.12, edge[2] + 0.22];
   const seatOf = () => { const m = /^P([1-7])\./.exec(target); return m ? Number(m[1]) : 4; };
   function view(name: ViewName) {
-    follow = null;
+    follow = null; home = null;
     // Filmens kamera: the bank's own (stage.ts cameraOf: its place, its line of sight, its lens, the film's shape).
-    if (name === 'film') through(film, chest);
+    if (name === 'film') { through(film, chest); home = {p: camera.position.clone(), t: controls.target.clone(), fov: camera.fov}; }
     // From her right side, where the hand that lays the card is nearest; level with her arms.
     else if (name === 'side') through({position: [table[0] - 2.1, 0.5, table[2]], forward: [2.1, -0.38, 0], focalPx: film.focalPx}, table);
     // Straight down on the table, the dealer at the top as in the film (a hair off the plumb line, which has no up).
@@ -187,6 +191,8 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
     /** Whether the mouse turns the view (off while docka.ts moves a place by hand). */
     orbit(on: boolean) { controls.enabled = on; },
     view,
+    /** Whether the picture is the film's camera's own now: "Filmens kamera" as it was set, not turned, zoomed or moved since (within 0,01 mm). */
+    atFilm: () => !!home && camera.fov === home.fov && camera.position.distanceToSquared(home.p) < 1e-10 && controls.target.distanceToSquared(home.t) < 1e-10,
     setJoints(on: boolean) { joints.group.visible = on; setTime(now); },
     /** The fingertips on the card marked (dealer3d/page/docka.ts: with the joints, and always close on the card). */
     setGrips(on: boolean) { held.group.visible = on; setTime(now); },

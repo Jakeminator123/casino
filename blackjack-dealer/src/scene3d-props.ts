@@ -6,9 +6,11 @@
 // film, exactly where a tray belongs, so the tray is a recess: rim and chips end at felt level and the hands rest on
 // them instead of passing through something that sticks up. Sizes are dealer metres; the group is scaled by k.
 import * as T from 'three';
+import {TRAY as STANDARD_TRAY} from './table-lens.ts';
 
-// Across the table (x) and from the dealer-side edge toward the players (s). The felt has a notch of this size.
-export const TRAY = {x0: -0.3, x1: 0.24, s0: 0, s1: 0.1, depth: 0.03, tubes: 11}; // ends short of the shoe on image right
+// The standard's tray (src/table-lens.ts: where it lies and how large it is; the felt has a notch of this size), and how many
+// tubes of chips this built one has.
+export const TRAY = {...STANDARD_TRAY, tubes: 11};
 const CHIP_MM = 3.3, COLOURS = ['#e9e4d6', '#e9e4d6', '#b3202a', '#b3202a', '#b3202a', '#1f7a4a', '#1f7a4a', '#1b1b1d', '#1b1b1d', '#5b2a86', '#d98a1f', '#2a4d9b'];
 
 // One chip's edge, repeated along the stack: the colour with six pale inserts and a thin dark line between chips.

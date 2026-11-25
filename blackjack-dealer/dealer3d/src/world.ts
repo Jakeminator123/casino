@@ -3,7 +3,7 @@
 // together and the plan's places to their pixels), the card places of Jakob's plan laid on the felt, and an eye for every
 // seat. Pure: no I/O and no three.js.
 import {FILM, SEAT_FOUR_CARD, SHOE_FOOT, SHOE_WINDOW_CARD, filmEye, lensForFocal, onPlane, onUpright, orbit, planPixel, readSpan, see, cardCorners, quadMeasure, type Anchors, type Eye, type Lens, type Pixel, type Vec3} from './camera.ts';
-export {SHOE, SHOE_LAID_BEFORE_20261123, cardInSpace, realCardQuad, realCardQuadAt, shoeCard, shoeCardQuad, shoePose, sides, type Shoe, type ShoePose} from '../../src/table-lens.ts';
+export {SHOE, SHOE_LAID_BEFORE_20261123, TRAY, cardInSpace, realCardQuad, realCardQuadAt, shoeCard, shoeCardQuad, shoePose, sides, type Shoe, type ShoePose} from '../../src/table-lens.ts';
 
 // What the film shows, read on frames of paow-giv-2-1-p4-11-01 (1764 x 1174) and in data/dealer-standard.json.
 export const MEASURED = {

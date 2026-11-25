@@ -261,7 +261,13 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
   // The plan's camera: the contract's, or with the geometry 'lens' the table's lens itself (scene3d-geometry.ts lensCamera), the one
   // the card plan draws through. `written`: the camera the game's framings and the saved looks were made under (updateView).
   const written = () => cameraFromContract(data.contract);
-  function filmCamera(): FilmCamera { const base = state.lens !== 'plan' ? DEALER_LENS_ESTIMATE : geometry === 'lens' ? lensCamera(TABLE_LENS, edgeRowOf(data.contract)) : written(); return state.scale > 0 ? {...base, scale: state.scale} : base; }
+  // Under the table's lens the world is in real metres, so k is 1 whatever a look says: Skala k belongs to the contract's camera
+  // and the estimate. Casino's look carries k = 2 (saved under Bred lins), and shown under Standard it built the tray, the bet rings
+  // and the table twice their size (Jakob 2026-11-25: "Varför i 'Scen' så ser man markerlådan så stor?").
+  function filmCamera(): FilmCamera {
+    if (state.lens === 'plan' && geometry === 'lens') return lensCamera(TABLE_LENS, edgeRowOf(data.contract));
+    const base = state.lens !== 'plan' ? DEALER_LENS_ESTIMATE : written(); return state.scale > 0 ? {...base, scale: state.scale} : base;
+  }
   function buildGuides() {
     if (guides) fg.remove(guides); guides = new T.Group(); fg.add(guides);
     const line = (points: number[][], color: number) => { const l = new T.LineLoop(new T.BufferGeometry().setFromPoints(points.map(p => new T.Vector3(...p))), new T.LineBasicMaterial({color, depthTest: false})); l.renderOrder = 20; guides!.add(l); };

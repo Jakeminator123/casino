@@ -13,20 +13,6 @@ export const PROOFS_HREF = "/granska/?vy=prov";
 /** One proof open in Granska's part Prov, on a file when one is named. */
 export const proofHref = (id: string, file?: string | null): string => `/granska/?${new URLSearchParams(file ? { prov: id, fil: file } : { prov: id }).toString()}`;
 
-/**
- * Where an address of the old view Prov leads (cards in Beslut and the documents link there): the same question
- * on /granska/, with vy=prov when it names no proof. "?prov=x&fil=a.mp4" → "/granska/?prov=x&fil=a.mp4"; "" → PROOFS_HREF.
- * Every other word (the dealer's) is kept as written.
- */
-export function fromProvAddress(search: string): string {
-  const pairs = search
-    .replace(/^\?/, "")
-    .split("&")
-    .filter((pair) => pair && pair.split("=")[0] !== "vy");
-  const named = pairs.some((pair) => pair.split("=")[0] === "prov" && pair.length > "prov=".length);
-  return `/granska/?${(named ? pairs : ["vy=prov", ...pairs]).join("&")}`;
-}
-
 // ── Takes a proof names ─────────────────────────────────────────────────────
 /**
  * The takes a proof names by id (in its title, description, labels or file names), in the order they first appear;

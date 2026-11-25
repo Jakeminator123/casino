@@ -2,7 +2,7 @@
 names and parents, fingers and the head's joints among them), its 70 key points and its surface, for a doll with her
 measures (dealer3d/src/doll.ts; dealer3d/tools/docka-mat.ts turns this into numbers).
 
-Written 2026-11-21 for the doll "paow" on the way dealer3d/tools/prov-sam.py reads a film: the body model only, with the
+Written 2026-11-21 for the doll "paow" the way a film was read for the trial of 2026-11-20: the body model only, with the
 person's box and the table's lens given (src/table-lens.ts TABLE_LENS: focal 2334 px, centre in the middle), so that
 every joint is in the bank's camera frame. The way to the skeleton's names and parents (MHR's own model file,
 get_joint_names and character_torch.skeleton.joint_parents) is the one Jakob's project ultimate-reality uses in
@@ -59,7 +59,7 @@ mhr_file = checkpoint / 'assets' / 'mhr_model.pt'
 
 
 class OnProcessor(torch.nn.Module):
-    """The body model kept in ordinary memory and asked from the card's side, as in prov-sam.py: the same numbers, 2 GB on the card instead of 3.4."""
+    """The body model kept in ordinary memory and asked from the card's side: the same numbers, 2 GB on the card instead of 3.4."""
 
     def __init__(self, inner):
         super().__init__()

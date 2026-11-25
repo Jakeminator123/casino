@@ -8,8 +8,9 @@
 //   Kortplan     one picture and one column (Jakob 2026-11-25: "Jag vill att vi skapar ett och samma läge för detta ... jag
 //                vill ha allt i 3d ... Det andra ska raderas. ... Simplifiera väldigt mycket, men framförallt så inte
 //                förväxlingar kan ske."). The picture is the doll's, in 3D, for every step: the table, the chosen dealer's
-//                doll and the draft plan's cards on the felt (DollPanel.tsx); "Dockans filmer" shows her films for the card
-//                instead, and "Spela kortbanan" plays her deal to it. The column: the card and its buttons, then the steps for
+//                doll and the draft plan's cards on the felt (DollPanel.tsx), and with the picture's slider "Filmen" the
+//                dealer's film of the card's deal from the tree's anchor over her, in the films' camera (lib/bordet.ts
+//                cardFilm); "Dockans filmer" shows her films for the card instead, and "Spela kortbanan" plays her deal to it. The column: the card and its buttons, then the steps for
 //                the chosen card, 1 Var kortet landar (the place; the card can be dragged in the picture while it is open),
 //                2 Hur det kommer dit (the side the card lies with, chosen there only; the card's way from the anchor; the
 //                doll's own controls, which the doll lab lays there), 3 Ny film (the guide: the dealer, her
@@ -36,7 +37,7 @@ import { SHOE, editPlace, type Place } from "../../../src/placement-model.ts";
 import type { Ledger } from "../../lib/ledger.ts";
 import type { MediaAnswer } from "../../lib/media.ts";
 import { useBank } from "../../lib/bank.ts";
-import { filmRow, hasRound, lastOrder, pathCard, roundFor, sceneWords, stepTwoSummary, treeAnchor, wishKey, type FilmWish, type RowChoice } from "../../lib/bordet.ts";
+import { cardFilm, filmRow, hasRound, lastOrder, pathCard, roundFor, sceneWords, stepTwoSummary, treeAnchor, wishKey, type FilmWish, type RowChoice } from "../../lib/bordet.ts";
 import { useViewContext } from "../../lib/context.ts";
 import { isSnapshot, swedishMoment } from "../../lib/mode.ts";
 import { GUIDE_WORDS, cardOf, filmCode, guideOf, itemOf, pickFor, pickOfWish, pickTree, sameIn, treeBase, type GuideItem, type StepPick } from "../../lib/new-film.ts";
@@ -53,7 +54,7 @@ import { draftActions, useDraft } from "../placement/useDraft.ts";
 import { Page } from "../shell";
 import { Badge, Button, ErrorState, IconButton, SegmentedControl, Skeleton, cn, useToast } from "../ui";
 import type { Made } from "./FilmList";
-import { DOLL_CARD, DollControls, DollNote, DollStage, ownDoll, useDollGroups, useDollStandard, type DollEntry, type StandardState } from "./DollPanel";
+import { DOLL_CARD, DollControls, DollNote, DollStage, ownDoll, useDollFilm, useDollGroups, useDollStandard, type DollEntry, type DollFilm, type StandardState } from "./DollPanel";
 import type { DollGroup } from "../../lib/doll-films.ts";
 import { NewFilm, type Phase } from "./NewFilm";
 import type { SceneKind } from "./SceneBody";
@@ -78,7 +79,7 @@ const isMode = (v: string | null): v is Mode => SHOWN_MODES.some((m) => m.value 
 const isScene = (m: Mode): m is SceneKind => m === "scen" || m === "rafilm" || m === "efterarbete";
 /** A dealer with no drafts made: one object, so that the reference stays the same between renders. */
 const NO_DRAFTS: Made = {};
-/** The pose the doll lab deals from for an anchor at the shoe: it has A2.1 and A2.3; A2.2 is not built there. */
+/** The pose the doll lab deals from for an anchor at the shoe: it has A2.1 and A2.3. */
 const dollEntryOf = (from: Exclude<Anchor, "1">): DollEntry | null => (from === "2.1" ? "A2.1" : from === "2.3" ? "A2.3" : null);
 
 type Params = { get(name: string): string | null };
@@ -269,6 +270,9 @@ export function BordetView() {
   // The doll's standard for the chosen card (step 2 says it, step 3 orders from it), and the doll's films by card.
   const standard = useDollStandard(dealer, place, savedTick, mode === "kortplan" && (step === "motion" || step === "order"));
   const doll = useDollGroups(orders, ledger);
+  // The dealer's film of the card's deal from the tree's anchor, which the doll's picture can lay over her (lib/bordet.ts cardFilm).
+  const found = useMemo(() => (isSnapshot ? null : cardFilm(graph, view, place)), [graph, view, place]);
+  const dollFilm = useDollFilm(found, view?.tree.name ?? null);
   // Step 3 orders a deal from A2.3 to a player's card or one of the dealer's own from the doll's saved standard (Jakob 2026-11-23,
   // "Ett ställe för dockan"; "Givarna från A2.3 beställs ändå med dockans film"), where the dealer has a doll of her own.
   // tools/doll-order.ts sends the anchor that holds in Material; where the tree's own picture is another, the panel says so
@@ -403,7 +407,7 @@ export function BordetView() {
             treeName={view?.tree.name ?? null}
             standard={standard}
             dollCount={doll.count}
-            lab={{ orders, ordersRead, groups: doll.groups, onSaved: onDollSaved }}
+            lab={{ orders, ordersRead, groups: doll.groups, onSaved: onDollSaved, film: dollFilm }}
             newFilm={newFilm}
             newFilmSummary={guideSummary}
           />
@@ -432,8 +436,8 @@ function TableBody({
   standard: StandardState;
   /** How many films of the doll's there are, for the toolbar. */
   dollCount: number;
-  /** What the doll's films need, and what is done when the lab saves a standard. */
-  lab: { orders: OrdersAnswer | null; ordersRead: boolean; groups: readonly DollGroup[]; onSaved: () => void };
+  /** What the doll's films need, what is done when the lab saves a standard, and the film its picture can lay over the doll. */
+  lab: { orders: OrdersAnswer | null; ordersRead: boolean; groups: readonly DollGroup[]; onSaved: () => void; film: DollFilm | null };
   /** Step 3, the guide Ny film; go chooses a card in Kortplan. */
   newFilm: (go: (card: Place) => void) => ReactNode;
   /** One line of what the guide has chosen, for step 3 folded. */
@@ -546,6 +550,7 @@ function TableBody({
             play={play}
             plan={plan}
             flytta={flytta}
+            film={lab.film}
             host={host}
             films={films}
             dealer={dealer}

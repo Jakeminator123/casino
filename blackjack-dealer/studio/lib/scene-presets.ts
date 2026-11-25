@@ -60,7 +60,7 @@ export const SHIPPED: readonly ScenePreset[] = [
     schemaVersion: 1,
     name: "levande",
     label: "Levande",
-    about: "Basgrund med det Jakob minns av 3D-labbet: kameran lutar men gungar inte, skärpan följer kortet, damm i luften och klockan.",
+    about: "Basgrund med det Jakob minns av den första 3D-scenen: kameran lutar men gungar inte, skärpan följer kortet, damm i luften och klockan.",
     state: { ...GAME, ...ALIVE },
     updatedAt: SHIPPED_AT,
   },

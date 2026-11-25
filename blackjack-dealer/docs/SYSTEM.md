@@ -19,6 +19,15 @@ Originalmätningar och referenshashar bevaras; en adapter konverterar vid en utt
 
 ## Standarden: en kamera, ett bord, ett kort
 
+Två lager (Jakob 2026-11-25: "grunden måste vara densamma"). **Standarden** är de fasta måtten nedan: kameran, bordet,
+kortet, planens platser, skon och markerlådan. Allt utgår från den: dockan, Kortplan, Scens grund och varje beställd
+film, så att det som produceras alltid har samma mått. **Utseendet** läggs ovanpå i Scen när färdigt material sätts
+ihop, och sparas som ett förval (`data/scene-presets/`; Casino spelar förvalet `casino`): rum, bordsmodell, duk och
+filtfärg, bordets storlek, hur korten ritas, markerlåda och sko som modell, kamerans vy (vridning, zoom, flytt, format)
+och Bred lins. Reglagen och deras gränser står i `studio/lib/scene-keys.ts`. Ett utseende ändrar aldrig standardens
+mått: i Standard är scenens värld verkliga meter och skalan 1 vad ett förval än säger (`filmCamera` i
+`src/scene3d-view.ts`; Skala k hör till Bred lins och dealerns lins).
+
 Filmen, dockan, kortplanen, beställningens slutbild och 3D-scenen i Standard delar en kamera, ett bord och ett kort
 (Jakob 2026-11-25: "eller detta ska vara en standard ska jag säga"). Talen står en gång, i `src/table-lens.ts`; dockan
 anpassar linsen på nytt ur filmen (`filmLens` i `dealer3d/src/world.ts`), och `dealer3d/tests/standard.test.ts` håller
@@ -31,6 +40,7 @@ de två lika och planens platser på sina bildpunkter.
 | Linsen | brännvidd 2334 px; synfält 28,2° lodrätt och 41,4° vågrätt; 25,06° ned; 1,110 m över filten; 1,844 m längs filten till dealerkanten (rad 831,5); horisonten ovanför bilden | `TABLE_LENS`; `dealerEdge` i `dealer3d/src/world.ts` |
 | Bordet | filten är planet y = 0 i verkliga meter, x åt höger, y upp, z mot kameran; kameran står i (0; 1,110; 0) och ser längs −z | `pixelToFelt`, `feltToPixel` |
 | Skon | foten fram (1268,1; 895,9) och bak (1666,5; 796,8) px; 0,436 × 0,082 m, 0,131 m hög bak och 0,10 m fram; plåten lutar 51,6°, kortet i fönstret står 22 mm över filten | `SHOE` |
+| Markerlådan | försänkt vid dealerkanten: från 0,30 m vänster om bildens mitt till 0,24 m höger om den (slutar före skon), 0,10 m mot spelarna, 0,03 m djup | `TRAY` |
 | Planens ruta | 1762 × 1174; planen sparar `u` och `v` (nerifrån), och `planPixel` ger filmens bildpunkt exakt: x = u × 1763, y = (1 − v) × 1173, samma som `planToFilm` i `src/card-plan.ts` | `planPixel` |
 
 **Vem följer den**
@@ -41,7 +51,7 @@ de två lika och planens platser på sina bildpunkter.
 | Dockans referensfilm | Filmens kamera i bildens storlek, vit docka på grått bord för en filmmodell att följa, 24 rutor/s (verktygets förval är 30) | `dealer3d/tools/render-reference.ts` |
 | Beställningens slutbild | kortet där planen säger, genom linsen, i planens form | `planQuad` i `tools/order-images.ts` |
 | Kortplanen | linsen för platsen och storleken, planens form | `planCardQuad` i `src/card-plan.ts` |
-| 3D-scenen i Standard | filmkameran är linsen i verkliga meter; kortplatser och insatsringar där `pixelToFelt` lägger dem; liggande kort i planens form | `lensCamera` i `src/scene3d-geometry.ts` |
+| 3D-scenen i Standard | filmkameran är linsen i verkliga meter, skalan alltid 1; kortplatser och insatsringar där `pixelToFelt` lägger dem; markerlådan med standardens mått; liggande kort i planens form | `lensCamera` i `src/scene3d-geometry.ts` |
 | Spelet i Standard | samma regel som kortplanen | `createLayout` i `src/game-table.ts` |
 
 Avvikelserna, med flit eller kvar:
@@ -126,7 +136,7 @@ Ingen vit kant (Jakob 2026-11-17, 2026-11-23). Kortet är rent tills efterarbete
 - **En geometri** (`TABLE_GEOMETRY` i `src/card-plan.ts`): `lens` är förval, ett verkligt kort 63 × 88 mm genom
   `TABLE_LENS` (`src/table-lens.ts`); `planCardQuad` är enda regeln för planens kort, och plan, spel och scen håller
   samma fyrhörning inom en hundradels bildpunkt (`tools/card-plan.test.ts`). Kontraktets äldre väg (`geometri=kontrakt`)
-  lever kvar i bland annat `createLayout`, `cameraFromContract` och `viewUnder`, och med flit i `tools/card-coverage.ts`.
+  lever kvar i bland annat `createLayout`, `cameraFromContract` och `viewUnder`.
 - **En linje för korten** (Jakob 2026-11-13): ritade kort hela vägen, en storlek (`cardScale` 1,2 = ett verkligt kort,
   storlek 1,00 i Efterarbete), en brytare i spelet. Kortmattan är ett val i studion, inte spelets. Överlägg i handen
   (`cardInHand`) är av i grunden; hans val i Scen följer med Använd i Casino (2026-11-19, 2026-11-24). Det styva kortet
@@ -146,8 +156,14 @@ Kortplan har en bild (Jakob 2026-11-25: "ett och samma läge", "allt i 3d"): doc
 kort på filten. Studion skickar sitt utkast till dockans sida, som ritar platserna och lägger given på nytt; i steg 1
 kan kortets plats dras på filten, och sidan svarar med planens egna koordinater. Dockans reglage fästs i studions
 högerspalt (elementet `[data-docklabb-styr]`). Orden mellan sidorna (`{docklabb: {...}}`: `ready`, `place`, `entry`,
-`plan`, `attach`, `flytta`, `moved`, `saved`, `play`) står sist i `dealer3d/page/docka.ts`. Kopian på nätet har ingen
-docka och visar därför inte Kortplan. `node tools/media-audit.ts --fit --write` mäter bilder och filmer mot planen
+`plan`, `attach`, `flytta`, `moved`, `saved`, `play`, `film`) står sist i `dealer3d/page/docka.ts`. Kopian på nätet har
+ingen docka och visar därför inte Kortplan.
+
+Filmen över dockan (Jakob 2026-11-25: "så man kan jämföra videos som är skapade med tex dockan"): reglaget Filmen i
+bildens knapprad lägger kortets film över dockan, i samma ruta och genom samma kamera, och dockans tidslinje driver
+filmen. Den syns bara i Filmens kamera i hemläget, eftersom bara den vyn är filmens. Filmen är trädets egen för kortets
+steg, annars den spelet spelar (`cardFilm` i `studio/lib/bordet.ts`); ordet `film` bär adressen, en text och givens
+start, slut och fart i filen. `node tools/media-audit.ts --fit --write` mäter bilder och filmer mot planen
 (`data/media-fit.json`, brickorna i Material) och körs om när plan, lins eller ankare ändras.
 
 ## Klippbank och nodnotation

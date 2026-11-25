@@ -73,13 +73,13 @@ if(has('--restart')){
  if(alive&&(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd())))throw Error('Preview identity differs');
  ensureStudio();if(!alive)await startServer();console.log(alive?`Servern går: ${origin}`:`Servern är startad: ${origin}`);
 }else if(has('--open')){
- // The one way to put a lab page in front of Jakob: node tools/preview.ts --open "/studio/prov/?prov=<id>" (npm start does
+ // The one way to put a lab page in front of Jakob: node tools/preview.ts --open "/studio/granska/?prov=<id>" (npm start does
  // this with the studio). The server is started if it is not running, the page is shown in the lab tab that is
  // already open, and only when there is none is a tab opened. Opening the address itself adds a tab every time. A page
  // with several words is safest given as words of their own (… --open /studio/granska/ prov=x fil=a.mp4; openAddress):
  // a shell on Windows runs what follows an unquoted & as a command of its own.
  const target=openAddress(args,origin);
- if(!target)throw Error('Ange en sida i studion, till exempel /studio/prov/?prov=<id>');
+ if(!target)throw Error('Ange en sida i studion, till exempel /studio/granska/?prov=<id>');
  let alive=await health();
  if(alive&&(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd())))throw Error('Preview identity differs');
  ensureStudio();if(!alive)await startServer();

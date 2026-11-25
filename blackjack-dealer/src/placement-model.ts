@@ -39,7 +39,6 @@ export const INITIAL_TARGETS = [...Array.from({length:7},(_,i)=>`P${i+1}`),'D'].
 export const TARGETS = [...INITIAL_TARGETS, 'D.C3'];
 // Older files did not store this slot. Preserve its former film-pixel position when upgrading them.
 export const DEALER_THIRD_FILM = {x:1069,y:926} as const;
-export const PLAYER_TARGETS = TARGETS.filter(id=>id[0]==='P');
 // The card standing in the shoe's window in the lab's two background pictures: its corners in the picture's pixels, clockwise
 // from the upper one. The pictures show the game's own card back there (black and gold); the lab paints the place yellow, the
 // colour a closed card has in the films and in the plan (Jakob 2026-11-11). Measured in assets/lab/native.jpg and portrait.jpg.
@@ -154,43 +153,6 @@ export function sequence(id: string, intent: Intent) {
  const hand=intent.pass?otherHand(intent.takeHand):intent.takeHand;
  return [`${id} | ${takeStep(intent)}(${intent.takeHand},${intent.startSide})`,...(intent.pass?[`PASS(${intent.takeHand}>${hand},${intent.startSide})`]:[]),...(intent.turn?[`TURN(${hand},${intent.startSide}>${intent.endSide},${turnPlace(intent)})`]:[]),`LAND(${intent.endSide})`,`RELEASE(${hand})`,`RETURN(SHOE_READY)`].join(' > ');
 }
-// One-click dealing techniques of the lab's Rörelse panel. Each sets how the card is taken and turned and its two sides; which
-// hand takes it, a hand change (PASS) and the turn's axis are separate choices and are left as they are, so a technique can be
-// combined with PASS and with either turn on the way.
-export const TECHNIQUES = {
- 'pinch-air':{grip:'PINCH',startSide:'BACK',endSide:'FRONT',turn:true,turnAt:'AIR'},
- 'drag-place':{grip:'DRAG',startSide:'BACK',endSide:'FRONT',turn:true,turnAt:'PLACE'},
- 'drag-closed':{grip:'DRAG',startSide:'BACK',endSide:'BACK',turn:false,turnAt:'AIR'},
-} as const satisfies Record<string,Omit<Intent,'takeHand'|'pass'|'flipAxis'>>;
-export type Technique = keyof typeof TECHNIQUES;
-export function applyTechnique(intent: Intent, name: Technique): Intent { return {...intent,...TECHNIQUES[name]}; }
-// The technique an intent follows, if any; where a card is not turned, the place of a turn does not count.
-export function techniqueOf(intent: Intent): Technique | null {
- return (Object.keys(TECHNIQUES) as Technique[]).find(name=>Object.entries(TECHNIQUES[name]).every(([key,value])=>(key==='turnAt'&&!intent.turn)||intent[key as keyof Intent]===value))??null;
-}
-export const CARD_SCALE = { min: .5, max: 2.5, step: .05 } as const;
-// Multiplies width and height of every card in one view by one factor. Each card keeps its centre, angle and taper. A card that the
-// factor would take past the model's limits (size .005–.25 of the picture, the whole outline inside it) gets the nearest factor that
-// fits and is listed in `limited`. A changed place is marked unchecked, as every other geometry edit in the lab does.
-export function scaleCards(plan: PlacementPlan, view: View, factor: number): { plan: PlacementPlan; limited: string[] } {
- if(!Number.isFinite(factor)||factor<CARD_SCALE.min||factor>CARD_SCALE.max)throw Error(`Välj en faktor mellan ${CARD_SCALE.min} och ${CARD_SCALE.max}.`);
- const next=structuredClone(plan),limited:string[]=[],p=VIEWS[view];
- for(const id of TARGETS){
-  const g=plan.targets[id].geometry[view];let f=factor;
-  if(factor>1){
-   // The outline's corners move away from the centre in proportion to the factor; stop where the first one meets an edge.
-   const c=toPixels(g,view);f=Math.min(f,.25/g.width,.25/g.height);
-   for(const q of quad(g,view)){const dx=q.x-c.x,dy=q.y-c.y;
-    if(dx>0)f=Math.min(f,(p.width-1-c.x)/dx);else if(dx<0)f=Math.min(f,c.x/-dx);
-    if(dy>0)f=Math.min(f,(p.height-1-c.y)/dy);else if(dy<0)f=Math.min(f,c.y/-dy);}
-   f=Math.max(1,f);
-  }else f=Math.min(1,Math.max(f,.005/g.width,.005/g.height));
-  if(Math.abs(f-factor)>1e-9)limited.push(id);
-  if(f===1)continue;
-  next.targets[id].geometry[view]={...g,width:Math.min(.25,Math.max(.005,g.width*f)),height:Math.min(.25,Math.max(.005,g.height*f)),reviewed:false};
- }
- return {plan:next,limited};
-}
 // ── Edits of a plan, for the page that changes one (Bordet's Kortplan) ──
 // Each returns a new plan and leaves the given one alone. The rules: a place that is moved, turned or resized is marked unchecked in that view, its outline is kept inside the picture, and a card's sides and TURN agree.
 /** A card place (P1.C1 … D.C2) or the shoe's take-off point. */
@@ -229,13 +191,6 @@ export function editIntent<K extends keyof Intent>(plan: PlacementPlan, id: stri
  i[key] = value;
  if (key === 'turn') i.endSide = i.turn ? otherSide(i.startSide) : i.startSide;
  else if (key === 'startSide' || key === 'endSide') i.turn = i.startSide !== i.endSide;
- return next;
-}
-/** A card's bend and gloss, held to the model's limits (bend 0–0.18, gloss 0–1). */
-export function editMaterial(plan: PlacementPlan, id: string, patch: Partial<Target['material']>): PlacementPlan {
- const next = structuredClone(plan), m = placeOf(next, id).material;
- if (typeof patch.bend === 'number') m.bend = Math.min(.18, Math.max(0, patch.bend));
- if (typeof patch.gloss === 'number') m.gloss = Math.min(1, Math.max(0, patch.gloss));
  return next;
 }
 /** The table's perspective on "Plant bord" (one number for the whole plan), or null for the real camera's. */

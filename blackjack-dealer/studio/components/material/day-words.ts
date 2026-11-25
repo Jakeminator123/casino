@@ -14,8 +14,8 @@ export const fromWords = (from: string): string => {
     .replace(/\s*\([^()]*(?:[A-Za-z]:\/|\.(?:png|jpe?g|webp|mp4|json)\b)[^()]*\)/g, "")
     .replace(/[;,]\s*(?:se\s+)?[^;,]*\b(?:receipt|renderkvitto)\.json.*$/, "")
     .replace(/^(?:dealer3d|3d-dealer): \S+\.(?:json|mp4)$/, "3D-dealern")
-    .replace(/^tools\/\S+$/, "ett verktyg i labbet")
-    .replace(/^assets\/\S+$/, "en fil i labbet")
+    .replace(/^tools\/\S+$/, "ett av studions verktyg")
+    .replace(/^assets\/\S+$/, "en fil i studion")
     .trim();
   return words || from;
 };

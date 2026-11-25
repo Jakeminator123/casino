@@ -6,8 +6,9 @@
 // - each shoulder goes a little toward its hand when the arm reaches far (the shoulder blade follows the arm);
 // - each elbow turns about the line from shoulder to wrist to where the wrist is least bent, the arm stays out of her
 //   trunk and over the felt, and the elbow is nearest her own pole (where hers hang);
-// - the right thumb pinches the card opposite the forefinger (under the card in the air, at its edge on the felt), and
-//   the free fingers (ring, little) change shape with the phase: open as the hand reaches, curled as it holds.
+// - the right thumb pinches the card opposite the forefinger, at its edge (in the sweep taken back up, from under the card
+//   while it lies face down), and the free fingers (ring, little) change shape with the phase: open as the hand reaches,
+//   curled as it holds.
 // The wrists and the card stay where they are: the card goes the same way to the same place. The first frame stays the
 // anchor's and, when nothing is steered, the last frame stays the deal's (what the pose adds by itself fades out over the
 // last `settle` frames). Pure: no I/O and no three.js.
@@ -41,8 +42,8 @@ export type NaturalMotion = {hip: Vec3; doll?: string; beats?: Beats[]; frames: 
 export type NaturalSteer = {body?: [number, number, number] | null; shoulderR?: [number, number]; shoulderL?: [number, number]; elbowOut?: [number, number]; follow?: boolean; pinch?: boolean; flatHand?: boolean; steerOut?: [number, number]};
 
 export const NATURAL = {
-  /** The hand change: where the left fingertips lie on the card (metres from its middle toward the shoe's end, and across), and the left hand's way back. Measured on paow 2026-11-23: with this alone no frame of any place has the hands nearer than 16 mm, and with the deeper grip below 10 mm (before: through each other at 13 of 15 places). */
-  change: {shared: {along: 0.035, across: -0.035, arc: [0.04, 0.12, -0.06] as Vec3}, leftFeed: {along: -0.026, across: 0}, leftArc: [0.04, 0.08, -0.04] as Vec3},
+  /** The hand change: where the left fingertips lie on the card (metres from its middle toward the shoe's end, and across), and the left hand's way back. Measured on paow 2026-11-23: with this alone no frame of any place has the hands nearer than 16 mm, and with the deeper grip below 10 mm (before: through each other at 13 of 15 places). In the sweep her right hand takes the card with the back of the hand up and the thumb under it (`backUp`, dealer3d/src/two-hand.ts; Jakob 2026-11-25). */
+  change: {shared: {along: 0.035, across: -0.035, arc: [0.04, 0.12, -0.06] as Vec3, backUp: true}, leftFeed: {along: -0.026, across: 0}, leftArc: [0.04, 0.08, -0.04] as Vec3},
   /** The shoulder toward its hand: at most `forward`, `inward` and `outward` metres in her trunk's own directions and `up`, from `from` (and `upFrom`) of the arm's full length to all of it. */
   follow: {forward: 0.03, inward: 0.015, outward: 0.01, up: 0.012, from: 0.62, upFrom: 0.8},
   /** The wrist (radians): bent sideways or up and down this far costs as much as an elbow turned `pole` from her own pole; beyond `devMost` and `flexMost` it costs fast. */
@@ -184,6 +185,14 @@ export function natural<M extends NaturalMotion>(lens: Lens, motion: M, doll: Do
   const aimFor = (card: Card, p: Vec3[]): Vec3 => { const across = cross(card.n, card.l), [a, b] = onCard(card, p[4]), [a1, b1] = onCard(card, p[1]), out = tip * 0.9;
     const [ea, eb] = Math.abs(a1) - H > Math.abs(b1) - Wd ? [(Math.sign(a1) || 1) * (H + out), clamp(b, -Wd + G.inFromEdge, Wd - G.inFromEdge)] : [clamp(a, -H + G.inFromEdge, H - G.inFromEdge), (Math.sign(b1) || 1) * (Wd + out)];
     const q = add(add(card.c, mul(card.l, ea)), mul(across, eb)); return [q[0], Math.max(q[1], tip), q[2]] as Vec3; };
+  // (the sweep taken back up, two-hand.ts shared.backUp; Jakob 2026-11-25, "tummen istället kommer mer under kortet": while the
+  // card lies face down her thumb pinches it from under, at the edge its base is beyond and opposite the forefinger, so that it
+  // comes round that edge and not through the card; and goes over to the edge as above while the card turns up onto its edge)
+  const backUp = !!(motion as {pace?: Pace}).pace?.shared?.backUp, underAt = (card: Card) => backUp ? smooth(-card.n[1] / 0.5) : 0;
+  const aimAt = (card: Card, p: Vec3[]): Vec3 => { const edge = aimFor(card, p), w = underAt(card); if (!w) return edge;
+    const [a1, b1] = onCard(card, p[1]), [u, v] = onCard(card, p[8]), [ea, eb] = Math.abs(a1) - H > Math.abs(b1) - Wd ? [(Math.sign(a1) || 1) * H, clamp(v, -Wd + G.inFromEdge, Wd - G.inFromEdge)] : [clamp(u, -H + G.inFromEdge, H - G.inFromEdge), (Math.sign(b1) || 1) * Wd];
+    const q = add(add(add(card.c, mul(card.l, ea)), mul(cross(card.n, card.l), eb)), mul(card.n, -sideOf(card, p) * (tip + CARD.thickness / 2)));
+    return lerp(edge, [q[0], Math.max(q[1], tip), q[2]], w); };
   /** The hand moved by `by` metres over the card toward its middle (the grip that much deeper), and lifted off the card as far as its forefinger and middle finger need to lie on it rather than in it. */
   const deeperBy = (f: NaturalFrame, by: number): Vec3 => { if (!by) return [0, 0, 0]; const [u, v] = onCard(f.card, f.R.p[8]), across = cross(f.card.n, f.card.l), step = mul(unit(add(mul(f.card.l, -u), mul(across, -v))), by), side = sideOf(f.card, f.R.p), lie = tip + CARD.thickness / 2 + 0.002;
     const short = Math.max(0, ...[5, 6, 7, 9, 10, 11].map(k => { const [x, y, o] = onCard(f.card, add(f.R.p[k], step)); return Math.abs(x) < H && Math.abs(y) < Wd ? lie - o * side : 0; }));
@@ -191,17 +200,17 @@ export function natural<M extends NaturalMotion>(lens: Lens, motion: M, doll: Do
   // (no deeper than her arm reaches, nor nearer her other hand than `apart`)
   // (worked out where the forefinger touches the card; a frame before or after takes the nearest such frame's, so that the hand comes to the card as deep as it will hold it)
   const touched = frames.map((f, i) => { if (!held[i] || !contact[i]) return null; for (let by = 0; by <= G.deeper + 1e-9; by += 0.0025) { const step = deeperBy(f, by), p = onFace(f.card, f.R.p.map(q => add(q, step)), 1), w = add(f.R.w, step);
-    if (length(sub(w, f.R.s)) > long - 0.002 || (by && handsApart({R: {p}, L: f.L}) < G.apart)) return Math.max(0, by - 0.0025); if (length(sub(thumbTo(p, aimFor(f.card, p))[4], aimFor(f.card, p))) <= G.close) return by; } return G.deeper; });
+    if (length(sub(w, f.R.s)) > long - 0.002 || (by && handsApart({R: {p}, L: f.L}) < G.apart)) return Math.max(0, by - 0.0025); if (length(sub(thumbTo(p, aimAt(f.card, p))[4], aimAt(f.card, p))) <= G.close) return by; } return G.deeper; });
   const deepest = touched.map((x, i) => { if (x !== null) return x; for (let d = 1; d <= G.lead + 1; d++) { const y = touched[i - d] ?? touched[i + d]; if (y !== null && y !== undefined) return y; } return 0; });
   const deeper = box(deepest, 3).map((x, i) => x * held[i]);
   const curls = box(frames.map((_, i) => !beat ? 0 : i < beat.d ? NATURAL.curl.reach * smooth((i - beat.b) / Math.max(1, beat.d - beat.b)) : i < beat.g ? NATURAL.curl.hold : i < (beat.i ?? N) ? NATURAL.curl.lay : NATURAL.curl.free), 3).map((x, i) => pinches ? x * selfAt(i) : 0);
   const thumbs: {was: number | null; now: number | null}[] = [];
   const hands = frames.map((f, i) => { let p = f.R.p, w = f.R.w; thumbs.push({was: null, now: null});
     if (curls[i]) { const axis = bendAxis(p), low = Math.min(...[16, 20].map(k => p[k][1])); for (let c = curls[i], n = 0; n < 4; n++, c /= 2) { const q = curlChain(curlChain(p, FINGERS[3], axis, c), FINGERS[4], axis, c); if (c < 0 || Math.min(...[16, 20].map(k => q[k][1])) >= Math.min(low, tip)) { p = q; break; } } }
-    if (held[i] > 0) { const aim0 = aimFor(f.card, p); thumbs[i].was = mm(length(sub(p[4], aim0)));
+    if (held[i] > 0) { const aim0 = aimAt(f.card, p); thumbs[i].was = mm(length(sub(p[4], aim0)));
       const step = deeperBy(f, deeper[i]); p = onFace(f.card, p.map(q => add(q, step)), held[i]); w = add(w, step);
       // (the thumb no nearer her other hand than `apart`, where the forefinger alone is not)
-      const aim = aimFor(f.card, p), from = p, to = (share: number) => thumbTo(from, lerp(from[4], aim, share)), clear = (q: Vec3[]) => handsApart({R: {p: q}, L: f.L}) >= G.apart;
+      const aim = aimAt(f.card, p), from = p, to = (share: number) => thumbTo(from, lerp(from[4], aim, share)), clear = (q: Vec3[]) => handsApart({R: {p: q}, L: f.L}) >= G.apart;
       p = to(held[i]); if (!clear(p) && clear(from)) { let lo = 0, hi = held[i]; for (let n = 0; n < 10; n++) { const m = (lo + hi) / 2; if (clear(to(m))) lo = m; else hi = m; } p = to(lo); }
       thumbs[i].now = mm(length(sub(p[4], aim)));
       // (before the right hand takes the card, its fingers wait a hair off it until the thumb is at it too: thumb and forefinger come to the card together)

@@ -163,8 +163,8 @@ export const SCENE_KEYS: readonly KeySpec[] = [
   spec("format", "kamera", "D", "Format", choice(["desk", "Dator"], ["mob", "Mobil"], ["fill", "Fyll"]), "Bildens form: filmens 1764 × 1174, mobil 9:16, eller hela ytan som spelet."),
   // ── Avancerat: kalibrering ──
   spec("panoramaTurn", "avancerat", "U", "Panoramats vridning", slider(0, 360, 1, "°"), "Hur 360°-bilden är vriden; 90 lägger bildens mitt bakom dealern."),
-  spec("lens", "avancerat", "U", "Filmkamera", choice(["plan", "Planens"], ["estimate", "Dealerns lins"]), "Planens kamera passar kortrutorna; dealerns lins är en skattning. I Standard: bordets lins, verkliga meter."),
-  spec("scale", "avancerat", "U", "Skala k", { kind: "slider", min: 1, max: 2.6, step: 0.05, unit: "×", special: { value: 0, label: "kontraktets" } }, "Hur mycket större dealerns värld är än planens kort; 0 är kontraktets egen."),
+  spec("lens", "avancerat", "U", "Filmkamera", choice(["plan", "Bordets"], ["estimate", "Dealerns lins"]), "Bordets kamera: i Standard filmens egen lins i verkliga meter (samma som dockan och Kortplan), i Bred lins den äldre, vidare kameran. Dealerns lins är en skattning."),
+  spec("scale", "avancerat", "U", "Skala k", { kind: "slider", min: 1, max: 2.6, step: 0.05, unit: "×", special: { value: 0, label: "kontraktets" } }, "Gäller Bred lins och dealerns lins: hur mycket större dealerns värld är än planens kort; 0 är kontraktets egen. I Standard är allt i verkliga meter och skalan alltid 1."),
   spec("keyLo", "avancerat", "U", "Nyckel låg", slider(0, 0.5, 0.01), "Nyckelns nedre gräns mot filmens gröna."),
   spec("keyHi", "avancerat", "U", "Nyckel hög", slider(0.5, 1.2, 0.01), "Nyckelns övre gräns mot filmens gröna."),
   spec("shadow", "avancerat", "U", "Skuggor på filten", slider(0, 1.6, 0.05), "Skuggan av händer, kort och sko på filten; 1 är som förut."),

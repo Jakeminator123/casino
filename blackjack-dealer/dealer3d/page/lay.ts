@@ -215,14 +215,14 @@ export function recipeFor(target: string): PlaceRecipe | null {
  * The pose a deal begins in and, with its return, ends in (Jakob 2026-11-23: "A2.1, A2.2 och A2.3 är olika in- och
  * utgångar", a saved deal per player and per entry). A2.3: every deal laid above. A2.1, the pinch at the shoe: her
  * one-hand deal to any place her left arm reaches without going over her right hand (dealer3d/src/doll-choices.ts),
- * built on the doll's bones (dealer3d/src/pinch-deal.ts) from her pose A2.1 (POSE_21), one way. A2.2: not built, only its anchor picture is; no pose is read off it and no deal begins in it.
+ * built on the doll's bones (dealer3d/src/pinch-deal.ts) from her pose A2.1 (POSE_21), one way. A2.2 is archived: no deal begins in it.
  */
-export type Entry = 'A2.1' | 'A2.2' | 'A2.3';
-/** A saved standard's name (dealer3d/standard/<name>.json): <doll>-<place> from A2.3, as every standard saved before the entries were, and <doll>-a2-1-<place> (a2-2-) from the others. */
+export type Entry = 'A2.1' | 'A2.3';
+/** A saved standard's name (dealer3d/standard/<name>.json): <doll>-<place> from A2.3, as every standard saved before the entries were, and <doll>-a2-1-<place> from A2.1. */
 export const standardName = (doll: string, entry: Entry, place: string) => `${doll}-${entry === 'A2.3' ? '' : `${entry.toLowerCase().replace('.', '-')}-`}${place.toLowerCase().replace('.', '')}`;
 /** The pose A2.1 per doll that has it (dealer3d/data/<name>.json: the first frame of the deal the lab showed as A2.1, and her hip), which pinch-deal.ts builds the deal from. */
 export const POSE_21: Record<string, string> = {paow: 'ankare-2-1-paow'};
-export type EntryPlace = PlaceRecipe | {pinch: string} | {none: 'unposed' | 'unbuilt' | 'over'};
+export type EntryPlace = PlaceRecipe | {pinch: string} | {none: 'unposed' | 'over'};
 /**
  * Where a deal from `entry` to a place of the plan comes from, or why there is none; null for a place the lab does not know.
  * From A2.1 the doll's pose A2.1 (POSE_21), which the deal is built from, except where her left arm would go over her right
@@ -230,7 +230,6 @@ export type EntryPlace = PlaceRecipe | {pinch: string} | {none: 'unposed' | 'unb
  */
 export function placeFrom(entry: Entry, target: string, doll?: string | null, plan?: PlanPlaces): EntryPlace | null {
   const known = recipeFor(target); if (!known || entry === 'A2.3') return known;
-  if (entry === 'A2.2') return {none: 'unbuilt'};
   if (!doll || !Object.hasOwn(POSE_21, doll)) return {none: 'unposed'};
   return plan && overHand(plan, target) ? {none: 'over'} : {pinch: POSE_21[doll]};
 }

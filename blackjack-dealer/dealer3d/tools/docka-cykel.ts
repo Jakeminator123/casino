@@ -9,7 +9,7 @@
 //   node dealer3d/tools/docka-cykel.ts --to P5.C1 --out dealer3d/data/<new>.json [--from A2.3|A2.1] [--doll paow]
 //     [--way naturlig|forut] [--no-standard] [--flat-hand] [--sam-hand] [--recipe-grip-yaw] [--fingrar-som-forut] [--en-vinkel] [--hold 76] [--ready 116]
 //     [--duration 4] [--lift 0.022] [--kortets-fart 150] [--sida stangt|oppet]
-// --from: the pose the deal begins and ends in (A2.3 if left out; A2.2 is not built). --way: the way where no standard is
+// --from: the pose the deal begins and ends in (A2.3 if left out). --way: the way where no standard is
 // used (the standard doll has only "forut"; from A2.1 there is one way, built). --no-standard: lay the place as if no
 // standard were saved. --flat-hand: the right hand flat as it lays the card (natural.ts `flatHand`; "Naturlig" only).
 // --sam-hand and --recipe-grip-yaw: "Naturlig" as it was before 2026-11-23 (natural-lab.ts AsBefore), her left hand at
@@ -57,7 +57,7 @@ if (values.help) { console.log(USAGE); process.exit(0); }
 function fail(why: string): never { console.error(why); process.exit(1); }
 const place = values.to, out = values.out, dollName = values.doll ?? 'paow', entry = (values.from ?? 'A2.3') as Entry;
 if (!place || !out) fail(USAGE);
-if (!['A2.1', 'A2.2', 'A2.3'].includes(entry)) fail('--from ska vara A2.3 eller A2.1.');
+if (!['A2.1', 'A2.3'].includes(entry)) fail('--from ska vara A2.3 eller A2.1.');
 if (values.way && values.way !== 'naturlig' && values.way !== 'forut') fail('--way ska vara naturlig eller forut.');
 const number = (v: string | undefined, flag: string) => { if (v === undefined) return undefined; const n = Number(v); if (!v.trim() || !Number.isFinite(n)) fail(`${flag} ska vara ett tal.`); return n; };
 const before: AsBefore = {...(values['sam-hand'] ? {samHand: true} : {}), ...(values['recipe-grip-yaw'] ? {recipeGripYaw: true} : {}), ...(values['fingrar-som-forut'] ? {fingers: true} : {}), ...(values['en-vinkel'] ? {oneGripYaw: true} : {})};
@@ -78,7 +78,7 @@ const recipeNamed = async (name: string) => { const recipe: Recipe = recipeOf(na
 // The place's deal from the entry, as the lab finds it (lay.ts placeFrom), and the standard saved for the doll, entry and place, as the lab reads it.
 if (entry === 'A2.1') { await fromPinch(); process.exit(0); }
 const found = placeFrom(entry, place!); if (!found) fail(`${place} är ingen plats som docklabbet känner.`);
-if (!('recipe' in found)) fail('none' in found && found.none === 'unbuilt' ? 'A2.2 är inte byggd: bara ankarbilden finns, ingen ställning är läst ur den och ingen giv börjar där.' : `${place}: docklabbet lägger ingen giv dit från ${entry}${'none' in found ? ` (${found.none})` : ''}.`);
+if (!('recipe' in found)) fail(`${place}: dockan lägger ingen giv dit från ${entry}${'none' in found ? ` (${found.none})` : ''}.`);
 const standardPath = `dealer3d/standard/${standardName(dollName, entry, place)}.json`, saved = !values['no-standard'] && existsSync(file(standardPath));
 let steer: Steer = {...NO_STEER}, knobs: Knobs = structuredClone(NO_KNOBS), standard: string | null = null, savedLab: {recipe?: string; steer?: Partial<Steer>; naturlig?: {knobs?: Partial<Knobs>}; landing?: unknown; turn?: unknown} = {};
 if (saved) { const b = await bytesOf(standardPath); savedLab = json(b).lab ?? {}; used[standardPath] = sha(b); standard = standardPath; }
@@ -114,7 +114,7 @@ const cycle = done.cycle, motion = done.motion as typeof done.motion & {frames: 
 
 const words = place.replace(/^P(\d)\.C(\d)$/, 'plats $1 kort $2').replace(/^D\.C(\d)$/, 'dealerns kort $1'), WAY = {naturlig: 'Naturlig', forut: 'Som förut'};
 const how = standard ? `hans sparade standard ${standard} (i ${WAY[way]})` : `${WAY[way]}, inget reglage rört`;
-const about = `${doll.name === 'paow' ? 'Paow' : 'Standarddockan'}, ${entry} till ${words} och tillbaka till ${entry} i samma film, lagd som docklabbet lägger den: ${how}${cardTempoOf(steer) !== 1 ? `, kortets fart ${Math.round(cardTempoOf(steer) * 100)} % (bara händerna med kortet går fortare)` : ''}${values['flat-hand'] ? ', högerhanden plan vid nedsläppet (natural.ts flatHand)' : ''}${before.samHand ? ', vänsterhanden vid skon som SAM läste den' : ''}${before.recipeGripYaw ? ', handens vinkel på kortet receptets' : ''}${before.oneGripYaw && !before.recipeGripYaw ? ', en vinkel för handen på kortet hela vägen' : ''}${landingSaid && !asBefore(landingSaid) ? `, landningen: ${landingWords(landingSaid).toLowerCase()}` : ''}${done.turn?.laid ? ', kortet vänt i högerhanden av handleden (turn-in-hand.ts)' : ''}${sideOf(steer) === 'BACK' ? ', lagt stängt (baksidan upp hela vägen, aldrig vänt)' : ''}. Skriven av dealer3d/tools/docka-cykel.ts; filmas med render-reference.ts --seconds ${cycle.frameCount / cycle.fps} --fps 24.`;
+const about = `${doll.name === 'paow' ? 'Paow' : 'Standarddockan'}, ${entry} till ${words} och tillbaka till ${entry} i samma film, lagd som dockans sida lägger den: ${how}${cardTempoOf(steer) !== 1 ? `, kortets fart ${Math.round(cardTempoOf(steer) * 100)} % (bara händerna med kortet går fortare)` : ''}${values['flat-hand'] ? ', högerhanden plan vid nedsläppet (natural.ts flatHand)' : ''}${before.samHand ? ', vänsterhanden vid skon som SAM läste den' : ''}${before.recipeGripYaw ? ', handens vinkel på kortet receptets' : ''}${before.oneGripYaw && !before.recipeGripYaw ? ', en vinkel för handen på kortet hela vägen' : ''}${landingSaid && !asBefore(landingSaid) ? `, landningen: ${landingWords(landingSaid).toLowerCase()}` : ''}${done.turn?.laid ? ', kortet vänt i högerhanden av handleden (turn-in-hand.ts)' : ''}${sideOf(steer) === 'BACK' ? ', lagt stängt (baksidan upp hela vägen, aldrig vänt)' : ''}. Skriven av dealer3d/tools/docka-cykel.ts; filmas med render-reference.ts --seconds ${cycle.frameCount / cycle.fps} --fps 24.`;
 const made = {tool: 'dealer3d/tools/docka-cykel.ts', place, from: entry, doll: doll.name, way, standard, recipe: recipe?.from ?? null, poseFilm: recipe ? recipe.poseFilm ?? 'till-ankare-2-3' : null, steer, knobs,
   gripYaw: recipe ? gripYawsOf(recipe, steer, way, before) : null, ...(DEALER_CARD.test(place) ? {side: sideOf(steer)} : {}), flatHand: !!values['flat-hand'], before, landing: landingSaid, landed: done.landing, ...(turnSaid && turnSaid !== TURN_DEFAULT ? {turn: turnSaid, turned: done.turn} : {}), cycle: options, sources: used};
 await writeFile(out, JSON.stringify({...motion, about, made}) + '\n', {flag: 'wx'});

@@ -1,7 +1,7 @@
 "use client";
 
 // The rooms as pictures: the 360° rooms of the register (data/scene-rooms.json, with the menu's pictures under
-// assets/scene/thumbs/), then the built rooms. A room the game does not have yet carries "Labb": it is tried here until
+// assets/scene/thumbs/), then the built rooms. A room the game does not have yet carries "Prov": it is tried here until
 // Jakob lets it into the game. The V6 plate (Kuliss, V6-plåt) shows the plate itself.
 import type { RegisterRoom } from "../../../src/scene3d-room.ts";
 import { labUrl } from "../../lib/lab.ts";
@@ -63,7 +63,7 @@ export function RoomGrid({
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent px-1.5 pb-1 pt-3 text-2xs font-medium leading-3 text-white">
                   {room.label}
                 </span>
-                {!room.game ? <span className="absolute right-1 top-1 rounded-xs bg-black/65 px-1 text-[10px] leading-[14px] text-dim">Labb</span> : null}
+                {!room.game ? <span className="absolute right-1 top-1 rounded-xs bg-black/65 px-1 text-[10px] leading-[14px] text-dim">Prov</span> : null}
               </button>
             </Tooltip>
           );

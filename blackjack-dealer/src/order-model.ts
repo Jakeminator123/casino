@@ -96,8 +96,8 @@ export const SHAPE_LABEL: Record<Shape, string> = { ROUND_TRIP: 'Tur och retur',
 export const CARD_SCALES = [1, 1.25, 1.5, 2] as const;
 export const scaleWords = (factor: number | null | undefined) => (!factor || factor === 1 ? 'som planen' : `${Math.round(factor * 100)} %`);
 /**
- * A card's outline grown about its own centre, stopped where the first corner meets the picture's edge, as the plan's
- * scaleCards stops a card (src/placement-model.ts); factor is the one used (smaller than asked where it stopped).
+ * A card's outline grown about its own centre, stopped where the first corner meets the picture's edge;
+ * factor is the one used (smaller than asked where it stopped).
  */
 export function scaleQuad(q: readonly (readonly [number, number])[], asked: number, size: { width: number; height: number } = { width: 1764, height: 1174 }): { quad: [number, number][]; factor: number } {
   const cx = q.reduce((s, p) => s + p[0], 0) / q.length, cy = q.reduce((s, p) => s + p[1], 0) / q.length;

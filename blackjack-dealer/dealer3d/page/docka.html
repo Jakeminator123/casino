@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dealer · Docklabb</title>
+<title>Dealer · Dockan</title>
 <script type="importmap">{"imports":{"three":"/vendor/three.module.js","three/addons/":"/vendor/"}}</script>
 <style>
   :root { color-scheme: dark; --bg: #0d0f0e; --panel: #141816; --line: #27302b; --text: #e8ece9; --muted: #93a098; --gold: #d9b96a; --warn: #f0a35e; }
@@ -16,8 +16,18 @@
   .views { position: absolute; left: 10px; top: 10px; right: 10px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; pointer-events: none; }
   .views > * { pointer-events: auto; }
   .views .switch { margin-left: 8px; background: #141816d9; border: 1px solid var(--line); border-radius: 7px; padding: 5px 10px; }
+  .views .look { margin-left: 10px; font-size: 12px; color: var(--muted); text-shadow: 0 1px 3px #000; pointer-events: none; }
+  .views .filmknob { display: flex; align-items: center; gap: 6px; background: #141816d9; border: 1px solid var(--line); border-radius: 7px; padding: 4px 9px; font-size: 13px; }
+  .views .filmknob[hidden] { display: none; }
+  .filmknob input { width: 84px; margin: 0; accent-color: var(--gold); }
+  .filmknob output { min-width: 34px; text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .filmknob.off { color: #5d6862; } .filmknob.off output { color: #5d6862; }
+  /* The dealer's film over the doll (docka.ts, "The film over the doll"): exactly over the canvas, the films' own shape 1764 × 1174 as the frame's. */
+  .frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
   .hint { width: min(100%, calc((100vh - 92px) * 1764 / 1174)); margin: 8px auto 0; color: var(--muted); font-size: 12px; }
-  .note { position: absolute; left: 12px; bottom: 10px; right: 12px; margin: 0; font-size: 13px; text-shadow: 0 1px 3px #000; pointer-events: none; }
+  .foot { position: absolute; left: 12px; bottom: 10px; right: 12px; display: flex; flex-direction: column; gap: 3px; pointer-events: none; }
+  .note { margin: 0; font-size: 13px; text-shadow: 0 1px 3px #000; }
+  .filmnote { margin: 0; font-size: 12px; color: #f2dca6; text-shadow: 0 1px 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .note b { font-weight: 600; } .note .warn { color: var(--warn); }
   .grip { position: absolute; left: 10px; top: 48px; max-width: calc(100% - 20px); width: fit-content; margin: 0; padding: 3px 8px; border-radius: 6px; background: #0d0f0ecc; font-size: 12px; color: #f2dca6; pointer-events: none; }
   .grip:empty { display: none; }
@@ -93,12 +103,17 @@
   <section>
     <div class="frame" id="frame">
       <canvas id="stage"></canvas>
+      <video id="film" muted playsinline preload="auto" hidden></video>
+      <!-- Only the first view is the films' camera; the others are for looking at her hands from other sides. -->
       <div class="views" id="views" role="group" aria-label="Vy">
-        <button data-view="film">Filmens kamera</button><button data-view="side">Från sidan</button><button data-view="above">Uppifrån</button><button data-view="player">Från spelaren</button><button data-view="card">Nära kortet</button>
+        <button data-view="film" title="Filmernas egen kamera: samma plats, vinkel och lins som varje film. Standardvyn.">Filmens kamera</button>
+        <label class="filmknob off" id="filmKnob" hidden><span>Filmen</span><input id="filmShare" type="range" min="0" max="100" step="5" value="0" aria-label="Filmen över dockan" disabled><output id="filmShown">0 %</output></label>
+        <span class="look">Titta runt:</span>
+        <button data-view="side" title="Titta runt: från hennes högra sida, i höjd med armarna. Inte filmernas kamera.">Från sidan</button><button data-view="above" title="Titta runt: rakt ovanifrån bordet. Inte filmernas kamera.">Uppifrån</button><button data-view="player" title="Titta runt: från spelarens stol vid kortet. Inte filmernas kamera.">Från spelaren</button><button data-view="card" title="Titta runt: nära kortet, och följer det. Inte filmernas kamera.">Nära kortet</button>
         <label class="switch"><input id="joints" type="checkbox">Leder</label>
       </div>
       <p class="grip" id="grip"></p>
-      <p class="note" id="note">Laddar …</p>
+      <div class="foot"><p class="filmnote" id="filmNote" hidden></p><p class="note" id="note">Laddar …</p></div>
     </div>
     <div class="transport">
       <button id="play">Spela</button>
@@ -110,7 +125,7 @@
     <p class="hint">Dra vrider · hjulet zoomar · högerknapp eller skift flyttar</p>
   </section>
   <aside>
-    <div class="head"><h1>Docklabb</h1><div class="seg" id="dolls" role="group" aria-label="Docka"><button data-doll="paow">Paow</button><button data-doll="standard">Standarddockan</button></div></div>
+    <div class="head"><h1>Dockan</h1><div class="seg" id="dolls" role="group" aria-label="Docka"><button data-doll="paow">Paow</button><button data-doll="standard">Standarddockan</button></div></div>
     <div class="docklabb-styr">
     <div><h2>Rörelse</h2>
       <div class="seg" id="ways" role="group" aria-label="Rörelse"><button data-way="naturlig">Naturlig</button><button data-way="forut">Som förut</button></div>

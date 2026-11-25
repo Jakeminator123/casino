@@ -22,7 +22,7 @@ import { TEXTURE } from "../../tools/order-images.ts";
 import { LANDS_LABEL, modelFor, modelsFor, openEndWords, readCutChecks, stepOf, type BankFacts, type MandateBudget, type OrdersAnswer, type RenderedReference } from "../../src/order-model.ts";
 import { NO_RECIPE, REFERENCE_ABSENT, methodFor, recipeWords, referenceAbsent, referenceByRule, triedWords } from "../../src/order-methods.ts";
 import type { Intent } from "../../src/placement-model.ts";
-import { MARK_NAMES, NOT_FROM_HERE, NO_LENGTH, NO_MODEL, orderBody, type FilmWish, type RowChoice, cardWishes, filmRow, hasRound, referenceOwner, referenceRole, roundFor, sentence, stepTwoSummary, sumWords, treeAnchor } from "../lib/bordet.ts";
+import { MARK_NAMES, NOT_FROM_HERE, NO_LENGTH, NO_MODEL, orderBody, type FilmWish, type RowChoice, filmRow, hasRound, referenceOwner, referenceRole, roundFor, sentence, stepTwoSummary, treeAnchor } from "../lib/bordet.ts";
 import { dealAnchor, orderingState } from "../lib/orders.ts";
 import { motionSteps } from "../lib/placement.ts";
 
@@ -93,11 +93,6 @@ test("step 2 and the card's films: from the anchor of the guide's tree, never fr
   assert.equal(treeAnchor({ hub: "READY" }), "2.1");
   assert.equal(treeAnchor({ hub: "READY-B" }), "2.2");
   assert.equal(treeAnchor(null), "2.3");
-  // Three films per card, all from that anchor: the deal, the return to the same anchor and the return to A1.
-  assert.deepEqual(cardWishes("P4.C2", "2.3").map((w) => w.step), ["GIV-2.3", "RETUR-2.3", "RETUR-1"]);
-  assert.deepEqual(cardWishes("P4.C1", "2.1").map((w) => w.step), ["GIV-2.1", "RETUR-2.1", "RETUR-1"]);
-  assert.deepEqual(cardWishes("P6.C1", "2.2").map((w) => w.step), ["GIV-2.2", "RETUR-2.2", "RETUR-1"]);
-  assert.deepEqual(cardWishes("shoe", "2.3"), []);
   // Step 2's header names the same anchor as step 3, and the side the card lies with; never the plan's grip or handbyte.
   assert.equal(stepTwoSummary("P4.C2", "2.3", "FRONT"), `A2.3 · ${LANDS_LABEL.FRONT}`);
   assert.equal(stepTwoSummary("P4.C1", "2.1", "BACK"), `A2.1 · ${LANDS_LABEL.BACK}`);
@@ -210,7 +205,8 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
 
   // Seat 4's second card from A2.3 (the tree Tatuerad), its first from A2.1 (Tatuerad nyp).
   for (const [card, from] of [["P4.C2", "2.3"], ["P4.C1", "2.1"]] as const) {
-    const wishes = cardWishes(card, from);
+    // (the card's three films from that anchor: the deal, the return to the same anchor and the return to A1)
+    const wishes = ([`GIV-${from}`, `RETUR-${from}`, "RETUR-1"] as FilmWish["step"][]).map((step) => ({ step, target: card }));
     const rows = wishes.map((w) => rowOf(w));
     for (const row of rows) assert.deepEqual(row.marks.map((m) => m.name), [...MARK_NAMES], `${row.key}: the five marks in their order`);
     const [deal, back, rest] = rows;
@@ -296,8 +292,6 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
       assert.deepEqual([o.motion.grip, o.motion.hand, o.motion.pass, o.motion.flipAxis], ["TWO_HANDS", "LH", true, "FREE"]);
       // The return from the right hand's A3: its first picture is there; it waits for its recipe.
       assert.equal(words(back)["Första bild"], "A3P4C2");
-      // Two of the three can be sent: the deal, and the return to rest (its recipe a trial since 2026-11-23).
-      assert.equal(sumWords(rows), "3 filmer · 2 kan beställas · 128 krediter");
       // The deal from A2.3 is written with template 14 since 2026-11-23 (Jakob: "naturlig primärt, så var inte extremt nitsk
       // med dockans rörelse"): the doll's film is a rough guide, her natural movement first.
       assert.match(deal.text!, /Video 1 shows only the movement, as a rough guide/);
@@ -322,7 +316,6 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
       const paused = filmRow("paow", deal.wish, all.methods!, all.policy, { bank, entries: shown, plan: all.plan ?? null, dealers: pausedDealers, marks: all.marks });
       assert.ok(!paused.orderable && paused.body === null && paused.cost === null, `${paused.key}: not orderable while paused`);
       assert.match(paused.why ?? "", /^Paow är pausad: inget nytt beställs/);
-      assert.equal(sumWords([paused]), "1 film · inte klar att beställa");
       // What the text says of the doll's film, for the choice in sight: a rough guide with template 14's short text.
       assert.equal(referenceRole(deal.resolved), "grov vägledning, naturlig rörelse går före");
       assert.equal(referenceRole({ ...deal.resolved, style: "MINIMAL" }), "rörelsen följer filmen");
@@ -374,8 +367,4 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
   const noPrice = filmRow("paow", { step: "GIV-2.3", target: "P4.C2" }, all.methods!, { ...all.policy, prices: [] }, { bank, entries: shown, plan: all.plan ?? null, dealers: all.dealers, marks: all.marks });
   assert.ok(!noPrice.orderable && !noPrice.waits);
   assert.match(noPrice.why ?? "", /^ramen \(data\/order-policy\.json\) har inget pris/);
-
-  assert.equal(sumWords([]), "Inga filmer");
-  assert.equal(sumWords([{ orderable: false, cost: null }]), "1 film · inte klar att beställa");
-  assert.equal(sumWords([{ orderable: false, cost: null }, { orderable: false, cost: null }]), "2 filmer · ingen klar att beställa");
 });

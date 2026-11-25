@@ -7,7 +7,7 @@
 // (dealer3d/src/doll.ts): options.doll, else the one a read motion names, else the standard.
 import * as T from 'three';
 import {CARD, FILM, filmEye, fovYDeg, orbit, type Eye, type Vec3} from './camera.ts';
-import {SHOE, dealerEdge, filmLens, realCardAt, seatEye, shoeCard, shoePose, spots, type Plan} from './world.ts';
+import {SHOE, TRAY, dealerEdge, filmLens, realCardAt, seatEye, shoeCard, shoePose, spots, type Plan} from './world.ts';
 import {HAND, MOMENTS, planDeal, type CardPose} from './deal.ts';
 import {restingHand, solveBody, standing, type Body} from './body.ts';
 import {dollNamed, type Doll} from './doll.ts';
@@ -108,6 +108,11 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   const slab = new T.Mesh(lay(new T.ExtrudeGeometry(half(radius + rail), {depth: 0.06, bevelEnabled: false, curveSegments: 64})), new T.MeshStandardMaterial({color: C.wood, roughness: 0.8, side: T.DoubleSide})); slab.position.y = -0.0005; slab.receiveShadow = true; scene.add(slab);
   if (look === 'room') { const ring = half(radius + rail); ring.holes.push(new T.Path(half(radius).getPoints(64)));
     const r = new T.Mesh(lay(new T.ExtrudeGeometry(ring, {depth: 0.03, bevelEnabled: false, curveSegments: 64})).translate(0, 0.03, 0), new T.MeshStandardMaterial({color: C.rail, roughness: 0.55, side: T.DoubleSide})); r.castShadow = true; r.receiveShadow = true; scene.add(r);
+    // The standard's chip tray (src/table-lens.ts TRAY) as a dark recess with a brass rim at her edge, where and as large as
+    // the scene builds its tray (Jakob 2026-11-25: the doll's table, the scene's and the films' are one table of fixed measures).
+    { const w = TRAY.x1 - TRAY.x0, d = TRAY.s1 - TRAY.s0, x = edge[0] + (TRAY.x0 + TRAY.x1) / 2, z = edge[2] + (TRAY.s0 + TRAY.s1) / 2, sheet = () => new T.PlaneGeometry(w, d).rotateX(-Math.PI / 2);
+      const well = new T.Mesh(sheet(), matte(0x15120f, 0.8)); well.position.set(x, 0.0004, z); well.receiveShadow = true;
+      const rim = new T.LineSegments(new T.EdgesGeometry(sheet()), new T.LineBasicMaterial({color: 0xb8923f})); rim.position.set(x, 0.0007, z); scene.add(well, rim); }
     // The plan's places as thin outlines of a real card, so that one sees where each card is to lie.
     for (const s of all) { const w = CARD.width / 2 + 0.003, h = CARD.height / 2 + 0.003, pts = [[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, z]) => new T.Vector3(s.at[0] + x, 0.0006, s.at[2] + z));
       scene.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({color: C.mark, transparent: true, opacity: s.id === target ? 0.95 : 0.4}))); } }

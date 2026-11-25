@@ -1,12 +1,14 @@
 // studio/lib/tree-path.ts: a path Jakob clicks through a tree on Karta and what the stage plays for it, back to back (Jakob
 // 2026-11-23: "kan man inte tex här också spela upp flera klipp tillsammans"), on made-up data. Each step plays the tree's
-// film on it, the Primär before an approved film and never a rejected or a waiting one; a step without one is a gap.
+// film on it, the Primär before an approved film and never a rejected or a waiting one; a step without one is a gap. And the
+// film Kortplan's picture lays over the doll, which is chosen the same way for the card's deal.
 // Run from the repo root: node --test "studio/tests/tree-path.test.ts"
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildGraph, type BankData, type BankJob, type MotionRecord } from "../../src/clip-graph.ts";
 import { treeSteps, type TreeTake } from "../../src/dealer-trees.ts";
 import { PATH_GAP_WORD, nextNodes, parsePath, pathClips, pathParts, pathText } from "../lib/tree-path.ts";
+import { cardFilm } from "../lib/bordet.ts";
 
 type Review = NonNullable<MotionRecord["review"]>;
 const jakob = (extra: Review = {}): Review => ({ decision: "ACCEPTED", userAccepted: true, userReview: "Jakob 2026-11-23: bra.", ...extra });
@@ -95,6 +97,21 @@ test("a step given from another anchor at the shoe plays that anchor's film", ()
   const [part] = pathParts(graph, clips);
   assert.equal(part.take, "paow-ready-b-p6-c1-deal-01");
   assert.ok(part.path?.endsWith("paow-ready-b-p6-c1-deal-01/source.mp4"));
+});
+
+test("the film over the doll in Kortplan: the tree's own deal to the card, else the game's, never another card's or one not here", () => {
+  // (lib/bordet.ts cardFilm; Jakob 2026-11-25: "så man kan jämföra videos som är skapade med tex dockan")
+  const { graph, takes } = world([...rows, ["paow-p3-c1-plan-deal-01", "READY", "P3.C1", "DEAL", jakob(), "godkand", false]]);
+  const view = { hub: "READY", steps: treeSteps("READY", [], takes) };
+  assert.deepEqual([cardFilm(graph, view, "P1.C1")?.part.take, cardFilm(graph, view, "P1.C1")?.own], ["paow-p1-c1-plan-deal-02", true], "the tree's own film");
+  const other = { hub: "READY", steps: treeSteps("READY", [], takes.filter((t) => !t.id.startsWith("paow-p1-c1-plan-deal"))) };
+  assert.deepEqual([cardFilm(graph, other, "P1.C1")?.part.take, cardFilm(graph, other, "P1.C1")?.own], ["paow-p1-c1-plan-deal-02", false], "the tree has none: the one the game plays from its anchor");
+  assert.ok(cardFilm(graph, view, "P1.C1")!.part.path.endsWith("paow-p1-c1-plan-deal-02/source.mp4"));
+  assert.equal(cardFilm(graph, view, "P1.C2"), null, "the seat's first card's film, which the game plays for its second, lands elsewhere");
+  assert.deepEqual([cardFilm(graph, view, "P2.C1")?.part.take, cardFilm(graph, view, "P2.C1")?.waits], ["paow-p2-c1-plan-deal-01", true], "where the game has no other, the one that waits for his verdict, said so");
+  assert.equal(cardFilm(graph, view, "P1.C1")?.waits, false);
+  assert.equal(cardFilm(graph, view, "P3.C1"), null, "an approved film whose file is not here");
+  assert.equal(cardFilm(graph, view, "shoe"), null);
 });
 
 test("the path in the address is his codes, and a code the tree lacks is left out", () => {

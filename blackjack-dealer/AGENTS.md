@@ -33,9 +33,14 @@ Projektets `.ignore` döljer media, filmregistret och dockans rörelsedata för 
 
 - **En väg för varje sak, färre val** (2026-11-24): "det är för mycket val, för komplicerat i onödan"; "klara
   självklara vägar för allt", också när det tränger undan gamla klipp eller vägar.
-- **En standard för kamera, bord och kort** (2026-11-25): "detta ska vara en standard"; dockan, bordet, bakgrunden och
-  en beställd film följer samma kamera, samma bord och samma kort (`docs/SYSTEM.md`, Standarden). En avvikelse är hans
-  uttryckliga val med datum, annars ett fel som rättas. Standarddockan är grunden som varje dealers docka anpassas från.
+- **En standard i botten, utseendet ovanpå** (2026-11-25): "detta ska vara en standard"; "grunden måste vara
+  densamma". Kameran, bordet, kortet, kortplanens platser, skon och markerlådan har fasta mått (`docs/SYSTEM.md`,
+  Standarden), och allt utgår från dem: dockan, Kortplan, Scens grund och varje beställd film, "så att videos som
+  produceras alltid får samma standarder". Utseendet läggs ovanpå i Scen när färdigt material sätts ihop: bakgrund,
+  bord och duk, hur kortens fram- och baksida ritas, bred lins, sko, markerlåda och kamerans vy, inom reglagens
+  gränser. Casino visar standarden med de ändringar han har sparat. Ett utseende ändrar aldrig standardens mått; en
+  avvikelse i grunden är hans uttryckliga val med datum, annars ett fel som rättas. Standarddockan är grunden som
+  varje dealers docka anpassas från.
 - **Studion först** (2026-11-11): prov och effekter görs i studion; spelet får bara det han har godkänt där.
 - **Samma ord för samma sak** (2026-11-25): studion är allt i webbläsaren; ramen är menyn, rubrikraden, panelerna och
   knapparna ("snyggare studio" betyder snyggare ram); menyn är spalten till vänster; en vy är en sida i menyn;
