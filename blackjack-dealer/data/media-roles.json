@@ -350,132 +350,6 @@
           "stateBy": "Jakob 2026-11-20 08:35: ersatt → arkiverad (Material)"
         },
         {
-          "id": "paow-film-b17-ankare1-till-2-1-t1",
-          "role": "film",
-          "name": "A1 → A2.1, kavaj",
-          "path": "assets/proofs/paow-kavaj-filmer/01-ankare1-till-2-1-t1.mp4",
-          "still": 53,
-          "fps": 30,
-          "state": "kandidat",
-          "note": "Utanför banken; filmen ligger i Prov paow-kavaj-filmer. Granskaren: användbar med anmärkningar, den bättre av två.",
-          "source": {
-            "from": "Paow-sessionen (dealer-82) via Runways MCP, omgång b17",
-            "when": "2026-11-12"
-          }
-        },
-        {
-          "id": "paow-film-b17-ankare1-till-2-2-t2",
-          "role": "film",
-          "name": "A1 → A2.2, kavaj",
-          "path": "assets/proofs/paow-kavaj-filmer/04-ankare1-till-2-2-t2.mp4",
-          "still": 53,
-          "fps": 30,
-          "state": "kandidat",
-          "note": "Utanför banken; filmen ligger i Prov paow-kavaj-filmer. Granskaren: användbar som huvudtagning, en anmärkning (skugga där underarmen låg).",
-          "source": {
-            "from": "Paow-sessionen (dealer-82) via Runways MCP, omgång b17",
-            "when": "2026-11-12"
-          }
-        },
-        {
-          "id": "paow-film-b17-slap-p1c1-t1",
-          "role": "film",
-          "name": "Släp till P1C1, kavaj",
-          "path": "assets/proofs/paow-kavaj-filmer/05-slap-p1c1-t1.mp4",
-          "still": 80,
-          "fps": 30,
-          "state": "kandidat",
-          "note": "Utanför banken; filmen ligger i Prov paow-kavaj-filmer. Granskaren: verkligt släp, användbar med anmärkningar.",
-          "source": {
-            "from": "Paow-sessionen (dealer-82) via Runways MCP, omgång b17",
-            "when": "2026-11-12"
-          }
-        },
-        {
-          "id": "paow-film-b17-slap-p1c2-t2",
-          "role": "film",
-          "name": "Släp till P1C2, kavaj",
-          "path": "assets/proofs/paow-kavaj-filmer/08-slap-p1c2-t2.mp4",
-          "still": 80,
-          "fps": 30,
-          "state": "kandidat",
-          "note": "Utanför banken; filmen ligger i Prov paow-kavaj-filmer. Granskaren: verkligt släp, användbar med anmärkningar, den bättre av två.",
-          "source": {
-            "from": "Paow-sessionen (dealer-82) via Runways MCP, omgång b17",
-            "when": "2026-11-12"
-          }
-        },
-        {
-          "id": "paow-film-b17-nyp-p4c1-kling4",
-          "role": "film",
-          "name": "Nyp till P4C1, kavaj",
-          "path": "assets/proofs/paow-kavaj-filmer/13-nyp-p4c1-kling4.mp4",
-          "still": 76,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Utanför banken; filmen ligger i Prov paow-kavaj-filmer. Granskaren: användbar med anmärkningar, landar 2,6 px från platsen.",
-          "source": {
-            "from": "Paow-sessionen (dealer-82) via Runways MCP, omgång b17",
-            "when": "2026-11-12"
-          }
-        },
-        {
-          "id": "paow-film-b19-nyp-dc1-kling4",
-          "role": "film",
-          "name": "Nyp till DC1, kavaj",
-          "path": "assets/proofs/paow-kavaj-filmer/16-nyp-dc1-kling4.mp4",
-          "still": 76,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Utanför banken; filmen ligger i Prov paow-kavaj-filmer. Granskaren: användbar som huvudtagning.",
-          "source": {
-            "from": "Paow-sessionen (dealer-82) via Runways MCP, omgång b19",
-            "when": "2026-11-12"
-          }
-        },
-        {
-          "id": "paow-film-b19-nyp-p1c1-kling4",
-          "role": "film",
-          "name": "Nyp till P1C1 (referens P4), kavaj",
-          "path": "assets/proofs/paow-kavaj-filmer/14-nyp-p1c1-kling4.mp4",
-          "still": 76,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Utanför banken; filmen ligger i Prov paow-kavaj-filmer. Granskaren: användbar bara med anmärkningar (referensen gick till P4).",
-          "source": {
-            "from": "Paow-sessionen (dealer-82) via Runways MCP, omgång b19",
-            "when": "2026-11-12"
-          }
-        },
-        {
-          "id": "paow-film-b20-nyp-p1c1-egen-referens-t1",
-          "role": "film",
-          "name": "Nyp till P1C1 (egen referens) 1",
-          "path": "assets/proofs/paow-kavaj-filmer/17-nyp-p1c1-egen-referens-t1.mp4",
-          "still": 76,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Utanför banken; filmen ligger i Prov paow-kavaj-filmer. Granskaren: användbar med anmärkningar.",
-          "source": {
-            "from": "Paow-sessionen (dealer-82) via Runways MCP, omgång b20",
-            "when": "2026-11-12"
-          }
-        },
-        {
-          "id": "paow-film-b20-nyp-p1c1-egen-referens-t2",
-          "role": "film",
-          "name": "Nyp till P1C1 (egen referens) 2",
-          "path": "assets/proofs/paow-kavaj-filmer/18-nyp-p1c1-egen-referens-t2.mp4",
-          "still": 76,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Utanför banken; filmen ligger i Prov paow-kavaj-filmer. Granskaren: användbar med anmärkningar.",
-          "source": {
-            "from": "Paow-sessionen (dealer-82) via Runways MCP, omgång b20",
-            "when": "2026-11-12"
-          }
-        },
-        {
           "id": "paow-film-ny-giv-p4-t2",
           "role": "film",
           "name": "Giv till P4, tagning 2",
@@ -508,28 +382,6 @@
             "when": "2026-11-13"
           },
           "stateBy": "Jakob 2026-11-23 17:19: ersatt → arkiverad (Material)"
-        },
-        {
-          "id": "paow-profil-kavaj",
-          "role": "arbetsmaterial",
-          "name": "Profilbild i kavaj",
-          "path": "assets/proofs/paow-kavaj/1-profilbild-a.png",
-          "note": "4096 × 4096, ansiktslikhet 0,91 mot Jakobs närbild.",
-          "source": {
-            "from": "Nano Banana Pro 4K, omgång b13",
-            "when": "2026-11-12"
-          }
-        },
-        {
-          "id": "paow-profil-linne",
-          "role": "arbetsmaterial",
-          "name": "Profilbild i linnet",
-          "path": "assets/proofs/paow-profilbild-och-keystone/1-profilbild-4k-forslag-a.png",
-          "note": "4096 × 4096, ansiktslikhet 0,91 mot Jakobs närbild.",
-          "source": {
-            "from": "Nano Banana Pro 4K, omgång b8",
-            "when": "2026-11-11"
-          }
         },
         {
           "id": "paow-nyp-ung-1",
@@ -920,20 +772,6 @@
           "note": "Vilan paow-vila-01-01 med munnen ritad efter ljudet och inlagd bara kring det som hörs, rösten Paow (ElevenLabs), 70 rutor i 24 per sekund med ljud. Inte oberoende granskad; före grinden (blackjack-sv-03) 3/5: Bästa synken: läpparna sluts på B (r9) och i pausen r23–24; stänger r58 (+6). Rent utanför lådan; tunnare matta läppar, mjukare haka.",
           "source": {
             "from": "tools/speech.ts say --dealer paow --line blackjack (Paow)",
-            "when": "2026-11-13"
-          }
-        },
-        {
-          "id": "paow-tal-chat1-sv-03",
-          "role": "film",
-          "name": "Tal: Tack! Lycka till.",
-          "path": "assets/motions/paow-tal-chat1-sv-03/source.mp4",
-          "still": 24,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Vilan paow-vila-01-01 med munnen ritad efter ljudet och inlagd bara kring det som hörs, rösten Paow (ElevenLabs), 48 rutor i 24 per sekund med ljud. Inte oberoende granskad; före grinden (chat1-sv-02) 2/5: Läpparna blir tunna och matta när hon talar (ruta 5–35), hakan suddig; munnen öppnar 4 rutor före ljudet, stänger 7 efter. Skarvar, kant, tatuering rena.",
-          "source": {
-            "from": "tools/speech.ts say --dealer paow --line chat1 (Paow)",
             "when": "2026-11-13"
           }
         },
@@ -1578,20 +1416,6 @@
           "note": "Vilan paow-vila-01-01 med munnen ritad efter ljudet, inlagd bara kring det som hörs och under hennes egen överläpp, som lyfts när munnen öppnar, rösten Paow (ElevenLabs), 76 rutor i 24 per sekund med ljud. Granskaren 3/5: Båda läpparna: överläppen lyfts upp till 6 px i 86 % av öppna rutor, näsan stilla. I sista ordet (r 58–64) står överläppen nästan still; underläppen matt.",
           "source": {
             "from": "tools/speech.ts say --dealer paow --line push (Paow)",
-            "when": "2026-11-13"
-          }
-        },
-        {
-          "id": "paow-tal-reel-demo8",
-          "role": "film",
-          "name": "Tal, demo: 4 repliker i följd",
-          "path": "assets/speech/paow/paow-tal-reel-demo8/source.mp4",
-          "still": 136,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Repliker i följd med vila emellan, 34.21 s med ljud, rösten Paow. En film att visa, inte en tagning i banken. Granskaren 4/5: Båda läpparna: överläppen lyfts 2–6 px i 81 % av öppna rutor, näsan still, ingen söm. Svag i 'vid mitt bord' (≤3 px); bågen spetsig vid störst lyft.",
-          "source": {
-            "from": "tools/speech.ts reel --dealer paow",
             "when": "2026-11-13"
           }
         },
@@ -2743,20 +2567,6 @@
           }
         },
         {
-          "id": "paow-tal-blackjack-sv-13",
-          "role": "film",
-          "name": "Tal: Blackjack! Vackert spelat. Grattis!",
-          "path": "assets/motions/paow-tal-blackjack-sv-13/source.mp4",
-          "still": 35,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Vilan paow-vila-01-01 med munnen ritad efter ljudet, inlagd bara kring det som hörs och under hennes egen överläpp, som lyfts när munnen öppnar, rösten Paow (ElevenLabs), 70 rutor i 24 per sekund med ljud. Granskaren 4/5: Giporna följer 2–3 px nedåt, lätt V bara i 5×. Slutna b/p-rutor är hennes egen mun; ren växling i 55. Hakan rör sig 2–3 px i båda.",
-          "source": {
-            "from": "tools/speech.ts say --dealer paow --line blackjack (Paow)",
-            "when": "2026-11-17"
-          }
-        },
-        {
           "id": "paow-tal-chat1-sv-10",
           "role": "film",
           "name": "Tal: Tack! Lycka till.",
@@ -3191,20 +3001,6 @@
           }
         },
         {
-          "id": "paow-film-giv-2-3-p4-01-t1",
-          "role": "film",
-          "name": "Paow · Två händer, ett kort till platsen · plats 4, tagning 1",
-          "path": "assets/motions/paow-giv-2-3-p4-01-01/source.mp4",
-          "still": 40,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Efterarbetad tagning ur en beställning i studions vy Beställ. Kandidat tills Jakob har dömt.",
-          "source": {
-            "from": "beställningen paow-giv-2-3-p4-01, tagning 1 (studions vy Beställ)",
-            "when": "2026-11-18"
-          }
-        },
-        {
           "id": "paow-film-ingang-2-3-01-t1",
           "role": "film",
           "name": "Paow · A1 → A2.3, tagning 1",
@@ -3215,20 +3011,6 @@
           "note": "Efterarbetad tagning ur en beställning i studions vy Beställ. Kandidat tills Jakob har dömt.",
           "source": {
             "from": "beställningen paow-ingang-2-3-01, tagning 1 (studions vy Beställ)",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-film-giv-2-3-p1-01-t1",
-          "role": "film",
-          "name": "Paow · Två händer, ett kort till platsen · plats 1, tagning 1",
-          "path": "assets/motions/paow-giv-2-3-p1-01-01/source.mp4",
-          "still": 40,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Efterarbetad tagning ur en beställning i studions vy Beställ. Kandidat tills Jakob har dömt.",
-          "source": {
-            "from": "beställningen paow-giv-2-3-p1-01, tagning 1 (studions vy Beställ)",
             "when": "2026-11-18"
           }
         },
@@ -3317,20 +3099,6 @@
           }
         },
         {
-          "id": "paow-film-giv-2-3-p4-c2-01-t1",
-          "role": "film",
-          "name": "Paow · A2.3 → A3P4C2, tagning 1",
-          "path": "assets/motions/paow-giv-2-3-p4-c2-01-01/source.mp4",
-          "still": 39,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "OBEROENDE GRANSKARE (inte Jakobs dom): skeptiker, given 3/5, Godkänn med anmärkningar; rutorna 70-72 (klipp till närbild) kapade. Gult till blått, kantruta 38; kortet stilla 54-69, 13 px från P4C2. Fönstret svart från ruta 6; vändningen delvis i fingrarna; kortet genomskinligt 37-40. \"Kortet krymper 14-18\" vederlagt: det vrids på filten.",
-          "source": {
-            "from": "beställning i Kön, tagning 1",
-            "when": "2026-11-21"
-          }
-        },
-        {
           "id": "paow-film-giv-2-3-p1-02-t1",
           "role": "film",
           "name": "Paow · A2.3 → A3P1C1, tagning 1",
@@ -3370,20 +3138,6 @@
           "source": {
             "from": "beställning i Kön, tagning 1",
             "when": "2026-11-21"
-          }
-        },
-        {
-          "id": "paow-film-ingang-2-3-02-t1",
-          "role": "film",
-          "name": "Paow · Från vila till båda händerna vid skon, tagning 1",
-          "path": "assets/motions/paow-ingang-2-3-02-01/source.mp4",
-          "still": 40,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Efterarbetad tagning ur en beställning i Kön. Kandidat tills Jakob har dömt.",
-          "source": {
-            "from": "beställning i Kön, tagning 1",
-            "when": "2026-11-23"
           }
         },
         {
@@ -3597,20 +3351,6 @@
           }
         },
         {
-          "id": "paow-film-retur-1-p6-01-t1",
-          "role": "film",
-          "name": "Paow · Tillbaka till vila · A3P6C1, tagning 1",
-          "path": "assets/motions/paow-retur-1-p6-01-01/source.mp4",
-          "still": 40,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Oberoende granskare 4/5, förslag ACCEPTED med anmärkning: kortet rörs inte (märkena inom 0,4 px ruta 0–72), kortets hand glider platt och rakt till vila, skohanden går aldrig över sin starthöjd, händerna i vila från ruta 50. Skarvar: in 5,5 nivåer och högst 0,8 px, ut 9,3 nivåer och högst 0,6 px. Anmärkning: lillfingret får skokortets gula färg ruta 20–24 och handens tatueringar suddas ruta 22–28…",
-          "source": {
-            "from": "beställning i Kön, tagning 1",
-            "when": "2026-11-23"
-          }
-        },
-        {
           "id": "paow-film-fri-giv-p4-01-t1",
           "role": "film",
           "name": "Paow · Fri giv till plats 4 (variant)",
@@ -3695,20 +3435,6 @@
           }
         },
         {
-          "id": "paow-film-giv-2-3-d-01-t1",
-          "role": "film",
-          "name": "Paow · Två händer, ett kort till platsen · A3DC1 · tur och retur, tagning 1",
-          "path": "assets/motions/paow-giv-2-3-d-01-01/source.mp4",
-          "still": 53,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Oberoende granskare (Opus, full upplösning) 2026-11-23: användbar, förslag godkänn; given 4/5, returen 3/5, delning ruta 53. En naturlig giv utan dockans svagheter: handryggen upp och armbågen nära kroppen. Kortet vänds gult till blått med kantrutor 28–29 och landar 0,1 px från planens mitt (ytan −5 %), skjutet 14–18 px av fingertoppen i ruta 36–43. I en ruta (19) glider kortet cirka 10 px utan s…",
-          "source": {
-            "from": "beställning i Kön, tagning 1",
-            "when": "2026-11-23"
-          }
-        },
-        {
           "id": "paow-film-vila-20-t1",
           "role": "film",
           "name": "Tatuerad · vila · lugn vila, tagning 1",
@@ -3734,48 +3460,6 @@
           "source": {
             "from": "beställning i Kön, tagning 1",
             "when": "2026-11-23"
-          }
-        },
-        {
-          "id": "paow-film-vila-27-t1",
-          "role": "film",
-          "name": "Tatuerad · vila · två små rörelser (ler, nickar), tagning 1",
-          "path": "assets/motions/paow-vila-27-01/source.mp4",
-          "still": 81,
-          "fps": 30,
-          "state": "kandidat",
-          "note": "Efterarbetad tagning ur en beställning i Kön. Kandidat tills Jakob har dömt.",
-          "source": {
-            "from": "beställning i Kön, tagning 1",
-            "when": "2026-11-23"
-          }
-        },
-        {
-          "id": "paow-film-vila-28-t1",
-          "role": "film",
-          "name": "Tatuerad · vila · två små rörelser (andas, vickar), tagning 1",
-          "path": "assets/motions/paow-vila-28-01/source.mp4",
-          "still": 81,
-          "fps": 30,
-          "state": "kandidat",
-          "note": "Efterarbetad tagning ur en beställning i Kön. Kandidat tills Jakob har dömt.",
-          "source": {
-            "from": "beställning i Kön, tagning 1",
-            "when": "2026-11-23"
-          }
-        },
-        {
-          "id": "paow-film-giv-2-3-d-02-t1",
-          "role": "film",
-          "name": "Paow · A3DC1 · giv och återgång, dockans sparade rörelse, tagning 1",
-          "path": "assets/motions/paow-giv-2-3-d-02-01/source.mp4",
-          "still": 40,
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Beställarens titt (inte en dom): kortet ska vara stängt hela vägen men vänds till blått i ruta 9–11, ligger blått 11–43 och byter till gult utan beröring i ruta 44. Delning ruta 33 (handen lyfter från kortet).",
-          "source": {
-            "from": "beställning i Kön, tagning 1",
-            "when": "2026-11-24"
           }
         },
         {
@@ -4131,97 +3815,6 @@
           }
         },
         {
-          "id": "paow-fork-round-review-20261118",
-          "role": "referens",
-          "name": "3D-Dealer · hela given · jämförelse",
-          "path": "assets/proofs/paow-fork-round-review-20261118/runda.mp4",
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Byteidentisk granskningskopia av 3D-Dealers 14-kortsfilm. Separat kamera/redo-ställning; inte en ersättare för A2.3.",
-          "source": {
-            "from": "3d-dealer: cykel-nyp-1-0-spelaren-t1-och-13-till_spelaren_balsal_runda-paulina.mp4",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-c2-film-cycle-20261118",
-          "role": "referens",
-          "name": "P4C2 · egen dealerfilm · pilot",
-          "path": "assets/proofs/paow-c2-film-cycle-20261118/film.mp4",
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Fristående granskning av C2-pilot; samma fil som orderns färdiga film. Ingen Primär eller produktionsaktivering.",
-          "source": {
-            "from": "assets/orders/paow-giv-2-3-p4-c2-h24-cykel-01/take-1/after.mp4",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-air-paper-chroma-verified-20261118",
-          "role": "arbetsmaterial",
-          "name": "Kortmask · före och efter",
-          "path": "assets/proofs/paow-air-paper-chroma-verified-20261118/p1-fore-efter.png",
-          "pattern": "assets/proofs/paow-air-paper-chroma-verified-20261118/*.png",
-          "state": "kandidat",
-          "note": "P1 och P7 med verifierad källversion. QA-bilder, ingen ny film.",
-          "source": {
-            "from": "Lokal Dealer-studio · skärmbilder från CUA",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-c1-c2-scene-20261118",
-          "role": "arbetsmaterial",
-          "name": "P4C1 och P4C2 · scenprov",
-          "path": "assets/proofs/paow-c1-c2-scene-20261118/kort-och-skarvar.png",
-          "pattern": "assets/proofs/paow-c1-c2-scene-20261118/*.png",
-          "state": "kandidat",
-          "note": "Kvarliggande kort, släpp och retur i den sammansatta scenen. Variant, ingen Primär.",
-          "source": {
-            "from": "Lokal Dealer-studio · skärmbilder från CUA",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-c2-paper-rim-20261118",
-          "role": "arbetsmaterial",
-          "name": "C2 · jämn pappersfärg",
-          "path": "assets/proofs/paow-c2-paper-rim-20261118/c2-fore-efter.png",
-          "pattern": "assets/proofs/paow-c2-paper-rim-20261118/*",
-          "state": "kandidat",
-          "note": "Fem native stillbildspar med oberoende synkontroll. Blå kant vid vändningen kvarstår.",
-          "source": {
-            "from": "Lokal Dealer-studio · native skärmbilder",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-c2-rig-laydown-20261118-v2",
-          "role": "arbetsmaterial",
-          "name": "C2 · lokal nedvinkling",
-          "path": "assets/proofs/paow-c2-rig-laydown-20261118-v2/referens.mp4",
-          "pattern": "assets/proofs/paow-c2-rig-laydown-20261118-v2/*",
-          "state": "kandidat",
-          "note": "Lokalt rörelseprov: tidig skillnad för liten för ny betald film.",
-          "source": {
-            "from": "Lokal Dealer-docka · källbunden rendering",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-c2-rig-regrip-20261118",
-          "role": "arbetsmaterial",
-          "name": "C2 · tidigare nedläggning",
-          "path": "assets/proofs/paow-c2-rig-regrip-20261118/referens.mp4",
-          "pattern": "assets/proofs/paow-c2-rig-regrip-20261118/*",
-          "state": "kandidat",
-          "note": "Lokalt omgreppsprov, inte beställningsreferens eller godkänd film.",
-          "source": {
-            "from": "Lokal Dealer-docka · källbunden rendering",
-            "when": "2026-11-18"
-          }
-        },
-        {
           "id": "docka-2-3-p4c2-h24-omgrepp",
           "role": "referens",
           "name": "Docka H24 · P4C2 · tidigare nedläggning",
@@ -4231,110 +3824,6 @@
           "note": "Oberoende förhandsgranskad för ett prov. Ändrat omgrepp i k59–69; övrig rörelse, ändbilder och prompt bevaras. Väljs uttryckligen, inget förvalsbyte.",
           "source": {
             "from": "Lokal dockrendering med källhashar, mått och förhandsgranskning bredvid filmen",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-c2-film-regrip-20261118",
-          "role": "arbetsmaterial",
-          "name": "P4C2 · omtag med ändrat omgrepp",
-          "path": "assets/proofs/paow-c2-film-regrip-20261118/film.mp4",
-          "fps": 24,
-          "state": "kandidat",
-          "note": "Omtag med ändrad referens: fortsatt tvekan och längre blekning. Variant, ersätter inte C2-01.",
-          "source": {
-            "from": "assets/orders/paow-giv-2-3-p4-c2-h24-cykel-02/take-1/after.mp4",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-c2-contact-20261118",
-          "role": "arbetsmaterial",
-          "name": "C2 · mindre blått vid fingret",
-          "path": "assets/proofs/paow-c2-contact-20261118/c2-34-jamforelse.png",
-          "pattern": "assets/proofs/paow-c2-contact-20261118/*",
-          "state": "kandidat",
-          "note": "Fyra native bildpar med oberoende kontroll. Mindre blåspill vid fingret; blå restkant och full rörelsedom återstår.",
-          "source": {
-            "from": "Lokal Dealer-studio · native skärmbilder",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-game-frame-20261118",
-          "role": "arbetsmaterial",
-          "name": "Hålkort · värde på visad filmruta",
-          "path": "assets/proofs/paow-game-frame-20261118/frame-61.png",
-          "pattern": "assets/proofs/paow-game-frame-20261118/*",
-          "state": "kandidat",
-          "note": "Native pausprov: dolt värde på ruta 60, synligt på 61. Lokal filmvalstäckning 9/16. Detta bedömer tidpunkt, inte mask eller rörelsekvalitet.",
-          "source": {
-            "from": "Lokal Dealer · native Chrome",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-game-carry-20261118",
-          "role": "arbetsmaterial",
-          "name": "Filmkort · verifierad splitrunda och C2-skarv",
-          "path": "assets/proofs/paow-game-carry-20261118/round-result.png",
-          "pattern": "assets/proofs/paow-game-carry-20261118/*",
-          "state": "kandidat",
-          "note": "Native split 18/17 mot 17, saldo 1005. C2-kant median 0, högst 1 skärmpixel vid två gränser. Full rörelsedom återstår; återbruk använder ritade kort och DC3 saknar filmhand.",
-          "source": {
-            "from": "Lokal Dealer · native Chrome och oberoende kantmätning",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-c2-continuous-clock-20261118",
-          "role": "arbetsmaterial",
-          "name": "C2 · lokalt tidsprov av omgrepp",
-          "path": "assets/proofs/paow-c2-continuous-clock-20261118/jamforelse.mp4",
-          "pattern": "assets/proofs/paow-c2-continuous-clock-20261118/*",
-          "state": "kandidat",
-          "note": "76 ms tidigare tumsläpp, samma 4 s. Oberoende granskning avstår nytt betalt prov på enbart denna skillnad.",
-          "source": {
-            "from": "Lokal Dealer · återgiven rörelsereferens",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-ready-c-chain-20261118",
-          "role": "arbetsmaterial",
-          "name": "A2.3 · lokalt tvåkortsprov",
-          "path": "assets/proofs/paow-ready-c-chain-20261118/fixed-exit-end.png",
-          "pattern": "assets/proofs/paow-ready-c-chain-20261118/*",
-          "state": "kandidat",
-          "note": "Klippt inpass och omvänd reserv, endast labbvarianter. Två kort består med 0 px kantändring i granskade bilder. Skofärgens hopp rättat: +37,02 till −0,85 nivåer. Kontinuerlig rörelse inte slutdömd.",
-          "source": {
-            "from": "Lokal Dealer · native Chrome och oberoende granskning",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-carry-jitter-20261118",
-          "role": "arbetsmaterial",
-          "name": "P7 · kortets darr, två prov",
-          "path": "assets/proofs/paow-carry-jitter-20261118/carry-1to1.png",
-          "pattern": "assets/proofs/paow-carry-jitter-20261118/*",
-          "state": "kandidat",
-          "note": "Samma sex filmrutor i två kortlägen. Ritat kort fryser två rutor; filmkonturen följer greppet bättre men har färgrester. Pausbilder, inte rörelsedom; ordinarie förval oförändrat.",
-          "source": {
-            "from": "Lokal Dealer · native Chrome och oberoende granskning",
-            "when": "2026-11-18"
-          }
-        },
-        {
-          "id": "paow-mobile-studio-20261118",
-          "role": "arbetsmaterial",
-          "name": "Mobil studio · lokal spelhand",
-          "path": "assets/proofs/paow-mobile-studio-20261118/casino-390-result.png",
-          "pattern": "assets/proofs/paow-mobile-studio-20261118/*",
-          "state": "kandidat",
-          "note": "Lokal Chrome i 390 × 844 och 844 × 390. Hand 20 mot 17, saldo 1005. Snapshot 19/19 kontroller; ingen ny Vercel-publicering eller fysisk telefonkontroll.",
-          "source": {
-            "from": "Lokal Dealer · native Chrome och snapshotrepetition",
             "when": "2026-11-18"
           }
         },

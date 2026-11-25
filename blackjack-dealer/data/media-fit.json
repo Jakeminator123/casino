@@ -94,16 +94,6 @@
         }
       }
     },
-    "paow-profil-kavaj": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-profil-linne": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
     "paow-nyp-ung-1": {
       "verdict": "går inte att mäta",
       "words": "Handmått saknas för den här ankarrollen.",
@@ -203,53 +193,6 @@
       },
       "words": "Bankens kamera (1764 × 1174, bordskanten på rad null): duger som referens för rörelse."
     },
-    "paow-fork-round-review-20261118": {
-      "verdict": "annan kamera",
-      "for": "utseende",
-      "usedBy": [],
-      "measured": {
-        "width": 1920,
-        "height": 1080,
-        "edgeRow": null
-      },
-      "words": "En annan kamera än bankens (1920 × 1080, bordskanten på rad ? mot 831.5): en referens för utseende, inte för mått eller platser."
-    },
-    "paow-c2-film-cycle-20261118": {
-      "verdict": "stämmer",
-      "for": "rörelse",
-      "usedBy": [],
-      "measured": {
-        "width": 1764,
-        "height": 1174,
-        "edgeRow": 411
-      },
-      "words": "Bankens kamera (1764 × 1174, bordskanten på rad 411): duger som referens för rörelse."
-    },
-    "paow-air-paper-chroma-verified-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-c1-c2-scene-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-c2-paper-rim-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-c2-rig-laydown-20261118-v2": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-c2-rig-regrip-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
     "docka-2-3-p4c2-h24-omgrepp": {
       "verdict": "stämmer",
       "for": "rörelse",
@@ -262,46 +205,6 @@
         "edgeRow": null
       },
       "words": "Bankens kamera (1764 × 1174, bordskanten på rad null): duger som referens för rörelse."
-    },
-    "paow-c2-film-regrip-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-c2-contact-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-game-frame-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-game-carry-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-c2-continuous-clock-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-ready-c-chain-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-carry-jitter-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
-    },
-    "paow-mobile-studio-20261118": {
-      "verdict": "går inte att mäta",
-      "words": "Övrigt: inget att mäta mot planen.",
-      "usedBy": []
     },
     "paow-a3-p4-23b": {
       "verdict": "stämmer",
@@ -698,23 +601,6 @@
       "approved": false,
       "played": false
     },
-    "paow-giv-2-3-p4-01-01": {
-      "verdict": "stämmer",
-      "words": "Kortet ligger 0 px från platsen P4.C1 och är 1 % mindre än kortet dagens plan ritar (planCardQuad).",
-      "measured": {
-        "distancePx": 0.4,
-        "size": 0.993,
-        "card": "P4.C1"
-      },
-      "approved": false,
-      "played": false
-    },
-    "paow-giv-2-3-p1-01-01": {
-      "verdict": "går inte att mäta",
-      "words": "Filmen har inget kortspår med ett liggande kort.",
-      "approved": false,
-      "played": false
-    },
     "paow-giv-2-3-p4-h24-03-01": {
       "verdict": "går inte att mäta",
       "words": "Filmen har inget kortspår med ett liggande kort.",
@@ -765,12 +651,6 @@
       "words": "Filmen har inget kortspår med ett liggande kort.",
       "approved": false,
       "played": true
-    },
-    "paow-giv-2-3-p4-c2-01-01": {
-      "verdict": "går inte att mäta",
-      "words": "Filmen har inget kortspår med ett liggande kort.",
-      "approved": false,
-      "played": false
     },
     "paow-giv-2-3-p1-02-01": {
       "verdict": "går inte att mäta",

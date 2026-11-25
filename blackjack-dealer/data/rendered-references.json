@@ -3,13 +3,6 @@
   "schemaVersion": 1,
   "films": [
     {
-      "id": "docka-vila-till-2-3-a",
-      "edge": "IDLE>READY-C",
-      "path": "assets/references/docka/docka-vila-till-2-3-a/source.mp4",
-      "sha256": "33171170e7164a4fd667e469ae128f3afb89ea4eb275188974ed64207610ed69",
-      "seconds": 4
-    },
-    {
       "id": "docka-2-3-p5c1-d",
       "edge": "READY-C>P5.C1",
       "path": "assets/references/docka/docka-2-3-p5c1-d/source.mp4",
@@ -41,32 +34,6 @@
       "edge": "READY-C>P1.C1",
       "path": "assets/references/docka/docka-2-3-p1c1-f/source.mp4",
       "sha256": "d8e1070d4a54447e3066bcf5d49c74d2c9680d9e709ddf918bd6ab7ee6914d21",
-      "seconds": 3,
-      "lays": "RH",
-      "check": {
-        "pass": true,
-        "clean": true,
-        "codes": []
-      }
-    },
-    {
-      "id": "docka-2-3-p2c1-f",
-      "edge": "READY-C>P2.C1",
-      "path": "assets/references/docka/docka-2-3-p2c1-f/source.mp4",
-      "sha256": "73595e2f12d963f0154649db281a290215e32431a2091c67577dc0b6e4cff1e3",
-      "seconds": 3,
-      "lays": "RH",
-      "check": {
-        "pass": true,
-        "clean": true,
-        "codes": []
-      }
-    },
-    {
-      "id": "docka-2-3-p3c1-f",
-      "edge": "READY-C>P3.C1",
-      "path": "assets/references/docka/docka-2-3-p3c1-f/source.mp4",
-      "sha256": "fd2ba271caaaacec301d93911fd20e2f2942fb31e5f9e0cb7038a276917a97dd",
       "seconds": 3,
       "lays": "RH",
       "check": {
@@ -124,15 +91,6 @@
       "check": null
     },
     {
-      "id": "docka-2-3-p4c1-svep24b",
-      "edge": "READY-C>P4.C1",
-      "path": "assets/references/docka/docka-2-3-p4c1-svep24b/source.mp4",
-      "sha256": "d2ce23a1b33d7efff1089099134396fc9edbbbedc7ea0a1038a82de8ebc2d803",
-      "seconds": 3,
-      "lays": "RH",
-      "check": null
-    },
-    {
       "id": "docka-2-3-p4c1-svep24c",
       "edge": "READY-C>P4.C1",
       "path": "assets/references/docka/docka-2-3-p4c1-svep24c/source.mp4",
@@ -146,19 +104,6 @@
       "edge": "READY-C>P4.C1",
       "path": "assets/references/docka/docka-2-3-p4c1-f/source.mp4",
       "sha256": "1829812be7f41b1e49f8db1a23ceb8080e5a41793b9bd559b41e0641af6ce413",
-      "seconds": 3,
-      "lays": "RH",
-      "check": {
-        "pass": true,
-        "clean": true,
-        "codes": []
-      }
-    },
-    {
-      "id": "docka-2-3-p5c1-f",
-      "edge": "READY-C>P5.C1",
-      "path": "assets/references/docka/docka-2-3-p5c1-f/source.mp4",
-      "sha256": "c472aaaf06713cbe73f214f16ff71637f7fb6ecd7909f8a8026c03340bb828eb",
       "seconds": 3,
       "lays": "RH",
       "check": {

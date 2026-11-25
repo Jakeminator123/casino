@@ -7,17 +7,20 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - **Datorn:** Jakob började om här 2026-11-25; det på den stationära kopieras inte hit, utom en enskild godkänd fil han
   ber om. I `assets/` ligger bara det som hämtades ur Blob samma dag (258 filer, cirka 1,2 GB, varje fil kontrollerad mot
   sin SHA-256): Paows filmer som kopian spelade och de bra filmerna i nodträdet som Blob hade, rummen, introfilmen och
-  brickan. 205 av Paows 356 bra eller spelade tagningar har sin film här; 151 fanns bara på den stationära (50 talfilmer,
-  70 givar, 5 returer och vilor). Registren i Git beskriver fortfarande banken som den var där, med hans domar; alla kort
-  i Beslut är besvarade. Nätdelen vilar; kopian på nätet står på `c9d006d` från 2026-11-20, och Blob (`dealer-studio-media`)
-  har kvar cirka 1,3 GB som inget använder: äldre utgåvors filmer, Pamelas filmer och provfilmer.
+  brickan. Registren rensades samma dag: det som pekade på media som varken finns här eller i Blob är borta, liksom
+  Pamelas och V6:s hashlista i `data/manifest.json` (arkivet har sitt eget kvitto); hans domar på borttagna tagningar
+  står i `data/motions-removed.jsonl`. Utan fil här står nu bara det som väntar på honom (nedan), 49 tagningar vars film
+  finns i Blob (sekundära och underkända), de låsta beställningarna och ursprungsuppgifter (kvitton, källbilder, scenens
+  mätkällor). Alla kort i Beslut är besvarade. Nätdelen vilar; kopian på nätet står på `c9d006d` från 2026-11-20, och
+  Blob (`dealer-studio-media`) har kvar cirka 1,3 GB som inget använder: äldre utgåvors filmer, Pamelas filmer och
+  provfilmer.
 - **Dealern** är Paow, med de tatuerade händerna (Jakob 2026-11-24: "vi ska köra enbart med hennes nya händer och de
   tatuerade klippen"). Pamela och V6 är arkiverade utanför repot (2026-11-20, 2026-11-23).
 - **Film:** metoden som håller (2026-11-23): giv och återgång i en film, Kling 4, 4 s, första bild A2.3
   (`paow-ankare-2-3-d`), sista bild samma med kortet på platsen, dockans byggda film som referens. Från A2.1
   (`paow-nyp-tatuerad`) underkände han fem av sex givar 2026-11-24 ("MÅSTE FINNAS METODFEL"). A2.2 och
   landningsbilderna (A3) är arkiverade (2026-11-23, 2026-11-24).
-- **Karta:** fyra träd: Tatuerad (spelas, skjuter kortet från A2.3, 22 av 36 steg), Tatuerad nyp (byggs, nyper från
+- **Karta:** fyra träd: Tatuerad (spelas, skjuter kortet från A2.3, 21 av 36 steg), Tatuerad nyp (byggs, nyper från
   A2.1), Casino och Ingången (vilar). Kompositionen `tatuerad-skjut-nyp` binder de två tatuerade (2026-11-24).
 - **Kort:** ett kort per sida med märkena överallt; kortplanen i verkligt perspektiv genom B-linsen, som spelet och
   scenen följer. Det styva kortet utan vit kant har hans ja i Scen (2026-11-23).
@@ -33,8 +36,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Nästa steg
 
-0. **Registren** (Jakob 2026-11-25, en egen chatt): hänvisningar till media som varken finns här eller i Blob, och allt
-   om Pamela, tas bort ur registren; när en filmpost går står hans dom kvar som en rad i `data/motions-removed.jsonl`.
+0. **Det tatuerade materialet** (väntar på Jakob, nedan): kopieras det hit eller görs det om? Görs det om tas
+   tagningarnas poster bort med `node tools/register.ts remove <id> --why "<text>"`, så att domarna står kvar i
+   `data/motions-removed.jsonl`.
 1. **Film:** fyll Tatuerad från A2.3: plats 7 (händerna vände inte kortet) och filmen som vänder upp D.C1 (utkastet
    `paow-halkort-06`). Sedan A2.1 igen med EN pilot som han ser i spelstorlek först. En nästan bra film görs om "bara
    litegranna"; givens tid cirka 1,3 s ut och 0,8 s tillbaka (2026-11-23, 2026-11-24).
@@ -52,13 +56,17 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 6. **Studion:** färre val, det uppenbart dubbla bort först: de sju adresserna som bara leder vidare (`/`, `/scen/`,
    `/placering/`, `/bestall/`, `/docka/`, `/prov/`, `/primara/`), Casinos adress `/game/`, och verktygens meddelanden
    som ännu säger "labbet"; sidorna bredvid (Ljud, Modeller, Grafik) får ramens utseende; fler register in i SQLite
-   som filmregistret (2026-11-23).
+   som filmregistret (2026-11-23). Ett förslag som väntar på hans ja (2026-11-25, han frågade varför de ser olika ut):
+   Planen och Ställ dockan blir en bild, där dockans 3D-bord är det enda bordet och kortplanens kort ritas i det.
 
 ## Väntar på Jakob
 
-- En beställning behöver ankarbilderna, som bara finns på den stationära: ska just de godkända filerna kopieras hit
-  (A1 `paow-vila-tatuerad`, A2.3 `paow-ankare-2-3-d`, A2.1 `paow-nyp-tatuerad` och dockans referensfilmer), eller ska
-  nya göras?
+- Det som bara finns på den stationära, och som registren behåller tills han har bestämt om det kopieras hit eller görs
+  nytt: 130 bra eller spelade tagningar utan film (Tatuerad: alla 21 spelade steg, alla 25 talfilmer och 5 av stolarnas
+  steg; Tatuerad nyp: alla 8 steg; Casinos och Ingångens talfilmer, 24 av 25; därtill 47 bra som inget steg spelar),
+  ankarbilderna (A1 `paow-vila-tatuerad`, A2.1 `paow-nyp-tatuerad`, A2.3 `paow-ankare-2-3-d` med stolarnas sex och
+  `paow-ankare-2-3-marke`), keystones och hans egna bilder, kortets textur, 43 av dockans referensfilmer och spelets
+  fyra munlappar. En beställning behöver ankarna, texturen och dockans filmer.
 - På den stationära: hans dom på `paow-giv-2-3-d-03-01` och `paow-halkort-05-01`, den neutrala
   `paow-tal-blackjack-sv-14`, stolsserien (Prov `stolsserien-p4c2-20261124`) och andelarna för skjut och nyp i Karta.
 
