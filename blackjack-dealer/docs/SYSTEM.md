@@ -8,7 +8,7 @@ rubriken du behöver.
 | Vad | Värde | Källa |
 | --- | --- | --- |
 | Bankens ruta (film och ankare) | 1764 × 1174 | `FILM` i `src/table-lens.ts` (Standarden nedan); `readRgb` i `tools/order-images.ts` vägrar annan storlek |
-| Planens ruta (Kortplan) | 1762 × 1174; film-x = plan-x × 1763/1761 | `VIEWS.native` i `src/placement-model.ts`; `planPixel` i `src/table-lens.ts` (`planToFilm` i `src/card-plan.ts` ger samma) |
+| Kortplanens ruta | 1762 × 1174; film-x = plan-x × 1763/1761 | `VIEWS.native` i `src/placement-model.ts`; `planPixel` i `src/table-lens.ts` (`planToFilm` i `src/card-plan.ts` ger samma) |
 | Bildfrekvens | WAN 3 30/s, Kling 24/s; banken behåller varje films takt | `source.fps`, `fpsOf` i `src/game-film.ts` |
 | Bordskanten | rad 831,5; dealerkantens mitt (881,5; 831,5); kroppen slutar på rad 825–831 | `data/scene-contract.json`; `edgeCheck` i `src/film-after.ts` |
 | Grönt | ingen fast färg: nyckeln läser varje rutas hörn | shadern i `src/scene3d-film.ts` |
@@ -20,7 +20,7 @@ Originalmätningar och referenshashar bevaras; en adapter konverterar vid en utt
 ## Standarden: en kamera, ett bord, ett kort
 
 Två lager (Jakob 2026-11-25: "grunden måste vara densamma"). **Standarden** är de fasta måtten nedan: kameran, bordet,
-kortet, planens platser, skon och markerlådan. Allt utgår från den: dockan, Kortplan, Scens grund och varje beställd
+kortet, planens platser, skon och markerlådan. Allt utgår från den: dockan, Inspelning, Scens grund och varje beställd
 film, så att det som produceras alltid har samma mått. **Utseendet** läggs ovanpå i Scen när färdigt material sätts
 ihop, och sparas som ett förval (`data/scene-presets/`; Casino spelar förvalet `casino`): rum, bordsmodell, duk och
 filtfärg, bordets storlek, hur korten ritas, markerlåda och sko som modell, kamerans vy (vridning, zoom, flytt, format)
@@ -118,7 +118,7 @@ och kopian kör motorn i sidan (`cloud/studio/game-local.ts`). Hålkortets valö
 
 Filmens kort har ingen valör: gult är ryggen (stängt) och blått framsidan (öppet), en sort per sida överallt (Jakob
 2026-11-17, 2026-11-20, 2026-11-24). Blå sidan bär rosa kryss och röd prick, gula sidan fylld röd cirkel och rosa kryss
-nära kortänden. `CARD_RGB` och `CARD_MARK` i `src/placement-model.ts`; Kortplan, dockan
+nära kortänden. `CARD_RGB` och `CARD_MARK` i `src/placement-model.ts`; dockan i Inspelning
 (`dealer3d/src/card-marks.ts`) och beställningens bild (`layCard` i `tools/order-images.ts`) ritar samma märken.
 Ingen vit kant (Jakob 2026-11-17, 2026-11-23). Kortet är rent tills efterarbetet; valören ritas när rundan spelas.
 
@@ -140,7 +140,7 @@ Ingen vit kant (Jakob 2026-11-17, 2026-11-23). Kortet är rent tills efterarbete
 - **En linje för korten** (Jakob 2026-11-13): ritade kort hela vägen, en storlek (`cardScale` 1,2 = ett verkligt kort,
   storlek 1,00 i Efterarbete), en brytare i spelet. Kortmattan är ett val i studion, inte spelets. Överlägg i handen
   (`cardInHand`) är av i grunden; hans val i Scen följer med Använd i Casino (2026-11-19, 2026-11-24). Det styva kortet
-  ritas med en storlek från hand till bord (2026-11-23). Storleken ändras bara i Efterarbete, aldrig i Kortplan.
+  ritas med en storlek från hand till bord (2026-11-23). Storleken ändras bara i Efterarbete, aldrig i Inspelning.
 
 ## Kortplanen
 
@@ -149,15 +149,17 @@ trycker Spara (Jakob 2026-11-11, 2026-11-12); har han ställt in korten där gä
 `validatePlan` i `src/placement-model.ts`: geometri per `native`/`portrait` (bara `native` läses); `angle` grader medurs;
 `perspective` 0,80–0,96 ändrar bara kortens form, ett värde för alla (hans 87 %; 2026-11-18); `intent.grip` `PINCH`
 (A2.1) eller `DRAG` (A2.2), `turnAt` `AIR` eller `PLACE`. Av rörelsen väljs i studion bara sidan kortet ligger med
-(`intent.endSide`, Kortplan steg 2); ingången (A2.1 eller A2.3) är trädets, inte planens `intent.pass`, och de övriga
+(`intent.endSide`, Inspelning steg 2); ingången (A2.1 eller A2.3) är trädets, inte planens `intent.pass`, och de övriga
 fälten i `intent` läses bara av receptets text (`tools/order-store.ts`) och väljs ingenstans (2026-11-25).
 
-Kortplan har en bild (Jakob 2026-11-25: "ett och samma läge", "allt i 3d"): dockans 3D-bord i en ram, med planens
-kort på filten. Studion skickar sitt utkast till dockans sida, som ritar platserna och lägger given på nytt; i steg 1
-kan kortets plats dras på filten, och sidan svarar med planens egna koordinater. Dockans reglage fästs i studions
+Bordets del Inspelning är filmens format, där planen ändras och en ny film beställs (Jakob 2026-11-25: "i och med att
+videon på själva dealern har ett format så är ju det en standard"; delen hette Kortplan, och i koden och adressen heter
+den fortfarande `kortplan`). Den har en bild (Jakob 2026-11-25: "ett och samma läge", "allt i 3d"): dockans 3D-bord i
+en ram, med planens kort på filten. Studion skickar sitt utkast till dockans sida, som ritar platserna och lägger given
+på nytt; i steg 1 kan kortets plats dras på filten, och sidan svarar med planens egna koordinater. Dockans reglage fästs i studions
 högerspalt (elementet `[data-docklabb-styr]`). Orden mellan sidorna (`{docklabb: {...}}`: `ready`, `place`, `entry`,
 `plan`, `attach`, `flytta`, `moved`, `saved`, `play`, `film`) står sist i `dealer3d/page/docka.ts`. Kopian på nätet har
-ingen docka och visar därför inte Kortplan.
+ingen docka och visar därför inte Inspelning.
 
 Filmen över dockan (Jakob 2026-11-25: "så man kan jämföra videos som är skapade med tex dockan"): reglaget Filmen i
 bildens knapprad lägger kortets film över dockan, i samma ruta och genom samma kamera, och dockans tidslinje driver

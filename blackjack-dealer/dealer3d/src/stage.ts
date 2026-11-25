@@ -27,7 +27,7 @@ const COLOUR = {
 };
 const v3 = (p: Vec3) => new T.Vector3(p[0], p[1], p[2]), UP = new T.Vector3(0, 1, 0);
 
-/** A card: a thin body with rounded corners, the yellow back on one side and the blue face on the other, each with Kortplan's marks for that side. Local x across, y out of the face, z along the long side. */
+/** A card: a thin body with rounded corners, the yellow back on one side and the blue face on the other, each with the card plan's marks for that side. Local x across, y out of the face, z along the long side. */
 function cardMesh(): T.Group {
   const w = CARD.width / 2, h = CARD.height / 2, r = CARD.corner, shape = new T.Shape();
   shape.moveTo(-w + r, -h); shape.lineTo(w - r, -h); shape.absarc(w - r, -h + r, r, -Math.PI / 2, 0, false); shape.lineTo(w, h - r); shape.absarc(w - r, h - r, r, 0, Math.PI / 2, false);
@@ -39,7 +39,7 @@ function cardMesh(): T.Group {
   // a mirrored surface is lit on its wrong side. Each surface is double-sided, so it is lit from whichever side it is seen.
   const add = (geometry: T.BufferGeometry, material: T.MeshStandardMaterial, lift: number) => { geometry.rotateX(Math.PI / 2); geometry.translate(0, lift, 0); material.side = T.DoubleSide; const m = new T.Mesh(geometry, material); m.castShadow = true; m.receiveShadow = true; g.add(m); };
   add(body, side(COLOUR.edge), 0); add(flat.clone(), side(COLOUR.face), CARD.thickness / 2 + 0.00004); add(flat.clone(), side(COLOUR.back), -CARD.thickness / 2 - 0.00004);
-  // The blue side's marks, Kortplan's own (card-marks.ts; Jakob 2026-11-20 and 2026-11-24: one kind of card): a small pink cross
+  // The blue side's marks, the card plan's own (card-marks.ts; Jakob 2026-11-20 and 2026-11-24: one kind of card): a small pink cross
   // in the middle and a small red circle in one corner, so that a film cannot show the wrong side. Measures in card widths.
   const W = CARD.width, M = CARD_MARKS, lift = CARD.thickness / 2 + 0.00009;
   for (const turn of [1, -1]) add(new T.PlaneGeometry(M.cross.stroke * W, 2 * M.cross.arm * W).rotateZ(turn * Math.PI / 4), side(M.cross.colour), lift);

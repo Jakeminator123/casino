@@ -30,7 +30,7 @@ import { nodeCode } from "./names.ts";
 
 // ── The anchor a card's films go from ──────────────────────────────────────
 /**
- * The anchor Kortplan's card goes from and back to: the anchor at the shoe of the tree chosen in the guide (step 3; with none
+ * The anchor Inspelning's card goes from and back to: the anchor at the shoe of the tree chosen in the guide (step 3; with none
  * chosen the tree the guide opens on, lib/new-film.ts pickTree), and A2.3 where no tree is read. Jakob 2026-11-24: "vi ska
  * köra enbart med hennes nya händer och de tatuerade klippen"; the tree Tatuerad deals every card from A2.3, Tatuerad nyp
  * from A2.1. Step 2, Kortbanan, the pose the doll deals from and Scen's round all name it. The plan's "Handbyte" chooses
@@ -61,7 +61,7 @@ export function hasRound(graph: Pick<Graph, "edge" | "experiments"> | null, card
 
 /**
  * The card's deal and back in his notation ("A2.2 - A3P6C1 - A2.2"): Bordet's default round, from the anchor the game deals
- * it from. `from`: the anchor Kortplan's films go from (treeAnchor), which the view passes only where the bank has that round
+ * it from. `from`: the anchor Inspelning's films go from (treeAnchor), which the view passes only where the bank has that round
  * (hasRound); the game keeps its own until then.
  */
 export function roundFor(card: string, dealer: string, from: Exclude<Anchor, "1"> | null = null): string {
@@ -71,7 +71,7 @@ export function roundFor(card: string, dealer: string, from: Exclude<Anchor, "1"
 
 // ── The film over the doll ──────────────────────────────────────────────────
 /**
- * The film Kortplan's picture can lay over the doll (Jakob 2026-11-25: "så man kan jämföra videos som är skapade med tex
+ * The film Inspelning's picture can lay over the doll (Jakob 2026-11-25: "så man kan jämföra videos som är skapade med tex
  * dockan"): the dealer's deal to the card from the tree's anchor at the shoe, the frames of it that are played. The tree's own
  * film on the step where it has one that holds (finns: its take locked, a stand-in's from its own anchor, as Karta plays a
  * path, lib/tree-path.ts), else the game's own choice for the card's round from that anchor, as Bordet's Scen plays it
@@ -452,7 +452,7 @@ export const sceneWords: ReadonlySet<string> = new Set(["runda", "kant", "tagnin
 
 /**
  * Bordet's scene with the same thing on screen, for an address of the view Scen (/, /scen/): the round and the look kept,
- * vy=platt as the mode Råfilm, anything else as the mode Scen; with no round and no look, Bordet as it opens (Kortplan).
+ * vy=platt as the mode Råfilm, anything else as the mode Scen; with no round and no look, Bordet as it opens (Inspelning).
  * /?runda=A2.1%20-%20P4C1&vy=platt leads to /bordet/?lage=rafilm&runda=A2.1+-+P4C1.
  */
 export function bordetSceneAddress(params: { forEach(fn: (value: string, key: string) => void): void; get(name: string): string | null }): string {

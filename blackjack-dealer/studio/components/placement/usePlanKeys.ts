@@ -1,6 +1,6 @@
 "use client";
 
-// Kortplan's keys and gestures beside the doll's picture: Ctrl+Z ångra, the arrows nudge the chosen place (a pixel of the
+// Inspelning's keys and gestures beside the doll's picture: Ctrl+Z ångra, the arrows nudge the chosen place (a pixel of the
 // plan's picture, Shift ten), and a run of changes (key presses, or the card's place dragged in the doll's picture) is one
 // step for Ångra.
 import { useCallback, useEffect, useRef, type RefObject } from "react";

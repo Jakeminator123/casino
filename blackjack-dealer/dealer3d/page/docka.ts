@@ -16,12 +16,12 @@
 // 2026-11-23, 3 cm off, and is not played. A standard he has saved is laid again from its recipe and his sliders, the way
 // he saved it in, whichever way is chosen; the file stays as it is.
 // The side a dealer's card lies with is the plan's, and only the plan's (its intent.endSide, read as it stands; lay.ts
-// Steer.side): the same fact was chosen in two places, in Kortplan and in a choice of the lab's own, until Jakob
+// Steer.side): the same fact was chosen in two places, in Inspelning and in a choice of the lab's own, until Jakob
 // 2026-11-25 ("Simplifiera väldigt mycket, men framförallt så inte förväxlingar kan ske"). A standard saved with the other
 // side is laid with the plan's. A closed card is slid face down and never turned, so it has no turn, landing or turning
 // sliders of its own.
 // A click in the picture (no drag) chooses the place nearest the point of the felt under the pointer, as its button does.
-// Embedded in the studio (?inbaddad=1, Bordet's Kortplan: one picture, the 3D one, Jakob 2026-11-25) the doll is the dealer
+// Embedded in the studio (?inbaddad=1, Bordet's Inspelning: one picture, the 3D one, Jakob 2026-11-25) the doll is the dealer
 // chosen there, the plan is the studio's draft as it is changed, the page is the picture alone and the controls stand in the
 // studio's own column (the end of this file); a place can be moved on the felt by hand while the studio asks for it, and the
 // dealer's film of the card's deal can be laid over the doll in "Filmens kamera" (the film over the doll, below).
@@ -557,7 +557,7 @@ if (asked.get('spela') === '1') void play();
   touching: stage?.touching().map(t => `${t.hand}${t.finger} ${t.name} ${whereOn(t)}`) ?? [],
   // Where her right wrist and the card are, in the room and in the picture now (CSS pixels of the canvas): for checking a view against the film's own.
   seen: (() => { const m = now?.motion, i = m ? Math.min(m.frameCount - 1, Math.round(state.t * m.fps)) : 0, of = (world: number[]) => ({world, at: stage!.seen(world)}); return m && stage ? {wrist: of(m.frames[i].R.w), card: of(m.frames[i].card.c)} : null; })()})};
-// Embedded in the studio (?inbaddad=1: Bordet's Kortplan, studio/components/bordet/). Every word is {docklabb: {...}}, and
+// Embedded in the studio (?inbaddad=1: Bordet's Inspelning, studio/components/bordet/). Every word is {docklabb: {...}}, and
 // only the lab's own origin is told and heard.
 // Told: {ready: true} once the lab has started; {place, entry} whenever a card or an entry is chosen here (a button, a
 // click in the picture, or the page around's own choice, answered); {place, saved} after "Spara som standard";

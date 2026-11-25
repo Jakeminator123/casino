@@ -20,7 +20,7 @@ export function studioAddress(pathname: string, params: URLSearchParams): string
   if (tab === 'prov') { view = 'granska/'; const proof = params.get('proof'), file = params.get('file'); if (proof) out.set('prov', proof); if (proof && file) out.set('fil', file); }
   else if (tab === 'granska') { view = 'granska/'; const take = params.get('take'); if (take) out.set('tagning', take); }
   else if (tab === 'klippbank') view = 'karta/';
-  else if (tab === 'placering') view = 'bordet/'; // (Placering's page is gone: Bordet's Kortplan is the plan)
+  else if (tab === 'placering') view = 'bordet/'; // (Placering's page is gone: the plan is changed in Bordet's Inspelning)
   const query = out.toString();
   return `/studio/${view}${query ? `?${query}` : ''}`;
 }

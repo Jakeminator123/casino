@@ -4,11 +4,11 @@
 // table's lens (src/table-lens.ts, the 3D lane's), so cards nearer the dealer are larger than the plan's old projective plane
 // drew them (a real card narrows to 0.956 at its far edge). The plan says where a card lies and which way it points; its size
 // follows from the lens. How large the game draws its cards is afterwork (Efterarbete's "Kortens storlek").
-// How deep the table looks is one number of the plan, and it is only the cards' shape (tableProjection.perspective, Kortplan's
+// How deep the table looks is one number of the plan, and it is only the cards' shape (tableProjection.perspective, Inspelning's
 // "Perspektiv"; Jakob 2026-11-17: "Om alla kort är exakt lika stora, blir de väldigt tvådimensionella", and 2026-11-18 of a
 // lens that also shrank the dealer's cards: "Kortet i skon är större än korten som ligger närmare oss"): size and place stay
 // the real camera's, and each card is drawn as a keystone about its own middle (planShape).
-// The rule every drawing of the plan in the lab and in an order uses: Bordet's Kortplan and card path, Ny beställning's
+// The rule every drawing of the plan in the lab and in an order uses: Bordet's Inspelning and card path, Ny beställning's
 // picture, an order's last picture (tools/order-images.ts). The game's lying cards (src/game-table.ts), the resting card of
 // the drawn cards (src/card-overlay.ts) and the 3D scene's film camera (src/scene3d-view.ts) follow the same rule and lens
 // by default since Jakob chose comparison B on 2026-11-19; explicit 'contract' preserves historical references.
@@ -45,7 +45,7 @@ export function tableGeometry(search: string | null = (globalThis as { location?
  * Efterarbete's "Kortens storlek" as a share of the rule's card. The setting is written against the contract's card, of which
  * the plan's own card is 1.2 (the scene's default: restingQuad at 1.2 is the older plan's outline at seat 4 within a
  * twentieth). Under the lens the plan's card is a real card, so the same setting draws the same share of the plan's card:
- * 1.2 is a real card, exactly what the lab's Kortplan draws, and 1.65 is 1.375 of one. When the default geometry has changed,
+ * 1.2 is a real card, exactly what Bordet's Inspelning draws, and 1.65 is 1.375 of one. When the default geometry has changed,
  * the setting can be rewritten so that 1 is a real card, and this goes.
  */
 export const PLAN_CARD_SIZE = 1.2;
@@ -59,7 +59,7 @@ export const filmToPlan = (p: Pixel): Pixel => ({ x: (p.x * PLAN_X) / FILM_X, y:
 const headingOf = (plan: PlacementPlan, reference: Geometry) => (((plan.tableProjection?.heading ?? 0) + reference.angle) * Math.PI) / 180;
 
 /**
- * The table's perspective, the share seat 4's far edge is of its near edge: the plan's value (Kortplan's "Perspektiv"), else
+ * The table's perspective, the share seat 4's far edge is of its near edge: the plan's value (Inspelning's "Bordets perspektiv"), else
  * seat 4's own stored taper (P4C1's, his 87 % of 11 Nov), else a real card's 0.956; within the control's 0.80 to 0.96.
  */
 export function planTaper(plan: Pick<PlacementPlan, 'tableProjection' | 'targets'>): number {

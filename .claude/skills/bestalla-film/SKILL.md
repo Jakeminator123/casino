@@ -31,7 +31,7 @@ och priserna i `blackjack-dealer/data/order-policy.json`. Upprepa dem inte; änd
 
 ## Vägen
 
-1. **Utkast:** Bordet, Kortplan steg 3, eller `node tools/order-new.ts paow "A2.3 - A3P4C2"`; där metoden gäller
+1. **Utkast:** Bordet, Inspelning steg 3, eller `node tools/order-new.ts paow "A2.3 - A3P4C2"`; där metoden gäller
    `node tools/produce.ts paow --draft`; med dockans film `node tools/doll-order.ts paow P5.C1` (alltid från A2.3;
    `--fran a2-1` för nypet, som vägras där dockan inte kan göra det; planens Handbyte väljer ingenting, 2026-11-25). Ett
    avsteg från receptet är ett namngivet undantag i utkastets anteckningar.

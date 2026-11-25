@@ -40,7 +40,7 @@ test("Bordet's row and the store agree for every standard step and card, and the
   for (const dir of ["data", "placements", "assets/anchors/paow-bild"]) await mkdir(path.join(root, dir), { recursive: true });
   for (const file of ["data/order-policy.json", "data/dealers.json", "data/order-methods.json"]) await copyFile(path.join(repo, file), path.join(root, file));
   // The plan's places as they are, its hands and turns fixed here (the pinch, the left hand, no handbyte), so that what Jakob
-  // has set for a card in Kortplan does not change what this test compares.
+  // has set for a card in Inspelning does not change what this test compares.
   const plan = JSON.parse(await readFile(path.join(repo, "placements/default.json"), "utf8"));
   for (const [card, target] of Object.entries(plan.targets as Record<string, { intent: object }>)) target.intent = { takeHand: "LH", startSide: "BACK", endSide: card === "D.C2" ? "BACK" : "FRONT", pass: false, turn: card !== "D.C2", grip: "PINCH", turnAt: "AIR" };
   await writeFile(path.join(root, "placements/default.json"), JSON.stringify(plan, null, 2) + "\n");

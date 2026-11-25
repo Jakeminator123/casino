@@ -1,4 +1,4 @@
-// The order from Scen & bord, Kortplan's step 3 (Jakob 2026-11-23: "hur beställer jag nu härifrån då?"): the doll's
+// The order from Bordet's Inspelning, step 3 (Jakob 2026-11-23: "hur beställer jag nu härifrån då?"): the doll's
 // movement to one player's card, or one of her own (D.C1 to D.C3, 2026-11-24), becomes its film and a draft in Kön, in one
 // go. The anchor is the step's own: A2.3, the method that holds (Jakob 2026-11-23), unless A2.1 is asked for (--fran a2-1,
 // the pinch), which is refused where the doll cannot make it (her left arm over her right hand, or a card laid closed:
@@ -117,7 +117,7 @@ export async function dollOrder(root: string, ask: DollOrderAsk, options: { dry?
     rmSync(out, { recursive: true, force: true });
     await node('Dockans film', ['dealer3d/tools/render-reference.ts', '--motion', plan.motion, '--out', out, '--seconds', seconds, '--fps', '24']);
     const how = plan.entry === 'A2.1' ? 'byggd på dockan från A2.1' : standard ? `hans sparade standard ${standard}` : 'ingen sparad standard, Naturlig som förval';
-    const note = `Gjord från Scen & bord, Kortplan: ${how}, giv och återgång i en film${turn ? `, vändningen ${turn.label.toLowerCase()}` : ''}${unturned ? ` (${unturned})` : ''}${tempo !== 100 ? `, kortets fart ${tempo} %` : ''}.`;
+    const note = `Gjord från Bordets Inspelning: ${how}, giv och återgång i en film${turn ? `, vändningen ${turn.label.toLowerCase()}` : ''}${unturned ? ` (${unturned})` : ''}${tempo !== 100 ? `, kortets fart ${tempo} %` : ''}.`;
     await node('Registret över dockans filmer', ['tools/doll-reference-put.ts', out, '--id', plan.film, '--from', from, '--to', to, '--shape', 'ROUND_TRIP', '--doll', plan.doll, '--lays', plan.entry === 'A2.1' ? 'LH' : 'RH', '--motion', plan.motion, '--note', note]);
     rmSync(out, { recursive: true, force: true });
     const said = sentences.length ? ['--extra-efter', sentences.join(' ')] : [];

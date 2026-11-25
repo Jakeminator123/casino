@@ -1,6 +1,6 @@
 "use client";
 
-// The doll in Bordet's Kortplan: Kortplan's one picture, for every step (Jakob 2026-11-25: "Jag vill att vi skapar ett och
+// The doll in Bordet's Inspelning: Inspelning's one picture, for every step (Jakob 2026-11-25: "Jag vill att vi skapar ett och
 // samma läge för detta ... jag vill ha allt i 3d ... Det andra ska raderas."). The doll lab, embedded
 // (dealer3d/page/docka.html?inbaddad=1), shows the table, the chosen dealer's doll and the draft plan's cards on the felt in
 // 3D, with its view buttons, its note and its transport row. Its controls (Rörelse, Ställning, Giv från, Vändning, Landning,
@@ -32,7 +32,7 @@
 // doll, and only for a dealer with her own is a deal ordered from the doll (step 3; lib/orders.ts orderDoll,
 // tools/doll-order.ts): what is saved in the lab is what is ordered. The side a card lies with is the plan's alone (step 2,
 // "Kortet ligger"); the lab lays it as the plan it is sent says. Only in the local studio: the copy has no doll lab, and no
-// Kortplan.
+// Inspelning.
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DOLLS } from "../../../dealer3d/src/doll.ts";
 import { genitive, type OrdersAnswer } from "../../../src/order-model.ts";
@@ -122,7 +122,7 @@ export function DollNote({ dealer, place, standard }: { dealer: string; place: P
 
 /**
  * Where the doll lab lays its controls (step 2): an empty element React never renders children into, so that the lab's
- * nodes stay. It stays mounted while Kortplan shows, hidden while the step is folded.
+ * nodes stay. It stays mounted while Inspelning shows, hidden while the step is folded.
  */
 export const DollControls = forwardRef<HTMLDivElement, { hidden: boolean }>(function DollControls({ hidden }, ref) {
   return <div ref={ref} data-docklabb-styr hidden={hidden} className="docklabb-host" />;
@@ -192,7 +192,7 @@ export function DollStage({
   /** The card's place dragged in the picture, in the plan's picture (0–1 from the left and from the bottom). */
   onMoved: (place: Place, u: number, v: number) => void;
 }) {
-  // The lab is loaded on the card, pose and doll chosen when Kortplan opens; another dealer's doll loads it again.
+  // The lab is loaded on the card, pose and doll chosen when Inspelning opens; another dealer's doll loads it again.
   const doll = dollWord(dealer);
   const [lab, setLab] = useState<{ doll: string; src: string } | null>(null);
   if (!lab || lab.doll !== doll) setLab({ doll, src: labAddress(place, doll, entry) });
@@ -242,7 +242,7 @@ export function DollStage({
     return () => window.removeEventListener("message", hear);
   }, [post]);
 
-  // A host mounted anew (Kortplan opened again, the column laid out anew): the lab lays its controls there.
+  // A host mounted anew (Inspelning opened again, the column laid out anew): the lab lays its controls there.
   useEffect(() => {
     if (host && isReady()) post({ attach: true });
   }, [host, isReady, post]);

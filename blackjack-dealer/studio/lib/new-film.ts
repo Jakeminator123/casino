@@ -1,4 +1,4 @@
-// Ny film, Bordet's guide for a new film (Kortplan's step 3; Jakob 2026-11-23: "mer likt så som en 'Wizard' … och att allt är
+// Ny film, Bordet's guide for a new film (Inspelning's step 3; Jakob 2026-11-23: "mer likt så som en 'Wizard' … och att allt är
 // sammanlänkt smart till nodträd och dealer"): the dealer, her tree and the step (Vad), the step's recipe (Hur) and what is
 // sent (Skicka). This file is the guide's pure part: the address words, the step a word names and the order it is made as
 // (src/order-model.ts stepOfEdge), the tree's steps as tiles, and the tree's picture an order is made from. No DOM, no
@@ -59,7 +59,7 @@ export function kartaHref(dealer: string, tree: string, step: string | null, com
 /** The card a step is about: the card it goes to or comes from, the hole card for its turn; null for a step without one. */
 export const cardOf = (p: StepPick): string | null => (isCard(p.from) ? p.from : isCard(p.to) ? p.to : p.to === REVEAL_NODE ? HOLE_CARD : null);
 
-/** The same step for another card chosen in Kortplan ("A2.3 → A3P4C2" for P5C1 is "A2.3 → A3P5C1"); a step without a card stays. */
+/** The same step for another card chosen in Inspelning ("A2.3 → A3P4C2" for P5C1 is "A2.3 → A3P5C1"); a step without a card stays. */
 export function swapCard(p: StepPick, place: string): StepPick {
   if (!isCard(place)) return p;
   if (isCard(p.from) && p.from !== place) return { from: place, to: p.to };
@@ -99,7 +99,7 @@ function itemFrom(p: StepPick, step: ViewStep | null): GuideItem {
 export const itemOf = (view: Pick<TreeView, "steps"> | null, p: StepPick): GuideItem => itemFrom(p, view?.steps.find((s) => s.id === `${p.from}>${p.to}`) ?? null);
 
 /**
- * The guide's step for a card chosen in Kortplan: the tree's step of the same kind to that card (from the anchor the tree
+ * The guide's step for a card chosen in Inspelning: the tree's step of the same kind to that card (from the anchor the tree
  * deals it from), else the same step with the card swapped; a step without a card stays.
  */
 export function pickFor(view: Pick<TreeView, "steps"> | null, item: Pick<GuideItem, "from" | "to" | "kind">, place: string): StepPick {
@@ -115,7 +115,7 @@ export function sameIn(view: Pick<TreeView, "steps">, item: GuideItem): StepPick
 
 const SHOE_ANCHORS = ["READY", "READY-B", "READY-C"] as const;
 /**
- * The steps outside the tree's measure that Bordet orders: for the card chosen in Kortplan its return to rest (A3 → A1) and
+ * The steps outside the tree's measure that Bordet orders: for the card chosen in Inspelning its return to rest (A3 → A1) and
  * its deal and return from the other anchors at the shoe, and the entry and the exit of those anchors.
  */
 export function morePicks(hub: string, place: string | null): StepPick[] {
@@ -143,7 +143,7 @@ export function tilesOf(view: Pick<TreeView, "steps" | "hub"> | null, place: str
 export const tileNode = (item: Pick<GuideItem, "from" | "to" | "card">): string => item.card ?? (item.to === "IDLE" && item.from !== "IDLE" ? item.from : item.to);
 
 /**
- * The tree the guide opens on, and whose anchor Kortplan deals a card from where none is chosen (lib/bordet.ts treeAnchor):
+ * The tree the guide opens on, and whose anchor Inspelning deals a card from where none is chosen (lib/bordet.ts treeAnchor):
  * the asked one, else the first the game plays (not one that shares another), else the first that is being built. The
  * played tree comes first since 2026-11-25: it is the one being filled (Tatuerad from A2.3, the method that holds), and a
  * tree under construction (Tatuerad nyp, from A2.1) is then chosen by him, never met by default.

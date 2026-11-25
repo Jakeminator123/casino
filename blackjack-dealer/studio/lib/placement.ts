@@ -1,4 +1,4 @@
-// The thin helpers of Bordet's Kortplan, where Jakob's card plan is changed with the doll's 3D picture beside it: places in
+// The thin helpers of Bordet's Inspelning, where Jakob's card plan is changed with the doll's 3D picture beside it: places in
 // his words, the draft with its undo and what differs from the saved plan, an arrow key's nudge, numbers with a decimal comma
 // and the card's way in his words (Kortbanan). The plan's own rules (where a card lies, how an edit is made) are
 // src/placement-model.ts. Pure: no DOM, no network; the motion's words are tested in studio/tests/bordet-line.test.ts.
@@ -9,7 +9,7 @@ import { cardCode, nodeCode } from "./names.ts";
 // ── Places ──────────────────────────────────────────────────────────────────
 const PLACES: readonly Place[] = [...TARGETS, SHOE];
 export const SEATS = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "D"] as const;
-/** The place Kortplan opens on: P4C2. */
+/** The place Inspelning opens on: P4C2. */
 export const START_PLACE: Place = "P4.C2";
 
 /** "Plats 4 · kort 2", "Dealern · kort 1", "Skon". */

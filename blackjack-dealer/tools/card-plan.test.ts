@@ -340,7 +340,7 @@ test('the same settings give the same picture under the lens: a framing written 
 
 test('Kortens storlek is a share of the plan\'s card in both geometries: the scene\'s default is a real card under the lens', () => {
   assert.equal(cardGrow(PLAN_CARD_SIZE, 'lens'), 1); assert.equal(cardGrow(1.65, 'lens'), 1.65 / PLAN_CARD_SIZE); assert.equal(cardGrow(PLAN_CARD_SIZE, 'contract'), PLAN_CARD_SIZE); assert.equal(cardGrow(2, 'contract'), 2);
-  // so the game's card at its default size is the outline the lab's Kortplan draws
+  // so the game's card at its default size is the outline the studio's Inspelning draws
   const plan = testPlan(0.9), layout = createLayout(plan, {geometry: 'lens'}), scene = planScene(sceneOf(contract), plan);
   for (const id of ['P1.C1', 'P4.C1', 'P6.C2', 'D.C2']) outlines(restingQuad(scene, layout.quad(slotOfTarget(id)), cardGrow(PLAN_CARD_SIZE, 'lens')).quad, planCardQuad(plan, id, 'native').map(planToFilm), id);
   // and by the contract the same setting is the older plan's outline at seat 4 within a twentieth (why 1.2 was the default)

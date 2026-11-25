@@ -47,7 +47,7 @@ spelar bara sina egna dömda tagningar.
 
 - Keystone och ankare 1 är inga steg i Beställ (`STEPS` i `blackjack-dealer/src/order-model.ts`).
 - Ett tredje eller fjärde kort: planen har inte platsen, och ordermodellen vägrar `D.C3` som mål tills Jakob lägger den
-  i Kortplan.
+  i Inspelning.
 - Helfiguren (hon kommer och sätter sig, reser sig och går) har inget steg: Kling 4 i 16:9, två delar per film som möts i
   den stående bilden, med `motion.frame` och `layer: "BEHIND_TABLE"` i posten.
 - En ny uppsättning med samma kropp och kläder får sina vilor lokalt ur den gamlas

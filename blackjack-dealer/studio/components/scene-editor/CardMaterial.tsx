@@ -6,8 +6,8 @@
 // when he presses "Spara i kortplanen" and confirms, through /api/placements against the revision read, and the game reads
 // the same plan. The scene shows a change before it is saved because it hands out the plan it was built with (the third
 // argument of SceneCanvas's onReady, passed on by the Stage's onScene); without it the change shows on the next build.
-// Kortplan writes the same file from its draft (components/placement/useDraft.ts). So that neither save undoes the other: while
-// Kortplan holds unsaved changes this save is closed and says why, and after this save Kortplan's draft (then without
+// Inspelning writes the same file from its draft (components/placement/useDraft.ts). So that neither save undoes the other: while
+// Inspelning holds unsaved changes this save is closed and says why, and after this save Inspelning's draft (then without
 // changes) is read again, so that it carries the new bend and gloss and the new revision.
 import { Save } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -90,7 +90,7 @@ export function CardMaterial({ state, cardsOn, canSave }: { state: CardMaterialS
   const toast = useToast();
   const [asking, setAsking] = useState(false);
   const [busy, setBusy] = useState(false);
-  // Kortplan's draft of the same file: with unsaved changes there, this save would make them unsavable.
+  // Inspelning's draft of the same file: with unsaved changes there, this save would make them unsavable.
   const kortplan = useDraft();
   const { look, facts, fault } = state;
   if (fault) return <p className="py-2 text-sm text-[#ef8b8b]">{fault}</p>;
@@ -138,7 +138,7 @@ export function CardMaterial({ state, cardsOn, canSave }: { state: CardMaterialS
           </div>
         ) : null}
         {canSave && kortplan.dirty ? (
-          <p className="text-xs text-[#f0b07a]">Kortplan har osparade ändringar. Spara dem eller gå till sparat där först.</p>
+          <p className="text-xs text-[#f0b07a]">Inspelning har osparade ändringar i kortplanen. Spara dem eller gå till sparat där först.</p>
         ) : null}
       </div>
       <Dialog
@@ -158,7 +158,7 @@ export function CardMaterial({ state, cardsOn, canSave }: { state: CardMaterialS
                 setBusy(true);
                 try {
                   await state.save();
-                  // Kortplan's draft had no changes (else the button is closed): it is read again with the new values.
+                  // Inspelning's draft had no changes (else the button is closed): it is read again with the new values.
                   void draftActions.load();
                   toast({ tone: "ok", title: "Sparat i kortplanen", detail: `Alla 16 kort: böjning ${decimal(look.bend, 3)}, glans ${decimal(look.gloss, 2)}` });
                   setAsking(false);

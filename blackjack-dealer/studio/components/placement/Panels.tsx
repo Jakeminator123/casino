@@ -1,6 +1,6 @@
 "use client";
 
-// The column's panels for the chosen place in Bordet's Kortplan, beside the doll's 3D picture (Jakob 2026-11-25: "jag vill ha
+// The column's panels for the chosen place in Bordet's Inspelning, beside the doll's 3D picture (Jakob 2026-11-25: "jag vill ha
 // allt i 3d"). The table is always the real one: every card is a real card through the same camera as the dealer, so a card
 // has no direction or shape of its own to set. Step 1, Var kortet landar: PlacePanel (where the card lies, and whether it is
 // checked). Step 2, Hur det kommer dit: MotionPanel (the side the card lies with, "Kortet ligger", chosen here and nowhere

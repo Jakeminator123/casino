@@ -148,7 +148,7 @@ export function restingQuad(scene: Scene | null, film: Pt[], scale: number): {qu
 /**
  * A scene whose resting card follows the card plan's rule (TABLE_GEOMETRY 'lens' in src/card-plan.ts): a card `scale` times a
  * real one at the outline's place and turn, through the table's lens, in the plan's shape. Kortens storlek 1 on a place of the
- * plan is then the outline the lab's Kortplan draws there. The contract (`base`) is not read for it; without one the scene
+ * plan is then the outline the studio's Inspelning draws there. The contract (`base`) is not read for it; without one the scene
  * stands by itself. `lens`: another lens than the table's, for the tests that change the camera.
  */
 export function planScene(base: Scene | null, plan: PlacementPlan, lens: Lens = TABLE_LENS): Scene {

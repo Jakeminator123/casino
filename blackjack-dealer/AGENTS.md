@@ -35,12 +35,16 @@ Projektets `.ignore` döljer media, filmregistret och dockans rörelsedata för 
   självklara vägar för allt", också när det tränger undan gamla klipp eller vägar.
 - **En standard i botten, utseendet ovanpå** (2026-11-25): "detta ska vara en standard"; "grunden måste vara
   densamma". Kameran, bordet, kortet, kortplanens platser, skon och markerlådan har fasta mått (`docs/SYSTEM.md`,
-  Standarden), och allt utgår från dem: dockan, Kortplan, Scens grund och varje beställd film, "så att videos som
-  produceras alltid får samma standarder". Utseendet läggs ovanpå i Scen när färdigt material sätts ihop: bakgrund,
-  bord och duk, hur kortens fram- och baksida ritas, bred lins, sko, markerlåda och kamerans vy, inom reglagens
-  gränser. Casino visar standarden med de ändringar han har sparat. Ett utseende ändrar aldrig standardens mått; en
-  avvikelse i grunden är hans uttryckliga val med datum, annars ett fel som rättas. Standarddockan är grunden som
-  varje dealers docka anpassas från.
+  Standarden), och allt utgår från dem: dockan, Inspelning, Scens grund och varje beställd film, "så att videos som
+  produceras alltid får samma standarder". Det är inspelningsformatet: filmens ruta och kamera, vald för att få med
+  så mycket av henne som möjligt och platserna där korten läggs. Spelvyn är en standard för sig: det spelaren ser på
+  dator och mobil, inspelningen med bord och bakgrund, "lite mer utzoomat" och lite mer framifrån. Utseendet läggs
+  ovanpå i Scen när färdigt material sätts ihop: bakgrund, bord och duk, ljus, animationer, hur kortens fram- och
+  baksida ritas, sko, markerlåda och bred lins, inom reglagens gränser; det väljs, provspelas i Casino och publiceras
+  sedan. Bred lins är ett filter på samma standard, "precis såsom belysning, bakgrund, kortoverlay, bord, bordsfilt",
+  aldrig en egen uppsättning mått. Ett utseende ändrar aldrig standardens mått; en avvikelse i grunden är hans
+  uttryckliga val med datum, annars ett fel som rättas. Standarddockan är grunden som varje dealers docka anpassas
+  från.
 - **Studion först** (2026-11-11): prov och effekter görs i studion; spelet får bara det han har godkänt där.
 - **Samma ord för samma sak** (2026-11-25): studion är allt i webbläsaren; ramen är menyn, rubrikraden, panelerna och
   knapparna ("snyggare studio" betyder snyggare ram); menyn är spalten till vänster; en vy är en sida i menyn;

@@ -25,7 +25,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - **Kort:** ett kort per sida med märkena överallt; kortplanen i verkligt perspektiv genom B-linsen, som spelet och
   scenen följer. Det styva kortet utan vit kant har hans ja i Scen (2026-11-23).
 - **Studion:** ramen har neutral grafit och en meny med ett namn per rad (2026-11-25), väntar på hans ord om
-  utseendet; flera flikar får vara öppna. Bordet är vyn av bordet. Kortplan har en bild sedan 2026-11-25 ("ett och
+  utseendet; flera flikar får vara öppna. Bordet är vyn av bordet. Inspelning (förut Kortplan) har en bild sedan 2026-11-25 ("ett och
   samma läge", "allt i 3d"): dockans 3D-bord med planens kort på filten, och en högerspalt där dockans reglage står
   under steg 2; den platta planen och dess bakade bakgrundsbilder är borta. Ingången (A2.1 eller A2.3) är trädets,
   det spelade trädet som förval; planens Handbyte väljer ingenting. Reglaget Filmen i bildens knapprad lägger kortets
@@ -33,7 +33,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   att titta runt. Bordet BORD-02 är ett prov i studion ("skitbra" som alternativ, 2026-11-20) som spelet inte slår på
   före hans ja.
 - **Standarden** (2026-11-25, `docs/SYSTEM.md`): två lager. I botten de fasta måtten i `src/table-lens.ts` (kamera,
-  bord, kort, sko, markerlåda) och planens platser, som dockan, Kortplan, Scens grund och varje beställd film utgår från;
+  bord, kort, sko, markerlåda) och planens platser, som dockan, Inspelning, Scens grund och varje beställd film utgår från;
   ovanpå utseendet han ställer in i Scen och som Casino visar (rum, bord och duk, kortens ritning, Bred lins, kamerans
   vy). Ett utseende ändrar inte måtten: i Standard är skalan alltid 1 (Casinos sparade skala 2 ritade förut markerlådan
   och bordet dubbelt så stora där). Kvar att rätta eller välja: kortets form (87 % i spelet och i beställningens sista
@@ -84,7 +84,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    och recept så att rörelsen bara är dockans; dockan läser kortets riktning ur planen; bildstorleken och kortets mått, som ett
    tjugotal filer ännu skriver själva (`src/film-after.ts`, `film-fix.ts`, `order-model.ts`, `tools/order-store.ts`,
    `studio/lib/rounds.ts` med flera), hämtas från `src/table-lens.ts`; dockans bord ritar en sko med
-   filmens höjd; Scen visar dockan i samma bild som filmen, rummet och bordet, så att Kortplan och Scen blir ett läge.
+   filmens höjd; Scen visar dockan i samma bild som filmen, rummet och bordet, så att Inspelning och Scen blir ett läge.
 8. **Standarddockan i Blender** (Jakob 2026-11-25): standarddockan blir en riggad modell som Blender öppnar (samma
    slags skelett som avatar-auto-pipeline gör), med generiska rörelser som varje dealers docka får sin anpassning av;
    en ny docka ärver då standarddockans sparade justeringar tills hon har egna. SAM-uppsättningen och Paows avläsningar
@@ -109,10 +109,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   gamla greppet och ger handleden 26–59° med det nya; Återställ eller reglaget på 17° och Spara som standard rättar dem
   (11–19°). Bara han sparar dem.
 - Spelvyn (hans ord 2026-11-25): inspelningsformatet är en standard, spelets vy en annan (mer utzoomad, dator och
-  mobil), utseendet ovanpå. Förslaget väntar på hans ja: spelvyn får namn och plats i Scen (i dag `GAME_OWN` i
-  `src/game-own.ts`, `FRAMING` i `src/game-page.ts` och Casinos sparade utseende), Bred lins sparas med utseendet,
-  och Kortplan heter Inspelning.
-- Hans ögon på Kortplans enda bild (2026-11-25), och ett val: ska kortets form bli en standard? Reglaget Bordets
+  mobil), utseendet ovanpå. Han har sagt ja (2026-11-25); planen görs först och visas för honom: spelvyn får namn och plats i Scen (i dag `GAME_OWN` i
+  `src/game-own.ts`, `FRAMING` i `src/game-page.ts` och Casinos sparade utseende), Bred lins blir ett filter i utseendet
+  på samma standard ("precis såsom belysning, bakgrund, kortoverlay, bord, bordsfilt"). Namnbytet Kortplan →
+  Inspelning är gjort.
+- Hans ögon på Inspelningens enda bild (2026-11-25), och ett val: ska kortets form bli en standard? Reglaget Bordets
   perspektiv i Hela bordet står på hans 87 %; på Riktigt kort ritar spelet och beställningens sista bild samma kort som
   dockan och dess referensfilm. Bara han sparar planen.
 - Två frågor om det som städades 2026-11-25: om
@@ -121,7 +122,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   SAM-uppsättningen på den stationära ska vara kvar (`dealer3d/tools/docka-sam.py`, `docka-mat.ts`, `docka-jamfor.ts`,
   `lift.ts`, `deal-film.ts`, `pose-film.ts`, `doll-pose.ts`, `docka-hand.ts`).
 - Trädet Tatuerad har ingen egen film för A2.3 → A3P4C2: de godkända tagningarna dit (`…-p4-c2-h24-cykel-…`,
-  `…-p4-c2-stol-…`) ligger inte i trädet, så Kortplan och Scen visar den spelet spelar. Han väljer om de ska in.
+  `…-p4-c2-stol-…`) ligger inte i trädet, så Inspelning och Scen visar den spelet spelar. Han väljer om de ska in.
 - På den stationära: hans dom på `paow-giv-2-3-d-03-01` och `paow-halkort-05-01`, den neutrala
   `paow-tal-blackjack-sv-14`, stolsserien (Prov `stolsserien-p4c2-20261124`) och andelarna för skjut och nyp i Karta.
 

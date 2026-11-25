@@ -244,7 +244,7 @@ test('the hole card\'s turn is one node of the map, which the game takes from th
 // ── Findings of the rescue lane Kedjan (FYND 1 to 11) that have been put right, each held by a test ──
 // FYND 1: the anchor a card is dealt from had two sources. The game's (SEAT_HUB: Paow's seat 6 from anchor 2.2, Jakob's own word
 // 2026-11-13, "Förvalen han sade ja till") is the one for a round; the plan's grip is not. Bordet's default round
-// followed the grip, so the lab played seat 6 from 2.1, where she has no film. (The films Kortplan lists and orders for
+// followed the grip, so the lab played seat 6 from 2.1, where she has no film. (The films Inspelning lists and orders for
 // a card go from the chosen tree's anchor since 2026-11-25, studio/lib/bordet.ts treeAnchor: the plan chooses none.)
 test('Bordet\'s default round deals a card from the anchor the game deals it from', async () => {
   const B = await import('../studio/lib/bordet.ts'), R = await import('../studio/lib/rounds.ts');

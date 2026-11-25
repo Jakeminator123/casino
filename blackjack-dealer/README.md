@@ -62,11 +62,12 @@ Serverns adresser står i `tools/lab-routes.ts`; utan media på datorn visar stu
 
 Orden står i studions Ordlista (`studio/lib/words.ts`). Vyerna:
 
-- **Bordet** är den enda vyn av bordet (Jakob 2026-11-17, 2026-11-19): **Kortplan** i tre steg (var kortet landar; hur det
-  kommer dit; beställ), **Kön** (godkännande och Protokoll), **Scen** (en runda i 3D-scenen), **Råfilm** och
-  **Efterarbete** (korten och markerna över filmen). Kortplan har en bild (Jakob 2026-11-25: "ett och samma läge",
-  "allt i 3d"): dockans 3D-bord i en ram (`dealer3d/page/docka.html`), med planens kort på filten och utkastet synligt
-  direkt; dockans reglage står i studions högerspalt under steg 2. Spara skriver bara `placements/default.json`;
+- **Bordet** är den enda vyn av bordet (Jakob 2026-11-17, 2026-11-19): **Inspelning**, filmens format (dockan vid bordet
+  med kortplanens kort, skon och markerlådan genom filmens kamera), i tre steg (var kortet landar; hur det kommer dit;
+  beställ), **Kön** (godkännande och Protokoll), **Scen** (en runda i 3D-scenen), **Råfilm** och **Efterarbete** (korten
+  och markerna över filmen). I koden och adressen heter Inspelning `kortplan`, sitt gamla namn (`?lage=kortplan`).
+  Inspelning har en bild (Jakob 2026-11-25: "ett och samma läge", "allt i 3d"): dockans 3D-bord i en ram
+  (`dealer3d/page/docka.html`), med planens kort på filten och utkastet synligt direkt; dockans reglage står i studions högerspalt under steg 2. Spara skriver bara `placements/default.json`;
   dockans rörelse sparas med Spara som standard (`dealer3d/standard/`).
 - **Karta**: dealerns träd, varje stegs Primär och sekundära filmer, kompositionerna och talet.
 - **Granska**: Filmer (Jakobs domar) och Prov (provmapparna under `assets/proofs/`, `?prov=<mapp>`).

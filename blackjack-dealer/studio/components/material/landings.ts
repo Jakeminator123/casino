@@ -14,7 +14,7 @@ type EntryLike = { id: string; role: string; node?: string; state?: string; card
 /** One seat: its card, its short name, where a deal from anchor 2.1 (the pinch), 2.2 (the drag) and 2.3 (two hands, the right lays) ends, and its A3 candidates for the right hand. */
 export type SeatEndRow<E> = { target: string; label: string; pinch: SeatEnd<E> | null; drag: SeatEnd<E> | null; two: SeatEnd<E> | null; candidates: E[] };
 
-/** "P4", "DC1", "DC2": a seat by its place, the dealer's cards as in Kortplan; a player's second card by its A3, as Jakob writes it ("A3P4C2"). */
+/** "P4", "DC1", "DC2": a seat by its place, the dealer's cards as in Inspelning; a player's second card by its A3, as Jakob writes it ("A3P4C2"). */
 export const seatLabel = (target: string): string => (/^D\.C\d$/.test(target) ? target.replace(".", "") : /^P\d\.C2$/.test(target) ? a3Name(target) : target.replace(/\.C1$/, ""));
 
 /**

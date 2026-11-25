@@ -1,6 +1,6 @@
 "use client";
 
-// Bordet's live picture (modes Scen, Råfilm and Efterarbete), in the same frame as Kortplan: the toolbar on top, the stage as
+// Bordet's live picture (modes Scen, Råfilm and Efterarbete), in the same frame as Inspelning: the toolbar on top, the stage as
 // large as the window allows, one column on the right where things are changed. Since 2026-11-17 it is the whole of the
 // view Scen (whose address / now leads here): a round plays large in the lab's 3D scene, or as the films are on their green
 // (Råfilm), with one transport; under it the round as a strip of its steps; over it the presets (Basgrund, Levande,
@@ -11,7 +11,7 @@
 // Efterarbete change places.
 // The address is Scen's: the round (?runda=<his notation>, ?kant=<edge>&tagning=<take> to play a take where it belongs)
 // and the look (?forval=levande&dust=0.8, components/scene-editor/address.ts), written beside Bordet's own words (lage,
-// plats). Without a round in the address it plays the chosen card's deal and back from the anchor Kortplan's card goes from
+// plats). Without a round in the address it plays the chosen card's deal and back from the anchor Inspelning's card goes from
 // (the guide tree's) where the bank has that round, else from the anchor the game deals it from ("A2.1 - P4C1 - A2.1";
 // Paow's seat 6 "A2.2 - P6C1 - A2.2", lib/bordet.ts roundFor, hasRound); without a look, the saved Casino preset, what the
 // game shows (Jakob 2026-11-17: "Spela i casino bör rimligtvis vara samma som i casino, alltså som det är i runtime"), so
@@ -22,7 +22,7 @@
 // ("Kan du göra så att 'Casino' eller 'Prova i Casino' faktiskt går med och för om man har 'Bred lins'?") it goes along:
 // Prova i Casino always names it, and Använd i Casino saves it with Casino's look (lib/scene-presets.ts geometri), so that
 // the rail's Casino, and the copy's Casino after its next publishing, play it.
-// Loaded only when one of the three is chosen (Bordet loads it on demand), so that Kortplan stays light.
+// Loaded only when one of the three is chosen (Bordet loads it on demand), so that Inspelning stays light.
 import { Copy, Globe, Spade } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -155,7 +155,7 @@ export function SceneBody({ kind, toolbar, roundText: cardRound }: { kind: Scene
     setRoundText(addressOf(next, "3d").slice(1));
   };
 
-  // On a wide screen the picture and the column sit side by side and each scrolls on its own; on a narrow one (as Kortplan)
+  // On a wide screen the picture and the column sit side by side and each scrolls on its own; on a narrow one (as Inspelning)
   // the column follows under the picture in one scroll. The toolbar and the presets' row break onto a second line rather
   // than being clipped or drawn over the column.
   return (
@@ -174,7 +174,7 @@ export function SceneBody({ kind, toolbar, roundText: cardRound }: { kind: Scene
               <div role="group" aria-label="Bordsperspektiv" className="flex shrink-0 items-center gap-0.5 rounded-md border border-line p-0.5">
                 {[["lins", "Standard"], ["kontrakt", "Bred lins"]].map(([word, label]) => (
                   <Link key={word} href={withGeometry(`/bordet/?${searchText}`, word)} aria-current={(geometri === "kontrakt" ? "kontrakt" : "lins") === word ? "true" : undefined}
-                    title={word === "lins" ? "Grunden. Kortplan och beställningar använder den." : "Bredare perspektiv med mer ovala ringar. Kortplan och beställningar stannar på Standard."}
+                    title={word === "lins" ? "Grunden. Inspelning och beställningar använder den." : "Bredare perspektiv med mer ovala ringar. Inspelning och beställningar stannar på Standard."}
                     className={buttonClasses({variant: (geometri === "kontrakt" ? "kontrakt" : "lins") === word ? "secondary" : "quiet", size: "sm"})}>{label}</Link>
                 ))}
               </div>

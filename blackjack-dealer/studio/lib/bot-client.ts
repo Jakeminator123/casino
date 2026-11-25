@@ -239,7 +239,7 @@ function fakeText(question: string, vy: Vy | null): FakeAnswer {
       kallor: [K.vy, K.primara],
       text:
         "Studion har fyra vyer [1]:\n\n" +
-        "- **Bordet:** kortplanen, scenen, råfilmen och efterarbetet.\n" +
+        "- **Bordet:** inspelningen, scenen, råfilmen och efterarbetet.\n" +
         "- **Karta:** rundans steg och filmen som spelas i varje [2].\n" +
         "- **Granska:** nya tagningar och prov som väntar på ett omdöme.\n" +
         "- **Jämför:** två tagningar bredvid varandra.",

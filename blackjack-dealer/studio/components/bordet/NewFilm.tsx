@@ -1,11 +1,11 @@
 "use client";
 
-// Ny film: Bordet's guide for a new film, Kortplan's step 3 (Jakob 2026-11-23: "menyerna … blir smartare, och mer likt så som
+// Ny film: Bordet's guide for a new film, Inspelning's step 3 (Jakob 2026-11-23: "menyerna … blir smartare, och mer likt så som
 // en 'Wizard' hade varit om man skulle vilja beställa nya klipp och att allt är sammanlänkt smart till nodträd och dealer").
 // Three parts, one shown at a time:
 //   Vad     the dealer, her tree and the step: the tree's steps as tiles with their pictures, those without a film first, the
 //           ones with a film folded; "Fler steg" holds what Bordet orders outside the tree's measure (the chosen card's return
-//           to rest, the other anchors at the shoe). A step with a card chooses that card in Kortplan, and a card chosen
+//           to rest, the other anchors at the shoe). A step with a card chooses that card in Inspelning, and a card chosen
 //           there (the card buttons, the doll's picture) moves the step to it.
 //   Hur     the step's recipe in plain words: its film where it has one, the five marks, the pictures the server will send
 //           (the last is the step's end picture), the reference film, the text and his exceptions (Sends.tsx)
@@ -14,8 +14,8 @@
 //           dealer's own is saved from the doll (Jakob 2026-11-23: "EN väg och ETT ställe man använder dockan"): its film of
 //           his saved standard is made first, about a minute, and goes as the reference (lib/orders.ts orderDoll,
 //           tools/doll-order.ts); "Utan dockan" saves the recipe's draft instead. The side the card lies with is the plan's
-//           alone (Kortplan, step 2), so the doll and the order's text say the same.
-// The tree chosen here also chooses the anchor Kortplan's card goes from in step 2 and in the doll's picture
+//           alone (Inspelning, step 2), so the doll and the order's text say the same.
+// The tree chosen here also chooses the anchor Inspelning's card goes from in step 2 and in the doll's picture
 // (lib/bordet.ts treeAnchor).
 // Karta's "Beställ" opens it on a step (lib/new-film.ts guideHref). It approves nothing: the draft is approved in Kön.
 import { ArrowLeft, ArrowRight, Check, Copy } from "lucide-react";
@@ -62,7 +62,7 @@ export function NewFilm({
   phase: Phase;
   onPhase: (p: Phase) => void;
   onPick: (item: GuideItem) => void;
-  /** The card chosen in Kortplan: "Fler steg" are its. */
+  /** The card chosen in Inspelning: "Fler steg" are its. */
   place: string;
   /** The film the step is ordered as (lib/bordet.ts filmRow), or null where no step of Beställ makes it. */
   row: FilmRow | null;

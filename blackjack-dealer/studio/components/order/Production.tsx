@@ -8,7 +8,7 @@
 // said with what it counts ("Casino: 22 av 36 steg har film"), as the bank's steps without a film are ("9 av bankens 33 steg
 // saknar film"), so that the numbers on one line never read as the same measure; a lab server without the trees shows
 // tools/produce.ts's own count until it is restarted.
-// Drafts are made in Kortplan's step 3, not here. "Visa alla" shows every step of the graph. Folded away it is one line, so
+// Drafts are made in Inspelning's step 3, not here. "Visa alla" shows every step of the graph. Folded away it is one line, so
 // the orders below still read well. Reads on load and when the tab is seen again.
 import { ChevronDown, ChevronRight, Clock } from "lucide-react";
 import Link from "next/link";

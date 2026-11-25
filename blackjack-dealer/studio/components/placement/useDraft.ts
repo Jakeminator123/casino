@@ -1,6 +1,6 @@
 "use client";
 
-// Kortplan's draft of Jakob's plan, kept in one store for the whole studio session: he can go to another view or part of
+// Inspelning's draft of Jakob's plan, kept in one store for the whole studio session: he can go to another view or part of
 // Bordet and come back to his unsaved changes. Reads the plan when the view opens (unless a
 // draft with changes is waiting), keeps the undo list, and writes only when he presses Spara. A save that meets a plan
 // changed elsewhere (409) keeps the draft and offers to read the saved plan in its place.

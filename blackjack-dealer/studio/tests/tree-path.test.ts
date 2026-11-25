@@ -1,7 +1,7 @@
 // studio/lib/tree-path.ts: a path Jakob clicks through a tree on Karta and what the stage plays for it, back to back (Jakob
 // 2026-11-23: "kan man inte tex här också spela upp flera klipp tillsammans"), on made-up data. Each step plays the tree's
 // film on it, the Primär before an approved film and never a rejected or a waiting one; a step without one is a gap. And the
-// film Kortplan's picture lays over the doll, which is chosen the same way for the card's deal.
+// film Inspelning's picture lays over the doll, which is chosen the same way for the card's deal.
 // Run from the repo root: node --test "studio/tests/tree-path.test.ts"
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -99,7 +99,7 @@ test("a step given from another anchor at the shoe plays that anchor's film", ()
   assert.ok(part.path?.endsWith("paow-ready-b-p6-c1-deal-01/source.mp4"));
 });
 
-test("the film over the doll in Kortplan: the tree's own deal to the card, else the game's, never another card's or one not here", () => {
+test("the film over the doll in Inspelning: the tree's own deal to the card, else the game's, never another card's or one not here", () => {
   // (lib/bordet.ts cardFilm; Jakob 2026-11-25: "så man kan jämföra videos som är skapade med tex dockan")
   const { graph, takes } = world([...rows, ["paow-p3-c1-plan-deal-01", "READY", "P3.C1", "DEAL", jakob(), "godkand", false]]);
   const view = { hub: "READY", steps: treeSteps("READY", [], takes) };

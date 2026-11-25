@@ -36,7 +36,7 @@ type Icon = ComponentType<{ className?: string }>;
 type View = { href: string; label: string; hint: string; icon: Icon };
 
 export const VIEWS: readonly View[] = [
-  // Bordet (2026-11-17): the one view of the table, in the studio and in the copy. Its parts hold what Placering (Kortplan),
+  // Bordet (2026-11-17): the one view of the table, in the studio and in the copy. Its parts hold what Placering (Inspelning),
   // Scen (Scen, Råfilm, Efterarbete) and Beställ were; their old addresses lead there (/, /scen/, /bestall/).
   { href: "/bordet/", label: "Bordet", hint: "Ändra scen, bord, kortplan och utdelning; beställ och efterarbeta filmer", icon: LayoutPanelLeft },
   // Karta holds Primära too since 2026-11-17 (each step with its Primär and secondary films); /primara/ leads there. Since
@@ -51,7 +51,7 @@ export const VIEWS: readonly View[] = [
 
 /**
  * The views the menu shows: the same list in the studio and in the online copy, minus what the copy lacks. The copy carries
- * no lip-sync facts, so it has no Lipsync; Bordet is there Scen, Råfilm and Efterarbete only (no Kortplan, no Kön), and Casino plays there too
+ * no lip-sync facts, so it has no Lipsync; Bordet is there Scen, Råfilm and Efterarbete only (no Inspelning, no Kön), and Casino plays there too
  * (the game page runs the engine itself).
  */
 const LOCAL_ONLY: readonly string[] = ["/lipsync/"];

@@ -33,7 +33,7 @@ export type PlacementPlan = { schemaVersion: 1; id: 'kortplan'; space: 'image-no
 // The headings a flat table's plane may be saved with (validatePlan).
 const PLANE_HEADINGS=[-90,-45,-15,0,15,45,90] as const;
 export const VIEWS = { native: { width: 1762, height: 1174, label: 'Dator', profileId: 'v6-native', background: 'assets/lab/native.jpg' }, portrait: { width: 1080, height: 1920, label: 'Mobil', profileId: 'v6-portrait', background: 'assets/lab/portrait.jpg' } } as const;
-// Kortplan has no picture of its own under the cards: the studio shows the plan's cards on the doll's 3D table
+// Inspelning has no picture of its own under the cards: the studio shows the plan's cards on the doll's 3D table
 // (dealer3d/page/docka.html in a frame; Jakob 2026-11-25: one picture, all of it in 3D).
 export const INITIAL_TARGETS = [...Array.from({length:7},(_,i)=>`P${i+1}`),'D'].flatMap(p=>[`${p}.C1`,`${p}.C2`]);
 export const TARGETS = [...INITIAL_TARGETS, 'D.C3'];
@@ -62,7 +62,7 @@ export const WINDOW_CARD: Readonly<Record<View, readonly {x:number;y:number}[]>>
 // A card as the films show it, and as the labs where films are planned and ordered draw it (Jakob 2026-11-17: the back yellow,
 // the face blue; the print is the game's afterwork): one yellow and one blue, the film card's own. The blue is the median of
 // the card drawn on an order's last picture (the bank's real card pixels, tools/order-images.ts TEXTURE: 0, 130, 218), the
-// yellow the median of the card in the shoe's window of anchors 1 and 2.1 and Kortplan's backdrop (239–245, 214–228, 0–3).
+// yellow the median of the card in the shoe's window of anchors 1 and 2.1 and the plan's backdrop (VIEWS; 239–245, 214–228, 0–3).
 // The game's lit film card (src/scene3d-deal.ts COLOUR: 232, 209, 5 and 0, 121, 227) lies within 13 of both.
 //
 // The film card's four colours, kept here and nowhere else (Jakob 2026-11-20: "Spara RGB-färgen för det gula, blåa, kryssets
@@ -153,7 +153,7 @@ export function sequence(id: string, intent: Intent) {
  const hand=intent.pass?otherHand(intent.takeHand):intent.takeHand;
  return [`${id} | ${takeStep(intent)}(${intent.takeHand},${intent.startSide})`,...(intent.pass?[`PASS(${intent.takeHand}>${hand},${intent.startSide})`]:[]),...(intent.turn?[`TURN(${hand},${intent.startSide}>${intent.endSide},${turnPlace(intent)})`]:[]),`LAND(${intent.endSide})`,`RELEASE(${hand})`,`RETURN(SHOE_READY)`].join(' > ');
 }
-// ── Edits of a plan, for the page that changes one (Bordet's Kortplan) ──
+// ── Edits of a plan, for the page that changes one (Bordet's Inspelning) ──
 // Each returns a new plan and leaves the given one alone. The rules: a place that is moved, turned or resized is marked unchecked in that view, its outline is kept inside the picture, and a card's sides and TURN agree.
 /** A card place (P1.C1 … D.C2) or the shoe's take-off point. */
 export type Place = string;

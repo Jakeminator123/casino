@@ -5,7 +5,7 @@
 // filmer."). One frame for everything, titled Bordet: the toolbar on top with the view's menu at its left (the row wraps
 // rather than hides what does not fit), the picture as large as the window allows, one column on the right where things are
 // changed (under the picture on a narrow or upright window). The menu's parts:
-//   Kortplan     one picture and one column (Jakob 2026-11-25: "Jag vill att vi skapar ett och samma läge för detta ... jag
+//   Inspelning   one picture and one column (Jakob 2026-11-25: "Jag vill att vi skapar ett och samma läge för detta ... jag
 //                vill ha allt i 3d ... Det andra ska raderas. ... Simplifiera väldigt mycket, men framförallt så inte
 //                förväxlingar kan ske."). The picture is the doll's, in 3D, for every step: the table, the chosen dealer's
 //                doll and the draft plan's cards on the felt (DollPanel.tsx), and with the picture's slider "Filmen" the
@@ -23,7 +23,7 @@
 //   Scen, Råfilm, Efterarbete   the live picture (SceneBody: the 3D scene, the films on their green, what is laid over)
 // The plan is a draft (useDraft): nothing is written until Jakob's click on "Spara i kortplanen", which writes the whole
 // plan; Ctrl+Z takes a step back and the arrows nudge the chosen place. The card and the guide's step stay when the menu
-// changes. Addresses: ?lage=bestall opens Kortplan with step 3 open, and with trad=, film= and komposition= on the tree and
+// changes. Addresses: ?lage=bestall opens Inspelning with step 3 open, and with trad=, film= and komposition= on the tree and
 // step they name (Karta's "Beställ", lib/new-film.ts guideHref; the view writes the same words while the guide is open);
 // ?lage=ko, ?lage=bestall&ko=1, ?order=<id> and ?ny=1&som=<id> open Kön (that order); ?ny=1&steg=…&plats=… (Ny
 // beställning's, which is gone) opens the guide on that film. The online copy (lib/mode.ts isSnapshot) has no doll lab and
@@ -60,20 +60,23 @@ import { NewFilm, type Phase } from "./NewFilm";
 import type { SceneKind } from "./SceneBody";
 import { RowSends } from "./Sends";
 
-// The live picture is loaded only when it is chosen, so that Kortplan stays light.
+// The live picture is loaded only when it is chosen, so that Inspelning stays light.
 const SceneBody = dynamic(() => import("./SceneBody").then((m) => m.SceneBody), { ssr: false, loading: () => <Skeleton className="m-4 h-[60vh] rounded-md" /> });
 
+// The part "kortplan" is shown as Inspelning (Jakob 2026-11-25: "ja till namnbyte för inspelning"): the recording format,
+// the doll at the table through the film's camera, and where a new film is ordered. Its value keeps the old word, so that
+// an old address (?lage=kortplan) opens it as before.
 export type Mode = "kortplan" | "ko" | SceneKind;
 export const MODES: readonly { value: Mode; label: string }[] = [
-  { value: "kortplan", label: "Kortplan" },
+  { value: "kortplan", label: "Inspelning" },
   { value: "ko", label: "Kön" },
   { value: "scen", label: "Scen" },
   { value: "rafilm", label: "Råfilm" },
   { value: "efterarbete", label: "Efterarbete" },
 ];
-/** The parts the menu shows: the copy has no doll lab and orders nothing, so it has neither Kortplan nor Kön. */
+/** The parts the menu shows: the copy has no doll lab and orders nothing, so it has neither Inspelning nor Kön. */
 const SHOWN_MODES = isSnapshot ? MODES.filter((m) => m.value !== "kortplan" && m.value !== "ko") : MODES;
-/** The part Bordet opens on without a word for it: Kortplan, and Scen in the copy. */
+/** The part Bordet opens on without a word for it: Inspelning, and Scen in the copy. */
 const FIRST_MODE: Mode = isSnapshot ? "scen" : "kortplan";
 const isMode = (v: string | null): v is Mode => SHOWN_MODES.some((m) => m.value === v);
 const isScene = (m: Mode): m is SceneKind => m === "scen" || m === "rafilm" || m === "efterarbete";
@@ -85,7 +88,7 @@ const dollEntryOf = (from: Exclude<Anchor, "1">): DollEntry | null => (from === 
 type Params = { get(name: string): string | null };
 /** The address asks for Kön: ?lage=ko, and Beställ's old words (?lage=bestall&ko=1, ?order=<id>, ?ny=1&som=<id>). */
 const asksQueue = (p: Params) => !isSnapshot && (p.get("lage") === "ko" || p.get("ko") === "1" || !!p.get("order") || (p.get("ny") === "1" && !!p.get("som")));
-/** The menu's part the address asks for; ?lage=bestall (Beställ, which is now step 3) opens Kortplan, as does any other word. */
+/** The menu's part the address asks for; ?lage=bestall (Beställ, which is now step 3) opens Inspelning, as does any other word. */
 const modeOf = (p: Params): Mode => (asksQueue(p) ? "ko" : isMode(p.get("lage")) ? (p.get("lage") as Mode) : FIRST_MODE);
 /** Beställ's old words, read once and then taken out of the address. */
 const OLD_WORDS = ["ko", "ny", "som", "steg", "modell"] as const;
@@ -153,7 +156,7 @@ function withPatch(was: RowChoice, patch: RowChoice): RowChoice {
 export function BordetView() {
   const params = useSearchParams();
   const [first] = useState(() => oldOrder(params));
-  // An old Ny beställning link (?ny=1&steg=…&plats=…) opens Kortplan at its card even when /bestall/ added ko=1 to it.
+  // An old Ny beställning link (?ny=1&steg=…&plats=…) opens Inspelning at its card even when /bestall/ added ko=1 to it.
   const [mode, setMode] = useState<Mode>(() => (first ? "kortplan" : modeOf(params)));
   // A link to Kön while the view is open (an order's "Utkast gjort", "Öppna i Kön") opens Kön.
   const askedQueue = asksQueue(params);
@@ -199,9 +202,9 @@ export function BordetView() {
   const views = trees.answer?.trees;
   const view = useMemo(() => pickTree(views ?? [], guide.tree), [views, guide.tree]);
   const item = guide.pick ? itemOf(view, guide.pick) : null;
-  // The anchor Kortplan's card goes from: the guide's tree's, A2.3 where no tree is read.
+  // The anchor Inspelning's card goes from: the guide's tree's, A2.3 where no tree is read.
   const from = treeAnchor(view);
-  // A card chosen in Kortplan (its buttons, the doll's picture) moves the guide's step to that card; what is sent is then read again.
+  // A card chosen in Inspelning (its buttons, the doll's picture) moves the guide's step to that card; what is sent is then read again.
   const [seenPlace, setSeenPlace] = useState(place);
   if (place !== seenPlace) {
     setSeenPlace(place);
@@ -279,7 +282,7 @@ export function BordetView() {
   // (treePicture). The standard read is the chosen card's, which the guide's step follows.
   const dollTarget = guideRow?.wish.step === "GIV-2.3" ? guideRow.wish.target : null;
   const dollWay = dollTarget && DOLL_CARD.test(dollTarget) && ownDoll(dealer) ? { place: dollTarget, standard, treePicture: base } : null;
-  /** A step chosen among the tiles: its card is chosen in Kortplan, and the guide goes on to Hur. */
+  /** A step chosen among the tiles: its card is chosen in Inspelning, and the guide goes on to Hur. */
   const pickItem = (i: GuideItem, go: (card: Place) => void) => {
     setGuide((g) => ({ ...g, pick: { from: i.from, to: i.to }, phase: "hur" }));
     const at = i.card ? placeFromCode(i.card) : null;
@@ -354,7 +357,7 @@ export function BordetView() {
   const changes = d ? changedPlaces(d.saved, d.plan) : { places: [], table: false };
   const count = changes.places.length + (changes.table ? 1 : 0);
   const when = d?.saved.updatedAt ? swedishMoment(d.saved.updatedAt) : null;
-  // Scen plays the card's round from the anchor Kortplan's card goes from where the bank has that round; the game's own until then.
+  // Scen plays the card's round from the anchor Inspelning's card goes from where the bank has that round; the game's own until then.
   const card = pathCard(place);
   const roundText = roundFor(card, dealer, hasRound(graph, card, from) ? from : null);
 
@@ -438,7 +441,7 @@ function TableBody({
   dollCount: number;
   /** What the doll's films need, what is done when the lab saves a standard, and the film its picture can lay over the doll. */
   lab: { orders: OrdersAnswer | null; ordersRead: boolean; groups: readonly DollGroup[]; onSaved: () => void; film: DollFilm | null };
-  /** Step 3, the guide Ny film; go chooses a card in Kortplan. */
+  /** Step 3, the guide Ny film; go chooses a card in Inspelning. */
   newFilm: (go: (card: Place) => void) => ReactNode;
   /** One line of what the guide has chosen, for step 3 folded. */
   newFilmSummary: string | null;

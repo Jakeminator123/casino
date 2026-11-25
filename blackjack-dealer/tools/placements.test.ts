@@ -147,7 +147,7 @@ test('the yellow card the lab paints in the shoe window, and the window card of 
  assert.ok(film.length<100,'the card in the window, not the pinched card');
 });
 
-// ── The plan's edits shared by Bordet's Kortplan (planQuad, editPlace, editIntent, …) ──
+// ── The plan's edits shared by Bordet's Inspelning (planQuad, editPlace, editIntent, …) ──
 test('planQuad draws a card as the game lays it: flat from P4.C1 on a flat table, card by card otherwise or without a projection',async()=>{
  const m=await import('../src/placement-model.ts'),plan=defaultPlan();plan.targets['P2.C1'].geometry.native.angle=30;
  for(const view of ['native','portrait'] as const){

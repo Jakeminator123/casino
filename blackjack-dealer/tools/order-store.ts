@@ -818,7 +818,7 @@ export function orderStore(root: string, options: StoreOptions = {}) {
       cost,
       limits: { maxCredits: cost.worstTotal, stopBelowCredits: policy.minBalance },
       notes,
-      createdBy: input.createdBy ?? 'Jakob, Bordets Kortplan',
+      createdBy: input.createdBy ?? 'Jakob, Bordets Inspelning',
       approval: null,
       status: 'UTKAST',
     };
