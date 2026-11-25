@@ -1,6 +1,6 @@
 """Fingerben + hals/axel-viktrensning för en Meshy-riggad A-pose-avatar (körs i Blender).
 
-blender -b --python pipeline/bygg_fingrar_apose.py -- riggad.glb avatar-rigg.glb
+blender -b --python steg/05-fingrar-handleder/bygg_fingrar_apose.py -- riggad.glb avatar-rigg.glb
 Sätt AXELFLYTT=0 för att behålla Meshys axelleder."""
 
 import sys
@@ -16,9 +16,8 @@ ROOT = add_paths(_ROOT)
 
 import json, sys
 from pathlib import Path
-import fingrar_apose
 import bygg_fingrar
-bygg_fingrar.fit_fingers = fingrar_apose.fit_fingers
+import fingrar_apose
 import os
 if os.environ.get("AXELFLYTT") == "0":
     bygg_fingrar.flytta_axelleder = lambda arm, model: {"hoppade_over": "AXELFLYTT=0 (Meshys A-pose-leder behålls)"}

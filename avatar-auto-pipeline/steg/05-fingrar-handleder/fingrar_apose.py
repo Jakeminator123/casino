@@ -1,7 +1,7 @@
-"""Fingerben för A-pose: samma metod som fingerrigg.fit_fingers, men varje hand vrids först
+"""Fingerben för A-pose: samma kedjor som fingerrigg, men varje hand vrids först
 in i T-posens kanoniska läge (handen längs ±X, handflatan nedåt) kring handleden, fingerkedjorna
 anpassas där och vrids sedan tillbaka. Körs i Blender:
-  blender -b --python pipeline/bygg_fingrar_apose.py -- riggad.glb avatar-rigg.glb
+  blender -b --python steg/05-fingrar-handleder/bygg_fingrar_apose.py -- riggad.glb avatar-rigg.glb
 """
 
 import sys

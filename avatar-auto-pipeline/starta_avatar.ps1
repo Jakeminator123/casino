@@ -60,7 +60,7 @@ if (-not $Name) {
     Write-Host "=========================================" -ForegroundColor Cyan
     if ($Folders.Count -eq 0) {
         Write-Host "Inga mappar finns under input\ ännu." -ForegroundColor Yellow
-        Write-Host "Skapa t.ex. input\rosalina och lägg in exakt 3 foton (foto1.jpg..foto3.jpg)."
+        Write-Host "Skapa t.ex. input\rosalina och lägg in 1 till 8 foton."
         exit 1
     }
     Write-Host "Tillgängliga mappar i input\:"
@@ -80,8 +80,8 @@ if (-not (Test-Path $PhotoDir)) {
 }
 
 $Photos = @(Get-ChildItem -Path $PhotoDir -File | Where-Object { $_.Extension -match '^\.(jpg|jpeg|png|webp)$' } | Sort-Object Name)
-if ($Photos.Count -ne 3) {
-    Write-Host ("FEL: Hittade {0} bilder i {1}. Det ska ligga exakt 3 foton där." -f $Photos.Count, $PhotoDir) -ForegroundColor Red
+if ($Photos.Count -lt 1 -or $Photos.Count -gt 8) {
+    Write-Host ("FEL: Hittade {0} bilder i {1}. Det ska ligga 1 till 8 foton där." -f $Photos.Count, $PhotoDir) -ForegroundColor Red
     exit 1
 }
 

@@ -4,7 +4,7 @@ Orsak: montera.attach() skalade donatorhandens handledsöppning till skjortmansc
 ytterdiameter. Här smalnas bara Handpar- och Skarvar-hörnen av mot naturlig
 handledstjocklek och tucks in under manschetten. Ben, vikter, UV och 4K-texturer orörda.
 
-blender -b --python pipeline/fixa_handleder.py -- avatar-rigg.glb utmapp
+blender -b --python steg/05-fingrar-handleder/fixa_handleder.py -- avatar-rigg.glb utmapp
 
 Generell: mäter skarven och den naturliga handleden per sida på riggens egna ben (Meshy riggar
 alltid till 1,8 m, så millimetergränserna gäller oavsett persons proportioner) och smalnar bara av.
@@ -148,17 +148,6 @@ def bone_head(name):
 def smoothstep(x):
     t = np.clip(x, 0.0, 1.0)
     return t * t * (3.0 - 2.0 * t)
-
-
-def slice_stats(along, radial_uv, mask, a0, a1, step=0.003):
-    rows = []
-    for a in np.arange(a0, a1, step):
-        m = mask & (along >= a) & (along < a + step)
-        if m.sum() < 8:
-            continue
-        uv = radial_uv[m]
-        rows.append((a + step / 2, uv.mean(0), np.ptp(uv[:, 0]), np.ptp(uv[:, 1]), int(m.sum())))
-    return rows
 
 
 def profile_rows(along, radial, radial_uv, mask, a0, a1, step=0.004):

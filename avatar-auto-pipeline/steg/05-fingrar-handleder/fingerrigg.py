@@ -1,8 +1,7 @@
-"""Fit five three-joint chains to each spread, palm-down hand of the modular T-pose."""
+"""Fingerkedjor och vikter för en utsträckt hand. Benen sätts av fingrar_apose.fit_fingers."""
 
 import bpy
 import numpy as np
-from mathutils import Vector
 
 DIGITS = ("Thumb", "Index", "Middle", "Ring", "Pinky")
 
@@ -119,103 +118,3 @@ def influences(points, chains):
         weights[:, 1 + 3 * i : 4 + 3 * i] = groups * (affinity[:, i] * envelope)[:, None]
     weights[:, 0] = 1 - weights[:, 1:].sum(axis=1)
     return weights
-
-
-def fit_fingers(arm, mesh):
-    xyz = world_vertices(mesh)
-    slots = {i for i, s in enumerate(mesh.material_slots) if s.name.casefold().startswith("handpar")}
-    vertices = np.unique([v for p in mesh.data.polygons if p.material_index in slots for v in p.vertices])
-    if len(vertices) < 200:
-        raise ValueError("Den separata handytan saknas i den riggade GLB-filen.")
-    arm_inverse = arm.matrix_world.inverted_safe()
-    plans = []
-    for tag, side in (("Right", -1), ("Left", 1)):
-        palm = next(b for b in arm.data.bones if b.name.split(":")[-1] == tag + "Hand")
-        indices = vertices[side * xyz[vertices, 0] > 0]
-        plans.append(
-            (palm.name, [b.name for b in palm.children_recursive], indices, hand_chains(xyz[indices], side))
-        )
-    bpy.ops.object.select_all(action="DESELECT")
-    arm.select_set(True)
-    bpy.context.view_layer.objects.active = arm
-    bpy.ops.object.mode_set(mode="EDIT")
-    for name, old, _, chains in plans:
-        for child in reversed(old):
-            arm.data.edit_bones.remove(arm.data.edit_bones[child])
-        palm = arm.data.edit_bones[name]
-        palm.tail = arm_inverse @ Vector(chains[2, 0])
-        for digit, chain in zip(DIGITS, chains):
-            parent = palm
-            for j in range(3):
-                bone = arm.data.edit_bones.new(name + digit + str(j + 1))
-                bone.head = arm_inverse @ Vector(chain[j])
-                bone.tail = arm_inverse @ Vector(chain[j + 1])
-                bone.parent = parent
-                bone.use_connect = j > 0
-                bone.align_roll(arm_inverse.to_3x3() @ Vector((0, 0, 1)))
-                parent = bone
-    bpy.ops.object.mode_set(mode="OBJECT")
-    for name, old, indices, chains in plans:
-        palm = mesh.vertex_groups[name]
-        forearm = mesh.vertex_groups[name.replace("Hand", "ForeArm")]
-        side = -1 if name.endswith("RightHand") else 1
-        wrist_x = side * (arm.matrix_world @ arm.data.bones[name].head_local).x
-        hand_length = np.ptp(xyz[indices, 0])
-        outward = side * xyz[:, 0]
-        wrist_mix = smoothstep(0.5 + (outward - wrist_x) / (0.31 * hand_length))
-        old_groups = {g.index for g in mesh.vertex_groups if g.name in old}
-        # Preserve old influences at the seam by moving obsolete finger weights onto the palm.
-        for vert in mesh.data.vertices:
-            previous = sum(g.weight for g in vert.groups if g.group in old_groups)
-            if previous:
-                palm.add([vert.index], previous, "ADD")
-        for child in old:
-            if child in mesh.vertex_groups:
-                mesh.vertex_groups.remove(mesh.vertex_groups[child])
-        handles = [
-            palm,
-            *(mesh.vertex_groups.new(name=name + digit + str(j)) for digit in DIGITS for j in (1, 2, 3)),
-            forearm,
-        ]
-        # Equal rest positions on different material/UV islands must follow the same wrist rotation.
-        band = np.flatnonzero(
-            (outward > wrist_x - 0.24 * hand_length)
-            & (outward < outward[indices].min() + 0.08 * hand_length)
-        )
-        for group in list(mesh.vertex_groups):
-            group.remove(band.tolist())
-        for vert in band:
-            palm.add([int(vert)], float(wrist_mix[vert]), "REPLACE")
-            forearm.add([int(vert)], float(1 - wrist_mix[vert]), "REPLACE")
-        for group in list(mesh.vertex_groups):
-            group.remove(indices.tolist())
-        weights = influences(xyz[indices], chains)
-        weights = np.column_stack((weights, weights[:, 0] * (1 - wrist_mix[indices])))
-        weights[:, 0] *= wrist_mix[indices]
-        for vert, w in zip(indices, weights):
-            strongest = np.argsort(w)[-4:]
-            total = w[strongest].sum()
-            for j in strongest:
-                if w[j] > 0:
-                    handles[j].add([int(vert)], float(w[j] / total), "REPLACE")
-        # Meshy's forearm weights may also disagree across a UV split outside the cut itself.
-        wrist = np.array(arm.matrix_world @ arm.data.bones[name].head_local)
-        near = np.flatnonzero(np.linalg.norm(xyz - wrist, axis=1) < 0.44 * hand_length)
-        positions = np.rint(xyz[near] * 1e6).astype(np.int64)
-        order = np.lexsort(positions.T)
-        runs = np.r_[0, np.flatnonzero((np.diff(positions[order], axis=0) != 0).any(axis=1)) + 1, len(near)]
-        for first, last in zip(runs, runs[1:]):
-            if last - first < 2:
-                continue
-            ids = near[order[first:last]].tolist()
-            totals = {}
-            for i in ids:
-                for g in mesh.data.vertices[i].groups:
-                    totals[g.group] = totals.get(g.group, 0) + g.weight
-            for group_id in totals:
-                mesh.vertex_groups[group_id].remove(ids)
-            strongest = sorted(totals, key=totals.get, reverse=True)[:4]
-            total = sum(totals[i] for i in strongest)
-            for group_id in strongest:
-                mesh.vertex_groups[group_id].add(ids, totals[group_id] / total, "REPLACE")
-    bpy.context.view_layer.update()

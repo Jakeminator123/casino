@@ -1,6 +1,6 @@
 """QC-renderingar av en riggad dealer-GLB i vila (A-pose), körs i Blender.
 
-blender -b --python pipeline/qc_oversikt.py -- dealer.glb utmapp [samples=48]
+blender -b --python steg/07-qc/qc_oversikt.py -- dealer.glb utmapp [samples=48]
 Skriver helkropp-fram.png, helkropp-34.png, ansikte.png, handled-hoger.png, handled-vanster.png
 samt qc.json (kamerapunkter, mått).
 """

@@ -1,6 +1,6 @@
 # avatar-auto-pipeline – arbetsregler
 
-Från tre foton av en person till en riggad 3D-dealer i A-pose (GLB) med QC-bilder och en kort rörelsefilm, som
+Från 1–8 foton av en person till en riggad 3D-dealer i A-pose (GLB) med QC-bilder och en kort rörelsefilm, som
 `blackjack-dealer` kan använda. Stegen: referensbilder med gpt-image-2, delar och riggning hos Meshy, montering, fingrar,
 handleder, export, QC och film i Blender. `casino/AGENTS.md` gäller också; den här filen går före vid konflikt. Jakob
 äger projektet och är inte programmerare: svara på svenska, slutsatsen först.
@@ -31,6 +31,7 @@ handleder, export, QC och film i Blender. `casino/AGENTS.md` gäller också; den
 
 ## Kod
 
+- Körningen är A-pose, ett steg i taget. Delad hjälp ligger i `montera.py`, `metod/bygg.py` och `fingerrigg.py`.
 - Jakob kan arbeta i den här mappen samtidigt med en annan chatt eller ett annat verktyg: fråga honom innan du ändrar
   kod här, och rör aldrig någon annans ocommittade filer.
 - Projektet har inga automatiska tester; kontrollen före push (`casino/.githooks`) stoppar ändå hemligheter, `.env`,

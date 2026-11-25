@@ -1,20 +1,15 @@
-"""Join a registered donor head and a full body along two clean neck sections."""
+"""Klipper en mesh, syr en skarv och skriver GLB. Monteringen anropar de här funktionerna."""
 
-import argparse
 import copy
-import hashlib
 import json
 import struct
 from collections import defaultdict
 from dataclasses import dataclass
-from pathlib import Path
-
 import numpy as np
 from gltf import Asset
 
 # Y is up in glTF. The plane rises towards the nape, above the donor's shirt collar.
 SLOPE = 0.40
-LOW, HIGH = 0.6835, 0.692
 CENTER_XZ = np.array([0.0, -0.042])
 TAU = 2 * np.pi
 
@@ -84,10 +79,6 @@ def angle(pos):
     return np.arctan2(xz[:, 0], xz[:, 1]) % TAU
 
 
-def radius(pos):
-    return np.linalg.norm(pos[:, [0, 2]] - CENTER_XZ, axis=1)
-
-
 def ordered_ring(pos, segments):
     # Walk actual cut edges; coincident UV-split vertices denote the same physical seam.
     def key(i):
@@ -116,44 +107,6 @@ def ordered_ring(pos, segments):
     if np.median(np.diff(np.unwrap(angle(pos[loop])))) < 0:
         loop = np.r_[loop[0], loop[:0:-1]]
     return loop
-
-
-def neck_fit(body, head, ring, template, template_ring):
-    # Measure the two cross sections at the SAME height and keep most of the
-    # adjustment on the body's upper neck. This preserves the donor's nape.
-    samples = np.linspace(0, TAU, 360, endpoint=False)
-
-    def radial(points):
-        return np.interp(samples, angle(points), radius(points), period=TAU)
-
-    delta = radial(template.pos[template_ring]) - radial(head.pos[ring])
-    offsets = np.arange(-8, 9)
-    weights = np.exp(-0.5 * (offsets / 3.0) ** 2)
-    delta = sum(np.roll(delta, k) * weight for k, weight in zip(offsets, weights)) / weights.sum()
-    maxima = []
-    for mesh, level, extent, factor in ((body, LOW, -0.060, -0.90), (head, HIGH, 0.034, 0.10)):
-        axial = mesh.pos[:, 1] + SLOPE * mesh.pos[:, 2]
-        affected = (axial - level) / extent < 1
-        initial = mesh.pos[affected].copy()
-
-        def warp(points):
-            phi = angle(points)
-            t = np.clip((points[:, 1] + SLOPE * points[:, 2] - level) / extent, 0, 1)
-            dr = factor * np.interp(phi, samples, delta, period=TAU) * (1 - t * t * (3 - 2 * t))
-            dz = np.cos(phi) * dr
-            return points + np.column_stack((np.sin(phi) * dr, -SLOPE * dz, dz))
-
-        target = warp(initial)
-        mesh.pos[affected] = target
-        eps = 1e-5
-        jacobian = np.stack(
-            [(warp(initial + step) - warp(initial - step)) / (2 * eps) for step in np.eye(3) * eps],
-            axis=-1,
-        )
-        normals = np.linalg.solve(jacobian.transpose(0, 2, 1), mesh.nor[affected, :, None])[:, :, 0]
-        mesh.nor[affected] = unit(normals)
-        maxima.append(float(np.linalg.norm(target - initial, axis=1).max()))
-    return maxima
 
 
 def vertex_colors(atlas, uv):
@@ -316,49 +269,3 @@ class Export:
             f.write(hdr)
             f.write(struct.pack("<II", len(self.data), 0x004E4942))
             f.write(self.data)
-
-
-def build(body_file, donor_file, prepared, out):
-    body_asset, donor_asset = Asset(body_file), Asset(donor_file)
-    source = Mesh(body_asset.pos, body_asset.nor, body_asset.uv, body_asset.faces)
-    body, lower = clip(source, LOW, False)
-    template, expected = clip(source, HIGH, False)
-    with np.load(prepared) as arr:
-        for tag, asset in [("body_sha256", body_asset), ("donor_sha256", donor_asset)]:
-            if arr[tag].item() != hashlib.sha256(asset.raw).hexdigest():
-                raise ValueError("The prepared head was fitted to different source files")
-        head, upper = clip(Mesh(**{k: arr[k] for k in ("pos", "nor", "uv", "faces")}), HIGH, True)
-    maximum = neck_fit(body, head, upper, template, expected)
-    band = bridge(body, lower, head, upper, body_asset.color(), donor_asset.color())
-    target = Export()
-    target.material(body_asset, "Kropp / A-pose")
-    target.material(donor_asset, "Huvud / snubbe")
-    target.g["materials"].append(
-        {
-            "name": "Halsövergång",
-            "doubleSided": True,
-            "pbrMetallicRoughness": {
-                "baseColorFactor": [1, 1, 1, 1],
-                "metallicFactor": 0,
-                "roughnessFactor": 0.62,
-            },
-        }
-    )
-    target.mesh(body, 0)
-    target.mesh(head, 1)
-    target.mesh(band, 2, colored=True)
-    count = sum(len(m.faces) for m in (body, head, band))
-    if count > 380000:
-        raise ValueError("Triangle budget exceeded")
-    target.write(out)
-    print("Body, donor, neck, total triangles", len(body.faces), len(head.faces), len(band.faces), count)
-    print("Ring sizes", len(lower), len(upper), "maximum local body/head neck adjustment", maximum)
-    print("GLB", out.stat().st_size, hashlib.sha256(out.read_bytes()).hexdigest())
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    for key in ("body", "donor", "prepared", "output"):
-        parser.add_argument(key, type=Path)
-    args = parser.parse_args()
-    build(args.body, args.donor, args.prepared, args.output)

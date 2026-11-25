@@ -1,6 +1,6 @@
 """Naturlig sittande dealer-rörelse för en dealer-GLB från auto_avatar (A-pose, Mixamo-ben, fingrar).
 
-blender -b --python pipeline/animera_dealer.py -- dealer.glb utmapp namn [sekunder=6] [samples=48] [preview|film]
+blender -b --python steg/08-film/animera_dealer.py -- dealer.glb utmapp namn [sekunder=6] [samples=48] [preview|film]
 
 Ger <namn>-apose-med-rorelse.glb (bakad rörelse, öppnas direkt), <namn>-ror-sig.mp4 (1280×720, 24 fps)
 och strip/ med sex rutor. Rörelsekurvorna är skrivna för 8 s och skalas till vald längd.

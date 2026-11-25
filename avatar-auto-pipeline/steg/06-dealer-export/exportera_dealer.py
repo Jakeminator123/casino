@@ -1,6 +1,6 @@
 """Gör en dealer-redo GLB: bennamn utan 'mixamorig:' och 'Neck' -> 'neck' (dealer3d/src/figure-model.ts letar efter
 RightArm, RightForeArm, RightHand, RightUpLeg, RightLeg, RightFoot (+Left), neck, Head, headfront).
-blender -b --python pipeline/exportera_dealer.py -- avatar-rigg.glb namn-dealer-apose.glb"""
+blender -b --python steg/06-dealer-export/exportera_dealer.py -- avatar-rigg.glb namn-dealer-apose.glb"""
 import bpy, sys, json
 import numpy as np
 from pathlib import Path

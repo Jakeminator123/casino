@@ -1,10 +1,10 @@
 """Montera ett 4K-huvud och ett separat handpar (från bygg_modul) på en A-pose-kropp från Meshy.
 
-Halsen: samma geometriska smalaste-hals-snitt som montera.assemble.
+Halsen mäts med standardmatt.halssnitt.
 Händerna: handledssnittet läggs vinkelrätt mot underarmens verkliga 3D-riktning, och snittet
 begränsas till en cylinder kring armen (i A-pose skulle ett plant halvrumssnitt annars kapa benen).
 Kragen hittas via hudfärg (skjortan ska vara tydligt icke-hudfärgad, standardklädseln är mörkblå).
-Användning (pipeline-venv): python -B pipeline/montera_apose.py kropp.glb huvud.glb handpar.glb ut.glb
+Användning: python -B steg/03-montering/montera_apose.py kropp.glb huvud.glb handpar.glb ut.glb
 """
 
 import sys
@@ -22,7 +22,7 @@ import copy, io, json, sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageFilter
 
 import bygg_modul  # noqa: F401  (patchar bygg.ordered_ring)
 import bygg
@@ -266,142 +266,6 @@ def _match_skin_atlas(atlas, target_srgb, label, vert_uv=None, vert_mask=None):
         "lin_skala": np.round(scale_lin, 3).tolist(),
     }
     return out, info
-
-
-def _knn_z(query_xy, ref_xy, ref_z, max_dist, k=8):
-    out_z = np.full(len(query_xy), np.nan, dtype=float)
-    if len(ref_xy) < k or len(query_xy) == 0:
-        return out_z
-    # Glesa ut ref till max 1500 punkter via rutnät så kNN tar <0.05s även på 400k-mesh.
-    cell = max(max_dist * 0.25, 1e-4)
-    gx = np.floor(ref_xy[:, 0] / cell).astype(np.int64)
-    gy = np.floor(ref_xy[:, 1] / cell).astype(np.int64)
-    keys = gx * 1000003 + gy
-    _, uniq_idx = np.unique(keys, return_index=True)
-    if len(uniq_idx) > 1500:
-        uniq_idx = uniq_idx[np.linspace(0, len(uniq_idx) - 1, 1500, dtype=int)]
-    r_xy = ref_xy[uniq_idx]
-    r_z = ref_z[uniq_idx]
-    kk = min(k, len(r_xy))
-    for i0 in range(0, len(query_xy), 2048):
-        q = query_xy[i0:i0 + 2048]
-        d2 = np.sum((q[:, None, :] - r_xy[None, :, :]) ** 2, axis=2)
-        idx = np.argpartition(d2, kk - 1, axis=1)[:, :kk]
-        d_sel = np.sqrt(np.take_along_axis(d2, idx, axis=1))
-        ok = np.median(d_sel, axis=1) <= max_dist
-        vals = np.median(r_z[idx], axis=1)
-        out_z[i0:i0 + 2048] = np.where(ok, vals, np.nan)
-    return out_z
-
-
-def _clean_torso_hair(body, atlas, H, cut_level_y):
-    """Ta bort avslitna hårslingor på kroppens bröst/rygg nedanför halssnittet och jämna ut ytan."""
-    pos = body.pos.astype(float).copy()
-    low = pos.min(axis=0)
-    f = (pos[:, 1] - low[1]) / H
-    srgb = _sample_srgb(atlas, body.uv)
-    skin_v = (srgb[:, 0] > srgb[:, 2] + 0.06) & (srgb[:, 0] > 0.45)
-    hair_v = (srgb[:, 0] > srgb[:, 2] + 0.035) & (srgb[:, 0] > 0.10) & (srgb[:, 0] <= 0.52) & ~skin_v
-    shirt_zone = (f > 0.60) & (f < 0.74) & (np.abs(pos[:, 0]) < 0.14 * H) & ~skin_v & ~hair_v
-    if shirt_zone.sum() < 200:
-        return body, atlas, None
-    shirt_srgb = np.median(srgb[shirt_zone], axis=0)
-    if shirt_srgb[0] > shirt_srgb[2] + 0.04:
-        return body, atlas, None
-    far_from_shirt = np.linalg.norm(srgb - shirt_srgb, axis=1) > 0.08
-    torso_hair = hair_v & far_from_shirt & (pos[:, 1] > low[1] + 0.70 * H) & (pos[:, 1] < cut_level_y - 0.002 * H) & (np.abs(pos[:, 0]) < 0.18 * H)
-    if torso_hair.sum() < 200:
-        return body, atlas, None
-
-    clean_torso = (f > 0.66) & (f < 0.87) & (np.abs(pos[:, 0]) < 0.20 * H) & ~hair_v & ~skin_v
-    moved_mask = np.zeros(len(pos), dtype=bool)
-    for is_front in (True, False):
-        side_hair = torso_hair & ((pos[:, 2] > 0) if is_front else (pos[:, 2] <= 0))
-        side_clean = clean_torso & ((pos[:, 2] > 0) if is_front else (pos[:, 2] <= 0))
-        if side_hair.sum() < 20 or side_clean.sum() < 100:
-            continue
-        ref_xy = np.vstack((
-            np.column_stack((-pos[side_clean, 0], pos[side_clean, 1])),
-            pos[side_clean, :2],
-        ))
-        ref_z = np.concatenate((pos[side_clean, 2], pos[side_clean, 2]))
-        hi_idx = np.flatnonzero(side_hair)
-        z_ref = _knn_z(pos[hi_idx, :2], ref_xy, ref_z, 0.025 * H, k=8)
-        valid = np.isfinite(z_ref)
-        if is_front:
-            change = valid & (pos[hi_idx, 2] > z_ref + 0.002 * H)
-            pos[hi_idx[change], 2] = z_ref[change] + 0.002 * H
-        else:
-            change = valid & (pos[hi_idx, 2] < z_ref - 0.002 * H)
-            pos[hi_idx[change], 2] = z_ref[change] - 0.002 * H
-        moved_mask[hi_idx[change]] = True
-
-    if moved_mask.any():
-        nbrs = [[] for _ in range(len(pos))]
-        for a, b, c in body.faces:
-            if torso_hair[a] or torso_hair[b] or torso_hair[c]:
-                nbrs[a].extend((b, c)); nbrs[b].extend((a, c)); nbrs[c].extend((a, b))
-        active = np.flatnonzero(torso_hair)
-        for _ in range(8):
-            z_new = pos[:, 2].copy()
-            for i in active:
-                nb = nbrs[i]
-                if nb:
-                    z_new[i] = 0.5 * pos[i, 2] + 0.5 * float(pos[nb, 2].mean())
-            pos[:, 2] = z_new
-
-    nor = body.nor.astype(float).copy()
-    if moved_mask.any():
-        v_acc = np.zeros_like(nor)
-        p0 = pos[body.faces[:, 0]]
-        fn = np.cross(pos[body.faces[:, 1]] - p0, pos[body.faces[:, 2]] - p0)
-        for k in range(3):
-            np.add.at(v_acc, body.faces[:, k], fn)
-        nlen = np.linalg.norm(v_acc, axis=1, keepdims=True)
-        affected = np.zeros(len(pos), dtype=bool)
-        touch = torso_hair[body.faces].any(axis=1)
-        affected[body.faces[touch]] = True
-        good = affected & (nlen[:, 0] > 1e-12)
-        nor[good] = v_acc[good] / nlen[good]
-
-    H_img, W_img = atlas.shape[:2]
-    xy_px = np.mod(body.uv, 1.0) * [W_img, H_img]
-    tri_hair = torso_hair[body.faces].sum(axis=1) >= 2
-    tri_other = (~((f > 0.68) & (f < 0.87) & (np.abs(pos[:, 0]) < 0.20 * H)))[body.faces].all(axis=1)
-    mask_im = Image.new("L", (W_img, H_img), 0)
-    draw_m = ImageDraw.Draw(mask_im)
-    for tri in body.faces[tri_hair]:
-        pts = [(float(xy_px[v, 0]), float(xy_px[v, 1])) for v in tri]
-        if max(p[0] for p in pts) - min(p[0] for p in pts) < W_img * 0.25 and max(p[1] for p in pts) - min(p[1] for p in pts) < H_img * 0.25:
-            draw_m.polygon(pts, fill=255)
-    other_im = Image.new("L", (W_img, H_img), 0)
-    draw_o = ImageDraw.Draw(other_im)
-    for tri in body.faces[tri_other]:
-        pts = [(float(xy_px[v, 0]), float(xy_px[v, 1])) for v in tri]
-        if max(p[0] for p in pts) - min(p[0] for p in pts) < W_img * 0.25 and max(p[1] for p in pts) - min(p[1] for p in pts) < H_img * 0.25:
-            draw_o.polygon(pts, fill=255)
-
-    mask_dil = mask_im.filter(ImageFilter.MaxFilter(5))
-    uv_hair_mask = (np.asarray(mask_dil) > 128) & (np.asarray(other_im) < 128)
-    s_img = atlas.astype(np.float32) / 255.0
-    is_hair_px = uv_hair_mask & (s_img[..., 0] > s_img[..., 2] + 0.015) & (s_img[..., 0] < 0.60) & (np.linalg.norm(s_img - shirt_srgb, axis=-1) > 0.06)
-    alpha_im = Image.fromarray((is_hair_px * 255).astype(np.uint8), mode="L").filter(ImageFilter.GaussianBlur(2.0))
-    alpha = (np.asarray(alpha_im, dtype=np.float32) / 255.0)[..., None]
-
-    clean_xy = np.clip(np.round(xy_px[shirt_zone]).astype(int), [0, 0], [W_img - 1, H_img - 1])
-    clean_samples = atlas[clean_xy[:, 1], clean_xy[:, 0]]
-    rng = np.random.default_rng(42)
-    fill_idx = rng.integers(0, len(clean_samples), size=(H_img, W_img))
-    fill_img = clean_samples[fill_idx].astype(np.float32)
-    atlas_out = np.clip(atlas.astype(np.float32) * (1.0 - alpha) + fill_img * alpha + 0.5, 0, 255).astype(np.uint8)
-
-    info = {
-        "harhorn_bort": int(torso_hair.sum()),
-        "flyttade_horn": int(moved_mask.sum()),
-        "malade_pixlar": int(is_hair_px.sum()),
-        "skjorta_srgb": np.round(shirt_srgb, 3).tolist(),
-    }
-    return Mesh(pos.astype(body.pos.dtype), nor.astype(body.nor.dtype), body.uv, body.faces), atlas_out, info
 
 
 def rodrigues(a, b):

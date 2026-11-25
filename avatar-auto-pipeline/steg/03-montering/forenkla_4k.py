@@ -6,7 +6,7 @@ Meshy-huvud (hår och skägg kan ge 4–5 miljoner trianglar) hela budgeten och 
 decimeras sönder. Decimeringen görs i redigeringsläget på en del i taget, så skarvarna mot
 grannarna (Skarvar-materialet) ligger kvar orörda och inga hål uppstår.
 
-blender -b --python pipeline/forenkla_4k.py -- in.glb ut.glb [trianglar=180000]
+blender -b --python steg/03-montering/forenkla_4k.py -- in.glb ut.glb [trianglar=180000]
 """
 import json
 import sys

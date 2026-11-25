@@ -33,7 +33,7 @@ Foton lägger du i `input/<namn>/`. Resultatet hamnar i `output/<namn>/`, uppdel
 ## Hur du kör
 
 1. En gång: kopiera `.env.example` till `.env` och fyll i `OPENAI_API_KEY` och `MESHY_API_KEY`. Nycklarna skrivs aldrig ut.
-2. Lägg 1–8 foton av samma person i t.ex. `input\rosalina\`.
+2. Lägg 1–8 foton av samma person i t.ex. `input\rosalina\`. Skjortan ska vara tydligt icke-hudfärgad. Standard är mörkblå skjorta och mörka byxor (`--outfit` om du vill annat).
 3. Dubbelklicka på `STARTA avatar.cmd` (eller kör `.\starta_avatar.ps1 -Name rosalina`).
 
 Gratis kontroll, utan OpenAI- eller Meshy-anrop:
@@ -57,8 +57,10 @@ I `output/<namn>/`:
 | `07-qc\resultat-oversikt.png` | Kvalitetsblad (helkropp, ansikte, handleder). |
 | `08-film\<namn>-ror-sig.mp4` | Rörelsefilmen, när den har renderats klart. |
 
-För Rosalina finns också `output\rosalina\08-film\rosalina-med-bord.blend`. Det är Blender-scenen med avatar och bord, utan det lösa Icosphere-objektet som tidigare kunde täcka dockan när GLB-filen öppnades. Öppna den filen i Blender om du vill titta på eller justera scenen.
+För Rosalina finns också `output\rosalina\08-film\rosalina-med-bord.blend`. Det är Blender-scenen med avatar och bord. Rörelsefilmen som mp4 är inte renderad. Kopian som ska dömas ligger i `../slask/avatar-auto-pipeline/granska/rosalina/`: dockan, kvalitetsbladet och samma Blender-scen.
 
 ## Återuppta ett steg
 
 Om något avbryts kan du fortsätta utan att betala om: `--from-step 5` eller `--only-step 7`. Hoppa över filmen med `--no-video`.
+
+Betalda jobb sparar ett kvitto i stegmappen: `referenser.json`, `korning.json` och `riggjobb.json`. En omstart använder samma kvitto. Radera dem inte.

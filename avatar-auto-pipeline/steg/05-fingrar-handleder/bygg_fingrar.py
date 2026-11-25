@@ -21,7 +21,8 @@ import bpy
 import numpy as np
 from mathutils import Quaternion
 
-from fingerrigg import DIGITS, fit_fingers, world_vertices
+from fingerrigg import DIGITS, world_vertices
+from fingrar_apose import fit_fingers
 from viktrensning import flytta_axelleder, halsrapport, rensa_halsvikter
 
 
