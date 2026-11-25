@@ -35,7 +35,7 @@ export function CasinoView() {
   if (status === "loading")
     return (
       <Page title="Casino" full>
-        <div className="grid h-full place-items-center bg-[#060706]">
+        <div className="grid h-full place-items-center bg-well">
           <Spinner size="sm" label="Läser klippbanken" />
         </div>
       </Page>
@@ -153,7 +153,7 @@ function Casino() {
         </>
       }
     >
-      <div className="absolute inset-0 bg-[#060706]">
+      <div className="absolute inset-0 bg-well">
         <iframe
           key={src}
           ref={frame}
@@ -165,7 +165,7 @@ function Casino() {
           className="absolute inset-0 size-full border-0"
         />
         {loaded !== src ? (
-          <div className="pointer-events-none absolute inset-0 grid place-items-center bg-[#060706]">
+          <div className="pointer-events-none absolute inset-0 grid place-items-center bg-well">
             <span className="flex items-center gap-2 text-sm text-dim">
               <Spinner size="sm" label="Dukar bordet" /> Dukar bordet…
             </span>

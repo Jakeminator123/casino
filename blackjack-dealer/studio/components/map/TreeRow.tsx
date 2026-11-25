@@ -240,7 +240,7 @@ function CompositionMenu({ compositions, composition, media, onCompose }: { comp
         title="Flera träd satta samman"
         className={cn(
           "inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 text-[12.5px] font-medium transition-colors duration-150 [&_svg]:size-3.5",
-          at ? "border-brass/70 bg-brass/10 text-ink" : "border-line-strong text-dim hover:border-[#4a5a51] hover:text-ink",
+          at ? "border-brass/70 bg-brass/10 text-ink" : "border-line-strong text-dim hover:border-line-hi hover:text-ink",
         )}
       >
         <Layers /> Kompositioner

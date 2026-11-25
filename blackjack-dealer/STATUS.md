@@ -21,7 +21,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   A2.1), Casino och Ingången (vilar). Kompositionen `tatuerad-skjut-nyp` binder de två tatuerade (2026-11-24).
 - **Kort:** ett kort per sida med märkena överallt; kortplanen i verkligt perspektiv genom B-linsen, som spelet och
   scenen följer. Det styva kortet utan vit kant har hans ja i Scen (2026-11-23).
-- **Labbet och studion:** Bordet är labbvyn och dockan Kortplans steg 2. Bordet BORD-02 är ett labbprov ("skitbra" som
+- **Studion:** ramen har neutral grafit och en meny med ett namn per rad (2026-11-25), väntar på hans ord om
+  utseendet; flera flikar får vara öppna. Bordet är vyn av bordet och dockan Kortplans steg 2. Bordet BORD-02 är ett
+  prov i studion ("skitbra" som
   alternativ, 2026-11-20) som spelet inte slår på före hans ja.
 - **Spelet** spelar trädet Tatuerad med nödlösningar där film saknas (`STAND_IN_FILM`, `SEAT_HUB`). Realtidsmunnen
   (storlek F) har hans ja men når 12–13 rutor/s på hans RTX 3060 mot 24. Den neutrala munnen gäller Paows repliker utom
@@ -47,8 +49,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    idé, obyggd: munnen ur hennes egen leendefilm `paow-vila-03-01`. Mungiporna och överläppen är inte lösta i hans ögon.
 5. **Kort:** kortets efterarbete i förväg per film (2026-11-17); grafiken på kortet prövad mot alla filmer
    (2026-11-23, `/kortlandning.html`).
-6. **Labbet och studion:** färre val, det uppenbart dubbla bort först; sidornas ord efter ordlistan; fler register in i
-   SQLite som filmregistret (2026-11-23).
+6. **Studion:** färre val, det uppenbart dubbla bort först: de sju adresserna som bara leder vidare (`/`, `/scen/`,
+   `/placering/`, `/bestall/`, `/docka/`, `/prov/`, `/primara/`), Casinos adress `/game/`, och verktygens meddelanden
+   som ännu säger "labbet"; sidorna bredvid (Ljud, Modeller, Grafik) får ramens utseende; fler register in i SQLite
+   som filmregistret (2026-11-23).
 
 ## Väntar på Jakob
 

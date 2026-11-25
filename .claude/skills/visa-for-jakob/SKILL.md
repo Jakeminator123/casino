@@ -1,18 +1,19 @@
 ---
 name: visa-for-jakob
-description: Använd i blackjack-dealer när något ska visas för Jakob eller ett svar skrivas till honom - en sida i labbet (studion på 127.0.0.1:4319), ett prov, en film han ska döma, en fråga som väntar på hans svar - eller när studion han ser ska byggas om. Gäller länkar till labbet, provmappar i assets/proofs/, kort i Beslut (data/decisions.json), hans anteckningar och hur svaret till honom skrivs.
+description: Använd i blackjack-dealer när något ska visas för Jakob eller ett svar skrivas till honom - en sida i studion (127.0.0.1:4319), ett prov, en film han ska döma, en fråga som väntar på hans svar - eller när studion han ser ska byggas om. Gäller länkar till labbet, provmappar i assets/proofs/, kort i Beslut (data/decisions.json), hans anteckningar och hur svaret till honom skrivs.
 ---
 
 # Visa Jakob något
 
 Kommandon körs från `blackjack-dealer/`; sökvägar räknas från casino-roten.
 
-## Labbet
+## Studion
 
 - Studion på `http://127.0.0.1:4319/studio/` är den lokala sajten (Jakob 2026-11-17, 2026-11-23); han visas sidor där,
   inte lösa provsidor eller filer i slasken.
-- En flik: `node tools/preview.ts --open "<sida>"` visar sidan i den öppna fliken, och `node tools/preview.ts --ensure`
-  körs före en länk. Öppna aldrig labbadressen med `Start-Process` eller `start`.
+- `node tools/preview.ts --open "<sida>"` visar sidan i den nyaste öppna fliken (flera flikar får vara öppna, Jakob
+  2026-11-25), och `node tools/preview.ts --ensure` körs före en länk. Öppna aldrig studions adress med
+  `Start-Process` eller `start`; en agents egen sida öppnas med `?robot=1`.
 - Studion byggs på plats med `npm --prefix studio run build`; bygg inte medan en annan chatts halvfärdiga filer ligger i
   `blackjack-dealer/studio/`. Serverns omstart (`--restart`) är huvudagentens.
 

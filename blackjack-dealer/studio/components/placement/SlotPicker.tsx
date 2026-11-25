@@ -24,7 +24,7 @@ export function SlotPicker({ plan, selected, changed, onSelect }: { plan: Placem
         className={cn(
           "relative grid h-8 place-items-center overflow-hidden rounded-md border text-sm font-medium tabular-nums transition-colors duration-150 focus-visible:outline-offset-1",
           wide && "px-4",
-          on ? "border-brass bg-brass text-brass-ink" : "border-line-strong bg-raised text-ink hover:border-[#3a4840] hover:bg-overlay",
+          on ? "border-brass bg-brass text-brass-ink" : "border-line-strong bg-raised text-ink hover:border-line-hi hover:bg-overlay",
         )}
       >
         {text}

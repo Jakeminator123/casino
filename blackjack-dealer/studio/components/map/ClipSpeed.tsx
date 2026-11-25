@@ -22,7 +22,7 @@ async function putSpeed(id: string, speed: number): Promise<void> {
     error = String((await response.json())?.error ?? "");
   } catch {}
   // An older lab server has no such address until it is restarted.
-  throw new Error(error || (response.status === 404 ? "Labbservern behöver startas om för att kunna spara farten." : `Farten kunde inte sparas (${response.status}).`));
+  throw new Error(error || (response.status === 404 ? "Servern behöver startas om för att kunna spara farten." : `Farten kunde inte sparas (${response.status}).`));
 }
 
 export function ClipSpeed({ take, name, className }: { take: Take; name: string; className?: string }) {

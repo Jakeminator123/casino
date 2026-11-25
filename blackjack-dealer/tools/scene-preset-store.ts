@@ -45,7 +45,7 @@ export function scenePresetStore(root: string) {
   */
  async function save(name:string,value:unknown,expected:string|undefined){
   const file=fileOf(name);
-  if(isShipped(name))throw new StoreError(403,'Förvalet följer med labbet och kan inte skrivas över. Spara under ett eget namn.');
+  if(isShipped(name))throw new StoreError(403,'Förvalet följer med studion och kan inte skrivas över. Spara under ett eget namn.');
   const {preset,errors}=validatePreset(value,name,await rooms());
   if(!preset)throw new StoreError(400,`Förvalet håller inte: ${errors.join('; ')}.`);
   const task=queue.then(async()=>{
@@ -63,8 +63,8 @@ export function scenePresetStore(root: string) {
  /** Takes away one of his presets, against the revision last read. */
  async function remove(name:string,expected:string|undefined){
   const file=fileOf(name);
-  if(name===CASINO_PRESET)throw new StoreError(403,'Casinos förval kan ändras i Scen & bord men inte tas bort.');
-  if(isShipped(name))throw new StoreError(403,'Förvalet följer med labbet och kan inte tas bort.');
+  if(name===CASINO_PRESET)throw new StoreError(403,'Casinos förval kan ändras i Bordet men inte tas bort.');
+  if(isShipped(name))throw new StoreError(403,'Förvalet följer med studion och kan inte tas bort.');
   const task=queue.then(async()=>{
    const before=await readText(name);
    if(before===null)throw new StoreError(404,'Det finns inget förval med det namnet.');

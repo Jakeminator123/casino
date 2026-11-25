@@ -87,7 +87,7 @@ export function Composer({ autoFocus }: { autoFocus?: boolean }) {
           <LevelSwitch />
           <span className="flex-1" />
           {bot.busy ? (
-            <button type="button" onClick={bot.stop} aria-label="Stoppa svaret" title="Stoppa svaret" className="grid size-8 place-items-center rounded-full border border-line-strong bg-overlay text-ink transition-colors hover:bg-[#2a3530]">
+            <button type="button" onClick={bot.stop} aria-label="Stoppa svaret" title="Stoppa svaret" className="grid size-8 place-items-center rounded-full border border-line-strong bg-overlay text-ink transition-colors hover:bg-line-strong">
               <Square className="size-3 fill-current" />
             </button>
           ) : (

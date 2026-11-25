@@ -99,7 +99,7 @@ export function CameraRail({ stops, value, total, onChange, className }: { stops
             className={cn(
               "relative block h-[30px] w-[44px] shrink-0 overflow-hidden rounded-[4px] border transition-colors duration-150",
               cover ? "bg-well" : made ? "bg-raised" : "border-dashed",
-              on ? "border-brass shadow-[0_0_0_1px_var(--color-brass)]" : made ? "border-line-strong hover:border-[#4a5a51]" : "border-line-strong/80 hover:border-[#4a5a51]",
+              on ? "border-brass shadow-[0_0_0_1px_var(--color-brass)]" : made ? "border-line-strong hover:border-line-hi" : "border-line-strong/80 hover:border-line-hi",
             )}
           >
             {cover ? <ProofStill cover={cover} fps={s.entry?.fps ?? 30} className={cn("pointer-events-none absolute inset-0", !on && "opacity-80")} /> : null}

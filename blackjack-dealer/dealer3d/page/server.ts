@@ -88,7 +88,7 @@ export function dollLabRoutes(options: {root: string; origin: string}) {
     try {
       const standard = /^\/dealer3d\/standard\/([^/]+)\.json$/.exec(at);
       if (standard && req.method === 'PUT') {
-        if (req.headers.origin !== origin) throw new Refused(403, 'Bara labbets egen sida får spara.');
+        if (req.headers.origin !== origin) throw new Refused(403, 'Bara studions egen sida får spara.');
         if (!NAME.test(standard[1])) throw new Refused(400, 'Namnet är inte en docka och en plats.');
         const value = await body(req), task = writes.then(() => save(standard[1], value)); writes = task.then(() => {}, () => {}); await task;
         json(res, 200, {saved: `${STANDARDS}/${standard[1]}.json`, standards: await list()}); return true;

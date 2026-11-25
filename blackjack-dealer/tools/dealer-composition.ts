@@ -151,7 +151,7 @@ export async function serveCompositions(req: IncomingMessage, res: ServerRespons
       return send(cut ? 200 : 404, cut ?? {error: `${dealer} har ingen komposition "${id}".`});
     }
     if (req.method !== 'PUT' && req.method !== 'DELETE') return send(405, {error: 'Bara GET, PUT och DELETE.'});
-    if (req.headers.origin !== origin) return send(403, {error: 'Spara från det lokala labbet.'});
+    if (req.headers.origin !== origin) return send(403, {error: 'Spara från studion på datorn.'});
     if (req.method === 'DELETE') {
       if (id === null) return send(400, {error: 'Ange ?komposition=<id>.'});
       return removeComposition(dealer, id) ? send(200, {ok: true}) : send(404, {error: `${dealer} har ingen komposition "${id}".`});

@@ -137,7 +137,7 @@ export function KeyControl({
                     onClick={() => onChange(o.value)}
                     className={cn(
                       "size-7 rounded-full border shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] transition-[box-shadow,border-color] duration-150",
-                      o.value === text ? "border-brass ring-2 ring-brass/35 ring-offset-2 ring-offset-surface" : "border-line-strong hover:border-[#3a4840]",
+                      o.value === text ? "border-brass ring-2 ring-brass/35 ring-offset-2 ring-offset-surface" : "border-line-strong hover:border-line-hi",
                     )}
                     style={{ background: FELT_SWATCH[o.value] ?? "#333" }}
                   />

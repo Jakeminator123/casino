@@ -53,7 +53,7 @@ function Clash({ doll }: { doll: DollWay }) {
   if (!doll.clash) return null;
   return (
     <p data-side-clash role="alert" className="rounded-sm bg-[#3a2a1a] px-2.5 py-1.5 text-sm text-[#f0b07a]">
-      Dockan lägger {doll.place} {doll.clash.doll}, kortplanen säger {doll.clash.plan}. Välj samma sida i docklabbet och spara, eller ändra kortplanen (steg 2).
+      Dockan lägger {doll.place} {doll.clash.doll}, kortplanen säger {doll.clash.plan}. Välj samma sida i Ställ dockan och spara, eller ändra kortplanen (steg 2).
     </p>
   );
 }
@@ -438,7 +438,7 @@ function Send({
             Utan dockan
           </Button>
         </div>
-        <p className="text-xs text-faint">Ett utkast beställer inget: det godkänns i Kön och läggs sedan hos Runway. Det som är sparat i docklabbet är det som beställs; reglage som inte är sparade följer inte med.</p>
+        <p className="text-xs text-faint">Ett utkast beställer inget: det godkänns i Kön och läggs sedan hos Runway. Det som är sparat i Ställ dockan är det som beställs; reglage som inte är sparade följer inte med.</p>
       </div>
     );
   }

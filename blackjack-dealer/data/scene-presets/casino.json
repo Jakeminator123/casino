@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "casino",
   "label": "Casino",
-  "about": "Casinos sparade visning, vald i Scen & bord.",
+  "about": "Casinos sparade visning, vald i Bordet.",
   "state": {
     "room": "panorama",
     "roomShift": "shimmer",

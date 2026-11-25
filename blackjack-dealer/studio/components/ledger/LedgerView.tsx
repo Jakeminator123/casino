@@ -20,9 +20,9 @@ export async function getLedger(): Promise<Ledger> {
   try {
     response = await fetch(labUrl("api/orders/ledger"), { cache: "no-store" });
   } catch {
-    throw new ApiError("Labbet svarar inte. Starta det med npm start.", 0, "network");
+    throw new ApiError("Servern svarar inte. Starta den med npm start.", 0, "network");
   }
-  if (response.status === 404) throw new ApiError("Labbet känner inte protokollet än: labbservern behöver startas om.", 404, "missing");
+  if (response.status === 404) throw new ApiError("Servern känner inte protokollet än: den behöver startas om.", 404, "missing");
   if (!response.ok) throw new ApiError(`Protokollet gick inte att läsa (${response.status}).`, response.status, "server");
   return (await response.json()) as Ledger;
 }

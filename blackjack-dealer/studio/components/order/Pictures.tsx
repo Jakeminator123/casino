@@ -95,7 +95,7 @@ function PictureViewer({ src, title, open, onOpenChange }: { src: string; title:
   return (
     <RD.Root open={open} onOpenChange={onOpenChange}>
       <RD.Portal>
-        <RD.Overlay className="fixed inset-0 z-50 bg-[#060807]" />
+        <RD.Overlay className="fixed inset-0 z-50 bg-well" />
         <RD.Content
           aria-describedby={undefined}
           onKeyDown={(e) => {
@@ -104,7 +104,7 @@ function PictureViewer({ src, title, open, onOpenChange }: { src: string; title:
               e.preventDefault();
             }
           }}
-          className="fixed inset-0 z-50 flex flex-col bg-[#060807] focus:outline-none"
+          className="fixed inset-0 z-50 flex flex-col bg-well focus:outline-none"
         >
           <header className="flex h-12 shrink-0 items-center gap-3 border-b border-white/6 px-5">
             <RD.Title className="min-w-0 truncate font-display text-md font-semibold text-ink">{title}</RD.Title>

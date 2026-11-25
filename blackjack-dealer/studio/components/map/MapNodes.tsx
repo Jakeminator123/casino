@@ -148,7 +148,7 @@ export function HubNode({ data }: NodeProps<HubNodeType>) {
   // The rest's films on this page: its Primär and its secondary films (the count on its chip).
   const films = loop ? loop.counts.total + (loop.edge.takes.some((t) => t.explicitMain) ? 1 : 0) : 0;
   return (
-    <Frame data={data} className={data.node === "READY" || data.node === "IDLE" ? "bg-[#151c18]" : undefined}>
+    <Frame data={data} className={data.node === "READY" || data.node === "IDLE" ? "bg-raised/50" : undefined}>
       <Pick data={data} />
       <div className="pointer-events-none absolute inset-x-2.5 top-1.5 flex items-baseline gap-1.5">
         <span className="whitespace-nowrap font-display text-[15px] font-semibold text-ink">{data.code}</span>
@@ -165,7 +165,7 @@ export function HubNode({ data }: NodeProps<HubNodeType>) {
           title={`${restLine(films)}: den lugna loopen och gesterna som slumpas in. Klicka för filmerna.`}
           className={cn(
             // Two short rows under A1's name: what it is, then the counts (one row is too narrow for both).
-            "nodrag nopan absolute inset-x-1.5 bottom-1.5 top-[27px] flex flex-col justify-center gap-[3px] overflow-hidden whitespace-nowrap rounded-md border bg-raised px-2 text-left text-[10.5px] font-medium leading-none text-ink transition-[border-color,opacity] duration-150 hover:border-[#4a5a51]",
+            "nodrag nopan absolute inset-x-1.5 bottom-1.5 top-[27px] flex flex-col justify-center gap-[3px] overflow-hidden whitespace-nowrap rounded-md border bg-raised px-2 text-left text-[10.5px] font-medium leading-none text-ink transition-[border-color,opacity] duration-150 hover:border-line-hi",
             loop.active ? "border-brass shadow-[0_0_0_2px_rgb(217_185_106/0.35)]" : "border-line-strong",
             loop.dim && "opacity-25",
           )}

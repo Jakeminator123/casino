@@ -95,7 +95,7 @@ export function CompositionKarta({ answer, id, set }: { answer: TreeAnswer; id: 
           <Skeleton className="h-[60%] w-[80%]" />
         </div>
       ) : (
-        <EmptyState title="Kompositioner finns inte här än">{compositions.error ?? "Labbservern behöver startas om för att kunna läsa dem."}</EmptyState>
+        <EmptyState title="Kompositioner finns inte här än">{compositions.error ?? "Servern behöver startas om för att kunna läsa dem."}</EmptyState>
       )}
     </Page>
   );

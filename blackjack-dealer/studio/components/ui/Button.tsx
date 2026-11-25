@@ -17,7 +17,7 @@ export const BUTTON_VARIANT: Record<ButtonVariant, string> = {
   primary:
     "bg-brass text-brass-ink font-semibold shadow-[inset_0_1px_0_rgb(255_255_255/0.25)] not-disabled:hover:bg-brass-hi not-disabled:active:bg-brass-lo",
   secondary:
-    "border border-line-strong bg-raised text-ink shadow-inset not-disabled:hover:border-[#3a4840] not-disabled:hover:bg-overlay not-disabled:active:bg-[#26312b] " +
+    "border border-line-strong bg-raised text-ink shadow-inset not-disabled:hover:border-line-hi not-disabled:hover:bg-overlay not-disabled:active:bg-line-strong " +
     "aria-pressed:border-brass/50 aria-pressed:bg-brass/12 aria-pressed:text-brass-hi",
   quiet:
     "text-dim not-disabled:hover:bg-raised not-disabled:hover:text-ink not-disabled:active:bg-overlay aria-pressed:bg-overlay aria-pressed:text-ink",

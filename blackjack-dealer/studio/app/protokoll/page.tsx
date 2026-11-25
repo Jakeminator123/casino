@@ -11,7 +11,7 @@ export default function Protokoll() {
   if (isSnapshot)
     return (
       <Page title="Protokoll">
-        <EmptyState title="Protokollet finns bara i labbet">Beställningarna och deras utfall ligger i Jakobs lokala labb.</EmptyState>
+        <EmptyState title="Protokollet finns inte i kopian">Beställningarna och deras utfall ligger i studion på Jakobs dator.</EmptyState>
       </Page>
     );
   return (

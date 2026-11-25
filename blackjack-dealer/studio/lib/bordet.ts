@@ -464,7 +464,7 @@ export function lineOf(input: {
   const priceMark = cost !== null ? ready("Pris", `${credits(cost)} krediter`)
     : !writable ? missing("Pris", notHere, toWrite)
     : input.policy ? missing("Pris", "inget pris i ramen", "ramen (data/order-policy.json) har inget pris för modellen med de här värdena: välj en annan modell eller längd under Receptet")
-    : missing("Pris", "priserna är inte lästa", "priserna kunde inte läsas från labbservern: ladda om sidan");
+    : missing("Pris", "priserna är inte lästa", "priserna kunde inte läsas från servern: ladda om sidan");
   const marks = [first, last, referenceMark, textMark, priceMark];
   // The first mark that is not ready, in the order the store asks: no model before the last picture, a text that waits for
   // the pictures after them; what to do about it, and whether it only waits for another film.

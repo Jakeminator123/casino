@@ -27,7 +27,7 @@ function Cell({ src, stand, doll = false, children }: { src: string; stand?: str
           <>
             {/* eslint-disable-next-line @next/next/no-img-element -- a lab file; a static export cannot optimise */}
             {stand ? <img src={labUrl(stand)} alt="" className="size-full object-contain opacity-35 grayscale" /> : null}
-            <span className="absolute inset-0 grid place-items-center px-4 text-center text-xs text-dim">Filmen lämnas inte ut av labbet</span>
+            <span className="absolute inset-0 grid place-items-center px-4 text-center text-xs text-dim">Filmen lämnas inte ut av servern</span>
           </>
         ) : (
           <video src={labUrl(src)} controls muted playsInline preload="metadata" onError={() => setFailed(true)} className="size-full object-contain" />

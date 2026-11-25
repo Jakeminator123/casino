@@ -33,7 +33,15 @@ Projektets `.ignore` döljer media, filmregistret och dockans rörelsedata för 
 
 - **En väg för varje sak, färre val** (2026-11-24): "det är för mycket val, för komplicerat i onödan"; "klara
   självklara vägar för allt", också när det tränger undan gamla klipp eller vägar.
-- **Labbet först** (2026-11-11): prov och effekter görs i labbet; spelet får bara det han har godkänt där.
+- **Studion först** (2026-11-11): prov och effekter görs i studion; spelet får bara det han har godkänt där.
+- **Samma ord för samma sak** (2026-11-25): studion är allt i webbläsaren; ramen är menyn, rubrikraden, panelerna och
+  knapparna ("snyggare studio" betyder snyggare ram); menyn är spalten till vänster; en vy är en sida i menyn;
+  bildytan är det i mitten (filmspelaren, scenen, dockan eller spelet); servern är det `npm start` startar. Ordet
+  "labbet" används inte längre, och det som finns dubbelt blir en sak. Orden står i studions Ordlista
+  (`studio/lib/words.ts`).
+- **Vanlig svenska i studion** (2026-11-25): filnamn och verktygsnamn visas inte för honom; de står kvar i registren
+  för agenterna.
+- **Flera flikar** (2026-11-25): studion får vara öppen i flera flikar samtidigt; ingen flik stänger en annan.
 - **Filmerna först** (2026-11-17): "filmerna är det vi först måste få rätt"; kortens och markernas utseende ändras bara
   i Bordets läge Efterarbete.
 - **Fria händer med ansvar** (2026-11-14): "Du har fria privilegier och kör på. men se till att dokumentera coh städa".
@@ -84,7 +92,7 @@ Allt annat raderas: det han underkänner eller själv tar bort, prov utan kort, 
 granskares förslag som inte gavs på hans uppdrag, om inget öppet orderutkast eller kort pekar på det. Radering går via
 papperskorgen `.runtime/papperskorg/` (14 dygn).
 
-Det sker av sig självt: labbservern kör `node tools/media-thin.ts --auto` när den startar (planen, nivån säkert och
+Det sker av sig självt: servern kör `node tools/media-thin.ts --auto` när den startar (planen, nivån säkert och
 papperskorgens dagar äldre än 14 dygn; logg i `.runtime/gallring.log`). Nivån säkert är regeln ovan: det han, en
 granskare på hans uppdrag eller en granskare utan det har underkänt, lösa filmer som inte är dömda bra och inte väntar
 på honom, äldre talfilmer där en nyare spelas, leveranser som aldrig blev en post och prov utan kort, med Runways
@@ -98,13 +106,15 @@ inget. `npm run stada` raderar det i slasken som är äldre än sju dygn men lä
 
 - Tillfälligt arbete i `../slask/blackjack-dealer/<uppgift>/` (eller där `DEALER_SLASK` pekar), en mapp per uppgift;
   ta bort din mapp när du är klar. Det som ska finnas kvar flyttas till `assets/` med en roll, eller in i Git.
-- `.runtime/` är verktygens: databaserna, liggarna, loggarna, labbserverns tillfälliga filer och papperskorgen.
+- `.runtime/` är verktygens: databaserna, liggarna, loggarna, serverns tillfälliga filer och papperskorgen.
 
-## Labbservern
+## Servern
 
-- `npm start` startar labbet på `http://127.0.0.1:4319` och öppnar fliken; `npm run status` och `npm run stop` frågar
-  och stoppar. En sida visas i den öppna fliken med `node tools/preview.ts --open "<sida>"`; före en länk till Jakob
-  `node tools/preview.ts --ensure`. Omladdning, navigering och skärmbilder görs utan att fråga.
+- `npm start` startar servern på `http://127.0.0.1:4319` och öppnar studion i en flik; `npm run status` och
+  `npm run stop` frågar och stoppar. En sida visas i den nyaste öppna fliken med
+  `node tools/preview.ts --open "<sida>"`; före en länk till Jakob `node tools/preview.ts --ensure`. Omladdning,
+  navigering och skärmbilder görs utan att fråga. En agents egen sida öppnas med `?robot=1`, så att `--open` aldrig
+  visar en sida i den.
 - Stoppa servern bara med `npm run stop`, aldrig via processnamn eller port; rör inte andra projekts servrar. Servern
   lämnar ut arbetsträdet, så en halvfärdig fil syns genast i Jakobs flik; den läser `tools/` och modullistan en gång, så
   en ändring där gäller efter `node tools/preview.ts --restart` (huvudagenten).

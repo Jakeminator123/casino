@@ -19,7 +19,7 @@ Originalmätningar och referenshashar bevaras; en adapter konverterar vid en utt
 
 ## 3D-scenen
 
-Fristående TypeScript-moduler som webbläsaren läser direkt (typavskalade av labbservern), three.js 0.180.0 via
+Fristående TypeScript-moduler som webbläsaren läser direkt (typavskalade av servern), three.js 0.180.0 via
 importkartan, ingen bundler. `/scene3d.html` har alla reglage; `/game.html` bygger samma scen utan panel. En ny modul
 under `src/` skrivs först in i `SCRIPTS` i `tools/lab-routes.ts`, sedan omstart, sist importen (`tools/lab-modules.test.ts`).
 
@@ -49,7 +49,7 @@ tills dess pixlar kan maskas bort.
 
 `game/` är Scouts blackjackkärna, förd hit oförändrad i sak (regler, sko, slump med journal, signaler;
 `game/provenance.json` per fil). Den importerar aldrig från `src/`. `game/seats.ts` är enda översättningen från Scouts
-boxar 0–6: allt annat räknar plats 1–7. `game/session.ts` är en lokal enspelarsession; labbservern håller en per bord,
+boxar 0–6: allt annat räknar plats 1–7. `game/session.ts` är en lokal enspelarsession; servern håller en per bord,
 och kopian kör motorn i sidan (`cloud/studio/game-local.ts`). Hålkortets valör lämnar aldrig servern före vändningen.
 
 - **Gränsen:** kärnan äger regler, kortvärden, hålkortet och pengar; presentationen (`src/game-view.ts`, regissören,
@@ -90,7 +90,7 @@ Ingen vit kant (Jakob 2026-11-17, 2026-11-23). Kortet är rent tills efterarbete
   lever kvar i bland annat `createLayout`, `cameraFromContract` och `viewUnder`, och med flit i `tools/card-coverage.ts`
   och `tools/placement-backdrop.ts`.
 - **En linje för korten** (Jakob 2026-11-13): ritade kort hela vägen, en storlek (`cardScale` 1,2 = ett verkligt kort,
-  storlek 1,00 i Efterarbete), en brytare i spelet. Kortmattan är ett labbval, inte spelets. Överlägg i handen
+  storlek 1,00 i Efterarbete), en brytare i spelet. Kortmattan är ett val i studion, inte spelets. Överlägg i handen
   (`cardInHand`) är av i grunden; hans val i Scen följer med Använd i Casino (2026-11-19, 2026-11-24). Det styva kortet
   ritas med en storlek från hand till bord (2026-11-23). Storleken ändras bara i Efterarbete, aldrig i Kortplan.
 
@@ -133,7 +133,7 @@ IDLE>READY | READY>P1.C1 | P1.C1>READY | READY>D.C1 | D.C1>READY | READY>P1.C2 |
   namngivna träd per dealer, löst material för sig (2026-11-21). En komposition (`data/dealer-compositions.json`,
   `src/composition.ts`) lägger ihop träd med andelar, lån av steg och `tempo` 1–2 (Jakob 2026-11-23); ett klipp har sin
   egen fart (`tools/clip-speed.ts`). Träd med olika händer får sättas samman; Karta säger det som upplysning, och en sådan
-  spelas bara när han väljer den (2026-11-24). Labbets spel tar `?trad=<id>` eller `?komposition=<id>`.
+  spelas bara när han väljer den (2026-11-24). Spelet i studion tar `?trad=<id>` eller `?komposition=<id>`.
 
 ## Ett rörelseregister och tydliga bevis
 
@@ -166,7 +166,7 @@ Dockan i `dealer3d/` är en vit docka i bordets verkliga geometri vars filmer st
 (Jakob nej till Meshy-modellen av Paow 2026-11-18). En docka per dealer med dealerns mått, naturlig och inte "kuvad"
 (2026-11-21, 2026-11-23; `dealer3d/src/doll.ts`).
 
-- `dealer3d/src/doll-choices.ts` är enda källan för vad dockan kan göra med planens kort; Kortplan, docklabbet och
+- `dealer3d/src/doll-choices.ts` är enda källan för vad dockan kan göra med planens kort; Kortplan, Ställ dockan och
   `tools/doll-order.ts` läser den.
 - En sparad rörelse per kort och ankare (2026-11-23): `dealer3d/standard/<docka>-<plats>.json` är A2.3,
   `<docka>-a2-1-<plats>.json` A2.1. Naturlig ställning är förval; handens vinkel 17° när kortet tas och −30° när det

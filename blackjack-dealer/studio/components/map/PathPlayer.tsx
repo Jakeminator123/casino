@@ -65,7 +65,7 @@ export function PathPlayer({ parts, clips, graph, pic, onClose }: { parts: PlayP
     <RD.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <RD.Portal>
         <RD.Overlay className="fixed inset-0 z-50 bg-black/85 data-[state=open]:animate-fade-in" />
-        <RD.Content aria-describedby={undefined} onOpenAutoFocus={(e) => e.preventDefault()} className="fixed inset-0 z-50 flex flex-col bg-[#060908] focus:outline-none data-[state=open]:animate-fade-in">
+        <RD.Content aria-describedby={undefined} onOpenAutoFocus={(e) => e.preventDefault()} className="fixed inset-0 z-50 flex flex-col bg-well focus:outline-none data-[state=open]:animate-fade-in">
           <div className="flex shrink-0 items-center gap-3 border-b border-line px-4 py-2.5">
             <RD.Title className="min-w-0 truncate font-display text-lg font-semibold text-ink">{clip?.name ?? "Vägen"}</RD.Title>
             {take ? (

@@ -29,7 +29,7 @@ export const PRESET_BYTES = 16384;
 /** Presets of his own the server keeps at most. */
 export const OWN_LIMIT = 100;
 export const BASE = "basgrund";
-/** The editable look used when Casino or Scen & bord is opened without an explicit preset. */
+/** The editable look used when Casino or Bordet is opened without an explicit preset. */
 export const CASINO_PRESET = "casino";
 /** What a saved preset carries of the perspective: only Casino's, and only when Bred lins is chosen (Jakob 2026-11-21). */
 export const savedGeometri = (name: string, bred: boolean): { geometri?: string } => (name === CASINO_PRESET && bred ? { geometri: BRED_LINS } : {});

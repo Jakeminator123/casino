@@ -47,7 +47,7 @@ export function RoomGrid({
         {items.map((room) => {
           const on = room.id === value;
           return (
-            <Tooltip key={room.id} content={`${room.note}${room.game ? "" : " · bara i labbet"}`}>
+            <Tooltip key={room.id} content={`${room.note}${room.game ? "" : " · inte i spelet"}`}>
               <button
                 type="button"
                 role="radio"

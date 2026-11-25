@@ -31,7 +31,7 @@ function ProofCard({ proof, waiting, said }: { proof: Proof; waiting: number; sa
   return (
     <Link
       href={proofHref(proof.id)}
-      className="group flex h-full flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-inset transition-[border-color,background-color] duration-150 hover:border-line-strong hover:bg-[#151c18] focus-visible:outline-offset-2"
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-inset transition-[border-color,background-color] duration-150 hover:border-line-strong hover:bg-raised/50 focus-visible:outline-offset-2"
     >
       <div className="relative">
         <ProofStill cover={cover} fps={proof.fps} className="aspect-[16/10] transition-[filter] duration-200 group-hover:brightness-110" />

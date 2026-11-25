@@ -55,7 +55,7 @@ export function AnswerText({ blocks, streaming, open, onCite }: { blocks: Block[
   const caret = streaming ? <Caret /> : null;
   if (!blocks.length) return streaming ? <p>{caret}</p> : null;
   return (
-    <div className="flex flex-col gap-2.5 text-[14.5px] leading-[23px] text-[#dfe5e1]">
+    <div className="flex flex-col gap-2.5 text-[14.5px] leading-[23px] text-soft">
       {blocks.map((block, i) => {
         const last = i === blocks.length - 1;
         if (block.kind === "p") return <p key={i}>{inlines(block.parts, onCite, open, last ? caret : null)}</p>;

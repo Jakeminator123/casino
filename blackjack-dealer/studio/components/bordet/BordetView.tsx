@@ -1,8 +1,8 @@
 "use client";
 
-// Scen & bord (/bordet/?plats=p4c2): the lab's one view of the table (Jakob 2026-11-17: "Scen och placering bör ha samma typ av
+// Bordet (/bordet/?plats=p4c2): the lab's one view of the table (Jakob 2026-11-17: "Scen och placering bör ha samma typ av
 // vy, och på högersidan ska man kunna ändra och laborera med detta. Detta ska också vara underlaget för beställning av nya
-// filmer."). One frame for everything, titled Scen & bord: the toolbar on top with the view's menu at its left (the row wraps
+// filmer."). One frame for everything, titled Bordet: the toolbar on top with the view's menu at its left (the row wraps
 // rather than hides what does not fit), the picture as large as the window allows, one column on the right where things are
 // changed (under the picture on a narrow or upright window). The menu's parts:
 //   Kortplan     the plan on the picture (the chosen dealer's doll or a film of hers under the cards), with the steps for the
@@ -177,7 +177,7 @@ export function BordetView() {
     if (askedQueue) setMode("ko");
   }
   // The picture of Kortplan: the plan, or the doll (step 2). A link to the doll while the view is open (/docka/, an old
-  // ?lage=docka) shows it; a link to the view without the word while it shows (the rail's Scen & bord) shows the plan.
+  // ?lage=docka) shows it; a link to the view without the word while it shows (the menu's Bordet) shows the plan.
   const askedDoll = asksDoll(params);
   const [stage, setStage] = useState<Stage>(() => (!first && askedDoll ? dollPartOf(params.get("del")) : "plan"));
   const [step, setStep] = useState<StepId | null>(() => (first || params.get("lage") === "bestall" ? "order" : askedDoll ? "motion" : "place"));
@@ -292,7 +292,7 @@ export function BordetView() {
   const paused = !!orders?.dealers?.find((x) => x.id === dealer)?.paused;
   const dealerName = dealers.find((x) => x.id === dealer)?.name ?? dealer;
   const madeAnswer = guideRow && made[guideRow.key] ? (orders?.orders.find((a) => a.order.id === made[guideRow.key]) ?? null) : null;
-  const blocked = !ordersRead ? "Läser beställningarna …" : !orders ? "Beställningarna kunde inte läsas från labbservern." : paused ? `${dealerName} är pausad: inget nytt beställs.` : !orderable ? `Filmer till ${dealerName} kan inte beställas härifrån.` : draft.dirty ? "Spara kortplanen först: utkastet ritar kortet där den sparade planen lägger det." : guideRow && made[guideRow.key] && !madeAnswer ? "Utkastet är sparat: läser Kön …" : null;
+  const blocked = !ordersRead ? "Läser beställningarna …" : !orders ? "Beställningarna kunde inte läsas från servern." : paused ? `${dealerName} är pausad: inget nytt beställs.` : !orderable ? `Filmer till ${dealerName} kan inte beställas härifrån.` : draft.dirty ? "Spara kortplanen först: utkastet ritar kortet där den sparade planen lägger det." : guideRow && made[guideRow.key] && !madeAnswer ? "Utkastet är sparat: läser Kön …" : null;
   // The dealers the guide can order for: those not paused.
   const orderDealers = orders?.dealers ? orders.dealers.filter((x) => !x.paused) : dealers;
 
@@ -412,7 +412,7 @@ export function BordetView() {
   if (mode === "ko") return <OrderView menu={menu} />;
   return (
     <Page
-      title="Scen & bord"
+      title="Bordet"
       full
       status={
         !table ? null : draft.dirty ? (

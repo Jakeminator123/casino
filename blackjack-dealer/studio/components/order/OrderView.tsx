@@ -1,6 +1,6 @@
 "use client";
 
-// Kön (/bordet/?lage=ko&order=<id>), Scen & bord's part for the orders to Runway: what a round lacks, the queue, and for one
+// Kön (/bordet/?lage=ko&order=<id>), Bordet's part for the orders to Runway: what a round lacks, the queue, and for one
 // order the screen "Det här skickas" with its approval. The address holds the open order, so a link brings it back. New drafts
 // are made in Kortplan's step 3, the guide Ny film (its Skicka), never here. Reads GET /api/orders on load and when the tab is seen again;
 // writes only on Jakob's clicks (a change, an approval). Not in the online copy. Inside <Suspense>.

@@ -135,7 +135,7 @@ export function Production({ dealer, dealerName, plan, onOpen }: { dealer: strin
       setState({ list: (await getProduction(dealer)).list, error: null });
     } catch (e) {
       // A lab server started before the list was built does not know the route yet.
-      setState((s) => ({ ...s, error: asApiError(e, "Produktionslistan").status === 404 ? "listan visas när labbservern har startats om." : asApiError(e, "Produktionslistan").message }));
+      setState((s) => ({ ...s, error: asApiError(e, "Produktionslistan").status === 404 ? "listan visas när servern har startats om." : asApiError(e, "Produktionslistan").message }));
     }
   }, [dealer]);
   useEffect(() => {

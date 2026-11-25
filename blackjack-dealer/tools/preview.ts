@@ -40,7 +40,7 @@ const startServer=async()=>{
  if(process.platform==='win32')spawn('powershell.exe',['-NoProfile','-NonInteractive','-Command',`Start-Process -FilePath ${quote(process.execPath)} -ArgumentList 'tools/preview.ts' -WorkingDirectory ${quote(process.cwd())} -WindowStyle Hidden`],{env,stdio:'ignore',windowsHide:true});
  else spawn(process.execPath,['tools/preview.ts'],{cwd:process.cwd(),env,detached:true,stdio:'ignore'}).unref();
  for(let i=0;i<60;i++){await new Promise(done=>setTimeout(done,250));if(await health())return;}
- throw Error('Labbservern startade inte.');
+ throw Error('Servern startade inte.');
 };
 // A checkout without the studio's build (a new machine, a fresh clone) builds it once before the lab opens. The studio is
 // built in place, in studio/out; after a change to studio/ it is built again with npm --prefix studio run build.
@@ -58,11 +58,11 @@ if(has('--restart')){
  if(alive){const s=await readState();if(!s?.token)throw Error('Preview control failed');
   const r=await fetch(origin+'/stop?restart=1',{method:'POST',headers:{'x-dealer-token':s.token}});if(!r.ok)throw Error('Preview control failed');
   for(let i=0;i<40&&await health();i++)await new Promise(done=>setTimeout(done,250));}
- await startServer();console.log(alive?'Labbservern är omstartad; labbfliken laddar om sig själv.':'Labbservern är startad.');
+ await startServer();console.log(alive?'Servern är omstartad; flikarna laddar om sig själva.':'Servern är startad.');
 }else if(has('--stop')||has('--status')){
  const alive=await health();
  // Not running is an answer, not a failure; a status file left by a server that was killed is cleared on the way.
- if(!alive){const s=await readState();if(s&&sameRoot(s.root,process.cwd()))await unlink(state).catch(()=>{});console.log('Labbservern är inte igång.');}
+ if(!alive){const s=await readState();if(s&&sameRoot(s.root,process.cwd()))await unlink(state).catch(()=>{});console.log('Servern är inte igång.');}
  else if(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd()))throw Error('Preview identity differs');
  else if(has('--status'))console.log(JSON.stringify(alive));
  else{const s=await readState();if(!s?.token)throw Error('Preview control failed');
@@ -72,7 +72,7 @@ if(has('--restart')){
  // Before a link to the lab is handed to Jakob: the server is started if it is not running, and no tab is opened or moved.
  const alive=await health();
  if(alive&&(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd())))throw Error('Preview identity differs');
- ensureStudio();if(!alive)await startServer();console.log(alive?`Labbservern går: ${origin}`:`Labbservern är startad: ${origin}`);
+ ensureStudio();if(!alive)await startServer();console.log(alive?`Servern går: ${origin}`:`Servern är startad: ${origin}`);
 }else if(has('--open')){
  // The one way to put a lab page in front of Jakob: node tools/preview.ts --open "/studio/prov/?prov=<id>" (npm start does
  // this with the studio). The server is started if it is not running, the page is shown in the lab tab that is
@@ -87,10 +87,10 @@ if(has('--restart')){
  let s=await readState();for(let i=0;i<20&&!s?.token;i++){await new Promise(done=>setTimeout(done,100));s=await readState();}
  const r=await fetch(origin+'/tab/show',{method:'POST',headers:{'x-dealer-token':s?.token??'','content-type':'application/json'},body:JSON.stringify({url:target})});
  if(!r.ok)throw Error('Preview control failed');
- if((await r.json() as {reused:boolean}).reused)console.log(`Visas i den öppna labbfliken: ${origin}${target}`);
+ if((await r.json() as {reused:boolean}).reused)console.log(`Visas i den nyaste öppna fliken: ${origin}${target}`);
  else{
   const [command,list]:[string,string[]]=process.platform==='win32'?['rundll32',['url.dll,FileProtocolHandler',origin+target]]:process.platform==='darwin'?['open',[origin+target]]:['xdg-open',[origin+target]];
-  spawn(command,list,{detached:true,stdio:'ignore'}).unref();console.log(`Öppnade labbfliken: ${origin}${target}`);
+  spawn(command,list,{detached:true,stdio:'ignore'}).unref();console.log(`Öppnade en flik: ${origin}${target}`);
  }
 }else{
  const manifest=JSON.parse(await readFile('data/manifest.json','utf8'));
@@ -194,7 +194,7 @@ if(has('--restart')){
     res.setHeader('Content-Type','application/json; charset=utf-8');
     let size=0;const chunks:Buffer[]=[];for await(const chunk of req){size+=chunk.length;if(size>4096){res.writeHead(413).end();return;}chunks.push(chunk);}
     let wanted:unknown;try{wanted=JSON.parse(Buffer.concat(chunks).toString('utf8')).url;}catch{wanted=null;}
-    const target=localPath(wanted,origin);if(!target){res.writeHead(400).end(JSON.stringify({error:'Bara sidor i labbet kan visas.'}));return;}
+    const target=localPath(wanted,origin);if(!target){res.writeHead(400).end(JSON.stringify({error:'Bara sidor i studion kan visas.'}));return;}
     res.end(JSON.stringify(tabs.show(target)));return;
    }
    // Film orders and the state of a candidate picture (tools/order-routes.ts): answered there when the address is theirs.
@@ -208,7 +208,7 @@ if(has('--restart')){
     res.setHeader('Content-Type','application/json; charset=utf-8');
     if(req.method==='GET'){res.end(JSON.stringify(await placements.load()));return;}
     if(req.method!=='PUT'){res.writeHead(405).end();return;}
-    if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Spara från det lokala labbet.'}));return;}
+    if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Spara från studion på datorn.'}));return;}
     if(!req.headers['content-type']?.startsWith('application/json')){res.writeHead(415).end(JSON.stringify({error:'JSON krävs.'}));return;}
     if(Number(req.headers['content-length']??0)>65536){res.writeHead(413).end(JSON.stringify({error:'Placeringsfilen är för stor.'}));return;}
     try{
@@ -228,7 +228,7 @@ if(has('--restart')){
      const name=decodeURIComponent(url.pathname.slice('/api/scene-presets/'.length)),expected=typeof req.headers['if-match']==='string'?req.headers['if-match']:undefined;
      if(req.method==='GET'){res.end(JSON.stringify(await presets.load(name)));return;}
      if(req.method!=='PUT'&&req.method!=='DELETE'){res.writeHead(405).end();return;}
-     if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Spara från det lokala labbet.'}));return;}
+     if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Spara från studion på datorn.'}));return;}
      if(req.method==='DELETE'){res.end(JSON.stringify(await presets.remove(name,expected)));return;}
      if(!req.headers['content-type']?.startsWith('application/json')){res.writeHead(415).end(JSON.stringify({error:'JSON krävs.'}));return;}
      if(Number(req.headers['content-length']??0)>PRESET_BYTES){res.writeHead(413).end(JSON.stringify({error:'Förvalet är för stort.'}));return;}
@@ -244,7 +244,7 @@ if(has('--restart')){
     const id=url.pathname.slice('/api/clip-bank/review/'.length);
     res.setHeader('Content-Type','application/json; charset=utf-8');
     if(req.method!=='PUT'){res.writeHead(405).end();return;}
-    if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Spara från det lokala labbet.'}));return;}
+    if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Spara från studion på datorn.'}));return;}
     if(!req.headers['content-type']?.startsWith('application/json')){res.writeHead(415).end(JSON.stringify({error:'JSON krävs.'}));return;}
     if(Number(req.headers['content-length']??0)>8192){res.writeHead(413).end(JSON.stringify({error:'Beslutet är för stort.'}));return;}
     try{
@@ -259,7 +259,7 @@ if(has('--restart')){
     const id=url.pathname.slice('/api/clip-bank/archive/'.length);
     res.setHeader('Content-Type','application/json; charset=utf-8');
     if(req.method!=='PUT'){res.writeHead(405).end();return;}
-    if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Spara från det lokala labbet.'}));return;}
+    if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Spara från studion på datorn.'}));return;}
     if(!req.headers['content-type']?.startsWith('application/json')){res.writeHead(415).end(JSON.stringify({error:'JSON krävs.'}));return;}
     if(Number(req.headers['content-length']??0)>1024){res.writeHead(413).end(JSON.stringify({error:'För stort.'}));return;}
     try{
@@ -277,7 +277,7 @@ if(has('--restart')){
     res.setHeader('Content-Type','application/json; charset=utf-8');
     const refuse=(status:number,code:string,message:string)=>{res.writeHead(status).end(JSON.stringify({error:{code,message}}));};
     if(req.method!=='POST'){res.writeHead(405).end();return;}
-    if(req.headers.origin!==origin){refuse(403,'FORBIDDEN','Spela från det lokala labbet.');return;}
+    if(req.headers.origin!==origin){refuse(403,'FORBIDDEN','Spela från studion på datorn.');return;}
     if(!req.headers['content-type']?.startsWith('application/json')){refuse(415,'JSON_REQUIRED','JSON krävs.');return;}
     const name=tableName(url);if(!name){refuse(400,'INVALID_TABLE','Ogiltigt bordsnamn.');return;}
     try{
@@ -296,7 +296,7 @@ if(has('--restart')){
     try{
      if(req.method==='GET'){res.end(JSON.stringify(await proofNotes.answer()));return;}
      if(req.method!=='PUT'){res.writeHead(405).end();return;}
-     if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Skriv från det lokala labbet.'}));return;}
+     if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Skriv från studion på datorn.'}));return;}
      if(!req.headers['content-type']?.startsWith('application/json')){res.writeHead(415).end(JSON.stringify({error:'JSON krävs.'}));return;}
      if(Number(req.headers['content-length']??0)>NOTE_BYTES){res.writeHead(413).end(JSON.stringify({error:'Texten är för lång.'}));return;}
      let size=0;const chunks:Buffer[]=[];for await(const chunk of req){size+=chunk.length;if(size>NOTE_BYTES)throw new StoreError(413,'Texten är för lång.');chunks.push(chunk);}
@@ -311,7 +311,7 @@ if(has('--restart')){
     try{
      if(url.pathname==='/api/decisions'){if(req.method!=='GET'){res.writeHead(405).end();return;}res.end(JSON.stringify(await decisions.answer()));return;}
      if(req.method!=='PUT'){res.writeHead(405).end();return;}
-     if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Svara från det lokala labbet.'}));return;}
+     if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Svara från studion på datorn.'}));return;}
      if(!req.headers['content-type']?.startsWith('application/json')){res.writeHead(415).end(JSON.stringify({error:'JSON krävs.'}));return;}
      if(Number(req.headers['content-length']??0)>ANSWER_BYTES){res.writeHead(413).end(JSON.stringify({error:'Svaret är för stort.'}));return;}
      const id=decodeURIComponent(url.pathname.slice('/api/decisions/'.length));
@@ -334,7 +334,7 @@ if(has('--restart')){
     res.setHeader('Content-Type','application/json; charset=utf-8');
     if(req.method==='GET'){res.end(JSON.stringify(await media.answer()));return;}
     if(req.method!=='POST'){res.writeHead(405).end();return;}
-    if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Lägg till bilder från det lokala labbet.'}));return;}
+    if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Lägg till bilder från studion på datorn.'}));return;}
     const type=req.headers['content-type'];
     if(type!=='image/png'&&type!=='image/jpeg'){res.writeHead(415).end(JSON.stringify({error:'Bara PNG eller JPEG.'}));return;}
     if(Number(req.headers['content-length']??0)>UPLOAD_LIMIT){res.writeHead(413).end(JSON.stringify({error:`Bilden är för stor (högst ${UPLOAD_LIMIT/1048576} MB).`}));return;}
@@ -388,7 +388,7 @@ if(has('--restart')){
  // closed, and then every link Jakob was given led to a refused connection until someone started it again.
  // The port is taken: by this lab's own server (nothing to do), or by something else (an error).
  server.on('error',async(error:NodeJS.ErrnoException)=>{const mine=error.code==='EADDRINUSE'?await health():null;
-  if(mine?.name==='dealer'&&sameRoot(mine.root,process.cwd()))console.log(`Labbservern går redan: ${origin}`);else{console.error(error.message);process.exitCode=1;}});
+  if(mine?.name==='dealer'&&sameRoot(mine.root,process.cwd()))console.log(`Servern går redan: ${origin}`);else{console.error(error.message);process.exitCode=1;}});
  server.on('close',()=>{void unlink(state).catch(()=>{});});
  server.listen(port,'127.0.0.1',async()=>{await mkdir('.runtime',{recursive:true});await writeFile(state,JSON.stringify({root:process.cwd(),port,pid:process.pid,parent:process.ppid,executable:process.execPath,script:'tools/preview.ts',startedAt:new Date().toISOString(),token})); // Empty the slask of what is older than a week, once per server start.
  if(existsSync(SLASK)){const log=openSync('.runtime/stada.log','a');spawn(process.execPath,['tools/scratch-clean.ts'],{cwd:process.cwd(),stdio:['ignore',log,log],windowsHide:true}).on('error',()=>{});}

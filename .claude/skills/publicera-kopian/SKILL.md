@@ -38,10 +38,10 @@ Kopian står på `c9d006d` från 2026-11-20; `/meta.json` säger vilken commit d
 
 ## Publicera
 
-1. Koden pushad till `origin/main`; körningen görs från Jakobs utcheckning med labbservern igång, och port 4341 ledig.
+1. Koden pushad till `origin/main`; körningen görs från Jakobs utcheckning med servern igång, och port 4341 ledig.
 2. Planen: `node tools/publish-studio.ts --worktree <rent träd>` visar commit och steg; inget körs.
 3. Körningen: samma kommando med `--kor` (lösenordet för kontrollen i `DEALER_LOSEN_PROV`). Den bygger, laddar upp det
-   nya, lägger ut och kontrollerar utifrån; labbservern på 4319 rörs aldrig.
+   nya, lägger ut och kontrollerar utifrån; servern på 4319 rörs aldrig.
 4. Faller kontrollen efter deployen: `vercel rollback --scope jakeminator123s-projects --cwd .runtime/studio-deploy` och
    läs vad som föll. Stannar uppladdningen: kör igen; det som redan ligger skickas inte på nytt.
 5. Fråga kopian som en ny besökare efteråt, utan sparade val och i telefonstorlek; ett fel på en riktig telefon läses

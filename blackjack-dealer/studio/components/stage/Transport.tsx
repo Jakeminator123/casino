@@ -127,7 +127,7 @@ function ScrubBar({ parts, clock, onScrub, onScrubEnd }: { parts: PlayPart[]; cl
                 s.gap
                   ? "bg-[repeating-linear-gradient(135deg,rgb(224_108_108/0.55)_0_2px,transparent_2px_5px)] ring-1 ring-inset ring-underkand/35"
                   : s.step === current
-                    ? "bg-[#3a4840]"
+                    ? "bg-line-hi"
                     : "bg-line-strong",
               )}
               style={{ left: `calc(${s.from * 100}% + 1px)`, width: `max(1px, calc(${(s.to - s.from) * 100}% - 2px))` }}

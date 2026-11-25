@@ -12,7 +12,7 @@ export type { Choice, Note, NotesAnswer, SavedNote, ShownNote };
 export const TEXT_LIMIT = 1000;
 export const CHOICE_WORD: Record<Choice, string> = { bra: "Bra", "inte-bra": "Inte bra" };
 
-const NOT_UP = "Labbet svarar inte. Starta det med npm start.";
+const NOT_UP = "Servern svarar inte. Starta den med npm start.";
 const kind = (status: number) => (status === 409 ? "conflict" : status === 404 ? "missing" : status === 428 ? "precondition" : status === 403 || status === 413 || status === 415 ? "refused" : status >= 500 ? "server" : "invalid");
 
 async function errorOf(response: Response, what: string): Promise<ApiError> {

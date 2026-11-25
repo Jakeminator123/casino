@@ -69,12 +69,12 @@ function FitChips({ entry }: { entry: EntryAnswer }) {
   return (
     <span className="pointer-events-none absolute right-1.5 top-1.5 flex flex-col items-end gap-1" title={entry.fit?.words || undefined}>
       {verdict ? (
-        <Badge tone={FIT_TONE[verdict] ?? "neutral"} size="sm" className="bg-[#0b0f0d]/85 backdrop-blur-sm">
+        <Badge tone={FIT_TONE[verdict] ?? "neutral"} size="sm" className="bg-canvas/85 backdrop-blur-sm">
           {verdict}
         </Badge>
       ) : null}
       {extra.map((word) => (
-        <Badge key={word} tone="neutral" size="sm" className="bg-[#0b0f0d]/85 backdrop-blur-sm">
+        <Badge key={word} tone="neutral" size="sm" className="bg-canvas/85 backdrop-blur-sm">
           {word}
         </Badge>
       ))}
@@ -114,11 +114,11 @@ export function Tile({ entry, onOpen, selected = false, line, marks = [], quiet,
           <Placeholder icon={<ImageOff />}>Filen saknas</Placeholder>
         ) : (
           <Placeholder icon={<HardDrive />}>
-            <span>Utanför labbet</span>
+            <span>Utanför mappen</span>
             {entry.width && entry.height ? <span className="tabular-nums text-dim">{sizeWords(entry.width, entry.height)}</span> : null}
           </Placeholder>
         )}
-        {entry.state ? <StateChip state={entry.state} className="absolute left-1.5 top-1.5 bg-[#0b0f0d]/85 backdrop-blur-sm" /> : null}
+        {entry.state ? <StateChip state={entry.state} className="absolute left-1.5 top-1.5 bg-canvas/85 backdrop-blur-sm" /> : null}
         <FitChips entry={entry} />
         {frameTag ? (
           <span className="pointer-events-none absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded-xs bg-black/65 px-1.5 py-0.5 text-2xs font-medium text-ink backdrop-blur-sm">

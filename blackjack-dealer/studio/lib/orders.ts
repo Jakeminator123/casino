@@ -22,19 +22,19 @@ const kind = (status: number) => (status === 409 ? "conflict" : status === 404 ?
 
 async function call<T>(path: string, what: string, init?: RequestInit): Promise<T> {
   // The online copy neither reads nor writes orders: refused before anything leaves the page.
-  if (isSnapshot) throw new ApiError("Beställ finns bara i labbet.", 403, "refused");
+  if (isSnapshot) throw new ApiError("Beställ finns inte i kopian.", 403, "refused");
   let response: Response;
   try {
     response = await fetch(labUrl(path), { cache: "no-store", ...init });
   } catch {
-    throw new ApiError("Labbet svarar inte. Starta det med npm start.", 0, "network");
+    throw new ApiError("Servern svarar inte. Starta den med npm start.", 0, "network");
   }
   if (!response.ok) {
     let said = "";
     try {
       said = String((await response.json())?.error ?? "");
     } catch {}
-    if (response.status === 404 && !said) throw new ApiError("Labbet känner inte vyn Beställ än: labbservern behöver startas om.", 404, "missing");
+    if (response.status === 404 && !said) throw new ApiError("Servern känner inte vyn Beställ än: den behöver startas om.", 404, "missing");
     throw new ApiError(said || `${what} gick inte (${response.status}).`, response.status, kind(response.status));
   }
   return (await response.json()) as T;
@@ -128,7 +128,7 @@ export function orderingState(a: Pick<OrdersAnswer, "policy" | "balance"> | null
   if (!p.enabled) return { open: false, words: "Beställningar är avstängda i beställningsreglerna." };
   const balance = a.balance?.credits ?? p.balance.credits;
   if (balance <= p.minBalance) return { open: false, words: `Saldot ${credits(balance)} krediter är nere vid golvet ${credits(p.minBalance)}.` };
-  return { open: true, words: p.mandateBudget ? mandateWords(p.mandateBudget) : "Agenternas fullmakt syns inte i labbets svar." };
+  return { open: true, words: p.mandateBudget ? mandateWords(p.mandateBudget) : "Agenternas fullmakt syns inte i serverns svar." };
 }
 
 // ── Words ───────────────────────────────────────────────────────────────────

@@ -68,16 +68,18 @@ function Row({ label, children, className }: { label: string; children: ReactNod
 }
 
 const SWATCHES: [string, string, string][] = [
-  ["canvas", "#0B0F0D", "bg-canvas"],
-  ["well", "#070A09", "bg-well"],
-  ["surface", "#121815", "bg-surface"],
-  ["raised", "#19211D", "bg-raised"],
-  ["overlay", "#212B26", "bg-overlay"],
-  ["line", "#1E2722", "bg-line"],
-  ["line-strong", "#2D3933", "bg-line-strong"],
-  ["faint", "#7A867F", "bg-faint"],
-  ["dim", "#8E9A93", "bg-dim"],
-  ["ink", "#E8ECE9", "bg-ink"],
+  ["canvas", "#0F1012", "bg-canvas"],
+  ["well", "#07080A", "bg-well"],
+  ["surface", "#16181B", "bg-surface"],
+  ["raised", "#1E2125", "bg-raised"],
+  ["overlay", "#292D32", "bg-overlay"],
+  ["line", "#25282D", "bg-line"],
+  ["line-strong", "#373C43", "bg-line-strong"],
+  ["line-hi", "#4C525B", "bg-line-hi"],
+  ["faint", "#7E858E", "bg-faint"],
+  ["dim", "#A2A8B0", "bg-dim"],
+  ["soft", "#D4D7DC", "bg-soft"],
+  ["ink", "#F1F2F4", "bg-ink"],
   ["brass", "#D9B96A", "bg-brass"],
 ];
 const VERDICT_SWATCHES: [string, string, string][] = [
@@ -427,7 +429,7 @@ export default function Kit() {
               </EmptyState>
             </Panel>
             <Panel title="Fel">
-              <ErrorState compact title="Labbet svarar inte" error="Klippbanken: Labbet svarar inte. Starta det med npm start." onRetry={() => void reload()} />
+              <ErrorState compact title="Servern svarar inte" error="Klippbanken: Servern svarar inte. Starta den med npm start." onRetry={() => void reload()} />
             </Panel>
           </div>
         </Section>

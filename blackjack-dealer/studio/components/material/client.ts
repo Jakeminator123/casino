@@ -22,10 +22,10 @@ export async function getMedia(): Promise<MediaAnswer> {
   try {
     response = await fetch(labUrl("api/media"), { cache: "no-store" });
   } catch {
-    throw new ApiError(isSnapshot ? "Kopian svarar inte. Ladda om sidan." : "Labbet svarar inte. Starta det med npm start.", 0, "network");
+    throw new ApiError(isSnapshot ? "Kopian svarar inte. Ladda om sidan." : "Servern svarar inte. Starta den med npm start.", 0, "network");
   }
   if (!response.ok) {
-    if (response.status === 404) throw new ApiError(isSnapshot ? "Materialet finns bara i labbet, inte i kopian." : "Labbet känner inte vyn Material än: labbservern behöver startas om.", 404, "missing");
+    if (response.status === 404) throw new ApiError(isSnapshot ? "Materialet finns inte i kopian." : "Servern känner inte vyn Material än: den behöver startas om.", 404, "missing");
     throw await errorOf(response, "Materialet");
   }
   return (await response.json()) as MediaAnswer;
@@ -40,12 +40,12 @@ export async function setPictureState(id: string, state: State, revision: string
   try {
     response = await fetch(labUrl(`api/media/${encodeURIComponent(id)}/state`), { method: "PUT", headers: { "content-type": "application/json", "if-match": revision }, body: JSON.stringify({ state }) });
   } catch {
-    throw new ApiError("Labbet svarar inte. Starta det med npm start.", 0, "network");
+    throw new ApiError("Servern svarar inte. Starta den med npm start.", 0, "network");
   }
   if (!response.ok) {
     if (response.status === 404 || response.status === 405) {
       const said = await response.clone().json().catch(() => null);
-      if (!said?.error) throw new ApiError("Labbet kan inte spara domen än: labbservern behöver startas om.", response.status, "missing");
+      if (!said?.error) throw new ApiError("Servern kan inte spara domen än: den behöver startas om.", response.status, "missing");
     }
     throw await errorOf(response, "Domen");
   }
@@ -74,10 +74,10 @@ export async function addPicture(file: File, input: { dealer: string; role: Uplo
       body: file,
     });
   } catch {
-    throw new ApiError("Labbet svarar inte. Starta det med npm start.", 0, "network");
+    throw new ApiError("Servern svarar inte. Starta den med npm start.", 0, "network");
   }
   if (!response.ok) {
-    if (response.status === 404 || response.status === 405) throw new ApiError("Labbet kan inte ta emot bilder än: labbservern behöver startas om.", response.status, "missing");
+    if (response.status === 404 || response.status === 405) throw new ApiError("Servern kan inte ta emot bilder än: den behöver startas om.", response.status, "missing");
     throw await errorOf(response, "Bilden");
   }
   return (await response.json()) as Added;

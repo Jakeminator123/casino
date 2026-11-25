@@ -53,7 +53,7 @@ function Picture({ entry, close }: { entry: EntryAnswer; close: boolean }) {
         {/* The file's path is not his words: it waits under the pointer, as in Var den ligger. */}
         <div className="flex max-w-md flex-col items-center gap-3 text-dim [&_svg]:size-7" title={entry.path}>
           {entry.inside ? <ImageOff /> : <HardDrive />}
-          <p className="text-md text-ink">{entry.inside ? "Filen saknas på den här datorn." : "Filen ligger utanför labbet, så den visas inte här."}</p>
+          <p className="text-md text-ink">{entry.inside ? "Filen saknas på den här datorn." : "Filen ligger utanför projektets mapp, så den visas inte här."}</p>
         </div>
       </div>
     );
@@ -168,12 +168,12 @@ function Facts({ entry }: { entry: EntryAnswer }) {
           {entry.frame !== undefined ? (
             <span className="block text-sm">
               Ruta {entry.frame}
-              {entry.frames ? ` av ${entry.frames}` : ""} i filmen{entry.inside ? "" : " (utanför labbet)"}
+              {entry.frames ? ` av ${entry.frames}` : ""} i filmen{entry.inside ? "" : " (utanför projektets mapp)"}
             </span>
           ) : entry.inside ? (
-            <span className="block text-sm">I labbet</span>
+            <span className="block text-sm">I projektets mapp</span>
           ) : null}
-          {!entry.inside ? <span className="mt-1 block text-xs text-[#f0b07a]">Utanför repot: labbet lämnar inte ut den.</span> : null}
+          {!entry.inside ? <span className="mt-1 block text-xs text-[#f0b07a]">Utanför projektets mapp: servern lämnar inte ut den.</span> : null}
         </Fact>
         {size || entry.bytes ? (
           <Fact label="Storlek">
@@ -228,7 +228,7 @@ export function MaterialViewer({
   return (
     <RD.Root open={open} onOpenChange={(o) => !o && onIndex(null)}>
       <RD.Portal>
-        <RD.Overlay className="fixed inset-0 z-50 bg-[#060807] data-[state=open]:animate-fade-in" />
+        <RD.Overlay className="fixed inset-0 z-50 bg-well data-[state=open]:animate-fade-in" />
         <RD.Content
           ref={content}
           aria-describedby={undefined}
@@ -244,7 +244,7 @@ export function MaterialViewer({
             else return;
             event.preventDefault();
           }}
-          className="fixed inset-0 z-50 flex flex-col bg-[#060807] focus:outline-none data-[state=open]:animate-fade-in"
+          className="fixed inset-0 z-50 flex flex-col bg-well focus:outline-none data-[state=open]:animate-fade-in"
         >
           {entry ? (
             <>

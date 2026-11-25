@@ -2,6 +2,7 @@
 // pair a comparison starts from and the facts that differ, and the filters of the list of every take.
 // Pure: no DOM, no network.
 import { hubOf, playable, type Edge, type Graph, type Take } from "../../src/clip-graph.ts";
+import { isSnapshot } from "./mode.ts";
 import { formatSeconds, takeFacts } from "./names.ts";
 import { awaitingJakob, verdictOf, VERDICTS, type Verdict } from "./verdict.ts";
 
@@ -183,22 +184,48 @@ export function verdictCounts(takes: readonly Take[]): Record<Verdict, number> {
   return counts;
 }
 
+/** A file's path as the record writes it: "tools/register-order.ts", "../.claude/skills/granska-film/SKILL.md". */
+const PATH = String.raw`(?:\.\.\/)*[\w.-]+(?:\/[\w.-]+)+`;
 /**
- * The two lines a reviewer wrote about a take (review.basis, review.limitations), when there are any. A take brought in
- * from an order carries two sentences from its intake, "Inte granskad av Jakob: …" and "I inkorgen: …"
- * (tools/register-order.ts). His verdict takes the take out of the inbox but leaves those words in the record, where they
- * are then untrue (81 takes on 2026-11-13). The record is his and is not rewritten: the words are left out here instead,
- * and what a reviewer wrote after them stays. A verdict given for him takes the take out of the inbox too (the store
- * removes the flag), so its intake words are left out the same way; only a take still in the inbox shows them.
+ * A record's words as a person reads them (Jakob 2026-11-25: plain Swedish in the studio, the file names stay in the
+ * record for the agents): without a path in brackets ("… tagning 1 (tools/register-order.ts)") and without the pointer
+ * to where the review routine is written ("Oberoende rutgranskning: tools/film-review.md."). Nothing else is changed.
+ */
+export const plainWords = (text: string) =>
+  text
+    .replace(new RegExp(String.raw`\s*\(${PATH}\)`, "gu"), "")
+    .replace(new RegExp(String.raw`\s*Oberoende rutgranskning:\s*${PATH}\.?`, "gu"), "")
+    .replace(/\s{2,}/gu, " ")
+    .trim();
+
+/**
+ * What the record says about a take beside its verdict (review.basis, review.limitations), when it says anything, as a
+ * person reads it (plainWords). A take brought in from an order carries two sentences from its intake, "Inte granskad av
+ * Jakob: förd in från beställningen …" and "I inkorgen: …" (tools/register-order.ts). While it waits they are said in
+ * plain words: that nobody has reviewed it and which order it came from, and where it plays until he decides (in the
+ * studio "du", in the online copy "Jakob"). His verdict takes the take out of the inbox but leaves those words in the
+ * record, where they are then untrue (81 takes on 2026-11-13). The record is his and is not rewritten: the words are left
+ * out here instead, and what a reviewer wrote after them stays. A verdict given for him takes the take out of the inbox
+ * too (the store removes the flag), so its intake words are left out the same way.
  */
 export function reviewerNotes(take: Pick<Take, "motion">): { label: string; text: string }[] {
   const review = take.motion?.review;
   const judged = !!review && review.inbox !== true && (review.decision ?? "PENDING") !== "PENDING";
-  const basis = String(review?.basis ?? "").trim();
-  const limitations = String(review?.limitations ?? "").trim();
-  const said = judged ? basis.replace(/^Inte granskad av Jakob:\s*/u, "").replace(/^\p{Ll}/u, (c) => c.toUpperCase()) : basis;
+  const basis = plainWords(String(review?.basis ?? ""));
+  const limitations = plainWords(String(review?.limitations ?? ""));
+  const sentence = (text: string) => text.replace(/^\p{Ll}/u, (c) => c.toUpperCase());
+  const intake = /^Inte granskad av Jakob:\s*(?:förd in från\s*)?/u;
+  const inbox = /^I inkorgen:\s*/u;
+  if (judged)
+    return [
+      { label: "Granskaren", text: sentence(basis.replace(intake, "")) },
+      { label: "Begränsning", text: inbox.test(limitations) ? "" : limitations },
+    ].filter((n) => n.text);
+  const until = isSnapshot ? "tills Jakob dömer den" : "tills du dömer den";
   return [
-    { label: "Granskaren", text: said },
-    { label: "Begränsning", text: judged && limitations.startsWith("I inkorgen:") ? "" : limitations },
+    intake.test(basis) ? { label: "Inte granskad", text: `Filmen kom från ${basis.replace(intake, "")}` } : { label: "Granskaren", text: basis },
+    inbox.test(limitations)
+      ? { label: "Spelas", text: sentence(limitations.replace(inbox, "").replace(/^spelas\s+/u, "").replace("tills Jakob dömer den", until)) }
+      : { label: "Begränsning", text: limitations },
   ].filter((n) => n.text);
 }

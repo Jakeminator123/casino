@@ -36,7 +36,7 @@ export const LOOKS: {id: LookId; label: string; note: string; accents: boolean}[
 export type StageLightId = 'studio' | 'room';
 export type FloorId = 'none' | 'room';
 export const STAGE_LIGHTS: {id: StageLightId; label: string; note: string}[] = [
-  {id: 'studio', label: 'Studions', note: 'Som förut: bordet lyst av labbets neutrala studiorum och en vit lampa snett ovanifrån, inte av rummet som syns.'},
+  {id: 'studio', label: 'Studions', note: 'Som förut: bordet lyst av det neutrala studiorummet och en vit lampa snett ovanifrån, inte av rummet som syns.'},
   {id: 'room', label: 'Från rummet', note: 'Bordet lyst av rummet som syns: samma bild ger ljus och speglingar, och en mjuk lampa där bilden är ljusast kastar bordets skugga (rumsstudiens sätt).'},
 ];
 export const FLOORS: {id: FloorId; label: string; note: string}[] = [
@@ -263,7 +263,7 @@ async function start() {
 
   // ── models ──
   const props = await fetch('data/props.json').then(res => res.ok ? res.json() : null).catch(() => null).then(propList);
-  if (!props.length) { failBox.textContent = 'Listan över modeller kunde inte läsas (data/props.json). Starta labbet med npm start och ladda om.'; throw Error('data/props.json could not be read.'); }
+  if (!props.length) { failBox.textContent = 'Listan över modeller kunde inte läsas (data/props.json). Starta servern med npm start och ladda om.'; throw Error('data/props.json could not be read.'); }
   const models = new Map<string, Promise<Model>>(); let model: Model | null = null;
   const fileOf = (id: string) => `assets/props/${id}.glb`;
   async function load(id: string): Promise<Model> {
@@ -534,4 +534,4 @@ async function start() {
   }});
 }
 // Without a document only the look logic above is used; the page starts where there is a document.
-if (typeof document !== 'undefined') start().catch(error => { const box = document.getElementById('fail'); if (box && !box.textContent) box.textContent = 'Modell-labbet kunde inte starta. Ladda om sidan; om det inte hjälper, säg till.'; console.error(error); });
+if (typeof document !== 'undefined') start().catch(error => { const box = document.getElementById('fail'); if (box && !box.textContent) box.textContent = 'Sidan Modeller kunde inte starta. Ladda om sidan; om det inte hjälper, säg till.'; console.error(error); });

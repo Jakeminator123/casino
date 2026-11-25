@@ -49,7 +49,7 @@ export function orderRoutes(options: { root: string; origin: string } & StoreOpt
   let dolling = false;
 
   const json = (res: ServerResponse, status: number, value: unknown) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }).end(JSON.stringify(value)); };
-  const fail = (res: ServerResponse, error: unknown) => json(res, error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : 'Något gick fel i labbet.' });
+  const fail = (res: ServerResponse, error: unknown) => json(res, error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : 'Något gick fel i servern.' });
   const ifMatch = (req: IncomingMessage) => (typeof req.headers['if-match'] === 'string' ? req.headers['if-match'] : undefined);
   async function body(req: IncomingMessage, required: boolean): Promise<unknown> {
     if (Number(req.headers['content-length'] ?? 0) > BODY_LIMIT) throw new StoreError(413, 'Frågan är för stor.');
@@ -103,7 +103,7 @@ export function orderRoutes(options: { root: string; origin: string } & StoreOpt
     if (p !== '/api/orders' && !p.startsWith('/api/orders/') && !mediaState && p !== '/api/production') return false;
     try {
       const write = method !== 'GET' && method !== 'HEAD';
-      if (write && req.headers.origin !== origin) throw new StoreError(403, 'Spara från det lokala labbet.');
+      if (write && req.headers.origin !== origin) throw new StoreError(403, 'Spara från studion på datorn.');
       // The production list of a dealer (drafts are made in Kortplan, or with node tools/produce.ts <dealer> --draft).
       if (p === '/api/production') {
         if (method !== 'GET') throw new StoreError(405, 'Bara GET.');

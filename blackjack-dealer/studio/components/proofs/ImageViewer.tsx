@@ -100,7 +100,7 @@ export function ImageViewer({ pictures, index, onIndex }: { pictures: readonly P
   return (
     <RD.Root open={open} onOpenChange={(o) => !o && onIndex(null)}>
       <RD.Portal>
-        <RD.Overlay className="fixed inset-0 z-50 bg-[#060807] data-[state=open]:animate-fade-in" />
+        <RD.Overlay className="fixed inset-0 z-50 bg-well data-[state=open]:animate-fade-in" />
         <RD.Content
           ref={content}
           aria-describedby={undefined}
@@ -115,7 +115,7 @@ export function ImageViewer({ pictures, index, onIndex }: { pictures: readonly P
             else return;
             event.preventDefault();
           }}
-          className="fixed inset-0 z-50 flex flex-col bg-[#060807] focus:outline-none data-[state=open]:animate-fade-in"
+          className="fixed inset-0 z-50 flex flex-col bg-well focus:outline-none data-[state=open]:animate-fade-in"
         >
           {entry ? (
             <>

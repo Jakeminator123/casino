@@ -67,13 +67,13 @@ const kindOf = (status: number): ApiErrorKind =>
   : status === 403 || status === 413 || status === 415 ? "refused" : status >= 500 ? "server" : "invalid";
 
 const DEFAULT_TEXT: Record<ApiErrorKind, string> = {
-  network: isSnapshot ? "Kopian svarar inte. Ladda om sidan." : "Labbet svarar inte. Starta det med npm start.",
+  network: isSnapshot ? "Kopian svarar inte. Ladda om sidan." : "Servern svarar inte. Starta den med npm start.",
   conflict: "Posten har ändrats sedan den lästes.",
   missing: "Finns inte.",
   precondition: "Läs klippbanken innan du sparar.",
-  refused: "Labbet tog inte emot det här.",
-  invalid: "Labbet förstod inte frågan.",
-  server: "Något gick fel i labbet.",
+  refused: "Servern tog inte emot det här.",
+  invalid: "Servern förstod inte frågan.",
+  server: "Något gick fel i servern.",
 };
 
 /** Any thrown value as an ApiError, for code that catches. */
@@ -137,7 +137,7 @@ export const getContract = (): Promise<SceneContract> => read<SceneContract>("da
 export async function getRooms(): Promise<Rooms> {
   const json = await read<unknown>("data/scene-rooms.json", "Rumsregistret");
   const { readRegister } = await labModule<typeof import("../../src/scene3d-room.ts")>("scene3d-room").catch(() => {
-    throw new ApiError("Rumsmodulen kunde inte läsas från labbet.", 0, "network");
+    throw new ApiError("Rumsmodulen kunde inte läsas från servern.", 0, "network");
   });
   return readRegister(json);
 }

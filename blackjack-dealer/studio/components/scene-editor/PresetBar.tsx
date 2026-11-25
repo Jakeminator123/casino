@@ -70,7 +70,7 @@ export function PresetBar({
                     ? "border-brass/60 bg-brass/15 text-brass-hi"
                     : from
                       ? "border-brass/35 border-dashed text-ink hover:bg-raised"
-                      : "border-line-strong text-dim hover:border-[#3a4840] hover:text-ink",
+                      : "border-line-strong text-dim hover:border-line-hi hover:text-ink",
                   removable && "pr-7",
                 )}
               >
@@ -152,7 +152,7 @@ export function PresetBar({
         open={!!doomed}
         onOpenChange={(open) => !open && setDoomed(null)}
         title={`Ta bort ${doomed?.label ?? ""}?`}
-        description="Förvalet försvinner ur labbet. Scenen på skärmen ändras inte."
+        description="Förvalet försvinner ur studion. Scenen på skärmen ändras inte."
         footer={
           <>
             <Button variant="quiet" onClick={() => setDoomed(null)}>
@@ -200,7 +200,7 @@ function SaveDialog({
   const name = slugOf(label);
   const existing = presets.find((p) => p.name === name) ?? null;
   const taken = isShipped(name);
-  const problem = !label.trim() ? null : !name ? "Namnet behöver minst en bokstav eller siffra." : taken ? "Det namnet har ett förval som följer med labbet. Välj ett annat." : null;
+  const problem = !label.trim() ? null : !name ? "Namnet behöver minst en bokstav eller siffra." : taken ? "Det namnet har ett förval som följer med studion. Välj ett annat." : null;
   const submit = async () => {
     if (!name || taken || busy) return;
     setBusy(true);

@@ -1,6 +1,6 @@
 "use client";
 
-// <DealerSwitch />: whose studio this is, at the top of the rail under the mark: one button per dealer the bank holds takes
+// <DealerSwitch />: whose studio this is, at the top of the menu under the mark: one button per dealer the bank holds takes
 // of, the chosen one marked, and beside a name the number of takes waiting for Jakob's word when there are any. A paused
 // dealer (data/dealers.json) shows only while it is the chosen one (Jakob 2026-11-18: "en pausad dealer visas bara när en
 // adress nämner den"): an address names it (?dealer=<id>, or one of its takes), or an earlier click on it is remembered,
@@ -24,8 +24,9 @@ export function DealerSwitch() {
   const { dealer, dealers, setDealer } = useBank();
   const who = isSnapshot ? "Jakob" : "dig";
   return (
-    <div role="group" aria-label="Dealer: vems studio" className="mx-2 flex flex-col gap-2">
-      <span className="text-center text-[9.5px] font-semibold uppercase leading-3 tracking-[0.12em] text-faint">Dealer</span>
+    // Narrow: the buttons under each other, as wide as the menu. Wide (rail:): the word on its own line and the buttons in a row.
+    <div role="group" aria-label="Dealer: vems studio" className="mx-2 mt-2.5 flex shrink-0 flex-col gap-1.5 rail:mx-3 rail:flex-row rail:flex-wrap rail:px-2">
+      <span className="text-center text-[9.5px] font-semibold uppercase leading-3 tracking-[0.12em] text-faint rail:w-full rail:text-left rail:text-2xs rail:leading-4 rail:tracking-[0.1em]">Dealer</span>
       {dealers.filter((d) => !d.paused || d.id === dealer).map((d) => {
         const on = d.id === dealer;
         const tip = (
@@ -44,8 +45,9 @@ export function DealerSwitch() {
               aria-label={[d.name, d.waiting ? `${d.waiting} väntar` : null, d.paused ? "pausad" : null].filter(Boolean).join(", ")}
               onClick={() => setDealer(d.id)}
               className={cn(
-                "relative flex h-7 w-full items-center justify-center gap-1 rounded-md px-1 text-[11.5px] font-medium leading-4 transition-colors duration-150 focus-visible:outline-offset-0",
-                on ? "bg-raised text-ink ring-1 ring-inset ring-brass/45" : d.paused ? "text-faint hover:bg-raised/60 hover:text-dim" : "text-dim hover:bg-raised/60 hover:text-ink",
+                "relative flex h-7 w-full items-center justify-center gap-1 rounded-md px-1 text-[11.5px] font-medium leading-4 ring-1 ring-inset transition-colors duration-150 focus-visible:outline-offset-0",
+                "rail:h-8 rail:w-auto rail:min-w-16 rail:gap-1.5 rail:px-3 rail:text-sm rail:leading-5",
+                on ? "bg-raised text-ink ring-brass/55" : d.paused ? "text-faint ring-line hover:bg-raised/60 hover:text-dim" : "text-dim ring-line hover:bg-raised/60 hover:text-ink",
               )}
             >
               <span className="truncate">{d.name}</span>

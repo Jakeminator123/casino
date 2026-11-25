@@ -386,7 +386,7 @@ export function TreeCanvas({ view, layout, media, active, hover, sheetOpen, path
       onEdgeMouseLeave={() => onHover(null)}
       style={{ background: "var(--color-canvas)" }}
     >
-      <Background variant={BackgroundVariant.Dots} gap={24} size={1.1} color="#1b2420" />
+      <Background variant={BackgroundVariant.Dots} gap={24} size={1.1} color="#23262b" />
     </ReactFlow>
   );
 }

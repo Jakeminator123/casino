@@ -6,7 +6,7 @@
 //        --times 0,0.92,1.9      stills at those seconds, named <prefix>-<seconds>.png
 //        --film                  every frame of the scene, named <prefix>-0001.png ... (ffmpeg makes the film)
 //        [--prefix ruta]
-// Run it under the shared lock for the graphics card and headless Chrome (AGENTS.md, "Labbservern"): one run at a time, short.
+// Run it under the shared lock for the graphics card and headless Chrome (AGENTS.md, "Servern"): one run at a time, short.
 // The Chrome handling is shoot.ts's own, repeated: if the test goes on, shoot.ts should take the page as an option instead.
 import {createServer} from 'node:http';
 import {spawn, execFileSync} from 'node:child_process';

@@ -9,7 +9,7 @@ export default function Beslut() {
   if (isSnapshot)
     return (
       <Page title="Beslut">
-        <EmptyState title="Beslut finns bara i labbet">Jakob svarar i sitt eget labb.</EmptyState>
+        <EmptyState title="Beslut finns inte i kopian">Jakob svarar i studion på sin dator.</EmptyState>
       </Page>
     );
   return <DecisionsView />;

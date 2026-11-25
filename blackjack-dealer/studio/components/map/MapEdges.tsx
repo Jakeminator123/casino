@@ -74,7 +74,7 @@ export function RailEdge({ data }: EdgeProps<RailEdgeType>) {
   const { rail } = data;
   return (
     <g className="pointer-events-none">
-      <path d={rail.path} fill="none" stroke="#33413a" strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />
+      <path d={rail.path} fill="none" stroke="#3b4047" strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />
       {rail.text ? (
         <text x={rail.text.x} y={rail.text.y} textAnchor={rail.text.anchor} className="fill-faint text-[10.5px] font-semibold uppercase tracking-[0.08em]">
           {rail.text.value}

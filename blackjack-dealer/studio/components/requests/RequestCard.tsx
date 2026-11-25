@@ -25,7 +25,7 @@ function BotPart({ title, text, onRemove }: { title: string; text: string; onRem
           <X className="size-3.5" />
         </button>
       </div>
-      <p className="whitespace-pre-wrap text-sm leading-5 text-[#cfd6d2]">{text}</p>
+      <p className="whitespace-pre-wrap text-sm leading-5 text-soft">{text}</p>
     </div>
   );
 }

@@ -40,7 +40,7 @@ export function Switch({
         className={cn(
           "relative mt-px inline-flex shrink-0 items-center rounded-full border transition-[background-color,border-color] duration-150 disabled:cursor-not-allowed",
           sm ? "h-4 w-7" : "h-[18px] w-8",
-          checked ? "border-brass bg-brass" : "border-line-strong bg-overlay enabled:hover:border-[#3a4840]",
+          checked ? "border-brass bg-brass" : "border-line-strong bg-overlay enabled:hover:border-line-hi",
         )}
       >
         <span

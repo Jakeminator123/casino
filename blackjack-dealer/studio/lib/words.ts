@@ -2,13 +2,15 @@
 // common one"; 2026-11-17: the glossary must follow how he uses the words). Each entry is one thing: the one Swedish word the
 // studio uses for it (his most settled word where he has one), one line of what it is and where he sees it, the other words
 // he himself uses for the same thing (sager, shown as "Säger också"), and the names it has in code, files and documents
-// (aven, "Kallas också"). Every name leads to one entry only (kept by hand: no test holds it). The anchors' settled words come
-// from docs/BESKED.md "Dealern och ankarna" and docs/SYSTEM.md "Ordlista och gräns mot Scout"; the rest is checked against the code and
-// registers it names. The rail's "Ordlista" shows the table (components/shell/Glossary.tsx) and the bot reads it through
-// lib/guide.ts, so no text here may carry a machine path, a lab address or a name the copy blocks. Data and one search, no DOM.
+// (aven, "Kallas också"). Every name leads to one entry only (kept by hand: no test holds it). The anchors' settled words are
+// Jakob's own and docs/SYSTEM.md "Ordlista och gräns mot Scout"; the rest is checked against the code and
+// registers it names. The words for the studio itself (Studion, Ramen, Menyn, Vy, Bildytan, Servern) are his of 2026-11-25:
+// "labbet" is no longer a word of its own, it is one of the names that lead to Studion. The menu's "Ordlista" shows the
+// table (components/shell/Glossary.tsx) and the bot reads it through
+// lib/guide.ts, so no text here may carry a machine path, a local address or a name the copy blocks. Data and one search, no DOM.
 
-export type WordGroup = "Ankare och platser" | "Steg och filmer" | "Kortet" | "Bilder" | "Efter filmen" | "Tal och läppar" | "Omdömen" | "Labbet och vyerna";
-export const WORD_GROUPS: readonly WordGroup[] = ["Ankare och platser", "Steg och filmer", "Kortet", "Bilder", "Efter filmen", "Tal och läppar", "Omdömen", "Labbet och vyerna"];
+export type WordGroup = "Ankare och platser" | "Steg och filmer" | "Kortet" | "Bilder" | "Efter filmen" | "Tal och läppar" | "Omdömen" | "Studion och vyerna";
+export const WORD_GROUPS: readonly WordGroup[] = ["Ankare och platser", "Steg och filmer", "Kortet", "Bilder", "Efter filmen", "Tal och läppar", "Omdömen", "Studion och vyerna"];
 
 export type Word = {
   /** The one word a person sees in the studio. */
@@ -103,7 +105,7 @@ export const WORDS: readonly Word[] = [
   { grupp: "Efter filmen", ord: "Färdigt material", betyder: "Det spelaren ser: råmaterialet i 3D-scenen med efterbehandlingen ovanpå.", sager: [], aven: [] },
   { grupp: "Efter filmen", ord: "Ritat kort", betyder: "Spelkortet som spelet ritar över filmens gula och blå kort, hela vägen och också i hennes hand. Brytaren Ritade kort i spelets Miljö.", sager: ["överlägg", "overlay"], aven: ["Renderade kort", "kort=hand"] },
   { grupp: "Efter filmen", ord: "Underlägg", betyder: "Filmens eget kort färgas om bredvid det ritade kortet (baksidan mörk, framsidan papper), så att inget gult eller blått syns. På från början.", sager: [], aven: ["UNDER"] },
-  { grupp: "Efter filmen", ord: "Pålägg", betyder: "Filmens eget kort färgat om i filmens bildpunkter, utan ritat kort: gult blir mörk baksida, blått blir papper. Ett prov i labbet, inte i spelet.", sager: [], aven: ["cardBack=dark", "cardFace=paper"] },
+  { grupp: "Efter filmen", ord: "Pålägg", betyder: "Filmens eget kort färgat om i filmens bildpunkter, utan ritat kort: gult blir mörk baksida, blått blir papper. Ett prov i studion, inte i spelet.", sager: [], aven: ["cardBack=dark", "cardFace=paper"] },
   { grupp: "Efter filmen", ord: "Kortets utseende", betyder: "Det ritade kortets tryck (valör och färg), böjning och glans: i Efterarbete under Kort och marker.", sager: ["tryck"], aven: ["kortmaterial", "böjning", "glans"] },
   // ── Speech and lips ──
   { grupp: "Tal och läppar", ord: "Lipsync", betyder: "Munnen ritad efter rösten. Vyn Lipsync samlar grundbilderna, kedjan med format och skalor, inställningarna, var det körs och proven.", sager: ["lipsynk", "läppsynk"], aven: ["MuseTalk"] },
@@ -122,37 +124,43 @@ export const WORDS: readonly Word[] = [
   { grupp: "Omdömen", ord: "Granskare", betyder: "En dom som en agent har satt, inte Jakob: chippet är streckat.", sager: [], aven: ["av granskare", "review.decision utan userAccepted"] },
   { grupp: "Omdömen", ord: "Dömd åt dig", betyder: "En dom som huvudagenten och en granskare satt åt Jakob på hans uppdrag: streckad, med åt dig. Väntar inte på honom; hans beslut ersätter den.", sager: [], aven: ["provisional", "review-put", "Dömda åt dig"] },
   { grupp: "Omdömen", ord: "Arkiverad", betyder: "Lagd undan för hand av Jakob: ur spel och ur listorna, inte raderad, och domen står kvar. Ett klipp arkiveras och tas tillbaka i stegets panel på Kartan (Arkiverade), en bild i Material.", sager: ["arkivera"], aven: ["review.archived", "Arkiverade", "Ta tillbaka"] },
-  // ── The lab and its views ──
-  { grupp: "Labbet och vyerna", ord: "Labbet", betyder: "Studion på Jakobs dator, med alla vyer i menyn till vänster. Startas med npm start.", sager: ["nya labbet", "studion"], aven: ["Dealer Studio", "labbservern"] },
-  { grupp: "Labbet och vyerna", ord: "Docklabbet", betyder: "Sidan där dockan ses i varje ankare och i varje giv från A2.3, med lederna utmärkta och vyn dragbar. Reglagen under Styr lägger given på nytt, och Spara som standard sparar rörelsen för platsen. Ligger i Scen & bord under Docka, bredvid Dockans filmer.", sager: [], aven: ["dockans labb"] },
-  { grupp: "Labbet och vyerna", ord: "3D-sidan", betyder: "Utvecklarens sida för 3D-scenen med alla reglage (scene3d.html); Scen i studion visar samma scen, och inspelarna använder sidan. Bredvid den ligger sidorna Ljud (marker, kort, rum och musik) och Modeller (Meshy-modellerna), längst ner i menyn; de blir delar av en senare vy.", sager: [], aven: ["scene3d.html", "3D-labbet", "Ljud", "Modeller"] },
-  { grupp: "Labbet och vyerna", ord: "Kopian", betyder: "Den låsta studion på nätet: samma vyer och spelet, men inget går att ändra, och Bordets Kön, Lipsync, Docka och Beslut finns inte där.", sager: ["sajten"], aven: ["snapshot", "den låsta kopian", "Vercel"] },
-  { grupp: "Labbet och vyerna", ord: "Boten", betyder: "Den som svarar i Fråga på kopian: svarar om dealerprojektet med källa, och kan göra ett svar till ett önskemål till Jakob.", sager: [], aven: ["Fråga"] },
-  { grupp: "Labbet och vyerna", ord: "Önskemål", betyder: "På kopian: önskemål, frågor och felrapporter till Jakob, med status och hans svar.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "Scen", betyder: "Bordets del där en runda spelas i 3D-scenen och scenen ändras: rundorna och alla scenens reglage (rum, ljus, kort, kamera …) i kolumnen till höger.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "Förval", betyder: "En sparad look för 3D-scenen: Basgrund, Levande, Rumsstudien och egna, i raden Förval överst i Bordets Scen. I Kortplan och Kön betyder förval det som är valt från början.", sager: ["profilval"], aven: ["preset", "forval="] },
-  { grupp: "Labbet och vyerna", ord: "Basgrund", betyder: "Förvalet med det spelet visar i dag: Las Vegas, hela bordet, kvarliggande spelkort och filmens eget kort i handen. Scen märker det som skiljer sig från det.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "Levande", betyder: "Ett förval: Basgrund med kameran som lutar, skärpan som följer kortet, damm och klocka.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "3D", betyder: "Filmen spelad i 3D-scenen: keyad och lagd vid ett bord i ett rum, med ljus och kamera: Bordets Scen och Efterarbete.", sager: [], aven: ["scene3d", "3D-scenen"] },
-  { grupp: "Labbet och vyerna", ord: "Råfilm", betyder: "Filmen som den är filmad, på sin gröna bakgrund och utan rum: Bordets del Råfilm.", sager: ["Inte 3D", "råfilmen"], aven: ["platt", "flat"] },
-  { grupp: "Labbet och vyerna", ord: "Bordet", betyder: "Labbets vy av bordet, med delarna Kortplan, Kön, Scen, Råfilm och Efterarbete i samma ram och allt som ändras i kolumnen till höger.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "Kortplan", betyder: "Bordets del där kortplanen ändras på bilden: var kortet landar och hur det kommer dit, och kortbanan.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "Kön", betyder: "Bordets del med beställningarnas utkast och det som skickas: ett utkast godkänns här och läggs hos Runway. Länken till Protokoll finns här. Bara i labbet.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "Efterarbete", betyder: "Bordets del där det som läggs över råfilmen ändras (korten och markerna, se Efterbehandling); det skickas aldrig till filmmodellen.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "Karta", betyder: "Varje dealers träd: de 36 stegen per träd, från ankarna via platsernas kort och tillbaka, och för varje steg vad som finns och vad som saknas.", sager: [], aven: ["nodkartan", "nodträdet"] },
-  { grupp: "Labbet och vyerna", ord: "Primära", betyder: "I Karta: för varje steg tagningen som spelas nu (Primär) bredvid den bästa rakt godkända, och skarven mellan giv och retur.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "Granska", betyder: "Där tagningarna får Jakobs dom, en i taget och stort. Alla listar varje tagning, också de som är dömda åt honom.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "Jämför", betyder: "Två tagningar av samma steg sida vid sida, oftast en kandidat mot primären. Öppnas från en tagning.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "Prov", betyder: "Granskas del Prov: provmappar från arbetet, nyast först. En tagning bär granskaragentens omdöme eller Väntar på granskaragenten; underlag bär inget. Bra, Inte bra och Kommentera under film, bild och prov är din åsikt, ingen uppgift; huvudagenten svarar under.", sager: ["inte granskad"], aven: ["proof", "kontaktark", "provmapp"] },
-  { grupp: "Labbet och vyerna", ord: "Placering", betyder: "Var korten och skon ligger på bordet, och hur kortet tas, vänds och läggs: Bordets Kortplan. Sparas i placeringsplanen, som beställningarna läser.", sager: [], aven: ["placeringsplanen", "placements/default.json"] },
-  { grupp: "Labbet och vyerna", ord: "Material", betyder: "Per dealer: varje bild och film med sin roll (ingångsbild, keystone, ankare, landningar, filmer, referenser …) och om den gäller.", sager: [], aven: ["media-roles.json", "roll"] },
-  { grupp: "Labbet och vyerna", ord: "Gäller", betyder: "En bild i Material som gäller för sin roll: den nya beställningar använder. Kandidat: föreslagen. Ersatt: gällde förut.", sager: [], aven: ["kandidat", "ersatt"] },
-  { grupp: "Labbet och vyerna", ord: "Beställ", betyder: "Att beställa en film eller bild: i steg 3 i Bordets Kortplan visas kortets filmer och det som skickas, och utkasten godkänns i Kön, som lägger dem hos Runway. Bara i labbet.", sager: [], aven: [] },
-  { grupp: "Labbet och vyerna", ord: "Beställning", betyder: "En order på en film eller bild: steg, bilder, text, modell och antal tagningar. När den är godkänd ändras den aldrig.", sager: ["order"], aven: ["utkast"] },
-  { grupp: "Labbet och vyerna", ord: "Metod", betyder: "Hur ett steg beställs (modell, text, längd, tagningar) och vad som är prövat med sättet, per steg och slags plats. Är inget sätt prövat än väljs modell och längd i beställningen.", sager: ["beställningsmetod", "på prov", "inget sätt är prövat än"], aven: ["order-methods.json"] },
-  { grupp: "Labbet och vyerna", ord: "Protokoll", betyder: "Varje tagning ur varje beställning: vad som skickades, hur det gick, granskarens poäng och Jakobs dom. Länken finns i Kön.", sager: [], aven: ["ledger"] },
-  { grupp: "Labbet och vyerna", ord: "Casino", betyder: "Spelet: blackjack med spelmotorn, marker och reglage, i valt förval.", sager: ["spelet", "blackjacken"], aven: ["game.html"] },
-  { grupp: "Labbet och vyerna", ord: "Beslut", betyder: "Det som väntar på Jakobs svar: ett kort per sak med en bild; han svarar med en knapp och en anteckning. Bara i labbet.", sager: [], aven: ["decisions.json"] },
+  // ── The studio and its views ──
+  { grupp: "Studion och vyerna", ord: "Studion", betyder: "Allt du ser i webbläsaren: menyn till vänster och vyerna. Startas på datorn med npm start.", sager: ["labbet", "nya labbet", "studiosidan"], aven: ["Dealer Studio"] },
+  { grupp: "Studion och vyerna", ord: "Ramen", betyder: "Det som omger bilden i varje vy: menyn, rubrikraden, panelerna och knapparna. En snyggare studio är en snyggare ram; bildytan i mitten har sin egen kod.", sager: [], aven: ["skalet", "shell"] },
+  { grupp: "Studion och vyerna", ord: "Menyn", betyder: "Spalten till vänster: dealern, vyerna, Beslut, Ordlista och sidorna bredvid, och längst ner om servern svarar.", sager: [], aven: ["rail", "sidomenyn"] },
+  { grupp: "Studion och vyerna", ord: "Vy", betyder: "En sida i menyn: Bordet, Karta, Granska, Material, Lipsync, Casino och Beslut.", sager: [], aven: ["view"] },
+  { grupp: "Studion och vyerna", ord: "Bildytan", betyder: "Det i mitten av en vy, alltid ett av fyra: filmspelaren (en film som den är), scenen (filmen vid bordet i rummet, i 3D), dockan (den vita figuren som visar rörelsen) eller spelet (blackjack).", sager: [], aven: ["stage"] },
+  { grupp: "Studion och vyerna", ord: "Servern", betyder: "Programmet i bakgrunden som npm start startar: det lämnar ut studion, sparar det du ändrar och läser banken. Pricken längst ner i menyn visar om den svarar.", sager: [], aven: ["labbservern", "preview"] },
+  { grupp: "Studion och vyerna", ord: "Sidorna bredvid", betyder: "Ljud (marker, kort, rum och musik), Modeller (3D-modellerna) och Grafik (prov), längst ner i menyn: egna sidor med eget utseende, som öppnas i samma flik. De blir delar av en senare vy.", sager: [], aven: ["Ljud", "Modeller", "Grafik (prov)"] },
+  { grupp: "Studion och vyerna", ord: "Ställ dockan", betyder: "Bordets del där dockan ses i varje ankare och i varje giv från A2.3, med lederna utmärkta och vyn dragbar. Reglagen under Styr lägger given på nytt, och Spara som standard sparar rörelsen för platsen. Ligger i Kortplan, steg 2, bredvid Planen och Dockans filmer.", sager: ["docklabbet"], aven: ["dockans labb"] },
+  { grupp: "Studion och vyerna", ord: "3D-sidan", betyder: "Utvecklarens sida för 3D-scenen med alla reglage; Scen i studion visar samma scen, och inspelarna använder sidan. Den har ingen knapp i menyn.", sager: [], aven: ["scene3d.html", "3D-labbet"] },
+  { grupp: "Studion och vyerna", ord: "Kopian", betyder: "Den låsta studion på nätet: samma vyer och spelet, men inget går att ändra, och Bordets Kön, Lipsync, Docka och Beslut finns inte där.", sager: ["sajten"], aven: ["snapshot", "den låsta kopian", "Vercel"] },
+  { grupp: "Studion och vyerna", ord: "Boten", betyder: "Den som svarar i Fråga på kopian: svarar om dealerprojektet med källa, och kan göra ett svar till ett önskemål till Jakob.", sager: [], aven: ["Fråga"] },
+  { grupp: "Studion och vyerna", ord: "Önskemål", betyder: "På kopian: önskemål, frågor och felrapporter till Jakob, med status och hans svar.", sager: [], aven: [] },
+  { grupp: "Studion och vyerna", ord: "Scen", betyder: "Bordets del där en runda spelas i 3D-scenen och scenen ändras: rundorna och alla scenens reglage (rum, ljus, kort, kamera …) i kolumnen till höger.", sager: [], aven: [] },
+  { grupp: "Studion och vyerna", ord: "Förval", betyder: "En sparad look för 3D-scenen: Basgrund, Levande, Rumsstudien och egna, i raden Förval överst i Bordets Scen. I Kortplan och Kön betyder förval det som är valt från början.", sager: ["profilval"], aven: ["preset", "forval="] },
+  { grupp: "Studion och vyerna", ord: "Basgrund", betyder: "Förvalet med det spelet visar i dag: Las Vegas, hela bordet, kvarliggande spelkort och filmens eget kort i handen. Scen märker det som skiljer sig från det.", sager: [], aven: [] },
+  { grupp: "Studion och vyerna", ord: "Levande", betyder: "Ett förval: Basgrund med kameran som lutar, skärpan som följer kortet, damm och klocka.", sager: [], aven: [] },
+  { grupp: "Studion och vyerna", ord: "3D", betyder: "Filmen spelad i 3D-scenen: keyad och lagd vid ett bord i ett rum, med ljus och kamera: Bordets Scen och Efterarbete.", sager: [], aven: ["scene3d", "3D-scenen"] },
+  { grupp: "Studion och vyerna", ord: "Råfilm", betyder: "Filmen som den är filmad, på sin gröna bakgrund och utan rum: Bordets del Råfilm.", sager: ["Inte 3D", "råfilmen"], aven: ["platt", "flat"] },
+  { grupp: "Studion och vyerna", ord: "Bordet", betyder: "Vyn av bordet, med delarna Kortplan, Kön, Scen, Råfilm och Efterarbete i samma ram och allt som ändras i kolumnen till höger.", sager: ["Scen & bord"], aven: [] },
+  { grupp: "Studion och vyerna", ord: "Kortplan", betyder: "Bordets del där kortplanen ändras på bilden: var kortet landar och hur det kommer dit, och kortbanan.", sager: [], aven: [] },
+  { grupp: "Studion och vyerna", ord: "Kön", betyder: "Bordets del med beställningarnas utkast och det som skickas: ett utkast godkänns här och läggs hos Runway. Länken till Protokoll finns här. Finns inte i kopian.", sager: [], aven: [] },
+  { grupp: "Studion och vyerna", ord: "Efterarbete", betyder: "Bordets del där det som läggs över råfilmen ändras (korten och markerna, se Efterbehandling); det skickas aldrig till filmmodellen.", sager: [], aven: [] },
+  { grupp: "Studion och vyerna", ord: "Karta", betyder: "Varje dealers träd: de 36 stegen per träd, från ankarna via platsernas kort och tillbaka, och för varje steg vad som finns och vad som saknas.", sager: [], aven: ["nodkartan", "nodträdet"] },
+  { grupp: "Studion och vyerna", ord: "Primära", betyder: "I Karta: för varje steg tagningen som spelas nu (Primär) bredvid den bästa rakt godkända, och skarven mellan giv och retur.", sager: [], aven: [] },
+  { grupp: "Studion och vyerna", ord: "Granska", betyder: "Där tagningarna får Jakobs dom, en i taget och stort. Alla listar varje tagning, också de som är dömda åt honom.", sager: [], aven: [] },
+  { grupp: "Studion och vyerna", ord: "Jämför", betyder: "Två tagningar av samma steg sida vid sida, oftast en kandidat mot primären. Öppnas från en tagning.", sager: [], aven: [] },
+  { grupp: "Studion och vyerna", ord: "Prov", betyder: "Granskas del Prov: provmappar från arbetet, nyast först. En tagning bär granskaragentens omdöme eller Väntar på granskaragenten; underlag bär inget. Bra, Inte bra och Kommentera under film, bild och prov är din åsikt, ingen uppgift; huvudagenten svarar under.", sager: ["inte granskad"], aven: ["proof", "kontaktark", "provmapp"] },
+  { grupp: "Studion och vyerna", ord: "Placering", betyder: "Var korten och skon ligger på bordet, och hur kortet tas, vänds och läggs: Bordets Kortplan. Sparas i placeringsplanen, som beställningarna läser.", sager: [], aven: ["placeringsplanen", "placements/default.json"] },
+  { grupp: "Studion och vyerna", ord: "Material", betyder: "Per dealer: varje bild och film med sin roll (ingångsbild, keystone, ankare, landningar, filmer, referenser …) och om den gäller.", sager: [], aven: ["media-roles.json", "roll"] },
+  { grupp: "Studion och vyerna", ord: "Gäller", betyder: "En bild i Material som gäller för sin roll: den nya beställningar använder. Kandidat: föreslagen. Ersatt: gällde förut.", sager: [], aven: ["kandidat", "ersatt"] },
+  { grupp: "Studion och vyerna", ord: "Beställ", betyder: "Att beställa en film eller bild: i steg 3 i Bordets Kortplan visas kortets filmer och det som skickas, och utkasten godkänns i Kön, som lägger dem hos Runway. Finns inte i kopian.", sager: [], aven: [] },
+  { grupp: "Studion och vyerna", ord: "Beställning", betyder: "En order på en film eller bild: steg, bilder, text, modell och antal tagningar. När den är godkänd ändras den aldrig.", sager: ["order"], aven: ["utkast"] },
+  { grupp: "Studion och vyerna", ord: "Metod", betyder: "Hur ett steg beställs (modell, text, längd, tagningar) och vad som är prövat med sättet, per steg och slags plats. Är inget sätt prövat än väljs modell och längd i beställningen.", sager: ["beställningsmetod", "på prov", "inget sätt är prövat än"], aven: ["order-methods.json"] },
+  { grupp: "Studion och vyerna", ord: "Protokoll", betyder: "Varje tagning ur varje beställning: vad som skickades, hur det gick, granskarens poäng och Jakobs dom. Länken finns i Kön.", sager: [], aven: ["ledger"] },
+  { grupp: "Studion och vyerna", ord: "Casino", betyder: "Vyn där spelet spelas: blackjack med spelmotorn, marker och reglage, i valt förval.", sager: ["spelet", "blackjacken"], aven: ["game.html"] },
+  { grupp: "Studion och vyerna", ord: "Beslut", betyder: "Det som väntar på Jakobs svar: ett kort per sak med en bild; han svarar med en knapp och en anteckning. Finns inte i kopian.", sager: [], aven: ["decisions.json"] },
 ];
 
 const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();

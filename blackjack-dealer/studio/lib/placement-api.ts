@@ -31,7 +31,7 @@ export async function writePlan(plan: PlacementPlan, revision: string): Promise<
   try {
     response = await fetch(labUrl("api/placements"), { method: "PUT", cache: "no-store", headers: { "content-type": "application/json", "if-match": revision }, body: JSON.stringify(plan) });
   } catch {
-    throw new ApiError("Labbet svarar inte. Starta det med npm start.", 0, "network");
+    throw new ApiError("Servern svarar inte. Starta den med npm start.", 0, "network");
   }
   const text = await response.text().catch(() => "");
   let data: unknown = null;

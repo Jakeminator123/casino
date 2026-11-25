@@ -1953,4 +1953,4 @@ function start() {
 }
 // Without a document only the first half is used. The page half starts only on sound.html itself (its body carries
 // data-page="ljud-labb"); the game and any other page that imports the module get its exports and nothing else.
-if (typeof document !== 'undefined' && document.body?.dataset.page === 'ljud-labb') try { start(); } catch (error) { const box = document.getElementById('fail'); if (box && !box.textContent) box.textContent = 'Ljud-labbet kunde inte starta. Ladda om sidan; om det inte hjälper, säg till.'; console.error(error); }
+if (typeof document !== 'undefined' && document.body?.dataset.page === 'ljud-labb') try { start(); } catch (error) { const box = document.getElementById('fail'); if (box && !box.textContent) box.textContent = 'Sidan Ljud kunde inte starta. Ladda om sidan; om det inte hjälper, säg till.'; console.error(error); }

@@ -11,7 +11,7 @@ export default function Lipsync() {
   if (isSnapshot)
     return (
       <Page title="Lipsync">
-        <EmptyState title="Lipsync finns bara i labbet">Fakta om läppsynken läses i Jakobs lokala labb.</EmptyState>
+        <EmptyState title="Lipsync finns inte i kopian">Fakta om läppsynken läses i studion på Jakobs dator.</EmptyState>
       </Page>
     );
   return <LipsyncView />;

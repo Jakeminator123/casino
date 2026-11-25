@@ -89,7 +89,7 @@ function PostCard({ post, seen, onPicture }: { post: Post; seen: Seen; onPicture
 
       {post.text ? (
         <div className="flex flex-col gap-1">
-          <p className={cn("whitespace-pre-wrap text-sm leading-[21px] text-[#d7ddd9]", !more && long && "line-clamp-4")}>{post.text}</p>
+          <p className={cn("whitespace-pre-wrap text-sm leading-[21px] text-soft", !more && long && "line-clamp-4")}>{post.text}</p>
           {long ? (
             <button type="button" onClick={() => setMore((m) => !m)} className="self-start text-xs text-faint underline decoration-line-strong underline-offset-2 hover:text-ink">
               {more ? "Visa mindre" : "Visa mer"}
@@ -106,7 +106,7 @@ function PostCard({ post, seen, onPicture }: { post: Post; seen: Seen; onPicture
             <ChevronRight className="size-3.5 transition-transform duration-150 group-open:rotate-90" />
             <Sparkles className="size-3" /> Botens sammanfattning{post.forslag ? " och förslag" : ""}
           </summary>
-          <div className="ml-[7px] mt-1.5 flex flex-col gap-2 border-l border-line-strong pl-3.5 text-[#cfd6d2]">
+          <div className="ml-[7px] mt-1.5 flex flex-col gap-2 border-l border-line-strong pl-3.5 text-soft">
             {post.sammanfattning ? <p className="whitespace-pre-wrap">{post.sammanfattning}</p> : null}
             {post.forslag ? (
               <p className="whitespace-pre-wrap">
@@ -165,7 +165,7 @@ export function RequestsView() {
     return (
       <Page title="Önskemål">
         <EmptyState icon={<Inbox />} title="Önskemål finns i kopian på nätet" className="pb-[10vh]">
-          Där kan den som tittar fråga boten och skicka önskemål till Jakob. Här i labbet finns inga.
+          Där kan den som tittar fråga boten och skicka önskemål till Jakob. Här i studion på datorn finns inga.
         </EmptyState>
       </Page>
     );

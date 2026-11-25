@@ -1,6 +1,6 @@
 "use client";
 
-// The doll in Scen & bord's Kortplan (Jakob 2026-11-23: Kortplan and Docka "känns som typ samma sak"; "EN väg och ETT ställe
+// The doll in Bordet's Kortplan (Jakob 2026-11-23: Kortplan and Docka "känns som typ samma sak"; "EN väg och ETT ställe
 // man använder dockan"). Step 2, Hur det kommer dit, shows the doll where the plan's picture is, on the card Kortplan has
 // chosen; the toolbar chooses between the plan and the doll's two views:
 //   Ställ dockan    the doll lab itself in a frame (dealer3d/page/docka.html?inbaddad=1: its poses, the deal to each card,
@@ -119,7 +119,7 @@ export function DollNote({ dealer, place, standard, planSide }: { dealer: string
           ? [`sparad ${swedishMoment(saved.savedAt) ?? "utan datum"}`, saved.cardTempo !== 1 ? `kortet ${Math.round(saved.cardTempo * 100)} %` : null, DEALER_CARD.test(place) ? SIDE_WORD[saved.side] : null].filter(Boolean).join(" · ")
           : "ingen sparad standard · Naturlig";
   const title = clash
-    ? `Dockan lägger ${placeCode(place)} ${clash.doll}, kortplanen säger ${clash.plan}. Välj samma sida i docklabbet (Kortet ligger) och spara, eller ändra Vid landning.`
+    ? `Dockan lägger ${placeCode(place)} ${clash.doll}, kortplanen säger ${clash.plan}. Välj samma sida i Ställ dockan (Kortet ligger) och spara, eller ändra Vid landning.`
     : saved
       ? `Din sparade standard ${saved.name}`
       : undefined;
@@ -191,7 +191,7 @@ export function DollStage({
 
   return (
     <div className="relative size-full">
-      {lab ? <iframe key={lab.doll} ref={frame} src={lab.src} title="Docklabbet" data-doll-lab className={cn("absolute inset-0 size-full border-0", part !== "stall" && "hidden")} /> : null}
+      {lab ? <iframe key={lab.doll} ref={frame} src={lab.src} title="Ställ dockan" data-doll-lab className={cn("absolute inset-0 size-full border-0", part !== "stall" && "hidden")} /> : null}
       {part === "filmer" ? (
         <div className="absolute inset-0 flex flex-col overflow-y-auto [scrollbar-gutter:stable]">
           {groups.length ? (
@@ -224,7 +224,7 @@ export function DollStage({
           {!ordersRead ? (
             <Skeleton className="m-4 h-[60vh] rounded-md" />
           ) : !orders ? (
-            <ErrorState title="Dockans filmer kunde inte läsas" error="Beställningarna kunde inte läsas från labbservern." />
+            <ErrorState title="Dockans filmer kunde inte läsas" error="Beställningarna kunde inte läsas från servern." />
           ) : (
             <DollFilms group={group} dealer={dealer} word={entry ? "ingången" : placeCode(place)} />
           )}

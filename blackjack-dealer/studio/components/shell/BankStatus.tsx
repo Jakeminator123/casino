@@ -1,6 +1,6 @@
 "use client";
 
-// <BankStatus />: how the clip bank stands, for a page header: "Läser…", "109 tagningar", or that the lab does not answer.
+// <BankStatus />: how the clip bank stands, for a page header: "Läser…", "109 tagningar", or that the server does not answer.
 import { useBank } from "../../lib/bank.ts";
 import { cn } from "../ui/cn";
 import { Spinner } from "../ui/Spinner";
@@ -23,7 +23,7 @@ export function BankStatus({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
       <span className={cn("size-1.5 rounded-full", error ? "bg-anmarkning" : "bg-godkand/80")} />
-      {error ? "Labbet svarar inte · visar senast lästa" : `${takes} tagningar`}
+      {error ? "Servern svarar inte · visar senast lästa" : `${takes} tagningar`}
     </span>
   );
 }

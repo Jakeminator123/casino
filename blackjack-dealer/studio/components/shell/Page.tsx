@@ -23,8 +23,8 @@ export function Page({
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex h-13 shrink-0 items-center gap-3 border-b border-line bg-canvas/95 px-6">
-        <h1 className="shrink-0 font-display text-lg font-semibold tracking-[-0.01em] text-ink">{title}</h1>
+      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-6">
+        <h1 className="shrink-0 font-display text-xl font-semibold tracking-[-0.015em] text-ink">{title}</h1>
         {status ? (
           <>
             <span aria-hidden className="h-4 w-px shrink-0 bg-line-strong" />

@@ -96,7 +96,7 @@ function threeOf(id: string) {
 function roomNote(id: string) {
   const p = panoramas.find(r => r.id === id); if (!p) return '';
   const origin = p.kind === 'photo' ? `Fotograferat 360°-panorama av ${p.author}${p.page?.includes('polyhaven.com') ? ', Poly Haven' : ''} (${p.licence}).` : 'Genererad bild (Jakobs Codex-session 7 november).';
-  return `${p.label}: ${p.note}. ${origin} ${p.game ? 'Finns i spelet.' : 'Finns bara här i labbet: når spelet när du har godkänt det.'}`;
+  return `${p.label}: ${p.note}. ${origin} ${p.game ? 'Finns i spelet.' : 'Finns bara här i studion: når spelet när du har godkänt det.'}`;
 }
 function sync() { const three = document.getElementById('three'); if (three) three.textContent = threeOf(state.room); const about = document.getElementById('roomnote'); if (about) about.textContent = roomNote(state.room);
   for (const [key, set] of Object.entries(setters)) (set as (v: unknown) => void)(state[key as keyof SceneState]); const play = document.getElementById('play'); if (play) play.textContent = scene.players.paused ? 'Spela' : 'Pausa'; }
@@ -128,7 +128,7 @@ function build() {
     el('p', {className: 'note', id: 'roomnote'}),
     slider('Oskärpa längst bort', 'blur', 0, 30, 0.5, ' px', live), check('Oskärpan växer med avståndet (3D-salongen)', 'depthBlur'), slider('Full oskärpa efter', 'dofRange', 0.5, 12, 0.1, ' m', live),
     note('<b>3D-salong</b>: byggd geometri, äkta parallax. <b>360°-rummen</b> (Las Vegas, Skyline, Skogen och de nya): bilder runt kameran, exakta vid vridning men utan parallax, listade i data/scene-rooms.json. Skogen och de nya är fotograferade panoraman, Las Vegas och Skyline genererade bilder. <b>Kuliss</b>: V6-plåten som ett plan bakom dealern. <b>V6-plåt</b>: dagens platta bild, fast i rutan.'
-      + (fresh.length ? ` Bara i labbet tills du har godkänt dem för spelet: ${fresh.map(r => r.label).join(', ')}.` : '') + (roomProblems.length ? ` <b>Rumsregistret</b>: utelämnade (${roomProblems.join('; ').replace(/</g, '&lt;')}).` : '')),
+      + (fresh.length ? ` Bara i studion tills du har godkänt dem för spelet: ${fresh.map(r => r.label).join(', ')}.` : '') + (roomProblems.length ? ` <b>Rumsregistret</b>: utelämnade (${roomProblems.join('; ').replace(/</g, '&lt;')}).` : '')),
     shimmer, slider('Skimrets längd', 'roomShiftSeconds', 1, 5, 0.1, ' s', live),
     note('<b>Skimmer vid miljöbyte</b>: när du väljer en annan miljö byggs ett skimmer av guldpaljetter upp över hela bakgrunden, rummet byts under det när det är som starkast, och skimret dör ut över det nya rummet. Dealern och bordet rörs inte. Längden gäller nästa byte.'));
   group('Fokus (styrs av filmen)', choice('focus', [['off', 'Av'], ['dealer', 'Dealern'], ['follow', 'Följ given'], ['card', 'Kortet'], ['manual', 'Eget']]),

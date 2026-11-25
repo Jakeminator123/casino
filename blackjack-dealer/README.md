@@ -20,7 +20,7 @@ pages/          sidorna bredvid studion: 3D-sidan (scene3d.html), Ljud (sound.ht
 game/           spelmotorn (Scouts regler, oförändrade i sak) och spelsidan i game/page/
 src/            den delade motorn: 3D-scen, klippgraf, kort, kortplan, beställningar, tal
 dealer3d/       dockan: bordets verkliga geometri, givar som tal och dockans filmer
-tools/          kommandon, labbservern (preview.ts), Python-skripten (tools/python/) och testerna (*.test.ts)
+tools/          kommandon, servern (preview.ts), Python-skripten (tools/python/) och testerna (*.test.ts)
 cloud/          studions låsta kopia på nätet: låset och boten
 data/           registren (nedan)
 placements/     Jakobs kortplan
@@ -38,22 +38,31 @@ Alla `npm`- och `node`-kommandon körs från den här mappen. Node 24.22.3 (Volt
 
 | Kommando | Gör |
 | --- | --- |
-| `npm start` | startar labbservern på `http://127.0.0.1:4319` utan fönster och visar studion i en flik; bygger studion om den saknas |
-| `npm run status`, `npm run stop` | frågar och stoppar servern; `node tools/preview.ts --open "<sida>"` visar en sida i den öppna fliken, `--restart` byter server |
+| `npm start` | startar servern på `http://127.0.0.1:4319` utan fönster och visar studion i en flik; bygger studion om den saknas |
+| `npm run status`, `npm run stop` | frågar och stoppar servern; `node tools/preview.ts --open "<sida>"` visar en sida i den nyaste öppna fliken (flera flikar får vara öppna samtidigt), `--restart` byter server |
 | `npm --prefix studio run build` | bygger studion på plats till `studio/out/` |
 | `npm test` | kärnans tester, offline och utan media |
 | `npm run hooks:install`, `npm run check` | installerar kontrollen före push för hela casino-repot; kör den på de commits som ska ut |
 | `npm run verify` | jämför registrerade filer med sin hash i `data/manifest.json` (kräver media) |
 | `npm run stada` | raderar slasken äldre än sju dygn, utom `granska/` (`-- --torr` listar bara) |
-| `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (labbservern utför den säkra nivån själv när den startar); översikt över lagringen |
+| `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (servern utför den säkra nivån själv när den startar); översikt över lagringen |
 
-Labbserverns adresser står i `tools/lab-routes.ts`; utan media på datorn visar studion och spelet inga filmer.
+Serverns adresser står i `tools/lab-routes.ts`; utan media på datorn visar studion och spelet inga filmer.
 
 ## Studion
 
-[Studion](http://127.0.0.1:4319/studio/) öppnar på Bordet; menyn är `studio/components/shell/Rail.tsx`.
+[Studion](http://127.0.0.1:4319/studio/) är allt i webbläsaren och öppnar på Bordet. Den har två lager:
 
-- **Bordet** är den enda labbvyn (Jakob 2026-11-17, 2026-11-19): **Kortplan** i tre steg (var kortet landar; hur det
+- **Ramen** (menyn, rubrikraden, panelerna, knapparna) är Next.js, React och Tailwind. Färger och mått står i
+  `studio/app/globals.css`, menyn i `studio/components/shell/Rail.tsx` och byggstenarna i `studio/components/ui/`
+  (provsida: `/studio/ui/`). En ändring syns efter `npm --prefix studio run build` och en omladdning.
+- **Bildytan** i mitten är annan kod, som ramens stil inte når: filmspelaren (`studio/components/player/`), scenen
+  (three.js, `src/scene3d-*.ts`), dockan (`dealer3d/page/docka.html` i en ram) och spelet (`game/page/game.html` i en
+  ram). Sidorna bredvid (Ljud, Modeller, Grafik) är egna HTML-sidor i `pages/`.
+
+Orden står i studions Ordlista (`studio/lib/words.ts`). Vyerna:
+
+- **Bordet** är den enda vyn av bordet (Jakob 2026-11-17, 2026-11-19): **Kortplan** i tre steg (var kortet landar; hur det
   kommer dit, där dockan bor, `?lage=docka`; beställ), **Kön** (godkännande och Protokoll), **Scen** (en runda i
   3D-scenen), **Råfilm** och **Efterarbete** (korten och markerna över filmen). Spara skriver bara
   `placements/default.json`.
@@ -61,7 +70,7 @@ Labbserverns adresser står i `tools/lab-routes.ts`; utan media på datorn visar
 - **Granska**: Filmer (Jakobs domar) och Prov (provmapparna under `assets/proofs/`, `?prov=<mapp>`).
 - **Material** (vilka bilder som gäller), **Lipsync** (hur munnen görs, skrivskyddad), **Casino** (spelet med vald look).
 - I foten **Beslut** (det som väntar på Jakobs svar), **Ordlista**, och sidorna Ljud, Modeller och Grafik (prov).
-  **Jämför** nås från en tagning. Det som hör ihop är en knapp, och Casino från labbet är samma Casino (2026-11-17).
+  **Jämför** nås från en tagning. Det som hör ihop är en knapp, och Casino i menyn är samma spel som spelet (2026-11-17).
 - En vy för alla skärmar: en mobilvy härleds ur samma kort och lins. Paow står först; en pausad dealer visas bara när en
   adress nämner den (Jakob 2026-11-18).
 

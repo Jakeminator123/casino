@@ -14,11 +14,11 @@ import { isSnapshot, swedishMoment } from "./mode.ts";
 export type { BaseImage, Check, DealerFacts, Licence, LipRow, Lipsync, LipsMeasured, LipsyncAnswer, NotUsed, OpenPoint, ProofFact, Runs, Setting, SpeechSet, SpeechSets, Step, Still, Way, WayState, WhenNew };
 
 // ── The call ────────────────────────────────────────────────────────────────
-const NOT_UP = "Labbet svarar inte. Starta det med npm start.";
+const NOT_UP = "Servern svarar inte. Starta den med npm start.";
 
 /** The facts, with a still per proof (GET /api/lipsync). */
 export async function getLipsync(): Promise<LipsyncAnswer> {
-  if (isSnapshot) throw new ApiError("Lipsync finns bara i labbet.", 403, "refused");
+  if (isSnapshot) throw new ApiError("Lipsync finns inte i kopian.", 403, "refused");
   let response: Response;
   try {
     response = await fetch(labUrl("api/lipsync"), { cache: "no-store" });
@@ -31,7 +31,7 @@ export async function getLipsync(): Promise<LipsyncAnswer> {
       said = String((await response.json())?.error ?? "");
     } catch {}
     // A 404 without a word of the route's own is a lab server started before the route was there.
-    if (response.status === 404 && !said) throw new ApiError("Labbet känner inte vyn Lipsync än: labbservern behöver startas om.", 404, "missing");
+    if (response.status === 404 && !said) throw new ApiError("Servern känner inte vyn Lipsync än: den behöver startas om.", 404, "missing");
     throw new ApiError(said || `Fakta om läppsynken gick inte att läsa (${response.status}).`, response.status, response.status === 404 ? "missing" : response.status >= 500 ? "server" : "invalid");
   }
   return (await response.json()) as LipsyncAnswer;

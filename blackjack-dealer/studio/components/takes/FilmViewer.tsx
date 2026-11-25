@@ -70,7 +70,7 @@ export function FilmViewer({ takes, index, onIndex }: { takes: readonly Take[]; 
           ref={box}
           aria-describedby={undefined}
           onKeyDown={keys}
-          className="fixed inset-0 z-50 flex flex-col bg-[#060908] focus:outline-none data-[state=open]:animate-fade-in"
+          className="fixed inset-0 z-50 flex flex-col bg-well focus:outline-none data-[state=open]:animate-fade-in"
         >
           {take ? (
             <>

@@ -484,7 +484,7 @@ export function FilmPlayer({
             <canvas ref={canvas} aria-hidden="true" className={cn("pointer-events-none absolute inset-0 size-full object-contain", !canvasReady && "invisible")} />
           ) : null}
           {!loaded && !failed && !empty ? (
-            <div aria-hidden className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,#0d1210_0%,#151c18_45%,#0d1210_90%)] bg-[length:200%_100%]" />
+            <div aria-hidden className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,#111316_0%,#1d2024_45%,#111316_90%)] bg-[length:200%_100%]" />
           ) : null}
           {failed || empty ? (
             <div className="absolute inset-0 grid place-items-center text-faint">

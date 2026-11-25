@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 /*
- * Dealer Studio: the design tokens. Dark and calm, a casino without kitsch. The picture is the content; the chrome is
- * quiet surfaces, hairlines and one accent, brass, which is also the scene's own colour.
+ * Dealer Studio: the design tokens. Dark and calm, a casino without kitsch. The picture is the content; the frame around
+ * it (menu, headers, panels, buttons) is neutral graphite, as in a film editor, so that it never tints the green of the
+ * film and the felt, with one accent, brass, which is also the scene's own colour. Each step up (canvas, surface, raised,
+ * overlay) is clearly lighter than the one under it: that is what gives the frame its depth.
  *
  * Colours (utilities: bg-*, text-*, border-*, ring-*, fill-*):
  *   canvas   page background            well     behind films and pictures (almost black)
- *   surface  panels, rail, cards        raised   hover on a surface, popovers, inputs
- *   overlay  pressed / selected item    line     hairlines   line-strong  borders that must be seen
- *   ink      text                       dim      secondary text   faint  tertiary text (still 4.7:1 on canvas)
+ *   surface  panels, menu, cards        raised   hover on a surface, popovers, inputs
+ *   overlay  pressed / selected item    line     hairlines   line-strong  borders that must be seen   line-hi  a border under the pointer
+ *   ink      text    soft  long text    dim      secondary text   faint  tertiary text (still 4.7:1 on surface)
  *   brass    the one accent: primary actions, the active view, focus, Primär
  *   verdicts: primar (brass) · godkand · variant · vantar · underkand · anmarkning (proof remarks)
  * Type: text-2xs 11 · xs 12 · sm 13 · base 14 (body) · md 15 · lg 17 · xl 20 · 2xl 26. font-display for page titles.
@@ -20,16 +22,21 @@
   --font-display: "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
 
-  --color-canvas: #0b0f0d;
-  --color-well: #070a09;
-  --color-surface: #121815;
-  --color-raised: #19211d;
-  --color-overlay: #212b26;
-  --color-line: #1e2722;
-  --color-line-strong: #2d3933;
-  --color-ink: #e8ece9;
-  --color-dim: #8e9a93;
-  --color-faint: #7a867f;
+  /* The menu becomes a column of named rows from this width; under it, icons with a small word (a phone, a narrow window). */
+  --breakpoint-rail: 1100px;
+
+  --color-canvas: #0f1012;
+  --color-well: #07080a;
+  --color-surface: #16181b;
+  --color-raised: #1e2125;
+  --color-overlay: #292d32;
+  --color-line: #25282d;
+  --color-line-strong: #373c43;
+  --color-line-hi: #4c525b;
+  --color-ink: #f1f2f4;
+  --color-soft: #d4d7dc;
+  --color-dim: #a2a8b0;
+  --color-faint: #7e858e;
 
   --color-brass: #d9b96a;
   --color-brass-hi: #e8cb85;
@@ -68,7 +75,7 @@
 
   --shadow-pop: 0 18px 44px -14px rgb(0 0 0 / 0.75), 0 2px 8px rgb(0 0 0 / 0.35);
   --shadow-sheet: -28px 0 70px -24px rgb(0 0 0 / 0.8);
-  --shadow-inset: inset 0 1px 0 rgb(255 255 255 / 0.03);
+  --shadow-inset: inset 0 1px 0 rgb(255 255 255 / 0.045);
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 

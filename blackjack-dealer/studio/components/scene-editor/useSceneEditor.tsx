@@ -258,7 +258,7 @@ export function useSceneEditor(firstLook: () => LookAsk, page: { geometri?: stri
     if (!canSave || savingCasino || !presetsRead || !current || !defaults) return;
     setSavingCasino(true);
     try {
-      await saveAs(CASINO_PRESET, "Casino", "Casinos sparade visning, vald i Scen & bord.", presetOf(CASINO_PRESET)?.revision ?? null);
+      await saveAs(CASINO_PRESET, "Casino", "Casinos sparade visning, vald i Bordet.", presetOf(CASINO_PRESET)?.revision ?? null);
       toast({ tone: "ok", title: "Casino använder den här visningen", detail: `Med ${bred ? "Bred lins" : "Standard"}. Sparat för nästa gång du öppnar Casino; Casinot på nätet får det vid nästa publicering.` });
     } catch (error) {
       toast({ tone: "bad", title: "Casino-valet kunde inte sparas", detail: asApiError(error).message });

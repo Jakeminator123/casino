@@ -58,7 +58,7 @@ export function ProofStill({ cover, fps = 30, fit = "cover", className }: { cove
           className={cn("absolute inset-0 size-full transition-opacity duration-300", fit === "cover" ? "object-cover" : "object-contain", ready ? "opacity-100" : "opacity-0")}
         />
       ) : null}
-      {!ready && !failed && cover ? <div aria-hidden className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,#0d1210_0%,#151c18_45%,#0d1210_90%)] bg-[length:200%_100%]" /> : null}
+      {!ready && !failed && cover ? <div aria-hidden className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,#111316_0%,#1d2024_45%,#111316_90%)] bg-[length:200%_100%]" /> : null}
       {!cover || failed ? (
         <div className="absolute inset-0 grid place-items-center text-faint">{cover?.kind === "video" ? <Film className="size-5" /> : <ImageIcon className="size-5" />}</div>
       ) : null}

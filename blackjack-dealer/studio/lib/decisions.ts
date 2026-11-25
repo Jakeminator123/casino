@@ -14,7 +14,7 @@ export const NOTE_LIMIT = 1000;
 
 // ── Calls ───────────────────────────────────────────────────────────────────
 const kind = (status: number) => (status === 409 ? "conflict" : status === 404 ? "missing" : status === 428 ? "precondition" : status === 403 || status === 413 || status === 415 ? "refused" : status >= 500 ? "server" : "invalid");
-const NOT_UP = "Labbet svarar inte. Starta det med npm start.";
+const NOT_UP = "Servern svarar inte. Starta den med npm start.";
 
 async function errorOf(response: Response, what: string): Promise<ApiError> {
   let said = "";
@@ -26,14 +26,14 @@ async function errorOf(response: Response, what: string): Promise<ApiError> {
 
 /** Every entry of the register, the most urgent first (GET /api/decisions). */
 export async function getDecisions(): Promise<DecisionsAnswer> {
-  if (isSnapshot) throw new ApiError("Beslut finns bara i labbet.", 403, "refused");
+  if (isSnapshot) throw new ApiError("Beslut finns inte i kopian.", 403, "refused");
   let response: Response;
   try {
     response = await fetch(labUrl("api/decisions"), { cache: "no-store" });
   } catch {
     throw new ApiError(NOT_UP, 0, "network");
   }
-  if (response.status === 404) throw new ApiError("Labbet känner inte vyn Beslut än: labbservern behöver startas om.", 404, "missing");
+  if (response.status === 404) throw new ApiError("Servern känner inte vyn Beslut än: den behöver startas om.", 404, "missing");
   if (!response.ok) throw await errorOf(response, "Frågorna");
   return (await response.json()) as DecisionsAnswer;
 }

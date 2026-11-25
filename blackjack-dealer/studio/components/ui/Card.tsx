@@ -15,7 +15,7 @@ export function Card({
       data-selected={selected || undefined}
       className={cn(
         "relative rounded-lg border border-line bg-surface shadow-inset transition-[border-color,background-color,box-shadow] duration-150",
-        interactive && "hover:border-line-strong hover:bg-[#151c18]",
+        interactive && "hover:border-line-strong hover:bg-raised/50",
         selected && "border-brass/60 shadow-[0_0_0_1px_rgb(217_185_106/0.45)] hover:border-brass/70",
         className,
       )}

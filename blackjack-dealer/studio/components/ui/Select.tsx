@@ -45,7 +45,7 @@ export function Select({
           aria-label={label ? undefined : ariaLabel}
           className={cn(
             "group inline-flex w-full min-w-0 items-center justify-between gap-2 rounded-md border border-line-strong bg-well text-left text-ink shadow-inset",
-            "transition-[border-color,background-color] duration-150 enabled:hover:border-[#3a4840] disabled:cursor-not-allowed disabled:opacity-45",
+            "transition-[border-color,background-color] duration-150 enabled:hover:border-line-hi disabled:cursor-not-allowed disabled:opacity-45",
             "data-[state=open]:border-brass/70 data-[placeholder]:text-faint focus-visible:outline-none focus-visible:border-brass/70 focus-visible:ring-3 focus-visible:ring-brass/15",
             size === "sm" ? "h-7 px-2.5 text-xs" : "h-8 px-3 text-sm",
           )}

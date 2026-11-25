@@ -62,7 +62,7 @@ export async function captureView(): Promise<Taken> {
     height,
     pixelRatio: 1,
     skipFonts: true,
-    backgroundColor: "#0b0f0d",
+    backgroundColor: "#0f1012",
     filter: (node) => !skip(node),
   });
   const out = document.createElement("canvas");

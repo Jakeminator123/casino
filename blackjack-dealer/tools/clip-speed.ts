@@ -59,7 +59,7 @@ export async function serveClipSpeed(req: IncomingMessage, res: ServerResponse, 
   const send = (status: number, body: unknown) => { res.writeHead(status, {'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store'}); res.end(JSON.stringify(body)); };
   try {
     if (req.method !== 'PUT') return send(405, {error: 'Bara PUT.'});
-    if (req.headers.origin !== origin) return send(403, {error: 'Spara från det lokala labbet.'});
+    if (req.headers.origin !== origin) return send(403, {error: 'Spara från studion på datorn.'});
     if (!String(req.headers['content-type'] ?? '').startsWith('application/json')) return send(415, {error: 'JSON krävs.'});
     let body: {id?: unknown; speed?: unknown} | null;
     try { body = JSON.parse(await readBody(req)); } catch { return send(400, {error: 'Farten kunde inte läsas.'}); }

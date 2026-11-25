@@ -17,7 +17,7 @@ async function call<T>(path: string, what: string, init?: RequestInit): Promise<
   try {
     response = await fetch(labUrl(path), { cache: "no-store", ...init });
   } catch {
-    throw new ApiError(`${what}: labbet svarar inte.`, 0, "network");
+    throw new ApiError(`${what}: servern svarar inte.`, 0, "network");
   }
   const text = await response.text().catch(() => "");
   let data: unknown = null;

@@ -92,7 +92,7 @@ export const EdgeChip = forwardRef<HTMLButtonElement, EdgeChipProps>(function Ed
       className={cn(
         "inline-flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded-full border pl-[3px] pr-2 text-[11px] font-medium leading-none",
         "bg-surface shadow-[0_1px_6px_rgb(0_0_0/0.45)] transition-[opacity,border-color,box-shadow] duration-150",
-        gap ? "border-dashed border-underkand/70 pl-2 text-[#ef8b8b]" : "border-line-strong text-ink hover:border-[#4a5a51]",
+        gap ? "border-dashed border-underkand/70 pl-2 text-[#ef8b8b]" : "border-line-strong text-ink hover:border-line-hi",
         active && "border-brass shadow-[0_0_0_2px_rgb(217_185_106/0.35),0_1px_6px_rgb(0_0_0/0.45)]",
         dim && "opacity-25",
         compact && "pr-[3px]",

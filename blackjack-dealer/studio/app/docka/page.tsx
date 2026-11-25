@@ -1,6 +1,6 @@
 "use client";
 
-// /docka/: the address the doll lab had as a view of its own (2026-11-23). The doll is a part of Scen & bord now
+// /docka/: the address the doll lab had as a view of its own (2026-11-23). The doll is a part of Bordet now
 // (components/bordet/DollPanel.tsx), and a link here goes there with the same question: /docka/?dealer=paow opens
 // /bordet/?dealer=paow&lage=docka. In the online copy, which has no doll lab, Bordet opens on its Kortplan.
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,7 +9,7 @@ import { Page } from "@/components/shell";
 
 export default function OldDollPage() {
   return (
-    <Suspense fallback={<Page title="Scen & bord" full />}>
+    <Suspense fallback={<Page title="Bordet" full />}>
       <ToBordet />
     </Suspense>
   );
@@ -24,5 +24,5 @@ function ToBordet() {
   useEffect(() => {
     router.replace(to);
   }, [router, to]);
-  return <Page title="Scen & bord" full />;
+  return <Page title="Bordet" full />;
 }

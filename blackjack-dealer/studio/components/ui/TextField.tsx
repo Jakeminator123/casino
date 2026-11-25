@@ -7,7 +7,7 @@ import { cn } from "./cn";
 
 export const FIELD =
   "w-full min-w-0 rounded-md border border-line-strong bg-well text-ink shadow-inset placeholder:text-faint " +
-  "transition-[border-color,box-shadow,background-color] duration-150 hover:border-[#3a4840] " +
+  "transition-[border-color,box-shadow,background-color] duration-150 hover:border-line-hi " +
   "focus-visible:outline-none focus:border-brass/70 focus:ring-3 focus:ring-brass/15 " +
   "disabled:cursor-not-allowed disabled:opacity-45 aria-invalid:border-underkand/70 aria-invalid:focus:ring-underkand/15";
 

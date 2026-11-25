@@ -8,7 +8,7 @@ import "./globals.css";
 const icon =
   "data:image/svg+xml," +
   encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#121815"/>' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#16181b"/>' +
       '<g transform="rotate(-8 16 16)" fill="none" stroke="#D9B96A" stroke-width="2"><rect x="8.5" y="5.5" width="15" height="21" rx="2.5"/></g>' +
       '<path d="M16 11.2 19.6 16 16 20.8 12.4 16Z" fill="#D9B96A" transform="rotate(-8 16 16)"/></svg>',
   );
