@@ -1,3 +1,4 @@
+// Skyddar: beställningarna – en pilot först för ett oprövat sätt, räknat ur hans egna domar (Jakob 2026-11-24).
 // "Bara sätt som håller, och en pilot först" (Jakob 2026-11-24): what a way of making a film is, how its
 // state is counted from his own verdicts, and what the approval answers (src/order-ways.ts). The same contract through
 // the store and the routes, with files and a register: tools/order-routes.test.ts, "a pilot first".

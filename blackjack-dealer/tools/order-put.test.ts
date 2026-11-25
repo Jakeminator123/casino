@@ -1,3 +1,4 @@
+// Skyddar: beställningarna – en tagning läggs exakt en gång, och bara för en godkänd och oförändrad beställning.
 // The receipt writer (tools/order-put.ts) keeps exactly-once: requestedAt before the call, the task id after, a begun
 // take never begun again, nothing for an order that is not approved or has changed since, files checked against their hash.
 import test from 'node:test';

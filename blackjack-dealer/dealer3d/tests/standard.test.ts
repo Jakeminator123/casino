@@ -1,3 +1,4 @@
+// Skyddar: kontrakten – standarden: dockans lins är bordets lins, och planens platser ligger där planen säger.
 // The standard: one camera, one table, one card (docs/SYSTEM.md, "Standarden"). The lens written down in src/table-lens.ts
 // (TABLE_LENS, through which the card plan, the orders' last picture and the 3D scene's Standard draw) is the one the doll
 // fits anew from the film at run time (dealer3d/src/world.ts filmLens), and every place of Jakob's plan lies on the doll's

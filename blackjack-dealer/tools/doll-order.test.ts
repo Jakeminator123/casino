@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val – en dockfilm beställs från A2.3 och planens Handbyte väljer aldrig (Jakob 2026-11-25).
 // node --test tools/doll-order.test.ts
 // What the doll's order is made from (an order's contract): the pose is the step's own, A2.3 unless A2.1 is asked for.
 // The plan's "Handbyte" never chooses it (Jakob 2026-11-25: a deal the guide showed from A2.3 was drafted from A2.1 for

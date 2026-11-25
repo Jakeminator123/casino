@@ -1,3 +1,4 @@
+// Skyddar: publiceringsskyddet – inget privat (kostnader, namn, sökvägar, nycklar) når botens kunskap på nätet.
 // Offline tests for the bot's knowledge (tools/knowledge.ts): the cleaning that must stop anything private from reaching a
 // half-public site, in the documents, the bank and the proofs, and the last scan of what is built.
 import test from 'node:test';

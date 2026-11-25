@@ -1,3 +1,4 @@
+// Skyddar: kontrakten, hans domar och val – kompositionen spelar hans andelar, en film följer bara sin bild, högst 2×.
 // src/composition.ts, the contract of a composition of node trees (Jakob 2026-11-23): the shares hold over many rounds, a film
 // never follows a picture it does not begin on, a return goes home to its own anchor, a tree alone is today's ?trad=, and a tree
 // that is not played does not leak into the game. Trees with different hands are put together, and it is said (Jakob

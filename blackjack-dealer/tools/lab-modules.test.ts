@@ -1,3 +1,4 @@
+// Skyddar: kontrakten, publiceringsskyddet – varje modul en sida importerar lämnas ut, och ingen bär en sökväg på datorn.
 // The lab server hands out the modules in SCRIPTS (tools/lab-routes.ts) and it serves the working tree. A module that imports a
 // neighbour in src/ which the list does not name therefore loads in no browser: the import answers 404 and the whole page, the
 // game and the scene with it, stays dead until the list is changed and the server restarted. That happened twice on 2026-11-13.

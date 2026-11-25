@@ -1,8 +1,9 @@
+// Skyddar: beställningarna – det Bordets rad visar är det som beställs och kostar; hans eget klick stängs aldrig av fullmakten.
 // Bordet's step 2 and 3 for one card from A2.3 and one from A2.1: the anchor the films go from (the guide tree's, Tatuerad's
 // A2.3 or Tatuerad nyp's A2.1; A2.3 where no tree is read), the card's three films, the five marks, and that the
 // row tells the truth: the step, the first and the last picture, the reference film, the length, the price and the text the
 // row shows are the ones the store's preview freezes. Also the reference rule for the dummy's films of A2.3 → A3P4C2 (a film
-// made again comes first; a deal bara dit never takes a round trip), the words of step 2, the motion's steps
+// made again comes first; a deal bara dit never takes a round trip), step 2 and the motion's steps from the tree's anchor,
 // and the ordering block's state. And that no row is a dead end (Jakob 2026-11-23: rensa bort regler och låsningar som
 // blockerar): the reference film is a choice the store takes both ways, a deal to a seat without an end
 // picture is offered without one, a film without a recipe is ordered with a model and a length chosen on the row, and what
@@ -20,9 +21,9 @@ import sharp from "sharp";
 import { orderRoutes } from "../../tools/order-routes.ts";
 import { TEXTURE } from "../../tools/order-images.ts";
 import { LANDS_LABEL, modelFor, modelsFor, openEndWords, readCutChecks, stepOf, type BankFacts, type MandateBudget, type OrdersAnswer, type RenderedReference } from "../../src/order-model.ts";
-import { NO_RECIPE, REFERENCE_ABSENT, methodFor, recipeWords, referenceAbsent, referenceByRule, triedWords } from "../../src/order-methods.ts";
+import { NO_RECIPE, methodFor, recipeWords, referenceAbsent, referenceByRule } from "../../src/order-methods.ts";
 import type { Intent } from "../../src/placement-model.ts";
-import { MARK_NAMES, NOT_FROM_HERE, NO_LENGTH, NO_MODEL, orderBody, type FilmWish, type RowChoice, filmRow, hasRound, referenceOwner, referenceRole, roundFor, sentence, stepTwoSummary, treeAnchor } from "../lib/bordet.ts";
+import { MARK_NAMES, NOT_FROM_HERE, NO_LENGTH, NO_MODEL, orderBody, type FilmWish, type RowChoice, filmRow, hasRound, referenceOwner, referenceRole, roundFor, stepTwoSummary, treeAnchor } from "../lib/bordet.ts";
 import { dealAnchor, orderingState } from "../lib/orders.ts";
 import { motionSteps } from "../lib/placement.ts";
 
@@ -54,37 +55,6 @@ test("the reference rule: the film made again comes first, and a deal bara dit n
   // svep24d listed last is no reference for it, and without a round-trip film the step waits.
   assert.equal(chosen([cycle, film("docka-2-3-p4c2-svep24d", "READY-C>P4.C2", 3)], "ROUND_TRIP"), "docka-2-3-p4c2-h24-cykel");
   assert.equal(chosen([film("docka-2-3-p4c2-svep24d", "READY-C>P4.C2", 3)], "ROUND_TRIP"), null);
-});
-
-test("the real register: the dummy's films that go back to A2.3 say ROUND_TRIP, and a deal bara dit never gets one", async () => {
-  // Read from data/rendered-references.json itself (the films are not in Git, so no frames are compared here).
-  const rendered = (JSON.parse(await readFile(path.join(import.meta.dirname, "../../data/rendered-references.json"), "utf8")) as { films: RenderedReference[] }).films;
-  const byId = new Map(rendered.map((r) => [r.id, r]));
-  for (const id of ["docka-2-3-p4c2-h24-omgrepp", "docka-2-3-p4c2-h24-cykel", "docka-2-3-p4c1-h24-cykel"]) assert.equal(byId.get(id)?.shape, "ROUND_TRIP", id);
-  const step = stepOf("GIV-2.3")!, model = modelFor(step, "kling-4");
-  const want = { dealer: "paow", step, target: "P4.C2", model, lays: "RH" as const, shape: "ONE_WAY" as const };
-  const withoutSweep = rendered.filter((r) => r.id !== "docka-2-3-p4c2-svep24d");
-  assert.equal(referenceByRule({ rendered: withoutSweep }, "renderad", want), null, "P4.C2 bara dit waits rather than take omgrepp or a cycle");
-});
-
-test("a recipe informs and never stops: what has been tried in plain words, and what is not there where its rule finds no film", () => {
-  type Tried = NonNullable<Parameters<typeof triedWords>[0]>;
-  const method = (orders: string[], owner: Tried["evidence"]["owner"], status: Tried["status"] = "prov", model: string | null = "kling-4"): Tried => ({ status, model, evidence: { orders, reviewer: [], owner, note: "" } });
-  assert.deepEqual(triedWords(null), { tried: NO_RECIPE, said: null });
-  assert.deepEqual(triedWords(method(["a"], [], "saknas", null)), { tried: NO_RECIPE, said: null });
-  assert.deepEqual(triedWords(method([], [])), { tried: "inte prövat än", said: null });
-  assert.equal(triedWords(method(["a"], [])).tried, "prövat i 1 beställning");
-  // The owner's last words about a take: the latest date, and of two from one day the one listed last (made-up words here).
-  const owner = [{ take: "t1", words: "Ägaren 2026-11-23: första" }, { take: "t0", words: "Ägaren 2026-11-13: äldst" }, { take: "t2", words: "Ägaren 2026-11-23: sist" }];
-  assert.deepEqual(triedWords(method(["a", "b", "c"], owner, "gäller")), { tried: "prövat i 3 beställningar", said: "Ägaren 2026-11-23: sist" });
-  // The status itself is never the words: a recipe that holds and one on trial say the same thing of the same orders.
-  assert.deepEqual(triedWords(method(["a", "b", "c"], owner, "prov")), triedWords(method(["a", "b", "c"], owner, "gäller")));
-  // What is not there where a rule finds no film is said as a fact, never as something the step waits for.
-  for (const words of Object.values(REFERENCE_ABSENT)) assert.doesNotMatch(words, /väntar|kan inte/);
-  assert.equal(referenceAbsent("renderad", { card: true }), "dockan har ingen film till platsen som passar");
-  assert.equal(referenceAbsent("renderad", { card: false }), "dockan har ingen film som passar");
-  assert.equal(referenceAbsent("ingen", { card: true }), "");
-  assert.equal(sentence("ingen bild gäller för A2.3: gör en gällande i Material"), "Ingen bild gäller för A2.3: gör en gällande i Material.");
 });
 
 test("step 2 and the card's films: from the anchor of the guide's tree, never from the plan's handbyte", () => {

@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val – Dela ut väntar inte på köade vilor; ingången och given kommer direkt (Jakob 2026-11-23).
 // The order of films after the player asks for a step (src/game-film.ts leave, play), played by the real film queue
 // (src/scene3d-film.ts createPlayers) over fake <video> elements on a mocked clock. Jakob 2026-11-23: the rests already queued are
 // ignored when Dela ut is pressed, so that A1 to A2.n comes first and the deal after it. What holds: the rest on screen plays to

@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val, kontrakten – bara hans dömda tagningar spelas, arkiverat aldrig, registren hänger ihop.
 // The chain from picture to played film, read from the registers as they stand when the test runs (data/media-roles.json,
 // data/dealers.json, data/clip-jobs.json, the register of films and takes, data/orders/): anchors, verdicts, the clip bank's graph and what the game
 // plays from it. Each test holds something that is consistent today; a contradiction that still stands is no test here,

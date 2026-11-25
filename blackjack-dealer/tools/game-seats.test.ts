@@ -1,3 +1,4 @@
+// Skyddar: spelets regler, kontrakten – given går plats 7 till 1, och plats = box + 1 hela vägen ut.
 // Seat boundary tests for game/seats.ts: seat = box + 1 round trip, seat 7 → 1 opening deal and
 // turn order, Scout targets and families per seat, and no `box` anywhere the session returns.
 import test from 'node:test';

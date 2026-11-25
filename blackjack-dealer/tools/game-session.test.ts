@@ -1,3 +1,4 @@
+// Skyddar: spelets regler – pengarna i varje utfall, inget dubbelt, hålkortet dolt till vändningen, skon offentlig.
 // Session tests for game/session.ts: money over every outcome, idempotency and stale commands, typed refusals, the shoe
 // source and its seed, totals on the events, and that the hole card cannot be read or derived before its reveal.
 import test from 'node:test';

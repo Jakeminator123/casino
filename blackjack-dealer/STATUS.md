@@ -81,7 +81,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    (2026-11-23, `/kortlandning.html`).
 6. **Studion:** färre val, det uppenbart dubbla bort först: Casinos adress `/game/`, och verktygens meddelanden till
    agenter som ännu säger "labbet" (`tools/build-studio-snapshot.ts`, `lab-look.ts`, `media-audit.ts` med flera) liksom
-   granskningens sparade text (`studio/lib/verdict.ts`, låst av ett test); sidorna bredvid (Ljud, Modeller, Grafik) får
+   granskningens sparade text (`studio/lib/verdict.ts`); sidorna bredvid (Ljud, Modeller, Grafik) får
    ramens utseende (ordet "labb" är borta ur dem, 2026-11-26); fler register in i SQLite som filmregistret
    (2026-11-23). Granska: en tagning vars film inte finns på datorn ska inte stå som väntande, och sidan ska säga att
    filmen saknas här.

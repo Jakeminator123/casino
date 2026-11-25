@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val – hans svar i Beslut skrivs bara mot det han läste och ändrar bara sitt kort.
 // Offline tests for Jakob's answers from the studio's view Beslut (tools/decision-store.ts). Every write goes to a
 // temporary copy; the checkout's own data/decisions.json is only read.
 // Run: node --test tools/decision-store.test.ts

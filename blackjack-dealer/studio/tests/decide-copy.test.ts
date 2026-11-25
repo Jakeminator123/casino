@@ -1,3 +1,4 @@
+// Skyddar: publiceringsskyddet, hans domar och val – kopian på nätet kan aldrig skriva en dom eller arkivera.
 // The online copy (lib/mode.ts, NEXT_PUBLIC_DEALER_MODE=snapshot) never writes a decision: decide() through putDecision
 // refuses before any request leaves the page, and so does putArchive (a clip is archived in the lab only). A file of its own because the mode is read once, when lib/mode.ts loads.
 // Run: node --test "studio/tests/decide-copy.test.ts"

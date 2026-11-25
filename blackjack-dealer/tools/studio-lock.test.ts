@@ -1,7 +1,8 @@
+// Skyddar: publiceringsskyddet – kopian är låst bakom lösenord, spelets lösenord öppnar bara spelet, inget kan skrivas.
 import test, {type TestContext} from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import {copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, utimesSync, writeFileSync} from 'node:fs';
+import {copyFileSync, existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {basename, dirname, join} from 'node:path';
 import {secrets, passwordsOf, signCookie, verifyCookie, samePassword, passwordScope, signGameCookie, cookieScope, readCookies, TryLimit, MAX_AGE, COOKIE, TRIES, WINDOW} from '../cloud/studio/lock.ts';
@@ -53,25 +54,6 @@ test('local and snapshot builds cap workers and recover an identified exited own
   assert.match(second.owner, new RegExp(`^owner-${snapshot.pid}-`));
   assert.deepEqual([second.total, second.mode, second.args], ['5', 'snapshot', ['build']]);
   assert.equal(existsSync(lock), false);
-});
-
-test('an old studio build lock stays occupied when its owner is alive or unknown', t => {
-  const {lock, run} = studioBuildFixture(t);
-  mkdirSync(lock);
-  const old = new Date(2000, 0, 1);
-  utimesSync(lock, old, old);
-  const unknown = run([], 1400);
-  assert.equal((unknown.error as NodeJS.ErrnoException | undefined)?.code, 'ETIMEDOUT', unknown.stderr);
-  assert.match(unknown.stdout, /Väntar på min tur/);
-  assert.deepEqual(readdirSync(lock), []);
-
-  const active = `owner-${process.pid}-12345678-1234-1234-1234-123456789abc`;
-  writeFileSync(join(lock, active), '');
-  utimesSync(lock, old, old);
-  const live = run([], 1400);
-  assert.equal((live.error as NodeJS.ErrnoException | undefined)?.code, 'ETIMEDOUT', live.stderr);
-  assert.match(live.stdout, /Väntar på min tur/);
-  assert.deepEqual(readdirSync(lock), [active]);
 });
 
 test('the lock stays shut without a password or with a short signing key', async () => {

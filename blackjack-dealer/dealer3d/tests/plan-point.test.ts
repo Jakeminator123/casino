@@ -1,3 +1,4 @@
+// Skyddar: kontrakten – en plats som flyttas på dockans filt hamnar i planen där den flyttades.
 // The doll lab tells the studio where a place was moved on the felt in the plan's own words (dealer3d/page/docka.ts,
 // `moved`: u and v of placements/default.json, 'image-normalized-bottom-up'), and the studio writes them into its draft of
 // the plan. These hold that a place read off the plan comes back as the same u and v, and that a point moved on the felt

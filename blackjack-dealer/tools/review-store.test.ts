@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val – hans dom skrivs bara mot det som lästes, och en arkiverad tagning behåller sin dom.
 // Offline tests for review decisions written from the lab. Every write goes to a temporary register;
 // the checkout's own register is only read.
 import test from 'node:test';

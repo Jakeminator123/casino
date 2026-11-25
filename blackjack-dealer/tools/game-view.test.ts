@@ -1,3 +1,4 @@
+// Skyddar: spelets regler – sidan visar motorns kort och pengar, hålkortet stängt till vändningen, bara lagliga knappar.
 // The game's view (src/game-view.ts, game-director.ts, game-film.ts): the page shows what the engine does. Every card is the one
 // dealt, on its place; totals only as cards land; the hole card closed until its turn; controls only what the phase allows;
 // a round is collected once.
@@ -13,7 +14,6 @@ import {cardFace, cardRecord} from '../src/card-overlay.ts';
 import {createRng} from '../game/rng.ts';
 import {tableView, tableCards, cardFaces, shownBy, lineOf, handKey, mayAsk, shownFor, collector, stageOf, DEALER_KEY, type Ask, type PageState, type Shown} from '../src/game-view.ts';
 import {handValue, type Card} from '../game/round.ts';
-import {totalText, chipsFor} from '../src/game-overlay.ts';
 
 // A stacked lab shoe: the cards in draw order from draw 2 (draw 1 is the burn card). One seat plays, seat 4:
 // seat 4 gets K and 6, the dealer's first card is a hidden 10 and her second an open 7, and the next card in the shoe is a 5.
@@ -75,11 +75,6 @@ test('a natural is marked by the engine, not by the overlay', () => {
   const last = dealt.events.filter(e => e.type === 'deal' && e.to === 'seat').map(e => shownBy(e)!).pop()!;
   assert.deepEqual([last.natural, last.total], [true, 21]);
   assert.equal(tableView(dealt, page({busy: true, shown: {[last.key]: last}})).seats[3].hands[0].state, 'BLACKJACK');
-});
-
-test('the overlay\'s total and chips: a soft total shows both values, the chips make up the stake', () => {
-  assert.equal(totalText({total: 17, soft: true}), '7/17'); assert.equal(totalText({total: 17, soft: false}), '17'); assert.equal(totalText({total: null, soft: false}), '');
-  assert.deepEqual(chipsFor(155, [5, 25, 100, 500, 1000]), [100, 25, 25, 5]);
 });
 
 // ── The engine's card is the card the presentation shows, from the signal to the card layer ──

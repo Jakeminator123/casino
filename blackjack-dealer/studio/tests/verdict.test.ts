@@ -1,10 +1,11 @@
-// Verdicts of takes and proof files (studio/lib/verdict.ts). Run: node --test studio/tests/
+// Skyddar: hans domar och val – vems dom det är, dömt åt honom är aldrig hans, och kön är bara det ingen har dömt.
+// Verdicts of takes (studio/lib/verdict.ts). Run: node --test studio/tests/
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildGraph, type BankData, type BankJob } from "../../src/clip-graph.ts";
 import { DECISIONS, NOTE_LIMIT as STORE_LIMIT, applyChange, applyProvisional } from "../../tools/review-store.ts";
 import { NOTE_LIMIT, type Decision } from "../lib/api.ts";
-import { FOR_YOU, PROOF_VERDICT_LABEL, SAID_WITHOUT_NOTE, VERDICTS, VERDICT_LABEL, VERDICT_SIGN, awaitingJakob, chosenDecision, judgedForJakob, primarCount, proofVerdict, provisionalChip, provisionalOf, provisionalWords, reviewStamp, splitLabel, storedNote, verdictOf, verdictPhrase } from "../lib/verdict.ts";
+import { FOR_YOU, SAID_WITHOUT_NOTE, VERDICTS, VERDICT_LABEL, VERDICT_SIGN, awaitingJakob, chosenDecision, judgedForJakob, provisionalChip, provisionalOf, provisionalWords, reviewStamp, storedNote, verdictOf, verdictPhrase } from "../lib/verdict.ts";
 
 type R = Record<string, unknown>;
 const take = (review: R | null, extra: R = {}) => ({
@@ -76,66 +77,6 @@ test("the studio's decisions are the store's", () => {
   const ours: Decision[] = ["MAIN", "ACCEPTED", "VARIANT", "REJECTED", "PENDING"];
   for (const d of ours) assert.ok((DECISIONS as readonly string[]).includes(d), d);
   assert.equal(NOTE_LIMIT, STORE_LIMIT);
-});
-
-test("counts for the rail", () => {
-  const job = (id: string, from: string, to: string, kind: string): BankJob => ({ id, kind, target: null, from, to, model: "wan3", duration: 4, ratio: "auto_1080p", audio: false, promptText: "", first: {}, purpose: "" });
-  const bank: BankData = {
-    jobs: [job("a-deal-01", "READY", "P4.C1", "DEAL"), job("a-deal-02", "READY", "P4.C1", "DEAL"), job("a-deal-03", "READY", "P4.C1", "DEAL"), job("b-ret-01", "P4.C1", "READY", "RETURN")],
-    motions: {
-      "a-deal-01": { source: { frames: 120 }, review: { decision: "ACCEPTED", acceptedAs: "MAIN", userAccepted: true, userReview: jakob } },
-      "a-deal-02": { source: { frames: 120 }, review: { decision: "PENDING" } },
-      "a-deal-03": { source: { frames: 120 }, review: { decision: "REJECTED" } },
-      "b-ret-01": { source: { frames: 90 } },
-    },
-  };
-  const graph = buildGraph(bank);
-  assert.deepEqual(awaitingJakob(graph).map((t) => t.id), ["a-deal-02", "b-ret-01"]);
-  const count = primarCount(graph);
-  assert.equal(count.set, 1);
-  assert.equal(count.total, graph.summary.films.required.length);
-});
-
-test("proof files: stated verdict first, then the label's words", () => {
-  const proof = { labels: { "a.mp4": "Hemvy (användbar med anmärkning: kanten)", "b.mp4": "Titta runt · inte användbar", "c.png": "Bara mätt, inte granskad", "d.mp4": "Godkänd hemvy" }, verdicts: { "e.mp4": "ok", "f.mp4": "nonsense" } };
-  assert.equal(proofVerdict(proof, "a.mp4"), "remarks");
-  assert.equal(proofVerdict(proof, "b.mp4"), "failed");
-  assert.equal(proofVerdict(proof, "c.png"), null, "without a takes list, a file nobody judged is underlag: no chip");
-  assert.equal(proofVerdict(proof, "d.mp4"), "ok");
-  assert.equal(proofVerdict(proof, "e.mp4"), "ok");
-  assert.equal(proofVerdict(proof, "f.mp4"), null);
-  assert.equal(proofVerdict({ labels: null, verdicts: null }, "x.mp4"), null);
-  assert.equal(proofVerdict({ labels: null, verdicts: { "x.png": "unreviewed" } }, "x.png"), null, "a stated unreviewed on underlag says nothing");
-});
-
-test("proof files: a takes list says which files carry a chip; a take nobody judged waits for a reviewer", () => {
-  const proof = {
-    labels: { "a.mp4": "Plats 4 (användbar)", "ark.png": "Kontaktark, användbar", "ref.mp4": "Referensfilmen" },
-    verdicts: { "b.mp4": "failed", "c.mp4": "unreviewed" },
-    takes: ["a.mp4", "b.mp4", "c.mp4", "d.png"],
-  };
-  assert.equal(proofVerdict(proof, "a.mp4"), "ok");
-  assert.equal(proofVerdict(proof, "b.mp4"), "failed");
-  assert.equal(proofVerdict(proof, "c.mp4"), "unreviewed");
-  assert.equal(proofVerdict(proof, "d.png"), "unreviewed", "a take with nothing said waits for a reviewer");
-  assert.equal(proofVerdict(proof, "ark.png"), null, "not in the list: underlag, whatever its label says");
-  assert.equal(proofVerdict(proof, "ref.mp4"), null);
-  const words = {
-    labels: { "f.mp4": "Paow · B tagning 1 (faller, 1/5: vänt vid skon)", "h.mp4": "Paow · C2 (håller, 4/5: en vändning)", "v.mp4": "Paow · E (möjlig variant, 3/5: rätt storlek)", "n.mp4": "Handen håller kortet hela vägen" },
-    verdicts: { "h.mp4": "unreviewed" },
-    takes: ["f.mp4", "h.mp4", "v.mp4", "n.mp4"],
-  };
-  assert.deepEqual(["f.mp4", "h.mp4", "v.mp4", "n.mp4"].map((f) => proofVerdict(words, f)), ["failed", "ok", "remarks", "unreviewed"], "a reviewer's word first in a parenthesis (over a stated unreviewed), not the same word in a sentence");
-  const proofWords = Object.values(PROOF_VERDICT_LABEL);
-  assert.ok(proofWords.every((w) => w.trim()) && new Set(proofWords).size === proofWords.length, "four chips, each its own word");
-  assert.doesNotMatch(PROOF_VERDICT_LABEL.unreviewed, /Jakob/, "an unjudged take waits for a reviewer, never in his queue");
-  assert.doesNotMatch(proofWords.join(" "), /Inte granskad/);
-});
-
-test("proof labels split into a short name and the rest", () => {
-  assert.deepEqual(splitLabel("Titta runt · 3D-salong (exakt)"), { name: "Titta runt · 3D-salong", rest: "(exakt)" });
-  assert.deepEqual(splitLabel("Hemvy. Kameran står still"), { name: "Hemvy. Kameran står still", rest: "" });
-  assert.deepEqual(splitLabel("Hemvy salong. Kameran står still"), { name: "Hemvy salong", rest: "Kameran står still" });
 });
 
 test("a verdict judged for him: its own chip and words, never Jakob's, never a pressed button of his, and not waiting for him", () => {

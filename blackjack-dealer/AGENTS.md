@@ -158,6 +158,8 @@ Jakob frågade 2026-11-25 hur tester skapas och efterlevs. Så här:
   Skyddar det inget där (hur kod, text eller en sida ser ut, ett äldre beteende ingen har bett om, något han har ändrat
   sig om) är det ett gammalt test: ta bort det i samma ändring, i stället för att böja koden efter det, och säg i
   svaret vilket och varför. Ändrar en ändring ett beteende som ett test låser, ändras eller tas testet bort i samma steg.
+- Varje testfil börjar med raden `// Skyddar: <sak> – <vad>`, där saken är en eller flera av de fem ovan, så att ett rött
+  test kan bedömas på ett ögonkast; en fil som inte kan skriva raden har inget test som ska stå kvar.
 - Allt ska vara grönt utan media på datorn. Testerna täcker inte filmerna; de bedöms med ögat.
 
 ## Kod

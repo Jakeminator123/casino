@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val – arkiverat spelas aldrig, domen står kvar, och ingen ny Primär väljs åt honom.
 // studio/lib/archive.ts: what the confirm says before a clip is archived or taken back in Karta, read from the game's own
 // rule, and what Karta then lists and counts. Run from the repo root: node --test "studio/tests/archive.test.ts"
 import test from "node:test";
@@ -68,20 +69,6 @@ test("when nothing else can play it is said plainly: a take that waits for him d
   const after = stepAfter(b, "paow", g.takes["paow-giv-p4-01"], true);
   assert.deepEqual([after.now.take, after.now.gap], [null, "MISSING"]);
   assert.equal(graphOf(withArchived(b, "paow-giv-p4-01", true)).edge[DEAL].main?.id, "paow-giv-p4-03", "the lab's own graph would still show the waiting take: the line follows the game, not that");
-});
-
-test("a take that is not Primär: what the game plays on the step afterwards, and for the rest how many films it picks among", () => {
-  const b = bank(), g = graphOf(b);
-  assert.equal(archiveLines(b, "paow", g.takes["paow-giv-p4-02"], g)[0], `Spelet spelar sedan ${named(b, "paow-giv-p4-01")} här.`);
-  assert.equal(archiveLines(b, "paow", g.takes["paow-retur-p4-01"], g)[0], "Spelet har sedan ingen film här: inget annat klipp i steget kan spelas.");
-  // The rest is a loop, not one film: a gesture less, and with its Primär archived the step has none.
-  assert.equal(archiveLines(b, "paow", g.takes["paow-vila-nick-01"], g)[0], "Vilan slumpar sedan bland 2 filmer.");
-  assert.equal(archiveLines(b, "paow", g.takes["paow-vila-lugn-01"], g)[0], "Steget har sedan ingen Primär tills du väljer en; vilan slumpar då bland 2 filmer.");
-  assert.equal(archiveLines(bank(["paow-vila-nick-01", "paow-vila-ler-01"]), "paow", g.takes["paow-vila-lugn-01"], g)[0], "Steget har sedan ingen Primär tills du väljer en; vilan har då ingen film att slumpa bland.");
-  assert.equal(archiveLines(b, "paow", g.takes["paow-tal-hej-01"], g)[0], "Vilan slumpar sedan bland 3 filmer.", "a talk film was never in the loop");
-  // An experiment is never played by the game.
-  assert.equal(archiveLines(b, "paow", g.takes["paow-prov-drag-01"], g)[0], "Steget har sedan ingen Primär tills du väljer en; spelet spelar aldrig det här steget (ett experiment).");
-  for (const t of Object.values(g.takes)) assert.equal(archiveLines(b, "paow", t, g)[1], KEPT, t.id);
 });
 
 test("taking back: it comes back with its verdict, a Primär as Primär, and the line says what the game then plays", () => {

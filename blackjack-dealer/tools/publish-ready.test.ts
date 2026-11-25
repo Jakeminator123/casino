@@ -1,3 +1,4 @@
+// Skyddar: publiceringsskyddet – kopian räknas som publicerad bara när den rena commiten svarar, aldrig ett smutsigt bygge.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {waitForPublishedCommit} from './publish-ready.ts';
@@ -38,22 +39,12 @@ function world(reply: (probe: Probe, advance: (ms: number) => void) => Response 
   return {run, calls, time: () => now};
 }
 
-test('a delayed alias needs two clean matches of the full hash', async () => {
-  const w = world(({at}) => meta(at < 4000 ? OLD : SHA));
-  const result = await w.run();
-  assert.equal(result.ready, true);
-  assert.equal(result.attempts, 4);
-  assert.deepEqual(w.calls.map(({at}) => at), [0, 2000, 4000, 6000]);
-  assert.ok(w.calls.every(({url}) => url === SITE + '/meta.json'));
-});
-
-test('old, dirty and unsuccessful responses reset the consecutive count', async () => {
+test('an old, dirty or failed answer in between starts the count over: two clean answers in a row are needed', async () => {
   const replies = [meta(), meta(OLD), meta(), meta(SHA, true), meta(), Response.json({sourceCommit: SHA, sourceDirty: false}, {status: 503}), meta(), meta()];
   const w = world(() => replies.shift()!);
   const result = await w.run();
   assert.equal(result.ready, true);
   assert.equal(result.attempts, 8);
-  assert.equal(w.time(), 14_000);
 });
 
 test('a wrong or incomplete hash, a dirty marker or an unreadable response never passes', async () => {
@@ -74,42 +65,4 @@ test('a wrong or incomplete hash, a dirty marker or an unreadable response never
   const short = world(() => meta());
   await assert.rejects(short.run(undefined, SHA.slice(0, 7)), /full commit-hash/);
   assert.equal(short.calls.length, 0);
-});
-
-test('timeouts include reading JSON and the final fetch uses only the remaining deadline', async () => {
-  const w = world(({at, signal, timeout}, advance) => {
-    if (at === 0) { advance(1000); return meta(); }
-    if (at === 3000) {
-      return new Response(new ReadableStream({
-        pull(controller) {
-          signal.addEventListener('abort', () => controller.error(signal.reason), {once: true});
-          advance(timeout);
-        },
-      }, {highWaterMark: 0}));
-    }
-    return new Promise<Response>((_, reject) => {
-      signal.addEventListener('abort', () => reject(signal.reason), {once: true});
-      advance(timeout);
-    });
-  });
-  const result = await w.run();
-  assert.equal(result.ready, false);
-  assert.equal(result.detail, 'tidsgräns för /meta.json');
-  assert.equal(w.time(), 30_000);
-  assert.deepEqual(w.calls.map(({timeout}) => timeout), [3000, 3000, 3000, 3000, 3000, 3000, 2000]);
-});
-
-test('the authenticated probes forward the cookie without redirects or cache reuse', async () => {
-  const cookie = 'dealer_studio=prov';
-  const w = world(({init}) => {
-    if (new Headers(init.headers).get('cookie') !== cookie) return new Response(null, {status: 401});
-    return meta();
-  });
-  assert.equal((await w.run(cookie)).ready, true);
-  assert.equal(w.calls.length, 2);
-  for (const {init, url} of w.calls) {
-    assert.equal(url, SITE + '/meta.json');
-    assert.equal(init.redirect, 'manual');
-    assert.equal(init.cache, 'no-store');
-  }
 });

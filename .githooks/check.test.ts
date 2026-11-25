@@ -1,3 +1,4 @@
+// Skyddar: publiceringsskyddet – kontrollen före push stoppar nycklar, .env-filer, media och stora filer.
 // The push check (.githooks/check.ts): what stops, what goes through, and which commits a push brings.
 import test from 'node:test';
 import assert from 'node:assert/strict';

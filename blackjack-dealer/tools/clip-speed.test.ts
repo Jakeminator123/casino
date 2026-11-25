@@ -1,3 +1,4 @@
+// Skyddar: kontrakten – filmens egen fart skrivs i clip-jobs.json utan att något annat i filen ändras.
 // tools/clip-speed.ts, the contract of a film's own speed (Jakob 2026-11-23: "den nya standarden för respektive klipp"): only
 // the field playbackSpeed on the one film changes in data/clip-jobs.json, 1× takes the field away, and a rest film, an unknown
 // film or another speed is refused with nothing written.

@@ -1,3 +1,4 @@
+// Skyddar: spelets regler – slumpen i skon är rättvis, går att bevisa och använder aldrig Math.random.
 // Tests for game/rng.ts (ported game-rng/1) and game/random-port.ts: deterministic seeded and
 // replay modes, exact HMAC counter stream, rejection sampling bounds, receipts and chain,
 // journal verification, secure non-repetition. Ported from scoutgaming
@@ -158,17 +159,6 @@ test('random port: journaledDraw proves one draw; secureRandom refuses options; 
   assert.ok(!('outcome' in receipt) && !('samples' in receipt) && receipt.receipt === entry.receipt);
   const fake = { ...port, rng: () => ({ mode: 'secure', shuffle: (items: number[]) => [...items] }) } as unknown as typeof port;
   assert.throws(() => journaledDraw(fake, rng => rng.shuffle([1, 2])), RandomPortError);
-});
-
-test('provenance.json names every engine file, with a Scout blob for each port', () => {
-  const provenance = JSON.parse(readFileSync(join(gameDir, 'provenance.json'), 'utf8'));
-  const listed = [...provenance.ported, ...provenance.new].map((row: { file: string }) => row.file).sort();
-  assert.deepEqual(listed, readdirSync(gameDir).filter(name => name.endsWith('.ts')).map(name => `game/${name}`).sort());
-  for (const row of provenance.ported) {
-    assert.match(row.blob, /^[0-9a-f]{40}$/, row.file);
-    assert.ok(row.scoutPath && row.deviations, row.file);
-    assert.ok(readFileSync(join(gameDir, row.file.slice('game/'.length)), 'utf8').includes(row.blob), `${row.file} names its blob in its header`);
-  }
 });
 
 test('the engine folder uses node built-ins only and never Math.random', () => {

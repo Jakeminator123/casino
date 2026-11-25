@@ -1,3 +1,4 @@
+// Skyddar: beställningarna, hans domar och val – godkännande bara inom fullmakten, hans klick är hans, inget skrivs två gånger.
 // The routes of the view Beställ and of Jakob's verdict in Material (tools/order-routes.ts), run against a temporary
 // copy of the data on a real local server: changes only with the revision read, nothing written twice, approval only from
 // the lab's own origin and within the policy, nothing changed after approval, files only from the order's folder, nothing

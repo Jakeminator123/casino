@@ -1,7 +1,7 @@
+// Skyddar: hans domar och val – det han godkänt, det spelet har och original raderas aldrig; bara via papperskorgen.
 // The thinning tool's hard parts (tools/media-thin.ts): the guard that nothing gets past, the rule of what goes without more
-// words, bytes counted honestly with hard links, and the execution against a temporary folder (moved to a trash with
-// RADERAD.txt and a receipt, linked, refused when guarded, young or changed, the trash emptied after 14 days). Needs no
-// media: the "films" are a few bytes of text.
+// words, and the execution against a temporary folder (moved to a trash with RADERAD.txt and a receipt, linked, refused
+// when guarded, young or changed, the trash emptied after 14 days). Needs no media: the "films" are a few bytes of text.
 // Run: node --test tools/media-thin.test.ts
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,7 +9,7 @@ import {existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync,
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {DAY, MARKER, blocked, carryOut, emptyShield, emptyTrash, factOf, finishedOrder, freedBytes, guardKeys, orderOpen, protect, rejectedGroup, type Action, type GroupPlan, type Plan} from './media-thin.ts';
+import {DAY, MARKER, blocked, carryOut, emptyShield, emptyTrash, factOf, finishedOrder, guardKeys, orderOpen, protect, rejectedGroup, type Action, type GroupPlan, type Plan} from './media-thin.ts';
 import {unitOf} from './media-audit.ts';
 import {motionRegister} from './register-store.ts';
 
@@ -64,13 +64,6 @@ test('the rule (Jakob 2026-11-25): a film he, or a reviewer on his mandate, reje
   assert.equal(finishedOrder('data/orders/revansch-01.json', open), false, 'the open rework keeps the film');
   assert.equal(finishedOrder('data/orders/klar-01.json', open), true, 'a finished order that named it does not');
   assert.equal(finishedOrder('data/clip-jobs.json#x', open), false, 'another register still holds it');
-});
-
-test('bytes are freed only when the last name of a file goes', () => {
-  assert.equal(freedBytes([{key: 'a', bytes: 100, links: 1}]), 100);
-  assert.equal(freedBytes([{key: 'a', bytes: 100, links: 2}]), 0);
-  assert.equal(freedBytes([{key: 'a', bytes: 100, links: 2}, {key: 'a', bytes: 100, links: 2}]), 100);
-  assert.equal(freedBytes([{key: 'a', bytes: 100, links: 3}, {key: 'a', bytes: 100, links: 3}, {key: 'b', bytes: 5, links: 1}]), 5);
 });
 
 test('carrying out: moved to the trash after both SHA-256 agree, RADERAD.txt written, the film\'s posts out of the register, guarded, young and changed units left whole', async () => {

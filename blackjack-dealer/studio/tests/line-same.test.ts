@@ -1,3 +1,4 @@
+// Skyddar: beställningarna, kontrakten – Bordets rad och beställningen blir samma order ur samma rad.
 // One recipe, one choice: Bordet's row and the store give the SAME order from the SAME line (the dealer, the step and the
 // card), for every step available on the standard line and every card of the plan. Where the reference film is chosen: in ONE
 // place, referenceByRule in src/order-methods.ts. The store calls it when a draft names no reference film

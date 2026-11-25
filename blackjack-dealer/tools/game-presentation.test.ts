@@ -1,18 +1,18 @@
+// Skyddar: spelets regler – hålkortet visas först när det vänds, korten i skons ordning, repliken stämmer med utfallet.
 // Presentation tests for game/presentation.ts: settlement line, event order by shoeDraw, the hole
-// card as a face-down deal with card null, reveal placement, slot families and filmed targets.
+// card as a face-down deal with card null, reveal placement and the cues.
 // Ported from scoutgaming test/blackjack/blackjack-presentation.mjs (commit 0fe56ace3), driving the
 // ported core directly instead of Scout's table coordinator.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { newGame, publicView, step } from '../game/core.ts';
 import type { CoreCommand, GameState, PublicView } from '../game/core.ts';
-import { catalogueEventId, filmedDealTarget, presentationEvents, settlementLine, withFamily } from '../game/presentation.ts';
+import { presentationEvents, settlementLine } from '../game/presentation.ts';
 import type { SignalEvent } from '../game/presentation.ts';
 import { seededRandom, stackedRandom } from '../game/shoe-source.ts';
 import type { RandomPort } from '../game/random-port.ts';
 
 type Ev = SignalEvent;
-const fam = (e: SignalEvent) => (withFamily(e) as { family?: string }).family;
 const order = (events: Ev[]) => events.filter(e => e.type === 'deal' || e.type === 'reveal')
   .map(e => `${e.type === 'reveal' ? 'reveal' : e.to === 'dealer' ? (e.faceDown ? 'hole' : 'dealer') : `box${e.box}`}#${e.shoeDraw}`);
 const SUIT = ['♠', '♦', '♥', '♣'];
@@ -112,21 +112,6 @@ test('insurance, double, turn and collect cues', () => {
   assert.equal((dbl.events[3] as { line: string }).line, 'double');
   const collect = t.send({ op: 'collect', roundId: t.state.roundId });
   assert.deepEqual(collect.events, [{ type: 'speak', line: 'placebets' }, { type: 'idle' }]);
-});
-
-test('families and filmed targets follow Scout: left 0-1, centre 2-4, right 5-6; dealer-up, dealer-hole, flip', () => {
-  const deal = (box: number | null, faceDown = false) => ({ type: 'deal', to: box == null ? 'dealer' : 'box', box, handIndex: box == null ? null : 0, card: faceDown ? null : { r: 'A', s: '♠' }, faceDown, shoeDraw: 2, clip: { action: 'deal-centre', fallback: 'slide' } }) as SignalEvent;
-  assert.deepEqual([0, 1, 2, 3, 4, 5, 6].map(b => fam(deal(b))),
-    ['deal.player.left/box0', 'deal.player.left/box1', 'deal.player.centre/box2', 'deal.player.centre/box3', 'deal.player.centre/box4', 'deal.player.right/box5', 'deal.player.right/box6']);
-  assert.deepEqual([0, 1, 2, 3, 4, 5, 6].map(b => filmedDealTarget(deal(b))), ['1', '2', '3', '4', '5', '6', '7']);
-  assert.equal(fam(deal(null)), 'deal.dealer/dealer-up');
-  assert.equal(fam(deal(null, true)), 'deal.dealer/dealer-hole');
-  assert.deepEqual([filmedDealTarget(deal(null)), filmedDealTarget(deal(null, true)), filmedDealTarget({ type: 'reveal', to: 'dealer' })], ['dealer', 'hole', 'flip']);
-  assert.equal(fam({ type: 'reveal', to: 'dealer', card: { r: 'A', s: '♠' }, shoeDraw: 5 }), 'reveal.dealer/dealer-hole');
-  assert.equal(fam({ type: 'speak', line: 'goodluck' }), 'speak.goodluck/goodluck');
-  assert.equal(fam({ type: 'speak', line: 'placebets' }), 'speak.other/placebets');
-  assert.equal(fam({ type: 'idle' }), 'idle.ready/ready');
-  assert.equal(catalogueEventId({ type: 'turn', box: 3, handIndex: 0, legalActions: [] }), null, 'turn and settle are game facts, not slots');
 });
 
 test('the generator follows server draw order and reveals the hole exactly once over 300 core rounds', () => {

@@ -1,3 +1,4 @@
+// Skyddar: publiceringsskyddet – servern lämnar bara ut en tagnings film, inget annat ur beställningens mapp.
 // node --test tools/order-take-film.test.ts
 // What the lab may hand out of an order's takes: the take's film where it lies, and nothing else of the folder.
 import test from 'node:test';

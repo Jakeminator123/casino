@@ -1,3 +1,4 @@
+// Skyddar: kontrakten, hans domar och val – filmregistret skrivs bara mot det som lästes, och hans domar står kvar.
 // What must hold of the register of films and takes (tools/register-store.ts): a post comes out as it went in, a write is
 // made only against the revision that was read, a removed film takes the posts of its takes with it and leaves the row
 // about the verdict (Jakob's, or one given for him), the database follows the text file in Git, and a tree without media

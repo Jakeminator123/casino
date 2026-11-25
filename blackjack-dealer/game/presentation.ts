@@ -113,7 +113,7 @@ export function presentationEvents(prevView: PresentationView, view: Presentatio
 // ---------------------------------------------------------------- outbox-presentation.mjs
 const DEDICATED_SPEECH = new Set(['goodluck', 'insurance', 'double']);
 // Main's catalogue event id for an instruction (clip-naming.mjs / studio-contract events).
-export function catalogueEventId(event: SignalEvent): string | null {
+function catalogueEventId(event: SignalEvent): string | null {
   if (event.type === 'speak') return `speak.${DEDICATED_SPEECH.has(event.line) ? event.line : 'other'}`;
   if (event.type === 'reveal') return 'reveal.dealer';
   if (event.type === 'idle') return 'idle.ready';

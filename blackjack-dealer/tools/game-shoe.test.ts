@@ -1,3 +1,4 @@
+// Skyddar: spelets regler – skon låses före brännkortet, blandas aldrig mitt i en runda och går att verifiera.
 // Shoe and core tests for game/core.ts, game/shoe-proof.ts and game/shoe-source.ts: commitment
 // before the burn card, cut card, between-round reserve reshuffle, no mid-round shuffle,
 // proof verification, reproducibility, hidden draws, and the lab's seeded/stacked sources.

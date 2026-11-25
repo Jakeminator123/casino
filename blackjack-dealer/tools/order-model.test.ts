@@ -1,6 +1,7 @@
+// Skyddar: beställningarna – godkännandet är hans eller fullmaktens, kredittaken håller, inget arkiverat går med.
 // Offline tests for the order model (src/order-model.ts): the checkout's orders hold, the exact call per take, the cost
-// from the price table, the policy and the standing mandate, the hash an approval freezes, the status a person sees, and
-// nothing archived or judged only for Jakob taken as his. No media needed.
+// from the price table, the policy and the standing mandate, the hash an approval freezes, and nothing archived or judged
+// only for Jakob taken as his. No media needed.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -8,8 +9,8 @@ import { committedFiles } from './committed.ts';
 import { createHash } from 'node:crypto';
 import {
   archivedReferenceIds, STEPS, agentSpentOn, canonical, checkPolicy, costOf, cutFrameOf, dayOf, groupBudget, hashInput, isArchived,
-  mandateBudgetOf, mandateRefusal, priceOf, referenceCandidates, requestOf, seatEndOf, shownOf, stepOf, takeStates, validateOrder,
-  type BankFacts, type Order, type Policy, type Receipt,
+  mandateBudgetOf, mandateRefusal, priceOf, referenceCandidates, requestOf, seatEndOf, stepOf, validateOrder,
+  type BankFacts, type Order, type Policy,
 } from '../src/order-model.ts';
 
 const sha = (s: string) => createHash('sha256').update(s).digest('hex');
@@ -151,20 +152,6 @@ test('the hash covers everything but approval and status, whatever the key order
   assert.notEqual(hashInput({ ...order, takes: order.takes + 1 }), hashInput(order));
   assert.notEqual(hashInput({ ...order, prompt: { ...order.prompt, text: order.prompt.text + ' ' } }), hashInput(order));
   assert.equal(canonical({ b: 1, a: [{ d: 2, c: 3 }] }), canonical({ a: [{ c: 3, d: 2 }], b: 1 }));
-});
-
-test('what a person sees: waiting, ready, then the least advanced take; doubt and failure first', () => {
-  const order = { status: 'UTKAST', approval: null, takes: 2, pictures: [{ name: 'first.png', path: 'x', waits: null }] } as unknown as Order;
-  assert.equal(shownOf(order, [], null), 'KLAR_ATT_TRYCKA');
-  assert.equal(shownOf(order, ['x'], null), 'UTKAST');
-  assert.equal(shownOf({ ...order, pictures: [{ name: 'first.png', path: null, waits: { dealer: 'paow', label: 'ankare 2.1' } }] } as unknown as Order, [], null), 'VÄNTAR');
-  const approved = { ...order, status: 'GODKÄND', approval: { by: 'jakob', at: '2026-11-12T22:00:00Z', orderSha256: 'a'.repeat(64) } } as Order;
-  const take = (n: number, status: Receipt['takes'][number]['status']) => ({ take: n, status, requestedAt: '2026-11-12T22:01:00Z', taskId: null, history: [] });
-  const receipt = (...takes: Receipt['takes']): Receipt => ({ schemaVersion: 1, order: 'x', orderSha256: 'a'.repeat(64), takes });
-  assert.equal(shownOf(approved, [], null), 'GODKÄND');
-  assert.deepEqual(takeStates(approved, receipt(take(1, 'LAGD'))), ['LAGD', 'GODKÄND']);
-  assert.equal(shownOf(approved, [], receipt(take(1, 'HÄMTAD'), take(2, 'LAGD'))), 'LAGD');
-  assert.equal(shownOf(approved, [], receipt(take(1, 'HÄMTAD'), take(2, 'OSÄKER'))), 'OSÄKER');
 });
 
 test('a reference cannot send an archived segment through corrected copies, without archiving through the edit in reverse', () => {

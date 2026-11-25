@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val – en dom åt honom är märkt som inte hans, och hans egen ersätter den.
 // Offline tests for tools/review-put.ts, the provisional verdict judged for Jakob ("åt dig"). Every write goes to a temporary
 // register; the checkout's own is never touched.
 import test from 'node:test';

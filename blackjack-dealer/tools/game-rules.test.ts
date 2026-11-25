@@ -1,3 +1,4 @@
+// Skyddar: spelets regler – delning, dubbling, försäkring, S17, utbetalningar och sidospel.
 // Rule tests for game/round.ts (the ported Scout Round), on stacked shoes so every rule is
 // asserted on known cards. Cases R1–R10 are ported from scoutgaming test/blackjack/split-rules.mjs
 // (commit 0fe56ace3); the S17, 3:2, peek, insurance, bust and side-bet cases follow

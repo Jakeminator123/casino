@@ -95,7 +95,7 @@ export function guardKeys(s: Shield, files: Iterable<{path: string; key: string}
 export type FileRow = {path: string; bytes: number; links: number; key: string; mtimeMs: number};
 export type Action = FileRow & {action: 'flytta' | 'länka'; to?: string; sha256?: string};
 /** The bytes a set of removed names frees: a file on the disk only when every one of its names is in the set. */
-export function freedBytes(files: {key: string; bytes: number; links: number}[]): number {
+function freedBytes(files: {key: string; bytes: number; links: number}[]): number {
   const by = new Map<string, {n: number; links: number; bytes: number}>();
   for (const f of files) { const e = by.get(f.key) ?? {n: 0, links: f.links, bytes: f.bytes}; e.n++; by.set(f.key, e); }
   let freed = 0; for (const e of by.values()) if (e.n >= e.links) freed += e.bytes;

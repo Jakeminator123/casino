@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val – hans ord på proven skrivs bara av honom, och kopian bär dem utan läsmärke.
 // Jakob's own word on the proofs (data/proof-notes.json): the register's rules (tools/proof-notes-register.ts), the store the
 // lab server writes through (tools/proof-notes-store.ts), the main agent's tool (tools/proof-notes.ts) and what the online
 // copy carries (tools/studio-freeze.ts pickNotes).

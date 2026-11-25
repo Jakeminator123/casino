@@ -1,3 +1,4 @@
+// Skyddar: spelets regler – 300 slumpade rundor: inget hålkort läcker, pengar och kort bevaras, inget betalas två gånger.
 // Fuzz-style invariant test for game/session.ts: 300 seeded rounds with random seats, stakes,
 // side bets, insurance choices and legal actions (choices from a seeded game-rng, so the run is
 // reproducible). Every result is checked for: no hidden-card leak before the reveal, legal phases

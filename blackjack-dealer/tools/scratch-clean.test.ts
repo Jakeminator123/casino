@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val – städningen tar bara slask äldre än sju dygn, aldrig granska/ och aldrig något utanför.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, symlinkSync, utimesSync, writeFileSync} from 'node:fs';

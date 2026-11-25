@@ -1,3 +1,4 @@
+// Skyddar: kontrakten – dockans kort är kortplanens kort: samma märken, mått och färger.
 // The doll's card is the card plan's card (Jakob 2026-11-24: "så att det inte blir två olika typer av kort"): the marks on
 // each of its sides have the plan's measures and colours.   node --test dealer3d/tests/card-marks.test.ts
 import {test} from 'node:test';
