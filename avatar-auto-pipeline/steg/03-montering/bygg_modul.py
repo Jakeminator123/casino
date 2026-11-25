@@ -1,16 +1,23 @@
 """Cut a neck or wrist opening in an upright, static GLB from Meshy."""
 
+
+import sys
+from pathlib import Path as _Path
+_ROOT = next(
+    c for c in [_Path(__file__).resolve().parent, *_Path(__file__).resolve().parents]
+    if (c / "auto_avatar.py").is_file()
+)
+if str(_ROOT / "gemensamt") not in sys.path:
+    sys.path.insert(0, str(_ROOT / "gemensamt"))
+from sokvagar import add_paths
+ROOT = add_paths(_ROOT)
+
 import argparse
 import sys
 from pathlib import Path
 
 import numpy as np
 
-_here = Path(__file__).resolve().parent
-for _cand in (_here / "metod", _here.parent / "Jakob/huvudbyte/metod", _here.parent / "avatar/Jakob/huvudbyte/metod"):
-    if _cand.is_dir():
-        sys.path.insert(0, str(_cand))
-        break
 import bygg as _bygg
 from bygg import Export, Mesh, clip
 from gltf import Asset

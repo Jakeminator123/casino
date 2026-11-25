@@ -1,5 +1,17 @@
 """Create a repeatable four-angle review of an upright textured avatar GLB in Blender."""
 
+
+import sys
+from pathlib import Path as _Path
+_ROOT = next(
+    c for c in [_Path(__file__).resolve().parent, *_Path(__file__).resolve().parents]
+    if (c / "auto_avatar.py").is_file()
+)
+if str(_ROOT / "gemensamt") not in sys.path:
+    sys.path.insert(0, str(_ROOT / "gemensamt"))
+from sokvagar import add_paths
+ROOT = add_paths(_ROOT)
+
 import argparse
 import hashlib
 import json
@@ -90,7 +102,7 @@ def review(model, output, framing, compare, compare_framing):
         "compare_framing": compare_framing if compare else None,
         "blender": bpy.app.version_string,
         "script_sha256": source_sha(Path(__file__)),
-        "studio_sha256": source_sha(Path(__file__).with_name("blenderstudio.py")),
+        "studio_sha256": source_sha(ROOT / "gemensamt" / "blenderstudio.py"),
     }
     earlier = json.loads(receipt.read_bytes()) if receipt.is_file() else {}
     if (

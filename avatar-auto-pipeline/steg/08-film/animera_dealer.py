@@ -24,6 +24,9 @@ TS = 8.0 / SECONDS  # kurvorna nedan är definierade över 8 s
 STRIP = sorted({1, *[int(round(1 + i * (FRAMES - 1) / 5)) for i in range(1, 6)]})
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
+# Rensa ev. kvarvarande standardobjekt (t.ex. Icosphere) från startscenen.
+for _o in list(bpy.data.objects):
+    bpy.data.objects.remove(_o, do_unlink=True)
 sc = bpy.context.scene
 sc.render.engine = "CYCLES"
 sc.cycles.device = "CPU"
@@ -425,10 +428,20 @@ except Exception as e:
     print("BAKE_WARN", e)
 bpy.ops.object.mode_set(mode="OBJECT")
 
-# Exportera animerad GLB (avatar + bord + kort, så den går att öppna direkt)
-# Inga lampor behövs i filen.
+# Exportera animerad GLB (avatar + bord + kort, så den går att öppna direkt).
+# Inga lampor, kameror, tomma hjälpobjekt eller Blenders standardmesh (t.ex. Icosphere).
+EXPORT_NAMES = {"Bord filt", "Bordskant", "Pall sits", "Pall ben", "Golv", "Bakgrund", "Kort"}
 for o in list(sc.objects):
-    o.select_set(o.type in {"ARMATURE", "MESH"} and not o.hide_render)
+    base = o.name.split(".")[0]
+    if o.type == "MESH" and base == "Icosphere":
+        bpy.data.objects.remove(o, do_unlink=True)
+for o in list(sc.objects):
+    keep = (
+        o.type == "ARMATURE"
+        or o in meshes
+        or (o.type == "MESH" and o.name in EXPORT_NAMES and not o.hide_render)
+    )
+    o.select_set(bool(keep))
 bpy.context.view_layer.objects.active = arm
 glb = out / f"{NAME}-apose-med-rorelse.glb"
 export_kw = dict(filepath=str(glb), export_format="GLB", use_selection=True,

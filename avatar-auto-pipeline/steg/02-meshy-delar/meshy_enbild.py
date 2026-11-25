@@ -1,5 +1,17 @@
 """Meshy's single-image recipe. Resume the same job and archive its original outputs."""
 
+
+import sys
+from pathlib import Path as _Path
+_ROOT = next(
+    c for c in [_Path(__file__).resolve().parent, *_Path(__file__).resolve().parents]
+    if (c / "auto_avatar.py").is_file()
+)
+if str(_ROOT / "gemensamt") not in sys.path:
+    sys.path.insert(0, str(_ROOT / "gemensamt"))
+from sokvagar import add_paths, env_candidates
+ROOT = add_paths(_ROOT)
+
 import argparse
 import base64
 import hashlib
@@ -17,7 +29,6 @@ from dotenv import dotenv_values
 from filelock import FileLock
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parent
 ENDPOINT = "https://api.meshy.ai/openapi/v1/image-to-3d"
 SETTINGS = {
     "ai_model": "meshy-7.1",
@@ -50,7 +61,7 @@ def store(path, data):
 def get_key():
     key = os.environ.get("MESHY_API_KEY")
     if not key:
-        for env_file in (ROOT / ".env", ROOT / ".env.local", ROOT.parent / ".env", ROOT.parent / ".env.local"):
+        for env_file in env_candidates(ROOT):
             if env_file.is_file():
                 val = dotenv_values(env_file, encoding="utf-8-sig").get("MESHY_API_KEY")
                 if val and val.strip():

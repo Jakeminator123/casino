@@ -1,5 +1,17 @@
 """Bind a light textured avatar to Mixamo body and finger joints, resuming the same paid job."""
 
+
+import sys
+from pathlib import Path as _Path
+_ROOT = next(
+    c for c in [_Path(__file__).resolve().parent, *_Path(__file__).resolve().parents]
+    if (c / "auto_avatar.py").is_file()
+)
+if str(_ROOT / "gemensamt") not in sys.path:
+    sys.path.insert(0, str(_ROOT / "gemensamt"))
+from sokvagar import add_paths
+ROOT = add_paths(_ROOT)
+
 import argparse
 import json
 import time

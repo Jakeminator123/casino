@@ -2,9 +2,20 @@
 
 blender -b --python pipeline/bygg_fingrar_apose.py -- riggad.glb avatar-rigg.glb
 Sätt AXELFLYTT=0 för att behålla Meshys axelleder."""
+
+import sys
+from pathlib import Path as _Path
+_ROOT = next(
+    c for c in [_Path(__file__).resolve().parent, *_Path(__file__).resolve().parents]
+    if (c / "auto_avatar.py").is_file()
+)
+if str(_ROOT / "gemensamt") not in sys.path:
+    sys.path.insert(0, str(_ROOT / "gemensamt"))
+from sokvagar import add_paths
+ROOT = add_paths(_ROOT)
+
 import json, sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 import fingrar_apose
 import bygg_fingrar
 bygg_fingrar.fit_fingers = fingrar_apose.fit_fingers

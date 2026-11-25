@@ -1,51 +1,64 @@
-# Avatar Auto-Pipeline (Laptop)
+# Avatar Auto-Pipeline
 
-Bygger en komplett, riggad 4K dealer-GLB i A-pose + QC-bilder + rörelsefilm utifrån 3 foton av samma person.
+Från några foton av en person till en riggad 3D-dealer i A-pose, med kvalitetsbilder och en kort rörelsefilm.
 
-## 1. Lägg in API-nycklar (en gång)
-Pipelinen behöver två nycklar:
-- `OPENAI_API_KEY` (används i steg 1 för referensbilder med `gpt-image-2`)
-- `MESHY_API_KEY` (används i steg 2 och 4 för 3D-delar och riggning, totalt ~95 krediter)
+## Mappstruktur
 
-Gör så här:
-1. Kopiera `.env.example` till `.env` i den här mappen (`C:\Users\jakob\Desktop\casino\avatar-auto-pipeline\.env`).
-2. Fyll i dina två nycklar efter `=`.
-3. Spara filen. Nycklar skrivs aldrig ut i terminal eller loggar.
+```
+avatar-auto-pipeline/
+  STARTA avatar.cmd          ← enklaste sättet att starta
+  Auto avatar.cmd            ← dra foton till den här filen
+  starta_avatar.ps1
+  auto_avatar.py             ← styr alla steg
+  README-SV.md
+  .env                       ← API-nycklar (kopiera från .env.example)
+  .venv/                     ← Python-miljön
+  input/<namn>/              ← dina foton
+  output/<namn>/             ← allt som en körning skapar
+  steg/
+    01-referenser/           apose_referenser.py
+    02-meshy-delar/          meshy_enbild.py
+    03-montering/            montera.py, montera_apose.py, clean_kropp_chest.py, …
+    04-rigg/                 meshy_rigg.py
+    05-fingrar-handleder/    fixa_handleder.py, finger-skript
+    06-dealer-export/        exportera_dealer.py
+    07-qc/                   qc_oversikt.py
+    08-film/                 animera_dealer.py
+  gemensamt/                 delad kod (mått, sökvägar, Blender-studio)
+  metod/                     grundfunktioner för mesh och GLB
+```
 
-## 2. Lägg in 3 foton
-Skapa en mapp under `input\`, t.ex. `input\rosalina\`, och lägg in exakt **3 foton** (`foto1.jpg`, `foto2.jpg`, `foto3.jpg`) av samma person (helst tydligt ansikte rakt framifrån samt en bild med överkropp).
+Foton lägger du i `input/<namn>/`. Resultatet hamnar i `output/<namn>/`, uppdelat i samma stegnummer.
 
-## 3. Starta körningen
-- **Enklast:** Dubbelklicka på `STARTA avatar.cmd` (öppnar PowerShell 7 med skydd mot att fönstret fryser om man klickar i det).
-  - Om du trycker Enter väljs standardmappen under `input\` (t.ex. `rosalina`).
-  - Du kan också köra från PowerShell: `.\starta_avatar.ps1 -Name rosalina -Samples 24`
-- **Gratis torrkörning (testar foton, imports, Blender och mappar utan kostnad):**
-  ```powershell
-  .\.venv\Scripts\python.exe auto_avatar.py --name rosalina --dry-run
-  ```
+## Hur du kör
 
-## 4. Felsökning och numrerade stegmappar
-Varje körning sparar allt i `output\<namn>\` uppdelat i 8 numrerade mappar + `status.json`:
+1. En gång: kopiera `.env.example` till `.env` och fyll i `OPENAI_API_KEY` och `MESHY_API_KEY`. Nycklarna skrivs aldrig ut.
+2. Lägg 1–8 foton av samma person i t.ex. `input\rosalina\`.
+3. Dubbelklicka på `STARTA avatar.cmd` (eller kör `.\starta_avatar.ps1 -Name rosalina`).
 
-| Steg | Mapp | Innehåll & förhandsvisning | Kostnad |
-| --- | --- | --- | --- |
-| 1 | `01-referenser\` | `head-ref.png`, `apose-ref.png`, `hands-ref.png`, `ref-3-bilder.png`, `steg.log` | OpenAI bild |
-| 2 | `02-meshy-delar\` | `huvud\`, `kropp\`, `hand\` (`modell.glb`, `korning.json`), `meshy-delar-oversikt.png`, `steg.log` | ~90 Meshy-kr |
-| 3 | `03-montering\` | `<namn>-apose.glb`, `latt-4k.glb`, `montering-forhandsvisning.png`, `forenkla.log`, `steg.log` | Gratis (lokalt) |
-| 4 | `04-rigg\` | `riggjobb\riggad.glb`, `riggjobb.json`, `steg.log` | 5 Meshy-kr |
-| 5 | `05-fingrar-handleder\` | `avatar-rigg.glb`, `handled-fix\avatar-rigg-handledfix.glb`, `handled-fix-jamforelse.png`, `steg.log` | Gratis (lokalt) |
-| 6 | `06-dealer-export\` | `<namn>-dealer-apose.glb` + `.json`, `steg.log` | Gratis (lokalt) |
-| 7 | `07-qc\` | `resultat-oversikt.png`, 5 närbilder/helbilder, `qc.json`, `steg.log` | Gratis (lokalt) |
-| 8 | `08-film\` | `<namn>-ror-sig.mp4`, `<namn>-apose-med-rorelse.glb`, `rorelse-strip.png`, `steg.log` | Gratis (lokalt) |
+Gratis kontroll, utan OpenAI- eller Meshy-anrop:
 
-### Återuppta eller köra enstaka steg
-Betalda jobb sparar kvitton (`referenser.json`, `korning.json`, `riggjobb.json`). Om något avbryts kan du köra igen utan att betala dubbelt.
-- Starta från steg N: `--from-step 5`
-- Kör bara steg N: `--only-step 3`
-- Hoppa över filmen: `--no-video`
-- Bara referensbilder (inga Meshy-krediter): `--refs-only`
+```powershell
+.\.venv\Scripts\python.exe auto_avatar.py --name rosalina --dry-run
+```
 
-## 5. Prestanda på laptopen
-Laptopen saknar NVIDIA-GPU (har AMD Radeon Pro 5300M / Intel i7-9750H), så Blenders Cycles-rendering kör på CPU. Det gör framför allt steg 7 (QC) och steg 8 (film) långsammare än på stationära datorn.
-- `STARTA avatar.cmd` använder därför `--samples 24` som standard (i stället för 48).
-- Vill du testa ännu snabbare, kör med `--samples 12` eller `--no-video`.
+Andra vanliga flaggor: `--from-step N`, `--only-step N`, `--no-video`, `--refs-only`, `--samples 24`.
+
+Blender hittas automatiskt i `C:\Program Files\Blender Foundation\`, i PATH, eller via miljövariabeln `BLENDER_EXE`. En körning kostar Meshy-krediter (cirka 95) plus OpenAI-bilder; starta ingen betald körning utan att du vill det. Betalda jobb sparar kvitton, så en omstart betalar inte två gånger.
+
+## Var slutfilerna hamnar
+
+I `output/<namn>/`:
+
+| Fil | Betydelse |
+| --- | --- |
+| `06-dealer-export\<namn>-dealer-apose.glb` | Den riggade avataren (skelett + kropp, A-pose). Det här är dockan som kan användas vidare. |
+| `08-film\<namn>-apose-med-rorelse.glb` | Samma avatar plus bord, pall, kort och bakad sittande rörelse. Öppnas direkt i Blender. |
+| `07-qc\resultat-oversikt.png` | Kvalitetsblad (helkropp, ansikte, handleder). |
+| `08-film\<namn>-ror-sig.mp4` | Rörelsefilmen, när den har renderats klart. |
+
+För Rosalina finns också `output\rosalina\08-film\rosalina-med-bord.blend`. Det är Blender-scenen med avatar och bord, utan det lösa Icosphere-objektet som tidigare kunde täcka dockan när GLB-filen öppnades. Öppna den filen i Blender om du vill titta på eller justera scenen.
+
+## Återuppta ett steg
+
+Om något avbryts kan du fortsätta utan att betala om: `--from-step 5` eller `--only-step 7`. Hoppa över filmen med `--no-video`.

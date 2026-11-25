@@ -1,5 +1,17 @@
 """Fit an upright Meshy head and a right-hand donor to a frontal, horizontal T-pose."""
 
+
+import sys
+from pathlib import Path as _Path
+_ROOT = next(
+    c for c in [_Path(__file__).resolve().parent, *_Path(__file__).resolve().parents]
+    if (c / "auto_avatar.py").is_file()
+)
+if str(_ROOT / "gemensamt") not in sys.path:
+    sys.path.insert(0, str(_ROOT / "gemensamt"))
+from sokvagar import add_paths
+ROOT = add_paths(_ROOT)
+
 from pathlib import Path
 
 import numpy as np
@@ -27,7 +39,7 @@ def centered_loop(mesh, indices):
     return center, np.roll(indices, -np.argmin(np.abs(np.arctan2(x, z))))
 
 
-def attach(body, donor, frame, level, slope, tip, gap, body_atlas, donor_atlas, limits=(0.4, 2.5)):
+def attach(body, donor, frame, level, slope, tip, gap, body_atlas, donor_atlas, limits=(0.4, 2.5), warp_frac=0.22):
     # The positive local Y axis points out of the body at each joint.
     stump, lower = clip(rotate(body, frame), level, False, slope)
     stump_center, lower = centered_loop(stump, lower)
@@ -42,7 +54,7 @@ def attach(body, donor, frame, level, slope, tip, gap, body_atlas, donor_atlas, 
     ratio = np.ptp(stump.pos[lower][:, [0, 2]], axis=0) / np.ptp(part.pos[upper][:, [0, 2]], axis=0)
     if not np.all((ratio > limits[0]) & (ratio < limits[1])):
         raise ValueError("Joint proportions differ too much. Check the T-pose and the cut positions.")
-    extent = np.ptp(part.pos[:, 1]) * 0.22
+    extent = np.ptp(part.pos[:, 1]) * warp_frac
     height = part.pos[:, 1] + slope * part.pos[:, 2]
     t = np.clip(height / extent, 0, 1)
     weight = 1 - t * t * (3 - 2 * t)

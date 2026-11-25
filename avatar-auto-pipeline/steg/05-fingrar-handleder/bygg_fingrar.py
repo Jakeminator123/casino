@@ -1,5 +1,17 @@
 """Export the lightweight body rig with fitted, weighted phalanges on all ten fingers."""
 
+
+import sys
+from pathlib import Path as _Path
+_ROOT = next(
+    c for c in [_Path(__file__).resolve().parent, *_Path(__file__).resolve().parents]
+    if (c / "auto_avatar.py").is_file()
+)
+if str(_ROOT / "gemensamt") not in sys.path:
+    sys.path.insert(0, str(_ROOT / "gemensamt"))
+from sokvagar import add_paths
+ROOT = add_paths(_ROOT)
+
 import json
 import math
 import sys
@@ -9,7 +21,6 @@ import bpy
 import numpy as np
 from mathutils import Quaternion
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fingerrigg import DIGITS, fit_fingers, world_vertices
 from viktrensning import flytta_axelleder, halsrapport, rensa_halsvikter
 

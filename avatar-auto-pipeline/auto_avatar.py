@@ -36,7 +36,9 @@ from dotenv import dotenv_values
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE / "gemensamt"))
+from sokvagar import add_paths  # noqa: E402
+add_paths(HERE)
 import apose_referenser  # noqa: E402
 import bygg_modul  # noqa: E402  (lägger metod/ på sys.path)
 import meshy_enbild  # noqa: E402
@@ -48,7 +50,7 @@ from standardmatt import HANDSNITT_HAND, HUVUDSNITT_BYST, HUVUDSNITT_LUTNING  # 
 BODY_SETTINGS = {**meshy_enbild.SETTINGS, "should_remesh": False, "pose_mode": "a-pose"}
 PART_SETTINGS = dict(meshy_enbild.SETTINGS)
 RIG_TRIANGLES = 180000
-HUVUDSNITT_FONSTER = (0.36, 0.56)
+HUVUDSNITT_FONSTER = (0.345, 0.56)
 IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".webp")
 
 STEP_DIRS = {
@@ -101,13 +103,28 @@ def blender_executable():
     if choices and choices[0].is_file():
         return choices[0]
     raise ValueError(
-        "Hittar inte Blender. Lägg portabel Blender i tools\\blender-5.3.0-windows-x64\\ "
-        "eller ange sökvägen i BLENDER_EXE."
+        "Hittar inte Blender. Installera Blender, se till att den ligger i PATH "
+        "eller under C:\\Program Files\\Blender Foundation\\, eller ange sökvägen i BLENDER_EXE."
     )
 
 
+SCRIPTS = {
+    "clean_kropp_chest.py": HERE / "steg" / "03-montering" / "clean_kropp_chest.py",
+    "forenkla_4k.py": HERE / "steg" / "03-montering" / "forenkla_4k.py",
+    "forhandsvisning_montering.py": HERE / "steg" / "03-montering" / "forhandsvisning_montering.py",
+    "bygg_fingrar_apose.py": HERE / "steg" / "05-fingrar-handleder" / "bygg_fingrar_apose.py",
+    "fixa_handleder.py": HERE / "steg" / "05-fingrar-handleder" / "fixa_handleder.py",
+    "exportera_dealer.py": HERE / "steg" / "06-dealer-export" / "exportera_dealer.py",
+    "qc_oversikt.py": HERE / "steg" / "07-qc" / "qc_oversikt.py",
+    "animera_dealer.py": HERE / "steg" / "08-film" / "animera_dealer.py",
+}
+
+
 def blender(script, *args, logfile):
-    cmd = [str(blender_executable()), "-b", "--python-exit-code", "1", "--python", str(HERE / script), "--",
+    path = SCRIPTS.get(script)
+    if path is None or not path.is_file():
+        raise FileNotFoundError(f"Hittar inte Blender-skriptet {script} (förväntat: {path})")
+    cmd = [str(blender_executable()), "-b", "--python-exit-code", "1", "--python", str(path), "--",
            *map(str, args)]
     t = time.time()
     Path(logfile).parent.mkdir(parents=True, exist_ok=True)
@@ -155,6 +172,43 @@ def huvudsnitt(glb, slope=HUVUDSNITT_LUTNING):
     bands = [b for b in bands if b[-1] - b[0] >= 0.02]
     profil = [[f, round(fr, 3), round(w, 3)] for f, fr, w in rows]
     if not bands:
+        # Långt hår runt halsen sänker hudandelen i hela skivan. Hitta då halsen mellan
+        # tröjkantens slut och hakans utsprång i Z via sRGB-hud/tyg-separering.
+        col = asset.color()
+        xy = np.mod(asset.uv, 1) * [col.shape[1], col.shape[0]] - 0.5
+        x0 = np.clip(np.round(xy[:, 0]).astype(int), 0, col.shape[1] - 1)
+        y0 = np.clip(np.round(xy[:, 1]).astype(int), 0, col.shape[0] - 1)
+        srgb = col[y0, x0] / 255.0
+        skin_s = (srgb[:, 0] > srgb[:, 2] + 0.06) & (srgb[:, 0] > 0.45)
+        dark_cloth = (srgb.max(axis=1) < 0.16) & ((srgb[:, 0] - srgb[:, 2]) < 0.035)
+        neck_rows = []
+        for f in np.arange(0.28, 0.56, 0.005):
+            sl = np.abs(h - (lo + f * span)) < 0.004 * span
+            if sl.sum() < 30:
+                continue
+            sk_sl = sl & skin_s
+            n_cloth = int(dark_cloth[sl].sum())
+            n_sk = int(sk_sl.sum())
+            zmax_sk = float(pos[sk_sl, 2].max()) if n_sk >= 20 else np.nan
+            neck_rows.append((round(float(f), 4), n_cloth, n_sk, zmax_sk))
+        shirt_hits = [r[0] for r in neck_rows if r[0] <= 0.42 and r[1] >= 40]
+        shirt_top = max(shirt_hits) if shirt_hits else 0.325
+        ref_z = [r[3] for r in neck_rows if shirt_top + 0.01 <= r[0] <= shirt_top + 0.07 and np.isfinite(r[3])]
+        z_neck_ref = float(np.median(ref_z)) if ref_z else 0.18
+        chin_hits = [r[0] for r in neck_rows if r[0] >= shirt_top + 0.04 and np.isfinite(r[3]) and r[3] > z_neck_ref + 0.08 * span]
+        f_chin = chin_hits[0] if chin_hits else 0.455
+        cand = [r for r in neck_rows if max(0.345, shirt_top + 0.020) <= r[0] <= min(0.42, f_chin - 0.03) and r[1] <= 5 and r[2] >= 80]
+        if cand:
+            # Välj strax ovanför tröjkanten (bevarar både hela halsen och fallande hår).
+            chosen = float(np.clip(cand[min(2, len(cand) - 1)][0], *HUVUDSNITT_FONSTER))
+            return chosen, {
+                "metod": "hals mellan tröjkant och haka (långt hår)",
+                "trojkant": round(float(shirt_top), 4),
+                "haka": round(float(f_chin), 4),
+                "valt": round(chosen, 4),
+                "standard": HUVUDSNITT_BYST,
+                "profil": profil,
+            }
         return HUVUDSNITT_BYST, {"metod": "standard (inget hudband hittat)", "valt": HUVUDSNITT_BYST, "profil": profil}
     band = bands[0]
     chosen = float(np.clip((band[0] + band[-1]) / 2, *HUVUDSNITT_FONSTER))
@@ -301,6 +355,10 @@ def dry_run_check(photos, name, out):
     for m in modules:
         importlib.import_module(m)
     log(f"  Python-imports OK ({len(modules)} moduler)")
+    missing = [f"{k} -> {v}" for k, v in SCRIPTS.items() if not v.is_file()]
+    if missing:
+        raise FileNotFoundError("Saknar stegskript:\n" + "\n".join(missing))
+    log(f"  Stegskript OK ({len(SCRIPTS)} Blender-skript)")
 
     b_exe = blender_executable()
     expr = (
@@ -517,10 +575,25 @@ def pipeline(photos, name, out, outfit=None, video=True, seconds=6.0, samples=48
         delar.mkdir(exist_ok=True)
         cut, cutrep = huvudsnitt(models_paths["huvud"])
         rep["huvudsnitt"] = cutrep
-        bygg_modul.build(models_paths["huvud"], delar / "huvud.glb", "huvud", cut, HUVUDSNITT_LUTNING)
+        neck_slope = HUVUDSNITT_LUTNING
+        bygg_modul.build(models_paths["huvud"], delar / "huvud.glb", "huvud", cut, neck_slope)
+        # Om huvudet har hår längs halssnittet (bred kant) ger flack lutning (0.05) en sluten halsögla utan springa
+        _ha = bygg_modul.Asset(delar / "huvud.glb")
+        _hm = bygg_modul.Mesh(_ha.pos, _ha.nor, _ha.uv, _ha.faces)
+        _hh = float(_hm.pos[:, 1].max() - _hm.pos[:, 1].min())
+        _ax = _hm.pos[:, 1] + neck_slope * _hm.pos[:, 2]
+        _hp, _hu = bygg_modul.clip(_hm, _ax.min() + np.ptp(_ax) * 0.004, True, neck_slope)
+        if np.ptp(_hp.pos[_hu, 0]) / max(_hh, 1e-6) > 0.32:
+            neck_slope = 0.05
+            bygg_modul.build(models_paths["huvud"], delar / "huvud.glb", "huvud", cut, neck_slope)
         bygg_modul.build(models_paths["hand"], delar / "handpar.glb", "handpar", HANDSNITT_HAND, 0)
+        kropp_ren = delar / "kropp-ren.glb"
+        blender("clean_kropp_chest.py", models_paths["kropp"], kropp_ren, logfile=d / "kropp-rensa.log")
+        kropp_in = kropp_ren if kropp_ren.is_file() else models_paths["kropp"]
         full = d / f"{name}-apose.glb"
-        rep["montering"] = assemble_apose(models_paths["kropp"], delar / "huvud.glb", delar / "handpar.glb", full)
+        rep["montering"] = assemble_apose(kropp_in, delar / "huvud.glb", delar / "handpar.glb", full,
+                                          skin_ref=refs_paths["head"] if refs_paths["head"].is_file() else None,
+                                          neck_slope=neck_slope)
         (d / "montering.json").write_text(json.dumps(rep["montering"], indent=1, ensure_ascii=False), encoding="utf-8")
         blender("forenkla_4k.py", full, light, RIG_TRIANGLES, logfile=d / "forenkla.log")
         prev = d / "montering-forhandsvisning.png"

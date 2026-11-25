@@ -7,12 +7,12 @@ handleder, export, QC och film i Blender. `casino/AGENTS.md` gäller också; den
 
 ## Köra
 
-- Python-miljön är `.venv/` i den här mappen (`requirements.txt`), Blendern den portabla i `tools/`.
+- Python-miljön är `.venv/` i den här mappen (`requirements.txt`). Blender hittas via `BLENDER_EXE`, PATH eller `C:\Program Files\Blender Foundation\`.
 - Jakob startar med `STARTA avatar.cmd` (frågar efter mappen under `input/`). En agent kör
   `.\.venv\Scripts\python.exe auto_avatar.py --name <namn>`; `--dry-run` provar foton, Blender och mappar gratis, och
   `--from-step N`, `--only-step N`, `--refs-only` och `--no-video` styr vad som körs. Stegen och mapparna står i
   `README-SV.md`.
-- Foton i `input/<namn>/`, allt som körningen gör i `output/<namn>/`. Inget av det, och inte `tools/`, går in i Git.
+- Foton i `input/<namn>/`, allt som körningen gör i `output/<namn>/`. Inget av det går in i Git.
 
 ## Nycklar och pengar
 
