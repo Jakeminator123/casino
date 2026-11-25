@@ -1,0 +1,23 @@
+{
+  "about": "Limits for orders and paid calls, and the price table the cost is computed from (src/order-model.ts priceOf). The worst case counts: the tool's listed price where it is higher than what the ledgers show. enabled false stops every approval and paid call; maxPerOrder and minBalance hold for everyone. The standing mandate (Jakob 2026-11-25): the main agent approves on its own an order of at most askAbove credits (tools/order-approve.ts --mandate); a larger one only Jakob, by his click in Beställ or his yes in the chat (tools/order-approve.ts --jakob). perDayCredits bounds what agents approve and call directly (tools/runway-api.ts place) in one day of timeZone; Jakob's own approvals are not held by it. The balance is the last one known; a receipt's creditsRemainingAfter is newer when there is one.",
+  "schemaVersion": 1,
+  "enabled": true,
+  "mandate": {
+    "id": "staende-20261125",
+    "askAbove": 500,
+    "perDayCredits": 2500
+  },
+  "maxPerOrder": 2000,
+  "minBalance": 0,
+  "timeZone": "Europe/Stockholm",
+  "balance": {"credits":6288,"at":"2026-11-24T05:39:44Z","source":"Runways API, utvecklarprojektet som API-nyckeln drar från; avläst av huvudagenten dealer-5b kl. 06.39 svensk tid (GET /v1/organization) efter stolsserien: tio anrop à 91 = 910 genom tools/runway-api.ts (liggaren .runtime/runway-api/ledger.json), från 7 198 kl. 05.52 när mandatet dealer-5b-20261124 började (Jakob 2026-11-24 kl. 05.50 i chatten: \"kör, du har 1000 till krediter\", och kl. 06.00: \"Du får 1500 krediter till. måste dra godnatt\", alltså 2 500; slutet vid midnatt är huvudagentens, han sade ingen tid). Före det: mandatet dealer-d1-20261124 använde 1 020 i Beställ, och vinkelprovet utanför Beställ 627 i sin liggare; äldre avläsningar står i Git-historiken för den här filen."},
+  "prices": [
+    { "model": "kling-4", "resolution": "1080p", "perSecond": 21.3, "listedPerSecond": 23.5, "perInputSecond": 11.28, "listedPerInputSecond": 14.1, "source": "Liggarna b19 och b20: 7 s i 1080p = 149 krediter; listpris 23,5 per s i verktyget generate_video 2026-11-12. Prislistan 2026-11-24: 11,28 per s av 'the greater of total input duration and output duration' till 2026-11-30, sedan 14,1; referensfilmer är indata." },
+    { "model": "kling-4", "resolution": "720p", "perSecond": 15.7, "listedPerSecond": 15.7, "source": "Listpris i verktyget generate_video 2026-11-12; inte mätt i någon liggare." },
+    { "model": "kling-3-4k", "resolution": "4k", "perSecond": 43, "listedPerSecond": 43, "source": "Runways API-prislista: kling3.0_4k 43 krediter per s, med eller utan ljud (https://docs.dev.runwayml.com/guides/pricing/, läst 2026-11-13); inte mätt i någon liggare, så det är listpriset och värsta fallet." },
+    { "model": "wan3", "resolution": "1080p", "perSecond": 20, "source": "DRIFT, Lärdomar som gäller, som sidan stod till commit f6f68ef (git show f6f68ef:docs/DRIFT.md): 20 per s i full storlek; en ingång på 4 s kostade 80 (handboken, tools/film-prompting.md §5)." },
+    { "model": "wan3", "resolution": "480p", "perSecond": 5, "source": "DRIFT, Lärdomar som gäller, som sidan stod till commit f6f68ef (git show f6f68ef:docs/DRIFT.md): auto_480p kostar 5 per s." },
+    { "model": "nano-banana-pro", "imageSize": "2K", "perImage": 20, "source": "LASMIG: Nano Banana Pro 20 krediter per bild i 2K." },
+    { "model": "nano-banana-pro", "imageSize": "4K", "perImage": 40, "source": "LASMIG: Nano Banana Pro 40 krediter per bild i 4K." }
+  ]
+}

@@ -1,0 +1,102 @@
+# Python-skripten i efterarbetet
+
+Den egna MuseTalk-köraren finns i [mouth-runner](mouth-runner/README.md). Dess MediaPipe-mask, versionerade munprofil
+och källproveniens följer med repot; modellvikter och lokala förberedelser gör det inte. Profilens regressioner körs
+även av `npm test` när Python 3 finns, annars redovisas just den kontrollen som överhoppad.
+
+Skripten som det löpande bandet ([dealer-line.md](../dealer-line.md), [order-clerk.md](../order-clerk.md) §5–6,
+[handboken](../film-prompting.md)) kör i Python, oftast för att de hittar händer, ögon, axlar eller ansikten med
+MediaPipe eller OpenCV:s ansiktsmodeller, som repots TypeScript inte har; resten av efterarbetet är
+`tools/film-after.ts` och `tools/still-after.ts`. Slå upp ett avsnitt, läs inte hela.
+
+| Skript | Vad det gör | Används i |
+| --- | --- | --- |
+| `grundbild-21.py` | Passar en levererad stillbild till bankens ruta mot dealerns ankare 1 (en likformighetsavbildning på händer, axlar, armbågar och ögon) och mäter resultatet. Skriver `<namn>-final.png`, `<namn>-ark.jpg` och `<namn>.json`. | Steg 1 för en stillbild (order-clerk §5) |
+| `skolagning-21.py` | Lägger tillbaka bankens egen sko från en platta utan hand och behåller bara dealerns hand ovanpå (`--keep-card` behåller kortet hon rör). | Steg 3 för en stillbild (order-clerk §5) |
+| `filmmatt.py` | Mäter en film ruta för ruta: format, grönt, frysta rutor, händer och kropp, färgade kort, landning mot planen (`--seats`, läser `placements/default.json` i repot) och första och sista ruta mot beställningens bilder (`--start`, `--end`). Skriver `<namn>.film.json`. | Händer och kropp per ruta (order-clerk §5–6, film-review.md) |
+| `forlang-plagg.py` | Förlänger ett ljust plagg nedåt i en passad stillbild så att kroppen slutar vid bordets bakkant, bakom armar och händer. Behöver ingen modell. | Kroppen kapad i en stillbild med ljust plagg (handboken, felistan) |
+| `identitet.py` | Ansiktslikhet per ruta mot stillbilder av den nya och den gamla dealern, och hur mycket tatueringsbläck handryggarna bär. Kräver `filmmatt.py`:s mått för samma film. | Likhet för en ny dealer (dealer-line.md, station 3) |
+| `landmarks.py` | Läser en film ruta för ruta och skriver allt MediaPipe ser av händerna (21 punkter var, i bankens bildpunkter och som en hand i meter) och kroppen (33 punkter) till en JSON-fil. Talen är MediaPipes egna, ojämnade. | En verklig giv lagd i rummet (`dealer3d/tools/lift.ts`, `dealer3d/LASMIG.md`) |
+| `hands-from-anchor.py` | Lägger händerna ur en ankarbild över händerna i en film, ruta för ruta, och låter varje hand följa sin egen lilla rörelse i filmen. Behöver ingen modell, bara OpenCV och `ffmpeg` på sökvägen. | En vila i en annan uppsättning (nedan) |
+
+Användning står överst i varje skript. Kör alltid med `-I` (isolerat läge), från repots rot:
+
+```
+tools/python/.venv/Scripts/python.exe -I tools/python/filmmatt.py <film.mp4> <namn> <utmapp> --start first.png --end last.png
+```
+
+## En vila i en annan uppsättning (`hands-from-anchor.py`)
+
+En godkänd vila i en uppsättning blir en vila i en annan utan beställning och utan kostnad: filmens egen rörelse, med
+händerna ur den andra uppsättningens ankare 1 (så blev Casinots vilor Tatuerads). Det håller för en film där
+händerna ligger stilla på filten och där ankarbilden utanför händerna är filmens första ruta. Samma indata ger samma
+fil (SHA-256 lika). Två steg, från repots rot; det andra för in filmen i banken som lokalt härledd, i inkorgen, med
+ankaret som första och sista bild (`tools/register-derived.ts`, `--dry` säger vad som skulle skrivas):
+
+```
+tools/python/.venv/Scripts/python.exe -I tools/python/hands-from-anchor.py assets/anchors/<ankare>/anchor.png assets/motions/<källklipp>/source.mp4 .runtime/<uppgift>/<ut>.mp4 --sheet .runtime/<uppgift>/<ark>.png
+node tools/register-derived.ts .runtime/<uppgift>/<ut>.mp4 --id <nytt klipp-id> --source <källklipp> --anchor <ankarets post i Material> --script tools/python/hands-from-anchor.py --operation "<vad som är gjort>"
+```
+
+## Kortdatasetet (`kort-dataset/`)
+
+Verktygen som gjorde datasetet över kortets rygg och framsida ruta för ruta, mätte dagens kortspår mot det
+och bygger labbprovet `kortprov` ([BRISTER](../../docs/BRISTER.md), "Kortet"). Skripten läser och skriver datasetet
+i slasken, `kort-dataset/` (etiketter i `labels/`, `manifest.jsonl`, `rutor.csv`), och läser repots `assets/`. Den
+tränade modellen skrivs inte dit, eftersom slasken töms efter sju dygn: `train.py` lägger den i `tools/python/models/`
+(`kortmodell-v<n>.pt`, eller där `DEALER_MODELS` pekar), och `eval.py` och `spar_modell.py` läser den därifrån; `inventory.py` tar sina rötter som argument. Referensfilmen från YouTube mäts men kopieras
+aldrig; ur den sparas inga utsnitt. Skripten behöver bara `numpy` och `cv2`: etiketteringen kördes i repots `.venv`
+(OpenCV 5.0), mätningarna och provets skript med systemets Python 3.13 (OpenCV 4.13). `train.py` och `eval.py`
+behöver också `torch` (en egen miljö med torch 2.6) och kör på grafikkortet under det delade låset. Användning står
+överst i varje skript.
+
+| Vad | Skript |
+| --- | --- |
+| Datasetet, i ordning | `inventory.py` (alla filmer), `probe.py` (snabbprov), `valj.py` (kortfilmerna), `dela.py` (listor för två etiketterare), `label.py` (kortets kontur per ruta), `export.py` (manifest och tabell). `sheet.py` ritar etiketten på filmrutor för ögat. |
+| Mätningar mot dagens spår | `storlek.py`, `spar_noter.py`, `spar_storlek.py`, `vandning.py`, `ljus_check.py` |
+| Modellen (v1 och v2; `--version 2` ritar märke, tryck och fingrar som störning) | `train.py`, `eval.py` (`--modell`, `--ut`) |
+| Modellens spår på alla filmer (Prov `kortmodell-v2-20261123`, sidan `/kortlandning.html`) | `spar_modell.py` (modellens hörn och sida per ruta, på grafikkortet under låset), `spar_modell.ts` (spåret per film och `index.json` med måtten mot dagens spår; regeln står överst i skriptet; `--utan-styvt` ger modellens rutor som de är) |
+| Det styva kortet (Prov `styvt-kort-20261123`): ett kort med en storlek, med plats, riktning, höjd och lutning för hela filmen på en gång | `styvt_kort.ts` (anropas av `spar_modell.ts` för givar där kortet lägger sig; måtten och regeln står överst) |
+| Labbprovet | `spar_b.ts` (provets spår ur etiketterna, regeln `refineFrames` i `src/card-track.ts`), `spela_in.ts` (spelar in Scen ruta för ruta, headless under låset), `ljus_serie.py` (ljusets steg ur en inspelning), `titta_val.py` (spåren ritade på filmrutor), `prov_bygg.py` (provets filmer och stillbilder) |
+
+```
+tools/python/.venv/Scripts/python.exe -I tools/python/kort-dataset/label.py <slasken>/kort-dataset/lista-a.jsonl --workers 2
+tools/python/.venv/Scripts/python.exe -I tools/python/kort-dataset/export.py
+node tools/python/kort-dataset/spar_b.ts --alla
+<torch-miljön>/Scripts/python.exe -I tools/python/kort-dataset/spar_modell.py
+node tools/python/kort-dataset/spar_modell.ts
+node tools/python/kort-dataset/spela_in.ts <bankklipp> 10 80 <utmapp> fore=mat@1764x1174/640 efter=1@1764x1174/640
+```
+
+TypeScript-skripten ligger här för att verktygen ska hålla ihop.
+
+## Miljön
+
+Python 3.13 (miljön skripten kördes i hade 3.13.11). En gång per checkout:
+
+```
+py -3.13 -m venv tools/python/.venv
+tools/python/.venv/Scripts/python.exe -m pip install -r tools/python/requirements.txt
+```
+
+`requirements.txt` är `pip freeze` ur den miljö skripten kördes i;
+skripten själva importerar bara `numpy`, `cv2` (OpenCV 5.0) och `mediapipe`. Samma versioner behövs för samma pixlar.
+`.venv/` och `models/` här är Git-ignorerade.
+
+## Modellerna
+
+Modellfilerna är för stora för Git (upp till 37 MB). Lägg dem i `tools/python/models/`, eller peka miljövariabeln
+`DEALER_MODELS` på en mapp som har dem. SHA-256 är de filer som användes; kontrollera en nedladdad fil mot dem. Där
+ligger också kortmodellen som `kort-dataset/train.py` tränar (`kortmodell-v<n>.pt`); den finns bara på datorn som
+tränade den.
+
+| Fil | Källa | SHA-256 |
+| --- | --- | --- |
+| `hand_landmarker.task` | MediaPipe, `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task` | `fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1` |
+| `face_landmarker.task` | MediaPipe, `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task` | `64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff` |
+| `pose_landmarker_heavy.task` | MediaPipe, `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task` | `64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b` |
+| `face_detection_yunet_2023mar.onnx` | OpenCV Zoo, `models/face_detection_yunet/` | `8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4` |
+| `face_recognition_sface_2021dec.onnx` | OpenCV Zoo, `models/face_recognition_sface/` | `0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79` |
+
+Adresserna ovan är MediaPipes och OpenCV Zoos publicerade; `latest` kan ha flyttats sedan dess, därför
+kontrollsummorna.

@@ -1,0 +1,246 @@
+// The studio's locked copy on the internet, published again from a commit: the whole way in one command (docs/DRIFT.md,
+// "Den låsta kopian på nätet"). Run from Jakob's own checkout, which holds the media (assets/) and the copy's state
+// (.runtime/studio-deploy with the Vercel project's link, .runtime/studio-blob with the store's key and the receipt).
+//
+//   node tools/publish-studio.ts --worktree <path>  plan: which commit, which worktree, what would run; nothing is sent
+//   node tools/publish-studio.ts --kor              build that commit, upload new media, build again, deploy, check
+//   … --commit <ref>                                another commit than origin/main (fetched first)
+//   … --worktree <absolute path>                     reuse another clean worktree of this repository
+//   … --bara-bygge                                   build locally; no media upload or deployment
+//   … --utan-deploy                                 stop after the upload and the second build
+//
+// The code is never this checkout's working tree, where other sessions have unfinished files: the commit is checked out,
+// detached and clean, in a worktree of its own (WORKTREE below), with its own npm packages and the media of this checkout
+// through a junction (assets/ is outside Git). There its own lab server runs on LAB_PORT, so that the copy is frozen from
+// that commit's registers and modules (tools/build-studio-snapshot.ts --lab … --hem …). tools/preview.ts has a fixed port
+// and host check and empties the slask when it starts; it is started unchanged, with a start-up module (LAB_HOOK) that moves its
+// port, lets its host check see the address it expects, and leaves the tidying to the lab server on 4319. Jakob's lab
+// server on 4319 is never started, stopped or asked.
+//
+// Media go up only when new: each object is named by its content (tools/sync-studio-media.ts), so a republish sends only
+// films that changed or were added. The deploy is `vercel deploy --prebuilt --prod` from .runtime/studio-deploy, never from
+// the repo root (its .env.local holds another store's key). Afterwards the copy is asked, without the cookie, for a page, a
+// film and an answer: each must be the login page. With DEALER_LOSEN_PROV set (the password, for this run only, never
+// written down) it also logs in and checks the first page, a film by range and the commit the copy says it is; with
+// DEALER_LOSEN_SPEL_PROV (a password of the game alone, DEALER_LOSEN_SPEL in the project) that it leads to the game, plays a
+// film and does not open the studio.
+import {spawn, spawnSync, type ChildProcess} from 'node:child_process';
+import {existsSync, lstatSync, readFileSync, realpathSync} from 'node:fs';
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {waitForPublishedCommit} from './publish-ready.ts';
+
+const home = path.resolve(fileURLToPath(new URL('../', import.meta.url)));
+if (path.resolve(process.cwd()) !== home) throw Error('Kör från dealer-katalogen (Jakobs utcheckning).');
+const args = process.argv.slice(2), run = args.includes('--kor'), noDeploy = args.includes('--utan-deploy'), onlyBuild = args.includes('--bara-bygge');
+const option = (name: string) => { const at = args.indexOf(name); if (at < 0) return null; const v = args[at + 1]; if (!v || v.startsWith('--')) throw Error(`${name} saknar värde.`); return v; };
+
+const suppliedWorktree = option('--worktree');
+if (!suppliedWorktree) throw Error('Ange ett befintligt rent arbetsträd med --worktree <absolut mapp>. Ingen disk väljs automatiskt.');
+if (suppliedWorktree && !path.isAbsolute(suppliedWorktree)) throw Error('--worktree kräver en absolut sökväg.');
+export const WORKTREE = suppliedWorktree;
+if (path.resolve(WORKTREE).toLowerCase() === home.toLowerCase()) throw Error('--worktree får inte vara huvudträdet.');
+if (suppliedWorktree && !existsSync(WORKTREE)) throw Error('--worktree måste vara ett befintligt rent arbetsträd.');
+if (existsSync(WORKTREE) && realpathSync(WORKTREE).toLowerCase() === realpathSync(home).toLowerCase()) throw Error('Arbetskopian får inte peka på huvudträdet.');
+export const LAB_PORT = 4341;
+const TEAM = 'jakeminator123s-projects', PROJECT = 'dealer-studio';
+const deployDir = path.join(home, '.runtime', 'studio-deploy');
+const say = (text: string) => console.log(text);
+const git = (cwd: string, ...a: string[]) => { const r = spawnSync('git', a, {cwd, encoding: 'utf8'}); if (r.status !== 0) throw Error(`git ${a.join(' ')}: ${(r.stderr || r.stdout).trim()}`); return r.stdout.trim(); };
+const step = (name: string, command: string, list: string[], cwd: string, env: NodeJS.ProcessEnv = process.env) => {
+  say(`\n── ${name}\n   ${command} ${list.join(' ')}   (i ${cwd})`);
+  if (!run) return;
+  const r = spawnSync(command, list, {cwd, env, stdio: 'inherit', shell: process.platform === 'win32' && !command.endsWith('.exe') && command !== process.execPath});
+  if (r.status !== 0) throw Error(`${name} gick inte (kod ${r.status}).`);
+};
+
+/**
+ * The start-up module of the worktree's lab server: tools/preview.ts listens on 4319 and answers only Host 127.0.0.1:4319;
+ * here it listens on LAB_PORT and a request's Host is read as it expects. Its emptying of the slask at start (tools/scratch-clean.ts)
+ * is not started: that belongs to the lab server on 4319. Nothing else of the server is touched.
+ */
+export const LAB_HOOK = `import http from 'node:http'; import cp from 'node:child_process'; import {EventEmitter} from 'node:events'; import {syncBuiltinESMExports} from 'node:module';
+const listen = http.Server.prototype.listen;
+http.Server.prototype.listen = function (port, ...rest) { return listen.call(this, port === 4319 ? ${LAB_PORT} : port, ...rest); };
+const create = http.createServer;
+http.createServer = function (...a) { const i = a.findIndex(x => typeof x === 'function'); if (i >= 0) { const handler = a[i]; a[i] = (req, res) => { if (req.headers.host === '127.0.0.1:${LAB_PORT}') req.headers.host = '127.0.0.1:4319'; return handler(req, res); }; } return create.apply(this, a); };
+const spawnOriginal = cp.spawn;
+cp.spawn = function (command, list, ...rest) { if (Array.isArray(list) && list.includes('tools/scratch-clean.ts')) return new EventEmitter(); return spawnOriginal.call(this, command, list, ...rest); };
+syncBuiltinESMExports();`;
+
+// ── What is published ───────────────────────────────────────────────────────
+const asked = option('--commit') ?? 'origin/main';
+git(home, 'fetch', '--quiet', 'origin');
+const commit = git(home, 'rev-parse', '--verify', `${asked}^{commit}`);
+say(`Kopian byggs från ${commit.slice(0, 7)} (${asked}) i ${WORKTREE}; media och kopians tillstånd från ${home}.`);
+// The project's and the team's ids are not written in the repo, which is public: they come from the deploy folder's link
+// (.runtime/studio-deploy/.vercel/project.json, written by `vercel link` and ignored by Git), or from VERCEL_ORG_ID and
+// VERCEL_PROJECT_ID, which the Vercel CLI reads as well. The team the id names is asked for its name before anything is sent.
+const linked = (() => { try { return JSON.parse(readFileSync(path.join(deployDir, '.vercel', 'project.json'), 'utf8')) as {projectId?: string; orgId?: string; projectName?: string}; } catch { return null; } })();
+const link = {orgId: linked?.orgId ?? process.env.VERCEL_ORG_ID, projectId: linked?.projectId ?? process.env.VERCEL_PROJECT_ID, projectName: linked?.projectName ?? PROJECT};
+if (!link.orgId || !link.projectId) throw Error(`Projektets id saknas: länka .runtime/studio-deploy till ${PROJECT} i ${TEAM} med vercel link (docs/DRIFT.md), eller sätt VERCEL_ORG_ID och VERCEL_PROJECT_ID.`);
+if (link.projectName !== PROJECT) throw Error(`.runtime/studio-deploy är länkad till ${link.projectName}, inte ${PROJECT}.`);
+const team = spawnSync('vercel', ['api', `/v2/teams/${link.orgId}`, '--raw'], {cwd: deployDir, encoding: 'utf8', shell: process.platform === 'win32'});
+const slug = (() => { try { return (JSON.parse(team.stdout) as {slug?: string}).slug; } catch { return null; } })();
+if (slug !== TEAM) throw Error(`Länkens team är ${slug ?? 'okänt (vercel whoami?)'}, inte ${TEAM}; inget skickas.`);
+const receipt = (() => { try { return JSON.parse(readFileSync(path.join(home, '.runtime', 'studio-blob', 'studio-media.json'), 'utf8')) as {storeId?: string}; } catch { return null; } })();
+const store = option('--store') ?? receipt?.storeId;
+if (!store) throw Error('Ingen Blob-store: ange --store store_… första gången (docs/DRIFT.md).');
+if (!existsSync(path.join(home, '.runtime', 'studio-blob', '.env.local'))) throw Error('Storens nyckel saknas i .runtime/studio-blob/.env.local (docs/DRIFT.md).');
+say(`Vercel: ${link.projectName ?? link.projectId} i ${TEAM}; Blob-store ${store}.`);
+
+// ── The worktree: the commit, detached and clean, with its packages and the media ──
+const sameDir = (a: string, b: string) => path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase();
+{
+  const common = git(WORKTREE, 'rev-parse', '--git-common-dir');
+  if (!sameDir(path.resolve(WORKTREE, common), path.join(home, '.git'))) throw Error(`${WORKTREE} är inte en arbetskopia av den här utcheckningen.`);
+  const dirty = git(WORKTREE, 'status', '--porcelain');
+  if (dirty) throw Error(`Arbetskopian har ändringar; kopian byggs bara ur en ren commit:\n${dirty}`);
+  say(`\n── Arbetskopian till ${commit.slice(0, 7)}\n   git checkout --detach ${commit.slice(0, 7)}   (i ${WORKTREE})`);
+  if (run) git(WORKTREE, 'checkout', '--quiet', '--detach', commit);
+}
+if (run) {
+  // assets/ is outside Git: the worktree reads this checkout's media through a junction (ignored by Git, so the worktree stays clean).
+  const assets = path.join(WORKTREE, 'assets');
+  if (!existsSync(assets)) { const r = spawnSync('cmd', ['/c', 'mklink', '/J', assets.replaceAll('/', '\\'), path.join(home, 'assets')], {encoding: 'utf8'}); if (r.status !== 0) throw Error(`Kopplingen till media gick inte: ${r.stderr || r.stdout}`); }
+  if (!lstatSync(assets).isSymbolicLink() && !sameDir(realpathSync(assets), path.join(home, 'assets'))) throw Error(`${assets} är inte kopplingen till ${home}\\assets.`);
+  if (!sameDir(realpathSync(assets), realpathSync(path.join(home, 'assets')))) throw Error(`${assets} pekar inte på ${home}\\assets.`);
+  if (git(WORKTREE, 'status', '--porcelain')) throw Error('Kopplingen till media syns i Git; avbryter.');
+  // Packages as the commit's lock files say; again only when a lock file changed.
+  for (const dir of ['.', 'studio']) {
+    const lock = path.join(WORKTREE, dir, 'package-lock.json'), stamp = path.join(WORKTREE, dir, 'node_modules', '.publish-lock-sha256');
+    const sha = createHash('sha256').update(readFileSync(lock)).digest('hex');
+    if (existsSync(stamp) && readFileSync(stamp, 'utf8') === sha) continue;
+    step(`npm ci (${dir})`, 'npm', ['ci', '--no-audit', '--no-fund'], path.join(WORKTREE, dir));
+    await import('node:fs/promises').then(fs => fs.writeFile(stamp, sha));
+  }
+}
+
+// ── Its own lab server, the builds, the upload ──────────────────────────────
+const env = {...process.env};
+delete env.BLOB_READ_WRITE_TOKEN;
+const LAB = `http://127.0.0.1:${LAB_PORT}`;
+let server: ChildProcess | null = null;
+const health = async () => { try { const r = await fetch(`${LAB}/health`, {signal: AbortSignal.timeout(1500)}); return r.ok ? await r.json() as {name?: string; root?: string} : null; } catch { return null; } };
+const waitForExit = (child: ChildProcess, milliseconds: number): Promise<boolean> => {
+  if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true);
+  return new Promise(resolve => {
+    const done = () => { clearTimeout(timer); resolve(true); };
+    const timer = setTimeout(() => { child.removeListener('exit', done); resolve(false); }, milliseconds);
+    child.once('exit', done);
+  });
+};
+const stopServer = async () => {
+  if (!server) return;
+  const owned = server;
+  const exited = () => owned.exitCode !== null || owned.signalCode !== null;
+  if (exited()) { server = null; return; }
+  const state = await readFile(path.join(WORKTREE, '.runtime', 'preview.json'), 'utf8').then(t => JSON.parse(t)).catch(() => null);
+  // Another run may have replaced this shared file after our child exited. Never send that run's stop token.
+  if (exited()) { server = null; return; }
+  if (state?.pid === owned.pid && state.parent === process.pid && state.script === 'tools/preview.ts' &&
+      sameDir(String(state.root), WORKTREE) && sameDir(String(state.executable), process.execPath) && typeof state.token === 'string') {
+    await fetch(`${LAB}/stop`, {method: 'POST', headers: {'x-dealer-token': state.token}, signal: AbortSignal.timeout(2000)})
+      .then(response => response.body?.cancel()).catch(() => null);
+  }
+  // A failed health request does not prove exit. Wait for this exact child, then stop only that child if necessary.
+  if (!await waitForExit(owned, 5000)) {
+    owned.kill();
+    if (!await waitForExit(owned, 2000)) throw Error(`Arbetskopians hjälpserver (PID ${owned.pid}) avslutades inte; kontrollera den före nästa körning.`);
+  }
+  server = null;
+};
+const build = () => step('Kopian byggs', process.execPath, ['tools/build-studio-snapshot.ts', '--lab', LAB, '--hem', home], WORKTREE, env);
+try {
+  say(`\n── Arbetskopians labbserver\n   node --import <LAB_HOOK> tools/preview.ts   (i ${WORKTREE}, ${LAB})`);
+  if (run) {
+    if (await health()) throw Error(`Något svarar redan på ${LAB}; avbryter.`);
+    server = spawn(process.execPath, ['--import', `data:text/javascript;base64,${Buffer.from(LAB_HOOK).toString('base64')}`, 'tools/preview.ts'], {cwd: WORKTREE, env, stdio: 'ignore', windowsHide: true});
+    let alive = null; for (let i = 0; i < 80 && !alive; i++) { await new Promise(r => setTimeout(r, 250)); alive = await health(); }
+    if (alive?.name !== 'dealer' || !sameDir(String(alive.root), WORKTREE)) throw Error('Arbetskopians labbserver startade inte.');
+  }
+  build();
+  if (!onlyBuild) {
+    step('Nya filmer och bilder till Blob', process.execPath, ['tools/sync-studio-media.ts', '--upload', '--store', store], home, env);
+    build();
+  }
+  await stopServer();
+  if (onlyBuild) { say(run ? '\nStannar efter lokalt bygge; inget har laddats upp eller publicerats (--bara-bygge).' : '\nPlan: bara lokalt bygge; ingen uppladdning eller deploy.'); process.exit(0); }
+  if (run) {
+    const built = JSON.parse(readFileSync(path.join(deployDir, 'build.json'), 'utf8'));
+    if (!built.deployable || built.trial || built.sourceCommit !== commit || built.sourceDirty || built.codeLeaks?.length) throw Error(`Bygget går inte att publicera: ${JSON.stringify({deployable: built.deployable, trial: built.trial, commit: built.sourceCommit, dirty: built.sourceDirty, leaks: built.codeLeaks})}`);
+    say(`   Bygget: ${built.static.length} statiska filer, ${built.blob.length} i Blob, commit ${commit.slice(0, 7)}.`);
+  }
+  if (noDeploy) { await stopServer(); say('\nStannar före deploy (--utan-deploy).'); process.exit(0); }
+  step('Deploy', 'vercel', ['deploy', '--prebuilt', '--prod', '--yes', '--scope', TEAM], deployDir, env);
+} finally { await stopServer(); }
+
+// ── Checked from the outside ────────────────────────────────────────────────
+if (!run) { say('\nPlan: inget har körts. Kör med --kor.'); process.exit(0); }
+const domains = (() => { const r = spawnSync('vercel', ['api', `/v9/projects/${link.projectId}/domains?teamId=${link.orgId}`, '--raw'], {cwd: deployDir, encoding: 'utf8', shell: process.platform === 'win32'});
+  try { return (JSON.parse(r.stdout).domains as {name: string}[]).map(d => d.name); } catch { return []; } })();
+if (!domains.length) throw Error('Projektets adresser kunde inte läsas; kontrollera kopian för hand.');
+const built = JSON.parse(readFileSync(path.join(deployDir, 'build.json'), 'utf8')) as {blob: {path: string; type: string}[]};
+const film = built.blob.find(f => f.type === 'video/mp4')!.path, password = process.env.DEALER_LOSEN_PROV ?? '', gameWord = process.env.DEALER_LOSEN_SPEL_PROV ?? '';
+const open = ['allt', 'spel'].find(word => word === (process.env.DEALER_OPPEN_PROV ?? '').trim().toLowerCase()) ?? null;
+let bad = 0;
+const check = (name: string, ok: boolean, detail = '') => { if (!ok) bad++; say(`   ${ok ? 'ok ' : 'FEL'} ${name}${detail ? ` (${detail})` : ''}`); };
+for (const domain of domains) {
+  const site = `https://${domain}`;
+  say(`\n── ${site}`);
+  if (open === 'allt') {
+    const ready = await waitForPublishedCommit(site, commit);
+    check('öppen kopia säger rätt commit', ready.ready, ready.detail);
+  }
+  let cookie = '';
+  if (password) {
+    const login = await fetch(`${site}/api/login`, {method: 'POST', redirect: 'manual', headers: {'content-type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({losen: password, next: '/studio/'})});
+    cookie = (login.headers.get('set-cookie') ?? '').split(';')[0];
+    const loggedIn = login.status === 303 && cookie.startsWith('dealer_studio=');
+    check('inloggning', loggedIn, String(login.status));
+    if (loggedIn) {
+      const ready = await waitForPublishedCommit(site, commit, {cookie});
+      check('kopian säger rätt commit', ready.ready, ready.detail);
+    } else check('kopian säger rätt commit', false, 'inloggningen misslyckades');
+  }
+  // Without a cookie: the login page for everything, unless the copy is open (DEALER_OPPEN in the project; DEALER_OPPEN_PROV here says
+  // what this run is to expect: 'allt', 'spel' or nothing). Open, a page answers, a door leads to the game, and the bot stays shut.
+  for (const p of ['/studio/', '/studio/game/', '/api/clip-bank', '/game.html', '/casino', '/trailer', `/${film}`]) {
+    const r = await fetch(site + p, {redirect: 'manual', headers: p === `/${film}` ? {range: 'bytes=0-1023'} : {}}).catch(() => null);
+    const text = r ? await r.text() : '', studio = p.startsWith('/studio'), door = p === '/casino' || p === '/trailer';
+    const shut = !open || open === 'spel' && studio;
+    if (shut) check(`utan kaka ${p}: lösenordssidan`, r?.status === 401 && text.includes('name="losen"'), String(r?.status ?? 'inget svar'));
+    else if (door) check(`utan kaka ${p}: leder till spelet`, r?.status === 303 && (r.headers.get('location') ?? '').startsWith('/game.html'), String(r?.status ?? 'inget svar'));
+    else check(`utan kaka ${p}: öppen`, (r?.status === 200 || r?.status === 206) && !text.includes('name="losen"'), String(r?.status ?? 'inget svar'));
+  }
+  if (open) { const bot = await fetch(`${site}/api/bot`, {method: 'POST', redirect: 'manual', headers: {'content-type': 'application/json'}, body: '{}'}).catch(() => null);
+    check('utan kaka: botten kräver lösenordet', bot?.status === 401, String(bot?.status ?? 'inget svar')); }
+  if (open === 'allt') {
+    const range = await fetch(`${site}/${film}`, {headers: {range: 'bytes=0-1023'}}).catch(() => null);
+    const bytes = range ? Buffer.from(await range.arrayBuffer()) : Buffer.alloc(0);
+    check('öppen film svarar med MP4 och Range', range?.status === 206 && bytes.subarray(4, 8).toString() === 'ftyp', String(range?.status ?? 'inget svar'));
+  }
+  if (!password) { say('   (DEALER_LOSEN_PROV är inte satt: inloggningen prövas inte)'); continue; }
+  const page = await fetch(`${site}/studio/`, {headers: {cookie}});
+  check('första sidan', page.status === 200 && (await page.text()).includes('/studio/game/'), String(page.status));
+  const range = await fetch(`${site}/${film}`, {headers: {cookie, range: 'bytes=0-1023'}});
+  const bytes = Buffer.from(await range.arrayBuffer());
+  check(`film med Range /${film}`, range.status === 206 && bytes.subarray(4, 8).toString() === 'ftyp', `${range.status} ${range.headers.get('content-range')}`);
+  // The game's own password (DEALER_LOSEN_SPEL in the project; DEALER_LOSEN_SPEL_PROV here, for this run only): it leads to the
+  // game, plays a film, and does not open the studio.
+  if (!gameWord) { say('   (DEALER_LOSEN_SPEL_PROV är inte satt: spelets lösenord prövas inte)'); continue; }
+  const play = await fetch(`${site}/api/login`, {method: 'POST', redirect: 'manual', headers: {'content-type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({losen: gameWord, next: '/studio/'})});
+  const gameCookie = (play.headers.get('set-cookie') ?? '').split(';')[0], home = play.headers.get('location') ?? '';
+  check('spelets lösenord leder till spelet', play.status === 303 && home.startsWith('/game.html') && gameCookie.startsWith('dealer_studio=g1.'), `${play.status} ${home.split('?')[0]}`);
+  const table = await fetch(site + home, {headers: {cookie: gameCookie}});
+  check('spelsidan med spelets lösenord', table.status === 200 && (await table.text()).includes('game-page'), String(table.status));
+  const shut = await fetch(`${site}/studio/`, {headers: {cookie: gameCookie}, redirect: 'manual'});
+  if (open === 'allt') check('studion är öppen också med spelets lösenord', shut.status === 200, String(shut.status));
+  else check('studion är stängd med spelets lösenord', shut.status === 303 && (shut.headers.get('location') ?? '').startsWith('/game.html'), String(shut.status));
+  const gameFilm = await fetch(`${site}/${film}`, {headers: {cookie: gameCookie, range: 'bytes=0-1023'}});
+  check('film med spelets lösenord', gameFilm.status === 206, String(gameFilm.status));
+}
+say(bad ? `\n${bad} kontroller föll.` : `\nKopian är publicerad från ${commit.slice(0, 7)} och svarar som den ska.`);
+process.exit(bad ? 1 : 0);

@@ -1,0 +1,204 @@
+// The game overlay: bet rings, chip stacks, totals, results and the bar with chips and buttons, as HTML over the picture.
+// It only shows what it is given (a TableView) and reports what was pressed. It holds no rules, no values and no money:
+// totals, legal actions and results come from the engine (game/), bets in progress from the page. Seats are 1–7.
+export type Phase = 'BETTING' | 'DEALING' | 'INSURANCE' | 'TURN' | 'DEALER' | 'SETTLED';
+export type Outcome = 'blackjack' | 'win' | 'push' | 'lose';
+export type Action = 'hit' | 'stand' | 'double' | 'split';
+export type HandView = {key: string; total: number | null; soft: boolean; state: 'BUST' | 'BLACKJACK' | null; active: boolean; outcome: Outcome | null; net: number | null};
+export type SeatView = {seat: number; chips: number[]; amount: number; hands: HandView[]; turn: boolean};
+export type TableView = {
+  phase: Phase; balance: number; staked: number; seats: SeatView[]; dealer: HandView | null;
+  chipValues: number[]; chip: number; canDeal: boolean; canUndo: boolean; canRebet: boolean; actions: Action[]; message: string;
+};
+export type Handlers = {
+  chip(value: number): void; bet(seat: number, value?: number): void; undo(): void; clear(): void; rebet(): void; deal(): void;
+  act(action: Action): void; insurance(take: boolean): void; next(): void;
+  // The seat whose bet ring a chip let go at this point of the screen would land in, or null when it is not over the table.
+  aim?(clientX: number, clientY: number): number | null;
+  /** The top chip of a seat's bet is taken back. Without it, chips that lie on the table cannot be picked up. */
+  take?(seat: number): void;
+};
+// Where things are in the picture, in CSS pixels of the overlay box. ring: width of a bet ring. A missing key is hidden.
+export type Anchors = {bets: Record<number, {x: number; y: number; ring: number} | undefined>; hands: Record<string, {x: number; y: number} | undefined>};
+
+const ACTION_LABEL: Record<Action, string> = {hit: 'Kort', stand: 'Stanna', double: 'Dubbla', split: 'Dela'};
+const RESULT_LABEL: Record<Outcome, string> = {blackjack: 'Blackjack', win: 'Vinst', push: 'Lika', lose: 'Förlust'};
+const money = (n: number) => n.toLocaleString('sv-SE', {maximumFractionDigits: 1});
+const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = ''): HTMLElementTagNameMap[K] => { const n = document.createElement(tag); if (className) n.className = className; if (text) n.textContent = text; return n; };
+// The small buttons' signs: on a phone (game.css) the sign stands in place of the word, which stays the button's name.
+const svg = (body: string) => `<svg class="go-ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+const SIGN = {undo: svg('<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>'), clear: svg('<path d="M6 6l12 12M18 6L6 18"/>'), rebet: svg('<path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/>')};
+const chipFace = (value: number) => { const c = el('span', 'go-chip'); c.dataset.v = String(value); c.append(el('span', '', value >= 1000 ? `${value / 1000}k` : String(value))); return c; };
+/** The fewest chips that make an amount, largest first; what cannot be made with the values is left out. */
+export function chipsFor(amount: number, values: number[]): number[] {
+  const out: number[] = []; let left = amount;
+  for (const v of [...values].sort((a, b) => b - a)) while (left >= v && out.length < 40) { out.push(v); left -= v; }
+  return out;
+}
+/** How a total is written: 17, or 7/17 while an ace still counts both ways. */
+export const totalText = (hand: {total: number | null; soft: boolean}) => hand.total === null ? '' : hand.soft && hand.total <= 21 && hand.total > 11 ? `${hand.total - 10}/${hand.total}` : String(hand.total);
+
+export function mountOverlay(host: HTMLElement, on: Handlers) {
+  const root = el('div', 'go'), status = el('div', 'go-status'), table = el('div'), bar = el('div', 'go-bar');
+  root.append(status, table, bar); host.append(root);
+
+  // ── bar ──
+  const wallet = el('dl', 'go-wallet'), balance = el('dd'), staked = el('dd');
+  wallet.append(el('dt', '', 'Saldo'), balance, el('dt', '', 'Insats'), staked);
+  const group = (...kids: Node[]) => { const g = el('div', 'go-group'); g.append(...kids); return g; };
+  const button = (text: string, className: string, click: () => void, sign = '') => { const b = el('button', `go-btn ${className}`, sign ? '' : text); b.type = 'button'; b.addEventListener('click', click);
+    if (sign) { b.innerHTML = sign; b.append(el('span', 'go-txt', text)); b.setAttribute('aria-label', text); } return b; };
+  const rail = group(); rail.classList.add('go-rail');
+  const undo = button('Ångra', 'small undo', () => on.undo(), SIGN.undo), clear = button('Rensa', 'small clear', () => on.clear(), SIGN.clear), rebet = button('Samma igen', 'small rebet', () => on.rebet(), SIGN.rebet), deal = button('Dela ut', 'primary deal', () => on.deal());
+  // Ångra and Rensa can be used only while chips lie in the rings, Samma igen only while none do: on a phone the three share one place.
+  const tools = el('div', 'go-tools'); tools.append(undo, clear, rebet);
+  const betting = group(rail, tools, deal);
+  const acts = Object.fromEntries((['hit', 'stand', 'double', 'split'] as Action[]).map(a => [a, button(ACTION_LABEL[a], a === 'hit' ? 'act primary' : 'act', () => on.act(a))])) as Record<Action, HTMLButtonElement>;
+  // The decision: whose turn (the seat's number in a ring) and the hand against the dealer's card, before the actions.
+  const decide = el('div', 'go-decide'), seatNo = el('span', 'go-seat'), versus = el('div', 'go-versus'), versusText = el('span');
+  versus.append(el('small', '', 'Din hand mot dealern'), versusText); decide.append(seatNo, versus);
+  const playing = group(decide, acts.hit, acts.stand, acts.double, acts.split);
+  const insuring = group(el('span', 'go-note', 'Försäkring mot blackjack?'), button('Ja', 'act', () => on.insurance(true)), button('Nej', 'act primary', () => on.insurance(false)));
+  insuring.classList.add('go-insure');
+  const settled = group(button('Ny runda', 'primary next', () => on.next()));
+  const waiting = group(el('span', 'go-note'));
+  bar.append(wallet, betting, playing, insuring, settled, waiting);
+
+  // ── chips in the rail: press to choose, or drag one onto a ring ──
+  let railValues = '', drag: {value: number; ghost: HTMLElement | null; x: number; y: number; ring: Element | null} | null = null;
+  // Where a dragged chip is headed: once it is past the rail and over the felt, the nearest bet ring (the page knows the
+  // table); without that, only a ring it is right on top of. Over the bar itself it is headed nowhere.
+  const ringUnder = (x: number, y: number): HTMLElement | null => {
+    const under = document.elementsFromPoint(x, y); if (under.includes(bar)) return null;
+    const seat = on.aim ? on.aim(x, y) : null;
+    return seat ? root.querySelector<HTMLElement>(`.go-ring[data-seat="${seat}"]`) : (under.find(n => n.classList.contains('go-ring')) as HTMLElement | undefined) ?? null;
+  };
+  function buildRail(values: number[]) {
+    rail.replaceChildren(...values.map(value => {
+      const b = el('button'); b.type = 'button'; b.dataset.value = String(value); b.title = `Marker ${value}`; b.append(chipFace(value));
+      b.addEventListener('pointerdown', e => { if (b.disabled) return; drag = {value, ghost: null, x: e.clientX, y: e.clientY, ring: null}; b.setPointerCapture(e.pointerId); });
+      b.addEventListener('pointermove', e => {
+        if (!drag) return;
+        if (!drag.ghost && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) { drag.ghost = chipFace(value); drag.ghost.classList.add('go-ghost'); drag.ghost.style.fontSize = getComputedStyle(root).fontSize; document.body.append(drag.ghost); root.classList.add('dragging'); }
+        if (!drag.ghost) return;
+        drag.ghost.style.setProperty('--x', `${e.clientX}px`); drag.ghost.style.setProperty('--y', `${e.clientY}px`);
+        const ring = ringUnder(e.clientX, e.clientY); if (ring !== drag.ring) { drag.ring?.classList.remove('drop'); ring?.classList.add('drop'); drag.ring = ring; drag.ghost.classList.toggle('over', !!ring); } // over a ring the chip lies down, as it will on the felt
+      });
+      const end = (e: PointerEvent, cancelled: boolean) => {
+        if (!drag) return; const d = drag; drag = null; d.ring?.classList.remove('drop'); root.classList.remove('dragging');
+        if (cancelled || !d.ghost) { d.ghost?.remove(); if (!cancelled) on.chip(value); return; } // a press without a drag chooses the chip
+        const ring = ringUnder(e.clientX, e.clientY), seat = Number(ring?.dataset.seat), ghost = d.ghost;
+        if (!ring || !seat) { ghost.remove(); return; } // let go beside the table: nothing is bet
+        // Let go over the table: the chip is thrown the rest of the way to the ring, and lands there as a bet.
+        const box = ring.getBoundingClientRect(); ghost.classList.add('over', 'fly');
+        ghost.style.setProperty('--x', `${box.left + box.width / 2}px`); ghost.style.setProperty('--y', `${box.top + box.height / 2}px`);
+        setTimeout(() => { ghost.remove(); on.bet(seat, value); }, 170);
+      };
+      b.addEventListener('pointerup', e => end(e, false)); b.addEventListener('pointercancel', e => end(e, true));
+      return b;
+    }));
+  }
+
+  // ── things on the table ──
+  const seats = new Map<number, {pin: HTMLElement; ring: HTMLButtonElement; stack: HTMLElement; amount: HTMLElement; chips: string}>(), totals = new Map<string, {pin: HTMLElement; sum: HTMLElement; result: HTMLElement}>();
+  function seatNode(seat: number) {
+    let node = seats.get(seat);
+    if (!node) {
+      const pin = el('div', 'go-pin'), ring = el('button', 'go-ring'), stack = el('span', 'go-stack'), amount = el('span', 'go-amount');
+      ring.type = 'button'; ring.dataset.seat = String(seat); ring.append(stack, amount, el('span'));
+      // A press adds a chip. A chip that lies there can also be picked up again: dragged to another ring it is moved there, let
+      // go over the bar or beside the felt it is taken back. The press that ends a drag is not a bet.
+      let lift: {value: number; ghost: HTMLElement | null; x: number; y: number; ring: Element | null} | null = null, dragged = false;
+      ring.addEventListener('click', () => { if (dragged) { dragged = false; return; } on.bet(seat); });
+      ring.addEventListener('pointerdown', e => { const top = Number(seats.get(seat)?.chips.split(',').pop()); if (ring.disabled || !top || !on.take) return; lift = {value: top, ghost: null, x: e.clientX, y: e.clientY, ring: null}; ring.setPointerCapture(e.pointerId); });
+      ring.addEventListener('pointermove', e => {
+        if (!lift) return;
+        if (!lift.ghost && Math.hypot(e.clientX - lift.x, e.clientY - lift.y) > 6) { lift.ghost = chipFace(lift.value); lift.ghost.classList.add('go-ghost', 'over'); lift.ghost.style.fontSize = getComputedStyle(root).fontSize; document.body.append(lift.ghost); root.classList.add('dragging'); }
+        if (!lift.ghost) return;
+        lift.ghost.style.setProperty('--x', `${e.clientX}px`); lift.ghost.style.setProperty('--y', `${e.clientY}px`);
+        const over = ringUnder(e.clientX, e.clientY), target = over === ring ? null : over; if (target !== lift.ring) { lift.ring?.classList.remove('drop'); target?.classList.add('drop'); lift.ring = target; }
+        lift.ghost.classList.toggle('over', !!over); // over the felt it lies down; on its way back to the bar it stands up
+      });
+      const lifted = (e: PointerEvent, cancelled: boolean) => {
+        if (!lift) return; const d = lift; lift = null; d.ring?.classList.remove('drop'); root.classList.remove('dragging');
+        if (!d.ghost) return; // a press without a drag: the click adds a chip
+        dragged = true; setTimeout(() => { dragged = false; }, 60); const ghost = d.ghost;
+        const target = cancelled ? ring : ringUnder(e.clientX, e.clientY), to = Number(target?.dataset.seat);
+        if (to === seat) { ghost.remove(); return; } // put down where it lay
+        on.take!(seat);
+        // It flies the rest of the way: to the other ring, where it becomes a bet, or home to its own kind in the bar.
+        const home = target ?? rail.querySelector<HTMLElement>(`button[data-value="${d.value}"]`), box = home?.getBoundingClientRect();
+        if (!box) { ghost.remove(); return; }
+        ghost.classList.toggle('over', !!target); ghost.classList.add('fly');
+        ghost.style.setProperty('--x', `${box.left + box.width / 2}px`); ghost.style.setProperty('--y', `${box.top + box.height / 2}px`);
+        setTimeout(() => { ghost.remove(); if (target && to) on.bet(to, d.value); }, 170);
+      };
+      ring.addEventListener('pointerup', e => lifted(e, false)); ring.addEventListener('pointercancel', e => lifted(e, true));
+      pin.append(ring); pin.hidden = true; table.append(pin); node = {pin, ring, stack, amount, chips: ''}; seats.set(seat, node);
+    }
+    return node;
+  }
+  function totalNode(key: string) {
+    let node = totals.get(key);
+    if (!node) { const pin = el('div', 'go-pin go-total'), sum = el('span', 'go-sum'), result = el('span', 'go-result'); pin.append(sum, result); pin.hidden = true; table.append(pin); node = {pin, sum, result}; totals.set(key, node); }
+    return node;
+  }
+  let anchors: Anchors = {bets: {}, hands: {}};
+  const put = (pin: HTMLElement, at: {x: number; y: number} | undefined, show = true) => { pin.hidden = !at || !show; if (at) pin.style.transform = `translate(${at.x.toFixed(1)}px,${at.y.toFixed(1)}px)`; };
+  // A hand's result stands on the felt just in front of its seat's bet ring, where no other seat has its cards, total or amount: beside
+  // its total it lay on the next seat's amount or cards. The hands of a split seat stand there side by side, in their order. The pill
+  // is placed from its total (--dx, --dy: from the total's point to the ring's front edge, --slot: the hand's place in the row); a hand
+  // whose ring is not in the picture keeps its result beside its total.
+  function underRing(key: string, at: {x: number; y: number}) {
+    const seat = key.split(':')[0], ring = anchors.bets[Number(seat)]; if (!ring || !/^\d+$/.test(seat)) return null;
+    const row = [...totals.keys()].filter(k => k.split(':')[0] === seat).sort((a, b) => Number(a.split(':')[1]) - Number(b.split(':')[1]));
+    return {dx: ring.x - at.x, dy: ring.y + ring.ring * 0.31 - at.y, slot: row.indexOf(key) - (row.length - 1) / 2};
+  }
+  function place() {
+    for (const [seat, node] of seats) { const at = anchors.bets[seat]; put(node.pin, at); if (at) node.ring.style.setProperty('--ring', `${at.ring.toFixed(1)}px`); }
+    for (const [key, node] of totals) { const at = anchors.hands[key]; put(node.pin, at, node.sum.textContent !== '' || node.result.textContent !== '');
+      const under = at ? underRing(key, at) : null; node.pin.classList.toggle('under', !!under);
+      if (under) { node.result.style.setProperty('--dx', `${under.dx.toFixed(1)}px`); node.result.style.setProperty('--dy', `${under.dy.toFixed(1)}px`); node.result.style.setProperty('--slot', String(under.slot)); } }
+  }
+
+  function render(view: TableView) {
+    root.dataset.phase = view.phase; status.innerHTML = view.message;
+    balance.textContent = money(view.balance); staked.textContent = money(view.staked);
+    if (railValues !== view.chipValues.join()) { railValues = view.chipValues.join(); buildRail(view.chipValues); }
+    const bettingNow = view.phase === 'BETTING';
+    rail.querySelectorAll('button').forEach(b => { const value = Number(b.dataset.value); b.setAttribute('aria-pressed', String(value === view.chip)); b.disabled = !bettingNow || value > view.balance - view.staked; });
+    betting.hidden = !bettingNow; playing.hidden = view.phase !== 'TURN'; insuring.hidden = view.phase !== 'INSURANCE'; settled.hidden = view.phase !== 'SETTLED';
+    waiting.hidden = view.phase !== 'DEALING' && view.phase !== 'DEALER'; waiting.firstElementChild!.textContent = view.phase === 'DEALER' ? 'Dealern spelar …' : 'Korten delas ut …';
+    undo.disabled = !view.canUndo; clear.disabled = !view.canUndo; rebet.disabled = !view.canRebet; deal.disabled = !view.canDeal;
+    for (const a of Object.keys(acts) as Action[]) acts[a].disabled = !view.actions.includes(a); // all four stay in place, so a button never moves under the finger
+    const turn = view.seats.find(s => s.turn), hand = turn?.hands.find(h => h.active) ?? turn?.hands[0];
+    seatNo.textContent = turn ? String(turn.seat) : ''; versusText.innerHTML = hand ? `<b>${totalText(hand)}</b> mot ${view.dealer ? totalText(view.dealer) : ''}` : '';
+    const live = new Set<string>();
+    for (const s of view.seats) {
+      const node = seatNode(s.seat), chips = s.chips.join();
+      node.ring.classList.toggle('turn', s.turn); node.ring.disabled = !bettingNow; node.amount.textContent = s.amount ? money(s.amount) : '';
+      if (node.chips !== chips) { // only the chips that are new drop in
+        const had = node.stack.children.length, shown = s.chips.slice(-8);
+        node.stack.replaceChildren(...shown.map((value, i) => { const c = chipFace(value); c.style.setProperty('--i', String(i)); if (i < had && chips.startsWith(node!.chips)) c.style.animation = 'none'; return c; }));
+        node.chips = chips;
+      }
+      for (const h of s.hands) { live.add(h.key); paintHand(h); }
+    }
+    if (view.dealer) { live.add(view.dealer.key); paintHand(view.dealer); }
+    for (const [key, node] of totals) if (!live.has(key)) { node.pin.remove(); totals.delete(key); }
+    place();
+  }
+  function paintHand(h: HandView) {
+    const node = totalNode(h.key), text = h.state === 'BLACKJACK' ? 'BJ' : totalText(h);
+    if (node.sum.textContent !== text) node.sum.textContent = text;
+    node.sum.hidden = !text; node.pin.classList.toggle('active', h.active); node.pin.dataset.state = h.state ?? '';
+    const result = h.outcome ? `${RESULT_LABEL[h.outcome]}${h.net ? ` ${h.net > 0 ? '+' : '−'}${money(Math.abs(h.net))}` : ''}` : '';
+    if (node.result.textContent !== result) { node.result.textContent = result; node.result.dataset.o = h.outcome ?? ''; }
+  }
+  return {
+    root, render,
+    /** Called whenever the picture moves: the overlay box (CSS pixels within the host) and where things are in it. */
+    place(box: {left: number; top: number; width: number; height: number}, next: Anchors) { Object.assign(root.style, {left: `${box.left}px`, top: `${box.top}px`, width: `${box.width}px`, height: `${box.height}px`}); anchors = next; place(); },
+    destroy() { drag?.ghost?.remove(); root.remove(); },
+  };
+}

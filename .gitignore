@@ -1,0 +1,41 @@
+# The casino repo is public. This file holds back what no project may push; each project's own .gitignore adds to it.
+slask/
+
+# Secrets, wherever they are (the example file with empty values may go in)
+.env*
+!.env.example
+*.pem
+private/
+
+# Environments, caches and build output
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.next/
+*.log
+
+# Media and models never go into Git: they are large, and people's faces and voices are private
+*.mp4
+*.mov
+*.webm
+*.mkv
+*.wav
+*.mp3
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.glb
+*.gltf
+*.fbx
+*.blend
+*.pt
+*.zip
+
+# avatar-auto-pipeline: the photos it is given, everything it makes, and the portable Blender it runs (about 1 GB)
+avatar-auto-pipeline/input/
+avatar-auto-pipeline/output/
+avatar-auto-pipeline/tools/

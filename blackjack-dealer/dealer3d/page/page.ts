@@ -1,0 +1,41 @@
+// The page: one deal, seen through the eyes named in the address.
+//   ?eyes=1,4      which views, from the left: a seat 1-7, "film" for the bank's camera (seat 4 is the same eye), or "runt-59" for the
+//                  bank's camera carried 59 degrees round the dealer toward seat 1's side ("runt59": toward seat 7's)
+//   ?to=P4.C1      the card place dealt to
+//   ?motion=giv-fran-2-3-p4-f   a stored motion (dealer3d/data/<name>.json) instead of the deal drawn by hand; ?to= is then its own place
+//   ?look=room     room (felt table), plain (white figure on grey, for a reference film) or bare (the figure alone on a transparent page)
+//   ?docka=paow    which doll (dealer3d/src/doll.ts); without it the one a read motion names, else the standard
+//   ?model=1       a rigged model (/model.glb, served by the recorder's --model) in the white figure's place, posed from the same joints
+//   ?tags=0        no names on the views and no clock
+//   ?t=1.9         the moment shown, seconds; ?play=1 runs the deal in a loop
+// The recorder (dealer3d/tools/shoot.ts) drives it through window.dealer3d: setTime(seconds) draws that moment.
+import {createStage, type Look, type View} from '../src/stage.ts';
+import {DEAL_VERSION, sideSeen} from '../src/deal.ts';
+import {dollNamed} from '../src/doll.ts';
+
+const q = new URLSearchParams(location.search), canvas = document.getElementById('stage') as HTMLCanvasElement;
+const views: View[] = (q.get('eyes') ?? '1,4').split(',').map(s => s.trim()).map((s): View => s === 'film' ? 'film' : /^runt-?\d+(\.\d+)?$/.test(s) ? {round: Number(s.slice(4))} : Number(s)).filter(v => v === 'film' || typeof v === 'object' || (Number.isInteger(v) && v >= 1 && v <= 7));
+const tags = q.get('tags') !== '0', plan = await (await fetch('/placements/default.json')).json();
+canvas.width = innerWidth; canvas.height = innerHeight;
+const motion = /^[\w-]+$/.test(q.get('motion') ?? '') ? q.get('motion') : null, read = motion ? await (await fetch(`/dealer3d/data/${motion}.json`)).json() : null;
+// ?model=1: the rigged model in the white figure's place. Its module and three's loader are fetched only then.
+const began = performance.now(), figure = q.get('model') === '1' ? await (await import('../src/figure-model.ts')).loadFigure('/model.glb') : null, loadMs = Math.round(performance.now() - began);
+const look: Look = q.get('look') === 'plain' ? 'plain' : q.get('look') === 'bare' ? 'bare' : 'room';
+if (look === 'bare') for (const e of [document.documentElement, document.body]) e.style.background = 'transparent';
+const stage = createStage(canvas, plan, {look, target: q.get('to') ?? 'P4.C1', read, figure, doll: q.get('docka') ? dollNamed(q.get('docka')) : undefined});
+const names = {FRONT: 'ser framsidan', BACK: 'ser baksidan', EDGE: 'ser kortet på kant'}, host = document.getElementById('tags')!, clock = document.getElementById('clock')!;
+function draw() {
+  const boxes = stage.render(views), shown = stage.state();
+  if (!tags) { clock.style.display = 'none'; return; }
+  host.replaceChildren(...boxes.map((b, i) => { const view = views[i], tag = document.createElement('div'); tag.className = 'tag'; tag.style.left = `${b.left}px`; tag.style.top = `${b.top}px`;
+    tag.textContent = view === 'film' ? 'Bankens kamera' : typeof view === 'object' ? `Bankens kamera ${Math.abs(view.round)}° runt dealern` : view === 4 ? 'Stol 4 (bankens kamera)' : `Stol ${view}`;
+    if (shown) { const small = document.createElement('small'); small.textContent = names[sideSeen(shown.card, stage.eyeOf(view).position)]; tag.append(small); }
+    return tag; }));
+  clock.textContent = `${stage.time().toFixed(2).replace('.', ',')} s`;
+}
+const setTime = (t: number) => { stage.setTime(t); draw(); return new Promise<void>(done => requestAnimationFrame(() => requestAnimationFrame(() => done()))); };
+await setTime(Number(q.get('t') ?? 0)); const drawnMs = Math.round(performance.now() - began);
+if (q.get('play') === '1') { const began = performance.now(); const tick = () => { stage.setTime(((performance.now() - began) / 1000) % (stage.duration + 0.6)); draw(); requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+addEventListener('resize', () => location.reload());
+(window as unknown as {dealer3d: unknown}).dealer3d = {ready: true, dealVersion: DEAL_VERSION, duration: stage.duration, moments: stage.moments, setTime, lens: stage.lens, landed: stage.landed(),
+  model: figure ? {scale: figure.scale, triangles: figure.triangles, loadMs, drawnMs, about: figure.about} : null, figureNow: () => figure ? figure.measure() : null};

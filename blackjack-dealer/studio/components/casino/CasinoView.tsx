@@ -1,0 +1,177 @@
+"use client";
+
+// Casino: blackjack as at the casino, with the look calibrated in Scen. The lab's own game page (game.html: the game engine
+// behind /api/game, the overlay with chips and buttons, the console's menus) plays in a frame as large as the window
+// allows, with the chosen preset and keys (src/game-look.ts reads them). The plain game.html keeps its own look; here any
+// preset can be played. The address carries the look and the table (lib/casino.ts), so a calibrated look can be sent as a
+// link. The drawn cards have one switch, in the game's own menu (Miljö, Ritade kort): this view had a button of its own that
+// wrote cards= in the address, and the two could say different things (the investigation of 2026-11-13). In the online copy the game page runs the engine itself (cloud/studio/game-local.ts), so the view plays there too. The game plays the
+// dealer chosen in the rail (?dealer=, passed on to the game page, src/game-page.ts), with her own films only: a step she has no
+// film for is cut or laid without a hand, never played with another dealer's film. The address's ?dealer= is the rail's word:
+// it is neither a look key nor dropped when the view writes its address. ?trad=<id> (Karta's Prova i Casino) narrows her films
+// to one tree's; the game page says on its own line which tree and how far it has come.
+import { Expand, Globe, Plus, SlidersHorizontal } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { asApiError } from "../../lib/api.ts";
+import { useBank } from "../../lib/bank.ts";
+import { ONLINE_CASINO, casinoSearch, freshTable, gameSrc, readCasino, scenHref, shownGeometry, type CasinoLook } from "../../lib/casino.ts";
+import { useViewContext } from "../../lib/context.ts";
+import { DEALER_PARAM, withDealer, withoutDealer } from "../../lib/dealer.ts";
+import { isSnapshot } from "../../lib/mode.ts";
+import { BRED_LINS, SHIPPED } from "../../lib/scene-presets.ts";
+import { listPresets, type Preset } from "../scene-editor/presetApi.ts";
+import { Page } from "../shell";
+import { Button, Select, Spinner, buttonClasses, useToast } from "../ui";
+
+const shipped = (): Preset[] => SHIPPED.map((p) => ({ ...p, shipped: true, revision: null }));
+/** The view's address with a new look, the address's ?dealer= kept as it stands. */
+const write = (search: string) => window.history.replaceState(null, "", `${window.location.pathname}${withDealer(search, new URLSearchParams(window.location.search).get(DEALER_PARAM))}`);
+
+export function CasinoView() {
+  const { status } = useBank();
+  // The game is not started before it is known whose studio this is.
+  if (status === "loading")
+    return (
+      <Page title="Casino" full>
+        <div className="grid h-full place-items-center bg-[#060706]">
+          <Spinner size="sm" label="Läser klippbanken" />
+        </div>
+      </Page>
+    );
+  return <Casino />;
+}
+
+function Casino() {
+  const params = useSearchParams();
+  const { dealer, dealers } = useBank();
+  const name = dealers.find((d) => d.id === dealer)?.name ?? dealer;
+  // The address without the rail's word for the dealer, which is no look key.
+  const query = withoutDealer(params.toString()).slice(1);
+  const toast = useToast();
+  // The look the address asks for. A choice here writes the address, and the look and the frame follow it.
+  const look = useMemo(() => readCasino(new URLSearchParams(query)), [query]);
+  const [dropped] = useState(() => readCasino(new URLSearchParams(query)).ignored);
+  const go = (next: CasinoLook) => write(casinoSearch({ ...next, geometri: look.geometri, playback: look.playback, trad: look.trad, komposition: look.komposition })); // geometry, playback and the tree or composition survive a look or table choice
+  // The one tree the game plays (?trad=, Karta's Prova i Casino). The online copy has no trees and plays all her films.
+  const trad = isSnapshot ? null : (look.trad ?? null);
+  // Several trees put together (?komposition=, Karta's Komposition); the lab's only, and a tree goes first.
+  const komposition = isSnapshot || trad ? null : (look.komposition ?? null);
+  // The address says it all (preset, keys, table) from the start, so that it can be sent as it stands.
+  useEffect(() => {
+    const want = casinoSearch(look);
+    if (withoutDealer(window.location.search) !== want) write(want);
+  }, [look]);
+
+  // ── presets: the three that ship at once, his own when the lab answers ──
+  const [presets, setPresets] = useState<Preset[]>(shipped);
+  const [listed, setListed] = useState(false);
+  useEffect(() => {
+    let gone = false;
+    listPresets().then(
+      (answer) => !gone && (setPresets(answer.presets), setListed(true)),
+      (error) => !gone && toast({ tone: "bad", title: "Förvalen kunde inte läsas", detail: asApiError(error).message }),
+    );
+    return () => {
+      gone = true;
+    };
+  }, [toast]);
+  // The perspective the game in the frame plays (lib/casino.ts shownGeometry; src/game-page.ts reads the same): the address's
+  // word, else the one the preset was saved with. Kalibrera i Scen opens Scen with it.
+  const geometri = shownGeometry(look, presets);
+  const perspective = look.geometri || listed ? (geometri === BRED_LINS ? "Bred lins" : "Standard") : null;
+  const options = useMemo(() => {
+    const list = presets.map((p) => ({ value: p.name, label: p.label, hint: p.shipped ? undefined : "eget" }));
+    return list.some((o) => o.value === look.forval) ? list : [...list, { value: look.forval, label: look.forval, hint: "finns inte" }];
+  }, [presets, look.forval]);
+
+  // ── the game in the frame: a new address loads it anew (a new element, so the studio's back button is not the frame's) ──
+  // The dealer is the rail's: the game page reads it as its own word (?dealer=), so another dealer is another game in the frame.
+  const src = `${gameSrc({ ...look, trad, komposition })}&${new URLSearchParams({ [DEALER_PARAM]: dealer })}`;
+  const frame = useRef<HTMLIFrameElement | null>(null);
+  const [loaded, setLoaded] = useState<string | null>(null);
+
+  const changed = Object.keys(look.patch).length;
+  useViewContext({ vy: "Casino", val: { forval: look.forval, bord: look.table, dealer: name, ...(trad ? { trad } : {}), ...(komposition ? { komposition } : {}) } });
+
+  return (
+    <Page
+      title="Casino"
+      full
+      status={
+        <>
+          <span className={changed ? "text-brass-hi" : undefined}>{changed ? `${changed} reglage utöver förvalet` : "som förvalet"}</span>
+          <span>·</span>
+          <span>{name}</span>
+          {trad ? (
+            <>
+              <span>·</span>
+              <span className="text-brass-hi" title="Spelet spelar bara det här trädets filmer; ett kort utan film läggs utan hand. Spelet säger på sin rad hur långt trädet är.">
+                träd {trad}
+              </span>
+            </>
+          ) : null}
+          {komposition ? (
+            <>
+              <span>·</span>
+              <span className="text-brass-hi" title="Spelet spelar kompositionens träd, vart och ett från sina egna ankare, med bryggan där två träd möts. Spelet säger på sin rad hur långt kompositionen är.">
+                komposition {komposition}
+              </span>
+            </>
+          ) : null}
+          <span>·</span>
+          <span className="tabular-nums">bord {look.table}</span>
+          {perspective ? (
+            <>
+              <span>·</span>
+              <span className={geometri === BRED_LINS ? "text-brass-hi" : undefined} title={look.geometri ? "Perspektivet som adressen anger" : "Perspektivet som sparades med förvalet (Använd i Casino i Scen)"}>
+                {perspective}
+              </span>
+            </>
+          ) : null}
+          {dropped.length ? <span className="text-faint">· okänt i adressen: {dropped.join(", ")}</span> : null}
+        </>
+      }
+      actions={
+        <>
+          <Select size="sm" aria-label="Förval" className="w-40" value={look.forval} options={options} onChange={(forval) => go({ forval, patch: {}, table: look.table, ignored: [] })} />
+          <Link href={scenHref({ ...look, geometri })} className={buttonClasses({ variant: "quiet", size: "sm" })} title="Öppna samma look, med samma perspektiv, i Bordets Scen och kalibrera den vidare">
+            <SlidersHorizontal /> Kalibrera i Scen
+          </Link>
+          {!isSnapshot ? (
+            <a href={ONLINE_CASINO} target="_blank" rel="noopener noreferrer" className={buttonClasses({ variant: "quiet", size: "sm" })} title="Casinot på nätet (dealer-lake.vercel.app/casino) i en ny flik: Casinos sparade visning som den var vid senaste publiceringen">
+              <Globe /> På nätet
+            </a>
+          ) : null}
+          <Button size="sm" variant="quiet" icon={<Plus />} title="Ett nytt bord: ny spelomgång med nytt saldo och ny sko" onClick={() => go({ ...look, table: freshTable() })}>
+            Nytt bord
+          </Button>
+          <Button size="sm" variant="secondary" icon={<Expand />} title="Spelet över hela skärmen; Esc går tillbaka" onClick={() => void frame.current?.requestFullscreen?.().catch(() => {})}>
+            Helskärm
+          </Button>
+        </>
+      }
+    >
+      <div className="absolute inset-0 bg-[#060706]">
+        <iframe
+          key={src}
+          ref={frame}
+          src={src}
+          title="Blackjack"
+          allow="fullscreen; autoplay"
+          allowFullScreen
+          onLoad={() => setLoaded(src)}
+          className="absolute inset-0 size-full border-0"
+        />
+        {loaded !== src ? (
+          <div className="pointer-events-none absolute inset-0 grid place-items-center bg-[#060706]">
+            <span className="flex items-center gap-2 text-sm text-dim">
+              <Spinner size="sm" label="Dukar bordet" /> Dukar bordet…
+            </span>
+          </div>
+        ) : null}
+      </div>
+    </Page>
+  );
+}

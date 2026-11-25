@@ -1,0 +1,156 @@
+// Review decisions from the lab. Rewrites only the `review` block of a take's post in the register (tools/register-store.ts):
+// the rest of the post, its key order included, stays as it was. The caller must hold the revision it read, and the
+// register changes the post only while it is still that one.
+// A provisional verdict (applyProvisional, tools/review-put.ts) is one the reviewer and the main agent gave for Jakob on
+// his hand-over ("dömd åt dig"): it plays as its decision says, never carries his words (userReview) or his acceptance
+// (userAccepted), does not wait in his queue (studio/lib/verdict.ts awaitingJakob), and his next decision through
+// applyChange, a reset included, replaces it.
+// Archiving a take by hand (applyArchive, from Karta) sets or removes review.archived and touches nothing else.
+import {writeFile, mkdir} from 'node:fs/promises';
+import path from 'node:path';
+import {StoreError} from './placement-store.ts';
+import {motionRegister} from './register-store.ts';
+
+export const DECISIONS = ['MAIN', 'ACCEPTED', 'VARIANT', 'SECONDARY', 'REJECTED', 'PENDING'] as const;
+export type Decision = typeof DECISIONS[number];
+export type ReviewChange = {decision: Decision; note: string};
+export const NOTE_LIMIT = 1500;
+const SAID: Record<Decision, string> = {MAIN: 'vald som primär tagning i labbet.', ACCEPTED: 'godkänd i labbet.', VARIANT: 'godkänd som variant i labbet.', SECONDARY: 'sekundärt alternativ, satt i labbet.', REJECTED: 'underkänd i labbet.', PENDING: 'återställd till ogranskad i labbet.'};
+const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+
+export function validateChange(value: unknown): ReviewChange {
+  if (!object(value) || Object.keys(value).some(key => key !== 'decision' && key !== 'note')) throw new StoreError(400, 'Beslutet ska bara innehålla decision och note.');
+  if (!DECISIONS.includes(value.decision as Decision)) throw new StoreError(400, 'Okänt beslut.');
+  const note = value.note ?? '';
+  if (typeof note !== 'string' || note.length > NOTE_LIMIT) throw new StoreError(400, `Anteckningen får vara högst ${NOTE_LIMIT} tecken.`);
+  return {decision: value.decision as Decision, note: note.replace(/\s+/g, ' ').trim()};
+}
+
+/** The review block after Jakob's decision. An approval also lifts a trial's lab-only playback scope. */
+export function applyChange(review: unknown, change: ReviewChange, date: string, reviewer = 'Jakob'): Record<string, unknown> {
+  const next: Record<string, unknown> = {...(object(review) ? review : {})};
+  delete next.provisional; // his decision, a reset too, replaces a provisional verdict
+  const accepted = change.decision === 'ACCEPTED' || change.decision === 'VARIANT' || change.decision === 'MAIN';
+  if (accepted) delete next.labOnly;
+  next.decision = accepted ? 'ACCEPTED' : change.decision;
+  // "VARIANT" is an accepted take used now and then; "MAIN" (Primär in the lab) is the take played first on its edge.
+  // Only those two choices set the marker: a plain approval, like every other decision, takes it away.
+  if (change.decision === 'VARIANT' || change.decision === 'MAIN') next.acceptedAs = change.decision; else delete next.acceptedAs;
+  // A reset takes away what marks the film as decided: his word. It then waits for his decision again.
+  if (change.decision === 'PENDING') delete next.userReview; else next.userReview = `${reviewer} ${date}: ${change.note || SAID[change.decision]}`;
+  if (change.decision !== 'PENDING') delete next.inbox; // a take from an order leaves the inbox (src/clip-graph.ts) with his decision
+  next.userAccepted = accepted;
+  return next;
+}
+
+// ── Provisional verdicts ────────────────────────────────────────────────────
+export const PROVISIONAL_DECISIONS = ['ACCEPTED', 'VARIANT', 'REJECTED'] as const; // never MAIN: Primär is only his
+export type ProvisionalDecision = typeof PROVISIONAL_DECISIONS[number];
+export type ProvisionalChange = {decision: ProvisionalDecision; by: string; mandate: string; note: string};
+export type Provisional = {by: string; at: string; mandate: string; note: string};
+export const PROVISIONAL_TEXT_LIMIT = 300; // by and mandate; the note has NOTE_LIMIT as his notes
+
+export function validateProvisional(value: unknown): ProvisionalChange {
+  if (!object(value) || Object.keys(value).some(key => !['decision', 'by', 'mandate', 'note'].includes(key))) throw new StoreError(400, 'En dom åt Jakob ska bara innehålla decision, by, mandate och note.');
+  if (!PROVISIONAL_DECISIONS.includes(value.decision as ProvisionalDecision)) throw new StoreError(400, 'En dom åt Jakob är ACCEPTED, VARIANT eller REJECTED; Primär sätter bara Jakob.');
+  const text = (key: 'by' | 'mandate' | 'note', limit: number) => {
+    const raw = value[key];
+    if (typeof raw !== 'string' || !raw.trim()) throw new StoreError(400, `En dom åt Jakob kräver ${key}.`);
+    if (raw.length > limit) throw new StoreError(400, `${key} får vara högst ${limit} tecken.`);
+    return raw.replace(/\s+/g, ' ').trim();
+  };
+  return {decision: value.decision as ProvisionalDecision, by: text('by', PROVISIONAL_TEXT_LIMIT), mandate: text('mandate', PROVISIONAL_TEXT_LIMIT), note: text('note', NOTE_LIMIT)};
+}
+
+/** Why a review block may not take a provisional verdict (it carries Jakob's own), or null when it may. */
+export function refusesProvisional(review: unknown): string | null {
+  const r = object(review) ? review : {};
+  if (typeof r.userReview === 'string' && r.userReview.trim()) return `Tagningen har redan Jakobs dom (${r.userReview.slice(0, 60)}); en dom åt honom ersätter den aldrig.`;
+  const decision = String(r.decision ?? 'PENDING').toUpperCase();
+  if (decision !== 'PENDING' && !object(r.provisional)) return `Tagningen har redan beslutet ${decision} utan en dom åt honom; bara Jakob ändrar det.`;
+  return null;
+}
+
+/**
+ * The review block after a provisional verdict: decision (ACCEPTED, with acceptedAs VARIANT for a variant, or REJECTED),
+ * userAccepted false, no userReview, the inbox flag gone as with his decision (so an approved take from an order plays as
+ * his approval would unless labOnly limits its playback scope), and provisional {by, at, mandate, note}. Refuses a block with his verdict.
+ */
+export function applyProvisional(review: unknown, change: ProvisionalChange, at: string): Record<string, unknown> {
+  const refused = refusesProvisional(review);
+  if (refused) throw new StoreError(409, refused);
+  const next: Record<string, unknown> = {...(object(review) ? review : {})};
+  next.decision = change.decision === 'REJECTED' ? 'REJECTED' : 'ACCEPTED';
+  if (change.decision === 'VARIANT') next.acceptedAs = 'VARIANT'; else delete next.acceptedAs;
+  delete next.userReview; delete next.inbox;
+  next.userAccepted = false;
+  next.provisional = {by: change.by, at, mandate: change.mandate, note: change.note} satisfies Provisional;
+  return next;
+}
+
+// ── Archiving a take ────────────────────────────────────────────────────────
+// Jakob 2026-11-18: "så jag får välja de som är primära eller radera eller arkivera". An archived take is out of play and out
+// of the lists (src/clip-graph.ts playable, src/game-director.ts judgedBank) but keeps its film, its record and his verdict,
+// which come back with it. review.archived {by, at, where} says who archived it, when and from where (his click in Karta:
+// by Jakob, where Karta); taking it back removes the field. Archiving is never a deletion: no file is moved or removed.
+// Nothing else of the block is touched, and a later decision (applyChange, applyProvisional) leaves the field as it is.
+export type Archived = {by: string; at: string; where: string};
+export const ARCHIVE_TEXT_LIMIT = 200;
+/** The body of an archive request: archived true or false and nothing else. Who and where are never taken from the body. */
+export function validateArchive(value: unknown): {archived: boolean} {
+  if (!object(value) || Object.keys(value).some(key => key !== 'archived') || typeof value.archived !== 'boolean') throw new StoreError(400, 'Ange bara archived: true eller false.');
+  return {archived: value.archived};
+}
+/** The review block after archiving (archived: true) or taking back (false). Refuses to archive twice or take back what is not archived. */
+export function applyArchive(review: unknown, archived: boolean, at: string, by: string, where: string): Record<string, unknown> {
+  const next: Record<string, unknown> = {...(object(review) ? review : {})};
+  if (archived) {
+    if (next.archived) throw new StoreError(409, 'Tagningen är redan arkiverad.');
+    if (typeof by !== 'string' || typeof where !== 'string' || !by.trim() || !where.trim() || by.length > ARCHIVE_TEXT_LIMIT || where.length > ARCHIVE_TEXT_LIMIT) throw new StoreError(400, 'Arkivering kräver vem och var.');
+    next.archived = {by: by.trim(), at, where: where.trim()} satisfies Archived;
+  } else {
+    if (!next.archived) throw new StoreError(409, 'Tagningen är inte arkiverad.');
+    delete next.archived;
+  }
+  return next;
+}
+
+export function reviewStore(root: string, today: () => string = () => new Date().toISOString().slice(0, 10), now: () => string = () => new Date().toISOString()) {
+  const register = motionRegister(root);
+  const known = (id: string) => { if (typeof id !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new StoreError(400, 'Ogiltigt klipp-id.'); return id; };
+  async function load(id: string) {
+    const entry = register.entry(known(id));
+    if (!entry) throw new StoreError(404, 'Klippet har ingen post i registret ännu, så beslutet kan inte sparas.');
+    return {record: entry.post, revision: entry.revision};
+  }
+  /** Jakob's decision from the lab (PUT /api/clip-bank/review/<id>). */
+  async function save(id: string, value: unknown, expected: string | undefined) {
+    const change = validateChange(value);
+    return write(id, expected, review => applyChange(review, change, today()));
+  }
+  /** A provisional verdict (tools/review-put.ts); refused where his verdict stands. */
+  async function saveProvisional(id: string, value: unknown, expected: string | undefined) {
+    const change = validateProvisional(value);
+    return write(id, expected, review => applyProvisional(review, change, now()));
+  }
+  /**
+   * Archives a take or takes it back, against the revision read like a verdict. The lab's route is the one caller (PUT
+   * /api/clip-bank/archive/<id>, his click in Karta: by Jakob, where Karta); no tool writes it in his name. Should his word
+   * ever come another way, the caller says who carried it out and where the word came from (by, where), as setState does
+   * for Material's pictures.
+   */
+  async function saveArchive(id: string, value: unknown, expected: string | undefined, by: string, where: string) {
+    const {archived} = validateArchive(value);
+    return write(id, expected, review => applyArchive(review, archived, now(), by, where));
+  }
+  async function write(id: string, expected: string | undefined, next: (review: unknown) => Record<string, unknown>) {
+    await load(id); // an unknown take is said before a missing revision
+    if (!expected) throw new StoreError(428, 'Läs klippbanken innan du sparar ett beslut.');
+    // Spreading keeps every key where it was; only the value of `review` is new. A refusal from next changes nothing.
+    const saved = register.patch(id, post => ({...post, review: next(post.review)}), {revision: expected});
+    await mkdir(path.join(root, '.runtime'), {recursive: true});
+    await writeFile(path.join(root, '.runtime/review-previous.json'), JSON.stringify({id, review: saved.before.review ?? null}, null, 2) + '\n');
+    return {id, review: saved.post.review as Record<string, unknown>, revision: saved.revision};
+  }
+  return {load, save, saveProvisional, saveArchive};
+}

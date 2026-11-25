@@ -1,0 +1,27 @@
+# ripgrep (Cursor's and Claude Code's search) reads this file. casino/ is not a git repo, so no .gitignore hides
+# anything here except inside a project with its own (dealer/). These lines cover every project: build output,
+# caches, environments and secrets, wherever they land. A project's own .ignore adds to this. Hidden from search is
+# not missing: a file is still read by its path.
+
+# The scratch folder: temporary work of every project, emptied after a week (AGENTS.md, "Slasken")
+/slask/
+
+# avatar-auto-pipeline's photos, results and portable Blender (about 1.7 GB, read by path)
+/avatar-auto-pipeline/input/
+/avatar-auto-pipeline/output/
+/avatar-auto-pipeline/tools/
+
+# Secrets
+.env*
+private/
+*.pem
+
+# Environments, caches and build output
+node_modules/
+.venv/
+venv/
+__pycache__/
+.next/
+.pytest_cache/
+*.pyc
+*.log

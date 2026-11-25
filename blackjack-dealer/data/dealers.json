@@ -1,0 +1,15 @@
+{
+  "about": "The dealers the studio orders pictures and films for. look is the one-paragraph description of the dealer that only the old long text (Utförlig, template 3) says, so only the orders stored in that style use it (src/order-prompts.ts); no new order is written Utförlig, and the short and minimal texts never describe her (the first picture shows her); anchors are found in data/media-roles.json by role (the entry that holds, gäller, without a card); the standard every anchor follows is data/dealer-standard.json.",
+  "schemaVersion": 1,
+  "dealers": [
+    {
+      "id": "paow",
+      "name": "Paow",
+      "look": "a young, slim, petite woman with a platinum-blonde chin-length bob, warm-coloured tattoos on her throat and upper chest and a small white flower pendant, in a black tailored blazer over a cream V-neck top",
+      "lookSource": "Jakob 2026-11-12: the younger, slimmer look in the black jacket (\"jag vill ha de yngre och nättare bilderna\"); the words of the b24 order text (D:/dealer-scratch/tmp/paow/order/p-b24-ankare1.txt) and LASMIG.md",
+      "films": { "prefix": "paow-" },
+      "shoe": "2.1",
+      "paused": null
+    }
+  ]
+}

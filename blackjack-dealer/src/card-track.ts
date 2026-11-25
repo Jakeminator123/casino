@@ -1,0 +1,625 @@
+// Pure logic for following the coloured tracking card (yellow = back, blue = face) through a clip
+// and for placing a rendered card on it. No file, media, sharp or ffmpeg access: frames come in
+// as rgb24 buffers and everything goes out as plain data, so the same rules can be tested offline.
+export type Pt = {x: number; y: number};
+export type Side = 'BACK' | 'EDGE' | 'FRONT' | 'NONE';
+export const OTHER = 0, YELLOW = 1, BLUE = 2, TABLE = 3, SKIN = 4, DARK = 5, TINT = 6, SHADE = 7;
+
+// Blue, dark and table are the rules the old anchor builder used (removed 2026-11-23); skin is that rule plus a blue floor.
+// Yellow was measured on an early deal film to P4 (archived): lit back 224-240/192-224/0-16, tilted back
+// down to 112/144/0-16. Table green has r < 40, hand skin has b > 0.4*r and the tan frame of the
+// shoe window (128-192/96-144/32-80) has g < 0.8*r and b > 0.2*r, so it is neither card nor hand.
+// Shade is the yellow back in the shadow of the fingers (160-208/80-160/0: orange, still no blue).
+// It is kept apart from yellow: the same shadow is the only line between the dealt card and the
+// seated one behind it, so the tracker must not see through it, while a renderer must cover it.
+export const is = {
+  blue: (r: number, g: number, b: number) => b > 90 && b > 1.5 * r && b > 1.15 * g,
+  yellow: (r: number, g: number, b: number) => r > 95 && g > 95 && g > 0.82 * r && r > 0.6 * g && b < 0.45 * Math.min(r, g),
+  shade: (r: number, g: number, b: number) => r > 95 && g > 0.45 * r && g <= 0.82 * r && b < 0.12 * r,
+  table: (r: number, g: number, b: number) => g > r + 35 && g > b + 35,
+  skin: (r: number, g: number, b: number) => r > 120 && r > g + 15 && g >= b - 25 && r > b + 25 && g > 0.55 * r && b > 0.36 * r,
+  dark: (r: number, g: number, b: number) => r < 75 && g < 75 && b < 75,
+};
+/** One class per pixel. Yellow is tested first (a lit card also passes the skin rule). TINT is table whose red is lifted: yellow blur or the edge-on card over the table. SHADE is the yellow back in finger shadow. */
+export function classify(rgb: Uint8Array, n: number): Uint8Array {
+  const out = new Uint8Array(n);
+  for (let i = 0, j = 0; i < n; i++, j += 3) { const r = rgb[j], g = rgb[j + 1], b = rgb[j + 2];
+    out[i] = is.yellow(r, g, b) ? YELLOW : is.blue(r, g, b) ? BLUE : is.shade(r, g, b) ? SHADE : is.table(r, g, b) ? (r > 0.3 * g ? TINT : TABLE) : is.skin(r, g, b) ? SKIN : is.dark(r, g, b) ? DARK : OTHER; }
+  return out;
+}
+// A face the film has printed or washed out is neither yellow nor blue: bright and almost without colour. Such pixels are not a
+// class of their own, since a blouse, a nail and a highlight look the same; they only count where the card was expected (pickPale).
+export const isPale = (r: number, g: number, b: number) => r > 150 && g > 150 && b > 150 && Math.max(r, g, b) - Math.min(r, g, b) < 60;
+export function paleMask(rgb: Uint8Array, n: number): Uint8Array { const m = new Uint8Array(n); for (let i = 0, j = 0; i < n; i++, j += 3) if (isPale(rgb[j], rgb[j + 1], rgb[j + 2])) m[i] = 1; return m; }
+export const maskOf = (cls: Uint8Array, kind: number): Uint8Array => { const m = new Uint8Array(cls.length); for (let i = 0; i < cls.length; i++) if (cls[i] === kind) m[i] = 1; return m; };
+
+// ---- masks ----
+function slide(src: Uint8Array, w: number, h: number, r: number, grow: boolean, vertical: boolean): Uint8Array {
+  const out = new Uint8Array(src.length), len = vertical ? h : w, lines = vertical ? w : h, step = vertical ? w : 1, need = grow ? 1 : 2 * r + 1;
+  for (let l = 0; l < lines; l++) { const base = vertical ? l : l * w; let sum = 0;
+    for (let k = 0; k < Math.min(r, len); k++) sum += src[base + k * step];
+    for (let p = 0; p < len; p++) { if (p + r < len) sum += src[base + (p + r) * step]; if (p - r - 1 >= 0) sum -= src[base + (p - r - 1) * step]; if (sum >= need) out[base + p * step] = 1; } }
+  return out;
+}
+/** Square dilation (grow) or erosion of a 0/1 mask; pixels outside the image count as empty. */
+export const morph = (mask: Uint8Array, w: number, h: number, r: number, grow: boolean): Uint8Array => r <= 0 ? Uint8Array.from(mask) : slide(slide(mask, w, h, r, grow, false), w, h, r, grow, true);
+
+/** Round dilation or erosion for small masks. Unlike the square one it leaves no flat spots on slanted edges; corners get the radius. */
+export function discMorph(mask: Uint8Array, w: number, h: number, r: number, grow: boolean): Uint8Array {
+  const out = new Uint8Array(mask.length), offsets: number[][] = []; for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (dx * dx + dy * dy <= r * r + r) offsets.push([dx, dy]);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { let hit = !grow;
+    for (const [dx, dy] of offsets) { const xx = x + dx, yy = y + dy, v = xx >= 0 && yy >= 0 && xx < w && yy < h && mask[yy * w + xx] === 1; if (grow ? v : !v) { hit = grow; break; } }
+    if (hit) out[y * w + x] = 1; }
+  return out;
+}
+
+export type Blob = {area: number; x0: number; y0: number; x1: number; y1: number; cx: number; cy: number; pixels: Int32Array};
+/** 4-connected components of a 0/1 mask, largest first. */
+export function blobs(mask: Uint8Array, w: number, h: number, minArea = 1): Blob[] {
+  const seen = new Uint8Array(mask.length), out: Blob[] = [], stack: number[] = [];
+  for (let s = 0; s < mask.length; s++) { if (!mask[s] || seen[s]) continue;
+    const px: number[] = []; let x0 = w, x1 = 0, y0 = h, y1 = 0, sx = 0, sy = 0; stack.push(s); seen[s] = 1;
+    while (stack.length) { const i = stack.pop()!, x = i % w, y = (i - x) / w; px.push(i); sx += x; sy += y;
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      if (x > 0 && mask[i - 1] && !seen[i - 1]) { seen[i - 1] = 1; stack.push(i - 1); }
+      if (x < w - 1 && mask[i + 1] && !seen[i + 1]) { seen[i + 1] = 1; stack.push(i + 1); }
+      if (y > 0 && mask[i - w] && !seen[i - w]) { seen[i - w] = 1; stack.push(i - w); }
+      if (y < h - 1 && mask[i + w] && !seen[i + w]) { seen[i + w] = 1; stack.push(i + w); } }
+    if (px.length >= minArea) out.push({area: px.length, x0, y0, x1, y1, cx: sx / px.length, cy: sy / px.length, pixels: Int32Array.from(px)}); }
+  return out.sort((a, b) => b.area - a.area);
+}
+/** Pixels that carry the colour in at least `share` of the frames: the seated card in the shoe window. */
+export function persistent(counts: Uint16Array, frames: number, share = 0.6): Uint8Array {
+  const m = new Uint8Array(counts.length), need = Math.max(1, Math.ceil(frames * share)); for (let i = 0; i < counts.length; i++) if (counts[i] >= need) m[i] = 1; return m;
+}
+/**
+ * Splits a colour mask into rim-separated pieces. Seeds are what survives a strong erosion, then a
+ * weaker one for shapes too thin for the strong one, and so on. All seeds grow back together inside
+ * the mask, timed so each reaches its own outline at the same moment; a pixel belongs to the seed that
+ * gets there first. Two cards that touch through a gap in the pale rim are thereby parted at the rim,
+ * and every piece keeps its true outline and corners (no rounding from the erosion).
+ */
+export function pieces(mask: Uint8Array, w: number, h: number, radii = [7, 4, 2], minSeed = 30): Blob[] {
+  const label = new Int32Array(mask.length), level: number[] = [0], waves: number[][] = radii.map(() => []), top = radii[0];
+  radii.forEach((r, k) => { for (const seed of blobs(morph(mask, w, h, r, false), w, h, k === radii.length - 1 ? minSeed : 4 * minSeed)) {
+    let fresh = true; for (let j = 0; j < seed.pixels.length && fresh; j++) if (label[seed.pixels[j]]) fresh = false; if (!fresh) continue;
+    level.push(k); for (let j = 0; j < seed.pixels.length; j++) { label[seed.pixels[j]] = level.length - 1; waves[k].push(seed.pixels[j]); } } });
+  // Growth is 8-connected like the square erosion: after `r` rounds a seed is back at its straight edges; corner tips need up to `r` more.
+  let front: number[] = [];
+  for (let round = 0; round <= 2 * top + 2; round++) { radii.forEach((r, k) => { if (top - r === round) front = front.concat(waves[k]); }); const next: number[] = [];
+    for (const i of front) { const x = i % w, y = (i - x) / w, id = label[i];
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue; const j = yy * w + xx; if (mask[j] && !label[j]) { label[j] = id; next.push(j); } } }
+    front = next; }
+  const lists: number[][] = level.map(() => []); for (let i = 0; i < label.length; i++) if (label[i]) lists[label[i]].push(i);
+  return lists.slice(1).map(px => { let x0 = w, x1 = 0, y0 = h, y1 = 0, sx = 0, sy = 0; for (const i of px) { const x = i % w, y = (i - x) / w; sx += x; sy += y; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    return {area: px.length, x0, y0, x1, y1, cx: sx / px.length, cy: sy / px.length, pixels: Int32Array.from(px)}; }).sort((a, b) => b.area - a.area);
+}
+
+// ---- geometry ----
+export const dist = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y);
+export const mid = (a: Pt, b: Pt): Pt => ({x: (a.x + b.x) / 2, y: (a.y + b.y) / 2});
+export const centre = (p: Pt[]): Pt => ({x: p.reduce((s, q) => s + q.x, 0) / p.length, y: p.reduce((s, q) => s + q.y, 0) / p.length});
+/** Shoelace area; positive when the points run clockwise as seen on screen (y grows downward). */
+export const signedArea = (p: Pt[]) => p.reduce((s, a, i) => { const b = p[(i + 1) % p.length]; return s + a.x * b.y - b.x * a.y; }, 0) / 2;
+export const clockwise = (p: Pt[]): Pt[] => signedArea(p) < 0 ? [...p].reverse() : p;
+/** Point inside a convex polygon given clockwise on screen. */
+export const inside = (poly: Pt[], x: number, y: number) => poly.every((a, i) => { const b = poly[(i + 1) % poly.length]; return (b.x - a.x) * (y - a.y) - (b.y - a.y) * (x - a.x) >= 0; });
+export const grown = (poly: Pt[], d: number): Pt[] => { const c = centre(poly); return poly.map(p => { const l = Math.hypot(p.x - c.x, p.y - c.y) || 1; return {x: p.x + (p.x - c.x) / l * d, y: p.y + (p.y - c.y) / l * d}; }); };
+export const shifted = (poly: Pt[], by: Pt, t = 1): Pt[] => poly.map(p => ({x: p.x + by.x * t, y: p.y + by.y * t}));
+
+export function hull(points: Pt[]): Pt[] { // clockwise on screen
+  const p = [...points].sort((a, b) => a.x - b.x || a.y - b.y); if (p.length < 3) return p;
+  const cross = (o: Pt, a: Pt, b: Pt) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x), lower: Pt[] = [], upper: Pt[] = [];
+  for (const q of p) { while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], q) <= 0) lower.pop(); lower.push(q); }
+  for (const q of p.reverse()) { while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], q) <= 0) upper.pop(); upper.push(q); }
+  return [...lower.slice(0, -1), ...upper.slice(0, -1)];
+}
+/** Convex outline of a pixel list, using pixel edges so the outline's area equals the covered area. */
+export function outline(pixels: ArrayLike<number>, w: number): Pt[] {
+  const lo = new Map<number, number>(), hi = new Map<number, number>();
+  for (let k = 0; k < pixels.length; k++) { const i = pixels[k], x = i % w, y = (i - x) / w; if (!lo.has(y) || x < lo.get(y)!) lo.set(y, x); if (!hi.has(y) || x > hi.get(y)!) hi.set(y, x); }
+  const pts: Pt[] = []; for (const [y, x] of lo) { const X = hi.get(y)!; pts.push({x: x - 0.5, y: y - 0.5}, {x: x - 0.5, y: y + 0.5}, {x: X + 0.5, y: y - 0.5}, {x: X + 0.5, y: y + 0.5}); }
+  return hull(pts);
+}
+/**
+ * Smallest four-sided outline around a convex shape: the cheapest side is removed again and again by
+ * extending its two neighbours until they meet. Rounded corners are short sides, so the card's real
+ * corner comes back as the crossing of its two straight edges. `hidden` may tell how much of a side
+ * spans a bite out of the shape (0..1): once only substantial sides are left, such a side is where a
+ * finger lies over the card, not a card edge, and goes first as long as its neighbours meet close by.
+ */
+export function fitQuad(shape: Pt[], hidden?: (a: Pt, b: Pt) => number): Pt[] | null {
+  const p = clockwise(shape).slice();
+  const tri = (a: Pt, b: Pt, c: Pt) => Math.abs((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)) / 2;
+  while (p.length > 8) { // drop vertices that carry almost no area (pixel stair steps)
+    let best = -1, cost = 0.75; for (let i = 0; i < p.length; i++) { const c = tri(p[(i + p.length - 1) % p.length], p[i], p[(i + 1) % p.length]); if (c < cost) { cost = c; best = i; } }
+    if (best < 0) break; p.splice(best, 1); }
+  const size = Math.abs(signedArea(p)); let coarse = false;
+  while (p.length > 4) {
+    let best = -1, cost = Infinity, at: Pt | null = null;
+    for (let i = 0; i < p.length; i++) { const n = p.length, q = p[(i + n - 1) % n], a = p[i], b = p[(i + 1) % n], r = p[(i + 2) % n];
+      const ux = a.x - q.x, uy = a.y - q.y, vx = b.x - r.x, vy = b.y - r.y, den = ux * vy - uy * vx; if (Math.abs(den) < 1e-9) continue;
+      const t = ((b.x - a.x) * vy - (b.y - a.y) * vx) / den, s = ((b.x - a.x) * uy - (b.y - a.y) * ux) / den; if (t <= 0 || s <= 0) continue;
+      const x = {x: a.x + ux * t, y: a.y + uy * t}; let c = tri(a, x, b);
+      if (coarse && hidden && dist(x, a) + dist(x, b) <= 1.7 * dist(a, b) && hidden(a, b) >= 0.4) c *= 0.02;
+      if (c < cost) { cost = c; best = i; at = x; } }
+    if (best < 0 || !at) return null;
+    if (!coarse && hidden && cost > 0.004 * size) { coarse = true; continue; } // corner rounding is gone: now look for sides cut by a finger
+    p[best] = at; p.splice((best + 1) % p.length, 1); }
+  return p.length === 4 ? p : null;
+}
+/**
+ * Share of an outline side with no shape pixel just inside it: the side spans a bite, typically a
+ * fingertip lying over the card's edge or corner. `has` tells whether a pixel belongs to the shape;
+ * the outline must run clockwise on screen.
+ */
+export const unsupported = (has: (x: number, y: number) => boolean) => (a: Pt, b: Pt): number => {
+  const l = dist(a, b); if (l < 6) return 0; const nx = -(b.y - a.y) / l, ny = (b.x - a.x) / l; let n = 0, bare = 0;
+  for (let t = 0.1; t < 0.91; t += 0.08) { const x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t; n++; if (!has(Math.round(x + nx * 1.5), Math.round(y + ny * 1.5)) && !has(Math.round(x + nx * 3.5), Math.round(y + ny * 3.5))) bare++; }
+  return bare / n;
+};
+/** Thickness of a quad: its area divided by the mean length of the longer pair of opposite sides. */
+export function thickness(q: Pt[]): number { const a = (dist(q[0], q[1]) + dist(q[2], q[3])) / 2, b = (dist(q[1], q[2]) + dist(q[3], q[0])) / 2; return Math.abs(signedArea(q)) / Math.max(a, b, 1e-6); }
+/**
+ * Texture order for a quad seen for the first time: clockwise on screen, corner 0 at the upper left,
+ * side 0-1 the card's short side. A clearly oblong quad shows which sides are short; a card lying
+ * foreshortened on the table does not, so there the more horizontal pair is taken as top and bottom.
+ */
+export function orderCorners(q: Pt[]): Pt[] {
+  const p = clockwise(q), a = (dist(p[0], p[1]) + dist(p[2], p[3])) / 2, b = (dist(p[1], p[2]) + dist(p[3], p[0])) / 2;
+  const slope = (i: number) => Math.abs(p[(i + 1) % 4].y - p[i].y) / (dist(p[i], p[(i + 1) % 4]) || 1);
+  const even = Math.max(a, b) > 1.25 * Math.min(a, b) ? a < b : slope(0) + slope(2) < slope(1) + slope(3); // true: sides 0-1 and 2-3 are top and bottom
+  const starts = even ? [0, 2] : [1, 3], score = (i: number) => p[i].x + p[i].y + p[(i + 1) % 4].x + p[(i + 1) % 4].y;
+  const first = score(starts[0]) <= score(starts[1]) ? starts[0] : starts[1];
+  return [0, 1, 2, 3].map(k => p[(first + k) % 4]);
+}
+/** Keeps corner identity between frames: the rotation of `q` that best matches `prev` once both are centred. */
+export function alignCorners(prev: Pt[], q: Pt[]): Pt[] {
+  const p = Math.sign(signedArea(q)) !== Math.sign(signedArea(prev)) ? [...q].reverse() : q, c0 = centre(prev), c1 = centre(p); let best = 0, cost = Infinity;
+  for (let s = 0; s < 4; s++) { let c = 0; for (let k = 0; k < 4; k++) c += (p[(s + k) % 4].x - c1.x - prev[k].x + c0.x) ** 2 + (p[(s + k) % 4].y - c1.y - prev[k].y + c0.y) ** 2; if (c < cost) { cost = c; best = s; } }
+  return [0, 1, 2, 3].map(k => p[(best + k) % 4]);
+}
+/** The two ends of a quad along its length: index pairs of its two shorter opposite sides. */
+export const ends = (q: Pt[]): [[number, number], [number, number]] => dist(q[0], q[1]) + dist(q[2], q[3]) <= dist(q[1], q[2]) + dist(q[3], q[0]) ? [[0, 1], [3, 2]] : [[0, 3], [1, 2]];
+/** Direction along a quad, from its first end to its second. */
+export const lengthAxis = (q: Pt[]): Pt => { const [a, b] = ends(q), m0 = mid(q[a[0]], q[a[1]]), m1 = mid(q[b[0]], q[b[1]]); return {x: m1.x - m0.x, y: m1.y - m0.y}; };
+/**
+ * Carries corner identity across the edge-on moment. `before` is the last quad of the old side in
+ * that side's texture order, `after` the first quad of the new side in any order. The card turned
+ * over: each end keeps its two corners while the winding on screen reverses. The result is in the new
+ * side's texture order - seen from the other side, left and right swap - so it is clockwise again.
+ * `axis` is the latest known direction from the first end to the second (it turns during the flip).
+ */
+export function carryAcrossFlip(before: Pt[], after: Pt[], axis: Pt = lengthAxis(before)): Pt[] {
+  const p = clockwise(after), [a0, b0] = ends(before), [a1, b1] = ends(p), dir = lengthAxis(p);
+  const [near, far] = dir.x * axis.x + dir.y * axis.y >= 0 ? [a1, b1] : [b1, a1];
+  for (const swap of [0, 1]) { const phys: Pt[] = []; // phys[i]: where the corner that was before[i] is now
+    phys[a0[0]] = p[near[swap]]; phys[a0[1]] = p[near[1 - swap]]; phys[b0[0]] = p[far[swap]]; phys[b0[1]] = p[far[1 - swap]];
+    if (signedArea(phys) < 0) return [phys[1], phys[0], phys[3], phys[2]]; }
+  return p;
+}
+/** Main axis of a pixel list: end points, length along it and mean width across it. */
+export function axisOf(pixels: ArrayLike<number>, w: number) {
+  let sx = 0, sy = 0; const n = pixels.length; for (let k = 0; k < n; k++) { const x = pixels[k] % w; sx += x; sy += (pixels[k] - x) / w; }
+  const cx = sx / n, cy = sy / n; let xx = 0, xy = 0, yy = 0;
+  for (let k = 0; k < n; k++) { const x = pixels[k] % w - cx, y = (pixels[k] - pixels[k] % w) / w - cy; xx += x * x; xy += x * y; yy += y * y; }
+  const angle = Math.atan2(2 * xy, xx - yy) / 2, dx = Math.cos(angle), dy = Math.sin(angle); let lo = 0, hi = 0;
+  for (let k = 0; k < n; k++) { const t = (pixels[k] % w - cx) * dx + ((pixels[k] - pixels[k] % w) / w - cy) * dy; if (t < lo) lo = t; if (t > hi) hi = t; }
+  return {a: {x: cx + dx * lo, y: cy + dy * lo}, b: {x: cx + dx * hi, y: cy + dy * hi}, length: hi - lo + 1, mean: n / (hi - lo + 1)};
+}
+
+// ---- one frame ----
+export type Raw = {side: Side; corners: Pt[] | null; segment: [Pt, Pt] | null; area: number; fill: number; thickness: number; shoeShare: number; note: string};
+/** What the earlier frames expect: where the card should be now. `null` instead of a hint means the very first frame. */
+export type Hint = {region: Pt[] | null; size?: number; flat?: boolean}; // size: the area of the last flat card seen, when there was one. flat: the expectation is that card's shape, not the ribbon of an edge-on frame
+export const EDGE_THICKNESS = 9, MIN_AREA = 120, PALE_FILL = 0.6; // PALE_FILL: measured on an early deal film to P2 (archived), where good fits of the printed face fill 0.66–0.73 of their quad and fits with a stray corner 0.45–0.49
+
+/** Side from what one frame shows. A thin shape is edge-on whatever its colour. */
+export function sideOf(yellow: number, blue: number, thick: number, minArea = MIN_AREA, thin = EDGE_THICKNESS): Side {
+  if (Math.max(yellow, blue) < minArea) return 'NONE';
+  if (thick < thin) return 'EDGE';
+  return yellow >= blue ? 'BACK' : 'FRONT';
+}
+type Pick = {area: number; shoeShare: number; quad: Pt[] | null; fill: number; thick: number; note: string};
+/**
+ * Quad of one piece. A broad piece is first opened by a few pixels, which drops thin attachments
+ * (a sliver of the seated card seen beside the dealt one, blur streaks) but no straight edge.
+ */
+export function measure(blob: Blob, w: number, shoe: Uint8Array | null = null, note = ''): Pick {
+  const pad = 5, ww = blob.x1 - blob.x0 + 1 + 2 * pad, hh = blob.y1 - blob.y0 + 1 + 2 * pad, local = new Uint8Array(ww * hh); let inShoe = 0;
+  for (let k = 0; k < blob.pixels.length; k++) { const i = blob.pixels[k], x = i % w; local[((i - x) / w - blob.y0 + pad) * ww + x - blob.x0 + pad] = 1; if (shoe) inShoe += shoe[i]; }
+  const rough = blob.area >= 12 ? fitQuad(outline(blob.pixels, w)) : null, open = rough && thickness(rough) > 30 ? discMorph(discMorph(local, ww, hh, 4, false), ww, hh, 4, true) : local;
+  const kept: number[] = []; for (let i = 0; i < open.length; i++) if (open[i]) kept.push(i);
+  const has = (x: number, y: number) => x >= 0 && y >= 0 && x < ww && y < hh && open[y * ww + x] === 1;
+  const fit = kept.length >= 12 ? fitQuad(outline(kept, ww), unsupported(has)) : null, quad = fit && fit.map(q => ({x: q.x + blob.x0 - pad, y: q.y + blob.y0 - pad}));
+  return {area: blob.area, shoeShare: blob.area ? inShoe / blob.area : 0, quad, fill: quad ? kept.length / Math.abs(signedArea(quad)) : 0, thick: quad ? thickness(quad) : 0, note};
+}
+/**
+ * The dealt card among the yellow shapes. The seated card in the shoe window is yellow too and the
+ * dealt card comes out of that very window, so no box is excluded. The mask is split into
+ * rim-separated pieces; a piece counts when it continues where the card was expected, or when it
+ * lies outside the persistent shoe pixels.
+ */
+function pickYellow(cls: Uint8Array, w: number, h: number, shoe: Uint8Array | null, hint: Hint | null): Pick | null {
+  const region = hint?.region ? grown(hint.region, 8) : null; let best: Blob | null = null, bestScore = 0;
+  for (const blob of pieces(maskOf(cls, YELLOW), w, h)) {
+    let inShoe = 0, cont = 0; for (let k = 0; k < blob.pixels.length; k++) { const i = blob.pixels[k]; if (shoe) inShoe += shoe[i]; if (region && inside(region, i % w, Math.floor(i / w))) cont++; }
+    const free = inShoe < 0.5 * blob.area, score = hint === null ? blob.area : cont >= 0.25 * blob.area ? cont + (free ? blob.area : 0) : free ? blob.area * (blob.area >= 2 * MIN_AREA ? 2 : 0.5) : 0;
+    if (score > bestScore) { bestScore = score; best = blob; } }
+  return best ? measure(best, w, shoe, '') : null;
+}
+function pickBlue(cls: Uint8Array, w: number, h: number, hint: Hint | null): Pick | null {
+  const region = hint?.region ? grown(hint.region, 30) : null; let best: Blob | null = null, bestScore = 0;
+  for (const blob of pieces(maskOf(cls, BLUE), w, h, [2, 1], 12)) { const score = blob.area * (region && inside(region, blob.cx, blob.cy) ? 4 : 1); if (score > bestScore) { bestScore = score; best = blob; } }
+  return best ? measure(best, w, null, '') : null;
+}
+/**
+ * The card as a pale shape: the largest one whose middle lies where the card was expected and whose size is that of a card
+ * (between a sixth and two and a half times the last flat card seen: a nail is far smaller, a blouse larger). Without an expectation there is none.
+ */
+function pickPale(pale: Uint8Array, w: number, h: number, hint: Hint | null): (Pick & {at: Pt}) | null {
+  if (!hint?.region) return null;
+  const region = grown(hint.region, 30), size = hint.size ?? Math.abs(signedArea(hint.region)); let best: Blob | null = null;
+  for (const blob of blobs(pale, w, h, MIN_AREA)) if (inside(region, blob.cx, blob.cy) && blob.area >= 0.15 * size && blob.area <= 2.5 * size && blob.area > (best?.area ?? 0)) best = blob;
+  return best ? {...measure(best, w, null, 'pale face: neither yellow nor blue, where the card was expected'), at: {x: best.cx, y: best.cy}} : null;
+}
+/**
+ * Edge-on card: for a frame or three the card is a line with hardly any colour. Around the expected
+ * place everything that is not clean table is taken, and what an opening removes (anything thinner
+ * than a finger) is the card. Returns the longest such sliver.
+ */
+export function thinSliver(cls: Uint8Array, w: number, h: number, around: Pt[], reach = 70, width = 4): {segment: [Pt, Pt]; area: number; mean: number} | null {
+  const x0 = Math.max(0, Math.floor(Math.min(...around.map(p => p.x)) - reach)), x1 = Math.min(w - 1, Math.ceil(Math.max(...around.map(p => p.x)) + reach));
+  const y0 = Math.max(0, Math.floor(Math.min(...around.map(p => p.y)) - reach)), y1 = Math.min(h - 1, Math.ceil(Math.max(...around.map(p => p.y)) + reach)), ww = x1 - x0 + 1, hh = y1 - y0 + 1;
+  if (ww < 8 || hh < 8) return null;
+  const solid = new Uint8Array(ww * hh); for (let y = 0; y < hh; y++) for (let x = 0; x < ww; x++) if (cls[(y + y0) * w + x + x0] !== TABLE) solid[y * ww + x] = 1;
+  const opened = morph(morph(solid, ww, hh, width, false), ww, hh, width + 1, true), thin = new Uint8Array(ww * hh);
+  for (let y = 0; y < hh; y++) for (let x = 0; x < ww; x++) { const i = y * ww + x, c = cls[(y + y0) * w + x + x0]; if (solid[i] && (!opened[i] || c === YELLOW || c === BLUE || c === TINT)) thin[i] = 1; } // what is left of the card's colour counts too
+  let best: {segment: [Pt, Pt]; area: number; mean: number} | null = null, bestLength = 28;
+  for (const blob of blobs(thin, ww, hh, 24)) { const ax = axisOf(blob.pixels, ww); if (ax.length < bestLength || ax.length < 4 * ax.mean) continue;
+    bestLength = ax.length; best = {segment: [{x: ax.a.x + x0, y: ax.a.y + y0}, {x: ax.b.x + x0, y: ax.b.y + y0}], area: blob.area, mean: ax.mean}; }
+  return best;
+}
+/**
+ * Finds the card in one classified frame. On the very first frame (`hint === null`) a seated card is the one about to be dealt, unless a blue card already lies on the table.
+ * pale: the frame's bright colourless pixels (paleMask), when the film may show a printed or washed-out face. It is only asked when neither colour gives a flat card.
+ */
+export function detect(cls: Uint8Array, w: number, h: number, shoe: Uint8Array | null, hint: Hint | null, pale: Uint8Array | null = null): Raw {
+  const blue = pickBlue(cls, w, h, hint), yellow = hint === null && blue && blue.area >= MIN_AREA ? null : pickYellow(cls, w, h, shoe, hint);
+  // The card seated in the shoe window is yellow in every frame. Once a blue card of real size is in the picture it is the dealt card, turned.
+  const seated = !!yellow && yellow.shoeShare >= 0.5 && !!blue && blue.area >= MIN_AREA;
+  const pick = !seated && (yellow?.area ?? 0) >= (blue?.area ?? 0) ? yellow : blue, side = pick?.quad ? sideOf(yellow?.area ?? 0, blue?.area ?? 0, pick.thick) : 'NONE';
+  if (pick?.quad && (side === 'BACK' || side === 'FRONT')) return {side, corners: pick.quad, segment: null, area: pick.area, fill: pick.fill, thickness: pick.thick, shoeShare: pick.shoeShare, note: pick.note};
+  // A printed face is the face: the card has turned. Seen nearly edge-on it is too small to count here and is found as a line below.
+  const white = pale ? pickPale(pale, w, h, hint) : null;
+  if (white?.quad && white.thick >= EDGE_THICKNESS) {
+    // A fit the shape fills poorly has a corner astray (a finger lies over the card). The expected shape, moved onto the pale one, is then the better guess.
+    // That only holds when the expectation is a card's shape; after an edge-on frame it is a ribbon, and the pale shape is then left to the rules below.
+    const loose = white.fill < PALE_FILL && !!hint?.region, from = loose ? centre(hint!.region!) : null;
+    if (!loose || hint!.flat) return {side: 'FRONT', corners: loose ? shifted(hint!.region!, {x: white.at.x - from!.x, y: white.at.y - from!.y}) : white.quad, segment: null, area: white.area, fill: white.fill, thickness: white.thick, shoeShare: 0, note: loose ? 'pale face, expected shape moved onto it: its own fit had a corner astray' : white.note};
+  }
+  const sliver = hint?.region ? thinSliver(cls, w, h, hint.region) : null;
+  if (pick?.quad && side === 'EDGE') { const [a, b] = ends(pick.quad), own: [Pt, Pt] = [mid(pick.quad[a[0]], pick.quad[a[1]]), mid(pick.quad[b[0]], pick.quad[b[1]])];
+    return sliver && dist(...sliver.segment) > dist(...own) ? {side, corners: null, segment: sliver.segment, area: sliver.area, fill: 0, thickness: sliver.mean, shoeShare: 0, note: 'thin shape, colour fading'} : {side, corners: null, segment: own, area: pick.area, fill: pick.fill, thickness: pick.thick, shoeShare: pick.shoeShare, note: 'thin coloured shape'}; }
+  if (sliver) return {side: 'EDGE', corners: null, segment: sliver.segment, area: sliver.area, fill: 0, thickness: sliver.mean, shoeShare: 0, note: 'thin shape without card colour'};
+  return {side: 'NONE', corners: null, segment: null, area: pick?.area ?? 0, fill: 0, thickness: 0, shoeShare: 0, note: hint?.region ? 'nothing at the expected place' : 'no card'};
+}
+
+// ---- following through a clip ----
+const ribbon = (s: [Pt, Pt], half: number): Pt[] => { const l = dist(s[0], s[1]) || 1, nx = -(s[1].y - s[0].y) / l * half, ny = (s[1].x - s[0].x) / l * half; return clockwise([{x: s[0].x + nx, y: s[0].y + ny}, {x: s[1].x + nx, y: s[1].y + ny}, {x: s[1].x - nx, y: s[1].y - ny}, {x: s[0].x - nx, y: s[0].y - ny}]); };
+/**
+ * Frame-by-frame follower. Each result becomes the expectation for the next frame: the shape moved
+ * on by its last step. After a few empty frames the expectation is dropped, and from then on only
+ * shapes outside the shoe window can start a new track.
+ */
+export function follower(w: number, h: number, shoe: Uint8Array | null) {
+  let hint: Hint | null = null, first = true, last: Pt | null = null, step: Pt = {x: 0, y: 0}, missed = 0, size: number | undefined, faced = false;
+  return (cls: Uint8Array, pale: Uint8Array | null = null): Raw => {
+    // A printed face comes before the blue one, at the turn. Once the blue face has been seen, a card without colour is a card under the hand, not a pale one.
+    const raw = detect(cls, w, h, shoe, first ? null : hint ?? {region: null}, faced ? null : pale); first = false;
+    if (raw.side === 'FRONT' && !/^pale face/.test(raw.note)) faced = true;
+    const shape = raw.corners ? clockwise(raw.corners) : raw.segment ? ribbon(raw.segment, 8) : null;
+    if (raw.corners) size = Math.abs(signedArea(raw.corners));
+    if (shape) { const c = centre(shape); step = last && missed === 0 ? {x: c.x - last.x, y: c.y - last.y} : {x: 0, y: 0}; last = c; missed = 0; hint = {region: shifted(shape, step), size, flat: !!raw.corners}; }
+    else { missed++; if (last) last = {x: last.x + step.x, y: last.y + step.y}; hint = {region: hint?.region && missed <= 4 ? shifted(hint.region, step) : null, size, flat: hint?.flat}; }
+    return raw;
+  };
+}
+
+// ---- the marker rule ----
+// The film's card is a plain colour patch that only has to be found. What a film can show is known beforehand: a deal shows the
+// back, perhaps the edge, then the face, once; a return shows one side all through. Findings that contradict it are another
+// object (the seated card, a card lying since before) and are dropped; short holes are then bridged from the frames around them.
+export type FilmKind = 'DEAL' | 'RETURN' | 'OTHER';
+// A smeared finding: this side's findings around it move more than `step` px a frame as a rule, and its quad's long side is under `small` of the median among
+// the same side's findings within `reach` frames, or two opposite sides differ by more than `lopsided` times. Measured on
+// An early deal film to P1 (archived), frames 28-48: long sides 17-63 px among neighbours of about 100, opposite sides 34 against 120.
+export const SMEAR = {step: 12, reach: 10, small: 0.6, lopsided: 1.8};
+const sameWay = (from: Pt[], to: Pt[]): Pt[] => { // `to` begun at the corner nearest `from`'s first, so corners can be joined one to one
+  let best = to, least = Infinity; for (const base of [to, [to[0], to[3], to[2], to[1]]]) for (let turn = 0; turn < 4; turn++) { const q = base.map((_, i) => base[(i + turn) % 4]), off = q.reduce((sum, p, i) => sum + dist(p, from[i]), 0); if (off < least) { least = off; best = q; } }
+  return best; };
+const spine = (q: Pt[]): [Pt, Pt] => { const [a, b] = ends(q); return [mid(q[a[0]], q[a[1]]), mid(q[b[0]], q[b[1]])]; };
+// rigid (the trial "kortprov", off unless asked for): a card is stiff, so one that keeps its length and loses its width has turned toward
+// the eye's line, it is not under a hand; such a finding keeps its own narrow shape (see the rule about the hidden card below).
+export function settleRaws(raws: Raw[], kind: FilmKind, reach = 15, how: {rigid?: boolean} = {}): Raw[] {
+  const out = raws.map(r => ({...r})), drop = (i: number, note: string) => { out[i] = {...out[i], side: 'NONE', corners: null, segment: null, note}; };
+  const flat = (i: number) => out[i].side === 'BACK' || out[i].side === 'FRONT';
+  if (kind === 'DEAL') { // one turn: the split with the fewest findings on the wrong side of it
+    let best = 0, least = Infinity, wrong = out.filter(r => r.side === 'BACK').length;
+    for (let k = 0; k <= out.length; k++) { if (wrong < least) { least = wrong; best = k; } if (k < out.length) wrong += out[k].side === 'FRONT' ? 1 : out[k].side === 'BACK' ? -1 : 0; }
+    out.forEach((r, i) => { if ((r.side === 'FRONT' && i < best) || (r.side === 'BACK' && i >= best)) drop(i, 'another object: wrong side of the one turn');
+      else if (r.side === 'EDGE' && Math.abs(i - best) > 6) drop(i, 'edge-on away from the one turn: the card was only thin to the eye'); });
+  } else if (kind === 'RETURN') { // one side: the one seen most
+    const back = out.filter(r => r.side === 'BACK').length, front = out.filter(r => r.side === 'FRONT').length, side: Side = back > front ? 'BACK' : 'FRONT';
+    out.forEach((r, i) => { if (flat(i) && r.side !== side) drop(i, 'another object: a lying card shows one side'); else if (r.side === 'EDGE') drop(i, 'a lying card is not edge-on'); });
+  }
+  // A card mostly hidden under the hand keeps its last known shape: a finding that suddenly has less than half the area, at the same place, is the same card.
+  // In the bank's 104 tracks (2026-11-20) the rule held 95 frames, 22 of them under a hand and 33 beside the turn, where the area halves
+  // because the card stands on its edge: the kept shape is then 1.7 times the film's card. `rigid` leaves those to their own shape.
+  for (let i = 1; i < out.length; i++) { const now = out[i], was = out[i - 1];
+    if (how.rigid && now.corners && was.corners && longSide(now.corners) >= REFINE.kept * longSide(was.corners)) continue;
+    if (flat(i) && flat(i - 1) && now.side === was.side && now.corners && was.corners && now.area < 0.5 * was.area && dist(centre(now.corners), centre(was.corners)) < 0.6 * Math.sqrt(Math.abs(signedArea(was.corners))))
+      out[i] = {...was, shoeShare: now.shoeShare, note: 'mostly hidden: last known shape kept'}; }
+  // A card carried fast is smeared. Its quad then comes out too small (only the sharp core is card-coloured) or lopsided (a corner
+  // goes astray in the blur), while its place is still right. Such a finding, among sound ones of the same side, is taken out
+  // here, bridged below like any hole, and then moved back onto its own centre: shape from the frames around it, place its own.
+  const long = (q: Pt[]) => Math.max(dist(q[0], q[1]) + dist(q[2], q[3]), dist(q[1], q[2]) + dist(q[3], q[0])) / 2;
+  const ratio = (a: number, b: number) => Math.max(a, b) / Math.max(1e-6, Math.min(a, b));
+  const lopsided = (q: Pt[]) => Math.max(ratio(dist(q[0], q[1]), dist(q[2], q[3])), ratio(dist(q[1], q[2]), dist(q[3], q[0]))) > SMEAR.lopsided;
+  const smeared = new Map<number, {centre: Pt; was: Raw}>();
+  for (let i = 0; i < out.length; i++) { const now = out[i]; if (!flat(i) || !now.corners) continue;
+    // Only a card on the move: the usual step between this side's findings around it, not this finding's own (a bad quad has a bad centre).
+    const c = centre(now.corners), around: number[] = [], steps: number[] = []; let before: Pt | null = null;
+    for (let j = Math.max(0, i - SMEAR.reach); j <= Math.min(out.length - 1, i + SMEAR.reach); j++) { if (!flat(j) || out[j].side !== now.side || !out[j].corners) { before = null; continue; }
+      const at = centre(out[j].corners!); if (before) steps.push(dist(at, before)); before = at; if (j !== i) around.push(long(out[j].corners!)); }
+    if (around.length < 4 || steps.length < 4) continue; around.sort((x, y) => x - y); steps.sort((x, y) => x - y);
+    if (steps[steps.length >> 1] <= SMEAR.step) continue;
+    if (long(now.corners) < SMEAR.small * around[around.length >> 1] || lopsided(now.corners)) smeared.set(i, {centre: c, was: now}); }
+  // Only where sound findings of the same side stand on both sides within reach; otherwise the finding stays as it was.
+  const sound = (j: number) => j >= 0 && j < out.length && flat(j) && !smeared.has(j);
+  for (const [i, s] of [...smeared]) { let a = i - 1, b = i + 1; while (a >= 0 && smeared.has(a)) a--; while (b < out.length && smeared.has(b)) b++;
+    if (!sound(a) || !sound(b) || out[a].side !== s.was.side || out[b].side !== s.was.side || b - a - 1 > reach) smeared.delete(i); }
+  for (const i of smeared.keys()) out[i] = {...out[i], side: 'NONE', corners: null, segment: null};
+  // Holes: a run of frames without a flat finding, between two flat ones. Between two findings of the same side the shape is carried
+  // over; between back and face the card was edge-on, on the line between the two shapes. An edge that was really found stays.
+  for (let i = 0; i < out.length; i++) { if (flat(i)) continue;
+    let end = i; while (end + 1 < out.length && !flat(end + 1)) end++;
+    const a = i - 1, b = end + 1;
+    if (a >= 0 && b < out.length && end - i + 1 <= reach && out[a].corners && out[b].corners) {
+      const from = out[a].corners!, to = sameWay(from, out[b].corners!), s0 = spine(from), s1raw = spine(out[b].corners!), s1: [Pt, Pt] = dist(s0[0], s1raw[0]) + dist(s0[1], s1raw[1]) <= dist(s0[0], s1raw[1]) + dist(s0[1], s1raw[0]) ? s1raw : [s1raw[1], s1raw[0]];
+      for (let j = i; j <= end; j++) { const t = (j - a) / (b - a), lerp = (p: Pt, q: Pt): Pt => ({x: p.x + (q.x - p.x) * t, y: p.y + (q.y - p.y) * t});
+        if (out[j].side === 'EDGE' && out[j].segment) continue;
+        out[j] = out[a].side === out[b].side ? {...out[a], corners: from.map((p, c) => lerp(p, to[c])), area: out[a].area + (out[b].area - out[a].area) * t, shoeShare: 0, note: 'bridged from the frames around it'}
+          : {...out[j], side: 'EDGE', corners: null, segment: [lerp(s0[0], s1[0]), lerp(s0[1], s1[1])], thickness: 2, note: 'edge-on, bridged from the frames around it'}; } }
+    i = end; }
+  for (const [i, s] of smeared) { const q = out[i].corners;
+    if (!q) { out[i] = s.was; continue; }
+    const c = centre(q); out[i] = {...out[i], corners: shifted(q, {x: s.centre.x - c.x, y: s.centre.y - c.y}), area: s.was.area, note: 'smeared in the carry: shape from the frames around it, place its own'}; }
+  return out;
+}
+
+// ---- whole track ----
+export type Frame = {frame: number; side: Side; quad: Pt[] | null; edge: [Pt, Pt] | null; area: number; confidence: number; shoeShare?: number; note?: string};
+export type Track = {frames: Frame[]; ranges: Record<Side, [number, number][]>; edgeWindow: [number, number] | null; leavesShoe: number | null; restFrom: number | null; restQuad: Pt[] | null;
+  flips: {from: number; to: number; quarterTurns: number}[];
+  restJitter: {frames: number; clearFrames: number; rawMean: number; rawMax: number; clearMean: number; clearMax: number} | null; lowConfidence: number[]};
+
+const SG: Record<number, number[]> = {0: [1], 1: [0, 1, 0], 2: [-3, 12, 17, 12, -3].map(v => v / 35), 3: [-2, 3, 6, 7, 6, 3, -2].map(v => v / 21)};
+/**
+ * Removes jitter without lag: a centred quadratic (Savitzky-Golay) fit over up to seven frames. It
+ * reproduces constant speed and constant acceleration exactly, so a moving card is not held back;
+ * near the ends of a run the window shrinks instead of leaning to one side.
+ */
+export function smooth(values: (number | null)[], radius = 3): (number | null)[] {
+  return values.map((v, i) => { if (v === null) return null; let r = 0; while (r < radius && i - r - 1 >= 0 && i + r + 1 < values.length && values[i - r - 1] !== null && values[i + r + 1] !== null) r++;
+    return SG[r].reduce((s, k, j) => s + k * (values[i - r + j] as number), 0); });
+}
+const median = (v: number[]) => { const s = [...v].sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const round = (p: Pt): Pt => ({x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10});
+
+/**
+ * Turns per-frame findings into a track: corner identity through the clip, the far end held to card
+ * length while the card leaves the shoe, one locked quad once the card lies still, jitter removed,
+ * short gaps at the flip bridged, and a confidence per frame. Quads are in texture order of the
+ * visible side: top left, top right, bottom right, bottom left of that side's artwork, clockwise on
+ * screen.
+ *
+ * Orientation is anchored where it is known: the first side from its first frame onward (the card as
+ * it sits in the shoe), every later side from its last frame backward (the card as it comes to lie).
+ * The two meet at the edge-on moment, where the film is free to cheat and a rendered card can re-seat
+ * unseen. `flips` records by how many quarter turns the anchored orientation differs there from a
+ * rigid card that simply turned over.
+ */
+export function buildTrack(raws: Raw[]): Track {
+  const n = raws.length, quads: (Pt[] | null)[] = raws.map(() => null), segs: ([Pt, Pt] | null)[] = raws.map(() => null), sides: Side[] = raws.map(r => r.side), notes: string[] = raws.map(r => r.note);
+  const found = raws.map((r, i) => i).filter(i => raws[i].corners && (raws[i].side === 'BACK' || raws[i].side === 'FRONT')), spans: number[][] = [];
+  for (const i of found) { const open = spans[spans.length - 1]; if (open && raws[open[open.length - 1]].side === raws[i].side) open.push(i); else spans.push([i]); }
+  spans.forEach((span, k) => { const order = k === 0 ? span : [...span].reverse(); order.forEach((i, j) => { quads[i] = j === 0 ? orderCorners(raws[i].corners!) : alignCorners(quads[order[j - 1]]!, raws[i].corners!); }); });
+  let axis: Pt | null = null; const flips: Track['flips'] = [];
+  for (let i = 0; i < n; i++) { const q = quads[i], s = raws[i].segment;
+    if (q) { const prev = spans.findIndex(span => span[0] === i) - 1;
+      if (prev >= 0) { const before = quads[spans[prev][spans[prev].length - 1]]!, rigid = carryAcrossFlip(before, raws[i].corners!, axis ?? undefined); let best = 0, cost = Infinity;
+        for (let k = 0; k < 4; k++) { const c = q.reduce((sum, pt, j) => sum + dist(pt, rigid[(j + k) % 4]), 0); if (c < cost) { cost = c; best = k; } }
+        flips.push({from: spans[prev][spans[prev].length - 1], to: i, quarterTurns: best}); }
+      axis = lengthAxis(q); }
+    else if (s && !raws[i].corners) { segs[i] = axis && (s[1].x - s[0].x) * axis.x + (s[1].y - s[0].y) * axis.y < 0 ? [s[1], s[0]] : s; axis = {x: segs[i]![1].x - segs[i]![0].x, y: segs[i]![1].y - segs[i]![0].y}; } }
+  // Leaving the shoe: where the film shows no rim, the far end of the dealt card cannot be told from the seated card behind it,
+  // and the fit runs long. A card does not stretch, so each long side keeps the length it had while seated, in proportion to
+  // the short side that leads the way out.
+  const firstSpan = spans[0] ?? [], seated = firstSpan.filter(i => raws[i].shoeShare >= 0.9), long = (q: Pt[]) => (dist(q[1], q[2]) + dist(q[0], q[3])) / 2;
+  if (seated.length >= 3) { const ratio = median(seated.map(i => long(quads[i]!) / (dist(quads[i]![0], quads[i]![1]) || 1))), home = centre(quads[seated[0]]!);
+    for (const i of firstSpan) { const q = quads[i]!; if (raws[i].shoeShare <= 0.02 || raws[i].shoeShare >= 0.9) continue;
+      const lead = dist(mid(q[0], q[1]), home) >= dist(mid(q[3], q[2]), home) ? [0, 1, 2, 3] : [3, 2, 1, 0], cap = 1.03 * ratio * dist(q[lead[0]], q[lead[1]]), fixed = q.map(pt => ({...pt})); let changed = false;
+      for (const [a, b] of [[lead[0], lead[3]], [lead[1], lead[2]]]) { const l = dist(q[a], q[b]); if (l > cap) { fixed[b] = {x: q[a].x + (q[b].x - q[a].x) * cap / l, y: q[a].y + (q[b].y - q[a].y) * cap / l}; changed = true; } }
+      if (changed) { quads[i] = fixed; notes[i] = 'far end shortened to card length while over the shoe window'; } } }
+  // Bridge short gaps at the flip with a straight line between what was seen before and after.
+  const endsOf = (i: number): [Pt, Pt] | null => { const q = quads[i]; if (q) { const [a, b] = ends(q); return [mid(q[a[0]], q[a[1]]), mid(q[b[0]], q[b[1]])]; } return segs[i]; };
+  for (let i = 1; i < n - 1; i++) { if (endsOf(i) || !endsOf(i - 1)) continue; let j = i; while (j < n && !endsOf(j)) j++; if (j >= n || j - i > 6) { i = j; continue; }
+    const a = endsOf(i - 1)!; let b = endsOf(j)!; if ((b[1].x - b[0].x) * (a[1].x - a[0].x) + (b[1].y - b[0].y) * (a[1].y - a[0].y) < 0) b = [b[1], b[0]];
+    for (let k = i; k < j; k++) { const t = (k - i + 1) / (j - i + 1); segs[k] = [{x: a[0].x + (b[0].x - a[0].x) * t, y: a[0].y + (b[0].y - a[0].y) * t}, {x: a[1].x + (b[1].x - a[1].x) * t, y: a[1].y + (b[1].y - a[1].y) * t}]; sides[k] = 'EDGE'; notes[k] = 'interpolated between neighbours'; }
+    i = j; }
+  // The card lies still: from the end backwards, every found quad stays within the final one (a covered card only shrinks).
+  let restFrom: number | null = null, restQuad: Pt[] | null = null, restJitter: Track['restJitter'] = null; const covered = new Set<number>();
+  const tail: number[] = []; for (let i = n - 1; i >= 0 && tail.length < 5; i--) if (quads[i]) tail.push(i);
+  if (tail.length >= 3) { const final = [0, 1, 2, 3].map(k => ({x: median(tail.map(i => quads[i]![k].x)), y: median(tail.map(i => quads[i]![k].y))})), fence = grown(clockwise(final), 5), side = sides[tail[0]];
+    const whole = median(tail.map(i => raws[i].area)); // a card half under the hand may fit badly; that is cover, not motion
+    let from = n; for (let i = n - 1; i >= 0; i--) { const q = quads[i]; if (q) { if (sides[i] !== side) break; if (!q.every(p => inside(fence, p.x, p.y))) { if (raws[i].area < 0.9 * whole) continue; break; } from = i; } else if (segs[i]) break; }
+    const run = []; for (let i = from; i < n; i++) if (quads[i]) run.push(i);
+    if (run.length >= 8) { const top = Math.max(...run.map(i => raws[i].area)), clear = run.filter(i => raws[i].area >= 0.985 * top);
+      restFrom = from; restQuad = [0, 1, 2, 3].map(k => ({x: median(clear.map(i => quads[i]![k].x)), y: median(clear.map(i => quads[i]![k].y))}));
+      const off = (list: number[]) => list.flatMap(i => quads[i]!.map((p, k) => dist(p, restQuad![k]))), all = off(run), cl = off(clear), mean = (v: number[]) => v.reduce((s, x) => s + x, 0) / v.length;
+      restJitter = {frames: run.length, clearFrames: clear.length, rawMean: mean(all), rawMax: Math.max(...all), clearMean: mean(cl), clearMax: Math.max(...cl)};
+      for (let i = from; i < n; i++) { if (!quads[i] || raws[i].area < 0.9 * top) { covered.add(i); sides[i] = side; notes[i] = 'covered by the hand; resting quad kept'; } quads[i] = restQuad; segs[i] = null; } } }
+  const raw = quads.map(q => q && q.map(p => ({...p})));
+  // Jitter removal per corner over each unbroken run on one side. Jitter only shows on a slow card, and a fast hand does not
+  // move like a parabola, so the smoothing fades out between 3 and 9 px per frame.
+  for (let i = 0; i < n;) { if (!quads[i]) { i++; continue; } let j = i; while (j + 1 < n && quads[j + 1] && sides[j + 1] === sides[i]) j++;
+    const before = quads.slice(i, j + 1).map(q => q!.map(p => ({...p})));
+    for (let k = 0; k < 4; k++) { const xs = smooth(before.map(q => q[k].x)), ys = smooth(before.map(q => q[k].y));
+      for (let m = i; m <= j; m++) { const speed = dist(before[Math.min(j, m + 1) - i][k], before[Math.max(i, m - 1) - i][k]) / (Math.min(j, m + 1) - Math.max(i, m - 1) || 1), keep = Math.min(1, Math.max(0, 1 - (speed - 3) / 6)), p = before[m - i][k];
+        quads[m] = quads[m]!.map((q, c) => c === k ? {x: p.x + (xs[m - i]! - p.x) * keep, y: p.y + (ys[m - i]! - p.y) * keep} : q); } }
+    i = j + 1; }
+  const frames: Frame[] = raws.map((r, i) => { const q = quads[i], s = segs[i]; let c = 0;
+    if (q) { const moved = Math.max(...q.map((p, k) => dist(p, raw[i]![k]))); c = Math.min(1, Math.max(0, (r.fill - 0.55) / 0.33)) * Math.min(1, Math.max(0.2, 1 - (moved - 2) / 8)) * (r.shoeShare > 0.05 && r.shoeShare < 0.9 ? 0.7 : 1); if (covered.has(i)) c = 0.5; else if (restFrom !== null && i >= restFrom) c = Math.max(c, 0.9); }
+    else if (s) c = notes[i].startsWith('interpolated') ? 0.3 : r.note.includes('without') ? 0.5 : 0.6;
+    return {frame: i, side: q ? sides[i] : s ? 'EDGE' : 'NONE', quad: q ? q.map(round) : null, edge: !q && s ? [round(s[0]), round(s[1])] : null, area: r.area, confidence: Math.round(c * 100) / 100,
+      ...(r.shoeShare > 0 ? {shoeShare: Math.round(r.shoeShare * 100) / 100} : {}), ...(notes[i] ? {note: notes[i]} : {})}; });
+  const ranges: Record<Side, [number, number][]> = {BACK: [], EDGE: [], FRONT: [], NONE: []};
+  for (const f of frames) { const list = ranges[f.side], open = list[list.length - 1]; if (open && open[1] === f.frame - 1) open[1] = f.frame; else list.push([f.frame, f.frame]); }
+  const firstFront = frames.find(f => f.side === 'FRONT')?.frame ?? -1, lastBack = firstFront < 0 ? -1 : Math.max(-1, ...frames.filter(f => f.side === 'BACK' && f.frame < firstFront).map(f => f.frame));
+  const inShoe = frames.findIndex(f => (f.shoeShare ?? 0) >= 0.5), left = inShoe < 0 ? -1 : frames.findIndex(f => f.frame > inShoe && f.side === 'BACK' && (f.shoeShare ?? 0) < 0.5);
+  return {frames, ranges, flips, edgeWindow: lastBack >= 0 && firstFront > lastBack + 1 ? [lastBack + 1, firstFront - 1] : null, leavesShoe: left < 0 ? null : left, restFrom, restQuad: restQuad && restQuad.map(round), restJitter,
+    lowConfidence: frames.filter(f => f.side !== 'NONE' && f.confidence < 0.6).map(f => f.frame)};
+}
+
+/**
+ * A quad a card can be laid by: its four corners go one way round with no fold or crossing, and it has some area. A crossed
+ * quad is no card at all: the homography that lays a card on it runs through infinity and smears the card across the picture.
+ */
+export function sound(q: readonly Pt[] | null | undefined): boolean {
+  if (!q || q.length !== 4 || q.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) return false;
+  let way = 0;
+  for (let i = 0; i < 4; i++) { const a = q[i], b = q[(i + 1) % 4], c = q[(i + 2) % 4], turn = Math.sign((b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x));
+    if (!turn || (way && turn !== way)) return false; way = turn; }
+  return Math.abs(signedArea(q as Pt[])) >= SOUND.minArea;
+}
+// minArea: square pixels a quad needs at all; large: a quad this many times the area of the middle one of the frames around it
+// (SOUND.reach each way) is two things taken for one (the dealt card and the seated card as it leaves the shoe); small: a quad this
+// share of it or less is a corner of a card the colour rules lost (the face drawn dark teal by the film just after the turn,
+// Paow P4 frames 51-52: the film's card wide open, the quad a corner of it); bridge: the longest run of unsound frames filled in
+// from the sound frames on either side.
+export const SOUND = {minArea: 2, large: 2.5, small: 0.12, reach: 8, bridge: 6};
+/**
+ * Makes a track's quads sound (`sound`): a crossed, folded or empty quad, or one far larger or smaller than the frames around it, is filled
+ * in from the sound frames on both sides when the run is short and shows the same side at both ends (corner by corner), and
+ * otherwise loses its quad, so that no card is drawn in that frame. Changes `frames` in place; returns the frames it changed.
+ */
+export function soundFrames(frames: Frame[]): {bridged: number[]; dropped: number[]} {
+  const flat = (f: Frame | undefined) => !!f && (f.side === 'BACK' || f.side === 'FRONT') && !!f.quad;
+  // the frames around are measured by their sound quads only: a crossed quad has next to no area and would make its neighbours look large
+  const areas = frames.map(f => flat(f) && sound(f.quad) ? Math.abs(signedArea(f.quad!)) : null);
+  const odd = (i: number) => { const near = areas.slice(Math.max(0, i - SOUND.reach), i + SOUND.reach + 1).filter((v, k) => v !== null && k !== Math.min(i, SOUND.reach)).sort((a, b) => a! - b!);
+    return near.length >= 3 && (areas[i]! > SOUND.large * near[near.length >> 1]! || areas[i]! < SOUND.small * near[near.length >> 1]!); };
+  const bad = frames.map((f, i) => flat(f) && (areas[i] === null || odd(i)));
+  const bridged: number[] = [], dropped: number[] = [];
+  for (let i = 0; i < frames.length; i++) {
+    if (!bad[i]) continue; let j = i; while (j + 1 < frames.length && bad[j + 1]) j++;
+    const a = frames[i - 1], b = frames[j + 1], side = frames[i].side;
+    const fill = j - i + 1 <= SOUND.bridge && flat(a) && flat(b) && !bad[i - 1] && !bad[j + 1] && a.side === side && b.side === side && frames.slice(i, j + 1).every(f => f.side === side);
+    for (let k = i; k <= j; k++) {
+      const f = frames[k], t = (k - i + 1) / (j - i + 2), q = fill ? a.quad!.map((p, n) => ({x: p.x + (b.quad![n].x - p.x) * t, y: p.y + (b.quad![n].y - p.y) * t})) : null;
+      if (q && sound(q)) { f.quad = q; f.area = Math.round(Math.abs(signedArea(q))); f.confidence = Math.min(f.confidence, 0.4); f.note = `${f.note ? f.note + '; ' : ''}unsound quad bridged from frames ${i - 1} and ${j + 1}`; bridged.push(k); }
+      else { f.quad = null; f.confidence = 0; f.note = `${f.note ? f.note + '; ' : ''}unsound quad (crossed, folded, empty or far too large): no card drawn`; dropped.push(k); }
+    }
+    i = j;
+  }
+  return {bridged, dropped};
+}
+
+// ---- the measured card (lab trial "kortprov": src/scene3d-deal.ts TRIAL) ----
+// The colour rules above count a pixel as card or not. A second measurement of the same frame (tools/python/kort-dataset/label.py:
+// how far each pixel lies from the table's colour toward the card's, so the card's outline is where it is half card) gives, for
+// each card in a frame, its place, its length and width, its line and how wide its edge is smeared. refineFrames lays a track and
+// that measurement together by what a card is: stiff. Through the turn it keeps its length and only its width goes (seen
+// edge-on), so there the card is drawn as its own length along the measured line, as wide as measured, at the measured place.
+const longSide = (q: Pt[]) => Math.max(dist(q[0], q[1]) + dist(q[2], q[3]), dist(q[1], q[2]) + dist(q[3], q[0])) / 2;
+const shortSide = (q: Pt[]) => Math.min(dist(q[0], q[1]) + dist(q[2], q[3]), dist(q[1], q[2]) + dist(q[3], q[0])) / 2;
+/** One card as measured in one frame. axis: unit vector along its longer measure, or null when it is not oblong; seen: how many of its quad's corners are free; band: the width of its smeared edge in film pixels, over that of the film's still cards. */
+export type Measured = {side: Side; centre: Pt; length: number; thickness: number; axis: Pt | null; quad: Pt[] | null; seen: number; band: number};
+// reach: a measured card belongs to the track's card when it lies within this many card lengths of it. thin: a card narrower than this
+// share of its short side is turning. kept: ... while at least this share of its length is there (shorter: a piece of it, or under a
+// hand). piece: a measured shape shorter than this share of the card says nothing of where the card's middle is. small: a tracked quad
+// under this share of the measured one is the colour rule's sharp core, not the card. large: a measured quad over this many times the
+// card is two cards. window: how far from the track's own turn frames the turn may reach.
+export const REFINE = {reach: 1.2, thin: 0.6, kept: 0.7, piece: 0.5, small: 0.8, large: 1.35, window: 8};
+export type Refined = Frame & {blur?: number};
+/**
+ * A track's frames with the measured cards laid in (the track is not changed). In the turn (`turn`: the frames between back and
+ * face and those beside them where the measured card is narrow, or where the hidden-card rule kept a wide shape) each frame is the
+ * stiff card: its length from the flat frames before and after, along the measured line, as wide as measured, where it was
+ * measured. A frame without a usable measurement keeps the line the track found in it, and only a kept wide shape goes: no card is
+ * laid at a computed place (laid between its measured neighbours it stood beside the film's card in three of the seven frames it gave
+ * on films the rule was not made on).
+ * Outside the turn a tracked quad well under the measured card takes the measured quad, and a kept shape gives way to a card that
+ * was measured whole. Frames at rest (from `restFrom`) are left alone. blur: the measured edge band, for the renderer's motion blur.
+ */
+export function refineFrames(frames: Frame[], measured: (Measured[] | null | undefined)[], restFrom: number | null = null): {frames: Refined[]; turn: [number, number] | null; changed: {turn: number[]; size: number[]; unhidden: number[]}} {
+  const n = frames.length, end = Math.min(n, restFrom ?? n), out: Refined[] = frames.map(f => ({...f, quad: f.quad && f.quad.map(p => ({...p})), edge: f.edge && [{...f.edge[0]}, {...f.edge[1]}] as [Pt, Pt]}));
+  const changed = {turn: [] as number[], size: [] as number[], unhidden: [] as number[]};
+  const flat = (i: number, side?: Side) => { const f = frames[i]; return !!f && !!f.quad && (side ? f.side === side : f.side === 'BACK' || f.side === 'FRONT'); };
+  const kept = (i: number) => /mostly hidden/.test(frames[i]?.note ?? ''), mean = (v: number[]) => { const s = [...v].sort((a, b) => a - b); return s.length ? s[s.length >> 1] : 0; };
+  // where the track has the card, also in frames where it has none (between the frames around them): only to know which measured card is ours
+  const place: (Pt | null)[] = frames.map(f => f.quad ? centre(f.quad) : f.edge ? mid(f.edge[0], f.edge[1]) : null);
+  for (let i = 0; i < n; i++) { if (place[i]) continue; let j = i; while (j < n && !place[j]) j++; const a = place[i - 1], b = j < n ? place[j] : null;
+    if (a && b && j - i <= 10) for (let k = i; k < j; k++) { const t = (k - i + 1) / (j - i + 1); place[k] = {x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t}; } i = j; }
+  // the card's measures while it is carried: the flat frames of each side that the hidden-card rule did not make
+  const sizes = (side: Side) => { const own = frames.map((_, i) => i).filter(i => i < end && flat(i, side) && !kept(i) && (frames[i].shoeShare ?? 0) < 0.05); return own.length ? {long: mean(own.map(i => longSide(frames[i].quad!))), short: mean(own.map(i => shortSide(frames[i].quad!)))} : null; };
+  const back = sizes('BACK'), front = sizes('FRONT'), any = back ?? front; if (!any) return {frames: out, turn: null, changed};
+  const whole = mean(measured.flatMap(list => (list ?? []).filter(m => m.quad && m.seen === 4).map(m => Math.abs(signedArea(m.quad!)))));
+  const near = (i: number, reach = REFINE.reach * any.long): Measured | null => { const at = place[i]; let best: Measured | null = null, least = reach; if (at) for (const m of measured[i] ?? []) { const d = dist(m.centre, at); if (d <= least) { least = d; best = m; } } return best; };
+  const firstFront = frames.findIndex((f, i) => i < end && flat(i, 'FRONT') && !!back), lastBack = firstFront < 0 ? -1 : Math.max(-1, ...frames.map((_, i) => i).filter(i => i < firstFront && flat(i, 'BACK')));
+  let turn: [number, number] | null = null;
+  if (firstFront >= 0 && lastBack >= 0 && back) { const f = front ?? back; let a = lastBack + 1, b = firstFront - 1;
+    // only frames the track has no shape of its own for: where it has one (also a narrow one), that quad is the film's card, sheared as
+    // the film shows it, and fits better than a card laid by rule (seen on paow-giv-2-3-p4-h24-cykel-02-01, frames 28-29 and 33-34)
+    while (a - 1 > 0 && lastBack + 1 - (a - 1) <= REFINE.window && kept(a - 1)) a--;
+    while (b + 1 < end - 1 && b + 1 - (firstFront - 1) <= REFINE.window && kept(b + 1)) b++;
+    if (b >= a) { turn = [a, b];
+      const before = [...Array(a).keys()].reverse().find(i => flat(i, 'BACK') && !kept(i)), after = [...Array(n).keys()].find(i => i > b && flat(i, 'FRONT'));
+      const dirs = [before, after].filter((i): i is number => i !== undefined).map(i => { const d = lengthAxis(frames[i].quad!), l = Math.hypot(d.x, d.y) || 1; return {x: d.x / l, y: d.y / l}; });
+      // the card's other sides keep their direction in the picture while they shorten (a card turning about the side it is seen along):
+      // taken from the flat frames before and after, so the narrow card is the sheared shape the film shows, not a rectangle
+      const sideDirs = [before, after].filter((i): i is number => i !== undefined).map(i => { const q = frames[i].quad!, [e] = ends(q), l = dist(q[e[0]], q[e[1]]) || 1; return {x: (q[e[1]].x - q[e[0]].x) / l, y: (q[e[1]].y - q[e[0]].y) / l}; });
+      const blend = (list: Pt[], t: number): Pt | null => { if (!list.length) return null; const p = list[0], q0 = list[list.length - 1], way = p.x * q0.x + p.y * q0.y < 0 ? -1 : 1, x = p.x + (q0.x * way - p.x) * t, y = p.y + (q0.y * way - p.y) * t, l = Math.hypot(x, y) || 1; return {x: x / l, y: y / l}; };
+      type Lay = {c: Pt; d: Pt; len: number; wide: number; side: Side; note: string; across?: boolean};
+      const lays: (Lay | null)[] = Array.from({length: n}, () => null), share = (i: number) => (i - a + 1) / (b - a + 2);
+      for (let i = a; i <= b; i++) { const m = near(i), t = share(i), long = back.long + (f.long - back.long) * t, short = back.short + (f.short - back.short) * t;
+        if (!m || !m.axis || m.length < 1.5 * m.thickness) continue;
+        // the measured line lies along one of the card's sides: the long one, unless it stands across the card's length before and after
+        const across = dirs.length > 0 && dirs.every(d => Math.abs(d.x * m.axis!.x + d.y * m.axis!.y) < 0.5), len = across ? short : long;
+        if (m.length < REFINE.piece * len) continue;
+        lays[i] = {c: m.centre, d: m.axis, len, wide: Math.max(2, Math.min(m.thickness, across ? long : short)), side: m.side, across, note: 'turn: the stiff card along the measured line, width and place measured'}; }
+      // which side a turning card shows: as measured, else the back up to its narrowest frame and the face after it
+      let thinnest = a, least = Infinity; for (let i = a; i <= b; i++) if (lays[i] && lays[i]!.wide < least) { least = lays[i]!.wide; thinnest = i; }
+      for (let i = a; i <= b; i++) { const l = lays[i], f0 = out[i];
+        // nothing measured (the card edge-on, or turning in front of her jacket, where the measurement, made against the table, sees no card):
+        // the track's own line stays as it is, found in this frame; only a kept wide shape goes, since that is known to be wrong
+        if (!l) { if (kept(i)) { out[i] = {...f0, side: 'NONE', quad: null, edge: null, confidence: 0, note: 'turn: the kept shape dropped, nothing measured to lay instead'}; changed.turn.push(i); } continue; }
+        const hx = l.d.x * l.len / 2, hy = l.d.y * l.len / 2; changed.turn.push(i);
+        if (l.wide < EDGE_THICKNESS) { out[i] = {...f0, side: 'EDGE', quad: null, edge: [round({x: l.c.x - hx, y: l.c.y - hy}), round({x: l.c.x + hx, y: l.c.y + hy})], area: Math.round(l.len * l.wide), confidence: 0.6, note: l.note}; continue; }
+        const other = blend(l.across ? dirs : sideDirs, share(i)), lean = other ? Math.abs(l.d.x * other.y - l.d.y * other.x) : 0, o = other && lean >= 0.35 ? other : {x: -l.d.y, y: l.d.x}, reach = l.wide / 2 / (other && lean >= 0.35 ? lean : 1);
+        const nx = o.x * reach, ny = o.y * reach, side: Side = l.side === 'BACK' || l.side === 'FRONT' ? l.side : i <= thinnest ? 'BACK' : 'FRONT';
+        out[i] = {...f0, side, quad: clockwise([{x: l.c.x - hx + nx, y: l.c.y - hy + ny}, {x: l.c.x + hx + nx, y: l.c.y + hy + ny}, {x: l.c.x + hx - nx, y: l.c.y + hy - ny}, {x: l.c.x - hx - nx, y: l.c.y - hy - ny}]).map(round), edge: null, area: Math.round(l.len * l.wide), confidence: 0.6, note: l.note}; }
+      // corner identity as buildTrack keeps it: the back from the frame before it onward, the face from the frame after it backward; a line the way the card's length ran
+      for (let i = a; i <= b; i++) { const f0 = out[i], p = out[i - 1]; if (f0.side === 'BACK' && f0.quad && p?.side === 'BACK' && p.quad) f0.quad = alignCorners(p.quad, f0.quad);
+        if (f0.edge && p) { const d = p.quad ? lengthAxis(p.quad) : p.edge ? {x: p.edge[1].x - p.edge[0].x, y: p.edge[1].y - p.edge[0].y} : null; if (d && (f0.edge[1].x - f0.edge[0].x) * d.x + (f0.edge[1].y - f0.edge[0].y) * d.y < 0) f0.edge = [f0.edge[1], f0.edge[0]]; } }
+      for (let i = b; i >= a; i--) { const f0 = out[i], p = out[i + 1]; if (f0.side === 'FRONT' && f0.quad && p?.side === 'FRONT' && p.quad) f0.quad = alignCorners(p.quad, f0.quad); } } }
+  for (let i = 0; i < end; i++) { const m = near(i); if (!m) continue;
+    out[i].blur = Math.max(0, Math.round(m.band * 10) / 10); /* 0: measured, and sharp; absent: not measured */
+    if ((turn && i >= turn[0] && i <= turn[1]) || !flat(i) || !m.quad || m.seen < 3 || m.side !== frames[i].side) continue;
+    const size = (frames[i].side === 'BACK' ? back : front) ?? any, card =Math.max(size.long * size.short, whole), theirs = Math.abs(signedArea(m.quad)), ours = Math.abs(signedArea(frames[i].quad!));
+    if (theirs > REFINE.large * card || dist(m.centre, place[i]!) > 0.5 * size.long) continue;
+    if (kept(i) && theirs >= 0.5 * card) { out[i] = {...out[i], quad: alignCorners(frames[i].quad!, m.quad).map(round), area: Math.round(theirs), note: 'measured whole: not hidden'}; changed.unhidden.push(i); }
+    else if (ours < REFINE.small * theirs) { out[i] = {...out[i], quad: alignCorners(frames[i].quad!, m.quad).map(round), area: Math.round(theirs), note: `${frames[i].note ? frames[i].note + '; ' : ''}size from the measured card`}; changed.size.push(i); } }
+  return {frames: out, turn, changed};
+}

@@ -1,0 +1,1107 @@
+{
+  "schemaVersion": 1,
+  "about": "Jakobs egna ord om proven i studions Granska, del Prov: hans val och text per fil eller prov. Bara sidan skriver hans ord; huvudagentens svar skrivs med tools/proof-notes.ts.",
+  "notes": [
+    {
+      "id": 1,
+      "proof": "giv-forlagefilm-2",
+      "file": "c3-t1.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-17T23:53:49.295Z",
+      "answer": {
+        "text": "Noterat. C3 är måttstocken för plats 4 tills något bättre finns.",
+        "at": "2026-11-17T23:59:20.859Z"
+      },
+      "read": "2026-11-17T23:59:20.859Z"
+    },
+    {
+      "id": 2,
+      "proof": "giv-forlagefilm-2",
+      "file": "c3-referens-dockan-2.mp4",
+      "choice": null,
+      "text": "Kanek är bra, ne typ spelkortet vrids aningen konstigt runt ruta 59, men det kaske inte är så noga?",
+      "at": "2026-11-17T23:55:12.843Z",
+      "answer": {
+        "text": "Rättat i dockan: kortet vänds nu i en enda vridning (se svaret under C2:s docka). En tagning med den nya filmen är beställd (C5).",
+        "at": "2026-11-18T00:16:41.212Z"
+      },
+      "read": "2026-11-18T00:16:41.212Z"
+    },
+    {
+      "id": 3,
+      "proof": "giv-forlagefilm-2",
+      "file": "a-t1.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-17T23:56:12.988Z",
+      "answer": {
+        "text": "Noterat. Granskaragenten gav 4/5; släpet från ankare 2.2 till plats 4 står som en metod som håller.",
+        "at": "2026-11-17T23:59:21.109Z"
+      },
+      "read": "2026-11-17T23:59:21.109Z"
+    },
+    {
+      "id": 4,
+      "proof": "giv-forlagefilm-2",
+      "file": null,
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-17T23:58:20.258Z",
+      "answer": {
+        "text": "Du tryckte både Bra och Inte bra här när du prövade knapparna. Skriv en kommentar om du menar något särskilt med hela provet.",
+        "at": "2026-11-17T23:59:21.790Z"
+      },
+      "read": "2026-11-17T23:59:21.790Z"
+    },
+    {
+      "id": 5,
+      "proof": "giv-forlagefilm-2",
+      "file": "a-t2.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-17T23:57:46.500Z",
+      "answer": {
+        "text": "Noterat. Granskaragenten gav 3/5 (kortet växer lite på släpet).",
+        "at": "2026-11-17T23:59:21.345Z"
+      },
+      "read": "2026-11-17T23:59:21.345Z"
+    },
+    {
+      "id": 6,
+      "proof": "giv-forlagefilm-2",
+      "file": "b-referens.mp4",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-17T23:58:04.754Z",
+      "answer": {
+        "text": "Noterat. Pamelas film till plats 1 används inte som förlaga; den faller också i den automatiska kontrollen.",
+        "at": "2026-11-17T23:59:21.571Z"
+      },
+      "read": "2026-11-17T23:59:21.571Z"
+    },
+    {
+      "id": 7,
+      "proof": "giv-forlagefilm-2",
+      "file": "c-referens-dockan.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-17T23:58:15.535Z",
+      "answer": {
+        "text": "Noterat.",
+        "at": "2026-11-17T23:59:33.431Z"
+      },
+      "read": "2026-11-17T23:59:33.431Z"
+    },
+    {
+      "id": 8,
+      "proof": "giv-forlagefilm-2",
+      "file": "c2-t1.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-17T23:58:28.762Z",
+      "answer": {
+        "text": "Noterat. Granskaragenten gav 4/5.",
+        "at": "2026-11-17T23:59:33.175Z"
+      },
+      "read": "2026-11-17T23:59:33.175Z"
+    },
+    {
+      "id": 9,
+      "proof": "giv-forlagefilm-2",
+      "file": "c2-referens-dockan-rattad.mp4",
+      "choice": null,
+      "text": "Ja, runt ruta 55 görs en konstig halvrotation, alltså 50 grader av kortet. Kanske är det vad som krävs för att AI-modeller inte ska förstå att ett kort kan vridas över sin egen axel. Jag vet inte.",
+      "at": "2026-11-17T23:59:14.315Z",
+      "answer": {
+        "text": "Svar från 3D-banan: det var dockans kort, inte Pamelas rörelse. Kortet rullade över sin långsida och snurrade sedan 53 grader i sitt eget plan på en enda ruta (ruta 57): det är halvrotationen du såg. Nu vänds kortet i en enda vridning i jämn takt, ruta 51 till 59, som när handleden vrids. En tagning med den nya filmen är beställd (C5). Se bild 11 och 12 i provet dealer-3d-vinkel-stol-1.",
+        "at": "2026-11-18T00:16:41.000Z"
+      },
+      "read": "2026-11-18T00:16:41.000Z"
+    },
+    {
+      "id": 10,
+      "proof": "giv-forlagefilm-2",
+      "file": "e-referens-dockan.mp4",
+      "choice": null,
+      "text": "Ja, runt ruta 55 görs en konstig halvrotation, alltså 50 grader av kortet. Kanske är det vad som krävs för att AI-modeller inte ska förstå att ett kort kan vridas över sin egen axel. Jag vet inte.",
+      "at": "2026-11-18T00:00:03.621Z",
+      "answer": {
+        "text": "Rättat i dockan: se svaret under C2:s docka. Filmerna till plats 3 och 5 är också gjorda om med den nya vändningen.",
+        "at": "2026-11-18T00:16:41.418Z"
+      },
+      "read": "2026-11-18T00:16:41.418Z"
+    },
+    {
+      "id": 11,
+      "proof": "giv-forlagefilm-2",
+      "file": "d-referens-dockan.mp4",
+      "choice": null,
+      "text": "Ja, runt ruta 55 görs en konstig halvrotation, alltså 50 grader av kortet. Kanske är det vad som krävs för att AI-modeller inte ska förstå att ett kort kan vridas över sin egen axel. Jag vet inte.",
+      "at": "2026-11-17T23:59:49.546Z",
+      "answer": {
+        "text": "Rättat i dockan: se svaret under C2:s docka.",
+        "at": "2026-11-18T00:16:41.620Z"
+      },
+      "read": "2026-11-18T00:16:41.620Z"
+    },
+    {
+      "id": 12,
+      "proof": "dealer-3d-vinkel-stol-1",
+      "file": "4-modellen-sista-rutan.png",
+      "choice": null,
+      "text": "Handen vriden ut led i slutet",
+      "at": "2026-11-18T00:01:38.457Z",
+      "answer": {
+        "text": "Meshy-modellen används inte: råbilderna är vita dockans egna rutor (bild 8 och 9 i provet), där handen ligger rätt på kortet.",
+        "at": "2026-11-18T00:16:42.040Z"
+      },
+      "read": "2026-11-18T00:16:42.040Z"
+    },
+    {
+      "id": 13,
+      "proof": "dealer-3d-vinkel-stol-1",
+      "file": "3-modellen-forsta-rutan.png",
+      "choice": null,
+      "text": "kan vara bra.. men det beror vad vi ska med denna meshybild till att göra..",
+      "at": "2026-11-18T00:02:08.289Z",
+      "answer": {
+        "text": "Meshybilden är bara en råbild: den visar bildmodellen var hon sitter och hur hon ses från stol 1, och bildmodellen gör den riktiga bilden av Paow. Meshybilden syns aldrig i spelet.",
+        "at": "2026-11-18T00:04:40.907Z"
+      },
+      "read": "2026-11-18T00:04:40.907Z"
+    },
+    {
+      "id": 14,
+      "proof": "dealer-3d-vinkel-stol-1",
+      "file": "2-dockan-kortet-vands.png",
+      "choice": null,
+      "text": "Det beror på. Om en dealer ska kunna vända kortet med handleden eller flippa runt kortet med fingrarna, så kan det fungera. Här syns kortet åka runt på ett sätt som kan vara svårt att förstå. Men så länge videon i slutändan blir bra kanske det inte är så noga, jag är osäker.",
+      "at": "2026-11-18T00:02:58.989Z",
+      "answer": {
+        "text": "3D-banan har rättat vändningen till en enda vridning (film 5 i provet). Provet från stol 1 som du sa ja till görs nu med den filmen och vita dockans rutor som råbilder.",
+        "at": "2026-11-18T00:16:41.829Z"
+      },
+      "read": "2026-11-18T00:16:41.829Z"
+    },
+    {
+      "id": 15,
+      "proof": "paow-ankare-2-2-blick",
+      "file": "2-kandidat-a.png",
+      "choice": null,
+      "text": "Höjj upp hennes armboge eller liknande så kanske det kan bli bra dock!",
+      "at": "2026-11-18T00:05:09.520Z",
+      "answer": {
+        "text": "Skickat till agenten som gör ankaret: armbågen lyfts och förs ut från kroppen i nästa försök (C). Det är också så den riktiga dealern i Modells film håller armen.",
+        "at": "2026-11-18T00:07:04.558Z"
+      },
+      "read": "2026-11-18T00:07:04.558Z"
+    },
+    {
+      "id": 16,
+      "proof": "paow-ankare-2-2-blick",
+      "file": "3-kandidat-b.png",
+      "choice": null,
+      "text": "Hennes händer ser inte symmetriska ut. Hennes startpositionshand ser förstorad ut i förhållande till den nättare hand som hon har över skon, och man kanske vill se hennes tumme eftersom hon inte ska nypa fram något kort längre.",
+      "at": "2026-11-18T00:06:02.407Z",
+      "answer": {
+        "text": "Skickat till agenten som gör ankaret: händerna mäts och görs lika stora i nästa försök (C), och tummen på handen vid skon ska synas, utspärrad från kortet.",
+        "at": "2026-11-18T00:07:04.742Z"
+      },
+      "read": "2026-11-18T00:07:04.742Z"
+    },
+    {
+      "id": 17,
+      "proof": "paow-ankare-2-3",
+      "file": "2-ankare-2-3-kandidat.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-18T01:24:10.488Z",
+      "answer": {
+        "text": "Läst: posen gäller. Ankaret registreras som ankare 2.3 när efterarbetet (ton och skuggkant) är omgjort och granskat; sedan beställs given därifrån.",
+        "at": "2026-11-18T01:32:33.832Z"
+      },
+      "read": "2026-11-18T01:32:33.832Z"
+    },
+    {
+      "id": 18,
+      "proof": "paow-ankare-2-3",
+      "file": "1-ankare-1.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-18T01:24:15.497Z",
+      "read": "2026-11-18T01:32:34.058Z"
+    },
+    {
+      "id": 19,
+      "proof": "paow-ankare-2-3",
+      "file": "4-handerna.jpg",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-18T01:24:19.203Z",
+      "read": "2026-11-18T01:32:34.309Z"
+    },
+    {
+      "id": 20,
+      "proof": "paow-ankare-2-3",
+      "file": "5-ansiktet-ankare-1-kandidaten.jpg",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-18T01:24:26.867Z",
+      "read": "2026-11-18T01:32:34.575Z"
+    },
+    {
+      "id": 21,
+      "proof": "paow-ankare-2-3",
+      "file": "6-spelstorlek-ankare-1-kandidaten.jpg",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-18T01:24:39.241Z",
+      "read": "2026-11-18T01:32:34.866Z"
+    },
+    {
+      "id": 22,
+      "proof": "paow-ankare-2-3",
+      "file": "7-dockan-mot-kandidaten.jpg",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-18T01:24:47.264Z",
+      "read": "2026-11-18T01:32:35.127Z"
+    },
+    {
+      "id": 23,
+      "proof": "dealer-fran-stol-1",
+      "file": "1-forsta-bild.png",
+      "choice": null,
+      "text": "Ser \"okej\" ut som referensmaterial till en tagning från första s isidan typ",
+      "at": "2026-11-18T01:46:09.068Z",
+      "answer": {
+        "text": "Läst. Stillbilden från sidan används som underlag för nästa tagning: given från ankare 2.3 till plats 5, sedd från sidan.",
+        "at": "2026-11-18T01:49:06.806Z"
+      },
+      "read": "2026-11-18T01:49:06.806Z"
+    },
+    {
+      "id": 24,
+      "proof": "dealer-fran-stol-1",
+      "file": "2-sista-bild.png",
+      "choice": null,
+      "text": "Kanske kan funka som komplement förr att visa vilken sida som sllt ska vara från. Men tänk på att detta är ovanifrån och inte från samam vinkel, heller inte \"Första bilden\" i jämförelse med possitionen som används (tror jag i alla fakll) från \"mitten\"",
+      "at": "2026-11-18T01:47:30.573Z",
+      "answer": {
+        "text": "Läst. Bilderna från sidan i det provet är sedda för mycket ovanifrån och inte som kameran i mitten flyttad åt sidan. Nästa bilder från sidan görs från samma höjd och lutning som bankens kamera.",
+        "at": "2026-11-18T02:07:17.628Z"
+      },
+      "read": "2026-11-18T02:07:17.628Z"
+    },
+    {
+      "id": 25,
+      "proof": "bestallning-handbyte-p4-16",
+      "file": "first.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-18T02:16:19.447Z",
+      "read": "2026-11-18T02:17:31.416Z"
+    },
+    {
+      "id": 26,
+      "proof": "bestallning-handbyte-p4-16",
+      "file": "t2-stillbild.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-18T02:16:49.890Z",
+      "read": "2026-11-18T02:17:31.135Z"
+    },
+    {
+      "id": 27,
+      "proof": "bestallning-handbyte-p4-16",
+      "file": "t1-stillbild.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-18T02:16:57.456Z",
+      "answer": {
+        "text": "Läst: tagningarna med handbyte underkänns. Den oberoende granskaren sade samma sak (ett målat bord som byter färg, ett tryckt kort). Handbytet görs i stället som given från ankare 2.3, där vänster hand ger kortet till höger.",
+        "at": "2026-11-18T02:17:30.886Z"
+      },
+      "read": "2026-11-18T02:17:30.886Z"
+    },
+    {
+      "id": 28,
+      "proof": "bestallning-handbyte-p4-16",
+      "file": "last.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-18T02:17:50.397Z",
+      "read": "2026-11-18T02:27:58.161Z"
+    },
+    {
+      "id": 29,
+      "proof": "bestallning-handbyte-p4-16",
+      "file": "kortet-pa-platsen.png",
+      "choice": null,
+      "text": "Tagnig 2 är bra antar ajg",
+      "at": "2026-11-18T02:18:05.945Z",
+      "answer": {
+        "text": "Läst. Tagning 2 har kortet på rätt plats och i rätt storlek, men det läggs gult och blir blått först i sista rutan, utan att vändas. Därför föreslog granskaren underkänt; domen är din.",
+        "at": "2026-11-18T02:27:57.846Z"
+      },
+      "read": "2026-11-18T02:27:57.846Z"
+    },
+    {
+      "id": 30,
+      "proof": "sidovinkel-ur-film",
+      "file": "2-fran-sidan.mp4",
+      "choice": null,
+      "text": "Det här är mycket bra, jag vet inte hur du gjorde. Det kanske är exakt allt som behövs. Vi har med andra ord 35% framifrån, 35% åt sidan, och vi skulle kunna göra 70% åt sidan. Vi kan också spegelvända filmen till andra sidan, vilket ger oss fem olika kameravinklar. Utifrån det kan vi binda samman dessa vinklar för att titta åt ett visst håll. Innan vi gör det kanske vi kan göra ett prov där vi binder ihop de två videorna på bordet med en egen scen. Hon ser lite kantig ut, så jag kan generera en bild där hon är 35% åt sidan, som kan användas som ett alternativt ankare eller `keystone`-bild. Detta kan fungera som en testbild för att skapa en scen där jag kan titta åt sidan och se om det går att binda ihop.",
+      "at": "2026-11-18T02:25:31.738Z",
+      "answer": {
+        "text": "Läst. Provet där filmen rakt fram och filmen från sidan binds ihop i en scen byggs nu som en egen sida i labbet. Din bild av henne från sidan blir stillbilden som styr nästa film.",
+        "at": "2026-11-18T02:27:57.489Z"
+      },
+      "read": "2026-11-18T02:27:57.489Z"
+    },
+    {
+      "id": 32,
+      "proof": "paow-ankare-2-3",
+      "file": "3c-filmen-1-till-2-3-fart-2.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-18T02:29:50.947Z",
+      "answer": {
+        "text": "Läst. Ingångsfilmen går in i banken i 2 gånger farten; 1,5 gånger används inte.",
+        "at": "2026-11-18T03:11:05.751Z"
+      },
+      "read": "2026-11-18T03:11:05.751Z"
+    },
+    {
+      "id": 33,
+      "proof": "paow-ankare-2-3",
+      "file": "3b-filmen-1-till-2-3-fart-1-5.mp4",
+      "choice": null,
+      "text": "hackar och långsam",
+      "at": "2026-11-18T02:30:06.080Z",
+      "read": "2026-11-18T03:11:05.972Z"
+    },
+    {
+      "id": 34,
+      "proof": "giv-fran-2-3-p5",
+      "file": "0-giv-p5-tagning-3.mp4",
+      "choice": null,
+      "text": "Kan vara bra. men hon gör verkligen en konstig vridning med andra handen som tippar över kortet i mitten av videon. men kanske kan vi följa upp på detta och skapa två till voideos, en för kort plats nummer 1 och plats nummer 4. Men från samma ankare. men säg också, är detta ankare taget eller skapat från den youtube-video där kamperan är ännu mera ovan detn som vi använder?",
+      "at": "2026-11-18T02:40:11.044Z",
+      "answer": {
+        "text": "Läst. Två filmer till görs från samma ankare 2.3: till plats 4 och till plats 1, utan att den andra handen tippar kortet. Ankaret är inte taget ur YouTube-filmen: kameran är bankens egen, samma som i ankare 2.1 och 2.2, och bilden är en ruta ur en film som börjar på ankare 1. Bara posen och händerna kom från mätningen.",
+        "at": "2026-11-18T03:11:05.533Z"
+      },
+      "read": "2026-11-18T03:11:05.533Z"
+    },
+    {
+      "id": 35,
+      "proof": "giv-fran-2-3-p5",
+      "file": "0-a-giv-p5-tagning-4.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-18T02:55:52.247Z",
+      "read": "2026-11-18T03:11:06.211Z"
+    },
+    {
+      "id": 36,
+      "proof": "giv-fran-2-3-p4-p1",
+      "file": "1-plats-4-tagning-1.mp4",
+      "choice": "inte-bra",
+      "text": "Hon flippar korten lixom utanpå fingrarna.. Är denn gjort av en sån vitfigur så måste vit-figuren bli bättre med att sköta kordineringen med kort/fingrar. OM hon ska göra detta måste hennes tumme stödja upp kortets vändning på typ ruta 30 och ungefär 10 rutor frammåt",
+      "at": "2026-11-18T04:16:06.694Z",
+      "answer": {
+        "text": "Läst. Dockan görs om så att tumme och fingrar håller kortet genom hela vändningen och handleden vrider det. Nästa tagning till plats 4 läggs på den.",
+        "at": "2026-11-18T04:16:16.048Z"
+      },
+      "read": "2026-11-18T04:16:16.048Z"
+    },
+    {
+      "id": 37,
+      "proof": "giv-fran-2-3-p4-p1",
+      "file": "2-plats-1-tagning-1.mp4",
+      "choice": "inte-bra",
+      "text": "Den här lösningen kanske kan fungera, men om hon landar på det här sättet när hon tittar mot kortet, ska hennes nästa rörelse då vara att hon bara flyttar huvud och arm tillbaka? Det skulle kunna gå, men då måste du ha en riktigt bra idé. Jag tycker att hennes ansikte ser annorlunda ut jämfört med hur det brukar vara.",
+      "at": "2026-11-18T04:17:38.753Z",
+      "answer": {
+        "text": "Läst. Ansiktet: slutbilden för plats 1 gjordes med en bildmodell som ritade om ansiktet något; den görs om med modellen som lämnar ansiktet orört. Vägen tillbaka från den framåtlutade slutbilden är inte löst: den blir en egen film från slutbilden till ankare 2.3, och jag visar dig en idé innan något beställs.",
+        "at": "2026-11-18T04:35:45.023Z"
+      },
+      "read": "2026-11-18T04:35:45.023Z"
+    },
+    {
+      "id": 38,
+      "proof": "kortet-i-handen-orsaker-20261120",
+      "file": "3-sparet-29-34.jpg",
+      "choice": null,
+      "text": "Spårningen är ju dårlig.. Vaad ska man göra? kane träna en modelll på arrt mitt arkivmaterial av blåa och gula utor?",
+      "at": "2026-11-20T11:09:07.609Z",
+      "answer": {
+        "text": "Mätt är spårningen bra när kortet syns plant (den täcker filmens kort till 90 % i medianrutan, hörnen ligger 3,6 bildpunkter fel) och dålig i tre rutor: vändningen, där kortet står på kant och filmen bara visar en strimma på 92 × 11 bildpunkter. Där finns inget för en tränad modell att se heller, så jag råder inte till träning nu. Rådet: 1) räkna ut vändningen i stället för att mäta den, så att kortet smalnar från sista ryggen till första framsidan; 2) på sikt ett styvt kort på 63 × 88 mm som passas in ruta för ruta; 3) det rosa krysset och den röda cirkeln på nya filmer stadgar hörnen under fingrarna. En modell är värd att pröva först om hörnen fortfarande vinglar efter det. Svar från dealer-29.",
+        "at": "2026-11-20T11:13:17.726Z"
+      },
+      "read": "2026-11-20T11:13:17.726Z"
+    },
+    {
+      "id": 39,
+      "proof": "kortet-i-handen-orsaker-20261120",
+      "file": "2-ljuset-hoppar.jpg",
+      "choice": null,
+      "text": "Är det aksnke sidopanelen på höger sida när vid regalgen som ställer in att man skapar ljs och kanske böjj på borden som stör?",
+      "at": "2026-11-20T11:10:19.347Z",
+      "answer": {
+        "text": "Troligen inte. Reglagen i panelen (ljus, böj, glans) står stilla under hela given, så de kan göra kortet ljusare eller mörkare överlag men inte få det att hoppa mellan två rutor. Hoppen är mätta med ditt förval Jakob-1 och kommer från koden som under uppspelning läser hur ljust filmens blå kort är: när den hittar för få blå punkter byter den till ett reservvärde, och papperet blir 22 till 26 steg av 255 ljusare eller mörkare vid rutorna 40, 42, 46 och 52. Inte prövat: andra reglagevärden. Lagningen är att behålla det senaste goda värdet och jämna ut över rutorna. Svar från dealer-29.",
+        "at": "2026-11-20T11:13:17.506Z"
+      },
+      "read": "2026-11-20T11:13:17.506Z"
+    },
+    {
+      "id": 40,
+      "proof": "kortet-i-handen-orsaker-20261120",
+      "file": "1-vandningen.jpg",
+      "choice": null,
+      "text": "vad är det med detta?",
+      "at": "2026-11-20T11:11:12.684Z",
+      "answer": {
+        "text": "Bilden visar fyra rutor ur vändningen, varje ruta två gånger: vårt ritade kort till vänster och filmens eget kort till höger (rutorna 29, 30, 32 och 33). Ruta 29 stämmer. I ruta 30 står vårt kort kvar brett fast filmens kort redan är en smal strimma. I ruta 32 blir vårt kort en trasig vit flik, och i ruta 33 kommer framsidan liten och knivskarp bredvid en oskarp hand. Det är stället där hon hinner vrida innan symbolerna följer med. Förslaget är att kortet smalnar mjukt genom vändningen (kortet överst i Beslut). Svar från dealer-29, som gjorde undersökningen.",
+        "at": "2026-11-20T11:13:17.284Z"
+      },
+      "read": "2026-11-20T11:13:17.284Z"
+    },
+    {
+      "id": 41,
+      "proof": "paow-giv-2-3b-p4-pilot-20261120",
+      "file": "1-giv-plats-4-spelets-storlek.mp4",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-20T13:48:54.842Z",
+      "answer": {
+        "text": "Du såg rätt. Felet sitter i ankare 2.3 B självt: ärmen slutar vid armbågen och handen hänger direkt under, underarmen saknas (mätt mot 2.3 A och 2.2). Alla fyra tagningarna ärvde det. Ett nytt ankare 2.3 görs nu som en riktig ruta ur ankare 1; inga fler filmer från B.",
+        "at": "2026-11-20T14:01:01.402Z"
+      },
+      "read": "2026-11-20T14:01:01.402Z"
+    },
+    {
+      "id": 42,
+      "proof": "paow-giv-2-3c-p4-pilot-20261120",
+      "file": null,
+      "choice": null,
+      "text": "okej. Men frågan är bara vilket antkare denna kommer ifrån, samt om hennes slutpose för hennes hand är ett ankare, eller bra (A3P4 typ)",
+      "at": "2026-11-21T17:00:22.369Z",
+      "answer": {
+        "text": "Filmen börjar från A2.3 (ditt ja i Beslut 21 november) och slutar på A3P4C1: hennes slutpose med handen på kortet är just det ankaret. A3P4C1 är taget ur en film från A2.3, men det står ännu som kandidat i Material: det gäller först när du säger att slutposen är bra.",
+        "at": "2026-11-21T17:08:55.496Z"
+      },
+      "read": "2026-11-21T17:08:55.496Z"
+    },
+    {
+      "id": 43,
+      "proof": "paow-munbyte-neutral-20261121",
+      "file": null,
+      "choice": null,
+      "text": "den andra av dessa ska in som standard för alla hennes repliker överallt och som standard-läppsynk för PAOW men vara vi vet att detta är just i ett annat fpormat OM det är andra format i denna än de som tex finns i andra proejkt elelr som den dära stora imagen elelr vad det är använder som standards för cashe elelr vad det är",
+      "at": "2026-11-21T17:38:59.619Z",
+      "read": "2026-11-23T08:06:38.182Z"
+    },
+    {
+      "id": 44,
+      "proof": "a3p6c1-20261123",
+      "file": "1-a3p6c1.png",
+      "choice": null,
+      "text": "Hon fick ne väldig lång underarm här",
+      "at": "2026-11-23T08:04:16.051Z",
+      "answer": {
+        "text": "Ja, armen blev för lång: hon sitter kvar rak och måste då sträcka sig hela vägen till plats 6. Nästa provbild görs där hon lutar sig fram mot platsen, så att armen får sin riktiga längd. Ingen film beställs med den här bilden.",
+        "at": "2026-11-23T08:06:13.092Z"
+      },
+      "read": "2026-11-23T08:06:13.092Z"
+    },
+    {
+      "id": 45,
+      "proof": "a3p6c1-20261123",
+      "file": "2-a2.3.png",
+      "choice": null,
+      "text": "Detta är altså A2.3? Bra i sf",
+      "at": "2026-11-23T08:05:10.521Z",
+      "answer": {
+        "text": "Ja, det är A2.3 (ankaret som filmerna börjar i), lagd bredvid för att jämföra.",
+        "at": "2026-11-23T08:06:13.295Z"
+      },
+      "read": "2026-11-23T08:06:13.295Z"
+    },
+    {
+      "id": 46,
+      "proof": "docka-paow-vansterarm-20261123",
+      "file": "01-skon-idag-och-forslag.png",
+      "choice": null,
+      "text": "Se över och fixa så allt blir rätt bara. Kommer då skon behövas ändras på alla andra videos? Förstår inte riktigt. Lös detta bara",
+      "at": "2026-11-23T09:45:23.517Z",
+      "answer": {
+        "text": "Nej, inga filmer ändras. Skon i filmerna är den riktiga. Felet sitter i den ritade skon i 3D-scenen, som står 2,4 cm fel mot filmens. Den flyttas till filmens plats, så att dockan och filmerna stämmer. Dockagenten gör det nu.",
+        "at": "2026-11-23T09:55:41.836Z"
+      },
+      "read": "2026-11-23T09:55:41.836Z"
+    },
+    {
+      "id": 47,
+      "proof": "utgang-2-3-baklanges-20261123",
+      "file": "2-utgangen-baklanges.mp4",
+      "choice": null,
+      "text": "Trr typ aldrig denna behövs denna video. När ska hon gå från A2.3 till A1?",
+      "at": "2026-11-23T13:56:48.738Z"
+    },
+    {
+      "id": 48,
+      "proof": "utgang-2-3-baklanges-20261123",
+      "file": "1-plats-5-och-ut-till-vila-spelets-storlek.mp4",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-23T13:57:30.640Z"
+    },
+    {
+      "id": 49,
+      "proof": "retur-till-vila-p5-20261123",
+      "file": "1-given-och-direkt-till-vila-spelets-storlek.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T14:10:20.805Z"
+    },
+    {
+      "id": 50,
+      "proof": "retur-till-vila-p5-20261123",
+      "file": "2-returen-till-vila.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T14:10:32.278Z"
+    },
+    {
+      "id": 51,
+      "proof": "givar-plats-6-7-20261123",
+      "file": "1-plats-6-och-7-spelets-storlek.mp4",
+      "choice": "inte-bra",
+      "text": "Det här är intressant. Dockan är så bra så att videon följer den nitiskt. Det är bra såklart, en just i dessa klipp blir inte kortets övergång från baksida till framsida bra i och med att dockan inte exakt med handrörelsen får kortet fysistkt avv vända sig kordinerat mellan hennes händer. hur kortet vänds måste dockan ha mycket bra fog för tillsammans med att lite mer frihet för filmmodellen att faktist se till att kortet vänds av hennes händer och inte bara osynligt stoff",
+      "at": "2026-11-23T15:00:53.986Z"
+    },
+    {
+      "id": 52,
+      "proof": "givar-plats-6-7-20261123",
+      "file": "2-plats-6-giv-och-atergang.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T15:00:33.682Z"
+    },
+    {
+      "id": 53,
+      "proof": "givar-plats-6-7-20261123",
+      "file": "3-plats-7-giv-och-atergang.mp4",
+      "choice": "inte-bra",
+      "text": "Du: Det här är intressant. Dockan är så bra så att videon följer den nitiskt. Det är bra såklart, en just i dessa klipp blir inte kortets övergång från baksida till framsida bra i och med att dockan inte exakt med handrörelsen får kortet fysistkt avv vända sig kordinerat mellan hennes händer. hur kortet vänds måste dockan ha mycket bra fog för tillsammans med att lite mer frihet för filmmodellen att faktist se till att kortet vänds av hennes händer och inte bara osynligt stoff",
+      "at": "2026-11-23T15:00:51.702Z"
+    },
+    {
+      "id": 54,
+      "proof": "returer-till-vila-20261123",
+      "file": "3-plats-2-giv-och-direkt-till-vila.mp4",
+      "choice": null,
+      "text": "Bra. men känns bara som återgången från utdelningen blir lixom variantskildnaden mod själva utdelningen av kortet.. kanske beroende på att dockan används (?). men för den delen är ju återgången till A1 ritkgit bra som variant",
+      "at": "2026-11-23T15:36:14.706Z"
+    },
+    {
+      "id": 55,
+      "proof": "returer-till-vila-20261123",
+      "file": "4-plats-3-giv-och-direkt-till-vila.mp4",
+      "choice": null,
+      "text": "Bra. men känns bara som återgången från utdelningen blir lixom variantskildnaden mod själva utdelningen av kortet.. kanske beroende på att dockan används (?). men för den delen är ju återgången till A1 ritkgit bra som variant",
+      "at": "2026-11-23T15:36:40.427Z"
+    },
+    {
+      "id": 56,
+      "proof": "returer-till-vila-20261123",
+      "file": "5-plats-4-giv-och-direkt-till-vila.mp4",
+      "choice": null,
+      "text": "Bra. men känns bara som återgången från utdelningen blir lixom variantskildnaden mod själva utdelningen av kortet.. kanske beroende på att dockan används (?). men för den delen är ju återgången till A1 ritkgit bra som variant. kan man elelr hur ska man göra för att få som en variant på själva A2.3 - P4C1? Är det vår docka som stör? me nmed det sagt återigen är ju återgången till A1 kanon!",
+      "at": "2026-11-23T15:37:44.434Z"
+    },
+    {
+      "id": 57,
+      "proof": "returer-till-vila-20261123",
+      "file": "6-plats-5-giv-och-direkt-till-vila.mp4",
+      "choice": null,
+      "text": "sama som det innnan.. . Men också som egentligen bara bygger vidare på det där med dockan-resonemanget. Altså ho nhar lixom exakt så som dockan gör med ahdnen. Det är ju sktbra, men kan man inte frångå bara lite? Dock kanske et byggs från vyn nu att man kan styra dockan lite bättre",
+      "at": "2026-11-23T15:38:50.973Z"
+    },
+    {
+      "id": 58,
+      "proof": "returer-till-vila-20261123",
+      "file": "7-plats-6-giv-och-direkt-till-vila.mp4",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-23T15:39:59.174Z"
+    },
+    {
+      "id": 59,
+      "proof": "tumflipp-p3-20261123",
+      "file": "2-kortet-genom-luften-till-plats-3.mp4",
+      "choice": "bra",
+      "text": "Vad är \"bankens ram\"? Altså är det \"det vita\"? men jag ser dock att det finns vitt omkring korten som markerar de korten som är tänt att ligga bakom. Denan får förkalras",
+      "at": "2026-11-23T15:52:59.126Z"
+    },
+    {
+      "id": 60,
+      "proof": "tumflipp-p3-20261123",
+      "file": "4-samma-kast-sett-fran-plats-1-spelets-storlek.mp4",
+      "choice": "inte-bra",
+      "text": "Är vi säkra at detta rä från plats 1s Vinkel? Kortet(n) det gula har visserligen blivit aningen tjockare i skon, men är det inte för tjockt? Varför? Kanske för att skon inte är ritad från andra håll?",
+      "at": "2026-11-23T15:51:31.166Z"
+    },
+    {
+      "id": 61,
+      "proof": "fri-giv-p4-20261123",
+      "file": "1-fri-giv-till-plats-4-spelets-storlek.mp4",
+      "choice": null,
+      "text": "Bra. mewn hennes andra hand är för stel.. Hon gör ingenting med den.. Ska vi köra en fri giv, så kommer vi kanske ha samma start och stopbild, vilket kanske gör så att runwayskapande modell inte ändrar så hennes högerhand gör ngnting alls. Om vi ksa göra en fri giv, och köra det som en variant. låt göra den och kalla den filmen typ \"kasta kortet i luften ...\" elelr \"kortet bakom ryggen ...\" typ leler så..",
+      "at": "2026-11-23T16:00:11.579Z"
+    },
+    {
+      "id": 62,
+      "proof": "fri-giv-p4-20261123",
+      "file": "2-dockans-giv-och-den-fria-bredvid-varandra.mp4",
+      "choice": null,
+      "text": "Första filmen har hon en konstig spretig hand vid tillbakagång till A2.3, men helt okej som en \"varaint\" till just given till P4. Men eftersom hon har samma generiska \"ett finger på kortet\", mblir den för tråkig ändå.. För VIdeo nummer två är den riktigt bra, men återigen aktiverar hon inte andra amen under given vilket gör den trist oc hstel",
+      "at": "2026-11-23T16:03:15.096Z"
+    },
+    {
+      "id": 63,
+      "proof": "fri-giv-p4-20261123",
+      "file": "3-fri-giv-till-plats-4.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T16:03:29.270Z"
+    },
+    {
+      "id": 64,
+      "proof": "fria-givar-20261123",
+      "file": "1-kortet-i-luften-spelets-storlek.mp4",
+      "choice": null,
+      "text": "Svinbra varaint!",
+      "at": "2026-11-23T16:36:01.248Z"
+    },
+    {
+      "id": 65,
+      "proof": "fria-givar-20261123",
+      "file": "2-kortet-bakom-ryggen-spelets-storlek.mp4",
+      "choice": null,
+      "text": "Riktigt bra!! men kolla bara för hennes ansikte är lite olikt så som hon ser ut.. har vi kansmke raderat elelr manipulerat elelr något gällande hennes utseende? Om ja, låt min IDE-agent fråga mig så kan jag ge gättre inpubild",
+      "at": "2026-11-23T16:37:07.135Z"
+    },
+    {
+      "id": 66,
+      "proof": "fria-givar-20261123",
+      "file": "3-fri-giv-till-plats-7-spelets-storlek.mp4",
+      "choice": "bra",
+      "text": "Svinbra varaint!",
+      "at": "2026-11-23T16:37:28.976Z"
+    },
+    {
+      "id": 67,
+      "proof": "fria-givar-20261123",
+      "file": "4-plats-7-dockans-giv-och-den-fria.mp4",
+      "choice": null,
+      "text": "Inget att säga här. Altså dockan är väl kanske orsaken till att det är onaturligt med att kortet inte ska komma upp och vändas i vid 1 och 2:an är svinbra so mvariant",
+      "at": "2026-11-23T16:38:17.896Z"
+    },
+    {
+      "id": 68,
+      "proof": "fria-givar-20261123",
+      "file": "5-kortet-i-luften.mp4",
+      "choice": null,
+      "text": "Svinbra varaint!",
+      "at": "2026-11-23T16:38:31.395Z"
+    },
+    {
+      "id": 69,
+      "proof": "fria-givar-20261123",
+      "file": "6-kortet-bakom-ryggen.mp4",
+      "choice": null,
+      "text": "Duger, men hon ser inte ut som PAOW riktigt när hon tittar mot oss",
+      "at": "2026-11-23T16:39:01.301Z"
+    },
+    {
+      "id": 70,
+      "proof": "fria-givar-20261123",
+      "file": "7-fri-giv-till-plats-7.mp4",
+      "choice": null,
+      "text": "svinbra varaint!",
+      "at": "2026-11-23T16:39:17.664Z"
+    },
+    {
+      "id": 71,
+      "proof": "fran-stol-1-20261123",
+      "file": "1-given-till-plats-4-fran-stol-1-spelets-storlek.mp4",
+      "choice": "inte-bra",
+      "text": "från ruta 29 till 30 så ändrar kortet bara sida utan någon egentlgin anledning. kanske är detta för att en referensfilm finns som gör att den, från den kameran frammifrån, visas somm andra sidan just då, men i och med att detta är en annan vinkel ska det ju vara och utgå efter sidan på kortet och inte tidpunkt. Känns också som att denna kameravinkel är högre än kamera frammifrån",
+      "at": "2026-11-23T16:41:10.207Z"
+    },
+    {
+      "id": 72,
+      "proof": "styvt-kort-20261123",
+      "file": "1-p4-under-fingrarna-ruta13.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:25:29.806Z"
+    },
+    {
+      "id": 73,
+      "proof": "styvt-kort-20261123",
+      "file": "10-p6-vands-ruta30.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:25:35.945Z"
+    },
+    {
+      "id": 74,
+      "proof": "styvt-kort-20261123",
+      "file": "11-p5-fort-utan-oskarpa-ruta34.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:25:44.682Z"
+    },
+    {
+      "id": 75,
+      "proof": "styvt-kort-20261123",
+      "file": "12-p5-fort-med-oskarpa-ruta34.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:25:50.204Z"
+    },
+    {
+      "id": 76,
+      "proof": "styvt-kort-20261123",
+      "file": "13-p5-efter-vandningen-ruta40.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:25:52.907Z"
+    },
+    {
+      "id": 77,
+      "proof": "styvt-kort-20261123",
+      "file": "14-p3-bars-ruta24.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:25:55.023Z"
+    },
+    {
+      "id": 78,
+      "proof": "styvt-kort-20261123",
+      "file": "15-p3-vands-ruta38.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:00.654Z"
+    },
+    {
+      "id": 79,
+      "proof": "styvt-kort-20261123",
+      "file": "16-p3-fore-landning-ruta54.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-23T18:26:11.220Z"
+    },
+    {
+      "id": 80,
+      "proof": "styvt-kort-20261123",
+      "file": "17-p2-vands-ruta40.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:15.881Z"
+    },
+    {
+      "id": 81,
+      "proof": "styvt-kort-20261123",
+      "file": "18-p2-fore-landning-ruta53.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:23.570Z"
+    },
+    {
+      "id": 82,
+      "proof": "styvt-kort-20261123",
+      "file": "19-p4-kort2-vands-ruta40.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:25.730Z"
+    },
+    {
+      "id": 83,
+      "proof": "styvt-kort-20261123",
+      "file": "2-p4-bars-ruta24.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:30.521Z"
+    },
+    {
+      "id": 84,
+      "proof": "styvt-kort-20261123",
+      "file": "20-p4-kort2-fore-landning-ruta52.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-23T18:26:33.743Z"
+    },
+    {
+      "id": 85,
+      "proof": "styvt-kort-20261123",
+      "file": "21-p4-halkort-cykel-vands-ruta40.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:36.776Z"
+    },
+    {
+      "id": 86,
+      "proof": "styvt-kort-20261123",
+      "file": "22-p4-halkort-cykel-fore-landning-ruta66.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:39.468Z"
+    },
+    {
+      "id": 87,
+      "proof": "styvt-kort-20261123",
+      "file": "23-p1-fore-landning-ruta54.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:42.451Z"
+    },
+    {
+      "id": 88,
+      "proof": "styvt-kort-20261123",
+      "file": "3-p4-vands-ruta34.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:45.809Z"
+    },
+    {
+      "id": 89,
+      "proof": "styvt-kort-20261123",
+      "file": "4-p4-vands-ruta44.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:48.031Z"
+    },
+    {
+      "id": 90,
+      "proof": "styvt-kort-20261123",
+      "file": "5-p4-fore-landning-ruta51.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:50.619Z"
+    },
+    {
+      "id": 91,
+      "proof": "styvt-kort-20261123",
+      "file": "6-p4-ligger-ruta58.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:52.249Z"
+    },
+    {
+      "id": 92,
+      "proof": "styvt-kort-20261123",
+      "file": "7-p1-bars-ruta22.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:26:54.762Z"
+    },
+    {
+      "id": 93,
+      "proof": "styvt-kort-20261123",
+      "file": "9-p6-bars-ruta18.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:27:02.204Z"
+    },
+    {
+      "id": 94,
+      "proof": "styvt-kort-20261123",
+      "file": "8-p1-vands-ruta38.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T18:27:06.746Z"
+    },
+    {
+      "id": 95,
+      "proof": "styvt-kort-20261123",
+      "file": "24-plats-4-i-scen-spelets-storlek.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T20:40:35.041Z"
+    },
+    {
+      "id": 96,
+      "proof": "tatuerad-vilor-ur-casinot-20261123",
+      "file": "1-tio-vilor-i-foljd-spelets-storlek.mp4",
+      "choice": "bra",
+      "text": "Myckert bra. Liten fråga bara varför de extremt snabbt hoppar till mellan byte av varainter här? är detta i 4k ellert vilket format?",
+      "at": "2026-11-23T21:56:17.977Z"
+    },
+    {
+      "id": 97,
+      "proof": "tatuerad-vilor-ur-casinot-20261123",
+      "file": "3-ser-ned-och-ler-full-storlek.mp4",
+      "choice": "bra",
+      "text": "Bra, men känns oms deta är skarpare än det du gav i \"tio vilor......\"-klippet, varför?",
+      "at": "2026-11-23T21:57:03.798Z"
+    },
+    {
+      "id": 98,
+      "proof": "tatuerad-vilor-ur-casinot-20261123",
+      "file": "2-handerna-nara-casinots-film-overst-tatuerad-under.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-23T21:57:08.769Z"
+    },
+    {
+      "id": 99,
+      "proof": "p4-c1-mot-c2-2s-20261123",
+      "file": "1-c2-tur-och-retur-2-s.mp4",
+      "choice": "inte-bra",
+      "text": "Nja, kortet ska lixom inte flyttas sista rutorna, o mdetta är för en C2. Den måste lixom vara så att hon faktist lägger ned kortet där det ska avra baserat på kordinaterna utan onatulig förflyttning. hennes andra arm ser bara konstig ut meddans, typ som om hon spänner handen. Klippet är okej, men inte bra nog",
+      "at": "2026-11-23T22:07:38.404Z"
+    },
+    {
+      "id": 100,
+      "proof": "p4-c1-mot-c2-2s-20261123",
+      "file": "4-sida-vid-sida-c1-vanster-c2-hoger.mp4",
+      "choice": null,
+      "text": "bättree, men konstig högerhand när kortet vridits. Typ som hon spänner ahanden",
+      "at": "2026-11-23T22:08:43.201Z"
+    },
+    {
+      "id": 101,
+      "proof": "p4-c1-mot-c2-2s-20261123",
+      "file": "5-samma-fart-referensen-vanster-c2-hoger.mp4",
+      "choice": "inte-bra",
+      "text": "kortet flyger lite åt C2-poss i slutet och int efter fvridningen",
+      "at": "2026-11-23T22:09:46.490Z"
+    },
+    {
+      "id": 102,
+      "proof": "trailer-noir-3",
+      "file": "prov-trappan-ny-sida-vid-sida.mp4",
+      "choice": "bra",
+      "text": "ersätt med dden heltatuerade\"!",
+      "at": "2026-11-24T02:11:36.514Z"
+    },
+    {
+      "id": 103,
+      "proof": "trailer-noir-3",
+      "file": "prov-trappan-ny-hel-bild.mp4",
+      "choice": "bra",
+      "text": "Ersätt med heltatuerade",
+      "at": "2026-11-24T02:42:44.773Z"
+    },
+    {
+      "id": 104,
+      "proof": "trailer-noir-3",
+      "file": "efter-harkel-v3.mp4",
+      "choice": null,
+      "text": "Spellar ingen roll",
+      "at": "2026-11-24T02:13:14.992Z"
+    },
+    {
+      "id": 105,
+      "proof": "trailer-noir-3",
+      "file": "efter-harkel-runway.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-24T02:13:17.335Z"
+    },
+    {
+      "id": 106,
+      "proof": "trailer-noir-3",
+      "file": "prov-tatuering-2-hel-bild.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-24T02:13:46.242Z"
+    },
+    {
+      "id": 107,
+      "proof": "trailer-noir-3",
+      "file": "prov-tatuering-fore-efter.mp4",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-24T02:13:51.428Z"
+    },
+    {
+      "id": 108,
+      "proof": "trailer-noir-3",
+      "file": "prov-tatuering-2-sida-vid-sida.mp4",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-24T02:13:54.819Z"
+    },
+    {
+      "id": 110,
+      "proof": "vinkelprov-p4c2-20261124",
+      "file": "1-fyra-kameror-spelets-storlek.mp4",
+      "choice": null,
+      "text": "Bra nog att kunna testa vidare från. Var alla med samma modell?",
+      "at": "2026-11-24T02:30:57.384Z"
+    },
+    {
+      "id": 112,
+      "proof": "trailer-noir-3",
+      "file": "noir-trailer-3-kort-heltatuerad.mp4",
+      "choice": "inte-bra",
+      "text": "vill ha den mer tauerade ryggen i videon när kmmer in tillvcasinot med!",
+      "at": "2026-11-24T02:42:53.804Z"
+    },
+    {
+      "id": 113,
+      "proof": "trailer-noir-3",
+      "file": "noir-trailer-3-heltatuerad.mp4",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-24T02:43:08.281Z"
+    },
+    {
+      "id": 114,
+      "proof": "trailer-noir-3",
+      "file": "rollblad-huvudpersonen-4.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-24T02:47:08.592Z"
+    },
+    {
+      "id": 115,
+      "proof": "trailer-noir-3",
+      "file": "rollblad-huvudpersonen.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-24T02:47:13.202Z"
+    },
+    {
+      "id": 116,
+      "proof": "vinkelprov-p4c2-20261124",
+      "file": "16-kortet-nara-i-sista-rutan-dockan-och-paow.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-24T03:34:10.853Z"
+    },
+    {
+      "id": 117,
+      "proof": "vinkelprov-p4c2-20261124",
+      "file": "12-dockans-ruta-och-startbilden-per-kamera.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-24T03:34:25.750Z"
+    },
+    {
+      "id": 118,
+      "proof": "vinkelprov-p4c2-20261124",
+      "file": null,
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-24T03:34:47.471Z"
+    }
+  ]
+}

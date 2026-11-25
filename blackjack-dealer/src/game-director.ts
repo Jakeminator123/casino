@@ -1,0 +1,216 @@
+// From the engine's signals to film: which clip-bank edges one step of the game plays, in order. Pure, no DOM.
+//
+// The engine (game/) answers every command with an ordered list of signals. Only two of them move the dealer's hands: `deal`
+// (a card to a seat or to the dealer) and `reveal` (the hole card is turned). This file turns them into beats, each one edge
+// of the clip bank (src/clip-graph.ts), and says for each beat which card the film carries and which cards already lie on
+// the table. Which take is played and where it is cut is still the clip bank's business (resolveRound).
+//
+// Rules of the chain, the same as the lab's round builder: the hand goes from rest to the shoe once (IDLE>READY), deals card
+// after card with a return to the shoe between them, and goes back to rest after the last card of the run. The hole card is
+// turned from rest. Nothing here knows rules, values or outcomes: which of the dealer's cards is the hole card is the engine's
+// (the card its reveal signal names), and its place on the table follows from the order the cards were dealt in.
+//
+// A return to rest the bank has no film for is played as the return to the shoe and the shoe's exit (READY>IDLE), so the hand never
+// jumps from the card to rest; where the exit has no film either, the cut is from the shoe to rest, between two anchors.
+//
+// A card on the dealer's SEAT_HUB is dealt from that other pose at the shoe (READY-B) when the films for it can be played, and the
+// chain goes through rest around it: IDLE>READY-B, the deal, the return to READY-B and READY-B>IDLE (roundSequence in the clip bank
+// does the same).
+import {REVEAL_NODE, revealNode, buildGraph, dealersOf, dealHub, judgedRecord, parseEdge, playable, resolveRound, returnFits, type BankData, type Graph, type Segment, type Step, type Why} from './clip-graph.ts';
+import {slotOf, slotFilm, slotLabel, type Slot, type TableCards} from './game-table.ts';
+
+// The signals this file reads; everything else in the engine's list is for the overlay.
+export type FilmSignal = {type: string; shoeDraw?: number | null};
+export type BeatKind = 'ENTRY' | 'DEAL' | 'RETURN' | 'EXIT' | 'REVEAL' | 'PLACE';
+// step: the edge to play. own: the card the film itself carries (null on the way to the shoe). lying: the cards at rest on
+// the table while the beat plays, by draw number, without the film's own card. PLACE is a card that has no film to deal
+// it (none made yet, or the only one rejected): it has no step and is simply laid on its place when its turn comes. A REVEAL
+// asks for the film that turns a card at the place where the card lies (revealStep); a card at a place no step turns one at has
+// no step. Where the step has no film that can be played, the drawn card is turned where it lies, without a hand (src/game-film.ts).
+export type Beat = {kind: BeatKind; step: Step | null; own: {shoeDraw: number; slot: Slot; label: string} | null; lying: number[]};
+
+// The hole card's turn is the clip bank's edge IDLE>REVEAL(D.C1), a film of her hand turning the card that lies at D.C1 (HOLE_CARD:
+// her first card, closed; BESKED, "Dealerns första kort ligger stängt", 2026-11-24); its node is passed on to those who read it
+// here. The films made before that day turn the card at D.C2 (IDLE>REVEAL(D.C2), an optional step no round asks for): a hand turning a card at
+// another place than the one that is turned, so they are never played for D.C1. Until a film turns D.C1 the turn has no hand.
+export {REVEAL_NODE};
+/** The step that turns the card lying at `label` (D.C1: the hole card's turn), or null where no step turns a card. */
+export const revealStep = (label: string): Step | null => { const to = revealNode(label); return to ? {from: 'IDLE', to} : null; };
+
+// STOPGAP (huvudagenten 2026-11-13, for showing Paow's round): a card whose own deal has no film that can be played is dealt with
+// the film named here, the drawn card laid at its own place. The dealer's second card: when READY>D.C2 has no film, it is dealt
+// with the film of her first (READY>D.C1 and its return), the card laid at D.C2, 63 px (about a card's width) right of where the
+// film's hand lays its card, the same compromise as a seat's second card. Since 2026-11-24 her second card is the open one and
+// her first the closed one: a closed card drawn on a film shows its back on both sides (it wins over the film's side,
+// src/card-overlay.ts cardFace), so no value is shown. It gives way by itself when the bank has a playable film of D.C2 (planBeats).
+// NOT D.C3 (and so not D.C4 and later, which play the D.C3 film): with the first card's film the drawn card would lie 219 px (D.C3)
+// and 243 px (D.C4) right of her hand, measured for Paow 2026-11-13; that is a hand laying a card somewhere else, which Jakob calls
+// cheating with the card. Those cards are laid without a hand until a film of their own exists; D.C3 now has an editable place.
+// Per dealer: Paow's only.
+export const STAND_IN_FILM: Readonly<Record<string, Readonly<Record<string, string>>>> = {paow: {'D.C2': 'D.C1'}};
+
+// The cards a dealer deals from another pose at the shoe than READY (anchor 2.1, the pinch), by the seat's first card: its second
+// card and every later card that plays the seat's film go the same way. Paow's seat 6 is dealt from READY-B (anchor 2.2: her hand
+// over the card in the shoe's window, drawing it out flat): fifteen takes of it from READY fell, and Jakob said 2026-11-13 that a
+// round should be able to go via anchor 2.2. It applies only where the dealer's bank can play the four films it needs, the entry
+// IDLE>READY-B, the deal from READY-B, the return to READY-B and the exit READY-B>IDLE, each with a verdict (the game's bank, judgedBank
+// below); without them the card is dealt as before, from READY, with its stand-in, or laid without a hand.
+export const SEAT_HUB: Readonly<Record<string, Readonly<Record<string, string>>>> = {paow: {'P6.C1': 'READY-B'}};
+
+/**
+ * The pose at the shoe the game deals a card from for a dealer: its seat's pose on SEAT_HUB ('READY-B' for Paow's seat 6), else
+ * READY. The game takes it when that pose's four films can be played (hubChain). The lab's default round and Beställ's row for a
+ * card ask it here too, as Karta does (hubDeals): the plan's grip is not the source (the rescue lane Kedjan, finding 1).
+ */
+export const dealPose = (dealer: string, card: string): string => dealHub(card, SEAT_HUB[dealer]);
+/** The four steps of a deal from another pose at the shoe: rest to the pose, the deal, back to the pose, and to rest. */
+export const hubSteps = (hub: string, film: string): Step[] => [{from: 'IDLE', to: hub}, {from: hub, to: film}, {from: film, to: hub}, {from: hub, to: 'IDLE'}];
+/**
+ * The rule SEAT_HUB applies by, in one place: the four steps resolved on the game's graph (built from judgedBank, so judged takes
+ * only), or null when one of them has no film it can play. The game asks it as it plans a step (src/game-film.ts); what counts the
+ * films a round has asks it through hubDeals.
+ */
+export function hubChain(graph: Graph, hub: string, film: string, places?: Record<string, {x: number; y: number}> | null): Segment[] | null {
+  const chain = resolveRound(graph, hubSteps(hub, film), {places});
+  return chain.every(s => !!s.video) ? chain : null;
+}
+// What the game deals from another pose, by the edge of the model it stands in for: the deal READY>P6.C1 and the return P6.C1>READY
+// are played as READY-B>P6.C1 and P6.C1>READY-B. take: the take the game plays (an id of the bank); why: why it plays.
+export type HubDeal = {hub: string; take: string; why: Why};
+/** For a dealer, the seats her round deals from another pose as the game decides it (SEAT_HUB, judgedBank, hubChain). Empty without a map or without the films. */
+export function hubDeals(bank: BankData, dealer: string): Readonly<Record<string, HubDeal>> {
+  const map = SEAT_HUB[dealer], out: Record<string, HubDeal> = {};
+  if (!map) return out;
+  const graph = buildGraph(judgedBank(bank), {dealer});
+  for (const card of Object.keys(map)) {
+    const hub = dealHub(card, map), chain = hub === 'READY' ? null : hubChain(graph, hub, card);
+    for (const s of chain?.slice(1, 3) ?? []) out[parseEdge(s.id)!.base] = {hub, take: s.take!.id, why: s.why};
+  }
+  return out;
+}
+
+/**
+ * The beats of one step of the game.
+ * table: the cards on the table after the step (the engine's view). lying: draw numbers that lay there before it.
+ * signals: the step's signals in the engine's order. A card the table does not know is an error, not a guess.
+ * filmless(target): true for a placement key whose deal has no film that can be played; such a card is laid without a
+ * hand, and the hand goes to rest before it instead of waiting at the shoe.
+ * toRest(film): false for a seat film whose return to rest has no film that can be played; the hand then goes back to the shoe
+ * and from there to rest (EXIT, READY>IDLE).
+ * standIn: films played for a card whose own has none (STAND_IN_FILM), when the stand-in itself can be played.
+ * hubs: the cards dealt from another pose at the shoe (SEAT_HUB). fromHub(hub, film): true when the four films of a deal from that
+ * pose can be played (entry, deal, return to the pose, exit); only then is the card dealt from it. Such a deal is reached through
+ * rest: the chain before it goes to rest, then ENTRY to the pose, DEAL, RETURN to the pose and EXIT to rest, unless the next card
+ * is dealt from the same pose, which the hand then waits in.
+ */
+export function planBeats(table: TableCards, lying: number[], signals: FilmSignal[], filmless: (target: string) => boolean = () => false, toRest: (film: string) => boolean = () => true, standIn: Readonly<Record<string, string>> = {},
+  hubs: Readonly<Record<string, string>> = {}, fromHub: (hub: string, film: string) => boolean = () => false): Beat[] {
+  const moves = signals.filter(s => (s.type === 'deal' || s.type === 'reveal') && typeof s.shoeDraw === 'number') as {type: 'deal' | 'reveal'; shoeDraw: number}[];
+  const beats: Beat[] = [], rest = [...lying];
+  const slots = moves.map(move => { const slot = slotOf(table, move.shoeDraw); if (!slot) throw Error(`Kortet med dragnummer ${move.shoeDraw} finns inte på bordet.`); return slot; });
+  // The film a card is dealt with and the pose at the shoe it is dealt from: its own film from the pose on the map when that pose's
+  // films can be played; otherwise from READY, with its own film, or its stand-in when its own has none and the stand-in has.
+  const dealOf = (slot: Slot): {film: string; hub: string} => {
+    const own = slotFilm(slot), hub = dealHub(own, hubs);
+    if (hub !== 'READY' && fromHub(hub, own)) return {film: own, hub};
+    const other = standIn[own]; return {film: filmless(own) && other && !filmless(other) ? other : own, hub: 'READY'};
+  };
+  const deals = moves.map((move, i) => move.type === 'deal' ? dealOf(slots[i]) : null);
+  const filmed = (i: number) => { const d = deals[i]; return !!d && (d.hub !== 'READY' || !filmless(d.film)); }; // a deal the hand really makes
+  let at: string | null = null; // the pose at the shoe the hand waits in; null: at rest
+  moves.forEach((move, i) => {
+    const slot = slots[i];
+    const own = {shoeDraw: move.shoeDraw, slot, label: slotLabel(slot)}, others = () => rest.filter(n => n !== move.shoeDraw);
+    if (move.type === 'reveal') {
+      beats.push({kind: 'REVEAL', step: revealStep(own.label), own, lying: others()});
+      if (!rest.includes(move.shoeDraw)) rest.push(move.shoeDraw);
+      return;
+    }
+    if (!filmed(i)) { beats.push({kind: 'PLACE', step: null, own, lying: others()}); rest.push(move.shoeDraw); return; }
+    // last: the hand leaves the shoe after this card (the next is not dealt by hand, or from another pose).
+    const {film, hub} = deals[i]!, last = !filmed(i + 1) || deals[i + 1]!.hub !== hub;
+    if (at !== hub) beats.push({kind: 'ENTRY', step: {from: 'IDLE', to: hub}, own: null, lying: [...rest]});
+    beats.push({kind: 'DEAL', step: {from: hub, to: film}, own, lying: others()});
+    // From another pose the hand always goes back to that pose and from there to rest: a return straight to rest (P6.C1>IDLE) is
+    // written without a pose, so it never plays a film made after a deal from that pose.
+    const viaShoe = last && (hub !== 'READY' || !toRest(film));
+    beats.push({kind: 'RETURN', step: {from: film, to: last && !viaShoe ? 'IDLE' : hub}, own, lying: others()});
+    rest.push(move.shoeDraw); at = last ? null : hub;
+    if (viaShoe) beats.push({kind: 'EXIT', step: {from: hub, to: 'IDLE'}, own: null, lying: [...rest]});
+  });
+  return beats;
+}
+
+/** The draw numbers that lie on the table once the beats have played. */
+export const lyingAfter = (lying: number[], beats: Beat[]): number[] => [...new Set([...lying, ...beats.filter(b => b.own).map(b => b.own!.shoeDraw)])];
+
+/**
+ * A step of the hand (a deal, the entry, the exit, the turn of the hole card) plays its approved films in turn, each with the same
+ * chance, where no Primär locks the step (Jakob 2026-11-24, BESKED "Godkända filmer spelas i tur"). A film takes part where the
+ * round plays it as it plays the bank's own choice: the same edge and pose at the shoe, a video, the side of the card the round
+ * wants, and a return after it that continues it. The bank's choice is the first, so random 0 plays it. A beat that names its take
+ * (a composition's share) keeps it, a return follows its deal (resolveRound), and the rest has its own draw (pickIdle).
+ * next: the beat after it in the same tree. random(): numbers in [0, 1).
+ */
+export function inTurn(graph: Graph, beat: Beat, next: Beat | null | undefined, random: () => number, places?: Record<string, {x: number; y: number}> | null): Beat {
+  const step = beat.step;
+  if (beat.kind === 'RETURN' || beat.kind === 'PLACE' || !step || step.take) return beat;
+  const after = next?.step && next.step.from === step.to ? next.step : null;
+  const round = (take?: string) => resolveRound(graph, after ? [{...step, take}, after] : [{...step, take}], {places});
+  const plays = ([deal, back]: Segment[]) => !!deal?.video && !!deal.take && !(deal.side && deal.take.endSide && deal.take.endSide !== deal.side)
+    && (!back || back.kind !== 'RETURN' || (!!back.take && returnFits(back.take, deal.take)));
+  const chosen = round(), main = chosen[0]?.take;
+  if (!main || main.explicitMain || !plays(chosen)) return beat;
+  const turns = [main.id, ...(graph.edge[main.edge]?.takes ?? [])
+    .filter(t => t.id !== main.id && t.hub === main.hub && t.decision === 'ACCEPTED' && !t.inbox && !t.explicitMain && playable(t))
+    .filter(t => { const r = round(t.id); return r[0]?.take?.id === t.id && plays(r); }).map(t => t.id)];
+  if (turns.length < 2) return beat;
+  const pick = turns[Math.min(turns.length - 1, Math.floor(Math.max(0, random()) * turns.length))];
+  return pick === main.id ? beat : {...beat, step: {...step, take: pick}};
+}
+
+// The engine writes suits as symbols; the card printer names them.
+const SUIT: Record<string, string> = {'♠': 'spades', '♥': 'hearts', '♦': 'diamonds', '♣': 'clubs'};
+export type CardFace = {shoeDraw: number; r?: string | null; s?: string | null; faceDown?: boolean};
+/** One record per card in the shape the lab's card layer takes: {shoeDraw, target, r, s, faceDown}. A card not on the table is left out. */
+export function cardRecords(table: TableCards, faces: CardFace[]): {shoeDraw: number; target: string; r: string | null; s: string | null; faceDown: boolean}[] {
+  return faces.flatMap(face => { const slot = slotOf(table, face.shoeDraw); return slot ? [{shoeDraw: face.shoeDraw, target: slotLabel(slot), r: face.r ?? null, s: face.s ? SUIT[face.s] ?? face.s : null, faceDown: face.faceDown === true || !face.r || !face.s}] : []; });
+}
+
+// ── What the game may play ──────────────────────────────────────────────────
+// The game plays what has a verdict: Jakob's, or one given in his place (provisional: it plays as its decision says, and Granska
+// lists it as judged for him). A take without one (decision PENDING, or in the inbox) is left out of the game's bank, so no step can fall back
+// on it, with one exception: a rest take played on request only (motion.idle.onRequest, a talk film), which chance never picks and
+// the game plays only when the dealer says its line. Rejected takes stay: the clip bank never plays them, and says so.
+// A stopgap (its record says motion.stopgap: a film made of another, as her entry played backwards for the exit) gives way by
+// itself: it is left out wherever the same dealer has another judged take, not rejected, on the same edge. The same edge includes
+// its pose at the shoe: an exit from READY-B is another film than the exit from READY, and never pushes out READY's stopgap.
+// A take Jakob has archived (review.archived, written by tools/review-store.ts from Karta) is left out whatever its verdict, a
+// talk film played on request too: nothing in the game can play it or fall back on it until he takes it back. A stopgap it
+// had pushed out stands in again meanwhile.
+const stopgap = (record: unknown) => (record as {motion?: {stopgap?: unknown}} | undefined)?.motion?.stopgap === true;
+const archived = (review: {archived?: unknown} | undefined) => !!review?.archived;
+/** The bank as the game reads it: every take without a verdict left out, except takes played on request; no archived take; a stopgap only where nothing judged stands beside it. */
+export function judgedBank(bank: BankData): BankData {
+  const motions = bank.motions ?? {}, keep = (item: {id?: unknown} | null | undefined) => { const m = motions[String(item?.id)]; return !archived(m?.review) && judgedRecord(m); };
+  const kept = {jobs: (bank.jobs ?? []).filter(keep), derived: (bank.derived ?? []).filter(keep), edits: (bank.edits ?? []).filter(keep)}, owner = dealersOf(bank);
+  const edgeOf = (t: {id: string; from?: string; to?: string}) => { const ref = parseEdge(`${t.from}>${t.to}`); return `${owner[t.id]}|${ref ? `${ref.base}|${ref.hub ?? ''}` : `${t.from}>${t.to}`}`; };
+  const real = new Set([...kept.jobs, ...kept.derived].filter(t => !stopgap(motions[t.id]) && String(motions[t.id]?.review?.decision ?? '').toUpperCase() !== 'REJECTED').map(edgeOf));
+  const gives = (t: {id: string; from?: string; to?: string}) => !(stopgap(motions[t.id]) && real.has(edgeOf(t)));
+  return {...bank, jobs: kept.jobs.filter(gives), derived: kept.derived.filter(gives), edits: kept.edits};
+}
+
+// ── What she says ───────────────────────────────────────────────────────────
+// The engine's speak signals (game/presentation.ts) in a step come before its first card (goodluck, double) or after its last
+// (insurance, the outcome). A talk film is played at rest, so it is played before the chain of cards or after it, never inside.
+export type SpeakSignal = {type: 'speak'; line: string};
+export function speakMoments(signals: FilmSignal[]): {before: string[]; after: string[]} {
+  const moves = signals.map((s, i) => s.type === 'deal' || s.type === 'reveal' ? i : -1).filter(i => i >= 0), first = moves[0] ?? Infinity;
+  const lines = signals.flatMap((s, i) => s.type === 'speak' && typeof (s as SpeakSignal).line === 'string' ? [{line: (s as SpeakSignal).line, i}] : []);
+  return {before: lines.filter(l => l.i < first).map(l => l.line), after: lines.filter(l => l.i > first).map(l => l.line)};
+}
+
+// ── The switch for her lines ────────────────────────────────────────────────
+// Which talk film says a line is src/speech-lines.ts's (spokenFilm, chatReply); the page asks it. The look key tal (src/game-look.ts):
+// 'av' keeps her silent, and the module is never asked; anything else ('repliker', the default) lets the films play.
+export const talkOn = (word: unknown) => word !== 'av';

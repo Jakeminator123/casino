@@ -1,0 +1,189 @@
+// The lab server's routes for the studio's view Beställ, and Jakob's verdict on a picture in Material. The server calls
+// handleOrders(req, res, url) before its own routes; it answers true when the request was one of these.
+//   GET  /api/orders                    every order with its state, the day's credits and the balance
+//   GET  /api/orders/<id>               one order
+//   POST /api/orders/preview            prepare the exact drafts and their media, returning a revision (no files written)
+//   POST /api/orders                    save the previewed drafts (If-Match), from a few choices (dealer, step, place, hand,
+//                                       how the card lands and
+//                                       turns, the text's style, tur och retur or bara dit, a reference film from the
+//                                       bank, model, length, takes), or with seats one draft per seat sharing a group
+//   PUT  /api/orders/<id>               change a draft: title, takes, hand, side, turn, free addition, length (If-Match)
+//   POST /api/orders/<id>/refresh       fetch what a draft waits for once it holds, draw its last picture again (If-Match)
+//   POST /api/orders/docka              {dealer, place}: the doll's saved movement to that card becomes its film and a draft
+//                                       (tools/doll-order.ts; about a minute, one at a time), from Kortplan's step 3 (Spara utkastet on a deal from A2.3)
+//   POST /api/orders/<id>/approve      Jakob's click: freezes the order with its hash, refused beyond the policy (If-Match)
+//   GET  /assets/orders/<id>/<file>     a picture or film of an order, only from that folder; and a take's film (take-<n>/after.mp4)
+//   GET  /assets/references/docka/<id>/source.mp4   a reference film of the dummy's, only one data/rendered-references.json lists
+//   PUT  /api/media/<id>/state          Godkänn / Underkänn of a picture in Material (If-Match on the register); the
+//                                       dealer's drafts then follow the anchor that holds (store.follow)
+//   GET  /api/production?dealer=<id>    the production list (tools/produce.ts): every step of the dealer's graph, its state
+// Writes come from the lab's own origin only, with the revision last read, as in tools/review-store.ts. Nothing here
+// places an order: an ordering agent does that after tools/order-clerk.md. Tests: tools/order-routes.test.ts.
+import { stat } from 'node:fs/promises';
+import path from 'node:path';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { StoreError } from './placement-store.ts';
+import { sendFile } from './studio-files.ts';
+import { mediaRoles } from './media-roles.ts';
+import { orderStore, type NewOrder, type StoreOptions } from './order-store.ts';
+import { orderTakeFilm } from './order-take-film.ts';
+import { dollOrder } from './doll-order.ts';
+import { productionList, readProduction } from './produce.ts';
+
+const BODY_LIMIT = 16384;
+const NEW_KEYS = ['dealer', 'step', 'target', 'hand', 'pass', 'side', 'seats', 'flipAxis', 'model', 'duration', 'resolution', 'takes', 'extra', 'title', 'base', 'style', 'template', 'shape', 'reference', 'cardScale', 'end', 'continues'];
+
+export function orderRoutes(options: { root: string; origin: string } & StoreOptions) {
+  const { root, origin } = options;
+  const store = orderStore(root, { now: options.now, frame: options.frame });
+  const media = mediaRoles(root);
+  // Material and the order store have separate queues. Hold this queue across Material's write and follow as one operation.
+  let mutations: Promise<unknown> = Promise.resolve();
+  function serial<T>(work: () => Promise<T>): Promise<T> {
+    const task = mutations.then(work);
+    mutations = task.then(() => {}, () => {});
+    return task;
+  }
+
+  // One doll order at a time: it renders in headless Chrome.
+  let dolling = false;
+
+  const json = (res: ServerResponse, status: number, value: unknown) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }).end(JSON.stringify(value)); };
+  const fail = (res: ServerResponse, error: unknown) => json(res, error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : 'Något gick fel i labbet.' });
+  const ifMatch = (req: IncomingMessage) => (typeof req.headers['if-match'] === 'string' ? req.headers['if-match'] : undefined);
+  async function body(req: IncomingMessage, required: boolean): Promise<unknown> {
+    if (Number(req.headers['content-length'] ?? 0) > BODY_LIMIT) throw new StoreError(413, 'Frågan är för stor.');
+    let size = 0;
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) { size += chunk.length; if (size > BODY_LIMIT) throw new StoreError(413, 'Frågan är för stor.'); chunks.push(chunk); }
+    if (!size) { if (required) throw new StoreError(400, 'Frågan är tom.'); return null; }
+    if (!req.headers['content-type']?.startsWith('application/json')) throw new StoreError(415, 'JSON krävs.');
+    try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new StoreError(400, 'Frågan är inte giltig JSON.'); }
+  }
+
+  async function serve(req: IncomingMessage, res: ServerResponse, file: string, bytes?: Buffer) {
+    const size = bytes ? bytes.length : (await stat(file)).size, type = file.endsWith('.mp4') ? 'video/mp4' : file.endsWith('.png') ? 'image/png' : 'image/jpeg';
+    let start = 0, end = size - 1;
+    const headers: Record<string, string | number> = { 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Cache-Control': 'no-store' };
+    if (req.headers.range) {
+      const m = /^bytes=(\d+)-(\d*)$/.exec(req.headers.range);
+      if (!m) { res.writeHead(416, { 'Content-Range': `bytes */${size}` }).end(); return; }
+      start = Number(m[1]); end = m[2] ? Number(m[2]) : end;
+      if (start > end || end >= size) { res.writeHead(416, { 'Content-Range': `bytes */${size}` }).end(); return; }
+      res.writeHead(206, { ...headers, 'Content-Range': `bytes ${start}-${end}/${size}`, 'Content-Length': end - start + 1 });
+    } else res.writeHead(200, { ...headers, 'Content-Length': size });
+    if (req.method === 'HEAD') { res.end(); return; }
+    if (bytes) { res.end(bytes.subarray(start, end + 1)); return; }
+    // The one way the lab server sends a file (tools/studio-files.ts): it is closed however the answer ends.
+    sendFile(req, res, file, start, end);
+  }
+
+  return async function handleOrders(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
+    const p = url.pathname, method = req.method ?? 'GET';
+    if (p.startsWith('/assets/orders/') || p.startsWith('/assets/references/docka/')) {
+      if (method !== 'GET' && method !== 'HEAD') { res.writeHead(405).end(); return true; }
+      let rel: string;
+      try { rel = decodeURIComponent(p.slice(1)); } catch { res.writeHead(400).end(); return true; }
+      // A take's delivered film (tools/order-take-film.ts) is handed out too: Scen & bord's part Docka plays it beside the doll's film.
+      const file = await store.servable(rel) ?? (await orderTakeFilm(rel, root) ? path.join(root, rel) : null);
+      if (!file) { res.writeHead(404).end(); return true; }
+      try { await serve(req, res, file); } catch { if (!res.headersSent) res.writeHead(500); res.end(); }
+      return true;
+    }
+    const previewFile = /^\/api\/orders\/preview\/([a-f0-9]{64})\/(\d+)\/([a-z0-9-]+\.(?:png|mp4))$/.exec(p);
+    if (previewFile) {
+      if (method !== 'GET' && method !== 'HEAD') { res.writeHead(405).end(); return true; }
+      const [, key, index, name] = previewFile;
+      const bytes = store.previewAsset(key, Number(index), name);
+      if (!bytes) { res.writeHead(404, { 'Cache-Control': 'no-store' }).end(); return true; }
+      await serve(req, res, name, bytes);
+      return true;
+    }
+    const mediaState = /^\/api\/media\/([^/]+)\/state$/.exec(p);
+    if (p !== '/api/orders' && !p.startsWith('/api/orders/') && !mediaState && p !== '/api/production') return false;
+    try {
+      const write = method !== 'GET' && method !== 'HEAD';
+      if (write && req.headers.origin !== origin) throw new StoreError(403, 'Spara från det lokala labbet.');
+      // The production list of a dealer (drafts are made in Kortplan, or with node tools/produce.ts <dealer> --draft).
+      if (p === '/api/production') {
+        if (method !== 'GET') throw new StoreError(405, 'Bara GET.');
+        const { input, problems } = await readProduction(root, url.searchParams.get('dealer') ?? '', { store });
+        json(res, 200, { list: productionList(input), problems });
+        return true;
+      }
+      if (mediaState) {
+        if (method !== 'PUT') throw new StoreError(405, 'Bara PUT.');
+        const value = (await body(req, true)) as { state?: unknown } | null;
+        if (!value || typeof value !== 'object' || Object.keys(value).some((k) => k !== 'state')) throw new StoreError(400, 'Ändringen ska bara innehålla state.');
+        await serial(async () => {
+          const decided = await media.setState({ id: decodeURIComponent(mediaState[1]), state: value.state, expected: ifMatch(req) });
+          // The dealer's drafts follow what holds now. A draft that cannot follow is left as it is.
+          const dealers = (await media.readRegister()).register?.dealers ?? {};
+          const dealer = Object.entries(dealers).find(([, d]) => d.entries.some((e) => e.id === decided.entry.id))?.[0];
+          const followed = dealer ? await store.follow(dealer).catch(() => [] as string[]) : [];
+          json(res, 200, { ...decided, followed });
+        });
+        return true;
+      }
+      if (p === '/api/orders' || p === '/api/orders/preview') {
+        if (method === 'GET' && p === '/api/orders') { json(res, 200, await store.list()); return true; }
+        if (method !== 'POST') throw new StoreError(405, 'Bara POST för en förhandsvisning eller ett nytt utkast.');
+        const value = await body(req, true);
+        const batch = Array.isArray(value);
+        const inputs: unknown[] = batch ? value : [value];
+        if (!inputs.length || inputs.length > 80) throw new StoreError(400, 'Välj mellan 1 och 80 filmer.');
+        for (const input of inputs) {
+          if (!input || typeof input !== 'object' || Array.isArray(input)) throw new StoreError(400, 'Beställningen ska vara ett objekt.');
+          for (const key of Object.keys(input)) {
+            if (!NEW_KEYS.includes(key) || (batch && key === 'seats')) throw new StoreError(400, `${key} kan inte sättas för den här beställningen.`);
+          }
+        }
+        await serial(async () => {
+          if (p === '/api/orders/preview') {
+            json(res, 200, await store.preview(inputs as NewOrder[]));
+            return;
+          }
+          const { orders } = await store.savePreview(inputs as NewOrder[], ifMatch(req));
+          json(res, 201, { ...(await store.one(orders[0].id)), made: orders.map((order) => order.id) });
+        });
+        return true;
+      }
+      if (p === '/api/orders/docka') {
+        if (method !== 'POST') throw new StoreError(405, 'Bara POST.');
+        const value = (await body(req, true)) as { dealer?: unknown; place?: unknown } | null;
+        if (!value || typeof value.dealer !== 'string' || typeof value.place !== 'string' || Object.keys(value).some((k) => k !== 'dealer' && k !== 'place')) throw new StoreError(400, 'Skicka dealer och place.');
+        if (dolling) throw new StoreError(409, 'Dockans film görs redan; vänta tills den är klar.');
+        dolling = true;
+        try { json(res, 201, await dollOrder(root, { dealer: value.dealer, place: value.place })); } finally { dolling = false; }
+        return true;
+      }
+      const m = /^\/api\/orders\/([a-z0-9]+(?:-[a-z0-9]+)*)(\/approve|\/refresh)?$/.exec(p);
+      if (!m) throw new StoreError(404, 'Okänd adress.');
+      const [, id, action] = m;
+      if (!action) {
+        if (method === 'GET') { json(res, 200, await store.one(id)); return true; }
+        if (method !== 'PUT') throw new StoreError(405, 'Bara GET och PUT.');
+        const value = await body(req, true);
+        await serial(async () => {
+          await store.change(id, value, ifMatch(req));
+          json(res, 200, await store.one(id));
+        });
+        return true;
+      }
+      if (method !== 'POST') throw new StoreError(405, 'Bara POST.');
+      await body(req, false);
+      await serial(async () => {
+        if (action === '/approve') await store.approve(id, ifMatch(req));
+        else await store.refresh(id, ifMatch(req));
+        json(res, 200, await store.one(id));
+      });
+      return true;
+    } catch (error) {
+      fail(res, error);
+      return true;
+    }
+  };
+}
+
+/** The handler for the lab server (tools/preview.ts): the repo it runs in, on 127.0.0.1:4319. */
+export const handleOrders = orderRoutes({ root: path.resolve(process.cwd()), origin: 'http://127.0.0.1:4319' });

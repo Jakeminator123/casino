@@ -1,0 +1,21 @@
+{
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.runtime": true,
+    "**/.next": true,
+    "**/__pycache__": true,
+    "**/.venv": true,
+    "dealer/studio/out": true,
+    "dealer/studio/tsconfig.tsbuildinfo": true,
+    "dealer/studio/next-env.d.ts": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.runtime": true,
+    "**/.next": true,
+    "**/__pycache__": true,
+    "**/.venv": true,
+    "dealer/studio/out": true,
+    "slask": true
+  }
+}

@@ -1,0 +1,87 @@
+# Dealer — överlämning
+
+Läs AGENTS.md, den här sidan och EN lägesfil för din bana. Ersätt inaktuell status; historiken finns i Git.
+`tools/handoff.test.ts` håller taket: 120 rader och 900 ord.
+
+## Läget
+
+- Målet är en trovärdig utdelning i spelet i studion: två kort till plats 1–7 och två eller tre till dealern, med
+  returer till redo och vila. Paow är dealern; Pamela är arkiverad (BESKED).
+- Labbet är en vy, Bordet, där en film beställs längs en rak linje: kortets plats och steget, receptet ger resten
+  (`node tools/order-new.ts` gör samma utkast). Dockan är Kortplans steg 2 (`?lage=docka`); steg 3 sparar given ur den.
+- Kortet är ett per sida överallt, och Överlägg i handen väljs i Scen och följer in i Casinot ([kort](docs/lage/kort.md)).
+- Spelet spelar trädet Tatuerad (Jakob 2026-11-24: bara hennes tatuerade händer), skjutet från A2.3; nypet från A2.1
+  är trädet Tatuerad nyp, som byggs. Karta binder dem till en viktad komposition; Casinot spelar `?trad=<id>` eller
+  `?komposition=<id>` ([karta](docs/lage/karta.md)). Dealerns första kort (D.C1) ligger stängt.
+- Beställ släpper bara sätt som håller, och ett oprövat sätt får en pilot som Jakob dömer först (2026-11-24;
+  `node tools/verdicts-per-method.ts paow`, [film](docs/lage/film.md)).
+- Kopian på nätet är publicerad på `c9d006d` den 2026-11-20 på Jakobs ord, utan nya filmer. Telefonmått, fysisk
+  telefon och ljud återstår ([spelet](docs/lage/spelet.md)).
+- Kontrollen före en push körs bara på datorn. Kontots tokengräns delas av alla chattar: få underagenter.
+- Repot går på flera datorer (2026-11-25). Media (`assets/`) följer inte med Git: på en dator utan dem visar labbet
+  och spelet inga filmer förrän de har kopierats dit.
+- Betald beställning har en stående fullmakt (2026-11-25, `data/order-policy.json`): agenterna godkänner själva upp
+  till 500 krediter per beställning och högst 2 500 per dygn; en större beställning frågar Jakob först.
+
+## Nästa steg
+
+Planen, i ordning (Jakob 2026-11-24: en rak plan, en väg för varje sak, färre val).
+
+1. En väg, skriven där alla läser: `tools/dealer-line.md` kortas till Kortplan steg 1–3, Kön, Granska och Karta.
+2. Kön läggs med `tools/runway-api.ts` när MCP-inloggningen saknas: en klient och en liggare (DRIFT, "Direkt API").
+3. Dockan: givarna från A2.1 byggs om, ETT sätt att göra dockans film, och Kortplanens val följer dockan
+   ([LASMIG](dealer3d/LASMIG.md), "Överlämning"). Sedan en pilot från A2.1 som han ser först.
+4. Tatuerad fylls från A2.3 med giv och återgång i en film: plats 7 görs om, och D.C1 saknar filmen som vänder upp
+   det ([film](docs/lage/film.md)).
+5. Spelet spelar bara trädet: lånen `SEAT_HUB` och `STAND_IN_FILM` stryks när filmerna finns, och en hel giv får
+   hans ja i spelstorlek.
+6. Färre val i studion: det som uppenbart är dubbelt tas bort; resten först efter hans ja i labbet.
+7. Den neutrala munnen gäller Paows repliker utom blackjack, som väntar på hans ja ([spelet](docs/lage/spelet.md)).
+
+Jakobs plan, domar och orderutkast skrivs aldrig över; läs hans anteckningar med `node tools/proof-notes.ts`.
+
+## Vem äger vad
+
+- **Huvudagenten** är chatten Jakob arbetar med. Den äger commits, push och taggar, studion, labbservern, spelet,
+  registren och styrdokumenten, och delegerar (hans ord 2026-11-17). Arbetar två chattar samtidigt kör en i taget
+  kontrollen och pushar.
+- **Andra chattar och underagenter** skriver bara i egna filer, avgränsar dem först och lämnar en fillista till
+  huvudagenten (skillen `bredvid-andra-sessioner`). Ingen skriver i en annans filer.
+- **Banorna:** film, kort, Karta, labbet och studion, och spelet; filerna står under Var saker ligger i varje lägesfil.
+  Scen, Tal och Trailer är stängda ([spelet](docs/lage/spelet.md)). 3D-banan (`dealer3d/`, dockan som styr
+  filmerna) börjar från [dealer3d/LASMIG.md](dealer3d/LASMIG.md).
+- **Jakobs egna:** planen `placements/default.json` och hans domar i `data/motions.jsonl` (`review`, läses med
+  `node tools/register.ts`), som skrivs från Granska och aldrig skrivs över av ett verktyg. En dom som getts åt honom
+  (`node tools/review-put.ts`) är aldrig hans.
+
+## Väntar på Jakob
+
+Prov han ska döma är kort i Beslut. Läs dem i registret `data/decisions.json`: fältet `answer` bär hans val och hans anteckning. Bara filmer och bilder blir kort
+(skillen `visa-for-jakob`); teknik och arbetssätt frågas i chatten. Kortet tas ut när svaret är utfört.
+
+## Läs för ditt ämne
+
+- Jakobs gällande besked, per ämne: [docs/BESKED.md](docs/BESKED.md). Slå upp ämnet när ett beslut är i fråga.
+- Kända brister, med vad som är prövat: [docs/BRISTER.md](docs/BRISTER.md).
+- Lägesfilerna, en per bana:
+  - [docs/lage/film.md](docs/lage/film.md): filmerna, ankarna, Beställ, banken och saldot.
+  - [docs/lage/karta.md](docs/lage/karta.md): Karta, träden och hur vyerna hänger ihop.
+  - [docs/lage/kort.md](docs/lage/kort.md): det ritade kortet och kortplanens regel.
+  - [docs/lage/labbet-och-studion.md](docs/lage/labbet-och-studion.md): Bordet, Material, Prov, Beslut och verktygen.
+  - [docs/lage/spelet.md](docs/lage/spelet.md): spelet, kopian på nätet, läpparna och de stängda banornas arbete.
+  - [docs/lage/matning.md](docs/lage/matning.md): mätningen av en riktig dealer och receptet från ankare 2.3.
+- Kontrakt och ordlista: [docs/SYSTEM.md](docs/SYSTEM.md). Rutiner, kopian och slasken:
+  [docs/DRIFT.md](docs/DRIFT.md). Talet: [docs/TAL.md](docs/TAL.md).
+- Handböckerna: [tools/dealer-line.md](tools/dealer-line.md) (en ny dealer eller en film),
+  [tools/film-prompting.md](tools/film-prompting.md) (beställningens text och bilder),
+  [tools/film-review.md](tools/film-review.md) (granskningen).
+
+## Före avslut
+
+Rutinen står i skillen `avsluta-arbete`. I korthet:
+
+1. Vänta in eller stoppa egna underagenter. Checka in färdigt eget arbete; bevara Jakobs plan och befintliga orderutkast.
+2. Uttrycklig staging av egna filer, commit, `npm run check`, push, och kontrollera fjärrens SHA.
+3. Skriv läget där det hör hemma och ersätt i stället för att lägga till: lägesfilen, BESKED, BRISTER, kort i Beslut.
+   Den här sidan ändras bara där en rad inte längre gäller.
+4. Ta bort egna tillfälliga filer; resten av slasken rensar `npm run stada` efter sju dygn.

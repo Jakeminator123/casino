@@ -1,0 +1,698 @@
+{
+  "schemaVersion": 1,
+  "about": "Fakta om läppsynken: hur munnen görs och hur ett jobb kommer dit (ways), vad som är inställt och vad som stämmer per dealer (dealers), vad en ny film eller en ny dealer kräver (whenNew), vilka grundbilder som används, kedjan från vilofilm till bild i spelet med format och skalor, inställningarna, var det körs, proven, licenserna och det som är öppet. Varje uppgift säger i where (i runs och ways: source) var den står eller hur den är mätt; det som inte är gjort eller inte är känt sägs så, aldrig gissat. En post med dealer gäller den dealern, en utan gäller alla. Läsaren är tools/lipsync-register.ts; texten om samma sak står i docs/TAL.md.",
+  "updated": "2026-11-17",
+  "ways": [
+    {
+      "id": "renderer",
+      "name": "Replikfilmerna genom Scoutgamings renderer",
+      "state": "works",
+      "where": "Din dator: Scoutgamings renderer som färdig image i Docker i WSL, på RTX 3060, utan nät",
+      "send": [
+        "En gång per dealer och vilofilm: node tools/speech.ts bank --dealer paow",
+        "En replik: node --env-file=.env.local tools/speech.ts say --dealer paow --line placebets (rösten läses hos ElevenLabs, munnen ritas, ansiktet läggs tillbaka i filmen)",
+        "Över en annan film, som munlapp: node tools/speech.ts over --dealer paow --film paow-giv-2-1-p4-04-01 --line goodluck",
+        "Många repliker i följd: node tools/speech.ts warm --dealer paow (håller renderern varm; den stänger sig efter fem minuter utan arbete)"
+      ],
+      "gives": "En hel talfilm i vila, eller en munlapp som spelet lägger på filmen medan den spelas; allt görs i förväg",
+      "cost": "0 kr för grafikkortet; rösten betalas per tecken av det ElevenLabs-konto den ligger i",
+      "prepare": "En bank per film: 80–150 s på grafikkortet (mätt). Över en annan film tas bara filmer i 24 rutor/s (ingången, Kling-givarna, hålkortet halkort-04-02); filmer i 30 (WAN 3) kräver ett steg som inte är byggt",
+      "runs": "today",
+      "source": "docs/TAL.md (Göra en replik, Munlagret, Gränser); tools/speech.ts"
+    },
+    {
+      "id": "runner",
+      "name": "Köraren på din dator",
+      "state": "works",
+      "where": "Din dator: egen image i Docker i WSL på RTX 3060, MuseTalk 1.5 och egen MediaPipe-kod. Källpaket och versionerad profil i tools/python/mouth-runner; modellvikter monteras separat.",
+      "send": [
+        "Allt på grafikkortet går genom det delade låset, ett jobb i taget",
+        "Tjänsten startas en gång: modellerna läses in och kortet värms, sedan ligger de kvar",
+        "En gång per film: POST /forbered med filmens klipp; förberedelsen sparas och återanvänds",
+        "En replik: POST /rita med klipp, ljud (repliken som ljudfil), plan och recept; svaret kommer ruta för ruta, och med ut skrivs en film med ljud",
+        "Stäng med POST /stang; provskriptet startar, frågar och stänger i ett svep"
+      ],
+      "gives": "Munnen ruta för ruta, inlagd som du valde den, bara medan hon hörs; i dag en film eller rutor i tjänsten, inte i spelet",
+      "cost": "0 kr: ditt eget grafikkort. Disk: image 13 GB i WSL, vikter 3,7 GB",
+      "prepare": "Förberedelse per klipp 13–19 s för 112 rutor (mätt), cirka 4,5 MB per klipp och inställning; första frågan för ett klipp läser det (5,8 s). Tjänsten ritar i 24 rutor/s, och klippet är i dag bankens (raden ovan)",
+      "runs": "ownRunner",
+      "source": "talbanans körare och överlämning 2026-11-17; docs/TAL.md (Köraren)"
+    },
+    {
+      "id": "pod",
+      "name": "Köraren på din RunPod",
+      "state": "notBuilt",
+      "where": "En 4090-podd på ditt eget RunPod-konto. Inte startad, inget förberett där",
+      "send": [
+        "Podden startas ur RunPods image runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404 (samma torch och Ubuntu som körarens image)",
+        "En podd kan inte bygga en image (läst i RunPods dokumentation, inte prövat): körarens byggsteg körs där som ett skript, som inte är skrivet; vikterna hämtas från sina källor",
+        "Vilofilmens klipp (24 MB) och replikernas ljud förs till podden; det är media som lämnar datorn och sägs till före",
+        "Sedan samma frågor till tjänsten som på din dator"
+      ],
+      "gives": "Munnen i realtid, som är målet: kräver minst 24 rutor/s, och din dator gör 12–13",
+      "cost": "4090 som podd 0,34 (Community) eller 0,89 (Secure) USD per timme. Provkvällen högst 5 USD, besked före start, podden stängs samma kväll",
+      "prepare": "inte mätt",
+      "runs": "runpod",
+      "note": "Mätningen nedan är Scoutgamings renderer på serverless 13 november, inte köraren",
+      "source": "talbanans överlämning och plan för realtid (avsnitt 7–9), 2026-11-17"
+    }
+  ],
+  "dealers": [
+    {
+      "dealer": "paow",
+      "summary": "Munnen i realtid är vald och går på din dator, men inte i spelet än; replikfilmerna i spelet görs med Scoutgamings renderer.",
+      "mouth": {
+        "value": "storlek F, bara läpparna, mindre öppning i vanligt tal med dagens som tak, hakan följer mjukt",
+        "recipe": "Profil paow-realtid-mun-6 version 1; definition och hash i tools/python/mouth-runner",
+        "ownerSaid": "ja",
+        "date": "2026-11-17",
+        "proof": "paow-realtid-mun-6",
+        "where": "Beslut 2026-11-17 kl. 21.38; versionerad profil och lokal hälsokontroll 2026-11-18"
+      },
+      "lines": {
+        "value": "den neutrala munnen: rendererns mun utan ritad underläpp (recipeOf i tools/speech.ts, Jakob 2026-11-21, anteckning 43 i Prov); spelet säger 24 av 25 repliker så, blackjack har kvar hans dömda tagning -04; vilket recept en tagning lades med står i dess kvitto",
+        "where": "docs/TAL.md, Kvaliteten"
+      },
+      "runner": [
+        {
+          "film": "paow-vila-01-01",
+          "clip": "bankens klipp i paow-v2: 1080 × 1920, 112 rutor, 24 rutor/s",
+          "prepared": "fyra inställningar (bbox_shift −8, 0, +8, +16); tjänsten använder 0",
+          "where": "körarens förberedelse, mätt 2026-11-17"
+        }
+      ],
+      "checks": [
+        {
+          "what": "Bank för Scoutgamings renderer",
+          "answer": "ja",
+          "note": "paow-v2 av vilan, och tre för munlappar: ingången, given till plats 4 och hålkortet",
+          "where": "Grundbilder nedan; assets/speech/paow/"
+        },
+        {
+          "what": "Repliker i spelet",
+          "answer": "ja",
+          "note": "de tio en runda behöver och femton chattsvar i hennes egen röst, och fyra munlappar över filmer",
+          "where": "docs/TAL.md (Vad som finns i dag, Munlagret)"
+        },
+        {
+          "what": "Munnen i realtid godkänd av dig",
+          "answer": "ja",
+          "note": "provet paow-realtid-mun-6",
+          "where": "Beslut 2026-11-17 kl. 21.38"
+        },
+        {
+          "what": "Köraren förberedd för vilan",
+          "answer": "ja",
+          "note": "bara vilofilmens klipp är prövat",
+          "where": "talbanans överlämning 2026-11-17"
+        },
+        {
+          "what": "Tjänstens förval är munnen du godkände",
+          "answer": "ja",
+          "note": "Källpaketets paow-realtid-mun-6@1; hälsokontroll och tre filmkvitton med samma recepthash, utan överstyrning",
+          "where": "tools/python/mouth-runner; assets/proofs/paow-approved-f-game-20261118"
+        },
+        {
+          "what": "Munnen i realtid i spelet",
+          "answer": "nej",
+          "note": "munnen strömmas inte till spelet; inte byggt",
+          "where": "runs.ownRunner"
+        },
+        {
+          "what": "Realtid på din dator",
+          "answer": "nej",
+          "note": "12–13 rutor/s mot 24",
+          "where": "runs.ownRunner"
+        },
+        {
+          "what": "Köraren på podden",
+          "answer": "nej",
+          "note": "inte startad; skriptet som sätter upp den är inte skrivet",
+          "where": "talbanans överlämning 2026-11-17"
+        },
+        {
+          "what": "Replikfilmerna lagda med munnen i realtid",
+          "answer": "nej",
+          "note": "banken läggs med den neutrala munnen (2026-11-21); köraren kan bara lägga in F och behöver en egen neutral profil och ett prov bredvid talfilmerna (docs/TAL.md)",
+          "where": "talbanans överlämning 2026-11-17"
+        },
+        {
+          "what": "Tal över filmer i 30 rutor/s",
+          "answer": "nej",
+          "note": "verktyget och tjänsten tar 24",
+          "where": "docs/TAL.md (Gränser)"
+        },
+        {
+          "what": "En granskare har sett tjänstens bild och provet -6",
+          "answer": "nej",
+          "note": "bara talbanans blick",
+          "where": "talbanans överlämning 2026-11-17"
+        },
+        {
+          "what": "Mungiporna i replikfilmerna godkända av dig",
+          "answer": "nej",
+          "note": "\"Hon får lixom lite som typ clown-mungipor.\" (2026-11-14); \"måste som sagt med\" (2026-11-17)",
+          "where": "docs/BESKED.md, Läpparna och talet"
+        },
+        {
+          "what": "Rösten hörs på en iPhone",
+          "answer": "okänt",
+          "note": "byggt men inte prövat på en telefon",
+          "where": "docs/TAL.md (Rösten på en telefon)"
+        },
+        {
+          "what": "Den professionella klonen av rösten",
+          "answer": "nej",
+          "note": "inte färdigtränad hos ElevenLabs",
+          "where": "docs/TAL.md (Rösten)"
+        }
+      ]
+    }
+  ],
+  "whenNew": {
+    "film": [
+      "Filmen ska gå i 24 rutor/s för att tal ska kunna läggas över den; en film i 30 (WAN 3) kan inte bära tal än",
+      "Replikfilmer och munlappar: en bank per film (bank, eller over som gör sin egen), sedan en lapp per replik och film; huvudagenten för in lapparna i spelets register",
+      "Köraren: filmens klipp förbereds en gång (POST /forbered), sedan ritas varje replik över det",
+      "En ny film med tal granskas som en tagning, och ditt ja behövs innan något byts i spelet"
+    ],
+    "dealer": [
+      "En godkänd vilofilm i bankens ruta",
+      "En rad under dealers i data/speech.json: bank-id, vilofilm, röst och språk",
+      "En röst i ett ElevenLabs-konto; registret namnger raden med kontots nyckel, aldrig nyckeln",
+      "bank en gång, sedan say per replik",
+      "För munnen i realtid: hennes recept prövat och godkänt av dig; Paows (storlek F, mindre öppning) är inte prövat på någon annan",
+      "En post för henne under dealers här, så att Lipsync visar vad som finns och inte"
+    ],
+    "where": "docs/TAL.md (Göra en replik, och en ny dealer; Munnen: tre sätt)"
+  },
+  "baseImages": [
+    {
+      "dealer": "paow",
+      "bank": "paow-v2",
+      "use": "Alla repliker i vila (talfilmerna i spelet)",
+      "film": "paow-vila-01-01",
+      "frames": "ruta 3–114 (112 rutor)",
+      "size": "1764 × 1174",
+      "sha256": "4789bc2f099856665a645da8887cdc5e9bc05d3fe2805c5a2a507be8fb0b0916",
+      "built": "2026-11-13",
+      "reference": "Modellens förlaga för läpparna i varje ruta är den rutans egen bild ur filmen.",
+      "where": "assets/speech/paow/bank/receipt.json"
+    },
+    {
+      "dealer": "paow",
+      "bank": "bank-paow-ingang-2-1-02-01",
+      "use": "Repliker över ingången (munlappar)",
+      "film": "paow-ingang-2-1-02-01",
+      "frames": "alla 97 rutor",
+      "size": "1764 × 1174",
+      "sha256": "ece306c06d59…",
+      "built": "2026-11-13",
+      "where": "assets/speech/paow/bank-paow-ingang-2-1-02-01/receipt.json"
+    },
+    {
+      "dealer": "paow",
+      "bank": "bank-paow-giv-2-1-p4-04-01",
+      "use": "Replik över given till plats 4 (munlapp)",
+      "film": "paow-giv-2-1-p4-04-01",
+      "frames": "alla 169 rutor",
+      "size": "1764 × 1174",
+      "sha256": "c14287343b02…",
+      "built": "2026-11-13",
+      "where": "assets/speech/paow/bank-paow-giv-2-1-p4-04-01/receipt.json"
+    },
+    {
+      "dealer": "paow",
+      "bank": "bank-paow-halkort-04-02",
+      "use": "Replik över hålkortets vändning (munlapp)",
+      "film": "paow-halkort-04-02",
+      "frames": "alla 121 rutor",
+      "size": "1764 × 1174",
+      "sha256": "19df879a1a64…",
+      "built": "2026-11-13",
+      "where": "assets/speech/paow/bank-paow-halkort-04-02/receipt.json"
+    }
+  ],
+  "notUsedAsBase": [
+    {
+      "dealer": "paow",
+      "what": "Keystone (Sittande A, Stående A)",
+      "note": "Ingår inte i någon bank.",
+      "where": "assets/keystones/"
+    },
+    {
+      "dealer": "paow",
+      "what": "Ankare 1 (vila)",
+      "note": "Ingår inte i någon bank; vilofilmen är gjord från det.",
+      "where": "assets/anchors/"
+    },
+    {
+      "dealer": "paow",
+      "what": "Ägarens egen bild av henne",
+      "note": "Ingår inte.",
+      "where": "assets/proofs/paow-profilbild-och-keystone/"
+    }
+  ],
+  "lipsMeasured": {
+    "dealer": "paow",
+    "note": "Samma mått i alla: det tydligt röda i läpparna, bredd från sida till sida och höjd mitt på munnen, ±2 bildpunkter per mått. Jämförbara sinsemellan, inte med andra mått på munnens bredd (hela munnen gipa till gipa är 66–69).",
+    "where": "mätt 2026-11-17 (talbanans skript lapp-matt.ts)",
+    "rows": [
+      {
+        "what": "Vilofilmen (sju rutor)",
+        "width": 52,
+        "upperLip": 7.4,
+        "lowerLip": 13.7
+      },
+      {
+        "what": "Bankens klipp, det modellen ser (samma rutor)",
+        "width": 52,
+        "upperLip": 7.4,
+        "lowerLip": 13.7
+      },
+      {
+        "what": "Ankare 1",
+        "width": 50,
+        "upperLip": 8,
+        "lowerLip": 12
+      },
+      {
+        "what": "Keystone Sittande A, omräknad till filmens skala",
+        "width": 52,
+        "upperLip": 7.8,
+        "lowerLip": 16.2
+      },
+      {
+        "what": "Ägarens egen bild",
+        "note": "Gick inte att mäta; munnen är för liten i bilden."
+      }
+    ],
+    "conclusion": "Banken ser exakt vilofilmen. Läpparna där är inte smalare än i ankaret eller keystonen. Att munnen blir mindre när hon talar kommer från modellen."
+  },
+  "steps": [
+    {
+      "n": 1,
+      "what": "Vilofilmens rutor tas en och en (ruta 3 ut och samma väg tillbaka) och blir talfilmens rutor",
+      "in": "1764 × 1174, filens 30 rutor/s",
+      "out": "1764 × 1174, 24 rutor/s",
+      "scale": "1 : 1",
+      "by": "vårt verktyg",
+      "where": "tools/speech.ts; src/speech-plan.ts (restPath)"
+    },
+    {
+      "n": 2,
+      "what": "Beskärning till rendererns format: kolumn 328–1407, lagd på rad 372",
+      "in": "1764 × 1174",
+      "out": "1080 × 1920",
+      "scale": "1 : 1 (en bildpunkt en bildpunkt)",
+      "by": "vårt verktyg",
+      "where": "src/speech-plan.ts rad 18 (BRIDGE: cropX 328, padY 372)"
+    },
+    {
+      "n": 3,
+      "what": "Bilden förstoras för att hitta ansiktets landmärken",
+      "in": "1080 × 1920",
+      "out": "2160 × 3840",
+      "scale": "× 2",
+      "by": "Scoutgamings renderer",
+      "where": "rendererns vendor/rorlig.py rad 27 (SCALE 2); läst 2026-11-17"
+    },
+    {
+      "n": 4,
+      "what": "Ansiktsrutan: ansiktets bredd, en punkt på näsan, hakans underkant plus 10; förskjutning (bbox_shift) 0",
+      "in": "landmärken",
+      "out": "en ruta kring ansiktet, cirka 200 × 200 i filmens bildpunkter",
+      "scale": "1 : 1",
+      "by": "Scoutgamings renderer",
+      "where": "rendererns vendor/rorlig.py rad 224–225; rutans storlek skattad"
+    },
+    {
+      "n": 5,
+      "what": "Ansiktsrutan skalas till modellens format; nedre halvan av ansiktet ritas om efter ljudet",
+      "in": "cirka 200 × 200",
+      "out": "256 × 256",
+      "scale": "cirka × 1,3 in (skattat)",
+      "by": "MuseTalk 1.5",
+      "where": "MuseTalks dokumentation; skalan skattad 2026-11-17"
+    },
+    {
+      "n": 6,
+      "what": "Det ritade jämnas mot grannrutorna (70 % rutan, 15 % var av grannarna), skärps och läggs tillbaka genom käkmasken",
+      "in": "256 × 256",
+      "out": "1080 × 1920 (rendererns svar; det som ändrats är 104 × 112 kring munnen, giporna inräknade)",
+      "scale": "cirka × 0,78 ut (skattat)",
+      "by": "Scoutgamings renderer",
+      "where": "rendererns engine.py rad 24 (JAMNA 0,3), vendor/motor.py rad 275–276, vendor/rorlig.py rad 33 (SHARP 1,5); ändrad ruta mätt i kvittona"
+    },
+    {
+      "n": 7,
+      "what": "I spelet i dag: munnen läggs in i vilofilmen under hennes egen överläpp och mellan hennes gipor; överläppen lyfts; det ritade görs en fjärdedel högre",
+      "in": "104 × 112 ur rendererns svar",
+      "out": "1764 × 1174",
+      "scale": "× 1,00 i bredd, × 1,25 i höjd",
+      "by": "vårt verktyg",
+      "where": "src/speech-plan.ts rad 324 (LIPS), layMouth; tools/speech.ts layBack"
+    },
+    {
+      "n": 8,
+      "what": "Provet för realtid: hela modellens mun med gipor läggs in förstorad, i hennes läppfärg",
+      "in": "104 × 112 ur rendererns svar",
+      "out": "1764 × 1174",
+      "scale": "× 1,18 i bredd; × 1,30 i höjd; överläppen × 1,9 (ägarens val F)",
+      "by": "vårt verktyg (prov, inte i spelet)",
+      "where": "proven paow-realtid-mun till paow-realtid-mun-4; receptet i varje provs kvitto"
+    },
+    {
+      "n": 9,
+      "what": "Den ritade munnen visas bara medan hon hörs: högst 2 rutor före ljudet och 3 efter, en blandruta i varje växling",
+      "in": "-",
+      "out": "-",
+      "scale": "-",
+      "by": "vårt verktyg",
+      "where": "src/speech-plan.ts rad 177 (GATE)"
+    },
+    {
+      "n": 10,
+      "what": "Talfilmen kodas; ljudet sätts till samma styrka i alla repliker",
+      "in": "1764 × 1174",
+      "out": "1764 × 1174, H.264 med AAC, −16 LUFS",
+      "scale": "1 : 1",
+      "by": "vårt verktyg",
+      "where": "tools/speech.ts rad 71 (LOUDNESS)"
+    },
+    {
+      "n": 11,
+      "what": "Spelet spelar talfilmen som en vila; över en annan film läggs munnen som en lapp på filmen medan den spelas",
+      "in": "talfilm, eller lapp (bild med alla rutor och en ljudfil)",
+      "out": "spelets bild",
+      "scale": "1 : 1 i filmens bildpunkter",
+      "by": "munlagret i spelet",
+      "where": "src/scene3d-mouth.ts; src/speech-patch.ts"
+    }
+  ],
+  "settings": [
+    {
+      "group": "Beskärning",
+      "name": "cropX / padY",
+      "value": "328 / 372",
+      "owner": "vår",
+      "locked": false,
+      "where": "src/speech-plan.ts rad 18"
+    },
+    {
+      "group": "Beskärning",
+      "name": "Rendererns format",
+      "value": "1080 × 1920, 24 rutor/s",
+      "owner": "Scoutgaming",
+      "locked": true,
+      "where": "src/speech-plan.ts rad 10 (RENDER)"
+    },
+    {
+      "group": "Modellen",
+      "name": "Modell och version",
+      "value": "MuseTalk 1.5, ansiktet i 256 × 256",
+      "owner": "Scoutgaming",
+      "locked": true,
+      "where": "rendererns källa, läst 2026-11-17"
+    },
+    {
+      "group": "Modellen",
+      "name": "bbox_shift",
+      "value": "0",
+      "owner": "Scoutgaming",
+      "locked": true,
+      "where": "rendererns vendor/rorlig.py rad 224"
+    },
+    {
+      "group": "Modellen",
+      "name": "extra_margin (under hakan)",
+      "value": "10",
+      "owner": "Scoutgaming",
+      "locked": true,
+      "where": "rendererns vendor/rorlig.py rad 225"
+    },
+    {
+      "group": "Modellen",
+      "name": "Mask",
+      "value": "jaw, kindbredd 90",
+      "owner": "Scoutgaming",
+      "locked": true,
+      "where": "rendererns vendor/rorlig.py rad 251 och 460"
+    },
+    {
+      "group": "Modellen",
+      "name": "Utjämning mot grannrutorna (JAMNA)",
+      "value": "0,3",
+      "owner": "Scoutgaming",
+      "locked": true,
+      "where": "rendererns engine.py rad 24"
+    },
+    {
+      "group": "Modellen",
+      "name": "Skärpning",
+      "value": "1,5",
+      "owner": "Scoutgaming",
+      "locked": true,
+      "where": "rendererns vendor/rorlig.py rad 33"
+    },
+    {
+      "group": "Inläggning",
+      "name": "Receptet i spelet (LIPS)",
+      "value": "hennes överläpp och gipor kvar; lyft högst 6 bildpunkter; ellips 60 × 42",
+      "owner": "vår",
+      "locked": false,
+      "where": "src/speech-plan.ts rad 324"
+    },
+    {
+      "group": "Inläggning",
+      "name": "Grinden (GATE)",
+      "value": "golv −30 dB; 2 rutor före, 3 efter; paus från 6 rutor",
+      "owner": "vår",
+      "locked": false,
+      "where": "src/speech-plan.ts rad 177"
+    },
+    {
+      "group": "Storlek",
+      "name": "wide / tall i spelet",
+      "value": "1 / 1,25",
+      "owner": "vår",
+      "locked": false,
+      "where": "src/speech-plan.ts rad 324"
+    },
+    {
+      "group": "Storlek",
+      "name": "Storlek för realtid (ägarens val: F)",
+      "value": "bredd × 1,18; höjd × 1,30; överläppen × 1,9; zonen över läpparna 14 bildpunkter så att näsan lämnas i fred",
+      "owner": "vår",
+      "locked": false,
+      "where": "ägarens val 2026-11-17 i provet paow-realtid-mun-4; receptet i talbanans prov (wide 1.18, tall 1.30, tallUp 1.9, growUp 14)"
+    },
+    {
+      "group": "Inläggning",
+      "name": "Bara läpparna (mask)",
+      "value": "modellens bild läggs bara in där det finns läppar eller munöppning, vidgat 5 bildpunkter och tonat över 6; näsa, kinder och haka är filmens egna (godkänt med provet paow-realtid-mun-6, 2026-11-17)",
+      "owner": "vår",
+      "locked": false,
+      "where": "provet paow-realtid-mun-5; talbanans inläggning (lipsOnly)"
+    },
+    {
+      "group": "Inläggning",
+      "name": "Öppningen i vanligt tal",
+      "value": "läpparna förs mot varandra över tänderna, lika stora som förut: en liten öppning behåller 55 % av sin höjd, den största hela (22 → 18, 18 → 13, 14 → 9 bildpunkter; \"Blackjack!\" 24 → 22); hakan följer mjukt (godkänt 2026-11-17 kl. 21.38; förval i det versionerade källpaketet)",
+      "owner": "vår",
+      "locked": false,
+      "where": "provet paow-realtid-mun-6; körarens inläggning (opening), som ges per fråga i recept"
+    },
+    {
+      "group": "Modellen",
+      "name": "bbox_shift i den egna köraren",
+      "value": "0 (prövat −8, +8, +16: inget värde ger hennes egna läppar)",
+      "owner": "vår",
+      "locked": false,
+      "where": "mätt 2026-11-17 på en replik (den egna körarens ark över bbox_shift)"
+    },
+    {
+      "group": "Ljud",
+      "name": "Styrka",
+      "value": "−16 LUFS, topp högst −1 dB",
+      "owner": "vår",
+      "locked": false,
+      "where": "tools/speech.ts rad 71"
+    },
+    {
+      "group": "Ljud",
+      "name": "Ljudets början i talfilmen",
+      "value": "0,22 s",
+      "owner": "Scoutgaming",
+      "locked": true,
+      "where": "src/speech-plan.ts rad 10 (leadSamples 5280 vid 24 000)"
+    }
+  ],
+  "lockNote": "Låst betyder att värdet sitter i Scoutgamings renderer, som kontrollerar sina egna filer inför varje jobb och inte ritar om en av dem är ändrad. Sådana värden går inte att pröva här utan deras medverkan eller en egen körare av MuseTalk.",
+  "runs": {
+    "today": {
+      "where": "Lokalt i Docker på ägarens dator, utan nät",
+      "gpu": "RTX 3060",
+      "speed": "cirka 10 rutor/s; en replik 70–95 s kallt, en bank 2–3 minuter",
+      "realtime": false,
+      "source": "docs/TAL.md; mätt 2026-11-13 och 2026-11-17"
+    },
+    "runpod": {
+      "measured": "2026-11-13: ritandet 32–33 rutor/s (62 i ett jobb); ett helt jobb 22–24 s eftersom modellen läses in varje gång; första jobbet väntade 264 s; allt kostade 0,05 USD; vilket grafikkort det var loggades inte",
+      "pricePerHour": "4090 som pod 0,34–0,89 USD; serverless 1,34 USD (prislistan 2026-11-17)",
+      "notBuilt": [
+        "skriptet som sätter upp köraren på en podd (körarens byggsteg)",
+        "munnen i bitar till spelet medan hon talar",
+        "spelets besked till köraren om vilken film och vilka rutor som kommer"
+      ],
+      "source": "docs/TAL.md; talbanans plan för realtid"
+    },
+    "ownRunner": {
+      "what": "Egen körare för MuseTalk 1.5 med versionerad upstream, MediaPipe-mask och munprofil. Källpaket i tools/python/mouth-runner; inga vikter eller media i Git. Befintlig image 0.2 provkörd med paketets kod monterad skrivskyddat.",
+      "measured": "2026-11-18, RTX 3060, CPU-tak 4 och två bibliotekstrådar: tre repliker 48/43/83 rutor. Modeller 33,26 s, uppvärmning 23,25 s. Varmt 5,6–6,7 rutor/s från fråga till sista ruta; första 12 rutorna efter 3,07–3,27 s. Första repliken inklusive förberedelse 32,43 s. Filkodning tillkommer. Profil och recepthash verifierade, tjänsten stoppad efter provet; inte realtid eller mätt ljudstart.",
+      "notBuilt": [
+        "munnen strömmad till spelet medan hon talar",
+        "ljud in som PCM i stället för en fil",
+        "körning på hyrd GPU (takten på en 4090 är inte mätt)",
+        "nytt Dockerbygge ur källpaketet"
+      ],
+      "source": "tools/python/mouth-runner; assets/proofs/paow-approved-f-game-20261118"
+    }
+  },
+  "proofs": [
+    {
+      "id": "paow-baslinje",
+      "dealer": "paow",
+      "date": "2026-11-17",
+      "what": "Den talande munnen lika bred som den vilande (spelets recept, bredare)",
+      "ownerSaid": "hennes mungipor hänger inte med",
+      "outcome": "inte tagen"
+    },
+    {
+      "id": "paow-annan-modell",
+      "dealer": "paow",
+      "date": "2026-11-17",
+      "what": "En annan modell (video till video), en replik",
+      "ownerSaid": "lipsynken till höger blir skitbra. Dock är det en annan grönhet",
+      "outcome": "munnen bra, men vägen stängd: inte realtid, hela bilden görs om"
+    },
+    {
+      "id": "paow-annan-modell-2",
+      "dealer": "paow",
+      "date": "2026-11-17",
+      "what": "Samma modells mun lagd in i hennes egen film",
+      "ownerSaid": "ska ju gå via mousetalk enligt logik för spelet då slutmålet är att hon ska kuna realtidstala",
+      "outcome": "nej"
+    },
+    {
+      "id": "paow-realtid-mun",
+      "dealer": "paow",
+      "date": "2026-11-17",
+      "what": "Munnen som realtid ger i dag: hela modellens mun med gipor, × 1,18",
+      "ownerSaid": "",
+      "outcome": "utgångsläge"
+    },
+    {
+      "id": "paow-realtid-mun-2",
+      "dealer": "paow",
+      "date": "2026-11-17",
+      "what": "Ägarens idé: munnen förminskad för modellen, svaret förstorat",
+      "ownerSaid": "på högra bilden har hon anigen för små läppar. men annars bra",
+      "outcome": "nästan ingen skillnad mot utgångsläget; tunnheten sitter i modellen"
+    },
+    {
+      "id": "paow-realtid-mun-3",
+      "dealer": "paow",
+      "date": "2026-11-17",
+      "what": "Fyra storlekar: A × 1,18; B × 1,18 × 1,30; C × 1,18 × 1,40; D × 1,28",
+      "ownerSaid": "Runt munnen ser det inte jättebra ut, men det är godkänt för nu. Hennes överläpp borde bli något större, inte bara underläppen",
+      "outcome": "godkänt för nu; överläppen skulle bli större (nästa prov)"
+    },
+    {
+      "id": "paow-realtid-mun-4",
+      "dealer": "paow",
+      "date": "2026-11-17",
+      "what": "Överläppen förstorad för sig: E × 1,6, F × 1,9 (bredvid B och C)",
+      "ownerSaid": "ser nog F bäst ut givet att hon faktist säger något där hon rör munnen mycket",
+      "outcome": "F vald, med förbehållet att han dömde en ruta med stor munrörelse; en replik med små munrörelser visas i nästa prov"
+    },
+    {
+      "id": "paow-realtid-mun-5",
+      "dealer": "paow",
+      "date": "2026-11-17",
+      "what": "Bara läpparna: storlek F på läpparna, huden runt om är filmens egen",
+      "ownerSaid": "Ändra: \"ska hon förmodligen ha en lite mindre öppen mun … hon ska visa mindre tänder … Nu ser det nästan lite överdrivet ut\"; det provet visar ska vara taket",
+      "outcome": "sättet (bara läpparna) står; öppningen ned i vanligt tal, se provet -6"
+    },
+    {
+      "id": "paow-realtid-mun-6",
+      "dealer": "paow",
+      "date": "2026-11-17",
+      "what": "Mindre öppen mun i vanligt tal, det han såg är taket; hakan följer mjukt",
+      "ownerSaid": "ja",
+      "outcome": "godkänt: sättet för munnen i realtid (Beslut 2026-11-17 kl. 21.38)"
+    }
+  ],
+  "open": [
+    {
+      "what": "Om storlek F håller i repliker med små munrörelser (läpparna blir mörkare och mjukare när munnen är nästan sluten)",
+      "blocks": "receptet för realtid"
+    },
+    {
+      "what": "Området kring munnen är mjukare än filmen (modellen ritar i 256 × 256)",
+      "blocks": "inget; känt, godkänt för nu"
+    },
+    {
+      "what": "Om MuseTalk kan ta ljud i strömmar är inte kontrollerat",
+      "blocks": "hur snabbt hon kan börja svara"
+    },
+    {
+      "what": "Finjustering av modellen på henne kräver film där hon talar, och sådan finns inte",
+      "blocks": "hennes egen överläpp ur modellen"
+    },
+    {
+      "what": "Scoutgamings renderer listar en segmenteringsvikt vars träningsdata bara får användas icke-kommersiellt",
+      "blocks": "en fråga för dem som äger renderern"
+    },
+    {
+      "what": "Tjänsten ritar 12–13 rutor/s på RTX 3060; takten på en 4090 är inte mätt",
+      "blocks": "realtid (provkvällen på podden, högst 5 USD)"
+    },
+    {
+      "what": "Munnen strömmas inte till spelet än: tjänsten skriver en film eller behåller rutorna",
+      "blocks": "att hon talar i spelet medan munnen ritas"
+    }
+  ],
+  "licences": [
+    {
+      "what": "MuseTalk, kod och 1.5-vikter",
+      "licence": "MIT",
+      "commercial": "ja, uttryckligen",
+      "where": "modellens repo och modellkort, lästa 2026-11-17"
+    },
+    {
+      "what": "sd-vae-ft-mse (bildkodaren)",
+      "licence": "MIT",
+      "commercial": "ja",
+      "where": "modellkortet, läst 2026-11-17"
+    },
+    {
+      "what": "whisper-tiny (ljudet)",
+      "licence": "Apache-2.0",
+      "commercial": "ja",
+      "where": "modellkortet, läst 2026-11-17"
+    },
+    {
+      "what": "MediaPipe (landmärken)",
+      "licence": "Apache-2.0",
+      "commercial": "ja",
+      "where": "läst 2026-11-17; modellkortet för landmärkesmodellen kontrollerat bara genom citat"
+    },
+    {
+      "what": "Ansiktssegmenteringen BiSeNet (79999_iter.pth)",
+      "licence": "vikterna tränade på CelebAMask-HQ, som bara får användas för icke-kommersiell forskning",
+      "commercial": "nej enligt uppslagningen",
+      "where": "läst 2026-11-17; används inte i den egna köraren (masken ritas ur landmärken)"
+    }
+  ]
+}
