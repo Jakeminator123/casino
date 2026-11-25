@@ -424,11 +424,6 @@ export const ROLE_LABEL: Record<Role, string> = {MAIN: 'huvudtagning', VARIANT: 
 // A corrected copy that nobody has reviewed yet is current too: it was made to be looked at, even while its source is still the main take.
 // So is a take in the inbox, which waits for Jakob's decision.
 export const isCurrent = (edge: Edge, take: Take) => { const role = takeRole(edge, take); return !['REJECTED', 'FAILED', 'OTHER'].includes(role) || (role === 'OTHER' && ((!!take.editOf && take.decision === 'PENDING') || take.inbox)); };
-export type Leftover = {take: Take; edge: Edge; role: Role; bytes: number | null};
-export function leftovers(graph: Graph): Leftover[] {
-  return [...graph.edges, ...graph.experiments].flatMap(edge => edge.takes.filter(take => !isCurrent(edge, take))
-    .map(take => ({take, edge, role: takeRole(edge, take), bytes: take.receipt?.output?.bytes ?? take.motion?.source?.bytes ?? null})));
-}
 
 // Experiments read as chains: READY-B > DRAWN > P4.C1 is two films played after each other, and a deal
 // written from a READY variant is a chain of one film. target is the card a chain ends on, if it does.

@@ -4,7 +4,7 @@
 // With focus on, they go through a full-size target and are blurred by their own distance from the focus.
 import * as T from 'three';
 import {DEALER_LENS_ESTIMATE, FILM, aimCorrection, betSpots, cameraFromContract, cardFocusPixel, cardPixel, cardSpots, cloudLevel, edgeRowOf, filmToScene, flickerLevel, lensCamera, sceneToSpot, solveCamera, spotToScene, viewFovDeg, viewUnder, type CardTrack, type FilmCamera} from './scene3d-geometry.ts';
-import {cardGrow, tableGeometry, type TableGeometry} from './card-plan.ts';
+import {cardGrow, type Lins} from './card-plan.ts';
 import {TABLE_LENS} from './table-lens.ts';
 import {EVEN, createFilmLayers, createPlayers, evenFor, frameAt, lightOnDealer, matchLeft, roomFlashAt, roomGlow, toneMatch, toneOf, toneUnder, type FilmTone, type Part, type RoomGlow, type ToneMatch} from './scene3d-film.ts';
 import {createFanLight} from './scene3d-light.ts';
@@ -23,6 +23,10 @@ export type SceneState = {
   room: RoomId; blur: number; depthBlur: boolean; dofRange: number; exposure: number; panoramaTurn: number;
   mode: 'look' | 'lean'; yaw: number; pitch: number; zoom: number; dx: number; dy: number; dz: number; aim: boolean; sway: boolean; fold: boolean; guides: boolean;
   format: 'desk' | 'mob' | 'fill'; logo: string; felt: string; lens: 'plan' | 'estimate'; scale: number;
+  // The look's lens (Lins in src/card-plan.ts; Jakob 2026-11-25: Bred lins is a filter on the same standard): 'standard' is the
+  // film's own lens in real metres, 'bred' the older wide camera. Live: set({lins}) rebuilds the scene under the other camera
+  // and the drawn cards rest by the other rule from the next frame.
+  lins: Lins;
   keyLo: number; keyHi: number; shadow: number;
   focus: 'off' | 'dealer' | 'card' | 'follow' | 'manual'; focusDistance: number; tolerance: number;
   fan: boolean; fanStrength: number; fanPeriod: number;
@@ -60,7 +64,7 @@ export type SceneState = {
 export const DEFAULTS: SceneState = {
   room: 'salong', blur: 11, depthBlur: true, dofRange: 4.5, exposure: 1, panoramaTurn: 90,
   mode: 'look', yaw: 0, pitch: 0, zoom: 1, dx: 0, dy: 0, dz: 0, aim: true, sway: false, fold: true, guides: false,
-  format: 'desk', logo: 'SCOUT GAMING', felt: 'green', lens: 'plan', scale: 0,
+  format: 'desk', logo: 'SCOUT GAMING', felt: 'green', lens: 'plan', scale: 0, lins: 'standard',
   keyLo: 0.12, keyHi: 0.9, shadow: 1,
   focus: 'off', focusDistance: 1.5, tolerance: 0.4,
   fan: false, fanStrength: 0.16, fanPeriod: 5,
@@ -78,7 +82,7 @@ export const DEFAULTS: SceneState = {
   tableModel: 'standard', modelCloth: 'filt', modelWood: 'valnot', modelRail: 'brun',
 };
 // rooms: the panorama rooms of the register (data/scene-rooms.json, readRegister in scene3d-room.ts); without it the first three, at urls.
-export type SceneData = {contract: Parameters<typeof cameraFromContract>[0]; plan: Parameters<typeof cardSpots>[0]; urls: {plate: string; panorama: string; la: string; skog: string}; rooms?: Panorama[]; onChange: () => void; onMissingRoom: (room: RoomId) => void; geometry?: TableGeometry};
+export type SceneData = {contract: Parameters<typeof cameraFromContract>[0]; plan: Parameters<typeof cardSpots>[0]; urls: {plate: string; panorama: string; la: string; skog: string}; rooms?: Panorama[]; onChange: () => void; onMissingRoom: (room: RoomId) => void};
 
 const W = FILM.width, H = FILM.height, RAD = Math.PI / 180;
 // How the prefiltered room is turned against the sphere that shows it, radians. Checked 2026-11-11 with a black test picture
@@ -178,11 +182,10 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
   const players = createPlayers(texture => film.setTexture(texture), data.onChange, {refused: (part, video) => voice.refused(part, video)});
   const mouth = createMouthLayer(shown => film.setMouth(shown), {audio: sound}); // a spoken line's mouth on the part on screen (src/scene3d-mouth.ts)
   let camera: FilmCamera = DEALER_LENS_ESTIMATE, pitch = 0, edgeZ = -1, guides: T.Group | null = null, track: CardTrack | null = null;
-  // The page's geometry (src/card-plan.ts TABLE_GEOMETRY, or the address's geometri word; the game page gives its own, which
-  // may come from the saved look), read once: 'lens' makes the plan's camera
-  // the table's lens, in real metres, the drawn cards rest by the card plan's rule, and Kortens storlek is a share of the plan's
-  // card (cardGrow; the earlier way 'film' keeps the contract's card and its own size); 'contract' is the scene as it was.
-  const geometry = data.geometry ?? tableGeometry();
+  // The look's lens as it is now (state.lins; Lins in src/card-plan.ts): under 'standard' the plan's camera is the table's
+  // lens, in real metres, the drawn cards rest by the card plan's rule, and Kortens storlek is a share of the plan's card
+  // (cardGrow; the earlier way 'film' keeps the contract's card and its own size); 'bred' is the older wide camera.
+  const lins = (): Lins => state.lins;
   let focusNow = NaN, focusWhat = '', lastSeconds = NaN, moved = false;
   // Rendered cards, three ways: 'scene' makes each card an object in the scene under the film (scene3d-deal.ts); 'film' draws
   // the card into the film frame (scene3d-cards.ts), the earlier way, kept to compare; 'matte' (a trial) draws over the film's own
@@ -198,7 +201,7 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
   function loadCards() {
     const method = state.cardMethod; if (cardLayers[method] || cardLoads.has(method)) return; cardLoads.add(method);
     (method !== 'film' ? import('./scene3d-deal.ts').then(m => { if (gone) return null; const layer = m.createDealLayer({contract: data.contract, plan: data.plan, film, light: light.uniforms, camera: () => camera, edgeZ: () => edgeZ,
-      renderer, view: () => view, pixels: () => Math.min(canvas.width / W, canvas.height / H) * state.zoom, way: method, geometry}); fg.add(layer.group); return layer; })
+      renderer, view: () => view, pixels: () => Math.min(canvas.width / W, canvas.height / H) * state.zoom, way: method, lins}); fg.add(layer.group); return layer; })
       : import('./scene3d-cards.ts').then(m => gone ? null : m.createCardLayer(data.contract)))
       .then(layer => { if (!layer) return; cardLayers[method] = layer; cardError = ''; }, error => { cardError = String((error as Error)?.message ?? error); if (state.cardMethod === method) state.cards = false; })
       .then(() => { cardLoads.delete(method); if (gone) return; useCards(); data.onChange(); });
@@ -258,14 +261,14 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
   }
 
   // ---- film camera and everything that depends on it ----------------------------------------------
-  // The plan's camera: the contract's, or with the geometry 'lens' the table's lens itself (scene3d-geometry.ts lensCamera), the one
+  // The plan's camera: under Bred lins the contract's, under Standard the table's lens itself (scene3d-geometry.ts lensCamera), the one
   // the card plan draws through. `written`: the camera the game's framings and the saved looks were made under (updateView).
   const written = () => cameraFromContract(data.contract);
   // Under the table's lens the world is in real metres, so k is 1 whatever a look says: Skala k belongs to the contract's camera
   // and the estimate. Casino's look carries k = 2 (saved under Bred lins), and shown under Standard it built the tray, the bet rings
   // and the table twice their size (Jakob 2026-11-25: "Varför i 'Scen' så ser man markerlådan så stor?").
   function filmCamera(): FilmCamera {
-    if (state.lens === 'plan' && geometry === 'lens') return lensCamera(TABLE_LENS, edgeRowOf(data.contract));
+    if (state.lens === 'plan' && lins() === 'standard') return lensCamera(TABLE_LENS, edgeRowOf(data.contract));
     const base = state.lens !== 'plan' ? DEALER_LENS_ESTIMATE : written(); return state.scale > 0 ? {...base, scale: state.scale} : base;
   }
   function buildGuides() {
@@ -433,7 +436,7 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
     evenFilm(playing?.video ?? null, part, seconds); film.setLife(state.dealerLife, seconds);
     const cardsOn = state.cards && !part?.frame; if (!cardsOn) cardLayer?.off?.();
     const filmCards = state.cardMethod === 'film';
-    const texture = selectFilmTexture(playing, cardsOn ? cardLayer : null, players.frame(), track, {rank: state.cardRank, suit: state.cardSuit, scale: filmCards ? state.cardScale : cardGrow(state.cardScale, geometry), hand: state.cardHand}, sceneCardOptions(part?.cards, state.cardInHand), filmCards);
+    const texture = selectFilmTexture(playing, cardsOn ? cardLayer : null, players.frame(), track, {rank: state.cardRank, suit: state.cardSuit, scale: filmCards ? state.cardScale : cardGrow(state.cardScale, lins()), hand: state.cardHand}, sceneCardOptions(part?.cards, state.cardInHand), filmCards);
     if (texture) film.setTexture(texture);
     const focusOn = state.focus !== 'off', u = blurMat.uniforms, scale = canvas.width / W;
     light.update(seconds, state.fan, state.fanStrength, state.fanPeriod);
@@ -552,7 +555,7 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
     start() { if (!running && !gone) { running = true; requestAnimationFrame(loop); } }, stop() { running = false; },
     dispose: takeDown,
     home() { if (gone) return; Object.assign(state, {yaw: 0, pitch: 0, zoom: 1, dx: 0, dy: 0, dz: 0, sway: false}); apply(); },
-    set(patch: Partial<SceneState>) { if (gone) return; if (patch.cards) loadCards(); const relens = 'lens' in patch && patch.lens !== state.lens || 'scale' in patch && patch.scale !== state.scale || 'tray' in patch && patch.tray !== state.tray || 'base' in patch && patch.base !== state.base || 'surface' in patch && patch.surface !== state.surface || 'tableSize' in patch && patch.tableSize !== state.tableSize || 'tableModel' in patch && patch.tableModel !== state.tableModel || 'modelCloth' in patch && patch.modelCloth !== state.modelCloth || 'modelWood' in patch && patch.modelWood !== state.modelWood || 'modelRail' in patch && patch.modelRail !== state.modelRail, reprint = 'logo' in patch || 'felt' in patch || 'marks' in patch || 'cloth' in patch;
+    set(patch: Partial<SceneState>) { if (gone) return; if (patch.cards) loadCards(); const relens = 'lins' in patch && patch.lins !== state.lins || 'lens' in patch && patch.lens !== state.lens || 'scale' in patch && patch.scale !== state.scale || 'tray' in patch && patch.tray !== state.tray || 'base' in patch && patch.base !== state.base || 'surface' in patch && patch.surface !== state.surface || 'tableSize' in patch && patch.tableSize !== state.tableSize || 'tableModel' in patch && patch.tableModel !== state.tableModel || 'modelCloth' in patch && patch.modelCloth !== state.modelCloth || 'modelWood' in patch && patch.modelWood !== state.modelWood || 'modelRail' in patch && patch.modelRail !== state.modelRail, reprint = 'logo' in patch || 'felt' in patch || 'marks' in patch || 'cloth' in patch;
       // Another room: with the shimmer the change is an animation that render() carries through; without it, or before the scene is built, a cut as before.
       const other = 'room' in patch && patch.room !== state.room, before = lookNow(); Object.assign(state, patch);
       if (other) { if (state.roomShift === 'shimmer' && built) beginShift(before); else if (shift) endShift(); }

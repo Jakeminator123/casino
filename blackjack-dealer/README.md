@@ -16,7 +16,7 @@ och arbetsmomenten som skills i `../.claude/skills/`.
 AGENTS.md STATUS.md README.md   regler, läge, karta (CLAUDE.md importerar AGENTS.md åt Claude Code)
 docs/SYSTEM.md  kontrakten: format, register, scenen, spelet, korten, klippbanken, ordlistan
 studio/         studion: Jakobs arbetsyta i webbläsaren (Next.js), byggd till studio/out/
-pages/          sidorna bredvid studion: 3D-sidan (scene3d.html), Ljud (sound.html) och Modeller (props.html)
+pages/          sidorna bredvid studion: 3D-sidan (scene3d.html), Ljud (sound.html), Modeller (props.html) och Grafik (kortlandning.html)
 game/           spelmotorn (Scouts regler, oförändrade i sak) och spelsidan i game/page/
 src/            den delade motorn: 3D-scen, klippgraf, kort, kortplan, beställningar, tal
 dealer3d/       dockan: bordets verkliga geometri, givar som tal och dockans filmer
@@ -24,7 +24,7 @@ tools/          kommandon, servern (preview.ts), Python-skripten (tools/python/)
 cloud/          studions låsta kopia på nätet: låset och boten
 data/           registren (nedan)
 placements/     Jakobs kortplan
-assets/ output/ lokal media och lokala byggen, inte i Git
+assets/         lokal media, inte i Git
 .runtime/       verktygens eget på datorn (databaser, liggare, loggar, papperskorgen), inte i Git
 ```
 
@@ -95,6 +95,8 @@ Kopian på nätet (`dealer-lake.vercel.app`) har samma meny utan Lipsync och uta
 - `data/rendered-references.json`: dockans filmer; `data/speech.json`, `data/speech-patches.json` och `data/lipsync.json`:
   talet.
 - `data/manifest.json`: filernas ursprung och SHA-256.
+- `data/scene-presets/<namn>.json`: utseendena (förvalen) i Scen; Casino spelar `casino`. `data/play-view.json`:
+  spelvyn, inramningen för dator och mobil som gäller alla utseenden; bara Scen skriver den (`tools/play-view-store.ts`).
 - `placements/default.json`: Jakobs kortplan (16 kort och D.C3), sparad från Bordet.
 
-Media (`assets/`, `output/`), `.runtime/`, `.env*` och `private/` är lokala och Git-ignorerade.
+Media (`assets/`), `.runtime/`, `.env*` och `private/` är lokala och Git-ignorerade.

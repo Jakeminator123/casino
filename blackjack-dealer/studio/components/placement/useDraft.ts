@@ -42,7 +42,7 @@ async function load() {
     const saved = await readPlan();
     set({ status: "ready", draft: openDraft(saved.plan, saved.revision), conflict: false });
   } catch (error) {
-    set({ status: state.draft ? "ready" : "error", error: asApiError(error, "Placeringsplanen").message });
+    set({ status: state.draft ? "ready" : "error", error: asApiError(error, "Kortplanen").message });
   }
 }
 
@@ -66,7 +66,7 @@ export const draftActions = {
       set({ saving: false, draft: afterSave(saved.plan, saved.revision), conflict: false });
       return { ok: true };
     } catch (error) {
-      const e = asApiError(error, "Placeringsplanen");
+      const e = asApiError(error, "Kortplanen");
       set({ saving: false, conflict: e.kind === "conflict" || state.conflict });
       return { ok: false, message: e.message, conflict: e.kind === "conflict" };
     }

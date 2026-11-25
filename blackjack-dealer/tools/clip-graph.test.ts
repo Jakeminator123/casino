@@ -526,7 +526,6 @@ test('a take in the inbox ranks below a variant and plays only where its step ha
   const after = graph.resolveRound(g, graph.parseSequence('READY>P4.C1@p4-deal-03 | P4.C1>READY').steps)[1];
   assert.equal(after.take?.id, 'p4-back-ready-02'); assert.match(after.notes.join(' '), /Skarv/);
   for (const id of ['p4-deal-03', 'p4-back-ready-03', 'p4-back-idle-02']) assert.ok(graph.isCurrent(g.edge[g.takes[id].edge], g.takes[id]), id);
-  assert.ok(!graph.leftovers(g).some(l => l.take.inbox));
 });
 
 test('Jakob\'s decision takes a take out of the inbox, and it then ranks as any other', () => {

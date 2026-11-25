@@ -13,7 +13,7 @@
 // (src/game-page.ts), and fan=<px> is the cards' fan step (src/game-table.ts); fan is the scene's fan shadow only as a
 // switch word (0, 1, true, false).
 import type {SceneState} from './scene3d-view.ts';
-import {GEOMETRY_WORDS} from './card-plan.ts';
+import {LINS_ALIAS_WORD, linsOfAlias} from './card-plan.ts';
 
 export type LookKey = keyof SceneState;
 export type KeyKind =
@@ -49,6 +49,7 @@ export const KEYS: Readonly<Record<LookKey, KeyKind>> = {
   cards: on, cardInHand: on, cardMethod: one('scene', 'film', 'matte'), cardHand: one('film', 'standard'), cardScale: range(0.8, 2), cardRank: one('A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'), cardSuit: one('spades', 'hearts', 'diamonds', 'clubs'), chipGloss: range(0, 1),
   mode: one('look', 'lean'), sway: on, focus: one('off', 'dealer', 'follow', 'card', 'manual'), focusDistance: range(0.3, 12), tolerance: range(0, 0.8),
   yaw: range(-60, 60), pitch: range(-35, 25), zoom: range(0.45, 2.5), dx: range(-0.9, 0.9), dy: range(-0.3, 0.5), dz: range(-0.5, 1.6), aim: on, format: one('desk', 'mob', 'fill'),
+  lins: one('standard', 'bred'), // the look's lens: Standard or Bred lins (Lins in src/card-plan.ts)
   panoramaTurn: range(0, 360), lens: one('plan', 'estimate'), scale: {kind: 'slider', min: 1, max: 2.6, special: 0}, keyLo: range(0, 0.5), keyHi: range(0.5, 1.2), shadow: range(0, 1.6), fold: on, guides: on,
 };
 export const isLookKey = (word: string): word is LookKey => Object.prototype.hasOwnProperty.call(KEYS, word);
@@ -93,30 +94,37 @@ export function readLook(params: Params, rooms?: readonly string[]): Look {
     const value = decode(KEYS[word], text, rooms);
     if (value === null) { if (!ignored.includes(word)) ignored.push(word); } else keys[word] = value;
   });
+  // The lens by its older word (geometri=kontrakt, src/card-plan.ts linsOfAlias) where the address has no lins of its own;
+  // a word that is neither of the two is no word, as before.
+  const alias = keys.lins === undefined ? linsOfAlias(params.get(LINS_ALIAS_WORD)) : null;
+  if (alias) keys.lins = alias;
   return {asked, forval, keys: keys as Partial<SceneState>, ignored: ignored.filter(word => !(word in keys))};
 }
 
 /**
- * A preset as /api/scene-presets/<name> answers ({preset: {state, geometri?}}): its keys that fit, and those that do not, and
- * the table's geometry it was saved with (geometri=kontrakt is Bred lins; src/card-plan.ts tableGeometry reads it when the
- * address has no word of its own). null when it is no preset.
+ * A preset as /api/scene-presets/<name> answers ({preset: {state}}): its keys that fit, and those that do not. A look saved
+ * before the key lins (until 2026-11-26) carries its lens beside the state, as geometri=kontrakt; it is read into the key
+ * here (src/card-plan.ts linsOfAlias), so that the look is the same whichever form its file has. null when it is no preset.
  */
-export function presetFrom(answer: unknown, rooms?: readonly string[]): {state: Partial<SceneState>; dropped: string[]; geometri?: string} | null {
+export function presetFrom(answer: unknown, rooms?: readonly string[]): {state: Partial<SceneState>; dropped: string[]} | null {
   const preset = (answer as {preset?: {state?: unknown; geometri?: unknown}} | null)?.preset, state = preset?.state;
   if (!state || typeof state !== 'object' || Array.isArray(state)) return null;
   const kept: Record<string, unknown> = {}, dropped: string[] = [];
   for (const [word, value] of Object.entries(state)) if (isLookKey(word) && fits(KEYS[word], value, rooms)) kept[word] = value; else dropped.push(word);
-  const geometri = typeof preset?.geometri === 'string' && Object.hasOwn(GEOMETRY_WORDS, preset.geometri) ? preset.geometri : undefined;
-  return {state: kept as Partial<SceneState>, dropped, ...(geometri ? {geometri} : {})};
+  const alias = kept.lins === undefined ? linsOfAlias(preset?.geometri) : null;
+  if (alias) kept.lins = alias;
+  return {state: kept as Partial<SceneState>, dropped};
 }
 
 /**
- * What the page sets on the scene over its own settings: with a preset the whole look (defaults, the preset, the keys),
- * without one only the keys. A room from the address without a blur gets the room's own blur then, as the game's room
- * menu gives it; over a preset the keys stay as written, as in the Scen view.
+ * What the page sets on the scene over its own settings: with a preset the whole look (defaults, the page's own, the
+ * preset, the keys), without one only the keys. `own` is what the page shows where the look says nothing: the play view's
+ * Dator (src/play-view.ts: zoom, pitch and yaw; a look that names one of them keeps its own) and, in the game, the picture
+ * filling the stage. A room from the address without a blur gets the room's own blur then, as the game's room menu gives
+ * it; over a preset the keys stay as written, as in the Scen view.
  */
-export function lookState(defaults: SceneState, preset: Partial<SceneState> | null, keys: Partial<SceneState>, blurOf: (room: string) => number): Partial<SceneState> {
-  if (preset) return {...defaults, ...preset, ...keys};
+export function lookState(defaults: SceneState, preset: Partial<SceneState> | null, keys: Partial<SceneState>, blurOf: (room: string) => number, own: Partial<SceneState> = {}): Partial<SceneState> {
+  if (preset) return {...defaults, ...own, ...preset, ...keys};
   return keys.room !== undefined && keys.blur === undefined ? {...keys, blur: blurOf(keys.room)} : {...keys};
 }
 

@@ -3,12 +3,13 @@
 // The doll in Bordet's Inspelning: Inspelning's one picture, for every step (Jakob 2026-11-25: "Jag vill att vi skapar ett och
 // samma läge för detta ... jag vill ha allt i 3d ... Det andra ska raderas."). The doll lab, embedded
 // (dealer3d/page/docka.html?inbaddad=1), shows the table, the chosen dealer's doll and the draft plan's cards on the felt in
-// 3D, with its view buttons, its note and its transport row. Its controls (Rörelse, Ställning, Giv från, Vändning, Landning,
-// Styr with "Spara som standard") the lab lays itself into step 2's host, DollControls: an element React never fills, found
-// as [data-docklabb-styr]; their look is the studio's (app/globals.css .docklabb-styr). The talk with the frame, all
-// {docklabb: {...}}, the studio's own origin only:
+// 3D, with its view buttons, its note and its transport row. Its controls (Rörelse, Ställning, Vändning, Landning, Styr with
+// "Spara som standard") the lab lays itself into step 2's host, DollControls: an element React never fills, found as
+// [data-docklabb-styr]; their look is the studio's (app/globals.css .docklabb-styr). The pose the doll deals from is the
+// guide tree's anchor and nothing else: embedded the lab shows no choice of it (Jakob 2026-11-24: "en väg för varje sak").
+// The talk with the frame, all {docklabb: {...}}, the studio's own origin only:
 //   to the lab    {place, entry?, play?}  Bordet's card, the pose it is dealt from (the guide tree's anchor, lib/bordet.ts
-//                                          treeAnchor) and "Spela kortbanan" (the deal from the start)
+//                                          treeAnchor; the lab always takes it) and "Spela kortbanan" (the deal from the start)
 //                 {plan}                  the draft plan as it stands, unsaved changes too: when the lab is ready, and 80 ms
 //                                          after a change
 //                 {attach: true}          lay the controls into the host: when the lab is ready and when a host is mounted anew
@@ -20,9 +21,8 @@
 //                                          som är skapade med tex dockan"); sent when the lab is ready and when it changes
 //   from the lab  {ready: true}           it has started: all of the above is sent then (what is sent before its script runs
 //                                          is lost), and again after every new load of the frame
-//                 {place, entry}          a card or a pose chosen there (also by a click in the picture), and its answer to
-//                                          every {place}: the card is Bordet's, and the pose is told on (onEntry), so that
-//                                          step 2 can say where it is not the tree's
+//                 {place}                 a card chosen there (a click in the picture), and its answer to every {place}: the
+//                                          card it shows, which becomes Bordet's
 //                 {place, saved}          a standard was saved: what step 2 and 3 say of it is read again
 //                 {moved: {place, u, v}}  the card's place dragged in the picture (about 20 a second, and once at the end):
 //                                          the draft's place in the plan's picture, the drag one step for Ångra; the plan
@@ -30,13 +30,13 @@
 // "Dockans filmer" shows the doll's films for the chosen card instead of the picture (DollFilms.tsx); the frame stays loaded
 // beside them. The doll is the chosen dealer's own where a doll is named as she is (dealer3d/src/doll.ts), else the standard
 // doll, and only for a dealer with her own is a deal ordered from the doll (step 3; lib/orders.ts orderDoll,
-// tools/doll-order.ts): what is saved in the lab is what is ordered. The side a card lies with is the plan's alone (step 2,
-// "Kortet ligger"); the lab lays it as the plan it is sent says. Only in the local studio: the copy has no doll lab, and no
-// Inspelning.
+// tools/doll-order.ts): what is saved in the lab is what is ordered. The side a dealer's card lies with is the plan's alone
+// (step 2, "Kortet ligger"; a player's card always lies open); the lab lays it as the plan it is sent says. Only in the local
+// studio: the copy has no doll lab, and no Inspelning.
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DOLLS } from "../../../dealer3d/src/doll.ts";
 import { genitive, type OrdersAnswer } from "../../../src/order-model.ts";
-import { SHOE, type Place, type PlacementPlan } from "../../../src/placement-model.ts";
+import type { Place, PlacementPlan } from "../../../src/placement-model.ts";
 import type { cardFilm } from "../../lib/bordet.ts";
 import { dollFilms, takesOf, type DollGroup } from "../../lib/doll-films.ts";
 import type { Ledger } from "../../lib/ledger.ts";
@@ -76,11 +76,11 @@ export type StandardState = { state: "läser" } | { state: "läst"; standard: Do
  * file for its card's tempo). `tick` is raised when the lab says it saved one, so that it is read again.
  */
 export function useDollStandard(dealer: string, place: Place, tick: number, on: boolean): StandardState {
-  const name = place === SHOE ? null : `${dollWord(dealer)}-${placeCode(place).replace(".", "").toLowerCase()}`;
+  const name = `${dollWord(dealer)}-${placeCode(place).replace(".", "").toLowerCase()}`;
   const [read, setRead] = useState<{ key: string; state: StandardState } | null>(null);
   const key = `${name}|${tick}`;
   useEffect(() => {
-    if (!on || !name) return;
+    if (!on) return;
     let live = true;
     (async () => {
       const list = (await (await fetch("/dealer3d/standard", { cache: "no-store" })).json()) as { standards: { name: string; savedAt: string }[] };
@@ -99,9 +99,13 @@ export function useDollStandard(dealer: string, place: Place, tick: number, on: 
   return read?.key === key ? read.state : { state: "läser" };
 }
 
-/** Step 2's one line on the doll: whose doll it is, when the card's standard was saved, and the card's tempo where it is not the ordinary. */
+/**
+ * Step 2's one line on the doll: whose doll it is, when the card's standard was saved, and the card's tempo where it is not
+ * the ordinary; without a standard, the way the doll moves: "Naturlig" for a dealer's own doll, the older deal for the
+ * standard doll, which has only that (dealer3d/page/docka.ts wayOf).
+ */
 export function DollNote({ dealer, place, standard }: { dealer: string; place: Place; standard: StandardState }) {
-  if (place === SHOE) return null;
+  const word = dollWord(dealer);
   const saved = standard.state === "läst" ? standard.standard : null;
   const said =
     standard.state === "läser"
@@ -110,8 +114,7 @@ export function DollNote({ dealer, place, standard }: { dealer: string; place: P
         ? "standarden kunde inte läsas"
         : saved
           ? [`sparad ${swedishMoment(saved.savedAt) ?? "utan datum"}`, saved.cardTempo !== 1 ? `kortet ${Math.round(saved.cardTempo * 100)} %` : null].filter(Boolean).join(" · ")
-          : "ingen sparad standard · Naturlig";
-  const word = dollWord(dealer);
+          : `ingen sparad standard · ${word === "standard" ? "Äldre given" : "Naturlig"}`;
   const whose = word === "standard" ? "Standarddockan" : `${genitive(word.charAt(0).toUpperCase() + word.slice(1))} docka`;
   return (
     <p data-doll-note title={saved ? `Din sparade standard ${saved.name}` : undefined} className="mx-4 mt-3 text-sm leading-5 text-dim">
@@ -124,8 +127,8 @@ export function DollNote({ dealer, place, standard }: { dealer: string; place: P
  * Where the doll lab lays its controls (step 2): an empty element React never renders children into, so that the lab's
  * nodes stay. It stays mounted while Inspelning shows, hidden while the step is folded.
  */
-export const DollControls = forwardRef<HTMLDivElement, { hidden: boolean }>(function DollControls({ hidden }, ref) {
-  return <div ref={ref} data-docklabb-styr hidden={hidden} className="docklabb-host" />;
+export const DollControls = forwardRef<HTMLDivElement>(function DollControls(_props, ref) {
+  return <div ref={ref} data-docklabb-styr className="docklabb-host" />;
 });
 
 /**
@@ -162,10 +165,10 @@ export function useDollFilm(found: ReturnType<typeof cardFilm>, treeName: string
 }
 
 export function DollStage({
-  place, entry, play, plan, flytta, film, host, films, dealer, orders, ordersRead, groups, onPlace, onEntry, onSaved, onMoved,
+  place, entry, play, plan, flytta, film, host, films, dealer, orders, ordersRead, groups, onPlace, onSaved, onMoved,
 }: {
   place: Place;
-  /** The pose the doll deals the card from: the guide tree's anchor, where the lab has it (A2.1 or A2.3), else null. */
+  /** The pose the doll deals the card from: the guide tree's anchor, where the lab has it (A2.1 or A2.3), else null. The lab always takes it. */
   entry: DollEntry | null;
   /** Raised by "Spela kortbanan": the lab plays the doll's deal to the card from the start. */
   play: number;
@@ -185,8 +188,6 @@ export function DollStage({
   groups: readonly DollGroup[];
   /** A card chosen in the lab. */
   onPlace: (place: Place) => void;
-  /** The pose the lab says it deals from. */
-  onEntry: (entry: DollEntry) => void;
   /** The lab saved a standard: what step 2 and 3 say of it is read again. */
   onSaved: () => void;
   /** The card's place dragged in the picture, in the plan's picture (0–1 from the left and from the bottom). */
@@ -204,22 +205,22 @@ export function DollStage({
   const isReady = useCallback(() => !!frame.current?.contentWindow && readyWindow.current === frame.current.contentWindow, []);
 
   // What is told when the lab says it is ready, and what is done with what it says: the newest of each.
-  const latest = useRef({ place, entry, plan, flytta, film, onPlace, onEntry, onSaved, onMoved });
+  const latest = useRef({ place, entry, plan, flytta, film, onPlace, onSaved, onMoved });
   useEffect(() => {
-    latest.current = { place, entry, plan, flytta, film, onPlace, onEntry, onSaved, onMoved };
+    latest.current = { place, entry, plan, flytta, film, onPlace, onSaved, onMoved };
   });
   useEffect(() => {
     const hear = (event: MessageEvent) => {
       if (event.origin !== window.location.origin || !frame.current || event.source !== frame.current.contentWindow) return;
       const said = (event.data as { docklabb?: unknown } | null)?.docklabb;
       if (!said || typeof said !== "object") return;
-      const s = said as { ready?: unknown; place?: unknown; entry?: unknown; saved?: unknown; moved?: unknown };
+      const s = said as { ready?: unknown; place?: unknown; saved?: unknown; moved?: unknown };
       const now = latest.current;
       if (s.ready === true) {
         readyWindow.current = frame.current.contentWindow;
         post({ attach: true });
         post({ plan: now.plan });
-        if (now.place !== SHOE) post({ place: now.place, ...(now.entry ? { entry: now.entry } : {}) });
+        post({ place: now.place, ...(now.entry ? { entry: now.entry } : {}) });
         post({ flytta: now.flytta });
         post({ film: now.film });
       }
@@ -227,15 +228,14 @@ export function DollStage({
       if (moved && typeof moved === "object") {
         const at = typeof moved.place === "string" ? placeFromCode(moved.place) : null;
         const { u, v } = moved;
-        if (at && at !== SHOE && typeof u === "number" && typeof v === "number" && Number.isFinite(u) && Number.isFinite(v)) now.onMoved(at, Math.min(1, Math.max(0, u)), Math.min(1, Math.max(0, v)));
+        if (at && typeof u === "number" && typeof v === "number" && Number.isFinite(u) && Number.isFinite(v)) now.onMoved(at, Math.min(1, Math.max(0, u)), Math.min(1, Math.max(0, v)));
         return;
       }
       const next = typeof s.place === "string" ? placeFromCode(s.place) : null;
-      if (next && next !== SHOE) {
+      if (next) {
         setIngang(false);
         now.onPlace(next);
       }
-      if (s.entry === "A2.1" || s.entry === "A2.3") now.onEntry(s.entry);
       if (typeof s.saved === "string") now.onSaved();
     };
     window.addEventListener("message", hear);
@@ -251,7 +251,6 @@ export function DollStage({
   // "Spela kortbanan" asks it to play the deal from the start.
   const played = useRef(play);
   useEffect(() => {
-    if (place === SHOE) return;
     const go = play !== played.current;
     played.current = play;
     if (isReady()) post({ place, ...(entry ? { entry } : {}), ...(go ? { play: true } : {}) });
@@ -321,7 +320,7 @@ export function DollStage({
 /** The doll lab's address inside the frame: embedded, on the chosen card, its pose and the doll. */
 function labAddress(place: Place, doll: string, entry: DollEntry | null): string {
   const p = new URLSearchParams({ inbaddad: "1" });
-  if (place !== SHOE) p.set("plats", placeCode(place).toLowerCase());
+  p.set("plats", placeCode(place).toLowerCase());
   if (entry === "A2.1") p.set("fran", "a2-1");
   p.set("docka", doll);
   return `/dealer3d/docka?${p}`;

@@ -1,9 +1,10 @@
 "use client";
 
-// The panel beside the scene: a search field, then the catalogue's groups as folds (Miljö open, Avancerat folded away as
-// calibration). A group's header says how many of its keys differ from the baseline. A search opens every group that has
-// a match and shows only the matches. Things that lie on the table but are no keys (the tray's model, the shoe, the chips,
-// the cards' material in the placement plan) come last in their group, under their own line: a preset does not keep them.
+// The panel beside the scene: a search field, then the catalogue's groups as folds (Spelvy and Miljö open, Avancerat folded
+// away as calibration). A group's header says how many of its keys differ from the baseline. A search opens every group that
+// has a match and shows only the matches. Things that lie on the table but are no keys (the tray's model, the shoe, the chips,
+// the cards' material in the placement plan) come last in their group, under their own line: a preset does not keep them. A
+// group can be drawn by a component of its own instead of key by key (Scen's Spelvy, PlayViewPanel), whole when it has a match.
 import { ChevronRight, Search, X } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import type { SceneState } from "../../../src/scene3d-view.ts";
@@ -27,6 +28,7 @@ export function ControlPanel({
   only,
   without,
   first,
+  bodies,
 }: {
   current: SceneState;
   baseline: SceneState;
@@ -41,6 +43,8 @@ export function ControlPanel({
   without?: readonly GroupId[];
   /** A row over the groups, outside any fold (Bordet's Scen: the one choice for the cards, the drawn card in her hand). */
   first?: ReactNode;
+  /** Groups drawn by a component of their own instead of their keys one by one (Bordet's Scen: Spelvy). */
+  bodies?: Partial<Record<GroupId, ReactNode>>;
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<ReadonlySet<GroupId>>(() => new Set(only ?? GROUPS.filter((g) => !g.folded).map((g) => g.id)));
@@ -122,7 +126,9 @@ export function ControlPanel({
                   </span>
                 </button>
               </h2>
-              {expanded ? (
+              {expanded && bodies?.[g.id] ? (
+                <div className="px-4 pb-3">{bodies[g.id]}</div>
+              ) : expanded ? (
                 <div className="divide-y divide-line/70 px-4 pb-3">
                   {g.list.map((s) =>
                     s.key === "room" ? (

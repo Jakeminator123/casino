@@ -19,7 +19,7 @@ import * as T from 'three';
 import {poseAt, restOf, restFade, restShare, restingQuad, restingFilmPaperZone, returnCardAt, returnAfterFilmLanding, filmMarkerAt, sceneOf, planScene, cardRecord, cardFace, overridesOf, cardInFront, plausible, skirtSound, firstDrawn, turnOf, BACK, CARRY, FACE, UNDER, RIM, MARGIN, PLAUSIBLE, EASE, HOLD, TRIAL, trialParts, trialTrack, trackFolder, smearOf, lightStep, type CardTrack, type CardRecord, type Light, type LightRead} from './card-overlay.ts';
 import {centre, clockwise, grown, signedArea, sound, type Pt} from './card-track.ts';
 import {FILM, edgeQuad, heldScale, solveCamera, squareToQuad, type FilmCamera} from './scene3d-geometry.ts';
-import type {TableGeometry} from './card-plan.ts';
+import {LINS, type Lins} from './card-plan.ts';
 import type {PlacementPlan} from './placement-model.ts';
 import {CARD_GLSL, CARD_SEEN_GLSL, type BackKey, type CardKey, type MatteKey} from './scene3d-film.ts';
 import {FAN_GLSL} from './scene3d-light.ts';
@@ -166,8 +166,8 @@ const faceOf = (choice: Choice, extra: Extra, carry: Carry): 'film' | 'paper' =>
 type FilmLayers = {shared: {map: {value: T.Texture | null}; grade: {value: T.Vector3}}; setCards(key: CardKey | null): void; setMatte(m: MatteKey | null): void; setBack(b: BackKey | null): void};
 // renderer and view: for the motion samples, drawn into a target of their own before the frame; pixels: screen pixels per film pixel.
 // way: 'scene' (the card an object under the film) or 'matte' (the film's own card drawn over in place).
-// geometry: 'lens' rests the card by the card plan's rule (card-overlay.ts planScene), else by the contract's card (TABLE_GEOMETRY in src/card-plan.ts).
-type Options = {contract: unknown; plan: unknown; film: FilmLayers; light: Record<string, {value: unknown}>; camera: () => FilmCamera; edgeZ: () => number; renderer: T.WebGLRenderer; view: () => T.Camera; pixels: () => number; way?: 'scene' | 'matte'; geometry?: TableGeometry};
+// lins: the look's lens as it is now (Lins in src/card-plan.ts): under 'standard' the card rests by the card plan's rule (card-overlay.ts planScene), under 'bred' by the contract's card.
+type Options = {contract: unknown; plan: unknown; film: FilmLayers; light: Record<string, {value: unknown}>; camera: () => FilmCamera; edgeZ: () => number; renderer: T.WebGLRenderer; view: () => T.Camera; pixels: () => number; way?: 'scene' | 'matte'; lins?: () => Lins};
 // Motion blur: the film's own card edges are soft over about a quarter of the distance it moves in a frame (2-4 px on the P4
 // deal; the hand smears more), so the card is drawn along its path over 0.25 of a frame, in as many samples as keep them about
 // a pixel apart, and never smeared over more than 12 screen pixels: a dark back blurred further reads as smoked glass, not as a
@@ -223,8 +223,10 @@ function mattePasses(renderer: T.WebGLRenderer, keep: <D extends {dispose(): voi
 }
 
 export function createDealLayer(o: Options) {
-  const byContract = sceneOf(o.contract), byPlan = o.geometry === 'lens' && (o.plan as PlacementPlan | null)?.targets?.['P4.C1'] ? planScene(byContract, o.plan as PlacementPlan) : null;
-  const scene = byPlan ?? byContract, group = new T.Group(), owned: {dispose(): void}[] = [], keep = <D extends {dispose(): void}>(d: D) => { owned.push(d); return d; };
+  const byContract = sceneOf(o.contract), byPlan = (o.plan as PlacementPlan | null)?.targets?.['P4.C1'] ? planScene(byContract, o.plan as PlacementPlan) : null;
+  // The rule a card rests by follows the look's lens as it is now, so a change of lins holds from the next frame.
+  const resting = () => (o.lins?.() ?? LINS) === 'standard' && byPlan ? byPlan : byContract;
+  const group = new T.Group(), owned: {dispose(): void}[] = [], keep = <D extends {dispose(): void}>(d: D) => { owned.push(d); return d; };
   const targets = (o.plan as {targets?: Record<string, {material?: {bend?: number; gloss?: number}}>} | null)?.targets ?? {};
   // the study's card outline, flat: its front surface is drawn, the back surface and paper edge are left out (a card seen from
   // the film camera shows one side; the edge is under a pixel thick)
@@ -314,7 +316,7 @@ export function createDealLayer(o: Options) {
   const stiffOnes = new WeakSet<CardTrack>();   // the tracks that are a film's stiff card (trialOf below)
   const drawnAt = (track: CardTrack, frame: number, choice: Choice, extra: Extra, videoFrame = frame): Drawn | null => {
     if (frame < 0 || frame >= track.frames.length) return null;
-    const pose = poseAt(track, scene, videoFrame, choice.scale, 12, extra.shift ?? null, extra.land ?? null);
+    const scene = resting(), pose = poseAt(track, scene, videoFrame, choice.scale, 12, extra.shift ?? null, extra.land ?? null);
     // one size all the way: the film's card, made the size of ours. How much larger the film draws its card than ours is measured
     // where both lie flat in the same place (the film's resting card against ours); the card in the hand is the film's card made
     // smaller or larger by that much, about the point where the fingers hold it (the track's grip point, else its middle), so it
@@ -469,7 +471,7 @@ export function createDealLayer(o: Options) {
 
   function layOnTable(card: Card, p: Placed, choice: Choice, extra: Extra): number[][] {
     const face = cardFace(cardRecord(extra.cards, p), p.back, art(choice), Array.isArray(extra.cards));
-    const quad = scene && p.quad.length === 4 ? restingQuad(scene, p.quad, choice.scale).quad : p.quad;
+    const scene = resting(), quad = scene && p.quad.length === 4 ? restingQuad(scene, p.quad, choice.scale).quad : p.quad;
     const q = pts(quad);
     lay(card, q, {print: face.back ? print() : print(face.art), contact: 1, gloss: p.gloss ?? (p.target ? targets[p.target]?.material?.gloss : undefined)});
     return q;

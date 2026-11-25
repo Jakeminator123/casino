@@ -1,5 +1,5 @@
-// The studio's locked copy on the internet, published again from a commit: the whole way in one command (docs/DRIFT.md,
-// "Den låsta kopian på nätet"). Run from Jakob's own checkout, which holds the media (assets/) and the copy's state
+// The studio's locked copy on the internet, published again from a commit: the whole way in one command (the skill
+// publicera-kopian, ../.claude/skills/publicera-kopian/SKILL.md). Run from Jakob's own checkout, which holds the media (assets/) and the copy's state
 // (.runtime/studio-deploy with the Vercel project's link, .runtime/studio-blob with the store's key and the receipt).
 //
 //   node tools/publish-studio.ts --worktree <path>  plan: which commit, which worktree, what would run; nothing is sent
@@ -80,15 +80,15 @@ say(`Kopian byggs från ${commit.slice(0, 7)} (${asked}) i ${WORKTREE}; media oc
 // VERCEL_PROJECT_ID, which the Vercel CLI reads as well. The team the id names is asked for its name before anything is sent.
 const linked = (() => { try { return JSON.parse(readFileSync(path.join(deployDir, '.vercel', 'project.json'), 'utf8')) as {projectId?: string; orgId?: string; projectName?: string}; } catch { return null; } })();
 const link = {orgId: linked?.orgId ?? process.env.VERCEL_ORG_ID, projectId: linked?.projectId ?? process.env.VERCEL_PROJECT_ID, projectName: linked?.projectName ?? PROJECT};
-if (!link.orgId || !link.projectId) throw Error(`Projektets id saknas: länka .runtime/studio-deploy till ${PROJECT} i ${TEAM} med vercel link (docs/DRIFT.md), eller sätt VERCEL_ORG_ID och VERCEL_PROJECT_ID.`);
+if (!link.orgId || !link.projectId) throw Error(`Projektets id saknas: länka .runtime/studio-deploy till ${PROJECT} i ${TEAM} med vercel link (../.claude/skills/publicera-kopian/SKILL.md), eller sätt VERCEL_ORG_ID och VERCEL_PROJECT_ID.`);
 if (link.projectName !== PROJECT) throw Error(`.runtime/studio-deploy är länkad till ${link.projectName}, inte ${PROJECT}.`);
 const team = spawnSync('vercel', ['api', `/v2/teams/${link.orgId}`, '--raw'], {cwd: deployDir, encoding: 'utf8', shell: process.platform === 'win32'});
 const slug = (() => { try { return (JSON.parse(team.stdout) as {slug?: string}).slug; } catch { return null; } })();
 if (slug !== TEAM) throw Error(`Länkens team är ${slug ?? 'okänt (vercel whoami?)'}, inte ${TEAM}; inget skickas.`);
 const receipt = (() => { try { return JSON.parse(readFileSync(path.join(home, '.runtime', 'studio-blob', 'studio-media.json'), 'utf8')) as {storeId?: string}; } catch { return null; } })();
 const store = option('--store') ?? receipt?.storeId;
-if (!store) throw Error('Ingen Blob-store: ange --store store_… första gången (docs/DRIFT.md).');
-if (!existsSync(path.join(home, '.runtime', 'studio-blob', '.env.local'))) throw Error('Storens nyckel saknas i .runtime/studio-blob/.env.local (docs/DRIFT.md).');
+if (!store) throw Error('Ingen Blob-store: ange --store store_… första gången (../.claude/skills/publicera-kopian/SKILL.md).');
+if (!existsSync(path.join(home, '.runtime', 'studio-blob', '.env.local'))) throw Error('Storens nyckel saknas i .runtime/studio-blob/.env.local (../.claude/skills/publicera-kopian/SKILL.md).');
 say(`Vercel: ${link.projectName ?? link.projectId} i ${TEAM}; Blob-store ${store}.`);
 
 // ── The worktree: the commit, detached and clean, with its packages and the media ──

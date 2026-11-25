@@ -11,6 +11,7 @@ import {decisionStore,ANSWER_BYTES} from './decision-store.ts';
 import {proofNotesStore,NOTE_BYTES} from './proof-notes-store.ts';
 import {lipsyncAnswer} from './lipsync-store.ts';
 import {scenePresetStore} from './scene-preset-store.ts';
+import {PLAY_VIEW_BYTES, playViewStore} from './play-view-store.ts';
 import {PRESET_BYTES} from '../studio/lib/scene-presets.ts';
 import {createSession,SessionError,type Session,type SessionOptions} from '../game/session.ts';
 import {tabRegistry,localPath,openAddress,type Tab,type Reason} from './tab-registry.ts';
@@ -99,7 +100,7 @@ if(has('--restart')){
  // build of the online copy reads too (tools/build-studio-snapshot.ts), so that the copy serves exactly what this server serves.
  // Table props made by tools/prop-glb.ts: assets/props/<id>.glb, and only where the file really lies in that folder.
  const propFile=async(file:string)=>{const m=/^assets\/props\/([a-z0-9]+(?:-[a-z0-9]+)*\.glb)$/.exec(file);if(!m)return false;try{return await realpath(file)===path.join(await realpath('assets/props'),m[1]);}catch{return false;}};
- const placements=placementStore(process.cwd()),reviews=reviewStore(process.cwd()),presets=scenePresetStore(process.cwd()),media=mediaRoles(process.cwd()),decisions=decisionStore(process.cwd()),proofNotes=proofNotesStore(process.cwd());
+ const placements=placementStore(process.cwd()),reviews=reviewStore(process.cwd()),presets=scenePresetStore(process.cwd()),playView=playViewStore(process.cwd()),media=mediaRoles(process.cwd()),decisions=decisionStore(process.cwd()),proofNotes=proofNotesStore(process.cwd());
  // Read-only clip bank for the lab: the tracked jobs and review decisions plus a fixed, non-secret
  // projection of each local receipt. Task ids, balances and credentials never leave this process.
  const clipId=/^[a-z0-9]+(?:-[a-z0-9]+)*$/,clipMedia=/^assets\/motions\/([a-z0-9]+(?:-[a-z0-9]+)*)\/(source\.mp4|source-reversed\.mp4|first\.png|last\.png)$/;
@@ -234,6 +235,21 @@ if(has('--restart')){
      let size=0;const chunks:Buffer[]=[];for await(const chunk of req){size+=chunk.length;if(size>PRESET_BYTES)throw new StoreError(413,'Förvalet är för stort.');chunks.push(chunk);}
      let body:unknown;try{body=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw new StoreError(400,'Förvalet är inte giltig JSON.');}
      res.end(JSON.stringify(await presets.save(name,body,expected)));
+    }catch(error){res.writeHead(error instanceof StoreError?error.status:400).end(JSON.stringify({error:(error as Error).message}));}return;
+   }
+   // The play view: how the game frames the picture on a computer and on a phone, one for every look (src/play-view.ts,
+   // tools/play-view-store.ts, data/play-view.json). Any page reads it; it is written from this studio only, on his click in
+   // Scen, against the revision last read.
+   if(url.pathname==='/api/play-view'){
+    res.setHeader('Content-Type','application/json; charset=utf-8');
+    try{
+     if(req.method==='GET'){res.end(JSON.stringify(await playView.load()));return;}
+     if(req.method!=='PUT'){res.writeHead(405).end();return;}
+     if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Spara från studion på datorn.'}));return;}
+     if(!req.headers['content-type']?.startsWith('application/json')){res.writeHead(415).end(JSON.stringify({error:'JSON krävs.'}));return;}
+     let size=0;const chunks:Buffer[]=[];for await(const chunk of req){size+=chunk.length;if(size>PLAY_VIEW_BYTES)throw new StoreError(413,'Spelvyn är för stor.');chunks.push(chunk);}
+     let body:unknown;try{body=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw new StoreError(400,'Spelvyn är inte giltig JSON.');}
+     res.end(JSON.stringify(await playView.save(body,typeof req.headers['if-match']==='string'?req.headers['if-match']:undefined)));
     }catch(error){res.writeHead(error instanceof StoreError?error.status:400).end(JSON.stringify({error:(error as Error).message}));}return;
    }
    if(url.pathname==='/api/clip-bank'&&req.method==='GET'){res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(await clipBank()));return;}

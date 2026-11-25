@@ -3,28 +3,29 @@
 // and the card's way in his words (Kortbanan). The plan's own rules (where a card lies, how an edit is made) are
 // src/placement-model.ts. Pure: no DOM, no network; the motion's words are tested in studio/tests/bordet-line.test.ts.
 import { ANCHOR_NODE, type Anchor } from "../../src/order-model.ts";
-import { SHOE, TARGETS, VIEWS, editPlace, motionNodes, sequence, type Hand, type Intent, type Place, type PlacementPlan, type Side, type View } from "../../src/placement-model.ts";
+import { TARGETS, VIEWS, editPlace, motionNodes, sequence, type Hand, type Intent, type Place, type PlacementPlan, type Side, type View } from "../../src/placement-model.ts";
 import { cardCode, nodeCode } from "./names.ts";
 
 // ── Places ──────────────────────────────────────────────────────────────────
-const PLACES: readonly Place[] = [...TARGETS, SHOE];
+// The places are the plan's cards only. The shoe was one until 2026-11-26: its place is the standard's (src/table-lens.ts
+// SHOE), the same for every film, and nothing read the plan's own.
 export const SEATS = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "D"] as const;
 /** The place Inspelning opens on: P4C2. */
 export const START_PLACE: Place = "P4.C2";
+/** The dealer's own cards (DC1–DC3): only for them is the side the card lies with chosen; a player's card always lies open. */
+export const isDealerCard = (id: Place) => /^D\.C[123]$/.test(id);
 
-/** "Plats 4 · kort 2", "Dealern · kort 1", "Skon". */
+/** "Plats 4 · kort 2", "Dealern · kort 1". */
 export function placeName(id: Place): string {
-  if (id === SHOE) return "Skon";
   const m = /^(P([1-7])|D)\.C([123])$/.exec(id);
   if (!m) return id;
   return m[2] ? `Plats ${m[2]} · kort ${m[3]}` : `Dealern · kort ${m[3]}`;
 }
-/** "P4C2", "DC1", "Sko": the short form in the column and in the address. */
-export const placeCode = (id: Place): string => (id === SHOE ? "Sko" : (cardCode(id) ?? id));
-/** A place from its short form ("p4c2", "DC1", "sko") or its plan key ("P4.C2"); null when it names none. */
+/** "P4C2", "DC1": the short form in the column and in the address. */
+export const placeCode = (id: Place): string => cardCode(id) ?? id;
+/** A place from its short form ("p4c2", "DC1") or its plan key ("P4.C2"); null when it names none (an old address's "sko" too). */
 export function placeFromCode(code: string | null | undefined): Place | null {
   const text = (code ?? "").trim().toUpperCase().replace(/\./g, "");
-  if (text === "SKO" || text === "SHOE") return SHOE;
   const m = /^(P[1-7]|D)C([123])$/.exec(text);
   const id = m ? `${m[1]}.C${m[2]}` : null;
   return id && TARGETS.includes(id) ? id : null;
@@ -91,7 +92,7 @@ export const afterSave = (saved: PlacementPlan, revision: string): Draft => ({ s
 
 /** The places whose data differ between two plans (geometry in either view, motion, material), and whether the table's projection does. */
 export function changedPlaces(a: PlacementPlan, b: PlacementPlan): { places: Place[]; table: boolean } {
-  const places = PLACES.filter((id) => (id === SHOE ? JSON.stringify(a.shoe) !== JSON.stringify(b.shoe) : JSON.stringify(a.targets[id]) !== JSON.stringify(b.targets[id])));
+  const places = TARGETS.filter((id) => JSON.stringify(a.targets[id]) !== JSON.stringify(b.targets[id]));
   const table = JSON.stringify(a.tableProjection ?? null) !== JSON.stringify(b.tableProjection ?? null);
   return { places, table };
 }
@@ -103,7 +104,7 @@ export function nudged(plan: PlacementPlan, id: Place, view: View, key: string, 
   if (!d) return null;
   const v = VIEWS[view];
   const step = shift ? 10 : 1;
-  const old = id === SHOE ? plan.shoe[view] : plan.targets[id].geometry[view];
+  const old = plan.targets[id].geometry[view];
   return editPlace(plan, id, view, { u: old.u + (d[0] * step) / (v.width - 1), v: old.v - (d[1] * step) / (v.height - 1) });
 }
 

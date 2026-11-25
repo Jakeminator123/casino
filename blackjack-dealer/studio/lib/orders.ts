@@ -202,7 +202,7 @@ export const HANDOVER = "Säg 'lägg kön' till huvudagenten, så läggs godkän
 /**
  * The cards one order can go to: every card of the plan, a seat's second card too (P3.C2; the store takes any card of
  * the plan). In a round a second card plays the first card's film (src/clip-graph.ts filmCard), so a film of its own is a
- * take of its own edge, played where a round names it. "Alla sju" stays the first cards (ALL_SEVEN).
+ * take of its own edge, played where a round names it. "Alla sju" stays the first cards.
  */
 export const SECOND_CARD = /^P[1-7]\.C2$/;
 export const orderableCard = (target: string | null | undefined): boolean => !!target && (SEAT_TARGETS.includes(target) || SECOND_CARD.test(target));

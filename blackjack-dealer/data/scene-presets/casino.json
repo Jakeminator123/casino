@@ -8,14 +8,10 @@
     "roomShift": "shimmer",
     "blur": 5,
     "cloth": "runway-2",
+    "lins": "bred",
     "tray": true,
     "cards": true,
-    "yaw": -0.06656804733727811,
-    "pitch": -9.697485207100591,
-    "zoom": 0.84,
-    "format": "fill",
     "scale": 2
   },
-  "geometri": "kontrakt",
-  "updatedAt": "2026-11-24T03:29:47.938Z"
+  "updatedAt": "2026-11-26T00:00:00.000Z"
 }

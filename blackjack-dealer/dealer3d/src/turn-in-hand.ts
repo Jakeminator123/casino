@@ -31,7 +31,7 @@ import type {Doll} from './doll.ts';
 export type TurnId = 'forut' | 'i-handen';
 /** The turns, for the lab's choice: id, the Swedish label, and (for a film order's text) one plain English sentence. */
 export const TURNS: readonly {id: TurnId; label: string; sentence?: string}[] = [
-  {id: 'forut', label: 'Som förut'},
+  {id: 'forut', label: 'Givens egen'},
   {id: 'i-handen', label: 'I handen', sentence: 'Her right hand slides its thumb in under the edge of the card and lifts it, two fingertips on its back, and turns it over at the wrist as she carries it; at its place she sets it on a corner, tips it over and lowers it on her fingertips with her thumb on its face, then slides her fingers out from under it and it drops the last bit flat, face up.'},
 ];
 export const TURN_DEFAULT: TurnId = 'forut';

@@ -146,7 +146,7 @@ export function restingQuad(scene: Scene | null, film: Pt[], scale: number): {qu
 }
 
 /**
- * A scene whose resting card follows the card plan's rule (TABLE_GEOMETRY 'lens' in src/card-plan.ts): a card `scale` times a
+ * A scene whose resting card follows the card plan's rule (the lens 'standard', Lins in src/card-plan.ts): a card `scale` times a
  * real one at the outline's place and turn, through the table's lens, in the plan's shape. Kortens storlek 1 on a place of the
  * plan is then the outline the studio's Inspelning draws there. The contract (`base`) is not read for it; without one the scene
  * stands by itself. `lens`: another lens than the table's, for the tests that change the camera.
@@ -386,28 +386,6 @@ export function landing(track: CardTrack, scene: Scene | null, land: Pt[] | null
   if (!rest) return null;
   const filmSize = size(rest.quad), planSize = scene ? size(restingQuad(scene, rest.quad, 1).quad) : null;
   return {off: land?.length === 4 ? Math.hypot(centre(land).x - centre(rest.quad).x, centre(land).y - centre(rest.quad).y) : null, filmSize, planSize, scaleNeeded: planSize ? MARGIN * filmSize / planSize : null};
-}
-/**
- * Film card pixels that would still show with the rendered card drawn: the tracker's own yellow and blue, outside the boxes to
- * ignore (the shoe window), not under or right beside the rendered card, not in the cleaned zone around the film's own card and
- * not in a patch of card size, which the overlay paints over wherever it lies.
- * The mask is opened by one step first, so a one-pixel fringe along a finger is not counted as card.
- */
-export function leakCount(rgb: Uint8Array, width: number, height: number, pose: Pose | null, ignore: number[][] = []): number {
-  const n = width * height, mask = new Uint8Array(n); let any = false;
-  const near = pose ? filmZone(pose) : null, wide = pose?.quad ? grown(clockwise(pose.quad), BESIDE) : null;
-  for (let i = 0, j = 0; i < n; i++, j += 3) { const r = rgb[j], g = rgb[j + 1], b = rgb[j + 2];
-    if (!is.yellow(r, g, b) && !is.blue(r, g, b)) continue;
-    const x = i % width, y = (i - x) / width;
-    if (ignore.some(box => x >= box[0] - 8 && x <= box[2] + 8 && y >= box[1] - 8 && y <= box[3] + 8)) continue;
-    if (near?.(x + 0.5, y + 0.5) || (wide && inside(wide, x + 0.5, y + 0.5))) continue;
-    mask[i] = 1; any = true; }
-  if (!any) return 0;
-  // Patches of card size are painted over by the overlay wherever they are (strayBoxes); what can still show is what is smaller.
-  for (const blob of blobs(mask, width, height, STRAY)) for (let k = 0; k < blob.pixels.length; k++) mask[blob.pixels[k]] = 0;
-  const solid = morph(mask, width, height, 1, false); let count = 0;
-  for (let i = 0; i < n; i++) count += solid[i];
-  return count;
 }
 /**
  * The film's card is only a marker, and so is every other card the film shows: a card lying since an earlier deal, or a card the

@@ -11,7 +11,13 @@
 // look there to try. The look travels in the address (address.ts): editor.lookText says it, and editor.ask takes a new one
 // from outside. Saved: his own presets (data/scene-presets/, on his click, "Spara som…"), Casino's ("Använd i Casino") and,
 // on a confirmed click, the cards' bend and gloss in his card plan. In the online copy nothing is saved.
+// The play view (src/play-view.ts, Jakob 2026-11-25) is read when the editor starts: a look that names no framing is shown with
+// its Dator, as the game shows it. Visa, first in the panel (PlayViewPanel), shows the film as recorded (Inspelningen) or what
+// the player sees (Dator, Mobil); Scen opens on Dator. Visa is never saved with a look, and a look keeps zoom, pitch and yaw only
+// when "Egen inramning" is on (lib/scene-presets.ts savedState). "Spara som spelvy" writes the play view, on his click.
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { LINS } from "../../../src/card-plan.ts";
+import { PLAY_VIEW, sameFraming, type Framing, type PlayView } from "../../../src/play-view.ts";
 import type { PlacementPlan } from "../../../src/placement-model.ts";
 import type { RegisterRoom } from "../../../src/scene3d-room.ts";
 import type { SceneState } from "../../../src/scene3d-view.ts";
@@ -20,7 +26,24 @@ import { casinoAddress } from "../../lib/casino.ts";
 import { isSnapshot } from "../../lib/mode.ts";
 import { placesOf } from "../../lib/rounds.ts";
 import { BUILT_BLUR, keySpec, sameValue, type GroupId, type SceneKey } from "../../lib/scene-keys.ts";
-import { BASE, BRED_LINS, CASINO_PRESET, SHIPPED, differences, effective, initialSceneState, isShipped, matchPreset, patchOf, savedGeometri } from "../../lib/scene-presets.ts";
+import {
+  BASE,
+  CASINO_PRESET,
+  RECORDING,
+  SHIPPED,
+  differences,
+  effective,
+  framingOf,
+  hasOwnFraming,
+  initialSceneState,
+  isShipped,
+  lookDifferences,
+  matchPreset,
+  patchOf,
+  savedState,
+  shownState,
+  type Visa,
+} from "../../lib/scene-presets.ts";
 import type { Scene } from "../stage";
 import { SegmentedControl, Skeleton, Switch, useToast } from "../ui";
 import { askedPart, lookPart, type LookAsk } from "./address.ts";
@@ -29,8 +52,9 @@ import { ControlPanel, type Extra } from "./ControlPanel";
 import { createExtras, type Extras, type ExtrasNote, type ExtrasState, type TrayModel } from "./extras.ts";
 import { KeyControl, KeyRow } from "./KeyControl";
 import { createPatcher } from "./patcher.ts";
+import { PlayViewPanel } from "./PlayViewPanel";
 import { PresetBar } from "./PresetBar";
-import { deletePreset, listPresets, savePreset, type Preset } from "./presetApi.ts";
+import { deletePreset, getPlayView, listPresets, putPlayView, savePreset, type Preset } from "./presetApi.ts";
 import { roomItems } from "./RoomGrid";
 
 // What the mouse changes in the scene's state behind the page's back (SceneCanvas: drag, wheel, double click), and what the
@@ -44,8 +68,7 @@ const typing = (t: EventTarget | null) =>
 
 export type SceneEditor = ReturnType<typeof useSceneEditor>;
 
-/** page.geometri: the page's perspective word (Scen's Standard or Bred lins), saved with Casino's preset. */
-export function useSceneEditor(firstLook: () => LookAsk, page: { geometri?: string } = {}) {
+export function useSceneEditor(firstLook: () => LookAsk) {
   const toast = useToast();
 
   // ── the look asked for: the address, read once and again when it changes from outside (ask) ──
@@ -76,6 +99,33 @@ export function useSceneEditor(firstLook: () => LookAsk, page: { geometri?: stri
   }, [reloadPresets]);
   const presetOf = useCallback((name: string) => presets.find((p) => p.name === name) ?? null, [presets]);
 
+  // ── the play view: one framing for a computer and one for a phone, for every look; the game's own until it is read ──
+  const [view, setView] = useState<PlayView>(PLAY_VIEW);
+  const [viewRevision, setViewRevision] = useState<string | null>(null);
+  const [viewRead, setViewRead] = useState(false);
+  const readView = useCallback(async () => {
+    try {
+      const { revision, ...read } = await getPlayView();
+      setView(read);
+      setViewRevision(revision);
+    } catch (error) {
+      // the copy on the net from before the play view has none: it shows the game's own, as its game does
+      if (!isSnapshot) toast({ tone: "bad", title: "Spelvyn kunde inte läsas", detail: `${asApiError(error, "Spelvyn").message} Scen visar spelets egen inramning.` });
+    } finally {
+      setViewRead(true);
+    }
+  }, [toast]);
+  useEffect(() => {
+    void readView();
+  }, [readView]);
+
+  // ── Visa: the recording, or what the player sees on a computer or a phone; Scen opens on Dator. While Visa shows another, the
+  // framing Dator has for the look is kept here, so that the look (what a save keeps, the address) stays what Dator shows. ──
+  const [visa, setVisa] = useState<Visa>("fill");
+  const [kept, setKept] = useState<Framing | null>(null);
+  // The look's own framing: on when the look opened names one; a save keeps zoom, pitch and yaw only then.
+  const [own, setOwn] = useState(false);
+
   // ── the rooms of the register ──
   const [register, setRegister] = useState<RegisterRoom[]>([]);
   useEffect(() => {
@@ -102,28 +152,49 @@ export function useSceneEditor(firstLook: () => LookAsk, page: { geometri?: stri
   const patcher = useMemo(() => createPatcher(() => sceneRef.current), []);
   useEffect(() => () => patcher.dispose(), [patcher]);
 
-  const baseline = useMemo(() => (defaults ? effective(defaults, presetOf(BASE)?.state ?? SHIPPED[0].state) : null), [defaults, presetOf]);
-  const initial = initialSceneState({ asked, current, comparison: comparing ? baseline : null, needApply });
-  const originState = useMemo(() => (defaults ? effective(defaults, (presetOf(origin) ?? presetOf(BASE))?.state ?? {}) : null), [defaults, presetOf, origin]);
+  // A look's whole state as looks are compared: the play view's Dator under it (a look's own framing goes first), and the
+  // format left at the scene's own, since it is Scen's Visa and no part of a look.
+  const lookOf = useCallback((state: Partial<SceneState>) => (defaults ? { ...effective(defaults, state, view.dator), format: defaults.format } : null), [defaults, view.dator]);
+  // The baseline under the same Visa as the scene, so that a key differs only when the picture does.
+  const baseline = useMemo(() => {
+    const look = lookOf(presetOf(BASE)?.state ?? SHIPPED[0].state);
+    return look ? shownState(look, visa, view.mobil) : null;
+  }, [lookOf, presetOf, visa, view.mobil]);
+  const initial = initialSceneState({ asked, current, comparison: comparing ? baseline : null, needApply, view: { ...view.dator, format: visa } });
+  const originState = useMemo(() => lookOf((presetOf(origin) ?? presetOf(BASE))?.state ?? {}), [lookOf, presetOf, origin]);
+  // The look on screen: Dator's framing (kept while Visa shows another), the format left out.
+  const look = useMemo(() => (current && defaults ? { ...current, ...(visa !== "fill" && kept ? kept : {}), format: defaults.format } : null), [current, defaults, visa, kept]);
   const differ = useMemo(() => new Set(current && baseline ? differences(current, baseline) : []), [current, baseline]);
-  const active = current && defaults ? (matchPreset(current, defaults, presets, origin)?.name ?? null) : null;
-  const changedFromOrigin = !!(current && originState && differences(current, originState).length);
+  const active = look && defaults ? (matchPreset(look, defaults, presets, origin, view.dator)?.name ?? null) : null;
+  const changedFromOrigin = !!(look && originState && lookDifferences(look, originState).length);
 
-  // The look the address asks for, once the scene is there and the preset it names is known.
+  // Shows a look's whole state (with the play view's Dator) under Visa, and makes it the look on screen.
+  const show = useCallback(
+    (state: Partial<SceneState>, name: string) => {
+      const s = sceneRef.current;
+      if (!s || !defaults) return;
+      const whole = effective(defaults, state, view.dator);
+      const target = shownState(whole, visa, view.mobil);
+      patcher.now(patchOf(target, { ...s.state })); // the scene is told first; the panel follows it
+      setCurrent(target);
+      setKept(framingOf(whole));
+      setOrigin(name);
+    },
+    [defaults, view, visa, patcher],
+  );
+
+  // The look the address asks for, once the scene is there and the preset it names and the play view are known.
   useEffect(() => {
-    const s = sceneRef.current;
-    if (!needApply || !s || !defaults || !(presetsRead || isShipped(origin))) return;
+    if (!needApply || !sceneRef.current || !defaults || !viewRead || !(presetsRead || isShipped(origin))) return;
     let preset = presetOf(origin);
     if (!preset) {
       toast({ tone: "info", title: `Förvalet ${origin} finns inte`, detail: "Basgrunden visas i stället." });
       preset = presetOf(BASE);
     }
-    const target = effective(effective(defaults, preset?.state ?? {}), asked.patch);
-    patcher.now(patchOf(target, { ...s.state })); // the scene is told first; the panel follows it
-    setCurrent(target);
-    setOrigin(preset?.name ?? BASE);
+    show({ ...preset?.state, ...asked.patch }, preset?.name ?? BASE);
+    setOwn(hasOwnFraming(preset?.state ?? {}));
     setNeedApply(false);
-  }, [needApply, scene, defaults, presetsRead, origin, asked, presetOf, patcher, toast]);
+  }, [needApply, scene, defaults, viewRead, presetsRead, origin, asked, presetOf, show, toast]);
 
   // What the mouse did to the scene comes back into the panel; keys still on their way to the scene are not read back.
   const pull = useCallback(() => {
@@ -167,13 +238,35 @@ export function useSceneEditor(firstLook: () => LookAsk, page: { geometri?: stri
     patcher.set(patch);
   };
   const pick = (name: string) => {
-    const s = sceneRef.current;
     const preset = presetOf(name);
-    if (!s || !defaults || !preset) return;
-    const target = effective(defaults, preset.state);
-    patcher.now(patchOf(target, { ...s.state }));
-    setCurrent(target);
-    setOrigin(name);
+    if (!sceneRef.current || !defaults || !preset) return;
+    show(preset.state, name);
+    setOwn(hasOwnFraming(preset.state));
+  };
+  // The framing is set: in the panel, and in the scene at the next frame.
+  const frame = (patch: Partial<SceneState>) => {
+    setCurrent((was) => (was ? { ...was, ...patch } : was));
+    patcher.set(patch);
+  };
+  // Visa: Inspelningen is the film's own frame, Dator the look's framing (the play view's, or its own), Mobil the play view's.
+  const showAs = (next: Visa) => {
+    if (!current || next === visa) return;
+    const dator = visa === "fill" ? framingOf(current) : (kept ?? view.dator);
+    setKept(dator);
+    setVisa(next);
+    frame({ ...(next === "fill" ? dator : next === "mob" ? view.mobil : RECORDING), format: next });
+  };
+  // The framing the play view has for what Visa shows (none for the recording).
+  const viewFraming = visa === "mob" ? view.mobil : visa === "fill" ? view.dator : null;
+  const backToView = () => {
+    if (viewFraming) frame({ ...viewFraming });
+  };
+  // Off: the look follows the play view again, and Dator shows it so.
+  const ownFraming = (on: boolean) => {
+    setOwn(on);
+    if (on) return;
+    if (visa === "fill") frame({ ...view.dator });
+    else setKept(view.dator);
   };
   const compare = useCallback(
     (on: boolean) => {
@@ -238,14 +331,13 @@ export function useSceneEditor(firstLook: () => LookAsk, page: { geometri?: stri
   // ── saving ──
   const canSave = !isSnapshot;
   const [savingCasino, setSavingCasino] = useState(false);
-  // Casino's preset carries the perspective Scen shows, however it is saved (Jakob 2026-11-21): Bred lins as geometri=kontrakt,
-  // Standard as no word at all, so that a file without it means Standard as before. His other presets carry no perspective.
-  const bred = page.geometri === BRED_LINS;
-  // A named preset: revision is the one last read when the name exists, null for a new one.
+  // A named preset: revision is the one last read when the name exists, null for a new one. The look's lens is one of its keys
+  // (lins): saved with it like the rest, Bred lins as lins=bred, Standard as the scene's default. Visa is never saved, and the
+  // framing only when the look has its own (savedState).
   const saveAs = async (name: string, label: string, about: string, revision: string | null) => {
-    if (!current || !defaults) return;
+    if (!look || !defaults) return;
     try {
-      await savePreset(name, { label, about, state: patchOf(current, defaults), ...savedGeometri(name, bred) }, revision);
+      await savePreset(name, { label, about, state: savedState(look, defaults, own) }, revision);
     } catch (error) {
       void reloadPresets(); // made or changed in another tab: the bar shows it as the lab holds it, and the next try can work
       throw error;
@@ -257,9 +349,10 @@ export function useSceneEditor(firstLook: () => LookAsk, page: { geometri?: stri
   const useInCasino = async () => {
     if (!canSave || savingCasino || !presetsRead || !current || !defaults) return;
     setSavingCasino(true);
+    const lens = current.lins === "bred" ? "Bred lins" : "Standard";
     try {
       await saveAs(CASINO_PRESET, "Casino", "Casinos sparade visning, vald i Bordet.", presetOf(CASINO_PRESET)?.revision ?? null);
-      toast({ tone: "ok", title: "Casino använder den här visningen", detail: `Med ${bred ? "Bred lins" : "Standard"}. Sparat för nästa gång du öppnar Casino; Casinot på nätet får det vid nästa publicering.` });
+      toast({ tone: "ok", title: "Casino använder den här visningen", detail: `Med ${lens}. Sparat för nästa gång du öppnar Casino; Casinot på nätet får det vid nästa publicering.` });
     } catch (error) {
       toast({ tone: "bad", title: "Casino-valet kunde inte sparas", detail: asApiError(error).message });
     } finally {
@@ -277,6 +370,28 @@ export function useSceneEditor(firstLook: () => LookAsk, page: { geometri?: stri
     }
     await reloadPresets();
     if (origin === p.name) setOrigin(BASE);
+  };
+  // The sliders as the play view's Dator or Mobil, whichever Visa shows, for every look; against the revision last read.
+  const [savingView, setSavingView] = useState(false);
+  const saveView = async () => {
+    if (!canSave || savingView || !current || visa === "desk") return;
+    const framing = framingOf(current);
+    const name = visa === "mob" ? "Mobil" : "Dator";
+    setSavingView(true);
+    try {
+      const { revision, ...saved } = await putPlayView({ dator: visa === "fill" ? framing : view.dator, mobil: visa === "mob" ? framing : view.mobil }, viewRevision);
+      setView(saved);
+      setViewRevision(revision);
+      toast({ tone: "ok", title: `Spelvyn för ${name} är sparad`, detail: "Den gäller alla utseenden." });
+    } catch (error) {
+      const e = asApiError(error, "Spelvyn");
+      if (e.status === 409) {
+        await readView();
+        toast({ tone: "info", title: "Spelvyn har ändrats i en annan flik", detail: "Den är inläst på nytt." });
+      } else toast({ tone: "bad", title: "Spelvyn kunde inte sparas", detail: e.message });
+    } finally {
+      setSavingView(false);
+    }
   };
 
   // ── what the panel shows beside the keys ──
@@ -346,9 +461,9 @@ export function useSceneEditor(firstLook: () => LookAsk, page: { geometri?: stri
   };
 
   const originPreset = presetOf(origin) ?? presetOf(BASE);
-  const settled = !!(current && originState && !needApply);
+  const settled = !!(look && originState && !needApply);
   // The keys that differ from the preset the look started from: what a link carries beside the preset's name.
-  const keys = settled ? patchOf(current!, originState!) : asked.patch;
+  const keys = settled ? patchOf(look!, originState!) : asked.patch;
   const forval = settled ? (originPreset?.name ?? BASE) : asked.forval;
 
   const bar = (
@@ -378,9 +493,39 @@ export function useSceneEditor(firstLook: () => LookAsk, page: { geometri?: stri
     current && baseline ? (
       <ControlPanel current={current} baseline={baseline} differ={differ} rooms={rooms} extras={extraRows} onChange={change} onReset={(k) => change(k, baseline[k])} only={["kort"]} />
     ) : null;
+  const spelvy =
+    current && baseline ? (
+      <PlayViewPanel
+        visa={visa}
+        current={current}
+        baseline={baseline}
+        differ={differ}
+        onVisa={showAs}
+        onChange={change}
+        onReset={(k) => change(k, baseline[k])}
+        atView={!!viewFraming && sameFraming(framingOf(current), viewFraming)}
+        onBackToView={backToView}
+        canSave={canSave}
+        savingView={savingView}
+        onSaveView={() => void saveView()}
+        own={own}
+        onOwn={ownFraming}
+      />
+    ) : null;
   const panel =
     current && baseline ? (
-      <ControlPanel current={current} baseline={baseline} differ={differ} rooms={rooms} extras={extraRows} onChange={change} onReset={(k) => change(k, baseline[k])} without={["kort"]} first={cardChoice} />
+      <ControlPanel
+        current={current}
+        baseline={baseline}
+        differ={differ}
+        rooms={rooms}
+        extras={extraRows}
+        onChange={change}
+        onReset={(k) => change(k, baseline[k])}
+        without={["kort"]}
+        first={cardChoice}
+        bodies={{ spelvy }}
+      />
     ) : (
       <div className="flex flex-col gap-3 p-4" aria-busy>
         <Skeleton className="h-8 w-full rounded-md" />
@@ -422,9 +567,11 @@ export function useSceneEditor(firstLook: () => LookAsk, page: { geometri?: stri
     changed: changedFromOrigin,
     count: differ.size,
     /** The look as the address writes it: "forval=levande&dust=0.8". */
-    lookText: settled ? lookPart(forval, current!, originState!) : askedPart(asked),
-    /** The Casino view with this look. */
+    lookText: settled ? lookPart(forval, look!, originState!) : askedPart(asked),
+    /** The Casino view with this look (its lens among the keys). */
     casino: casinoAddress(forval, keys),
+    /** The look's lens now (the key lins): Standard or Bred lins. */
+    lins: current?.lins ?? initial.lins ?? LINS,
     savingCasino,
     useInCasino,
     /** Card places from Jakob's plan for the round; read: the plan has been read, or could not be. */

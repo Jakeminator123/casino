@@ -12,7 +12,7 @@ import { filmToPlan, planCardQuad, planTaper, planToFilm, screenMeasure, through
 import { readFile } from 'node:fs/promises';
 import { VIEWS, flatQuad, quad } from '../src/placement-model.ts';
 import { CARD, FILM, SEAT_FOUR_CARD, cardCorners, feltToPixel, inFrame, lensForFocal, pixelToFelt, planPixel, type Lens, type Vec3 } from '../src/table-lens.ts';
-import { PLAN_CARD_SIZE, TABLE_GEOMETRY, cardGrow, cardPlace, keystone, planCardAt, planCardFrom, planShape, tableGeometry } from '../src/card-plan.ts';
+import { LINS, PLAN_CARD_SIZE, cardGrow, cardPlace, keystone, linsOfAlias, planCardAt, planCardFrom, planShape } from '../src/card-plan.ts';
 import { planScene, poseAt, restingQuad, sceneOf, type CardTrack } from '../src/card-overlay.ts';
 import { cardOptions, placedCards } from '../src/game-film.ts';
 import { createLayout, slotLabel, type Slot, type TableCards } from '../src/game-table.ts';
@@ -98,7 +98,7 @@ test('the perspective is stored with the table\'s projection: absent is seat 4\'
   for (const bad of [0.5, 0.74, 0.79, 0.97, 1.2, '0.87', null, Number.NaN]) assert.throws(() => validatePlan({ ...p, tableProjection: { mode: 'flat', heading: 0, perspective: bad as number } }), `${bad}`);
   assert.throws(() => validatePlan({ ...p, tableProjection: { mode: 'flat', heading: 0, perspective: 0.87, extra: true } as never }));
   for (const bad of [0.5, 0.79, 1]) assert.throws(() => setTablePerspective(p, bad));
-  assert.equal(p.targets['P1.C1'].geometry.native.reviewed, plan().targets['P1.C1'].geometry.native.reviewed, 'the places stay as they were');
+  assert.deepEqual(p.targets['P1.C1'].geometry.native, plan().targets['P1.C1'].geometry.native, 'the places stay as they were');
 });
 
 // ---- one geometry for the table ----------------------------------------------------------------------------------------------
@@ -130,7 +130,7 @@ const headingOf = (plan: PlacementPlan) => ((plan.tableProjection?.heading ?? 0)
 // The four ways one card of the plan is drawn, each in film pixels and in the card's own corner order.
 function ways(plan: PlacementPlan, id: string, lens: Lens = TABLE_LENS) {
   const lab = planCardQuad(plan, id, 'native', lens).map(planToFilm);
-  const game = createLayout(plan, {geometry: 'lens', lens}).quad(slotOfTarget(id));
+  const game = createLayout(plan, {lins: 'standard', lens}).quad(slotOfTarget(id));
   const rest = restingQuad(planScene(null, plan, lens), game, 1).quad;
   // the 3D scene: the card place laid on the felt by the scene's film camera (cardSpots, dealer metres), a real card there in the
   // scene's metres, its corners through the scene's own projection (filmPixel), in the plan's shape
@@ -140,39 +140,25 @@ function ways(plan: PlacementPlan, id: string, lens: Lens = TABLE_LENS) {
   return {lab, game, rest, scene};
 }
 
-test('the default follows the lens Jakob chose in comparison B; the old geometry stays explicit', () => {
-  // Changing this line of src/card-plan.ts is his yes. docs/SYSTEM.md, "Ritade kort", names the code that is then left over.
-  assert.equal(TABLE_GEOMETRY, 'lens');
-  assert.equal(tableGeometry(null), TABLE_GEOMETRY); assert.equal(tableGeometry(''), TABLE_GEOMETRY); assert.equal(tableGeometry('?kort=liggande'), TABLE_GEOMETRY);
-  assert.equal(tableGeometry('?geometri=lins'), 'lens'); assert.equal(tableGeometry('?dealer=paow&geometri=lins&kort=hand'), 'lens');
-  assert.equal(tableGeometry('?geometri=kontrakt'), 'contract'); assert.equal(tableGeometry('?geometri=annat'), TABLE_GEOMETRY);
-  for (const word of ['constructor', '__proto__', 'toString']) assert.equal(tableGeometry(`?geometri=${word}`), TABLE_GEOMETRY, word);
-});
-
-test('a saved look\'s geometry (Casino\'s Bred lins, Jakob 2026-11-21) counts only where the address has no word of its own', () => {
-  // the game page: tableGeometry(location.search, the preset's geometri)
-  assert.equal(tableGeometry('?forval=casino&table=casino', 'kontrakt'), 'contract', 'the plain Casino link plays the saved Bred lins');
-  assert.equal(tableGeometry('?forval=casino&geometri=lins', 'kontrakt'), 'lens', 'Prova i Casino with Standard keeps Standard');
-  assert.equal(tableGeometry('?forval=casino&geometri=kontrakt', null), 'contract', 'Prova i Casino with Bred lins');
-  assert.equal(tableGeometry('?forval=casino&geometri=annat', 'kontrakt'), 'contract', 'a word the page does not know is no word');
-  assert.equal(tableGeometry('?forval=casino', null), TABLE_GEOMETRY, 'a preset saved before 2026-11-21 is Standard');
-  assert.equal(tableGeometry('?forval=casino', 'annat'), TABLE_GEOMETRY); assert.equal(tableGeometry('?forval=casino', 'constructor'), TABLE_GEOMETRY);
-  // the film before the game (cloud/studio/gate.ts TRAILER_HOME) names neither a preset nor a geometry: as before, the default
-  const trailer = '?intro=noir-3&room=monaco&roomLife=1&table=casino&dealer=paow';
-  assert.equal(tableGeometry(trailer, null), tableGeometry(trailer)); assert.equal(tableGeometry(trailer, null), 'lens');
+test('the default lens is the film\'s own, the one Jakob chose in comparison B; the older word is read as an alias only', () => {
+  // Changing this line of src/card-plan.ts is his yes. The card plan, Inspelning and every order always follow 'standard'.
+  assert.equal(LINS, 'standard');
+  assert.equal(linsOfAlias('lins'), 'standard'); assert.equal(linsOfAlias('kontrakt'), 'bred');
+  // the alias knows the two older words and nothing else: not the key's own values, and no name of Object's
+  for (const word of ['annat', '', 'bred', 'standard', 'constructor', '__proto__', 'toString', null, undefined, 1]) assert.equal(linsOfAlias(word), null, String(word));
 });
 
 test('the game as it was: the older rule gives the same lying cards pixel for pixel, also where a place is made up', () => {
   // before this rule the game laid a card with flatQuad and its own factor for the film's width (1763 / 1761)
-  const FILM_X = 1763 / 1761, plan = testPlan(), layout = createLayout(plan, {geometry: 'contract'}), reference = plan.targets['P4.C1'].geometry.native;
+  const FILM_X = 1763 / 1761, plan = testPlan(), layout = createLayout(plan, {lins: 'bred'}), reference = plan.targets['P4.C1'].geometry.native;
   for (const id of TARGETS) outlines(layout.quad(slotOfTarget(id)), flatQuad(plan.targets[id].geometry.native, reference, 'native', 0).map(p => ({x: p.x * FILM_X, y: p.y})), id, 1e-9);
-  const own = cardByCard(plan), card = createLayout(own, {geometry: 'contract'});
+  const own = cardByCard(plan), card = createLayout(own, {lins: 'bred'});
   for (const id of ['P1.C1', 'P4.C2', 'D.C2']) outlines(card.quad(slotOfTarget(id)), quad(own.targets[id].geometry.native, 'native').map(p => ({x: p.x * FILM_X, y: p.y})), id, 1e-9);
   // the dealer's third card lies where its film lays it, as before (its place written in film pixels)
   const third = layout.centre({owner: 'D', seat: 0, hand: 0, hands: 1, index: 2});
   assert.ok(Math.hypot(third.x - 1069, third.y - 926) < 3);
-  // and with nothing said the layout follows TABLE_GEOMETRY
-  for (const id of ['P1.C1', 'P7.C2', 'D.C1']) outlines(createLayout(plan).quad(slotOfTarget(id)), createLayout(plan, {geometry: TABLE_GEOMETRY}).quad(slotOfTarget(id)), id, 0);
+  // and with nothing said the layout follows the default lens (LINS)
+  for (const id of ['P1.C1', 'P7.C2', 'D.C1']) outlines(createLayout(plan).quad(slotOfTarget(id)), createLayout(plan, {lins: LINS}).quad(slotOfTarget(id)), id, 0);
 });
 
 test('pixel and metre, in one place: the scene\'s film camera from the lens is the lens', () => {
@@ -248,7 +234,7 @@ test('when the picture\'s size changes, all of them change together', () => {
 });
 
 test('extra cards, split hands and the dealer\'s third card go the same way: a real card at the place the game makes up', () => {
-  const plan = testPlan(0.9), layout = createLayout(plan, {geometry: 'lens'}), shape = planShape(plan), scene = planScene(sceneOf(contract), plan);
+  const plan = testPlan(0.9), layout = createLayout(plan, {lins: 'standard'}), shape = planShape(plan), scene = planScene(sceneOf(contract), plan);
   const slots: Slot[] = [{owner: 'P', seat: 4, hand: 0, hands: 1, index: 2}, {owner: 'P', seat: 4, hand: 0, hands: 1, index: 4}, {owner: 'P', seat: 4, hand: 1, hands: 2, index: 0}, {owner: 'P', seat: 1, hand: 2, hands: 3, index: 1},
     {owner: 'P', seat: 7, hand: 1, hands: 2, index: 3}, {owner: 'D', seat: 0, hand: 0, hands: 1, index: 2}, {owner: 'D', seat: 0, hand: 0, hands: 1, index: 4}];
   for (const slot of slots) {
@@ -289,7 +275,7 @@ test('the game sends the layout gloss for a split hand and a third card', () => 
   const plan = testPlan(0.9);
   plan.targets['P4.C1'].material.gloss = 0;
   plan.targets['P4.C2'].material.gloss = 0.83;
-  const layout = createLayout(plan, {geometry: 'lens'});
+  const layout = createLayout(plan, {lins: 'standard'});
   const cards = [1, 5, 9].map(shoeDraw => ({shoeDraw, target: 'P4', r: '7', s: 'hearts'}));
   for (const {hands, shoeDraw, slot, target, gloss} of [
     {hands: [{seat: 4, cards: [1]}, {seat: 4, cards: [5, 9]}], shoeDraw: 1, slot: {owner: 'P', seat: 4, hand: 0, hands: 2, index: 0}, target: 'P4.H1.C1', gloss: 0},
@@ -339,11 +325,11 @@ test('the same settings give the same picture under the lens: a framing written 
 });
 
 test('Kortens storlek is a share of the plan\'s card in both geometries: the scene\'s default is a real card under the lens', () => {
-  assert.equal(cardGrow(PLAN_CARD_SIZE, 'lens'), 1); assert.equal(cardGrow(1.65, 'lens'), 1.65 / PLAN_CARD_SIZE); assert.equal(cardGrow(PLAN_CARD_SIZE, 'contract'), PLAN_CARD_SIZE); assert.equal(cardGrow(2, 'contract'), 2);
+  assert.equal(cardGrow(PLAN_CARD_SIZE, 'standard'), 1); assert.equal(cardGrow(1.65, 'standard'), 1.65 / PLAN_CARD_SIZE); assert.equal(cardGrow(PLAN_CARD_SIZE, 'bred'), PLAN_CARD_SIZE); assert.equal(cardGrow(2, 'bred'), 2);
   // so the game's card at its default size is the outline the studio's Inspelning draws
-  const plan = testPlan(0.9), layout = createLayout(plan, {geometry: 'lens'}), scene = planScene(sceneOf(contract), plan);
-  for (const id of ['P1.C1', 'P4.C1', 'P6.C2', 'D.C2']) outlines(restingQuad(scene, layout.quad(slotOfTarget(id)), cardGrow(PLAN_CARD_SIZE, 'lens')).quad, planCardQuad(plan, id, 'native').map(planToFilm), id);
+  const plan = testPlan(0.9), layout = createLayout(plan, {lins: 'standard'}), scene = planScene(sceneOf(contract), plan);
+  for (const id of ['P1.C1', 'P4.C1', 'P6.C2', 'D.C2']) outlines(restingQuad(scene, layout.quad(slotOfTarget(id)), cardGrow(PLAN_CARD_SIZE, 'standard')).quad, planCardQuad(plan, id, 'native').map(planToFilm), id);
   // and by the contract the same setting is the older plan's outline at seat 4 within a twentieth (why 1.2 was the default)
-  const older = createLayout(plan, {geometry: 'contract'}).quad(slotOfTarget('P4.C1')), drawn = restingQuad(sceneOf(contract)!, older, cardGrow(PLAN_CARD_SIZE, 'contract')).quad, wide = (q: Pixel[]) => Math.hypot(q[2].x - q[3].x, q[2].y - q[3].y);
+  const older = createLayout(plan, {lins: 'bred'}).quad(slotOfTarget('P4.C1')), drawn = restingQuad(sceneOf(contract)!, older, cardGrow(PLAN_CARD_SIZE, 'bred')).quad, wide = (q: Pixel[]) => Math.hypot(q[2].x - q[3].x, q[2].y - q[3].y);
   near(wide(drawn) / wide(older), 1, 0.05, 'the contract\'s card at 1.2 against the older plan\'s card at seat 4');
 });

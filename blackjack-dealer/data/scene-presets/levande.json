@@ -4,13 +4,10 @@
   "label": "Levande",
   "about": "Basgrund med det Jakob minns av den första 3D-scenen: kameran lutar men gungar inte, skärpan följer kortet, damm i luften och klockan.",
   "state": {
-    "format": "fill",
     "room": "panorama",
     "blur": 5,
     "tray": true,
     "cards": true,
-    "pitch": -8,
-    "zoom": 0.84,
     "roomShift": "shimmer",
     "mode": "lean",
     "focus": "follow",

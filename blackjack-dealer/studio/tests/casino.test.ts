@@ -2,17 +2,16 @@
 // The game page's side, reading the same address, is tested in tools/game-look.test.ts.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { tableGeometry } from "../../src/card-plan.ts";
 import { DEFAULTS } from "../../src/scene3d-view.ts";
 import { readLook } from "../../src/game-look.ts";
 import { cardsChoice, cardWords } from "../../src/game-film.ts";
-import { CASINO_TABLE, ONLINE_CASINO, casinoAddress, casinoSearch, freshTable, gameSrc, readCasino, readGeometryWord, scenHref, shownGeometry, trialAddress, withGeometry } from "../lib/casino.ts";
-import { BRED_LINS, CASINO_PRESET, SHIPPED, effective, patchOf, readAddress, savedGeometri } from "../lib/scene-presets.ts";
+import { CASINO_TABLE, ONLINE_CASINO, casinoAddress, casinoSearch, freshTable, gameSrc, readCasino, scenHref } from "../lib/casino.ts";
+import { CASINO_PRESET, SHIPPED, effective, patchOf, presetInForm, readAddress, savedState } from "../lib/scene-presets.ts";
 
 const params = (text: string) => new URLSearchParams(text);
 
 test("Casino keeps explicit card, tempo and diagnosis choices in its address and the actual game frame", () => {
-  const input = params("forval=levande&table=carry-ab&geometri=lins&kort=liggande&cardBack=dark&cardFace=paper&dealTempo=1.12&diagnos=1");
+  const input = params("forval=levande&table=carry-ab&kort=liggande&cardBack=dark&cardFace=paper&dealTempo=1.12&diagnos=1");
   const look = readCasino(input);
   assert.deepEqual(look.ignored, []);
   const canonical = params(casinoSearch(look));
@@ -79,61 +78,85 @@ test("a look goes round: the view's address, the game's frame and the Scen view 
   assert.deepEqual(readAddress(at), { forval: "rumsstudien", patch: look.patch, ignored: [] });
 });
 
-test("Casino, Scen and the lab links retain the explicit geometry with the selected look", () => {
+test("the lens is a key of the look: Casino, the game in the frame, Scen and Prova i Casino carry lins like any other key", () => {
   const lab = "http://127.0.0.1:4319";
-  for (const [word, mode] of [["lins", "lens"], ["kontrakt", "contract"]] as const) {
-    const original = readCasino(params(`forval=levande&cardHand=standard&pitch=-12&zoom=0.95&geometri=${word}`));
-    const scen = new URL(scenHref(original), lab);
-    assert.equal(scen.search, `?lage=scen&forval=levande&cardHand=standard&pitch=-12&zoom=0.95&geometri=${word}`);
-    const geometri = readGeometryWord(scen.searchParams);
-    const game = new URL(withGeometry(casinoAddress(original.forval, original.patch), geometri), lab);
-    const roundTrip = readCasino(game.searchParams);
-    assert.deepEqual(roundTrip, original);
-    const frame = new URL(gameSrc(roundTrip), lab);
-    assert.equal(tableGeometry(frame.search), mode);
-    assert.deepEqual(readLook(frame.searchParams).keys, original.patch);
-
-    assert.equal(withGeometry("/scene3d.html", geometri), `/scene3d.html?geometri=${word}`);
-  }
-  assert.equal(withGeometry("/scene3d.html", readGeometryWord(params("geometri=annat"))), "/scene3d.html");
-  assert.equal(withGeometry("/scene3d.html?geometri=kontrakt#bordet", "lins"), "/scene3d.html?geometri=lins#bordet");
-});
-
-test("Prova i Casino from Scen names Scen's perspective, Standard too, and the frame plays it whatever Casino has saved", () => {
-  const lab = "http://127.0.0.1:4319";
-  for (const [shown, word, mode] of [["kontrakt", "kontrakt", "contract"], ["lins", "lins", "lens"], [undefined, "lins", "lens"]] as const) {
-    const trial = new URL(trialAddress(casinoAddress("casino", { dust: 0.4 }), shown), lab);
-    assert.equal(trial.search, `?forval=casino&dust=0.4&geometri=${word}`, String(shown));
-    const look = readCasino(trial.searchParams);
-    assert.equal(look.geometri, word);
+  for (const lins of ["standard", "bred"] as const) {
+    const look = readCasino(params(`forval=levande&cardHand=standard&pitch=-12&zoom=0.95&lins=${lins}`));
+    assert.deepEqual(look, { forval: "levande", patch: { lins, cardHand: "standard", pitch: -12, zoom: 0.95 }, ignored: [], table: CASINO_TABLE });
+    // Kalibrera i Scen: the same look, the lens among its keys in the catalogue's order
+    const scen = new URL(scenHref(look), lab);
+    assert.equal(scen.search, `?lage=scen&forval=levande&lins=${lins}&cardHand=standard&zoom=0.95&pitch=-12`);
+    scen.searchParams.delete("lage");
+    assert.deepEqual(readAddress(scen.searchParams), { forval: "levande", patch: look.patch, ignored: [] });
+    // the game in the frame reads it as a key of the look (src/game-look.ts)
     const frame = new URL(gameSrc(look), lab);
-    // the game page: the address's word before the preset's (src/game-page.ts), so a Casino saved with Bred lins does not take over
-    for (const saved of [null, "kontrakt", "lins"]) assert.equal(tableGeometry(frame.search, saved), mode, `${shown} over ${saved}`);
+    assert.equal(frame.searchParams.get("lins"), lins);
+    assert.deepEqual(readLook(frame.searchParams).keys, look.patch);
+    // Prova i Casino from Scen: the Casino with Scen's preset and the keys that differ from it, the lens with them
+    assert.deepEqual(readCasino(new URL(casinoAddress(look.forval, look.patch), lab).searchParams), look);
   }
-  assert.equal(trialAddress("/game/?forval=casino", "annat"), "/game/?forval=casino&geometri=lins");
+  assert.deepEqual(readCasino(params("lins=kontrakt")).ignored, ["lins"], "only the two lenses");
 });
 
-test("the plain Casino link: no word in the address, the perspective saved with the preset, and Kalibrera i Scen carries it", () => {
-  const lab = "http://127.0.0.1:4319", plain = readCasino(params(""));
-  const bred = [{ name: "basgrund" }, { name: "casino", geometri: "kontrakt" }], standard = [{ name: "basgrund" }, { name: "casino" }];
-  assert.equal(shownGeometry(plain, bred), "kontrakt");
-  assert.equal(shownGeometry(plain, standard), undefined, "saved with Standard: no word");
-  assert.equal(shownGeometry(readCasino(params("geometri=lins")), bred), "lins", "the address's word first");
-  assert.equal(shownGeometry(readCasino(params("forval=levande")), bred), undefined, "another preset has its own");
-  assert.equal(shownGeometry(plain, [{ name: "casino", geometri: "constructor" }]), undefined);
-  // the frame is the same address either way; the game page reads the preset's word itself
-  const frame = new URL(gameSrc(plain), lab);
-  assert.equal(frame.searchParams.has("geometri"), false);
-  assert.equal(tableGeometry(frame.search, "kontrakt"), "contract");
-  assert.equal(tableGeometry(frame.search, null), "lens");
-  assert.equal(new URL(scenHref({ ...plain, geometri: shownGeometry(plain, bred) }), lab).searchParams.get("geometri"), "kontrakt");
-  assert.equal(new URL(scenHref({ ...plain, geometri: shownGeometry(plain, standard) }), lab).searchParams.has("geometri"), false);
+test("the lens's older word in an address is read as the key lins, never named as unknown, and written as lins", () => {
+  const lab = "http://127.0.0.1:4319";
+  for (const [word, lins, other] of [["kontrakt", "bred", "standard"], ["lins", "standard", "bred"]] as const) {
+    const look = readCasino(params(`forval=levande&dust=0.4&geometri=${word}`));
+    assert.deepEqual(look, { forval: "levande", patch: { dust: 0.4, lins }, ignored: [], table: CASINO_TABLE });
+    assert.equal(casinoSearch(look), `?forval=levande&dust=0.4&lins=${lins}&table=casino`);
+    const frame = new URL(gameSrc(look), lab).searchParams;
+    assert.equal(frame.has("geometri"), false);
+    assert.equal(readLook(frame).keys.lins, lins);
+    assert.equal(new URL(scenHref(look), lab).searchParams.get("lins"), lins);
+    assert.deepEqual(readAddress(params(`forval=levande&geometri=${word}`)), { forval: "levande", patch: { lins }, ignored: [] });
+    // the address's own lins goes first, in the studio as in the game
+    assert.deepEqual(readAddress(params(`geometri=${word}&lins=${other}`)).patch, { lins: other });
+    assert.equal(readLook(params(`geometri=${word}&lins=${other}`)).keys.lins, other);
+  }
+  // a value that is neither of the two is no word at all, as before
+  assert.deepEqual(readAddress(params("forval=levande&geometri=annat")), { forval: "levande", patch: {}, ignored: [] });
+  assert.deepEqual(readCasino(params("geometri=annat")), { forval: CASINO_PRESET, patch: {}, ignored: [], table: CASINO_TABLE });
 });
 
-test("only Casino's preset carries the perspective, and only under Bred lins; På nätet leads to the copy's Casino", () => {
-  assert.deepEqual(savedGeometri(CASINO_PRESET, true), { geometri: BRED_LINS });
-  assert.deepEqual(savedGeometri(CASINO_PRESET, false), {}, "saved with Standard: no word, the file as it was");
-  assert.deepEqual(savedGeometri("levande", true), {}, "another preset never carries it");
+test("a preset in the older form reads with its lens in the state; the new form is left as it is", () => {
+  const state = { room: "panorama", pitch: -8 } as const, rest = { schemaVersion: 1 as const, name: CASINO_PRESET, label: "Casino", about: "", updatedAt: "2026-11-21T10:00:00.000Z", shipped: false, revision: '"1"' };
+  // as a server started before 2026-11-26 answers Casino's look saved with Bred lins
+  const bred = presetInForm({ ...rest, state, geometri: "kontrakt" });
+  assert.deepEqual(bred, { ...rest, state: { ...state, lins: "bred" } });
+  assert.equal("geometri" in bred, false);
+  assert.deepEqual(presetInForm({ ...rest, state, geometri: "lins" }), { ...rest, state }, "Standard is the scene's default: no key");
+  assert.deepEqual(presetInForm({ ...rest, state: { ...state, lins: "standard" as const }, geometri: "kontrakt" }).state.lins, "standard", "the state's own lens goes first");
+  assert.deepEqual(presetInForm({ ...rest, state: { ...state, lins: "bred" as const } }), { ...rest, state: { ...state, lins: "bred" } });
+  assert.deepEqual(presetInForm({ ...rest, state, geometri: "annat" }), { ...rest, state });
+});
+
+test("a look saved with Bred lins plays Bred lins in the frame and opens with Bred lins in Scen; the address's lens goes over it", () => {
+  const lab = "http://127.0.0.1:4319";
+  // Använd i Casino saves what differs from the scene's DEFAULTS (useSceneEditor saveAs, savedState): Bred lins is lins=bred,
+  // Standard no key
+  const scen = effective(DEFAULTS, SHIPPED[0].state);
+  const saved = savedState({ ...scen, lins: "bred" }, DEFAULTS, false);
+  assert.equal(saved.lins, "bred");
+  assert.equal(savedState(scen, DEFAULTS, false).lins, undefined, "saved with Standard: no key");
+  for (const form of [{ state: saved }, presetInForm({ state: SHIPPED[0].state, geometri: "kontrakt" })]) {
+    // the rail's Casino (no words): the frame names no lens, so the game plays the preset's
+    const plain = readCasino(params(""));
+    const frame = new URL(gameSrc(plain), lab).searchParams;
+    assert.equal(frame.has("lins"), false);
+    assert.equal(effective(effective(DEFAULTS, form.state), readLook(frame).keys).lins, "bred");
+    // Kalibrera i Scen opens Casino's look, and Scen lays the preset's whole state over the defaults
+    const at = new URL(scenHref(plain), lab).searchParams;
+    at.delete("lage");
+    const asked = readAddress(at);
+    assert.equal(asked.forval, CASINO_PRESET);
+    assert.equal(effective(effective(DEFAULTS, form.state), asked.patch).lins, "bred");
+    // Prova i Casino with Standard over that look: the key in the address, which the game reads over the preset's
+    const trial = readCasino(new URL(casinoAddress(CASINO_PRESET, { lins: "standard" }), lab).searchParams);
+    assert.equal(effective(effective(DEFAULTS, form.state), readLook(new URL(gameSrc(trial), lab).searchParams).keys).lins, "standard");
+  }
+});
+
+test("På nätet leads to the copy's Casino", () => {
   assert.equal(ONLINE_CASINO, "https://dealer-lake.vercel.app/casino");
 });
 

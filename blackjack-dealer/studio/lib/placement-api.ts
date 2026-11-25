@@ -18,7 +18,7 @@ export async function readPlan(): Promise<SavedPlan> {
   try {
     validatePlan(plan);
   } catch (error) {
-    throw new ApiError(`Placeringsplanen går inte att läsa: ${(error as Error).message}`, 200, "server");
+    throw new ApiError(`Kortplanen går inte att läsa: ${(error as Error).message}`, 200, "server");
   }
   return { plan, revision: typeof answer?.revision === "string" ? answer.revision : "" };
 }
@@ -38,7 +38,7 @@ export async function writePlan(plan: PlacementPlan, revision: string): Promise<
   try {
     data = text ? JSON.parse(text) : null;
   } catch {}
-  if (!response.ok) throw new ApiError(String((data as { error?: unknown } | null)?.error ?? "") || `Placeringsplanen sparades inte (${response.status}).`, response.status, kindOf(response.status));
+  if (!response.ok) throw new ApiError(String((data as { error?: unknown } | null)?.error ?? "") || `Kortplanen sparades inte (${response.status}).`, response.status, kindOf(response.status));
   const saved = data as { plan?: unknown; revision?: unknown } | null;
   if (!saved?.plan || typeof saved.revision !== "string") throw new ApiError("Planen sparades men svaret gick inte att läsa. Läs in planen igen.", 200, "server");
   validatePlan(saved.plan);

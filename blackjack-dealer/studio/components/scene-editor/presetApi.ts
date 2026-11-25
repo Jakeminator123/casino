@@ -1,11 +1,14 @@
-// The scene's talk with the lab server (Bordet's Scen and Efterarbete): presets of the scene (/api/scene-presets, tools/scene-preset-store.ts) and the
-// one write to Jakob's placement plan it can make, the cards' bend and gloss (/api/placements), only on his click. In the
-// online copy nothing is written, and the presets are the three that ship with the studio when the copy has none.
+// The scene's talk with the lab server (Bordet's Scen and Efterarbete): presets of the scene (/api/scene-presets, tools/scene-preset-store.ts), the
+// play view (/api/play-view, tools/play-view-store.ts: how the game frames the picture on a computer and a phone, one for every
+// look) and the one write to Jakob's placement plan it can make, the cards' bend and gloss (/api/placements), only on his click. In the
+// online copy nothing is written, and the presets are the three that ship with the studio when the copy has none. A preset
+// is read in the form since 2026-11-26 (lib/scene-presets.ts presetInForm), whichever form the server or the copy answers.
+import { readPlayView, type Framing, type PlayView } from "../../../src/play-view.ts";
 import { TARGETS, validatePlan, type PlacementPlan } from "../../../src/placement-model.ts";
 import { ApiError, SNAPSHOT_REFUSAL, asApiError } from "../../lib/api.ts";
 import { labUrl } from "../../lib/lab.ts";
 import { isSnapshot } from "../../lib/mode.ts";
-import { SHIPPED, type ScenePreset } from "../../lib/scene-presets.ts";
+import { SHIPPED, presetInForm, type ScenePreset } from "../../lib/scene-presets.ts";
 
 export type Preset = ScenePreset & { shipped: boolean; revision: string | null };
 
@@ -35,25 +38,49 @@ export async function listPresets(): Promise<{ presets: Preset[]; problems: stri
   try {
     const answer = await call<{ presets: Preset[]; problems: string[] }>("api/scene-presets", "Förvalen");
     if (!Array.isArray(answer?.presets) || !answer.presets.length) throw new Error("tomt");
-    return { presets: answer.presets, problems: answer.problems ?? [], fromCopy: false };
+    return { presets: answer.presets.map(presetInForm), problems: answer.problems ?? [], fromCopy: false };
   } catch (error) {
     if (isSnapshot) return { presets: shipped(), problems: [], fromCopy: true };
     throw asApiError(error, "Förvalen");
   }
 }
 
-/** Saves one of his own; revision: the one last read when the name exists (an overwrite), null for a new name. geometri: Casino's perspective (lib/scene-presets.ts). */
-export async function savePreset(name: string, body: { label: string; about: string; state: ScenePreset["state"]; geometri?: string }, revision: string | null): Promise<Preset> {
+/** Saves one of his own; revision: the one last read when the name exists (an overwrite), null for a new name. */
+export async function savePreset(name: string, body: { label: string; about: string; state: ScenePreset["state"] }, revision: string | null): Promise<Preset> {
   const answer = await call<{ preset: Preset }>(`api/scene-presets/${encodeURIComponent(name)}`, "Förvalet", {
     method: "PUT",
     headers: { "content-type": "application/json", ...(revision ? { "if-match": revision } : {}) },
     body: JSON.stringify(body),
   });
-  return answer.preset;
+  return presetInForm(answer.preset);
 }
 
 export async function deletePreset(name: string, revision: string): Promise<void> {
   await call(`api/scene-presets/${encodeURIComponent(name)}`, "Förvalet", { method: "DELETE", headers: { "if-match": revision } });
+}
+
+// ── The play view ──
+/** The play view as read (src/play-view.ts readPlayView: what does not hold up is the game's own) and its revision; null while there is no file. */
+export type StoredPlayView = PlayView & { revision: string | null };
+const storedOf = (answer: unknown): StoredPlayView => {
+  const revision = (answer as { view?: { revision?: unknown } } | null)?.view?.revision;
+  return { ...readPlayView(answer), revision: typeof revision === "string" ? revision : null };
+};
+
+/** GET /api/play-view (the copy answers its frozen one). */
+export async function getPlayView(): Promise<StoredPlayView> {
+  return storedOf(await call<unknown>("api/play-view", "Spelvyn"));
+}
+
+/** Saves both framings against the revision last read (none while there is no file). Only from his click; never in the copy. */
+export async function putPlayView(framings: { dator: Framing; mobil: Framing }, revision: string | null): Promise<StoredPlayView> {
+  return storedOf(
+    await call<unknown>("api/play-view", "Spelvyn", {
+      method: "PUT",
+      headers: { "content-type": "application/json", ...(revision ? { "if-match": revision } : {}) },
+      body: JSON.stringify({ dator: framings.dator, mobil: framings.mobil }),
+    }),
+  );
 }
 
 // ── The cards' material in Jakob's placement plan ──

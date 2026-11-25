@@ -1,4 +1,4 @@
-// Pure geometry for the scene contract: table-plane homography, card projection, camera decomposition.
+// Pure geometry for the scene contract: table-plane homography, card projection, a synthetic pinhole camera.
 // No I/O. Table frame: millimetres on the felt, X toward image right, Y away from the camera (toward
 // the dealer), Z up. Image frame: pixels, origin top left, y down. A homography here always maps
 // table millimetres to image pixels and is stored row-major with its last element 1.
@@ -110,24 +110,6 @@ export function fitCardPose(H: Mat3, card: CardObservation, size: Size = CARD_MM
   const fit = levenbergMarquardt(p => cardResiduals(projectCard(H, {x: p[0], y: p[1], heading: p[2]}, size), card), start);
   return cardReport(H, {x: fit.p[0], y: fit.p[1], heading: fit.p[2]}, card, size);
 }
-// Size and squareness of an image quad when laid back onto the plane.
-export function quadOnPlane(H: Mat3, corners: Pt[]) {
-  const q = corners.map(p => applyH(inv3(H), p)), len = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y);
-  const angle = (o: Pt, a: Pt, b: Pt) => Math.acos(((a.x - o.x) * (b.x - o.x) + (a.y - o.y) * (b.y - o.y)) / (len(o, a) * len(o, b))) / RAD;
-  return {cornersMm: q, widthMm: (len(q[0], q[1]) + len(q[3], q[2])) / 2, heightMm: (len(q[0], q[3]) + len(q[1], q[2])) / 2, farWidthMm: len(q[0], q[1]), nearWidthMm: len(q[3], q[2]),
-    cornerAnglesDeg: [angle(q[0], q[1], q[3]), angle(q[1], q[2], q[0]), angle(q[2], q[3], q[1]), angle(q[3], q[0], q[2])],
-    centreMm: {x: (q[0].x + q[1].x + q[2].x + q[3].x) / 4, y: (q[0].y + q[1].y + q[2].y + q[3].y) / 4}};
-}
-
-// Shape of a quad in the image: side lengths, taper (far width / near width) and edge directions.
-export function quadShape(q: Pt[]) {
-  const len = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y), dir = (a: Pt, b: Pt) => Math.atan2(b.y - a.y, b.x - a.x) / RAD;
-  const far = len(q[0], q[1]), near = len(q[3], q[2]), left = len(q[0], q[3]), right = len(q[1], q[2]);
-  let area = 0; for (let i = 0; i < 4; i++) { const a = q[i], b = q[(i + 1) % 4]; area += a.x * b.y - b.x * a.y; }
-  return {centre: {x: (q[0].x + q[1].x + q[2].x + q[3].x) / 4, y: (q[0].y + q[1].y + q[2].y + q[3].y) / 4}, farWidth: far, nearWidth: near, leftSide: left, rightSide: right, taper: far / near,
-    depth: Math.hypot((q[0].x + q[1].x - q[2].x - q[3].x) / 2, (q[0].y + q[1].y - q[2].y - q[3].y) / 2), area: Math.abs(area) / 2,
-    farEdgeDeg: dir(q[0], q[1]), nearEdgeDeg: dir(q[3], q[2]), leftEdgeDeg: dir(q[3], q[0]), rightEdgeDeg: dir(q[2], q[1])};
-}
 
 // One plane for several cards of known size. The first card fixes the origin at its centre; every
 // other card keeps a free position and heading on the table. In the general model (eight numbers)
@@ -153,17 +135,6 @@ export function fitPlane(cards: CardObservation[], options: {levelRows?: boolean
 // Re-express a homography in a rotated and shifted table frame: old = R(rotationDeg) * new + origin.
 export function reframe(H: Mat3, origin: Pt, rotationDeg: number): Mat3 { const c = Math.cos(rotationDeg * RAD), s = Math.sin(rotationDeg * RAD); return normaliseH(mul3(H, [c, -s, origin.x, s, c, origin.y, 0, 0, 1])); }
 export function reframePose(pose: CardPose, origin: Pt, rotationDeg: number): CardPose { const c = Math.cos(rotationDeg * RAD), s = Math.sin(rotationDeg * RAD), dx = pose.x - origin.x, dy = pose.y - origin.y; return {x: c * dx + s * dy, y: -s * dx + c * dy, heading: pose.heading - rotationDeg}; }
-// Rotation that makes X the table direction parallel to the image plane (its lines stay parallel
-// to the horizon), pointing toward image right. Falls back to image-horizontal for an affine map.
-export function horizonRotation(H: Mat3): number {
-  const jx = (d: Pt) => { const a = applyH(H, {x: 0, y: 0}), b = applyH(H, {x: d.x * 1e-3, y: d.y * 1e-3}); return {x: (b.x - a.x) * 1e3, y: (b.y - a.y) * 1e3}; };
-  let d: Pt; const n = Math.hypot(H[6], H[7]);
-  if (n > 1e-12) d = {x: H[7] / n, y: -H[6] / n}; else { const ex = jx({x: 1, y: 0}), ey = jx({x: 0, y: 1}), t = Math.atan2(-ex.y, ey.y); d = {x: Math.cos(t), y: Math.sin(t)}; }
-  if (jx(d).x < 0) d = {x: -d.x, y: -d.y};
-  return Math.atan2(d.y, d.x) / RAD;
-}
-// Vanishing line of the table in the image: y on a given column and slope in degrees.
-export function horizon(H: Mat3, x: number) { const inv = inv3(H), a = inv[6], b = inv[7], c = inv[8]; return {y: -(a * x + c) / b, slopeDeg: Math.atan(-a / b) / RAD}; }
 
 // Synthetic pinhole: camera at (x, y, heightMm) in table millimetres, yaw 0 looks along +Y,
 // pitch is degrees below the horizontal, roll turns the image clockwise.
@@ -180,49 +151,6 @@ export function cameraHomography(cam: Camera): Mat3 {
   const {right, down, forward} = cameraAxes(cam), C = [cam.x, cam.y, cam.heightMm], t = [right, down, forward].map(a => -(a[0] * C[0] + a[1] * C[1] + a[2] * C[2]));
   return normaliseH([cam.focalPx * right[0] + cam.cx * forward[0], cam.focalPx * right[1] + cam.cx * forward[1], cam.focalPx * t[0] + cam.cx * t[2],
     cam.focalPx * down[0] + cam.cy * forward[0], cam.focalPx * down[1] + cam.cy * forward[1], cam.focalPx * t[1] + cam.cy * t[2], forward[0], forward[1], t[2]]);
-}
-
-// Pinhole behind a table homography, assuming square pixels, no skew and a known principal point
-// (image centre unless given). Two conditions bind one unknown focal length, so the two separate
-// focal estimates measure how well the plane fits such a camera. Returns null when no real focal
-// length satisfies them.
-export function decomposeHomography(H: Mat3, image: Size, principal?: Pt) {
-  const cx = principal?.x ?? (image.width - 1) / 2, cy = principal?.y ?? (image.height - 1) / 2;
-  const col = (j: number) => [H[j] - cx * H[6 + j], H[3 + j] - cy * H[6 + j], H[6 + j]], a = col(0), b = col(1), c = col(2);
-  const A1 = a[0] * b[0] + a[1] * b[1], B1 = a[2] * b[2], A2 = a[0] ** 2 + a[1] ** 2 - b[0] ** 2 - b[1] ** 2, B2 = a[2] ** 2 - b[2] ** 2;
-  const u = -(A1 * B1 + A2 * B2) / (A1 * A1 + A2 * A2);
-  if (!(u > 0) || !Number.isFinite(u)) return null;
-  const f = 1 / Math.sqrt(u), unit = (v: number[]) => { const n = Math.hypot(...v); return v.map(x => x / n); }, dot = (p: number[], q: number[]) => p[0] * q[0] + p[1] * q[1] + p[2] * q[2];
-  const cross = (p: number[], q: number[]) => [p[1] * q[2] - p[2] * q[1], p[2] * q[0] - p[0] * q[2], p[0] * q[1] - p[1] * q[0]];
-  const v1 = [a[0] / f, a[1] / f, a[2]], v2 = [b[0] / f, b[1] / f, b[2]], n1 = Math.hypot(...v1), n2 = Math.hypot(...v2);
-  let scale = 2 / (n1 + n2); if (c[2] * scale < 0) scale = -scale;
-  const r1 = unit(v1.map(x => x * scale)), raw2 = v2.map(x => x * scale), r2 = unit(raw2.map((x, i) => x - dot(raw2, r1) * r1[i])), r3 = cross(r1, r2), T = [c[0] / f * scale, c[1] / f * scale, c[2] * scale];
-  const centre = {x: -dot(r1, T), y: -dot(r2, T), z: -dot(r3, T)}, forward = [r1[2], r2[2], r3[2]], line = horizon(H, cx);
-  const camera: Camera = {focalPx: f, cx, cy, pitchDeg: Math.asin(Math.max(-1, Math.min(1, -forward[2]))) / RAD, rollDeg: -line.slopeDeg, yawDeg: Math.atan2(forward[0], forward[1]) / RAD, heightMm: centre.z, x: centre.x, y: centre.y};
-  return {camera, focalPx: f, focalFromOrthogonality: A1 * B1 < 0 ? Math.sqrt(-A1 / B1) : null, focalFromEqualLength: A2 * B2 < 0 ? Math.sqrt(-A2 / B2) : null,
-    axisAngleDeg: Math.acos(Math.max(-1, Math.min(1, dot(v1, v2) / (n1 * n2)))) / RAD, axisLengthRatio: n1 / n2, horizonY: line.y, horizonSlopeDeg: line.slopeDeg,
-    horizontalFovDeg: 2 * Math.atan(image.width / (2 * f)) / RAD, verticalFovDeg: 2 * Math.atan(image.height / (2 * f)) / RAD,
-    distanceToOriginMm: Math.hypot(centre.x, centre.y, centre.z), groundDistanceToOriginMm: Math.hypot(centre.x, centre.y), viewAngleAtOriginDeg: Math.atan2(centre.z, Math.hypot(centre.x, centre.y)) / RAD};
-}
-// The same decomposition with the principal point's x left free: for a centred, unsheared pinhole
-// both conditions hold for one f only at one cx. Returns the cx nearest the image centre.
-export function principalXFromHomography(H: Mat3, image: Size, cy = (image.height - 1) / 2): number | null {
-  const g = (cx: number) => { const p1 = H[0] - cx * H[6], p2 = H[1] - cx * H[7], q1 = H[3] - cy * H[6], q2 = H[4] - cy * H[7]; return (p1 * p2 + q1 * q2) * (H[6] ** 2 - H[7] ** 2) - (p1 ** 2 + q1 ** 2 - p2 ** 2 - q2 ** 2) * H[6] * H[7]; };
-  const k = 1000, g0 = g(0), g1 = g(k), g2 = g(2 * k), qa = (g2 - 2 * g1 + g0) / 2, qb = (g1 - g0) - qa, mid = (image.width - 1) / 2;
-  const roots = Math.abs(qa) < 1e-14 * Math.max(1, Math.abs(qb)) ? (Math.abs(qb) < 1e-300 ? [] : [-g0 / qb]) : (qb * qb - 4 * qa * g0 < 0 ? [] : [(-qb + Math.sqrt(qb * qb - 4 * qa * g0)) / (2 * qa), (-qb - Math.sqrt(qb * qb - 4 * qa * g0)) / (2 * qa)]);
-  return roots.length ? roots.map(r => r * k).reduce((best, r) => Math.abs(r - mid) < Math.abs(best - mid) ? r : best) : null;
-}
-
-// Axis-aligned placement of one frame inside another: p' = p * scale + offset, visible inside `clip`.
-export type FrameTransform = {id: string; scaleX: number; scaleY: number; offsetX: number; offsetY: number; clip: {left: number; top: number; right: number; bottom: number}};
-// V6 portrait: native 1762x1174 resized to 1586x1057, cropped at left=250 width=1080, placed at (0,80) on 1080x1920.
-export const V6_PORTRAIT: FrameTransform = {id: 'v6-portrait', scaleX: 1586 / 1762, scaleY: 1057 / 1174, offsetX: -250, offsetY: 80, clip: {left: 0, top: 80, right: 1080, bottom: 1137}};
-export const mapPoint = (t: FrameTransform, p: Pt): Pt => ({x: p.x * t.scaleX + t.offsetX, y: p.y * t.scaleY + t.offsetY});
-export function quadVisibility(t: FrameTransform, quad: Pt[]) {
-  const q = quad.map(p => mapPoint(t, p)), xs = q.map(p => p.x), ys = q.map(p => p.y), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-  const over = {left: Math.max(0, t.clip.left - x0), right: Math.max(0, x1 - t.clip.right), top: Math.max(0, t.clip.top - y0), bottom: Math.max(0, y1 - t.clip.bottom)};
-  const gone = x1 <= t.clip.left || x0 >= t.clip.right || y1 <= t.clip.top || y0 >= t.clip.bottom, cut = over.left + over.right + over.top + over.bottom > 0;
-  return {quad: q, box: {x0, y0, x1, y1}, overflow: over, state: gone ? 'OUTSIDE' as const : cut ? 'PARTLY_CUT' as const : 'INSIDE' as const};
 }
 
 // Deterministic noise for uncertainty runs and tests.

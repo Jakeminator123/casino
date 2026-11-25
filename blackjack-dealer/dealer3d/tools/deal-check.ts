@@ -4,7 +4,7 @@
 // right forearm and the camera's line of sight to it (near 0: the forearm points at the camera and is drawn short). A card
 // that moves less than 1 mm and turns less than 1 degree stands still. The turn counts a card and the same card with its
 // ends swapped as one (a card is the same rectangle either way).
-//   node dealer3d/tools/deal-check.ts dealer3d/data/giv-fran-2-3-p4-e.json [from] [to]
+//   node dealer3d/tools/deal-check.ts dealer3d/data/giv-fran-2-3-p4-f.json [from] [to]
 import {readFile} from 'node:fs/promises';
 import {CARD, TABLE_LENS, filmEye, see, cross, length, sub, add, mul, type Vec3} from '../../src/table-lens.ts';
 

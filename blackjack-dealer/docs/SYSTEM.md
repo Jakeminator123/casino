@@ -19,13 +19,25 @@ Originalmätningar och referenshashar bevaras; en adapter konverterar vid en utt
 
 ## Standarden: en kamera, ett bord, ett kort
 
-Två lager (Jakob 2026-11-25: "grunden måste vara densamma"). **Standarden** är de fasta måtten nedan: kameran, bordet,
-kortet, planens platser, skon och markerlådan. Allt utgår från den: dockan, Inspelning, Scens grund och varje beställd
-film, så att det som produceras alltid har samma mått. **Utseendet** läggs ovanpå i Scen när färdigt material sätts
-ihop, och sparas som ett förval (`data/scene-presets/`; Casino spelar förvalet `casino`): rum, bordsmodell, duk och
-filtfärg, bordets storlek, hur korten ritas, markerlåda och sko som modell, kamerans vy (vridning, zoom, flytt, format)
-och Bred lins. Reglagen och deras gränser står i `studio/lib/scene-keys.ts`. Ett utseende ändrar aldrig standardens
-mått: i Standard är scenens värld verkliga meter och skalan 1 vad ett förval än säger (`filmCamera` i
+Tre lager (Jakob 2026-11-25: "grunden måste vara densamma").
+
+- **Standarden** (inspelningen) är de fasta måtten nedan: kameran, bordet, kortet, planens platser, skon och
+  markerlådan. Allt utgår från den: dockan, Inspelning, Scens grund och varje beställd film, så att det som produceras
+  alltid har samma mått.
+- **Spelvyn** är hur spelet ramar in bilden för spelaren: en inramning för dator och en för mobil (zoom, lutning och
+  vridning från filmkamerans egen plats, så att filmen förblir exakt). Den sparas en gång, av Jakob i Scen ("Spara som
+  spelvy"), och gäller alla utseenden: `data/play-view.json`, `src/play-view.ts`, `tools/play-view-store.ts`,
+  `/api/play-view`. Utan fil gäller `PLAY_VIEW` där.
+- **Utseendet** läggs ovanpå i Scen när färdigt material sätts ihop, och sparas som ett förval
+  (`data/scene-presets/`; Casino spelar förvalet `casino`): rum, bordsmodell, duk och filtfärg, bordets storlek, hur
+  korten ritas, markerlåda och sko som modell, kamerans flytt och linsen (nyckeln `lins`: Standard eller Bred lins). Ett
+  utseende bär egen inramning bara när han har slagit på "Egen inramning i det här utseendet"; annars följer det
+  spelvyn. Vad Scen visar (Inspelningen, Dator eller Mobil) hör till Scen och sparas aldrig med utseendet.
+
+Lagren, sist vinner: scenens grund (`DEFAULTS` i `src/scene3d-view.ts`) → spelvyns Dator → utseendets nycklar →
+adressens nycklar (`lookState` i `src/game-look.ts`, `effective` i `studio/lib/scene-presets.ts`); på en telefon gäller
+alltid spelvyns Mobil. Reglagen och deras gränser står i `studio/lib/scene-keys.ts`. Ett utseende ändrar aldrig
+standardens mått: i Standard är scenens värld verkliga meter och skalan 1 vad ett förval än säger (`filmCamera` i
 `src/scene3d-view.ts`; Skala k hör till Bred lins och dealerns lins).
 
 Filmen, dockan, kortplanen, beställningens slutbild och 3D-scenen i Standard delar en kamera, ett bord och ett kort
@@ -61,9 +73,11 @@ Avvikelserna, med flit eller kvar:
   `src/card-plan.ts` tar P4.C1:s sparade 0,87 (gränserna i `TABLE_PERSPECTIVE`, `src/placement-model.ts`). Dockan och
   hennes referensfilm ritar ett verkligt kort (96 %). Skillnaden är högst 4 px i de bortre hörnen; de nära hörnen är
   desamma. Ett tal i planen (`tableProjection.perspective`) avgör det och kräver hans ord.
-- **Casino-vyn.** Spelets sparade Casino-vy är Bred lins (Jakob 2026-11-21; `data/scene-presets/casino.json`):
-  kontraktets äldre vida kamera (`data/scene-contract.json`, brännvidd 886 px, k = 2) och planens äldre plan för korten
-  (`flatQuad`), inte filmens lins.
+- **Bred lins.** Ett utseende kan välja Bred lins (nyckeln `lins: 'bred'`, levande i Scen och sparad med utseendet;
+  Casinos har den, Jakob 2026-11-21): kontraktets äldre vida kamera (`data/scene-contract.json`, brännvidd 886 px), ett
+  bord byggt i kontraktets skala k = 2 och planens äldre plan för korten (`flatQuad`), inte filmens lins. Inspelning,
+  dockan och beställningarna följer alltid Standard. Äldre adresser och förval säger `geometri=kontrakt`; ordet läses
+  som alias för nyckeln (`linsOfAlias` i `src/card-plan.ts`) och skrivs aldrig.
 - **Kortets riktning.** Dockan läser inte ett korts riktning (`angle`) ur planen; alla är 0 i dag.
 
 ## 3D-scenen
@@ -84,7 +98,8 @@ under `src/` skrivs först in i `SCRIPTS` i `tools/lab-routes.ts`, sedan omstart
 - **Gränssnittet** för spelsidan är `createScene` i dealermeter (x tvärs bordet, s från dealerkanten, y upp).
 - **Filmkön** (`players.play`): en ny kedja börjar när delen på skärmen är klar, `cut` byter direkt. `diagnos=1`
   (`src/game-diagnosis.ts`) skriver webbläsaren, senaste fel och köns läge på bilden.
-- **Filmkameran** läses ur `data/scene-contract.json`; med geometrin `lens` är den bordets lins (Ritade kort).
+- **Filmkameran** är under linsen Standard bordets lins (`TABLE_LENS`, Ritade kort) och under Bred lins kontraktets
+  (`data/scene-contract.json`); `scene.set({lins})` bygger om scenen under den andra kameran utan att sidan laddas om.
 
 ### Sko och markerbricka som GLB
 
@@ -133,10 +148,10 @@ Ingen vit kant (Jakob 2026-11-17, 2026-11-23). Kortet är rent tills efterarbete
   per ruta. Scenen ritar ett riktigt kort där med filmens kort nycklat bort, och bara när fyrhörningen är trolig.
 - **Ett kortformat:** planens kort är standard och allt annat anpassar sig ("Storleken är inte problemet, utan att det
   finns olika format").
-- **En geometri** (`TABLE_GEOMETRY` i `src/card-plan.ts`): `lens` är förval, ett verkligt kort 63 × 88 mm genom
+- **En lins som förval** (`LINS` i `src/card-plan.ts`): under Standard ett verkligt kort 63 × 88 mm genom
   `TABLE_LENS` (`src/table-lens.ts`); `planCardQuad` är enda regeln för planens kort, och plan, spel och scen håller
-  samma fyrhörning inom en hundradels bildpunkt (`tools/card-plan.test.ts`). Kontraktets äldre väg (`geometri=kontrakt`)
-  lever kvar i bland annat `createLayout`, `cameraFromContract` och `viewUnder`.
+  samma fyrhörning inom en hundradels bildpunkt (`tools/card-plan.test.ts`). Bred lins (Standarden ovan) lever kvar i
+  bland annat `createLayout`, `cameraFromContract` och `viewUnder`.
 - **En linje för korten** (Jakob 2026-11-13): ritade kort hela vägen, en storlek (`cardScale` 1,2 = ett verkligt kort,
   storlek 1,00 i Efterarbete), en brytare i spelet. Kortmattan är ett val i studion, inte spelets. Överlägg i handen
   (`cardInHand`) är av i grunden; hans val i Scen följer med Använd i Casino (2026-11-19, 2026-11-24). Det styva kortet
@@ -148,9 +163,12 @@ Ingen vit kant (Jakob 2026-11-17, 2026-11-23). Kortet är rent tills efterarbete
 trycker Spara (Jakob 2026-11-11, 2026-11-12); har han ställt in korten där gäller det (2026-11-23). Formen och
 `validatePlan` i `src/placement-model.ts`: geometri per `native`/`portrait` (bara `native` läses); `angle` grader medurs;
 `perspective` 0,80–0,96 ändrar bara kortens form, ett värde för alla (hans 87 %; 2026-11-18); `intent.grip` `PINCH`
-(A2.1) eller `DRAG` (A2.2), `turnAt` `AIR` eller `PLACE`. Av rörelsen väljs i studion bara sidan kortet ligger med
-(`intent.endSide`, Inspelning steg 2); ingången (A2.1 eller A2.3) är trädets, inte planens `intent.pass`, och de övriga
-fälten i `intent` läses bara av receptets text (`tools/order-store.ts`) och väljs ingenstans (2026-11-25).
+(A2.1) eller `DRAG` (A2.2), `turnAt` `AIR` eller `PLACE`. Av rörelsen väljs i studion bara sidan dealerns kort ligger
+med (`intent.endSide`, Inspelning steg 2; spelarens kort ligger alltid öppet); ingången (A2.1 eller A2.3) är trädets,
+inte planens `intent.pass`, och de övriga fälten i `intent` läses bara av receptets text (`tools/order-store.ts`) och
+väljs ingenstans (2026-11-25). Planen har inget eget läge för skon och ingen bock för Kontrollerad (2026-11-26): skons
+plats är standardens (`SHOE` i `src/table-lens.ts`), och en fil som har fälten `shoe` och `reviewed` läses och sparas
+utan dem. En plats flyttas på ett sätt: dra kortet i bilden, piltangenterna eller de två procentfälten.
 
 Bordets del Inspelning är filmens format, där planen ändras och en ny film beställs (Jakob 2026-11-25: "i och med att
 videon på själva dealern har ett format så är ju det en standard"; delen hette Kortplan, och i koden och adressen heter

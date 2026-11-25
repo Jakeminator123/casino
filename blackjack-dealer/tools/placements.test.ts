@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {defaultPlan,validatePlan,toPixels,fromPixels,quad,flatQuad,snapPoint,motionNodes,constrain,sequence,TARGETS,INTENT_DEFAULTS,SHOE_CARD,WINDOW_CARD,VIEWS,type Intent} from '../src/placement-model.ts';
+import {defaultPlan,validatePlan,toPixels,fromPixels,quad,flatQuad,motionNodes,constrain,sequence,TARGETS,INTENT_DEFAULTS,SHOE_CARD,WINDOW_CARD,VIEWS,type Intent} from '../src/placement-model.ts';
 import {placementStore,StoreError} from './placement-store.ts';
 
 test('pixel-centre transforms are invertible at both image edges and interior',()=>{
@@ -14,7 +14,6 @@ test('pixel-centre transforms are invertible at both image edges and interior',(
 test('seventeen draft slots have independent view geometry and coherent motion plans',()=>{
  const p=defaultPlan();validatePlan(p);assert.equal(Object.keys(p.targets).length,17);assert.equal(p.targets['D.C2'].intent.turn,false);assert.equal(p.targets['D.C3'].intent.endSide,'FRONT');assert.equal(p.targets['P4.C2'].intent.endSide,'BACK');assert.equal(p.targets['P4.C2'].intent.turn,false);
  const old=structuredClone(p.targets['P4.C2'].geometry.portrait);p.targets['P4.C2'].geometry.native.u=.7;assert.deepEqual(p.targets['P4.C2'].geometry.portrait,old);
- for(const id of TARGETS)assert.equal(p.targets[id].geometry.native.reviewed,false);
  const text=sequence('P4.C2',{takeHand:'LH',startSide:'BACK',endSide:'BACK',pass:true,turn:false,...INTENT_DEFAULTS});assert.match(text,/PASS\(LH>RH,BACK\)/);assert.match(text,/RELEASE\(RH\)/);assert.doesNotMatch(text,/\bTURN\(/);assert.match(text,/RETURN\(SHOE_READY\)$/);
 });
 
@@ -39,7 +38,7 @@ test('saved table projection is optional for legacy files and rejects unsupporte
  }
 });
 test('rotated silhouettes are constrained in pixel space, not stretched normalized angles',()=>{
- const g={u:.99,v:.01,width:.12,height:.08,angle:70,taper:1.4,reviewed:false};const c=constrain(g,'native');const q=quad(c,'native');
+ const g={u:.99,v:.01,width:.12,height:.08,angle:70,taper:1.4};const c=constrain(g,'native');const q=quad(c,'native');
  assert.ok(q.every(p=>p.x>=0&&p.y>=0&&p.x<=1761+.00001&&p.y<=1173+.00001));
  const unrotated=quad({...g,u:.5,v:.5,angle:0,taper:1},'native'),rotated=quad({...g,u:.5,v:.5,angle:90,taper:1},'native');
  assert.ok(Math.abs(Math.abs(unrotated[1].x-unrotated[0].x)-Math.abs(rotated[1].y-rotated[0].y))<1e-9);
@@ -59,13 +58,6 @@ test('one flat plane preserves P4 corners and all image centres without changing
   assert.ok(Math.abs((qa[1].x-qa[0].x)-(qb[1].x-qb[0].x))<1e-6);
  }
  assert.equal(JSON.stringify(plan),before);
-});
-test('snap is stable in pixel coordinates and respects both image boundaries',()=>{
- for(const view of ['native','portrait'] as const)for(const step of [5,10,20]){
-  const once=snapPoint({u:.832,v:.19},view,step);assert.deepEqual(snapPoint(once,view,step),once);
-  const px=toPixels(once,view);assert.ok(Math.abs(px.x/step-Math.round(px.x/step))<1e-9);assert.ok(Math.abs(px.y/step-Math.round(px.y/step))<1e-9);
-  for(const p of [{u:0,v:0},{u:1,v:1}]){const q=snapPoint(p,view,step);assert.ok(q.u>=0&&q.u<=1&&q.v>=0&&q.v<=1);}
- }
 });
 test('node map separates hand transfer from a real side turn',()=>{
  const intent:Intent={takeHand:'LH',startSide:'BACK',endSide:'FRONT',pass:true,turn:true,...INTENT_DEFAULTS};
@@ -106,6 +98,25 @@ test('the tracked plan loads with the new keys filled in: the saved draft',async
   for(const id of TARGETS)assert.deepEqual(Object.keys(plan.targets[id].intent).slice(-3),['grip','turnAt','flipAxis'],`${file} ${id}`);
  }
 });
+// A plan as it was saved before 2026-11-26: with the shoe's point and a checked mark on every card, which the plan no longer keeps.
+const withOldFields=()=>{const plan=defaultPlan() as any;plan.shoe={native:{u:.733,v:.322},portrait:{u:.84,v:.58}};for(const t of Object.values(plan.targets) as any[])for(const view of ['native','portrait'])t.geometry[view].reviewed=view==='native';return plan;};
+const GEOMETRY_KEYS=['u','v','width','height','angle','taper'];
+test('a plan saved with the shoe\'s point and checked marks loads without them, and the store writes neither',async()=>{
+ const old=withOldFields();delete old.targets['D.C3'];const before=structuredClone(old);validatePlan(old);
+ assert.equal(Object.hasOwn(old,'shoe'),false);
+ for(const id of TARGETS)for(const view of ['native','portrait'] as const)assert.deepEqual(Object.keys(old.targets[id].geometry[view]),GEOMETRY_KEYS,`${id} ${view}`);
+ assert.equal(old.targets['P5.C1'].geometry.native.u,before.targets['P5.C1'].geometry.native.u,'the places stay as they were');
+ // only those two: any other unknown field is still refused, and a plan that fails keeps them (nothing half done)
+ const extra=withOldFields();extra.targets['P1.C1'].geometry.native.checked=true;assert.throws(()=>validatePlan(extra));assert.equal(Object.hasOwn(extra,'shoe'),true);
+ const base=path.resolve(tmpdir()),dir=await mkdtemp(path.join(base,'dealer-placement-test-'));assert.ok(path.resolve(dir).startsWith(base+path.sep));
+ try{
+  await mkdir(path.join(dir,'placements'));await writeFile(path.join(dir,'placements/default.json'),JSON.stringify(withOldFields(),null,2)+'\n');
+  const store=placementStore(dir),read=await store.load();assert.equal(Object.hasOwn(read.plan,'shoe'),false);
+  // a client that still sends them gets a file without them
+  await store.save(withOldFields(),read.revision);const text=await readFile(path.join(dir,'placements/default.json'),'utf8');
+  assert.doesNotMatch(text,/"shoe"|"reviewed"/);validatePlan(JSON.parse(text));
+ }finally{assert.ok(path.resolve(dir).startsWith(base+path.sep+'dealer-placement-test-'));await rm(dir,{recursive:true,force:true});}
+});
 test('the store reads an older file with the defaults and writes the two keys when it saves',async()=>{
  const base=path.resolve(tmpdir()),dir=await mkdtemp(path.join(base,'dealer-placement-test-'));assert.ok(path.resolve(dir).startsWith(base+path.sep));
  try{
@@ -127,12 +138,11 @@ test('the sequence and the node map show a dragged card and where the turn happe
  assert.equal(motionNodes('P2.C1',{...drag,grip:'PINCH'}).find(n=>n.id==='take')?.label,'TAKE');
 });
 
-test('the yellow card the lab paints in the shoe window, and the window card of the films, lie in the picture around the shoe point of the plan',()=>{
- const plan=defaultPlan();
+test('the yellow card painted in the shoe window, and the window card of the films, lie in the picture as standing cards',()=>{
  for(const [view,q] of [['native',SHOE_CARD.native],['portrait',SHOE_CARD.portrait],['native',WINDOW_CARD.native],['portrait',WINDOW_CARD.portrait]] as const){
-  const p=VIEWS[view],s=toPixels(plan.shoe[view],view);assert.equal(q.length,4);
+  const p=VIEWS[view],s=q.reduce((m,c)=>({x:m.x+c.x/4,y:m.y+c.y/4}),{x:0,y:0});assert.equal(q.length,4);
   for(const c of q)assert.ok(c.x>0&&c.y>0&&c.x<p.width-1&&c.y<p.height-1);
-  // clockwise in picture coordinates (y down), and the shoe point on the inner side of every edge
+  // clockwise in picture coordinates (y down) and convex: the card's own middle on the inner side of every edge
   for(let i=0;i<4;i++){const a=q[i],b=q[(i+1)%4];assert.ok((b.x-a.x)*(s.y-a.y)-(b.y-a.y)*(s.x-a.x)>0,`${view} edge ${i}`);}
   // a standing card: about twice as long as it is wide in the picture
   const side=(i:number)=>Math.hypot(q[(i+1)%4].x-q[i].x,q[(i+1)%4].y-q[i].y);assert.ok(side(1)/side(0)>1.6&&side(1)/side(0)<2.6);
@@ -159,20 +169,17 @@ test('planQuad draws a card as the game lays it: flat from P4.C1 on a flat table
  assert.throws(()=>m.planQuad(plan,'P9.C1','native'),/Okänd kortplats/);
 });
 test('editPlace moves, turns and sizes a place by the plan\'s rules and leaves the given plan alone',async()=>{
- const m=await import('../src/placement-model.ts'),plan=defaultPlan();plan.targets['P4.C1'].geometry.native.reviewed=true;const before=structuredClone(plan);
- // a move unchecks the card in that view only; the other view and the given plan are untouched
+ const m=await import('../src/placement-model.ts'),plan=defaultPlan();const before=structuredClone(plan);
+ // a move changes that view only; the other view and the given plan are untouched
  const moved=m.editPlace(plan,'P4.C1','native',{u:.4,v:.3});assert.deepEqual(plan,before);validatePlan(moved);
- assert.equal(moved.targets['P4.C1'].geometry.native.u,.4);assert.equal(moved.targets['P4.C1'].geometry.native.reviewed,false);assert.deepEqual(moved.targets['P4.C1'].geometry.portrait,plan.targets['P4.C1'].geometry.portrait);
- // the checked mark itself is set without anything else changing
- const checked=m.editPlace(moved,'P4.C1','native',{reviewed:true});assert.equal(checked.targets['P4.C1'].geometry.native.reviewed,true);assert.equal(checked.targets['P4.C1'].geometry.native.u,.4);
+ assert.equal(moved.targets['P4.C1'].geometry.native.u,.4);assert.deepEqual(moved.targets['P4.C1'].geometry.portrait,plan.targets['P4.C1'].geometry.portrait);
  // limits: size .005–.25, taper .4–1.6, angle wrapped into −180…180, and the outline kept inside the picture
  const wild=m.editPlace(plan,'P1.C1','native',{width:.9,height:.001,taper:3,angle:190,u:-1});const g=wild.targets['P1.C1'].geometry.native;validatePlan(wild);
  assert.equal(g.width,.25);assert.equal(g.height,.005);assert.equal(g.taper,1.6);assert.equal(g.angle,-170);assert.ok(g.u>0);
  assert.equal(m.editPlace(plan,'P1.C1','native',{angle:-190}).targets['P1.C1'].geometry.native.angle,170);
  assert.equal(m.editPlace(plan,'P1.C1','native',{angle:180}).targets['P1.C1'].geometry.native.angle,180);
- // the shoe has only u and v, kept within the picture
- const shoe=m.editPlace(plan,m.SHOE,'portrait',{u:1.5,v:-.2,width:.1});assert.deepEqual(shoe.shoe.portrait,{u:1,v:0});assert.deepEqual(shoe.targets,plan.targets);
- assert.throws(()=>m.editPlace(plan,'P8.C1','native',{u:.5}),/Okänd kortplats/);
+ // the shoe is no place of the plan, nor any other word
+ for(const id of ['P8.C1','shoe'])assert.throws(()=>m.editPlace(plan,id,'native',{u:.5}),/Okänd kortplats/);
 });
 test('editIntent keeps TURN and the two sides in agreement',async()=>{
  const m=await import('../src/placement-model.ts'),plan=defaultPlan();
@@ -180,15 +187,4 @@ test('editIntent keeps TURN and the two sides in agreement',async()=>{
  const turned=m.editIntent(closed,'P1.C1','turn',true);assert.equal(turned.targets['P1.C1'].intent.endSide,'FRONT');validatePlan(turned);
  const open=m.editIntent(plan,'P1.C1','startSide','FRONT');assert.equal(open.targets['P1.C1'].intent.turn,false);validatePlan(open);
  const passed=m.editIntent(plan,'P1.C1','pass',true);assert.equal(passed.targets['P1.C1'].intent.pass,true);assert.equal(passed.targets['P1.C1'].intent.endSide,'FRONT');
-});
-test('snapping and a reset each follow the plan\'s rules',async()=>{
- const m=await import('../src/placement-model.ts'),plan=defaultPlan();
- // snapping: a card to the pixel grid and 5°, the shoe to the grid only
- const loose=m.editPlace(plan,'P5.C1','native',{angle:12.4}),snapped=m.snapPlace(loose,'P5.C1','native',10),p=toPixels(snapped.targets['P5.C1'].geometry.native,'native');
- assert.ok(Math.abs(p.x/10-Math.round(p.x/10))<1e-6&&Math.abs(p.y/10-Math.round(p.y/10))<1e-6);assert.equal(snapped.targets['P5.C1'].geometry.native.angle,10);
- const shoe=m.snapPlace(plan,m.SHOE,'native',20),s=toPixels(shoe.shoe.native,'native');assert.ok(Math.abs(s.x/20-Math.round(s.x/20))<1e-6);
- // a reset brings back the start proposal in that view only
- const reset=m.resetPlace(m.editPlace(m.editPlace(plan,'P6.C2','native',{u:.9}),'P6.C2','portrait',{u:.2}),'P6.C2','native');
- assert.deepEqual(reset.targets['P6.C2'].geometry.native,defaultPlan().targets['P6.C2'].geometry.native);assert.equal(reset.targets['P6.C2'].geometry.portrait.u,.2);
- assert.deepEqual(m.resetPlace(m.editPlace(plan,m.SHOE,'native',{u:.1}),m.SHOE,'native').shoe.native,defaultPlan().shoe.native);
 });

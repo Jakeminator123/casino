@@ -12,9 +12,10 @@
 //                dealer's film of the card's deal from the tree's anchor over her, in the films' camera (lib/bordet.ts
 //                cardFilm); "Dockans filmer" shows her films for the card instead, and "Spela kortbanan" plays her deal to it. The column: the card and its buttons, then the steps for
 //                the chosen card, 1 Var kortet landar (the place; the card can be dragged in the picture while it is open),
-//                2 Hur det kommer dit (the side the card lies with, chosen there only; the card's way from the anchor; the
-//                doll's own controls, which the doll lab lays there), 3 Ny film (the guide: the dealer, her
-//                tree and the step, the step's recipe, what is sent and "Spara utkastet"; NewFilm.tsx), and Hela bordet. The
+//                2 Hur det kommer dit (the side a dealer's card lies with, chosen there only, a player's card always open;
+//                the card's way from the anchor; the doll's own controls, which the doll lab lays there), 3 Ny film (the
+//                guide for the dealer chosen in the frame: her tree and the step, the step's recipe, what is sent and
+//                "Spara utkastet"; NewFilm.tsx), and Hela bordet. The
 //                anchor the card goes from is the guide tree's (lib/bordet.ts treeAnchor): step 2, Kortbanan, the pose the
 //                doll deals from and Scen's round all name it, and step 3 orders from it. Step 3 makes a deal from A2.3 to a
 //                player's card or one of the dealer's own from the doll's saved standard where the dealer has a doll of her
@@ -33,7 +34,7 @@ import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { stepOf, type Anchor, type BankFacts, type OrdersAnswer } from "../../../src/order-model.ts";
-import { SHOE, editPlace, type Place } from "../../../src/placement-model.ts";
+import { editPlace, type Place } from "../../../src/placement-model.ts";
 import type { Ledger } from "../../lib/ledger.ts";
 import type { MediaAnswer } from "../../lib/media.ts";
 import { useBank } from "../../lib/bank.ts";
@@ -42,7 +43,7 @@ import { useViewContext } from "../../lib/context.ts";
 import { isSnapshot, swedishMoment } from "../../lib/mode.ts";
 import { GUIDE_WORDS, cardOf, filmCode, guideOf, itemOf, pickFor, pickOfWish, pickTree, sameIn, treeBase, type GuideItem, type StepPick } from "../../lib/new-film.ts";
 import { getOrders, orderingState, presetOf, type CreatedOrders, type DollOrdered } from "../../lib/orders.ts";
-import { PLAN_VIEW, START_PLACE, changedPlaces, placeCode, placeFromCode, placeName } from "../../lib/placement.ts";
+import { PLAN_VIEW, START_PLACE, changedPlaces, decimal, placeCode, placeFromCode, placeName } from "../../lib/placement.ts";
 import { useTrees } from "../map/useTrees";
 import { getMedia } from "../material/client.ts";
 import { getLedger } from "../ledger/LedgerView";
@@ -54,8 +55,7 @@ import { draftActions, useDraft } from "../placement/useDraft.ts";
 import { Page } from "../shell";
 import { Badge, Button, ErrorState, IconButton, SegmentedControl, Skeleton, cn, useToast } from "../ui";
 import type { Made } from "./FilmList";
-import { DOLL_CARD, DollControls, DollNote, DollStage, ownDoll, useDollFilm, useDollGroups, useDollStandard, type DollEntry, type DollFilm, type StandardState } from "./DollPanel";
-import type { DollGroup } from "../../lib/doll-films.ts";
+import { DOLL_CARD, DollControls, DollNote, DollStage, ownDoll, useDollFilm, useDollGroups, useDollStandard, type DollEntry, type DollFilm, type StandardState } from "./DollPanel";import type { DollGroup } from "../../lib/doll-films.ts";
 import { NewFilm, type Phase } from "./NewFilm";
 import type { SceneKind } from "./SceneBody";
 import { RowSends } from "./Sends";
@@ -184,7 +184,7 @@ export function BordetView() {
   const [ordersRead, setOrdersRead] = useState(false);
   const draft = useDraft();
   const toast = useToast();
-  const { dealer, dealers, bank, graph, status, readAt, setDealer } = useBank();
+  const { dealer, dealers, bank, graph, status, readAt } = useBank();
   const trees = useTrees(dealer, readAt);
   // The drafts made follow their dealer: a switch away and back still shows them as made, so no second draft of the same film.
   const made = madeBy[dealer] ?? NO_DRAFTS;
@@ -329,7 +329,6 @@ export function BordetView() {
     <NewFilm
       dealer={dealer}
       dealers={orderDealers}
-      onDealer={setDealer}
       trees={trees}
       view={view}
       onTree={chooseTree}
@@ -407,7 +406,6 @@ export function BordetView() {
             setPlace={setPlace}
             dealer={dealer}
             from={from}
-            treeName={view?.tree.name ?? null}
             standard={standard}
             dollCount={doll.count}
             lab={{ orders, ordersRead, groups: doll.groups, onSaved: onDollSaved, film: dollFilm }}
@@ -423,7 +421,7 @@ export function BordetView() {
 }
 
 function TableBody({
-  menu, step, setStep, place, setPlace, dealer, from, treeName, standard, dollCount, lab, newFilm, newFilmSummary,
+  menu, step, setStep, place, setPlace, dealer, from, standard, dollCount, lab, newFilm, newFilmSummary,
 }: {
   menu: ReactNode;
   step: StepId | null;
@@ -433,8 +431,6 @@ function TableBody({
   dealer: string;
   /** The anchor the card goes from: the guide tree's (lib/bordet.ts treeAnchor). */
   from: Exclude<Anchor, "1">;
-  /** The name of the tree the anchor is read from, or null where no tree is read. */
-  treeName: string | null;
   /** The doll's saved standard for the chosen card (step 2's line on the doll). */
   standard: StandardState;
   /** How many films of the doll's there are, for the toolbar. */
@@ -456,21 +452,14 @@ function TableBody({
   const [play, setPlay] = useState(0);
   // Step 2's host for the doll lab's controls, once mounted.
   const [host, setHost] = useState<HTMLDivElement | null>(null);
-  // The pose the lab says it deals from, until the tree's anchor changes (it is then asked for that one).
+  // The pose the doll deals from: the tree's anchor, which the lab always takes (it has no choice of its own here).
   const entry = dollEntryOf(from);
-  const [labEntry, setLabEntry] = useState<DollEntry | null>(null);
-  const [seenEntry, setSeenEntry] = useState(entry);
-  if (entry !== seenEntry) {
-    setSeenEntry(entry);
-    setLabEntry(null);
-  }
   const changes = useMemo(() => changedPlaces(d.saved, d.plan), [d]);
   const changed = useMemo(() => new Set<Place>(changes.places), [changes]);
   const stageArea = useRef<HTMLElement>(null);
   usePlanKeys({ place, editable, area: stageArea });
-  const shoe = place === SHOE;
   // Step 1 open: the card's place can be dragged in the doll's picture, and a drag is one step for Ångra.
-  const flytta = step === "place" && editable && !shoe;
+  const flytta = step === "place" && editable;
   const gesture = useGesture();
   const moved = useCallback(
     (at: Place, u: number, v: number) => {
@@ -479,37 +468,30 @@ function TableBody({
     [flytta, gesture],
   );
 
-  const target = shoe ? null : plan.targets[place];
-  const intent = target?.intent ?? null;
+  const target = plan.targets[place];
+  const at = target.geometry[PLAN_VIEW];
   // A step of the guide with a card chooses that card, as a click on its button does.
   const go = (card: Place) => setPlace(card);
   const toggle = (s: StepId) => setStep(step === s ? null : s);
   const steps: { id: StepId; title: string; summary: string | null; body: ReactNode; keep?: ReactNode }[] = [
     {
       id: "place",
-      title: shoe ? "Skons läge" : "Var kortet landar",
-      summary: shoe ? null : `${placeCode(place)}${target?.geometry[PLAN_VIEW].reviewed ? " · kontrollerad" : " · inte kontrollerad"}`,
+      title: "Var kortet landar",
+      summary: `${decimal(at.u * 100)} % från vänster · ${decimal(at.v * 100)} % från botten`,
       body: <PlacePanel plan={plan} id={place} editable={editable} />,
     },
     {
       id: "motion",
       title: "Hur det kommer dit",
-      summary: stepTwoSummary(place, from, intent?.endSide ?? null),
-      body: shoe ? (
-        <p className="px-4 py-3 text-sm text-dim">Skon har ingen väg. Välj ett kort.</p>
-      ) : (
+      summary: stepTwoSummary(place, from, target.intent.endSide),
+      body: (
         <>
           <MotionPanel plan={plan} id={place} editable={editable} anchor={from} />
-          {labEntry && entry && labEntry !== entry ? (
-            <p data-doll-entry role="status" className="mx-4 mt-3 text-sm leading-5 text-[#f0b07a]">
-              Dockan visar given från {labEntry}, men {treeName ? `trädet ${treeName}` : "Bordet"} ger kortet från {entry}, och det är därifrån filmerna beställs. Byt träd i steg 3 om kortet ska ges från {labEntry}.
-            </p>
-          ) : null}
           <DollNote dealer={dealer} place={place} standard={standard} />
         </>
       ),
       // the doll lab's controls: their host stays in place while the step is folded, so that the lab's nodes are kept
-      keep: <DollControls ref={setHost} hidden={shoe} />,
+      keep: <DollControls ref={setHost} />,
     },
     {
       id: "order",
@@ -530,7 +512,6 @@ function TableBody({
             size="sm"
             variant="primary"
             icon={<Play />}
-            disabled={shoe}
             onClick={() => {
               setFilms(false);
               setPlay((n) => n + 1);
@@ -561,7 +542,6 @@ function TableBody({
             ordersRead={lab.ordersRead}
             groups={lab.groups}
             onPlace={setPlace}
-            onEntry={setLabEntry}
             onSaved={lab.onSaved}
             onMoved={moved}
           />

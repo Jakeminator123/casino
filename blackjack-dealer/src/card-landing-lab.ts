@@ -13,7 +13,7 @@
 // The address's words: klipp (the film's clip id), spar (idag, modell, bada), del (hela, landning), hand (film, ritat),
 // lage (film, idag, prov: the film alone, the landing as today, the landing trial), ruta (the film stands still on that
 // frame), zoom (1, 3 or 6), styrka (the trial's measures times this, to see which way the card goes).
-import {TABLE_GEOMETRY, PLAN_CARD_SIZE, cardGrow} from './card-plan.ts';
+import {LINS, PLAN_CARD_SIZE, cardGrow} from './card-plan.ts';
 import {createCardOverlay, type OverlayOptions} from './card-overlay-view.ts';
 import {MARGIN, sceneOf, planScene, restOf, restFade, restShare, restingQuad, trialTrack, type CardTrack} from './card-overlay.ts';
 import {centre, signedArea, type Pt} from './card-track.ts';
@@ -37,11 +37,11 @@ type Sums = {stor: number[]; liten: number[]; utanKort: number[]; behallna: numb
 type Row = {clip: string; kind: string | null; vag: [number, number]; franModellen: number; styva: number; idag: Sums; modell: Sums; skiljer: number[]; annanSida: number[]; styvt?: {franModellen: number; ryck: [number, number]} | null};
 type Motion = {source?: {path?: string; fps?: number}; motion?: {kind?: string; to?: string; segment?: {clip?: string}}; review?: {decision?: string}};
 type Film = {clip: string; path: string; fps: number; to: string | null; slot: Slot | null; row: Row | null; group: number};
-const [contract, placements, bank, index] = await Promise.all([read('data/scene-contract.json', 'Scenkontraktet'), read('api/placements', 'Placeringsplanen'), read('api/clip-bank', 'Klippbanken'), maybe(`${MODEL}/index.json`)]);
+const [contract, placements, bank, index] = await Promise.all([read('data/scene-contract.json', 'Scenkontraktet'), read('api/placements', 'Kortplanen'), read('api/clip-bank', 'Klippbanken'), maybe(`${MODEL}/index.json`)]);
 const plan = (placements.plan ?? placements) as PlacementPlan;
 // The resting card by the card plan's rule, as the scene has it (src/scene3d-deal.ts): a real card through the table's lens.
-const scene = TABLE_GEOMETRY === 'lens' && plan.targets?.['P4.C1'] ? planScene(sceneOf(contract), plan) : sceneOf(contract);
-const layout = createLayout(plan, {geometry: TABLE_GEOMETRY});
+const scene = LINS === 'standard' && plan.targets?.['P4.C1'] ? planScene(sceneOf(contract), plan) : sceneOf(contract);
+const layout = createLayout(plan, {lins: LINS});
 
 const GROUPS = ['Paow, nyaste (ankare 2.3)', 'Paow, äldre'], KIND: Record<string, string> = {DEAL: 'Giv', RETURN: 'Retur', OTHER: 'Annat'};
 const groupOf = (clip: string) => /^paow-.*-2-3-/.test(clip) ? 0 : clip.startsWith('paow') ? 1 : 2;
@@ -72,7 +72,7 @@ const look = {
 };
 const still = query.get('ruta') !== null && Number.isFinite(Number(query.get('ruta'))) ? Math.round(Number(query.get('ruta'))) : null;
 // "Kortens storlek" as the scene's Efterarbete has it: 1.2 is a real card, the plan's own outline (src/card-plan.ts cardGrow).
-const grow = () => cardGrow(look.scale, TABLE_GEOMETRY);
+const grow = () => cardGrow(look.scale, LINS);
 
 // ---- the film on screen ----------------------------------------------------------------------------------------------
 const layer = document.createElement('canvas'), overlay = createCardOverlay(layer), sheet = document.createElement('canvas'), paper = sheet.getContext('2d')!;

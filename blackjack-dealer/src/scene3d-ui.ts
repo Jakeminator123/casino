@@ -4,7 +4,7 @@ import {buildGraph, resolveRound, type Step} from './clip-graph.ts';
 import {createScene, DEFAULTS, type SceneState} from './scene3d-view.ts';
 import type {Part} from './scene3d-film.ts';
 import {filmToScene, type CardTrack} from './scene3d-geometry.ts';
-import {tableGeometry} from './card-plan.ts';
+import {LINS_ALIAS_WORD, linsOfAlias} from './card-plan.ts';
 import {readRegister, type RoomId} from './scene3d-room.ts';
 import {EXIT_TRIAL, exitView} from './scene3d-exit.ts';
 import {FELT_MARKS, NATURES, RUNWAY_CLOTHS, TABLE_SIZE, feltMarks, isNature, isRunwayCloth, marksText, type FeltMark, type Nature, type RunwayCloth} from './scene3d-table.ts';
@@ -17,7 +17,7 @@ if (bare) document.body.classList.add('noui');
 const fail = (message: string) => { panel.append(el('p', {className: 'error', textContent: message})); hudBox.replaceChildren(el('span', {className: 'chip warn', textContent: message})); throw Error(message); };
 const read = async (url: string, what: string) => { const res = await fetch(url).catch(() => null); if (!res?.ok) fail(`${what} kunde inte läsas (${url}). Sidan gissar inga värden.`); return res!.json(); };
 
-const [contract, placements, bank, register] = await Promise.all([read('data/scene-contract.json', 'Scenkontraktet'), read('api/placements', 'Placeringsplanen'), read('api/clip-bank', 'Klippbanken'), read('data/scene-rooms.json', 'Rumsregistret')]);
+const [contract, placements, bank, register] = await Promise.all([read('data/scene-contract.json', 'Scenkontraktet'), read('api/placements', 'Kortplanen'), read('api/clip-bank', 'Klippbanken'), read('data/scene-rooms.json', 'Rumsregistret')]);
 // The 360-degree rooms: every room of the register, the ones not yet in the game among them.
 const {rooms: panoramas, problems: roomProblems} = readRegister(register);
 type Clip = {id: string; video: string};
@@ -41,6 +41,8 @@ const missing = new Set<RoomId>(), setters: Partial<Record<keyof SceneState, (va
 const scene = createScene(canvas, stage, {contract, plan: placements.plan ?? placements, urls: {plate: 'assets/scene/room.png', panorama: 'assets/scene/panorama-vegas.jpg', la: 'assets/scene/panorama-la.jpg', skog: 'assets/scene/panorama-skog.jpg'}, rooms: panoramas, onChange: () => { sync(); hud(); void followTrack(); }, onMissingRoom: room => { missing.add(room); hud(); }});
 const state = scene.state;
 for (const [key, value] of query) if (key in DEFAULTS) { const k = key as keyof SceneState, base = DEFAULTS[k]; (state as Record<string, unknown>)[k] = typeof base === 'number' ? Number(value) : typeof base === 'boolean' ? value === '1' : value; }
+// The lens by its older word (geometri=kontrakt, src/card-plan.ts linsOfAlias), where the address has no lins of its own.
+{ const alias = query.has('lins') ? null : linsOfAlias(query.get(LINS_ALIAS_WORD)); if (alias) state.lins = alias; }
 if (bare) state.format = 'fill';
 
 // ---- card track of the clip on screen: focus can follow the card ---------------------------------
@@ -166,8 +168,8 @@ function build() {
   group('Kort', check('Renderade kort i stället för filmens färgyta', 'cards'), el('label', {className: 'check'}, grip, el('span', {textContent: 'Kortspår ur handens grepp (prov, där det finns)'})), choice('cardMethod', [['scene', 'I scenen (3D)'], ['film', 'I filmrutan (2D)'], ['matte', 'Filmens matt (prov)']]),
     el('label', {className: 'check'}, printBox, el('span', {textContent: 'Matt: trycket efter provets linjepassade spår (card-track-matt.json, där det finns)'})),
     el('label', {className: 'row two'}, el('span', {textContent: 'Kortet i handen'}), choice('cardHand', [['film', 'Filmens storlek (förut)'], ['standard', 'Standard hela vägen']])),
-    slider(tableGeometry() === 'lens' ? 'Kortens storlek (1,2 = ett verkligt kort, det Inspelning ritar)' : 'Kortens storlek (1 = kontraktets kort, förval 1,2)', 'cardScale', 0.8, 2, 0.05, '×', live), el('div', {className: 'seg'}, pick('cardRank', ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'].map(r => [r, r])), pick('cardSuit', [['spades', 'Spader'], ['hearts', 'Hjärter'], ['diamonds', 'Ruter'], ['clubs', 'Klöver']])),
-    note('<b>I scenen</b>: kortet är ett föremål på bordet under filmen. Filmens eget kort (och kortet i skons fönster) nycklas bort, så filmens fingrar ligger över det renderade kortet och deras skuggor faller på det. Ljuset tas från filmens kort i varje ruta, glansen från rummet; i rörelse blir kortet oskarpt som handen. <b>I filmrutan</b>: den tidigare vägen, där labbets kortritare ritar kortet in i filmrutan. Var kortet är och vilken sida som syns kommer i båda fallen ur spårningen och placeringsplanen. <b>Filmens matt</b> (prov): filmens eget kort är matten. Varje gul eller blå bildpunkt byts, inget annat, så kanten är filmens och fingrarna ligger framför utan handmask. Baksidan är filmens kort omfärgat till baksidans färg med filmens skuggning, utan tryck; framsidan får trycket lagt efter spårets fyrhörning. Kortet ligger där filmen lägger det och har filmens storlek; liggande kort från tidigare filmer ritas som i scenen. Valören här är bara för provet: i spelet bestämmer Scout den.'));
+    slider('Kortens storlek (i Standard är 1,2 ett verkligt kort, det Inspelning ritar; i Bred lins är 1 kontraktets kort)', 'cardScale', 0.8, 2, 0.05, '×', live), el('div', {className: 'seg'}, pick('cardRank', ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'].map(r => [r, r])), pick('cardSuit', [['spades', 'Spader'], ['hearts', 'Hjärter'], ['diamonds', 'Ruter'], ['clubs', 'Klöver']])),
+    note('<b>I scenen</b>: kortet är ett föremål på bordet under filmen. Filmens eget kort (och kortet i skons fönster) nycklas bort, så filmens fingrar ligger över det renderade kortet och deras skuggor faller på det. Ljuset tas från filmens kort i varje ruta, glansen från rummet; i rörelse blir kortet oskarpt som handen. <b>I filmrutan</b>: den tidigare vägen, där studions kortritare ritar kortet in i filmrutan. Var kortet är och vilken sida som syns kommer i båda fallen ur spårningen och placeringsplanen. <b>Filmens matt</b> (prov): filmens eget kort är matten. Varje gul eller blå bildpunkt byts, inget annat, så kanten är filmens och fingrarna ligger framför utan handmask. Baksidan är filmens kort omfärgat till baksidans färg med filmens skuggning, utan tryck; framsidan får trycket lagt efter spårets fyrhörning. Kortet ligger där filmen lägger det och har filmens storlek; liggande kort från tidigare filmer ritas som i scenen. Valören här är bara för provet: i spelet bestämmer Scout den.'));
   // The felt's marks: one box per kind, all held by the state's one word (scene3d-table.ts feltMarks).
   const MARK_NAMES: Record<FeltMark, string> = {trim: 'Dealerkantens list', arc: 'Bågen', text: 'BLACKJACK PAYS 3 TO 2', logo: 'Loggan', boxes: 'Kortrutor', rings: 'Insatsringar', numbers: 'Platsnummer'};
   const marks = FELT_MARKS.map(mark => { const input = el('input', {type: 'checkbox'});
@@ -177,7 +179,7 @@ function build() {
   // the table's size rebuilds the table, a moment after the slider rests (as Skala k does)
   let sizeTimer = 0; const tableSize = slider('Bordets storlek', 'tableSize', TABLE_SIZE.min, TABLE_SIZE.max, 0.05, '×', () => { clearTimeout(sizeTimer); sizeTimer = window.setTimeout(() => scene.rebuild(), 120); });
   group('Bord', check('Markerbräde försänkt vid dealern', 'tray'), el('label', {className: 'row two'}, el('span', {textContent: 'Logotext'}), logo), choice('felt', [['green', 'Grön'], ['blue', 'Blå'], ['vin', 'Vinröd'], ['svart', 'Svart']]),
-    note('Filt, linjer, kortrutor och logga är en enda platt bild sedd rakt uppifrån. Kortrutorna kommer ur placeringsplanen (endast läst). Bordets form och tryckets layout är provisoriska.'),
+    note('Filt, linjer, kortrutor och logga är en enda platt bild sedd rakt uppifrån. Kortrutorna kommer ur kortplanen (endast läst). Bordets form och tryckets layout är provisoriska.'),
     ...marks.map(m => m.row), el('div', {className: 'btns'}, button('Alla markeringar', () => scene.set({marks: 'all'})), button('Inga', () => scene.set({marks: 'none'}))),
     note('<b>Markeringar</b>: varje slag för sig, i adressen som <code>?marks=rings,numbers</code> (eller <code>all</code>, <code>none</code>).'),
     el('label', {className: 'row two'}, el('span', {textContent: 'Duk'}), choice('cloth', [['print', 'Kodens filt (förut)'], ['v6', 'V6-duken'], ...(Object.keys(RUNWAY_CLOTHS) as RunwayCloth[]).map(id => [id, RUNWAY_CLOTHS[id].name] as [RunwayCloth, string])])), slider('Lampa över dealern', 'lamp', 0, 1, 0.05),
@@ -202,16 +204,15 @@ function build() {
     note('Spelets marker med tyngd, och en bricka med <b>samma marker</b> på högkant i stället för den byggda. En förlorad insats lyfts, vänds på högkant och sätts ner i sin rad; en vinst bärs ut ur brickan och ställs bredvid insatsen. Ingen hand syns: det kräver en film där hon sträcker sig.'));
   let timer = 0; const scale = slider('Skala k', 'scale', 1, 2.6, 0.05, '×', () => { clearTimeout(timer); timer = window.setTimeout(() => scene.rebuild(), 120); }), shown = setters.scale as unknown as (v: number) => void;
   setters.scale = ((v: number) => shown(v > 0 ? v : scene.status().camera.scale)) as never;
-  // The first choice is the table's geometry's own camera: in Standard the table's lens (the film's camera, the standard),
-  // in Bred lins the contract's older wide camera (src/scene3d-view.ts filmCamera).
-  const lensGeometry = tableGeometry() === 'lens';
-  group('Filmkamera och skala', choice('lens', [['plan', lensGeometry ? 'Bordets lins (kortplanens)' : 'Bred lins (planens äldre kamera)'], ['estimate', 'Dealerns lins (skattad)']], lens => { scene.home(); scene.set({lens, scale: 0}); }), scale,
+  // Lins is the look's lens (SceneState.lins): Standard is the table's lens (the film's camera, the standard), Bred lins the
+  // contract's older wide camera (src/scene3d-view.ts filmCamera). The second row: that lens's own camera, or the estimate.
+  group('Filmkamera och skala', el('label', {className: 'row two'}, el('span', {textContent: 'Lins'}), choice('lins', [['standard', 'Standard'], ['bred', 'Bred lins']], lins => { scene.home(); scene.set({lins}); })),
+    choice('lens', [['plan', 'Bordets kamera (linsen ovan)'], ['estimate', 'Dealerns lins (skattad)']], lens => { scene.home(); scene.set({lens, scale: 0}); }), scale,
     note('Hemvyn är filmen oavsett kamera. Kameran styr hur filttrycket, bordet och rummet ligger i perspektiv och hur vridning och parallax ser ut. '
-      + (lensGeometry
-        ? '<b>Bordets lins</b> är filmens egen kamera, standarden: kortplanen, dockan och beställningarnas slutbild ritar genom samma lins, med ett verkligt kort och dealern i verklig storlek. '
-        : '<b>Bred lins</b> är den äldre, vidare kameran som passar kortrutorna men inte är filmens egen; dealern är inte ritad med den linsen. ')
+      + '<b>Standard</b> är filmens egen kamera: kortplanen, dockan och beställningarnas slutbild ritar genom samma lins, med ett verkligt kort och dealern i verklig storlek. '
+      + '<b>Bred lins</b> är den äldre, vidare kameran som passar kortrutorna men inte är filmens egen; dealern är inte ritad med den linsen. '
       + '<b>Dealerns lins</b> är en skattning ur dealerns proportioner och ögonhöjd, inte uppmätt. <b>k</b> är hur många gånger större dealerns värld är än korten: '
-      + (lensGeometry ? 'med bordets lins 1, verkliga mått.' : 'för den breda kameran skattad till 1,8–2,5.')));
+      + 'i Standard 1, verkliga mått; för den breda kameran skattad till 1,8–2,5.'));
 }
 
 // ---- chips and the house's tray (src/game3d-chips.ts, src/game3d-tray.ts): tried here without a game behind them ----------

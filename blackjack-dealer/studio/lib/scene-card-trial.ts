@@ -1,4 +1,4 @@
-import type { TableGeometry } from "../../src/card-plan.ts";
+import type { Lins } from "../../src/card-plan.ts";
 import type { CardRecord } from "../../src/card-overlay.ts";
 import type { Segment } from "../../src/clip-graph.ts";
 import { cardOptions, cardWords, continuesCardSource, type CardWords, type Carry } from "../../src/game-film.ts";
@@ -10,8 +10,8 @@ export function readSceneCardTrial(params: Pick<URLSearchParams, "get">): CardWo
   return params.get("kort") === "liggande" ? cardWords(params) : null;
 }
 
-/** Give playable deal/return pairs resolved by the lab round the same card options as a game part. */
-export function withSceneCardTrial(parts: PlayPart[], segments: readonly Segment[], plan: PlacementPlan, geometry: TableGeometry, words: CardWords, carry: Carry | null = "film"): PlayPart[] {
+/** Give playable deal/return pairs resolved by the lab round the same card options as a game part, laid out under the look's lens. */
+export function withSceneCardTrial(parts: PlayPart[], segments: readonly Segment[], plan: PlacementPlan, lins: Lins, words: CardWords, carry: Carry | null = "film"): PlayPart[] {
   type Own = { label: string; shoeDraw: number; slot: Slot };
   const ownByStep = new Map<number, Own>(), ownByTarget = new Map<string, Own>();
   const table: TableCards = { hands: [], dealer: [] }, records: CardRecord[] = [];
@@ -39,7 +39,7 @@ export function withSceneCardTrial(parts: PlayPart[], segments: readonly Segment
     ownByStep.set(i + 1, own);
   }
   if (!ownByStep.size) return parts;
-  const layout = createLayout(plan, { geometry }), placed = new Set<number>();
+  const layout = createLayout(plan, { lins }), placed = new Set<number>();
   return parts.map((part, i) => {
     const own = ownByStep.get(i) ?? null;
     // The entry has no dealt card yet, but the shoe window must already use the round's carry mode and colours.

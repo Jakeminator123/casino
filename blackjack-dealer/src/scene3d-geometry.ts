@@ -31,7 +31,7 @@ export function cameraFromContract(contract: {keyFigures?: Record<string, Figure
  * in real metres, so the scale is 1 and a dealer metre is a scene metre. `edgeRow` is the film row of the dealer's table edge
  * (the contract's dealerEdgeImageRow, measured in the film). Under this camera a pixel's place on the felt is the one
  * pixelToFelt gives (tools/card-plan.test.ts holds filmToTable, filmPixel and cardSpots to it), which is what makes the
- * scene's card places, bet rings and table the card plan's own. The scene uses it where TABLE_GEOMETRY says 'lens'.
+ * scene's card places, bet rings and table the card plan's own. The scene uses it under the lens 'standard' (Lins in src/card-plan.ts).
  */
 export function lensCamera(lens: Lens, edgeRow: number): FilmCamera {
   return {focalPx: lens.focalPx, horizonRow: horizonRow(lens), edgeRow, heightM: lens.height, scale: 1, source: 'lens'};

@@ -11,45 +11,42 @@
 // The rule every drawing of the plan in the lab and in an order uses: Bordet's Inspelning and card path, Ny beställning's
 // picture, an order's last picture (tools/order-images.ts). The game's lying cards (src/game-table.ts), the resting card of
 // the drawn cards (src/card-overlay.ts) and the 3D scene's film camera (src/scene3d-view.ts) follow the same rule and lens
-// by default since Jakob chose comparison B on 2026-11-19; explicit 'contract' preserves historical references.
+// by default since Jakob chose comparison B on 2026-11-19; a look may choose Bred lins instead (Lins, below).
 // Pure; tests in tools/card-plan.test.ts.
 import { TABLE_PERSPECTIVE, flatQuad, planQuad, quad, toPixels, type Geometry, type PlacementPlan, type View } from './placement-model.ts';
 import { FILM, TABLE_LENS, pixelToFelt, realCardQuad, type Lens, type Pixel } from './table-lens.ts';
 
 /**
- * Which geometry the game and the 3D scene follow (the lab's card plan always follows the lens):
- * - 'contract', as before 2026-11-18: the game lays its cards with the plan's older projective plane (flatQuad), the drawn card
- *   rests as the contract's card times Kortens storlek (card-overlay.ts restingQuad), and the scene's film camera is the
- *   contract's (scene3d-geometry.ts cameraFromContract, k = 2), which is another camera than the lens;
- * - 'lens': all three follow the card plan's rule below through the table's lens, so the same plan and the same card give the
- *   same outline in the lab, in the game and in the scene.
- * Jakob chose 'lens' after comparison B (2026-11-19). Explicit geometri=kontrakt remains for old proofs and references;
- * ordinary lab and Casino addresses need no geometry word. Camera/view variations are saved scene presets.
- * The studio's Scen calls 'contract' Bred lins and 'lens' Standard. Since Jakob 2026-11-21 Casino's saved look may carry
- * Bred lins (the preset's geometri, studio/lib/scene-presets.ts, written by Använd i Casino); the card plan and the orders
- * stay on 'lens'.
- */
-export type TableGeometry = 'contract' | 'lens';
-export const TABLE_GEOMETRY: TableGeometry = 'lens';
-export const GEOMETRY_WORD = 'geometri', GEOMETRY_WORDS: Readonly<Record<string, TableGeometry>> = { lins: 'lens', kontrakt: 'contract' };
-const geometryOf = (word: string | null | undefined): TableGeometry | null => (typeof word === 'string' && Object.hasOwn(GEOMETRY_WORDS, word) ? GEOMETRY_WORDS[word] : null);
-/**
- * The geometry a page follows: its address's word (geometri=lins or geometri=kontrakt), else the word a saved look carries
- * (`saved`: a scene preset's geometri, read by the game page), else TABLE_GEOMETRY. `search` is the address's query; left
- * out, the page's own (there is none in Node).
- */
-export function tableGeometry(search: string | null = (globalThis as { location?: { search?: string } }).location?.search ?? null, saved: string | null = null): TableGeometry {
-  return geometryOf(search ? new URLSearchParams(search).get(GEOMETRY_WORD) : null) ?? geometryOf(saved) ?? TABLE_GEOMETRY;
-}
-/**
  * Efterarbete's "Kortens storlek" as a share of the rule's card. The setting is written against the contract's card, of which
  * the plan's own card is 1.2 (the scene's default: restingQuad at 1.2 is the older plan's outline at seat 4 within a
- * twentieth). Under the lens the plan's card is a real card, so the same setting draws the same share of the plan's card:
- * 1.2 is a real card, exactly what Bordet's Inspelning draws, and 1.65 is 1.375 of one. When the default geometry has changed,
- * the setting can be rewritten so that 1 is a real card, and this goes.
+ * twentieth). Under Standard the plan's card is a real card, so the same setting draws the same share of the plan's card:
+ * 1.2 is a real card, exactly what Bordet's Inspelning draws, and 1.65 is 1.375 of one. Under Bred lins the setting is the
+ * share of the contract's card, as it was written.
  */
 export const PLAN_CARD_SIZE = 1.2;
-export const cardGrow = (size: number, geometry: TableGeometry): number => (geometry === 'lens' ? size / PLAN_CARD_SIZE : size);
+export const cardGrow = (size: number, lins: Lins): number => (lins === 'standard' ? size / PLAN_CARD_SIZE : size);
+
+/**
+ * The lens of a look (Jakob 2026-11-25: Bred lins is a filter on the same standard, "precis såsom belysning, bakgrund,
+ * kortoverlay, bord, bordsfilt"): the scene key `lins` (SceneState in src/scene3d-view.ts), saved with every look and
+ * changed live in Scen.
+ * - 'standard': the film's own lens (TABLE_LENS). The game's lying cards, the drawn card at rest and the scene's film camera
+ *   all follow the card plan's rule above, so the same plan and the same card give the same outline in Inspelning, in the
+ *   game and in the scene.
+ * - 'bred' (Bred lins): the older, wider camera of data/scene-contract.json (k = 2) with the plan's older projective plane for
+ *   the lying cards (flatQuad) and the contract's card at rest. Casino's saved look carries it (Jakob 2026-11-21).
+ * The card plan, Inspelning and every order always follow 'standard'.
+ */
+export type Lins = 'standard' | 'bred';
+export const LINS: Lins = 'standard';
+/**
+ * The word addresses and saved looks carried before the key (until 2026-11-26): geometri=lins was Standard and
+ * geometri=kontrakt Bred lins. Still read, as an alias, by the game (readLook and presetFrom in src/game-look.ts) and by
+ * the studio (studio/lib/scene-presets.ts); never written.
+ */
+export const LINS_ALIAS_WORD = 'geometri';
+const LINS_ALIAS: Readonly<Record<string, Lins>> = { lins: 'standard', kontrakt: 'bred' };
+export const linsOfAlias = (word: unknown): Lins | null => (typeof word === 'string' && Object.hasOwn(LINS_ALIAS, word) ? LINS_ALIAS[word] : null);
 
 /** The plan's Dator view is 1762 wide and the film 1764: a plan pixel's x times 1763/1761 is the film's (the game's FILM_X). */
 const PLAN_X = 1761, FILM_X = FILM.width - 1;

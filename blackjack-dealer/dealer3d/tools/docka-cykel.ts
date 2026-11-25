@@ -18,7 +18,7 @@
 // (dealer3d/src/hand-rule.ts; "Naturlig" only), to make a film made before it again. --en-vinkel: one angle of the hand on
 // the card from the hand change to the end, −30 where nothing steers it, as "Naturlig" was on 2026-11-23 before the two
 // angles (natural-lab.ts gripYawsOf; "Naturlig" only), to make a film made then again. The cycle's flags are
-// dealer3d/tools/return-cycle.ts's, and left out they are its own defaults.
+// dealer3d/src/return-cycle.ts's, and left out they are its own defaults.
 // The landing (her right hand's end pose at the laid card, dealer3d/src/landing.ts; "Naturlig" only) is the standard's
 // (`lab.landing`), the default where it has none; --landning <id> lays that landing instead, without his own shaping. It
 // prints one line `landning <id>` ("landning ingen" where the way has no landing: Som förut, and from A2.1).

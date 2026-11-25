@@ -348,8 +348,6 @@ export function mouthOpens(drawn: Planes, w: number, h: number, middle: {x: numb
 /** How much darker than the lip around it a row is when it is dark and not lip, and when it is the dark of the mouth itself, in
  * levels of brightness. Measured in five of Paow's lines: between closed lips (m, b, p) the deep run is 0 to 1 row, in an o 2 to 3. */
 const DARK = 30, DEEP = 50;
-/** How open the drawn mouth is: the gap of mouthOpens. */
-export const mouthGap = (drawn: Planes, w: number, h: number, middle: {x: number; y: number}, line: Float32Array): number => mouthOpens(drawn, w, h, middle, line).gap;
 /** Values evened over the frames to either side: reach 1 is a quarter, a half, a quarter. */
 const evened = (values: number[], reach: number): number[] => reach > 0 ? values.map((_, k) => { let sum = 0, n = 0; for (let j = -reach; j <= reach; j++) { const w = reach + 1 - Math.abs(j); sum += w * values[Math.min(values.length - 1, Math.max(0, k + j))]; n += w; } return sum / n; }) : values;
 /** How her own upper lip and the drawn mouth are moved in each frame when the lift is a share of the opening (the recipe's

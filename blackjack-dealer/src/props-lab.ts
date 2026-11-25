@@ -490,7 +490,7 @@ async function start() {
     $('lights').classList.toggle('off', roomLit()); for (const button of $('lights').children) (button as HTMLButtonElement).disabled = roomLit();
     $('model-note').textContent = model ? `${decimal(model.triangles)} trianglar · ${sizeText(model.size.x, model.size.y, model.size.z)}${model.textureSize ? ` · bilder ${model.textureSize} px` : ''}` : '';
     const chip = (text: string, tone = '') => el('span', {className: `chip ${tone}`, textContent: text});
-    hudBox.replaceChildren(chip('Labb · ändrar inget i spelet', 'lab'), ...(loading ? [chip(`Läser ${modelName(loading)}…`)] : model ? [chip(modelName(model.id)), chip(look.label)] : []), ...(problem ? [chip('Modellen saknas', 'warn')] : []));
+    hudBox.replaceChildren(chip('Prov · ändrar inget i spelet', 'lab'), ...(loading ? [chip(`Läser ${modelName(loading)}…`)] : model ? [chip(modelName(model.id)), chip(look.label)] : []), ...(problem ? [chip('Modellen saknas', 'warn')] : []));
     failBox.textContent = problem;
   }
 

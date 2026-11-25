@@ -66,12 +66,34 @@ test('a preset as the lab hands it out: its state kept, a key that does not fit 
   for (const answer of [null, {}, {preset: null}, {preset: {state: []}}, {error: 'Det finns inget förval med det namnet.'}]) assert.equal(presetFrom(answer), null);
 });
 
-test('a preset saved with Bred lins (Använd i Casino, Jakob 2026-11-21) hands the game its geometry word; one without has none', () => {
+test('the lens is a key of the look (Bred lins, Jakob 2026-11-21 and 2026-11-25): saved with it, and read from a look saved before the key', () => {
   const casino = {schemaVersion: 1, name: 'casino', label: 'Casino', about: 'Casinos sparade visning, vald i Scen & bord.', state: {room: 'panorama', pitch: -8, zoom: 0.84, format: 'fill'}, updatedAt: '2026-11-19T17:14:04.461Z'};
-  assert.deepEqual(presetFrom({preset: casino}), {state: casino.state, dropped: []}, 'the file as it was: no word, Standard');
-  assert.deepEqual(presetFrom({preset: {...casino, geometri: 'kontrakt', revision: null}}), {state: casino.state, dropped: [], geometri: 'kontrakt'});
-  assert.equal(presetFrom({preset: {...casino, geometri: 'lins'}})?.geometri, 'lins');
-  for (const geometri of ['bred', 'constructor', 1, null]) assert.equal(presetFrom({preset: {...casino, geometri}})?.geometri, undefined, String(geometri));
+  assert.deepEqual(presetFrom({preset: casino}), {state: casino.state, dropped: []}, 'no lens named: Standard, the scene\'s default');
+  assert.deepEqual(presetFrom({preset: {...casino, state: {...casino.state, lins: 'bred'}}}), {state: {...casino.state, lins: 'bred'}, dropped: []}, 'the key as it is saved now');
+  // a file from before the key carries the lens beside the state, as geometri=kontrakt: the same look
+  assert.deepEqual(presetFrom({preset: {...casino, geometri: 'kontrakt', revision: null}}), {state: {...casino.state, lins: 'bred'}, dropped: []});
+  assert.deepEqual(presetFrom({preset: {...casino, geometri: 'lins'}}), {state: {...casino.state, lins: 'standard'}, dropped: []});
+  assert.equal(presetFrom({preset: {...casino, state: {...casino.state, lins: 'standard'}, geometri: 'kontrakt'}})?.state.lins, 'standard', 'the key goes before the older word');
+  for (const geometri of ['bred', 'constructor', 1, null]) assert.equal(presetFrom({preset: {...casino, geometri}})?.state.lins, undefined, String(geometri));
+  assert.deepEqual(presetFrom({preset: {...casino, state: {...casino.state, lins: 'vid'}}}), {state: casino.state, dropped: ['lins']}, 'a value the key does not have is dropped and named');
+});
+
+test('the lens the game plays: the address\'s, else the look\'s, else Standard; the older address word is an alias', () => {
+  const blurOf = () => 11, bred = {room: 'panorama', lins: 'bred'} as const;
+  const played = (address: string, preset: object | null) => lookState(DEFAULTS, preset, readLook(params(address)).keys, blurOf).lins ?? DEFAULTS.lins;
+  assert.equal(DEFAULTS.lins, 'standard');
+  assert.equal(played('forval=casino&table=casino', bred), 'bred', 'the plain Casino link plays the saved Bred lins');
+  assert.equal(played('forval=casino&lins=standard', bred), 'standard', 'Prova i Casino with Standard keeps Standard');
+  assert.equal(played('forval=casino&lins=bred', {room: 'panorama'}), 'bred', 'Prova i Casino with Bred lins');
+  assert.equal(played('forval=casino', {room: 'panorama'}), 'standard', 'a look that names no lens is Standard');
+  // links written before the key: geometri=kontrakt is Bred lins, geometri=lins Standard, anything else no word
+  assert.equal(played('forval=casino&geometri=lins', bred), 'standard'); assert.equal(played('forval=casino&geometri=kontrakt', {room: 'panorama'}), 'bred');
+  assert.equal(played('forval=casino&geometri=annat', bred), 'bred'); assert.equal(played('geometri=kontrakt&table=prov', null), 'bred', 'without a look too');
+  assert.equal(played('forval=casino&geometri=kontrakt&lins=standard', bred), 'standard', 'the key goes before the older word');
+  assert.deepEqual(readLook(params('geometri=kontrakt')).ignored, []); assert.deepEqual(readLook(params('geometri=annat')).ignored, []);
+  assert.deepEqual(readLook(params('lins=vid')).ignored, ['lins']);
+  // the film before the game (cloud/studio/gate.ts TRAILER_HOME) names neither a look nor a lens: Standard, as before
+  assert.equal(played('intro=noir-3&room=monaco&roomLife=1&table=casino&dealer=paow', null), 'standard');
 });
 
 test('a preset is asked for only with ?forval: the film before the game gets no saved geometry', () => {
@@ -96,7 +118,9 @@ test('the game\'s own words are never read as a look', () => {
   // None of them is a key of the scene, and among them are the words the Casino view writes into the frame for itself
   // (studio/lib/casino.ts gameSrc; dealer, which it adds).
   assert.deepEqual(OWN_WORDS.filter(word => word in KEYS), []);
-  for (const word of ['table', 'inbaddad', 'dealer', 'geometri']) assert.ok(OWN_WORDS.includes(word), `${word} is the game's own word`);
+  for (const word of ['table', 'inbaddad', 'dealer']) assert.ok(OWN_WORDS.includes(word), `${word} is the game's own word`);
+  // the lens's older word is an alias of the look's key lins (readLook), so an address that has only it does ask for a look
+  assert.equal(OWN_WORDS.includes('geometri'), false);
 });
 
 test('the drawn cards and her lines: the game draws cards unless the player or a look says off; tal=av keeps her silent', () => {

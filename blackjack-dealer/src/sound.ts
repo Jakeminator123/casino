@@ -1,4 +1,4 @@
-// Page code of sound.html: the sound lab ("Ljud-labb"). The sounds of the table (chips and cards) and the rooms'
+// Page code of sound.html: the sound page beside the studio ("Ljud"). The sounds of the table (chips and cards) and the rooms'
 // backgrounds, all made in the browser with the Web Audio API: no audio files, nothing downloaded, every sound tunable here.
 // The game plays it too (src/game-page.ts loadSound, through createSound()); this page is where its sounds are tuned.
 //
@@ -1903,7 +1903,7 @@ function start() {
     $('mute').textContent = s.muted ? 'Sätt på ljudet' : 'Stäng av ljudet'; $('mute').setAttribute('aria-pressed', String(s.muted));
     $('start-note').classList.toggle('done', s.unlocked);
     const chip = (text: string, tone = '') => el('span', {className: `chip ${tone}`, textContent: text});
-    $('hud').replaceChildren(chip('Labb · ändrar inget i spelet', 'lab'), chip(`Bakgrund: ${room.label}`), chip(`Musik: ${track.label}`), ...(s.muted ? [chip('Ljudet är avstängt', 'warn')] : []), ...(!s.unlocked ? [chip('Väntar på första trycket')] : []));
+    $('hud').replaceChildren(chip('Prov · ändrar inget i spelet', 'lab'), chip(`Bakgrund: ${room.label}`), chip(`Musik: ${track.label}`), ...(s.muted ? [chip('Ljudet är avstängt', 'warn')] : []), ...(!s.unlocked ? [chip('Väntar på första trycket')] : []));
     $('hint').hidden = s.unlocked;
   }
   // ── the picture: what is playing, as a spectrum and a level ──

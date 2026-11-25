@@ -52,7 +52,6 @@ export const defaultFlip = (_step: string, turnAt?: 'AIR' | 'PLACE' | null, axis
  * Stored as the plan stores it (Intent.takeHand and Intent.pass): hand = the hand that takes the card, pass = it is handed over.
  */
 export type HandChoice = 'LH' | 'RH' | 'PASS';
-export const HAND_CHOICES: readonly HandChoice[] = ['LH', 'RH', 'PASS'];
 export const HAND_LABEL: Record<HandChoice, string> = { LH: 'Vänster hela vägen', RH: 'Höger hela vägen', PASS: 'Handbyte' };
 export const handChoiceOf = (m: { hand: 'LH' | 'RH'; pass?: boolean }): HandChoice => (m.pass ? 'PASS' : m.hand);
 export const handsOf = (choice: HandChoice): { hand: 'LH' | 'RH'; pass: boolean } => (choice === 'PASS' ? { hand: 'LH', pass: true } : { hand: choice, pass: false });
@@ -71,11 +70,6 @@ export type TextStyle = 'KORT' | 'MINIMAL' | 'UTFÖRLIG';
 /** Every style a stored order can have. A new order takes one of stylesFor. */
 export const TEXT_STYLES: readonly TextStyle[] = ['KORT', 'MINIMAL', 'UTFÖRLIG'];
 export const STYLE_LABEL: Record<TextStyle, string> = { KORT: 'Kort', MINIMAL: 'Minimal', UTFÖRLIG: 'Utförlig' };
-export const STYLE_ABOUT: Record<TextStyle, string> = {
-  KORT: 'Bara rörelsen, i den ordning den sker. Inget om hennes utseende, inga förbud; vändningen i en mening.',
-  MINIMAL: 'Jakobs prov: kortets färger och att ett kort går från skon dit sista bilden visar. Inget om hur. Inte för en bild.',
-  UTFÖRLIG: 'Den långa texten från de första beställningarna: hennes utseende, varje led och listan över det som inte får hända. Skrivs inte längre för en ny beställning.',
-};
 const NEW_FILM_STYLES: readonly TextStyle[] = ['KORT', 'MINIMAL'];
 const NEW_STILL_STYLES: readonly TextStyle[] = ['KORT'];
 /** The styles a new order can be written in: the step's own, else Kort and Minimal (a still Kort only). Never Utförlig. */
@@ -266,7 +260,7 @@ export type Generation = {
  * plan's (CARD_SCALES), a trial; absent: the plan's size. planned: what Placering said for the card when the draft was made,
  * its grip and its turn in the order's words (defaultFlip of the plan's turnAt and flipAxis; null where the plan lays it
  * closed). The grip of an order is its step's (GIV-2.2 drags), so where the plan said otherwise this is where that stays
- * said, also after the plan changes (PlannedMotion, plannedDiffers). Absent on orders made before 2026-11-17.
+ * said, also after the plan changes (PlannedMotion). Absent on orders made before 2026-11-17.
  */
 export type Motion = { grip: Grip; hand: 'LH' | 'RH'; pass: boolean; turn: boolean; flipAxis: FlipAxis | null; target: string | null; side: 'FRONT' | 'BACK'; fromPlan: boolean; cardScale?: number; planned?: PlannedMotion };
 export const twoHandMotion = (step: StepKey, grip: Motion['grip'] | undefined) =>
@@ -274,11 +268,6 @@ export const twoHandMotion = (step: StepKey, grip: Motion['grip'] | undefined) =
 export type PlannedMotion = { grip: 'PINCH' | 'DRAG'; flipAxis: FlipAxis | null };
 /** What Placering says for a card, as an order stores it (Motion.planned): its grip and how it turns, null where it lands closed. */
 export const plannedOf = (seat: Pick<SeatPlan, 'grip' | 'turnAt' | 'flipAxis' | 'side'>): PlannedMotion => ({ grip: seat.grip, flipAxis: seat.side === 'FRONT' ? defaultFlip('', seat.turnAt, seat.flipAxis) : null });
-/** Where a deal differs from what Placering said for its card: the grip, and the turn of a card that is turned both ways. */
-export function plannedDiffers(m: Pick<Motion, 'grip' | 'turn' | 'flipAxis'>, planned: PlannedMotion | null | undefined): ('grip' | 'turn')[] {
-  if (!planned) return [];
-  return [...(planned.grip !== m.grip ? ['grip' as const] : []), ...(m.turn && planned.flipAxis && m.flipAxis && planned.flipAxis !== m.flipAxis ? ['turn' as const] : [])];
-}
 /**
  * A draft's choices with what does not apply taken out: no turn for a card that is not turned (flipAxis null). Drafts made
  * before 2026-11-13 stored one anyway; the store reads them through this, and writes them clean on their next change.
@@ -573,8 +562,6 @@ export function seatEndOf<E extends { id?: string; role: string; node?: string; 
   const cut = bank ? cutFrameOf(bank, want)[0] : null;
   return cut ? { kind: 'SNITTRUTA', cut } : null;
 }
-/** "landningsbilden Plats 4, landning" or "ruta 126 ur paow-giv-2-2-p4-01-01, där returen börjar": a seat's end picture in words. */
-export const seatEndWords = (end: SeatEnd<{ name?: string }> | null): string => (!end ? 'ingen slutbild' : end.kind === 'LANDNING' ? `landningsbilden${end.entry.name ? ` ${end.entry.name}` : ''}` : cutFrameWords(end.cut));
 /** A take the bank has set aside for good (review.archived, written from Karta): never a reference film, never a last frame. */
 export const isArchived = (bank: Pick<BankFacts, 'motions'>, id: string): boolean => !!bank.motions?.[id]?.review?.archived;
 
@@ -655,8 +642,6 @@ export function cutIntoOf(step: StepDef, target: string | null, shape: Shape | n
 }
 /** The cards a deal can be ordered to: the first card of every seat, the dealer's first, and her hole card (lands closed). */
 export const SEAT_TARGETS = ['P1.C1', 'P2.C1', 'P3.C1', 'P4.C1', 'P5.C1', 'P6.C1', 'P7.C1', 'D.C1', 'D.C2', 'D.C3'];
-/** "Alla sju": the first card to every player. */
-export const ALL_SEVEN = SEAT_TARGETS.filter((t) => t.startsWith('P'));
 /** "plats 1, 2 och 3", "plats 1–7", "dealerns plats". */
 export function seatList(targets: readonly string[]): string {
   const n = targets.map((t) => /^P(\d)\.C1$/.exec(t)?.[1]).filter((x): x is string => !!x).map(Number).sort((a, b) => a - b);
@@ -784,8 +769,6 @@ export const lengthOfReference = (model: Pick<ModelDef, 'durations'>, referenceS
 export type RefVerdict = 'GODKÄND' | 'VARIANT' | 'EJ_DÖMD' | 'UNDERKÄND';
 export const REF_VERDICT_LABEL: Record<RefVerdict, string> = { GODKÄND: 'godkänd', VARIANT: 'variant', EJ_DÖMD: 'ej dömd', UNDERKÄND: 'underkänd' };
 const VERDICT_RANK: Record<RefVerdict, number> = { GODKÄND: 0, VARIANT: 1, EJ_DÖMD: 2, UNDERKÄND: 3 };
-/** How near a take is to what is ordered: the same step and seat, the same seat from another grip, the same step to another seat. */
-export const REF_MATCH_LABEL = ['samma steg och plats', 'samma plats, annat grepp', 'samma steg, annan plats'] as const;
 /** The bank as GET /api/clip-bank answers it (src/clip-graph.ts BankData), only what a reference needs. */
 export type BankFacts = {
   jobs?: { id: string; from: string; to: string; duration?: number; dealer?: string }[];

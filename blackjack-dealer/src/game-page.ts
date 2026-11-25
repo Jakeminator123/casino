@@ -17,7 +17,8 @@ import {createScene, DEFAULTS, type SceneState} from './scene3d-view.ts';
 import {readRegister} from './scene3d-room.ts';
 import {FILM, cameraFromContract, filmPixel, filmToScene, sceneToSpot, solveCamera, spotToScene, viewUnder, type FilmCamera} from './scene3d-geometry.ts';
 import {createLayout, slotOf} from './game-table.ts';
-import {tableGeometry} from './card-plan.ts';
+import {LINS, type Lins} from './card-plan.ts';
+import {MOBILE_BELOW, PLAY_VIEW, readPlayView, type PlayView} from './play-view.ts';
 import {GAME_OWN, OWN_WORDS} from './game-own.ts';
 import {cardRecords, judgedBank, speakMoments, talkOn} from './game-director.ts';
 import {cardsChoice, cardWords, createFilm, type FilmPlayers, type Said} from './game-film.ts';
@@ -40,9 +41,12 @@ const query = new URLSearchParams(location.search);
 // marks the stage, game.css lays it out): standing, under the picture; lying on a stage lower than sideBelow (a phone on its
 // side), at the picture's right; else over the picture's lower edge. The film before the game (src/game-intro.ts) ends in these framings, so the
 // two change together.
-const FRAMING = {wide: {pitch: GAME_OWN.pitch, zoom: GAME_OWN.zoom}, tall: {pitch: -4.4, zoom: 1.55}, tallBelow: 0.8, sideBelow: 540, turnShare: 0.6, turnLimit: 40};
+const FRAMING = {sideBelow: 540, turnShare: 0.6, turnLimit: 40};
+// The play view as the page knows it (src/play-view.ts): the game's own until the saved one has been read, which is after the
+// film before the game has been laid.
+let playView: PlayView = PLAY_VIEW;
 function placeConsole() {
-  const box = stage.getBoundingClientRect(), standing = box.width / Math.max(1, box.height) < FRAMING.tallBelow;
+  const box = stage.getBoundingClientRect(), standing = box.width / Math.max(1, box.height) < MOBILE_BELOW;
   stage.classList.toggle('tall', standing); stage.classList.toggle('side', !standing && box.height < FRAMING.sideBelow); // the picture box follows at once (game.css)
   return standing;
 }
@@ -55,7 +59,7 @@ placeConsole(); // before the film before the game is laid, so that it is laid i
 const INTROS: Record<string, {film: string; poster: string}> = {'noir-3': {film: 'assets/films/intro/noir-3/film-2.mp4', poster: 'assets/films/intro/noir-3/poster.jpg'}};
 const introAsked = INTROS[query.get('intro') ?? ''] as {film: string; poster: string} | undefined;
 let introOn = !!introAsked, introOver = () => { introOn = false; }, introLead = () => {};
-if (introAsked) void import('./game-intro.ts').then(m => m.createIntro(stage, canvas, {...introAsked, onLead: () => introLead()})).catch(() => null).then(() => introOver());
+if (introAsked) void import('./game-intro.ts').then(m => m.createIntro(stage, canvas, {...introAsked, view: () => playView, onLead: () => introLead()})).catch(() => null).then(() => introOver());
 stage.dataset.theme = THEMES.includes(query.get('tema') ?? '') ? query.get('tema')! : 'noir';
 // The server keeps one session per table name; a second tab or a test opens game.html?table=<name> and plays its own.
 const table = /^[a-z0-9-]{1,40}$/.test(query.get('table') ?? '') ? `?table=${query.get('table')}` : '';
@@ -92,17 +96,20 @@ const compositionWord = treeWord === null ? query.get('komposition') : null;
 const compositionRead = compositionWord === null ? null : Promise.all([fetch(`api/compositions?dealer=${encodeURIComponent(dealer)}&komposition=${encodeURIComponent(compositionWord)}`).then(async res => ({status: res.status, answer: await res.json().catch(() => null)}), () => null),
   import('./composition.ts').catch(() => null)]);
 
-const [contract, placements, bank, first, register, lookCode, presetAnswer, treeAnswer, compositionAnswer] = await Promise.all([read('data/scene-contract.json', 'Scenkontraktet'), read('api/placements', 'Placeringsplanen'), read('api/clip-bank', 'Klippbanken'), read(`api/game${table}`, 'Spelet'), read('data/scene-rooms.json', 'Rumsregistret'),
-  lookAsked ? import('./game-look.ts').catch(() => null) : null, forval ? fetch(`api/scene-presets/${encodeURIComponent(forval)}`).then(res => res.ok ? res.json() : null, () => null) : null, treeRead, compositionRead]);
+const [contract, placements, bank, first, register, lookCode, presetAnswer, treeAnswer, compositionAnswer, playViewAnswer] = await Promise.all([read('data/scene-contract.json', 'Scenkontraktet'), read('api/placements', 'Kortplanen'), read('api/clip-bank', 'Klippbanken'), read(`api/game${table}`, 'Spelet'), read('data/scene-rooms.json', 'Rumsregistret'),
+  lookAsked ? import('./game-look.ts').catch(() => null) : null, forval ? fetch(`api/scene-presets/${encodeURIComponent(forval)}`).then(res => res.ok ? res.json() : null, () => null) : null, treeRead, compositionRead,
+  // The play view (tools/play-view-store.ts). A page that cannot read it keeps the game's own: the copy on the net until it is published again.
+  fetch('api/play-view').then(res => res.ok ? res.json() : null, () => null)]);
+playView = readPlayView(playViewAnswer);
 const registered = readRegister(register).rooms, roomIds = lookCode ? [...lookCode.BUILT_ROOMS, ...registered.map(r => r.id)] : [];
 // The look over the game's own settings: with a preset its whole look, else the address's keys; {} when none is asked for.
 // What could not be used is said in one line on the page, and the game plays with its own look in its place.
 const look = lookCode?.readLook(query, roomIds) ?? null, preset = lookCode && look?.forval ? lookCode.presetFrom(presetAnswer, roomIds) : null;
-const asked: Partial<SceneState> = lookCode && look ? lookCode.lookState(DEFAULTS, preset?.state ?? null, look.keys, id => registered.find(r => r.id === id)?.blur ?? lookCode.BUILT_BLUR[id] ?? 11) : {};
+const asked: Partial<SceneState> = lookCode && look ? lookCode.lookState(DEFAULTS, preset?.state ?? null, look.keys, id => registered.find(r => r.id === id)?.blur ?? lookCode.BUILT_BLUR[id] ?? 11, {...playView.dator, format: GAME_OWN.format}) : {};
 const lookNote = lookCode && look ? lookCode.lookNotice(look.asked, !!preset, [...look.ignored, ...(preset?.dropped ?? [])]) : forval !== null ? 'Förvalet kunde inte läsas: spelet visar sitt eget utseende.' : null;
-// The table's geometry (src/card-plan.ts), one for the scene and the lying cards: the address's word, else the one the preset
-// was saved with (Casino's, when Jakob chose Bred lins in Scen and pressed Använd i Casino; Jakob 2026-11-21), else Standard.
-const geometry = tableGeometry(location.search, preset?.geometri ?? null);
+// The look's lens (the scene key lins; Lins in src/card-plan.ts), one for the scene and the lying cards: the address's, else
+// the look's (Casino's saved look carries Bred lins; Jakob 2026-11-21), else Standard. Read once: the game does not change it.
+const lins: Lins = asked.lins ?? LINS;
 // The 360-degree rooms Jakob has let into the game (game: true in data/scene-rooms.json); a new room is tried in the lab first,
 // and a look that chooses one is shown with it.
 const panoramas = registered.filter(r => r.game || r.id === asked.room);
@@ -119,7 +126,7 @@ const composition = compositionWord === null ? {cut: null, line: null as string 
   : compositionCode?.compositionPlay(compositionWord, compositionAnswer![0], nameOf(dealer)) ?? {cut: null, line: `Kompositionen "${compositionWord.slice(0, 40)}" kunde inte läsas. Spelet spelar som vanligt, med alla hennes filmer.`};
 const homeTree = composition.cut ? composition.cut.home ?? composition.cut.trees[0]?.tree ?? null : null;
 const playedBank = composition.cut && compositionCode && homeTree ? compositionCode.treeBank(bank, composition.cut, homeTree) : treeCut.bank;
-const plan = placements.plan ?? placements, judged = judgedBank(playedBank), graphs = new Map<string, Graph>(), layout = createLayout(plan, {fan: fanStep, geometry});
+const plan = placements.plan ?? placements, judged = judgedBank(playedBank), graphs = new Map<string, Graph>(), layout = createLayout(plan, {fan: fanStep, lins});
 const graphOf = (id: string) => { let g = graphs.get(id); if (!g) { g = buildGraph(judged, {dealer: id}); graphs.set(id, g); } return g; };
 const graph = graphOf(dealer);
 // A rest film can ask the scene to show another room for a moment (FilmEffect in src/clip-graph.ts: the champagne film's flash turns
@@ -141,15 +148,17 @@ const spokenOf = (keyOrPhase: string): Spoken | null => talking && lines ? lines
 // ── the picture: the 3D scene, seen a little from above so that all seven bet rings and the bar have room ──
 // The scene fills the picture box (#picture). On a larger screen that is the whole stage and the console lies over its lower edge;
 // on a phone it is the part of the stage the console leaves free (frame, below), so that nothing of the console covers the table.
-const scene = createScene(canvas, picture, {contract, plan, urls: {plate: 'assets/scene/room.png', panorama: 'assets/scene/panorama-vegas.jpg', la: 'assets/scene/panorama-la.jpg', skog: 'assets/scene/panorama-skog.jpg'}, rooms: sceneRooms, onChange: () => {}, onMissingRoom: () => {}, geometry});
+const scene = createScene(canvas, picture, {contract, plan, urls: {plate: 'assets/scene/room.png', panorama: 'assets/scene/panorama-vegas.jpg', la: 'assets/scene/panorama-la.jpg', skog: 'assets/scene/panorama-skog.jpg'}, rooms: sceneRooms, onChange: () => {}, onMissingRoom: () => {}});
 // The framings (FRAMING) stand at the top, where the stage is told its shape before the film before the game is laid.
-// A look's pitch and zoom are its lying framing; its yaw, dy and dz are where the view comes to rest (all 0 in the game's own).
-const lying = {pitch: asked.pitch ?? FRAMING.wide.pitch, zoom: asked.zoom ?? FRAMING.wide.zoom}, home = {yaw: asked.yaw ?? 0, dy: asked.dy ?? 0, dz: asked.dz ?? 0};
+// The lying framing is the play view's Dator, or the look's own where it names one (lookState lays the play view under the
+// look); yaw, dy and dz are where the view comes to rest. Standing is always the play view's Mobil.
+const lying = {pitch: asked.pitch ?? playView.dator.pitch, zoom: asked.zoom ?? playView.dator.zoom}, home = {yaw: asked.yaw ?? playView.dator.yaw, dy: asked.dy ?? 0, dz: asked.dz ?? 0};
+const upright = {pitch: playView.mobil.pitch, zoom: playView.mobil.zoom};
 const fixed = query.has('pitch') || query.has('zoom');
 let tall = false, aimed = home.yaw; // aimed: the yaw the view is easing toward, degrees
 function frame() {
   const now = placeConsole(); // and the scene follows the picture box (scene.resize, below)
-  if (now !== tall || !framed) { tall = now; framed = true; if (!fixed) scene.set(tall ? FRAMING.tall : lying); if (!tall) { aimed = home.yaw; scene.set({yaw: home.yaw}); } }
+  if (now !== tall || !framed) { tall = now; framed = true; if (!fixed) scene.set(tall ? upright : lying); aimed = tall ? playView.mobil.yaw : home.yaw; scene.set({yaw: aimed}); }
   scene.resize();
 }
 let framed = false;
@@ -166,7 +175,7 @@ let room = ROOMS.find(r => r.id === (asked.room ?? query.get('room') ?? remember
 // the saved scene preset, then the player's remembered choice, then on. A saved look must survive an old browser setting.
 const cardsMemory = (() => { try { return localStorage.getItem('dealer.cards'); } catch { return null; } })();
 const cardsNow = cardsChoice({address: (look?.keys as {cards?: boolean} | undefined)?.cards, preset: preset?.state.cards, kort: query.get('kort'), memory: cardsMemory, inHand: asked.cardInHand});
-scene.set({format: GAME_OWN.format, room: room as never, blur: ROOMS.find(r => r.id === room)!.blur, tray: GAME_OWN.tray, cards: GAME_OWN.cards, pitch: Number(query.get('pitch') ?? FRAMING.wide.pitch), zoom: Number(query.get('zoom') ?? FRAMING.wide.zoom)});
+scene.set({lins, format: GAME_OWN.format, room: room as never, blur: ROOMS.find(r => r.id === room)!.blur, tray: GAME_OWN.tray, cards: GAME_OWN.cards, pitch: Number(query.get('pitch') ?? lying.pitch), zoom: Number(query.get('zoom') ?? lying.zoom)});
 // The look over the game's own settings, before the first picture. A room of it that the menu does not offer (a built room
 // of the lab) is shown all the same, and the menu marks none. The table is built by now, so the room is changed with a cut,
 // and the look's own way of changing rooms holds from then on.
@@ -462,7 +471,7 @@ function anchors(): Anchors {
 // Standing: the view turns toward a seat (most of the way, so the dealer stays in the picture) and eases there.
 function aimAt(seat: number | null) {
   const spot = seat === null ? null : scene.spots().bets.find(b => b.id === `P${seat}`), camera = scene.status().camera;
-  if (!tall || !spot) { aimed = home.yaw; return; }
+  if (!tall || !spot) { aimed = tall ? playView.mobil.yaw : home.yaw; return; }
   let turn = Math.atan2(-spot.x * camera.scale, solveCamera(camera).edgeDistance - spot.s * camera.scale) * 180 / Math.PI * FRAMING.turnShare;
   // Under the table's lens the view turns about the film camera's own upright (src/scene3d-view.ts updateView), so the angle to the
   // seat is the one its ring has in the film, and the scene reads a yaw as written for the contract's camera (viewUnder), so the
@@ -475,7 +484,7 @@ function aimAt(seat: number | null) {
 // shot: the view while a whole-body film is on (the dealer leaving): the camera backs away as she rises (src/scene3d-exit.ts).
 // Without it the view eases to the seat in play, to its own tilt and zoom, and the camera to its own place.
 let turning: {x: number; yaw: number} | null = null, byHand = false, shot: ExitView | null = null, comeHome = false; // comeHome: she has gone, the camera returns though her film's last frame is still up
-const framing = () => tall ? FRAMING.tall : lying;
+const framing = () => tall ? upright : lying;
 canvas.addEventListener('pointerdown', e => { turning = {x: e.clientX, yaw: scene.state.yaw}; canvas.setPointerCapture(e.pointerId); });
 canvas.addEventListener('pointermove', e => { if (!turning) return; const dx = e.clientX - turning.x; if (Math.abs(dx) > 4) byHand = true; if (byHand) scene.state.yaw = Math.max(-FRAMING.turnLimit, Math.min(FRAMING.turnLimit, turning.yaw + dx * 45 / canvas.clientHeight / Math.max(1, scene.state.zoom))); });
 for (const type of ['pointerup', 'pointercancel']) canvas.addEventListener(type, () => { turning = null; });

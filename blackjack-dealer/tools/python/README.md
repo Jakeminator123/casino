@@ -2,7 +2,8 @@
 
 Den egna MuseTalk-köraren finns i [mouth-runner](mouth-runner/README.md). Dess MediaPipe-mask, versionerade munprofil
 och källproveniens följer med repot; modellvikter och lokala förberedelser gör det inte. Profilens regressioner körs
-även av `npm test` när Python 3 finns, annars redovisas just den kontrollen som överhoppad.
+inte av `npm test`: kör dem med Pythons standardbibliotek från mappen `mouth-runner/`, med
+`python -B -m unittest discover -s tests -v`.
 
 Skripten som beställningen och granskningen ([bestalla-film](../../../.claude/skills/bestalla-film/SKILL.md),
 [granska-film](../../../.claude/skills/granska-film/SKILL.md), [ny-dealer](../../../.claude/skills/ny-dealer/SKILL.md)) kör i Python, oftast för att de hittar händer, ögon, axlar eller ansikten med
@@ -41,7 +42,8 @@ node tools/register-derived.ts .runtime/<uppgift>/<ut>.mp4 --id <nytt klipp-id> 
 ## Kortdatasetet (`kort-dataset/`)
 
 Verktygen som gjorde datasetet över kortets rygg och framsida ruta för ruta, mätte dagens kortspår mot det
-och bygger labbprovet `kortprov` ([STATUS](../../STATUS.md), "Kända brister"). Skripten läser och skriver datasetet
+och bygger provet `kortprov` (Scen öppnad med `?kortprov=1`; delarna och regeln står vid `TRIAL` i
+`src/card-overlay.ts`). Skripten läser och skriver datasetet
 i slasken, `kort-dataset/` (etiketter i `labels/`, `manifest.jsonl`, `rutor.csv`), och läser repots `assets/`. Den
 tränade modellen skrivs inte dit, eftersom slasken töms efter sju dygn: `train.py` lägger den i `tools/python/models/`
 (`kortmodell-v<n>.pt`, eller där `DEALER_MODELS` pekar), och `eval.py` och `spar_modell.py` läser den därifrån; `inventory.py` tar sina rötter som argument. Referensfilmen från YouTube mäts men kopieras
@@ -57,7 +59,7 @@ behöver också `torch` (en egen miljö med torch 2.6) och kör på grafikkortet
 | Modellen (v1 och v2; `--version 2` ritar märke, tryck och fingrar som störning) | `train.py`, `eval.py` (`--modell`, `--ut`) |
 | Modellens spår på alla filmer (Prov `kortmodell-v2-20261123`, sidan `/kortlandning.html`) | `spar_modell.py` (modellens hörn och sida per ruta, på grafikkortet under låset), `spar_modell.ts` (spåret per film och `index.json` med måtten mot dagens spår; regeln står överst i skriptet; `--utan-styvt` ger modellens rutor som de är) |
 | Det styva kortet (Prov `styvt-kort-20261123`): ett kort med en storlek, med plats, riktning, höjd och lutning för hela filmen på en gång | `styvt_kort.ts` (anropas av `spar_modell.ts` för givar där kortet lägger sig; måtten och regeln står överst) |
-| Labbprovet | `spar_b.ts` (provets spår ur etiketterna, regeln `refineFrames` i `src/card-track.ts`), `spela_in.ts` (spelar in Scen ruta för ruta, headless under låset), `ljus_serie.py` (ljusets steg ur en inspelning), `titta_val.py` (spåren ritade på filmrutor), `prov_bygg.py` (provets filmer och stillbilder) |
+| Provet `kortprov` | `spar_b.ts` (provets spår ur etiketterna, regeln `refineFrames` i `src/card-track.ts`), `spela_in.ts` (spelar in Scen ruta för ruta, headless under låset), `ljus_serie.py` (ljusets steg ur en inspelning), `titta_val.py` (spåren ritade på filmrutor), `prov_bygg.py` (provets filmer och stillbilder) |
 
 ```
 tools/python/.venv/Scripts/python.exe -I tools/python/kort-dataset/label.py <slasken>/kort-dataset/lista-a.jsonl --workers 2

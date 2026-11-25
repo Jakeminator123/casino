@@ -30,17 +30,21 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   under steg 2; den platta planen och dess bakade bakgrundsbilder är borta. Ingången (A2.1 eller A2.3) är trädets,
   det spelade trädet som förval; planens Handbyte väljer ingenting. Reglaget Filmen i bildens knapprad lägger kortets
   film över dockan genom samma kamera (2026-11-25); av vyerna är bara Filmens kamera standarden, de andra är till för
-  att titta runt. Bordet BORD-02 är ett prov i studion ("skitbra" som alternativ, 2026-11-20) som spelet inte slår på
-  före hans ja.
-- **Standarden** (2026-11-25, `docs/SYSTEM.md`): två lager. I botten de fasta måtten i `src/table-lens.ts` (kamera,
-  bord, kort, sko, markerlåda) och planens platser, som dockan, Inspelning, Scens grund och varje beställd film utgår från;
-  ovanpå utseendet han ställer in i Scen och som Casino visar (rum, bord och duk, kortens ritning, Bred lins, kamerans
-  vy). Ett utseende ändrar inte måtten: i Standard är skalan alltid 1 (Casinos sparade skala 2 ritade förut markerlådan
-  och bordet dubbelt så stora där). Kvar att rätta eller välja: kortets form (87 % i spelet och i beställningens sista
-  bild, ett verkligt kort hos dockan), dockans sko (lägre baktill än filmens, 15–17 px), dockans huvud (något högre och
-  smalare än hennes), att dockan inte läser ett korts riktning ur planen, och att Scen öppnar Casinos utseende i
-  Standard fast Casino spelar Bred lins (Använd i Casino sparar det Scen visar, så Bred lins kan falla bort osedd).
-  Dockans bord ritar markerlådan som en mörk försänkning med standardens mått.
+  att titta runt. Inspelning rensades 2026-11-26 på hans ord ("Snäpp", "Kontrollerad" "och andra saker"): borta är
+  Snäpp, Startförslag, Kontrollerad, Skons läge, valet Giv eller Giv och återgång och dockans eget val av ingång;
+  Kortet ligger väljs bara för dealerns kort. Bordet BORD-02 är ett prov i studion ("skitbra" som alternativ,
+  2026-11-20) som spelet inte slår på före hans ja.
+- **Standarden** (2026-11-25, `docs/SYSTEM.md`): tre lager. I botten inspelningens fasta mått i `src/table-lens.ts`
+  (kamera, bord, kort, sko, markerlåda) och planens platser, som dockan, Inspelning, Scens grund och varje beställd film
+  utgår från. Över den spelvyn, det spelaren ser: en inramning för dator och en för mobil, sparad en gång i Scen och
+  gemensam för alla utseenden (2026-11-26; Dator är Casinos förra inramning, zoom 0,84 och 9,7° lutning). Överst
+  utseendet han ställer in i Scen och som Casino visar (rum, bord och duk, kortens ritning, linsen). Bred lins är sedan
+  2026-11-26 ett reglage i utseendet (Lins under Bord), levande i Scen och sparat med varje utseende, så Scen öppnar
+  Casinos utseende som Casino spelar det. Ett utseende ändrar inte måtten: i Standard är skalan alltid 1. Kvar att rätta
+  eller välja: Bred lins egna tal (steg 9 D), kortets form (87 % i spelet och i beställningens sista bild, ett verkligt
+  kort hos dockan), dockans sko (lägre baktill än filmens, 15–17 px), dockans huvud (något högre och smalare än
+  hennes) och att dockan inte läser ett korts riktning ur planen. Dockans bord ritar markerlådan som en mörk försänkning
+  med standardens mått.
 - **Spelet** spelar trädet Tatuerad med nödlösningar där film saknas (`STAND_IN_FILM`, `SEAT_HUB`). Realtidsmunnen
   (storlek F) har hans ja men når 12–13 rutor/s på hans RTX 3060 mot 24. Den neutrala munnen gäller Paows repliker utom
   blackjack (`paow-tal-blackjack-sv-04`, hans dom). Trailern är pausad (2026-11-17).
@@ -78,10 +82,16 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 6. **Studion:** färre val, det uppenbart dubbla bort först: Casinos adress `/game/`, och verktygens meddelanden till
    agenter som ännu säger "labbet" (`tools/build-studio-snapshot.ts`, `lab-look.ts`, `media-audit.ts` med flera) liksom
    granskningens sparade text (`studio/lib/verdict.ts`, låst av ett test); sidorna bredvid (Ljud, Modeller, Grafik) får
-   ramens utseende och förlorar ordet "labb"; fler register in i SQLite som filmregistret (2026-11-23).
+   ramens utseende (ordet "labb" är borta ur dem, 2026-11-26); fler register in i SQLite som filmregistret
+   (2026-11-23). Granska: en tagning vars film inte finns på datorn ska inte stå som väntande, och sidan ska säga att
+   filmen saknas här.
 7. **En standard hela vägen** (Jakob 2026-11-25: "detta ska vara en standard"): planens dolda rörelseval (`intent`:
    grepp, var och hur kortet vänds, hand, handbyte) styr ännu receptets text utan att kunna väljas, och tas bort ur plan
-   och recept så att rörelsen bara är dockans; dockan läser kortets riktning ur planen; bildstorleken och kortets mått, som ett
+   och recept så att rörelsen bara är dockans, med ordlistans ord för dem (Handleden vänder kortet, Som en nyckel, Vänd
+   vid platsen) och förvalsplanen i koden, som bara gäller utan fil och har P4.C2 och D.C2 stängda (`defaultPlan` i
+   `src/placement-model.ts`); beställningens val Med eller Utan referensfilm och listan med Ingen gör samma sak;
+   `SHOE` som plats lever kvar som tre spärrar i `studio/lib/bordet.ts` fast skon inte längre går att välja;
+   dockan läser kortets riktning ur planen; bildstorleken och kortets mått, som ett
    tjugotal filer ännu skriver själva (`src/film-after.ts`, `film-fix.ts`, `order-model.ts`, `tools/order-store.ts`,
    `studio/lib/rounds.ts` med flera), hämtas från `src/table-lens.ts`; dockans bord ritar en sko med
    filmens höjd; Scen visar dockan i samma bild som filmen, rummet och bordet, så att Inspelning och Scen blir ett läge.
@@ -89,29 +99,30 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    slags skelett som avatar-auto-pipeline gör), med generiska rörelser som varje dealers docka får sin anpassning av;
    en ny docka ärver då standarddockans sparade justeringar tills hon har egna. SAM-uppsättningen och Paows avläsningar
    finns inte på den här datorn.
-9. **Spelvyn och Bred lins som filter** (Jakob 2026-11-25, hans ja; planen gjord samma kväll, inget byggt). I dag är
-   Bred lins tre saker i ett: en vid kamera, ett bord byggt i skalan 2 och en egen regel för kortens form, vald med
-   adressordet `geometri` utanför utseendet. Stegen, vart och ett grönt för sig:
-   - **A, lins som nyckel i utseendet.** Scennyckeln `lins: 'standard' | 'bred'` (inte `lens`, som finns och pensioneras i
-     D1), levande i `filmCamera()` och kortlagret i stället för läst en gång; `geometri=kontrakt|lins` blir alias i
-     `readLook` (`src/game-look.ts`) och `readAddress` (`studio/lib/scene-presets.ts`), och `validatePreset` skriver om
-     ett förvals `geometri` till `state.lins`. Inga tal ändras. Bevis: `project()` av bordets ändar, markerlådans hörn
-     och alla kort- och insatsplatser på `window.game.scene` lika inom 0,01 px före och efter, i 1440 × 900 och
-     390 × 844, och `createLayout(...).quad` lika för alla 17 platser. Sedan skrivs `data/scene-presets/casino.json` om.
-     Två skribenter: scenen (`src/scene3d-view.ts`, `scene3d-deal.ts`, `scene3d-ui.ts`, `card-plan.ts`, `game-*.ts`) och
-     studion (`studio/lib/scene-*.ts`, `casino.ts`, `SceneBody.tsx`, `useSceneEditor.tsx`, `CasinoView.tsx`).
-   - **B, spelvyn.** En ny modul för spelvyn i `src/` och en datafil i `data/` (Dator och Mobil: zoom, lutning, vridning), skriven
-     av servern på hans klick i Scen (ett eget lager som förvalens); lagren blir grund → spelvy → utseende → adress.
-     Ersätter inramningen i `GAME_OWN`, `FRAMING.tall` och `INTRO_FRAMING` och de vynycklar ett utseende sparar; ett
-     utseende får egen inramning bara genom en brytare. Scen får gruppen Spelvy (Visa: Inspelningen, Dator, Mobil).
-     Ny modul kräver `SCRIPTS` i `tools/lab-routes.ts` och en omstart av servern.
-   - **C, knapparna i Scen:** Prova i Casino → Använd i Casino → Publicera (som bara säger att publiceringen vilar).
+9. **Bred lins räknad ur standarden** (Jakob 2026-11-25 och 2026-11-26: Bred lins "som bara kan göras utifrån en
+   standard"). Byggt 2026-11-26: linsen är nyckeln `lins` i utseendet, spelvyn är en egen sparad standard, och Scens
+   knappar är Prova i Casino → Använd i Casino → Publicera (`docs/SYSTEM.md`, Standarden). Kvar är Bred lins egna tal,
+   två steg som aldrig blandas:
    - **D1, måtten ur standarden.** Skalan räknas vid dealerkanten ur de två linserna genom filmens bildpunkter (1,897 i
-     stället för kontraktets 2), insatsringarna får en regel, `Skala k` och `Dealerns lins` försvinner. Bordets saker
-     krymper 5,2 % kring dealerkantens mitt; inget annat rör sig. Rummet behåller kontraktets kamera.
+     stället för kontraktets 2; `node tools/scene-measure.ts skala` räknar den) och blir aldrig en nyckel. Med den följer:
+     insatsringarna får en regel under båda linserna (halva det lagda kortet + radien + 12 mm; `BET` i
+     `src/scene3d-geometry.ts`), bordets djup är ett verkligt bords lagt genom bildpunkterna (1,26 enheter mot 1,2 i dag;
+     med bara skalan slutar filten ovanför bildens nederkant på en telefon; `tableUnder` i `src/scene3d-table.ts`),
+     markerlådan tar skalan tvärs och sitt lagda fotavtryck på djupet, vyns grader räknas mot en fast enhet i stället
+     för mot kontraktets kamera (`viewUnder`, `aimAt` i `src/game-page.ts`), och nycklarna `scale` (Skala k) och `lens`
+     (Dealerns lins) försvinner ur katalogen, förvalen (tyst, i `validatePreset`) och 3D-sidan. Bordets saker krymper
+     5,2 % kring dealerkantens mitt under Bred lins; korten och Standard rör sig inte. Rummet behåller kontraktets
+     kamera: ingen film mäter en kuliss.
    - **D2, efter hans ja på en före- och efterbild:** en kortregel under båda linserna (dealerns kort 75 × 57 px i
-     stället för 61 × 35 under Bred lins). D1 och D2 blandas aldrig.
-   Servern får inte startas om förrän den andra chattens filmer är införda.
+     stället för 61 × 35 under Bred lins); `flatQuad` i `createLayout` och kontraktets vilande kort går då bort.
+   Mätningen som håller Casino på plats: `tools/scene-measure.ts` (sidorna på dator och mobil för `tools/lab-look.ts`,
+   och största flytt i bildpunkter mellan två körningar). Nyckeln lins och spelvyn höll varje punkt inom 0,01 bildpunkt;
+   det enda som flyttade sig var det som skulle: Casinos råkade sidvridning (0,07°) är borta.
+10. **Inspelning: välja film och dra i dockan** (Jakob 2026-11-26). Han vill kunna spela dealerns filmer för kortet,
+   träd för träd, mot dockans rörelse (i dag väljer bilden själv en film: trädets egen, annars den spelet spelar,
+   `cardFilm` i `studio/lib/bordet.ts`), och kunna dra en hand, en armbåge eller huvudet med musen i stället för bara
+   med reglagen. Filmvalet byggs när trädens sammanslagning i Karta är klar (samma natt, en annan chatt); dragningen
+   hör till dockans bana och binder musen till de reglage som redan sparas med Spara som standard.
 
 ## Väntar på Jakob
 
@@ -134,9 +145,12 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   sparade standarder (plats 2 kort 1, plats 4 kort 1, plats 5 båda korten, plats 6 kort 2) bär en handvinkel från det
   gamla greppet och ger handleden 26–59° med det nya; Återställ eller reglaget på 17° och Spara som standard rättar dem
   (11–19°). Bara han sparar dem.
-- Spelvyn och Bred lins som filter (steg 9): hans ord att börja bygga, och tre val. Spelvyns Dator: Casinos sparade
-  (zoom 0,84, 9,7° lutning) eller grundens 8°. Om ett utseende får ha egen inramning genom en brytare (Jakob-1 och
-  Profilval 1 har det i dag). Och, när han har sett bilderna: om korten under Bred lins ska ritas som filmens egna.
+- Hans ögon på spelvyn och linsen i Scen (2026-11-26): gruppen Spelvy (Visa Inspelningen, Dator eller Mobil; Spara
+  som spelvy) och Lins under Bord. Spelet utan valt utseende och grundutseendena följer nu spelvyns Dator (9,7°
+  lutning i stället för 8°); Jakob-1 och Profilval 1 har kvar sin egen inramning på dator. På mobil gäller alltid
+  spelvyns Mobil, så Profilval 1:s egen sidvridning syns inte längre där.
+- Korten under Bred lins (steg 9 D2): ska de ritas som filmens egna (dealerns kort 75 × 57 px i stället för 61 × 35)?
+  Han svarar när han har sett en före- och efterbild.
 - Hans ögon på Inspelningens enda bild (2026-11-25), och ett val: ska kortets form bli en standard? Reglaget Bordets
   perspektiv i Hela bordet står på hans 87 %; på Riktigt kort ritar spelet och beställningens sista bild samma kort som
   dockan och dess referensfilm. Bara han sparar planen.

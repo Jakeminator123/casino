@@ -42,6 +42,7 @@ import {SCRIPTS, VENDOR, SCENE_FILES, PAGES, forBrowser} from './lab-routes.ts';
 import {STUDIO_TYPES} from './studio-files.ts';
 import {readRelease, releaseDealers, gameChoices, pickTakes, freezeBank, pickProofs, pickNotes, graphShape, scrub, findLeaks, findTextLeaks, blockedPath, safeRelative, prefetchAlias, objectName, namedAssets, engineSource, forEngine, copyGamePage, ENGINE_ENTRY, MEDIA_TYPES, type Proof, type Left, type Picked} from './studio-freeze.ts';
 import {PRESET_NAME} from '../studio/lib/scene-presets.ts';
+import {validatePlayView} from '../src/play-view.ts';
 import type {MediaMap} from '../cloud/studio/gate.ts';
 import {buildKnowledge, BOT_FUNCTION_FILES} from './build-knowledge.ts';
 import {knowledgeLeaks} from './knowledge.ts';
@@ -335,6 +336,16 @@ if (release.presets) {
   }
 }
 
+// ── The play view, read-only ────────────────────────────────────────────────
+// How the game frames the picture on a computer and a phone, one for every look (src/play-view.ts), as Scen and the game page
+// read it (/api/play-view). No revision goes up: nothing can be saved against the copy.
+const playViewRead = JSON.parse((await lab('/api/play-view')).toString('utf8')) as {view?: Record<string, unknown>};
+const playViewFields: Record<string, unknown> = {...playViewRead?.view};
+delete playViewFields.revision;
+const playViewChecked = validatePlayView(playViewFields);
+if (!playViewChecked.view) throw Error(`Labbet gav ingen spelvy som håller: ${playViewChecked.errors.join('; ')}`);
+const playViewAnswer = {view: {...playViewChecked.view, updatedAt: typeof playViewFields.updatedAt === 'string' ? playViewFields.updatedAt : '', revision: null}};
+
 // ── The game page ───────────────────────────────────────────────────────────
 // The lab's own game.html and game.css as the server hands them out, with the engine in front of the page (copyGamePage).
 if (release.casino.on) for (const address of ['/game.html', '/game.css']) {
@@ -384,7 +395,7 @@ for (const name of asked) {
   if (name.startsWith('data/') && !(name in dataFiles)) {
     if (/^data\/(?:scene-[a-z-]+|props)\.json$/.test(name) && await localFile(name)) dataFiles[name] = await frozenJson(name);
     else notInCopy.push(name);
-  } else if (name.startsWith('api/') && !['api/clip-bank', 'api/proofs', 'api/proof-notes', 'api/placements', 'api/media', 'api/session', ...(release.presets ? ['api/scene-presets'] : [])].includes(name.replace(/\?.*$/, '')) && !isBotPath(`/${name.replace(/\?.*$/, '')}`)) notInCopy.push(name);
+  } else if (name.startsWith('api/') && !['api/clip-bank', 'api/proofs', 'api/proof-notes', 'api/placements', 'api/media', 'api/session', 'api/play-view', ...(release.presets ? ['api/scene-presets'] : [])].includes(name.replace(/\?.*$/, '')) && !isBotPath(`/${name.replace(/\?.*$/, '')}`)) notInCopy.push(name);
 }
 
 // ── The frozen answers of the read routes ───────────────────────────────────
@@ -397,6 +408,7 @@ const answers: Record<string, unknown> = {
   // Jakob's word on the proofs that go up (shown, never written, in the copy).
   'api/proof-notes.json': pickNotes(JSON.parse((await lab('/api/proof-notes')).toString('utf8')), proofs.proofs),
   'api/placements.json': placements,
+  'api/play-view.json': playViewAnswer,
   ...presetAnswers,
   ...dataFiles,
 };
@@ -503,6 +515,8 @@ const config = {
     // The scene's presets: the list, and one by name as the game page asks for it (api/scene-presets/<name>).
     {src: '^/api/scene-presets/?$', dest: '/api/scene-presets.json'},
     {src: '^/api/scene-presets/([a-z0-9]+(?:-[a-z0-9]+)*)$', dest: '/api/scene-presets/$1.json'},
+    // The play view, as Scen and the game page read it.
+    {src: '^/api/play-view/?$', dest: '/api/play-view.json'},
     // The bot's one function answers the draft and the inbox too (cloud/studio/bot.ts routeOf reads ?vag=…).
     {src: '^/api/utkast/?$', dest: '/api/bot?vag=utkast'},
     {src: '^/api/onskemal(?:/([^/]+?)(/bild)?)?/?$', dest: '/api/bot?vag=onskemal&id=$1&del=$2'},

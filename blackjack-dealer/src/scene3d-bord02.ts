@@ -3,7 +3,8 @@
 // kidney-shaped blackjack table of his project Ultimate Reality (Git revision 9dba0e7f8c490829036af957058e27efba3b1add), as he
 // delivered it that day (where the delivery lies: data/scene-materials.json, "bord02"). It is built here from that table's own
 // source (in the delivery: Källor/test/bord/filtdjup-v1/bord.mjs for the form, polyhaven-material-v1/material.mjs and
-// studio/lib/table-finishes.ts for the surfaces), not read from its 48 MB model file: the same outline, layers, roll, stitches
+// Ultimate Reality's own list of table finishes for the surfaces, held here in BORD02_FINISHES), not read from its 48 MB
+// model file: the same outline, layers, roll, stitches
 // and legs, in this scene's coordinates, and its seven photographed materials (Poly Haven, CC0) as three choices: the cloth, the
 // wood and the rail.
 //

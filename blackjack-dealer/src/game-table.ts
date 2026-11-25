@@ -6,13 +6,12 @@
 // a third, fourth and fifth card continue the line C1 → C2 in short steps, and split hands lie one behind the other toward
 // the dealer. Seats are 1–7, seat 1 at camera left; nothing here knows the engine's zero-based boxes.
 //
-// A card's outline at its place follows one of two rules (src/card-plan.ts, TABLE_GEOMETRY): 'lens', the card plan's own
-// (planCardAt: a real card through the table's lens in the plan's shape, the same for a place of the plan and for a place made
-// up here), the default since Jakob chose it on 2026-11-19 (Standard), or 'contract', the plan's older projective plane
-// (flatQuad), which the game follows where its address says geometri=kontrakt or its saved look carries Bred lins (Casino's
-// since Jakob 2026-11-21).
+// A card's outline at its place follows the look's lens (the scene key lins; Lins in src/card-plan.ts): under 'standard' the
+// card plan's own rule (planCardAt: a real card through the table's lens in the plan's shape, the same for a place of the plan
+// and for a place made up here), the default since Jakob chose it on 2026-11-19; under 'bred' (Bred lins) the plan's older
+// projective plane (flatQuad), which the game follows where its look says so (Casino's since Jakob 2026-11-21).
 import {DEALER_THIRD_FILM, flatQuad, quad, toPixels, fromPixels, type Geometry, type PlacementPlan} from './placement-model.ts';
-import {filmToPlan, planCardAt, planToFilm, tableGeometry, type TableGeometry} from './card-plan.ts';
+import {LINS, filmToPlan, planCardAt, planToFilm, type Lins} from './card-plan.ts';
 import type {Lens} from './table-lens.ts';
 
 export type Pt = {x: number; y: number};
@@ -57,14 +56,14 @@ export function slotFilm(slot: Slot): string {
 }
 
 /**
- * fan: one step for every seat instead of FAN and FAN_AT (for trying values from the page's address). geometry: the rule a
- * card's outline follows (see the top); left out, the page's own (tableGeometry: the address's geometri word, else
- * TABLE_GEOMETRY). lens: another lens than the table's, for the tests that change the camera.
+ * fan: one step for every seat instead of FAN and FAN_AT (for trying values from the page's address). lins: the look's lens,
+ * which decides the rule a card's outline follows (see the top); left out, Standard (LINS). lens: another lens than the
+ * table's, for the tests that change the camera.
  */
-export function createLayout(plan: PlacementPlan, options: {fan?: number | null; geometry?: TableGeometry; lens?: Lens} = {}) {
+export function createLayout(plan: PlacementPlan, options: {fan?: number | null; lins?: Lins; lens?: Lens} = {}) {
   const flat = plan.tableProjection?.mode === 'flat', heading = plan.tableProjection?.heading ?? 0, reference = plan.targets['P4.C1'].geometry.native;
-  const rule = options.geometry ?? tableGeometry();
-  const shape = (g: Geometry): Pt[] => (rule === 'lens' ? planCardAt(plan, g, 'native', options.lens) : flat ? flatQuad(g, reference, 'native', heading) : quad(g, 'native')).map(planToFilm);
+  const rule = options.lins ?? LINS;
+  const shape = (g: Geometry): Pt[] => (rule === 'standard' ? planCardAt(plan, g, 'native', options.lens) : flat ? flatQuad(g, reference, 'native', heading) : quad(g, 'native')).map(planToFilm);
   function geometry(slot: Slot): Geometry {
     const first = plan.targets[`${place(slot)}.C1`].geometry.native, second = plan.targets[`${place(slot)}.C2`].geometry.native;
     if (slot.hands === 1 && slot.index <= 1) return slot.index ? second : first;

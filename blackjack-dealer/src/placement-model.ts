@@ -2,7 +2,7 @@ export type View = 'native' | 'portrait';
 export type Hand = 'LH' | 'RH';
 export type Side = 'BACK' | 'FRONT';
 export type Point = { u: number; v: number };
-export type Geometry = Point & { width: number; height: number; angle: number; taper: number; reviewed: boolean };
+export type Geometry = Point & { width: number; height: number; angle: number; taper: number };
 // grip: how the card leaves the shoe. PINCH = pinched in the shoe's window and lifted (anchor 2, position 1); DRAG = fingertips
 // on the card in the shoe's mouth, slid out along the felt (anchor 2, position 2). turnAt: where a turned card is turned, on the
 // way (AIR) or at its place on the felt (PLACE); it only means something when turn is true. A card turned later needs no value
@@ -25,11 +25,14 @@ export type Target = { geometry: Record<View, Geometry>; intent: Intent; materia
 // perspective is only its shape: how much narrower its far edge is drawn, as the share at seat 4 (far over near, 0.80 to
 // 0.96; src/card-plan.ts). Absent, seat 4's own stored taper (P4.C1's, 0.87 in his plan of 11 Nov). One number for the whole
 // plan (Jakob 2026-11-17/18: depth in the shape, "brist på djup i bordet", but sizes that agree with the shoe's card); the
-// game reads it where its geometry is 'lens' (src/card-plan.ts TABLE_GEOMETRY).
+// game reads it under the lens 'standard' (Lins in src/card-plan.ts).
 export type TableProjection = { mode:'flat'|'individual'; heading:number; perspective?:number };
 /** The table's perspective on "Plant bord": its limits and step. 0.96 is a real card's own shape (the real camera's 0.956). */
 export const TABLE_PERSPECTIVE = { min: .80, max: .96, step: .01 } as const;
-export type PlacementPlan = { schemaVersion: 1; id: 'kortplan'; space: 'image-normalized-bottom-up'; updatedAt: string | null; shoe: Record<View, Point>; targets: Record<string, Target>; tableProjection?:TableProjection };
+// The plan is the cards' places and how they are dealt. Until 2026-11-26 it also held the shoe's point and a checked mark per
+// card ("Kontrollerad"); nothing read either (the shoe's place is the standard's, src/table-lens.ts SHOE; Jakob 2026-11-24:
+// "färre val"), so validatePlan still reads a file that has them and leaves them out, and a save writes neither.
+export type PlacementPlan = { schemaVersion: 1; id: 'kortplan'; space: 'image-normalized-bottom-up'; updatedAt: string | null; targets: Record<string, Target>; tableProjection?:TableProjection };
 // The headings a flat table's plane may be saved with (validatePlan).
 const PLANE_HEADINGS=[-90,-45,-15,0,15,45,90] as const;
 export const VIEWS = { native: { width: 1762, height: 1174, label: 'Dator', profileId: 'v6-native', background: 'assets/lab/native.jpg' }, portrait: { width: 1080, height: 1920, label: 'Mobil', profileId: 'v6-portrait', background: 'assets/lab/portrait.jpg' } } as const;
@@ -129,10 +132,6 @@ export function flatQuad(g: Geometry, reference: Geometry, view: View, heading=0
  for(let i=0;i<8;i++){const c=centre(cx,cy),ex=wanted.x-c.x,ey=wanted.y-c.y;if(Math.hypot(ex,ey)<1e-8)break;const e=.0001,px=centre(cx+e,cy),py=centre(cx,cy+e),xx=(px.x-c.x)/e,xy=(py.x-c.x)/e,yx=(px.y-c.y)/e,yy=(py.y-c.y)/e,d=xx*yy-xy*yx;cx+=(ex*yy-ey*xy)/d;cy+=(ey*xx-ex*yx)/d;}
  return shape(cx,cy);
 }
-export function snapPoint(point: Point, view: View, step: number): Point {
- if(step<=0)return {...point};const p=toPixels(point,view),v=VIEWS[view];
- return fromPixels(Math.max(0,Math.min(v.width-1,Math.round(p.x/step)*step)),Math.max(0,Math.min(v.height-1,Math.round(p.y/step)*step)),view);
-}
 // The step that takes the card from the shoe: TAKE (pinch and lift) or DRAG (slid out along the felt); the place of a turn.
 const takeStep=(intent:Intent)=>intent.grip==='DRAG'?'DRAG':'TAKE';
 const turnPlace=(intent:Intent)=>intent.turnAt==='PLACE'?'PLACE':'AIR';
@@ -154,9 +153,10 @@ export function sequence(id: string, intent: Intent) {
  return [`${id} | ${takeStep(intent)}(${intent.takeHand},${intent.startSide})`,...(intent.pass?[`PASS(${intent.takeHand}>${hand},${intent.startSide})`]:[]),...(intent.turn?[`TURN(${hand},${intent.startSide}>${intent.endSide},${turnPlace(intent)})`]:[]),`LAND(${intent.endSide})`,`RELEASE(${hand})`,`RETURN(SHOE_READY)`].join(' > ');
 }
 // ── Edits of a plan, for the page that changes one (Bordet's Inspelning) ──
-// Each returns a new plan and leaves the given one alone. The rules: a place that is moved, turned or resized is marked unchecked in that view, its outline is kept inside the picture, and a card's sides and TURN agree.
-/** A card place (P1.C1 … D.C2) or the shoe's take-off point. */
+// Each returns a new plan and leaves the given one alone. The rules: a card's outline is kept inside the picture, and its sides and TURN agree.
+/** A card place (P1.C1 … D.C3). */
 export type Place = string;
+/** The shoe's old place word, no place since 2026-11-26 (above); studio/lib/bordet.ts still guards against it. */
 export const SHOE = 'shoe';
 const unit = (x: number) => Math.max(0, Math.min(1, x));
 const placeOf = (plan: PlacementPlan, id: string) => { const t = plan.targets[id]; if (!t) throw Error(`Okänd kortplats ${id}.`); return t; };
@@ -171,15 +171,12 @@ export function planQuad(plan: PlacementPlan, id: string, view: View) {
  return t?.mode === 'flat' ? flatQuad(g, plan.targets['P4.C1'].geometry[view], view, t.heading) : quad(g, view);
 }
 /**
- * Changes a place's geometry in one view. The shoe has only u and v, each kept within the picture. A card is marked unchecked
- * unless the change is its checked mark itself; size and taper are held to the model's limits, the angle to −180…180, and the
- * whole outline is moved back inside the picture (constrain).
+ * Changes a card's geometry in one view: size and taper are held to the model's limits, the angle to −180…180, and the whole
+ * outline is moved back inside the picture (constrain).
  */
 export function editPlace(plan: PlacementPlan, id: Place, view: View, patch: Partial<Geometry>): PlacementPlan {
  const next = structuredClone(plan);
- if (id === SHOE) { const s = next.shoe[view]; if (typeof patch.u === 'number') s.u = unit(patch.u); if (typeof patch.v === 'number') s.v = unit(patch.v); return next; }
  const target = placeOf(next, id), g: Geometry = {...target.geometry[view], ...patch};
- if (!Object.hasOwn(patch, 'reviewed')) g.reviewed = false;
  g.u = unit(g.u); g.v = unit(g.v); g.width = Math.min(.25, Math.max(.005, g.width)); g.height = Math.min(.25, Math.max(.005, g.height));
  g.taper = Math.min(1.6, Math.max(.4, g.taper)); g.angle = g.angle > 180 || g.angle < -180 ? ((g.angle % 360) + 540) % 360 - 180 : g.angle;
  target.geometry[view] = constrain(g, view);
@@ -200,54 +197,40 @@ export function setTablePerspective(plan: PlacementPlan, perspective: number | n
  next.tableProjection = {mode: t.mode, heading: t.heading, ...(perspective === null ? {} : {perspective: Math.round(perspective * 1000) / 1000})};
  return next;
 }
-/** A place snapped to a grid of `step` pixels; a card's angle also to the nearest 5°. */
-export function snapPlace(plan: PlacementPlan, id: Place, view: View, step: number): PlacementPlan {
- const next = structuredClone(plan);
- if (id === SHOE) { next.shoe[view] = snapPoint(next.shoe[view], view, step); return next; }
- const target = placeOf(next, id), g = target.geometry[view];
- target.geometry[view] = constrain({...g, ...snapPoint(g, view, step), angle: Math.round(g.angle / 5) * 5, reviewed: false}, view);
- return next;
-}
-/** A place back to the start proposal (defaultPlan) in one view. */
-export function resetPlace(plan: PlacementPlan, id: Place, view: View): PlacementPlan {
- const next = structuredClone(plan), start = defaultPlan();
- if (id === SHOE) next.shoe[view] = structuredClone(start.shoe[view]);
- else { placeOf(next, id); next.targets[id].geometry[view] = structuredClone(start.targets[id].geometry[view]); }
- return next;
-}
 export function defaultPlan(): PlacementPlan {
  const targets: Record<string,Target>={};
  for(const id of INITIAL_TARGETS){const dealer=id[0]==='D',seat=dealer?3:Number(id[1])-1,second=id.endsWith('2'),v=.08+Math.abs(seat-3)*.025,closed=(dealer&&second)||id==='P4.C2';
-  targets[id]={geometry:{native:{u:dealer?.5+(second?.027:0):.13+seat*.12+(second?.025:0),v:dealer?.21:v+(second?.008:0),width:.041,height:.051,angle:0,taper:.9,reviewed:false},portrait:{u:dealer?.47+(second?.048:0):.10+seat*.125+(second?.035:0),v:dealer?.49:.16+Math.abs(seat-3)*.055+(second?.005:0),width:.06,height:.04,angle:0,taper:.9,reviewed:false}},intent:{takeHand:'LH',startSide:'BACK',endSide:closed?'BACK':'FRONT',pass:false,turn:!closed,...INTENT_DEFAULTS},material:{bend:.07,gloss:.35}};
+  targets[id]={geometry:{native:{u:dealer?.5+(second?.027:0):.13+seat*.12+(second?.025:0),v:dealer?.21:v+(second?.008:0),width:.041,height:.051,angle:0,taper:.9},portrait:{u:dealer?.47+(second?.048:0):.10+seat*.125+(second?.035:0),v:dealer?.49:.16+Math.abs(seat-3)*.055+(second?.005:0),width:.06,height:.04,angle:0,taper:.9}},intent:{takeHand:'LH',startSide:'BACK',endSide:closed?'BACK':'FRONT',pass:false,turn:!closed,...INTENT_DEFAULTS},material:{bend:.07,gloss:.35}};
  }
  targets['D.C3']=dealerThirdTarget(targets);
- return {schemaVersion:1,id:'kortplan',space:'image-normalized-bottom-up',updatedAt:null,shoe:{native:{u:.733,v:.322},portrait:{u:.84,v:.58}},targets,tableProjection:{mode:'flat',heading:0}};
+ return {schemaVersion:1,id:'kortplan',space:'image-normalized-bottom-up',updatedAt:null,targets,tableProjection:{mode:'flat',heading:0}};
 }
 /** Additive upgrade: the original sixteen cards are never moved or resized. */
 export function dealerThirdTarget(targets: Record<string,Target>): Target {
  const first=targets['D.C1'],second=targets['D.C2'],out=structuredClone(second);
- out.geometry.native={...out.geometry.native,u:DEALER_THIRD_FILM.x/1763,v:1-DEALER_THIRD_FILM.y/1173,reviewed:false};
- out.geometry.portrait={...out.geometry.portrait,u:Math.min(1,Math.max(0,2*second.geometry.portrait.u-first.geometry.portrait.u)),reviewed:false};
+ out.geometry.native={...out.geometry.native,u:DEALER_THIRD_FILM.x/1763,v:1-DEALER_THIRD_FILM.y/1173};
+ out.geometry.portrait={...out.geometry.portrait,u:Math.min(1,Math.max(0,2*second.geometry.portrait.u-first.geometry.portrait.u))};
  out.intent={...first.intent,startSide:'BACK',endSide:'FRONT',turn:true};
  return out;
 }
 function object(v:unknown): v is Record<string,unknown>{return !!v&&typeof v==='object'&&!Array.isArray(v);}
-function keys(v:unknown,list:string[]): asserts v is Record<string,unknown>{if(!object(v)||Object.keys(v).sort().join('|')!==list.sort().join('|'))throw Error('Felaktiga fält i placeringsfilen.');}
+function keys(v:unknown,list:string[]): asserts v is Record<string,unknown>{if(!object(v)||Object.keys(v).sort().join('|')!==list.sort().join('|'))throw Error('Felaktiga fält i kortplanen.');}
 function number(v:unknown,lo:number,hi:number){if(typeof v!=='number'||!Number.isFinite(v)||v<lo||v>hi)throw Error('Koordinat eller reglage ligger utanför tillåtet intervall.');}
+const has=(v:unknown,key:string)=>object(v)&&Object.hasOwn(v,key);
 // Checks a plan strictly and, once all of it has passed, fills in the intent keys an older file lacks (grip, turnAt, flipAxis)
-// with their defaults, in place: every reader gets a complete plan, and a save or export writes the keys. The plan was called
-// 'pamela-table' until 2026-11-23; a copy with that id, such as a proof's frozen kortplan.json, reads as the plan and is
-// written as 'kortplan'.
+// with their defaults and leaves out the two fields the plan no longer keeps (the shoe's point, a card's checked mark
+// `reviewed`; PlacementPlan), in place: every reader gets a complete plan, and a save or export writes the keys. The plan was
+// called 'pamela-table' until 2026-11-23; a copy with that id, such as a proof's frozen kortplan.json, reads as the plan and
+// is written as 'kortplan'.
 export function validatePlan(value: unknown): asserts value is PlacementPlan {
- keys(value,['schemaVersion','id','space','updatedAt','shoe','targets',...(object(value)&&Object.hasOwn(value,'tableProjection')?['tableProjection']:[])]);
+ keys(value,['schemaVersion','id','space','updatedAt','targets',...(has(value,'shoe')?['shoe']:[]),...(has(value,'tableProjection')?['tableProjection']:[])]);
  if(Object.hasOwn(value,'tableProjection')){
   keys(value.tableProjection,['mode','heading',...(object(value.tableProjection)&&Object.hasOwn(value.tableProjection,'perspective')?['perspective']:[])]);
   if(!['flat','individual'].includes(value.tableProjection.mode as string)||!PLANE_HEADINGS.includes(value.tableProjection.heading as typeof PLANE_HEADINGS[number]))throw Error('Ogiltigt bordperspektiv eller riktning.');
   if(Object.hasOwn(value.tableProjection,'perspective'))number(value.tableProjection.perspective,TABLE_PERSPECTIVE.min,TABLE_PERSPECTIVE.max);
  }
  if(value.schemaVersion!==1||(value.id!=='kortplan'&&value.id!=='pamela-table')||value.space!=='image-normalized-bottom-up'||!(value.updatedAt===null||(typeof value.updatedAt==='string'&&value.updatedAt.length<40&&Number.isFinite(Date.parse(value.updatedAt)))))throw Error('Okänd placering eller bildrymd.');
- keys(value.shoe,['native','portrait']);keys(value.targets,[...(object(value.targets)&&Object.hasOwn(value.targets,'D.C3')?TARGETS:INITIAL_TARGETS)]);
- for(const view of ['native','portrait'] as View[]){const s=value.shoe[view];keys(s,['u','v']);number(s.u,0,1);number(s.v,0,1);}
+ keys(value.targets,[...(has(value.targets,'D.C3')?TARGETS:INITIAL_TARGETS)]);
  for(const target of Object.values(value.targets)){
   keys(target,['geometry','intent','material']);keys(target.geometry,['native','portrait']);keys(target.intent,['takeHand','startSide','endSide','pass','turn',...Object.keys(INTENT_DEFAULTS).filter(key=>object(target.intent)&&Object.hasOwn(target.intent,key))]);keys(target.material,['bend','gloss']);
   const i=target.intent;if(typeof i.takeHand!=='string'||typeof i.startSide!=='string'||typeof i.endSide!=='string'||!['LH','RH'].includes(i.takeHand)||!['BACK','FRONT'].includes(i.startSide)||!['BACK','FRONT'].includes(i.endSide)||typeof i.pass!=='boolean'||typeof i.turn!=='boolean'||i.turn!==(i.startSide!==i.endSide))throw Error('Sidbyte kräver TURN; handbyte och kortvändning är skilda val.');
@@ -255,11 +238,13 @@ export function validatePlan(value: unknown): asserts value is PlacementPlan {
   if(Object.hasOwn(i,'turnAt')&&!TURN_PLACES.includes(i.turnAt as TurnAt))throw Error('Okänd plats för vändningen: AIR eller PLACE.');
   if(Object.hasOwn(i,'flipAxis')&&!TURN_AXES.includes(i.flipAxis as TurnAxis))throw Error('Okänd vändning på vägen: FREE eller LONG_EDGE.');
   number(target.material.bend,0,.18);number(target.material.gloss,0,1);
-  for(const view of ['native','portrait'] as View[]){const g=target.geometry[view];keys(g,['u','v','width','height','angle','taper','reviewed']);number(g.u,0,1);number(g.v,0,1);number(g.width,.005,.25);number(g.height,.005,.25);number(g.angle,-180,180);number(g.taper,.4,1.6);if(typeof g.reviewed!=='boolean')throw Error('Granskningsstatus saknas.');
+  for(const view of ['native','portrait'] as View[]){const g=target.geometry[view];keys(g,['u','v','width','height','angle','taper',...(has(g,'reviewed')?['reviewed']:[])]);number(g.u,0,1);number(g.v,0,1);number(g.width,.005,.25);number(g.height,.005,.25);number(g.angle,-180,180);number(g.taper,.4,1.6);
    const p=VIEWS[view];if(quad(g as Geometry,view).some(q=>q.x<-.01||q.y<-.01||q.x>p.width-1+.01||q.y>p.height-1+.01))throw Error('Hela kortkonturen måste ligga inom bildytan.');
   }
  }
  for(const target of Object.values(value.targets) as {intent:Record<string,unknown>}[])for(const [key,fallback] of Object.entries(INTENT_DEFAULTS))if(!Object.hasOwn(target.intent,key))target.intent[key]=fallback;
  if(!Object.hasOwn(value.targets,'D.C3'))value.targets['D.C3']=dealerThirdTarget(value.targets as Record<string,Target>);
+ delete value.shoe;
+ for(const target of Object.values(value.targets) as {geometry:Record<View,Record<string,unknown>>}[])for(const view of ['native','portrait'] as View[])delete target.geometry[view].reviewed;
  value.id='kortplan';
 }

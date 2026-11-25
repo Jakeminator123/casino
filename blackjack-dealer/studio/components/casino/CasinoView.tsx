@@ -16,11 +16,11 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { asApiError } from "../../lib/api.ts";
 import { useBank } from "../../lib/bank.ts";
-import { ONLINE_CASINO, casinoSearch, freshTable, gameSrc, readCasino, scenHref, shownGeometry, type CasinoLook } from "../../lib/casino.ts";
+import { ONLINE_CASINO, casinoSearch, freshTable, gameSrc, readCasino, scenHref, type CasinoLook } from "../../lib/casino.ts";
 import { useViewContext } from "../../lib/context.ts";
 import { DEALER_PARAM, withDealer, withoutDealer } from "../../lib/dealer.ts";
 import { isSnapshot } from "../../lib/mode.ts";
-import { BRED_LINS, SHIPPED } from "../../lib/scene-presets.ts";
+import { SHIPPED } from "../../lib/scene-presets.ts";
 import { listPresets, type Preset } from "../scene-editor/presetApi.ts";
 import { Page } from "../shell";
 import { Button, Select, Spinner, buttonClasses, useToast } from "../ui";
@@ -53,7 +53,7 @@ function Casino() {
   // The look the address asks for. A choice here writes the address, and the look and the frame follow it.
   const look = useMemo(() => readCasino(new URLSearchParams(query)), [query]);
   const [dropped] = useState(() => readCasino(new URLSearchParams(query)).ignored);
-  const go = (next: CasinoLook) => write(casinoSearch({ ...next, geometri: look.geometri, playback: look.playback, trad: look.trad, komposition: look.komposition })); // geometry, playback and the tree or composition survive a look or table choice
+  const go = (next: CasinoLook) => write(casinoSearch({ ...next, playback: look.playback, trad: look.trad, komposition: look.komposition })); // playback and the tree or composition survive a look or table choice
   // The one tree the game plays (?trad=, Karta's Prova i Casino). The online copy has no trees and plays all her films.
   const trad = isSnapshot ? null : (look.trad ?? null);
   // Several trees put together (?komposition=, Karta's Komposition); the lab's only, and a tree goes first.
@@ -77,10 +77,11 @@ function Casino() {
       gone = true;
     };
   }, [toast]);
-  // The perspective the game in the frame plays (lib/casino.ts shownGeometry; src/game-page.ts reads the same): the address's
-  // word, else the one the preset was saved with. Kalibrera i Scen opens Scen with it.
-  const geometri = shownGeometry(look, presets);
-  const perspective = look.geometri || listed ? (geometri === BRED_LINS ? "Bred lins" : "Standard") : null;
+  // The lens the game in the frame plays: the look's key lins, the address's over the preset's (src/game-look.ts reads the
+  // same), known once the address names it or the presets are read. Kalibrera i Scen opens Scen with the same look.
+  const fromAddress = look.patch.lins !== undefined;
+  const lins = look.patch.lins ?? presets.find((p) => p.name === look.forval)?.state.lins ?? "standard";
+  const perspective = fromAddress || listed ? (lins === "bred" ? "Bred lins" : "Standard") : null;
   const options = useMemo(() => {
     const list = presets.map((p) => ({ value: p.name, label: p.label, hint: p.shipped ? undefined : "eget" }));
     return list.some((o) => o.value === look.forval) ? list : [...list, { value: look.forval, label: look.forval, hint: "finns inte" }];
@@ -125,7 +126,7 @@ function Casino() {
           {perspective ? (
             <>
               <span>·</span>
-              <span className={geometri === BRED_LINS ? "text-brass-hi" : undefined} title={look.geometri ? "Perspektivet som adressen anger" : "Perspektivet som sparades med förvalet (Använd i Casino i Scen)"}>
+              <span className={lins === "bred" ? "text-brass-hi" : undefined} title={fromAddress ? "Linsen som adressen anger" : "Linsen som sparades med förvalet"}>
                 {perspective}
               </span>
             </>
@@ -136,7 +137,7 @@ function Casino() {
       actions={
         <>
           <Select size="sm" aria-label="Förval" className="w-40" value={look.forval} options={options} onChange={(forval) => go({ forval, patch: {}, table: look.table, ignored: [] })} />
-          <Link href={scenHref({ ...look, geometri })} className={buttonClasses({ variant: "quiet", size: "sm" })} title="Öppna samma look, med samma perspektiv, i Bordets Scen och kalibrera den vidare">
+          <Link href={scenHref(look)} className={buttonClasses({ variant: "quiet", size: "sm" })} title="Öppna samma look, med samma lins, i Bordets Scen och kalibrera den vidare">
             <SlidersHorizontal /> Kalibrera i Scen
           </Link>
           {!isSnapshot ? (

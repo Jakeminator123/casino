@@ -5,7 +5,8 @@
 // into place. The three that ship with the lab (basgrund, levande, rumsstudien) are read-only here. A room must be one the
 // scene has: a built room or an entry of data/scene-rooms.json. Jakob's ten places (Profilval 1–10, profilval-<n>.json)
 // are presets of his own like any other: no rule here knows them, they count towards OWN_LIMIT, and a place without a file
-// is empty.
+// is empty. A file in the older form (the lens as geometri beside the state) is served in the form since 2026-11-26, with the
+// lens as the key lins (validatePreset), and written so at its next save.
 import {readFile, readdir, writeFile, mkdir, rename, unlink} from 'node:fs/promises';
 import {createHash, randomUUID} from 'node:crypto';
 import path from 'node:path';

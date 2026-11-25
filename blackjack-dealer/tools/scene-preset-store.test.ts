@@ -7,7 +7,8 @@ import os from 'node:os';
 import path from 'node:path';
 import {scenePresetStore} from './scene-preset-store.ts';
 import {DEFAULTS} from '../src/scene3d-view.ts';
-import {SHIPPED, effective} from '../studio/lib/scene-presets.ts';
+import {FRAMING_KEYS, readPlayView} from '../src/play-view.ts';
+import {RECORDING, SHIPPED, effective, hasOwnFraming, matchPreset, savedState, shownState} from '../studio/lib/scene-presets.ts';
 
 const base = os.tmpdir();
 async function temp(t: {after(fn: () => Promise<void>): void}) {
@@ -29,25 +30,33 @@ test('Casino is an editable saved look, protected against deletion and stale wri
   await assert.rejects(store.remove('casino',second.preset.revision),fails(403));
 });
 
-test('Använd i Casino with Bred lins keeps geometri=kontrakt with the look; saved with Standard again, the file is as before', async t => {
+test('the lens is saved with the look as the key lins; a file in the older form loads with it and is written in the new form', async t => {
   const root = await temp(t), store = scenePresetStore(root), file = path.join(root, 'data/scene-presets/casino.json');
+  const fields = ['schemaVersion', 'name', 'label', 'about', 'state', 'updatedAt'];
   // Casino's file as it stood before 2026-11-21: no word, which means Standard
   const before = {schemaVersion: 1, name: 'casino', label: 'Casino', about: 'Casinos sparade visning, vald i Scen & bord.', state: {room: 'panorama', roomShift: 'shimmer', blur: 5, tray: true, cards: true, pitch: -8, zoom: 0.84, format: 'fill'}, updatedAt: '2026-11-19T17:14:04.461Z'};
   await writeFile(file, JSON.stringify(before, null, 2) + '\n');
+  assert.deepEqual((await store.load('casino')).preset.state, before.state);
+  // Casino's file as Använd i Casino wrote it with Bred lins until 2026-11-26: the word beside the state
+  await writeFile(file, JSON.stringify({...before, geometri: 'kontrakt'}, null, 2) + '\n');
   const old = (await store.load('casino')).preset;
-  assert.equal(old.geometri, undefined); assert.deepEqual(old.state, before.state);
-  // what the studio sends from Scen with Bred lins chosen (studio/components/scene-editor/useSceneEditor.tsx saveAs)
-  const bred = await store.save('casino', {label: before.label, about: before.about, state: before.state, geometri: 'kontrakt'}, old.revision);
-  assert.equal(bred.preset.geometri, 'kontrakt');
+  assert.deepEqual(old.state, {...before.state, lins: 'bred'}); assert.equal('geometri' in old, false);
+  const listed = (await store.list()).presets.find(p => p.name === 'casino')!;
+  assert.equal(listed.state.lins, 'bred', 'the list the Casino view and the copy read'); assert.equal('geometri' in listed, false);
+  // what the studio sends from Scen with Bred lins chosen (studio/components/scene-editor/useSceneEditor.tsx saveAs): the key in the state
+  const bred = await store.save('casino', {label: before.label, about: before.about, state: old.state}, old.revision);
+  assert.equal(bred.preset.state.lins, 'bred');
   const written = JSON.parse(await readFile(file, 'utf8'));
-  assert.deepEqual(Object.keys(written), ['schemaVersion', 'name', 'label', 'about', 'state', 'geometri', 'updatedAt']);
-  assert.equal((await store.load('casino')).preset.geometri, 'kontrakt');
-  assert.equal((await store.list()).presets.find(p => p.name === 'casino')?.geometri, 'kontrakt', 'the list the Casino view and the copy read');
-  // and with Standard: no word again, the same fields as the file before
-  const standard = await store.save('casino', {label: before.label, about: before.about, state: before.state}, bred.preset.revision);
-  assert.equal(standard.preset.geometri, undefined);
+  assert.deepEqual(Object.keys(written), fields); assert.equal(written.state.lins, 'bred');
+  // a request in the older form is kept in the new one
+  const aliased = await store.save('casino', {label: before.label, about: before.about, state: before.state, geometri: 'kontrakt'}, bred.preset.revision);
+  assert.deepEqual(Object.keys(JSON.parse(await readFile(file, 'utf8'))), fields); assert.equal(aliased.preset.state.lins, 'bred');
+  // and with Standard: no key, the same state as the file before
+  const standard = await store.save('casino', {label: before.label, about: before.about, state: before.state}, aliased.preset.revision);
+  assert.deepEqual(standard.preset.state, before.state);
   assert.deepEqual(Object.keys(JSON.parse(await readFile(file, 'utf8'))), Object.keys(before));
   await assert.rejects(store.save('casino', {...mine, geometri: 'bred'}, standard.preset.revision), (e: unknown) => fails(400)(e) && /geometri ska vara lins eller kontrakt/.test((e as Error).message));
+  await assert.rejects(store.save('casino', {...mine, state: {...mine.state, lins: 'kontrakt'}}, standard.preset.revision), (e: unknown) => fails(400)(e) && /lins känner inte till "kontrakt"/.test((e as Error).message));
 });
 
 test('the three shipped presets: in the checkout, read-only, and exactly what the brief says', async () => {
@@ -68,6 +77,45 @@ test('the three shipped presets: in the checkout, read-only, and exactly what th
   assert.deepEqual([levande.mode, levande.sway, levande.focus, levande.dust, levande.clock], ['lean', false, 'follow', 0.6, true]);
   assert.deepEqual({...rumsstudien, surface: levande.surface, base: levande.base, shadowAbove: levande.shadowAbove, lamp: levande.lamp}, levande);
   assert.deepEqual([rumsstudien.surface, rumsstudien.base, rumsstudien.shadowAbove, rumsstudien.lamp], ['photo', 'legs', 0, 0.5]);
+});
+
+test('a look is shown with the play view\'s Dator unless it names a framing of its own (Jakob 2026-11-25)', () => {
+  const dator = {zoom: 0.9, pitch: -9.5, yaw: 2}, mobil = {zoom: 1.4, pitch: -5, yaw: 0}, [basgrund, , rumsstudien] = SHIPPED;
+  const whole = effective(DEFAULTS, basgrund.state, dator);
+  assert.deepEqual([whole.zoom, whole.pitch, whole.yaw], [dator.zoom, dator.pitch, dator.yaw]);
+  assert.equal(whole.room, 'panorama'); assert.equal(effective(DEFAULTS, basgrund.state).zoom, DEFAULTS.zoom, 'without a play view, the scene\'s own');
+  const mine = effective(DEFAULTS, {...basgrund.state, zoom: 1.2, pitch: -3}, dator);
+  assert.deepEqual([mine.zoom, mine.pitch, mine.yaw], [1.2, -3, dator.yaw], 'the look\'s own keys go first, the rest is the play view\'s');
+  // Visa: Dator as the look is, Mobil always the play view's Mobil, Inspelningen the film's own frame; the format is Visa's
+  assert.deepEqual(shownState(mine, 'fill', mobil), {...mine, format: 'fill'});
+  assert.deepEqual(shownState(mine, 'mob', mobil), {...mine, ...mobil, format: 'mob'});
+  assert.deepEqual(shownState(mine, 'desk', mobil), {...mine, ...RECORDING, format: 'desk'});
+  // the look on the play view is the shipped one whatever Visa says; off the play view, or with another key, it is not
+  assert.equal(matchPreset({...whole, format: 'mob'}, DEFAULTS, SHIPPED, undefined, dator)?.name, 'basgrund');
+  assert.equal(matchPreset(effective(DEFAULTS, rumsstudien.state, dator), DEFAULTS, SHIPPED, undefined, dator)?.name, 'rumsstudien');
+  assert.equal(matchPreset({...whole, zoom: 1.2}, DEFAULTS, SHIPPED, undefined, dator), null);
+  assert.equal(matchPreset(whole, DEFAULTS, SHIPPED, undefined, {...dator, pitch: -4}), null, 'under another play view the sliders no longer stand on it');
+});
+
+test('what a save keeps: never Visa, and zoom, pitch and yaw only with the look\'s own framing, then all three', async t => {
+  const store = scenePresetStore(await temp(t)), dator = readPlayView(null).dator;
+  const shown = {...effective(DEFAULTS, {room: 'skog', dust: 0.8}, dator), format: 'mob' as const};
+  // following the play view: the look's keys, nothing of the framing or the format
+  const follows = savedState(shown, DEFAULTS, false);
+  assert.deepEqual(follows, {room: 'skog', dust: 0.8});
+  assert.equal(hasOwnFraming(follows), false);
+  // with its own framing: all three, also where one is the scene's own (yaw 0), so that a new play view does not move it
+  const own = savedState({...shown, zoom: 1.2, pitch: -3, yaw: 0}, DEFAULTS, true);
+  assert.deepEqual(own, {room: 'skog', dust: 0.8, zoom: 1.2, pitch: -3, yaw: 0});
+  assert.equal('format' in own, false);
+  for (const key of FRAMING_KEYS) assert.equal(own[key] !== undefined, true, key);
+  // kept by the store as sent, and shown again under another play view: the one follows it, the other keeps its own
+  const later = {zoom: 0.8, pitch: -10, yaw: 1};
+  const a = (await store.save('folj-spelvyn', {label: 'Följ', state: follows}, undefined)).preset.state;
+  const b = (await store.save('egen-inramning', {label: 'Egen', state: own}, undefined)).preset.state;
+  assert.deepEqual(a, follows); assert.deepEqual(b, own);
+  assert.deepEqual([effective(DEFAULTS, a, later).zoom, effective(DEFAULTS, a, later).pitch], [later.zoom, later.pitch]);
+  assert.deepEqual([effective(DEFAULTS, b, later).zoom, effective(DEFAULTS, b, later).pitch, effective(DEFAULTS, b, later).yaw], [1.2, -3, 0]);
 });
 
 test('his own preset: saved, listed after the shipped ones, overwritten only against its revision, taken away', async t => {

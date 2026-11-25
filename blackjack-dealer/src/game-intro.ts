@@ -7,18 +7,19 @@
 // stand in the film's last picture when the fade begins is called a little before the film ends (onLead), while the film still
 // covers the game, and again as the fade begins (onFade).
 //
-// Where the film lies. Its last frame is the game's own picture at 16:9 (the scene at FRAMING.wide in src/game-page.ts, pitch -8,
+// Where the film lies. Its last frame is the game's own picture at 16:9 as the film was made (INTRO_FILM: pitch -8,
 // zoom 0.84). The game frames that picture differently on other pictures: the scene keeps the film frame's height on a picture
 // wider than the film frame (1764 x 1174) and its width on a narrower one (viewFovDeg in src/scene3d-geometry.ts), always about the
 // picture's middle. The picture is the game's canvas: the whole stage on a larger screen, the part the console leaves free on a
 // phone (above it standing, beside it lying; game.css). So the film is laid at the scale the game will have her at (introLayout),
 // centred in that picture: on a picture between 1.50 and 16:9 that covers it; on a wider one it leaves black bars at the sides, on
-// a narrower lying one thin bars above and below, and in each case she sits where the game has her. Standing (the game's tall
-// framing, the stage's width / height under 0.8, pitch -4.4, zoom 1.55) the game shows her far larger than any whole film picture
+// a narrower lying one thin bars above and below, and in each case she sits where the game has her. Standing (the play view's
+// Mobil, the stage's width / height under MOBILE_BELOW) the game shows her far larger than any whole film picture
 // could, so the film is shown whole on black and, during a longer fade, grows toward where the game has her before it dissolves
 // into the game.
 //
 // The first part has no page in it; createIntro is the page.
+import {MOBILE_BELOW, PLAY_VIEW, type PlayView} from './play-view.ts';
 
 /** Where the intro is: the start picture, the film, the fade into the game, gone. */
 export type IntroPhase = 'waiting' | 'playing' | 'fading' | 'done';
@@ -40,9 +41,9 @@ export function introNext(state: IntroState, signal: IntroSignal): IntroState {
 // The film frame in the scene (FILM in src/scene3d-geometry.ts) and the plan camera's focal length in its pixels
 // (data/scene-contract.json, keyFigures.focalPx), kept to those files by hand.
 export const INTRO_FRAME = {width: 1764, height: 1174, focalPx: 886};
-// The film: 1920 x 1080, made at the game's lying framing. The game's framings (FRAMING in src/game-page.ts).
+// The film: 1920 x 1080, made at the framing the game had lying when it was made. Where the game has her now is the play
+// view (src/play-view.ts: Dator lying, Mobil standing), which the page hands over as it knows it (IntroOptions.view).
 export const INTRO_FILM = {width: 1920, height: 1080, zoom: 0.84, pitch: -8};
-export const INTRO_FRAMING = {lying: {zoom: 0.84, pitch: -8}, tall: {zoom: 1.55, pitch: -4.4}, tallBelow: 0.8};
 // Two points of her in the film's last frame (film pixels, y down): her face and her hands on the tray. Standing, the film is moved
 // so that these two land where the game shows them.
 export const INTRO_MARKS = {x: 960, face: 150, hands: 630};
@@ -59,9 +60,9 @@ export function focalOf(w: number, h: number, zoom: number): number {
  * Where the film lies in a picture of w x h (CSS pixels, from the picture's top left corner): during the film, and at the end of the
  * fade (where the game has her). `tall`: the game's tall framing, which the stage's shape decides; without it, the picture's own.
  */
-export function introLayout(w: number, h: number, tall = w / Math.max(1, h) < INTRO_FRAMING.tallBelow): IntroLayout {
+export function introLayout(w: number, h: number, tall = w / Math.max(1, h) < MOBILE_BELOW, view: Pick<PlayView, 'dator' | 'mobil'> = PLAY_VIEW): IntroLayout {
   const F = INTRO_FILM, filmFocal = focalOf(F.width, F.height, F.zoom);
-  const framing = tall ? INTRO_FRAMING.tall : INTRO_FRAMING.lying, gameFocal = focalOf(w, h, framing.zoom), tilt = (F.pitch - framing.pitch) * RAD;
+  const framing = tall ? view.mobil : view.dator, gameFocal = focalOf(w, h, framing.zoom), tilt = (F.pitch - framing.pitch) * RAD;
   // a film row as the game's camera shows it: the same place, looking `tilt` further down
   const row = (y: number) => h / 2 + gameFocal * Math.tan(Math.atan((y - F.height / 2) / filmFocal) - tilt);
   const top = row(INTRO_MARKS.face), bottom = row(INTRO_MARKS.hands), scale = (bottom - top) / (INTRO_MARKS.hands - INTRO_MARKS.face);
@@ -73,6 +74,8 @@ export function introLayout(w: number, h: number, tall = w / Math.max(1, h) < IN
 // ── the page ────────────────────────────────────────────────────────────────
 export type IntroOptions = {
   film: string; poster: string;
+  /** The play view as the page knows it when the film is laid (src/play-view.ts): the game's own until the saved one is read. Left out, the game's own. */
+  view?: () => Pick<PlayView, 'dator' | 'mobil'>;
   /** The fade into the game, seconds: lying and standing. */
   fade?: {lying?: number; tall?: number};
   /** Standing: the film grows toward where the game has her during the fade (true), or only fades (false). */
@@ -133,7 +136,7 @@ export function createIntro(stage: HTMLElement, canvas: HTMLCanvasElement, optio
   // The game's picture is the box its canvas fills (the canvas's parent, which the page lays out before the scene has sized the canvas);
   // standing or lying is the stage's shape, as in the game.
   const lay = () => { const r = stage.getBoundingClientRect(), p = (canvas.parentElement ?? canvas).getBoundingClientRect(), dx = p.left - r.left, dy = p.top - r.top;
-    const at = introLayout(p.width, p.height, r.width / Math.max(1, r.height) < INTRO_FRAMING.tallBelow), move = (b: Box) => ({...b, x: b.x + dx, y: b.y + dy});
+    const at = introLayout(p.width, p.height, r.width / Math.max(1, r.height) < MOBILE_BELOW, options.view?.() ?? PLAY_VIEW), move = (b: Box) => ({...b, x: b.x + dx, y: b.y + dy});
     // Lying beside the console the picture is the left part of the stage; while the film plays it lies in the stage's middle instead
     // (the same size and height), and is moved to the picture as the fade begins (fadeOut).
     const end = move(at.end), film = at.tall || Math.abs(p.width - r.width) < 1 ? move(at.film) : {...end, x: (r.width - end.width) / 2};

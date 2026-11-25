@@ -7,12 +7,16 @@
 import type { SceneState } from "../../src/scene3d-view.ts";
 
 export type SceneKey = keyof SceneState;
-export type GroupId = "miljo" | "rorelser" | "ljus" | "bord" | "kort" | "kamera" | "avancerat";
+export type GroupId = "spelvy" | "miljo" | "rorelser" | "ljus" | "bord" | "kort" | "kamera" | "avancerat";
 export type Who = "D" | "U";
 export type Option = { value: string; label: string };
 
-/** The groups in their order. Avancerat is the calibration and starts folded away. */
+/**
+ * The groups in their order. Spelvy comes first: what the picture shows (the recording, or what the player sees on a computer
+ * or a phone) and its framing (Jakob 2026-11-25, src/play-view.ts). Avancerat is the calibration and starts folded away.
+ */
 export const GROUPS: readonly { id: GroupId; label: string; folded: boolean }[] = [
+  { id: "spelvy", label: "Spelvy", folded: false },
   { id: "miljo", label: "Miljö", folded: false },
   { id: "rorelser", label: "Rörelser", folded: true },
   { id: "ljus", label: "Ljus", folded: true },
@@ -124,6 +128,8 @@ export const SCENE_KEYS: readonly KeySpec[] = [
   spec("filmWarm", "ljus", "U", "Dealerns värme", slider(-0.2, 0.2, 0.005), "Filmens färgton, kallare eller varmare; 0 är filmen som den är."),
   spec("shadowAbove", "ljus", "U", "Skugga ovanför kanten", slider(0, 1, 0.05), "Filmens skugga ovanför bordskanten, där armbågarnas skugga annars hänger i luften. 0 tar bort den."),
   // ── Bord ──
+  // The look's lens (Jakob 2026-11-25: Bred lins is a filter on the same standard; Lins in src/card-plan.ts).
+  spec("lins", "bord", "D", "Lins", choice(["standard", "Standard"], ["bred", "Bred lins"]), "Standard är filmens egen lins, samma mått som Inspelning och dockan. Bred lins är den äldre, vidare kameran: bordet, markerlådan och insatsringarna blir större nära dealern. Sparas med utseendet."),
   spec("tableModel", "bord", "U", "Bordsmodell", choice(["standard", "Standardbordet"], ["bord-02", "BORD-02, njurformat"]), "BORD-02 (prov): njurformat bord med läderreling. Duk, filtfärg, underrede, mugghållare och hylla gäller standardbordet."),
   spec("modelCloth", "bord", "U", "Spelyta", choice(["filt", "Grön mikromocka"], ["gras", "Gräsmatta"]), "BORD-02:s spelyta, fotograferad: Scuba Suede eller Grass Ground från Poly Haven."),
   spec("modelWood", "bord", "U", "Träsarg", choice(["valnot", "Valnötsfaner"], ["furu", "Lackerad furu"]), "BORD-02:s sarg; benen behåller valnötsfaneret."),
@@ -153,14 +159,17 @@ export const SCENE_KEYS: readonly KeySpec[] = [
   spec("focus", "kamera", "U", "Skärpa", choice(["off", "Av"], ["dealer", "Dealern"], ["follow", "Följ given"], ["card", "Kortet"], ["manual", "Eget"]), "Följ given: skärpan följer kortet från skon tills det ligger, sedan dealern."),
   spec("focusDistance", "kamera", "U", "Eget avstånd", slider(0.3, 12, 0.01, " m"), "Skärpeplanets avstånd när skärpan är Eget."),
   spec("tolerance", "kamera", "U", "Skärpedjup", slider(0, 0.8, 0.01), "Hur mycket runt skärpeplanet som är skarpt."),
-  spec("yaw", "kamera", "U", "Vrid sidled", slider(-60, 60, 0.5, "°"), "Kameran vriden åt sidan. Dra i bilden gör detsamma."),
-  spec("pitch", "kamera", "D", "Vrid höjdled", slider(-35, 25, 0.5, "°"), "Kameran vriden upp eller ned; spelet ser bordet från −8°."),
-  spec("zoom", "kamera", "D", "Zoom", slider(0.45, 2.5, 0.01, "×"), "Bildvinkeln; spelet visar hela bordet med 0,84. Mushjulet zoomar bara med Ctrl eller ⌘ nedtryckt."),
+  // ── Spelvy: shown in its own group, first in the panel; kept here in the list so that an address keeps its order ──
+  // Visa is Scen's own and never saved with a look (studio/lib/scene-presets.ts savedState). Its choices stay in the order the
+  // game's copy of the catalogue has them (src/game-look.ts KEYS); the panel shows them as Inspelningen, Dator, Mobil.
+  spec("format", "spelvy", "D", "Visa", choice(["desk", "Inspelningen"], ["mob", "Mobil"], ["fill", "Dator"]), "Inspelningen: filmens egen ruta, som den spelas in. Standarden för alla filmer. Dator och Mobil: det spelaren ser."),
+  spec("zoom", "spelvy", "D", "Zoom", slider(0.45, 2.5, 0.01, "×"), "Hur nära bilden går; 1 är filmens egen ruta. Mushjulet zoomar bara med Ctrl eller ⌘ nedtryckt."),
+  spec("pitch", "spelvy", "D", "Vrid höjdled", slider(-35, 25, 0.5, "°"), "Bilden vriden upp eller ned från filmens egen."),
+  spec("yaw", "spelvy", "U", "Vrid sidled", slider(-60, 60, 0.5, "°"), "Bilden vriden åt sidan. Dra i bilden gör detsamma."),
   spec("dx", "kamera", "U", "Flytta sidled", slider(-0.9, 0.9, 0.005, " m"), "Kameran flyttad åt sidan; filmen börjar ljuga ju längre."),
   spec("dy", "kamera", "U", "Flytta höjd", slider(-0.3, 0.5, 0.005, " m"), "Kameran flyttad upp eller ned."),
   spec("dz", "kamera", "U", "Flytta djup", slider(-0.5, 1.6, 0.005, " m"), "Kameran flyttad bakåt eller framåt."),
   spec("aim", "kamera", "U", "Sikta på dealern", toggle, "Kameran håller blicken på dealern när den flyttas."),
-  spec("format", "kamera", "D", "Format", choice(["desk", "Dator"], ["mob", "Mobil"], ["fill", "Fyll"]), "Bildens form: filmens 1764 × 1174, mobil 9:16, eller hela ytan som spelet."),
   // ── Avancerat: kalibrering ──
   spec("panoramaTurn", "avancerat", "U", "Panoramats vridning", slider(0, 360, 1, "°"), "Hur 360°-bilden är vriden; 90 lägger bildens mitt bakom dealern."),
   spec("lens", "avancerat", "U", "Filmkamera", choice(["plan", "Bordets"], ["estimate", "Dealerns lins"]), "Bordets kamera: i Standard filmens egen lins i verkliga meter (samma som dockan och Inspelning), i Bred lins den äldre, vidare kameran. Dealerns lins är en skattning."),

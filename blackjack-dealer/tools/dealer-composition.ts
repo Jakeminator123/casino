@@ -12,7 +12,7 @@ import {existsSync, readFileSync, renameSync, writeFileSync} from 'node:fs';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {TABLE_GEOMETRY} from '../src/card-plan.ts';
+import {LINS} from '../src/card-plan.ts';
 import {COMPOSITION_ID, HANDS_WORD, checkComposition, compositionView, compositionWord, handsNote, soloComposition, tempoValue, tempoWord,
   type CompositionAnswer, type CompositionCut, type CompositionDef, type CompositionRegister, type CompositionView, type ReuseRow} from '../src/composition.ts';
 import {cutTakes, type TreeTake, type TreeView} from '../src/dealer-trees.ts';
@@ -38,7 +38,7 @@ export function reuseRows(root = ROOT): ReuseRow[] {
   try { const raw = JSON.parse(readFileSync(path.join(root, 'placements/default.json'), 'utf8')); plan = raw.plan ?? raw; } catch { return []; }
   const out: ReuseRow[] = [];
   try {
-    const layout = createLayout(plan as Parameters<typeof createLayout>[0], {geometry: TABLE_GEOMETRY});
+    const layout = createLayout(plan as Parameters<typeof createLayout>[0], {lins: LINS});
     const width = (slot: Slot) => { const q = layout.quad(slot); return Math.max(...q.map(p => p.x)) - Math.min(...q.map(p => p.x)); };
     for (let seat = 0; seat <= 7; seat++) {
       const owner = seat ? 'P' as const : 'D' as const, at = (index: number): Slot => ({owner, seat, hand: 0, hands: 1, index}), cardWidth = width(at(0));

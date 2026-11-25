@@ -83,7 +83,7 @@ export function rewrite(text: string, removed: Removed = {}): string {
     .replace(/\[([^\]]+)\]\(\s*https?:\/\/(?:127\.0\.0\.1|localhost):4319(\/studio\/[^)\s]*)\s*\)/g, '$1 ($2)')
     .replace(/\[([^\]]+)\]\((?:[^()]|\([^()]*\))*\)/g, '$1')
     .replace(/\bhttps?:\/\/(?:127\.0\.0\.1|localhost):4319(\/studio\/[^\s)`>\]]*)/g, '$1')
-    .replace(/\bhttps?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?[^\s)`>\]]*/g, '‹labbet›')
+    .replace(/\bhttps?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?[^\s)`>\]]*/g, '‹studion›')
     .replace(/^[\s\S]*$/, all => replacePaths(all, () => count(removed, 'sökväg ersatt')));
 }
 
@@ -276,7 +276,7 @@ export function proofSections(proofs: readonly Proof[], onSite: ReadonlySet<stri
       const label = cleanPlain(p.labels?.[f.name] ?? '', release, removed), v = proofVerdict(p, f.name);
       return `- ${f.name}${label ? `: ${short(label, 220)}` : ''}${v ? ` (${PROOF_VERDICT_LABEL[v].toLowerCase()})` : ''}`;
     });
-    const text = [`Provet ${title} (${p.id}), ${onSite.has(p.id) ? 'finns i kopian i Granska, delen Prov' : 'finns bara i Jakobs labb, inte i kopian'}.`, short(description, 1500), ...files].filter(Boolean).join('\n');
+    const text = [`Provet ${title} (${p.id}), ${onSite.has(p.id) ? 'finns i kopian i Granska, delen Prov' : 'finns bara i Jakobs studio, inte i kopian'}.`, short(description, 1500), ...files].filter(Boolean).join('\n');
     detail.push({id: `prov/${slug(p.id)}`, titel: `Prov › ${title}`, text, prio: null, tokens: roughTokens(text)});
   }
   const text = ['Alla prov (jämförelsefilmer och bilder från arbetet), med domar per fil och om provet finns i kopian (Granska, delen Prov):', ...list].join('\n');

@@ -3,7 +3,8 @@
 // Ny film: Bordet's guide for a new film, Inspelning's step 3 (Jakob 2026-11-23: "menyerna … blir smartare, och mer likt så som
 // en 'Wizard' hade varit om man skulle vilja beställa nya klipp och att allt är sammanlänkt smart till nodträd och dealer").
 // Three parts, one shown at a time:
-//   Vad     the dealer, her tree and the step: the tree's steps as tiles with their pictures, those without a film first, the
+//   Vad     the tree and the step, for the dealer chosen in the frame (its switch is the one way to choose her): the
+//           tree's steps as tiles with their pictures, those without a film first, the
 //           ones with a film folded; "Fler steg" holds what Bordet orders outside the tree's measure (the chosen card's return
 //           to rest, the other anchors at the shoe). A step with a card chooses that card in Inspelning, and a card chosen
 //           there (the card buttons, the doll's picture) moves the step to it.
@@ -13,8 +14,8 @@
 //           draft, the way to Kön and the way back to the tree in Karta. A deal from A2.3 to a player's card or one of the
 //           dealer's own is saved from the doll (Jakob 2026-11-23: "EN väg och ETT ställe man använder dockan"): its film of
 //           his saved standard is made first, about a minute, and goes as the reference (lib/orders.ts orderDoll,
-//           tools/doll-order.ts); "Utan dockan" saves the recipe's draft instead. The side the card lies with is the plan's
-//           alone (Inspelning, step 2), so the doll and the order's text say the same.
+//           tools/doll-order.ts); "Utan dockan" saves the recipe's draft instead. The side a dealer's card lies with is the
+//           plan's alone (Inspelning, step 2; a player's card always lies open), so the doll and the order's text say the same.
 // The tree chosen here also chooses the anchor Inspelning's card goes from in step 2 and in the doll's picture
 // (lib/bordet.ts treeAnchor).
 // Karta's "Beställ" opens it on a step (lib/new-film.ts guideHref). It approves nothing: the draft is approved in Kön.
@@ -48,12 +49,11 @@ const STATE_CHIP = { saknas: { tone: "remark", word: "saknas" }, prov: { tone: "
 export type DollWay = { place: string; standard: StandardState; treePicture: string | null };
 
 export function NewFilm({
-  dealer, dealers, onDealer, trees, view, onTree, item, phase, onPhase, onPick, place, row, body, sends, entries, names, ordering, blocked, made, orders, composition, onCreated, doll, onDollMade,
+  dealer, dealers, trees, view, onTree, item, phase, onPhase, onPick, place, row, body, sends, entries, names, ordering, blocked, made, orders, composition, onCreated, doll, onDollMade,
 }: {
   dealer: string;
-  /** The dealers films can be ordered for (not paused). */
+  /** The dealers films can be ordered for (not paused): their names. */
   dealers: readonly { id: string; name: string }[];
-  onDealer: (id: string) => void;
   trees: Trees;
   /** The chosen tree (lib/new-film.ts pickTree), or null without trees. */
   view: TreeView | null;
@@ -123,7 +123,7 @@ export function NewFilm({
         className="self-start"
       />
       {phase === "vad" ? (
-        <Choose dealer={dealer} dealers={dealers} onDealer={onDealer} trees={trees} view={view} onTree={onTree} item={item} onPick={onPick} place={place} pictureOf={pictureOf} />
+        <Choose dealer={dealer} dealers={dealers} trees={trees} view={view} onTree={onTree} item={item} onPick={onPick} place={place} pictureOf={pictureOf} />
       ) : item ? (
         <>
           <Head item={item} view={view} onBack={() => onPhase("vad")} />
@@ -161,7 +161,7 @@ export function NewFilm({
 }
 
 // ── Vad ─────────────────────────────────────────────────────────────────────
-function Choose({ dealer, dealers, onDealer, trees, view, onTree, item, onPick, place, pictureOf }: { dealer: string; dealers: readonly { id: string; name: string }[]; onDealer: (id: string) => void; trees: Trees; view: TreeView | null; onTree: (id: string) => void; item: GuideItem | null; onPick: (item: GuideItem) => void; place: string; pictureOf: (node: string) => EntryAnswer | null }) {
+function Choose({ dealer, dealers, trees, view, onTree, item, onPick, place, pictureOf }: { dealer: string; dealers: readonly { id: string; name: string }[]; trees: Trees; view: TreeView | null; onTree: (id: string) => void; item: GuideItem | null; onPick: (item: GuideItem) => void; place: string; pictureOf: (node: string) => EntryAnswer | null }) {
   const tiles = tilesOf(view, place);
   const choosable = (trees.answer?.trees ?? []).filter((v) => !v.tree.shares || v.tree.id === view?.tree.id);
   const grid = (list: readonly GuideItem[]) => (
@@ -173,7 +173,6 @@ function Choose({ dealer, dealers, onDealer, trees, view, onTree, item, onPick, 
   );
   return (
     <>
-      {dealers.length > 1 ? <SegmentedControl size="sm" label="Dealer" value={dealer} onChange={onDealer} options={dealers.map((d) => ({ value: d.id, label: d.name }))} className="max-w-full flex-wrap self-start" /> : null}
       {trees.state === "loading" ? (
         <Skeleton className="h-40 rounded-md" />
       ) : choosable.length ? (

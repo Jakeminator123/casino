@@ -64,7 +64,7 @@
   h3 { margin: 8px 0 0; font-size: 12px; font-weight: 600; color: var(--muted); }
   #knobs h3:first-child { margin-top: 0; }
   .acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-  #entries, #backs { margin-bottom: 6px; }
+  #entries { margin-bottom: 6px; }
   #landings button, #turns button { padding: 5px 9px; font-size: 13px; }
   #turnNote.warn { color: var(--warn); }
   #shaping { margin-top: 4px; }
@@ -128,13 +128,12 @@
     <div class="head"><h1>Dockan</h1><div class="seg" id="dolls" role="group" aria-label="Docka"><button data-doll="paow">Paow</button><button data-doll="standard">Standarddockan</button></div></div>
     <div class="docklabb-styr">
     <div><h2>Rörelse</h2>
-      <div class="seg" id="ways" role="group" aria-label="Rörelse"><button data-way="naturlig">Naturlig</button><button data-way="forut">Som förut</button></div>
+      <div class="seg" id="ways" role="group" aria-label="Rörelse"><button data-way="naturlig">Naturlig</button><button data-way="forut">Äldre given</button></div>
       <p class="small" id="wayNote"></p></div>
     <div><h2>Ställning</h2>
       <div class="seg" id="poses"><button data-pose="A1">A1</button><button data-pose="A2.1">A2.1</button><button data-pose="A2.3">A2.3</button></div></div>
     <div><h2 id="dealHead">Giv från A2.3 till</h2>
       <div class="seg" id="entries" role="group" aria-label="Giv från"><button data-entry="A2.1">Från A2.1</button><button data-entry="A2.3">Från A2.3</button></div>
-      <div class="seg" id="backs" role="group" aria-label="Given"><button data-back="0">Giv</button><button data-back="1">Giv och återgång</button></div>
       <div class="grid" id="places"></div><p class="small" id="closed"></p></div>
     <div><h2>Vändning</h2>
       <div class="seg" id="turns" role="group" aria-label="Vändning"></div>
