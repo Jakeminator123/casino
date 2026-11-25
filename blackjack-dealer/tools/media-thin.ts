@@ -7,19 +7,20 @@
 //   node tools/media-thin.ts --kor                  carries out the safe level (säkert) of plan.json: the rule
 //   node tools/media-thin.ts --kor --grupp <namn>   carries out one named group of the proposals (only on Jakob's word)
 //   node tools/media-thin.ts --tom-korgen           deletes the trash days older than 14 days
+//   node tools/media-thin.ts --auto                 all three in turn: the report, the safe level, the trash (the lab server's start)
 // Levels:
-//   säkert   what the rule decides alone: the films of a take rejected (Inte bra) by Jakob or for him by the main agent and a
-//            reviewer on his mandate (not a secondary alternative), that the game does not hold, that no open order (a draft
-//            UTKAST among them) or card in Beslut points to (then an agent has the task to rework it), that no other register
-//            points to and that is older than three days, with Runway's raw delivery of the take (the film's posts leave the
-//            register with it, tools/register-store.ts: the verdict stays as one row in data/motions-removed.jsonl, and the
-//            folders get RADERAD.txt); what can provably be made again from a kept file by a command (none today: see the
-//            report); byte-identical files under assets/ made one file with hard links (talets filer, V6, originals and
-//            references never share).
-//   förslag  never without his word: Inte bra from a reviewer without his mandate, and secondary alternatives; loose films
-//            (half or not linked to a tree) not judged good; order deliveries that never became a record; proofs without an
-//            open card and without a note of his in 14 days; older talk films and mouth patches where a newer one is played;
-//            the raw deliveries of takes removed above; after-work copies that a recorded command can make again once proven.
+//   säkert   what the rule decides alone (Jakob 2026-11-25: what is not used and does not wait for him goes): the films of a
+//            take rejected (Inte bra) by Jakob, for him by the main agent and a reviewer on his mandate, or by a reviewer
+//            without it, and secondary alternatives; loose films (half or not linked to a tree) not judged good and not
+//            waiting for his verdict; older talk films and mouth patches where a newer one is played; order deliveries that
+//            never became a record; proofs without an open card and without a note of his in 14 days; Runway's raw delivery
+//            of every take that goes. Each only when the game does not hold it, no open order (a draft UTKAST among them) or
+//            card in Beslut points to it (then an agent has the task to rework it), no other register points to it and it is
+//            older than three days. A film's posts leave the register with it (tools/register-store.ts: the verdict stays as
+//            one row in data/motions-removed.jsonl, and the folders get RADERAD.txt). Also: what can provably be made again
+//            from a kept file by a command (none today: see the report); byte-identical files under assets/ made one file
+//            with hard links (talets filer, V6, originals and references never share).
+//   förslag  never without his word: after-work copies that a recorded command can make again once proven.
 //   blob     prepared, nothing done: the files of the release's list (.runtime/ny-blob/filer.json) that could live only on Blob.
 // The guard (blocked) is a hard stop, checked when the plan is made and again for every file just before it is touched: Primär,
 // Godkänd and Variant (his or given for him); everything the game holds (gameTakes, usesOf); everything with a role in
@@ -129,12 +130,12 @@ const GROUPS: {name: string; level: Level; title: string; rule: string}[] = [
   {name: 'underkand-leverans', level: 'säkert', title: 'Leveransen till en underkänd tagning', rule: 'Runways egen leverans (source.mp4) i beställningsmappen till en tagning vars film går i underkand; kvittona står kvar och mappen får RADERAD.txt.'},
   {name: 'aterskapbart', level: 'säkert', title: 'Går att göra igen ur en bevarad fil', rule: 'Det ett register visar är gjort ur en bevarad fil med ett kommando, och där en körning har visat samma SHA-256.'},
   {name: 'dubbletter', level: 'säkert', title: 'Byteidentiska filer blir en fil', rule: 'Filer under assets/ med samma SHA-256 som inte redan delar fil görs till hårda länkar; båda namnen finns kvar. Talets filer, V6, original, referenser och noir-samlingen delar aldrig fil.'},
-  {name: 'underkand-granskare', level: 'förslag', title: 'Inte bra av en granskare utan hans uppdrag', rule: 'Som underkand, men domen är en granskares utan hans uppdrag, eller tagningen är ett sekundärt alternativ.'},
-  {name: 'tal-aldre', level: 'förslag', title: 'Äldre talfilmer och munlappar', rule: 'En talfilm med ett lägre nummer än den som spelet har för samma replik, och munlappar som är ersatta eller som registret inte längre nämner. Talets mapp går helt (så att numret inte tas upp igen), bankens film får RADERAD.txt.'},
-  {name: 'lost', level: 'förslag', title: 'Löst, inte dömt bra', rule: 'Halv- eller okopplade filmer (tools/dealer-tree.ts) som inte är dömda bra och som spelet inte har.'},
-  {name: 'original-forkastade', level: 'förslag', title: 'Råleveranser till borttagna tagningar', rule: 'Runways egen leverans (source.mp4) i beställningsmappen till en tagning vars film går i en av förslagen ovan.'},
-  {name: 'bestallningar-utan-post', level: 'förslag', title: 'Leveranser som aldrig blev en post', rule: 'En beställd tagning som stannade före INFÖRD och som ingen post i registret har; bilderna och filmerna går, kvittona står kvar.'},
-  {name: 'prov-utan-kort', level: 'förslag', title: 'Prov utan kort', rule: 'Prov i assets/proofs/ utan kort i Beslut, utan anteckning från honom de senaste 14 dygnen och som inget dokument eller utgåvan nämner.'},
+  {name: 'underkand-granskare', level: 'säkert', title: 'Inte bra av en granskare utan hans uppdrag', rule: 'Som underkand, men domen är en granskares utan hans uppdrag, eller tagningen är ett sekundärt alternativ.'},
+  {name: 'tal-aldre', level: 'säkert', title: 'Äldre talfilmer och munlappar', rule: 'En talfilm med ett lägre nummer än den som spelet har för samma replik, och munlappar som är ersatta eller som registret inte längre nämner. Talets mapp går helt (så att numret inte tas upp igen), bankens film får RADERAD.txt.'},
+  {name: 'lost', level: 'säkert', title: 'Löst, inte dömt bra', rule: 'Halv- eller okopplade filmer (tools/dealer-tree.ts) som inte är dömda bra, som spelet inte har och som inte väntar på Jakobs dom.'},
+  {name: 'original-forkastade', level: 'säkert', title: 'Råleveranser till borttagna tagningar', rule: 'Runways egen leverans (source.mp4) i beställningsmappen till en tagning vars film går i en av grupperna ovan.'},
+  {name: 'bestallningar-utan-post', level: 'säkert', title: 'Leveranser som aldrig blev en post', rule: 'En beställd tagning som stannade före INFÖRD och som ingen post i registret har; bilderna och filmerna går, kvittona står kvar.'},
+  {name: 'prov-utan-kort', level: 'säkert', title: 'Prov utan kort', rule: 'Prov i assets/proofs/ utan kort i Beslut, utan anteckning från honom de senaste 14 dygnen och som inget dokument eller utgåvan nämner.'},
   {name: 'efterarbete-kopior', level: 'förslag', title: 'Efterarbetets kopior', rule: 'after.mp4 vars after.json säger hur den gjordes ur leveransen; går att göra igen med kommandot, men ingen körning har ännu visat samma SHA-256.'},
 ];
 export type JudgeLike = {verdict: string; byJakob: boolean; provisional: boolean; detail?: string | null} | null | undefined;
@@ -156,7 +157,6 @@ export function finishedOrder(from: string, open: ReadonlySet<string>): boolean 
   return !!id && !open.has(id);
 }
 const TALK = /^(.+-tal-[a-z0-9]+-[a-z]{2}-)(\d+)$/;
-const DOCS = /^(HANDOFF\.md|README\.md|AGENTS\.md|docs\/|tools\/[^/]+\.md|\.claude\/skills\/|dealer3d\/LASMIG\.md|data\/decisions\.json|data\/studio-release\.json|placements\/)/;
 
 type Rec = {id?: string; dealer?: string; order?: {id?: string; take?: number}; review?: unknown; speech?: {line?: string}};
 type RowLike = {id: string; dealer: string; kind: string; group: string; verdict: string; good: boolean; variant: boolean; inGame?: boolean; plays: boolean;
@@ -176,7 +176,9 @@ export async function makePlan(repo = ROOT, now = Date.now()): Promise<{plan: Pl
   const jobs = json<{jobs?: {id: string}[]; derived?: {id: string; clip?: string}[]; edits?: {id: string}[]}>('data/clip-jobs.json') ?? {};
   const clipOf = new Map((jobs.derived ?? []).filter(d => d.clip).map(d => [d.id, d.clip!]));
   const folderOf = (id: string) => clipOf.get(id) ?? id;
-  const dealersDirs = readdirSync(path.join(repo, 'assets/speech')).filter(d => !d.includes('.'));
+  // Media is local: a folder this machine does not have is empty, not an error.
+  const list = (dir: string) => existsSync(path.join(repo, dir)) ? readdirSync(path.join(repo, dir)) : [];
+  const dealersDirs = list('assets/speech').filter(d => !d.includes('.'));
   const goodRow = (r: RowLike) => r.good || r.variant || ['primar', 'godkand', 'variant'].includes(r.judge?.verdict ?? '');
   const heldRow = (r: RowLike) => !!r.inGame || r.plays;
   const unitIds = new Map<string, string[]>(); for (const i of items) { const id = i.path.split('/').at(-1)!; unitIds.set(id, [...(unitIds.get(id) ?? []), i.path]); }
@@ -234,7 +236,7 @@ export async function makePlan(repo = ROOT, now = Date.now()): Promise<{plan: Pl
   guardKeys(shield, files.values());
 
   // ── Who points at what: paths anywhere in a register, and exact ids of films ──
-  const motionIds = new Set([...readdirSync(path.join(repo, 'assets/motions')), ...records.keys()]);
+  const motionIds = new Set([...list('assets/motions'), ...records.keys()]);
   const refs = new Map<string, Set<string>>();
   const addRef = (p: string, from: string) => { const parts = clean(p).split('/'); for (let d = 3; d <= Math.min(parts.length, 5); d++) { const k = parts.slice(0, d).join('/'); if (!refs.has(k)) refs.set(k, new Set()); refs.get(k)!.add(from); } };
   const scan = (value: unknown, from: string) => {
@@ -305,6 +307,8 @@ export async function makePlan(repo = ROOT, now = Date.now()): Promise<{plan: Pl
     const dir = `assets/motions/${f}`, films = videosIn(dir);
     if (!films.length) continue;
     if (own.some(goodRow) || own.some(heldRow)) continue; // guarded: used or judged good
+    // A finished take nobody has judged waits for Jakob (Granska's queue): it stays until he has.
+    if (own.some(r => r.judge?.verdict === 'vantar' && !r.judge.detail)) continue;
     const ids = new Set(own.map(r => r.id)), ownOrders = new Set(own.map(r => records.get(r.id)?.order?.id).filter(Boolean) as string[]);
     // Its own: its records and job entries, its speech folder, its order, and Material's entry for the film itself (role film);
     // any other entry of Material (a landing, a reference, a keystone made from it) points at it.
@@ -367,7 +371,7 @@ export async function makePlan(repo = ROOT, now = Date.now()): Promise<{plan: Pl
 
   // Proofs without a card, without a recent note, and named by no document.
   const notes = json<{notes?: {proof: string; at?: string}[]}>('data/proof-notes.json')?.notes ?? [];
-  for (const name of readdirSync(path.join(repo, 'assets/proofs'))) {
+  for (const name of list('assets/proofs')) {
     const dir = `assets/proofs/${name}`, all = [...files.values()].filter(f => f.path.startsWith(`${dir}/`) && !planned.has(f.path)); if (!all.length) continue;
     const recent = notes.filter(n => n.proof === name && n.at && now - Date.parse(n.at) < NOTE_DAYS * DAY);
     if (recent.length) { skip('prov-utan-kort', 'hans anteckning de senaste 14 dygnen', name, all.reduce((n, x) => n + x.bytes, 0)); continue; }
@@ -552,7 +556,10 @@ export function emptyTrash(trash: string, now = Date.now()): {removed: string[];
   return out;
 }
 
-async function main(argv: string[]) {
+async function main(argv: string[]): Promise<void> {
+  // The lab server runs this once per start, so that what is not used goes by itself (Jakob 2026-11-25): the plan, its safe
+  // level and the trash days older than 14 days.
+  if (argv.length === 1 && argv[0] === '--auto') { await main([]); await main(['--kor']); return main(['--tom-korgen']); }
   const kor = argv.includes('--kor'), empty = argv.includes('--tom-korgen'), gi = argv.indexOf('--grupp'), named = gi >= 0 ? argv[gi + 1] : null;
   if (argv.some((a, i) => !['--kor', '--tom-korgen', '--grupp'].includes(a) && i !== gi + 1) || (gi >= 0 && (!named || !kor)) || (kor && empty))
     throw new Error('Använd: node tools/media-thin.ts [--kor [--grupp <namn>]] | --tom-korgen');

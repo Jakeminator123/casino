@@ -9,7 +9,7 @@
 // The wheel changes level ONLY over the rail and the heading: everywhere else the page scrolls as always. The arrow keys are
 // left alone in a field, a slider, a list or a dialog, and at the first and last level, where they scroll the page.
 // Nothing here knows what a level is: the composition's levels are "Sammanlagt" and its trees (CompositionKarta), and the
-// camera as a dimension of a tree (camera 1 to 7, docs/lage/karta.md) can use the same pieces with its own list.
+// camera as a dimension of a tree (camera 1 to 7, STATUS.md "Nästa steg") can use the same pieces with its own list.
 import { ChevronsUpDown, Layers } from "lucide-react";
 import { useCallback, useEffect, useRef, type ReactNode, type RefObject } from "react";
 import { cn } from "@/components/ui";

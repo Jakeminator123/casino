@@ -6,7 +6,7 @@
 //            made before template 4 keeps reproducing its text. No new order is written with it (stylesFor in
 //            src/order-model.ts): its words go against today's rules. A return never had a long text.
 // Every sentence of the short and minimal texts lies in SAY, once, so that a wording can be changed in one edit (the
-// rules are the handbook's, tools/film-prompting.md; this file holds the exact words). Pure; the dealer's look comes from
+// rules are in ../.claude/skills/bestalla-film/SKILL.md; this file holds the exact words). Pure; the dealer's look comes from
 // data/dealers.json, the card's place from the plan (where the last picture draws the card). A text is built as parts,
 // each marked with the choices it comes from (hand, how the card lands and turns, the place, the reference film, the free
 // addition, the bans), so that the studio can show which words a choice made; the text is the parts joined, and the
@@ -58,7 +58,7 @@ import type { FlipAxis, Grip, StepKey, TextStyle } from './order-model.ts';
  * shoe (SAY.dragTowards, SAY.takeOnTheWay, SAY.handoverDrag); a closed drag is as before. The card is said to be plain
  * on both sides, the next card in the window too, in the words of round 14's addition (SAY.colours, SAY.oneCardMoves).
  * The words of templates 4 to 8 that 9 replaced stay in SAY.v8.
- * 10 (2026-11-17): the deal of the reference-film trials (tools/film-prompting.md §5, "Giv bara dit"; Prov giv-experiment
+ * 10 (2026-11-17): the deal of the reference-film trials ("Giv bara dit"; Prov giv-experiment
  * and giv-forlagefilm-2): with an older dealer's approved deal to the same seat as reference film, Kling 4 turned the card through
  * its edge in 4 of 4 takes with text C of the first trial and laid it on the plan (the reviewer passed 3 of 4), and the
  * drag from anchor 2.2 to seat 4 held in 2 of 2 with the same words written for the drag. In an open deal of the short
@@ -114,7 +114,7 @@ export const TEMPLATE_VERSION = 12;
  * movement comes first (SAY.v14.reference). Jakob 2026-11-23 of the films from anchor 2.3, made with the doll's films as
  * video 1: "lite lite robotliknande och onaturliga", and "kanske man borde skicka med i instruktionerna med dessa videos
  * med docka typ att '..filmen ska få rörelserna av vår dealer att vara naturlig primärt, så var inte extremt nitsk med
- * dockans rörelse..'" (docs/BESKED.md). The sentence still says that video 1 shows only the movement: the doll is white and
+ * dockans rörelse..'". The sentence still says that video 1 shows only the movement: the doll is white and
  * has no face. Two: the entry to anchor 2.3 says where her other hand ends in the anchor now used as last picture
  * (paow-ankare-2-3-c), flat on the felt in front of her (SAY.v14.reach23); 12 says both hands go to the shoe and the other
  * one waits close beside it, against that picture. Not today's template (TEMPLATE_VERSION), but since 2026-11-23 the one
@@ -182,8 +182,8 @@ export type Prompt = { template: string; style: TextStyle; text: string; parts: 
 const PLAIN_CARD = 'The card is plain, one flat solid yellow from edge to edge on its back and one flat solid blue from edge to edge on its face, and the next card in the window is the same plain solid yellow.';
 
 /**
- * Every sentence of the short (Kort) and minimal texts, each once, in the order of the handbook's skeleton
- * (tools/film-prompting.md §2: camera, reference, the action with the hand named by where it is, the turn, the way back,
+ * Every sentence of the short (Kort) and minimal texts, each once, in the order of the text's skeleton
+ * (camera, reference, the action with the hand named by where it is, the turn, the way back,
  * the other hand, the card, Jakob's addition). The turn (turnAtPlace, the handbook's turn A) is one a left hand can make
  * from a card that has come back up under its fingertips: palm down, the thumb lies at the card's inner long edge, slides
  * under it and lifts it; the forearm turns thumb side up (outward); the opposite long edge stays on the felt as a hinge, so

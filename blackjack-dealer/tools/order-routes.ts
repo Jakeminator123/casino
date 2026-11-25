@@ -18,7 +18,7 @@
 //                                       dealer's drafts then follow the anchor that holds (store.follow)
 //   GET  /api/production?dealer=<id>    the production list (tools/produce.ts): every step of the dealer's graph, its state
 // Writes come from the lab's own origin only, with the revision last read, as in tools/review-store.ts. Nothing here
-// places an order: an ordering agent does that after tools/order-clerk.md. Tests: tools/order-routes.test.ts.
+// places an order: an ordering agent does that after ../.claude/skills/bestalla-film/SKILL.md. Tests: tools/order-routes.test.ts.
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';

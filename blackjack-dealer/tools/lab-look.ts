@@ -1,4 +1,4 @@
-// A look at lab pages in headless Chrome (DRIFT, "Labbservern och fliken"): a screenshot of each page in a list, under
+// A look at lab pages in headless Chrome (AGENTS.md, "Labbservern"): a screenshot of each page in a list, under
 // the shared lock for the graphics card and headless Chrome, so that one run at a time loads Jakob's machine. From the
 // main agent's se-sidor.mjs and under-las.sh (2026-11-13 to 11-17). One Chrome of its own (its own profile, port 9591,
 // checked free first), never Jakob's tab or his logged-in windows: every address is the lab's (127.0.0.1:4319) with

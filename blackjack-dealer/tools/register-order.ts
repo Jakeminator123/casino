@@ -46,7 +46,7 @@ export type Entry = DerivedTake & {order: OrderRef};
 /** What a registration writes. The takes of an order carry it (Entry); a film made on this machine has none (tools/register-derived.ts). */
 export type Plan<T extends DerivedTake = Entry> = {clip: string; takes: T[]; records: Record<string, Record<string, unknown>>; files: {copy: [string, string] | null; generation: [string, Record<string, unknown>]}; notes: string[]};
 /** The review a take enters the bank with: not judged, in the inbox until Jakob decides. basis: where it came from, in words. */
-export const inboxReview = (basis: string) => ({decision: 'PENDING', inbox: true, basis: `Inte granskad av Jakob: ${basis}. Oberoende rutgranskning: tools/film-review.md.`,
+export const inboxReview = (basis: string) => ({decision: 'PENDING', inbox: true, basis: `Inte granskad av Jakob: ${basis}. Oberoende rutgranskning: ../.claude/skills/granska-film/SKILL.md.`,
   limitations: 'I inkorgen: spelas bara där steget inte har någon annan film, tills Jakob dömer den.', colorDoesNotProvePhysicalSide: true, userAccepted: false, productionReady: false});
 
 const json = async (file: string) => JSON.parse(await readFile(file, 'utf8'));
@@ -140,7 +140,7 @@ export async function planRegistration(root: string, id: string, take: number, o
     // Where the return begins: a fixed copy keeps its original's frame, a frame given goes first, and else the film says it itself.
     const found = ref.fix || options.split !== undefined ? null : await (options.find ?? splitOfFilm)(film);
     const byHand = `node tools/register-order.ts ${id} ${take} --split <första rutan i returen, 1–${frames - 1}>`;
-    if (found && found.split === null) throw new OrderError(`Ingen säker delningsruta i ${posix(root, film)}: ${found.why} Inget förs in. Läs rutorna (tools/film-review.md) och dela för hand: ${byHand}`);
+    if (found && found.split === null) throw new OrderError(`Ingen säker delningsruta i ${posix(root, film)}: ${found.why} Inget förs in. Läs rutorna (../.claude/skills/granska-film/SKILL.md) och dela för hand: ${byHand}`);
     const split = ref.fix ? (second0 ? second0.frames[0] - shift : NaN) : found?.split ?? options.split;
     if (!Number.isInteger(split) || split! < 1 || split! > frames - 1) throw new OrderError(ref.fix ? `Originalets delningsruta saknas eller ligger utanför den rättade kopian (${frames} rutor).` : `Delningsrutan ${split} ligger utanför filmen (${frames} rutor): ${byHand}`);
     const [dealEdge, backEdge] = edges, backTo = nodeName(backEdge.split('>')[1]).toLowerCase(), deal = `${target}-deal`, back = `${target}-return-${backTo}`;

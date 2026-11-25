@@ -109,7 +109,7 @@ def lay(img, layer, where):
     return (img * (1 - a) + cv2.GaussianBlur(layer, (3, 3), 0.6) * a + 0.5).astype(np.uint8)
 
 def draw_mark(img, q, rnd):
-    """Krysset mitt på den blå sidan och pricken i ett hörn. Filmerna ritar krysset upp till flera gånger för stort (BRISTER, "Kortet")."""
+    """Krysset mitt på den blå sidan och pricken i ett hörn. Filmerna ritar krysset upp till flera gånger för stort (STATUS.md, "Kända brister")."""
     where = on_card(img, q, 1)
     if where.sum() < 40: return img
     at = card_map(q); shade = float(np.clip(img[..., 0][where].mean() / MARK['face'], 0.55, 1.15)); layer = img.copy()

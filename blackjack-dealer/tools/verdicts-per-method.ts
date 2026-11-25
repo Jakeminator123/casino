@@ -5,7 +5,7 @@
 // that waits for his eyes). A verdict set for him is shown and never counted; his yes in Beslut about a named film
 // (data/order-methods.json beslut) counts where the film has no verdict of his own in Granska, and is said as that. The approval reads the same book
 // (tools/order-store.ts approve): one pilot of an untried way, none of a way that fell. Nothing is written by hand
-// anywhere: run this before a film is ordered (Jakob 2026-11-24, docs/BESKED.md "Bara sätt som håller, och en pilot först").
+// anywhere: run this before a film is ordered (Jakob 2026-11-24, "Bara sätt som håller, och en pilot först").
 //   node tools/verdicts-per-method.ts [dealer] [--tagningar] [--alla]
 //   dealer        only the ways that dealer's orders were made with (the state is still counted over every order)
 //   --tagningar   under each way, one line per film of the bank with its verdict

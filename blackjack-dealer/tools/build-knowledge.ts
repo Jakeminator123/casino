@@ -22,13 +22,12 @@ import {Index, type Knowledge} from '../cloud/studio/bot-search.ts';
 const here = path.resolve(fileURLToPath(new URL('../', import.meta.url)));
 
 const DEALER_FILES: {kalla: keyof typeof DEALER_DOCS; file: string; optional?: boolean}[] = [
-  {kalla: 'HANDOFF', file: 'HANDOFF.md'}, {kalla: 'README', file: 'README.md'}, {kalla: 'SYSTEM', file: 'docs/SYSTEM.md'},
-  {kalla: 'DRIFT', file: 'docs/DRIFT.md'},
+  {kalla: 'STATUS', file: 'STATUS.md', optional: true}, {kalla: 'README', file: 'README.md'}, {kalla: 'SYSTEM', file: 'docs/SYSTEM.md', optional: true},
 ];
-// Core order: HANDOFF first, then the bank now, the views, the bank's table, the proofs, README, the commits, SYSTEM.
+// Core order: STATUS first, then the bank now, the views, the bank's table, the proofs, README, the commits, SYSTEM.
 // What does not fit in the core's budget is still searched. (Scoutgaming's documents are no source since 2026-11-23:
 // the project stands free of Scoutgaming for now, on Jakob's word.)
-const BASE: Record<string, number> = {HANDOFF: 0, README: 6, SYSTEM: 16, DRIFT: 20};
+const BASE: Record<string, number> = {STATUS: 0, README: 6, SYSTEM: 16};
 
 /** The cloud/studio files that make up the bot's function (as <published name>: <source>); bot-knowledge.js is written. */
 export const BOT_FUNCTION_FILES: Record<string, string> = Object.fromEntries([

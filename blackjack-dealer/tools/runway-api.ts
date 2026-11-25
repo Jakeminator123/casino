@@ -1,10 +1,10 @@
-// The one way to Runway's developer API: the key in .env.local, the developer project's credits (docs/BESKED.md,
+// The one way to Runway's developer API: the key in .env.local, the developer project's credits (Jakob 2026-11-20,
 // "API-nyckeln": when Runway's MCP login is missing in a session). A take of an order approved in Beställ is placed with
-// `lagg` and brought in with `hamta`, through the receipt tool as the MCP way does (tools/order-clerk.md §3–§4); a call
+// `lagg` and brought in with `hamta`, through the receipt tool as the MCP way does (../.claude/skills/bestalla-film/SKILL.md); a call
 // outside Beställ, for a trial, is placed with `place` and fetched with `collect`.
 //
 // Every paid call stands in ONE ledger (.runtime/runway-api/ledger.json, outside Git) BEFORE it is sent. A call with
-// requestedAt and no task id is OSÄKER: the call may have gone, and it is never sent again (order-clerk.md §3). The caps are
+// requestedAt and no task id is OSÄKER: the call may have gone, and it is never sent again. The caps are
 // data/order-policy.json's: maxPerOrder for one call, and for a call outside Beställ the standing mandate (src/order-model.ts
 // OrderMandate): at most askAbove on the agent's own word, and within the agents' perDayCredits; a larger one only with
 // Jakob's yes (--jakob, his words and the date, kept in the ledger). A take of an approved order was settled by its
@@ -122,7 +122,7 @@ export function apiCallOf(order: Order, n: number, root = '.'): { call: Call | n
   const id = (order as Order & { id: string }).id, dir = `assets/orders/${id}`;
   const wan = args.model === 'wan3';
   must(order.status === 'GODKÄND', `status ${order.status}`);
-  must(tool === 'generate_video', `${tool}: en stillbild läggs genom MCP-vägen (tools/order-clerk.md)`);
+  must(tool === 'generate_video', `${tool}: en stillbild läggs genom MCP-vägen (../.claude/skills/bestalla-film/SKILL.md)`);
   must(args.model === 'kling-4' || wan, `modellen ${args.model} har ingen översättning hit`);
   must(args.resolution === '1080p', `upplösningen ${args.resolution}`);
   must(!args.referenceImages, 'ordern har referensbilder');

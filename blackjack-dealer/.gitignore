@@ -18,7 +18,7 @@ tools/python/models/
 __pycache__/
 *.log
 
-# Binary material outside the source repo wherever it lands: the types tools/publication-check.ts stops at push
+# Binary material outside the source repo wherever it lands: the types ../.githooks/check.ts stops at push
 *.mp4
 *.mov
 *.webm

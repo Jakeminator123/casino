@@ -215,8 +215,8 @@ export function audit(repo: string): {items: Item[]; judged: Map<string, string>
   for (const p of pathsIn(read('data/manifest.json'))) claims.push({path: p, use: 'referens', why: 'data/manifest.json'});
   const list2 = (dir: string, test: (f: string) => boolean) => { try { return readdirSync(path.join(repo, dir)).filter(test).map(f => `${dir}/${f}`); } catch { return []; } };
   // Anything Beslut, the release, a document or an instruction names by its exact id is living work; a proof also when it changed today.
-  const skills = list2('.claude/skills', () => true).map(d => `${d}/SKILL.md`).filter(f => existsSync(path.join(repo, f)));
-  const docNames = ['data/decisions.json', 'data/studio-release.json', 'HANDOFF.md', 'README.md', 'AGENTS.md', ...list2('docs', f => f.endsWith('.md')), ...list2('docs/lage', f => f.endsWith('.md')), ...list2('tools', f => f.endsWith('.md')), ...skills, 'dealer3d/LASMIG.md'];
+  const skills = list2('../.claude/skills', () => true).map(d => `${d}/SKILL.md`).filter(f => existsSync(path.join(repo, f)));
+  const docNames = ['data/decisions.json', 'data/studio-release.json', 'AGENTS.md', 'README.md', 'STATUS.md', ...list2('docs', f => f.endsWith('.md')), ...skills];
   const byId = new Map<string, string[]>();
   for (const u of units) { const id = u.path.split('/').at(-1)!; byId.set(id, [...(byId.get(id) ?? []), u.path]); }
   for (const name of docNames) { const text = read(name); if (!text) continue;

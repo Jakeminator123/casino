@@ -3,8 +3,8 @@
 // row tells the truth: the step, the first and the last picture, the reference film, the length, the price and the text the
 // row shows are the ones the store's preview freezes. Also the reference rule for the dummy's films of A2.3 → A3P4C2 (a film
 // made again comes first; a deal bara dit never takes a round trip), the words of step 2, the game's line, the motion's steps
-// and the ordering block's state. And that no row is a dead end (Jakob 2026-11-23, docs/BESKED.md "Rensa bort regler och
-// låsningar som blockerar"): the reference film is a choice the store takes both ways, a deal to a seat without an end
+// and the ordering block's state. And that no row is a dead end (Jakob 2026-11-23: rensa bort regler och låsningar som
+// blockerar): the reference film is a choice the store takes both ways, a deal to a seat without an end
 // picture is offered without one, a film without a recipe is ordered with a model and a length chosen on the row, and what
 // truly cannot be sent says what to do. The lab is a temporary copy; Jakob's plan (placements/default.json) is only read.
 // Run: node --test "studio/tests/bordet-line.test.ts"
@@ -345,8 +345,7 @@ test("Bordet's rows for a card with handbyte and one without say what the store'
       assert.match(deal.text!, /she moves like the dealer in video 1, with the same timing/, "template 12: the text says she follows the film, as the line does");
     }
   }
-  // A seat with no end picture yet stops no deal (Jakob 2026-11-23, docs/BESKED.md "Rensa bort regler och låsningar som
-  // blockerar"). Seat 6 has no end picture and no film of the doll's here: the deal from A2.3 (the right hand lays the
+  // A seat with no end picture yet stops no deal (Jakob 2026-11-23: rensa bort regler och låsningar som blockerar). Seat 6 has no end picture and no film of the doll's here: the deal from A2.3 (the right hand lays the
   // card) is ready as it stands, with nothing chosen. The row says that neither a last picture nor a reference film goes,
   // and the store makes the same draft from the line alone, whose text names no last frame.
   const far = rowOf({ step: "GIV-2.3", target: "P6.C1" });

@@ -8,7 +8,7 @@ film's lens are given, so every frame is read under the same camera (the table's
   <sam-3d-body>/.venv/Scripts/python.exe -I -B dealer3d/tools/prov-sam.py <film.mp4> <out folder> [--frames 0:97:2]
       [--box 500,30,1380,1174] [--focal 2334] [--min-free 2600] [--overlays 0,16,24,32,40,48,56,66,80,96]
 
-Run it under the shared lock for the graphics card (docs/DRIFT.md), about three minutes at most per run; a second run with
+Run it under the shared lock for the graphics card (AGENTS.md, "Labbservern"), about three minutes at most per run; a second run with
 other --frames adds to the same folder. Each frame is kept as frame-NNNN.npz; after every run all frames present are packed:
   verts.f32   frames x vertices x 3, float32, metres, the camera's frame (x right, y down, z into the picture)
   faces.u32   triangles x 3

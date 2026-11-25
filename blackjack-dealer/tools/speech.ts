@@ -42,7 +42,8 @@
 //          batch or a chat and stop it after. Without it everything is baked cold as before.
 //   proof  gathers the reels, the lines over other films and the newest take of every line, all in the dealer's own voice, in
 //          assets/proofs/<dealer>-tal/ with a proof.json, for the studio's view Prov.
-// A film made here is a take like any other: it is reviewed frame by frame (tools/film-review.md) before Jakob judges it.
+// A film made here is a take like any other: it is reviewed frame by frame (../.claude/skills/granska-film/SKILL.md)
+// before Jakob judges it.
 import {readFile, writeFile, mkdir, mkdtemp, rm, rename, copyFile, readdir, stat, open} from 'node:fs/promises';
 import {existsSync, createReadStream} from 'node:fs';
 import {spawn, execFileSync} from 'node:child_process';
@@ -71,7 +72,7 @@ const LEVEL = 6, MARGIN = 40, FEATHER = 24;
 // too and moved down, with her corners following the jaw, was built for that and preferred by the reviewers, and he found those
 // films worse than before (2026-11-17: "är värre än förut"). So LIPS in src/speech-plan.ts is the recipe with the lift and the
 // drawn lower lip, as it was; the measures for the other way are still there, unused (sink, lens, corner, cornerMost, edge).
-// Moving the drawn mouth down (drop), the model's own corners, and a wider drawn mouth were tried and reviewed worse (docs/TAL.md).
+// Moving the drawn mouth down (drop), the model's own corners, and a wider drawn mouth were tried and reviewed worse (the speech lane's blind comparisons).
 // Every line is heard at the same strength. ElevenLabs gives each reading its own: Paow's 25 lines measured 2026-11-13 lay between
 // −10.9 and −20.7 LUFS (each near full scale in its highest peak, so it is the peaks that differ), and in a film of a round the line
 // over the entrance was heard 6.5 dB under the three after it. Where a line's sound is written into a film or a mouth patch it is
@@ -670,7 +671,7 @@ export async function say(register: Register, root: string, options: SayOptions)
       worker: {path: 'worker.mp4', sha256: sha256(data), bytes: data.length, width: RENDER.width, height: RENDER.height},
       laidBack: {bridge: BRIDGE, changed: laid.changed, box: laid.box, level: LEVEL, margin: MARGIN, feather: FEATHER, gate: recipe.gate, recipe, shift: laid.shift, weights: laid.weights, drops: laid.drops, lifts: laid.lifts, ...(laid.sinks ? {sinks: laid.sinks} : {})},
       output: {path: 'source.mp4', sha256: await sha256File(out), width: made.width, height: made.height, fps: RENDER.fps, frames: made.frames, audio: true, encoding: ENCODING},
-      note: `${onto ? `Laid on ${onto.id}, the bank's film with other hands: the box and the gate were measured against plan.renderedOn, the film the renderer saw. ` : ''}Outside the box every pixel is the rest film's own frame (encoded once more), and so is everything but the mouth, and the mouth too where she is not heard (laidBack.weights, one per frame). Not reviewed: tools/film-review.md before Jakob judges it.`}));
+      note: `${onto ? `Laid on ${onto.id}, the bank's film with other hands: the box and the gate were measured against plan.renderedOn, the film the renderer saw. ` : ''}Outside the box every pixel is the rest film's own frame (encoded once more), and so is everything but the mouth, and the mouth too where she is not heard (laidBack.weights, one per frame). Not reviewed: ../.claude/skills/granska-film/SKILL.md before Jakob judges it.`}));
     log(`${id}: klart → ${path.relative(root, out).replaceAll('\\', '/')} (${total} rutor, munnen lagd i ${laid.box.w} × ${laid.box.h} vid ${laid.box.x},${laid.box.y})`);
     return {dir, id};
   } finally { await rm(work, {recursive: true, force: true}); }
@@ -776,7 +777,7 @@ export async function over(register: Register, root: string, options: OverOption
     if (film.frames !== clip.frameCount || !film.audio) throw Error(`Filmen blev ${film.frames} rutor, ljud ${film.audio}; väntat ${clip.frameCount} med ljud.`);
     const filmSha = await sha256File(path.join(root, filmRel)), outSha = await sha256File(out), outRel = path.relative(root, out).replaceAll('\\', '/');
     // The mouth patch of the same line over the same film (src/speech-patch.ts): the cells as they were laid into the film, and the
-    // line's sound alone, at the strength every line has. A patch is never written over (tools/local-work.md): the new one gets the
+    // line's sound alone, at the strength every line has. A patch is never written over (a finished media file never is): the new one gets the
     // first free name, and an earlier patch of the same line over the same film, in the same language and voice, is moved to
     // patches-ersatta/ beside patches/, since the register takes every folder under patches/ and the game lays the first it finds for
     // a line over a film. The register is written anew after (node tools/speech-patch.ts register).

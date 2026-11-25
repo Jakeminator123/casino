@@ -1,7 +1,0 @@
-#!/bin/sh
-set -eu
-# Git starts the hook at the repo's root (casino) and may export GIT_DIR relative to it; the check runs in the project's
-# folder and finds the repo itself.
-unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
-cd "$(dirname "$0")/.."
-exec node tools/publication-check.ts --pre-push "$@"

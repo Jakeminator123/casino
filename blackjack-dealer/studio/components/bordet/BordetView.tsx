@@ -309,8 +309,8 @@ export function BordetView() {
   // The doll's standard for the chosen card (step 2 says it, step 3 orders from it), and the doll's films by card.
   const standard = useDollStandard(dealer, place, savedTick, !isSnapshot && mode === "kortplan" && (step === "motion" || step === "order"));
   const doll = useDollGroups(orders, ledger);
-  // Step 3 orders a deal from A2.3 to a player's card or one of the dealer's own from the doll's saved standard (BESKED "Ett
-  // ställe för dockan"; "Givarna från A2.3 beställs ändå med dockans film"), where the dealer has a doll of her own.
+  // Step 3 orders a deal from A2.3 to a player's card or one of the dealer's own from the doll's saved standard (Jakob 2026-11-23,
+  // "Ett ställe för dockan"; "Givarna från A2.3 beställs ändå med dockans film"), where the dealer has a doll of her own.
   // tools/doll-order.ts sends the anchor that holds in Material; where the tree's own picture is another, the panel says so
   // (treePicture). It reads the saved plan for the side of a dealer's card, and stops where the doll's is another (clash;
   // the standard read is the board's card's, which the guide's step follows).

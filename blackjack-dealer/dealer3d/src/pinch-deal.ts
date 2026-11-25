@@ -1,6 +1,6 @@
 // Her one-hand deal from A2.1, built on the doll's own bones and not read off a film (Jakob 2026-11-24: "alla filmer med
 // dockan är svindåliga för ställning A2.1": the deals read off her films lifted the card high, let it hang and laid it before
-// the place). The six steps from A2.1 (docs/BESKED.md: Nyp, Dra, För fram, Vrid, Vänd upp, Lägg) with her left hand alone,
+// the place). The six steps from A2.1 (Jakob 2026-11-13: Nyp, Dra, För fram, Vrid, Vänd upp, Lägg) with her left hand alone,
 // and her return to A2.1 in the same motion. Pure: no I/O, no three.js.
 // - Nyp: the pose A2.1: thumb on the card's back, forefinger on its face, at its upper corner in the shoe's window.
 // - Dra: the card slides down the shoe's plate the way every card leaves the shoe (two-hand.ts, the card out of the shoe),

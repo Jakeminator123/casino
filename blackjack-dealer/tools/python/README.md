@@ -4,19 +4,19 @@ Den egna MuseTalk-köraren finns i [mouth-runner](mouth-runner/README.md). Dess 
 och källproveniens följer med repot; modellvikter och lokala förberedelser gör det inte. Profilens regressioner körs
 även av `npm test` när Python 3 finns, annars redovisas just den kontrollen som överhoppad.
 
-Skripten som det löpande bandet ([dealer-line.md](../dealer-line.md), [order-clerk.md](../order-clerk.md) §5–6,
-[handboken](../film-prompting.md)) kör i Python, oftast för att de hittar händer, ögon, axlar eller ansikten med
+Skripten som beställningen och granskningen ([bestalla-film](../../../.claude/skills/bestalla-film/SKILL.md),
+[granska-film](../../../.claude/skills/granska-film/SKILL.md), [ny-dealer](../../../.claude/skills/ny-dealer/SKILL.md)) kör i Python, oftast för att de hittar händer, ögon, axlar eller ansikten med
 MediaPipe eller OpenCV:s ansiktsmodeller, som repots TypeScript inte har; resten av efterarbetet är
 `tools/film-after.ts` och `tools/still-after.ts`. Slå upp ett avsnitt, läs inte hela.
 
 | Skript | Vad det gör | Används i |
 | --- | --- | --- |
-| `grundbild-21.py` | Passar en levererad stillbild till bankens ruta mot dealerns ankare 1 (en likformighetsavbildning på händer, axlar, armbågar och ögon) och mäter resultatet. Skriver `<namn>-final.png`, `<namn>-ark.jpg` och `<namn>.json`. | Steg 1 för en stillbild (order-clerk §5) |
-| `skolagning-21.py` | Lägger tillbaka bankens egen sko från en platta utan hand och behåller bara dealerns hand ovanpå (`--keep-card` behåller kortet hon rör). | Steg 3 för en stillbild (order-clerk §5) |
-| `filmmatt.py` | Mäter en film ruta för ruta: format, grönt, frysta rutor, händer och kropp, färgade kort, landning mot planen (`--seats`, läser `placements/default.json` i repot) och första och sista ruta mot beställningens bilder (`--start`, `--end`). Skriver `<namn>.film.json`. | Händer och kropp per ruta (order-clerk §5–6, film-review.md) |
-| `forlang-plagg.py` | Förlänger ett ljust plagg nedåt i en passad stillbild så att kroppen slutar vid bordets bakkant, bakom armar och händer. Behöver ingen modell. | Kroppen kapad i en stillbild med ljust plagg (handboken, felistan) |
-| `identitet.py` | Ansiktslikhet per ruta mot stillbilder av den nya och den gamla dealern, och hur mycket tatueringsbläck handryggarna bär. Kräver `filmmatt.py`:s mått för samma film. | Likhet för en ny dealer (dealer-line.md, station 3) |
-| `landmarks.py` | Läser en film ruta för ruta och skriver allt MediaPipe ser av händerna (21 punkter var, i bankens bildpunkter och som en hand i meter) och kroppen (33 punkter) till en JSON-fil. Talen är MediaPipes egna, ojämnade. | En verklig giv lagd i rummet (`dealer3d/tools/lift.ts`, `dealer3d/LASMIG.md`) |
+| `grundbild-21.py` | Passar en levererad stillbild till bankens ruta mot dealerns ankare 1 (en likformighetsavbildning på händer, axlar, armbågar och ögon) och mäter resultatet. Skriver `<namn>-final.png`, `<namn>-ark.jpg` och `<namn>.json`. | Steg 1 för en stillbild |
+| `skolagning-21.py` | Lägger tillbaka bankens egen sko från en platta utan hand och behåller bara dealerns hand ovanpå (`--keep-card` behåller kortet hon rör). | Steg 3 för en stillbild |
+| `filmmatt.py` | Mäter en film ruta för ruta: format, grönt, frysta rutor, händer och kropp, färgade kort, landning mot planen (`--seats`, läser `placements/default.json` i repot) och första och sista ruta mot beställningens bilder (`--start`, `--end`). Skriver `<namn>.film.json`. | Händer och kropp per ruta (granska-film) |
+| `forlang-plagg.py` | Förlänger ett ljust plagg nedåt i en passad stillbild så att kroppen slutar vid bordets bakkant, bakom armar och händer. Behöver ingen modell. | Kroppen kapad i en stillbild med ljust plagg |
+| `identitet.py` | Ansiktslikhet per ruta mot stillbilder av den nya och den gamla dealern, och hur mycket tatueringsbläck handryggarna bär. Kräver `filmmatt.py`:s mått för samma film. | Likhet för en ny dealer (ny-dealer, steg 3) |
+| `landmarks.py` | Läser en film ruta för ruta och skriver allt MediaPipe ser av händerna (21 punkter var, i bankens bildpunkter och som en hand i meter) och kroppen (33 punkter) till en JSON-fil. Talen är MediaPipes egna, ojämnade. | En verklig giv lagd i rummet (`dealer3d/tools/lift.ts`) |
 | `hands-from-anchor.py` | Lägger händerna ur en ankarbild över händerna i en film, ruta för ruta, och låter varje hand följa sin egen lilla rörelse i filmen. Behöver ingen modell, bara OpenCV och `ffmpeg` på sökvägen. | En vila i en annan uppsättning (nedan) |
 
 Användning står överst i varje skript. Kör alltid med `-I` (isolerat läge), från projektets mapp:
@@ -41,7 +41,7 @@ node tools/register-derived.ts .runtime/<uppgift>/<ut>.mp4 --id <nytt klipp-id> 
 ## Kortdatasetet (`kort-dataset/`)
 
 Verktygen som gjorde datasetet över kortets rygg och framsida ruta för ruta, mätte dagens kortspår mot det
-och bygger labbprovet `kortprov` ([BRISTER](../../docs/BRISTER.md), "Kortet"). Skripten läser och skriver datasetet
+och bygger labbprovet `kortprov` ([STATUS](../../STATUS.md), "Kända brister"). Skripten läser och skriver datasetet
 i slasken, `kort-dataset/` (etiketter i `labels/`, `manifest.jsonl`, `rutor.csv`), och läser repots `assets/`. Den
 tränade modellen skrivs inte dit, eftersom slasken töms efter sju dygn: `train.py` lägger den i `tools/python/models/`
 (`kortmodell-v<n>.pt`, eller där `DEALER_MODELS` pekar), och `eval.py` och `spar_modell.py` läser den därifrån; `inventory.py` tar sina rötter som argument. Referensfilmen från YouTube mäts men kopieras

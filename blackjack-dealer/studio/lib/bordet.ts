@@ -9,7 +9,7 @@
 // choices sent for a server preview: the dealer, the step and the card, and over them only his deliberate exceptions.
 // A row stops only on what cannot be sent (no first picture, no model or length, no price, a paused dealer), and then says
 // what to do; a deal to a seat with no last picture yet goes without one, as the store makes it, a return waits for the deal
-// whose last frame it starts in, and a recipe's status and its reference film only inform (Jakob 2026-11-23, docs/BESKED.md
+// whose last frame it starts in, and a recipe's status and its reference film only inform (Jakob 2026-11-23,
 // "Rensa bort regler och låsningar som blockerar"). Nothing here composes an order: the store does, as for every draft. No
 // DOM, no network; tests in studio/tests/bordet-line.test.ts (the rows and the stops) and studio/tests/line-same.test.ts.
 import type { Graph } from "../../src/clip-graph.ts";

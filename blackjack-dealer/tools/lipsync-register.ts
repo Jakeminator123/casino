@@ -3,7 +3,7 @@
 // is true or not yet per dealer (`dealers`), what a new film or a new dealer needs (`whenNew`), which pictures the lip-sync
 // model has as its reference and which it does not, the lips as measured, the chain from the rest film to the picture in
 // the game with each step's format in and out and its scale, the settings and whose they are, where it runs, the proofs,
-// the licences and what is open. The text of the same knowledge is docs/TAL.md; the studio's view Lipsync
+// the licences and what is open. The contract around it is docs/SYSTEM.md, "Tal och munlappar"; the studio's view Lipsync
 // (/studio/lipsync/) shows it read-only through the lab server (GET /api/lipsync, tools/lipsync-store.ts). Nothing on a
 // page writes it. Every fact says in `where` (in `runs` and `ways`: `source`) where it stands or how it was measured; a
 // value only estimated says so in its own words ("cirka", "skattat"), and what is not done or not known says that, never a

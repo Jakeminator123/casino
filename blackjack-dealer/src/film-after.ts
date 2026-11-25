@@ -5,7 +5,7 @@
 // handles the last few values of a row in another way than the rest, so which colour lands there decides the last bit; the
 // colours a person reads (the receipt's greens) are printed in RGB.
 //
-// What the after-work does and why (the scripts' own notes, and docs/DRIFT.md "Lärdomar som gäller"):
+// What the after-work does and why (the scripts' own notes, and the lessons of the takes):
 //   - WAN 3 darkens its two last frames in every film: they are cut (TREATMENTS.wan3.cutTail).
 //   - Every frame's green is brought to the green of the anchor the film starts in: background, soft edges and the green share in
 //     hair alike, which also takes out the drift WAN 3 adds after the first frame. Nothing of the person is repainted.

@@ -4,7 +4,7 @@
 // (prov) or not known (saknas). Nothing else in the repo says how a step is ordered: the steps (src/order-model.ts STEPS) only
 // say what a film is between, and the store, Bordet and the production list all take their defaults from recipeFor here.
 // A recipe gives defaults and tells what has been tried: neither its status nor its reference film rule stops an order
-// (Jakob 2026-11-23, docs/BESKED.md "Rensa bort regler och låsningar som blockerar"; every status was set by an agent).
+// (Jakob 2026-11-23: rensa bort regler och låsningar som blockerar; every status was set by an agent).
 // What an approval asks is whether the WAY holds, counted from his own verdicts on the films (src/order-ways.ts, Jakob 2026-11-24).
 // Pure: the register's check against the steps, models and styles that exist, the recipe for a step and a seat, the reference
 // film the recipe's rule finds (referenceByRule), the film's length (secondsOf), and the words the production list
@@ -26,7 +26,7 @@ export type SeatClass = (typeof SEAT_CLASSES)[number];
  * the bank; or only the dummy's film (the far seats, where the bank's approved deal fell as a reference in trial 2B). The
  * rule says which film goes with an order that names none. It is never a condition: where it finds no film the order goes
  * without one and says so, and an order can always name another film or none (the doll does not have Jakob's yes yet,
- * docs/BESKED.md "Dockans vändning längre ut: bättre, men inte än", 2026-11-23).
+ * Jakob 2026-11-23 of the doll's turn further out: "Bättre, men inte än").
  */
 export const REFERENCE_RULES = ['ingen', 'samma-plats-rakt-godkänd', 'renderad-eller-samma-plats', 'renderad'] as const;
 export type ReferenceRule = (typeof REFERENCE_RULES)[number];
@@ -72,7 +72,7 @@ export type Method = {
    * reference film the film is as long as the reference (secondsOf).
    */
   seconds: number | null;
-  /** One take per trial (prov), two per clip once the method holds (Jakob's frame, docs/BESKED.md). */
+  /** One take per trial (prov), two per clip once the method holds (Jakob's frame, 2026-11-12 and 2026-11-13). */
   takes: number | null;
   /** plan: what Placering says per card; a turn of the model; null for a step without a turned card. */
   turn: 'plan' | FlipAxis | null;

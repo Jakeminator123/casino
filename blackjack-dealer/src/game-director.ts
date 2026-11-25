@@ -30,7 +30,7 @@ export type BeatKind = 'ENTRY' | 'DEAL' | 'RETURN' | 'EXIT' | 'REVEAL' | 'PLACE'
 export type Beat = {kind: BeatKind; step: Step | null; own: {shoeDraw: number; slot: Slot; label: string} | null; lying: number[]};
 
 // The hole card's turn is the clip bank's edge IDLE>REVEAL(D.C1), a film of her hand turning the card that lies at D.C1 (HOLE_CARD:
-// her first card, closed; BESKED, "Dealerns första kort ligger stängt", 2026-11-24); its node is passed on to those who read it
+// her first card, closed; Jakob 2026-11-24, "Dealerns första kort ligger stängt"); its node is passed on to those who read it
 // here. The films made before that day turn the card at D.C2 (IDLE>REVEAL(D.C2), an optional step no round asks for): a hand turning a card at
 // another place than the one that is turned, so they are never played for D.C1. Until a film turns D.C1 the turn has no hand.
 export {REVEAL_NODE};
@@ -146,7 +146,7 @@ export const lyingAfter = (lying: number[], beats: Beat[]): number[] => [...new 
 
 /**
  * A step of the hand (a deal, the entry, the exit, the turn of the hole card) plays its approved films in turn, each with the same
- * chance, where no Primär locks the step (Jakob 2026-11-24, BESKED "Godkända filmer spelas i tur"). A film takes part where the
+ * chance, where no Primär locks the step (Jakob 2026-11-24, "Godkända filmer spelas i tur"). A film takes part where the
  * round plays it as it plays the bank's own choice: the same edge and pose at the shoe, a video, the side of the card the round
  * wants, and a return after it that continues it. The bank's choice is the first, so random 0 plays it. A beat that names its take
  * (a composition's share) keeps it, a return follows its deal (resolveRound), and the rest has its own draw (pickIdle).

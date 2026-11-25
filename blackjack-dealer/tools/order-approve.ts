@@ -4,7 +4,7 @@
 // mandate (Jakob 2026-11-25: up to askAbove credits, within the agents' day), written as by huvudagent with its task.
 // --jakob records Jakob's own yes from the chat, his words and the date, written as by jakob: a larger order goes only
 // that way or by his click. Or a draft set aside (AVBRUTEN) with why. The route for his click keeps writing jakob and
-// never takes "by" from a page. Placing stays tools/order-put.ts and tools/order-clerk.md.
+// never takes "by" from a page. Placing stays tools/order-put.ts and ../.claude/skills/bestalla-film/SKILL.md.
 //
 //   node tools/order-approve.ts <id> --mandate "<the task, on whose word>"   the main agent approves a draft
 //   node tools/order-approve.ts <id> --jakob "<his words and date>"         Jakob's yes from the chat

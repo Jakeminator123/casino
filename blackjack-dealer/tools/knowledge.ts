@@ -12,7 +12,7 @@ import type {Graph, Take} from '../src/clip-graph.ts';
 import {edgeName, takeNames} from '../studio/lib/names.ts';
 import {verdictOf, storedNote, awaitingJakob, judgedForJakob, proofVerdict, PROOF_VERDICT_LABEL, type ProofVerdict} from '../studio/lib/verdict.ts';
 import {COST, PRIVATE_PATH, blockedName, type Proof, type Release} from './studio-freeze.ts';
-import {inspectBlob} from './publication-check.ts';
+import {inspectBlob} from '../../.githooks/check.ts';
 import {roughTokens} from '../cloud/studio/bot-models.ts';
 import type {Knowledge, Section} from '../cloud/studio/bot-search.ts';
 
@@ -23,7 +23,7 @@ export const LOCAL = '‹lokal mapp›';
 
 // ── The rules of the cleaning ───────────────────────────────────────────────
 type Blocked = Pick<Release, 'blocked'>;
-/** A document as read: its name in the sources ("HANDOFF", "SYSTEM"), its id, its text and its rules. */
+/** A document as read: its name in the sources ("STATUS", "SYSTEM"), its id, its text and its rules. */
 export type Doc = {kalla: string; id: string; text: string; dropHeadings?: RegExp; prio?: (heading: string) => number | null};
 
 // Balance in the dealer's documents is the film service's credit balance.
@@ -341,8 +341,8 @@ export function assemble(sections: Built[], kallor: string[], byggd: string, bud
 
 /**
  * The last scan, over everything the bot will carry: a cost, a blocked name, the trailers, a password, an id, an environment
- * variable, an address of a service, a path of this machine, or a token pattern of tools/publication-check.ts. Empty when
- * clean; the build stops on any finding.
+ * variable, an address of a service, a path of this machine, or a token pattern of the push check (.githooks/check.ts).
+ * Empty when clean; the build stops on any finding.
  */
 export function scanLeaks(knowledge: Knowledge, release: Blocked): string[] {
   const out: string[] = [];
@@ -373,10 +373,9 @@ export function knowledgeLeaks(knowledge: Knowledge, release: Blocked, textLeaks
 
 /** The sources' rules: which headings never go in, and which sections are core (lower is earlier). */
 export const DEALER_DOCS = {
-  HANDOFF: {drop: /^(?:Före avslut|Läs för ditt ämne)$/, core: ['Läget', 'Nästa steg', 'Vem äger vad', 'Väntar på Jakob']},
+  STATUS: {drop: null as RegExp | null, core: ['Läget', 'Nästa steg', 'Väntar på Jakob']},
   README: {drop: /^(?:Kör lokalt)$/, core: ['Inledning']},
-  SYSTEM: {drop: null as RegExp | null, core: ['Ordlista och gräns mot Scout', 'Klippbank och nodnotation', 'Återbruk och införande']},
-  DRIFT: {drop: /^(?:Identitet och ansvar|Anslutningar och miljö|Molnmiljö|Slasken och städning|D: och städning|Headless Chrome och verktyg på D:)$/, core: [] as string[]},
+  SYSTEM: {drop: null as RegExp | null, core: ['Ordlista och gräns mot Scout', 'Klippbank och nodnotation']},
 };
 /** A priority function from a list of core headings ("*": every heading), starting at base. */
 export const prioFrom = (core: string[], base: number) => (heading: string): number | null => {

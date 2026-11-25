@@ -62,7 +62,7 @@ export function sideOfPlan(plan: unknown, target: string): Side | null {
   const side = (plan as {targets?: Record<string, {intent?: {endSide?: unknown}}>} | null)?.targets?.[target]?.intent?.endSide;
   return side === 'BACK' || side === 'FRONT' ? side : null;
 }
-/** The turn at the place, as the trial of 2026-11-23 has it for the doll paow (dealer3d/LASMIG.md, "Vändningen vid platsen"): --turn-near 0.7, wait=14 and --grip-yaw -20, on a sweep recipe. */
+/** The turn at the place, as the trial of 2026-11-23 has it for the doll paow (Prov docka-paow-vandning-20261123; Jakob: "Bättre, men inte än"): --turn-near 0.7, wait=14 and --grip-yaw -20, on a sweep recipe. */
 export const TURN_AT_PLACE = {turnNear: 0.7, wait: 14, gripYaw: -20};
 /** Whether both hands have the card through the change in this recipe: then the turn waits on `wait`, and the contact grip has a yaw to steer. */
 export const shares = (recipe: Recipe): boolean => recipe.pace.contactGrip === 'sweep' && !!recipe.pace.sharedChange;
@@ -183,7 +183,7 @@ export function cardInFilmsShoe<M extends {frames: {card: {c: number[]; l: numbe
  * Where a place of the plan takes its recipe from (a deal of dealer3d/data/), or why the lab lays no deal to it. Each
  * place was tried on both dolls from every recipe that could fit, 2026-11-23 (no elbow forced, no hand through the shoe,
  * no frame where paow's arm is too short):
- * - Seats 1 to 5, both cards: the seat's own sweep, the gällande recipe (LASMIG "svep24d"); the second card with the
+ * - Seats 1 to 5, both cards: the seat's own sweep, the gällande recipe (svep24d, data/rendered-references.json); the second card with the
  *   first card's, as the tool lays it, and seat 4's second with its own stored one.
  * - Seats 6 and 7, first card, and her own first card: the older roll (-f), the only deal made for them.
  * - Seat 6, second card: a seat's second card is laid with the sweep only, and none is made for seat 6; seat 5's sweep

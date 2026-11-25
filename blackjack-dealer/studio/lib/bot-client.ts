@@ -199,7 +199,7 @@ const sleep = (ms: number, signal?: AbortSignal) =>
 
 type FakeAnswer = { kallor: Kalla[]; text: string };
 const K = {
-  lage: { id: "handoff-lage", titel: "HANDOFF › Läget" },
+  lage: { id: "status-lage", titel: "STATUS › Läget" },
   bank: { id: "bank-steg", titel: "Klippbanken › Tagningarna per steg" },
   primara: { id: "guide-karta", titel: "Studion › Karta" },
   ord: { id: "guide-ord", titel: "Studion › Jakobs ord för ankarna" },

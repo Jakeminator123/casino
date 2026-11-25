@@ -2,7 +2,7 @@
 // exactly once. requestedAt is written BEFORE the call to Runway and the task id AFTER it; a take with requestedAt and no
 // task id is OSÄKER (the call may have gone) and is never placed again by a tool. Every command first checks that the
 // order is approved and unchanged (its hash against approval.orderSha256) and that its pictures on disk are the ones
-// approved. Instructions for the agent: tools/order-clerk.md.
+// approved. Instructions for the agent: ../.claude/skills/bestalla-film/SKILL.md.
 //
 //   node tools/order-put.ts check <id>                       may it be placed: approval, hash, files, takes (JSON)
 //   node tools/order-put.ts begin <id> <take>                write requestedAt, print the exact call for that take (JSON)

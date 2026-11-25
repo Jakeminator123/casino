@@ -170,7 +170,7 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 
 /**
  * A film's share among the films of its step: the composition's numbers where it names one of them, else all on a Primär, else the
- * same for each, as the game plays a step's films in turn (src/game-director.ts inTurn; BESKED "Godkända filmer spelas i tur").
+ * same for each, as the game plays a step's films in turn (src/game-director.ts inTurn; Jakob 2026-11-24, "Godkända filmer spelas i tur").
  */
 function filmShares(ids: readonly string[], verdicts: ReadonlyMap<string, Verdict>, shares: Readonly<Record<string, number>>): FilmChoice[] {
   const named = ids.filter(id => (shares[id] ?? 0) > 0), total = named.reduce((s, id) => s + shares[id], 0), primary = ids.find(id => verdicts.get(id) === 'primar');

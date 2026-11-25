@@ -1,6 +1,5 @@
 // Which ways of making a film hold (Jakob 2026-11-24: "Se till att fel som detta med metod inte kan göras … Det ska vara
-// glasklart vilka sätt vi kan använda oss av för att producera filmer!"; docs/BESKED.md, "Bara sätt som håller, och en
-// pilot först"). A way is a recipe of data/order-methods.json plus what differs in how the film is made: the model, the
+// glasklart vilka sätt vi kan använda oss av för att producera filmer!"; "Bara sätt som håller, och en pilot först"). A way is a recipe of data/order-methods.json plus what differs in how the film is made: the model, the
 // text template, a deal's shape (tur och retur or bara dit), the kind of reference film (none, the doll's built film, the
 // doll's film read off a real deal, a real film) and whether the card lands closed. Its state is counted, never written:
 //   håller   Jakob himself has approved a film made so, and his approvals are at least as many as his rejections

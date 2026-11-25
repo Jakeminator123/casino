@@ -22,18 +22,18 @@ function world() {
 test('what has not changed for a week goes and the rest stays; --torr only lists', () => {
   const w = world();
   try {
-    w.put('gammal/a/b.png'); w.put('lös.tmp');
+    w.put('gammal/a/b.png'); w.put('lös.tmp'); w.put('granska/väntar-på-dom/film.mp4'); // what waits for Jakob's verdict stays
     const fresh = w.put('pågår/gammal-mapp/ny.txt'); utimesSync(fresh, LATER / 1000, LATER / 1000); // one new file keeps its whole entry
     const dry = w.go(['--torr']);
     assert.equal(dry.code, 0, dry.text);
     assert.match(dry.text, /raderas .* gammal\n.*lös\.tmp\n.*skulle radera 2 st/);
-    assert.doesNotMatch(dry.text, /raderas .*pågår/);
+    assert.doesNotMatch(dry.text, /raderas .*(pågår|granska)/);
     assert.equal(w.go(['--dygn', '60']).code, 0);
-    assert.deepEqual(readdirSync(w.slask).sort(), ['gammal', 'lös.tmp', 'pågår']);
+    assert.deepEqual(readdirSync(w.slask).sort(), ['gammal', 'granska', 'lös.tmp', 'pågår']);
     const run = w.go([]);
     assert.equal(run.code, 0, run.text);
-    assert.match(run.text, /raderat 2 st .* 1 st behålls\.$/);
-    assert.deepEqual(readdirSync(w.slask), ['pågår']);
+    assert.match(run.text, /raderat 2 st .* 2 st behålls\.$/);
+    assert.deepEqual(readdirSync(w.slask).sort(), ['granska', 'pågår']);
     assert.ok(existsSync(fresh));
     for (const bad of [['--dygn', '0'], ['--dygn', 'x'], ['--dygn'], ['--kor']]) assert.equal(w.go(bad).code, 1, bad.join(' '));
   } finally { w.done(); }

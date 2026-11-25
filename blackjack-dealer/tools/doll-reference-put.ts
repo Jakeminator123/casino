@@ -4,7 +4,7 @@
 //                                    [--lays RH|LH] [--motion dealer3d/data/<file>.json] [--note "<text>"] [--dry]
 // The run folder holds referens.mp4, renderkvitto.json, rorelse.json and kortplan.json. They are copied to
 // assets/references/docka/<id>/ (the film as source.mp4) with a receipt.json of their hashes, and the film gets one entry
-// in data/rendered-references.json. An id is never used twice: a film made again gets a new id (dealer3d/LASMIG.md).
+// in data/rendered-references.json. An id is never used twice: a film made again gets a new id (docs/SYSTEM.md, "Dockan").
 // A film whose motion is read off a real deal (the motion file's made.way "read", or a chain of such cycles) gets fromDeal,
 // the deal it is read off: an order with it as its reference film is another way of making a film than one with a built
 // cycle (src/order-ways.ts), and that way is tried with a pilot of its own.

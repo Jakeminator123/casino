@@ -8,7 +8,7 @@
 // and the card's turning is read off the same frames by eye: it hangs from the fingers with its back to the camera and its
 // long side across the picture, is tipped over about that long side (edge-on to the camera at frame 45, as the track
 // has it), and swings its long side toward the dealer on the way down. The hand turns with the card and stays turned, as
-// in the takes that hold (tools/film-prompting.md). A deal to another seat is the same path bent toward that seat's place.
+// in the takes that hold (../.claude/skills/bestalla-film/SKILL.md). A deal to another seat is the same path bent toward that seat's place.
 import {CARD, add, cross, dot, filmEye, mul, onPlane, sub, unit, type Lens, type Vec3} from './camera.ts';
 
 export const DEAL_VERSION = 1;

@@ -1,5 +1,5 @@
 // The bot's answer as blocks for the panel: paragraphs, headings, lists, **bold**, `code` and source marks. The server
-// asks the model to cite a section by its title in brackets, exactly as given ("[HANDOFF › Läget i banken]", several with
+// asks the model to cite a section by its title in brackets, exactly as given ("[STATUS › Läget i banken]", several with
 // ";"); a mark may also be a source's number ([1], [1, 3]) or id. Titles are compared as the server compares them
 // (cloud/studio/bot-prompt.ts cited: spaces, the › > » separators, case). A bracket that names no source stays text.
 // Built for running text: an unclosed ** while the answer streams is shown as it is until it closes. Pure.

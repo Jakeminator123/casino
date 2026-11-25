@@ -221,7 +221,7 @@ export async function afterWork(id: string, take: number, options: Options = {},
     ...(comparison ? {comparison} : {}),
     // The automatic check of a deal (src/deal-check.ts): a take that fails it goes to no reviewer; remarks go with it.
     ...(isDeal(order) ? {dealCheck: dealCheckOf(order, measure.dealFrames(), last, rate, last ? null : await planCardFor(root, order))} : {}),
-    review: 'Efterarbetet ersätter ingen granskning: varje ruta granskas i full upplösning (tools/order-clerk.md, avsnitt 6–8).'};
+    review: 'Efterarbetet ersätter ingen granskning: varje ruta granskas i full upplösning (../.claude/skills/granska-film/SKILL.md).'};
   if (record.output.frames !== written) throw Error(`after.mp4 har ${record.output.frames} rutor, ${written} skrevs.`);
   return record;
   }

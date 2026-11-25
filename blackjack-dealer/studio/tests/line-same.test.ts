@@ -8,7 +8,7 @@
 // a film that fails its reference check is not there to tempt it), makes each draft through the routes with nothing but the
 // line, and compares it with what the row showed: the reference film, the model, the length, the takes, the shape, the
 // price and the text, and where one refuses, that the other does too. A reference film the rule does not find stops neither
-// (Jakob 2026-11-23, docs/BESKED.md "Rensa bort regler och låsningar som blockerar"): the row and the store both make the
+// (Jakob 2026-11-23: rensa bort regler och låsningar som blockerar): the row and the store both make the
 // order without one and say what was not there. Nor does a seat with no end picture yet: the row and the store both make
 // the deal without a last picture, from the line alone.
 // Run: node --test "studio/tests/line-same.test.ts"

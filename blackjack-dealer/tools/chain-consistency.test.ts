@@ -1,12 +1,13 @@
 // The chain from picture to played film, read from the registers as they stand when the test runs (data/media-roles.json,
 // data/dealers.json, data/clip-jobs.json, the register of films and takes, data/orders/): anchors, verdicts, the clip bank's graph and what the game
 // plays from it. Each test holds something that is consistent today; a contradiction that still stands is no test here,
-// neither red nor todo: it is a line in docs/BRISTER.md. No media is needed: a film
+// neither red nor todo: it is a line in STATUS.md, "Kända brister". No media is needed: a film
 // counts as there when its record says it was made (as the lab server serves it where the file lies), and the checks that
 // need a file run only where assets/ is. Nothing reads placements/default.json: what is held does not depend on his plan.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync, existsSync} from 'node:fs';
+import path from 'node:path';
 import {motionRegister} from './register-store.ts';
 import {
   OPTIONAL_TARGETS, REVEAL_EDGE, SEATS, TARGETS, bankEdges, buildGraph, dealHub, dealersOf, filmCard, hubOf, parseEdge, parseNode, pickIdle,
@@ -66,7 +67,8 @@ test('every dealer of data/dealers.json has a block in Material, and anchors 1 a
       assert.equal(holds.length, 1, `${d.name}: ${holds.length} pictures hold for ankare ${a}`);
       assert.equal(holds[0].node, ANCHOR_NODE[a], `${d.name}: ankare ${a} (${holds[0].id}) stands at ${holds[0].node}, not ${ANCHOR_NODE[a]}`);
       assert.equal(typeof holds[0].path, 'string', `${d.name}: ankare ${a} has no file`);
-      if (existsSync('assets/anchors')) assert.ok(existsSync(holds[0].path!), `${d.name}: ${holds[0].path} is missing`);
+      // Media is local and may be partly here: where the anchor's folder is, its file must be.
+      if (existsSync(path.dirname(holds[0].path!))) assert.ok(existsSync(holds[0].path!), `${d.name}: ${holds[0].path} is missing`);
     }
   }
 });
@@ -241,7 +243,7 @@ test('the hole card\'s turn is one node of the map, which the game takes from th
 
 // ── Findings of the rescue lane Kedjan (FYND 1 to 11) that have been put right, each held by a test ──
 // FYND 1: the anchor a card is dealt from had two sources. The game's (SEAT_HUB: Paow's seat 6 from anchor 2.2, Jakob's own word
-// 2026-11-13, "Förvalen han sade ja till" in docs/BESKED.md) is the one; the plan's grip is not. Bordet's default round and the
+// 2026-11-13, "Förvalen han sade ja till") is the one; the plan's grip is not. Bordet's default round and the
 // deal on Beställ's row for a card followed the grip, so the lab played seat 6 from 2.1, where she has no film.
 test('Bordet\'s default round and Beställ\'s row deal a card from the anchor the game deals it from, whatever the plan\'s grip', async () => {
   const B = await import('../studio/lib/bordet.ts'), R = await import('../studio/lib/rounds.ts');

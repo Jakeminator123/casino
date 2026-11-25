@@ -64,7 +64,7 @@ export function dollOrderPlan(root: string, ask: DollOrderAsk): DollOrderPlan {
   throw new StoreError(409, `${place} har redan 26 beställda filmer av dockan.`);
 }
 
-/** What the text says of a card's tempo over 100 % (BESKED "Snabbare: bara händerna med kortet"): the film shows it, the text keeps the rest of her unhurried. */
+/** What the text says of a card's tempo over 100 % (Jakob 2026-11-23: "det är hennes rörelser med kortet som ska gå snabbare"): the film shows it, the text keeps the rest of her unhurried. */
 export const CARD_TEMPO_SENTENCE = 'Only the card and the hands holding it move quickly, as in video 1; her head, her gaze and her free hand keep an ordinary, unhurried pace.';
 
 /**

@@ -4,7 +4,7 @@
 // Class fields are `declare`d so the runtime object keeps exactly the JavaScript shape
 // (no field initialisers run before the constructor), and draw() has one type-only `!`.
 // Lab deviations: isBJ and isNatural are exported (seats.ts reports naturals with them), and the dealer's FIRST card is the
-// hole card (Jakob 2026-11-24, BESKED "Dealerns första kort ligger stängt": D.C1 closed, D.C2 open, as his card plan and the
+// hole card (Jakob 2026-11-24, "Dealerns första kort ligger stängt": D.C1 closed, D.C2 open, as his card plan and the
 // films). Scout deals the up-card first and the hole card second. Rules and payouts are Scout's: the up-card (insurance, peek,
 // 21+3) is still the dealer's open card, now the second one dealt, and `dealer` holds the cards in table order once the hole
 // card is turned (hole card first).

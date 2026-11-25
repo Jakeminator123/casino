@@ -1,0 +1,2 @@
+# The push check's hook is a shell script: with Windows line endings sh cannot run it, so it stays LF on every machine.
+.githooks/* text eol=lf

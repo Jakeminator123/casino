@@ -1,6 +1,7 @@
 // The watch on Jakob's queue in Beställ: prints one line when an order he has approved has a take that has never been
-// placed, so that the main agent can start the ordering agent (tools/order-clerk.md) without him having to say "lägg
-// kön". It only reads. It lives as long as the chat that started it (docs/BRISTER.md): a new main agent starts it again.
+// placed, so that the main agent can start the ordering agent (../.claude/skills/bestalla-film/SKILL.md) without him having to
+// say "lägg kön". It only reads. It lives as long as the chat that started it (STATUS.md, "Kända brister"): a new main
+// agent starts it again.
 // Until 2026-11-18 it lay on the scratch disk, outside Git, as vakta-kon.mjs.
 //
 //   node tools/order-watch.ts [id to skip ...]     (orders already handed to an ordering agent); run from the repo root

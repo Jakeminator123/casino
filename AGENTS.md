@@ -9,11 +9,13 @@ slutsatsen först, och förklara val i vanliga ord.
 
 | Mapp | Vad det är | Börja med |
 | --- | --- | --- |
-| `blackjack-dealer/` | En filmad dealer till blackjackspelet: studion i webbläsaren, 3D-dockan och spelmotorn. Började om här 2026-11-25; historiken före dess ligger i arkivet `Jakeminator123/dealer`. | `blackjack-dealer/AGENTS.md` |
-| `avatar-auto-pipeline/` | Från foton till en riggad 3D-dealer (gpt-image-2, Meshy, Blender), med egen Python-miljö (`.venv`). Foton i `input/`, resultat i `output/`, nycklar i `.env` och den portabla Blendern i `tools/`: inget av det går in i Git. | `avatar-auto-pipeline/README-SV.md` |
+| `blackjack-dealer/` | En filmad dealer till blackjackspelet: studion i webbläsaren, 3D-dockan och spelmotorn. Började om här 2026-11-25; historiken före dess ligger i arkivet `Jakeminator123/dealer`. | `blackjack-dealer/AGENTS.md`, sedan `STATUS.md` |
+| `avatar-auto-pipeline/` | Från foton till en riggad 3D-dealer (gpt-image-2, Meshy, Blender), med egen Python-miljö (`.venv`). Foton i `input/`, resultat i `output/`, nycklar i `.env` och den portabla Blendern i `tools/`: inget av det går in i Git. | `avatar-auto-pipeline/AGENTS.md` |
 
 Kommer ett projekt till eller tas ett bort ändras tabellen i samma steg. Läs projektets `AGENTS.md` innan du arbetar i
-det, även om ditt verktyg inte laddar den själv.
+det, även om ditt verktyg inte laddar den själv. Ett återkommande arbetsmoment har en skill i
+`.claude/skills/<namn>/SKILL.md` här i roten (Claude Code och Cursor hittar dem där); läs den som gäller innan du
+börjar, med sökvägen om verktyget inte laddar den själv.
 
 ## Vercel
 
@@ -43,8 +45,10 @@ skrivs aldrig in i en inställningsfil, bara i en `.env` som Git ignorerar.
   varför, och pushar till `main`, utan att fråga. Det som stoppar är en röd kontroll (rätta orsaken) eller det
   projektets `AGENTS.md` säger kräver Jakobs ord (till exempel deploy eller betald generering). Ingen force-push.
 - Repot är publikt. `.gitignore` här håller tillbaka hemligheter, media, miljöer och slasken i alla projekt, och
-  kontrollen före push (`blackjack-dealer/tools/publication-check.ts`, installerad med `npm run hooks:install` i
-  `blackjack-dealer/`) stoppar en push som ändå bär sådant.
+ kontrollen före push (`.githooks/pre-push`, som kör `.githooks/check.ts`) gäller hela repot: den stoppar hemligheter,
+ `.env`-filer (utom `.env.example` med tomma värden), media och filer över 5 MB i de utgående commitarna, och kör
+ testerna i de projekt som har ändrats. Installera den en gång per utcheckning: `node .githooks/check.ts --install`
+ (eller `npm run hooks:install` i `blackjack-dealer/`); `node .githooks/check.ts` kör samma kontroll före en push.
 
 ## Underagenter och tokens
 
@@ -73,17 +77,30 @@ Jakobs budget delas av alla chattar och underagenter, och kvaliteten får inte b
 Jakob ska aldrig behöva be om det. Innan ett arbete som har ändrat filer lämnas:
 
 1. Ta bort det ändringen gjorde överflödigt: kod som inget anropar, ersatta filer, döda sökvägar och egna
-   tillfälliga filer. Kontrollera användningen före radering; det som är tveksamt frågas Jakob om i stället.
-2. Rätta dokumentationen som ändringen gjorde fel, nerifrån och upp.
+ tillfälliga filer. Kontrollera användningen före radering; det som är tveksamt frågas Jakob om i stället.
+2. Rätta dokumentationen som ändringen gjorde fel, nerifrån och upp. Låser ett test ett beteende som ändringen
+ ändrar, ändras eller tas testet bort i samma ändring. Nya tester bara för det som ska bestå (publiceringsskyddet,
+ spelets regler, Jakobs domar, beställningarna och kontrakten), aldrig för dokumentens form eller hur kod ser ut;
+ skyddet sänks aldrig för att få grönt.
 3. Har en fil eller mapp tillkommit, försvunnit eller bytt syfte: rätta projektets karta (README), tabellen ovan
    och ignore-filerna (nedan).
 4. Säg i svaret vad som städades och vilka dokument som ändrades, eller att inget behövdes.
 
 ## Det som produceras
 
-Allt som produceras raderas som regel (Jakob 2026-11-25). Kvar blir det han har godkänt och det som väntar på hans
-dom; det han inte godkänner raderas, om ingen agent har uppgiften att arbeta om det. Hur det görs står i projektets
-`AGENTS.md`.
+Allt som produceras (filmer från Runway, 3D-modeller, bilder, renderingar) raderas som regel (Jakob 2026-11-25). Det
+har tre lägen:
+
+- Arbete: det en agent eller modell gör medan den arbetar är tillfälligt, i slasken eller projektets arbetsmapp.
+- Väntar på hans dom: i projektets granskning (i `blackjack-dealer`: Granska och Beslut) eller i
+ `slask/<projekt>/granska/<namn>/`. Det står kvar tills han har dömt.
+- Används: det han har godkänt, eller som spelet, studion eller en öppen beställning använder, ligger i projektets
+ mediemapp med en roll (i `blackjack-dealer`: `assets/` och `data/media-roles.json`). Det sparas lokalt och går till
+ Blob på Vercel först när han säger till.
+
+Allt annat raderas: det han underkänner eller själv tar bort, prov ingen frågar efter, leveranser som stannade på
+vägen och granskares förslag som inte gavs på hans uppdrag, om ingen agent har uppgiften att arbeta om det. Hur det
+görs står i projektets `AGENTS.md`.
 
 ## Slasken
 
@@ -94,9 +111,8 @@ dom; det han inte godkänner raderas, om ingen agent har uppgiften att arbeta om
   filer. Hjälpskript skrivs i TypeScript som projektets kod (Node 24 kör `.ts` direkt). Agenten tar bort sin
   uppgiftsmapp när den är klar; det som ändå blir kvar och är äldre än sju dygn raderas.
 - Ett projekts verktyg hittar sin undermapp som `../slask/<projekt>` från projektets rot, eller med en miljövariabel
-  (`DEALER_SLASK` i `blackjack-dealer`). Ingen kod eller text pekar på en viss disk eller dator.
-- `slask/bygg/` är kontrollens byggträd (en extra utcheckning av repot, med loggarna i `slask/push-logg` och
-  `slask/studio-logg`). Den rensas inte efter sju dygn; ett byggträd tas bort med `git worktree remove`.
+ (`DEALER_SLASK` i `blackjack-dealer`). Ingen kod eller text pekar på en viss disk eller dator. `npm run stada` i
+ `blackjack-dealer` raderar det som är äldre än sju dygn och lämnar `granska/` orörd.
 - Projektens kommandon (`npm start`, `npm test`, `npm run check`) körs från projektets mapp, till exempel
   `blackjack-dealer/`.
 - Ett projekt kan ha en egen dold mapp för verktygens tillstånd, som `blackjack-dealer/.runtime/`: databaser som byggs

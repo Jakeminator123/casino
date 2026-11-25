@@ -1,138 +1,88 @@
-# Dealer
+# blackjack-dealer
 
-Självständig arbetsyta för en filmad dealer till Jakobs blackjackspel, frikopplad från Scoutgaming i nuläget (Jakob
-2026-11-23): två kort till sju spelare och en dealer, med trovärdig
-utdelning. Rörelserna är korta filmklipp mellan fasta ankare (vila, redo, kortets plats) i en klippbank; en runda är en
-väg genom klippen, och samma rundor spelas i labbet, i 3D-scenen och i spelet. Scoutgaming äger regler, slump och
-kortvärden.
+En filmad dealer till Jakobs blackjackspel: två kort till sju spelare och dealern, med trovärdig utdelning. Rörelserna
+är korta filmklipp mellan fasta ankare (vila, redo, kortets plats) i en klippbank; en runda är en väg genom klippen,
+och samma rundor spelas i studion, i 3D-scenen och i spelet. Dealern heter Paow. Filmerna beställs hos Runway och
+dockan i `dealer3d/` styr deras rörelse. Projektet är mappen `blackjack-dealer` i det publika repot
+[Jakeminator123/casino](https://github.com/Jakeminator123/casino); media och hemligheter följer inte med Git, och det
+gamla repot Jakeminator123/dealer står kvar som arkiv.
 
-Mapparna:
+Reglerna står i [AGENTS.md](AGENTS.md), läget i [STATUS.md](STATUS.md), kontrakten i [docs/SYSTEM.md](docs/SYSTEM.md)
+och arbetsmomenten som skills i `../.claude/skills/`.
+
+## Mapparna
 
 ```
-README.md AGENTS.md HANDOFF.md   läs först (CLAUDE.md importerar AGENTS.md åt Claude Code)
-studio/       studion: Jakobs arbetsyta i webbläsaren (Next.js)
-pages/        sidorna bredvid studion: 3D-sidan (scene3d.html), Ljud (sound.html) och Modeller (props.html)
-.claude/skills/  agenternas skills: ett arbetsmoment per mapp, med reglerna som oftast bryts och pekaren till rutinen
-dealer3d/     3D-banans arbetsmapp: bordets lins, en giv som geometri och sidan som visar den från valfri stol
-game/         spelet: den fristående spelmotorn med Scouts regler oförändrade i sak; spelsidan i game/page/
-src/          den delade motorn och sidornas kod: 3D-scen, klippgraf, kort, placering, beställningar; kortets och
-              markerns form och tryck i card-material.ts och chip-material.ts
-tools/        kommandon, labbservern (preview.ts), instruktionerna (*.md) och testerna (*.test.ts)
-cloud/        studions onlinekopia: lås och bot
-data/         register: manifest.json (filernas SHA-256), klippjobb, scenkontrakt, filmkatalog och filmregistret
-              (motions.jsonl: en post per film och tagning, med Jakobs dom)
-placements/   Jakobs kortplan
-docs/         SYSTEM, DRIFT, TAL, FILMMODELLER, BESKED, BRISTER och läget per bana (lage/)
-assets/ output/  lokal media och lokala byggen, inte i Git
-.runtime/     verktygens eget på datorn (databaser, liggare, kvitton, loggar), inte i Git
-../slask/blackjack-dealer  slasken i casino-repots slask: tillfälligt arbete, raderas efter sju dygn (npm run stada)
-../slask/bygg    byggträdet: ett rent arbetsträd av casino-repot för kontrollen före push (DRIFT)
+AGENTS.md STATUS.md README.md   regler, läge, karta (CLAUDE.md importerar AGENTS.md åt Claude Code)
+docs/SYSTEM.md  kontrakten: format, register, scenen, spelet, korten, klippbanken, ordlistan
+studio/         studion: Jakobs arbetsyta i webbläsaren (Next.js), byggd till studio/out/
+pages/          sidorna bredvid studion: 3D-sidan (scene3d.html), Ljud (sound.html) och Modeller (props.html)
+game/           spelmotorn (Scouts regler, oförändrade i sak) och spelsidan i game/page/
+src/            den delade motorn: 3D-scen, klippgraf, kort, kortplan, beställningar, tal
+dealer3d/       dockan: bordets verkliga geometri, givar som tal och dockans filmer
+tools/          kommandon, labbservern (preview.ts), Python-skripten (tools/python/) och testerna (*.test.ts)
+cloud/          studions låsta kopia på nätet: låset och boten
+data/           registren (nedan)
+placements/     Jakobs kortplan
+assets/ output/ lokal media och lokala byggen, inte i Git
+.runtime/       verktygens eget på datorn (databaser, liggare, loggar, papperskorgen), inte i Git
 ```
 
-Sidorna har kvar sina adresser (`/scene3d.html`, `/game.html` …); bara filerna ligger i mappar.
+Sidorna har kvar sina adresser (`/scene3d.html`, `/game.html` …); bara filerna ligger i mappar. Tillfälligt arbete
+ligger i casino-repots slask, `../slask/blackjack-dealer/`.
 
-| Läsning | Innehåll |
+## Köra
+
+Alla `npm`- och `node`-kommandon körs från den här mappen. Node 24.22.3 (Volta; `package.json` kräver `>=24.22.3 <25`,
+`node -p process.version`); `npm ci` om beroenden saknas, och `npm --prefix studio ci` för studion.
+
+| Kommando | Gör |
 | --- | --- |
-| [AGENTS](AGENTS.md) | Arbetsregler för agenter. |
-| [HANDOFF](HANDOFF.md) | Startsidan, en sida (högst 120 rader och 900 ord, `tools/handoff.test.ts`): läget i korthet, nästa steg, vem som äger vad och pekarna vidare. Läs den först. |
-| [Läget per bana](docs/lage/) | En lägesfil per bana i fast form (Läget, Nästa steg, Väntar på Jakob, Var saker ligger, Fällor), högst 60 rader och 800 ord: [film](docs/lage/film.md), [karta](docs/lage/karta.md), [kort](docs/lage/kort.md), [labbet och studion](docs/lage/labbet-och-studion.md), [spelet](docs/lage/spelet.md) och den stängda [mätningen](docs/lage/matning.md); 3D-banans är [dealer3d/LASMIG.md](dealer3d/LASMIG.md). |
-| [Jakobs besked](docs/BESKED.md) | Hans gällande besked per ämne, högst två rader per besked; äldre och ersatta besked finns i Git. Slås upp när ett besked är i fråga. |
-| [Kända brister](docs/BRISTER.md) | Varje känd brist: var den syns, vad som är prövat och vad som stänger den. |
-| [SYSTEM](docs/SYSTEM.md) | Kontrakt: koordinater, register, 3D-scenen, spelet, klippbanken och ordlistan. |
-| [DRIFT](docs/DRIFT.md) | Rutiner och anslutningar: Git och kontroller, labbservern, Runway och publicering. |
-| [Lokal arbetsplats och medier](tools/local-work.md) | Arbetsplatsen, slasken, andra IDE:ers ändringar, `npm run media:status` för lagringsöversikten och gallringen av media. |
-| [Löpande bandet](tools/dealer-line.md) | Den enda vägen från en bild av en person till en dealer som spelar en runda: femton rader först, sedan stationer, format, namn och kommandon. |
-| [Tal](docs/TAL.md) | Dealerns repliker med talfilm och ljud: hur en talfilm görs, hur spelet spelar den och vad som går i ett spel i rörelse. |
-| [Filmmodellerna](docs/FILMMODELLER.md) | Vad varje filmmodell används till och kostar, hur dess filmer ser ut i banken, vad som håller och faller, och kontrollen för en film från en ny modell. Läs den före ett modellval. |
-| [Filmhandbokens omgångar](tools/film-prov.md) | Protokollet bakom filmhandboken: omgångar, mallar och domar per metod. Slås upp med sökning, läses inte hel. |
-| [Lokal evidens](tools/evidence.md) | Automatiska testkvitton och återbyggbart SQLite-index över körningar och materialets ursprung. |
+| `npm start` | startar labbservern på `http://127.0.0.1:4319` utan fönster och visar studion i en flik; bygger studion om den saknas |
+| `npm run status`, `npm run stop` | frågar och stoppar servern; `node tools/preview.ts --open "<sida>"` visar en sida i den öppna fliken, `--restart` byter server |
+| `npm --prefix studio run build` | bygger studion på plats till `studio/out/` |
+| `npm test` | kärnans tester, offline och utan media |
+| `npm run hooks:install`, `npm run check` | installerar kontrollen före push för hela casino-repot; kör den på de commits som ska ut |
+| `npm run verify` | jämför registrerade filer med sin hash i `data/manifest.json` (kräver media) |
+| `npm run stada` | raderar slasken äldre än sju dygn, utom `granska/` (`-- --torr` listar bara) |
+| `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (labbservern utför den säkra nivån själv när den startar); översikt över lagringen |
 
-## Register
+Labbserverns adresser står i `tools/lab-routes.ts`; utan media på datorn visar studion och spelet inga filmer.
 
-- Filmregistret är ensam källa för en films klassning och Jakobs beslut: en post per film och tagning i
-  `data/motions.jsonl` (en rad per post), läst och skriven genom `tools/register-store.ts`. Arbetskopian är en
-  SQLite-databas under `.runtime/register/`, som byggs om ur textfilen. Sökningen döljer textfilen: läs en post med
-  `node tools/register.ts get <id>`. Kontraktet står i SYSTEM, "Ett rörelseregister och tydliga bevis".
-- `data/clip-jobs.json` är klippbankens register: ankare, jobb (filmerna som gjordes genom Runways API; inga nya läggs
-  där), härledda tagningar (bland dem allt från Beställ) och API-tidens kredittak. `data/orders/<id>.json` är studions beställningar;
-  `data/dealers.json` och `data/media-roles.json` säger vilka dealers som finns och vilka bilder som gäller;
-  `data/order-methods.json` är metoden som beställs per steg, och `data/order-policy.json` taken för betald generering.
-- `placements/default.json` är Jakobs kortplan (16 kortplatser) och sparas från studions Bordet, del Kortplan.
-- `data/decisions.json` är det som väntar på Jakobs svar, ett kort per sak i studions Beslut. Agenter lägger till och tar
-  bort poster; bara sidan skriver hans svar (`tools/decision-store.ts`, läsaren och reglerna i
-  `tools/decision-register.ts`).
-- `data/proof-notes.json` är Jakobs egna ord om proven (Granska, del Prov): Bra, Inte bra och en kommentar per film, bild
-  eller prov, och huvudagentens svar. Bara sidan skriver hans ord, på hans klick (`tools/proof-notes-store.ts`, reglerna
-  i `tools/proof-notes-register.ts`). Det han har sagt läses före ett svar till honom: `node tools/proof-notes.ts` visar
-  det olästa, nyast först; `--answer <nr> "<text>"` svarar (visas under hans ord som Huvudagenten), `--read <nr>`
-  markerar läst.
-- `data/lipsync.json` är fakta om läppsynken (hur munnen görs och hur ett jobb kommer dit, vad som gäller per dealer, vad en
-  ny film eller dealer kräver, grundbilder, kedjan med format och skalor, inställningar, prov, licenser och det som är
-  öppet), visad i studions Lipsync och som text i `docs/TAL.md`; läsaren och reglerna i
-  `tools/lipsync-register.ts`, labbserverns svar i `tools/lipsync-store.ts`.
-- `data/manifest.json` registrerar filproveniens och SHA-256 (sökvägarna i den räknas från projektets mapp).
+## Studion
 
-Dokumenten länkar till dessa i stället för att föra egna statusregister. Media (`assets/`, `output/`), `.runtime/`,
-`.env*` och `private/` är lokala och Git-ignorerade.
+[Studion](http://127.0.0.1:4319/studio/) öppnar på Bordet; menyn är `studio/components/shell/Rail.tsx`.
 
-## Kör lokalt
+- **Bordet** är den enda labbvyn (Jakob 2026-11-17, 2026-11-19): **Kortplan** i tre steg (var kortet landar; hur det
+  kommer dit, där dockan bor, `?lage=docka`; beställ), **Kön** (godkännande och Protokoll), **Scen** (en runda i
+  3D-scenen), **Råfilm** och **Efterarbete** (korten och markerna över filmen). Spara skriver bara
+  `placements/default.json`.
+- **Karta**: dealerns träd, varje stegs Primär och sekundära filmer, kompositionerna och talet.
+- **Granska**: Filmer (Jakobs domar) och Prov (provmapparna under `assets/proofs/`, `?prov=<mapp>`).
+- **Material** (vilka bilder som gäller), **Lipsync** (hur munnen görs, skrivskyddad), **Casino** (spelet med vald look).
+- I foten **Beslut** (det som väntar på Jakobs svar), **Ordlista**, och sidorna Ljud, Modeller och Grafik (prov).
+  **Jämför** nås från en tagning. Det som hör ihop är en knapp, och Casino från labbet är samma Casino (2026-11-17).
+- En vy för alla skärmar: en mobilvy härleds ur samma kort och lins. Paow står först; en pausad dealer visas bara när en
+  adress nämner den (Jakob 2026-11-18).
 
-- Arbeta här, i projektets mapp: alla `npm`- och `node`-kommandon körs därifrån. `node -p process.version` ska visa
-  `v24.22.3` via Volta; `package.json` kräver `>=24.22.3 <25`. `npm ci` behövs om beroenden saknas. Projektet och
-  `studio/` binder samma Node 24.22.3 (Jakob 2026-11-20); bara `studio/` binder dessutom npm 11.19.1. Studiobygget med
-  `tools/studio-from-commit.ts` startas från projektets mapp och går på dess Node, liksom testerna och pushkontrollen.
-- `npm start` startar labbservern på `http://127.0.0.1:4319` utan fönster och visar studion i en enda flik;
-  `npm run status` och `npm run stop` frågar och stoppar. `node tools/preview.ts --open "<sida>"` visar en sida i den
-  öppna fliken i stället för i en ny, och `--restart` byter server utan att fliken stängs. Öppnas en labbflik till
-  stänger den äldre sig själv. Rutinen: [DRIFT](docs/DRIFT.md#labbservern-och-fliken). Servern står kvar tills
-  `npm run stop` körs.
-- [Studion](http://127.0.0.1:4319/studio/) är skalet (`/` och `lab.html` leder dit): en Next.js-app i `studio/` som
-  byggs ur en commit med `node tools/studio-from-commit.ts` ([DRIFT](docs/DRIFT.md#labbservern-och-fliken)) och lämnas ut av samma server. Den öppnar på Bordet. Menyn
-  (`studio/components/shell/Rail.tsx`) har vyerna:
-  - **Bordet**: bordet i en ram, med delarna **Kortplan** (kortplanen på bilden: var kortet landar och hur det kommer dit;
-    Spara skriver bara `placements/default.json`), **Beställ** (filmerna att beställa, med det som skickas till Runway för
-    var och en, och Kön: Det här skickas, godkännandet och Protokoll), **Scen** (en runda i 3D-scenen och scenens
-    reglage), **Råfilm** (filmerna som de är, på sin gröna) och **Efterarbete** (det som läggs över filmen: korten och
-    markerna). De gamla adresserna `/studio/` med runda och look, `/studio/scen/`, `/studio/placering/` och
-    `/studio/bestall/` leder dit.
-  - **Karta**: nodträdet, varje stegs Primär och dess sekundära filmer, med hur spelet använder var och en
-    (`/studio/primara/` leder hit); på A1 en bricka med talfilmerna och panelen Tal.
-  - **Dockan** är Kortplans steg 2, "Hur det kommer dit" (`/studio/bordet/?lage=docka`, `&del=filmer`), med valet
-    Planen | Ställ dockan | Dockans filmer: Docklabbet i en ram, med reglage (Kortets fart, Hela given) och Spara som
-    standard, och dockans filmer bredvid tagningarna (`dealer3d/page/`, [dealer3d/LASMIG.md](dealer3d/LASMIG.md)).
-    Steg 3 sparar en giv ur dockans standard ("Från dockan"; `node tools/doll-order.ts paow P6.C1`) eller receptets utkast ("Utan dockan").
-  - **Granska**: Filmer, med Jakobs domar som skrivs i filmregistret, och Prov, provmapparna under `assets/proofs/`
-    (`/studio/granska/?prov=<mapp>`; `/studio/prov/` leder dit).
-  - **Material** (vilka bilder som gäller), **Lipsync** (var munnen görs och vad som är inställt, skrivskyddad) och
-    **Casino** (spelet med vald look).
-  - I foten **Beslut** (det som väntar på Jakobs svar) och **Ordlista**, och sidorna bredvid studion: **Ljud**,
-    **Modeller** och **Grafik (prov)**. Utvecklarens 3D-sida (`/scene3d.html`, [SYSTEM](docs/SYSTEM.md)) har ingen knapp i studion.
+Kopian på nätet (`dealer-lake.vercel.app`) har samma meny utan Lipsync och utan sparning, och i stället för Beslut
+Önskemål och boten.
 
-  **Jämför** (två tagningar av samma steg sida vid sida) nås från en tagning i Granska och Karta. Kopian på nätet har
-  samma meny utan Lipsync, Bordet utan Beställ och utan sparning, och i stället för Beslut **Önskemål** och boten (Fråga).
-- Filmgranskningen har steg ±1 bildruta, kapitel och hastighet 0,25×/0,5×/1×. URL-parametrarna `clip` och `frame` pekar
-  ut klipp och granskningsruta.
-- `npm test` kör kärnan offline: publiceringsskyddet, spelets regler, hans domar och val, beställningarna, kortplanen
-  och dokumentens tak.
-  `npm run hooks:install` aktiverar lokal pre-push; `npm run check` kontrollerar commitintervallet före push/PR. Se
-  [rutinen](docs/DRIFT.md#git-och-kontroller).
-- `npm run verify` kontrollerar de registrerade lokala filerna mot sin hash i `data/manifest.json`; det som är
-  arkiverat hoppas över.
+## Var fakta ligger
 
-## Gräns
+- `data/motions.jsonl`: filmregistret, en post per film och tagning med Jakobs dom; läses och skrivs genom
+  `tools/register-store.ts`, med en SQLite-kopia under `.runtime/register/` (`node tools/register.ts get <id>`).
+- `data/clip-jobs.json`: klippbankens ankare, jobb och härledda tagningar.
+- `data/orders/<id>.json`: beställningarna; `data/order-methods.json` receptet per steg; `data/order-policy.json` taken,
+  fullmakten och priserna.
+- `data/dealers.json` och `data/media-roles.json`: vilka dealers som finns och vilka bilder som gäller.
+- `data/dealer-trees.json`, `data/dealer-compositions.json`: träden och kompositionerna i Karta.
+- `data/decisions.json`: korten i Beslut; bara sidan skriver hans svar (`tools/decision-store.ts`).
+- `data/proof-notes.json`: hans ord om proven; `node tools/proof-notes.ts` visar det olästa, `--answer <nr> "<text>"`
+  svarar och `--read <nr>` markerar läst.
+- `data/rendered-references.json`: dockans filmer; `data/speech.json`, `data/speech-patches.json` och `data/lipsync.json`:
+  talet.
+- `data/manifest.json`: filernas ursprung och SHA-256.
+- `placements/default.json`: Jakobs kortplan (16 kort och D.C3), sparad från Bordet.
 
-`src/` och `tools/` kör utan det förra projektet (snyggare-dealer, arkiverat utanför repot). `src/card-material.ts` och
-`src/chip-material.ts` är kortets och markerns form och tryck; 3D-scenen, spelet och studion läser dem direkt, med samma
-three.js som resten (npm-paketet `three`).
-
-Publikt källrepo: projektet är mappen `blackjack-dealer` i [Jakeminator123/casino](https://github.com/Jakeminator123/casino),
-utan media och hemligheter; det gamla repot Jakeminator123/dealer står kvar som arkiv. Vad som
-kräver Jakobs uttryckliga ord står i [AGENTS](AGENTS.md), "Det som skyddar Jakob". Den äldre publika sidan
-(gamla labbet på nätet) togs ned 2026-11-23 på Jakobs ord; studions kopia är den enda sidan på nätet:
-[DRIFT](docs/DRIFT.md#den-låsta-kopian-på-nätet).
-
-## Historiskt underlag
-
-Det som följer av de tidiga studierna står i SYSTEM, "Återbruk och införande"; beslut per film står i filmregistret
-(`data/motions.jsonl`). Runway-underlaget från 10 november (promptar, start- och slutbilder, resultat) är Prov-mappen
-`runway-underlaget-10-nov`. Studiernas kvitton låg i `evidence/` till 2026-11-25 och finns kvar i Git-historiken.
+Media (`assets/`, `output/`), `.runtime/`, `.env*` och `private/` är lokala och Git-ignorerade.

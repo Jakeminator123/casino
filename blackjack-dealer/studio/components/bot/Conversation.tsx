@@ -95,7 +95,7 @@ function Thinking({ line }: { line: BotLine }) {
   );
 }
 
-/** A section's own name for its chip: "HANDOFF › Läget i banken" → "Läget i banken". */
+/** A section's own name for its chip: "STATUS › Läget i banken" → "Läget i banken". */
 function shortTitle(title: string): string {
   const parts = title.split(/\s*[›>»·]\s*/).filter(Boolean);
   const name = parts[parts.length - 1] ?? title;

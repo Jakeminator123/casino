@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "about": "Fakta om läppsynken: hur munnen görs och hur ett jobb kommer dit (ways), vad som är inställt och vad som stämmer per dealer (dealers), vad en ny film eller en ny dealer kräver (whenNew), vilka grundbilder som används, kedjan från vilofilm till bild i spelet med format och skalor, inställningarna, var det körs, proven, licenserna och det som är öppet. Varje uppgift säger i where (i runs och ways: source) var den står eller hur den är mätt; det som inte är gjort eller inte är känt sägs så, aldrig gissat. En post med dealer gäller den dealern, en utan gäller alla. Läsaren är tools/lipsync-register.ts; texten om samma sak står i docs/TAL.md.",
+  "about": "Fakta om läppsynken: hur munnen görs och hur ett jobb kommer dit (ways), vad som är inställt och vad som stämmer per dealer (dealers), vad en ny film eller en ny dealer kräver (whenNew), vilka grundbilder som används, kedjan från vilofilm till bild i spelet med format och skalor, inställningarna, var det körs, proven, licenserna och det som är öppet. Varje uppgift säger i where (i runs och ways: source) var den står eller hur den är mätt; det som inte är gjort eller inte är känt sägs så, aldrig gissat. En post med dealer gäller den dealern, en utan gäller alla. Läsaren är tools/lipsync-register.ts; kontraktet runt talet står i docs/SYSTEM.md, Tal och munlappar.",
   "updated": "2026-11-17",
   "ways": [
     {
@@ -18,7 +18,7 @@
       "cost": "0 kr för grafikkortet; rösten betalas per tecken av det ElevenLabs-konto den ligger i",
       "prepare": "En bank per film: 80–150 s på grafikkortet (mätt). Över en annan film tas bara filmer i 24 rutor/s (ingången, Kling-givarna, hålkortet halkort-04-02); filmer i 30 (WAN 3) kräver ett steg som inte är byggt",
       "runs": "today",
-      "source": "docs/TAL.md (Göra en replik, Munlagret, Gränser); tools/speech.ts"
+      "source": "tools/speech.ts och tools/speech-patch.ts (kommandona överst); docs/SYSTEM.md, Tal och munlappar"
     },
     {
       "id": "runner",
@@ -36,7 +36,7 @@
       "cost": "0 kr: ditt eget grafikkort. Disk: image 13 GB i WSL, vikter 3,7 GB",
       "prepare": "Förberedelse per klipp 13–19 s för 112 rutor (mätt), cirka 4,5 MB per klipp och inställning; första frågan för ett klipp läser det (5,8 s). Tjänsten ritar i 24 rutor/s, och klippet är i dag bankens (raden ovan)",
       "runs": "ownRunner",
-      "source": "talbanans körare och överlämning 2026-11-17; docs/TAL.md (Köraren)"
+      "source": "talbanans körare och överlämning 2026-11-17; tools/python/mouth-runner/README.md"
     },
     {
       "id": "pod",
@@ -71,7 +71,7 @@
       },
       "lines": {
         "value": "den neutrala munnen: rendererns mun utan ritad underläpp (recipeOf i tools/speech.ts, Jakob 2026-11-21, anteckning 43 i Prov); spelet säger 24 av 25 repliker så, blackjack har kvar hans dömda tagning -04; vilket recept en tagning lades med står i dess kvitto",
-        "where": "docs/TAL.md, Kvaliteten"
+        "where": "tools/speech.ts (NEUTRAL_MOUTH, recipeOf)"
       },
       "runner": [
         {
@@ -92,7 +92,7 @@
           "what": "Repliker i spelet",
           "answer": "ja",
           "note": "de tio en runda behöver och femton chattsvar i hennes egen röst, och fyra munlappar över filmer",
-          "where": "docs/TAL.md (Vad som finns i dag, Munlagret)"
+          "where": "data/speech-patches.json; docs/SYSTEM.md, Tal och munlappar"
         },
         {
           "what": "Munnen i realtid godkänd av dig",
@@ -133,14 +133,14 @@
         {
           "what": "Replikfilmerna lagda med munnen i realtid",
           "answer": "nej",
-          "note": "banken läggs med den neutrala munnen (2026-11-21); köraren kan bara lägga in F och behöver en egen neutral profil och ett prov bredvid talfilmerna (docs/TAL.md)",
+          "note": "banken läggs med den neutrala munnen (2026-11-21); köraren kan bara lägga in F och behöver en egen neutral profil och ett prov bredvid talfilmerna (kod/inlaggning.py i tools/python/mouth-runner)",
           "where": "talbanans överlämning 2026-11-17"
         },
         {
           "what": "Tal över filmer i 30 rutor/s",
           "answer": "nej",
           "note": "verktyget och tjänsten tar 24",
-          "where": "docs/TAL.md (Gränser)"
+          "where": "docs/SYSTEM.md, Tal och munlappar"
         },
         {
           "what": "En granskare har sett tjänstens bild och provet -6",
@@ -152,19 +152,19 @@
           "what": "Mungiporna i replikfilmerna godkända av dig",
           "answer": "nej",
           "note": "\"Hon får lixom lite som typ clown-mungipor.\" (2026-11-14); \"måste som sagt med\" (2026-11-17)",
-          "where": "docs/BESKED.md, Läpparna och talet"
+          "where": "Jakobs ord 2026-11-14 och 2026-11-17"
         },
         {
           "what": "Rösten hörs på en iPhone",
           "answer": "okänt",
           "note": "byggt men inte prövat på en telefon",
-          "where": "docs/TAL.md (Rösten på en telefon)"
+          "where": "src/scene3d-voice.ts; src/page-audio.ts"
         },
         {
           "what": "Den professionella klonen av rösten",
           "answer": "nej",
           "note": "inte färdigtränad hos ElevenLabs",
-          "where": "docs/TAL.md (Rösten)"
+          "where": "data/speech.json (rösterna)"
         }
       ]
     }
@@ -184,7 +184,7 @@
       "För munnen i realtid: hennes recept prövat och godkänt av dig; Paows (storlek F, mindre öppning) är inte prövat på någon annan",
       "En post för henne under dealers här, så att Lipsync visar vad som finns och inte"
     ],
-    "where": "docs/TAL.md (Göra en replik, och en ny dealer; Munnen: tre sätt)"
+    "where": "tools/speech.ts (kommandona överst); data/speech.json"
   },
   "baseImages": [
     {
@@ -535,7 +535,7 @@
       "gpu": "RTX 3060",
       "speed": "cirka 10 rutor/s; en replik 70–95 s kallt, en bank 2–3 minuter",
       "realtime": false,
-      "source": "docs/TAL.md; mätt 2026-11-13 och 2026-11-17"
+      "source": "talbanans mätningar 2026-11-13 och 2026-11-17"
     },
     "runpod": {
       "measured": "2026-11-13: ritandet 32–33 rutor/s (62 i ett jobb); ett helt jobb 22–24 s eftersom modellen läses in varje gång; första jobbet väntade 264 s; allt kostade 0,05 USD; vilket grafikkort det var loggades inte",
@@ -545,7 +545,7 @@
         "munnen i bitar till spelet medan hon talar",
         "spelets besked till köraren om vilken film och vilka rutor som kommer"
       ],
-      "source": "docs/TAL.md; talbanans plan för realtid"
+      "source": "talbanans plan för realtid"
     },
     "ownRunner": {
       "what": "Egen körare för MuseTalk 1.5 med versionerad upstream, MediaPipe-mask och munprofil. Källpaket i tools/python/mouth-runner; inga vikter eller media i Git. Befintlig image 0.2 provkörd med paketets kod monterad skrivskyddat.",

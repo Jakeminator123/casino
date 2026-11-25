@@ -14,7 +14,7 @@ export const PROOFS_HREF = "/granska/?vy=prov";
 export const proofHref = (id: string, file?: string | null): string => `/granska/?${new URLSearchParams(file ? { prov: id, fil: file } : { prov: id }).toString()}`;
 
 /**
- * Where an address of the old view Prov leads (cards in Beslut, HANDOFF and the documents link there): the same question
+ * Where an address of the old view Prov leads (cards in Beslut and the documents link there): the same question
  * on /granska/, with vy=prov when it names no proof. "?prov=x&fil=a.mp4" → "/granska/?prov=x&fil=a.mp4"; "" → PROOFS_HREF.
  * Every other word (the dealer's) is kept as written.
  */

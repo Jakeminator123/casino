@@ -4495,7 +4495,7 @@
           "role": "referens",
           "name": "Kortets textur",
           "path": "assets/cards/kortets-textur.png",
-          "note": "Kortet som ritas in på nya beställningars bilder (TEXTURE i tools/order-images.ts): ruta 89 ur en äldre bankfilm, kortet med 6 px runt och resten svart, 1764 × 1174, sha256 8a027a00d7f4…; fryst 2026-11-23 när filmen arkiverades. En kopia ligger i arkivet från samma dag (DRIFT, \"Arkiven\").",
+          "note": "Kortet som ritas in på nya beställningars bilder (TEXTURE i tools/order-images.ts): ruta 89 ur en äldre bankfilm, kortet med 6 px runt och resten svart, 1764 × 1174, sha256 8a027a00d7f4…; fryst 2026-11-23 när filmen arkiverades. En kopia ligger i arkivet utanför repot från samma dag (AGENTS.md, \"Det som skyddar Jakob\").",
           "source": {
             "from": "sista bilden av en äldre retur till vila från P4 (arkiverad 2026-11-23)",
             "when": "2026-11-23"

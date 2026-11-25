@@ -8,7 +8,7 @@
 //   fix-strip-<n>.png     before, after and the difference ×4 for up to eight changed frames, for the review (not instead of it)
 // A refused list writes nothing and exits with code 2; the reasons are printed in Swedish. Pictures the list names (level's
 // reference, patch's mask) are read relative to the current folder, as every path in the bank is written. The fixed copy is a film of
-// its own: it is reviewed again (tools/film-review.md) and enters the bank as a corrected copy (tools/register-order.ts --fixed <n>).
+// its own: it is reviewed again (../.claude/skills/granska-film/SKILL.md) and enters the bank as a corrected copy (tools/register-order.ts --fixed <n>).
 import {readFile, writeFile, readdir, rename, rm, stat, mkdtemp} from 'node:fs/promises';
 import {existsSync, openSync, readSync, writeSync, closeSync, createReadStream} from 'node:fs';
 import {spawn, execFileSync} from 'node:child_process';
@@ -144,7 +144,7 @@ export async function fixFilm(filmPath: string, fixesPath: string): Promise<FixO
       steps: result.reports, changedFrames: result.changed,
       encodingCheck: {frames: k, meanAbsError: Math.round(sum / (k * bytes) * 1000) / 1000, maxAbsError: max, note: 'Kopian avkodad igen och jämförd med de rättade rutorna, per kanal.'},
       strip: {path: shown(stripFile), frames: chosen, columns: ['före', 'efter', 'skillnad ×4']},
-      review: 'Kopian är en egen film: den granskas på nytt i full upplösning (tools/film-review.md) innan den förs in som rättad kopia.'};
+      review: 'Kopian är en egen film: den granskas på nytt i full upplösning (../.claude/skills/granska-film/SKILL.md) innan den förs in som rättad kopia.'};
     await writeFile(receiptFile, JSON.stringify(record, null, 2) + '\n', {flag: 'wx'});
     whole = true;
     return {ok: true, fixed, receipt: receiptFile, strip: stripFile, n, record};

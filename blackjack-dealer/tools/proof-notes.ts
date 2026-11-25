@@ -6,7 +6,7 @@
 //   node tools/proof-notes.ts --read 3           note 3 is read, without an answer
 //
 // His word is written only by the page, on his click; this tool never writes it (tools/proof-notes-register.ts).
-// Read his notes with this tool before a reply to him (.claude/skills/visa-for-jakob/SKILL.md).
+// Read his notes with this tool before a reply to him (../.claude/skills/visa-for-jakob/SKILL.md).
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {proofNotesStore} from './proof-notes-store.ts';

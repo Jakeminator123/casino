@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "about": "The mouth patches the game may lay on its films (src/speech-patch.ts, docs/TAL.md): one film and one line each, with the sha256 of its record. Written by node tools/speech-patch.ts register and by nothing else; a folder that does not check is left out.",
+  "about": "The mouth patches the game may lay on its films (src/speech-patch.ts; docs/SYSTEM.md, \"Tal och munlappar\"): one film and one line each, with the sha256 of its record. Written by node tools/speech-patch.ts register and by nothing else; a folder that does not check is left out.",
   "patches": [
     {
       "id": "paow-mun-dealerplays-sv-halkort-04-02-02",

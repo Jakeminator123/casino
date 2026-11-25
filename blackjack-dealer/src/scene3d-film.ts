@@ -181,7 +181,7 @@ const SIDE_GLSL = 'uniform float sideOn; uniform vec3 sideL, sideR;';
 // ---- the films' colour evened between the generators (key filmEven) ----------------------------------------------------
 // The bank's films come from two generators, and where a film of one follows a film of the other the light on her shifts (her
 // face about 4 levels in red and green and 2 in blue: Jakob saw it at 1.08 in the round filmed 2026-11-13). Measured that day
-// on the first frame of every film of Paow's that starts on an anchor picture (docs/FILMMODELLER.md has the figures):
+// on the first frame of every film of Paow's that starts on an anchor picture:
 // - No film carries colour tags. The screen's green is the anchor's green in every film when the film is read with the BT.601
 //   matrix (2 levels off; 36 off with BT.709), so every film is written with BT.601.
 // - Chrome reads an untagged film of this size with BT.709. Read so, a Kling 4 film shows her as the anchor picture has her

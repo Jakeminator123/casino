@@ -68,7 +68,7 @@ const state = {doll: 'paow', way: 'naturlig' as Way, entry: 'A2.3' as Entry, bac
 /** Whether a deal goes from `entry` to the place `id` (for the chosen doll: from A2.1 one with the pose A2.1). */
 const opens = (entry: Entry, id: string) => { const r = placeFrom(entry, id, state.doll, plan); return !!r && !('none' in r); };
 // The address may name the doll, the entry and the card to begin on (/dealer3d/docka?docka=paow&fran=a2-1&plats=p4c1):
-// the studio's Scen & bord opens the lab on the card chosen there. Without the words, or with a place no deal is laid to
+// the studio's Bordet opens the lab on the card chosen there. Without the words, or with a place no deal is laid to
 // from the entry, it begins as before.
 const asked = new URLSearchParams(location.search);
 { if (Object.hasOwn(DOLLS, asked.get('docka') ?? '')) state.doll = asked.get('docka')!; if (asked.get('fran') === 'a2-1') state.entry = 'A2.1';
@@ -371,7 +371,7 @@ if (asked.get('spela') === '1') void play();
   touching: stage?.touching().map(t => `${t.hand}${t.finger} ${t.name} ${whereOn(t)}`) ?? [],
   // Where her right wrist and the card are, in the room and in the picture now (CSS pixels of the canvas): for checking a view against the film's own.
   seen: (() => { const m = now?.motion, i = m ? Math.min(m.frameCount - 1, Math.round(state.t * m.fps)) : 0, of = (world: number[]) => ({world, at: stage!.seen(world)}); return m && stage ? {wrist: of(m.frames[i].R.w), card: of(m.frames[i].card.c)} : null; })()})};
-// Embedded in the studio (?inbaddad=1: Scen & bord, Kortplan's step 2, studio/components/bordet/DollPanel.tsx): the card chosen here
+// Embedded in the studio (?inbaddad=1: Bordet, Kortplan's step 2, studio/components/bordet/DollPanel.tsx): the card chosen here
 // is told to the page around the frame, and a card chosen there is chosen here, from the entry the plan deals it from
 // (dealer3d/src/doll-choices.ts dollEntry); `play`: its "Spela kortbanan", the deal played from the start. Where reglagen are
 // moved and not saved the deal stays, and the page around is told which card is still shown. Only the lab's own origin is told and heard.

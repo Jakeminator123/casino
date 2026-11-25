@@ -27,7 +27,7 @@ const args = process.argv.slice(2), upload = args.includes('--upload');
 if (upload && args.includes('--dry-run')) throw Error('Välj --upload eller --dry-run, inte båda.');
 const digest = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
 const MB = (bytes: number) => (bytes / 1e6).toFixed(1).replace('.', ',');
-// A Hobby team has 1 GB of Blob storage and Blob stops for 30 days over it. The copy's team, jakeminator, is on Pro (read
+// A Hobby team has 1 GB of Blob storage and Blob stops for 30 days over it. The copy's team, jakeminator123s-projects, is on Pro (read
 // 2026-11-13 with `vercel api /v2/teams`): there storage is billed by use, with no such stop. The note stays for another team.
 const HOBBY_BLOB_BYTES = 1e9;
 
@@ -60,7 +60,7 @@ console.log(`${upload ? 'Laddar upp' : 'Torrkörning: inget skickas'} · kopian 
 console.log('  grupp        filer        MB   nya');
 for (const [name, g] of groups) console.log(`  ${name.padEnd(10)} ${String(g.files).padStart(7)} ${MB(g.bytes).padStart(9)} ${String(g.todo).padStart(5)}`);
 console.log(`  ${'summa'.padEnd(10)} ${String(plan.files.length).padStart(7)} ${MB(total).padStart(9)} ${String(todo.length).padStart(5)}  (${MB(toSend)} MB nytt)`);
-if (total > HOBBY_BLOB_BYTES * 0.8) console.log(`OBS: ${MB(total)} MB är nära eller över 1 GB, Hobby-planens tak för Blob. Teamet jakeminator har Pro (inget sådant tak); kontrollera planen om storen ligger i ett annat team.`);
+if (total > HOBBY_BLOB_BYTES * 0.8) console.log(`OBS: ${MB(total)} MB är nära eller över 1 GB, Hobby-planens tak för Blob. Teamet jakeminator123s-projects har Pro (inget sådant tak); kontrollera planen om storen ligger i ett annat team.`);
 if (!upload) process.exit(0);
 
 // ── Upload (only with --upload) ─────────────────────────────────────────────

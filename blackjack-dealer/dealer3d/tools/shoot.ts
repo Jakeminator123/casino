@@ -9,7 +9,7 @@
 //        [--model <file.glb>]       a rigged model in the white figure's place (dealer3d/src/figure-model.ts); the file stays where it is
 //        [--motion-file <file.json>] [--plan <file.json>]   serve these frozen inputs for the named motion and plan
 //        [--prefix ruta] [--profile <new folder>] [--port 0] [--serve 0]   0 chooses a free port
-// Run it under the shared lock for the graphics card and headless Chrome (docs/DRIFT.md): one run at a time, short.
+// Run it under the shared lock for the graphics card and headless Chrome (AGENTS.md, "Labbservern"): one run at a time, short.
 import {createServer} from 'node:http';
 import {spawn, execFileSync} from 'node:child_process';
 import {mkdir, mkdtemp, readFile, realpath, rm, writeFile} from 'node:fs/promises';

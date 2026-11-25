@@ -1,4 +1,5 @@
-// Orders for Runway, prepared in the studio's view Beställ and placed later by an ordering agent (tools/order-clerk.md).
+// Orders for Runway, prepared in the studio's view Beställ and placed later by an ordering agent
+// (../.claude/skills/bestalla-film/SKILL.md).
 // Pure: the order's shape and its check, the steps a dealer can be ordered for with their defaults, what goes out per take
 // (requestOf), the cost from the price table in data/order-policy.json, the policy check (also for a group of drafts),
 // where a deal bara dit to a seat ends (seatEndOf: the seat's own landing picture, else the cut frame of the bank's film),
@@ -237,12 +238,12 @@ export type Reference =
       from?: { film: string; path: string; sha256: string; edge: string; verdict: RefVerdict; words: string | null; frames: [number, number] | null; also: string[] };
     };
 /**
- * A remake of a nearly good take (Jakob 2026-11-23, BESKED "Revansch på nästan bra klipp": remake it "med aningen mindre
+ * A remake of a nearly good take (Jakob 2026-11-23, "Revansch på nästan bra klipp": remake it "med aningen mindre
  * ändringar" to definitively make it good, and "Nya filmer: snabbare och bättre, inte kopior"). The predecessor's delivered
  * film (its take's untouched source.mp4) goes with the call as the LAST reference video — after the order's own reference
  * film where there is one (video 1), so the previous film is video 2; without one it is the only video (video 1) — and the
  * text keeps what it did well and names the faults to fix (fixes, in the text's own words). of: what it remakes.
- * The one trial (paow-giv-2-3-p4-c2-02-revansch-1, 2026-11-24; tools/film-prov.md) gave the previous film again, within a
+ * The one trial (paow-giv-2-3-p4-c2-02-revansch-1, 2026-11-24) gave the previous film again, within a
  * pixel, and none of the fixes: a film that goes with the call is copied. Nothing writes this block any more (the tool
  * that did is gone); it stays so that the stored order reads. A take is remade by correcting the film that steers it,
  * the doll's (tools/doll-order.ts).
@@ -1163,7 +1164,7 @@ export function twoHandDraftProblem({ status, approval, step, motion }: Pick<Ord
   return 'GIV-2.3 har ett handbyte från vänster till höger. Uppdatera utkastet med Hämta bilderna före godkännande.';
 }
 
-/** Jakob 2026-11-21 (docs/BESKED.md, "Släpet med handbyte ges från A2.3"): a card whose plan says handbyte is ordered from
+/** Jakob 2026-11-21 ("Släpet med handbyte ges från A2.3"): a card whose plan says handbyte is ordered from
  *  A2.3, where the left hand draws the card out and the right one lays it. A draft from A2.1 with handbyte, made before
  *  that, is not approved; an approved or frozen order is left as it is. */
 export const HAND_PASS_FROM_23 = 'Handbyte ges från A2.3 sedan 21 november: ett utkast från A2.1 med handbyte godkänns inte. Lägg det åt sidan och beställ kortet från A2.3.';

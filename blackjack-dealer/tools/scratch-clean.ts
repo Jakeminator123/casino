@@ -1,5 +1,6 @@
 // npm run stada: empties the slask (tools/slask.ts), where everything is temporary. Each top-level entry whose newest file is
-// older than --dygn days (default 7) is deleted; --torr lists what would go and deletes nothing. A file counts from the later
+// older than --dygn days (default 7) is deleted; --torr lists what would go and deletes nothing. granska/ is never touched:
+// what lies there waits for Jakob's verdict, however old it is (casino/AGENTS.md, "Slasken"). A file counts from the later
 // of its last write and its last change, so one copied or moved in with an old write time counts from when it arrived.
 // Links and junctions are never followed: one is judged by its own date and removed as a link, whatever it points at.
 import {lstatSync, readdirSync, rmdirSync, unlinkSync} from 'node:fs';
@@ -7,7 +8,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {REPO, SLASK} from './slask.ts';
 
-const DAY = 864e5;
+const DAY = 864e5, WAITING = 'granska';
 const inside = (child: string, parent: string) => { const r = path.relative(parent, child); return r !== '' && !r.startsWith('..') && !path.isAbsolute(r); };
 const gb = (bytes: number) => (bytes / 1e9).toFixed(2).replace('.', ',') + ' GB';
 
@@ -50,6 +51,7 @@ export function stada(argv: string[], o: Options = {}): number {
   const limit = now - days * DAY, gone: string[] = [], left: string[] = [];
   let kept = 0, bytes = 0;
   for (const name of readdirSync(slask).sort()) {
+    if (name === WAITING) { kept++; continue; }
     const entry = path.join(slask, name);
     try {
       const m = measure(entry);

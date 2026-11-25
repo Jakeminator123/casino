@@ -1,5 +1,5 @@
-// The card turned in her right hand, "Vändning: I handen" (Jakob's word in docs/BESKED.md: "Kortet vänds av hennes
-// händer", "Kortet sitter i fingrarna genom vändningen", "Handen vänds en gång, i luften", "Handleden vrider kortet"; and
+// The card turned in her right hand, "Vändning: I handen" (Jakob 2026-11-17, 2026-11-18 and 2026-11-23: "Kortet vänds av
+// hennes händer", "Kortet sitter i fingrarna genom vändningen", "Handen vänds en gång, i luften", "Handleden vrider kortet"; and
 // 2026-11-23 the hands free of each other, one hand on the card at a time, and no overdone twist of the wrist).
 // Her left hand lets go of the card and it lies on the felt; her right hand comes to it, the tip of her thumb sliding
 // along the felt in under one edge so that the edge rides up on it (the card leaves the felt only on her thumb, two

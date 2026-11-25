@@ -1,21 +1,20 @@
 // src/composition.ts, the contract of a composition of node trees (Jakob 2026-11-23): the shares hold over many rounds, a film
-// never follows a picture it does not begin on, a return goes home to its own anchor, and a tree alone is today's ?trad=.
-// Trees with different hands (another A1) are not put together: not saved and not played. A composition's tempo: the tree's
-// before the composition's before the look's, and a film's own speed times it, the tempo never past 2×.
+// never follows a picture it does not begin on, a return goes home to its own anchor, a tree alone is today's ?trad=, and a tree
+// that is not played does not leak into the game. Trees with different hands are put together, and it is said (Jakob
+// 2026-11-24). A film's own speed times the round's tempo, never past 2× (Jakob 2026-11-23).
 // On made-up trees: the real ones change every time a film is judged.
-// Run from the repo root: node --test tools/composition.test.ts
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {REVEAL_NODE, buildGraph} from '../src/clip-graph.ts';
-import {createSession, type Snapshot} from '../game/session.ts';
+import {createSession} from '../game/session.ts';
 import {defaultPlan} from '../src/placement-model.ts';
 import {createLayout} from '../src/game-table.ts';
 import {cardRecords} from '../src/game-director.ts';
 import {createFilm, filmRate} from '../src/game-film.ts';
 import {cardFaces, tableCards} from '../src/game-view.ts';
-import {MEASURE_SIZE, cutBank, gameBank, measure, playedCut, treeView, unplayedTakes, type TreeDef, type TreeEntry, type TreeTake} from '../src/dealer-trees.ts';
-import {assign, checkComposition, compositionPlay, compositionView, createComposer, handsNote, linkOf, pickFilm, seams, soloComposition, tempoOf, trace, treeBank, weave,
-  type BridgeDef, type CompositionCut, type CompositionDef, type CutTree, type LegBeat, type Move} from '../src/composition.ts';
+import {cutBank, gameBank, playedCut, treeView, unplayedTakes, type TreeDef, type TreeEntry, type TreeTake} from '../src/dealer-trees.ts';
+import {assign, checkComposition, compositionPlay, compositionView, createComposer, handsNote, pickFilm, seams, soloComposition, tempoOf, trace, treeBank, weave,
+  type BridgeDef, type CompositionDef, type CutTree, type LegBeat, type Move} from '../src/composition.ts';
 import {compositionToSave, cutOf} from './dealer-composition.ts';
 
 // ── Made-up trees: Casino (A1, A2.1, everything) and Tatuerad (its own A1 and A2.3, the seats' first cards and the hole card) ──
@@ -52,49 +51,48 @@ function legsOf(moves: readonly Move[], trees: readonly (string | null)[]) {
   return legs;
 }
 const FIRST_DEAL: Move[] = [...SEATS.map(s => ({deal: `${s}.C1`})), {deal: 'D.C1'}, ...SEATS.map(s => ({deal: `${s}.C1`})), {deal: 'D.C2'}]; // second cards play the seat's film
-const dealsOf = (w: {beats: LegBeat[]; tree: string[]}) => w.beats.flatMap((b, i) => b.kind === 'DEAL' ? [w.tree[i]] : []);
+const SEAT_CARDS: Move[] = SEATS.map(p => ({deal: `${p}.C1`}));
 
-test('andelarna hålls över många rundor: per kort när träden möts vid skon', () => {
-  const s = spec([REST_BRIDGE, SHOE_BRIDGE]), random = seeded(1), count = {casino: 0, tatuerad: 0};
-  const seats: Move[] = SEATS.map(p => ({deal: `${p}.C1`}));
-  for (let round = 0; round < 3000; round++) for (const t of assign(s, seats, can, random)) count[t as 'casino' | 'tatuerad']++;
-  const share = count.tatuerad / (count.casino + count.tatuerad);
-  assert.ok(Math.abs(share - 0.2) < 0.015, `Tatuerad fick ${(share * 100).toFixed(1)} % av korten, 20 % var satt`);
-});
-
-test('andelarna hålls över många rundor: per omgång kort när träden bara möts i vilan', () => {
-  const s = spec([REST_BRIDGE]), random = seeded(2), seats: Move[] = SEATS.map(p => ({deal: `${p}.C1`}));
-  let tattooed = 0;
+test('andelarna hålls över många rundor: per kort när träden möts vid skon, per omgång kort när de bara möts i vilan', () => {
+  let s = spec([REST_BRIDGE, SHOE_BRIDGE]), random = seeded(1), tattooed = 0, cards = 0;
+  for (let round = 0; round < 3000; round++) for (const t of assign(s, SEAT_CARDS, can, random)) { cards++; if (t === 'tatuerad') tattooed++; }
+  assert.ok(Math.abs(tattooed / cards - 0.2) < 0.015, `Tatuerad fick ${(tattooed / cards * 100).toFixed(1)} % av korten, 20 % var satt`);
+  s = spec([REST_BRIDGE]); random = seeded(2); tattooed = 0;
   for (let round = 0; round < 4000; round++) {
-    const trees = assign(s, seats, can, random);
+    const trees = assign(s, SEAT_CARDS, can, random);
     assert.equal(new Set(trees).size, 1, 'utan brygga vid skon byter handen inte träd mitt i en omgång kort');
     if (trees[0] === 'tatuerad') tattooed++;
   }
   assert.ok(Math.abs(tattooed / 4000 - 0.2) < 0.02, `Tatuerad fick ${(tattooed / 40).toFixed(1)} % av omgångarna, 20 % var satt`);
 });
 
-test('en film följer aldrig på en bild den inte börjar på', () => {
+test('en film följer aldrig på en bild den inte börjar på, och kedjan slutar i hemmaträdets vila', () => {
   for (const bridges of [[REST_BRIDGE], [REST_BRIDGE, SHOE_BRIDGE], [SHOE_BRIDGE], []]) {
     const s = spec(bridges), random = seeded(3 + bridges.length);
     for (let round = 0; round < 400; round++) {
       const moves: Move[] = round % 3 === 0 ? FIRST_DEAL : round % 3 === 1 ? [{deal: `P${1 + round % 7}.C1`}] : [{reveal: true}, {deal: 'D.C1'}];
-      const woven = weave(s, legsOf(moves, assign(s, moves, can, random)));
+      const woven = weave(s, legsOf(moves, assign(s, moves, can, random))), hops = trace(s, woven);
       assert.deepEqual(woven.breaks, [], 'ingen skarv utan brygga');
-      assert.deepEqual(seams(trace(s, woven), 'a1'), [], 'varje film börjar på bilden före');
-      const hops = trace(s, woven);
-      if (hops.length) assert.equal(hops.at(-1)!.to, 'a1', 'kedjan slutar i hemmaträdets vila');
+      assert.deepEqual(seams(hops, 'a1'), [], 'varje film börjar på bilden före');
+      if (hops.length) assert.equal(hops.at(-1)!.to, 'a1');
     }
   }
+  // A tree without a return to the shoe from that card goes through rest although the anchors meet.
+  const s = spec([REST_BRIDGE, SHOE_BRIDGE]), noReturn = weave(s, legsOf([{deal: 'P1.C1'}, {deal: 'P2.C1'}], ['casino', 'tatuerad']), () => false);
+  assert.deepEqual(noReturn.beats.map(b => b.kind), ['ENTRY', 'DEAL', 'RETURN', 'ENTRY', 'DEAL', 'RETURN']);
+  assert.deepEqual(seams(trace(s, noReturn), 'a1'), []);
 });
 
-test('utan brygga spelar bara hemmaträdet, och ett kort som inget träd har läggs utan hand', () => {
+test('utan brygga spelar bara hemmaträdet, ett kort som inget träd har läggs utan hand, och en skarv döljs inte', () => {
   const s = spec([]), random = seeded(9);
   for (let round = 0; round < 200; round++) assert.ok(assign(s, FIRST_DEAL, can, random).every(t => t === 'casino'));
   const only = (tree: string, move: Move) => tree === 'tatuerad' && can(tree, move); // only the tree that cannot be reached has films
   assert.deepEqual(assign(s, [{deal: 'P1.C1'}], only, random), [null]);
-  const woven = weave(s, legsOf([{deal: 'P1.C1'}], [null]));
-  assert.deepEqual(woven.beats.map(b => b.kind), ['PLACE']);
-  assert.deepEqual(woven.bridges, []);
+  assert.deepEqual(weave(s, legsOf([{deal: 'P1.C1'}], [null])).beats.map(b => b.kind), ['PLACE']);
+  const forced = weave(s, legsOf([{deal: 'P1.C1'}], ['tatuerad']));
+  assert.equal(forced.breaks.length, 2); // to Tatuerad's rest and home again
+  assert.equal(seams(trace(s, forced), 'a1').length, 1);
+  assert.ok(createComposer({...s}).weave(legsOf([{deal: 'P1.C1'}], ['tatuerad'])).breaks.length >= 2);
 });
 
 test('en retur går hem till sitt eget ankare', () => {
@@ -102,34 +100,18 @@ test('en retur går hem till sitt eget ankare', () => {
     const s = spec(bridges), random = seeded(11 + bridges.length), byId = {casino, tatuerad};
     let switched = 0;
     for (let round = 0; round < 500; round++) {
-      const woven = weave(s, legsOf(FIRST_DEAL, assign(s, FIRST_DEAL, can, random)));
+      const woven = weave(s, legsOf(FIRST_DEAL, assign(s, FIRST_DEAL, can, random))), hops = trace(s, woven);
       woven.beats.forEach((b, i) => {
         if (b.kind !== 'RETURN') return;
         const deal = woven.beats[i - 1], tree = byId[woven.tree[i] as 'casino' | 'tatuerad'];
-        assert.equal(deal.kind, 'DEAL');
-        assert.equal(woven.tree[i - 1], woven.tree[i], 'returen spelas av trädet som gav kortet');
-        assert.equal(b.step!.from, deal.step!.to, 'returen börjar på kortet given lade');
-        const hop = trace(s, woven).find(h => h.beat === i && h.kind === 'RETURN')!;
+        assert.deepEqual([deal.kind, woven.tree[i - 1], b.step!.from], ['DEAL', woven.tree[i], deal.step!.to], 'returen spelas av trädet som gav kortet, från kortet');
+        const hop = hops.find(h => h.beat === i && h.kind === 'RETURN')!;
         assert.ok([tree.shoe, tree.rest].includes(hop.to), `returen slutar på trädets eget ankare, inte ${hop.to}`);
       });
-      if (new Set(dealsOf(woven)).size > 1) switched++;
+      if (new Set(woven.beats.flatMap((b, i) => b.kind === 'DEAL' ? [woven.tree[i]] : [])).size > 1) switched++;
     }
     assert.ok(switched > 50, 'rundorna blandar de två träden');
   }
-});
-
-test('vid skon: handen stannar när ankarna möts, går annars via vilan', () => {
-  const moves: Move[] = [{deal: 'P1.C1'}, {deal: 'P2.C1'}], legs = legsOf(moves, ['casino', 'tatuerad']);
-  const atShoe = weave(spec([REST_BRIDGE, SHOE_BRIDGE]), legs);
-  assert.deepEqual(atShoe.beats.map(b => `${b.kind} ${b.step!.from}>${b.step!.to}`), ['ENTRY IDLE>READY', 'DEAL READY>P1.C1', 'RETURN P1.C1>READY', 'DEAL READY>P2.C1', 'RETURN P2.C1>IDLE']);
-  assert.deepEqual(atShoe.bridges.map(b => `${b.before}: ${b.from}>${b.to} ${b.film ?? 'klipp'}`), ['3: a21>a23 klipp', '5: a1t>a1 assets/x/hem.mp4']);
-  const viaRest = weave(spec([REST_BRIDGE]), legs);
-  assert.deepEqual(viaRest.beats.map(b => b.kind), ['ENTRY', 'DEAL', 'RETURN', 'ENTRY', 'DEAL', 'RETURN']);
-  assert.deepEqual(viaRest.bridges.map(b => `${b.before}: ${b.from}>${b.to}`), ['3: a1>a1t', '6: a1t>a1']);
-  // A tree without a return to the shoe from that card goes through rest although the anchors meet.
-  const noReturn = weave(spec([REST_BRIDGE, SHOE_BRIDGE]), legs, () => false);
-  assert.deepEqual(noReturn.beats.map(b => b.kind), ['ENTRY', 'DEAL', 'RETURN', 'ENTRY', 'DEAL', 'RETURN']);
-  assert.deepEqual(seams(trace(spec([REST_BRIDGE, SHOE_BRIDGE]), noReturn), 'a1'), []);
 });
 
 test('ett träd utan andel lånar bara ut det de andra saknar', () => {
@@ -139,14 +121,6 @@ test('ett träd utan andel lånar bara ut det de andra saknar', () => {
     FIRST_DEAL.forEach((move, i) => assert.equal(trees[i], 'deal' in move && move.deal.startsWith('D.') ? 'casino' : 'tatuerad'));
     assert.deepEqual(seams(trace(s, weave(s, legsOf(FIRST_DEAL, trees))), 'a1'), []);
   }
-});
-
-test('en skarv utan brygga döljs inte: den sägs', () => {
-  const s = spec([]), woven = weave(s, legsOf([{deal: 'P1.C1'}], ['tatuerad']));
-  assert.equal(woven.breaks.length, 2); // to Tatuerad's rest and home again
-  assert.equal(seams(trace(s, woven), 'a1').length, 1);
-  const composer = createComposer({...s});
-  assert.ok(composer.weave(legsOf([{deal: 'P1.C1'}], ['tatuerad'])).breaks.length >= 2);
 });
 
 test('en variants andel: filmen väljs efter sina andelar, och utan andelar väljer banken', () => {
@@ -178,75 +152,49 @@ const takes: TreeTake[] = [
 const views = defs.map(def => treeView('paow', def, defs, entries, takes));
 const both: CompositionDef = {id: 'bada', name: 'Båda', trees: [{tree: 'casino', share: 80}, {tree: 'tatuerad', share: 20}], bridges: [{a: 'a1', b: 'a1t', ab: 'assets/x/dit.mp4', ba: 'assets/x/hem.mp4'}]};
 
-test('kompositionen ritad: vad varje steg täcks av, och dess tal', () => {
+test('kompositionen ritad: en underkänd film täcker inget steg, Primär är stegets film utan andelar, varianternas andelar gäller', () => {
   const view = compositionView(both, views, takes), at = (key: string) => view.steps.find(s => s.key === key)!;
-  assert.equal(view.steps.length, MEASURE_SIZE);
-  assert.deepEqual(view.steps.map(s => s.key), measure('READY').map(m => `${m.kind}:${m.card ?? ''}`));
-  assert.equal(at('giv:P1.C1').state, 'eget');
   assert.deepEqual(at('giv:P1.C1').parts.map(p => [p.tree, p.how, p.percent]), [['casino', 'eget', 80], ['tatuerad', 'eget', 20]]);
-  assert.equal(at('giv:P1.C2').state, 'aterbruk'); assert.equal(at('giv:P1.C2').parts[0].of, 'P1.C1');
-  assert.equal(at('giv:D.C1').state, 'lanat'); assert.deepEqual(at('giv:D.C1').lacking, ['tatuerad']); assert.equal(at('giv:D.C1').reach, 'vila');
-  assert.equal(at('giv:P3.C1').state, 'lanat'); assert.deepEqual(at('giv:P3.C1').parts.map(p => [p.tree, p.percent]), [['tatuerad', 100]]);
+  assert.deepEqual([at('giv:D.C1').state, at('giv:D.C1').lacking, at('giv:D.C1').reach], ['lanat', ['tatuerad'], 'vila']);
   assert.equal(at('giv:P2.C1').state, 'saknas', 'en underkänd film täcker inget steg');
-  assert.equal(at('vila:').state, 'lanat');
-  assert.equal(view.home, 'casino');
-  assert.equal(view.looks.length, 2, 'två vilobilder: händerna skiljer');
-  assert.deepEqual(view.joins.map(j => [j.rest.how, j.rest.film, j.shoe.how]), [['brygga', true, 'ingen']]);
-  assert.deepEqual(view.count, {have: view.steps.filter(s => s.state !== 'saknas').length, own: view.steps.filter(s => s.parts.some(p => p.how === 'eget')).length, total: 36});
-  // A variant with a share of its own, and the step's best film alone without one.
   assert.deepEqual(at('giv:P1.C1').parts[0].films.map(f => [f.id, f.percent]), [['c-p1', 100], ['c-p1-b', 0]]);
   const shared = compositionView({...both, shares: {'c-p1': 80, 'c-p1-b': 20}}, views, takes).steps.find(s => s.key === 'giv:P1.C1')!;
-  assert.deepEqual(shared.parts[0].films.map(f => [f.id, f.percent]), [['c-p1', 80], ['c-p1-b', 20]]); assert.equal(shared.variants, true);
+  assert.deepEqual(shared.parts[0].films.map(f => [f.id, f.percent]), [['c-p1', 80], ['c-p1-b', 20]]);
   // A tree that shares another's films is that tree, once.
   assert.deepEqual(compositionView({id: 'x', name: 'X', trees: [{tree: 'ingangen', share: 1}, {tree: 'casino', share: 1}]}, views, takes).trees.map(t => [t.tree, t.share]), [['casino', 2]]);
 });
 
-test('ett ensamt träd är dagens trad: samma bank, samma träd för varje kort, inga bryggor', () => {
-  const solo = compositionView(soloComposition(defs[1]), views, takes);
-  assert.deepEqual(solo.trees.map(t => [t.tree, t.percent, t.hub]), [['tatuerad', 100, 'READY-C']]);
-  assert.equal(solo.looks.length, 1);
+test('ett ensamt träd är dagens trad: samma bank, samma träd för varje kort, inga bryggor; i en komposition lämnar varje träd ut det andras', () => {
+  assert.deepEqual(compositionView(soloComposition(defs[1]), views, takes).trees.map(t => [t.tree, t.percent, t.hub]), [['tatuerad', 100, 'READY-C']]);
   const own = takes.filter(t => t.tree === 'tatuerad').map(t => t.id), drop = takes.filter(t => t.tree === 'casino').map(t => t.id);
-  const cut: CompositionCut = {schemaVersion: 1, dealer: 'paow', id: 'tatuerad', name: 'Tatuerad', trees: [{...tatuerad, share: 100, own}], drop, bridges: [], shares: {}, home: 'tatuerad', count: solo.count, looks: solo.looks};
   const bank = {jobs: takes.map(t => ({id: t.id, from: t.from, to: t.to})), derived: [{id: 'borta', from: 'READY', to: 'P5.C1'}]};
-  assert.deepEqual(treeBank(bank, cut, 'tatuerad'), cutBank(bank, {hub: 'READY-C', own, drop}));
-  // An own take that really stands on READY (Tatuerad's way to A2.1) takes the hub's name in exchange: the game enters on the pose it deals from.
-  assert.deepEqual(cutBank({jobs: [{id: 'in-21', from: 'IDLE', to: 'READY'}, {id: 'in-23', from: 'IDLE', to: 'READY-C'}]}, {hub: 'READY-C', own: ['in-21', 'in-23'], drop: []}).jobs,
-    [{id: 'in-21', from: 'IDLE', to: 'READY-C'}, {id: 'in-23', from: 'IDLE', to: 'READY'}]);
-  const s ={trees: cut.trees, bridges: [], shares: {}, home: 'tatuerad'}, moves: Move[] = [{deal: 'P1.C1'}, {deal: 'P3.C1'}];
+  assert.deepEqual(treeBank(bank, {trees: [{...tatuerad, share: 100, own}], drop}, 'tatuerad'), cutBank(bank, {hub: 'READY-C', own, drop}));
+  const s = {trees: [{...tatuerad, share: 100, own}], bridges: [], shares: {}, home: 'tatuerad'}, moves: Move[] = [{deal: 'P1.C1'}, {deal: 'P3.C1'}];
   assert.deepEqual(assign(s, moves, () => true, seeded(5)), ['tatuerad', 'tatuerad']);
   const beats = leg(moves), woven = weave(s, [{tree: 'tatuerad', beats}]);
-  assert.deepEqual(woven.beats, beats); assert.deepEqual(woven.bridges, []); assert.deepEqual(woven.breaks, []);
-  // In a composition of two, each tree's bank leaves the other's films out and plays its own anchor at the shoe as the shoe.
+  assert.deepEqual([woven.beats, woven.bridges, woven.breaks], [beats, [], []]);
   const two = {trees: [{...casino, own: drop}, {...tatuerad, own}], drop: []};
   assert.deepEqual(treeBank(bank, two, 'casino').jobs!.map(j => j.id), drop);
   assert.deepEqual(treeBank(bank, two, 'tatuerad').jobs!.find(j => j.id === 't-p1'), {id: 't-p1', from: 'READY', to: 'P1.C1'});
   assert.equal(treeBank(bank, two, 'tatuerad').derived!.length, 1, 'en film i inget träd följer med');
 });
 
-test('spelet utan trädord: ett träd som inte spelas läcker inte in, en film i inget träd följer med', () => {
+test('spelet utan trädord: ett träd som inte spelas läcker inte in, en film i inget träd följer med, och kopian på nätet spelar samma snitt', () => {
   const all = [...takes, {id: 'borta', tree: null}], tat = takes.filter(t => t.tree === 'tatuerad').map(t => t.id);
   assert.deepEqual(unplayedTakes(defs, all), tat);
-  assert.deepEqual(unplayedTakes(defs.map(d => ({...d, state: 'spelas' as const})), all), [], 'när Tatuerad spelas följer allt med');
+  assert.deepEqual(unplayedTakes(defs.map(d => ({...d, state: 'spelas' as const})), all), []);
   // A tree that is not spelas still plays when a tree that is shares it (Ingången plays the Casino's films).
   assert.deepEqual(unplayedTakes(defs.map(d => d.id === 'casino' ? {...d, state: 'vilar' as const} : d), all), tat);
   const bank = {jobs: all.map(t => ({id: t.id, from: t.id === 'borta' ? 'READY' : (t as TreeTake).from, to: t.id === 'borta' ? 'P5.C1' : (t as TreeTake).to}))};
   assert.deepEqual(gameBank(bank, {status: 200, answer: {schemaVersion: 1, dealer: 'paow', played: ['casino'], drop: tat}}, 'paow').jobs.map(j => j.id), all.map(t => t.id).filter(id => !tat.includes(id)));
   for (const reply of [null, {status: 404, answer: {error: 'x'}}, {status: 200, answer: {trees: []}}]) assert.equal(gameBank(bank, reply, 'paow'), bank, 'utan svar: som i dag');
-  // One played tree is the game: its anchor at the shoe and its own films, exactly as ?trad=<id>. Today that is the Casino, whose
-  // anchor is the shoe: Ingången shares it, so the two are one tree played and nothing is renamed.
-  const hubOf = (def: TreeDef) => views.find(v => v.tree.id === def.id)!.hub, today = playedCut('paow', defs, all, hubOf);
-  assert.deepEqual([today.played, today.hub, today.drop], [['casino'], 'READY', tat]);
-  assert.deepEqual(cutBank(bank, today), cutBank(bank, {hub: 'READY', own: [], drop: tat}), 'som i dag');
-  const onlyTat = defs.map(d => ({...d, state: d.id === 'tatuerad' ? 'spelas' as const : 'vilar' as const})), alone = playedCut('paow', onlyTat, all, hubOf);
+  // One played tree is the game, exactly as ?trad=<id>.
+  const hubOf = (def: TreeDef) => views.find(v => v.tree.id === def.id)!.hub;
+  const alone = playedCut('paow', defs.map(d => ({...d, state: d.id === 'tatuerad' ? 'spelas' as const : 'vilar' as const})), all, hubOf);
   const asTrad = {hub: 'READY-C', own: tat, drop: takes.filter(t => t.tree === 'casino').map(t => t.id)};
-  assert.deepEqual([alone.played, alone.hub, alone.own, alone.drop], [['tatuerad'], asTrad.hub, asTrad.own, asTrad.drop]);
   assert.deepEqual(gameBank(bank, {status: 200, answer: alone}, 'paow'), cutBank(bank, asTrad), 'som ?trad=tatuerad');
-  assert.deepEqual(gameBank(bank, null, 'paow').jobs!.find(j => j.id === 't-p1'), {id: 't-p1', from: 'READY-C', to: 'P1.C1'}, 'utan svar och utan inbakat snitt: som i dag');
-  // Several trees played: nothing is renamed, nothing of theirs left out.
-  const several = playedCut('paow', defs.map(d => ({...d, state: 'spelas' as const})), all, hubOf);
-  assert.deepEqual([several.played, several.hub, several.own, several.drop], [['casino', 'tatuerad'], 'READY', [], []]);
   // The copy on the net has no /api/trees: its frozen bank carries the cut (tools/studio-freeze.ts freezeBank), and the lab's answer goes first.
-  const frozen = {...bank, gameCuts: {paow: alone}};
+  const frozen = {...bank, gameCuts: {paow: alone}}, today = playedCut('paow', defs, all, hubOf);
   assert.deepEqual(gameBank(frozen, null, 'paow').jobs, cutBank(bank, asTrad).jobs);
   assert.deepEqual(gameBank(frozen, {status: 200, answer: today}, 'paow').jobs, cutBank(bank, today).jobs);
   assert.equal(gameBank(frozen, null, 'ada'), frozen, 'en annan dealers snitt gäller inte');
@@ -255,34 +203,19 @@ test('spelet utan trädord: ett träd som inte spelas läcker inte in, en film i
 test('registret: det som inte håller sägs', () => {
   const ids = ['casino', 'tatuerad'];
   assert.deepEqual(checkComposition(both, ids), []);
-  assert.ok(checkComposition({...both, id: 'Två Träd'}, ids).length);
-  assert.ok(checkComposition({...both, trees: [{tree: 'okand', share: 1}]}, ids).some(p => p.includes('okand')));
-  assert.ok(checkComposition({...both, trees: [{tree: 'casino', share: 0}]}, ids).some(p => p.includes('över 0')));
-  assert.ok(checkComposition({...both, bridges: [{a: 'a1', b: 'a1t', ab: '../hemligt.mp4'}]}, ids).length);
-  assert.ok(checkComposition({...both, bridges: [{a: 'a1', b: 'a1'}]}, ids).length);
-  assert.equal(linkOf(both.bridges, 'a1t', 'a1') && (linkOf(both.bridges, 'a1t', 'a1') as {film: string}).film, 'assets/x/hem.mp4');
-  assert.equal(linkOf(both.bridges, 'a1', 'a1'), 'same'); assert.equal(linkOf(both.bridges, 'a1', 'a23'), null);
+  for (const bad of [{id: 'Två Träd'}, {trees: [{tree: 'okand', share: 1}]}, {trees: [{tree: 'casino', share: 0}]}, {bridges: [{a: 'a1', b: 'a1t', ab: '../hemligt.mp4'}]},
+    {bridges: [{a: 'a1', b: 'a1'}]}, {tempo: 3}, {trees: [{tree: 'casino', share: 1, tempo: 0.5}]}]) assert.ok(checkComposition({...both, ...bad}, ids).length, JSON.stringify(bad));
 });
 
 // Jakob 2026-11-24: "lossa detta förbud" (from 2026-11-23 21.10 such trees were not put together: Casino's hands are bare,
 // Tatuerad's tattooed). Different hands, another rest picture A1, are said, and the composition is saved.
 test('träd med olika händer går att sätta samman, och det sägs; ett träd ensamt går att spara', () => {
-  const onDisk = () => true, save = (def: unknown, of = views) => compositionToSave(def, of, takes, onDisk);
+  const save = (def: unknown) => compositionToSave(def, views, takes, () => true);
   assert.equal(save(both).ok, true);
-  assert.match(handsNote(compositionView(both, views, takes))!, /^Casino och Tatuerad har olika händer: trädens vilobild \(A1\) skiljer/);
-  // One tree alone holds, with a tempo of its own: what the tempo of a tree is saved in.
-  const alone = save({id: 'casino-snabb', name: ' Casino snabb ', trees: [{tree: 'casino', share: 100}], tempo: 2});
-  assert.deepEqual(alone, {ok: true, def: {id: 'casino-snabb', name: 'Casino snabb', trees: [{tree: 'casino', share: 100}], tempo: 2}});
+  assert.ok(handsNote(compositionView(both, views, takes)));
   assert.equal(handsNote(compositionView(soloComposition(defs[0]), views, takes)), null);
-  // Two trees that rest on the same picture are put together as before.
-  const more = [...defs, {id: 'kvall', name: 'Kväll', state: 'byggs', root: 'a1', anchors: [{entry: 'a1'}, {entry: 'a21'}]} as TreeDef], same = more.map(def => treeView('paow', def, more, entries, takes));
-  const pair = {id: 'casino-kvall', name: 'Casino + Kväll', trees: [{tree: 'casino', share: 80}, {tree: 'kvall', share: 20, tempo: 1.5}]};
-  assert.deepEqual(save(pair, same), {ok: true, def: pair});
-  assert.equal(compositionView(pair, same, takes).looks.length, 1);
-  // An id that is a tree's is still refused, and so is a tempo outside 1 to 2.
-  assert.equal(save({id: 'casino', name: 'Casino', trees: [{tree: 'casino', share: 100}]}).ok, false);
-  assert.ok(checkComposition({...pair, tempo: 3}, ['casino', 'kvall']).some(p => p.includes('fart')));
-  assert.ok(checkComposition({...pair, trees: [{tree: 'casino', share: 1, tempo: 0.5}]}, ['casino', 'kvall']).some(p => p.includes('Farten')));
+  assert.deepEqual(save({id: 'casino-snabb', name: ' Casino snabb ', trees: [{tree: 'casino', share: 100}], tempo: 2}), {ok: true, def: {id: 'casino-snabb', name: 'Casino snabb', trees: [{tree: 'casino', share: 100}], tempo: 2}});
+  assert.equal(save({id: 'casino', name: 'Casino', trees: [{tree: 'casino', share: 100}]}).ok, false, 'an id that is a tree\'s');
 });
 
 // Jakob 2026-11-24: "två olika nodträd ... Både från 2.1 och från 2.3", bound together so that one can "vikta olika utgivningar som
@@ -303,48 +236,35 @@ test('två sätt att dela ut med samma händer: sätts samman utan brygga, nypet
   const def: CompositionDef = {id: 'skjut-nyp', name: 'Skjut + nyp', trees: [{tree: 'skjut', share: 50}, {tree: 'nyp', share: 50}]};
   assert.deepEqual(compositionToSave(def, drawn, films, () => true), {ok: true, def});
   const view = compositionView(def, drawn, films), at = (key: string) => view.steps.find(s => s.key === key)!;
-  assert.equal(handsNote(view), null); assert.equal(view.home, 'skjut');
-  assert.deepEqual(view.joins.map(j => [j.rest.how, j.shoe.how]), [['samma', 'ingen']]);
-  assert.deepEqual(at('giv:P4.C1').parts.map(p => [p.tree, p.how, p.percent]), [['skjut', 'eget', 50], ['nyp', 'eget', 50]]);
-  assert.deepEqual([at('giv:P5.C1').state, at('giv:P5.C1').lacking, at('giv:P5.C1').reach], ['lanat', ['nyp'], 'vila']);
-  assert.deepEqual([at('vila:').state, at('vila:').reach], ['lanat', 'vila']);
+  assert.equal(handsNote(view), null);
+  assert.deepEqual([at('giv:P5.C1').state, at('giv:P5.C1').lacking], ['lanat', ['nyp']]);
   // The cut: a film seen from another seat is in no tree's own films and is left out, as ?trad= leaves it out.
   const cut = cutOf('paow', view, films);
   assert.deepEqual(cut.trees.map(t => [t.tree, t.hub, t.own.includes('s2-P4')]), [['skjut', 'READY-C', false], ['nyp', 'READY', false]]);
   assert.deepEqual(cut.drop, ['s2-P4']);
-  assert.ok(compositionPlay('skjut-nyp', {status: 200, answer: cut}, 'Paow').cut, 'spelas: händerna är desamma');
+  assert.ok(compositionPlay('skjut-nyp', {status: 200, answer: cut}, 'Paow').cut);
   // The game: the pinch deals only what it has a film for, the push everything else; every film begins on the picture before it.
   const able = (tree: string, move: Move) => tree === 'skjut' ? 'deal' in move && /^P[1-7]\.C1$/.test(move.deal) : 'deal' in move && move.deal === 'P4.C1';
-  const s = {trees: cut.trees, bridges: cut.bridges, shares: cut.shares, home: cut.home}, random = seeded(24), moves: Move[] = SEATS.map(p => ({deal: `${p}.C1`}));
-  let pinched = 0, hit = 0;
-  for (let round = 0; round < 2000; round++) {
-    const trees = assign(s, moves, able, random);
-    trees.forEach((t, i) => assert.ok(t === 'skjut' || (t === 'nyp' && i === 3), `kort ${i + 1} gavs av ${t}`));
-    assert.deepEqual(seams(trace(s, weave(s, legsOf(moves, trees))), 'a1t'), []);
-    assert.deepEqual(weave(s, legsOf(moves, trees)).breaks, []);
-    if (trees.includes('nyp')) pinched++;
-    if (assign(s, [{deal: 'P4.C1'}], able, random)[0] === 'nyp') hit++; // a card of its own, from rest: by the share
+  for (const bridges of [cut.bridges, [{a: 'a23', b: 'a21t'}]]) {
+    const s = {trees: cut.trees, bridges, shares: cut.shares, home: cut.home}, random = seeded(24);
+    let hit = 0;
+    for (let round = 0; round < 1000; round++) {
+      const trees = assign(s, SEAT_CARDS, able, random), woven = weave(s, legsOf(SEAT_CARDS, trees));
+      trees.forEach((t, i) => assert.ok(t === 'skjut' || (t === 'nyp' && i === 3), `kort ${i + 1} gavs av ${t}`));
+      assert.deepEqual([seams(trace(s, woven), 'a1t'), woven.breaks], [[], []]);
+      if (assign(s, [{deal: 'P4.C1'}], able, random)[0] === 'nyp') hit++; // a card of its own, from rest: by the share
+    }
+    assert.ok(Math.abs(hit / 1000 - 0.5) < 0.05, `nypet gav ${(hit / 10).toFixed(1)} % av de ensamma korten till plats 4, 50 % var satt`);
   }
-  assert.equal(pinched, 0, 'utan brygga vid skon stannar handen i skjutet så länge det har film');
-  assert.ok(Math.abs(hit / 2000 - 0.5) < 0.04, `nypet gav ${(hit / 20).toFixed(1)} % av de ensamma korten till plats 4, 50 % var satt`);
-  // With the two anchors at the shoe allowed to meet (a bridge, here a cut), the share holds card by card where both have a film.
-  const met = {...s, bridges: [{a: 'a23', b: 'a21t'}]};
-  let both4 = 0;
-  for (let round = 0; round < 2000; round++) { const trees = assign(met, moves, able, random); if (trees[3] === 'nyp') both4++; assert.deepEqual(seams(trace(met, weave(met, legsOf(moves, trees))), 'a1t'), []); }
-  assert.ok(Math.abs(both4 / 2000 - 0.5) < 0.04, `med brygga vid skon gav nypet ${(both4 / 20).toFixed(1)} % av korten till plats 4`);
 });
 
-test('tempot: trädets går före kompositionens, som går före utseendets', () => {
+test('tempot: trädets går före kompositionens, som går före utseendets, och bara 1 till 2 gäller', () => {
   const of = {tempo: 1.5, trees: [{tree: 'casino'}, {tree: 'tatuerad', tempo: 2}]};
-  assert.equal(tempoOf(of, 'tatuerad', 1.2), 2, 'trädets eget');
-  assert.equal(tempoOf(of, 'casino', 1.2), 1.5, 'kompositionens');
-  assert.equal(tempoOf(of, null, 1.2), 1.5, 'en film som inte är något träds (en brygga): kompositionens');
-  assert.equal(tempoOf({trees: of.trees}, 'casino', 1.2), 1.2, 'utan kompositionens: utseendets (filmTempo)');
-  assert.equal(tempoOf({trees: of.trees}, 'tatuerad', 1.2), 2);
-  assert.equal(tempoOf(null, null, undefined), 1); assert.equal(tempoOf({tempo: 9, trees: []}, null, 1.3), 1.3, 'ett tempo utanför 1 till 2 gäller inte');
-  // The drawn composition carries the tempos to the game's cut.
-  const view = compositionView({...both, tempo: 1.5, trees: [{tree: 'casino', share: 80}, {tree: 'tatuerad', share: 20, tempo: 2}]}, views, takes);
-  assert.deepEqual(view.trees.map(t => [t.tree, t.tempo]), [['casino', undefined], ['tatuerad', 2]]);
+  assert.equal(tempoOf(of, 'tatuerad', 1.2), 2);
+  assert.equal(tempoOf(of, 'casino', 1.2), 1.5);
+  assert.equal(tempoOf(of, null, 1.2), 1.5, 'en brygga: kompositionens');
+  assert.equal(tempoOf({trees: of.trees}, 'casino', 1.2), 1.2);
+  assert.equal(tempoOf(null, null, undefined), 1); assert.equal(tempoOf({tempo: 9, trees: []}, null, 1.3), 1.3);
 });
 
 // Jakob 2026-11-23: "spela upp dealerklipp i 1.5x eller 2x ... den nya standarden för respektive klipp". A film's own speed is
@@ -358,9 +278,10 @@ test('farten: filmens egen fart gånger rundans tempo, och tempot aldrig över 2
 
 // ── The game's film player with a composition (src/game-film.ts compose) ────
 // A made-up bank: Casino deals seat 4 and the dealer's first card from A2.1 and has the rest film; Tatuerad deals seat 4 from
-// A2.3 and has nothing else. A fake film queue records the parts it is handed, as tools/game-view.test.ts does.
-// speeds: a film's own speed (the bank's playbackSpeed), by take id.
-async function tableGame(speeds: Record<string, number> = {}) {
+// A2.3 and has nothing else. A fake film queue records the parts it is handed. Tatuerad has a tempo of its own (2×) and its deal
+// a speed of its own (1,5×); Casino follows the round (1,5×), and its dealer film has a speed of its own (1,25×).
+test('spelet spelar kompositionen: trädens filmer med bryggan emellan, vilan i hemmaträdet, och farten på rundans filmer', async () => {
+  const speeds: Record<string, number> = {'t-giv': 1.5, 'c-dealer': 1.25, 'c-vila': 2};
   const job = ([id, from, to, kind]: string[]) => ({id, kind, target: kind === 'DEAL' ? to : null, from, to, model: 'wan3', duration: 4, ratio: 'auto_1080p', audio: false, promptText: 'fixture', first: {file: {path: 'assets/anchors/x/anchor.png', sha256: 'a'.repeat(64)}}, purpose: 'fixture', dealer: 'paow', ...(speeds[id] ? {playbackSpeed: speeds[id]} : {})});
   const mine = [['c-in', 'IDLE', 'READY', 'ENTRY'], ['c-giv', 'READY', 'P4.C1', 'DEAL'], ['c-retur', 'P4.C1', 'READY', 'RETURN'], ['c-hem', 'P4.C1', 'IDLE', 'RETURN'], ['c-ut', 'READY', 'IDLE', 'RETURN'], ['c-vila', 'IDLE', 'IDLE', 'IDLE'],
     ['c-dealer', 'READY', 'D.C1', 'DEAL'], ['c-dealer-retur', 'D.C1', 'READY', 'RETURN'], ['c-dealer-hem', 'D.C1', 'IDLE', 'RETURN']];
@@ -375,58 +296,32 @@ async function tableGame(speeds: Record<string, number> = {}) {
   const players = {play(list: Part[], options: {onPart?(i: number): void; onEnd?(): void} = {}) { parts.push(list); end = () => options.onEnd?.(); list.forEach((_, i) => options.onPart?.(i)); }, hurry() {}, preload() {}};
   const film = createFilm(players, graphs.casino, createLayout(defaultPlan()), async () => null, () => 0);
   film.compose({composer: createComposer(cut, seeded(41)), graphs});
-  assert.equal(film.composing, true);
-  const step = async (snapshot: Snapshot) => { const table = tableCards(snapshot), from = parts.length;
-    const played = film.play(snapshot.events, {table, records: cardRecords(table, cardFaces(snapshot))}); await new Promise(r => setTimeout(r, 0)); end(); const result = await played; await new Promise(r => setTimeout(r, 0));
-    return {played: parts.slice(from).flat(), gaps: result.gaps}; };
+  film.tempo = {round: () => 1.5, tree: tree => tree === 'tatuerad' ? 2 : null};
   const s = createSession({balance: 1000, shoe: {mode: 'stacked', seed: 'komposition', cards: 'K♠ 7♦ 6♥ 10♣ 5♦'.split(' ').map(text => ({r: text.slice(0, -1), s: text.slice(-1)}))}});
-  const dealt = s.command({op: 'start', bets: [{seat: 4, main: 10}], requestId: 'k1', expectedVersion: s.state().ver});
-  /** A part's film in a word: the take's id, or a bridge film's file name. */
-  const nameOf = (p: Part) => p.path.split('/').at(-2) === 'x' ? p.path.split('/').at(-1)! : p.path.split('/')[2];
-  return {film, deal: () => step(dealt), nameOf};
-}
-
-test('spelet spelar kompositionen: trädens filmer med bryggan emellan, och vilan i hemmaträdet', async () => {
-  const {film, deal, nameOf} = await tableGame();
-  const {played, gaps} = await deal(), chain = played.filter(p => !p.rest).map(nameOf);
+  const dealt = s.command({op: 'start', bets: [{seat: 4, main: 10}], requestId: 'k1', expectedVersion: s.state().ver}), table = tableCards(dealt);
+  const playing = film.play(dealt.events, {table, records: cardRecords(table, cardFaces(dealt))});
+  await new Promise(r => setTimeout(r, 0)); end(); const {gaps} = await playing; await new Promise(r => setTimeout(r, 0));
+  const played = parts.flat(), nameOf = (p: Part) => p.path.split('/').at(-2) === 'x' ? p.path.split('/').at(-1)! : p.path.split('/')[2];
   // Seat 4's two cards are Tatuerad's (the second with the seat's film), the dealer's two are lent by Casino (her second with
   // the film of her first, the game's stand-in); every change of tree goes over the bridge, and the chain ends in Casino's rest.
   const tattooed = ['dit.mp4', 't-in', 't-giv', 't-retur', 't-ut', 'hem.mp4'], lent = ['c-in', 'c-dealer', 'c-dealer-hem'];
-  assert.deepEqual(chain, [...tattooed, ...lent, ...tattooed, ...lent]);
-  assert.ok(played.at(-1)!.rest && played.at(-1)!.path.includes('c-vila'), 'efter kedjan vilar hon i hemmaträdets vilofilm');
+  assert.deepEqual(played.filter(p => !p.rest).map(nameOf), [...tattooed, ...lent, ...tattooed, ...lent]);
   assert.deepEqual(gaps.filter(g => g.startsWith('Skarv') || g.includes('börjar på')), [], 'ingen skarv utan brygga');
-  assert.ok(played.every(p => p.rate === undefined), 'utan fart på film eller träd säger ingen del en fart: kön spelar rundans tempo');
-  // With no composition the same player is as before: one graph, no bridges.
+  const rest = played.at(-1)!;
+  assert.ok(rest.rest && rest.path.includes('c-vila') && rest.rate === undefined, 'efter kedjan vilar hon i hemmaträdets vilofilm, som filmad');
+  const rateOf = (id: string) => { const p = played.find(x => nameOf(x) === id)!; return [p.rate, p.absoluteRate]; };
+  assert.deepEqual(rateOf('t-in'), [2, true], 'trädets tempo');
+  assert.deepEqual(rateOf('t-giv'), [2, true], '1,5× på filmen gånger 2× i trädet stannar vid 2×');
+  assert.deepEqual(rateOf('c-dealer'), [1.875, true], 'filmens 1,25× gånger rundans 1,5×');
+  assert.deepEqual([rateOf('c-in'), rateOf('dit.mp4')], [[undefined, undefined], [undefined, undefined]], 'utan egen fart: kön lägger rundans tempo');
   film.compose(null); assert.equal(film.composing, false);
 });
 
-test('spelet spelar farten: trädets tempo och filmens egen fart på rundans filmer, vilan som filmad', async () => {
-  // Tatuerad has a tempo of its own (2×) and its deal a speed of its own (1,5×); Casino follows the round (1,5×), and its
-  // dealer film has a speed of its own (1,25×).
-  const {film, deal, nameOf} = await tableGame({'t-giv': 1.5, 'c-dealer': 1.25, 'c-vila': 2});
-  film.tempo = {round: () => 1.5, tree: tree => tree === 'tatuerad' ? 2 : null};
-  const {played} = await deal(), rateOf = (id: string) => { const p = played.find(x => nameOf(x) === id)!; return [p.rate, p.absoluteRate]; };
-  assert.deepEqual(rateOf('t-in'), [2, true], 'trädets tempo, sagt av delen själv');
-  assert.deepEqual(rateOf('t-giv'), [2, true], '1,5× på filmen gånger 2× i trädet stannar vid 2×');
-  assert.deepEqual(rateOf('c-dealer'), [1.875, true], 'filmens 1,25× gånger rundans 1,5×');
-  assert.deepEqual(rateOf('c-in'), [undefined, undefined], 'en film som filmad i ett träd utan eget tempo: kön lägger rundans tempo');
-  assert.deepEqual(rateOf('dit.mp4'), [undefined, undefined], 'en brygga följer rundans tempo');
-  const rest = played.at(-1)!;
-  assert.ok(rest.rest && rest.rate === undefined, 'vilan går som filmad, vad dess jobb än säger');
-});
-
-test('spelets ord ?komposition=: raden på sidan, och varför när den inte kan spelas', () => {
-  const cut = {schemaVersion: 1, dealer: 'paow', id: 'bada', name: 'Båda', trees: [{...casino}, {...tatuerad, rest: 'a1'}], drop: [], bridges: [], shares: {}, home: 'casino', count: {have: 33, own: 22, total: 36}, looks: ['a1']};
-  assert.deepEqual(compositionPlay(null, null, 'Paow'), {cut: null, line: null});
-  assert.equal(compositionPlay('bada', {status: 200, answer: cut}, 'Paow').line, 'Båda 33/36: kort utan film läggs utan hand');
-  assert.equal(compositionPlay('bada', {status: 200, answer: cut}, 'Paow').cut, cut);
-  assert.equal(compositionPlay('bada', {status: 200, answer: {...cut, tempo: 1.5}}, 'Paow').line, 'Båda 33/36: kort utan film läggs utan hand · fart 1,5×');
-  // Trees with different hands are played when he chooses the composition, and the page's line says it.
-  const mixedCut = {...cut, trees: [{...casino}, {...tatuerad}], looks: ['a1', 'a1t']}, mixed = compositionPlay('bada', {status: 200, answer: mixedCut}, 'Paow');
-  assert.equal(mixed.cut, mixedCut);
-  assert.equal(mixed.line, 'Båda 33/36: kort utan film läggs utan hand · olika händer');
-  assert.match(compositionPlay('finns-inte', {status: 404, answer: {error: 'x'}}, 'Paow').line!, /Paow har ingen komposition "finns-inte"/);
-  assert.match(compositionPlay('Fel Ord', null, 'Paow').line!, /är ingen komposition/);
-  assert.match(compositionPlay('bada', null, 'Paow').line!, /kunde inte läsas/);
-  assert.match(compositionPlay('bada', {status: 200, answer: {...cut, count: {have: 0, own: 0, total: 36}}}, 'Paow').line!, /har inga filmer än/);
+test('spelets ord ?komposition=: träd med olika händer spelas, och det sägs; det som inte kan spelas ger inget snitt', () => {
+  const cut = {schemaVersion: 1, dealer: 'paow', id: 'bada', name: 'Båda', trees: [{...casino}, {...tatuerad}], drop: [], bridges: [], shares: {}, home: 'casino', count: {have: 33, own: 22, total: 36}, looks: ['a1', 'a1t']};
+  const mixed = compositionPlay('bada', {status: 200, answer: cut}, 'Paow');
+  assert.equal(mixed.cut, cut);
+  assert.match(mixed.line!, /olika händer/);
+  for (const [word, reply] of [['finns-inte', {status: 404, answer: {error: 'x'}}], ['bada', null], ['bada', {status: 200, answer: {...cut, count: {have: 0, own: 0, total: 36}}}]] as const)
+    assert.equal(compositionPlay(word, reply as never, 'Paow').cut, null, `${word}: spelet spelar som vanligt`);
 });

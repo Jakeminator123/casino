@@ -184,6 +184,8 @@ export function Board({
 
   // ── a film under the cards: at its frame when loaded; afterwards the film bar moves it ──
   const backdropKey = `${backdrop.kind}:${backdrop.src}`;
+  // Media is local and not in Git: a picture that is not on this machine is said in words, not shown broken.
+  const [missing, setMissing] = useState<string | null>(null);
   useEffect(() => {
     if (backdrop.kind !== "film") return;
     const video = videoRef.current;
@@ -290,17 +292,20 @@ export function Board({
       }}
     >
       <div data-picture className="absolute overflow-hidden shadow-[0_0_0_1px_rgb(255_255_255/0.06),0_18px_50px_rgb(0_0_0/0.45)]" style={{ left: origin.left, top: origin.top, width: boxW, height: boxH }}>
-        {backdrop.kind === "still" ? (
+        {missing === backdrop.src ? (
+          <p className="absolute inset-0 grid place-items-center p-6 text-center text-md text-dim">Bilden under korten finns inte på den här datorn. Kortplanen går att ställa ändå.</p>
+        ) : backdrop.kind === "still" ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             key={backdrop.src}
             src={backdrop.src}
             alt=""
             draggable={false}
+            onError={() => setMissing(backdrop.src)}
             className="absolute inset-0 size-full select-none object-fill"
           />
         ) : (
-          <video key={backdrop.src} ref={videoRef} src={backdrop.src} muted playsInline preload="auto" disablePictureInPicture className="absolute inset-0 size-full object-fill" />
+          <video key={backdrop.src} ref={videoRef} src={backdrop.src} muted playsInline preload="auto" disablePictureInPicture onError={() => setMissing(backdrop.src)} className="absolute inset-0 size-full object-fill" />
         )}
         <svg
           ref={svg}

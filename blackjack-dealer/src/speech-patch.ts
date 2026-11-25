@@ -1,4 +1,4 @@
-// The mouth patch: a spoken line laid on a film while the film plays (docs/TAL.md, the mouth layer). One patch is one film and
+// The mouth patch: a spoken line laid on a film while the film plays (docs/SYSTEM.md, "Tal och munlappar"). One patch is one film and
 // one line in one language and voice: the box round her mouth in the film's own pixels for every frame the line covers, kept
 // as one picture of cells (the strip), the line's sound as a file of its own, and a record that binds them (patch.json). The
 // scene lays the cell of the frame on screen over that very frame (src/scene3d-mouth.ts); the film, its card track and Jakob's

@@ -171,7 +171,7 @@ export async function writeRegister(log = console.log): Promise<string[]> {
       const text = await readFile(path.join(folder, 'patch.json')), p = JSON.parse(text.toString('utf8')) as MouthPatch;
       if (p.id !== id || p.dealer !== dealer) { left.push(`${dealer}/${id}: postens id eller dealer stämmer inte med mappen.`); continue; }
       patches.push({id, dealer, film: p.film.path, line: p.line.key, language: p.line.language, voice: p.line.voice, path: rel(path.join(folder, 'patch.json')), sha256: sha256(text)}); } }
-  const register: PatchRegister = {schemaVersion: 1, about: 'The mouth patches the game may lay on its films (src/speech-patch.ts, docs/TAL.md): one film and one line each, with the sha256 of its record. Written by node tools/speech-patch.ts register and by nothing else; a folder that does not check is left out.', patches};
+  const register: PatchRegister = {schemaVersion: 1, about: 'The mouth patches the game may lay on its films (src/speech-patch.ts; docs/SYSTEM.md, "Tal och munlappar"): one film and one line each, with the sha256 of its record. Written by node tools/speech-patch.ts register and by nothing else; a folder that does not check is left out.', patches};
   await writeFile(path.join(repo, 'data/speech-patches.json'), json(register));
   log(`data/speech-patches.json: ${patches.length} lappar${left.length ? `, ${left.length} utelämnade` : ''}.`);
   return left;

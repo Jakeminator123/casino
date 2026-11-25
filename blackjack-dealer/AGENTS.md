@@ -1,132 +1,149 @@
-# Dealer – arbetsregler
+# blackjack-dealer – arbetsregler
 
-Här byggs en filmad dealer till Jakobs blackjackspel: korta filmklipp mellan fasta ankare, spelade i studion, i
-3D-scenen och i spelet. Projektet är frikopplat från Scoutgaming (Jakob 2026-11-23) och behöver inget därifrån. Jakob
-äger projektet; han är inte programmerare, så förklara val i vanliga ord. Projektet är mappen `blackjack-dealer` i
-casino-repot och fungerar på vilken dator och i vilket verktyg som helst (Jakob 2026-11-25: Cursor, Claude Code, Codex,
-andra IDE:er, API): det som gäller står här och i vanliga filer (`.ignore`, Git-hookar, `npm run`-kommandon, körda från
-projektets mapp); `.cursorignore` och `.claude/` är extra skydd för sina verktyg. Inga sökvägar till en viss dator och
-inga namn på chattar i det som gäller.
+En filmad dealer till Jakobs blackjackspel: korta filmklipp mellan fasta ankare, spelade i studion, i 3D-scenen och i
+spelet. Målet (Jakob 2026-11-13): "nu ska vi skapa en bättre version av blackjackspelet", i studion. Projektet står på
+egna ben, frikopplat från Scoutgaming (2026-11-23). Det här gäller utöver [casino-repots AGENTS.md](../AGENTS.md) (språk, Git,
+slasken, tokens, datorerna, alla verktyg), som inte upprepas här; vid konflikt går den här filen före.
 
 ## Läs först
 
-En ny session läser tre filer innan den börjar, och inget mer (Jakob 2026-11-18):
+1. casino-repots [AGENTS.md](../AGENTS.md), 2. den här filen, 3. [STATUS.md](STATUS.md) (läget, nästa steg, det som
+väntar på Jakob).
 
-1. Den här filen.
-2. `HANDOFF.md`: startsidan: läget i korthet, nästa steg och pekarna vidare.
-3. EN lägesfil, din banas: `docs/lage/<bana>.md` (3D-banan: avsnittet "Överlämning" i `dealer3d/LASMIG.md`).
+Allt annat slås upp när arbetet kräver det: [`README.md`](README.md) (mapparna, körningen, registren),
+[`docs/SYSTEM.md`](docs/SYSTEM.md) (kontrakten) och en skill i `../.claude/skills/<namn>/SKILL.md` för ett arbetsmoment:
+`ny-dealer`, `bestalla-film`, `granska-film`, `visa-for-jakob`, `avsluta-arbete`, `publicera-kopian`. Läs den som gäller
+innan du börjar, med sökvägen om verktyget inte laddar den själv. Inga tak för dokumentens längd och inga tester av
+deras form (Jakob 2026-11-25).
 
-Saknas något du behöver för att börja är det ett fel i överlämningen: rätta det där i stället för att läsa mer. Allt
-annat slås upp när arbetet kräver det, ett avsnitt i taget (sök på rubriken):
-
-- Jakobs besked per ämne i `docs/BESKED.md`, kända brister i `docs/BRISTER.md`.
-- `docs/SYSTEM.md` (kontrakt, register, ordlista), `docs/DRIFT.md` (rutiner: Git, kontrollen, labbservern, Runway,
-  publicering), `README.md` (mapparna och hur det körs) och instruktionerna i `tools/*.md` (`tools/dealer-line.md` är
-  ingången för en ny dealer eller en filmbeställning).
-- Ett återkommande arbetsmoment (beställa eller granska en film, visa Jakob något, avsluta och pusha, arbeta bredvid
-  andra chattar, en ny dealer, publicera kopian) har en skill i `.claude/skills/<namn>/SKILL.md`: läs den som gäller
-  innan du börjar, med sökvägen om verktyget inte laddar den själv.
-
-Sökningen ser inte allt, med avsikt (Jakob 2026-11-18, för att spara tokens): `.ignore` och `.cursorignore` döljer
-media, maskindata, filmregistret och dockans rörelsedata. En tom sökträff betyder inte att filen saknas; läs den med
-sin sökväg eller med verktyget som äger den. Ett dokument eller register över 32 KB läses i delar: sök upp stället och
-läs högst 400 rader åt gången (Claude Code håller det med `.claude/hooks/read-guard.mjs`).
-
-Läs inte för att komma igång: chatthistorik, äldre överlämningar eller Git-historiken. En underagent läser den här
-filens regler och det uppdraget namnger, högst tre filer eller avsnitt.
+Projektets `.ignore` döljer media, filmregistret och dockans rörelsedata för sökningen. Läs en post i filmregistret med
+`node tools/register.ts get <id>`.
 
 ## Var kunskap står
 
-- `HANDOFF.md` högst 120 rader och 900 ord, en lägesfil högst 60 rader och 800 ord (`tools/handoff.test.ts`). Ersätt
-  det som inte längre gäller; ingen dagbok.
-- Jakobs gällande besked: `docs/BESKED.md`, högst två rader per besked; ett ändrat besked skrivs om. Kända brister:
-  `docs/BRISTER.md`.
-- Ett prov (film, bild) som väntar på Jakobs dom är ett kort i Beslut (`data/decisions.json`). Andra frågor ställs i
-  chatten.
-- Kontrakt och format: `docs/SYSTEM.md`. Rutiner och anslutningar: `docs/DRIFT.md`. Hur ett arbetsmoment görs: en
-  instruktion i `tools/` bredvid verktygen.
-- Fakta per film, bild eller körning: registren (`data/motions.jsonl`, `data/*.json`, `placements/`); dokumenten länkar
-  dit. Vad som hände och varför: commitmeddelandet.
-- Skriv kort, det som gäller nu, på rätt ställe och en gång (Jakob 2026-11-23); historien står i Git.
+- Regler, och Jakobs beslut som är regler, med datum: här. Läget, nästa steg, det som väntar på honom och kända brister
+  som spelar roll: `STATUS.md`, där det inaktuella ersätts. Kontrakt: `docs/SYSTEM.md`. Hur något görs: en skill. Fakta
+  per film, bild eller körning: registren i `data/` och `placements/`. Vad som hände och varför: commitmeddelandet.
+- När hans ord ändrar en regel ändras den där den står, i samma commit. Ett beslut som koden redan förverkligar står med
+  datum och hans ord i kodens kommentar.
+- Ett prov (film, bild) som väntar på hans dom är ett kort i Beslut (`data/decisions.json`); teknik, publicering och
+  arbetssätt frågas i chatten (Jakob 2026-11-21: "Sånt här ska den inte ha att göra med alls!").
+
+## Jakobs riktning
+
+- **En väg för varje sak, färre val** (2026-11-24): "det är för mycket val, för komplicerat i onödan"; "klara
+  självklara vägar för allt", också när det tränger undan gamla klipp eller vägar.
+- **Labbet först** (2026-11-11): prov och effekter görs i labbet; spelet får bara det han har godkänt där.
+- **Filmerna först** (2026-11-17): "filmerna är det vi först måste få rätt"; kortens och markernas utseende ändras bara
+  i Bordets läge Efterarbete.
+- **Fria händer med ansvar** (2026-11-14): "Du har fria privilegier och kör på. men se till att dokumentera coh städa".
+- **Rensa bort det som blockerar** (2026-11-23): en regel står här eller i en skill bara om den är hans daterade ord eller
+  skyddar honom; annat en agent har skrivit är råd och stryks när det hindrar. Efter ett fel rättas orsaken, utan nytt
+  förbud, test eller spärr.
+- **Städa hårt** (2026-11-17, 2026-11-19, 2026-11-25): "det mesta som inte används ska raderas", "Var inte konservativ".
+- **Korta dokument** (2026-11-23, 2026-11-25): en sak på ett ställe, det som gäller nu.
+- **Huvudagenten orkestrerar** (2026-11-13, 2026-11-23): delar ut arbete, granskar, slår ihop, committar och svarar
+  honom. 3D-banan arbetar avskilt i `dealer3d/` och lämnar till huvudagenten (2026-11-17), med samma standard som allt
+  övrigt (2026-11-23).
 
 ## Det som skyddar Jakob
 
-- Media och hemligheter stannar utanför Git: `assets/`, `output/`, `.runtime/`, `.env*` och `private/` är ignorerade,
-  och kontrollen stoppar en push som bär sådant, i alla projekten. Repot är publikt (`Jakeminator123/casino`).
-- Det som produceras raderas som regel (Jakob 2026-11-25). Kvar i `assets/`, med en roll i `data/media-roles.json`,
-  blir bara det han har godkänt (Primär, Godkänd, Variant, ankare, det spelet spelar) och det som väntar på hans dom.
-  En film han, eller en granskare på hans uppdrag, underkänner raderas, utom när en agent har uppgiften att arbeta om
-  den (ett öppet orderutkast eller ett kort i Beslut pekar på den). Raderingen går via papperskorgen (14 dygn).
-- Betald generering inom den stående fullmakten i `data/order-policy.json` (Jakob 2026-11-25): en agent godkänner själv
-  upp till 500 krediter per beställning och högst 2 500 per dygn; en större beställning frågar Jakob först. Betalda
-  anrop utanför Beställ rapporteras med belopp.
-- Deploy, mediauppladdning, databasändring och integration i Scoutgaming bara på Jakobs uttryckliga ord.
-- Jakobs domar i Granska och Material, och valet av Primär, är hans: ingen agent sätter eller skriver över dem. Bara när
-  han uttryckligen har lämnat över domen för vissa filmer dömer huvudagenten och en oberoende granskare i hans ställe
-  (`node tools/review-put.ts`): domen ser aldrig ut som hans, väntar inte i hans kö, syns i Granska under Dömda åt dig,
-  och hans eget beslut ersätter den.
-- Original och referenser arkiveras med hash utanför repot och raderas aldrig (manifestets `archived` säger var); ändra
-  aldrig en referenshash för att dölja en avvikelse.
-- Det tidigare projektet (snyggare-dealer) och Scoutgaming är bara läsreferenser: inga länkar, junctions eller beroenden
-  dit, och en fil som hämtas därifrån registreras i `data/manifest.json`. Spelregler, slump och kortvärden flyttas inte
-  därifrån, utom den fristående spelmotorn i `game/` (Jakob 2026-11-11).
+- **Betald generering** inom den stående fullmakten i `data/order-policy.json` (Jakob 2026-11-25: "en rimlig fullmakt
+  för budget och beställningar som inte ska vara hårt satt mer än att 'stora' beställningar ska valideras med mig"): en
+  agent godkänner själv upp till 500 krediter per beställning och högst 2 500 per dygn; större frågar honom först.
+  Taket 2 000 per order står mot misstag (2026-11-17); påfyllning gör bara han. Meshy bara på hans eget ja; en
+  provkväll på hans RunPod högst 5 USD, med besked till honom före start (2026-11-17). Betalt utanför Beställ
+  rapporteras till huvudagenten med belopp.
+- **Deploy, mediauppladdning, databasändring och integration i Scoutgaming** bara på hans uttryckliga ord; ett ja gäller
+  den gången (2026-11-18). Nätdelen vilar sedan 2026-11-25.
+- **Domarna är hans** (2026-11-13): domar i Granska och Material och valet av Primär sätts bara av honom; en tagning han
+  har dömt rörs aldrig. Har han uttryckligen lämnat över domen för vissa filmer dömer huvudagenten och en oberoende
+  granskare i hans ställe (`node tools/review-put.ts`): märkt som inte hans, utan kö ("Med andra ord vill jag inte se en
+  sån här lista när jag är tillbaka!"), och hans beslut ersätter den.
+- **Planen och bilderna är hans:** `placements/default.json` skrivs bara av Bordet när han trycker Spara (2026-11-11);
+  vilken bild som gäller väljer han i Material, och ingen knapp raderar betald media (2026-11-18).
+- **Original och referenser** arkiveras med hash utanför repot och raderas aldrig; ändra aldrig en referenshash för att
+  dölja en avvikelse.
+- **Läsreferenser:** Scoutgaming och det tidigare projektet snyggare-dealer; inga länkar eller beroenden dit, och en fil
+  som hämtas därifrån registreras i `data/manifest.json`. Undantaget är spelmotorn i `game/` (2026-11-11).
+- **Personer:** hans foto som förlaga ligger i `private/referenser/` och går bara till bildmodellen (2026-11-17); den
+  riktiga dealerns film och en YouTube-referens mäts bara och går aldrig in i Git, `assets/` eller ett prov (2026-11-18).
+  Signerade adresser från Runway skrivs aldrig i repot.
 
-## Regler och spärrar
+## Det som produceras
 
-- En regel står här eller i en skill bara om den är Jakobs ord (daterat i `docs/BESKED.md`) eller skyddar honom
-  (ovan). Annat en agent har skrivit är råd och stryks när det hindrar.
-- Efter ett fel rättas orsaken: inget nytt förbud, test eller spärrande status (Jakob 2026-11-23).
-- När hans ord ändrar en regel ändras den där den står, i samma commit.
-- Rött i kontrollen stoppar; utred orsaken. Ett test som bara låser hur kod eller text ser ut i dag stryks när det
-  hindrar; skyddet sänks aldrig och ingen referens ändras för att få grönt.
+Jakob 2026-11-25: "alt skit som produceras ska som regel raderas". Allt en agent eller modell gör medan den arbetar
+(renderingar, försök, nedladdningar, Runway-leveranser som ingen har granskat) är tillfälligt. Kvar blir bara:
+
+1. Det han har godkänt (Primär, Godkänd, Variant, ankare; varianterna är han "rädd för att förlora", 2026-11-21) eller
+   som spelet, studion eller en öppen beställning använder: i `assets/` med en roll i `data/media-roles.json`, lokalt;
+   till Blob på Vercel först när han säger till.
+2. Det som väntar på hans dom: i Granska, ett kort i Beslut eller i `../slask/blackjack-dealer/granska/<namn>/`.
+
+Allt annat raderas: det han underkänner eller själv tar bort, prov utan kort, leveranser som stannade på vägen och
+granskares förslag som inte gavs på hans uppdrag, om inget öppet orderutkast eller kort pekar på det. Radering går via
+papperskorgen `.runtime/papperskorg/` (14 dygn).
+
+Det sker av sig självt: labbservern kör `node tools/media-thin.ts --auto` när den startar (planen, nivån säkert och
+papperskorgens dagar äldre än 14 dygn; logg i `.runtime/gallring.log`). Nivån säkert är regeln ovan: det han, en
+granskare på hans uppdrag eller en granskare utan det har underkänt, lösa filmer som inte är dömda bra och inte väntar
+på honom, äldre talfilmer där en nyare spelas, leveranser som aldrig blev en post och prov utan kort, med Runways
+leveranser, och byteidentiska filer som blir en fil. Bara efterarbetets kopior är förslag på hans ord
+(`--kor --grupp <namn>`). `npm run gallra` visar planen (`.runtime/gallring/`). Spärren skyddar det spelet har,
+roller, original, referenser, noir-samlingen, filmen före spelet, det Beslut eller en öppen order nämner, det som väntar
+i Granska och allt yngre än tre dygn. `npm run media:status` skriver en översikt över lagringen och raderar
+inget. `npm run stada` raderar det i slasken som är äldre än sju dygn men lämnar `granska/` orörd.
 
 ## Slasken och `.runtime/`
 
-- Tillfälligt arbete (renderingar, skärmbilder, granskningsunderlag, försök, hjälpskript i TypeScript) läggs i
-  slasken, en mapp per uppgift: `../slask/blackjack-dealer/<uppgift>/` i casino-repots slask, eller där `DEALER_SLASK` pekar. Ta bort
-  din mapp när du är klar. Allt där raderas efter sju dygn (`npm run stada`, som labbservern också kör när
-  den startar). Det som ska finnas kvar flyttas till `assets/` med en roll, eller in i Git.
-- `.runtime/` är verktygens eget: databaserna som byggs om ur registren, liggare, testkvitton, loggar, labbserverns
-  tillfälliga filer och gallringens papperskorg. Lägg inget eget arbete där.
-- Ingen sökväg till en viss dator i kod eller dokument: räkna från repot, eller läs en miljövariabel.
+- Tillfälligt arbete i `../slask/blackjack-dealer/<uppgift>/` (eller där `DEALER_SLASK` pekar), en mapp per uppgift;
+  ta bort din mapp när du är klar. Det som ska finnas kvar flyttas till `assets/` med en roll, eller in i Git.
+- `.runtime/` är verktygens: databaserna, liggarna, loggarna, labbserverns tillfälliga filer och papperskorgen.
 
 ## Labbservern
 
-- `npm start` startar labbet på `http://127.0.0.1:4319` och öppnar fliken; `npm run status` och `npm run stop`
-  frågar och stoppar. En sida visas i den öppna fliken med `node tools/preview.ts --open "<sida>"`; före en länk till
-  Jakob: `node tools/preview.ts --ensure`.
-- Omladdning, navigering och skärmbilder i labbet görs utan att fråga.
-- Stoppa servern bara med `npm run stop`, aldrig via processnamn eller port, och rör inte andra projekts servrar.
-- Den som startar ett eget headless-fönster stänger det; en körning i taget, eftersom det belastar Jakobs dator.
+- `npm start` startar labbet på `http://127.0.0.1:4319` och öppnar fliken; `npm run status` och `npm run stop` frågar
+  och stoppar. En sida visas i den öppna fliken med `node tools/preview.ts --open "<sida>"`; före en länk till Jakob
+  `node tools/preview.ts --ensure`. Omladdning, navigering och skärmbilder görs utan att fråga.
+- Stoppa servern bara med `npm run stop`, aldrig via processnamn eller port; rör inte andra projekts servrar. Servern
+  lämnar ut arbetsträdet, så en halvfärdig fil syns genast i Jakobs flik; den läser `tools/` och modullistan en gång, så
+  en ändring där gäller efter `node tools/preview.ts --restart` (huvudagenten).
+- Headless Chrome och grafikkortet under det delade låset `gpu-och-headless.lock` i slasken: skapa det exklusivt, skriv
+  vem du är, ta bara bort ditt eget. En körning i taget; den som startar ett fönster stänger det.
 
 ## Git och samarbete
 
-- Arbeta i repots vanliga utcheckning på `main`, den enda långlivade grenen; en gren eller ett eget träd bara när ett
-  arbete uttryckligen behöver isoleras, och den slås sedan ihop i `main` eller tas bort. Byggträdet `../slask/bygg`
-  (hela casino-repot) är bara för kontrollen (DRIFT).
-- Huvudagenten är chatten Jakob arbetar med: den committar, taggar och pushar. Underagenter och andra chattar skriver
-  bara i egna filer och lämnar över med en fillista. En skribent per fil.
-- Checka in färdiga filer direkt, i små commits, så att arbetsträdet oftast är rent.
-- Installera kontrollen en gång per utcheckning: `npm run hooks:install` (pre-push kör `tools/publication-check.ts`).
-- Avsluta så här, utan att fråga (Jakob använder inte Git själv, 2026-11-25): uttrycklig staging av egna filer,
-  commit, `npm run check` (hela sviten, en gång), push och fjärrens SHA. GitHub kör ingen kontroll.
-- Ingen force-push, ingen `--no-verify`, ingen filbevakare och ingen automatisk commit av utkast.
-- Städa löpande: det som en ändring gör överflödigt (kod som inget anropar, ersatta filer och status, döda sökvägar)
-  tas bort i samma ändring, och det nya beteendet beskrivs där det hör hemma. Medier gallras enligt
-  `tools/local-work.md`; `npm run media:status` visar läget.
+- Arbeta i repots vanliga utcheckning på `main`; en gren eller ett eget träd bara när ett arbete uttryckligen måste
+  isoleras, och det slås sedan ihop eller tas bort.
+- Huvudagenten är chatten Jakob arbetar med: den committar och pushar. Underagenter och andra chattar skriver bara i
+  egna filer, säger vilka de tar och lämnar över med en fillista. En skribent per fil. Jakobs plan, domar och
+  orderutkast skrivs aldrig över.
+- Kontrollen före push: `npm run hooks:install` installerar casino-repots `.githooks/pre-push` för hela repot. Den
+  stoppar hemligheter, `.env`-filer (utom `.env.example` med tomma värden), media och filer över 5 MB i de utgående
+  commitarna och kör `npm test` i de projekt som har ändrats. `npm run check` kör samma sak före en push. Inget
+  byggträd, inga kvitton, inget studiobygge ur commit: studion byggs på plats med `npm --prefix studio run build`, och
+  `npm start` bygger den om den saknas. Inget körs hos GitHub (2026-11-18).
+- Avsluta enligt skillen `avsluta-arbete`. Ingen force-push, ingen `--no-verify`, ingen automatisk commit.
+
+## Tester
+
+Jakob frågade 2026-11-25 hur tester skapas och efterlevs. Så här:
+
+- Nya tester bara för det som ska bestå: publiceringsskyddet, spelets regler, hans domar och val, beställningarna
+  (godkännande, kredittak) och kontrakten. Inga tester av dokumentens form eller av hur kod eller text ser ut.
+- Ändrar en ändring ett beteende som ett test låser, ändras eller tas testet bort i samma ändring; skyddet sänks aldrig
+  för att få grönt. Rött stoppar: utred orsaken.
+- Allt ska vara grönt utan media på datorn. Testerna täcker inte filmerna; de bedöms med ögat.
 
 ## Kod
 
-- Ny kod skrivs i TypeScript. Undantaget är skripten i `tools/python/`, som kräver MediaPipe.
-- Node 24 enligt `package.json` (Volta); kontrollera med `node -p process.version`.
-- Högst fyra render- eller testarbetare samtidigt: datorn delas med labbservern och andra chattar.
-- Verifiera en ändring med en körning eller de berörda testfilerna, inte hela sviten. Nya tester bara för det som ska
-  bestå: kontrakt, spelregler, Jakobs godkända resultat, publiceringsskyddet.
+- Ny kod i TypeScript; undantaget är `tools/python/`, som kräver MediaPipe. Node 24 enligt `package.json`.
+- Högst fyra render- eller testarbetare samtidigt. Verifiera med en körning eller de berörda testfilerna; hela sviten
+  körs av kontrollen.
 
 ## Svar till Jakob
 
-- Svenska, slutsatsen först, så kort som frågan tillåter, men varje fråga han ställer får sitt svar.
-- Punktform, procent och poäng (till exempel 4/5) uppskattas.
-- Skilj det som är verifierat från det som är skattat.
-- Säg kort vad som återstår och vad som hindrar att arbetet stängs.
+- Svenska, slutsatsen först, kort, men varje fråga han ställer får sitt svar. Punktform, procent och poäng (4/5).
+- Skilj det verifierade från det skattade. Säg vad som återstår och vad som hindrar att arbetet stängs.
+- Läs hans anteckningar i Prov med `node tools/proof-notes.ts` före svaret. En stillbild bredvid varje film han ska döma.
 - Avsluta med antalet aktiva underagenter.

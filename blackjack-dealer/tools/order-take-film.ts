@@ -1,4 +1,4 @@
-// A delivered take of an order, for the lab to hand out, read only (Scen & bord's part Docka shows the films ordered with a
+// A delivered take of an order, for the lab to hand out, read only (Bordet's part Docka shows the films ordered with a
 // film of the doll's beside it, also a take that has not been brought into the bank: studio/components/bordet/DollFilms.tsx).
 // Only the film itself: assets/orders/<order>/take-<n>/after.mp4 (after tools/film-after.ts) or source.mp4 (as it came), or
 // one of the two in one folder under the take (a cut copy, kapad-3/after.mp4), and only where the file really lies inside

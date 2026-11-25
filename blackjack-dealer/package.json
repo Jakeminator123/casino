@@ -10,9 +10,9 @@
     "node": "24.22.3"
   },
   "scripts": {
-    "test": "node --test --test-concurrency=4 --test-reporter=spec --test-reporter=./tools/test-receipt-reporter.ts --test-reporter-destination=stdout --test-reporter-destination=stderr tools/*.test.ts studio/tests/*.test.ts dealer3d/tests/*.test.ts",
-    "check": "node tools/publication-check.ts",
-    "hooks:install": "node tools/publication-check.ts --install",
+    "test": "node --test --test-concurrency=4 tools/*.test.ts studio/tests/*.test.ts dealer3d/tests/*.test.ts",
+    "check": "node ../.githooks/check.ts",
+    "hooks:install": "node ../.githooks/check.ts --install",
     "verify": "node tools/verify.ts",
     "start": "node --disable-warning=ExperimentalWarning tools/preview.ts --open",
     "status": "node --disable-warning=ExperimentalWarning tools/preview.ts --status",

@@ -1,7 +1,7 @@
 import http from 'node:http';
 import {readFile,mkdir,writeFile,stat,unlink,realpath,readdir} from 'node:fs/promises';
 import {existsSync,openSync} from 'node:fs';
-import {spawn} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import path from 'node:path';
 import {placementStore,StoreError} from './placement-store.ts';
@@ -42,6 +42,15 @@ const startServer=async()=>{
  for(let i=0;i<60;i++){await new Promise(done=>setTimeout(done,250));if(await health())return;}
  throw Error('Labbservern startade inte.');
 };
+// A checkout without the studio's build (a new machine, a fresh clone) builds it once before the lab opens. The studio is
+// built in place, in studio/out; after a change to studio/ it is built again with npm --prefix studio run build.
+const ensureStudio=()=>{
+ if(existsSync('studio/out/index.html'))return;
+ // npm is a .cmd on Windows and runs only through the shell there; the words are fixed, so the line is given whole.
+ const npm=(argv:string[])=>{const line=`npm ${argv.join(' ')}`;if((process.platform==='win32'?spawnSync(line,{stdio:'inherit',shell:true}):spawnSync('npm',argv,{stdio:'inherit'})).status!==0)throw Error(`${line} misslyckades.`);};
+ if(!existsSync('studio/node_modules')){console.log('Installerar studions paket (en gång).');npm(['--prefix','studio','ci']);}
+ console.log('Bygger studion (en gång, ungefär en minut).');npm(['--prefix','studio','run','build']);
+};
 if(has('--restart')){
  // A new server for changed server code, without losing the lab tab: the tab is told, waits and reloads by itself.
  const alive=await health();
@@ -63,7 +72,7 @@ if(has('--restart')){
  // Before a link to the lab is handed to Jakob: the server is started if it is not running, and no tab is opened or moved.
  const alive=await health();
  if(alive&&(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd())))throw Error('Preview identity differs');
- if(!alive)await startServer();console.log(alive?`Labbservern går: ${origin}`:`Labbservern är startad: ${origin}`);
+ ensureStudio();if(!alive)await startServer();console.log(alive?`Labbservern går: ${origin}`:`Labbservern är startad: ${origin}`);
 }else if(has('--open')){
  // The one way to put a lab page in front of Jakob: node tools/preview.ts --open "/studio/prov/?prov=<id>" (npm start does
  // this with the studio). The server is started if it is not running, the page is shown in the lab tab that is
@@ -74,7 +83,7 @@ if(has('--restart')){
  if(!target)throw Error('Ange en sida i studion, till exempel /studio/prov/?prov=<id>');
  let alive=await health();
  if(alive&&(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd())))throw Error('Preview identity differs');
- if(!alive)await startServer();
+ ensureStudio();if(!alive)await startServer();
  let s=await readState();for(let i=0;i<20&&!s?.token;i++){await new Promise(done=>setTimeout(done,100));s=await readState();}
  const r=await fetch(origin+'/tab/show',{method:'POST',headers:{'x-dealer-token':s?.token??'','content-type':'application/json'},body:JSON.stringify({url:target})});
  if(!r.ok)throw Error('Preview control failed');
@@ -383,6 +392,8 @@ if(has('--restart')){
  server.on('close',()=>{void unlink(state).catch(()=>{});});
  server.listen(port,'127.0.0.1',async()=>{await mkdir('.runtime',{recursive:true});await writeFile(state,JSON.stringify({root:process.cwd(),port,pid:process.pid,parent:process.ppid,executable:process.execPath,script:'tools/preview.ts',startedAt:new Date().toISOString(),token})); // Empty the slask of what is older than a week, once per server start.
  if(existsSync(SLASK)){const log=openSync('.runtime/stada.log','a');spawn(process.execPath,['tools/scratch-clean.ts'],{cwd:process.cwd(),stdio:['ignore',log,log],windowsHide:true}).on('error',()=>{});}
+ // And thin assets/ by the rule: what is not used and does not wait for Jakob goes to the trash (tools/media-thin.ts --auto).
+ if(existsSync('assets')){const log=openSync('.runtime/gallring.log','a');spawn(process.execPath,['tools/media-thin.ts','--auto'],{cwd:process.cwd(),stdio:['ignore',log,log],windowsHide:true}).on('error',()=>{});}
  console.log(origin);});
  process.on('SIGINT',()=>stop());process.on('SIGTERM',()=>stop());
 }

@@ -124,7 +124,7 @@ export function cardStory(frames: readonly FrameCard[], options: { side?: 'FRONT
   const held = sorted.filter((x) => laid === null || x.f < laid).map((x) => (yellow(x) >= broad ? x.dealtYellow : blue(x) >= broad ? x.blue : null)).filter((b): b is Blob => !!b);
   const ratios = held.map((b) => { const real = realFacingLong({ x: b.centre[0], y: b.bbox[3] }, lens); return real ? Math.sqrt(b.n / (real * real * (CARD.width / CARD.height))) : null; }).filter((r): r is number => r !== null);
   const pale = median(last.map((x) => x.blue?.paleRingPct ?? 0));
-  // Laid yellow at its place and turned there afterwards (film-review: never laid yellow at the place and turned after).
+  // Laid yellow at its place and turned there afterwards (granska-film: never laid yellow at the place and turned after).
   const lastYellowAt = lastYellow === null ? null : sorted.find((x) => x.f === lastYellow)?.dealtYellow?.centre ?? null;
   // Lying still (under 2 px a frame) within 60 px of the place before the turn: trial 1's WAN take A t3 lay yellow 44 px
   // short of the place in frames 64–76 and was lifted and turned after; a dragged card moves, a carried one is not there.

@@ -1,5 +1,5 @@
 // Fixing a delivered film, written as data: a short list of named operations, applied in order, that a reviewer can write and a
-// person can read (tools/film-review.md). Pure: frames come and go through a FrameStore (8-bit RGB, rows top down, no padding) and
+// person can read (../.claude/skills/granska-film/SKILL.md). Pure: frames come and go through a FrameStore (8-bit RGB, rows top down, no padding) and
 // pictures as Picture; no files, no FFmpeg (tools/film-fix.ts decodes, applies, encodes and writes the receipt).
 //
 // What can be fixed this way: a few frames (trim, hold, blend), a few pixels where nothing moves (patch), a colour (key), a level
@@ -11,7 +11,7 @@
 // Frame numbers are always the delivered film's, the numbers a reviewer reads off it. trim drops frames only when the copy is
 // written, so frame f of the film is frame f - (frames trimmed at the start) of the copy.
 //
-// Lessons behind the limits (docs/DRIFT.md, "Lärdomar som gäller"): cutting WAN 3's two last frames and evening the green per frame
+// Lessons behind the limits: cutting WAN 3's two last frames and evening the green per frame
 // hold up in review; painting over a still area holds; painting where the hand moves fails.
 
 export type RGB = [number, number, number];

@@ -12,7 +12,7 @@ local checkout of sam-3d-body, which it only reads: the folder SAM_3D_BODY names
   <sam-3d-body>/.venv/Scripts/python.exe -I -B dealer3d/tools/docka-sam.py <out folder> <picture.png> [<picture.png> ...]
       [--box 470,20,1300,1060] [--focal 2334] [--min-free 2600]
 
-Under the shared lock for the graphics card (docs/DRIFT.md); about a minute. Writes into the out folder:
+Under the shared lock for the graphics card (AGENTS.md, "Labbservern"); about a minute. Writes into the out folder:
   <folder>-<stem>.npz   verts (18439 x 3), keypoints (70 x 3), pixels (70 x 2), joints (127 x 3), metres in the camera's frame
                 (x right, y down, z into the picture), and the model's own numbers (shape, scale, hand, body pose)
   <folder>-<stem>.verts.f32   the same vertices as little-endian float32, for the measuring tool

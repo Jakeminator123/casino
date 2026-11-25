@@ -1,4 +1,4 @@
-# Mall för texten till en dealers ankare 1 (Nano Banana Pro 4K, 4:3, två bilder). @anchor = ett ankare 1 i bankens ruta som gäller (sko, grönt, pose), @woman = dealerns bild. Hur ordern läggs och efterarbetas: tools/dealer-line.md, station 4.
+# Mall för texten till en dealers ankare 1 (Nano Banana Pro 4K, 4:3, två bilder). @anchor = ett ankare 1 i bankens ruta som gäller (sko, grönt, pose), @woman = dealerns bild. Hur ordern läggs och efterarbetas: ../.claude/skills/ny-dealer/SKILL.md, steg 4.
 # Fyll i platserna inom [[ ]] på engelska, positivt formulerat (säg det som ska synas, inget förbud), och ta bort hakparenteserna. Allt utanför dem är receptet som gjorde Paows ankare 1 och står kvar.
 #   [[KLÄDER]]      det hon bär i @anchor och ska behålla. Ska kläderna bytas, stryk dem här och säg de nya i [[UTSEENDE]].
 #   [[PLAGG]]       det plagg som går ned bakom händerna till kroppens slutrad (i exemplet "blazer").

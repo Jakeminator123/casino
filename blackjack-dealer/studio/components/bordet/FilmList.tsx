@@ -3,7 +3,7 @@
 // A film's five marks (lib/bordet.ts Mark: Första bild, Slutbild, Referensfilm, Text, Pris; ready, missing or waiting, the words
 // written on the mark, so the price stands on Pris), as the guide Ny film shows them in Hur (NewFilm.tsx), and the way to a
 // draft in Kön. A mark that only waits for another film (a return for its deal) says so in a quiet tone, not as a fault
-// (Jakob 2026-11-23, docs/BESKED.md "Rensa bort regler och låsningar som blockerar").
+// (Jakob 2026-11-23, "Rensa bort regler och låsningar som blockerar").
 import type { Mark } from "../../lib/bordet.ts";
 import { cn } from "../ui";
 

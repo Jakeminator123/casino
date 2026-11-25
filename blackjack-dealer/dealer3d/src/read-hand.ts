@@ -5,7 +5,7 @@
 // between frames) and too little of its turn (the hand turns a third of what the card turns), so the read card sits
 // outside her fingers and turns in thin air. The card is well read (its four corners in every frame), and in her films
 // she pinches it by its short end from the shoe until it lies. So, while she holds it, her hand is the doll's own hand
-// (her bones) pinching the card's held end between thumb and forefinger, turned as the card turns (BESKED "Handleden
+// (her bones) pinching the card's held end between thumb and forefinger, turned as the card turns (Jakob 2026-11-17, 2026-11-23: "Handleden
 // vrider kortet", "Ett kort vänds av händer och fingrar", "Kortet sitter i fingrarna genom vändningen"): gripOf reads how
 // her hand lies on the card in the frames before it leaves the shoe, where the reading is steady, and tips it the least
 // for thumb and forefinger to go round the card, not through it; heldBy lets the card pivot in the pinch for her wrist to
