@@ -26,8 +26,8 @@ export const GUIDE: readonly GuideView[] = [
     adress: "/studio/bordet/",
     kort: "Bordet och scenen",
     text:
-      "Bordet: en vy med delarna Kortplan, Scen, Råfilm och Efterarbete (i Jakobs labb också Kön). Kortplan visar var korten " +
-      "ligger och hur kortet kommer dit, med kortbanan som dockan gör den. Scen spelar en runda i 3D-scenen, Råfilm som filmerna är " +
+      "Bordet: en vy med delarna Kortplan, Kön, Scen, Råfilm och Efterarbete (i kopian bara de tre sista). Kortplan visar bordet, " +
+      "dockan och kortplanens kort i 3D, var kortet landar och hur det kommer dit, med kortbanan som dockan gör den. Scen spelar en runda i 3D-scenen, Råfilm som filmerna är " +
       "på sin gröna bakgrund, och Efterarbete visar det som läggs över filmen, som korten och markerna. Rundan skrivs som Jakob " +
       "skriver den: ”A2.1 - P4C1 - A2.1”. Remsan under bilden visar varje steg; mellanslag spelar och pausar.",
   },

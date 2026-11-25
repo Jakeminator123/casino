@@ -59,7 +59,7 @@ export function kartaHref(dealer: string, tree: string, step: string | null, com
 /** The card a step is about: the card it goes to or comes from, the hole card for its turn; null for a step without one. */
 export const cardOf = (p: StepPick): string | null => (isCard(p.from) ? p.from : isCard(p.to) ? p.to : p.to === REVEAL_NODE ? HOLE_CARD : null);
 
-/** The same step for another card chosen on the board ("A2.3 → A3P4C2" for P5C1 is "A2.3 → A3P5C1"); a step without a card stays. */
+/** The same step for another card chosen in Kortplan ("A2.3 → A3P4C2" for P5C1 is "A2.3 → A3P5C1"); a step without a card stays. */
 export function swapCard(p: StepPick, place: string): StepPick {
   if (!isCard(place)) return p;
   if (isCard(p.from) && p.from !== place) return { from: place, to: p.to };
@@ -99,7 +99,7 @@ function itemFrom(p: StepPick, step: ViewStep | null): GuideItem {
 export const itemOf = (view: Pick<TreeView, "steps"> | null, p: StepPick): GuideItem => itemFrom(p, view?.steps.find((s) => s.id === `${p.from}>${p.to}`) ?? null);
 
 /**
- * The guide's step for a card chosen on the board: the tree's step of the same kind to that card (from the anchor the tree
+ * The guide's step for a card chosen in Kortplan: the tree's step of the same kind to that card (from the anchor the tree
  * deals it from), else the same step with the card swapped; a step without a card stays.
  */
 export function pickFor(view: Pick<TreeView, "steps"> | null, item: Pick<GuideItem, "from" | "to" | "kind">, place: string): StepPick {
@@ -115,7 +115,7 @@ export function sameIn(view: Pick<TreeView, "steps">, item: GuideItem): StepPick
 
 const SHOE_ANCHORS = ["READY", "READY-B", "READY-C"] as const;
 /**
- * The steps outside the tree's measure that Bordet orders: for the card chosen on the board its return to rest (A3 → A1) and
+ * The steps outside the tree's measure that Bordet orders: for the card chosen in Kortplan its return to rest (A3 → A1) and
  * its deal and return from the other anchors at the shoe, and the entry and the exit of those anchors.
  */
 export function morePicks(hub: string, place: string | null): StepPick[] {
@@ -139,15 +139,17 @@ export function tilesOf(view: Pick<TreeView, "steps" | "hub"> | null, place: str
   return { saknas: tree.filter((i) => i.state === "saknas"), prov: tree.filter((i) => i.state === "prov"), finns: tree.filter((i) => i.state === "finns"), more };
 }
 
-/** The cards with a step of the tree that has no film: what the board rings while the guide is open. */
-export const gapCards = (view: Pick<TreeView, "steps">): Set<string> => new Set(view.steps.flatMap((s) => (s.state === "saknas" && s.card ? [s.card] : [])));
-
 /** The node whose picture a tile shows: the card, else where the step goes (where it leaves the shoe for rest, the anchor it leaves). */
 export const tileNode = (item: Pick<GuideItem, "from" | "to" | "card">): string => item.card ?? (item.to === "IDLE" && item.from !== "IDLE" ? item.from : item.to);
 
-/** The tree the guide opens on: the asked one, else the first that is being built (not one that shares another), else the first the game plays. */
+/**
+ * The tree the guide opens on, and whose anchor Kortplan deals a card from where none is chosen (lib/bordet.ts treeAnchor):
+ * the asked one, else the first the game plays (not one that shares another), else the first that is being built. The
+ * played tree comes first since 2026-11-25: it is the one being filled (Tatuerad from A2.3, the method that holds), and a
+ * tree under construction (Tatuerad nyp, from A2.1) is then chosen by him, never met by default.
+ */
 export function pickTree<V extends Pick<TreeView, "tree">>(views: readonly V[], asked: string | null): V | null {
-  return views.find((v) => v.tree.id === asked) ?? views.find((v) => v.tree.state === "byggs" && !v.tree.shares) ?? views.find((v) => v.tree.state === "spelas" && !v.tree.shares) ?? views[0] ?? null;
+  return views.find((v) => v.tree.id === asked) ?? views.find((v) => v.tree.state === "spelas" && !v.tree.shares) ?? views.find((v) => v.tree.state === "byggs" && !v.tree.shares) ?? views[0] ?? null;
 }
 
 /**

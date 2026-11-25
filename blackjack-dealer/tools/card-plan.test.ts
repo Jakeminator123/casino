@@ -6,7 +6,7 @@
 // Run: node --test tools/card-plan.test.ts
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { TABLE_PERSPECTIVE, TARGETS, defaultPlan, planQuad, setTablePerspective, setTableProjection, toPixels, validatePlan, type PlacementPlan } from '../src/placement-model.ts';
+import { TABLE_PERSPECTIVE, TARGETS, defaultPlan, planQuad, setTablePerspective, toPixels, validatePlan, type PlacementPlan } from '../src/placement-model.ts';
 import { TABLE_LENS, quadMeasure, realCardQuad, type Pixel } from '../src/table-lens.ts';
 import { filmToPlan, planCardQuad, planTaper, planToFilm, screenMeasure, throughLens } from '../src/card-plan.ts';
 import { readFile } from 'node:fs/promises';
@@ -21,6 +21,8 @@ import { REAL_TABLE, TABLE, TABLE_SIZE, sized, tableUnder } from '../src/scene3d
 
 const near = (a: number, b: number, tolerance: number, what: string) => assert.ok(Math.abs(a - b) <= tolerance, `${what}: ${a} is not within ${tolerance} of ${b}`);
 const plan = (): PlacementPlan => { const p = defaultPlan(); validatePlan(p); return p; };
+/** The plan drawn card by card (its table taken off "Plant bord"), its perspective kept. */
+const cardByCard = (p: PlacementPlan): PlacementPlan => ({ ...p, tableProjection: { ...p.tableProjection, mode: 'individual', heading: 0 } });
 /** A real card at the plan's place through the real camera, in plan pixels: the size and place every value must keep. */
 const realOf = (p: PlacementPlan, id: string) => realCardQuad(planToFilm(toPixels(p.targets[id].geometry.native, 'native')), 0, 1, TABLE_LENS)!.map(filmToPlan);
 const same = (a: Pixel, b: Pixel, what: string) => { near(a.x, b.x, 1e-6, `${what} x`); near(a.y, b.y, 1e-6, `${what} y`); };
@@ -41,7 +43,7 @@ test('on "Plant bord" every card is a real card (grow 1) through the table lens 
 });
 
 test('the plan\'s own rule where the lens does not apply: a table taken off "Plant bord", and Mobil', () => {
-  const own = setTableProjection(plan(), { mode: 'individual', heading: 0 });
+  const own = cardByCard(plan());
   assert.equal(throughLens(own, 'native'), false);
   for (const id of ['P1.C1', 'P4.C1', 'D.C2']) assert.deepEqual(planCardQuad(own, id, 'native'), planQuad(own, id, 'native'));
   const p = plan();
@@ -88,12 +90,10 @@ test('the table\'s perspective: seat 4\'s far edge is the chosen share of its ne
   near(planTaper(tight), TABLE_PERSPECTIVE.min, 1e-9, 'and a very narrow one the control\'s end');
 });
 
-test('the perspective is stored with the table\'s projection: absent is seat 4\'s taper, a value within 0.80 to 0.96, kept by a change of mode', () => {
+test('the perspective is stored with the table\'s projection: absent is seat 4\'s taper, a value within 0.80 to 0.96', () => {
   const p = setTablePerspective(plan(), 0.87);
   assert.deepEqual(p.tableProjection, { mode: 'flat', heading: 0, perspective: 0.87 }); validatePlan(p);
   assert.deepEqual(setTablePerspective(p, null).tableProjection, { mode: 'flat', heading: 0 });
-  const own = setTableProjection(p, { mode: 'individual', heading: 0 }); assert.equal(own.tableProjection?.perspective, 0.87); assert.equal(throughLens(own, 'native'), false);
-  assert.equal(setTableProjection(own, { mode: 'flat', heading: 15 }).tableProjection?.perspective, 0.87);
   validatePlan(setTablePerspective(plan(), 0.8));
   for (const bad of [0.5, 0.74, 0.79, 0.97, 1.2, '0.87', null, Number.NaN]) assert.throws(() => validatePlan({ ...p, tableProjection: { mode: 'flat', heading: 0, perspective: bad as number } }), `${bad}`);
   assert.throws(() => validatePlan({ ...p, tableProjection: { mode: 'flat', heading: 0, perspective: 0.87, extra: true } as never }));
@@ -166,7 +166,7 @@ test('the game as it was: the older rule gives the same lying cards pixel for pi
   // before this rule the game laid a card with flatQuad and its own factor for the film's width (1763 / 1761)
   const FILM_X = 1763 / 1761, plan = testPlan(), layout = createLayout(plan, {geometry: 'contract'}), reference = plan.targets['P4.C1'].geometry.native;
   for (const id of TARGETS) outlines(layout.quad(slotOfTarget(id)), flatQuad(plan.targets[id].geometry.native, reference, 'native', 0).map(p => ({x: p.x * FILM_X, y: p.y})), id, 1e-9);
-  const own = setTableProjection(plan, {mode: 'individual', heading: 0}), card = createLayout(own, {geometry: 'contract'});
+  const own = cardByCard(plan), card = createLayout(own, {geometry: 'contract'});
   for (const id of ['P1.C1', 'P4.C2', 'D.C2']) outlines(card.quad(slotOfTarget(id)), quad(own.targets[id].geometry.native, 'native').map(p => ({x: p.x * FILM_X, y: p.y})), id, 1e-9);
   // the dealer's third card lies where its film lays it, as before (its place written in film pixels)
   const third = layout.centre({owner: 'D', seat: 0, hand: 0, hands: 1, index: 2});
@@ -321,7 +321,7 @@ test('the drawn card by the plan\'s rule: size 1 is the plan\'s own outline, ano
     assert.ok(Math.abs(side(felt[0], felt[1]) - CARD.width * scale) < 1e-5 && Math.abs(side(felt[1], felt[2]) - CARD.height * scale) < 1e-5, `size ${scale}: ${scale} times a real card`);
   }
   // a plan drawn card by card has no lens: the outline it is given is the card, enlarged about its middle
-  const own = setTableProjection(plan, {mode: 'individual', heading: 0}), stored = planCardAt(own, own.targets['P3.C1'].geometry.native, 'native').map(planToFilm);
+  const own = cardByCard(plan), stored = planCardAt(own, own.targets['P3.C1'].geometry.native, 'native').map(planToFilm);
   outlines(stored, quad(own.targets['P3.C1'].geometry.native, 'native').map(planToFilm), 'the plan\'s own rule', 0);
   outlines(restingQuad(planScene(null, own), stored, 1).quad, stored, 'individual, size 1', 1e-9);
   const twice = restingQuad(planScene(null, own), stored, 2).quad; assert.ok(Math.abs(dist(twice[0], twice[1]) - 2 * dist(stored[0], stored[1])) < 1e-9);

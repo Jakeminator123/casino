@@ -1,4 +1,4 @@
-// The doll's films with what came of them (Bordet's part Docka, components/bordet/DollFilms.tsx): each film of
+// The doll's films with what came of them (Kortplan's "Dockans filmer", components/bordet/DollFilms.tsx): each film of
 // data/rendered-references.json under the card it deals to, and beside it the orders that were sent with it as their
 // reference film, with the takes they brought (the protocol's rows, lib/ledger.ts). An order says which film it was built
 // on in reference.clips (and reference.from.film, the film its copy was taken from); nothing is guessed from names.

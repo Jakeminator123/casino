@@ -8,9 +8,11 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {LOCK, lockLine, releaseLock, takeLock} from '../../tools/lab-look.ts';
+import {FILM} from '../../src/table-lens.ts';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
-const DEFAULT_FPS = 30, WIDTH = 1764, HEIGHT = 1174;
+// The film's frame is the standard's picture (FILM in src/table-lens.ts); the doll's orders and tools ask for --fps 24.
+const DEFAULT_FPS = 30, WIDTH = FILM.width, HEIGHT = FILM.height;
 const FONT = path.join(process.env.SystemRoot ?? 'C:/Windows', 'Fonts', 'arial.ttf');
 const INCOMPLETE = 'ofullstandig.txt';
 const RECEIPT = 'renderkvitto.json';

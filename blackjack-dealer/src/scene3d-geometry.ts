@@ -5,9 +5,10 @@
 // `scale` (the contract's k) says how many times larger the dealer's own world is.
 // The pinhole itself is the one in src/scene-geometry.ts (table millimetres, Y away from the camera); this file only changes frame.
 import {applyH, cameraHomography, cameraProject, inv3, type Camera} from './scene-geometry.ts';
-import {horizonRow, planPixel, type Lens} from './table-lens.ts';
+import {FILM, horizonRow, planPixel, type Lens} from './table-lens.ts';
 
-export const FILM = {width: 1764, height: 1174};
+/** The bank's frame, the standard's picture: src/table-lens.ts holds it, and the scene's modules read it from here. */
+export {FILM};
 export type FilmCamera = {focalPx: number; horizonRow: number; edgeRow: number; heightM: number; scale: number; source: 'contract' | 'estimate' | 'lens'};
 export type TablePoint = {x: number; z: number};
 export type Spot = {id: string; x: number; s: number}; // dealer metres: x across the table, s from the dealer-side edge toward the players

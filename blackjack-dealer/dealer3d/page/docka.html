@@ -34,6 +34,7 @@
   #play { min-width: 72px; background: var(--gold); border-color: var(--gold); color: #17140a; font-weight: 600; }
   .seg { display: flex; gap: 6px; flex-wrap: wrap; }
   aside { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 10px; position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow-y: auto; }
+  .docklabb-styr { display: grid; gap: 10px; }
   h1 { margin: 0; font-size: 17px; font-weight: 600; }
   .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
   h2 { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
@@ -54,8 +55,7 @@
   #knobs h3:first-child { margin-top: 0; }
   .acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
   #entries, #backs { margin-bottom: 6px; }
-  #landings button, #turns button, #sides button { padding: 5px 9px; font-size: 13px; }
-  #sideNote.warn { color: var(--warn); }
+  #landings button, #turns button { padding: 5px 9px; font-size: 13px; }
   #turnNote.warn { color: var(--warn); }
   #shaping { margin-top: 4px; }
   #landingNote.warn { color: var(--warn); }
@@ -63,8 +63,11 @@
   #save:disabled { background: #1c221f; border-color: var(--line); color: #5d6862; font-weight: 400; }
   #status.warn { color: var(--warn); }
   @media (max-width: 900px) { main { grid-template-columns: 1fr; } aside { position: static; max-height: none; } }
-  /* Inbäddad i studion (Bordet, delen Docka; ?inbaddad=1): sidan är ramens storlek och rullar inte, bilden har filmens
-     format och får den höjd ramen ger, valen rullar i sin egen spalt, och färgerna är studions. Utan ordet i adressen gäller inget av detta. */
+  /* Embedded in the studio (Bordet, Kortplan; ?inbaddad=1): the page is the frame's size and does not scroll, the picture has
+     the film's shape and the height the frame gives, and the colours are the studio's. Where the page around has a column for
+     the controls (docka.ts attaches .docklabb-styr there and sets .styr-ute), only the picture and its transport row are left
+     here, filling the frame at any width; without one the controls scroll in their own column here. Without the word in the
+     address none of this holds. */
   .inbaddad { --bg: #0b0f0d; --panel: #121815; }
   .inbaddad, .inbaddad body { height: 100%; }
   .inbaddad body { overflow: hidden; }
@@ -77,6 +80,11 @@
     .inbaddad body { overflow: auto; } .inbaddad main { height: auto; grid-template-rows: none; } .inbaddad section { container-type: normal; }
     .inbaddad .frame, .inbaddad .hint, .inbaddad .transport { width: 100%; } .inbaddad aside { max-height: none; }
   }
+  .inbaddad.styr-ute body { overflow: hidden; }
+  .inbaddad.styr-ute main { height: 100%; padding: 6px 8px; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .inbaddad.styr-ute section { container-type: size; }
+  .inbaddad.styr-ute aside, .inbaddad.styr-ute .hint { display: none; }
+  .inbaddad.styr-ute .frame, .inbaddad.styr-ute .transport { width: min(100%, calc((100cqh - 50px) * 1764 / 1174)); }
 </style>
 <script>if (new URLSearchParams(location.search).get('inbaddad') === '1') document.documentElement.classList.add('inbaddad');</script>
 </head>
@@ -103,17 +111,16 @@
   </section>
   <aside>
     <div class="head"><h1>Docklabb</h1><div class="seg" id="dolls" role="group" aria-label="Docka"><button data-doll="paow">Paow</button><button data-doll="standard">Standarddockan</button></div></div>
+    <div class="docklabb-styr">
     <div><h2>Rörelse</h2>
       <div class="seg" id="ways" role="group" aria-label="Rörelse"><button data-way="naturlig">Naturlig</button><button data-way="forut">Som förut</button></div>
       <p class="small" id="wayNote"></p></div>
     <div><h2>Ställning</h2>
-      <div class="seg" id="poses"><button data-pose="A1">A1</button><button data-pose="A2.1">A2.1</button><button data-pose="A2.2" disabled title="Inte byggd: bara ankarbilden finns, ingen ställning är läst ur den">A2.2</button><button data-pose="A2.3">A2.3</button></div>
-      <p class="small">A2.2: inte byggd; bara ankarbilden finns, ingen ställning är läst ur den.</p></div>
+      <div class="seg" id="poses"><button data-pose="A1">A1</button><button data-pose="A2.1">A2.1</button><button data-pose="A2.3">A2.3</button></div></div>
     <div><h2 id="dealHead">Giv från A2.3 till</h2>
-      <div class="seg" id="entries" role="group" aria-label="Giv från"><button data-entry="A2.1">Från A2.1</button><button data-entry="A2.2" disabled title="Inte byggd: bara ankarbilden finns, ingen ställning är läst ur den och ingen giv börjar där">Från A2.2</button><button data-entry="A2.3">Från A2.3</button></div>
+      <div class="seg" id="entries" role="group" aria-label="Giv från"><button data-entry="A2.1">Från A2.1</button><button data-entry="A2.3">Från A2.3</button></div>
       <div class="seg" id="backs" role="group" aria-label="Given"><button data-back="0">Giv</button><button data-back="1">Giv och återgång</button></div>
-      <div class="grid" id="places"></div><p class="small" id="closed"></p>
-      <div id="sideBox" hidden><h3>Kortet ligger</h3><div class="seg" id="sides" role="group" aria-label="Kortet ligger"><button data-side="BACK">Stängt</button><button data-side="FRONT">Öppet</button></div><p class="small" id="sideNote"></p></div></div>
+      <div class="grid" id="places"></div><p class="small" id="closed"></p></div>
     <div><h2>Vändning</h2>
       <div class="seg" id="turns" role="group" aria-label="Vändning"></div>
       <p class="small" id="turnNote"></p></div>
@@ -125,6 +132,7 @@
       <div id="knobs"></div>
       <div class="acts"><button id="atplace">Vänd vid platsen</button><button id="reset">Återställ</button><button id="save">Spara som standard</button></div>
       <p class="small" id="status"></p></div>
+    </div>
   </aside>
 </main>
 <script type="module" src="/preview-ui.js"></script>

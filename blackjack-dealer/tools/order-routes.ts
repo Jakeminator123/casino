@@ -9,8 +9,9 @@
 //                                       bank, model, length, takes), or with seats one draft per seat sharing a group
 //   PUT  /api/orders/<id>               change a draft: title, takes, hand, side, turn, free addition, length (If-Match)
 //   POST /api/orders/<id>/refresh       fetch what a draft waits for once it holds, draw its last picture again (If-Match)
-//   POST /api/orders/docka              {dealer, place}: the doll's saved movement to that card becomes its film and a draft
-//                                       (tools/doll-order.ts; about a minute, one at a time), from Kortplan's step 3 (Spara utkastet on a deal from A2.3)
+//   POST /api/orders/docka              {dealer, place, entry}: the doll's saved movement to that card becomes its film and a
+//                                       draft (tools/doll-order.ts; about a minute, one at a time), from Kortplan's step 3 (Spara
+//                                       utkastet on a deal from A2.3); entry is the step's pose, "A2.3" or "A2.1" (A2.3 left out)
 //   POST /api/orders/<id>/approve      Jakob's click: freezes the order with its hash, refused beyond the policy (If-Match)
 //   GET  /assets/orders/<id>/<file>     a picture or film of an order, only from that folder; and a take's film (take-<n>/after.mp4)
 //   GET  /assets/references/docka/<id>/source.mp4   a reference film of the dummy's, only one data/rendered-references.json lists
@@ -150,11 +151,12 @@ export function orderRoutes(options: { root: string; origin: string } & StoreOpt
       }
       if (p === '/api/orders/docka') {
         if (method !== 'POST') throw new StoreError(405, 'Bara POST.');
-        const value = (await body(req, true)) as { dealer?: unknown; place?: unknown } | null;
-        if (!value || typeof value.dealer !== 'string' || typeof value.place !== 'string' || Object.keys(value).some((k) => k !== 'dealer' && k !== 'place')) throw new StoreError(400, 'Skicka dealer och place.');
+        const value = (await body(req, true)) as { dealer?: unknown; place?: unknown; entry?: unknown } | null;
+        if (!value || typeof value.dealer !== 'string' || typeof value.place !== 'string' || Object.keys(value).some((k) => k !== 'dealer' && k !== 'place' && k !== 'entry')) throw new StoreError(400, 'Skicka dealer och place.');
+        if (value.entry !== undefined && value.entry !== 'A2.1' && value.entry !== 'A2.3') throw new StoreError(400, 'entry ska vara A2.1 eller A2.3.');
         if (dolling) throw new StoreError(409, 'Dockans film görs redan; vänta tills den är klar.');
         dolling = true;
-        try { json(res, 201, await dollOrder(root, { dealer: value.dealer, place: value.place })); } finally { dolling = false; }
+        try { json(res, 201, await dollOrder(root, { dealer: value.dealer, place: value.place, ...(value.entry ? { entry: value.entry } : {}) })); } finally { dolling = false; }
         return true;
       }
       const m = /^\/api\/orders\/([a-z0-9]+(?:-[a-z0-9]+)*)(\/approve|\/refresh)?$/.exec(p);

@@ -17,8 +17,10 @@ import sharp from 'sharp';
 import { CARD_RGB, WINDOW_CARD, cardMark, validatePlan, type PlacementPlan } from '../src/placement-model.ts';
 import { planCardQuad, planTaper, throughLens } from '../src/card-plan.ts';
 import { scaleQuad, type Drawn } from '../src/order-model.ts';
+import { FILM } from '../src/table-lens.ts';
 
-export const W = 1764, H = 1174, N = W * H;
+/** The bank's frame (FILM in src/table-lens.ts, the standard's picture): every picture here is this size. */
+export const W = FILM.width, H = FILM.height, N = W * H;
 export type Pt = [number, number];
 export type Rgb = Buffer; // W × H × 3, row by row
 const sha = (b: Buffer | string) => createHash('sha256').update(b).digest('hex');

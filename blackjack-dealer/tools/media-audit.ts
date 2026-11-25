@@ -22,6 +22,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildGraph, dealersOf, playable, type BankData, type Take} from '../src/clip-graph.ts';
 import {planCardQuad, planToFilm} from '../src/card-plan.ts';
+import {FILM} from '../src/table-lens.ts';
 import {classify, blobs, outline, centre, YELLOW, BLUE, SHADE, TABLE, TINT, SKIN, type Pt} from '../src/card-track.ts';
 import type {PlacementPlan} from '../src/placement-model.ts';
 import {execFileSync} from 'node:child_process';
@@ -342,7 +343,7 @@ async function pixels(repo: string, file: string, frame?: number): Promise<{rgb:
 export async function fitAll(repo: string, loadPixels = pixels): Promise<{rule: FitRule; entries: Record<string, Fit>; takes: Record<string, Fit & {approved: boolean; played: boolean}>}> {
   const read = (f: string) => { try { return readFileSync(path.join(repo, f), 'utf8'); } catch { return ''; } }, json = (f: string) => { try { return JSON.parse(read(f)); } catch { return null; } };
   const plan = json('placements/default.json') as PlacementPlan, roles = json('data/media-roles.json'), standard = json('data/dealer-standard.json');
-  const BANK = {width: 1764, height: 1174, edgeRow: 831.5};
+  const BANK = {...FILM, edgeRow: 831.5}; // the standard's picture (src/table-lens.ts) and the contract's table edge row
   const rule: FitRule = {placePx: 15, sizeShare: 0.12, handsPx: Number(standard?.hands?.fitTolerancePx?.hands) || 8};
   const ruleCard = (card: string): Pt[] | null => { try { return planCardQuad(plan, card, 'native').map(planToFilm); } catch { return null; } };
   const entries: Record<string, Fit> = {}, takes: Record<string, Fit & {approved: boolean; played: boolean}> = {};

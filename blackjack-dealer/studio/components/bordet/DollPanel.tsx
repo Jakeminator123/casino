@@ -1,44 +1,54 @@
 "use client";
 
-// The doll in Bordet's Kortplan (Jakob 2026-11-23: Kortplan and Docka "känns som typ samma sak"; "EN väg och ETT ställe
-// man använder dockan"). Step 2, Hur det kommer dit, shows the doll where the plan's picture is, on the card Kortplan has
-// chosen; the toolbar chooses between the plan and the doll's two views:
-//   Ställ dockan    the doll lab itself in a frame (dealer3d/page/docka.html?inbaddad=1: its poses, the deal to each card,
-//                   Naturlig and Som förut, the sliders and Spara som standard, all as on its own page), opened on the chosen
-//                   card and the chosen dealer's doll. A card chosen in the lab becomes Bordet's card, and one chosen in Bordet
-//                   is chosen in the lab, unless sliders are moved and not saved there: the lab then says which card it still
-//                   shows, and that card is Bordet's.
-//   Dockans filmer  the doll's films for the chosen card, each beside the films ordered with it (DollFilms.tsx)
-// Step 2 says in one line which saved standard the card's deal is (DollNote), and step 3 makes the draft from it for a deal from
-// A2.3 to a player's card or one of the dealer's own (DOLL_CARD; NewFilm.tsx; lib/orders.ts orderDoll, tools/doll-order.ts):
-// what is saved in the lab is what is ordered. The dealer's own cards lie closed or open as the lab saved them; where that
-// side is not the plan's, both steps say so before anything is made (sideClash).
-// The frame stays loaded while the plan or the films are looked at, so that sliders moved and not saved are still there on the
-// way back. Only in the local lab (the copy has no doll lab).
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { OrdersAnswer } from "../../../src/order-model.ts";
-import { SHOE, type Place, type Side } from "../../../src/placement-model.ts";
+// The doll in Bordet's Kortplan: Kortplan's one picture, for every step (Jakob 2026-11-25: "Jag vill att vi skapar ett och
+// samma läge för detta ... jag vill ha allt i 3d ... Det andra ska raderas."). The doll lab, embedded
+// (dealer3d/page/docka.html?inbaddad=1), shows the table, the chosen dealer's doll and the draft plan's cards on the felt in
+// 3D, with its view buttons, its note and its transport row. Its controls (Rörelse, Ställning, Giv från, Vändning, Landning,
+// Styr with "Spara som standard") the lab lays itself into step 2's host, DollControls: an element React never fills, found
+// as [data-docklabb-styr]; their look is the studio's (app/globals.css .docklabb-styr). The talk with the frame, all
+// {docklabb: {...}}, the studio's own origin only:
+//   to the lab    {place, entry?, play?}  Bordet's card, the pose it is dealt from (the guide tree's anchor, lib/bordet.ts
+//                                          treeAnchor) and "Spela kortbanan" (the deal from the start)
+//                 {plan}                  the draft plan as it stands, unsaved changes too: when the lab is ready, and 80 ms
+//                                          after a change
+//                 {attach: true}          lay the controls into the host: when the lab is ready and when a host is mounted anew
+//                 {flytta}                true while step 1 is open and the plan can be changed: the card's place can be
+//                                          dragged on the felt
+//   from the lab  {ready: true}           it has started: all of the above is sent then (what is sent before its script runs
+//                                          is lost), and again after every new load of the frame
+//                 {place, entry}          a card or a pose chosen there (also by a click in the picture), and its answer to
+//                                          every {place}: the card is Bordet's, and the pose is told on (onEntry), so that
+//                                          step 2 can say where it is not the tree's
+//                 {place, saved}          a standard was saved: what step 2 and 3 say of it is read again
+//                 {moved: {place, u, v}}  the card's place dragged in the picture (about 20 a second, and once at the end):
+//                                          the draft's place in the plan's picture, the drag one step for Ångra; the plan
+//                                          sent back after it is what the lab lays the deal from again
+// "Dockans filmer" shows the doll's films for the chosen card instead of the picture (DollFilms.tsx); the frame stays loaded
+// beside them. The doll is the chosen dealer's own where a doll is named as she is (dealer3d/src/doll.ts), else the standard
+// doll, and only for a dealer with her own is a deal ordered from the doll (step 3; lib/orders.ts orderDoll,
+// tools/doll-order.ts): what is saved in the lab is what is ordered. The side a card lies with is the plan's alone (step 2,
+// "Kortet ligger"); the lab lays it as the plan it is sent says. Only in the local studio: the copy has no doll lab, and no
+// Kortplan.
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { DOLLS } from "../../../dealer3d/src/doll.ts";
+import { genitive, type OrdersAnswer } from "../../../src/order-model.ts";
+import { SHOE, type Place, type PlacementPlan } from "../../../src/placement-model.ts";
 import { dollFilms, takesOf, type DollGroup } from "../../lib/doll-films.ts";
 import type { Ledger } from "../../lib/ledger.ts";
 import { swedishMoment } from "../../lib/mode.ts";
-import { dollFor, placeCode, placeFromCode } from "../../lib/placement.ts";
+import { placeCode, placeFromCode } from "../../lib/placement.ts";
 import { ErrorState, SegmentedControl, Skeleton, cn } from "../ui";
 import { DollFilms } from "./DollFilms";
 
-export type DollPart = "stall" | "filmer";
-/** The address's word for the part ("del=filmer"); the lab itself needs none. */
-export const dollPartOf = (word: string | null): DollPart => (word === "filmer" ? "filmer" : "stall");
+/** The poses the doll deals a card from. */
+export type DollEntry = "A2.1" | "A2.3";
 /** The films without a card (the entry to an anchor) among the cards of the films' row. */
 const ENTRY = "ingang";
 /** The cards a deal from A2.3 is ordered to from the doll: a player's, or one of the dealer's own (tools/doll-order.ts). */
 export const DOLL_CARD = /^(?:P[1-7]\.C[12]|D\.C[1-3])$/;
-/** The dealer's own cards: the ones the doll lays closed or open (dealer3d/page/lay.ts Steer.side). */
-const DEALER_CARD = /^D\.C[1-3]$/;
-/** A card's side as it lies, in the words of the plan's "Vid landning" and of the doll lab's "Kortet ligger". */
-const SIDE_WORD: Record<Side, string> = { BACK: "stängt", FRONT: "öppet" };
 
-/** The doll lab's word for the chosen dealer's doll: hers, or the standard doll for a dealer without one. */
-const dollWord = (dealer: string) => dollFor(dealer).id.replace(/^docka-/, "");
+/** The doll lab's word for the chosen dealer's doll: hers where one is named as she is, else the standard doll. */
+const dollWord = (dealer: string) => (dealer !== "standard" && Object.hasOwn(DOLLS, dealer) ? dealer : "standard");
 /** Whether the dealer has a doll of her own: only then is a deal ordered from the doll (tools/doll-order.ts takes her doll). */
 export const ownDoll = (dealer: string) => dollWord(dealer) === dealer;
 
@@ -50,12 +60,8 @@ export function useDollGroups(orders: OrdersAnswer | null, ledger: Ledger | null
   }, [orders, ledger]);
 }
 
-/**
- * His saved standard for the doll's deal from A2.3 to a card, as the lab saved it (dealer3d/standard/<doll>-<card>.json).
- * `side`: the side it lays one of the dealer's own cards with: closed only where the lab saved that, since a standard saved
- * without a side lays the card open (lay.ts sideOf, which the order's tool reads the same way).
- */
-export type DollStandard = { name: string; savedAt: string; cardTempo: number; side: Side };
+/** His saved standard for the doll's deal from A2.3 to a card, as the lab saved it (dealer3d/standard/<doll>-<card>.json). */
+export type DollStandard = { name: string; savedAt: string; cardTempo: number };
 /** What is known of the card's standard: being read, read (null: none saved), or not readable. */
 export type StandardState = { state: "läser" } | { state: "läst"; standard: DollStandard | null } | { state: "fel" };
 
@@ -74,8 +80,8 @@ export function useDollStandard(dealer: string, place: Place, tick: number, on: 
       const list = (await (await fetch("/dealer3d/standard", { cache: "no-store" })).json()) as { standards: { name: string; savedAt: string }[] };
       const found = list.standards.find((s) => s.name === name);
       if (!found) return null;
-      const file = (await (await fetch(`/dealer3d/standard/${name}.json`, { cache: "no-store" })).json()) as { lab?: { steer?: { cardTempo?: number; side?: unknown } } };
-      return { name, savedAt: found.savedAt, cardTempo: file.lab?.steer?.cardTempo ?? 1, side: file.lab?.steer?.side === "BACK" ? ("BACK" as const) : ("FRONT" as const) };
+      const file = (await (await fetch(`/dealer3d/standard/${name}.json`, { cache: "no-store" })).json()) as { lab?: { steer?: { cardTempo?: number } } };
+      return { name, savedAt: found.savedAt, cardTempo: file.lab?.steer?.cardTempo ?? 1 };
     })().then(
       (standard) => live && setRead({ key, state: { state: "läst", standard } }),
       () => live && setRead({ key, state: { state: "fel" } }),
@@ -87,113 +93,145 @@ export function useDollStandard(dealer: string, place: Place, tick: number, on: 
   return read?.key === key ? read.state : { state: "läser" };
 }
 
-/** The doll's side of a card and the plan's, in words, where they are not the same. */
-export type SideClash = { doll: string; plan: string };
-/**
- * Where the doll lays one of the dealer's own cards with another side than the plan says. The order's text follows the plan,
- * so tools/doll-order.ts stops such an order before any film is made; step 2 and 3 say it beforehand. Only a saved standard
- * can differ: with none saved the doll takes the plan's side. Null where they agree, for a player's card, and while the
- * standard is not read.
- */
-export function sideClash(place: string, standard: StandardState, planSide: Side | null): SideClash | null {
-  if (!DEALER_CARD.test(place) || !planSide || standard.state !== "läst" || !standard.standard) return null;
-  return standard.standard.side === planSide ? null : { doll: SIDE_WORD[standard.standard.side], plan: SIDE_WORD[planSide] };
-}
-
-/**
- * Step 2's one line on the doll: when the card's standard was saved, the card's tempo where it is not the ordinary, and for
- * one of the dealer's own cards the side it is laid with. Where that side is not the plan's (`planSide`), the line says so in
- * the warning's colour instead.
- */
-export function DollNote({ dealer, place, standard, planSide }: { dealer: string; place: Place; standard: StandardState; planSide: Side | null }) {
+/** Step 2's one line on the doll: whose doll it is, when the card's standard was saved, and the card's tempo where it is not the ordinary. */
+export function DollNote({ dealer, place, standard }: { dealer: string; place: Place; standard: StandardState }) {
   if (place === SHOE) return null;
-  const clash = sideClash(place, standard, planSide);
   const saved = standard.state === "läst" ? standard.standard : null;
-  const said = clash
-    ? `${clash.doll}, planen säger ${clash.plan}`
-    : standard.state === "läser"
+  const said =
+    standard.state === "läser"
       ? "läser …"
       : standard.state === "fel"
         ? "standarden kunde inte läsas"
         : saved
-          ? [`sparad ${swedishMoment(saved.savedAt) ?? "utan datum"}`, saved.cardTempo !== 1 ? `kortet ${Math.round(saved.cardTempo * 100)} %` : null, DEALER_CARD.test(place) ? SIDE_WORD[saved.side] : null].filter(Boolean).join(" · ")
+          ? [`sparad ${swedishMoment(saved.savedAt) ?? "utan datum"}`, saved.cardTempo !== 1 ? `kortet ${Math.round(saved.cardTempo * 100)} %` : null].filter(Boolean).join(" · ")
           : "ingen sparad standard · Naturlig";
-  const title = clash
-    ? `Dockan lägger ${placeCode(place)} ${clash.doll}, kortplanen säger ${clash.plan}. Välj samma sida i Ställ dockan (Kortet ligger) och spara, eller ändra Vid landning.`
-    : saved
-      ? `Din sparade standard ${saved.name}`
-      : undefined;
+  const word = dollWord(dealer);
+  const whose = word === "standard" ? "Standarddockan" : `${genitive(word.charAt(0).toUpperCase() + word.slice(1))} docka`;
   return (
-    <p data-doll-note data-side-clash={clash ? "" : undefined} role={clash ? "alert" : undefined} title={title} className={cn("mx-4 mt-1 text-sm leading-5", clash ? "text-[#f0b07a]" : "text-dim")}>
-      <span className="font-semibold text-ink">{dollFor(dealer).word}</span> · {said}
+    <p data-doll-note title={saved ? `Din sparade standard ${saved.name}` : undefined} className="mx-4 mt-3 text-sm leading-5 text-dim">
+      <span className="font-semibold text-ink">{whose}</span> · {said}
     </p>
   );
 }
 
+/**
+ * Where the doll lab lays its controls (step 2): an empty element React never renders children into, so that the lab's
+ * nodes stay. It stays mounted while Kortplan shows, hidden while the step is folded.
+ */
+export const DollControls = forwardRef<HTMLDivElement, { hidden: boolean }>(function DollControls({ hidden }, ref) {
+  return <div ref={ref} data-docklabb-styr hidden={hidden} className="docklabb-host" />;
+});
+
 export function DollStage({
-  part, place, from, play, setPlace, dealer, orders, ordersRead, groups, onSaved,
+  place, entry, play, plan, flytta, host, films, dealer, orders, ordersRead, groups, onPlace, onEntry, onSaved, onMoved,
 }: {
-  /** The view shown, or null while the plan shows (the frame stays loaded). */
-  part: DollPart | null;
   place: Place;
-  /** The pose the doll deals the card from, as the plan's choice is followed (dealer3d/src/doll-choices.ts dollEntry). */
-  from: "A2.1" | "A2.3";
+  /** The pose the doll deals the card from: the guide tree's anchor, where the lab has it (A2.1 or A2.3), else null. */
+  entry: DollEntry | null;
   /** Raised by "Spela kortbanan": the lab plays the doll's deal to the card from the start. */
   play: number;
-  setPlace: (place: Place) => void;
+  /** The draft plan, as the lab shows it. */
+  plan: PlacementPlan;
+  /** The card's place may be dragged in the picture (step 1 open, the plan changeable). */
+  flytta: boolean;
+  /** Step 2's host for the lab's controls (DollControls), or null while none is mounted. */
+  host: HTMLElement | null;
+  /** The doll's films for the card are shown instead of the picture. */
+  films: boolean;
   dealer: string;
   orders: OrdersAnswer | null;
   ordersRead: boolean;
   groups: readonly DollGroup[];
+  /** A card chosen in the lab. */
+  onPlace: (place: Place) => void;
+  /** The pose the lab says it deals from. */
+  onEntry: (entry: DollEntry) => void;
   /** The lab saved a standard: what step 2 and 3 say of it is read again. */
   onSaved: () => void;
+  /** The card's place dragged in the picture, in the plan's picture (0–1 from the left and from the bottom). */
+  onMoved: (place: Place, u: number, v: number) => void;
 }) {
-  // The lab is loaded when it is first shown, on the card and the doll chosen then; another dealer's doll loads it again.
+  // The lab is loaded on the card, pose and doll chosen when Kortplan opens; another dealer's doll loads it again.
   const doll = dollWord(dealer);
   const [lab, setLab] = useState<{ doll: string; src: string } | null>(null);
-  if (part === "stall" && (!lab || lab.doll !== doll)) setLab({ doll, src: labAddress(place, doll, from, play > 0) });
-  const [entry, setEntry] = useState(false);
+  if (!lab || lab.doll !== doll) setLab({ doll, src: labAddress(place, doll, entry) });
+  const [ingang, setIngang] = useState(false);
   const frame = useRef<HTMLIFrameElement>(null);
+  // The window that said it was ready: the frame's own, until another doll loads a new frame.
+  const readyWindow = useRef<Window | null>(null);
+  const post = useCallback((said: Record<string, unknown>) => frame.current?.contentWindow?.postMessage({ docklabb: said }, window.location.origin), []);
+  const isReady = useCallback(() => !!frame.current?.contentWindow && readyWindow.current === frame.current.contentWindow, []);
 
-  // The card chosen in the lab is Bordet's card; a standard saved there is read again.
-  const heard = useRef({ setPlace, onSaved });
+  // What is told when the lab says it is ready, and what is done with what it says: the newest of each.
+  const latest = useRef({ place, entry, plan, flytta, onPlace, onEntry, onSaved, onMoved });
   useEffect(() => {
-    heard.current = { setPlace, onSaved };
-  }, [setPlace, onSaved]);
+    latest.current = { place, entry, plan, flytta, onPlace, onEntry, onSaved, onMoved };
+  });
   useEffect(() => {
     const hear = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow) return;
-      const said = (event.data as { docklabb?: { place?: unknown; saved?: unknown } } | null)?.docklabb;
-      const next = typeof said?.place === "string" ? placeFromCode(said.place) : null;
-      if (next) {
-        setEntry(false);
-        heard.current.setPlace(next);
+      if (event.origin !== window.location.origin || !frame.current || event.source !== frame.current.contentWindow) return;
+      const said = (event.data as { docklabb?: unknown } | null)?.docklabb;
+      if (!said || typeof said !== "object") return;
+      const s = said as { ready?: unknown; place?: unknown; entry?: unknown; saved?: unknown; moved?: unknown };
+      const now = latest.current;
+      if (s.ready === true) {
+        readyWindow.current = frame.current.contentWindow;
+        post({ attach: true });
+        post({ plan: now.plan });
+        if (now.place !== SHOE) post({ place: now.place, ...(now.entry ? { entry: now.entry } : {}) });
+        post({ flytta: now.flytta });
       }
-      if (typeof said?.saved === "string") heard.current.onSaved();
+      const moved = s.moved as { place?: unknown; u?: unknown; v?: unknown } | null | undefined;
+      if (moved && typeof moved === "object") {
+        const at = typeof moved.place === "string" ? placeFromCode(moved.place) : null;
+        const { u, v } = moved;
+        if (at && at !== SHOE && typeof u === "number" && typeof v === "number" && Number.isFinite(u) && Number.isFinite(v)) now.onMoved(at, Math.min(1, Math.max(0, u)), Math.min(1, Math.max(0, v)));
+        return;
+      }
+      const next = typeof s.place === "string" ? placeFromCode(s.place) : null;
+      if (next && next !== SHOE) {
+        setIngang(false);
+        now.onPlace(next);
+      }
+      if (s.entry === "A2.1" || s.entry === "A2.3") now.onEntry(s.entry);
+      if (typeof s.saved === "string") now.onSaved();
     };
     window.addEventListener("message", hear);
     return () => window.removeEventListener("message", hear);
-  }, []);
+  }, [post]);
 
-  // A card chosen in Bordet (its card buttons, the films' row) is asked for in the lab while the lab shows, from the pose the
-  // plan's choice deals it from; the lab answers with the card it shows, which is its own where sliders are moved and not
-  // saved. "Spela kortbanan" asks the lab to play it from the start.
+  // A host mounted anew (Kortplan opened again, the column laid out anew): the lab lays its controls there.
+  useEffect(() => {
+    if (host && isReady()) post({ attach: true });
+  }, [host, isReady, post]);
+  // The card chosen in Bordet (its card buttons, the films' row, the guide's step) is asked for in the lab, from the pose the
+  // tree deals it from; the lab answers with the card it shows, which is its own where sliders are moved and not saved.
+  // "Spela kortbanan" asks it to play the deal from the start.
   const played = useRef(play);
   useEffect(() => {
-    if (part !== "stall" || place === SHOE) return;
+    if (place === SHOE) return;
     const go = play !== played.current;
     played.current = play;
-    frame.current?.contentWindow?.postMessage({ docklabb: { place, entry: from, ...(go ? { play: true } : {}) } }, window.location.origin);
-  }, [part, place, from, play]);
+    if (isReady()) post({ place, ...(entry ? { entry } : {}), ...(go ? { play: true } : {}) });
+  }, [place, entry, play, isReady, post]);
+  // The draft as it changes, at most every 80 ms (a drag changes it on every move).
+  useEffect(() => {
+    if (!isReady()) return;
+    const t = setTimeout(() => post({ plan }), 80);
+    return () => clearTimeout(t);
+  }, [plan, isReady, post]);
+  useEffect(() => {
+    if (isReady()) post({ flytta });
+  }, [flytta, isReady, post]);
 
-  const chosen = entry ? ENTRY : place;
+  const chosen = ingang ? ENTRY : place;
   const group = groups.find((g) => (g.place ?? ENTRY) === chosen) ?? null;
 
   return (
     <div className="relative size-full">
-      {lab ? <iframe key={lab.doll} ref={frame} src={lab.src} title="Ställ dockan" data-doll-lab className={cn("absolute inset-0 size-full border-0", part !== "stall" && "hidden")} /> : null}
-      {part === "filmer" ? (
-        <div className="absolute inset-0 flex flex-col overflow-y-auto [scrollbar-gutter:stable]">
+      {lab ? <iframe key={lab.doll} ref={frame} src={lab.src} title="Dockan vid bordet" data-doll-lab className={cn("absolute inset-0 size-full border-0", films && "invisible")} /> : null}
+      {films ? (
+        <div className="absolute inset-0 flex flex-col overflow-y-auto bg-canvas [scrollbar-gutter:stable]">
           {groups.length ? (
             <div className="shrink-0 overflow-x-auto border-b border-line px-3 py-1.5">
               <SegmentedControl
@@ -202,8 +240,8 @@ export function DollStage({
                 value={chosen}
                 onChange={(value) => {
                   const next = value === ENTRY ? null : placeFromCode(value);
-                  setEntry(!next);
-                  if (next) setPlace(next);
+                  setIngang(!next);
+                  if (next) onPlace(next);
                 }}
                 options={groups.map((g) => {
                   const takes = g.films.reduce((n, f) => n + takesOf(f), 0);
@@ -226,7 +264,7 @@ export function DollStage({
           ) : !orders ? (
             <ErrorState title="Dockans filmer kunde inte läsas" error="Beställningarna kunde inte läsas från servern." />
           ) : (
-            <DollFilms group={group} dealer={dealer} word={entry ? "ingången" : placeCode(place)} />
+            <DollFilms group={group} dealer={dealer} word={ingang ? "ingången" : placeCode(place)} />
           )}
         </div>
       ) : null}
@@ -234,12 +272,11 @@ export function DollStage({
   );
 }
 
-/** The doll lab's address inside the frame: embedded, on the chosen card, its entry and the doll; `play`: playing from the start. */
-function labAddress(place: Place, doll: string, from: "A2.1" | "A2.3", play: boolean): string {
+/** The doll lab's address inside the frame: embedded, on the chosen card, its pose and the doll. */
+function labAddress(place: Place, doll: string, entry: DollEntry | null): string {
   const p = new URLSearchParams({ inbaddad: "1" });
   if (place !== SHOE) p.set("plats", placeCode(place).toLowerCase());
-  if (from === "A2.1") p.set("fran", "a2-1");
+  if (entry === "A2.1") p.set("fran", "a2-1");
   p.set("docka", doll);
-  if (play) p.set("spela", "1");
   return `/dealer3d/docka?${p}`;
 }

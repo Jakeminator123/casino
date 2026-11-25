@@ -8,7 +8,9 @@
 //
 // A card's outline at its place follows one of two rules (src/card-plan.ts, TABLE_GEOMETRY): 'lens', the card plan's own
 // (planCardAt: a real card through the table's lens in the plan's shape, the same for a place of the plan and for a place made
-// up here), or 'contract', the plan's older projective plane (flatQuad), which is what the game shows until Jakob has said yes.
+// up here), the default since Jakob chose it on 2026-11-19 (Standard), or 'contract', the plan's older projective plane
+// (flatQuad), which the game follows where its address says geometri=kontrakt or its saved look carries Bred lins (Casino's
+// since Jakob 2026-11-21).
 import {DEALER_THIRD_FILM, flatQuad, quad, toPixels, fromPixels, type Geometry, type PlacementPlan} from './placement-model.ts';
 import {filmToPlan, planCardAt, planToFilm, tableGeometry, type TableGeometry} from './card-plan.ts';
 import type {Lens} from './table-lens.ts';

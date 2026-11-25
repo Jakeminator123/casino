@@ -10,9 +10,11 @@
 // perspective (a card narrowing to 0.87) belongs to a wide lens 0.76 m from the card; under it the dealer is twice the
 // size of a person, which is the contract's own k = 2. This lens is the one of the family that gives the card at seat 4
 // its film size and shape (dealer3d/src/camera.ts, lensForFocal) which draws her knuckles, shoulders and pupils nearest
-// their real sizes (dealer3d/src/world.ts, filmLens; a test holds the numbers below to that fit). Two things that took
-// no part in the fit agree with it: the shoe drawn on the film's comes out 0.44 m long, and the card standing in the
-// shoe's window is 0.93 of a real card's length.
+// their real sizes (dealer3d/src/world.ts, filmLens; dealer3d/tests/standard.test.ts holds the numbers below to that fit).
+// Two things that took no part in the fit agree with it: the shoe drawn on the film's comes out 0.44 m long, and the card
+// standing in the shoe's window is 0.93 of a real card's length. FILM, CARD, TABLE_LENS and SHOE are the standard the doll,
+// the card plan, the orders' last picture and the 3D scene's Standard share; who follows it, and where it is left: docs/SYSTEM.md,
+// "Standarden: en kamera, ett bord, ett kort".
 export const FILM = {width: 1764, height: 1174};
 /** The card of data/scene-contract.json (cardMillimetres, 63 x 88), in metres; thickness and corner radius for a drawn card. */
 export const CARD = {width: 0.063, height: 0.088, thickness: 0.0003, corner: 0.0035};

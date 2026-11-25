@@ -1,8 +1,8 @@
-// Bordet's step 2 and 3 for one card with handbyte and one without (the decisions of 2026-11-21): the anchor the films go from
-// (A2.3 with handbyte, else the anchor the game deals the card from), the card's three films, the five marks, and that the
+// Bordet's step 2 and 3 for one card from A2.3 and one from A2.1: the anchor the films go from (the guide tree's, Tatuerad's
+// A2.3 or Tatuerad nyp's A2.1; A2.3 where no tree is read), the card's three films, the five marks, and that the
 // row tells the truth: the step, the first and the last picture, the reference film, the length, the price and the text the
 // row shows are the ones the store's preview freezes. Also the reference rule for the dummy's films of A2.3 → A3P4C2 (a film
-// made again comes first; a deal bara dit never takes a round trip), the words of step 2, the game's line, the motion's steps
+// made again comes first; a deal bara dit never takes a round trip), the words of step 2, the motion's steps
 // and the ordering block's state. And that no row is a dead end (Jakob 2026-11-23: rensa bort regler och låsningar som
 // blockerar): the reference film is a choice the store takes both ways, a deal to a seat without an end
 // picture is offered without one, a film without a recipe is ordered with a model and a length chosen on the row, and what
@@ -22,7 +22,7 @@ import { TEXTURE } from "../../tools/order-images.ts";
 import { LANDS_LABEL, modelFor, modelsFor, openEndWords, readCutChecks, stepOf, type BankFacts, type MandateBudget, type OrdersAnswer, type RenderedReference } from "../../src/order-model.ts";
 import { NO_RECIPE, REFERENCE_ABSENT, methodFor, recipeWords, referenceAbsent, referenceByRule, triedWords } from "../../src/order-methods.ts";
 import type { Intent } from "../../src/placement-model.ts";
-import { MARK_NAMES, NOT_FROM_HERE, NO_LENGTH, NO_MODEL, orderBody, type FilmWish, type RowChoice, cardWishes, filmRow, gameLine, hasRound, motionLine, referenceOwner, referenceRole, roundFor, sentence, stepTwoSummary, sumWords, wishAnchor } from "../lib/bordet.ts";
+import { MARK_NAMES, NOT_FROM_HERE, NO_LENGTH, NO_MODEL, orderBody, type FilmWish, type RowChoice, cardWishes, filmRow, hasRound, referenceOwner, referenceRole, roundFor, sentence, stepTwoSummary, sumWords, treeAnchor } from "../lib/bordet.ts";
 import { dealAnchor, orderingState } from "../lib/orders.ts";
 import { motionSteps } from "../lib/placement.ts";
 
@@ -87,27 +87,21 @@ test("a recipe informs and never stops: what has been tried in plain words, and 
   assert.equal(sentence("ingen bild gäller för A2.3: gör en gällande i Material"), "Ingen bild gäller för A2.3: gör en gällande i Material.");
 });
 
-test("step 2 and the card's films: from A2.3 with handbyte, from the game's anchor without", () => {
-  const pass = { pass: true, endSide: "FRONT", turnAt: "AIR", flipAxis: "FREE" } as const, plain = { ...pass, pass: false };
-  // The anchor: handbyte chooses A2.3; without it the game's (A2.1 for seat 4, A2.2 for Paow's seat 6).
-  assert.equal(wishAnchor("paow", "P4.C2", pass), "2.3");
-  assert.equal(wishAnchor("paow", "P4.C2", plain), "2.1");
-  assert.equal(wishAnchor("paow", "P6.C1", plain), "2.2");
-  assert.equal(wishAnchor("paow", "P6.C1", pass), "2.3");
-  // Three films per card: the deal, the return to the same anchor and the return to A1.
-  assert.deepEqual(cardWishes("P4.C2", pass, "paow").map((w) => w.step), ["GIV-2.3", "RETUR-2.3", "RETUR-1"]);
-  assert.deepEqual(cardWishes("P4.C1", plain, "paow").map((w) => w.step), ["GIV-2.1", "RETUR-2.1", "RETUR-1"]);
-  assert.deepEqual(cardWishes("P6.C1", plain, "paow").map((w) => w.step), ["GIV-2.2", "RETUR-2.2", "RETUR-1"]);
-  assert.deepEqual(cardWishes("shoe", pass, "paow"), []);
-  assert.deepEqual(cardWishes("P4.C2", null, "paow"), []);
-  // Step 2's header names the same anchor as step 3; never the plan's grip.
-  assert.equal(stepTwoSummary("paow", "P4.C2", { pass: true, endSide: "FRONT" }), `A2.3 · handbyte · ${LANDS_LABEL.FRONT}`);
-  assert.equal(stepTwoSummary("paow", "P4.C1", { pass: false, endSide: "BACK" }), `A2.1 · utan handbyte · ${LANDS_LABEL.BACK}`);
-  assert.equal(stepTwoSummary("paow", "shoe", null), "Välj ett kort");
-  // The game's line, where the films go from another anchor than the game deals the card from today.
-  assert.equal(gameLine("paow", "P4.C2", pass), "Spelet ger plats 4, kort 2 från A2.1 i dag; filmen spelas när rundan namnger den.");
-  assert.equal(gameLine("paow", "P4.C2", plain), null);
-  assert.equal(gameLine("paow", "P4.C1", pass), "Spelet ger plats 4, kort 1 från A2.1 i dag; filmen spelas när rundan namnger den.", "the first card is named as one card too");
+test("step 2 and the card's films: from the anchor of the guide's tree, never from the plan's handbyte", () => {
+  // The anchor is the tree's anchor at the shoe (Tatuerad A2.3, Tatuerad nyp A2.1), and A2.3 where no tree is read.
+  assert.equal(treeAnchor({ hub: "READY-C" }), "2.3");
+  assert.equal(treeAnchor({ hub: "READY" }), "2.1");
+  assert.equal(treeAnchor({ hub: "READY-B" }), "2.2");
+  assert.equal(treeAnchor(null), "2.3");
+  // Three films per card, all from that anchor: the deal, the return to the same anchor and the return to A1.
+  assert.deepEqual(cardWishes("P4.C2", "2.3").map((w) => w.step), ["GIV-2.3", "RETUR-2.3", "RETUR-1"]);
+  assert.deepEqual(cardWishes("P4.C1", "2.1").map((w) => w.step), ["GIV-2.1", "RETUR-2.1", "RETUR-1"]);
+  assert.deepEqual(cardWishes("P6.C1", "2.2").map((w) => w.step), ["GIV-2.2", "RETUR-2.2", "RETUR-1"]);
+  assert.deepEqual(cardWishes("shoe", "2.3"), []);
+  // Step 2's header names the same anchor as step 3, and the side the card lies with; never the plan's grip or handbyte.
+  assert.equal(stepTwoSummary("P4.C2", "2.3", "FRONT"), `A2.3 · ${LANDS_LABEL.FRONT}`);
+  assert.equal(stepTwoSummary("P4.C1", "2.1", "BACK"), `A2.1 · ${LANDS_LABEL.BACK}`);
+  assert.equal(stepTwoSummary("shoe", "2.3", null), "Välj ett kort");
   // What is sent: only the exceptions the form shows for the row's shape and reference film (review of PR 1, 2026-11-21).
   const hidden = { duration: 5, cardScale: 1.1, end: "paow-a3-p4-x" };
   const oneWay = orderBody("paow", { step: "GIV-2.1", target: "P4.C1" }, hidden, { shape: "ONE_WAY", reference: true })!;
@@ -122,14 +116,17 @@ test("step 2 and the card's films: from A2.3 with handbyte, from the game's anch
   assert.equal(hasRound(graph("ACCEPTED"), "P4.C2", "2.3"), true);
   assert.equal(hasRound(graph("REJECTED"), "P4.C2", "2.3"), false);
   assert.equal(hasRound(null, "P4.C2", "2.3"), false);
-  // The motion's steps from the anchor the films go from: with handbyte never A2.2 or the grip "Släp", whatever grip the plan still holds.
-  const intent: Intent = { takeHand: "LH", startSide: "BACK", endSide: "FRONT", pass: true, turn: true, grip: "DRAG", turnAt: "AIR", flipAxis: "FREE" };
-  const said = motionSteps("P4.C2", intent, `A${wishAnchor("paow", "P4.C2", intent)}`).steps;
+  // The motion's steps from the anchor the films go from, whatever grip and handbyte the plan still holds: from A2.3 never
+  // A2.2 or the grip "Släp", and always a handbyte; from A2.1 a pinch and no handbyte.
+  const intent: Intent = { takeHand: "LH", startSide: "BACK", endSide: "FRONT", pass: false, turn: true, grip: "DRAG", turnAt: "AIR", flipAxis: "FREE" };
+  const said = motionSteps("P4.C2", intent, "2.3").steps;
   assert.equal(said[0].label, "A2.3");
   assert.equal(said.find((s) => s.id === "take")?.label, "Drar ut");
+  assert.ok(said.some((s) => s.id === "pass"), "from A2.3 the card changes hands");
   const noDrag = (steps: { label: string; detail: string }[]) => steps.every((s) => !/A2\.2/.test(`${s.label} ${s.detail}`) && s.label !== "Släp");
   assert.ok(noDrag(said), JSON.stringify(said));
-  assert.ok(noDrag(motionSteps("P4.C2", intent).steps), "anchorOf: handbyte is A2.3 without Bordet too");
+  const pinch = motionSteps("P4.C1", { ...intent, pass: true }, "2.1").steps;
+  assert.deepEqual([pinch[0].label, pinch.find((s) => s.id === "take")?.label, pinch.some((s) => s.id === "pass")], ["A2.1", "Nyp", false]);
 });
 
 test("the ordering block's state in one line", () => {
@@ -148,7 +145,7 @@ test("the ordering block's state in one line", () => {
   assert.doesNotMatch(orderingState(answer(null)).words + orderingState(answer({ enabled: false })).words, /order-policy/);
 });
 
-test("Bordet's rows for a card with handbyte and one without say what the store's preview freezes", async (t) => {
+test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's preview freezes", async (t) => {
   const root = await mkdtemp(path.join(base, "bordet-line-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   for (const dir of ["data", "placements", "assets/anchors/paow-bild"]) await mkdir(path.join(root, dir), { recursive: true });
@@ -211,8 +208,9 @@ test("Bordet's rows for a card with handbyte and one without say what the store'
   const words = (row: ReturnType<typeof rowOf>) => Object.fromEntries(row.marks.map((m) => [m.name, `${m.ready ? "" : "✗ "}${m.words}`]));
   const previewOf = (row: ReturnType<typeof rowOf>) => call("POST", "/api/orders/preview", row.body);
 
-  for (const [card, intent] of [["P4.C2", plan.targets["P4.C2"].intent], ["P4.C1", plan.targets["P4.C1"].intent]] as const) {
-    const wishes = cardWishes(card, intent, "paow");
+  // Seat 4's second card from A2.3 (the tree Tatuerad), its first from A2.1 (Tatuerad nyp).
+  for (const [card, from] of [["P4.C2", "2.3"], ["P4.C1", "2.1"]] as const) {
+    const wishes = cardWishes(card, from);
     const rows = wishes.map((w) => rowOf(w));
     for (const row of rows) assert.deepEqual(row.marks.map((m) => m.name), [...MARK_NAMES], `${row.key}: the five marks in their order`);
     const [deal, back, rest] = rows;
@@ -225,7 +223,7 @@ test("Bordet's rows for a card with handbyte and one without say what the store'
     const picture = (goesAs: string) => o.pictures.find((p: { goesAs: string }) => p.goesAs === goesAs)?.from?.entry ?? null;
     assert.equal(o.step.key, deal.wish.step, `${deal.key}: the step`);
     assert.equal(o.step.shape, deal.resolved.shape, `${deal.key}: bara dit`);
-    assert.equal(picture("startFrame"), `paow-ankare-${wishAnchor("paow", card, intent)}`, `${deal.key}: the first picture is the anchor the films go from`);
+    assert.equal(picture("startFrame"), `paow-ankare-${from}`, `${deal.key}: the first picture is the anchor the films go from`);
     assert.equal(picture("endFrame"), deal.resolved.end?.kind === "LANDNING" ? deal.resolved.end.entry.id : null, `${deal.key}: the last picture`);
     assert.deepEqual(o.reference.clips, [deal.reference!.take], `${deal.key}: the reference film`);
     assert.equal(o.generation.model, deal.resolved.model!.id, `${deal.key}: the model`);
@@ -290,7 +288,7 @@ test("Bordet's rows for a card with handbyte and one without say what the store'
     assert.deepEqual([plain.json.orders[0].generation.params.duration, plain.json.orders[0].cost.total, plain.json.orders[0].prompt.text], [without.resolved.seconds, without.cost, without.text], `${without.key}: the length, the price and the text`);
     assert.doesNotMatch(without.text!, /video 1/i, "the text names no film that is not sent");
     if (card === "P4.C2") {
-      // With handbyte: A2.3 → A3P4C2, the right hand's A3, the dummy's film made last, 3 s, 64 credits.
+      // From A2.3: A2.3 → A3P4C2, the right hand's A3, the dummy's film made last, 3 s, 64 credits.
       assert.deepEqual(rows.map((r) => r.line), ["A2.3 → A3P4C2", "A3P4C2 → A2.3", "A3P4C2 → A1"]);
       assert.deepEqual({ ...words(deal), Text: "" }, { "Första bild": "A2.3", Slutbild: "A3P4C2", Referensfilm: "dockan", Text: "", Pris: "64 krediter" });
       assert.equal(deal.reference!.take, "docka-2-3-p4c2-svep24d");
@@ -300,13 +298,9 @@ test("Bordet's rows for a card with handbyte and one without say what the store'
       assert.equal(words(back)["Första bild"], "A3P4C2");
       // Two of the three can be sent: the deal, and the return to rest (its recipe a trial since 2026-11-23).
       assert.equal(sumWords(rows), "3 filmer · 2 kan beställas · 128 krediter");
-      // The line's last words say what the recipe's text says of the doll's film. The deal from A2.3 is written with template
-      // 14 since 2026-11-23 (Jakob: "naturlig primärt, så var inte extremt nitsk med dockans rörelse"): a rough guide, her
-      // natural movement first. With template 12 or 13, or 14 in the minimal text, the text says she moves like the film.
-      assert.equal(motionLine("paow", card, intent, all.methods!), "A2.3 · vänster hand drar ut, höger hand vänder kortet och lägger det · dockfilmen visar vägen, naturlig rörelse går före");
+      // The deal from A2.3 is written with template 14 since 2026-11-23 (Jakob: "naturlig primärt, så var inte extremt nitsk
+      // med dockans rörelse"): the doll's film is a rough guide, her natural movement first.
       assert.match(deal.text!, /Video 1 shows only the movement, as a rough guide/);
-      const written = (template: number, style: "KORT" | "MINIMAL" = "KORT") => motionLine("paow", card, intent, { methods: all.methods!.methods.map((m) => (m.id === "giv-2.3" ? { ...m, template, style } : m)) });
-      for (const line of [written(12), written(13), written(14, "MINIMAL")]) assert.equal(line, "A2.3 · vänster hand drar ut, höger hand vänder kortet och lägger det · rörelsen följer dockfilmen");
       // New in round two (2026-11-21): "Utan slutbild", what the command's --no-end makes, is a choice of the row where the
       // seat has an end picture, with the command's note; the row says the text and the price the store freezes for it.
       const open = filmRow("paow", deal.wish, all.methods!, all.policy, { bank, entries: shown, plan: all.plan ?? null, dealers: all.dealers, marks: all.marks, choice: { end: null } });
@@ -333,16 +327,14 @@ test("Bordet's rows for a card with handbyte and one without say what the store'
       assert.equal(referenceRole(deal.resolved), "grov vägledning, naturlig rörelse går före");
       assert.equal(referenceRole({ ...deal.resolved, style: "MINIMAL" }), "rörelsen följer filmen");
     } else {
-      // Without handbyte: from the anchor the game deals the card from, laid by the left hand.
+      // From A2.1, the anchor the game deals the card from too, laid by the left hand.
       assert.equal(dealAnchor("paow", card), "2.1");
       assert.deepEqual(rows.map((r) => r.line), ["A2.1 → A3P4C1", "A3P4C1 → A2.1", "A3P4C1 → A1"]);
       assert.deepEqual({ ...words(deal), Text: "", Pris: "" }, { "Första bild": "A2.1", Slutbild: "A3P4C1", Referensfilm: "dockan", Text: "", Pris: "" });
       assert.equal(deal.reference!.take, "docka-giv-p4-4");
       assert.equal(o.motion.pass, false);
       assert.doesNotMatch(deal.recipe, /höger hand/);
-      assert.equal(gameLine("paow", card, intent), null);
-      assert.equal(motionLine("paow", card, intent, all.methods!), "A2.1 · vänster hand nyper kortet och vänder det på vägen · rörelsen följer dockfilmen, annars en godkänd giv");
-      assert.match(deal.text!, /she moves like the dealer in video 1, with the same timing/, "template 12: the text says she follows the film, as the line does");
+      assert.match(deal.text!, /she moves like the dealer in video 1, with the same timing/, "template 12: the text says she follows the film");
     }
   }
   // A seat with no end picture yet stops no deal (Jakob 2026-11-23: rensa bort regler och låsningar som blockerar). Seat 6 has no end picture and no film of the doll's here: the deal from A2.3 (the right hand lays the

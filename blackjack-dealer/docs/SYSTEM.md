@@ -7,8 +7,8 @@ rubriken du behöver.
 
 | Vad | Värde | Källa |
 | --- | --- | --- |
-| Bankens ruta (film och ankare) | 1764 × 1174 | `FILM` i `src/scene3d-geometry.ts`; `readRgb` i `tools/order-images.ts` vägrar annan storlek |
-| Planens ruta (Kortplan) | 1762 × 1174; film-x = plan-x × 1763/1761 | `VIEWS.native` i `src/placement-model.ts`; `planToFilm` i `src/table-lens.ts` |
+| Bankens ruta (film och ankare) | 1764 × 1174 | `FILM` i `src/table-lens.ts` (Standarden nedan); `readRgb` i `tools/order-images.ts` vägrar annan storlek |
+| Planens ruta (Kortplan) | 1762 × 1174; film-x = plan-x × 1763/1761 | `VIEWS.native` i `src/placement-model.ts`; `planPixel` i `src/table-lens.ts` (`planToFilm` i `src/card-plan.ts` ger samma) |
 | Bildfrekvens | WAN 3 30/s, Kling 24/s; banken behåller varje films takt | `source.fps`, `fpsOf` i `src/game-film.ts` |
 | Bordskanten | rad 831,5; dealerkantens mitt (881,5; 831,5); kroppen slutar på rad 825–831 | `data/scene-contract.json`; `edgeCheck` i `src/film-after.ts` |
 | Grönt | ingen fast färg: nyckeln läser varje rutas hörn | shadern i `src/scene3d-film.ts` |
@@ -16,6 +16,45 @@ rubriken du behöver.
 
 Bildpixlar räknas från övre vänstra hörnet med y nedåt; normaliserad bildrymd har `u` åt höger och `v` uppåt i `[0,1]`.
 Originalmätningar och referenshashar bevaras; en adapter konverterar vid en uttrycklig systemgräns.
+
+## Standarden: en kamera, ett bord, ett kort
+
+Filmen, dockan, kortplanen, beställningens slutbild och 3D-scenen i Standard delar en kamera, ett bord och ett kort
+(Jakob 2026-11-25: "eller detta ska vara en standard ska jag säga"). Talen står en gång, i `src/table-lens.ts`; dockan
+anpassar linsen på nytt ur filmen (`filmLens` i `dealer3d/src/world.ts`), och `dealer3d/tests/standard.test.ts` håller
+de två lika och planens platser på sina bildpunkter.
+
+| Del | Värde | Källa (`src/table-lens.ts` där inget annat står) |
+| --- | --- | --- |
+| Bilden | 1764 × 1174; bildpunkternas mitt, origo uppe till vänster | `FILM` |
+| Kortet | 63 × 88 mm, 0,3 mm tjockt, hörn 3,5 mm; vid plats 4 nära kanten 84,5 px, 72 px djupt, bortre kanten 96 % av den nära | `CARD`, `SEAT_FOUR_CARD` |
+| Linsen | brännvidd 2334 px; synfält 28,2° lodrätt och 41,4° vågrätt; 25,06° ned; 1,110 m över filten; 1,844 m längs filten till dealerkanten (rad 831,5); horisonten ovanför bilden | `TABLE_LENS`; `dealerEdge` i `dealer3d/src/world.ts` |
+| Bordet | filten är planet y = 0 i verkliga meter, x åt höger, y upp, z mot kameran; kameran står i (0; 1,110; 0) och ser längs −z | `pixelToFelt`, `feltToPixel` |
+| Skon | foten fram (1268,1; 895,9) och bak (1666,5; 796,8) px; 0,436 × 0,082 m, 0,131 m hög bak och 0,10 m fram; plåten lutar 51,6°, kortet i fönstret står 22 mm över filten | `SHOE` |
+| Planens ruta | 1762 × 1174; planen sparar `u` och `v` (nerifrån), och `planPixel` ger filmens bildpunkt exakt: x = u × 1763, y = (1 − v) × 1173, samma som `planToFilm` i `src/card-plan.ts` | `planPixel` |
+
+**Vem följer den**
+
+| Vem | Följer | Källa |
+| --- | --- | --- |
+| Dockan | linsen, bordet, kortet, skon och planens platser. Av hennes fem vyer är bara Filmens kamera standarden; Från sidan, Uppifrån, Från spelaren och Nära kortet är till för att titta | `filmLens`, `spots` i `dealer3d/src/world.ts`; `dealer3d/src/stage.ts` |
+| Dockans referensfilm | Filmens kamera i bildens storlek, vit docka på grått bord för en filmmodell att följa, 24 rutor/s (verktygets förval är 30) | `dealer3d/tools/render-reference.ts` |
+| Beställningens slutbild | kortet där planen säger, genom linsen, i planens form | `planQuad` i `tools/order-images.ts` |
+| Kortplanen | linsen för platsen och storleken, planens form | `planCardQuad` i `src/card-plan.ts` |
+| 3D-scenen i Standard | filmkameran är linsen i verkliga meter; kortplatser och insatsringar där `pixelToFelt` lägger dem; liggande kort i planens form | `lensCamera` i `src/scene3d-geometry.ts` |
+| Spelet i Standard | samma regel som kortplanen | `createLayout` i `src/game-table.ts` |
+
+Avvikelserna, med flit eller kvar:
+
+- **Kortets form.** Planen, spelet, 3D-scenen och beställningens slutbild ritar bortre kanten 87 % av den nära, för
+  djup i bordet (Jakob 2026-11-17, 2026-11-18): planen har inget `tableProjection.perspective`, så `planTaper` i
+  `src/card-plan.ts` tar P4.C1:s sparade 0,87 (gränserna i `TABLE_PERSPECTIVE`, `src/placement-model.ts`). Dockan och
+  hennes referensfilm ritar ett verkligt kort (96 %). Skillnaden är högst 4 px i de bortre hörnen; de nära hörnen är
+  desamma. Ett tal i planen (`tableProjection.perspective`) avgör det och kräver hans ord.
+- **Casino-vyn.** Spelets sparade Casino-vy är Bred lins (Jakob 2026-11-21; `data/scene-presets/casino.json`):
+  kontraktets äldre vida kamera (`data/scene-contract.json`, brännvidd 886 px, k = 2) och planens äldre plan för korten
+  (`flatQuad`), inte filmens lins.
+- **Kortets riktning.** Dockan läser inte ett korts riktning (`angle`) ur planen; alla är 0 i dag.
 
 ## 3D-scenen
 
@@ -87,8 +126,7 @@ Ingen vit kant (Jakob 2026-11-17, 2026-11-23). Kortet är rent tills efterarbete
 - **En geometri** (`TABLE_GEOMETRY` i `src/card-plan.ts`): `lens` är förval, ett verkligt kort 63 × 88 mm genom
   `TABLE_LENS` (`src/table-lens.ts`); `planCardQuad` är enda regeln för planens kort, och plan, spel och scen håller
   samma fyrhörning inom en hundradels bildpunkt (`tools/card-plan.test.ts`). Kontraktets äldre väg (`geometri=kontrakt`)
-  lever kvar i bland annat `createLayout`, `cameraFromContract` och `viewUnder`, och med flit i `tools/card-coverage.ts`
-  och `tools/placement-backdrop.ts`.
+  lever kvar i bland annat `createLayout`, `cameraFromContract` och `viewUnder`, och med flit i `tools/card-coverage.ts`.
 - **En linje för korten** (Jakob 2026-11-13): ritade kort hela vägen, en storlek (`cardScale` 1,2 = ett verkligt kort,
   storlek 1,00 i Efterarbete), en brytare i spelet. Kortmattan är ett val i studion, inte spelets. Överlägg i handen
   (`cardInHand`) är av i grunden; hans val i Scen följer med Använd i Casino (2026-11-19, 2026-11-24). Det styva kortet
@@ -100,8 +138,16 @@ Ingen vit kant (Jakob 2026-11-17, 2026-11-23). Kortet är rent tills efterarbete
 trycker Spara (Jakob 2026-11-11, 2026-11-12); har han ställt in korten där gäller det (2026-11-23). Formen och
 `validatePlan` i `src/placement-model.ts`: geometri per `native`/`portrait` (bara `native` läses); `angle` grader medurs;
 `perspective` 0,80–0,96 ändrar bara kortens form, ett värde för alla (hans 87 %; 2026-11-18); `intent.grip` `PINCH`
-(A2.1) eller `DRAG` (A2.2), `turnAt` `AIR` eller `PLACE`. Under korten ligger den valda dealerns docka
-(`tools/placement-backdrop.ts`). `node tools/media-audit.ts --fit --write` mäter bilder och filmer mot planen
+(A2.1) eller `DRAG` (A2.2), `turnAt` `AIR` eller `PLACE`. Av rörelsen väljs i studion bara sidan kortet ligger med
+(`intent.endSide`, Kortplan steg 2); ingången (A2.1 eller A2.3) är trädets, inte planens `intent.pass`, och de övriga
+fälten i `intent` läses bara av receptets text (`tools/order-store.ts`) och väljs ingenstans (2026-11-25).
+
+Kortplan har en bild (Jakob 2026-11-25: "ett och samma läge", "allt i 3d"): dockans 3D-bord i en ram, med planens
+kort på filten. Studion skickar sitt utkast till dockans sida, som ritar platserna och lägger given på nytt; i steg 1
+kan kortets plats dras på filten, och sidan svarar med planens egna koordinater. Dockans reglage fästs i studions
+högerspalt (elementet `[data-docklabb-styr]`). Orden mellan sidorna (`{docklabb: {...}}`: `ready`, `place`, `entry`,
+`plan`, `attach`, `flytta`, `moved`, `saved`, `play`) står sist i `dealer3d/page/docka.ts`. Kopian på nätet har ingen
+docka och visar därför inte Kortplan. `node tools/media-audit.ts --fit --write` mäter bilder och filmer mot planen
 (`data/media-fit.json`, brickorna i Material) och körs om när plan, lins eller ankare ändras.
 
 ## Klippbank och nodnotation
@@ -166,8 +212,13 @@ Dockan i `dealer3d/` är en vit docka i bordets verkliga geometri vars filmer st
 (Jakob nej till Meshy-modellen av Paow 2026-11-18). En docka per dealer med dealerns mått, naturlig och inte "kuvad"
 (2026-11-21, 2026-11-23; `dealer3d/src/doll.ts`).
 
-- `dealer3d/src/doll-choices.ts` är enda källan för vad dockan kan göra med planens kort; Kortplan, Ställ dockan och
-  `tools/doll-order.ts` läser den.
+- En giv beställs från stegets ingång: A2.3 som förval, A2.1 bara när det begärs (`tools/doll-order.ts --fran a2-1`,
+  `tools/doll-order.test.ts`). `dealer3d/src/doll-choices.ts` säger var dockan inte kan ge från A2.1 (vänster arm över
+  höger hand, eller ett kort som läggs stängt); där vägrar verktyget i stället för att byta ställning.
+- Sidan ett av dealerns kort ligger med är planens (`intent.endSide`), också i dockans egen sida: en sparad standard
+  läggs med planens sida.
+- Standarddockan är grunden: varje grundrörelse (`dealer3d/data/`) läggs på standarddockan och förs över till den valda
+  dockan med hennes mått (`dealer3d/page/pose-on-doll.ts`). Hans sparade justeringar gäller den docka de sparades för.
 - En sparad rörelse per kort och ankare (2026-11-23): `dealer3d/standard/<docka>-<plats>.json` är A2.3,
   `<docka>-a2-1-<plats>.json` A2.1. Naturlig ställning är förval; handens vinkel 17° när kortet tas och −30° när det
   är vänt (2026-11-23, `dealer3d/src/natural.ts`); landningen väljs (`dealer3d/src/landing.ts`).

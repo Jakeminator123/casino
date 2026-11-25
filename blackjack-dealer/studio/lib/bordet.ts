@@ -1,8 +1,7 @@
 // Bordet (/bordet/): the lab's one view of the table, where a card's place, its way there and the films to order are set in
 // one frame (Jakob 2026-11-17: "Scen och placering bör ha samma typ av vy, och på högersidan ska man kunna ändra och laborera
-// med detta. Detta ska också vara underlaget för beställning av nya filmer."). Pure helpers for it: the stage's camera (fit,
-// zoom towards the pointer, pan, the close-up on a card), the one card shape every card on the stage is drawn with, step 2's
-// one line of what the recipe does with the motion (from the anchor the plan's handbyte chooses), and the list of films to
+// med detta. Detta ska också vara underlaget för beställning av nya filmer."). Pure helpers for it: the anchor a card's films
+// go from (the guide tree's, treeAnchor), step 2's folded line, the card and round Scen plays, and the list of films to
 // order (step 3): a card's three films from that anchor, each in his notation, with its step's one recipe
 // (data/order-methods.json), what the store will resolve for it (lineOf, from the same pure functions the store uses), its five
 // marks (first picture, last picture, reference film, text, price), its text and price as the order freezes them, and the
@@ -13,133 +12,33 @@
 // "Rensa bort regler och låsningar som blockerar"). Nothing here composes an order: the store does, as for every draft. No
 // DOM, no network; tests in studio/tests/bordet-line.test.ts (the rows and the stops) and studio/tests/line-same.test.ts.
 import type { Graph } from "../../src/clip-graph.ts";
-import { INTRO_FRAME, INTRO_FRAMING, focalOf } from "../../src/game-intro.ts";
 import {
   ANCHOR_NODE, ANCHOR_ROLE, LANDS_LABEL, a3Candidates, a3Name, costOf, credits, defaultFlip, genitive, giveEndOf, handsOf, landingOf, modelFor, paramsOf, referenceCandidates, seatEndOf, seatWords, stepOf,
   type Anchor, type BankFacts, type DealerLook, type FlipAxis, type HandChoice, type ModelDef, type PlanAnswer, type Policy, type RefCandidate, type SeatEnd, type Shape, type StepDef, type StepKey, type TextStyle,
 } from "../../src/order-model.ts";
-import { NO_RECIPE, TWO_HAND_TURN, methodFor, recipeFor, recipeHands, recipeWords, referenceAbsent, referenceByRule, secondsOf, triedWords, type MethodRegister, type Recipe, type ReferenceRule } from "../../src/order-methods.ts";
+import { NO_RECIPE, methodFor, recipeFor, recipeHands, recipeWords, referenceAbsent, referenceByRule, secondsOf, triedWords, type MethodRegister, type Recipe } from "../../src/order-methods.ts";
 import { TEMPLATE_VERSION, orderPrompt } from "../../src/order-prompts.ts";
-import type { Intent, Place, Side } from "../../src/placement-model.ts";
+import type { Place, Side } from "../../src/placement-model.ts";
 import { SHOE } from "../../src/placement-model.ts";
 import { dealAnchor, type NewOrderInput } from "./orders.ts";
+import { START_PLACE } from "./placement.ts";
 import { SCENE_KEYS } from "./scene-keys.ts";
 import { nodeCode } from "./names.ts";
 
-// ── The camera ──────────────────────────────────────────────────────────────
-// scale: screen pixels per picture pixel (1 = 100 %); x, y: the picture's point at the middle of the stage. "Anpassa" lays
-// the whole picture in the stage; the wheel zooms towards the pointer, a drag pans, "Närbild" frames the chosen card.
-export type Camera = { scale: number; x: number; y: number };
-export type Size = { w: number; h: number };
-export const ZOOM_MAX = 6;
-/** The scale that lays the whole picture in the stage. */
-export const fitScale = (area: Size, picture: Size): number => (area.w > 0 && area.h > 0 ? Math.min(area.w / picture.w, area.h / picture.h) : 1);
-/** The whole picture, in the middle of the stage. */
-export const fitCamera = (area: Size, picture: Size): Camera => ({ scale: fitScale(area, picture), x: picture.w / 2, y: picture.h / 2 });
-/**
- * The smallest scale: the fitted one ("Anpassa"). The picture is a still with nothing round it, so zooming out past the whole
- * picture would only show the stage's black (Jakob 2026-11-17: "det är bara svart omkring, ska det vara så?").
- */
-export const minScale = (area: Size, picture: Size) => fitScale(area, picture);
-/** A camera kept sane: its scale within the fit and ZOOM_MAX, its middle on the picture. */
-export function clampCamera(c: Camera, area: Size, picture: Size): Camera {
-  const scale = Math.min(ZOOM_MAX, Math.max(minScale(area, picture), c.scale));
-  // Smaller than the stage in a direction: the picture stays in the middle there; larger: its edge never leaves the stage's.
-  const axis = (v: number, size: number, room: number) => {
-    const half = room / 2 / scale;
-    return size * scale <= room ? size / 2 : Math.min(size - half, Math.max(half, v));
-  };
-  return { scale, x: axis(c.x, picture.w, area.w), y: axis(c.y, picture.h, area.h) };
-}
-/** Where the picture's top left corner lies on the stage, in screen pixels from the stage's top left. */
-export const pictureOrigin = (c: Camera, area: Size) => ({ left: area.w / 2 - c.x * c.scale, top: area.h / 2 - c.y * c.scale });
-/** A zoom by `factor` that keeps the picture's point under `at` (screen pixels from the stage's top left) where it is. */
-export function zoomAt(c: Camera, factor: number, at: { x: number; y: number }, area: Size, picture: Size): Camera {
-  const o = pictureOrigin(c, area);
-  const px = (at.x - o.left) / c.scale;
-  const py = (at.y - o.top) / c.scale;
-  const scale = Math.min(ZOOM_MAX, Math.max(minScale(area, picture), c.scale * factor));
-  // the same picture point under the pointer: at.x = area.w/2 - x*scale + px*scale
-  return clampCamera({ scale, x: px - (at.x - area.w / 2) / scale, y: py - (at.y - area.h / 2) / scale }, area, picture);
-}
-/** A drag of the stage by (dx, dy) screen pixels: the picture follows the hand. */
-export const panBy = (c: Camera, dx: number, dy: number, area: Size, picture: Size): Camera => clampCamera({ ...c, x: c.x - dx / c.scale, y: c.y - dy / c.scale }, area, picture);
-/** 100 %: one picture pixel per screen pixel, about the same middle. */
-export const actualCamera = (c: Camera, area: Size, picture: Size): Camera => clampCamera({ ...c, scale: 1 }, area, picture);
-/**
- * "Spelet": the scale the game draws the film at in a window of this size, in screen pixels per film pixel. The game's own
- * numbers (src/game-intro.ts, which the film before the game is laid with): its lying framing, 0.84 × min(width / 1764,
- * height / 1174), and in an upright window (width / height under 0.8) its tall one, 1.55 × the same. 100 % is not that size:
- * a window of 1440 × 900 gives 64 % (Jakob 2026-11-23 asked whether 100 % is the size Scen uses).
- */
-export const gameScale = (window: Size): number => {
-  if (!(window.w > 0 && window.h > 0)) return 1;
-  const framing = window.w / window.h < INTRO_FRAMING.tallBelow ? INTRO_FRAMING.tall : INTRO_FRAMING.lying;
-  return focalOf(window.w, window.h, framing.zoom) / INTRO_FRAME.focalPx;
-};
-/** The camera at the game's scale for the window, about the same middle; never smaller than the whole picture (clampCamera). */
-export const gameCamera = (c: Camera, window: Size, area: Size, picture: Size): Camera => clampCamera({ ...c, scale: gameScale(window) }, area, picture);
-/**
- * "Närbild": the card (its four corners in picture pixels) in the middle of the stage, as large as a fifth of the stage's
- * shorter side gives it, never past ZOOM_MAX.
- */
-export function closeUp(quad: readonly { x: number; y: number }[], area: Size, picture: Size): Camera {
-  const xs = quad.map((p) => p.x), ys = quad.map((p) => p.y);
-  const w = Math.max(1, Math.max(...xs) - Math.min(...xs)), h = Math.max(1, Math.max(...ys) - Math.min(...ys));
-  const scale = Math.min(area.w / (w * 5), area.h / (h * 5));
-  return clampCamera({ scale, x: (Math.max(...xs) + Math.min(...xs)) / 2, y: (Math.max(...ys) + Math.min(...ys)) / 2 }, area, picture);
-}
-/** "58 %": the scale as the zoom control writes it. */
-export const scaleWords = (c: Pick<Camera, "scale">) => `${Math.round(c.scale * 100)} %`;
-/** The stage is never lower than this, in screen pixels (unless the picture's own shape is lower, in one column). */
-export const STAGE_MIN = 240;
-/** In one column the stage takes at most this share of what is seen of the column. */
-export const STAGE_SHARE = 0.55;
-/**
- * The stage's height where the view is one column (an upright or narrow window): the picture's own shape from the column's
- * width, but at most STAGE_SHARE of what is seen of the column, so that what lies under the picture (the list, the place
- * buttons) is within reach. Over the picture the wheel zooms, it does not scroll, so a picture as high as the window would
- * leave nothing to scroll with. The share is a choice made with the fix of 2026-11-23 (Jakob: "Platsknapparna döljer vyn,
- * samt bordet."): once the picture no longer ran on under the buttons, a lying, narrow window had them below its edge.
- */
-export const columnStage = (width: number, seen: number, aspect: number): number => Math.round(Math.min(width / aspect, Math.max(STAGE_MIN, seen * STAGE_SHARE)));
-
-// ── One card shape ──────────────────────────────────────────────────────────
-/**
- * A card as the films show it: its four corners with rounded corners whose radius is a share of the card's own shorter side
- * (a playing card's corner is about 5.5 % of its width), so that the card keeps one look at every zoom and every size; an
- * SVG path in the picture's pixels.
- */
-export const CORNER = 0.08;
-export function cardPath(quad: readonly { x: number; y: number }[], corner = CORNER): string {
-  const n = quad.length;
-  const side = (i: number) => Math.hypot(quad[(i + 1) % n].x - quad[i].x, quad[(i + 1) % n].y - quad[i].y);
-  const r = corner * Math.min(...quad.map((_, i) => side(i)));
-  const toward = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-    const d = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-    const k = Math.min(r, d / 2) / d;
-    return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k };
-  };
-  const f = (v: number) => Math.round(v * 100) / 100;
-  let d = "";
-  quad.forEach((p, i) => {
-    const before = toward(p, quad[(i + n - 1) % n]);
-    const after = toward(p, quad[(i + 1) % n]);
-    d += `${i ? "L" : "M"}${f(before.x)},${f(before.y)}Q${f(p.x)},${f(p.y)} ${f(after.x)},${f(after.y)}`;
-  });
-  return `${d}Z`;
-}
-
 // ── The anchor a card's films go from ──────────────────────────────────────
 /**
- * The anchor a card's films go from and back to (Jakob 2026-11-21, his saved plan: "då ska den där beställningen med släpande
- * hand göras från A2.3"): with handbyte in the plan A2.3, where the hand at the shoe strokes the card out and the other hand
- * turns it and lays it; without it the anchor the game deals the card from (dealAnchor: A2.1, or A2.2 where the game's own
- * map says so). The plan's grip chooses nothing (the review of the methods, 2026-11-21: the anchor decides the grip).
+ * The anchor Kortplan's card goes from and back to: the anchor at the shoe of the tree chosen in the guide (step 3; with none
+ * chosen the tree the guide opens on, lib/new-film.ts pickTree), and A2.3 where no tree is read. Jakob 2026-11-24: "vi ska
+ * köra enbart med hennes nya händer och de tatuerade klippen"; the tree Tatuerad deals every card from A2.3, Tatuerad nyp
+ * from A2.1. Step 2, Kortbanan, the pose the doll deals from and Scen's round all name it. The plan's "Handbyte" chooses
+ * nothing (it did from 2026-11-21 until the trees took over).
  */
-export function wishAnchor(dealer: string, place: string, planned: object | null): Exclude<Anchor, "1"> {
-  return (planned as { pass?: boolean } | null)?.pass ? "2.3" : dealAnchor(dealer, place);
+export function treeAnchor(view: { hub: string } | null): Exclude<Anchor, "1"> {
+  return (["2.1", "2.2", "2.3"] as const).find((a) => ANCHOR_NODE[a] === view?.hub) ?? "2.3";
 }
+
+/** The card a film or a round is shown for: the chosen card, or the start place's (P4C2, START_PLACE) with the shoe chosen. */
+export const pathCard = (place: Place) => (place === SHOE ? START_PLACE : place);
 
 /**
  * Whether the dealer's bank has a film each way between an anchor and a card, so that Scen can play the round from it. The
@@ -159,7 +58,7 @@ export function hasRound(graph: Pick<Graph, "edge" | "experiments"> | null, card
 
 /**
  * The card's deal and back in his notation ("A2.2 - A3P6C1 - A2.2"): Bordet's default round, from the anchor the game deals
- * it from. `from`: another anchor (A2.3 for a card with handbyte), which the view passes only where the bank has that round
+ * it from. `from`: the anchor Kortplan's films go from (treeAnchor), which the view passes only where the bank has that round
  * (hasRound); the game keeps its own until then.
  */
 export function roundFor(card: string, dealer: string, from: Exclude<Anchor, "1"> | null = null): string {
@@ -167,71 +66,11 @@ export function roundFor(card: string, dealer: string, from: Exclude<Anchor, "1"
   return `${at} - ${nodeCode(card)} - ${at}`;
 }
 
-/**
- * One line under step 3 where the card's films go from another anchor than the one the game deals it from today: "Spelet ger
- * plats 4 från A2.1 i dag; filmen spelas när rundan namnger den." Null where they are the same.
- */
-export function gameLine(dealer: string, place: Place, planned: object | null): string | null {
-  if (place === SHOE || !planned) return null;
-  const game = dealAnchor(dealer, place);
-  // A player's first card says so too ("plats 4, kort 1"), as the second one does: the line is about one card.
-  const card = /^P[1-7]\.C1$/.test(place) ? `${seatWords(place)}, kort 1` : seatWords(place);
-  return wishAnchor(dealer, place, planned) === game ? null : `Spelet ger ${card} från ${nodeCode(ANCHOR_NODE[game])} i dag; filmen spelas när rundan namnger den.`;
-}
-
 // ── Step 2: what steers the motion ──────────────────────────────────────────
-/**
- * Step 2's line when folded, naming the anchor step 3 offers: "A2.3 · handbyte · Stängt → öppet" (never the plan's grip:
- * with handbyte the card goes from A2.3, Jakob 2026-11-21).
- */
-export function stepTwoSummary(dealer: string, place: Place, intent: Pick<Intent, "pass" | "endSide"> | null): string {
-  if (place === SHOE || !intent) return "Välj ett kort";
-  return `${nodeCode(ANCHOR_NODE[wishAnchor(dealer, place, intent)])} · ${intent.pass ? "handbyte" : "utan handbyte"} · ${LANDS_LABEL[intent.endSide]}`;
-}
-
-const HAND_WORD = { LH: "vänster hand", RH: "höger hand" } as const;
-const TURN_WORDS: Record<FlipAxis, string> = { AT_PLACE: "vänder det vid platsen", FREE: "vänder det på vägen", LONG_EDGE: "rullar det kring långsidan på vägen" };
-// What the recipe's text says of its reference film, per rule that finds the film. Templates 12 and 13: she moves like the
-// film, with the same timing (SAY.reference in src/order-prompts.ts).
-const FOLLOWS: Record<ReferenceRule, string | null> = {
-  ingen: null,
-  renderad: "rörelsen följer dockfilmen",
-  "renderad-eller-samma-plats": "rörelsen följer dockfilmen, annars en godkänd giv",
-  "samma-plats-rakt-godkänd": "rörelsen följer en godkänd giv till platsen",
-};
-// Template 14's short text: the film is a rough guide, her hands go the way its hands go, and above all she moves naturally
-// (SAY.v14.reference; Jakob 2026-11-23: "naturlig primärt, så var inte extremt nitsk med dockans rörelse").
-const GUIDES: Record<ReferenceRule, string | null> = {
-  ingen: null,
-  renderad: "dockfilmen visar vägen, naturlig rörelse går före",
-  "renderad-eller-samma-plats": "dockfilmen, annars en godkänd giv, visar vägen, naturlig rörelse går före",
-  "samma-plats-rakt-godkänd": "en godkänd giv till platsen visar vägen, naturlig rörelse går före",
-};
-/** The words for a recipe's reference film, by the template its text is written with: only 14's short text says a rough guide (order-prompts.ts fourteen). */
-const referenceWords = (recipe: Pick<Recipe, "reference" | "template" | "style">) => (recipe.template === 14 && recipe.style === "KORT" ? GUIDES : FOLLOWS)[recipe.reference];
-/**
- * What the recipe of the card's deal does with the motion, in one line (Bordet's step 2): the anchor, the hands and the turn the
- * text says, and what the text says of the reference film: that the movement follows it, or with template 14 that the film
- * shows the way and her natural movement comes first. "A2.3 · vänster hand drar ut, höger hand vänder kortet och lägger det ·
- * dockfilmen visar vägen, naturlig rörelse går före". The plan's grip, where and how it turns and the hand at the release are
- * not choices: the anchor and the recipe decide them, and the reference film the axis (the review of the methods, 2026-11-21;
- * pilot 02 turned the card as its reference did). Where the recipe's turn is the plan's (the dealer's own cards), the plan's
- * turn is said. Null for the shoe or a place without a card.
- */
-export function motionLine(dealer: string, place: Place, intent: Pick<Intent, "pass" | "endSide" | "turnAt" | "flipAxis"> | null, methods: Pick<MethodRegister, "methods"> | null): string | null {
-  if (place === SHOE || !intent) return null;
-  const from = wishAnchor(dealer, place, intent), step = stepOf(`GIV-${from}`)!, code = nodeCode(ANCHOR_NODE[from]);
-  const recipe = recipeFor(methods, step.key, place);
-  if (!recipe) return `${code} · ${NO_RECIPE}`;
-  const open = intent.endSide === "FRONT";
-  let how: string;
-  if (step.grip === "TWO_HANDS") how = `vänster hand drar ut, ${open ? TWO_HAND_TURN : "höger hand lägger det stängt"}`;
-  else {
-    const hand = recipeHands(step, recipe, null).hand, takes = step.grip === "DRAG" ? "släpar ut kortet" : "nyper kortet";
-    const axis = recipe.turn ?? defaultFlip(step.key, intent.turnAt, intent.flipAxis);
-    how = `${HAND_WORD[hand]} ${takes} och ${open ? TURN_WORDS[axis] : "lägger det stängt"}`;
-  }
-  return [code, how, referenceWords(recipe)].filter(Boolean).join(" · ");
+/** Step 2's line when folded: the anchor the card goes from and how it lies ("A2.3 · Stängt → öppet"). */
+export function stepTwoSummary(place: Place, from: Exclude<Anchor, "1">, endSide: Side | null): string {
+  if (place === SHOE || !endSide) return "Välj ett kort";
+  return `${nodeCode(ANCHOR_NODE[from])} · ${LANDS_LABEL[endSide]}`;
 }
 
 // ── Step 3: the films to order ──────────────────────────────────────────────
@@ -240,19 +79,14 @@ export type FilmWish = { step: StepKey; target: string | null };
 export const wishKey = (w: FilmWish) => `${w.step}@${w.target ?? ""}`;
 
 /**
- * The films a card can have, three, all from one anchor (wishAnchor): the deal, the return to the same anchor and the return to
- * rest. With handbyte: A2.3 → A3P4C2, A3P4C2 → A2.3, A3P4C2 → A1; without it, from the anchor the game deals the card from. A
- * film that lacks something (no recipe, or the return to 2.3, which the command orders) stays on the list, and its row says what to do.
- * The shoe and a place without a card in the plan (`planned` null) have none.
+ * The films a card can have, three, all from one anchor (`from`, treeAnchor): the deal, the return to the same anchor and the
+ * return to rest. From A2.3: A2.3 → A3P4C2, A3P4C2 → A2.3, A3P4C2 → A1. A film that lacks something (no recipe, or the
+ * return to 2.3, which the command orders) stays on the list, and its row says what to do. The shoe has none.
  */
-export function cardWishes(place: Place, planned: object | null, dealer: string): FilmWish[] {
-  if (place === SHOE || !planned) return [];
-  const from = wishAnchor(dealer, place, planned);
+export function cardWishes(place: Place, from: Exclude<Anchor, "1">): FilmWish[] {
+  if (place === SHOE) return [];
   return ([`GIV-${from}`, `RETUR-${from}`, "RETUR-1"] as StepKey[]).filter((k) => stepOf(k)).map((step) => ({ step, target: place }));
 }
-/** The films without a card, in the order a round meets them: the entries, the ways out, rest, the hole card's turn. */
-export const OTHER_STEPS: readonly StepKey[] = ["INGANG-2.1", "INGANG-2.2", "INGANG-2.3", "UTGANG", "UTGANG-2.2", "UTGANG-2.3", "VILA", "HALKORT"];
-export const otherWishes = (): FilmWish[] => OTHER_STEPS.filter((k) => stepOf(k) && !stepOf(k)!.off).map((step) => ({ step, target: null }));
 
 /** The bank's edges a film is filed under, as nodes: a deal tur och retur gives anchor → card → anchor. */
 function nodesOf(step: StepDef, target: string | null, shape: Shape | null): string[] {
@@ -332,6 +166,7 @@ export type Line = {
   waits: boolean;
 };
 
+const HAND_WORD = { LH: "vänster hand", RH: "höger hand" } as const;
 const ready = (name: MarkName, words: string): Mark => ({ name, ready: true, words });
 const missing = (name: MarkName, words: string, todo: string): Mark => ({ name, ready: false, words, todo });
 const waiting = (name: MarkName, words: string, todo: string): Mark => ({ name, ready: false, words, todo, waits: true });

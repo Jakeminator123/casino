@@ -5,16 +5,18 @@
 // Three parts, one shown at a time:
 //   Vad     the dealer, her tree and the step: the tree's steps as tiles with their pictures, those without a film first, the
 //           ones with a film folded; "Fler steg" holds what Bordet orders outside the tree's measure (the chosen card's return
-//           to rest, the other anchors at the shoe). A step with a card chooses that card on the board, and a card chosen on
-//           the board moves the step to it; the board rings the cards that lack a film in the tree.
+//           to rest, the other anchors at the shoe). A step with a card chooses that card in Kortplan, and a card chosen
+//           there (the card buttons, the doll's picture) moves the step to it.
 //   Hur     the step's recipe in plain words: its film where it has one, the five marks, the pictures the server will send
 //           (the last is the step's end picture), the reference film, the text and his exceptions (Sends.tsx)
 //   Skicka  exactly what is sent and its price, the server's draft before it is saved, and "Spara utkastet"; afterwards the
 //           draft, the way to Kön and the way back to the tree in Karta. A deal from A2.3 to a player's card or one of the
 //           dealer's own is saved from the doll (Jakob 2026-11-23: "EN väg och ETT ställe man använder dockan"): its film of
 //           his saved standard is made first, about a minute, and goes as the reference (lib/orders.ts orderDoll,
-//           tools/doll-order.ts); "Utan dockan" saves the recipe's draft instead. Where the doll lays a dealer's card with
-//           another side than the plan says, Hur and Skicka say so before anything is made (the tool would stop there).
+//           tools/doll-order.ts); "Utan dockan" saves the recipe's draft instead. The side the card lies with is the plan's
+//           alone (Kortplan, step 2), so the doll and the order's text say the same.
+// The tree chosen here also chooses the anchor Kortplan's card goes from in step 2 and in the doll's picture
+// (lib/bordet.ts treeAnchor).
 // Karta's "Beställ" opens it on a step (lib/new-film.ts guideHref). It approves nothing: the draft is approved in Kön.
 import { ArrowLeft, ArrowRight, Check, Copy } from "lucide-react";
 import Link from "next/link";
@@ -36,27 +38,14 @@ import { WayChip, pictureName } from "../order/Pictures";
 import { ProofStill } from "../proofs";
 import { TakeCard } from "../takes";
 import { Badge, Button, SegmentedControl, Skeleton, buttonClasses, cn, useToast } from "../ui";
-import type { SideClash, StandardState } from "./DollPanel";
+import type { StandardState } from "./DollPanel";
 import { Marks } from "./FilmList";
 import { DraftSends } from "./Sends";
 
 export type Phase = "vad" | "hur" | "skicka";
 const STATE_CHIP = { saknas: { tone: "remark", word: "saknas" }, prov: { tone: "wait", word: "väntar på dom" }, finns: { tone: "ok", word: "finns" } } as const;
-/**
- * A deal saved from the doll: the card, and his saved standard for it as the lab has it. `clash`: the doll's side of a
- * dealer's card and the saved plan's where they differ (DollPanel.tsx sideClash), else null.
- */
-export type DollWay = { place: string; standard: StandardState; treePicture: string | null; clash: SideClash | null };
-
-/** The doll lays a dealer's card with another side than the plan: said before the draft is asked for, with what to do. */
-function Clash({ doll }: { doll: DollWay }) {
-  if (!doll.clash) return null;
-  return (
-    <p data-side-clash role="alert" className="rounded-sm bg-[#3a2a1a] px-2.5 py-1.5 text-sm text-[#f0b07a]">
-      Dockan lägger {doll.place} {doll.clash.doll}, kortplanen säger {doll.clash.plan}. Välj samma sida i Ställ dockan och spara, eller ändra kortplanen (steg 2).
-    </p>
-  );
-}
+/** A deal saved from the doll: the card, his saved standard for it as the lab has it, and the tree's own A2.3 picture where it is not the one that holds. */
+export type DollWay = { place: string; standard: StandardState; treePicture: string | null };
 
 export function NewFilm({
   dealer, dealers, onDealer, trees, view, onTree, item, phase, onPhase, onPick, place, row, body, sends, entries, names, ordering, blocked, made, orders, composition, onCreated, doll, onDollMade,
@@ -73,7 +62,7 @@ export function NewFilm({
   phase: Phase;
   onPhase: (p: Phase) => void;
   onPick: (item: GuideItem) => void;
-  /** The card chosen on the board: "Fler steg" are its. */
+  /** The card chosen in Kortplan: "Fler steg" are its. */
   place: string;
   /** The film the step is ordered as (lib/bordet.ts filmRow), or null where no step of Beställ makes it. */
   row: FilmRow | null;
@@ -198,7 +187,7 @@ function Choose({ dealer, dealers, onDealer, trees, view, onTree, item, onPick, 
       {view ? (
         <>
           {tiles.saknas.length ? (
-            <Group title="Saknas" count={tiles.saknas.length} note={`Ringade kort på bilden saknar film i ${view.tree.name}.`}>
+            <Group title="Saknas" count={tiles.saknas.length}>
               {grid(tiles.saknas)}
             </Group>
           ) : (
@@ -321,11 +310,11 @@ function How({ item, row, body, sends, graph, order, way, dollWay, loading, fore
       {body && loading && !order ? <p role="status" className="text-xs text-dim">Hämtar bilderna som skickas …</p> : null}
       <Foreign pictures={foreign} view={view} />
       {off && item.step?.order?.command ? <Command text={item.step.order.command} /> : null}
-      {doll?.clash ? <Clash doll={doll} /> : doll ? <p data-doll-way-note className="text-xs text-dim">Givet sparas från dockan (Skicka): dockans film av din sparade standard blir referensfilm. Valen nedan gäller bara om du sparar utan dockan.</p> : null}
-      {doll && !doll.clash ? <WayChip way={dollWay} /> : null}
+      {doll ? <p data-doll-way-note className="text-xs text-dim">Givet sparas från dockan (Skicka): dockans film av din sparade standard blir referensfilm. Valen nedan gäller bara om du sparar utan dockan.</p> : null}
+      {doll ? <WayChip way={dollWay} /> : null}
       {sends}
       {/* whether the way chosen above holds: his own verdicts on films made so (a way that fell cannot be approved); the doll's way has its word above */}
-      {doll && !doll.clash ? null : <WayChip way={way} />}
+      {doll ? null : <WayChip way={way} />}
       <Button variant="primary" icon={<ArrowRight />} disabled={!body} onClick={onNext} className="self-start" title={body ? "Det som skickas, med pris" : (row?.why ? sentence(row.why) : undefined)}>
         Skicka
       </Button>
@@ -409,7 +398,8 @@ function Send({
     const from = st.state === "läst" ? (st.standard ? `din sparade standard ${st.standard.name}${st.standard.cardTempo !== 1 ? ` (kortets fart ${Math.round(st.standard.cardTempo * 100)} %)` : ""}` : "Naturlig (ingen sparad standard för kortet)") : st.state === "läser" ? "din sparade standard (läser …)" : "din sparade standard";
     const orderIt = () => {
       setDolling({ busy: true });
-      orderDoll(dealer, doll.place).then(
+      // the guide offers the doll's way for a deal from A2.3 only (BordetView dollWay): that is the pose ordered
+      orderDoll(dealer, doll.place, "A2.3").then(
         (m) => (setDolling({ busy: false }), onDollMade(m)),
         (cause) => setDolling({ busy: false, error: asApiError(cause, "Dockans beställning").message }),
       );
@@ -426,7 +416,6 @@ function Send({
         </div>
         {/* said before the doll's film is made: a draft of a way that fell, or behind its pilot, cannot be approved */}
         <WayChip way={dollWay} why />
-        <Clash doll={doll} />
         {blocked ? <p className="text-sm text-[#f0b07a]">{blocked}</p> : null}
         {dolling.error ? <p role="alert" className="text-sm text-[#f0b07a]">{dolling.error}</p> : null}
         <div className="flex flex-wrap items-center gap-2">
@@ -438,7 +427,7 @@ function Send({
             Utan dockan
           </Button>
         </div>
-        <p className="text-xs text-faint">Ett utkast beställer inget: det godkänns i Kön och läggs sedan hos Runway. Det som är sparat i Ställ dockan är det som beställs; reglage som inte är sparade följer inte med.</p>
+        <p className="text-xs text-faint">Ett utkast beställer inget: det godkänns i Kön och läggs sedan hos Runway. Det som är sparat som standard för dockan är det som beställs; reglage som inte är sparade följer inte med.</p>
       </div>
     );
   }

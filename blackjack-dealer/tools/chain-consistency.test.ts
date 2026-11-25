@@ -243,20 +243,17 @@ test('the hole card\'s turn is one node of the map, which the game takes from th
 
 // ── Findings of the rescue lane Kedjan (FYND 1 to 11) that have been put right, each held by a test ──
 // FYND 1: the anchor a card is dealt from had two sources. The game's (SEAT_HUB: Paow's seat 6 from anchor 2.2, Jakob's own word
-// 2026-11-13, "Förvalen han sade ja till") is the one; the plan's grip is not. Bordet's default round and the
-// deal on Beställ's row for a card followed the grip, so the lab played seat 6 from 2.1, where she has no film.
-test('Bordet\'s default round and Beställ\'s row deal a card from the anchor the game deals it from, whatever the plan\'s grip', async () => {
+// 2026-11-13, "Förvalen han sade ja till") is the one for a round; the plan's grip is not. Bordet's default round
+// followed the grip, so the lab played seat 6 from 2.1, where she has no film. (The films Kortplan lists and orders for
+// a card go from the chosen tree's anchor since 2026-11-25, studio/lib/bordet.ts treeAnchor: the plan chooses none.)
+test('Bordet\'s default round deals a card from the anchor the game deals it from', async () => {
   const B = await import('../studio/lib/bordet.ts'), R = await import('../studio/lib/rounds.ts');
   for (const d of dealerList) for (const card of TARGETS) {
     // The game, with every film there: a seat's two cards (or the dealer's), and the pose its deal of this card starts from.
     const [seat] = card.split('.'), table = seat === 'D' ? {hands: [], dealer: [1, 2]} : {hands: [{seat: Number(seat.slice(1)), cards: [1, 2]}], dealer: []};
     const beats = planBeats(table, [], [{type: 'deal', shoeDraw: 1}, {type: 'deal', shoeDraw: 2}], () => false, () => true, {}, SEAT_HUB[d.id] ?? {}, () => true);
     const pose = beats.find(b => b.kind === 'DEAL' && b.own?.label === card)!.step!.from;
-    for (const grip of ['PINCH', 'DRAG']) {
-      const deal = stepOf(B.cardWishes(card, {grip}, d.id)[0].step)!;
-      assert.equal(ANCHOR_NODE[deal.from as keyof typeof ANCHOR_NODE], pose, `${d.name} ${card}, the plan saying ${grip}: Beställ offers ${deal.key}, the game deals from ${pose}`);
-      assert.equal(R.roundFromText(B.roundFor(card, d.id), R.readyRounds()).steps[0]?.from, pose, `${d.name} ${card}: Bordet's round ${B.roundFor(card, d.id)}`);
-    }
+    assert.equal(R.roundFromText(B.roundFor(card, d.id), R.readyRounds()).steps[0]?.from, pose, `${d.name} ${card}: Bordet's round ${B.roundFor(card, d.id)}`);
   }
   assert.equal(B.roundFor('P6.C1', 'paow'), 'A2.2 - A3P6C1 - A2.2'); // his notation since 2026-11-21: the card's anchor is A3 + player + card
 });

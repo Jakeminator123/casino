@@ -1,6 +1,7 @@
 // The table as a real place in metres, built from the film: what is measured and what is assumed, the fit that chooses
-// the lens (its numbers stand frozen in src/table-lens.ts, and a test holds the two together), the card places of Jakob's
-// plan laid on the felt, and an eye for every seat. Pure: no I/O and no three.js.
+// the lens (its numbers stand frozen in src/table-lens.ts as TABLE_LENS, and dealer3d/tests/standard.test.ts holds the two
+// together and the plan's places to their pixels), the card places of Jakob's plan laid on the felt, and an eye for every
+// seat. Pure: no I/O and no three.js.
 import {FILM, SEAT_FOUR_CARD, SHOE_FOOT, SHOE_WINDOW_CARD, filmEye, lensForFocal, onPlane, onUpright, orbit, planPixel, readSpan, see, cardCorners, quadMeasure, type Anchors, type Eye, type Lens, type Pixel, type Vec3} from './camera.ts';
 export {SHOE, SHOE_LAID_BEFORE_20261123, cardInSpace, realCardQuad, realCardQuadAt, shoeCard, shoeCardQuad, shoePose, sides, type Shoe, type ShoePose} from '../../src/table-lens.ts';
 

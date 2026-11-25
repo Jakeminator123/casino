@@ -25,14 +25,22 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - **Kort:** ett kort per sida med märkena överallt; kortplanen i verkligt perspektiv genom B-linsen, som spelet och
   scenen följer. Det styva kortet utan vit kant har hans ja i Scen (2026-11-23).
 - **Studion:** ramen har neutral grafit och en meny med ett namn per rad (2026-11-25), väntar på hans ord om
-  utseendet; flera flikar får vara öppna. Bordet är vyn av bordet och dockan Kortplans steg 2. Bordet BORD-02 är ett
-  prov i studion ("skitbra" som
-  alternativ, 2026-11-20) som spelet inte slår på före hans ja.
+  utseendet; flera flikar får vara öppna. Bordet är vyn av bordet. Kortplan har en bild sedan 2026-11-25 ("ett och
+  samma läge", "allt i 3d"): dockans 3D-bord med planens kort på filten, och en högerspalt där dockans reglage står
+  under steg 2; den platta planen och dess bakade bakgrundsbilder är borta. Ingången (A2.1 eller A2.3) är trädets,
+  det spelade trädet som förval; planens Handbyte väljer ingenting. Bordet BORD-02 är ett prov i studion ("skitbra"
+  som alternativ, 2026-11-20) som spelet inte slår på före hans ja.
+- **Standarden** (2026-11-25, `docs/SYSTEM.md`): en kamera, ett bord och ett kort i `src/table-lens.ts`, och ett test
+  som håller dockans kamera vid den. Tre avvikelser står kvar: kortets form (87 % i spelet och i beställningens sista
+  bild, ett verkligt kort hos dockan), Casinos bredare kamera, och att dockan inte läser ett korts riktning ur planen.
 - **Spelet** spelar trädet Tatuerad med nödlösningar där film saknas (`STAND_IN_FILM`, `SEAT_HUB`). Realtidsmunnen
   (storlek F) har hans ja men når 12–13 rutor/s på hans RTX 3060 mot 24. Den neutrala munnen gäller Paows repliker utom
   blackjack (`paow-tal-blackjack-sv-04`, hans dom). Trailern är pausad (2026-11-17).
-- **3D-dockan:** en dockfilm görs i ett steg (`node tools/doll-order.ts paow P5.C1`); givarna från A2.3 följer dockan
-  svep24d, given från A2.1 `dealer3d/src/pinch-deal.ts`. Jakob 2026-11-23: "Jag gillar verkligen docklabbet!"
+- **3D-dockan:** en dockfilm görs i ett steg (`node tools/doll-order.ts paow P5.C1`, alltid från A2.3; nypet med
+  `--fran a2-1`); givarna från A2.3 följer dockan svep24d, given från A2.1 `dealer3d/src/pinch-deal.ts`. Jakob
+  2026-11-23: "Jag gillar verkligen docklabbet!" Dockan är kod (cylindrar och kulor ur mått, inget skelett) och
+  rörelserna ledernas lägen i meter; Blender kan inte öppna dem. Paows mått kommer från SAM 3D Body, standarddockans är
+  antagna, och varje grundrörelse läggs på standarddockan och förs över till den valda dockan.
 
 ## Nästa steg
 
@@ -53,11 +61,18 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    idé, obyggd: munnen ur hennes egen leendefilm `paow-vila-03-01`. Mungiporna och överläppen är inte lösta i hans ögon.
 5. **Kort:** kortets efterarbete i förväg per film (2026-11-17); grafiken på kortet prövad mot alla filmer
    (2026-11-23, `/kortlandning.html`).
-6. **Studion:** färre val, det uppenbart dubbla bort först: de sju adresserna som bara leder vidare (`/`, `/scen/`,
-   `/placering/`, `/bestall/`, `/docka/`, `/prov/`, `/primara/`), Casinos adress `/game/`, och verktygens meddelanden
-   som ännu säger "labbet"; sidorna bredvid (Ljud, Modeller, Grafik) får ramens utseende; fler register in i SQLite
-   som filmregistret (2026-11-23). Ett förslag som väntar på hans ja (2026-11-25, han frågade varför de ser olika ut):
-   Planen och Ställ dockan blir en bild, där dockans 3D-bord är det enda bordet och kortplanens kort ritas i det.
+6. **Studion:** färre val, det uppenbart dubbla bort först: de fem adresserna som bara leder vidare (`/`, `/scen/`,
+   `/bestall/`, `/prov/`, `/primara/`), Casinos adress `/game/`, och verktygens meddelanden som ännu säger "labbet";
+   sidorna bredvid (Ljud, Modeller, Grafik) får ramens utseende; fler register in i SQLite som filmregistret
+   (2026-11-23).
+7. **En standard hela vägen** (Jakob 2026-11-25: "detta ska vara en standard"): planens dolda rörelseval (`intent`:
+   grepp, var och hur kortet vänds, hand, handbyte) styr ännu receptets text utan att kunna väljas, och tas bort ur plan
+   och recept så att rörelsen bara är dockans; dockan läser kortets riktning ur planen; bildstorleken, som fler filer
+   ännu skriver själva, hämtas från `src/table-lens.ts`.
+8. **Standarddockan i Blender** (Jakob 2026-11-25): standarddockan blir en riggad modell som Blender öppnar (samma
+   slags skelett som avatar-auto-pipeline gör), med generiska rörelser som varje dealers docka får sin anpassning av;
+   en ny docka ärver då standarddockans sparade justeringar tills hon har egna. SAM-uppsättningen och Paows avläsningar
+   finns inte på den här datorn.
 
 ## Väntar på Jakob
 
@@ -67,6 +82,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   ankarbilderna (A1 `paow-vila-tatuerad`, A2.1 `paow-nyp-tatuerad`, A2.3 `paow-ankare-2-3-d` med stolarnas sex och
   `paow-ankare-2-3-marke`), keystones och hans egna bilder, kortets textur, 43 av dockans referensfilmer och spelets
   fyra munlappar. En beställning behöver ankarna, texturen och dockans filmer.
+- Kortet `tatuerat-a21-ny` i Beslut (2026-11-25): en ny A2.1 med tatuerade händer, kandidaten `paow-nyp-tatuerad-2`
+  (provet `a21-tatuerad-ny-20261125`).
+- Hans ögon på Kortplans enda bild (2026-11-25), och ett val: ska kortets form bli en standard? Reglaget Bordets
+  perspektiv i Hela bordet står på hans 87 %; på Riktigt kort ritar spelet och beställningens sista bild samma kort som
+  dockan och dess referensfilm. Bara han sparar planen.
 - På den stationära: hans dom på `paow-giv-2-3-d-03-01` och `paow-halkort-05-01`, den neutrala
   `paow-tal-blackjack-sv-14`, stolsserien (Prov `stolsserien-p4c2-20261124`) och andelarna för skjut och nyp i Karta.
 

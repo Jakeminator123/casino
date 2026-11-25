@@ -33,6 +33,9 @@ Projektets `.ignore` döljer media, filmregistret och dockans rörelsedata för 
 
 - **En väg för varje sak, färre val** (2026-11-24): "det är för mycket val, för komplicerat i onödan"; "klara
   självklara vägar för allt", också när det tränger undan gamla klipp eller vägar.
+- **En standard för kamera, bord och kort** (2026-11-25): "detta ska vara en standard"; dockan, bordet, bakgrunden och
+  en beställd film följer samma kamera, samma bord och samma kort (`docs/SYSTEM.md`, Standarden). En avvikelse är hans
+  uttryckliga val med datum, annars ett fel som rättas. Standarddockan är grunden som varje dealers docka anpassas från.
 - **Studion först** (2026-11-11): prov och effekter görs i studion; spelet får bara det han har godkänt där.
 - **Samma ord för samma sak** (2026-11-25): studion är allt i webbläsaren; ramen är menyn, rubrikraden, panelerna och
   knapparna ("snyggare studio" betyder snyggare ram); menyn är spalten till vänster; en vy är en sida i menyn;

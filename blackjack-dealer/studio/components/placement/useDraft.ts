@@ -18,11 +18,9 @@ export type DraftState = {
   saving: boolean;
   /** The plan changed on disk since it was read: the draft is kept, and reading the saved plan is offered. */
   conflict: boolean;
-  /** Which plan the picture shows: the draft, or the saved plan to compare with. */
-  showing: "draft" | "saved";
 };
 
-let state: DraftState = { status: "loading", draft: null, error: null, saving: false, conflict: false, showing: "draft" };
+let state: DraftState = { status: "loading", draft: null, error: null, saving: false, conflict: false };
 const calls = new Set<() => void>();
 const set = (patch: Partial<DraftState>) => {
   state = { ...state, ...patch };
@@ -35,14 +33,14 @@ const subscribe = (call: () => void) => {
 const draftDo = (fn: (d: Draft) => Draft) => {
   if (!state.draft || isSnapshot) return;
   const next = fn(state.draft);
-  if (next !== state.draft) set({ draft: next, showing: "draft" });
+  if (next !== state.draft) set({ draft: next });
 };
 
 async function load() {
   set({ status: state.draft ? "ready" : "loading", error: null });
   try {
     const saved = await readPlan();
-    set({ status: "ready", draft: openDraft(saved.plan, saved.revision), conflict: false, showing: "draft" });
+    set({ status: "ready", draft: openDraft(saved.plan, saved.revision), conflict: false });
   } catch (error) {
     set({ status: state.draft ? "ready" : "error", error: asApiError(error, "Placeringsplanen").message });
   }
@@ -58,7 +56,6 @@ export const draftActions = {
   end: () => draftDo(end),
   undo: () => draftDo(undo),
   toSaved: () => draftDo(toSaved),
-  show: (showing: DraftState["showing"]) => set({ showing }),
   /** Writes the draft to placements/default.json. Only from Jakob's click on Spara. */
   async save(): Promise<{ ok: true } | { ok: false; message: string; conflict: boolean }> {
     const d = state.draft;
@@ -66,7 +63,7 @@ export const draftActions = {
     set({ saving: true });
     try {
       const saved = await writePlan(d.plan, d.revision);
-      set({ saving: false, draft: afterSave(saved.plan, saved.revision), conflict: false, showing: "draft" });
+      set({ saving: false, draft: afterSave(saved.plan, saved.revision), conflict: false });
       return { ok: true };
     } catch (error) {
       const e = asApiError(error, "Placeringsplanen");

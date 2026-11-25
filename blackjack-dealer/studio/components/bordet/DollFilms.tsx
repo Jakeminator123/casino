@@ -1,6 +1,6 @@
 "use client";
 
-// Dockans filmer (Bordet's part Docka, DollPanel.tsx): for the chosen card, each film of the doll's with the films that were
+// Dockans filmer (Kortplan's toolbar, DollPanel.tsx): for the chosen card, each film of the doll's with the films that were
 // ordered with it as their reference beside it, so that the doll and what came of her are seen side by side (Jakob
 // 2026-11-23: "så man kan granska allt som görs med dock-video"). The doll's film first in its row, then one film per take:
 // the bank's film where the take is brought in, else the delivered file of the order's folder. Under a take: Jakob's verdict

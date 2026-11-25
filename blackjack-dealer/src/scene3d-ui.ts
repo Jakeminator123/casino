@@ -202,8 +202,16 @@ function build() {
     note('Spelets marker med tyngd, och en bricka med <b>samma marker</b> på högkant i stället för den byggda. En förlorad insats lyfts, vänds på högkant och sätts ner i sin rad; en vinst bärs ut ur brickan och ställs bredvid insatsen. Ingen hand syns: det kräver en film där hon sträcker sig.'));
   let timer = 0; const scale = slider('Skala k', 'scale', 1, 2.6, 0.05, '×', () => { clearTimeout(timer); timer = window.setTimeout(() => scene.rebuild(), 120); }), shown = setters.scale as unknown as (v: number) => void;
   setters.scale = ((v: number) => shown(v > 0 ? v : scene.status().camera.scale)) as never;
-  group('Filmkamera och skala', choice('lens', [['plan', tableGeometry() === 'lens' ? 'Bordets lins (kortplanens)' : 'Planens kamera (kontrakt)'], ['estimate', 'Dealerns lins (skattad)']], lens => { scene.home(); scene.set({lens, scale: 0}); }), scale,
-    note('Hemvyn är filmen oavsett kamera. Kameran styr hur filttrycket, bordet och rummet ligger i perspektiv och hur vridning och parallax ser ut. <b>Planens kamera</b> läses ur data/scene-contract.json och passar kortrutorna; kontraktet säger självt att dealern inte är ritad med den linsen. <b>Dealerns lins</b> är en skattning ur dealerns proportioner och ögonhöjd, inte uppmätt. <b>k</b> är hur många gånger större dealerns värld är än planens kort; kontraktet skattar 1,8–2,5.'));
+  // The first choice is the table's geometry's own camera: in Standard the table's lens (the film's camera, the standard),
+  // in Bred lins the contract's older wide camera (src/scene3d-view.ts filmCamera).
+  const lensGeometry = tableGeometry() === 'lens';
+  group('Filmkamera och skala', choice('lens', [['plan', lensGeometry ? 'Bordets lins (kortplanens)' : 'Bred lins (planens äldre kamera)'], ['estimate', 'Dealerns lins (skattad)']], lens => { scene.home(); scene.set({lens, scale: 0}); }), scale,
+    note('Hemvyn är filmen oavsett kamera. Kameran styr hur filttrycket, bordet och rummet ligger i perspektiv och hur vridning och parallax ser ut. '
+      + (lensGeometry
+        ? '<b>Bordets lins</b> är filmens egen kamera, standarden: kortplanen, dockan och beställningarnas slutbild ritar genom samma lins, med ett verkligt kort och dealern i verklig storlek. '
+        : '<b>Bred lins</b> är den äldre, vidare kameran som passar kortrutorna men inte är filmens egen; dealern är inte ritad med den linsen. ')
+      + '<b>Dealerns lins</b> är en skattning ur dealerns proportioner och ögonhöjd, inte uppmätt. <b>k</b> är hur många gånger större dealerns värld är än korten: '
+      + (lensGeometry ? 'med bordets lins 1, verkliga mått.' : 'för den breda kameran skattad till 1,8–2,5.')));
 }
 
 // ---- chips and the house's tray (src/game3d-chips.ts, src/game3d-tray.ts): tried here without a game behind them ----------

@@ -9,7 +9,7 @@
 // where the hands do not share the card), --carry, --grip-yaw, --body, and all of --beats for the tempo. (The tool is a
 // script that runs on import, so the page cannot call it. When its body moves into dealer3d/src/ as a function, this
 // file's layDeal goes and both call that.)
-import {SHOE, SHOE_LAID_BEFORE_20261123, TABLE_LENS, cross, filmEye, shoeCard, shoePose, type Shoe, type Vec3} from '../../src/table-lens.ts';
+import {FILM, SHOE, SHOE_LAID_BEFORE_20261123, TABLE_LENS, cross, feltToPixel, filmEye, shoeCard, shoePose, type Lens, type Shoe, type Vec3} from '../../src/table-lens.ts';
 import {spots, type Plan} from '../src/world.ts';
 import {arm, standing, turned} from '../src/body.ts';
 import {sideSeen} from '../src/deal.ts';
@@ -61,6 +61,14 @@ export const sideOf = (steer: Partial<Steer> | null | undefined): Side => steer?
 export function sideOfPlan(plan: unknown, target: string): Side | null {
   const side = (plan as {targets?: Record<string, {intent?: {endSide?: unknown}}>} | null)?.targets?.[target]?.intent?.endSide;
   return side === 'BACK' || side === 'FRONT' ? side : null;
+}
+/**
+ * A point of the felt in the plan's own words (placements/default.json, a place's geometry.native u and v: the film's
+ * picture normalised, bottom up, 'image-normalized-bottom-up'): the inverse of world.ts spots, through the same lens. What
+ * the lab tells the studio when a place is moved on the felt (docka.ts, `moved`). Null for a point the film camera does not see.
+ */
+export function planPoint(at: Vec3, lens: Lens): {u: number; v: number} | null {
+  const p = feltToPixel(at, lens); return p ? {u: p.x / (FILM.width - 1), v: 1 - p.y / (FILM.height - 1)} : null;
 }
 /** The turn at the place, as the trial of 2026-11-23 has it for the doll paow (Prov docka-paow-vandning-20261123; Jakob: "Bättre, men inte än"): --turn-near 0.7, wait=14 and --grip-yaw -20, on a sweep recipe. */
 export const TURN_AT_PLACE = {turnNear: 0.7, wait: 14, gripYaw: -20};

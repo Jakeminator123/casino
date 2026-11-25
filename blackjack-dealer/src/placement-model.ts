@@ -30,20 +30,11 @@ export type TableProjection = { mode:'flat'|'individual'; heading:number; perspe
 /** The table's perspective on "Plant bord": its limits and step. 0.96 is a real card's own shape (the real camera's 0.956). */
 export const TABLE_PERSPECTIVE = { min: .80, max: .96, step: .01 } as const;
 export type PlacementPlan = { schemaVersion: 1; id: 'kortplan'; space: 'image-normalized-bottom-up'; updatedAt: string | null; shoe: Record<View, Point>; targets: Record<string, Target>; tableProjection?:TableProjection };
-export const PLANE_HEADINGS=[-90,-45,-15,0,15,45,90] as const;
+// The headings a flat table's plane may be saved with (validatePlan).
+const PLANE_HEADINGS=[-90,-45,-15,0,15,45,90] as const;
 export const VIEWS = { native: { width: 1762, height: 1174, label: 'Dator', profileId: 'v6-native', background: 'assets/lab/native.jpg' }, portrait: { width: 1080, height: 1920, label: 'Mobil', profileId: 'v6-portrait', background: 'assets/lab/portrait.jpg' } } as const;
-// The backdrops of the studio's Kortplan (Jakob 2026-11-13: no dealer's picture, and the table the studio uses): the 3D scene's
-// table at its home view, the bank's shoe and, where the dealer sits, the white doll of dealer3d/src/doll.ts at rest (anchor
-// 1), in the view's own pixels. One picture per doll (Jakob 2026-11-21: a doll with the dealer's measures, "där man ska kunna
-// ändra docka också"); the chosen dealer's own doll lies under the cards, the standard doll for a dealer without one (Jakob
-// 2026-11-23: "Dockan övertar altså siluetten, men ska vara utifrån vilken dealer som vi har valt"; studio/lib/placement.ts
-// dollFor). A doll is named as its dealer is; the names are the dolls' own in the 3D lane, written out here so that the studio
-// does not import it. Built by tools/placement-backdrop.ts with a receipt beside them; outside Git like all media. Only Dator
-// has them: the scene has no home view that matches the Mobil view's pixels (a separate V6 composition).
-export const DOLL_BACKDROPS = [
- { id:'docka-standard', doll:'standard', native:'assets/lab/placement-backdrop/docka-standard.jpg' },
- { id:'docka-paow', doll:'paow', native:'assets/lab/placement-backdrop/docka-paow.jpg' },
-] as const;
+// Kortplan has no picture of its own under the cards: the studio shows the plan's cards on the doll's 3D table
+// (dealer3d/page/docka.html in a frame; Jakob 2026-11-25: one picture, all of it in 3D).
 export const INITIAL_TARGETS = [...Array.from({length:7},(_,i)=>`P${i+1}`),'D'].flatMap(p=>[`${p}.C1`,`${p}.C2`]);
 export const TARGETS = [...INITIAL_TARGETS, 'D.C3'];
 // Older files did not store this slot. Preserve its former film-pixel position when upgrading them.
@@ -56,11 +47,11 @@ export const SHOE_CARD: Readonly<Record<View, readonly {x:number;y:number}[]>> =
  native:[{x:1298,y:757.5},{x:1337,y:780},{x:1285,y:854},{x:1244,y:829}],
  portrait:[{x:922.5,y:763.5},{x:955,y:777.5},{x:904.5,y:849.5},{x:867.5,y:826.5}],
 };
-// The card standing in the shoe's window as Kortplan's backdrop, the dealers' anchors and the bank's films show it (the bank's
+// The card standing in the shoe's window as the dealers' anchors and the bank's films show it (the bank's
 // shoe, the same for every dealer): inside the window's mouth, its long side at about 125° in the picture, about 92 × 45 px.
-// Its corners, clockwise from the upper one, are the yellow card's own in the backdrop's picture (the largest yellow blob in
-// the window, its hull brought to four points; measured in Siluett's picture, the backdrop until 2026-11-23, whose shoe the
-// dolls' pictures carry: tools/placement-backdrop.ts cuts it from the same rest frame); anchor 1 (paow-vila-ung-2) gives the same
+// Its corners, clockwise from the upper one, are the yellow card's own in a rest frame (the largest yellow blob in
+// the window, its hull brought to four points; measured in Siluett's picture, the plan's backdrop until 2026-11-23, cut from
+// the bank's rest frame); anchor 1 (paow-vila-ung-2) gives the same
 // card within 2 px, and it is the V6 picture's card (SHOE_CARD) within 5 px. Until 2026-11-17 late these were the card track's first
 // frame of a pinch (111 × 57 px): the card already drawn up out of the window with a strip of the next card, which the lab
 // then drew larger than the shoe's mouth (Jakob: "Kortet vid skon ska ju inte vara större än "mynningen" av skon heller").
@@ -123,12 +114,6 @@ export const otherHand = (h: Hand): Hand => h==='LH'?'RH':'LH';
 export const otherSide = (s: Side): Side => s==='BACK'?'FRONT':'BACK';
 export function toPixels(point: Point, view: View) { const p=VIEWS[view]; return { x:point.u*(p.width-1), y:(1-point.v)*(p.height-1) }; }
 export function fromPixels(x: number,y: number,view: View): Point { const p=VIEWS[view];return {u:x/(p.width-1),v:1-y/(p.height-1)}; }
-export function angleToward(from: Point,to: Point,view: View): number {
- const a=toPixels(from,view),b=toPixels(to,view);
- if(Math.hypot(b.x-a.x,b.y-a.y)<.001)return 0;
- const degrees=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI+90;
- return ((degrees+540)%360)-180;
-}
 // A single projective plane derived from P4. Saving this visual projection
 // does not make it a camera calibration; that still needs measured correspondences.
 export function flatQuad(g: Geometry, reference: Geometry, view: View, heading=0) {
@@ -183,13 +168,6 @@ export function applyTechnique(intent: Intent, name: Technique): Intent { return
 export function techniqueOf(intent: Intent): Technique | null {
  return (Object.keys(TECHNIQUES) as Technique[]).find(name=>Object.entries(TECHNIQUES[name]).every(([key,value])=>(key==='turnAt'&&!intent.turn)||intent[key as keyof Intent]===value))??null;
 }
-// Copies one card's motion choices (intent) or material to other cards. Returns a new plan; the given one is left alone.
-export function copyChoices(plan: PlacementPlan, from: string, key: 'intent' | 'material', to: readonly string[]): PlacementPlan {
- const source=plan.targets[from];if(!source)throw Error('Välj ett kort att kopiera från.');
- const next=structuredClone(plan);
- for(const id of to){if(!next.targets[id])throw Error(`Okänd kortplats ${id}.`);if(key==='intent')next.targets[id].intent={...source.intent};else next.targets[id].material={...source.material};}
- return next;
-}
 export const CARD_SCALE = { min: .5, max: 2.5, step: .05 } as const;
 // Multiplies width and height of every card in one view by one factor. Each card keeps its centre, angle and taper. A card that the
 // factor would take past the model's limits (size .005–.25 of the picture, the whole outline inside it) gets the nearest factor that
@@ -213,7 +191,7 @@ export function scaleCards(plan: PlacementPlan, view: View, factor: number): { p
  }
  return {plan:next,limited};
 }
-// ── Edits of a plan, shared by every page that changes one (the studio's Placering view) ──
+// ── Edits of a plan, for the page that changes one (Bordet's Kortplan) ──
 // Each returns a new plan and leaves the given one alone. The rules: a place that is moved, turned or resized is marked unchecked in that view, its outline is kept inside the picture, and a card's sides and TURN agree.
 /** A card place (P1.C1 … D.C2) or the shoe's take-off point. */
 export type Place = string;
@@ -260,25 +238,11 @@ export function editMaterial(plan: PlacementPlan, id: string, patch: Partial<Tar
  if (typeof patch.gloss === 'number') m.gloss = Math.min(1, Math.max(0, patch.gloss));
  return next;
 }
-/** The table's projection (flat from P4.C1 with a heading, or card by card), its perspective kept. Every place in both views is then unchecked. */
-export function setTableProjection(plan: PlacementPlan, projection: TableProjection): PlacementPlan {
- if (!['flat','individual'].includes(projection.mode) || !PLANE_HEADINGS.includes(projection.heading as typeof PLANE_HEADINGS[number])) throw Error('Ogiltigt bordperspektiv eller riktning.');
- const perspective = projection.perspective ?? plan.tableProjection?.perspective;
- const next = structuredClone(plan); next.tableProjection = {mode: projection.mode, heading: projection.heading, ...(perspective !== undefined ? {perspective} : {})};
- for (const t of Object.values(next.targets)) for (const v of ['native','portrait'] as View[]) t.geometry[v].reviewed = false;
- return next;
-}
 /** The table's perspective on "Plant bord" (one number for the whole plan), or null for the real camera's. */
 export function setTablePerspective(plan: PlacementPlan, perspective: number | null): PlacementPlan {
  if (perspective !== null && (!Number.isFinite(perspective) || perspective < TABLE_PERSPECTIVE.min || perspective > TABLE_PERSPECTIVE.max)) throw Error(`Välj ett perspektiv mellan ${TABLE_PERSPECTIVE.min} och ${TABLE_PERSPECTIVE.max}.`);
  const next = structuredClone(plan), t = next.tableProjection ?? {mode: 'flat' as const, heading: 0};
  next.tableProjection = {mode: t.mode, heading: t.heading, ...(perspective === null ? {} : {perspective: Math.round(perspective * 1000) / 1000})};
- return next;
-}
-/** Every player card's angle to 0° in one view (the dealer's two cards are left), unchecked and kept inside the picture. */
-export function straightenPlayers(plan: PlacementPlan, view: View): PlacementPlan {
- const next = structuredClone(plan);
- for (const id of PLAYER_TARGETS) next.targets[id].geometry[view] = constrain({...next.targets[id].geometry[view], angle: 0, reviewed: false}, view);
  return next;
 }
 /** A place snapped to a grid of `step` pixels; a card's angle also to the nearest 5°. */
@@ -295,11 +259,6 @@ export function resetPlace(plan: PlacementPlan, id: Place, view: View): Placemen
  if (id === SHOE) next.shoe[view] = structuredClone(start.shoe[view]);
  else { placeOf(next, id); next.targets[id].geometry[view] = structuredClone(start.targets[id].geometry[view]); }
  return next;
-}
-/** The angle that turns a card toward the dealer: toward the middle of the dealer's two cards. */
-export function dealerAngle(plan: PlacementPlan, id: string, view: View): number {
- const a = plan.targets['D.C1'].geometry[view], b = plan.targets['D.C2'].geometry[view];
- return angleToward(placeOf(plan, id).geometry[view], {u: (a.u + b.u) / 2, v: (a.v + b.v) / 2}, view);
 }
 export function defaultPlan(): PlacementPlan {
  const targets: Record<string,Target>={};

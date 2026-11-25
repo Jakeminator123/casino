@@ -1,18 +1,21 @@
 // The doll lab's stage (dealer3d/page/docka.ts): the room, table, shoe, card and doll of dealer3d/src/stage.ts, drawn
 // through a camera of the lab's own that the mouse turns, with the motion exchanged while the page is open and the joints
 // marked. Nothing of the doll or the room is drawn here: that is the stage's; this file adds the camera, the marks on the
-// joints and on the fingertips that touch the card, and the place that is lit.
+// joints and on the fingertips that touch the card, the place that is lit, the places' outlines kept to the plan in use
+// (setPlan: the studio's draft, as it is changed; each turned on the felt as the studio draws it), the point of the felt
+// under the pointer (pick), and one place's outline moved by hand (movePlace).
 //
 // What it borrows of the stage that the stage does not hand out, all of it in createLabStage's first lines and nowhere
 // else: the scene (taken as the stage adds its first light to it), the renderer (taken at one drawing of the stage's own),
-// and one `read` whose frames are exchanged in place (the stage reads them at every setTime; it is made with a frame
-// count that never ends, since the stage fixes its duration when it is made). Wanted of dealer3d/src/stage.ts, so that
-// these three go: createStage hands out `scene` and `renderer`, draws through a camera it is given, and takes a new read.
+// the places' outlines (the stage's LineLoops, in the order of world.ts spots; redrawn here from then on), and one `read`
+// whose frames are exchanged in place (the stage reads them at every setTime; it is made with a frame count that never
+// ends, since the stage fixes its duration when it is made). Wanted of dealer3d/src/stage.ts, so that these go:
+// createStage hands out `scene` and `renderer`, draws through a camera it is given, takes a new read and a new plan.
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {createStage, type Read} from '../src/stage.ts';
-import {FILM, fovYDeg, type Eye, type Vec3} from '../src/camera.ts';
-import {dealerEdge, seatEye, spots, type Plan} from '../src/world.ts';
+import {CARD, FILM, fovYDeg, type Eye, type Vec3} from '../src/camera.ts';
+import {dealerEdge, seatEye, spots, type Plan, type Spot} from '../src/world.ts';
 import {standing} from '../src/body.ts';
 import {FINGERS} from '../src/capture.ts';
 import {touching, type Touch} from '../src/natural.ts';
@@ -25,6 +28,24 @@ const v3 = (p: number[]) => new T.Vector3(p[0], p[1], p[2]), UP = new T.Vector3(
 const mix = (a: number[], b: number[], k: number): Vec3 => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 // The marks: her right arm and hand warm, her left cool, the hands brighter than the arms, the trunk faint.
 const MARK = {right: {arm: 0xd98a2b, hand: 0xffd23f}, left: {arm: 0x2b8fd9, hand: 0x4de3ff}, trunk: 0x9aa39d};
+/** The plan as far as the turn of its cards is read from it (placements/default.json). */
+type Turned = {tableProjection?: {mode?: string; heading?: number}; targets: Record<string, {geometry: {native: {angle?: number}}}>};
+/**
+ * The turn of a place's card on the felt, radians as src/table-lens.ts realCardQuad takes it (0: its long side straight
+ * away from the camera, positive toward image right). Where the table is "Plant bord" (tableProjection.mode 'flat') every
+ * card turns as the table, its heading and P4.C1's angle, as the studio draws the plan through the lens
+ * (src/card-plan.ts planCardQuad); else the card's own angle.
+ */
+function headingOf(plan: Plan, id: string): number {
+  const p = plan as unknown as Turned, angle = (at: string) => p.targets[at]?.geometry.native.angle ?? 0;
+  const degrees = p.tableProjection?.mode === 'flat' ? (p.tableProjection.heading ?? 0) + angle('P4.C1') : angle(id);
+  return Number.isFinite(degrees) ? degrees * Math.PI / 180 : 0;
+}
+/** A place's outline as stage.ts draws it, a real card 3 mm larger all round, just over the felt, turned by `heading`. */
+function outlineAt(at: number[], heading: number): T.Vector3[] {
+  const c = Math.cos(heading), s = Math.sin(heading), w = CARD.width / 2 + 0.003, h = CARD.height / 2 + 0.003; // (x across, z toward the camera)
+  return [[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, z]) => new T.Vector3(at[0] + x * c - z * s, 0.0006, at[2] + x * s + z * c));
+}
 
 /** The joints as balls with bones between, drawn over everything (no depth test), in metres of the room. */
 function marks() {
@@ -83,8 +104,11 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
   const renderer = taken as T.WebGLRenderer | null; if (!renderer) throw Error('The stage drew with no renderer.');
   read.frameCount = first.frameCount;
 
-  const lens = stage.lens, all = spots(plan, lens), edge = dealerEdge(lens), body = standing(lens, doll), film = stage.eyeOf('film');
+  const lens = stage.lens, edge = dealerEdge(lens), body = standing(lens, doll), film = stage.eyeOf('film');
+  let planNow = plan, all: Spot[] = spots(plan, lens);
   const outlines = scene.children.filter(o => (o as T.LineLoop).isLineLoop) as T.LineLoop[]; // the plan's places, in the order of `all` (stage.ts, look 'room')
+  const outlineColour = (outlines[0]?.material as T.LineBasicMaterial | undefined)?.color.getHex() ?? 0xd8c27a;
+  const redraw = (o: T.LineLoop, at: number[], heading: number) => { o.geometry.dispose(); o.geometry = new T.BufferGeometry().setFromPoints(outlineAt(at, heading)); };
   const joints = marks(); scene.add(joints.group); const held = grips(); scene.add(held.group); let touchNow: Touch[] = [];
   const camera = new T.PerspectiveCamera(fovYDeg(film.focalPx), FILM.width / FILM.height, 0.2, 30), controls = new OrbitControls(camera, canvas);
   controls.enableDamping = false; controls.minDistance = 0.25; controls.maxDistance = 9; controls.maxPolarAngle = Math.PI * 0.52; controls.zoomSpeed = 1.2; controls.rotateSpeed = 0.9;
@@ -109,7 +133,7 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
     // Straight down on the table, the dealer at the top as in the film (a hair off the plumb line, which has no up).
     else if (name === 'above') through({position: [edge[0], 2.5, edge[2] + 0.16], forward: [0, -2.5, -0.04], focalPx: film.focalPx}, [edge[0], 0, edge[2] + 0.12]);
     // The eye of the seat the card is laid at (world.ts seatEye); for the dealer's own cards seat 4's.
-    else if (name === 'player') { const eye = seatEye(seatOf(), plan, lens), at = all.find(s => s.id === target)?.at ?? table; through(eye, at); }
+    else if (name === 'player') { const eye = seatEye(seatOf(), planNow, lens), at = all.find(s => s.id === target)?.at ?? table; through(eye, at); }
     // Close on the card, along the film's line of sight to it; the view then goes with the card (setTime), so the hand that holds it stays in the picture.
     else { const c = cardNow(), f = v3(c).sub(v3(film.position)).normalize(); through({position: v3(c).addScaledVector(f, -0.5).toArray() as Vec3, forward: f.toArray() as Vec3, focalPx: film.focalPx}, c); follow = c; }
   }
@@ -129,7 +153,19 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
     renderer!.setViewport(0, 0, W, H); renderer!.setScissor(0, 0, W, H); renderer!.setClearColor(0x0b0d0f, 1); renderer!.clear(); renderer!.render(scene!, camera); dirty = false;
   }
   const mark = () => outlines.forEach((o, i) => { const m = o.material as T.LineBasicMaterial; m.opacity = all[i]?.id === target ? 1 : 0.3; });
-  mark(); view('film'); setTime(0);
+  /**
+   * The places of `next` drawn on the felt: an outline for each, in the order of `all`, made or taken away where the plan has
+   * more or fewer places; `keep`: a place held where the hand has it (docka.ts, while it is dragged), whatever the plan says.
+   */
+  function setPlan(next: Plan, keep?: {id: string; at: Vec3}) {
+    planNow = next; all = spots(next, lens);
+    while (outlines.length < all.length) { const o = new T.LineLoop(new T.BufferGeometry(), new T.LineBasicMaterial({color: outlineColour, transparent: true, opacity: 0.3})); scene!.add(o); outlines.push(o); }
+    while (outlines.length > all.length) { const o = outlines.pop()!; scene!.remove(o); o.geometry.dispose(); (o.material as T.Material).dispose(); }
+    all.forEach((s, i) => { if (keep && s.id === keep.id) s.at = keep.at; redraw(outlines[i], s.at, headingOf(next, s.id)); });
+    mark(); dirty = true;
+  }
+  const ray = new T.Raycaster(), felt = new T.Plane(UP, 0);
+  setPlan(plan); view('film'); setTime(0);
   return {
     lens, doll,
     /** Another motion in the same room (at least two frames, as the stage mixes between two); the time goes to its start. */
@@ -138,6 +174,18 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
     duration: () => (read.frameCount - 1) / read.fps, time: () => now, setTime,
     /** The place that is lit, and whose seat "Från spelaren" looks from. */
     setTarget(id: string) { target = id; mark(); dirty = true; },
+    setPlan,
+    /** The plan's places on the felt as drawn now (a place being moved where the hand has it). */
+    places: (): Spot[] => all.map(s => ({...s, at: [...s.at] as Vec3})),
+    /** One place's outline moved to `at` on the felt, turned as before; the plan itself is the page's. */
+    movePlace(id: string, at: Vec3) { const i = all.findIndex(s => s.id === id); if (i < 0) return; all[i] = {...all[i], at}; redraw(outlines[i], at, headingOf(planNow, id)); dirty = true; },
+    /** The point of the felt (y = 0) under a pointer at client pixels `x`, `y`, along the ray from the camera; null off the canvas or where the ray never meets the felt. */
+    pick(x: number, y: number): Vec3 | null {
+      const box = canvas.getBoundingClientRect(); if (!box.width || !box.height) return null;
+      camera.updateMatrixWorld(); ray.setFromCamera(new T.Vector2((x - box.left) / box.width * 2 - 1, 1 - (y - box.top) / box.height * 2), camera);
+      const hit = ray.ray.intersectPlane(felt, new T.Vector3()); return hit ? [hit.x, 0, hit.z] : null; },
+    /** Whether the mouse turns the view (off while docka.ts moves a place by hand). */
+    orbit(on: boolean) { controls.enabled = on; },
     view,
     setJoints(on: boolean) { joints.group.visible = on; setTime(now); },
     /** The fingertips on the card marked (dealer3d/page/docka.ts: with the joints, and always close on the card). */
