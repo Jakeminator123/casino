@@ -4090,23 +4090,6 @@
             "from": "Runways API, Nano Banana 2.1 (uppdrag 490eb7e9); utanför Beställ, liggaren .runtime/vinkelprov-p4c2/api/ledger.json (vinkelprov-p4c2-still-oga-7); original.png bredvid bilden",
             "when": "2026-11-24"
           }
-        },
-        {
-          "id": "paow-nyp-tatuerad-2",
-          "role": "ankare-2.1",
-          "name": "Nyp, tatuerade händer, ny (prov)",
-          "path": "assets/anchors/paow-nyp-tatuerad-2/anchor.png",
-          "node": "READY",
-          "state": "kandidat",
-          "note": "Gamla A2.1 (paow-nyp-ung-1) med tatuerade händer och kortets märke, utan det vita i skons fönster; utanför händerna och kortet samma bildpunkter (2,1 % ändrade). Händerna har gamla A2.1:s storlek, inte tatuerade A1:s mindre. Inte sedd av en oberoende granskare. Kvittot ligger bredvid bilden.",
-          "source": {
-            "from": "Nano Banana Pro 4K (Runway gemini_image3_pro, uppdrag 98a143c7) på gamla A2.1:s första ruta ur paow-giv-2-1-p6-07-02, med tatuerade A1 och A2.3-a ur paow-ingang-2-3-01-01 som förlagor; händerna och kortet inlagda lokalt, det vita i fönstret målat gult",
-            "when": "2026-11-25"
-          },
-          "builtOn": [
-            "paow-nyp-ung-1",
-            "paow-vila-tatuerad"
-          ]
         }
       ]
     },

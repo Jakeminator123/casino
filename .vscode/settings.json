@@ -18,6 +18,6 @@
     "blackjack-dealer/studio/out": true,
     "avatar-auto-pipeline/tools": true,
     "avatar-auto-pipeline/output": true,
-    "slask": true
+    "slask/*/*": true
   }
 }

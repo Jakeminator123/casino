@@ -468,32 +468,6 @@
         "note": "",
         "at": "2026-11-20T11:07:16.474Z"
       }
-    },
-    {
-      "id": "tatuerat-a21-ny",
-      "kind": "beslut",
-      "question": "Ny A2.1 med dina tatueringar: duger den som ankare vid skon?",
-      "leads": "Ja betyder att piloten från A2.1 till plats 6 görs från den här bilden tills den stationäras A2.1 kopieras hit, och då väljer du vilken som gäller",
-      "proof": "a21-tatuerad-ny-20261125",
-      "file": "1-nya-a2-1.png",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja, den duger"
-        },
-        {
-          "value": "mindre-hander",
-          "label": "Ja, men mindre händer"
-        },
-        {
-          "value": "nej",
-          "label": "Nej"
-        }
-      ],
-      "asked": "2026-11-25",
-      "from": "Claude Code (A2.1 ur gamla)",
-      "cost": "En bild, 40 krediter. Piloten till plats 6 kostar cirka 160–200.",
-      "answer": null
     }
   ]
 }

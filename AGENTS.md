@@ -122,9 +122,15 @@ görs står i projektets `AGENTS.md`.
 - Allt annat i slasken är arbetsfiler: `slask/<projekt>/<uppgift>/`, en mapp per uppgift eller verktyg, inga lösa
   filer. Hjälpskript skrivs i TypeScript som projektets kod (Node 24 kör `.ts` direkt). Agenten tar bort sin
   uppgiftsmapp när den är klar; det som ändå blir kvar och är äldre än sju dygn raderas.
+- Varje mapp bär en lapp, `lapp.json`: vad den är, vilken chatt eller vilket verktyg som äger den, när, och när den får
+  gå. Den som gör mappen skriver lappen, och mappen med den: `node slask/slask.ts lapp <projekt>/<mapp> <ägare> "<vad>"
+  ["<när den får gå>"]`, där ägaren är chattens namn i `inbox/`. Registret är `node slask/slask.ts`, räknat ur mapparna
+  och lapparna varje gång och sparat ingenstans: storlek, filer, ålder, lappen, det som väntar på dom och det
+  sjudygnsregeln tar. `node slask/slask.ts stada` raderar efter sjudygnsregeln i alla projekt (`--torr` listar bara) och
+  rör aldrig `granska/`. Verktyget är det enda i slasken som Git har och sökningen ser.
 - Ett projekts verktyg hittar sin undermapp som `../slask/<projekt>` från projektets rot, eller med en miljövariabel
  (`DEALER_SLASK` i `blackjack-dealer`). Ingen kod eller text pekar på en viss disk eller dator. `npm run stada` i
- `blackjack-dealer` raderar det som är äldre än sju dygn och lämnar `granska/` orörd.
+ `blackjack-dealer` gör samma städning för den delen, och dess server kör den när den startar.
 - Projektens kommandon (`npm start`, `npm test`, `npm run check`) körs från projektets mapp, till exempel
   `blackjack-dealer/`.
 - Ett projekt kan ha en egen dold mapp för verktygens tillstånd, som `blackjack-dealer/.runtime/`: databaser som byggs
@@ -132,8 +138,8 @@ görs står i projektets `AGENTS.md`.
 
 ## Sökningen och ignore-filerna
 
-- Sökningen ser inte allt, med avsikt. `.ignore` här döljer byggrester, cacher, Python-miljöer, hemligheter och
-  avatarprojektets bilder och Blender; ett projekts egen `.ignore` lägger till sitt (i `blackjack-dealer/`: media,
+- Sökningen ser inte allt, med avsikt. `.ignore` här döljer slasken (utom dess verktyg), byggrester, cacher,
+  Python-miljöer, hemligheter och avatarprojektets bilder och Blender; ett projekts egen `.ignore` lägger till sitt (i `blackjack-dealer/`: media,
   maskindata och filmregistret). En tom sökträff betyder inte att filen saknas: läs den med sin sökväg.
 - En ny mapp med maskindata, byggrester eller stora filer läggs in i ignore-filerna i samma steg, med en kommentar om
   varför och hur den läses.
