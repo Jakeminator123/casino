@@ -153,8 +153,11 @@ Jakob frågade 2026-11-25 hur tester skapas och efterlevs. Så här:
 
 - Nya tester bara för det som ska bestå: publiceringsskyddet, spelets regler, hans domar och val, beställningarna
   (godkännande, kredittak) och kontrakten. Inga tester av dokumentens form eller av hur kod eller text ser ut.
-- Ändrar en ändring ett beteende som ett test låser, ändras eller tas testet bort i samma ändring; skyddet sänks aldrig
-  för att få grönt. Rött stoppar: utred orsaken.
+- Ett rött test granskas innan det följs (Jakob 2026-11-26: "skittester som låser beteenden jag egentligen inte vill
+  ha"): skyddar det något på listan ovan? Då står det kvar och orsaken rättas; skyddet sänks aldrig för att få grönt.
+  Skyddar det inget där (hur kod, text eller en sida ser ut, ett äldre beteende ingen har bett om, något han har ändrat
+  sig om) är det ett gammalt test: ta bort det i samma ändring, i stället för att böja koden efter det, och säg i
+  svaret vilket och varför. Ändrar en ändring ett beteende som ett test låser, ändras eller tas testet bort i samma steg.
 - Allt ska vara grönt utan media på datorn. Testerna täcker inte filmerna; de bedöms med ögat.
 
 ## Kod

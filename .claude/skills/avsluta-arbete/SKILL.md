@@ -19,8 +19,9 @@ här är ordningen.
 ## Huvudagenten
 
 1. Vänta in eller stoppa egna underagenter. Bevara Jakobs plan, domar och orderutkast.
-2. **Kontrollera:** kör de berörda testfilerna (`node --test <fil>`, högst fyra arbetare). Rött stoppar: rätta orsaken.
-   Ändrar arbetet ett beteende som ett test låser, ändras testet i samma ändring; skyddet sänks aldrig.
+2. **Kontrollera:** kör de berörda testfilerna (`node --test <fil>`, högst fyra arbetare). Rött stoppar, och granskas innan det
+   följs (`blackjack-dealer/AGENTS.md`, "Tester"): skyddar testet något som ska bestå rättas orsaken och skyddet sänks
+   aldrig; annars är det ett gammalt test som tas bort i samma ändring och nämns i svaret.
 3. **Städa:** ta bort det ändringen gjorde överflödigt (kod som inget anropar, ersatta filer, döda sökvägar) och egna
    mappar i slasken. Efter mediearbete: `npm run gallra` och `npm run media:status`.
 4. **Dokumentera, nerifrån och upp:** kommentaren i koden, `blackjack-dealer/README.md` om en mapp eller ett kommando

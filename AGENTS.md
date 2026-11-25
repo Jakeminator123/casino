@@ -93,7 +93,8 @@ Jakob ska aldrig behöva be om det. Innan ett arbete som har ändrat filer lämn
 2. Rätta dokumentationen som ändringen gjorde fel, nerifrån och upp. Låser ett test ett beteende som ändringen
  ändrar, ändras eller tas testet bort i samma ändring. Nya tester bara för det som ska bestå (publiceringsskyddet,
  spelets regler, Jakobs domar, beställningarna och kontrakten), aldrig för dokumentens form eller hur kod ser ut;
- skyddet sänks aldrig för att få grönt.
+ skyddet sänks aldrig för att få grönt. Ett rött test granskas innan det följs (Jakob 2026-11-26): skyddar det inget
+ av det som ska bestå är det ett gammalt test och tas bort, i stället för att koden böjs efter det; säg vilket i svaret.
 3. Har en fil eller mapp tillkommit, försvunnit eller bytt syfte: rätta projektets karta (README), tabellen ovan
    och ignore-filerna (nedan).
 4. Säg i svaret vad som städades och vilka dokument som ändrades, eller att inget behövdes.
