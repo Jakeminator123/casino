@@ -1,0 +1,15 @@
+# Läggs ovanpå casino/.gitignore, som redan håller tillbaka .env*, säkerhetskopior (*.bak-*), media, .glb, .gltf,
+# .fbx, .blend, input/, output/, tools/, .venv/ och __pycache__/. Här står bara det som är avatarprojektets eget.
+
+# Anteckningsfiler som en agent lämnar bredvid koden (namn som börjar med understreck): utdrag ur arbetet som inte
+# ska ut i det publika repot. Arbetsfiler hör hemma i ../slask/avatar-auto-pipeline/<uppgift>/.
+_*.txt
+
+# 3D-format som Meshy och Blender kan lämna utanför output/ och som rotens fil inte nämner: modeller går aldrig in
+# i Git, de är stora och kan föreställa en verklig person.
+*.blend[0-9]*
+*.obj
+*.mtl
+*.usdz
+*.stl
+*.3mf
