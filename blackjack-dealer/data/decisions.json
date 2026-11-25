@@ -489,7 +489,11 @@
       "asked": "2026-11-26",
       "from": "Claude Code (A2.1 med märke)",
       "cost": "Ingen kostnad: märket är ritat lokalt.",
-      "answer": null
+      "answer": {
+        "value": "ja",
+        "note": "",
+        "at": "2026-11-25T23:29:44.831Z"
+      }
     }
   ]
 }
