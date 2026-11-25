@@ -156,7 +156,8 @@ Jakob frågade 2026-11-25 hur tester skapas och efterlevs. Så här:
 
 ## Svar till Jakob
 
-- Svenska, slutsatsen först, kort, men varje fråga han ställer får sitt svar. Punktform, procent och poäng (4/5).
+- Svenska, slutsatsen först och aningen kortare än ett vanligt svar (2026-11-25), men varje fråga han ställer får sitt
+  svar. Punktform, procent och poäng (4/5) där svaret passar det.
 - Skilj det verifierade från det skattade. Säg vad som återstår och vad som hindrar att arbetet stängs.
 - Läs hans anteckningar i Prov med `node tools/proof-notes.ts` före svaret. En stillbild bredvid varje film han ska döma.
 - Avsluta med antalet aktiva underagenter.

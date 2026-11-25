@@ -82,6 +82,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   ankarbilderna (A1 `paow-vila-tatuerad`, A2.1 `paow-nyp-tatuerad`, A2.3 `paow-ankare-2-3-d` med stolarnas sex och
   `paow-ankare-2-3-marke`), keystones och hans egna bilder, kortets textur, 43 av dockans referensfilmer och spelets
   fyra munlappar. En beställning behöver ankarna, texturen och dockans filmer.
+- 51 filmer från 20–24 november som Runway ännu hade, hämtade 2026-11-25 till
+  `../slask/blackjack-dealer/granska/runway-20261125/` (Runway behåller ett uppdrag cirka fem dygn): bland dem
+  Tatuerad nyps ingång och sex givar, A2.3-d:s givar och stolarnas. Ur dem den tatuerade A2.1 och A2.3-d som rutor
+  (`rutor/`). Han väljer om de förs in på sina poster.
 - Kortet `tatuerat-a21-ny` i Beslut (2026-11-25): en ny A2.1 med tatuerade händer, kandidaten `paow-nyp-tatuerad-2`
   (provet `a21-tatuerad-ny-20261125`).
 - Hans ögon på Kortplans enda bild (2026-11-25), och ett val: ska kortets form bli en standard? Reglaget Bordets

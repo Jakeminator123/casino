@@ -1102,6 +1102,19 @@
       "choice": "bra",
       "text": "",
       "at": "2026-11-24T03:34:47.471Z"
+    },
+    {
+      "id": 119,
+      "proof": "a21-tatuerad-ny-20261125",
+      "file": "4-kortet-forr-och-nu.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-25T21:36:39.437Z",
+      "answer": {
+        "text": "Sett. Den riktiga tatuerade A2.1 är tillbaka som ruta ur Runways film (granska/runway-20261125/rutor), med kortet som förut; kandidaten behövs troligen inte.",
+        "at": "2026-11-25T21:40:03.433Z"
+      },
+      "read": "2026-11-25T21:40:03.433Z"
     }
   ]
 }
