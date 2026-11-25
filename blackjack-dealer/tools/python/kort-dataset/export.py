@@ -1,6 +1,6 @@
 # Steg D: gör manifestet och den platta tabellen ur etikettfilerna.
 #   python -I export.py
-# Skriver i slaskens kort-dataset/ (BASE nedan; slasken är DEALER_SLASK eller <repo>/../slask/dealer):
+# Skriver i slaskens kort-dataset/ (BASE nedan; slasken är DEALER_SLASK eller <repo>/../slask/blackjack-dealer):
 #   manifest.jsonl  en rad per film: sha256, sökväg (och kopiornas sökvägar), format, antal rutor, grupp (samma tagning), delning
 #   rutor.csv       en rad per kort och ruta: film (sha256), ruta, sida, hörn, yta, sidlängder, andel, oskärpa, utsmetad, täckt
 #   siffror.json    sammanräkningen
@@ -8,7 +8,7 @@
 # gult även när det ligger still), och en ruta är utsmetad när kantbandet är mer än SMEAR_OVER bredare än så. Kolumnen fast
 # säger att kortet flyttat sig mer än SMEAR_SPEED bildpunkter sedan förra rutan (möjlig utsmetning där kantbandet inte går att mäta).
 import os, sys, json, gzip, glob, csv, collections, statistics, hashlib
-BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'dealer')), 'kort-dataset')
+BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'blackjack-dealer')), 'kort-dataset')
 SMEAR_OVER = 1.5; SMEAR_SPEED = 22.0; VAL_SHARE = 0.2
 
 inv = collections.defaultdict(list)

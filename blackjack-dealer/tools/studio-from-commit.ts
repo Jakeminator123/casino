@@ -8,12 +8,12 @@
 //
 //   node tools/studio-from-commit.ts [<commit>] [--trad <mapp>] [--ut <mapp>]
 //     <commit>   what is built (default main)
-//     --trad     required: an existing clean worktree of this repository
+//     --trad     required: an existing clean worktree of this repository (the build tree ../slask/bygg)
 //     --ut       the folder swapped (default the main checkout's studio/out); a trial gives a folder of its own
 import {cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {Stop, cleanAt, clock, commitOf, commonDirOf, exec, mainCheckout, needsCi, tail, type Exec, type Say} from './clean-tree.ts';
+import {Stop, cleanAt, clock, commitOf, exec, mainProject, needsCi, projectIn, tail, type Exec, type Say} from './clean-tree.ts';
 import type {RunReceiptInput} from './evidence-store.ts';
 import {captureRunContext} from './evidence-context.ts';
 
@@ -87,19 +87,21 @@ function installedRevision(target: string): string | null {
 /** The whole routine; returns the exit code. */
 export function studioFromCommit(root: string, options: Options, io: Io): number {
   const {run, say, log} = io, exists = io.exists ?? existsSync;
-  const step = (name: string, args: string[]) => { const r = run('npm', args, options.tree); log(name, r.out); return r; };
+  let project = options.tree;
+  const step = (name: string, args: string[]) => { const r = run('npm', args, project); log(name, r.out); return r; };
   const context = io.context ?? captureRunContext;
   let attempt: {root: string; revision: string; startedAt: string; served: boolean; inputs: RunReceiptInput['inputs']; dirtyInputs: string[]} | null = null;
   let status = 'fail';
   let note = 'npm-build';
   try {
-    const checkout = mainCheckout(commonDirOf(root, run));
+    const checkout = mainProject(root, run);
     const studio = path.join(checkout, 'studio', 'out');
     const target = options.out ?? studio;
     const sha = commitOf(root, options.commit, run);
     const old = cleanAt(root, options.tree, sha, say, run, exists);
+    project = projectIn(root, options.tree, run);
     for (const folder of ['', 'studio']) {
-      const why = needsCi(options.tree, folder, old, sha, run, exists);
+      const why = needsCi(project, folder, old, sha, run, exists);
       if (!why) continue;
       const args = folder ? ['--prefix', folder, 'ci'] : ['ci'];
       say(`${why}: npm ${args.join(' ')}`);
@@ -108,7 +110,7 @@ export function studioFromCommit(root: string, options: Options, io: Io): number
     }
     const revision = commitOf(options.tree, 'HEAD', run);
     if (revision !== sha) throw new Stop(`STOPP: byggträdet står på ${revision}, väntade ${sha}`);
-    const before = context(options.tree);
+    const before = context(project);
     if (before.revision !== revision || before.dirtyInputs.length) throw new Stop(`STOPP: byggträdet ändrades före bygget; ${target} är orört`);
     attempt = {root: checkout, revision, startedAt: new Date().toISOString(), served: path.relative(studio, target) === '', inputs: before.inputs, dirtyInputs: []};
     const build = step('studio-build.log', ['--prefix', 'studio', 'run', 'build']);
@@ -116,13 +118,13 @@ export function studioFromCommit(root: string, options: Options, io: Io): number
     note = 'build-tree-revision';
     if (commitOf(options.tree, 'HEAD', run) !== revision) throw new Stop(`STOPP: byggträdet bytte commit under bygget; ${target} är orört`);
     note = 'build-tree-inputs';
-    const after = context(options.tree);
+    const after = context(project);
     attempt.dirtyInputs = after.dirtyInputs;
     if (after.revision !== revision || after.dirtyInputs.length || after.fingerprint !== before.fingerprint) {
       throw new Stop(`STOPP: byggträdets filer ändrades under bygget; ${target} är orört`);
     }
     note = 'missing-build-index';
-    const built = path.join(options.tree, 'studio', 'out');
+    const built = path.join(project, 'studio', 'out');
     if (!exists(path.join(built, 'index.html'))) throw new Stop(`STOPP: bygget gav ingen ${built}/index.html; ${target} är orört`);
     note = 'swap-output';
     const files = (io.swap ?? swapInto)(built, target, {commit: revision, at: new Date().toISOString(), from: options.tree});

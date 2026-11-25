@@ -9,7 +9,7 @@ import {stada, type Options} from './scratch-clean.ts';
 const DAY = 864e5, LATER = Date.now() + 30 * DAY;
 
 function world() {
-  const base = mkdtempSync(path.join(tmpdir(), 'dealer-stada-')), slask = path.join(base, 'slask', 'dealer'), repo = path.join(base, 'dealer');
+  const base = mkdtempSync(path.join(tmpdir(), 'dealer-stada-')), slask = path.join(base, 'slask', 'blackjack-dealer'), repo = path.join(base, 'blackjack-dealer');
   mkdirSync(slask, {recursive: true}); mkdirSync(repo);
   const put = (rel: string) => { const f = path.join(slask, rel); mkdirSync(path.dirname(f), {recursive: true}); writeFileSync(f, 'x'); return f; };
   const go = (argv: string[], o: Options = {}) => {

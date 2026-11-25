@@ -7,47 +7,50 @@ import {execFileSync,spawnSync} from 'node:child_process';
 import {stripTypeScriptTypes} from 'node:module';
 import {inspectBlob,parsePush,dirtyTestInputs,scanRange,listedTests,reusablePass,sameNodeMajor,buildTreeOf,REUSE_HOURS} from './publication-check.ts';
 
-function fixture(t:TestContext){
-  // The repository lies one folder down, as dealer does: what the check puts beside it (the build tree, push-logg) then
-  // stays inside the test's own folder.
-  const top=mkdtempSync(path.join(tmpdir(),'dealer-publication-test-')),root=path.join(top,'dealer');
-  mkdirSync(root);
+function fixture(t:TestContext,project=''){
+  // The repository lies one folder down, in the test's own folder. With `project` the files written are a project's
+  // folder in it, as blackjack-dealer is in the casino repo; the build tree and push-logg then lie in the repo's slask.
+  const top=mkdtempSync(path.join(tmpdir(),'dealer-publication-test-')),repo=path.join(top,'casino'),root=project?path.join(repo,project):repo;
+  mkdirSync(root,{recursive:true});
   t.after(()=>{assert.equal(path.dirname(top),path.resolve(tmpdir()));assert.ok(path.basename(top).startsWith('dealer-publication-test-'));rmSync(top,{recursive:true,force:true,maxRetries:5,retryDelay:100});});
   const env={...process.env};for(const key of ['GIT_DIR','GIT_WORK_TREE','GIT_INDEX_FILE','GIT_COMMON_DIR','GIT_OBJECT_DIRECTORY','GIT_ALTERNATE_OBJECT_DIRECTORIES'])delete env[key];
   const gitIn=(cwd:string,...args:string[])=>execFileSync('git',args,{cwd,env,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
   const git=(...args:string[])=>gitIn(root,...args);
-  git('init');git('config','user.name','Publication test');git('config','user.email','test@example.invalid');git('config','core.hooksPath',path.join(root,'no-hooks'));
+  gitIn(repo,'init');git('config','user.name','Publication test');git('config','user.email','test@example.invalid');git('config','core.hooksPath',path.join(repo,'no-hooks'));
   const write=(name:string,text:string)=>{mkdirSync(path.dirname(path.join(root,name)),{recursive:true});writeFileSync(path.join(root,name),text);};
   // add -f: the fixture commits names that a machine's own ignore rules may hold back (.env.local in a global excludes
   // file, as in an outside sandbox); what is tested is the scan of the history, not what git add lets through.
   const commitAll=(files:Record<string,string>)=>{for(const [name,text] of Object.entries(files))write(name,text);git('add','-f','--',...Object.keys(files));git('commit','-m','Fixture');return git('rev-parse','HEAD');};
   const commit=(name:string,text:string)=>commitAll({[name]:text});
-  return {top,root,env,git,gitIn,write,commit,commitAll};
+  return {top,repo,root,env,git,gitIn,write,commit,commitAll};
 }
 
-// A repository the check can judge from start to end, and the check run in it as the pre-push hook runs it: the script is
-// this repository's, the repository it judges is the folder it is started in. The suite the fixture names does not
-// exist, so a run of it there would be red; its "npm run check" is a script that is green or red on the test's word.
+// A repository the check can judge from start to end, laid out as the casino repo (the project a folder in it), and the
+// check run in it as the pre-push hook runs it: the script is this repository's, the project it judges is the folder it
+// is started in. The suite the fixture names does not exist, so a run of it there would be red; its "npm run check" is a
+// script that is green or red on the test's word.
 const SCRIPT=path.resolve('tools/publication-check.ts');
+const PROJECT='blackjack-dealer';
 function pushFixture(t:TestContext){
-  const f=fixture(t);
+  const f=fixture(t,PROJECT);
   // The Node this repository pins, so that npm in the fixture's build tree is the one already installed.
   const pinned=JSON.parse(readFileSync('package.json','utf8')).volta.node as string;
   const base=f.commitAll({
+    '../.gitignore':'slask/\n',
     'README.md':'# Fixture\n',
     '.gitignore':'.runtime/\nnode_modules/\n',
     'package.json':JSON.stringify({private:true,volta:{node:pinned},scripts:{test:'node --test tools/missing.test.ts',check:'node tools/fixture-check.mjs'}}),
     'tools/fixture-check.mjs':"if(process.env.FIXTURE_CHECK==='red'){console.log('fixture test fails');process.exit(1);}\nconsole.log('fixture check green');\n",
   });
-  const hook=(head:string,extra:Record<string,string>={})=>{
-    const run=spawnSync(process.execPath,[SCRIPT,'--pre-push','origin','https://github.com/Jakeminator123/dealer.git'],{cwd:f.root,env:{...f.env,...extra},input:`refs/heads/main ${head} refs/heads/main ${base}\n`,encoding:'utf8'});
+  const hook=(head:string,extra:Record<string,string>={},remote=base)=>{
+    const run=spawnSync(process.execPath,[SCRIPT,'--pre-push','origin','https://github.com/Jakeminator123/casino.git'],{cwd:f.root,env:{...f.env,...extra},input:`refs/heads/main ${head} refs/heads/main ${remote}\n`,encoding:'utf8'});
     return {code:run.status,out:`${run.stdout}${run.stderr}`};
   };
   // The receipt the check leaves in the main checkout's journal when the suite has gone green for a commit.
   const passed=(head:string)=>f.write(`.runtime/evidence/runs/${head}.json`,JSON.stringify({id:'fixture',kind:'publication',status:'pass',revision:head,dirtyInputs:[],finishedAt:new Date().toISOString(),counts:{fail:0}}));
   // Someone else's work in the tree: a changed tracked file and a new one.
   const open=()=>{f.write('README.md','# Someone is writing here\n');f.write('src/draft.ts','export const draft=1;\n');};
-  const stillOpen=()=>{assert.equal(readFileSync(path.join(f.root,'README.md'),'utf8'),'# Someone is writing here\n');assert.equal(readFileSync(path.join(f.root,'src/draft.ts'),'utf8'),'export const draft=1;\n');assert.equal(f.git('status','--porcelain'),'M README.md\n?? src/draft.ts');};
+  const stillOpen=()=>{assert.equal(readFileSync(path.join(f.root,'README.md'),'utf8'),'# Someone is writing here\n');assert.equal(readFileSync(path.join(f.root,'src/draft.ts'),'utf8'),'export const draft=1;\n');assert.equal(f.git('status','--porcelain'),`M ${PROJECT}/README.md\n?? ${PROJECT}/src/draft.ts`);};
   return {...f,base,hook,passed,open,stillOpen};
 }
 
@@ -60,6 +63,11 @@ test('private paths, media and token-like values block without exposing the valu
   const result=inspectBlob('src/client.ts',Buffer.from('const value="'+token+'"'));
   assert.ok(result.some(f=>f.level==='RED'));assert.ok(!JSON.stringify(result).includes(token));
   assert.deepEqual(inspectBlob('src/client.ts',Buffer.from('const key = process.env.RUNWAY_API_KEY;')),[]);
+  // The example file of an environment goes in only with every value empty, and the value is never printed.
+  assert.deepEqual(inspectBlob('avatar-auto-pipeline/.env.example',Buffer.from('# Nycklarna\nOPENAI_API_KEY=\nMESHY_API_KEY=""\nexport X= # tom\n')),[]);
+  const filled=inspectBlob('avatar-auto-pipeline/.env.example',Buffer.from('OPENAI_API_KEY=not-empty-value\n'));
+  assert.ok(filled.some(f=>f.level==='RED'));assert.ok(!JSON.stringify(filled).includes('not-empty-value'));
+  for(const name of ['.env.example.local','.env.local.example'])assert.ok(inspectBlob(name,Buffer.from('')).some(f=>f.level==='RED'),name);
 });
 
 test('documents are not measured: a long document or a new page under docs/ gives no finding',t=>{
@@ -132,7 +140,7 @@ test('every TypeScript file that Node runs directly parses',()=>{
     const rel=dir+'/'+entry.name;
     if(entry.isDirectory())walk(rel);else if(/\.m?ts$/.test(entry.name)&&!entry.name.endsWith('.d.ts'))files.push(rel);
   }};
-  for(const folder of ['tools','src','cloud','game','dealer3d','pages','materials'])if(existsSync(folder))walk(folder);
+  for(const folder of ['tools','src','cloud','game','dealer3d','pages'])if(existsSync(folder))walk(folder);
   assert.ok(files.length>100,'the folders with code were read');
   const broken:string[]=[];
   for(const file of files){try{stripTypeScriptTypes(readFileSync(file,'utf8'));}catch(error){broken.push(file+': '+String((error as Error).message).split('\n')[0]);}}
@@ -178,29 +186,45 @@ test('open files do not stop a push whose commit has passed the check, and a fin
   f.passed(secret);
   const stopped=f.hook(secret);
   assert.equal(stopped.code,1,stopped.out);
-  assert.match(stopped.out,/\[RÖD\] \.env\.local: /);
+  assert.match(stopped.out,/\[RÖD\] blackjack-dealer\/\.env\.local: /);
   assert.match(stopped.out,/Publiceringen stoppad/);
   f.stillOpen();
 });
 
+test('the hook is installed for the project\'s folder, and the scan covers what every project of the repo sends out',t=>{
+  const f=pushFixture(t);
+  f.git('config','--unset','core.hooksPath');
+  const install=spawnSync(process.execPath,[SCRIPT,'--install'],{cwd:f.root,env:f.env,encoding:'utf8'});
+  assert.equal(install.status,0,`${install.stdout}${install.stderr}`);
+  assert.equal(f.git('config','--get','core.hooksPath'),`${PROJECT}/.githooks`,'relative to the repo\'s root, where Git starts a hook');
+  const head=f.commitAll({'../avatar-auto-pipeline/.env':'{}','../avatar-auto-pipeline/foto.jpg':'x'});
+  f.passed(head);
+  const stopped=f.hook(head);
+  assert.equal(stopped.code,1,stopped.out);
+  assert.match(stopped.out,/\[RÖD\] avatar-auto-pipeline\/\.env: /);
+  assert.match(stopped.out,/\[RÖD\] avatar-auto-pipeline\/foto\.jpg: /);
+});
+
 test('with open files and no passed check the commit is tested in the build tree, and only a red check there stops the push',t=>{
-  const f=pushFixture(t),head=f.commit('src/done.ts','export const done=1;\n'),tree=buildTreeOf(f.root);
-  assert.equal(path.dirname(tree),f.top,'the build tree lies beside the repository');
+  const f=pushFixture(t),head=f.commit('src/done.ts','export const done=1;\n'),tree=buildTreeOf(f.repo);
+  assert.equal(tree,path.join(f.repo,'slask','bygg'),'the build tree lies in the repo\'s ignored slask');
   f.open();
   const missing=f.hook(head);
   assert.equal(missing.code,1,missing.out);
-  assert.match(missing.out,/byggträdet där committen då testas saknas\. Skapa det en gång med: git worktree add --detach ".*dealer-bygg" main/);
-  f.git('worktree','add','--detach',tree,f.base);mkdirSync(path.join(tree,'node_modules'));
+  assert.match(missing.out,/byggträdet där committen då testas saknas\. Skapa det en gång med: git worktree add --detach ".*bygg" main/);
+  f.git('worktree','add','--detach',tree,f.base);mkdirSync(path.join(tree,PROJECT,'node_modules'));
   const green=f.hook(head);
   assert.equal(green.code,0,green.out);
   assert.match(green.out,/testas i byggträdet/);
   assert.match(green.out,/fixture check green/);
   assert.equal(f.gitIn(tree,'rev-parse','HEAD'),head,'what was tested is the pushed commit');
-  assert.ok(!existsSync(path.join(tree,'src/draft.ts')),'and not the open files');
+  assert.ok(existsSync(path.join(tree,PROJECT,'src/done.ts'))&&!existsSync(path.join(tree,PROJECT,'src/draft.ts')),'and not the open files');
   f.stillOpen();
+  const first=f.hook(head,{},'0'.repeat(40));
+  assert.equal(first.code,0,`the first push to an empty remote is tested in the tree too, over the whole history\n${first.out}`);
   const red=f.hook(head,{FIXTURE_CHECK:'red'});
   assert.equal(red.code,1,red.out);
-  assert.match(red.out,/Kontrollen av committen [a-f0-9]{7} i byggträdet .*dealer-bygg stannade/);
+  assert.match(red.out,/Kontrollen av committen [a-f0-9]{7} i byggträdet .*bygg stannade/);
   assert.match(red.out,/STOPP: npm run check \(kod 1\)/);
   f.stillOpen();
 });

@@ -1,7 +1,7 @@
 // A motion made with one doll, posed on another, as a function: what dealer3d/tools/doll-pose.ts does to a file, done to a
 // motion in memory, so that the doll lab (dealer3d/page/docka.ts) can pose a deal on the chosen doll while a slider is
 // moved. Pure: no I/O and no three.js. The rules are the tool's and are described at the top of that file; this is the
-// same code with the tool's flags as `options`, and `node --test dealer3d/page/lab.test.ts` holds the two to the same frames.
+// same code with the tool's flags as `options`, giving the same frames.
 // (The tool is a script that runs on import, so the page cannot call it. When its body moves into dealer3d/src/ as a
 // function, this file goes and both call that.)
 import {add, cross, dot, length, mul, sub, unit, type Lens, type Vec3} from '../src/camera.ts';

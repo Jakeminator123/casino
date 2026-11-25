@@ -79,7 +79,7 @@ export async function buildKnowledge(input: {root: string; release: Release; gra
   const guide = await guideViews(root);
   sections.push(viewSection(guide?.views ?? OWN_VIEWS, release, removed), ...wordSections(guide?.words ?? [], release, removed));
   sections.push(...proofSections(input.proofs, input.onSite, release, removed));
-  const subjects = execFileSync('git', ['log', '-30', '--format=%s'], {cwd: root, encoding: 'utf8'}).split('\n').map(s => s.trim()).filter(Boolean);
+  const subjects = execFileSync('git', ['log', '-30', '--format=%s', '--', '.'], {cwd: root, encoding: 'utf8'}).split('\n').map(s => s.trim()).filter(Boolean);
   sections.push(commitSection(subjects, release, removed));
   kallor.push({kalla: 'Banken (buildGraph)', tecken: bank.reduce((n, s) => n + s.text.length, 0)}, {kalla: 'Prov', tecken: 0}, {kalla: 'Studions vyer', tecken: 0}, {kalla: 'Git', tecken: subjects.join('\n').length});
 

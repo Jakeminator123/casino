@@ -39,7 +39,6 @@
 //           larger card than from the same film with its rim on.
 // Over a film (rimOffFilm) the frames come in order, and where the film stands still the result does too: the paint stays and
 // the card's colour stays the card's, so a card at rest does not flicker (see there).
-// Tests: tools/card-rim.test.ts (made-up pictures).
 import {W, H, components, greenOf, growMask, inPolygon, type Rgb} from './order-images.ts';
 import {SHOE_AT_ANCHOR} from './order-store.ts';
 import {isCardLike, isCardMark, isScreen} from './landing-make.ts';

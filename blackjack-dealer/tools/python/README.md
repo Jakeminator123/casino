@@ -19,7 +19,7 @@ MediaPipe eller OpenCV:s ansiktsmodeller, som repots TypeScript inte har; resten
 | `landmarks.py` | Läser en film ruta för ruta och skriver allt MediaPipe ser av händerna (21 punkter var, i bankens bildpunkter och som en hand i meter) och kroppen (33 punkter) till en JSON-fil. Talen är MediaPipes egna, ojämnade. | En verklig giv lagd i rummet (`dealer3d/tools/lift.ts`, `dealer3d/LASMIG.md`) |
 | `hands-from-anchor.py` | Lägger händerna ur en ankarbild över händerna i en film, ruta för ruta, och låter varje hand följa sin egen lilla rörelse i filmen. Behöver ingen modell, bara OpenCV och `ffmpeg` på sökvägen. | En vila i en annan uppsättning (nedan) |
 
-Användning står överst i varje skript. Kör alltid med `-I` (isolerat läge), från repots rot:
+Användning står överst i varje skript. Kör alltid med `-I` (isolerat läge), från projektets mapp:
 
 ```
 tools/python/.venv/Scripts/python.exe -I tools/python/filmmatt.py <film.mp4> <namn> <utmapp> --start first.png --end last.png
@@ -30,7 +30,7 @@ tools/python/.venv/Scripts/python.exe -I tools/python/filmmatt.py <film.mp4> <na
 En godkänd vila i en uppsättning blir en vila i en annan utan beställning och utan kostnad: filmens egen rörelse, med
 händerna ur den andra uppsättningens ankare 1 (så blev Casinots vilor Tatuerads). Det håller för en film där
 händerna ligger stilla på filten och där ankarbilden utanför händerna är filmens första ruta. Samma indata ger samma
-fil (SHA-256 lika). Två steg, från repots rot; det andra för in filmen i banken som lokalt härledd, i inkorgen, med
+fil (SHA-256 lika). Två steg, från projektets mapp; det andra för in filmen i banken som lokalt härledd, i inkorgen, med
 ankaret som första och sista bild (`tools/register-derived.ts`, `--dry` säger vad som skulle skrivas):
 
 ```

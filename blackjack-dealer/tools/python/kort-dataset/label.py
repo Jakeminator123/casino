@@ -9,7 +9,7 @@ os.environ.setdefault('OPENCV_FFMPEG_THREADS', '4')  # två arbetare med fyra av
 import numpy as np, cv2
 
 VERSION = 'kortlabel-4'
-BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'dealer')), 'kort-dataset')
+BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'blackjack-dealer')), 'kort-dataset')
 RESID = 52.0          # största avstånd (RGB) från blandningslinjen bord -> kort för att en bildpunkt ska räknas som kortets oskärpa
 SMEAR_PX = 4.0        # kantband bredare än så (vid 1080 rader) = utsmetad ruta
 SMEAR_SPEED = 22.0    # eller fart över så många bildpunkter per ruta (vid 1080 rader)

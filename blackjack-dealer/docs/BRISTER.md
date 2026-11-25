@@ -143,8 +143,9 @@ hela. En rättad brist stryks; hur den rättades står i commitmeddelandet. Läg
 - **Startflaggan mäter genomsnittlig bildändring, inte stillastående hand:** använd rutgranskning för tempo.
 - **En ordergrupp är inte en filsystemtransaktion:** ett avbrott mitt i gruppen kan lämna några utkast på disk.
   Stänger: en återhämtningsbar gruppjournal, om det ska stödjas.
-- **Kreditspärren bevakar bara Dealers beställningsliggare:** en annan klon har en annan liggare, och direkta MCP-anrop
-  utanför linjen omfattas inte; de bokförs och får aldrig kringgå mandatet.
+- **Fullmaktens dagstak räknar bara den här utcheckningens liggare:** godkännandena i `data/orders/` och de direkta
+  anropen i `.runtime/runway-api/ledger.json`. En annan klon har en annan liggare, och direkta MCP-anrop utanför Beställ
+  räknas inte; de rapporteras med belopp och får aldrig kringgå fullmakten.
 - **Borta ur labbet tills det nya har dem:** "Rå | renderad" på en tagning och panelen Vila. Stänger: Bordets läge
   Efterarbete.
 - **Sidornas ord:** 72 ställen säger annat än ordlistan. Stänger: ställena rättas efter ordlistan.

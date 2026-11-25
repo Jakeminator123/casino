@@ -53,9 +53,10 @@ export function captureRunContext(root: string) {
   const revision = git('rev-parse', 'HEAD');
   const commonDir = git('rev-parse', '--path-format=absolute', '--git-common-dir');
   if (path.basename(commonDir) !== '.git') throw Error('Körjournalen kräver en vanlig checkout med gemensam .git-katalog.');
-  const storageRoot = path.resolve(path.dirname(commonDir));
+  // The project's folder in the main checkout; the repo may hold other projects beside it, and their files are not inputs.
+  const storageRoot = path.resolve(path.dirname(commonDir), git('rev-parse', '--show-prefix'));
   const dirtyInputs = [...new Set([
-    ...names('diff', '--name-only', '-z', revision),
+    ...names('diff', '--name-only', '--relative', '-z', revision),
     ...names('ls-files', '--others', '--exclude-standard', '-z'),
   ])].sort();
 
@@ -69,7 +70,7 @@ export function captureRunContext(root: string) {
     if (state?.sha256) inputs.push({path: file, sha256: state.sha256});
   }
   if (gitBytes('ls-tree', '-z', revision, '--', committedPlan).length) {
-    inputs.push({path: committedPlan, sha256: digest(gitBytes('show', revision + ':' + committedPlan))});
+    inputs.push({path: committedPlan, sha256: digest(gitBytes('show', revision + ':./' + committedPlan))});
   }
   const studio = readStudioStamp(root);
   const fingerprint = digest(JSON.stringify({revision, changes: [...changes], inputs}));

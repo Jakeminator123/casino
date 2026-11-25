@@ -4,7 +4,7 @@
 #   python -I storlek.py     -> storlek.json
 import os, csv, json, collections
 import numpy as np
-BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'dealer')), 'kort-dataset')
+BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'blackjack-dealer')), 'kort-dataset')
 man = {}
 for l in open(os.path.join(BASE, 'manifest.jsonl'), encoding='utf-8'): m = json.loads(l); man[m['key']] = m
 g = collections.defaultdict(lambda: collections.defaultdict(list)); blur = collections.defaultdict(list); cover = []; nvis = collections.Counter()

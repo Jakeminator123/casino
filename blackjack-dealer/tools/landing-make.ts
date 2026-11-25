@@ -22,7 +22,6 @@
 //      "A3P4C1": assets/anchors/<dealer>-<name>/anchor.png with its receipt. Never gäller: Jakob makes an anchor hold.
 //
 //   node tools/landing-make.ts <source.png> --target P4.C1 --hand RH --name a3-p4-nb [--anchor <png>] [--title "A3P4C1"] [--dealer paow] [--anyway] [--dry]
-// Tests: tools/landing-make.test.ts (the pure parts on made-up pictures).
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import path from 'node:path';

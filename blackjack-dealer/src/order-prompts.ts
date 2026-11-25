@@ -27,7 +27,7 @@
 // turned until the card lies too (from template 9). A drag stays a drag: from template 9 an open card from the drag goes
 // along the felt under the fingertips and is taken between thumb and fingers on the way. A still is an edit of the
 // dealer's own anchor and goes out with it alone (2026-11-23); the words about a pose picture (@pose), which the stills
-// stored before were sent with, stay for those. Tests: tools/order-line.test.ts (every text the line allows) and tools/order-routes.test.ts.
+// stored before were sent with, stay for those. Tests: tools/order-routes.test.ts.
 import type { FlipAxis, Grip, StepKey, TextStyle } from './order-model.ts';
 
 /**
@@ -73,7 +73,7 @@ import type { FlipAxis, Grip, StepKey, TextStyle } from './order-model.ts';
  * template 9's lay and way back; closed deals, handbyte and the right hand keep template 9's words, untried with 10.
  * Template 9's words stay in SAY (still used by the other steps); fromTen chooses.
  * 11 (2026-11-18): no instruction twice (Jakob: "för många val som kan leda till överlappande instruktioner"). The words of
- * 10 for a deal by the hand at the shoe are unchanged, word for word (tools/order-line.test.ts holds it): that is the deal
+ * 10 for a deal by the hand at the shoe are unchanged, word for word: that is the deal
  * the trials tried. What changes is the deals bara dit that 10 left on template 9's words, where the end was said twice or
  * against the last picture: an open deal by the other hand or with handbyte now turns with the key turn and ends on
  * SAY.layOneWay like every other (before: "lets go of it; only then does her empty hand turn palm down" and then "Her hand

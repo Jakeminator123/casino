@@ -1,6 +1,7 @@
-// The thinning tool's hard parts (tools/media-thin.ts): the guard that nothing gets past, bytes counted honestly with hard
-// links, and the execution against a temporary folder (moved to a trash with RADERAD.txt and a receipt, linked, refused when
-// guarded, young or changed, the trash emptied after 14 days). Needs no media: the "films" are a few bytes of text.
+// The thinning tool's hard parts (tools/media-thin.ts): the guard that nothing gets past, the rule of what goes without more
+// words, bytes counted honestly with hard links, and the execution against a temporary folder (moved to a trash with
+// RADERAD.txt and a receipt, linked, refused when guarded, young or changed, the trash emptied after 14 days). Needs no
+// media: the "films" are a few bytes of text.
 // Run: node --test tools/media-thin.test.ts
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,7 +9,7 @@ import {existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync,
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {DAY, MARKER, blocked, carryOut, emptyShield, emptyTrash, factOf, freedBytes, guardKeys, protect, type Action, type GroupPlan, type Plan} from './media-thin.ts';
+import {DAY, MARKER, blocked, carryOut, emptyShield, emptyTrash, factOf, finishedOrder, freedBytes, guardKeys, orderOpen, protect, rejectedGroup, type Action, type GroupPlan, type Plan} from './media-thin.ts';
 import {unitOf} from './media-audit.ts';
 import {motionRegister} from './register-store.ts';
 
@@ -43,6 +44,26 @@ test('the guard: kept collections, V6, originals, references, outside assets/, y
   guardKeys(s, [{path: 'assets/noir/v4.mp4', key: '7:42'}, {path: 'assets/motions/bad-01/source.mp4', key: '7:43'}]);
   assert.match(blocked(fact('assets/proofs/trailer/v4.mp4', OLD, '7:42'), s) ?? '', /samma fil som assets\/noir\/v4\.mp4/);
   assert.equal(blocked(fact('assets/proofs/other/b.mp4', OLD, '7:43'), s), null);
+});
+
+test('the rule (Jakob 2026-11-25): a film he, or a reviewer on his mandate, rejected goes; an open order keeps what it names', () => {
+  const his = {verdict: 'underkand', byJakob: true, provisional: false, detail: null};
+  const forHim = {verdict: 'underkand', byJakob: false, provisional: true, detail: null};
+  const reviewer = {verdict: 'underkand', byJakob: false, provisional: false, detail: null};
+  assert.equal(rejectedGroup([his]), 'underkand');
+  assert.equal(rejectedGroup([forHim, his]), 'underkand', 'judged for him on his mandate counts as his');
+  assert.equal(rejectedGroup([his, reviewer]), 'underkand-granskare', 'a reviewer without his mandate: only on his word');
+  assert.equal(rejectedGroup([{...his, detail: 'sekundär'}]), 'underkand-granskare', 'a secondary alternative is not rejected');
+  for (const kept of ['godkand', 'primar', 'variant', 'vantar']) assert.equal(rejectedGroup([his, {...his, verdict: kept}]), null, `a take ${kept} keeps the film`);
+  assert.equal(rejectedGroup([his, null]), null, 'a take without a verdict waits for him');
+  assert.equal(rejectedGroup([]), null);
+  // An agent's task: a draft, an approved order not yet placed, a take on its way. A finished or set-aside order is not.
+  assert.ok(orderOpen('UTKAST', false, []) && orderOpen('GODKÄND', false, []) && orderOpen('GODKÄND', true, ['INFÖRD', 'HÄMTAD']));
+  assert.ok(!orderOpen('GODKÄND', true, ['INFÖRD', 'MISSLYCKAD']) && !orderOpen('AVBRUTEN', false, []));
+  const open = new Set(['revansch-01']);
+  assert.equal(finishedOrder('data/orders/revansch-01.json', open), false, 'the open rework keeps the film');
+  assert.equal(finishedOrder('data/orders/klar-01.json', open), true, 'a finished order that named it does not');
+  assert.equal(finishedOrder('data/clip-jobs.json#x', open), false, 'another register still holds it');
 });
 
 test('bytes are freed only when the last name of a file goes', () => {

@@ -2,7 +2,7 @@
 // sammanlänkt smart till nodträd och dealer"): the dealer, her tree and the step (Vad), the step's recipe (Hur) and what is
 // sent (Skicka). This file is the guide's pure part: the address words, the step a word names and the order it is made as
 // (src/order-model.ts stepOfEdge), the tree's steps as tiles, and the tree's picture an order is made from. No DOM, no
-// network; the view is components/bordet/NewFilm.tsx. Test: studio/tests/new-film.test.ts.
+// network; the view is components/bordet/NewFilm.tsx.
 //
 // The address: /bordet/?lage=bestall&trad=<tree>&film=<the step in his notation>[&komposition=<id>]&dealer=<id>, for example
 // ?lage=bestall&trad=tatuerad&film=A2.3-A3P4C2&dealer=paow. Karta's "Beställ" writes it (guideHref); Bordet writes the same

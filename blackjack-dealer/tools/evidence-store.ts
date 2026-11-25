@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { traceTakes, type OrderPicture, type TakeLike } from '../studio/lib/lineage.ts';
@@ -121,20 +121,24 @@ function checkedReceipt(value: RunReceiptInput, id: string): Receipt {
 }
 
 
-/** Run receipts, material registers and the cache belong to the primary checkout. */
+/** Run receipts, material registers and the cache belong to the project's folder in the primary checkout. */
 function evidenceRoot(root: string): string {
   const checkout = path.resolve(root);
-  const dotGit = lstatSync(path.join(checkout, '.git'), {throwIfNoEntry: false});
-  if (!dotGit || dotGit.isDirectory()) return checkout;
   const env = {...process.env};
   for (const name of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR', 'GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES']) delete env[name];
-  const common = execFileSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], {
-    cwd: checkout, env, encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
-  }).trim();
+  let answer: string;
+  try {
+    answer = execFileSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir', '--show-prefix'], {
+      cwd: checkout, env, encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch {
+    return checkout; // not a checkout: the folder itself
+  }
+  const [common = '', prefix = ''] = answer.split(/\r?\n/).map(line => line.trim());
   if (!path.isAbsolute(common) || path.basename(common).toLowerCase() !== '.git') {
     throw new Error('Evidensjournalen kräver huvudcheckoutens gemensamma .git-katalog.');
   }
-  return path.dirname(common);
+  return path.resolve(path.dirname(common), prefix);
 }
 
 /** Write a receipt independently of the SQLite cache and return its path relative to the primary checkout. */

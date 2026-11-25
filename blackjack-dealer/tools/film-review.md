@@ -176,7 +176,7 @@ fel landningsplats, ansikte eller identitet som glider, och allt där något rö
 ändras aldrig i filens bildrutor (`speed` vägras); filmens egen fart väljs i Karta, i stegets panel.
 
 Skriv ut listan färdig för verktyget, som JSON och som `fixes.json` i dumpmappen. Rutnumren är filmens egna, även efter
-en `trim`. Sökvägar till bilder (`level`:s `reference`, `patch`:s `mask`) skrivs från repots rot.
+en `trim`. Sökvägar till bilder (`level`:s `reference`, `patch`:s `mask`) skrivs från projektets mapp.
 
 ```json
 [

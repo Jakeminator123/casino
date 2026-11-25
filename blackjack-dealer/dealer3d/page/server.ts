@@ -17,7 +17,6 @@
 // the lab's own origin, only JSON of a motion's shape that names the same doll, entry (`lab.from`, A2.3 if left out) and place as its name, at most 1.5 MB;
 // written beside the target and renamed over it. Nothing else under the repo is written by these routes.
 // Imports nothing of dealer3d/src/, so that a module half way through a change there cannot stop the lab server.
-// Test: node --test dealer3d/page/server.test.ts
 import {mkdir, readFile, readdir, rename, rm, stat, writeFile} from 'node:fs/promises';
 import {stripTypeScriptTypes} from 'node:module';
 import path from 'node:path';

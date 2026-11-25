@@ -4,7 +4,7 @@
 #   python -I select.py --pilot 50 -> pilot.jsonl (50 filmer spridda över mapparna, varav hälften med dagens spår)
 import os, sys, json, collections, random, re
 REPO = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..')).replace(os.sep, '/')
-BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(REPO, '..', 'slask', 'dealer')), 'kort-dataset')
+BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(REPO, '..', 'slask', 'blackjack-dealer')), 'kort-dataset')
 rows = [json.loads(l) for l in open(os.path.join(BASE, 'probe.jsonl'), encoding='utf-8') if l.strip()]
 inv = collections.defaultdict(list)
 for l in open(os.path.join(BASE, 'inventory.jsonl'), encoding='utf-8'):

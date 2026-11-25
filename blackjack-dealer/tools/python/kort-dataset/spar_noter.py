@@ -5,7 +5,7 @@
 import os, csv, json, math, collections
 import numpy as np
 REPO = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
-BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(REPO, '..', 'slask', 'dealer')), 'kort-dataset')
+BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(REPO, '..', 'slask', 'blackjack-dealer')), 'kort-dataset')
 man = {}
 for l in open(os.path.join(BASE, 'manifest.jsonl'), encoding='utf-8'):
     m = json.loads(l)

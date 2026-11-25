@@ -8,8 +8,8 @@
 // What an approval asks is whether the WAY holds, counted from his own verdicts on the films (src/order-ways.ts, Jakob 2026-11-24).
 // Pure: the register's check against the steps, models and styles that exist, the recipe for a step and a seat, the reference
 // film the recipe's rule finds (referenceByRule), the film's length (secondsOf), and the words the production list
-// (tools/produce.ts), Karta (tools/dealer-tree.ts) and Bordet show. No fs, no network. Tests: tools/order-line.test.ts,
-// tools/order-routes.test.ts, studio/tests/line-same.test.ts and studio/tests/bordet-line.test.ts.
+// (tools/produce.ts), Karta (tools/dealer-tree.ts) and Bordet show. No fs, no network. Tests: tools/order-routes.test.ts,
+// studio/tests/line-same.test.ts and studio/tests/bordet-line.test.ts.
 import { FLIP_AXES, FLIP_LABEL, MODELS, STEPS, TAKES_MAX, a3Name, lengthFor, lengthOfReference, modelFor, referenceCandidates, stepOf, stylesFor, type BankFacts, type FlipAxis, type ModelDef, type RefCandidate, type Shape, type StepDef, type StepKey, type TextStyle } from './order-model.ts';
 import { TEMPLATE_CHOICES, TEMPLATE_CHOICES_WORDS, TEMPLATE_VERSION } from './order-prompts.ts';
 

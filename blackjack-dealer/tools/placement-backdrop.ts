@@ -23,7 +23,7 @@
 //
 // A doll's picture is the table and shoe, the doll's transparent still over them (already in plan pixels) and the shoe again
 // over the doll (it stands on the felt in front of her elbow): the doll is drawn from its own measures (dealer3d/src/doll.ts),
-// never from a picture of the dealer. The pure parts are exported and tested in tools/placement-backdrop.test.ts.
+// never from a picture of the dealer.
 import {spawn, execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {mkdir, readFile, rename, rm, writeFile} from 'node:fs/promises';

@@ -1,19 +1,27 @@
-# casino – Jakobs projekt
+# casino – Jakobs plattform
 
-Mappen samlar flera projekt, ett per undermapp. Den här filen gäller alla och läses i varje session; varje projekt
-har sina egna regler i sin egen `AGENTS.md`, som gäller när arbetet rör det projektet och går före den här vid
-konflikt. Jakob äger allt här och är inte programmerare: svara på svenska, slutsatsen först, och förklara val i
-vanliga ord.
+Ett publikt Git-repo (`github.com/Jakeminator123/casino`) med flera projekt, ett per mapp. Den här filen gäller alla och
+läses i varje session; varje projekt har sina egna regler i sin egen `AGENTS.md`, som gäller när arbetet rör det
+projektet och går före den här vid konflikt. Jakob äger allt här och är inte programmerare: svara på svenska,
+slutsatsen först, och förklara val i vanliga ord.
 
 ## Projekten
 
-| Mapp | Vad det är | Git | Börja med |
-| --- | --- | --- | --- |
-| `dealer/` | En filmad dealer till blackjackspelet: studion i webbläsaren, 3D-dockan och spelmotorn. | Publikt, `github.com/Jakeminator123/dealer` | `dealer/AGENTS.md` |
-| `avatar-auto-pipeline/` | Från foton till en riggad 3D-dealer (gpt-image-2, Meshy, Blender), med egen Python-miljö (`.venv`). Foton i `input/`, resultat i `output/`, nycklar i `.env`: inget av det går in i Git. | I `casino` | `avatar-auto-pipeline/README-SV.md` |
+| Mapp | Vad det är | Börja med |
+| --- | --- | --- |
+| `blackjack-dealer/` | En filmad dealer till blackjackspelet: studion i webbläsaren, 3D-dockan och spelmotorn. Började om här 2026-11-25; historiken före dess ligger i arkivet `Jakeminator123/dealer`. | `blackjack-dealer/AGENTS.md` |
+| `avatar-auto-pipeline/` | Från foton till en riggad 3D-dealer (gpt-image-2, Meshy, Blender), med egen Python-miljö (`.venv`). Foton i `input/`, resultat i `output/`, nycklar i `.env` och den portabla Blendern i `tools/`: inget av det går in i Git. | `avatar-auto-pipeline/README-SV.md` |
 
-`casino/` själv är inget Git-repo. Kommer ett projekt till eller tas ett bort ändras tabellen i samma steg. Läs
-projektets `AGENTS.md` innan du arbetar i det, även om ditt verktyg inte laddar den själv.
+Kommer ett projekt till eller tas ett bort ändras tabellen i samma steg. Läs projektets `AGENTS.md` innan du arbetar i
+det, även om ditt verktyg inte laddar den själv.
+
+## Vercel
+
+Nätdelen vilar tills Jakob säger till (2026-11-25). En ingång: teamet `jakeminator123s-projects`; för
+`blackjack-dealer` projektet `dealer-studio` (kopian på nätet) och Blob-lagret `dealer-studio-media`. Varje
+CLI-kommando får `--scope jakeminator123s-projects` (förvalet läses inte när en agent kör CLI:n), och ett anrop genom
+Vercels MCP anger samma team. Länka aldrig ett projekts rot till Vercel. Inget raderas, deployas eller laddas upp utan
+Jakobs ord.
 
 ## Samma regler i alla verktyg
 
@@ -24,12 +32,19 @@ Inställningar som bara ett verktyg förstår (`.cursorignore`, `.cursor/`, `.cl
 extra skydd ovanpå, aldrig det enda stället en regel står. Ett anrop direkt mot ett API läser ingenting själv: skicka
 med den här filen och projektets `AGENTS.md`.
 
+MCP-servrar som bara casino behöver står i `.cursor/mcp.json` här (Meshy, som läser sin nyckel ur
+`avatar-auto-pipeline/.env`); i användarens globala inställningar står bara det alla hans projekt behöver. En nyckel
+skrivs aldrig in i en inställningsfil, bara i en `.env` som Git ignorerar.
+
 ## Spara och Git
 
-Jakob använder inte Git själv och ska aldrig behöva göra det (2026-11-25). En agent sparar filerna när den ändrar dem.
-När ett arbete i ett projekt med Git är klart och kontrollerat committar agenten sina egna filer med ett kort
-meddelande om vad och varför, och pushar, utan att fråga. Det som stoppar är en röd kontroll (rätta orsaken) eller det
-projektets `AGENTS.md` säger kräver Jakobs ord (till exempel deploy eller betald generering). Ingen force-push.
+- Jakob använder inte Git själv och ska aldrig behöva göra det (2026-11-25). En agent sparar filerna när den ändrar
+  dem. När ett arbete är klart och kontrollerat committar agenten sina egna filer med ett kort meddelande om vad och
+  varför, och pushar till `main`, utan att fråga. Det som stoppar är en röd kontroll (rätta orsaken) eller det
+  projektets `AGENTS.md` säger kräver Jakobs ord (till exempel deploy eller betald generering). Ingen force-push.
+- Repot är publikt. `.gitignore` här håller tillbaka hemligheter, media, miljöer och slasken i alla projekt, och
+  kontrollen före push (`blackjack-dealer/tools/publication-check.ts`, installerad med `npm run hooks:install` i
+  `blackjack-dealer/`) stoppar en push som ändå bär sådant.
 
 ## Underagenter och tokens
 
@@ -64,31 +79,43 @@ Jakob ska aldrig behöva be om det. Innan ett arbete som har ändrat filer lämn
    och ignore-filerna (nedan).
 4. Säg i svaret vad som städades och vilka dokument som ändrades, eller att inget behövdes.
 
+## Det som produceras
+
+Allt som produceras raderas som regel (Jakob 2026-11-25). Kvar blir det han har godkänt och det som väntar på hans
+dom; det han inte godkänner raderas, om ingen agent har uppgiften att arbeta om det. Hur det görs står i projektets
+`AGENTS.md`.
+
 ## Slasken
 
-- `slask/` här är det enda stället för tillfälligt arbete: `slask/<projekt>/<uppgift>/`, en mapp per uppgift eller
-  verktyg, inga lösa filer. Hjälpskript skrivs i TypeScript som projektets kod (Node 24 kör `.ts` direkt). Agenten tar
-  bort sin uppgiftsmapp när den är klar; det som ändå blir kvar och är äldre än sju dygn raderas. Det som ska finnas
-  kvar flyttas in i projektet (till exempel `dealer/assets/`) eller in i Git.
+- `slask/` här är stället för det som är tillfälligt, framför allt det som produceras (filmer, bilder, 3D-modeller)
+  innan Jakob har sagt om det ska sparas (2026-11-25). Det som väntar på hans dom ligger i
+  `slask/<projekt>/granska/<namn>/` och står kvar tills han har dömt: godkänt flyttas in i projektet, underkänt raderas.
+- Allt annat i slasken är arbetsfiler: `slask/<projekt>/<uppgift>/`, en mapp per uppgift eller verktyg, inga lösa
+  filer. Hjälpskript skrivs i TypeScript som projektets kod (Node 24 kör `.ts` direkt). Agenten tar bort sin
+  uppgiftsmapp när den är klar; det som ändå blir kvar och är äldre än sju dygn raderas.
 - Ett projekts verktyg hittar sin undermapp som `../slask/<projekt>` från projektets rot, eller med en miljövariabel
-  (`DEALER_SLASK`). Ingen kod eller text pekar på en viss disk.
-- Varje projekt kan ha en egen dold mapp för verktygens tillstånd, som `dealer/.runtime/`: databaser som byggs om,
-  liggare, loggar och kvitton. Den sköts av verktygen; lägg inget eget arbete där.
+  (`DEALER_SLASK` i `blackjack-dealer`). Ingen kod eller text pekar på en viss disk eller dator.
+- `slask/bygg/` är kontrollens byggträd (en extra utcheckning av repot, med loggarna i `slask/push-logg` och
+  `slask/studio-logg`). Den rensas inte efter sju dygn; ett byggträd tas bort med `git worktree remove`.
+- Projektens kommandon (`npm start`, `npm test`, `npm run check`) körs från projektets mapp, till exempel
+  `blackjack-dealer/`.
+- Ett projekt kan ha en egen dold mapp för verktygens tillstånd, som `blackjack-dealer/.runtime/`: databaser som byggs
+  om, liggare, loggar och kvitton. Den sköts av verktygen; lägg inget eget arbete där.
 
 ## Sökningen och ignore-filerna
 
-- Sökningen ser inte allt, med avsikt. `.ignore` här döljer byggrester, cacher, Python-miljöer och hemligheter i alla
-  projekt; ett projekts egna `.ignore` och `.cursorignore` lägger till sitt (i `dealer/`: media, maskindata och
-  filmregistret). En tom sökträff betyder inte att filen saknas: läs den med sin sökväg eller i terminalen.
-- En ny mapp med maskindata, byggrester eller stora filer läggs in i projektets ignore-filer i samma steg, med en
-  kommentar om varför och hur den läses.
+- Sökningen ser inte allt, med avsikt. `.ignore` här döljer byggrester, cacher, Python-miljöer, hemligheter och
+  avatarprojektets bilder och Blender; ett projekts egen `.ignore` lägger till sitt (i `blackjack-dealer/`: media,
+  maskindata och filmregistret). En tom sökträff betyder inte att filen saknas: läs den med sin sökväg.
+- En ny mapp med maskindata, byggrester eller stora filer läggs in i ignore-filerna i samma steg, med en kommentar om
+  varför och hur den läses.
 - `.ignore` är huvudfilen; `.cursorignore` bär bara det Cursor aldrig får läsa (hemligheter, binärer). Cursor låter
   inte agenten skriva `.cursorignore`: föreslå raden för Jakob i stället.
 
-## Den här datorn
+## Datorerna
 
-- Jakobs laptop, användaren `jakob`, arbetsytan `C:\Users\jakob\Desktop\casino`. Node 24 genom Volta, Python 3.14
-  och Git finns.
-- Jakob arbetar också på en stationär dator (användaren `jakem`, där slask och arkiv låg på D:). Projekten ska gå på
-  båda: en sökväg till en viss dator (`C:/Users/jakem/...`, `D:/...`) är ett fel som rättas när arbetet rör den.
-  `dealer/assets/` (media, cirka 9 GB) finns bara på den stationära tills Jakob flyttar det.
+- Repot klonas till valfri mapp på vilken dator som helst (Jakob har en laptop och en stationär). En sökväg till en
+  viss dator, en användare eller en disk (som `C:/Users/<namn>/...` eller `D:/...`) är ett fel som rättas när arbetet
+  rör den.
+- Media följer inte med Git. Jakob började om 2026-11-25: det som finns på den stationära kopieras inte hit, utom en
+  enskild godkänd fil han ber om.

@@ -102,7 +102,7 @@ export async function main(argv: string[]): Promise<void> {
   const sourceArg = argv.indexOf('--source'), apply = argv.includes('--apply');
   if (sourceArg < 0 || !argv[sourceArg + 1] || argv.some((a, i) => i !== sourceArg + 1 && !['--source', '--apply'].includes(a))) throw new Error('Använd: node tools/media-dedupe.ts --source <absolut slaskmapp> [--apply]');
   if (!path.isAbsolute(argv[sourceArg + 1])) throw new Error('--source måste vara absolut');
-  const repo = execFileSync('git', ['rev-parse', '--show-toplevel'], {encoding: 'utf8'}).trim();
+  const repo = path.resolve(fileURLToPath(new URL('../', import.meta.url)));
   const source = path.resolve(argv[sourceArg + 1]), assets = path.join(repo, 'assets');
   const same = (a: string, b: string) => path.relative(a, b) === '';
   if (same(source, path.parse(source).root) || same(source, repo) || within(source, repo) || same(source, assets) || within(assets, source) || same(source, path.join(repo, 'output')) || within(path.join(repo, 'output'), source)) throw new Error('Projekt, assets, output eller överordnad rot får inte städas');

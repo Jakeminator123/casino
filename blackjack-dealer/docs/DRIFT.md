@@ -6,8 +6,10 @@ och ägarna står i HANDOFF och i banornas lägesfiler (`docs/lage/`), beslut pe
 
 ## Repot och ansvar
 
-- Repot är mappen `dealer`, utcheckad från `https://github.com/Jakeminator123/dealer.git` (publikt, källförvaring,
-  ingen publicerad sida). Verktygen räknar sina sökvägar från repots rot; slasken och byggträdet ligger bredvid.
+- Projektet är mappen `blackjack-dealer` i casino-repot, `https://github.com/Jakeminator123/casino.git` (publikt,
+  källförvaring, ingen publicerad sida; projekten är mappar bredvid varandra). Det gamla repot `Jakeminator123/dealer`
+  står kvar orört som arkiv. Verktygen räknar sina sökvägar från projektets mapp; slasken och byggträdet ligger i
+  casino-repots `slask/`, som Git ignorerar.
 - Scoutgaming (`Jakeminator123/scoutgaming`) och det tidigare projektet snyggare-dealer (i arkivet utanför repot) är
   bara läsreferenser; projektet är frikopplat (BESKED, "Frikopplat från Scoutgaming") och ändrar inget där.
 - Huvudagenten är chatten Jakob arbetar med: den äger commits, taggar och push. Underagenter och andra chattar
@@ -19,27 +21,29 @@ Avslutningsrutinen för färdiga egna ändringar (Jakob har godkänt den): uttry
 `npm run check` (hela sviten, en gång) → vanlig push → verifierad fjärr-SHA. Ingen bakgrundsbevakare och ingen
 automatisk commit. En push är skild från deploy, mediauppladdning och generering.
 
-- Aktivera en gång per checkout: `npm run hooks:install` (vägrar skriva över en annan hooksPath).
-- `.githooks/pre-push` granskar hela intervallet av nya commits, även känsliga filer som lagts till och sedan tagits
-  bort. Lokala media/env-mappar, binärt material, filer över 5 MiB och vissa tokenmönster stoppar push.
-  Mönsterkontrollen är ett extra skydd, ingen garanti att alla hemligheter upptäcks; granska alltid diffen.
-- Testerna avser exakt den commit som pushas. Öppna filer i arbetsmappen stoppar aldrig en push (BESKED, "Rensa bort
-  regler och låsningar som blockerar"): har commiten ett grönt körkvitto (högst 6 timmar) går pushen direkt, annars
-  ställer kontrollen byggträdet `../dealer-bygg` bredvid repot på commiten och kör `npm run check` där. Finns trädet
-  inte skriver kontrollen ut kommandot som gör det. Det som stoppar är ett fynd i de utgående commitarna eller ett rött
-  test på just den commiten.
+- Aktivera en gång per checkout, från projektets mapp: `npm run hooks:install`. Den sätter casino-repots
+  `core.hooksPath` till `blackjack-dealer/.githooks` (vägrar skriva över en annan hooksPath).
+- `.githooks/pre-push` går in i projektets mapp och granskar hela intervallet av nya commits i hela casino-repot, alla
+  projekt, även känsliga filer som lagts till och sedan tagits bort. Lokala media/env-mappar, binärt material, filer
+  över 5 MiB och vissa tokenmönster stoppar push. Mönsterkontrollen är ett extra skydd, ingen garanti att alla
+  hemligheter upptäcks; granska alltid diffen.
+- Testerna avser exakt den commit som pushas. Öppna filer i projektets mapp stoppar aldrig en push (BESKED, "Rensa bort
+  regler och låsningar som blockerar"), och andra projekts öppna filer räknas inte: har commiten ett grönt körkvitto
+  (högst 6 timmar) går pushen direkt, annars ställer kontrollen byggträdet `../slask/bygg` (ett arbetsträd av hela
+  casino-repot) på commiten och kör `npm run check` i dess `blackjack-dealer/`. Finns trädet inte skriver kontrollen ut
+  kommandot som gör det. Det som stoppar är ett fynd i de utgående commitarna eller ett rött test på just den commiten.
 - Sviten är de testfiler `test`-skriptet i `package.json` namnger, läst ur commiten (`tools/*.test.ts`,
   `studio/tests/*.test.ts` och dockans); en ny testfil där körs utan att skrivas in. Högst fyra arbetare, utan Runway,
   media, FFmpeg eller deploy. Node: samma huvudversion som i `package.json`. GitHub kör ingen kontroll (BESKED, "Inget
   körs hos GitHub").
 - **Push medan andra skriver:** en vanlig `git push` från huvudträdet går också med andras öppna filer. `node
   tools/push-clean.ts [<commit>] --trad <mapp> [--dry-run]` behövs bara för en annan commit än HEAD eller en
-  torrkörning; verktyget skriver ut sina steg och loggar i `push-logg` bredvid trädet. Båda använder samma byggträd
+  torrkörning; verktyget skriver ut sina steg och loggar i `push-logg` bredvid trädet (`../slask/push-logg`). Båda använder samma byggträd
   och vägrar huvudträdet, ett annat repos träd och ett byggträd som inte är rent. Det som pushas är incheckade
   commits, aldrig någons öppna filer.
 - **Testerna läser Jakobs arbetsfiler som de är incheckade:** kortplanen och oincheckade utkast i `data/orders/` tas ur
   HEAD med `tools/committed.ts`, så att rött i huvudträdet är ett verkligt fel och inte hans osparade arbete.
-- **Agentinställningarna** i `.claude/settings.json` gäller bara Claude Code med `dealer` som arbetsyta: nekad läsning
+- **Agentinställningarna** i `.claude/settings.json` gäller bara Claude Code med `blackjack-dealer` som arbetsyta: nekad läsning
   av modeller, film, ljud, arkiv och låsfiler, och läsvakten (AGENTS, "Läs först"; en kodfil över 100 KB nekas
   också). Sökningens motsvarighet för alla verktyg är `.ignore` och `.cursorignore`.
 - **Rött:** stoppa och rätta orsaken (AGENTS, "Regler och spärrar"). **Gult:** åtgärda, eller skriv en kvarvarande
@@ -55,8 +59,8 @@ automatisk commit. En push är skild från deploy, mediauppladdning och genereri
 
 ## Labbservern och fliken
 
-- `START.cmd` kör `node tools/preview.ts --open`: servern på `http://127.0.0.1:4319` startas vid behov i ett eget
-  fönsterlöst processträd (TEMP och TMP på `.runtime/tmp`). `STATUS.cmd` och `STOPP.cmd` frågar och stoppar
+- `npm start` kör `node tools/preview.ts --open`: servern på `http://127.0.0.1:4319` startas vid behov i ett eget
+  fönsterlöst processträd (TEMP och TMP på `.runtime/tmp`). `npm run status` och `npm run stop` frågar och stoppar
   via kontrollkanalen; `--restart` byter server utan att fliken stängs; `--ensure` startar den utan att röra en flik.
 - Sidorna i `pages/` och `game/page/` lämnas ut på sina rotadresser (`/scene3d.html`, `/sound.html`, `/props.html`,
   `/game.html`) via `PAGES` i `tools/lab-routes.ts`; `/` och `/lab.html` leder till studion.
@@ -71,7 +75,8 @@ automatisk commit. En push är skild från deploy, mediauppladdning och genereri
   `Start-Process` eller `start`.
 - **Studion byggd ur det incheckade:** `node tools/studio-from-commit.ts [<commit>] --trad <byggträdet> [--ut <mapp>]`
   bygger commiten (förval `main`) i byggträdet och byter in den i huvudträdets `studio/out` först när bygget lyckats;
-  `studio/out/bygge.json` säger vilken commit som visas. Loggar i `studio-logg` bredvid trädet; servern startas inte om.
+  `studio/out/bygge.json` säger vilken commit som visas. Loggar i `studio-logg` bredvid trädet (`../slask/studio-logg`);
+  servern startas inte om.
 - **En titt på labbsidor:** `node tools/lab-look.ts <lista.json> <utmapp> [--vad "<vad>"] [--vem <namn>]` tar en
   skärmbild per sida i en egen headless Chrome (port 9591, `robot=1`, aldrig i Jakobs flik), under det delade låset
   `gpu-och-headless.lock` i slasken (regeln i [TAL](TAL.md), "Så skickas ett jobb"); den väntar högst 20 minuter på
@@ -108,9 +113,10 @@ Ett jobb är en handling mellan två ankare (ankarregeln och skarvregeln i SYSTE
 den läggs och hämtas: [beställningsagenten](../tools/order-clerk.md); granskningen: [film-review](../tools/film-review.md).
 Vad som skickades och hur det gick: studions Protokoll (`node tools/order-ledger.ts`).
 
-- **En väg: Beställ.** Utkast i `data/orders/<id>.json`, godkänt med Jakobs klick eller av huvudagenten på hans uppdrag
-  (`tools/order-approve.ts`) inom `data/order-policy.json`, lagt och hämtat av en beställningsagent. Betalda anrop
-  utanför Beställ rapporteras till huvudagenten med belopp (AGENTS, "Det som skyddar Jakob").
+- **En väg: Beställ.** Utkast i `data/orders/<id>.json`, godkänt på den stående fullmakten i `data/order-policy.json`
+  (huvudagenten upp till 500 krediter med `tools/order-approve.ts --mandate`, högst 2 500 per dygn; större bara Jakob,
+  med klicket eller `--jakob "<hans ord>"`), lagt och hämtat av en beställningsagent. Betalda anrop utanför Beställ
+  rapporteras till huvudagenten med belopp (AGENTS, "Det som skyddar Jakob").
 - **Kvitton från äldre vägar** (`data/clip-jobs.json`) är källbevis och står kvar; ett osäkert anrop
   beställs aldrig om, och `request.lock` eller SUBMITTING tas aldrig bort.
 - **Inkorgen:** en tagning från en order förs in med `review.inbox: true` och spelas bara där steget saknar annan film
@@ -179,7 +185,7 @@ register bär adresser dit som inte längre svarar (det sista kvittot finns i Gi
   `.runtime/studio-blob/studio-media.json` (kvittot med varje films Blob-adress). Kvittot hör aldrig hemma i Git: repot
   är publikt, och adresserna skulle öppna varje film utan lösenord. `BLOB_READ_WRITE_TOKEN` i utcheckningens egen
   `.env.local` hör till talbanan och används aldrig här; `tools/sync-studio-media.ts` vägrar den. Kör aldrig `vercel
-  blob …` eller `vercel env …` i repots rot.
+  blob …` eller `vercel env …` i projektets mapp.
 
 ### Publicera igen från en nyare commit
 
@@ -236,7 +242,7 @@ i det under tiden. `--kor --bara-bygge` bygger bara lokalt; `--utan-deploy` ladd
 
 ## Slasken och städning
 
-- **Slasken** är `../slask/dealer` bredvid repot (`DEALER_SLASK` flyttar den), för tillfälligt arbete, en mapp per
+- **Slasken** är `../slask/blackjack-dealer`, projektets del av casino-repots slask (`DEALER_SLASK` flyttar den), för tillfälligt arbete, en mapp per
   uppgift: ark, provrenderingar, Chrome-profiler, låset. Allt där är tillfälligt: `npm run stada` raderar det som är
   äldre än 7 dygn (`-- --torr` listar bara, `-- --dygn N` ändrar gränsen), och labbservern kör den när den startar.
   Inget arkiv och ingen liggare. Det som ska sparas läggs i `assets/` med en roll i `data/media-roles.json`, eller i Git.

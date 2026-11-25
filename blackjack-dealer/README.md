@@ -15,17 +15,18 @@ pages/        sidorna bredvid studion: 3D-sidan (scene3d.html), Ljud (sound.html
 .claude/skills/  agenternas skills: ett arbetsmoment per mapp, med reglerna som oftast bryts och pekaren till rutinen
 dealer3d/     3D-banans arbetsmapp: bordets lins, en giv som geometri och sidan som visar den från valfri stol
 game/         spelet: den fristående spelmotorn med Scouts regler oförändrade i sak; spelsidan i game/page/
-src/          den delade motorn och sidornas kod: 3D-scen, klippgraf, kort, placering, beställningar
+src/          den delade motorn och sidornas kod: 3D-scen, klippgraf, kort, placering, beställningar; kortets och
+              markerns form och tryck i card-material.ts och chip-material.ts
 tools/        kommandon, labbservern (preview.ts), instruktionerna (*.md) och testerna (*.test.ts)
 cloud/        studions onlinekopia: lås och bot
-materials/    kortets och markerns form och tryck (source/src/), som 3D-scenen och spelet ritar
 data/         register: manifest.json (filernas SHA-256), klippjobb, scenkontrakt, filmkatalog och filmregistret
               (motions.jsonl: en post per film och tagning, med Jakobs dom)
 placements/   Jakobs kortplan
 docs/         SYSTEM, DRIFT, TAL, FILMMODELLER, BESKED, BRISTER och läget per bana (lage/)
 assets/ output/  lokal media och lokala byggen, inte i Git
 .runtime/     verktygens eget på datorn (databaser, liggare, kvitton, loggar), inte i Git
-../slask/dealer  slasken bredvid repot: tillfälligt arbete, raderas efter sju dygn (npm run stada)
+../slask/blackjack-dealer  slasken i casino-repots slask: tillfälligt arbete, raderas efter sju dygn (npm run stada)
+../slask/bygg    byggträdet: ett rent arbetsträd av casino-repot för kontrollen före push (DRIFT)
 ```
 
 Sidorna har kvar sina adresser (`/scene3d.html`, `/game.html` …); bara filerna ligger i mappar.
@@ -69,17 +70,17 @@ Sidorna har kvar sina adresser (`/scene3d.html`, `/game.html` …); bara filerna
   ny film eller dealer kräver, grundbilder, kedjan med format och skalor, inställningar, prov, licenser och det som är
   öppet), visad i studions Lipsync och som text i `docs/TAL.md`; läsaren och reglerna i
   `tools/lipsync-register.ts`, labbserverns svar i `tools/lipsync-store.ts`.
-- `data/manifest.json` registrerar filproveniens och SHA-256 (sökvägarna i den räknas från repots rot).
+- `data/manifest.json` registrerar filproveniens och SHA-256 (sökvägarna i den räknas från projektets mapp).
 
 Dokumenten länkar till dessa i stället för att föra egna statusregister. Media (`assets/`, `output/`), `.runtime/`,
 `.env*` och `private/` är lokala och Git-ignorerade.
 
 ## Kör lokalt
 
-- Arbeta här. `node -p process.version` ska visa `v24.22.3` via Volta; `package.json` kräver `>=24.22.3 <25`. `npm ci`
-  behövs om beroenden saknas. Roten och `studio/` binder nu samma Node 24.22.3 (Jakob 2026-11-20); bara `studio/`
-  binder dessutom npm 11.19.1. Studiobygget med `tools/studio-from-commit.ts` startas från roten och går på rotens
-  Node, liksom testerna och pushkontrollen.
+- Arbeta här, i projektets mapp: alla `npm`- och `node`-kommandon körs därifrån. `node -p process.version` ska visa
+  `v24.22.3` via Volta; `package.json` kräver `>=24.22.3 <25`. `npm ci` behövs om beroenden saknas. Projektet och
+  `studio/` binder samma Node 24.22.3 (Jakob 2026-11-20); bara `studio/` binder dessutom npm 11.19.1. Studiobygget med
+  `tools/studio-from-commit.ts` startas från projektets mapp och går på dess Node, liksom testerna och pushkontrollen.
 - `npm start` startar labbservern på `http://127.0.0.1:4319` utan fönster och visar studion i en enda flik;
   `npm run status` och `npm run stop` frågar och stoppar. `node tools/preview.ts --open "<sida>"` visar en sida i den
   öppna fliken i stället för i en ny, och `--restart` byter server utan att fliken stängs. Öppnas en labbflik till
@@ -120,11 +121,12 @@ Dokumenten länkar till dessa i stället för att föra egna statusregister. Med
 
 ## Gräns
 
-`src/` och `tools/` kör utan det förra projektet (snyggare-dealer, arkiverat utanför repot). `materials/source/src/` är
-kortets och markerns form och tryck; 3D-scenen, spelet och studion läser dem direkt, med samma three.js som resten
-(npm-paketet `three`).
+`src/` och `tools/` kör utan det förra projektet (snyggare-dealer, arkiverat utanför repot). `src/card-material.ts` och
+`src/chip-material.ts` är kortets och markerns form och tryck; 3D-scenen, spelet och studion läser dem direkt, med samma
+three.js som resten (npm-paketet `three`).
 
-Publikt källrepo: [Jakeminator123/dealer](https://github.com/Jakeminator123/dealer), utan media och hemligheter. Vad som
+Publikt källrepo: projektet är mappen `blackjack-dealer` i [Jakeminator123/casino](https://github.com/Jakeminator123/casino),
+utan media och hemligheter; det gamla repot Jakeminator123/dealer står kvar som arkiv. Vad som
 kräver Jakobs uttryckliga ord står i [AGENTS](AGENTS.md), "Det som skyddar Jakob". Den äldre publika sidan
 (gamla labbet på nätet) togs ned 2026-11-23 på Jakobs ord; studions kopia är den enda sidan på nätet:
 [DRIFT](docs/DRIFT.md#den-låsta-kopian-på-nätet).

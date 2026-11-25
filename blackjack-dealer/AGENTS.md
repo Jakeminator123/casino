@@ -2,10 +2,11 @@
 
 Här byggs en filmad dealer till Jakobs blackjackspel: korta filmklipp mellan fasta ankare, spelade i studion, i
 3D-scenen och i spelet. Projektet är frikopplat från Scoutgaming (Jakob 2026-11-23) och behöver inget därifrån. Jakob
-äger projektet; han är inte programmerare, så förklara val i vanliga ord. Repot är ett vanligt repo som fungerar på
-vilken dator och i vilket verktyg som helst (Jakob 2026-11-25: Cursor, Claude Code, Codex, andra IDE:er, API): det
-som gäller står här och i vanliga filer (`.ignore`, Git-hookar, `npm run`-kommandon); `.cursorignore` och `.claude/`
-är extra skydd för sina verktyg. Inga sökvägar till en viss dator och inga namn på chattar i det som gäller.
+äger projektet; han är inte programmerare, så förklara val i vanliga ord. Projektet är mappen `blackjack-dealer` i
+casino-repot och fungerar på vilken dator och i vilket verktyg som helst (Jakob 2026-11-25: Cursor, Claude Code, Codex,
+andra IDE:er, API): det som gäller står här och i vanliga filer (`.ignore`, Git-hookar, `npm run`-kommandon, körda från
+projektets mapp); `.cursorignore` och `.claude/` är extra skydd för sina verktyg. Inga sökvägar till en viss dator och
+inga namn på chattar i det som gäller.
 
 ## Läs först
 
@@ -51,7 +52,7 @@ filens regler och det uppdraget namnger, högst tre filer eller avsnitt.
 ## Det som skyddar Jakob
 
 - Media och hemligheter stannar utanför Git: `assets/`, `output/`, `.runtime/`, `.env*` och `private/` är ignorerade,
-  och kontrollen stoppar en push som bär sådant. Repot är publikt (`Jakeminator123/dealer`).
+  och kontrollen stoppar en push som bär sådant, i alla projekten. Repot är publikt (`Jakeminator123/casino`).
 - Det som produceras raderas som regel (Jakob 2026-11-25). Kvar i `assets/`, med en roll i `data/media-roles.json`,
   blir bara det han har godkänt (Primär, Godkänd, Variant, ankare, det spelet spelar) och det som väntar på hans dom.
   En film han, eller en granskare på hans uppdrag, underkänner raderas, utom när en agent har uppgiften att arbeta om
@@ -82,7 +83,7 @@ filens regler och det uppdraget namnger, högst tre filer eller avsnitt.
 ## Slasken och `.runtime/`
 
 - Tillfälligt arbete (renderingar, skärmbilder, granskningsunderlag, försök, hjälpskript i TypeScript) läggs i
-  slasken, en mapp per uppgift: `../slask/dealer/<uppgift>/` bredvid repot, eller där `DEALER_SLASK` pekar. Ta bort
+  slasken, en mapp per uppgift: `../slask/blackjack-dealer/<uppgift>/` i casino-repots slask, eller där `DEALER_SLASK` pekar. Ta bort
   din mapp när du är klar. Allt där raderas efter sju dygn (`npm run stada`, som labbservern också kör när
   den startar). Det som ska finnas kvar flyttas till `assets/` med en roll, eller in i Git.
 - `.runtime/` är verktygens eget: databaserna som byggs om ur registren, liggare, testkvitton, loggar, labbserverns
@@ -101,8 +102,8 @@ filens regler och det uppdraget namnger, högst tre filer eller avsnitt.
 ## Git och samarbete
 
 - Arbeta i repots vanliga utcheckning på `main`, den enda långlivade grenen; en gren eller ett eget träd bara när ett
-  arbete uttryckligen behöver isoleras, och den slås sedan ihop i `main` eller tas bort. Byggträdet `../dealer-bygg`
-  är bara för kontrollen (DRIFT).
+  arbete uttryckligen behöver isoleras, och den slås sedan ihop i `main` eller tas bort. Byggträdet `../slask/bygg`
+  (hela casino-repot) är bara för kontrollen (DRIFT).
 - Huvudagenten är chatten Jakob arbetar med: den committar, taggar och pushar. Underagenter och andra chattar skriver
   bara i egna filer och lämnar över med en fillista. En skribent per fil.
 - Checka in färdiga filer direkt, i små commits, så att arbetsträdet oftast är rent.

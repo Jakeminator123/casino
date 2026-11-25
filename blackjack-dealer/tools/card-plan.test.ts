@@ -48,7 +48,7 @@ test('the plan\'s own rule where the lens does not apply: a table taken off "Pla
   for (const id of ['P1.C1', 'P4.C1']) assert.deepEqual(planCardQuad(p, id, 'portrait'), planQuad(p, id, 'portrait'));
 });
 
-// placements/default.json on 2026-11-17 (tools/table-lens.test.ts PLAN): seat 4's and the dealer's first card, with seat 4's
+// placements/default.json on 2026-11-17: seat 4's and the dealer's first card, with seat 4's
 // stored taper (0.87 since 11 Nov, his plan's shape), and the near edge the real camera gives the dealer's card (75.1 px).
 const HIS = { 'P4.C1': { u: 0.4858844998096943, v: 0.06106632779165577 }, 'D.C1': { u: 0.48239636570130606, v: 0.2097186700767263 } };
 const his = (): PlacementPlan => {

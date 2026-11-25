@@ -1,7 +1,6 @@
-# ripgrep (Cursor's and Claude Code's search) reads this file. casino/ is not a git repo, so no .gitignore hides
-# anything here except inside a project with its own (dealer/). These lines cover every project: build output,
-# caches, environments and secrets, wherever they land. A project's own .ignore adds to this. Hidden from search is
-# not missing: a file is still read by its path.
+# ripgrep (the search in Cursor, Claude Code and Codex) reads this file on top of .gitignore. These lines hide from
+# search what Git may keep but no search should wade through, in every project; a project's own .ignore adds to this
+# (blackjack-dealer/.ignore). Hidden from search is not missing: a file is still read by its path.
 
 # The scratch folder: temporary work of every project, emptied after a week (AGENTS.md, "Slasken")
 /slask/

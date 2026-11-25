@@ -9,12 +9,12 @@
 //
 //   node tools/push-clean.ts [<commit>] [--trad <mapp>] [--dry-run]
 //     <commit>   what is pushed (default main)
-//     --trad     required: an existing clean worktree of this repository
+//     --trad     required: an existing clean worktree of this repository (the build tree ../slask/bygg)
 //     --dry-run  every step except git push; the remote SHA is still read
 import {mkdirSync, writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {Stop, clock, cleanAt, commitOf, exec, needsCi, tail, type Exec, type Say} from './clean-tree.ts';
+import {Stop, clock, cleanAt, commitOf, exec, needsCi, projectIn, tail, type Exec, type Say} from './clean-tree.ts';
 
 /** `base`: the commit the outgoing interval starts after, when the caller knows it; else the remote's main is read. */
 export type Options = {commit: string; tree: string; dryRun: boolean; base?: string};
@@ -62,13 +62,14 @@ function remoteHead(cwd: string, run: Exec): string {
  *  commit's full id and throws the Stop of the first step that fails. Nothing is pushed. */
 export function checkClean(root: string, options: Options, io: Io): string {
   const {run, say, log} = io;
-  const step = (name: string, cmd: string, args: string[]) => { const r = run(cmd, args, options.tree); log(name, r.out); return r; };
   const sha = commitOf(root, options.commit, run);
   const old = cleanAt(root, options.tree, sha, say, run, io.exists);
+  const project = projectIn(root, options.tree, run);
+  const step = (name: string, cmd: string, args: string[]) => { const r = run(cmd, args, project); log(name, r.out); return r; };
   // A detached tree has no upstream. Without an explicit base the gate scans all history on every push.
   // Read the actual destination; the pre-push hook still checks Git's exact outgoing interval independently.
   const base = options.base || remoteHead(root, run);
-  const why = needsCi(options.tree, '', old, sha, run, io.exists);
+  const why = needsCi(project, '', old, sha, run, io.exists);
   if (why) {
     say(`${why}: npm ci`);
     const ci = step('npm-ci.log', 'npm', ['ci']);

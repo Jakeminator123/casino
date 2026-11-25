@@ -8,7 +8,7 @@ os.environ.setdefault('OPENCV_FFMPEG_THREADS', '4')
 import numpy as np, cv2
 from multiprocessing import Pool
 
-BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'dealer')), 'kort-dataset')
+BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'blackjack-dealer')), 'kort-dataset')
 
 def classes(bgr):
     b = bgr[..., 0].astype(np.int16); g = bgr[..., 1].astype(np.int16); r = bgr[..., 2].astype(np.int16)

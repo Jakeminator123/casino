@@ -52,8 +52,8 @@
 - Första bilden i en beställning är ankaret (A2.3, `assets/anchors/paow-ankare-2-3-d/anchor.png`), aldrig dockans ruta.
 - Verktyget räknar rutor från 0, arken och filnamnen från 1. En levererad film görs inte om under samma namn; dockans
   filmer förs in i `data/rendered-references.json` av huvudagenten, med ett nytt id varje gång.
-- Datafilerna bär sina platser (`places`), så `tests/two-hand.test.ts` läser inte `placements/default.json`;
-  `world.test.ts` och `deal-film.ts` gör det (en ny datafil tar Jakobs sparade plan i det träd den läggs i).
+- Datafilerna bär sina platser (`places`), så den som spelar dem läser inte `placements/default.json`; `deal-film.ts`
+  gör det (en ny datafil tar Jakobs sparade plan i det träd den läggs i).
 - Mappen läser `placements/default.json` (skriver aldrig) och `src/placement-model.ts`, använder repots låsta `three`
   och `sharp`, och rör inget annat i repot.
 
@@ -61,9 +61,9 @@
 
 | Fil | Vad |
 | --- | --- |
-| `../src/table-lens.ts` | **Bordets lins**: en fysisk kamera för bankens bild (1764 × 1174) i verkliga meter (`TABLE_LENS`), `realCardQuad` (ett verkligt korts fyra hörn vid en plats) och `shoeCardQuad` (kortet i skons fönster); skon `SHOE`. Kortplanen ritas med den (`src/card-plan.ts`); test `tools/table-lens.test.ts`. |
+| `../src/table-lens.ts` | **Bordets lins**: en fysisk kamera för bankens bild (1764 × 1174) i verkliga meter (`TABLE_LENS`), `realCardQuad` (ett verkligt korts fyra hörn vid en plats) och `shoeCardQuad` (kortet i skons fönster); skon `SHOE`. Kortplanen ritas med den (`src/card-plan.ts`). |
 | `src/camera.ts` | Linsfamiljen `lensForFocal` (alla linser som ger kortet vid plats 4 dess storlek och form) och vad en lins gör av en sträcka i bilden. Ren räkning. |
-| `src/world.ts` | Det filmen visar (`MEASURED`) och det som antas (`ASSUMED`); `filmLens()`, linsen som ritar hennes kropp i verklig storlek (ett test håller den lika med `TABLE_LENS`); planens kortplatser; stolarnas ögon (`seatEye`: varje stol ser sitt eget första kort som bankens kamera ser plats 4:s). Ren räkning. |
+| `src/world.ts` | Det filmen visar (`MEASURED`) och det som antas (`ASSUMED`); `filmLens()`, linsen som ritar hennes kropp i verklig storlek (lika med `TABLE_LENS`); planens kortplatser; stolarnas ögon (`seatEye`: varje stol ser sitt eget första kort som bankens kamera ser plats 4:s). Ren räkning. |
 | `src/capture.ts` | **En verklig giv lagd i rummet:** händernas 21 punkter och kroppens leder ur en film, satta under linsen punkt för punkt, kortet ur filmens kortspår med sin hållna ände vid fingrarna; `joints` och `LIMITS` säger vad arm och hand kan göra; `moved`, `loosened`, `turnBetween`, `throughShoe`. Ren räkning. |
 | `data/giv-avlast-p4.json` | Den avlästa enhandsgiven från A2.1 som tal (120 rutor: kortet, båda armarna, händernas punkter i meter), skriven av `tools/lift.ts`; `tools/pose-film.ts` läser den. |
 | `src/pinch-deal.ts`, `data/ankare-2-1-paow.json` | **Given från A2.1 på dockans ben:** `pinchDeal` tar ankarets ställning och en plats och ger giv och återgång; kroppen lutar och vrider sig dit armen inte når (`reachFrom`), höger hand vilar på filten. Ren räkning. |
@@ -76,9 +76,8 @@
 | `tools/deal-film.ts` | Lägger tvåhandsgiven (`--to P5.C1`, `--seconds`, `--lead`, `--right-at`, `--beats`), skriver datafilen och skriver ut slagen, ledernas gränser, om en hand går genom skon och vad bankens kamera ser av kortet. |
 | `tools/deal-check.ts` | En lagd giv ruta för ruta: kortets flytt och vridning, framsidan och storleken i bankens kamera, vänster hand från kortet, höger armbåge och underarmen mot siktlinjen. |
 | `tools/pose-film.ts`, `data/till-ankare-2-3.json`, `data/till-ankare-2-3-c.json` | Dockan från vila till pose 2.3 och stilla där (samma format som `giv-*.json`): förlagefilmen till ett ankare. Handens form och vila ur `data/giv-avlast-p4.json`; vägen, lutningen och blicken är modell. Sista rutan är tvåhandsgivens start. |
-| `tests/two-hand.test.ts` | Tvåhandsgivens kontrakt: skarven mot posefilmen, kortet på sin plats, lederna inom gränserna, händernas mått. |
 | `src/deal.ts`, `src/body.ts` | Den första, handritade given (pensionerad som förlaga; kvar för jämförelse) och dess skelett, löst ur var händerna ska vara (`standing`, `solveBody`, `arm`); tar en docka (`src/doll.ts`), annars standarddockan. |
-| `src/doll.ts`, `tools/doll-pose.ts`, `tools/doll-still.ts`, `tools/docka-sam.py`, `tools/docka-mat.ts`, `tools/docka-jamfor.ts`, `tests/doll.test.ts` | Dockorna och verktygen som gör dem: se **Dockorna**. |
+| `src/doll.ts`, `tools/doll-pose.ts`, `tools/doll-still.ts`, `tools/docka-sam.py`, `tools/docka-mat.ts`, `tools/docka-jamfor.ts` | Dockorna och verktygen som gör dem: se **Dockorna**. |
 | `src/natural.ts`, `src/hand-rule.ts`, `src/landing.ts`, `src/turn-in-hand.ts`, `src/return-cycle.ts` | Naturlig ställning, handregeln, landningen, vändningen "I handen" och återgången: se **Dockorna**. |
 | `src/stage.ts` | Ritningen i three.js: bord, sko, kort med två sidor och dockan, sedda genom flera ögon. Utseenden `room`, `plain` (vit docka på grått, för en förlagefilm) och `bare` (bara dockan på genomskinligt). |
 | `src/figure-model.ts` | En riggad modell (GLB med skelett) på dockans plats, ställd ur samma leder; se **Kvar**. |
@@ -89,7 +88,7 @@
 | `data/giv-avlast-paow-*.json` | Paows egna givar från A2.1, en per film; 11:s ruta 0 är ankaret A2.1. Gjorda med `node dealer3d/tools/lift.ts --marks <landmarks.py-utdata> --track assets/tracking/<film>/card-track.json --frames 0,<sista> --hand paow --out dealer3d/data/<namn>.json`. |
 | `tools/measure.ts` | Kalibreringen som tal: linserna, ett verkligt kort mot planens kontur, kortet i skon, stolarnas ögon. |
 | `tools/shoot.ts` | Spelar in sidan utan labbserver (egen filserver, headless Chrome med egen profil och port, en PNG per tidpunkt); `--doll paow`. Under låset. |
-| `tests/world.test.ts`, `tests/capture.test.ts` | Passningen, världen och den handritade given; `placeHand` (varje punkt på sin bildpunkt). Utan media och webbläsare. |
+| `tests/card-marks.test.ts` | Märkena på kortets två sidor, som Kortplan, dockan och beställningen ritar dem. Utan media och webbläsare. |
 
 ## Den avlästa given: mätt och modell
 
@@ -137,7 +136,7 @@ under filten, var lederna står i bankens bild och hur långt bakom bordskanten 
 bär ett kort och i vilan) och formerna scenen ritar (`shape`). `about` säger om varje mått är mätt (och på vad) eller
 gissat. `src/body.ts` och `src/stage.ts` tar en docka; utan en är det `standard`.
 
-- **`standard`**: låst av `tests/doll.test.ts` vid den gamla `src/body.ts` tal; inga egna poler, ingen egen hand, 0,18 m
+- **`standard`**: den gamla `src/body.ts` tal; inga egna poler, ingen egen hand, 0,18 m
   bakom bordskanten.
 - **`paow`**: rättad mot ankare 2.3, vilan och hennes givar till plats 4 och 1, lästa med SAM 3D Body. Hon sitter
   0,38 m bakom bordskanten (händerna mot filten och kortet i skon säger det) och är en tiondel större än standard
@@ -149,7 +148,7 @@ gissat. `src/body.ts` och `src/stage.ts` tar en docka; utan en är det `standard
   plats 1 ligger 68–79 fel mitt i svepet; i ankare 2.3 är hon vriden 13° och lutad 4° medan rörelsen börjar rak.
 - **Välja docka**: sidan `?docka=paow`, inspelaren `tools/shoot.ts --doll paow`. En rörelse som bär `doll` (från
   `doll-pose.ts`) ritas med den dockan utan val, också av `tools/render-reference.ts`.
-- **Räckvidd** (`tests/doll.test.ts`): med handen närmast platsen når paow alla 17 platser inom 9°; med höger hand säte
+- **Räckvidd**: med handen närmast platsen når paow alla 17 platser inom 9°; med höger hand säte
   1–5 och dealerns platser. Säte 6 kräver 10,7–11,4°, säte 7 når hon inte.
 - **Känd avvikelse:** standarddockans vila: höger hand inom 3 px från vilobilden i `data/dealer-standard.json`, vänster
   15 px längre in (marginalen 8 px). Får stå tills vidare.
@@ -244,7 +243,7 @@ Valet Landning, bara i Naturlig: högerhandens slutpose vid det lagda kortet (BE
 välja"). Förvalen i `src/landing.ts` (`LANDINGS`: id, svensk etikett och en engelsk mening för beställningen): `lang`
 (förval, handen som förut), `pek`, `pek-lang`, `toppar` (topparna mot kortets mitt), `platt`. Egen: fem reglage ovanpå
 ett förval. Sparas som `lab.landing` {id och det han ändrat}; utan fältet är det `lang`, och `lang` utan reglage ändrar
-ingen siffra (`tests/landing.test.ts`). Handen kommer in från två rutor före beat g till rutan kortet ligger, står still
+ingen siffra. Handen kommer in från två rutor före beat g till rutan kortet ligger, står still
 och går ut under lyftet; armbågen löses om, och en led som skulle gå ned i kortet lyfts (kvittot `liftedMm`, labbet
 varnar).
 
@@ -289,7 +288,7 @@ hela skelettet; (4) vänsterhandens fingertoppar, som SAM lägger 13–16 px fö
 ## Köra
 
 ```
-node --test dealer3d/tests/capture.test.ts dealer3d/tests/world.test.ts tools/table-lens.test.ts
+node --test dealer3d/tests/card-marks.test.ts
 tools/python/.venv/Scripts/python.exe -I tools/python/landmarks.py <film.mp4> <punkter.json>
 node dealer3d/tools/lift.ts --marks <punkter.json> --track assets/tracking/<klipp>/card-track.json --out dealer3d/data/<namn>.json
 node dealer3d/tools/deal-film.ts --to P4.C1 --seconds 3 --right-at 1180,887,83 --beats 4,15,20,36,22,45,58,66 --meet 1 --single 1 --roll 1 --hand-over-yaw 180 --carry 0.045 --turned-at 0.01 --tuck 300 --push 0.004 --out dealer3d/data/<namn>.json

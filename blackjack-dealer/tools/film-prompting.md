@@ -74,18 +74,16 @@ hindrar inte färgbyte (V).
 GIV-2.3 med KORT har en fast kortändevändning sedan mall 11: ett uttryckligt val av LONG_EDGE eller AT_PLACE avvisas före
 sparning; MINIMAL låter referensfilmen beskriva vändningen. Den frysta placeringsplanens avsikt behålls separat.
 
-**Varje sak sägs en gång** (Jakob: inga "dubbla typer av meningar"). `tools/order-line.test.ts` bygger texten för varje
-kombination linjen tillåter och faller när:
-- ett ämne skrivs i två meningar (kameran, referensfilmen, greppet ur skon, vändningen, läggningen, vägen tillbaka, den
+**Varje sak sägs en gång** (Jakob: inga "dubbla typer av meningar"). I texten, för varje kombination linjen tillåter:
+- skrivs ett ämne i en mening (kameran, referensfilmen, greppet ur skon, vändningen, läggningen, vägen tillbaka, den
   vilande handen, blicken, kortets utseende);
-- ett tillstånd sägs i två bisatser: vilken sida som är upp, "as in the last frame" och "as in the first frame" högst en
+- sägs ett tillstånd i en bisats: vilken sida som är upp, "as in the last frame" och "as in the first frame" högst en
   gång i texten, "palm down" högst en gång på vägen dit och en gång tillbaka;
-- fem ord eller fler i följd står två gånger (undantagen räknas upp i testet, där samma sak NÄMNS två gånger);
-- två meningar säger emot varandra, eller samma mening står två gånger.
+- står fem ord eller fler i följd inte två gånger, utom där samma sak NÄMNS två gånger;
+- säger två meningar inte emot varandra, och ingen mening står två gånger.
 
-Ett tillägg säger bara det mallen inte redan säger. Receptets tillägg prövas av testet med mallen; en orders eget tillägg
-prövas inte, så den som skriver ett läser först stegets text (skickade tillägg har både upprepat mallen och haft förbud
-och tidsangivelser). I studion visas bredvid ett val bara valets namn; rörelsen beskrivs bara av texten som skickas.
+Ett tillägg säger bara det mallen inte redan säger. Inget verktyg prövar ett tillägg, så den som skriver ett läser
+först stegets text (skickade tillägg har både upprepat mallen och haft förbud och tidsangivelser). I studion visas bredvid ett val bara valets namn; rörelsen beskrivs bara av texten som skickas.
 
 | Del | Kommer från valet | Regel |
 |---|---|---|

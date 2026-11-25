@@ -19,9 +19,17 @@ export async function readMandateBudget(root: string, policy: Pick<Policy, 'mand
   return mandateBudgetOf(policy.mandate, orders, await readDirectCalls(root), at, policy.timeZone ?? 'Europe/Stockholm');
 }
 
+/** The `.git` of the checkout `root` lies in: in the project's folder or above it (the casino repo's root), or null. */
+async function dotGitOf(root: string) {
+  for (let dir = path.resolve(root); ; dir = path.dirname(dir)) {
+    const entry = await lstat(path.join(dir, '.git')).catch(error => { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null; throw error; });
+    if (entry || path.dirname(dir) === dir) return entry;
+  }
+}
+
 /** Worktree copies have separate order media. Paid starts use the owning checkout and race for one shared lock there. */
 export async function withStartLock<T>(root: string, action: () => Promise<T>): Promise<T> {
-  const git = await lstat(path.join(root, '.git')).catch(error => { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null; throw error; });
+  const git = await dotGitOf(root);
   if (git && !git.isDirectory()) throw new StoreError(403, 'Starta betalda order i huvudcheckouten med den gemensamma kvittoliggaren.');
   const directory = path.join(root, '.runtime');
   await mkdir(directory, { recursive: true });

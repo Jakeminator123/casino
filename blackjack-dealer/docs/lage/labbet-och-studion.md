@@ -37,9 +37,9 @@ Beslut, labbservern och rutinverktygen. Här står bara det som gäller nu; det 
 **Väntar på Jakob.** Inget utanför Beslut.
 
 **Var saker ligger.** Studions kod i `studio/`, labbserverns adresser i `tools/lab-routes.ts`, sidorna bredvid studion
-(`/scene3d.html`, `/sound.html`, `/props.html`) i `pages/`. Rutinverktygen, med byggträdet `../dealer-bygg`:
-`node tools/studio-from-commit.ts --trad ../dealer-bygg` (studion byggs ur en commit i ett rent träd), `node
-tools/push-clean.ts --trad ../dealer-bygg` (push), `node tools/lab-look.ts` (skärmbilder av labbsidor under låset),
+(`/scene3d.html`, `/sound.html`, `/props.html`) i `pages/`. Rutinverktygen, med byggträdet `../slask/bygg`:
+`node tools/studio-from-commit.ts --trad ../slask/bygg` (studion byggs ur en commit i ett rent träd), `node
+tools/push-clean.ts --trad ../slask/bygg` (push), `node tools/lab-look.ts` (skärmbilder av labbsidor under låset),
 `node tools/proof-notes.ts` (hans anteckningar i Prov) och `node tools/media-audit.ts` (vad en mapp i `assets/` är och
 vad som använder den).
 

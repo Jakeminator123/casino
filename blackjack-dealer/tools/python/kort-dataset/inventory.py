@@ -1,11 +1,11 @@
 # Steg A: lista alla mp4 under rötterna, med storlek och en snabb nyckel (storlek + sha1 av första 1 MB).
-# Läser bara; skriver inventory.jsonl i slaskens kort-dataset/ (slasken är DEALER_SLASK eller <repo>/../slask/dealer).
+# Läser bara; skriver inventory.jsonl i slaskens kort-dataset/ (slasken är DEALER_SLASK eller <repo>/../slask/blackjack-dealer).
 #   python -I inventory.py [<rot> ...]      (utan rötter: repots assets/)
 import os, sys, json, hashlib, time
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 ROOTS = sys.argv[1:] or [os.path.join(REPO, 'assets')]
-OUT = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(REPO, '..', 'slask', 'dealer')), 'kort-dataset', 'inventory.jsonl')
+OUT = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(REPO, '..', 'slask', 'blackjack-dealer')), 'kort-dataset', 'inventory.jsonl')
 SKIP_DIRS = {'kort-dataset', 'node_modules', '.git'}
 
 def quick_key(p, size):

@@ -2,6 +2,7 @@
 // the committed state (tools/studio-from-commit.ts) both start from, so that no session's open files in the main checkout
 // come with them (DRIFT, "Git och kontroller" and "Labbservern och fliken"). The tree is made once by hand
 // (`git worktree add --detach <mapp> main`); these steps never make, remove or commit in it, and stop at the first that fails.
+// The tree holds the whole casino repo; npm runs in the project's folder in it (projectIn).
 import {spawnSync} from 'node:child_process';
 import {existsSync} from 'node:fs';
 import path from 'node:path';
@@ -28,13 +29,31 @@ export const exec: Exec = (cmd, args, cwd) => {
 export const clock = (at = new Date()) => at.toTimeString().slice(0, 8);
 const same = (a: string, b: string) => path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase();
 
-/** The main checkout (where Jakob's lab server runs) of a repo whose shared git folder is `commonDir`. */
+/** The main checkout of a repo whose shared git folder is `commonDir`: the repo's root, not the project's folder. */
 export const mainCheckout = (commonDir: string) => path.dirname(path.resolve(commonDir));
 
 /** The shared git folder of the repo at `cwd`, absolute, or '' outside a repo. */
 export function commonDirOf(cwd: string, run: Exec = exec): string {
   const r = run('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], cwd);
   return r.code === 0 ? r.out.trim() : '';
+}
+
+/** Where the project at `root` lies below the repo's root: `blackjack-dealer/` in the casino repo, '' when it is the root. */
+export function prefixOf(root: string, run: Exec = exec): string {
+  const r = run('git', ['rev-parse', '--show-prefix'], root);
+  return r.code === 0 ? r.out.trim() : '';
+}
+
+/** The project's folder in the main checkout (where Jakob's lab server runs). */
+export const mainProject = (root: string, run: Exec = exec) => {
+  const prefix = prefixOf(root, run), checkout = mainCheckout(commonDirOf(root, run));
+  return prefix ? path.join(checkout, prefix) : checkout;
+};
+
+/** The project's folder in another tree of the repo: the same place below that tree's root. */
+export function projectIn(root: string, tree: string, run: Exec = exec): string {
+  const top = run('git', ['rev-parse', '--show-toplevel'], tree).out.trim() || tree, prefix = prefixOf(root, run);
+  return prefix ? path.join(top, prefix) : top;
 }
 
 /** The full id of a commit named in the repo at `root` (default main). */
@@ -50,7 +69,8 @@ export function cleanAt(root: string, tree: string, sha: string, say: Say, run: 
   const mine = commonDirOf(root, run), its = commonDirOf(tree, run);
   if (!its || !same(mine, its)) throw new Stop(`STOPP: ${tree} är inget arbetsträd i det här repot`);
   const top = run('git', ['rev-parse', '--show-toplevel'], tree).out.trim();
-  if (same(top, root) || same(top, mainCheckout(mine))) throw new Stop('STOPP: arbetsträdet är huvudträdet eller det här trädet; ange ett eget rent träd');
+  const home = run('git', ['rev-parse', '--show-toplevel'], root).out.trim();
+  if (same(top, home) || same(top, mainCheckout(mine))) throw new Stop('STOPP: arbetsträdet är huvudträdet eller det här trädet; ange ett eget rent träd');
   const before = run('git', ['status', '--porcelain'], tree);
   if (before.code !== 0) throw new Stop('STOPP: arbetsträdets status kunde inte läsas');
   if (before.out.trim()) throw new Stop(`STOPP: arbetsträdet är inte rent\n${before.out.trimEnd()}`);

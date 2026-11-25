@@ -16,7 +16,7 @@ komponeras, vad som har hållit), [beställningsagentens instruktion](order-cler
 6. Se vad som saknas för en runda: `node tools/produce.ts <dealer>`, eller blocket "Det här saknas för en runda" i Bordet, Beställ, Kön.
 7. Välj metoden efter Jakobs egna domar: `node tools/verdicts-per-method.ts <dealer>`; skriv den i `data/order-methods.json`.
 8. Gör utkasten: `node tools/produce.ts <dealer> --draft` (ett prov: `--draft --trial <steg|plats>`), eller i Bordet, Beställ.
-9. Godkänn: Jakobs klick i Bordet, Beställ (Det här skickas), eller `node tools/order-approve.ts <id> --mandate "…"` inom `data/order-policy.json`.
+9. Godkänn: upp till 500 krediter `node tools/order-approve.ts <id> --mandate "…"`; större bara Jakob, med klicket i Bordet, Beställ, eller `--jakob "<hans ord>"`.
 10. Lägg och hämta: en beställningsagent enligt `tools/order-clerk.md` (`tools/order-put.ts`, `tools/order-collect.ts`).
 11. Efterarbeta: `node tools/film-after.ts <id> <n>`; en stillbild med `tools/still-after.ts` och `tools/python/`.
 12. Granska: en oberoende granskare enligt `tools/film-review.md`; domen in med `node tools/order-put.ts review`.
@@ -95,11 +95,13 @@ gör utkast där metoden gäller, `--draft --trial <steg|plats>` ett provutkast;
 `data/orders/<id>.json` med bilderna i `assets/orders/<id>/`. Texten skrivs av `promptFor` (`src/order-prompts.ts`),
 aldrig för hand; vilken mall som gäller står i handboken §2. En order lagrad med en äldre mall återges med sina egna ord.
 
-**9. Godkänn.** Jakobs "Godkänn och lägg i kön" i Beställ, eller `node tools/order-approve.ts <id> --mandate "<vems ord
-och när>"`. Prövas mot `data/order-policy.json`: taket per order, golvet på saldot och dagstaket. Ett snävare aktuellt
-mandat gäller dessutom; huvudagenten kontrollerar sessionens reserverade och använda krediter före varje anrop.
-Jakobs gällande ord står i `docs/BESKED.md`, "Domar, beställningar och pengar"; ett högt tak i JSON är inte tillåtelse
-att överskrida dem. Hashen fryses i `approval.orderSha256`, och en godkänd order ändras aldrig (V).
+**9. Godkänn.** Den stående fullmakten (`mandate` i `data/order-policy.json`, BESKED "Stående fullmakt"): en order på
+upp till 500 krediter godkänner agenten själv med `node tools/order-approve.ts <id> --mandate "<uppdraget, på vems
+ord>"`, högst 2 500 per dygn för agenternas godkännanden och direkta anrop tillsammans. En större order godkänner bara
+Jakob: med "Godkänn och lägg i kön" i Beställ, eller med hans ja från chatten, `node tools/order-approve.ts <id>
+--jakob "<hans ord och datum>"`. Alla prövas mot taket per order och golvet på saldot. Kostnaden avgörs vid
+godkännandet; att lägga ordern frågar inget mer. Hashen fryses i `approval.orderSha256`, och en godkänd order ändras
+aldrig (V).
 
 **10. Lägg och hämta.** Beställningsagenten enligt [order-clerk.md §1–4](order-clerk.md):
 `node tools/order-put.ts check|begin|placed|failed|status`, uppladdning med `init_upload` och `complete_upload`,
@@ -214,4 +216,4 @@ Där en källa bara är text eller ett skript utanför repot står det "inget i 
 | Bildtillstånd i Material | `kandidat` → `gäller` eller `ersatt`; `gäller` → `ersatt`; en `gäller` per roll, nod och kort | `STATES` i `studio/lib/media.ts`; `CHANGES` i `studio/components/material/state.ts` |
 | Filer per order | `data/orders/<id>.json`; `assets/orders/<id>/`: `first.png`, `last.png`, `reference.mp4`, `anchor.png`, `receipt.json`; `take-<n>/`: `source.*`, `fetched.json`, `after.*`, `after.json`, `fixed-<k>.*` | `src/order-model.ts`; `tools/order-collect.ts`; `tools/film-after.ts` |
 | Filer i banken | `assets/motions/<klipp>/source.mp4`, `generation.json`; posten i filmregistret (`data/motions.jsonl`); `assets/tracking/<klipp>/card-track.json` | `tools/register-order.ts`; `tools/track-card.ts`; `tools/order-bring.ts` |
-| Pris och tak | Aktuell prislista och tidsatt mandat i orderpolicyn; nya starter reserverar värsta kostnaden mot tim- och totaltak. Läs saldo med MCP före beställning. | `data/order-policy.json`; egna reservationer i orderkvittona |
+| Pris och tak | Prislistan, taket per order och den stående fullmakten (`askAbove` 500 per order, `perDayCredits` 2 500 per dygn) i orderpolicyn; värsta kostnaden prövas vid godkännandet. Läs saldo före beställning. | `data/order-policy.json`; `tools/order-mandate.ts` |

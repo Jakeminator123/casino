@@ -3,7 +3,7 @@
 import os, json, subprocess, shutil, hashlib
 import numpy as np, cv2
 REPO = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
-REC = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(REPO, '..', 'slask', 'dealer')), 'kort-dataset', 'inspelning')
+REC = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(REPO, '..', 'slask', 'blackjack-dealer')), 'kort-dataset', 'inspelning')
 OUT = os.path.join(REPO, 'assets', 'proofs', 'kort-fram-bak-20261120'); TMP = os.path.join(REC, '_bygg'); CLIP = 'paow-giv-2-3-p4-h24-cykel-02-01'
 track = json.load(open(os.path.join(OUT, 'spar', CLIP + '.json'), encoding='utf-8'))['frames']
 def centre(i):

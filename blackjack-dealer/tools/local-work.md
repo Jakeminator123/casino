@@ -4,15 +4,16 @@ Var arbetet görs, hur mediamängden ses och hur oanvänt material raderas. Slå
 
 ## Arbetsplats
 
-Allt arbete görs i repots mapp `dealer`, på `main` (AGENTS, "Git och samarbete"). Kontrollera rot och Git-remote
-först. En gren är en versionspekare, ingen ny kopia av medierna; byt inte gren över någon annans pågående ändringar.
-Ett eget arbetsträd bara när ett arbete uttryckligen behöver isoleras. Byggträdet `../dealer-bygg` bredvid repot är
-bara för `push-clean.ts` och `studio-from-commit.ts`, som båda kräver `--trad <mapp>`. Ändringar från en annan dator
+Allt arbete görs i projektets mapp `blackjack-dealer` i casino-repot, på `main` (AGENTS, "Git och samarbete").
+Kontrollera rot och Git-remote först. En gren är en versionspekare, ingen ny kopia av medierna; byt inte gren över
+någon annans pågående ändringar. Ett eget arbetsträd bara när ett arbete uttryckligen behöver isoleras. Byggträdet
+`../slask/bygg` (hela casino-repot, projektet i dess `blackjack-dealer/`) är bara för kontrollen, `push-clean.ts` och
+`studio-from-commit.ts`, som båda kräver `--trad <mapp>`. Ändringar från en annan dator
 eller chatt jämförs med main, granskas och testas: merge för en sammanhängande gren, cherry-pick för en avgränsad
 commit eller en granskad patch för osparade ändringar. Kopiera inte tillbaka äldre hela filer.
 
 - `assets/`: en kanonisk kopia av material som används eller har en konkret roll; registrera rollen.
-- Slasken (`../slask/dealer`, DRIFT, "Slasken och städning"): tillfälliga bilder, filmer och byggen, raderade efter 7
+- Slasken (`../slask/blackjack-dealer`, DRIFT, "Slasken och städning"): tillfälliga bilder, filmer och byggen, raderade efter 7
   dygn. Flytta det som ska visas till `assets/` och registrera det. Ingen ny full mediekopia per chatt eller granskare.
 - Registren: små sökvägar, hashvärden, domar och kvitton. Spara inte en ny filmkopia per rapport.
 - Släpp egna hjälpprocesser och färdiga arbetsträd efter att deras ändringar och nödvändiga filer säkrats.
@@ -54,21 +55,25 @@ Nätkopian har inte denna lokala loggning; publicering och extern insamling är 
 
 ## Radera oanvänt material
 
-Gallringen (Jakob 2026-11-21: "kan du inte bara fixa upp något bra ang detta?") är ett verktyg i tre nivåer.
-`npm run gallra` skriver bara rapporten: `.runtime/gallring/LASMIG.md` och `plan.json`, med varje fil, skälet, storleken
-och antalet hårda länkar. `npm run gallra -- --kor` utför nivån **säkert** och inget annat: hans egna Inte bra som
-inget pekar på, det som bevisligen går att göra igen, och byteidentiska filer som blir en fil. `--kor --grupp <namn>`
-utför EN grupp ur **förslag**, och bara på hans ord om den gruppen. Nivån **blob** är bara förberedd: det som kan
-ligga enbart på den nya Blobben när den finns. Spärren (Primär, Godkänd, Variant, det spelet har, roller,
-original, referenser, noir-samlingen, filmen före spelet, det Beslut eller en öppen order nämner, och allt yngre än
-tre dygn) kontrolleras för varje fil precis innan den rörs. Det som går flyttas först till
-`.runtime/papperskorg/<datum>/` och ligger där i 14 dygn (`--tom-korgen` tömmer det äldre); planen gäller
-i 24 timmar, sedan görs rapporten om. Kör rapporten efter varje filmomgång och `--kor` när den visar något säkert.
+Det som produceras raderas som regel (Jakob 2026-11-25, AGENTS "Det som skyddar Jakob"): kvar i `assets/` blir det han
+har godkänt (Primär, Godkänd, Variant, ankare, det spelet spelar) och det som väntar på hans dom. Gallringen
+(`tools/media-thin.ts`) gör regeln i tre nivåer. `npm run gallra` skriver bara rapporten: `.runtime/gallring/LASMIG.md`
+och `plan.json`, med varje fil, skälet, storleken och antalet hårda länkar. `npm run gallra -- --kor` utför nivån
+**säkert**, regeln, och inget annat: filmen till en tagning han, eller huvudagenten och en granskare på hans uppdrag,
+har dömt Inte bra, med Runways leverans till tagningen; det som bevisligen går att göra igen; byteidentiska filer som
+blir en fil. En underkänd film står kvar när en agent har uppgiften att arbeta om den: en öppen beställning (ett utkast,
+`UTKAST`, bland dem) eller ett kort i Beslut pekar på den. `--kor --grupp <namn>` utför EN grupp ur **förslag** (bland
+dem Inte bra från en granskare utan hans uppdrag och sekundära alternativ), och bara på hans ord om den gruppen. Nivån
+**blob** är bara förberedd: det som kan ligga enbart på den nya Blobben när den finns. Spärren (Primär, Godkänd,
+Variant, det spelet har, roller, original, referenser, noir-samlingen, filmen före spelet, det Beslut eller en öppen
+order nämner, och allt yngre än tre dygn) kontrolleras för varje fil precis innan den rörs. Det som går flyttas först
+till `.runtime/papperskorg/<datum>/` och ligger där i 14 dygn (`--tom-korgen` tömmer det äldre); planen gäller i 24
+timmar, sedan görs rapporten om. Kör rapporten och `--kor` efter varje filmomgång och domomgång.
 
 Efter varje avslutad filmbeställning: kör `npm run media:status`, kontrollera roller och referenser och kör
-rapporten igen. Bevara källfilm, styrbilder, orderkvitto och valt granskningsbevis. Tillfälliga kopior ligger i
-slasken; färdiga filmer och användbara prov ligger i `assets/` med en roll. Rapporten kan köras cykliskt utan
-radering; ingen åldersregel får ensam radera unika filmer i `assets/`.
+gallringen. Av en godkänd tagning bevaras källfilm, styrbilder, orderkvitto och valt granskningsbevis. Tillfälliga
+kopior ligger i slasken; färdiga filmer och användbara prov ligger i `assets/` med en roll. Ingen åldersregel raderar
+ensam unika filmer i `assets/`: det är domen som avgör.
 
 `assets/noir/` är Jakobs samling av noir-filmerna (2026-11-21: "hitta alla noir-filmer och lägga dem i en speciell
 mapp"), med `LASMIG.md`: v4 av trailern och det som kom efter, originalet på 30 sekunder och klippen v4 är byggd av.

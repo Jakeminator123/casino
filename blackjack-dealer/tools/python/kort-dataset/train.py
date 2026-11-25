@@ -10,7 +10,7 @@ import os, sys, csv, json, time, math, random
 import numpy as np, cv2, torch, torch.nn as nn, torch.nn.functional as F
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import label
-SLASK = os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'dealer'))
+SLASK = os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'blackjack-dealer'))
 BASE = os.path.join(SLASK, 'kort-dataset')
 # The trained model outlives the slask (emptied after seven days): tools/python/models/, Git-ignored, or DEALER_MODELS.
 MODELS = os.path.abspath(os.environ.get('DEALER_MODELS') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'models'))

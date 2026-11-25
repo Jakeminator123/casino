@@ -4,8 +4,7 @@
 //
 // A recipe is the tool's flags for one film, read back out of a deal the tool wrote (dealer3d/data/giv-fran-2-3-*.json
 // carries them in `pace`, `rightAt`, `poseFilm` and its frame count): laid again from its own recipe a stored deal comes
-// back to the last digit kept (`node --test dealer3d/page/lab.test.ts` holds the deals recipeFor names to that, frame for
-// frame; all but seat 6's roll, whose place has moved 2.4 mm in the plan since it was laid). What
+// back to the last digit kept (all but seat 6's roll, whose place has moved 2.4 mm in the plan since it was laid). What
 // the lab steers is a handful of those flags and nothing else: --turn-near, wait in --shared (or the beat l of --beats
 // where the hands do not share the card), --carry, --grip-yaw, --body, and all of --beats for the tempo. (The tool is a
 // script that runs on import, so the page cannot call it. When its body moves into dealer3d/src/ as a function, this

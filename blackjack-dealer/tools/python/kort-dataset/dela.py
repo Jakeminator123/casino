@@ -2,7 +2,7 @@
 # först de som har dagens spår (jämförelsen), sedan resten blandat (samma blandning varje gång).
 #   python -I dela.py
 import os, json, random
-BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'dealer')), 'kort-dataset')
+BASE = os.path.join(os.path.abspath(os.environ.get('DEALER_SLASK') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', '..', 'slask', 'blackjack-dealer')), 'kort-dataset')
 rows = [json.loads(l) for l in open(os.path.join(BASE, 'selected.jsonl'), encoding='utf-8')]
 first = [r for r in rows if r.get('clip')]; rest = [r for r in rows if not r.get('clip')]
 random.seed(20261120); random.shuffle(rest)

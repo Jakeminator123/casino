@@ -15,7 +15,7 @@ gamla). Det som väntar på hans svar står som kort i Beslut (`data/decisions.j
   båda hans datorer, utan datorns sökvägar eller chattnamn, på `main`.
 - **Alla verktyg** (2026-11-25): reglerna gäller i Claude Code, Codex, Cursor, andra IDE:er och API-anrop. De står i
   `AGENTS.md` och vanliga filer; ett verktygs egna inställningar är bara extra skydd.
-- **Slasken** (2026-11-25): "mer tillfölliga filer raderas som standard": tillfälligt arbete i `../slask/dealer`, som
+- **Slasken** (2026-11-25): "mer tillfölliga filer raderas som standard": tillfälligt arbete i `../slask/blackjack-dealer`, som
   rensas efter sju dygn (AGENTS, "Slasken och `.runtime/`").
 - **Rensa bort regler och låsningar som blockerar** (2026-11-23): en regel står bara om den är hans daterade ord eller
   skyddar honom; efter ett fel rättas orsaken, utan nytt förbud, test eller spärr (AGENTS, "Regler och spärrar").

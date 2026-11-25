@@ -5,9 +5,9 @@
     "**/.next": true,
     "**/__pycache__": true,
     "**/.venv": true,
-    "dealer/studio/out": true,
-    "dealer/studio/tsconfig.tsbuildinfo": true,
-    "dealer/studio/next-env.d.ts": true
+    "blackjack-dealer/studio/out": true,
+    "blackjack-dealer/studio/tsconfig.tsbuildinfo": true,
+    "blackjack-dealer/studio/next-env.d.ts": true
   },
   "search.exclude": {
     "**/node_modules": true,
@@ -15,7 +15,9 @@
     "**/.next": true,
     "**/__pycache__": true,
     "**/.venv": true,
-    "dealer/studio/out": true,
+    "blackjack-dealer/studio/out": true,
+    "avatar-auto-pipeline/tools": true,
+    "avatar-auto-pipeline/output": true,
     "slask": true
   }
 }
