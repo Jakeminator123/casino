@@ -186,8 +186,13 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   som spelvy) och Lins under Bord. Spelet utan valt utseende och grundutseendena följer nu spelvyns Dator (9,7°
   lutning i stället för 8°); Jakob-1 och Profilval 1 har kvar sin egen inramning på dator. På mobil gäller alltid
   spelvyns Mobil, så Profilval 1:s egen sidvridning syns inte längre där.
+- Bred lins räknad ur standarden, steg 9 D1 (2026-11-26): före- och efterbild i provet
+  `bred-lins-ur-standarden-20261126` och kortet `bred-lins-ur-standarden` i Beslut. Ändringen ligger som kopior av sex
+  moduler i `../slask/blackjack-dealer/granska/bred-lins-ur-standarden/efter/` (77 rader till, 37 bort mot `fore/`) och
+  blir koden på hans ja; då följer `tools/card-plan.test.ts` (`BET.real` blir `ringOffset`) och `docs/SYSTEM.md`.
+  Med hans nej raderas mappen, provet och kortet.
 - Korten under Bred lins (steg 9 D2): ska de ritas som filmens egna (dealerns kort 75 × 57 px i stället för 61 × 35)?
-  Han svarar när han har sett en före- och efterbild.
+  Han svarar när han har sett en före- och efterbild; den görs på samma sätt som D1:s, efter hans svar där.
 - Kortets form är avgjord (hans ja 2026-11-26): inspelningen har alltid ett riktigt kort, och spelets 87 % är reglaget
   Kortens form i Scen. Kvar att göra efter det: måtten i `data/media-fit.json` (brickorna i Material) räknas om med
   `node tools/media-audit.ts --fit --write`, eftersom de mäts mot planens kort, som nu är ett riktigt kort.
