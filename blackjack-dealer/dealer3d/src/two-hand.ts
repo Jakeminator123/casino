@@ -332,13 +332,16 @@ export function twoHandDeal(lens: Lens, start: Still, places: Place[], lead: num
 
   // ---- the card out of the shoe ---------------------------------------------------------------------------------
   // It stands on the plate with its lower end a little up it. Stroked out, it slides down the plate to the foot, then its
-  // lower end goes out along the felt while its upper end comes down the plate, then it lies flat before the mouth.
+  // lower end goes out along the felt while its upper end comes down the plate, then it lies flat before the mouth. Its
+  // upper end keeps the millimetre off the plate while it slides over the next card standing there (shoeCard; the stage
+  // draws that card a card's thickness and a little in behind it), and comes down to the plate only below it: before
+  // 2026-11-26 it came down along the whole way and went into the next card (Jakob: "åker in i ... kortlekens kort").
   const first = kind.windowLift / Math.sin(kind.plateLean), out = first + H;
   const faceIn = (long: Vec3): Vec3 => { const n = unit(cross(shoe.far, long)); return n[1] > 0 ? mul(n, -1) : n; };
   const leaving = (a: number): {centre: Vec3; long: Vec3; normal: Vec3} => {
     let low: Vec3, high: Vec3, lift = 0.001;
     if (a <= first) { low = add(mouth, mul(inShoe.up, first - a)); high = add(low, mul(inShoe.up, H)); }
-    else if (a <= first + H) { const x = a - first, b = (-2 * lean0 * x + Math.sqrt(4 * lean0 * lean0 * x * x - 4 * (x * x - H * H))) / 2; low = add(mouth, mul(outward, x)); high = add(mouth, mul(inShoe.up, Math.max(0, b))); lift = 0.001 + (lying - 0.001) * x / H; }
+    else if (a <= first + H) { const x = a - first, b = (-2 * lean0 * x + Math.sqrt(4 * lean0 * lean0 * x * x - 4 * (x * x - H * H))) / 2; low = add(mouth, mul(outward, x)); high = add(mouth, mul(inShoe.up, Math.max(0, b))); lift = b >= first ? 0.001 : lying + (0.001 - lying) * Math.max(0, b) / first; }
     else { const x = a - first - H; low = add(mouth, mul(outward, H + x)); high = add(mouth, mul(outward, x)); lift = lying; }
     const long = unit(sub(low, high)), normal = faceIn(long); return {centre: sub(mul(add(low, high), 0.5), mul(normal, lift)), long, normal}; };
   const standingCard = leaving(0), clearCard = leaving(out), yawOut = Math.atan2(shoe.back[0], shoe.back[2]); // the card's held end points out of the mouth: its yaw is the way into it

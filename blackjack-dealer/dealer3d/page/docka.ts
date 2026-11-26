@@ -102,7 +102,14 @@ const wayOf = (): Way => state.doll === 'standard' ? 'forut' : state.way;
 type Now = {doll: string; place: string | null; entry: Entry; motion: Motion; deal: LaidDeal | null; recipe: Recipe | null; lent: string | null; shortMm: number; saved: boolean; said: string | null;
   way: How; from: 'saved' | 'laid' | 'pose'; savedWay: How | null; bodyShare: number | null; receipt: ReturnType<typeof moveNatural>['receipt'] | null; landed: LandingReceipt | null; turned: TurnReceipt | null};
 let now: Now | null = null, fault: string | null = null, laid: {key: string; value: LaidNatural} | null = null;
-let standards: Standard[] = (await get('/dealer3d/standard').catch(() => ({standards: []}))).standards, stage: LabStage | null = null, held = 0;
+// His saved standards, and the one before each (`forra`: what a save replaced or "Alla till förvalet" laid aside, which
+// "Ta tillbaka den förra" takes back; dealer3d/page/server.ts). Read when the page starts and from every answer that changes them.
+let standards: Standard[] = [], before: Standard[] = [], stage: LabStage | null = null, held = 0;
+const takeLists = (a: {standards?: Standard[]; forra?: Standard[]}) => { standards = a.standards ?? []; before = a.forra ?? []; };
+const readLists = async () => takeLists(await get('/dealer3d/standard').catch(() => ({})));
+await readLists();
+/** While a change of the saved standards is asked (its buttons wait), and what the last one said, until another place is chosen. */
+let busy = false, notice: {text: string; warn?: boolean} | null = null;
 
 /** A motion made with the standard doll, on the doll `D` (the chosen one, as a way has her); and how far paow's arm is too short at the worst, millimetres. */
 const posedOn = (motion: object, D: Doll, options?: PoseOptions) => onDoll(lens, motion, D, options) as unknown as {motion: Motion; shortMm: number};
@@ -134,10 +141,12 @@ async function showDeal(keepTime = false) {
   const place = state.place, doll = state.doll, entry = state.entry, chosen = wayOf(), planned = planNo, found = await dealOfPlace(entry, place, doll);
   const stale = () => place !== state.place || doll !== state.doll || entry !== state.entry || chosen !== wayOf() || planned !== planNo;
   if (!found || stale()) return;
-  const saved = state.touched ? null : standards.find(s => s.name === standardName(doll, entry, place)), D = dollNamed(doll);
+  let saved = state.touched ? null : standards.find(s => s.name === standardName(doll, entry, place)); const D = dollNamed(doll);
   try {
     let lab: SavedLab | null = null;
-    if (saved) { lab = ((await get(`/dealer3d/standard/${saved.name}.json`) as Motion).lab ?? {}) as SavedLab; if (stale()) return; }
+    // (a standard laid aside since the list was read, in another tab or by an agent, is no longer there: the default holds)
+    if (saved) { const file = await get(`/dealer3d/standard/${saved.name}.json`).catch(() => null) as Motion | null; if (stale()) return;
+      if (file) lab = (file.lab ?? {}) as SavedLab; else { saved = undefined; await readLists(); if (stale()) return; } }
     let way: How, savedWay: How | null = null, recipe: Recipe | null = null, shown: Laid;
     if (found.pinch !== undefined) {
       // From A2.1: built on her bones with its return; shown alone, it ends as her hand is lifted off the card.
@@ -182,7 +191,7 @@ const show = (keepTime = false) => state.shown.kind === 'deal' ? showDeal(keepTi
 
 /** A stage for the chosen doll on a canvas of its own (a stage's doll is fixed when it is made). */
 async function setDoll(name: string) {
-  state.doll = name; state.touched = false; state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT;
+  state.doll = name; state.touched = false; notice = null; state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT;
   const first = posedOn(await stored<Motion>('till-ankare-2-3-c'), dollNamed(name)).motion, old = $('stage'), canvas = document.createElement('canvas'); canvas.id = 'stage';
   stage?.dispose(); old.replaceWith(canvas); size(canvas); stage = createLabStage(canvas, plan, dollNamed(name), first); stage.setJoints(state.joints); stage.setGrips(gripsShown()); stage.setTarget(state.place); stage.view(state.view);
   await show();
@@ -282,13 +291,18 @@ function paint() {
       `handleden böjd högst ${comma(td.wrist!.most)}° (förut ${comma(td.wristBefore!.most)}°)`, td.shortMm ? `armen räcker inte hela vägen, ${comma(td.shortMm)} mm kortare` : ''].filter(Boolean).join(' · ') + '.';
   const steered = !untouched(), recipe = R();
   ctl<HTMLButtonElement>('atplace').disabled = !deal || !recipe || !shares(recipe); ctl<HTMLButtonElement>('reset').disabled = !deal || !recipe || (!steered && !now?.saved); ctl<HTMLButtonElement>('save').disabled = !deal || !now || now.saved || !now.deal || !!fault || now.shortMm > 0;
-  const status = ctl('status'), when = saved ? new Date(saved.savedAt).toLocaleString('sv-SE', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}) : '';
+  const moment = (s: Standard) => new Date(s.savedAt).toLocaleString('sv-SE', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
+  const prior = before.find(s => s.name === standardName(state.doll, state.entry, state.place)), mine = standards.filter(s => s.doll === state.doll).length, back = ctl<HTMLButtonElement>('back'), all = ctl<HTMLButtonElement>('allDefault');
+  back.disabled = busy || !deal || (!prior && !saved); back.title = prior ? `Byter till standarden som var sparad här förut (${moment(prior)}). Det du har nu blir det förra, så ett tryck till byter tillbaka.` : saved ? 'Före den sparade gällde förvalet här: lägger undan den sparade, så att förvalet gäller igen. Ett tryck till tar tillbaka den.' : 'Det finns inget förra att ta tillbaka för den här platsen.';
+  all.disabled = busy || !mine; all.title = mine ? `Lägger undan ${DOLLS[state.doll]}s ${mine} sparade standarder, så att förvalet gäller på varje plats. Inget raderas: Ta tillbaka den förra tar tillbaka en plats i taget.` : `${DOLLS[state.doll]} har ingen sparad standard: förvalet gäller överallt.`;
+  const status = ctl('status'), when = saved ? moment(saved) : '';
   status.className = fault ? 'small warn' : 'small';
   // (embedded there is no grid of places: the card is chosen in the studio, or by a click on it in the picture)
   status.textContent = !deal ? (embedded ? 'Ställningen visas. Spela visar given till kortet igen.' : 'Ställningen visas. Välj en plats, eller tryck Spela, för given.') : fault ? `Går inte: ${fault}. Senaste som gick visas.`
     : now?.saved ? `Din sparade standard (${when}, ${now.savedWay === 'byggd' ? 'från A2.1' : `gjord i ${WAYS[now.savedWay ?? 'forut']}`}), lagd ${now.savedWay === 'byggd' ? 'som den byggs' : 'med dina värden'} och filmens sko.${now.savedWay !== 'byggd' && now.savedWay !== way ? ` Dra i ett reglage för ${WAYS[way]} med dina värden.` : ''}`
     : saved ? `Inte den sparade (${when}). Klicka på ${embedded ? 'kortet i bilden' : 'platsen'} för den.` : steered ? 'Ändrad, inte sparad.'
     : read ? 'Byggd giv från A2.1, ett sätt.' : way === 'naturlig' ? 'Naturlig grundrörelse. Ingen standard sparad.' : 'Äldre given. Ingen standard sparad.';
+  if (notice) { status.textContent += ` ${notice.text}`; if (notice.warn) status.className = 'small warn'; }
   // The line in the picture: what is shown, and what is not as it should be.
   const what = deal ? `${state.entry} → ${placeWords(state.place)}` : (state.shown as {pose: string}).pose, notes: string[] = [], warns: string[] = [];
   if (deal && now) notes.push(now.saved ? 'sparad standard' : WAYS[now.way]);
@@ -329,14 +343,14 @@ const tell = () => { if (!hush) post({place: state.place}); };
 /** Chooses a place as its button does: the deal to it from the chosen entry, untouched (his saved standard where there is one), played from the start. */
 function choose(id: string) {
   if (!opens(state.entry, id)) return;
-  state.place = id; state.touched = false; state.steer = baseSteer(id); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT; state.shown = {kind: 'deal'}; state.playing = false; tell();
+  state.place = id; state.touched = false; notice = null; state.steer = baseSteer(id); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT; state.shown = {kind: 'deal'}; state.playing = false; tell();
   showDeal().then(() => { if (state.view === 'player') stage!.view('player'); if (state.shown.kind === 'deal' && !fault) { state.t = 0; state.playing = true; paint(); } });
 }
 /** Chooses an entry: the place stays where a deal goes there from the new one, else the first that has one. */
 function chooseEntry(entry: Entry) {
   if (entry === state.entry && state.shown.kind === 'deal') return;
   state.entry = entry; if (!opens(entry, state.place)) state.place = firstOpen(entry) ?? state.place;
-  state.touched = false; state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT; state.shown = {kind: 'deal'}; state.playing = false; tell(); showDeal();
+  state.touched = false; notice = null; state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT; state.shown = {kind: 'deal'}; state.playing = false; tell(); showDeal();
 }
 // The places: a row for each card and a column for each seat and for the dealer; a place no deal goes to from the chosen
 // entry is closed, and says why below (paint). Embedded there is no grid: the studio chooses the card, and so does a click in
@@ -374,10 +388,35 @@ ctl('save').addEventListener('click', async () => {
   const lab = {...now.deal.lab, steer: state.steer, from: state.entry, doll: state.doll, place: state.place, shortMm: now.shortMm, savedAt: new Date().toISOString(), ...(now.way === 'naturlig' ? {naturlig: {knobs: state.knobs, bodyShare: now.bodyShare}} : {}), ...landing, ...turn};
   const motion = {...now.motion, doll: state.doll, lab} as Motion;
   try { const r = await fetch(`/dealer3d/standard/${name}.json`, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(motion)}), answer = await r.json(); if (!r.ok) throw Error(answer.error ?? String(r.status));
-    standards = answer.standards; now = {...now, motion: {...now.motion, doll: state.doll, lab}, saved: true, from: 'saved', savedWay: now.way}; paint();
+    takeLists(answer); now = {...now, motion: {...now.motion, doll: state.doll, lab}, saved: true, from: 'saved', savedWay: now.way};
+    notice = before.some(s => s.name === name) ? {text: 'Den du hade sparad här förut ligger kvar: Ta tillbaka den förra byter tillbaka.'} : null; paint();
     // (embedded: the page around is told, so that what it says of the saved standard is read again)
     post({place: state.place, saved: name}); }
   catch (e) { paint(); const status = ctl('status'); status.className = 'small warn'; status.textContent = `Sparades inte: ${String((e as Error).message ?? e)}`; }
+});
+// His saved standards, forgiving (Jakob 2026-11-26: "en knapp för detta som är lite mer förlåtande om man råkat spara över
+// originalet"): nothing is deleted (dealer3d/page/server.ts). "Ta tillbaka den förra": the place's standard and the one
+// before it change places (the one before is what a save replaced, or what "Alla till förvalet" laid aside), so that a
+// second press changes them back. "Alla till förvalet": every saved standard of the doll laid aside in a folder of its own,
+// so that the default holds on every place, each of them its place's one before.
+/** Asks the server for a change of the saved standards, takes the lists from its answer, and lays the place shown again as it now is. */
+async function changeStandards(kind: 'aterstall' | 'tillbaka', ask: Record<string, string>, said: (answer: Record<string, unknown>) => string) {
+  busy = true; notice = null; paint();
+  try {
+    const r = await fetch(`/dealer3d/standard/${kind}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(ask)}), answer = await r.json().catch(() => null);
+    if (!r.ok || !answer) throw Error(answer?.error ?? (r.status === 404 || r.status === 405 ? 'servern behöver startas om för den här knappen' : String(r.status)));
+    takeLists(answer); notice = {text: said(answer)};
+    state.touched = false; state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT;
+    post({place: state.place, saved: standardName(state.doll, state.entry, state.place)});
+  } catch (e) { notice = {text: `Gick inte: ${String((e as Error).message ?? e)}.`, warn: true}; }
+  busy = false; if (state.shown.kind === 'deal') await showDeal(true); else paint();
+}
+ctl('back').addEventListener('click', () => { const name = standardName(state.doll, state.entry, state.place);
+  changeStandards('tillbaka', {name}, () => standards.some(s => s.name === name) ? 'Det förra är tillbaka. Det du hade ligger nu som det förra: ett tryck till byter tillbaka.' : 'Förvalet gäller här igen. Den sparade ligger som den förra: ett tryck till tar tillbaka den.'); });
+ctl('allDefault').addEventListener('click', () => {
+  const n = standards.filter(s => s.doll === state.doll).length; if (!n) return;
+  if (!confirm(`Lägga undan alla ${n} sparade standarder för ${DOLLS[state.doll]}, så att förvalet gäller på varje plats?\n\nInget raderas: Ta tillbaka den förra tar tillbaka en plats i taget.`)) return;
+  changeStandards('aterstall', {doll: state.doll}, a => { const u = a.undanlagt as {when?: string; names?: string[]} | undefined; return `${u?.names?.length ?? n} sparade standarder är undanlagda (${u?.when ?? 'i dag'}); förvalet gäller nu. Ta tillbaka den förra tar tillbaka en plats.`; });
 });
 
 // The picture: a click (no drag: the pointer let go within 4 px and 300 ms) chooses the place nearest the point of the felt

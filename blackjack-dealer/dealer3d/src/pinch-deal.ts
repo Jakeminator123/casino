@@ -5,7 +5,8 @@
 // - Nyp: the pose A2.1: thumb on the card's back, forefinger on its face, at its upper corner in the shoe's window.
 // - Dra: the card slides down the shoe's plate the way every card leaves the shoe (two-hand.ts, the card out of the shoe),
 //   its lower end out along the felt, until it leans CLEAR.drawn over the felt with its held end up.
-// - För fram, Vrid, Vänd upp: carried low over the felt to the place. Her forearm turns the hand palm down (pronation) and her
+// - För fram, Vrid, Vänd upp: carried low over the felt to the place, and never in under the shoe's plate or through the cards
+//   that stand on it (2026-11-26: where the way would go in, the card is moved out from the plate). Her forearm turns the hand palm down (pronation) and her
 //   thumb goes in under the card as it turns, so that the card turns face up about its long side in her fingers; the card
 //   may also pivot in the pinch, as a card held at its corner does. The turn is over before she lays it ("Handen vänds en
 //   gång, i luften, aldrig i slutet"). The hand is moved by its joints: the forearm's turn and the wrist's two bends go
@@ -34,8 +35,8 @@ const deg = Math.PI / 180;
 export const MOST = {lean: 24 * deg, twist: 36 * deg};
 /** What her wrist does comfortably, radians: bent toward the palm (flex) or back (−), toward the little finger (dev) or the thumb (−); the forearm's turn from thumb up (pronation +, palm down at 90°). */
 export const WRIST = {flex: [-40 * deg, 40 * deg], dev: [-15 * deg, 25 * deg], turn: [-70 * deg, 88 * deg]};
-/** How far the card leans over the felt when it is drawn (its held end up), how near the felt card and fingers come as she carries it, metres. */
-const CLEAR = {drawn: 40 * deg, felt: 0.008, finger: 0.0085};
+/** How far the card leans over the felt when it is drawn (its held end up), how near the felt card and fingers come as she carries it, and the card the shoe's plate where it is over the shoe, metres (a card on the plate's cards lies a millimetre off it, shoeCard). */
+const CLEAR = {drawn: 40 * deg, felt: 0.008, finger: 0.0085, shoe: 0.001};
 /** How far the far edge is tilted up as it is set on the felt. */
 const TILT = 20 * deg;
 /** The turn: over which share of the carry the hand and the card turn; by which share of the turn the card's face is up and by which its long side has levelled out to LEVEL (its held end up +); the keys between. */
@@ -117,6 +118,12 @@ export function pinchDeal(input: PinchInput) {
 
   // Dra: down the plate until the card leans CLEAR.drawn over the felt.
   const leave = leavingShoe(lens, input.shoe), tilt0 = (c: CardAt) => Math.asin(clamp1(c.l[1]));
+  // (how far a card is in under the shoe's plate, metres, at its deepest over the shoe's width and a clearance beside it: its
+  // corners, and where its edges cross the sides of that width; −Infinity where no part of it is over the shoe)
+  const kind = input.shoe ?? SHOE, shoeAt = shoePose(lens, kind), plateOut: Vec3 = [-shoeAt.back[0] * Math.sin(kind.plateLean), Math.cos(kind.plateLean), -shoeAt.back[2] * Math.sin(kind.plateLean)];
+  const underPlate = (c: CardAt) => { const q = corners(c), side = (p: Vec3) => dot(sub(p, shoeAt.front), shoeAt.far), lo = -CLEAR.shoe, hi = kind.width + CLEAR.shoe, at: Vec3[] = q.filter(p => side(p) >= lo && side(p) <= hi);
+    for (const [i, j] of [[0, 1], [1, 3], [3, 2], [2, 0]]) for (const f of [lo, hi]) { const a = side(q[i]) - f, b = side(q[j]) - f; if (a * b < 0) at.push(lerp(q[i], q[j], a / (a - b))); }
+    return Math.max(-Infinity, ...at.map(p => dot(sub(shoeAt.front, p), plateOut))); };
   let drawnA = 0; while (drawnA < 0.2 && tilt0(leave(drawnA)) > CLEAR.drawn) drawnA += 0.0005;
   const atStart = leave(0), off = length(sub(atStart.c, f0.card.c)); // (the card in the shoe of A2.1 is the shoe's own)
   const drawn = leave(drawnA), Pd = pinchOf(drawn);
@@ -205,8 +212,8 @@ export function pinchDeal(input: PinchInput) {
   const gripAt = (k: number) => Math.max(0, Math.min(1, curve(kg, k)));
 
   // The carry, frame by frame: the joints and the card in the hand along that curve from the draw's end to the touch, the pinch along a low line; the wrist where the hand puts it.
-  const carryAt = (t: number, lift: number) => {
-    const s = (t - t2) / (tT - t2), k = (s - turnStarts) / (turnEnds - turnStarts), q = gripAt(k), P = add(lerp(Pd, Pt, ease(s)), [0, lift, 0]);
+  const carryAt = (t: number, lift: number, push = pushAt(t)) => {
+    const s = (t - t2) / (tT - t2), k = (s - turnStarts) / (turnEnds - turnStarts), q = gripAt(k), P = add(add(lerp(Pd, Pt, ease(s)), [0, lift, 0]), mul(plateOut, push));
     const j: Joints = jointsAt(k), G = held(best.tuck * q, best.spin * q);
     const S = pinched(shapeBetween(S0, carryShape, q), G.palm), mid = midOf(S, G.palm);
     let W = lerp(dEnd.W, best.c.x.W, ease(s)), H = dEnd.H;
@@ -220,10 +227,23 @@ export function pinchDeal(input: PinchInput) {
   // (the height: each frame as much as it needs and no more, under one smooth hill per frame's need, so that the card
   // rises from the felt and comes down to the place in one motion)
   const lifts = new Array(count).fill(0) as number[], liftAt = (t: number) => lifts[t] ?? 0, hill = (d: number) => { const w = d < 0 ? 3 : 7; return Math.abs(d) >= w ? 0 : Math.cos(Math.PI * d / (2 * w)) ** 2; };
-  for (let pass = 0; pass < 30; pass++) { let worst = 0; const want = lifts.map((h, t) => t > t2 && t < tT ? h + Math.max(0, -lowestOver(carryAt(t, h), t)) : 0);
+  for (let pass = 0; pass < 30; pass++) { let worst = 0; const want = lifts.map((h, t) => t > t2 && t < tT ? h + Math.max(0, -lowestOver(carryAt(t, h, 0), t)) : 0);
     for (let t = t2 + 1; t < tT; t++) worst = Math.max(worst, want[t] - lifts[t]);
     if (worst < 2e-4) break;
     for (let t = t2 + 1; t < tT; t++) { let h = 0; for (let u = t2 + 1; u < tT; u++) h = Math.max(h, want[u] * hill(t - u)); lifts[t] = Math.max(lifts[t], h + 0.0003); } }
+  // (out of the shoe, Jakob 2026-11-26: "som att första kortet ... åker in i den befintliga bakomliggande kortlekens kort", to
+  // P6.C2; to seat 7, beside the shoe, the straight way took the card 3 cm in under the plate. Where the way at its height
+  // would take any of the card in under the plate, through the cards that stand on it, the card is moved out along the
+  // plate's normal until it is CLEAR.shoe off it, under one smooth hill per frame's need, and nowhere else: a deal that
+  // keeps clear of the shoe is laid as before to the last digit)
+  const pushes = new Array(count).fill(0) as number[];
+  function pushAt(t: number) { return pushes[t] ?? 0; }
+  const intoShoe = (x: ReturnType<typeof carryAt>) => underPlate(x.card) + CLEAR.shoe;
+  const sideways = (d: number) => { const w = d < 0 ? 4 : 7; return Math.abs(d) >= w ? 0 : Math.cos(Math.PI * d / (2 * w)) ** 2; };
+  for (let pass = 0; pass < 30; pass++) { let worst = 0; const want = pushes.map((h, t) => t > t2 && t < tT ? h + Math.max(0, intoShoe(carryAt(t, liftAt(t), h))) : 0);
+    for (let t = t2 + 1; t < tT; t++) worst = Math.max(worst, want[t] - pushes[t]);
+    if (worst < 2e-4) break;
+    for (let t = t2 + 1; t < tT; t++) { let h = 0; for (let u = t2 + 1; u < tT; u++) h = Math.max(h, want[u] * sideways(t - u)); if (h > 0) pushes[t] = Math.max(pushes[t], h + 0.0003); } }
   const lift = Math.max(...lifts);
 
   // Lägg: the card lowered about its far edge; the thumb out from under its near end by the time it is at 3/4 of the tilt; the forefinger on it.

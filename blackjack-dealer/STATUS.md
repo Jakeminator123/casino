@@ -75,8 +75,8 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    rakt ut vid A2.3 (knogen 33° åt sidan och 24° bakåt, utanför handregeln), vilket syns från A1 till A2.3 och i varje
    givs första ruta. Dockan från A2.1 görs om, enklare, med kortbanan ur dockan (2026-11-24), och härmar de bästa
    A2.1-klippen, som han själv vill välja (2026-11-23); en giv tar 2 s som förval; händerna fria i givarna;
-   handleden i vändningen; P7.C1 (hans `dealer3d/standard/paow-p7c1.json` ger vändningen 12 rutor, den behöver 20: han
-   sparar om den); en kropp som lutar sig mot plats 1–2; SAM-dockan ("Ja bygg den riktiga SAM-dockan", 2026-11-23).
+   handleden i vändningen; P7.C1:s vändning (förvalet 17 rutor, hans undanlagda standard 11); plats 1 från nypet
+   (Jakob 2026-11-26: "plats ett ska få nyp"; beställningen vägrar den i dag, `tools/doll-order.ts`); en kropp som lutar sig mot plats 1–2; SAM-dockan ("Ja bygg den riktiga SAM-dockan", 2026-11-23).
 3. **Karta:** bryggorna för nypet (A2.1 → A1, A2.1 ↔ A2.3); kameran som en dimension (2026-11-23); kort 3–7
    återbrukar bara kort 2. Granskas "Gör primär" (`studio/lib/decide.ts`) och Materials "äldre A2.3"
    (`studio/components/material/Rows.tsx`) läser ännu hela banken och inte trädets eget urval, som Karta nu gör.
@@ -154,10 +154,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   `a21-marke-20261126`). Med hans ja får beställningar från A2.1 märkta kort.
 - Fem stolfilmer ur Runway utan post och utan dom i `../slask/blackjack-dealer/granska/runway-20261125/` (stol 1,
   stol 2 två, stol 7 två; stol 2 har ingen annan film): döms och förs in, eller raderas. Stol 6:s film väntar i Granska.
-- Handbytet: bilderna före och efter i `../slask/blackjack-dealer/granska/handled/` väntar på hans ögon. Fem av hans
-  sparade standarder (plats 2 kort 1, plats 4 kort 1, plats 5 båda korten, plats 6 kort 2) bär en handvinkel från det
-  gamla greppet och ger handleden 26–59° med det nya; Återställ eller reglaget på 17° och Spara som standard rättar dem
-  (11–19°). Bara han sparar dem.
+- Handbytet: bilderna före och efter i `../slask/blackjack-dealer/granska/handled/` väntar på hans ögon. Paows 15 sparade
+  standarder är undanlagda på hans ord (2026-11-26, `dealer3d/standard/undanlagda/2026-11-26-011850/`): förvalet
+  gäller på varje plats, och den förra tas tillbaka med Ta tillbaka den förra på dockans sida. Provet
+  `nyp-leken-20261126` visar att kortet inte längre går in i leken i skon.
 - Hans ögon på spelvyn och linsen i Scen (2026-11-26): gruppen Spelvy (Visa Inspelningen, Dator eller Mobil; Spara
   som spelvy) och Lins under Bord. Spelet utan valt utseende och grundutseendena följer nu spelvyns Dator (9,7°
   lutning i stället för 8°); Jakob-1 och Profilval 1 har kvar sin egen inramning på dator. På mobil gäller alltid

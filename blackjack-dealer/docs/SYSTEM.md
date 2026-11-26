@@ -267,6 +267,13 @@ Dockan i `dealer3d/` är en vit docka i bordets verkliga geometri vars filmer st
 - En sparad rörelse per kort och ankare (2026-11-23): `dealer3d/standard/<docka>-<plats>.json` är A2.3,
   `<docka>-a2-1-<plats>.json` A2.1. Naturlig ställning är förval; handens vinkel 17° när kortet tas och −30° när det
   är vänt (2026-11-23, `dealer3d/src/natural.ts`); landningen väljs (`dealer3d/src/landing.ts`).
+- Inget sparat går förlorat (Jakob 2026-11-26): Spara som standard lägger den ersatta i `dealer3d/standard/forra/`, en
+  per plats. Ta tillbaka den förra byter den sparade och den förra, och förvalet står för den som saknas. Alla till
+  förvalet lägger dockans alla standarder i `dealer3d/standard/undanlagda/<tid>/` och som förra. Vägarna finns i
+  `dealer3d/page/server.ts` och flyttar eller kopierar, raderar aldrig (`dealer3d/tests/standard-undan.test.ts`).
+- Skons nästa kort står 0,6 mm bakom kortet som dras ut (`dealer3d/src/stage.ts`). Kortets övre ände håller sin
+  millimeter över det när kortet glider ut (`two-hand.ts`), och nypets kort bärs aldrig in under plåten
+  (`pinch-deal.ts`, `CLEAR.shoe`).
 - Rutor räknas från 0, ark och filnamn från 1. En dockfilm förs in i `data/rendered-references.json` av huvudagenten,
   med nytt id varje gång. Mappen läser `placements/default.json` men skriver den aldrig.
 
