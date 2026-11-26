@@ -2,13 +2,23 @@
 
 Kör:  blender -b --python-exit-code 1 --python scen/bygg_bord.py
       blender -b --python-exit-code 1 --python scen/bygg_bord.py -- --modell bord-02
+      blender -b --python-exit-code 1 --python scen/bygg_bord.py -- --kant-bak 0.15
 Ut:   assets/bord/standardbord.blend och assets/bord/standardbord.glb
       (bord-02 skriver assets/bord/bord_02.blend/.glb så standardfilen inte skrivs över)
 Allt mått kommer ur standard.yaml – ändra där, inte här.
 Default är spelets tableModel "standard" (oval halv-ellips, rak dealerkant).
 BORD-02 är ett behållet labbalternativ via --modell bord-02.
+
+--kant-bak D (meter, standardbordet) är standarddockans bord (../standarddocka): dealerkanten D m närmare dealern
+(Y = +D), med raka sidor bakåt från spelarbågen och markerbrickan flyttad med kanten. Skon, korten, kortplatserna,
+insatsringarna, benen och kamerorna står kvar där standard.yaml har dem, och origo ligger kvar under den gamla kanten.
+Valet rättar också kanten och brickan: dealerkanten är hel från sida till sida och brickan sitter nedsänkt inne i
+bordet med en remsa filt (BRICKA_REMSA) mot kanten, i stället för ett hack som är öppet bakåt; sargen är hel under
+brickan och når filten; rullen följer sidorna och slutar rundad vid dealerkanten; brickan har rundade rännor där
+markerna ligger (rullarna stack annars ut genom brickans botten). Det skriver assets/bord/standardbord_nara.blend/.glb;
+utan valet byggs allt exakt som förut.
 """
-import math, sys
+import bisect, math, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _bpy_hjalp import *  # noqa: F401,F403  (bpy, bmesh, Vector, STD, ...)
@@ -24,7 +34,27 @@ def _valj_modell():
         raise SystemExit('okänd modell: ' + m)
     return m
 
+def _valj_kant_bak():
+    if '--kant-bak' not in sys.argv:
+        return None
+    i = sys.argv.index('--kant-bak')
+    try:
+        d = float(sys.argv[i + 1])
+    except (IndexError, ValueError):
+        raise SystemExit('--kant-bak kräver ett tal i meter, till exempel 0.15')
+    if not 0.0 <= d <= 0.4:
+        raise SystemExit('--kant-bak ska vara mellan 0 och 0,4 m')
+    return d
+
+
 MODELL = _valj_modell()
+KANT_BAK = _valj_kant_bak()
+NARA = KANT_BAK is not None  # standarddockans bord: kanten närmare och kanten/brickan rättade
+# Med --kant-bak sitter brickan nedsänkt inne i bordet, med en remsa filt mellan brickan och dealerkanten, så att
+# kanten är hel från sida till sida (Jakob 2026-11-26: inget bortfall i bordet vid dealerns mage).
+BRICKA_REMSA = 0.03  # antaget: en smal remsa, 3 cm
+if NARA and MODELL != 'standard':
+    raise SystemExit('--kant-bak gäller bara standardbordet')
 if MODELL == 'bord-02':
     if 'bord_02' not in STD:
         raise SystemExit('standard.yaml saknar bord_02')
@@ -38,6 +68,8 @@ KORT = ASSETS / 'kort'
 FZ = STD['filt_z']
 B = STD['bord']
 print('bygg_bord modell=%s typ=%s bredd=%.3f djup=%.3f' % (MODELL, B.get('typ'), B['bredd'], B['djup']))
+if NARA:
+    print('bygg_bord kant-bak=%.3f (dealerkanten vid Y = +%.3f)' % (KANT_BAK, KANT_BAK))
 
 
 # ---------------------------------------------------------------- kontur (samma som bord02Outline)
@@ -56,7 +88,15 @@ def outline(notch=None):
         a, fr = B.get('halv_bredd', B['radie']), B['fram_s']
         # t = 0 at (+a, 0) = dealerkant höger, t = pi at (-a, 0) = vänster, via spelarkanten (0, fr)
         arc = [[a * math.cos(math.pi * i / n), fr * math.sin(math.pi * i / n)] for i in range(n + 1)]
-        if notch:
+        if NARA:
+            # raka sidor från bågens ändar bak till dealerkanten vid s = -D; med urtag går hacket från kanten till
+            # brickans framkant, och remsan bakom brickan (bord_remsa) fyller det mellan kanten och brickan
+            d = -KANT_BAK; side = [[-a, d]]
+            if notch:
+                x0, x1, s0, s1 = notch['x0'], notch['x1'], notch['s0'], notch['s1']
+                side += [[x0, d], [x0, s0], [x0, s1], [x1, s1], [x1, s0], [x1, d]]
+            pts = arc + side + [[a, d]]
+        elif notch:
             x0, x1, s1 = notch['x0'], notch['x1'], notch['s1']
             # rak dealerkant från (-a, 0) till (+a, 0) med brickurtag inåt mot spelarna (+s)
             side = [[-a, 0.0], [x0, 0.0], [x0, s1], [x1, s1], [x1, 0.0]]
@@ -111,12 +151,18 @@ def prism(name, pts, z0, z1, col, mat, uvscale=1.0):
     return obj_from_bm(name, bm, col, mat)
 
 
-def felt_sheet(name, pts, z, col, mat):
+def felt_sheet(name, pts, z, col, mat, extra=()):
     bm = bmesh.new(); vs = [bm.verts.new((x, y, z)) for x, y in pts]
     f = bm.faces.new(vs)
     if f.normal.z < 0:
         f.normal_flip()
-    bmesh.ops.triangulate(bm, faces=[f], quad_method='BEAUTY', ngon_method='BEAUTY')
+    for ex in extra:  # fler ytor i samma ark (--kant-bak: remsan bakom brickan), hopfogade med arket
+        fe = bm.faces.new([bm.verts.new((x, y, z)) for x, y in ex])
+        if fe.normal.z < 0:
+            fe.normal_flip()
+    if extra:
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6)
+    bmesh.ops.triangulate(bm, faces=bm.faces[:] if extra else [f], quad_method='BEAUTY', ngon_method='BEAUTY')
     uv_planar(bm)
     return obj_from_bm(name, bm, col, mat)
 
@@ -152,6 +198,8 @@ def rail(col, mat):
             l = math.hypot(D * math.cos(t), R * math.sin(t)) or 1
             return x, s, (D * math.cos(t)) / l, (R * math.sin(t)) / l
     half = rl['bredd'] / 2; P = 24
+    if NARA:
+        return rail_nara(col, mat, pos_nrm, half, P)
     bm = bmesh.new(); rings = []; lay = None; along = 0.0; prev = None
     for i in range(n + 1):
         t = math.pi * i / n; x, s, nx, ns = pos_nrm(t)
@@ -175,6 +223,101 @@ def rail(col, mat):
     for p in ob.data.polygons:
         p.use_smooth = True
     return ob
+
+
+def rail_nara(col, mat, pos_nrm, half, P):
+    """Rullen för --kant-bak: spelarbågen plus de raka sidorna bak till dealerkanten, och ändarna rundade
+    (kvartscirkel över `andradie`) ner mot filten i stället för avskurna."""
+    rl = B['vadderad_kant']; n = B['kontur_bagsteg']; aa = B.get('halv_bredd', B['radie'])
+    D = KANT_BAK; R = rl.get('andradie', 0.05)
+    raka = int(math.ceil(D / 0.01)) if D > 0 else 0
+    vag = [(aa, -D + D * i / raka, 1.0, 0.0) for i in range(raka)]              # höger sida, bakifrån
+    vag += [pos_nrm(math.pi * i / n) for i in range(n + 1)]                       # spelarbågen
+    vag += [(-aa, -D * i / raka, -1.0, 0.0) for i in range(1, raka + 1)]          # vänster sida, bakåt
+    L = [0.0]
+    for p, q in zip(vag, vag[1:]):
+        L.append(L[-1] + math.dist(p[:2], q[:2]))
+    tot = L[-1]; e0 = 0.003  # spetsen 3 mm innanför kanten, bakom mässingslisten
+    ande = [e0 + R * (1 - math.cos(math.pi / 2 * k / 10)) for k in range(11)]  # tätare mot spetsen
+    dd = sorted(set([round(d, 7) for d in ande] + [round(tot - d, 7) for d in ande] + [round(l, 7) for l in L if e0 + R < l < tot - e0 - R]))
+
+    def vid(d):
+        j = min(max(bisect.bisect_right(L, d) - 1, 0), len(vag) - 2)
+        f = (d - L[j]) / ((L[j + 1] - L[j]) or 1.0)
+        p = [vag[j][k] + (vag[j + 1][k] - vag[j][k]) * f for k in range(4)]
+        ln = math.hypot(p[2], p[3]) or 1.0
+        return p[0], p[1], p[2] / ln, p[3] / ln
+
+    bm = bmesh.new(); rings = []
+    for d in dd:
+        x, s, nx, ns = vid(d)
+        e = min(d, tot - d) - e0
+        sc = math.sqrt(max(0.0, 1 - ((R - e) / R) ** 2)) if e < R else 1.0
+        sc = max(sc, 0.04)  # spetsen: en liten ring som sluts med en yta
+        cx, cs = x - nx * half, s - ns * half
+        ring = []
+        for j in range(P):
+            a = 2 * math.pi * j / P
+            r_out = half * math.cos(a) * sc
+            zz = FZ + (rl['mitt_over_filt'] + rl['halv_hojd'] * math.sin(a)) * sc  # krymper mot filten
+            ring.append(bm.verts.new((cx + nx * r_out, -(cs + ns * r_out), zz)))
+        rings.append(ring)
+    for i in range(len(rings) - 1):
+        for j in range(P):
+            bm.faces.new((rings[i][j], rings[i][(j+1) % P], rings[i+1][(j+1) % P], rings[i+1][j]))
+    bm.faces.new(rings[0]); bm.faces.new(list(reversed(rings[-1])))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    lay = bm.loops.layers.uv.verify()
+    for f in bm.faces:
+        for lp in f.loops:
+            co = lp.vert.co; lp[lay].uv = (math.atan2(-co.y, co.x) * aa, (co.z - FZ) * 4)
+    ob = obj_from_bm('bord_vaddering', bm, col, mat)
+    for p in ob.data.polygons:
+        p.use_smooth = True
+    return ob
+
+
+def bricka_nara(tr, c_bricka, m_tray, m_brass):
+    """Markerbrickan för --kant-bak: botten är rundade rännor, en per rad, där markerna ligger med topparna 2 mm
+    under filten som förut. En marker är 3,9 cm hög på kant och den platta botten låg 3 cm ner, så rullarna stack ut
+    genom botten. Returnerar brickans djup under filten (sargen får en ficka så djup)."""
+    x0, x1, s0, s1 = tr['x0'], tr['x1'], tr['s0'], tr['s1']; wall = 0.004
+    rows = tr['rad_valorer']; pitch = (x1 - x0 - 2 * wall) / len(rows); cr = tr['chip_radie']
+    rr = pitch / 2                          # rännans radie, rännorna möts i en kam
+    z_chip = FZ - 0.002 - cr                # markernas mitt (samma som förut)
+    z_kam = z_chip - cr + rr                # rännornas kam: markerna vilar i rännans botten
+    z_bot = z_kam - rr - 0.003              # brickans undersida
+    h = FZ - z_bot
+    box('bricka_botten', (x1 - x0, s1 - s0, 0.003), ((x0 + x1) / 2, -(s0 + s1) / 2, z_bot + 0.0015), c_bricka, m_tray)
+    zm = (FZ + z_bot) / 2
+    for nm, sz, lc in (('bricka_vagg_v', (wall, s1 - s0, h), (x0 + wall/2, -(s0+s1)/2, zm)),
+                       ('bricka_vagg_h', (wall, s1 - s0, h), (x1 - wall/2, -(s0+s1)/2, zm)),
+                       ('bricka_vagg_fram', (x1 - x0, wall, h), ((x0+x1)/2, -s1 + wall/2, zm)),
+                       ('bricka_vagg_bak', (x1 - x0, wall, h), ((x0+x1)/2, -s0 - wall/2, zm))):
+        box(nm, sz, lc, c_bricka, m_tray)
+    # rännorna: en halvcirkel per rad, dragen längs Y mellan fram- och bakväggen
+    prof = []
+    for i in range(len(rows)):
+        xc = x0 + wall + pitch * (i + 0.5)
+        for k in range(0 if i == 0 else 1, 17):
+            t = math.pi + math.pi * k / 16
+            prof.append((xc + rr * math.cos(t), z_kam + rr * math.sin(t)))
+    bm = bmesh.new(); ya, yb = -(s0 + wall), -(s1 - wall)
+    va = [bm.verts.new((x, ya, z)) for x, z in prof]; vb = [bm.verts.new((x, yb, z)) for x, z in prof]
+    for k in range(len(prof) - 1):
+        bm.faces.new((va[k], va[k+1], vb[k+1], vb[k]))
+    bm.faces.ensure_lookup_table()
+    if sum(f.normal.z for f in bm.faces) < 0:
+        for f in bm.faces:
+            f.normal_flip()
+    uv_planar(bm)
+    obj_from_bm('bricka_rannor', bm, c_bricka, m_tray)
+    rim = tr.get('kant_bredd', 0.007)
+    box('bricka_ram_v', (rim, s1 - s0 + rim, 0.0028), (x0 - rim/2 + 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
+    box('bricka_ram_h', (rim, s1 - s0 + rim, 0.0028), (x1 + rim/2 - 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
+    box('bricka_ram_fram', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s1 - rim/2 + 0.001, FZ + 0.0009), c_bricka, m_brass)
+    box('bricka_ram_bak', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s0 - rim/2, FZ + 0.0009), c_bricka, m_brass)
+    return h
 
 
 def cylinder(name, loc, r0, r1, h, col, mat, seg=48, axis='Z'):
@@ -253,11 +396,23 @@ def main():
     nt.links.new(ti.outputs[0], nt.nodes['Principled BSDF'].inputs['Base Color'])
 
     tr = STD['markerbricka']
+    if NARA:  # brickan följer dealerkanten bakåt, med remsan mellan sig och kanten
+        sk = BRICKA_REMSA - KANT_BAK
+        tr = dict(tr, s0=tr['s0'] + sk, s1=tr['s1'] + sk, urtag=dict(tr['urtag'], s0=tr['s0'] + sk, s1=tr['urtag']['s1'] + sk))
+        remsa = [(tr['x0'], KANT_BAK), (tr['x1'], KANT_BAK), (tr['x1'], -tr['s0']), (tr['x0'], -tr['s0'])]  # (X, Y)
     pts, narc = outline(notch=tr['urtag'])
-    felt = felt_sheet('bord_filt', pts, FZ, c_bord, m_felt)
+    felt = felt_sheet('bord_filt', pts, FZ, c_bord, m_felt, extra=[remsa] if NARA else ())
     sg = B['sarg']
-    prism('bord_sarg', pts, FZ + sg['underkant'], FZ + sg['underlagg'], c_bord, m_wood)
-    band('bord_massingslinje', pts, FZ + sg['massingslinje'][0], FZ + sg['massingslinje'][1], 0.0008, c_bord, m_brass)
+    if NARA:
+        # sargen hel under brickan (brickan i en ficka, inte i en öppen skåra genom hela sargen) och upp mot filten,
+        # så att ingen springa syns under mässingslisten längs dealerkanten; remsan bakom brickan är också hel
+        ficka = FZ - bricka_nara(tr, c_bricka, m_tray, m_brass) - 0.001
+        prism('bord_sarg', outline()[0], FZ + sg['underkant'], ficka, c_bord, m_wood)
+        prism('bord_sarg_ficka', pts, ficka, FZ - 0.001, c_bord, m_wood)
+        prism('bord_sarg_remsa', remsa, ficka, FZ - 0.001, c_bord, m_wood)
+    else:
+        prism('bord_sarg', pts, FZ + sg['underkant'], FZ + sg['underlagg'], c_bord, m_wood)
+    band('bord_massingslinje', outline()[0] if NARA else pts, FZ + sg['massingslinje'][0], FZ + sg['massingslinje'][1], 0.0008, c_bord, m_brass)
     rail(c_bord, m_leather)
     lg = B['ben']; legh = FZ + sg['underkant'] - lg['platta_hojd']
     for sx in (-1, 1):
@@ -266,17 +421,18 @@ def main():
 
     # ---- markerbricka: låda nedsänkt i urtaget, chips på kant i rader längs Y
     x0, x1, s0, s1, dep = tr['x0'], tr['x1'], tr['s0'], tr['s1'], tr['djup']; wall = 0.004
-    box('bricka_botten', (x1 - x0, s1 - s0, 0.004), ((x0 + x1) / 2, -(s0 + s1) / 2, FZ - dep), c_bricka, m_tray)
-    for nm, sz, lc in (('bricka_vagg_v', (wall, s1 - s0, dep), (x0 + wall/2, -(s0+s1)/2, FZ - dep/2)),
-                       ('bricka_vagg_h', (wall, s1 - s0, dep), (x1 - wall/2, -(s0+s1)/2, FZ - dep/2)),
-                       ('bricka_vagg_fram', (x1 - x0, wall, dep), ((x0+x1)/2, -s1 + wall/2, FZ - dep/2)),
-                       ('bricka_vagg_bak', (x1 - x0, wall, dep), ((x0+x1)/2, -s0 - wall/2, FZ - dep/2))):
-        box(nm, sz, lc, c_bricka, m_tray)
-    rim = tr.get('kant_bredd', 0.007)
-    box('bricka_ram_v', (rim, s1 - s0 + rim, 0.0028), (x0 - rim/2 + 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
-    box('bricka_ram_h', (rim, s1 - s0 + rim, 0.0028), (x1 + rim/2 - 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
-    box('bricka_ram_fram', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s1 - rim/2 + 0.001, FZ + 0.0009), c_bricka, m_brass)
-    box('bricka_ram_bak', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s0 - rim/2, FZ + 0.0009), c_bricka, m_brass)
+    if not NARA:  # med --kant-bak byggs brickan av bricka_nara() ovan
+        box('bricka_botten', (x1 - x0, s1 - s0, 0.004), ((x0 + x1) / 2, -(s0 + s1) / 2, FZ - dep), c_bricka, m_tray)
+        for nm, sz, lc in (('bricka_vagg_v', (wall, s1 - s0, dep), (x0 + wall/2, -(s0+s1)/2, FZ - dep/2)),
+                           ('bricka_vagg_h', (wall, s1 - s0, dep), (x1 - wall/2, -(s0+s1)/2, FZ - dep/2)),
+                           ('bricka_vagg_fram', (x1 - x0, wall, dep), ((x0+x1)/2, -s1 + wall/2, FZ - dep/2)),
+                           ('bricka_vagg_bak', (x1 - x0, wall, dep), ((x0+x1)/2, -s0 - wall/2, FZ - dep/2))):
+            box(nm, sz, lc, c_bricka, m_tray)
+        rim = tr.get('kant_bredd', 0.007)
+        box('bricka_ram_v', (rim, s1 - s0 + rim, 0.0028), (x0 - rim/2 + 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
+        box('bricka_ram_h', (rim, s1 - s0 + rim, 0.0028), (x1 + rim/2 - 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
+        box('bricka_ram_fram', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s1 - rim/2 + 0.001, FZ + 0.0009), c_bricka, m_brass)
+        box('bricka_ram_bak', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s0 - rim/2, FZ + 0.0009), c_bricka, m_brass)
     chipcol = {5: (0.55, 0.03, 0.03, 1), 25: (0.02, 0.32, 0.08, 1), 100: (0.02, 0.02, 0.02, 1), 500: (0.3, 0.05, 0.42, 1), 1000: (0.85, 0.55, 0.05, 1)}
     rows = tr['rad_valorer']; pitch = (x1 - x0 - 2 * wall) / len(rows); cr, chh = tr['chip_radie'], tr['chip_hojd']
     nchips = 20; L = nchips * chh
@@ -392,15 +548,18 @@ def main():
     # ---- origo-markör och anteckning
     em = bpy.data.objects.new('ORIGO_golv_under_dealerkant', None); top.objects.link(em); em.empty_display_type = 'ARROWS'; em.empty_display_size = 0.2
     em['standard'] = 'scen/standard.yaml'; em['axlar'] = '+X dealerns vanster, +Y bakat (spelarna pa -Y), +Z upp, meter'
+    if NARA:
+        em['kant_bak'] = KANT_BAK  # dealerkanten vid Y = +kant_bak; origo ligger kvar under standardbordets kant
+        em['bricka_remsa'] = BRICKA_REMSA  # filt mellan brickans bakkant och dealerkanten
 
     ASSETS.mkdir(parents=True, exist_ok=True)
-    namn = 'bord_02' if MODELL == 'bord-02' else 'standardbord'
+    namn = 'bord_02' if MODELL == 'bord-02' else ('standardbord_nara' if NARA else 'standardbord')
     bpy.ops.file.make_paths_relative() if bpy.data.filepath else None
     bpy.ops.wm.save_as_mainfile(filepath=str(ASSETS / (namn + '.blend')), relative_remap=True)
     bpy.ops.file.make_paths_relative(); bpy.ops.wm.save_mainfile()
     # glb: kortleken bakom bordet följer med; modifierare tillämpas
     bpy.ops.export_scene.gltf(filepath=str(ASSETS / (namn + '.glb')), export_format='GLB', export_apply=True, export_yup=True)
-    print('BYGGT', ASSETS / namn, 'modell', MODELL)
+    print('BYGGT', ASSETS / namn, 'modell', MODELL, *(['kant-bak', KANT_BAK] if NARA else []))
 
 
 main()
