@@ -234,7 +234,7 @@ let chosen = 0;
 const nameField = el('namn'), seconds = el('sek'), slider = el<HTMLInputElement>('tid');
 const lengthOf = (namn: string | null) => namn ? rows.get(namn)!.length : 0;
 /** Vem vid bordet som får en rörelse: dealern (0) en dealerrörelse, och den valda spelaren en spelarrörelse (är dealern vald: spelaren i mitten). */
-const seatFor = (namn: string) => namn.includes('_Dealer_') ? 0 : chosen || MIDDLE;
+const seatFor = (namn: string) => namn.includes('_Dealer_') ? 0 : chosen && !table?.sitsar[chosen]?.ledig ? chosen : MIDDLE;
 /** Tiden i den valda rörelsen. Bordets klocka går fritt, och var och en vid bordet är på den tiden räknat i sin egen rörelses längd. */
 const now = () => mode !== 'bord' ? (selected && figures.get(selected)?.action?.time) || 0 : lengthOf(selected) ? tableTime % lengthOf(selected) : tableTime;
 function setTime(t: number) {
@@ -311,7 +311,7 @@ const inTheWay = (s: Sits) => tableView === 'spel' || (tableView === 'sida' && s
 /** Spelarna som valet "Spelare" visar: alla sju, de tre på plats 2, 4 och 6, eller inga. */
 const counted = (s: Sits) => players.value === '7' || (players.value === '3' && [2, 4, 6].includes(s.plats ?? 0));
 /** Spelarna visas eller döljs, och den som sitter i vägen för kameran är borta. */
-function seen() { if (table) for (const s of table.sitsar) if (s.nr) s.holder.visible = counted(s) && !inTheWay(s); }
+function seen() { if (table) for (const s of table.sitsar) if (s.nr) s.holder.visible = !s.ledig && counted(s) && !inTheWay(s); }
 players.onchange = seen;
 // Bordets höjd: reglaget flyttar bara bordet i den här vyn, för att pröva vilken höjd som passar paketets rörelser.
 const heightSlider = el<HTMLInputElement>('bordhojd'), heightText = el('bordhojdtext');
@@ -332,7 +332,12 @@ function tableKinds() {
   if (askedKind) { table.valjBord(askedKind); askedKind = null; }
   kindSelect.value = table.valtBord();
 }
-kindSelect.onchange = () => { if (!table) return; table.valjBord(kindSelect.value); kindSelect.value = table.valtBord(); tableHeight(); seen(); look(tableView); };
+kindSelect.onchange = () => {
+  if (!table) return;
+  table.valjBord(kindSelect.value); kindSelect.value = table.valtBord();
+  if (table.sitsar[chosen]?.ledig) { chosen = 0; select(table.sitsar[0].namn); } // den valda platsen finns inte vid det här bordet
+  tableHeight(); seen(); look(tableView);
+};
 const viewButtons = [...document.querySelectorAll<HTMLButtonElement>('button[data-vy]')];
 function look(vy: Vy) {
   tableView = vy;

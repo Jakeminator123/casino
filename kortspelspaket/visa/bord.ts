@@ -29,8 +29,11 @@ const SEAT_SPREAD = 1.5;
 const SEAT_UNDER_HIP = 0.1;
 const MODELS = {bord: '/avatar-auto-pipeline/assets/bord/standardbord_nara23.glb', stol: '/avatar-auto-pipeline/assets/stol/dealerstol.glb'};
 
-/** En som sitter vid bordet: dealern (nr 0) eller spelaren på plats 1–7 (nr är platsen), med figuren och rörelsen den spelar nu. */
-export type Sits = {nr: number; titel: string; plats: number | null; holder: T.Group; mixer: T.AnimationMixer; action: T.AnimationAction | null; namn: string | null; length: number};
+/**
+ * En som sitter vid bordet: dealern (nr 0) eller spelaren på plats 1–7 (nr är platsen och dess ställe i listan), med
+ * figuren och rörelsen den spelar nu. `ledig`: platsen finns inte vid det valda bordet, och sidan visar den inte.
+ */
+export type Sits = {nr: number; titel: string; plats: number | null; holder: T.Group; mixer: T.AnimationMixer; action: T.AnimationAction | null; namn: string | null; length: number; ledig: boolean};
 /** Kamerorna: spelets vy (det spelaren på plats 4 ser), snett framifrån över hela bordet, från sidan och uppifrån. */
 export type Vy = 'spel' | 'runt' | 'sida' | 'topp';
 export type Kamera = {pos: T.Vector3; mot: T.Vector3; fov: number; /** bildens bredd genom höjd, för en vy som ska rymmas hel */ kvot?: number};
@@ -65,7 +68,7 @@ export async function byggBord(renderer: T.WebGLRenderer, figur: () => T.Object3
     body.scale.setScalar(skala); body.position.set(0, -PACK.top * skala, PACK.hipLine * skala);
     body.traverse(o => { if ((o as T.Mesh).isMesh) o.castShadow = true; });
     holder.add(body); holder.position.set(x, 0, z); holder.rotation.y = turn; holder.userData.sits = nr; scene.add(holder);
-    return {nr, titel, plats, holder, mixer: new T.AnimationMixer(body), action: null, namn: null, length: 0};
+    return {nr, titel, plats, holder, mixer: new T.AnimationMixer(body), action: null, namn: null, length: 0, ledig: false};
   };
   const sitsar = [seat(0, 'dealern', null, 0, edgeZ - DEALER_BEHIND, 0)];
   for (let plats = 1; plats <= 7; plats++) {
