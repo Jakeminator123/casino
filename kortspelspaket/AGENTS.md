@@ -16,6 +16,24 @@ Vad paketet innehåller, kartan och hur visaren startas står i `README.md`.
   packar upp dem igen, så `paket/` ändras aldrig för hand: det som görs där försvinner vid nästa uppackning.
 - Det som görs av paketet (en animation omräknad till standarddockan, en film, en bild) är inte paketet: det följer
   rotens regler för det som produceras, och media går inte heller in i Git.
+- `sekvenser.json` (bitarna Jakob klipper ut i visaren) är namn och tider, inget ur paketet: den går in i Git, och det
+  han har sparat där skrivs inte över eller tas bort utan hans ord.
+
+## Grenen och arbetsträdet
+
+Projektet ligger på grenen `kortspelspaket` tills Jakob säger att det ska in i `main`, i ett eget arbetsträd (`git
+worktree`) bredvid huvudmappen, så att ingen annan chatts arbete byter gren. Arbeta i arbetsträdet, inte i huvudmappen.
+`main` hämtas in i grenen med en vanlig merge när bordsvyn behöver spelets senaste mått (aldrig en rebase: grenen är
+pushad). Det Git inte har lånar visarens server ur huvudmappen (de byggda modellerna av bordet och pallen);
+`blackjack-dealer/node_modules` installeras i arbetsträdet med `npm ci` där, för three.js och för testerna som
+kontrollen före push kör.
+
+## Bordsvyn lånar, den kopierar inte
+
+Spelets bord, kamera och rum kommer ur `../blackjack-dealer/` (`src/table-lens.ts`, `dealer3d/src/standard-room.ts`)
+och modellerna ur `../avatar-auto-pipeline/assets/`, som standarddockans editor gör. Ett mått eller en kamera för
+spelets bord skrivs aldrig in här; det som är paketets eget (dess bord 80 cm högt, var den som sitter är) står i
+`visa/bord.ts` och är mätt ur rörelserna.
 
 ## Köra
 

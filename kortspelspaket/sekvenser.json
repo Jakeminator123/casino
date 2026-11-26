@@ -1,0 +1,29 @@
+{
+  "AS_Blackjack_Dealer_DealCard": [
+    {
+      "namn": "Giv 1: mot plats 1",
+      "fran": 1.5,
+      "till": 4.7
+    },
+    {
+      "namn": "Giv 2: till plats 2",
+      "fran": 6.1,
+      "till": 9.3
+    },
+    {
+      "namn": "Giv 3: till plats 4",
+      "fran": 10.7,
+      "till": 13.8
+    },
+    {
+      "namn": "Giv 4: till plats 6",
+      "fran": 15.3,
+      "till": 18.5
+    },
+    {
+      "namn": "Giv 5: mot plats 7",
+      "fran": 19.9,
+      "till": 23.1
+    }
+  ]
+}

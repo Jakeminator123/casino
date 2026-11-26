@@ -1,13 +1,19 @@
-// Visarens lilla server: Unity-demots utställning (Demo_CardGames.unity) i webbläsaren, bara till den här datorn.
+// Visarens lilla server: paketets Unity-demo (Demo_CardGames.unity) och paketets figurer vid spelets blackjackbord, i
+// webbläsaren och bara till den här datorn.
 //   node kortspelspaket/visa/server.ts [--port 4330] [--oppna]
 //   --oppna   öppnar sidan i webbläsaren när servern är igång (det STARTA visaren.cmd gör)
 // Läser det uppackade paketet i kortspelspaket/paket/unity/Assets/ (node kortspelspaket/packa-upp.ts gör det).
 // /demo.json är scenen omräknad till webbläsarens 3D: var figurerna står, vilken animation var och en spelar, golven och
-// kameran. Unity räknar med z framåt och three.js med z mot betraktaren, så z byter tecken. three.js tas ur
-// blackjack-dealer/node_modules om det är installerat, annars från jsDelivr i samma version.
+// kameran. Unity räknar med z framåt och three.js med z mot betraktaren, så z byter tecken.
+// Bordsvyn lånar spelets mått och rum (blackjack-dealer/src/table-lens.ts och dealer3d/src/) och de byggda modellerna
+// av bordet och pallen (avatar-auto-pipeline/assets/), som standarddockans editor gör. Bara GET, utom PUT till
+// kortspelspaket/sekvenser.json, där sidan sparar de bitar Jakob klipper ut ur en rörelse.
+// Det Git inte har (three.js i blackjack-dealer/node_modules och de byggda modellerna) finns bara i en utcheckning där
+// det är installerat och byggt: står servern i ett arbetsträd bredvid (git worktree) lånas det ur huvudmappen. three.js
+// hämtas annars från jsDelivr i samma version.
 import {createServer, type IncomingMessage, type ServerResponse} from 'node:http';
-import {createReadStream, existsSync} from 'node:fs';
-import {readdir, readFile, stat} from 'node:fs/promises';
+import {createReadStream, existsSync, readFileSync, statSync} from 'node:fs';
+import {mkdir, readdir, readFile, rename, stat, writeFile} from 'node:fs/promises';
 import {stripTypeScriptTypes} from 'node:module';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
@@ -18,10 +24,25 @@ const PORT = Number(arg('--port') ?? 4330), OPEN = process.argv.includes('--oppn
 if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) throw Error('--port tar ett heltal 1–65535.');
 const ROOT = fileURLToPath(new URL('../../', import.meta.url)); // casino-mappen, hittad från serverns egen plats
 const HERE = 'kortspelspaket/visa/', ASSETS = path.join(ROOT, 'kortspelspaket/paket/unity/Assets');
-const THREE = path.join(ROOT, 'blackjack-dealer/node_modules/three');
+const CUTS = 'kortspelspaket/sekvenser.json';
+/** Huvudmappen, om den här utcheckningen är ett arbetsträd: dess .git är då en fil som pekar in i huvudmappens .git. */
+const MAIN = (() => {
+  try {
+    const dot = path.join(ROOT, '.git');
+    if (!statSync(dot).isFile()) return null;
+    const m = readFileSync(dot, 'utf8').match(/^gitdir:\s*(.+?)[\\/]\.git[\\/]worktrees[\\/]/m);
+    return m ? path.resolve(ROOT, m[1]) : null;
+  } catch { return null; }
+})();
+/** En fil eller mapp som Git inte har: här om den finns, annars i huvudmappen. */
+const borrowed = (rel: string) => [ROOT, MAIN].flatMap(r => r ? [path.join(r, rel)] : []).find(p => existsSync(p)) ?? path.join(ROOT, rel);
+const THREE = borrowed('blackjack-dealer/node_modules/three');
 const THREE_VERSION = JSON.parse(await readFile(path.join(ROOT, 'blackjack-dealer/package.json'), 'utf8')).dependencies.three as string;
 const SCENE = 'CardGamesAnimationPack/Scenes/Demo_CardGames.unity', FIGURE = 'TheMightyCat/Characters/MightyCat_Queen.fbx';
-const TYPES: Record<string, string> = {'.html': 'text/html; charset=utf-8', '.ts': 'text/javascript; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.fbx': 'application/octet-stream', '.png': 'image/png'};
+const TYPES: Record<string, string> = {'.html': 'text/html; charset=utf-8', '.ts': 'text/javascript; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.fbx': 'application/octet-stream', '.png': 'image/png', '.glb': 'model/gltf-binary'};
+/** Bordsvyns lån: spelets kortplan, och de byggda modellerna av standarddockans bord och dealerns pall. */
+const PLAN = 'blackjack-dealer/placements/default.json';
+const MODELS = ['avatar-auto-pipeline/assets/bord/standardbord_nara23.glb', 'avatar-auto-pipeline/assets/stol/dealerstol.glb'];
 
 // ---- Unity-scenen --------------------------------------------------------------------------------------------------
 type Vec = [number, number, number];
@@ -91,8 +112,42 @@ async function demo() {
   return {figur: FIGURE, texturer: textures.map(f => `${path.dirname(FIGURE)}/${f}`), kamera, golv, figurer};
 }
 
+// ---- sekvenserna ---------------------------------------------------------------------------------------------------
+// En sekvens är en bit av en rörelse: ett namn och två tider i sekunder. Bara namn och tider, inget ur paketet, så
+// filen går in i Git. {"<animationens namn>": [{"namn": "...", "fran": 1.5, "till": 4.7}]}
+type Cut = {namn: string; fran: number; till: number};
+function cutsFrom(text: string): Record<string, Cut[]> | null {
+  let data: unknown; try { data = JSON.parse(text); } catch { return null; }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+  const out: Record<string, Cut[]> = {};
+  for (const [clip, list] of Object.entries(data)) {
+    if (!/^[A-Za-z0-9_]{1,80}$/.test(clip) || !Array.isArray(list)) return null;
+    const cuts: Cut[] = [];
+    for (const c of list as Cut[]) {
+      if (!c || typeof c.namn !== 'string' || !c.namn.trim() || c.namn.length > 80 || !Number.isFinite(c.fran) || !Number.isFinite(c.till) || c.fran < 0 || c.till <= c.fran) return null;
+      cuts.push({namn: c.namn.trim(), fran: Math.round(c.fran * 100) / 100, till: Math.round(c.till * 100) / 100});
+    }
+    if (cuts.length) out[clip] = cuts.sort((a, b) => a.fran - b.fran);
+  }
+  return out;
+}
+let saving: Promise<void> = Promise.resolve();
+async function saveCuts(req: IncomingMessage, res: ServerResponse) {
+  const parts: Buffer[] = []; let size = 0;
+  for await (const chunk of req) { size += (chunk as Buffer).length; if (size > 1024 * 1024) { res.writeHead(413).end('för stor'); return; } parts.push(chunk as Buffer); }
+  const cuts = cutsFrom(Buffer.concat(parts).toString('utf8'));
+  if (!cuts) { res.writeHead(400, {'content-type': 'text/plain; charset=utf-8'}).end('inte en lista av sekvenser'); return; }
+  // Skrivs hel under ett tillfälligt namn och byter sedan namn; två sparanden väntar på varandra.
+  const full = path.join(ROOT, CUTS), temp = `${full}.${process.pid}.tmp`;
+  const write = saving.catch(() => {}).then(async () => { await mkdir(path.dirname(full), {recursive: true}); await writeFile(temp, JSON.stringify(cuts, null, 2) + '\n', 'utf8'); await rename(temp, full); });
+  saving = write; await write;
+  res.writeHead(200, {'content-type': TYPES['.json']}).end(JSON.stringify(cuts));
+}
+
 // ---- servern -------------------------------------------------------------------------------------------------------
 const ownHost = (req: IncomingMessage) => [`127.0.0.1:${PORT}`, `localhost:${PORT}`].includes(req.headers.host ?? '');
+const sameOrigin = (req: IncomingMessage) => !req.headers.origin || [`http://127.0.0.1:${PORT}`, `http://localhost:${PORT}`].includes(req.headers.origin);
+const typed = async (res: ServerResponse, file: string) => { res.writeHead(200, {'content-type': TYPES['.ts'], 'cache-control': 'no-store'}).end(stripTypeScriptTypes(await readFile(path.join(ROOT, file), 'utf8'))); };
 
 /** three.js: byggfilerna och tilläggen (examples/jsm), lokalt eller från jsDelivr. */
 async function vendor(res: ServerResponse, rest: string) {
@@ -112,19 +167,28 @@ let demoCache: Promise<unknown> | null = null;
 const server = createServer(async (req, res) => {
   try {
     if (!ownHost(req)) { res.writeHead(403).end('bara 127.0.0.1'); return; }
-    if (req.method !== 'GET') { res.writeHead(405).end('bara GET'); return; }
     const url = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname);
+    if (url === '/' + CUTS && req.method === 'PUT') { if (!sameOrigin(req)) { res.writeHead(403).end('fel ursprung'); return; } await saveCuts(req, res); return; }
+    if (req.method !== 'GET') { res.writeHead(405).end('bara GET'); return; }
     if (url === '/favicon.ico') { res.writeHead(204).end(); return; }
     if (url === '/' || url === '/kortspelspaket/visa') { res.writeHead(302, {location: '/' + HERE}).end(); return; }
     if (url === '/vem') { res.writeHead(200, {'content-type': 'text/plain; charset=utf-8'}).end('kortspelspaketets visare'); return; }
     if (url === '/' + HERE || url === `/${HERE}index.html`) { res.writeHead(200, {'content-type': TYPES['.html'], 'cache-control': 'no-store'}).end(await readFile(path.join(ROOT, HERE, 'index.html'), 'utf8')); return; }
-    if (url === `/${HERE}visa.ts`) { res.writeHead(200, {'content-type': TYPES['.ts'], 'cache-control': 'no-store'}).end(stripTypeScriptTypes(await readFile(path.join(ROOT, HERE, 'visa.ts'), 'utf8'))); return; }
+    let m = url.match(new RegExp(`^/${HERE}(visa|bord)\\.ts$`));
+    if (m) { await typed(res, `${HERE}${m[1]}.ts`); return; }
+    // Det som inte har sparats ännu är inget fel: inga sekvenser.
+    if (url === '/' + CUTS) { res.writeHead(200, {'content-type': TYPES['.json'], 'cache-control': 'no-store'}).end(await readFile(path.join(ROOT, CUTS), 'utf8').catch(() => '{}')); return; }
+    // Bordsvyns lån: spelets mått och rum (kod, med typerna strukna), kortplanen och de byggda modellerna.
+    m = url.match(/^\/blackjack-dealer\/(src\/table-lens|dealer3d\/src\/[a-z0-9-]+)\.ts$/);
+    if (m) { await typed(res, `blackjack-dealer/${m[1]}.ts`); return; }
+    if (url === '/' + PLAN) { res.writeHead(200, {'content-type': TYPES['.json'], 'cache-control': 'no-store'}).end(await readFile(path.join(ROOT, PLAN), 'utf8')); return; }
+    if (MODELS.includes(url.slice(1))) { await sendFile(req, res, borrowed(url.slice(1))); return; }
     if (url === '/demo.json') {
       if (!existsSync(ASSETS)) { res.writeHead(404, {'content-type': 'text/plain; charset=utf-8'}).end('Paketet är inte uppackat: kör node kortspelspaket/packa-upp.ts'); return; }
       demoCache ??= demo();
       res.writeHead(200, {'content-type': TYPES['.json'], 'cache-control': 'no-store'}).end(JSON.stringify(await demoCache)); return;
     }
-    let m = url.match(/^\/vendor\/(three\.(?:module|core)\.js|addons\/[A-Za-z0-9_\-/]+\.js)$/);
+    m = url.match(/^\/vendor\/(three\.(?:module|core)\.js|addons\/[A-Za-z0-9_\-/.]+\.js)$/); // tilläggens egna importer har punkter i namnen (libs/fflate.module.js)
     if (m && !m[1].includes('..')) { await vendor(res, m[1]); return; }
     // Bara figuren, dess texturer och animationerna, och inget utanför Assets/.
     m = url.match(/^\/paket\/((?:[A-Za-z0-9_\- ]+\/)*[A-Za-z0-9_\- .]+\.(?:fbx|png))$/i);

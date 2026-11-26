@@ -9,10 +9,45 @@ kortbord. Det är inget spel utan rörelser att lägga på en 3D-figur, samma 66
 Dubbelklicka `STARTA visaren.cmd`. Första gången packas paketet upp ur Hämtade filer (cirka 1 GB, några sekunder);
 sedan öppnas visaren i webbläsaren på `http://127.0.0.1:4330/kortspelspaket/visa/`. Stäng fönstret för att stänga den.
 
-Visaren ställer upp paketets Unity-demo (`Demo_CardGames.unity`) som den är: sex golv i en rad, en figur per animation
-som spelar den om och om igen, och demots kamera. Listan till vänster har rörelserna i grupper med sin längd; ett klick
-på en rad eller en figur går fram till den, reglaget nertill stegar genom rörelsen, och "Visa bara den valda" döljer de
-andra. Animationerna laddas fyra i taget (cirka en halv minut för alla).
+Visaren har två lägen, valda med knapparna överst:
+
+- **Utställningen** ställer upp paketets Unity-demo (`Demo_CardGames.unity`) som den är: sex golv i en rad, en figur per
+  rörelse som spelar den om och om igen, och demots kamera. Ett klick på en rad eller en figur går fram till den, och
+  "Visa bara den valda" döljer de andra.
+- **Blackjackbordet** sätter paketets figur vid spelets bord: en dealer och tre spelare (plats 2, 4 och 6), i samma rum
+  som standarddockans editor visar (bordet, skon, brickan, ljuset) och med spelets kamera. Ett klick på en rörelse i
+  listan låter den som rörelsen är inspelad för spela den: dealern dealerns, en spelare en spelares; en prick i listan
+  visar vad som spelas just nu. Kamerorna är Spelets vy (bara dealern, som i spelet), Hela bordet, Från sidan och
+  Uppifrån, och bilden går att vrida med musen.
+
+Listan till vänster har rörelserna i grupper med sin längd, och reglaget nertill stegar genom den valda rörelsen.
+Rörelserna laddas fyra i taget (cirka en halv minut för alla); bordet och det som spelas vid det kommer först.
+
+### Klippa ut en bit
+
+En lång rörelse består ofta av flera: dealerns giv är fem givar efter varandra. Ställ reglaget där biten ska börja och
+tryck "Börjar här", ställ det där den ska sluta och tryck "Slutar här": biten spelas då om och om igen. Ge den ett namn
+och tryck "Spara biten", så står den under sin rörelse i listan; ett klick där spelar den, krysset tar bort den, och
+"Hela rörelsen" spelar allt igen. Bitarna sparas i `sekvenser.json` (namn och tider, inget ur paketet). De fem givarna i
+blackjackdealerns giv är utklippta från början.
+
+## Paketet vid spelets bord
+
+Det här är mätt ur rörelserna och syns i bordsvyn:
+
+- Rörelserna är inspelade vid ett bord vars skiva ligger 80 cm över golvet, med den som sitter cirka 115 cm från
+  bordets mitt. Ställs den skivan på spelets filt och dealerns höft där standarddockans är (15 cm bakom bordets kant),
+  vilar dealerns händer på filten strax framför brickan, som standarddockans.
+- Blackjackdealerns giv (24,7 s) är fem givar på cirka tre sekunder, med en och en halv sekunds vila emellan. Vänster
+  hand håller leken och lyfter den, höger hand tar kortet och lägger det: paketet delar ur handen, inte ur en sko. De
+  fem korten hamnar i en båge som stämmer med spelets kortplatser: på plats 2, 4 och 6, och 10–15 cm innanför plats 1
+  och 7.
+- Figuren (och Unreals docka, som rörelserna är gjorda för) är 186 cm lång, längre än standarddockan, så huvudet når
+  högre i spelets vy.
+- Rörelserna har inga kort, marker eller andra saker: bara kroppen.
+
+Nästa steg, om Jakob vill: föra över en utklippt giv till standarddockan (dess rörelser är händernas, armarnas och
+blickens lägen i rummet, så paketets leder räknas om till dem), och se den bredvid dockans egen giv.
 
 ## Vad paketet innehåller
 
@@ -26,7 +61,7 @@ andra. Animationerna laddas fyra i taget (cirka en halv minut för alla).
 
 - Skelettet är Unreals standardskelett (UE5:s Manny och Quinn): 88 ben med alla fingrar, 30 bilder per sekund, och de
   flesta rörelserna är sittande. Dealerns giv i blackjack är 24,7 sekunder: handen går ut till en spelare i taget och
-  tillbaka till vila emellan.
+  tillbaka till vila emellan (se "Paketet vid spelets bord").
 - Unity-paketet har också en egen figur, MightyCat_Queen (en vit robotkatt med samma bennamn), med texturer, och
   demoscenen med sina skript (`MightyAnimPlayer.cs` spelar en animation i loop, `MightyDisplay.cs` ställer figurerna i
   rader).
@@ -41,9 +76,19 @@ andra. Animationerna laddas fyra i taget (cirka en halv minut för alla).
 | `paket/fbx/` | De rena animationerna, en FBX-fil per rörelse (ur `CardGamesAnimationPack.zip`) |
 | `paket/unity/Assets/` | Ett Unity-projekts `Assets/` (ur `CardGamesAnimPack-600.unitypackage`), med `.meta`-filerna som håller ihop demoscenen; läggs i ett Unity-projekt som det är |
 | `paket/unreal/CardGameAnimPack55/` | Unreal-projektet (ur `CardGameAnimPack55.zip`); öppnas med `CardGameAnimPack55.uproject` |
-| `visa/server.ts` | Visarens server: läser Unity-scenen och lämnar ut figuren, animationerna och sidan |
-| `visa/index.html`, `visa/visa.ts` | Visarens sida (three.js) |
+| `visa/server.ts` | Visarens server: läser Unity-scenen, lämnar ut figuren, rörelserna, sidan och det bordsvyn lånar, och sparar bitarna |
+| `visa/index.html`, `visa/visa.ts` | Visarens sida (three.js): listan, de två lägena, reglaget och bitarna |
+| `visa/bord.ts` | Bordsvyn: figurerna på sina platser vid spelets bord, pallarna och kamerorna |
+| `sekvenser.json` | De utklippta bitarna: per rörelse ett namn och två tider i sekunder |
 | `STARTA visaren.cmd` | Packar upp vid behov och startar visaren |
+
+Bordsvyn lånar utan att kopiera: spelets mått och kamera (`../blackjack-dealer/src/table-lens.ts`), standardrummet
+(`../blackjack-dealer/dealer3d/src/standard-room.ts`), kortplanen (`../blackjack-dealer/placements/default.json`) och
+de byggda modellerna av bordet och pallen (`../avatar-auto-pipeline/assets/`, som inte finns i Git: på en dator där de
+inte är byggda säger sidan det och visar figurerna utan bord).
+
+Adressen kan välja vad som visas, för den som vill peka på en viss bild:
+`?vy=bord&kamera=spel|runt|sida|topp&spelare=nej&rorelse=<AS_namn>&t=<sekunder>` (med `t` står rörelsen stilla där).
 
 `paket/` går aldrig in i Git (`AGENTS.md`). På en annan dator: lägg de tre filerna i Hämtade filer och dubbelklicka
 `STARTA visaren.cmd`, eller kör `node kortspelspaket/packa-upp.ts --fran <mapp>` med mappen där de ligger.

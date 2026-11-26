@@ -8,36 +8,81 @@
 </script>
 <style>
   html, body { margin: 0; height: 100%; background: #1b1d20; color: #e8e6e3; font: 14px/1.4 system-ui, sans-serif; overflow: hidden; }
-  #lista { position: absolute; inset: 0 auto 0 0; width: 270px; overflow-y: auto; background: #15171a; border-right: 1px solid #2a2d31; padding: 10px 0; box-sizing: border-box; }
+  #lista { position: absolute; inset: 0 auto 0 0; width: 290px; overflow-y: auto; background: #15171a; border-right: 1px solid #2a2d31; padding: 10px 0; box-sizing: border-box; }
   #lista h1 { font-size: 15px; margin: 4px 14px 2px; }
   #lista p { margin: 0 14px 10px; color: #9a9790; font-size: 12px; }
   #lista h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #c9a55c; margin: 14px 14px 4px; }
-  #lista button { display: flex; justify-content: space-between; width: 100%; border: 0; background: none; color: inherit; text-align: left; padding: 4px 14px; cursor: pointer; font: inherit; }
+  #lista button { border: 0; background: none; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+  #lista button.rorelse { display: flex; justify-content: space-between; gap: 8px; width: 100%; padding: 4px 14px; }
   #lista button:hover { background: #22252a; }
   #lista button.vald { background: #3a3220; color: #ffd98a; }
-  #lista button small { color: #8a877f; }
-  #vy { position: absolute; inset: 0 0 0 270px; }
-  #rad { position: absolute; top: 10px; left: 284px; display: flex; gap: 8px; align-items: center; }
-  #rad button, #rad label { background: #24272c; color: inherit; border: 1px solid #3a3d42; border-radius: 6px; padding: 6px 10px; font: inherit; cursor: pointer; }
-  #info { position: absolute; bottom: 14px; left: 284px; right: 14px; display: flex; gap: 12px; align-items: center; background: #15171acc; padding: 8px 12px; border-radius: 6px; }
+  #lista button small { color: #8a877f; white-space: nowrap; }
+  /* Vid bordet: rörelserna som spelas just nu har en prick. */
+  body.bord #lista button.spelas span::before { content: '● '; color: #c9a55c; }
+  .bit { display: flex; }
+  .bit button.spela { flex: 1; display: flex; justify-content: space-between; gap: 8px; padding: 3px 4px 3px 28px; font-size: 13px; color: #c8c5be; }
+  .bit button.bort { padding: 3px 10px; color: #8a877f; }
+  .bit.vald button.spela { color: #ffd98a; }
+  #vy { position: absolute; inset: 0 0 0 290px; }
+  #rad { position: absolute; top: 10px; left: 304px; right: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  #rad button, #rad label, #info button, #info input[type=text] { background: #24272c; color: inherit; border: 1px solid #3a3d42; border-radius: 6px; padding: 6px 10px; font: inherit; cursor: pointer; }
+  #rad button.pa, #info button.pa { background: #3a3220; border-color: #c9a55c; color: #ffd98a; }
+  #rad .skilje { width: 1px; align-self: stretch; background: #3a3d42; margin: 0 4px; }
+  body.bord .utstallning, body:not(.bord) .bordet { display: none; }
+  #info { position: absolute; bottom: 14px; left: 304px; right: 14px; background: #15171ae6; padding: 8px 12px; border-radius: 6px; }
   #info[hidden] { display: none; }
-  #tid { flex: 1; }
-  #laddar { position: absolute; top: 10px; right: 14px; background: #15171acc; padding: 6px 10px; border-radius: 6px; }
+  #info .rad { display: flex; gap: 10px; align-items: center; }
+  #info .rad + .rad { margin-top: 6px; flex-wrap: wrap; }
+  #tidrad { flex: 1; }
+  #tid { width: 100%; margin: 0; display: block; }
+  /* Biten som är utmärkt, som ett band över reglaget. */
+  #band { position: relative; height: 5px; margin: 0 8px 3px; background: #2a2d31; border-radius: 3px; }
+  #band span { position: absolute; top: 0; bottom: 0; background: #c9a55c; border-radius: 3px; }
+  #info input[type=text] { cursor: text; width: 200px; }
+  #bittext { color: #c9a55c; min-width: 150px; }
+  #sagt { color: #9a9790; }
+  #laddar { position: absolute; top: 52px; right: 14px; max-width: 420px; background: #15171acc; padding: 6px 10px; border-radius: 6px; }
   #laddar:empty { display: none; }
 </style>
 </head>
 <body>
 <nav id="lista">
   <h1>Card Games Animation Pack</h1>
-  <p>The Mighty Cat. Unity-demots utställning: varje figur spelar en animation. Klicka på en rad eller en figur.</p>
+  <p class="utstallning">The Mighty Cat. Unity-demots utställning: varje figur spelar en rörelse. Klicka på en rad eller en figur.</p>
+  <p class="bordet">Paketets figur vid spelets blackjackbord. Klicka på en rörelse: dealerns spelas av dealern, en spelares av sin spelare. ● spelas just nu.</p>
 </nav>
 <div id="vy"></div>
 <div id="rad">
-  <button id="hela">Hela utställningen</button>
+  <button id="lageUtstallning">Utställningen</button>
+  <button id="lageBord">Blackjackbordet</button>
+  <span class="skilje"></span>
+  <button id="hela" class="utstallning">Hela utställningen</button>
+  <label class="utstallning"><input type="checkbox" id="ensam"> Visa bara den valda</label>
+  <button class="bordet" data-vy="spel">Spelets vy</button>
+  <button class="bordet" data-vy="runt">Hela bordet</button>
+  <button class="bordet" data-vy="sida">Från sidan</button>
+  <button class="bordet" data-vy="topp">Uppifrån</button>
+  <label class="bordet"><input type="checkbox" id="spelare" checked> Spelare</label>
+  <span class="skilje"></span>
   <button id="paus">Pausa</button>
-  <label><input type="checkbox" id="ensam"> Visa bara den valda</label>
 </div>
-<div id="info" hidden><span id="namn"></span><input type="range" id="tid" min="0" step="0.01" value="0"><span id="sek"></span></div>
+<div id="info" hidden>
+  <div class="rad">
+    <span id="namn"></span>
+    <div id="tidrad"><div id="band"><span id="bandbit" hidden></span></div><input type="range" id="tid" min="0" step="0.01" value="0"></div>
+    <span id="sek"></span>
+  </div>
+  <div class="rad">
+    <span>Klipp ut en bit:</span>
+    <button id="start" title="Biten börjar där reglaget står nu">Börjar här</button>
+    <button id="slut" title="Biten slutar där reglaget står nu">Slutar här</button>
+    <span id="bittext"></span>
+    <input type="text" id="bitnamn" placeholder="Bitens namn" maxlength="80">
+    <button id="spara">Spara biten</button>
+    <button id="helaRorelsen">Hela rörelsen</button>
+    <span id="sagt"></span>
+  </div>
+</div>
 <div id="laddar"></div>
 <script type="module" src="visa.ts"></script>
 </body>
