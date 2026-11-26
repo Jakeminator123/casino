@@ -1282,7 +1282,12 @@
       "file": "1-spelets-kamera-vilan-med-blicken-mot-kameran.png",
       "choice": "bra",
       "text": "kORTEN SÅ SOM DE SER UT I uppvänt på borden ser ut att vara bredaren än i kon. Markerbrickan ska in mot början av blackjackbordet, elelr näsmre mot deaelrns mage",
-      "at": "2026-11-26T02:30:36.788Z"
+      "at": "2026-11-26T02:30:36.788Z",
+      "answer": {
+        "text": "Läst av claude-dockan. Brickan ligger sedan andra vändan ända ute i dealerkanten och är bordets kant vid magen. Korten: de uppvända på bordet och kortet i skon byggs av samma mått (63 x 88 mm, ur spelets table-lens.ts); skons kort lutar bort från kameran och ser därför smalare ut. Det är läst ur måttfilen, inte mätt i bilden, och står kvar som en sak att mäta.",
+        "at": "2026-11-26T03:54:15.778Z"
+      },
+      "read": "2026-11-26T03:54:15.778Z"
     },
     {
       "id": 137,
@@ -1290,7 +1295,8 @@
       "file": "2-lagre-kamera-mer-framifran.png",
       "choice": "bra",
       "text": "",
-      "at": "2026-11-26T02:30:53.700Z"
+      "at": "2026-11-26T02:30:53.700Z",
+      "read": "2026-11-26T03:54:16.283Z"
     },
     {
       "id": 138,
@@ -1298,7 +1304,8 @@
       "file": "3-hela-miljon.png",
       "choice": "bra",
       "text": "",
-      "at": "2026-11-26T02:31:23.690Z"
+      "at": "2026-11-26T02:31:23.690Z",
+      "read": "2026-11-26T03:54:16.528Z"
     },
     {
       "id": 139,
@@ -1306,7 +1313,8 @@
       "file": "5-snett-bakifran.png",
       "choice": "bra",
       "text": "",
-      "at": "2026-11-26T02:31:32.117Z"
+      "at": "2026-11-26T02:31:32.117Z",
+      "read": "2026-11-26T03:54:16.770Z"
     },
     {
       "id": 140,
@@ -1314,7 +1322,8 @@
       "file": "4-fran-sidan.png",
       "choice": "bra",
       "text": "",
-      "at": "2026-11-26T02:31:33.392Z"
+      "at": "2026-11-26T02:31:33.392Z",
+      "read": "2026-11-26T03:54:17.040Z"
     },
     {
       "id": 141,
@@ -1322,7 +1331,12 @@
       "file": "6-handerna-och-markerbrickan.png",
       "choice": "inte-bra",
       "text": "mrkerbrickan ska in mt dealerns mage, och händeran msåte passas in bättre",
-      "at": "2026-11-26T02:31:58.228Z"
+      "at": "2026-11-26T02:31:58.228Z",
+      "answer": {
+        "text": "Läst av claude-dockan. Rättat i andra vändan (bilderna som ligger i provet nu): brickans bakvägg är bordets kant mot magen, utan remsa filt bakom, och händerna vilar på filten med varje finger 1-2 mm över den.",
+        "at": "2026-11-26T03:54:16.034Z"
+      },
+      "read": "2026-11-26T03:54:16.034Z"
     },
     {
       "id": 142,
@@ -1330,7 +1344,12 @@
       "file": "1-casino-i-dag-dator.png",
       "choice": null,
       "text": "Bra, men kapar ca en decimerer av vyn man vi ha ovan henne, för nu kapas hennes hjässa litegranna",
-      "at": "2026-11-26T02:52:07.315Z"
+      "at": "2026-11-26T02:52:07.315Z",
+      "answer": {
+        "text": "Läst av claude-dockan. Bred lins räknad ur standarden är införd på ditt ja. Hjässan som kapas hör till spelvyn på dator, inte till linsen: cirka en decimeter mer luft över henne står som eget arbete i STATUS (steg 9) och görs med en före- och efterbild.",
+        "at": "2026-11-26T03:54:17.258Z"
+      },
+      "read": "2026-11-26T03:54:17.258Z"
     },
     {
       "id": 143,
@@ -1338,7 +1357,12 @@
       "file": "2-ur-standarden-dator.png",
       "choice": null,
       "text": "Bra, men kapar ca en decimerer av vyn man vi ha ovan henne, för nu kapas hennes hjässa litegranna",
-      "at": "2026-11-26T02:52:21.550Z"
+      "at": "2026-11-26T02:52:21.550Z",
+      "answer": {
+        "text": "Läst av claude-dockan. Bred lins räknad ur standarden är införd på ditt ja. Hjässan som kapas hör till spelvyn på dator, inte till linsen: cirka en decimeter mer luft över henne står som eget arbete i STATUS (steg 9) och görs med en före- och efterbild.",
+        "at": "2026-11-26T03:54:17.470Z"
+      },
+      "read": "2026-11-26T03:54:17.470Z"
     },
     {
       "id": 144,
@@ -1346,7 +1370,12 @@
       "file": "3-skillnaden-dator.png",
       "choice": null,
       "text": "Bra, men kapar ca en decimerer av vyn man vi ha ovan henne, för nu kapas hennes hjässa litegranna",
-      "at": "2026-11-26T02:52:29.240Z"
+      "at": "2026-11-26T02:52:29.240Z",
+      "answer": {
+        "text": "Läst av claude-dockan. Bred lins räknad ur standarden är införd på ditt ja. Hjässan som kapas hör till spelvyn på dator, inte till linsen: cirka en decimeter mer luft över henne står som eget arbete i STATUS (steg 9) och görs med en före- och efterbild.",
+        "at": "2026-11-26T03:54:17.669Z"
+      },
+      "read": "2026-11-26T03:54:17.669Z"
     },
     {
       "id": 145,
@@ -1354,7 +1383,12 @@
       "file": "4-casino-i-dag-mobil.png",
       "choice": null,
       "text": "Snyggt, men man kan inte spal på 1 eller 6. Oklart vad man ska göra, för är riktigt snytt i övrigt",
-      "at": "2026-11-26T02:53:45.185Z"
+      "at": "2026-11-26T02:53:45.185Z",
+      "answer": {
+        "text": "Läst av claude-dockan. Bred lins räknad ur standarden är införd på ditt ja. Att plats 1 och 6 inte går att spela på mobilen står kvar som det är för nu, på ditt ord, och är uppskrivet i STATUS (steg 9) som en sak att lösa senare.",
+        "at": "2026-11-26T03:54:17.900Z"
+      },
+      "read": "2026-11-26T03:54:17.900Z"
     },
     {
       "id": 146,
@@ -1362,7 +1396,12 @@
       "file": "5-ur-standarden-mobil.png",
       "choice": null,
       "text": "Snyggt, men man kan inte spal på 1 eller 6. Oklart vad man ska göra, för är riktigt snytt i övrigt",
-      "at": "2026-11-26T02:53:49.414Z"
+      "at": "2026-11-26T02:53:49.414Z",
+      "answer": {
+        "text": "Läst av claude-dockan. Bred lins räknad ur standarden är införd på ditt ja. Att plats 1 och 6 inte går att spela på mobilen står kvar som det är för nu, på ditt ord, och är uppskrivet i STATUS (steg 9) som en sak att lösa senare.",
+        "at": "2026-11-26T03:54:18.122Z"
+      },
+      "read": "2026-11-26T03:54:18.122Z"
     },
     {
       "id": 147,
@@ -1370,7 +1409,12 @@
       "file": "6-skillnaden-mobil.png",
       "choice": null,
       "text": "Snyggt, men man kan inte spal på 1 eller 6. Oklart vad man ska göra, för är riktigt snytt i övrigt.. Men kanske kan man kanske tilta mobilen elelr någoting senare. om med dörslag ananr kan deta vara typ såhär för nu",
-      "at": "2026-11-26T02:55:01.841Z"
+      "at": "2026-11-26T02:55:01.841Z",
+      "answer": {
+        "text": "Läst av claude-dockan. Bred lins räknad ur standarden är införd på ditt ja. Att plats 1 och 6 inte går att spela på mobilen står kvar som det är för nu, på ditt ord, och är uppskrivet i STATUS (steg 9) som en sak att lösa senare.",
+        "at": "2026-11-26T03:54:18.349Z"
+      },
+      "read": "2026-11-26T03:54:18.349Z"
     }
   ]
 }

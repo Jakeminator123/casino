@@ -18,7 +18,7 @@ import { LINS, PLAN_CARD_SIZE, cardGrow, cardPlace, keystone, linsOfAlias, planC
 import { planScene, poseAt, restingQuad, sceneOf, type CardTrack } from '../src/card-overlay.ts';
 import { placedCards } from '../src/game-film.ts';
 import { createLayout, slotLabel, type Slot, type TableCards } from '../src/game-table.ts';
-import { BET, betSpots, cameraFromContract, cardSpots, edgeRowOf, filmPixel, filmToTable, lensCamera, solveCamera, spotToScene, viewUnder, type FilmCamera } from '../src/scene3d-geometry.ts';
+import { BET, betSpots, cameraFromContract, cardSpots, edgeRowOf, filmPixel, filmToTable, lensCamera, ringOffset, solveCamera, spotToScene, viewUnder, type FilmCamera } from '../src/scene3d-geometry.ts';
 
 const near = (a: number, b: number, tolerance: number, what: string) => assert.ok(Math.abs(a - b) <= tolerance, `${what}: ${a} is not within ${tolerance} of ${b}`);
 const plan = (): PlacementPlan => { const p = defaultPlan(); validatePlan(p); return p; };
@@ -164,9 +164,11 @@ test('pixel and metre, in one place: the scene\'s film camera from the lens is t
   for (const id of ['P1.C1', 'P4.C1', 'P7.C2', 'D.C1']) { const spot = spots.find(s => s.id === id)!, felt = pixelToFelt(planPixel(plan.targets[id].geometry.native))!;
     assert.ok(Math.hypot(spot.x - felt[0], spot.s - (felt[2] - edge)) < 1e-9, id); }
   const bet = betSpots(plan, camera).find(b => b.id === 'P4')!, card = spots.find(s => s.id === 'P4.C1')!;
-  // under the lens the ring's offset is the one for a real card (BET.real): the ring lies clear of the card's near edge
-  assert.ok(Math.abs(bet.s - card.s - BET.real) < 1e-12 && bet.x === card.x);
-  assert.ok(BET.real - BET.radius - 0.088 / 2 >= 0.01, 'at least a centimetre of felt between a real card and the ring');
+  // under the lens the ring's offset is the one for a real card (ringOffset: half the card, the ring's radius and BET.clear): the
+  // ring lies clear of the card's near edge, where it has always lain under Standard
+  const offset = ringOffset(camera, card); near(offset, 0.083, 1e-12, 'the ring\'s offset under the lens');
+  assert.ok(Math.abs(bet.s - card.s - offset) < 1e-12 && bet.x === card.x);
+  assert.ok(offset - BET.radius - CARD.height / 2 >= 0.01, 'at least a centimetre of felt between a real card and the ring');
 });
 
 test('a turn given as the lens reads it comes back as the contract writes it', () => {

@@ -1,11 +1,11 @@
 // Pure geometry for the 3D scene tab: the film camera read from data/scene-contract.json and the mapping
 // between film pixels and the table top. No I/O and no three.js, so Node can test it.
 // World frame, metres: x toward image right, y up, z toward the camera. The felt is y = 0, the film camera
-// stands at (0, heightM, 0) looking along -z, pitched down. Lengths are in the contract's plan scale;
-// `scale` (the contract's k) says how many times larger the dealer's own world is.
+// stands at (0, heightM, 0) looking along -z, pitched down. Lengths are in the film camera's scene units;
+// `scale` says how many of them a dealer metre is: 1 under the table's lens, under Bred lins computed from it (wideCamera).
 // The pinhole itself is the one in src/scene-geometry.ts (table millimetres, Y away from the camera); this file only changes frame.
 import {applyH, cameraHomography, cameraProject, inv3, type Camera} from './scene-geometry.ts';
-import {FILM, horizonRow, planPixel, type Lens} from './table-lens.ts';
+import {CARD, FILM, TABLE_LENS, TRAY, horizonRow, planPixel, type Lens} from './table-lens.ts';
 
 /** The bank's frame, the standard's picture: src/table-lens.ts holds it, and the scene's modules read it from here. */
 export {FILM};
@@ -35,6 +35,33 @@ export function lensCamera(lens: Lens, edgeRow: number): FilmCamera {
 }
 /** The film row of the dealer's table edge, as the contract has measured it. */
 export const edgeRowOf = (contract: {keyFigures?: Record<string, Figure>}): number => figure(contract.keyFigures, 'dealerEdgeImageRow');
+/**
+ * A point of one film camera's felt laid onto another's through the film pixel that shows it: x across and s from the dealer's
+ * edge, each in its own camera's scene units. Bred lins takes its numbers from the standard this way (Jakob 2026-11-26: Bred lins
+ * "som bara kan göras utifrån en standard"): what shows in a pixel on the standard's real felt shows there on the wide felt too.
+ */
+export function layFelt(from: FilmCamera, to: FilmCamera, x: number, s: number): {x: number; s: number} {
+  const pixel = tableToFilm(from, x, s - solveCamera(from).edgeDistance), p = filmToTable(to, pixel.x, pixel.y);
+  return p ? {x: p.x, s: p.z + solveCamera(to).edgeDistance} : {x: NaN, s: NaN};
+}
+/** The standard's camera, the table's lens in real metres, at a film camera's edge row. */
+const standardOf = (c: FilmCamera): FilmCamera => lensCamera(TABLE_LENS, c.edgeRow);
+/**
+ * Bred lins's camera: the contract's wide camera with its scale computed instead of the contract's guessed k: how many of its
+ * units a real metre is across the table at the middle of the dealer's edge (1.897; the laying is linear along a row, so a
+ * metre's step is exact). The table's things are built in it; the room, her film and the view keep the contract's k.
+ */
+export function wideCamera(contract: Parameters<typeof cameraFromContract>[0]): FilmCamera {
+  const c = cameraFromContract(contract), standard = standardOf(c);
+  return {...c, scale: layFelt(standard, c, 0.5, 0).x - layFelt(standard, c, -0.5, 0).x};
+}
+/** How deep, in a film camera's scene units, the standard's real felt from s0 to s1 metres off the dealer's edge shows in the film. */
+export function laidDepth(c: FilmCamera, s0: number, s1: number): number {
+  if (c.source === 'lens') return s1 - s0;
+  const standard = standardOf(c); return layFelt(standard, c, 0, s1).s - layFelt(standard, c, 0, s0).s;
+}
+/** Scene units per dealer metre of the tray's depth: its own footprint (TRAY, 0.10 m toward the players) laid, while across it takes the scale. */
+export const trayDeep = (c: FilmCamera): number => laidDepth(c, TRAY.s0, TRAY.s1) / (TRAY.s1 - TRAY.s0);
 /**
  * A view setting written for one film camera as the setting that gives the same picture under another: the game's framings and
  * the saved looks (yaw and pitch in degrees, dx, dy and dz in scene units) were made under the contract's camera. A turn keeps
@@ -167,13 +194,18 @@ export function cloudLevel(seconds: number, every: number, strength: number): nu
 
 // Bet rings: one per player seat, a little past the seat's first card toward the player. The felt prints them from
 // this and a game reads the same list, so print and game cannot drift apart. Dealer metres, seats in order.
-// `real`: the offset under the table's lens, where the card is a real one, 88 mm long (in the dealer's metres the contract's card is
-// 35 mm): half a card, the ring's radius and 12 mm of felt between them, so that the ring lies clear of the card as it does today.
-export const BET = {offset: 0.068, radius: 0.027, real: 0.083};
-export const ringOffset = (c: FilmCamera): number => c.source === 'lens' ? BET.real : BET.offset;
+// One rule under both lenses: from the card's middle, half the card as it lies there, the ring's radius and 12 mm of felt (`clear`).
+// Under the table's lens the card is a real one, 88 mm deep (0.083 m); under Bred lins it is a real card at that seat laid through
+// the film's pixels onto the wide felt, from its middle to its edge toward the player.
+export const BET = {radius: 0.027, clear: 0.012};
+export function ringOffset(c: FilmCamera, card: {x: number; s: number}): number {
+  if (c.source === 'lens') return CARD.height / 2 + BET.radius + BET.clear;
+  const at = layFelt(c, standardOf(c), card.x * c.scale, card.s * c.scale).s; // the card's middle on the standard's felt
+  return laidDepth(c, at, at + CARD.height / 2) / c.scale + BET.radius + BET.clear;
+}
 export type BetSpot = {id: string; x: number; s: number; radius: number};
 export function betSpots(plan: Parameters<typeof cardSpots>[0], c: FilmCamera): BetSpot[] {
-  return cardSpots(plan, c).filter(p => /^P[0-9]+[.]C1$/.test(p.id)).map(p => ({id: p.id.split('.')[0], x: p.x, s: p.s + ringOffset(c), radius: BET.radius}))
+  return cardSpots(plan, c).filter(p => /^P[0-9]+[.]C1$/.test(p.id)).map(p => ({id: p.id.split('.')[0], x: p.x, s: p.s + ringOffset(c, p), radius: BET.radius}))
     .sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)));
 }
 // A point in dealer metres (x across the table, s from the dealer-side edge toward the players, y above the felt) as a

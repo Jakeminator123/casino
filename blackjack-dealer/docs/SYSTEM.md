@@ -37,8 +37,8 @@ Tre lager (Jakob 2026-11-25: "grunden måste vara densamma").
 Lagren, sist vinner: scenens grund (`DEFAULTS` i `src/scene3d-view.ts`) → spelvyns Dator → utseendets nycklar →
 adressens nycklar (`lookState` i `src/game-look.ts`, `effective` i `studio/lib/scene-presets.ts`); på en telefon gäller
 alltid spelvyns Mobil. Reglagen och deras gränser står i `studio/lib/scene-keys.ts`. Ett utseende ändrar aldrig
-standardens mått: i Standard är scenens värld verkliga meter och skalan 1, och under Bred lins kontraktets egen skala
-(`filmCamera` i `src/scene3d-view.ts`). Ett utseende har ingen egen skala och ingen egen kamera: nycklarna `scale`
+standardens mått: i Standard är scenens värld verkliga meter och skalan 1, och under Bred lins räknas skalan ur
+standarden (`filmCamera` i `src/scene3d-view.ts`, `wideCamera` i `src/scene3d-geometry.ts`). Ett utseende har ingen egen skala och ingen egen kamera: nycklarna `scale`
 (Skala k) och `lens` (Dealerns lins) togs bort 2026-11-26, och ett sparat utseende eller en adress som bär dem läses
 utan dem (`RETIRED_KEYS` i `src/game-look.ts` och `studio/lib/scene-keys.ts`).
 
@@ -77,9 +77,14 @@ Avvikelserna, med flit eller kvar:
   0,80–0,96 med hans 87 % som förval för djup i bordet (2026-11-17, 2026-11-18; `CARD_TAPER` i `src/card-plan.ts`).
   Skillnaden mot inspelningens kort är högst 4 px i de bortre hörnen; de nära hörnen är desamma.
 - **Bred lins.** Ett utseende kan välja Bred lins (nyckeln `lins: 'bred'`, levande i Scen och sparad med utseendet;
-  Casinos har den, Jakob 2026-11-21): kontraktets äldre vida kamera (`data/scene-contract.json`, brännvidd 886 px), ett
-  bord byggt i kontraktets skala k = 2 och planens äldre plan för korten (`flatQuad`), inte filmens lins. Inspelning,
-  dockan och beställningarna följer alltid Standard. Äldre adresser och förval säger `geometri=kontrakt`; ordet läses
+  Casinos har den, Jakob 2026-11-21): kontraktets äldre vida kamera (`data/scene-contract.json`, brännvidd 886 px) med
+  bordets mått räknade ur standarden (Jakob 2026-11-26: Bred lins "som bara kan göras utifrån en standard"; allt i
+  `src/scene3d-geometry.ts`). Skalan är hur många av kamerans enheter en verklig meter är tvärs bordet vid dealerkantens
+  mitt, räknad genom filmens bildpunkter (1,897; `wideCamera`, aldrig en nyckel); bordets djup och markerlådans djup mot
+  spelarna är standardens lagda genom bildpunkterna (`laidDepth`, `trayDeep`); insatsringarna har en regel under båda
+  linserna: halva det lagda kortet, ringens radie och 12 mm filt (`ringOffset`). Rummet, filmens plats och vyn behåller
+  kontraktets k = 2, eftersom ingen film mäter dem. Korten ritas efter planens äldre plan (`flatQuad`), inte filmens
+  lins. Inspelning, dockan och beställningarna följer alltid Standard. Äldre adresser och förval säger `geometri=kontrakt`; ordet läses
   som alias för nyckeln (`linsOfAlias` i `src/card-plan.ts`) och skrivs aldrig.
 - **Kortets riktning.** Dockan läser inte ett korts riktning (`angle`) ur planen; alla är 0 i dag.
 

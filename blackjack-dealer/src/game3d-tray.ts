@@ -42,6 +42,7 @@ export function createHouseTray(scene: Scene) {
   const group = new T.Group(), counts = TRAY_ROWS.map(() => TRAY_FILL.start), owned: {dispose(): void}[] = [];
   const keep = <O extends {dispose(): void}>(o: O) => { owned.push(o); return o; };
   const rows: {side: T.Mesh; cap: T.Mesh; edge: T.Texture}[] = [];
+  let stretch = 1; // the tray's depth against the chips' scale, so that a chip comes and goes at its row's end (mouth)
   // A row's cylinder is one metre long and scaled to its chips; its end with the printed face stays at the players' end.
   function size(row: number) {
     const {side, cap, edge} = rows[row], n = counts[row], length = Math.max(1, n) * CHIP_HEIGHT, at = rowPlace(row);
@@ -51,9 +52,10 @@ export function createHouseTray(scene: Scene) {
   return {
     group,
     notch: {x0: TRAY.x0, x1: TRAY.x1, s1: TRAY.s1}, // the felt is cut out here (scene.notch)
-    build(edgeZ: number, scale: number) {
+    // deep: the scale toward the players, the tray's own laid footprint under Bred lins (trayDeep in src/scene3d-geometry.ts)
+    build(edgeZ: number, scale: number, deep = scale) {
       for (const child of [...group.children]) group.remove(child); for (const o of owned.splice(0)) o.dispose(); rows.length = 0;
-      group.position.set(0, 0, edgeZ); group.scale.setScalar(scale);
+      group.position.set(0, 0, edgeZ); group.scale.set(scale, scale, deep); stretch = deep / scale;
       const {x0, x1, s0, s1} = TRAY, width = x1 - x0, length = s1 - s0, depth = 2 * CHIP_RADIUS + SINK + 0.003, cx = (x0 + x1) / 2, cs = (s0 + s1) / 2, rim = 0.007;
       const add = (geometry: T.BufferGeometry, material: T.Material, x: number, y: number, s: number) => { const m = new T.Mesh(keep(geometry), material); m.position.set(x, y, s); group.add(m); return m; };
       const metal = keep(scene.lit(new T.MeshStandardMaterial({color: 0xb8923f, roughness: 0.45, metalness: 0.35}))), dark = keep(scene.lit(new T.MeshStandardMaterial({color: 0x15120f, roughness: 0.8, metalness: 0.2})));
@@ -72,7 +74,7 @@ export function createHouseTray(scene: Scene) {
       });
     },
     /** Where a chip of that value enters the tray, or leaves it when `taking`: the players' end of its row, standing on edge (x, y above the felt, s). */
-    mouth(value: number, taking: boolean) { const row = rowFor(counts, value, taking), at = rowPlace(row < 0 ? TRAY_ROWS.indexOf(Number(lookOf(value).value)) : row); return {x: at.x, y: -CHIP_RADIUS - SINK, s: at.s + CHIP_HEIGHT / 2}; },
+    mouth(value: number, taking: boolean) { const row = rowFor(counts, value, taking), at = rowPlace(row < 0 ? TRAY_ROWS.indexOf(Number(lookOf(value).value)) : row); return {x: at.x, y: -CHIP_RADIUS - SINK, s: at.s * stretch + CHIP_HEIGHT / 2}; },
     /** A chip has come in, or gone out. False when its rows are full, or empty: the tray is then left as it is. */
     add(value: number) { const row = rowFor(counts, value, false); if (row < 0) return false; counts[row]++; if (rows[row]) size(row); return true; },
     remove(value: number) { const row = rowFor(counts, value, true); if (row < 0) return false; counts[row]--; if (rows[row]) size(row); return true; },

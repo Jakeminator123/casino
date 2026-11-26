@@ -4,7 +4,7 @@
 //
 // First prop: the dealer's chip tray, sunk into the table at her edge. Her hands lie flat on the green table in the
 // film, exactly where a tray belongs, so the tray is a recess: rim and chips end at felt level and the hands rest on
-// them instead of passing through something that sticks up. Sizes are dealer metres; the group is scaled by k.
+// them instead of passing through something that sticks up. Sizes are dealer metres; the group is scaled by the scene's scale.
 import * as T from 'three';
 import {TRAY as STANDARD_TRAY} from './table-lens.ts';
 
@@ -23,9 +23,10 @@ function chipTexture(colour: string, chips: number) {
 
 export function createChipTray(lit: <M extends T.Material>(material: M) => M = m => m) {
   const group = new T.Group(), owned: {dispose(): void}[] = [];
-  function build(edgeZ: number, scale: number) {
+  // deep: the scale toward the players, the tray's own laid footprint under Bred lins (trayDeep in src/scene3d-geometry.ts)
+  function build(edgeZ: number, scale: number, deep = scale) {
     for (const child of [...group.children]) group.remove(child); for (const o of owned.splice(0)) o.dispose();
-    group.position.set(0, 0, edgeZ); group.scale.setScalar(scale);
+    group.position.set(0, 0, edgeZ); group.scale.set(scale, scale, deep);
     const {x0, x1, s0, s1, depth, tubes} = TRAY, width = x1 - x0, length = s1 - s0, keep = <O extends {dispose(): void}>(o: O) => { owned.push(o); return o; };
     const add = (geometry: T.BufferGeometry, material: T.Material, x: number, y: number, s: number) => { const m = new T.Mesh(keep(geometry), material); m.position.set(x, y, s); group.add(m); return m; };
     const metal = keep(lit(new T.MeshStandardMaterial({color: 0xb8923f, roughness: 0.45, metalness: 0.35}))), dark = keep(lit(new T.MeshStandardMaterial({color: 0x15120f, roughness: 0.8, metalness: 0.2})));

@@ -47,7 +47,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   utseendet han ställer in i Scen och som Casino visar (rum, bord och duk, kortens ritning, linsen). Bred lins är sedan
   2026-11-26 ett reglage i utseendet (Lins under Bord), levande i Scen och sparat med varje utseende, så Scen öppnar
   Casinos utseende som Casino spelar det. Ett utseende ändrar inte måtten: i Standard är skalan alltid 1. Kvar att rätta
-  eller välja: Bred lins egna tal (steg 9 D), dockans sko (lägre baktill än filmens, 15–17 px), dockans huvud (något
+  eller välja: korten under Bred lins (steg 9 D2), dockans sko (lägre baktill än filmens, 15–17 px), dockans huvud (något
   högre och smalare än
   hennes) och att dockan inte läser ett korts riktning ur planen. Dockans bord ritar markerlådan som en mörk försänkning
   med standardens mått.
@@ -135,19 +135,21 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 9. **Bred lins räknad ur standarden** (Jakob 2026-11-25 och 2026-11-26: Bred lins "som bara kan göras utifrån en
    standard"). Byggt 2026-11-26: linsen är nyckeln `lins` i utseendet, spelvyn är en egen sparad standard, Scens
    knappar är Prova i Casino → Använd i Casino → Publicera, och ett utseende har ingen egen skala eller kamera längre
-   (Skala k och Dealerns lins är borta; `docs/SYSTEM.md`, Standarden). Kvar är Bred lins egna tal, två steg som aldrig
+   (Skala k och Dealerns lins är borta; `docs/SYSTEM.md`, Standarden). Bred lins egna tal tas i två steg som aldrig
    blandas och som båda ändrar Casinos bild, så han ser en före- och efterbild innan något av dem går in:
-   - **D1, måtten ur standarden.** Skalan räknas vid dealerkanten ur de två linserna genom filmens bildpunkter (1,897 i
-     stället för kontraktets 2; `node tools/scene-measure.ts skala` räknar den) och blir aldrig en nyckel. Med den följer:
-     insatsringarna får en regel under båda linserna (halva det lagda kortet + radien + 12 mm; `BET` i
-     `src/scene3d-geometry.ts`), bordets djup är ett verkligt bords lagt genom bildpunkterna (1,26 enheter mot 1,2 i dag;
-     med bara skalan slutar filten ovanför bildens nederkant på en telefon; `tableUnder` i `src/scene3d-table.ts`),
-     markerlådan tar skalan tvärs och sitt lagda fotavtryck på djupet, och vyns grader räknas mot en fast enhet i
-     stället för mot kontraktets kamera (`viewUnder`, `aimAt` i `src/game-page.ts`). Bordets saker krymper 5,2 % kring
-     dealerkantens mitt under Bred lins; korten och Standard rör sig inte. Rummet behåller kontraktets kamera: ingen
-     film mäter en kuliss.
-   - **D2:** en kortregel under båda linserna (dealerns kort 75 × 57 px i
-     stället för 61 × 35 under Bred lins); `flatQuad` i `createLayout` och kontraktets vilande kort går då bort.
+   - **D1, måtten ur standarden: gjord** (Jakobs ja i Beslut 2026-11-26). Under Bred lins räknas skalan vid
+     dealerkantens mitt ur de två linserna genom filmens bildpunkter (1,897 i stället för kontraktets 2; `wideCamera` i
+     `src/scene3d-geometry.ts`, aldrig en nyckel). Insatsringarna har en regel under båda linserna (halva det lagda
+     kortet + radien + 12 mm; `ringOffset`), bordets djup är ett verkligt bords lagt genom bildpunkterna (`tableUnder` i
+     `src/scene3d-table.ts`, så att filten når bildens nederkant på en telefon), och markerlådan tar skalan tvärs och sitt
+     lagda fotavtryck på djupet (`trayDeep`). Bordets saker är 5,2 % mindre kring dealerkantens mitt och lådan djupare
+     mot spelarna; korten, dealern, rummet och Standard står kvar. Rummet, filmens plats och vyn behåller kontraktets
+     k = 2: ingen film mäter en kuliss. Hans anteckningar på provet gällde spelvyn, inte linsen: på dator kapas hennes
+     hjässa (han vill ha cirka en decimeter mer ovanför henne), och på mobil går plats 1 och 6 inte att spela ("kanske
+     tilta mobilen elelr någoting senare", annars "typ såhär för nu").
+   - **D2, korten under Bred lins:** en kortregel under båda linserna (dealerns kort 75 × 57 px i
+     stället för 61 × 35 under Bred lins); `flatQuad` i `createLayout` och kontraktets vilande kort går då bort. Väntar
+     på sin egen före- och efterbild.
    Mätningen som håller Casino på plats: `tools/scene-measure.ts` (sidorna på dator och mobil för `tools/lab-look.ts`,
    och största flytt i bildpunkter mellan två körningar). Nyckeln lins och spelvyn höll varje punkt inom 0,01 bildpunkt;
    det enda som flyttade sig var det som skulle: Casinos råkade sidvridning (0,07°) är borta.
@@ -186,13 +188,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   som spelvy) och Lins under Bord. Spelet utan valt utseende och grundutseendena följer nu spelvyns Dator (9,7°
   lutning i stället för 8°); Jakob-1 och Profilval 1 har kvar sin egen inramning på dator. På mobil gäller alltid
   spelvyns Mobil, så Profilval 1:s egen sidvridning syns inte längre där.
-- Bred lins räknad ur standarden, steg 9 D1 (2026-11-26): före- och efterbild i provet
-  `bred-lins-ur-standarden-20261126` och kortet `bred-lins-ur-standarden` i Beslut. Ändringen ligger som kopior av sex
-  moduler i `../slask/blackjack-dealer/granska/bred-lins-ur-standarden/efter/` (77 rader till, 37 bort mot `fore/`) och
-  blir koden på hans ja; då följer `tools/card-plan.test.ts` (`BET.real` blir `ringOffset`) och `docs/SYSTEM.md`.
-  Med hans nej raderas mappen, provet och kortet.
 - Korten under Bred lins (steg 9 D2): ska de ritas som filmens egna (dealerns kort 75 × 57 px i stället för 61 × 35)?
-  Han svarar när han har sett en före- och efterbild; den görs på samma sätt som D1:s, efter hans svar där.
+  Han svarar när han har sett en före- och efterbild, gjord som D1:s: headless Chrome mot Casino på dator och mobil, med
+  spelets moduler ur två kopior (före och efter) i slaskens `granska/`, mätt som `tools/scene-measure.ts` mäter.
 - Två frågor om det som städades 2026-11-25: om
   egna returfilmer, landningsbilderna (A3) och A2.2 ska bort också ur beställningsmodellen (`tools/landing-make.ts` och
   stegen RETUR och 2.2 lever kvar där för de sparade beställningarnas skull); och om 3D-banans äldre verktyg som kräver

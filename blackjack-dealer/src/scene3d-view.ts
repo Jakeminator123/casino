@@ -3,7 +3,7 @@
 // With focus off, table and film are drawn straight to the screen and stay sharp (the look of checkpoint v1).
 // With focus on, they go through a full-size target and are blurred by their own distance from the focus.
 import * as T from 'three';
-import {FILM, aimCorrection, betSpots, cameraFromContract, cardFocusPixel, cardPixel, cardSpots, cloudLevel, edgeRowOf, filmToScene, flickerLevel, lensCamera, sceneToSpot, solveCamera, spotToScene, viewFovDeg, viewUnder, type CardTrack, type FilmCamera} from './scene3d-geometry.ts';
+import {FILM, aimCorrection, betSpots, cameraFromContract, cardFocusPixel, cardPixel, cardSpots, cloudLevel, edgeRowOf, filmToScene, flickerLevel, lensCamera, sceneToSpot, solveCamera, spotToScene, trayDeep, viewFovDeg, viewUnder, wideCamera, type CardTrack, type FilmCamera} from './scene3d-geometry.ts';
 import {CARD_TAPER, cardGrow, type Lins} from './card-plan.ts';
 import {TABLE_LENS} from './table-lens.ts';
 import {EVEN, createFilmLayers, createPlayers, evenFor, frameAt, lightOnDealer, matchLeft, roomFlashAt, roomGlow, toneMatch, toneOf, toneUnder, type FilmTone, type Part, type RoomGlow, type ToneMatch} from './scene3d-film.ts';
@@ -197,7 +197,7 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
   // time it is used and cards are switched off again if it cannot be read. update() returning true means "show my texture as the film".
   const selectFilmTexture = createFilmTextureSelector(), sceneCardOptions = createSceneCardOptions();
   // Things another page adds: props lying on the table (built with the table, drawn under the film) and a call after every drawn frame.
-  type Prop = {group: T.Object3D; build(edgeZ: number, scale: number): void};
+  type Prop = {group: T.Object3D; build(edgeZ: number, scale: number, deep: number): void}; // deep: the tray's scale toward the players (trayDeep)
   const props: Prop[] = [], frameCalls = new Set<() => void>(); let built = false, ownNotch: {x0: number; x1: number; s1: number} | null = null;
   let cardLayer: CardLayer | null = null, cardError = ''; const cardLayers: Partial<Record<SceneState['cardMethod'], CardLayer>> = {}, cardLoads = new Set<string>();
   // gone: the scene has been taken down (dispose below); a module that arrives after that makes no layer.
@@ -268,10 +268,13 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
   // The plan's camera: under Bred lins the contract's, under Standard the table's lens itself (scene3d-geometry.ts lensCamera), the one
   // the card plan draws through. `written`: the camera the game's framings and the saved looks were made under (updateView).
   const written = () => cameraFromContract(data.contract);
-  // Under Standard the world is in real metres, so k is 1; under Bred lins it is the contract's camera with the contract's own
-  // k. A look has no scale and no camera of its own (Jakob 2026-11-25: "Varför i 'Scen' så ser man markerlådan så stor?", of a
-  // look whose saved k = 2 built the tray and the table twice their size under Standard; the keys scale and lens went 2026-11-26).
-  const filmCamera = (): FilmCamera => lins() === 'standard' ? lensCamera(TABLE_LENS, edgeRowOf(data.contract)) : written();
+  // Under Standard the world is in real metres, so the scale is 1; under Bred lins it is the contract's camera with a scale computed
+  // from the standard (wideCamera: 1.897, not the contract's guessed k = 2). A look has no scale and no camera of its own (Jakob
+  // 2026-11-25: "Varför i 'Scen' så ser man markerlådan så stor?", of a look whose saved k = 2 built the tray and the table twice
+  // their size under Standard; the keys scale and lens went 2026-11-26).
+  const filmCamera = (): FilmCamera => lins() === 'standard' ? lensCamera(TABLE_LENS, edgeRowOf(data.contract)) : wideCamera(data.contract);
+  // The unit of what no film measures and the computed scale leaves as it was: the room, her film's place and the view; the contract's k under Bred lins.
+  const unit = () => camera.source === 'lens' ? camera.scale : written().scale;
   function buildGuides() {
     if (guides) fg.remove(guides); guides = new T.Group(); fg.add(guides);
     const line = (points: number[][], color: number) => { const l = new T.LineLoop(new T.BufferGeometry().setFromPoints(points.map(p => new T.Vector3(...p))), new T.LineBasicMaterial({color, depthTest: false})); l.renderOrder = 20; guides!.add(l); };
@@ -293,15 +296,17 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
     if (gone) return; camera = filmCamera(); const solved = solveCamera(camera); pitch = solved.pitch; edgeZ = -solved.edgeDistance;
     filmCam.fov = solved.fovYDeg; filmCam.aspect = W / H; filmCam.position.set(0, camera.heightM, 0); filmCam.rotation.set(-pitch, 0, 0, 'YXZ'); filmCam.updateProjectionMatrix(); filmCam.updateMatrixWorld(true);
     filmVP.multiplyMatrices(filmCam.projectionMatrix, filmCam.matrixWorldInverse);
-    table.build(edgeZ, camera.scale, ownNotch ?? (state.tray ? TRAY : undefined), state.base, state.surface, tableUnder(camera, state.tableSize));
+    // The tray takes the scale across and its own laid footprint in depth (trayDeep), and its notch in the felt with it.
+    const deep = trayDeep(camera), sunk = ownNotch ?? (state.tray ? TRAY : undefined), notch = sunk && {...sunk, s1: sunk.s1 * deep / camera.scale};
+    table.build(edgeZ, camera.scale, notch, state.base, state.surface, tableUnder(camera, state.tableSize));
     if (state.tableModel === 'bord-02') loadBord02(); const second = secondTable(); table.group.visible = rail.group.visible = !second;
-    if (bord02) { bord02.group.visible = second; if (second) bord02.build(edgeZ, camera.scale, tableUnder(camera, state.tableSize), {cloth: state.modelCloth, wood: state.modelWood, rail: state.modelRail, surface: state.surface}, ownNotch ?? (state.tray ? TRAY : undefined)); }
-    tray.group.visible = state.tray && !ownNotch; if (tray.group.visible) tray.build(edgeZ, camera.scale); rail.build(edgeZ, camera.scale, betSpots(data.plan, camera), tableUnder(camera, state.tableSize)); smoke.build(edgeZ, camera.scale, tableUnder(camera, state.tableSize)); drawFelt(); rooms.place(camera.source === 'lens' ? written() : camera); light.place(camera); buildGuides(); focusNow = NaN; built = true; for (const prop of props) prop.build(edgeZ, camera.scale); apply();
+    if (bord02) { bord02.group.visible = second; if (second) bord02.build(edgeZ, camera.scale, tableUnder(camera, state.tableSize), {cloth: state.modelCloth, wood: state.modelWood, rail: state.modelRail, surface: state.surface}, notch); }
+    tray.group.visible = state.tray && !ownNotch; if (tray.group.visible) tray.build(edgeZ, camera.scale, deep); rail.build(edgeZ, camera.scale, betSpots(data.plan, camera), tableUnder(camera, state.tableSize)); smoke.build(edgeZ, camera.scale, tableUnder(camera, state.tableSize)); drawFelt(); rooms.place(written()); light.place(camera); buildGuides(); focusNow = NaN; built = true; for (const prop of props) prop.build(edgeZ, camera.scale, deep); apply();
   }
   const drawFelt = () => { table.draw({spots: cardSpots(data.plan, camera), logo: state.logo, felt: state.felt, scale: camera.scale, marks: state.marks, cloth: state.cloth, camera, size: tableUnder(camera, state.tableSize), bare: secondTable()}); bord02?.printed(); };
   function apply() {
     if (gone) return; if (!rooms.rooms[state.room]) state.room = 'salong'; // a room the scene does not have (an old address, a room taken out of the register)
-    useCards(); rooms.show(state.room); rail.set({cups: state.cups}); film.place(edgeZ, state.fold, state.focus !== 'off', camera.scale); film.setKey({lo: state.keyLo, hi: state.keyHi, shadow: state.shadow, above: state.shadowAbove}); film.setGrade(state.filmBright, state.filmWarm); film.setEdge(state.edgeClean); players.tempo(state.filmTempo);
+    useCards(); rooms.show(state.room); rail.set({cups: state.cups}); film.place(edgeZ, state.fold, state.focus !== 'off', unit()); film.setKey({lo: state.keyLo, hi: state.keyHi, shadow: state.shadow, above: state.shadowAbove}); film.setGrade(state.filmBright, state.filmWarm); film.setEdge(state.edgeClean); players.tempo(state.filmTempo);
     table.setLamp(state.lamp); table.setShelf(state.shelf);
     if (guides) guides.visible = state.guides; resize(); data.onChange();
   }
@@ -331,7 +336,7 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
     // looks 25 degrees down with its horizon 500 rows above the frame, a room is its floor and nothing else. So under the lens the room
     // keeps the camera its pictures were composed for, the contract's, with the view's settings as they are written: the room behind
     // her is the one the game shows today, and it turns and zooms with the view as it does today.
-    if (!lens) roomSeen = {camera: view, edge: -edgeZ, scale: camera.scale, focus: 1};
+    if (!lens) roomSeen = {camera: view, edge: -edgeZ, scale: unit(), focus: 1};
     else { const w = written(), s = solveCamera(w), home = [0, w.heightM, 0]; roomCam.position.set(asWritten.dx, w.heightM + asWritten.dy, asWritten.dz);
       const turn = state.aim && moved ? aimCorrection(home, roomCam.position.toArray(), [0, 0.3, -s.edgeDistance]) : {yaw: 0, pitch: 0};
       roomCam.rotation.set(-s.pitch + asWritten.pitch * RAD + turn.pitch, asWritten.yaw * RAD + turn.yaw, 0, 'YXZ'); roomCam.aspect = view.aspect; roomCam.fov = viewFovDeg(w, view.aspect, state.zoom); roomCam.updateProjectionMatrix(); roomCam.updateMatrixWorld(true);
@@ -346,7 +351,7 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
     if (state.focus === 'manual') return {distance: state.focusDistance, what: 'manuellt'};
     const frame = players.frame(); let pixel = state.focus === 'card' ? cardPixel(track, frame) : state.focus === 'follow' ? cardFocusPixel(track, frame) : null;
     if (state.focus === 'follow') { if (pixel) { heldPixel = pixel; heldAt = seconds; } else if (heldPixel && seconds >= heldAt && seconds - heldAt <= LINGER) pixel = heldPixel; else heldPixel = null; }
-    return pixel ? {distance: depthOf(filmToScene(camera, pixel.x, pixel.y)), what: 'kortet'} : {distance: depthOf([0, 0.3 * camera.scale, edgeZ]), what: 'dealern'};
+    return pixel ? {distance: depthOf(filmToScene(camera, pixel.x, pixel.y)), what: 'kortet'} : {distance: depthOf([0, 0.3 * unit(), edgeZ]), what: 'dealern'};
   }
 
   // What moves in a room at this time (rooms.ambient); returns the factor for the room's brightness. frontAir: the share of the
@@ -362,7 +367,7 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
   // One room into the half-size targets, blurred. The first target takes the room and its depth; `ping` and `pong` are the
   // blur's two, and the picture ends in `pong`, or stays in the first when there is no blur.
   function drawRoom(look: Look, seconds: number, ping: Target, pong: Target): Picture {
-    const room = rooms.rooms[look.room], focusOn = state.focus !== 'off', u = blurMat.uniforms, scale = canvas.width / W, a = half[0], seen = roomSeen ?? {camera: view, edge: -edgeZ, scale: camera.scale, focus: 1};
+    const room = rooms.rooms[look.room], focusOn = state.focus !== 'off', u = blurMat.uniforms, scale = canvas.width / W, a = half[0], seen = roomSeen ?? {camera: view, edge: -edgeZ, scale: unit(), focus: 1};
     rooms.followCamera(look.room, seen.camera.position, look.panoramaTurn); const dim = ambient(look.room, seconds);
     renderer.setRenderTarget(a); renderer.setClearColor(0x050403, 1); renderer.clear();
     if (room.plate) { const image = 1536 / 1024, frame = canvas.width / canvas.height; plateMat.uniforms.map.value = room.plate; (plateMat.uniforms.scale.value as T.Vector2).set(frame > image ? 1 : frame / image, frame > image ? image / frame : 1); pass(plateMat, a); }
@@ -577,7 +582,7 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
     // The films over the people of the room on screen (roomLife) from their beginning: the film before the game ends in the room as
     // its film begins, and the page asks for this as the game takes over (src/game-page.ts).
     restartRoomLife() { if (!gone) rooms.restartLife([state.room]); },
-    addProp(prop: Prop) { if (gone) return () => {}; props.push(prop); fg.add(prop.group); if (built) prop.build(edgeZ, camera.scale); return () => { const i = props.indexOf(prop); if (i >= 0) props.splice(i, 1); fg.remove(prop.group); }; },
+    addProp(prop: Prop) { if (gone) return () => {}; props.push(prop); fg.add(prop.group); if (built) prop.build(edgeZ, camera.scale, trayDeep(camera)); return () => { const i = props.indexOf(prop); if (i >= 0) props.splice(i, 1); fg.remove(prop.group); }; },
     onFrame(call: () => void) { if (gone) return () => {}; frameCalls.add(call); return () => { frameCalls.delete(call); }; },
     // Where a table point is in the picture as last drawn: CSS pixels from the canvas's top left corner, and how many
     // pixels a dealer metre is there.

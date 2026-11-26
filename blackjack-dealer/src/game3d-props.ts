@@ -29,7 +29,8 @@ export async function loadTray(scene: Scene, url = 'assets/props/tray.glb') {
   // Sunk so that its highest point (the tops of the chips) is level with the felt, and set against the dealer's edge.
   object.scale.set(1, 1, place.depth / size.z); object.position.set(place.x, -size.y + 0.0004, place.depth / 2);
   group.add(object);
-  return {group, notch: trayNotch(place), build(edgeZ: number, scale: number) { group.position.set(0, 0, edgeZ); group.scale.setScalar(scale); }};
+  // deep: the scale toward the players, the tray's own laid footprint under Bred lins (trayDeep in src/scene3d-geometry.ts)
+  return {group, notch: trayNotch(place), build(edgeZ: number, scale: number, deep = scale) { group.position.set(0, 0, edgeZ); group.scale.set(scale, scale, deep); }};
 }
 
 // The film's own shoe in the standard frame, film pixels: the box that holds it (with room for its shadow), and three corners of

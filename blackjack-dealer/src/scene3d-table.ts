@@ -1,6 +1,6 @@
 // The table of the 3D scene. Felt, lines, card places and logo are one flat image seen from straight above,
 // so a new logo or felt colour is a texture change. Sizes are dealer metres; the group is scaled by the
-// contract's k into the plan-scale world. The table's outline and the layout of the print are provisional:
+// film camera's scale into the scene. The table's outline and the layout of the print are provisional:
 // they were chosen to fit the film frame, not taken from a real table.
 // The players' rail is a padded leather roll with a stitched seam on each shoulder, a brass bead against the felt and a
 // lacquered walnut apron under its overhang. Its sheen comes from a small painted room that only the rail's own materials
@@ -8,7 +8,7 @@
 // The cup holders set into the roll are src/scene3d-rail.ts; they are built on the roll as it is drawn here (railPoint) and take the
 // roll's leather and the room's light from the table's group (userData.rail).
 import * as T from 'three';
-import {BET, ringOffset, spotToScene, tableToFilm, type FilmCamera, type Spot} from './scene3d-geometry.ts';
+import {BET, laidDepth, ringOffset, spotToScene, tableToFilm, type FilmCamera, type Spot} from './scene3d-geometry.ts';
 import {TABLE_BASE, TABLE_RAIL, TABLE_TOP} from './table-lens.ts';
 
 export const FELTS: Record<string, [string, string]> = {green: ['#134232', '#0a2a20'], blue: ['#16325e', '#0b1c38'], vin: ['#571a26', '#330d15'], svart: ['#23272a', '#101214']};
@@ -43,8 +43,8 @@ export function sized(size: TableSize = 1): {a: number; b: number} {
  * dealer's edge to the players', which is also what keeps the felt under the whole of the game's picture.
  */
 export const REAL_TABLE = {depth: TABLE_TOP.depth};
-/** The table's size under a film camera: under the lens as wide as asked and a real table's depth, else the size as it is. */
-export const tableUnder = (camera: {source: string}, size: number): TableSize => camera.source === 'lens' ? {wide: size, deep: REAL_TABLE.depth / TABLE.b} : size;
+/** The table's size under a film camera: as wide as asked and a real table's depth, under Bred lins laid through the film's pixels (1.26 units, where the scale alone ends the felt above the bottom of a phone's picture). */
+export const tableUnder = (camera: FilmCamera, size: number): TableSize => ({wide: size, deep: laidDepth(camera, 0, REAL_TABLE.depth) / camera.scale / TABLE.b});
 // What the table stands on. column: the first base, one thick leg on a brass foot; it was never meant to be seen, and from a
 // camera that has backed away it is ugly (Jakob, 2026-11-11). legs: two tapered legs of photographed wood on brass plinths with
 // a stretcher between them, a brass foot rail on the players' side, a board that closes the underside, and the table's shadow
@@ -472,7 +472,7 @@ export function roomReflection() {
 // size: the table's size (sized); the rail's shadow on the felt follows the felt's edge.
 // bare: only the print, on a clear sheet: no ground, no dealer-side list and no rail shadow, for a table model that brings its own
 // cloth and lays this image over it (src/scene3d-bord02.ts).
-export type FeltPrint = {spots: Spot[]; logo: string; felt: string; scale: number; marks?: string; cloth?: TableCloth; camera?: FilmCamera; size?: TableSize; bare?: boolean};
+export type FeltPrint = {spots: Spot[]; logo: string; felt: string; scale: number; marks?: string; cloth?: TableCloth; camera: FilmCamera; size?: TableSize; bare?: boolean};
 // What the table offers what is set into its rail (createTable's group.userData.rail).
 export type RailLink = {leather: T.Material; follow(material: T.MeshStandardMaterial, own: number): void};
 export function createTable(lit: <M extends T.Material>(material: M) => M = m => m) {
@@ -616,10 +616,10 @@ export function createTable(lit: <M extends T.Material>(material: M) => M = m =>
       const half = g.measureText(logo).width / 2; g.lineWidth = 2; g.strokeStyle = GOLD; g.globalAlpha = 0.6; for (const d of [-1, 1]) { g.beginPath(); g.moveTo(X(0) + d * (half + 24), logoY); g.lineTo(X(0) + d * (half + 110), logoY); g.stroke(); }
       g.restore(); }
     // card places from the placement plan, at the plan's own card width; a bet circle in front of each seat's first card, with the seat's number
-    const cardW = 0.063 / print.scale * k, cardH = (real ? REAL_PRINT.card : 0.07) / print.scale * k, betOffset = (print.camera ? ringOffset(print.camera) : BET.offset) * k, betRadius = BET.radius * k;
+    const cardW = 0.063 / print.scale * k, cardH = (real ? REAL_PRINT.card : 0.07) / print.scale * k, betRadius = BET.radius * k;
     for (const p of print.spots) { const first = p.id.endsWith('C1'); g.save(); g.translate(X(p.x), Y(p.s)); g.strokeStyle = GOLD; g.globalAlpha = first ? 0.6 : 0.25; g.lineWidth = 3;
       if (on.has('boxes')) { g.beginPath(); g.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 8); g.stroke(); }
-      if (first && p.id[0] === 'P') { g.globalAlpha = 0.5; if (on.has('rings')) { g.beginPath(); g.arc(0, betOffset, betRadius, 0, 7); g.stroke(); }
+      if (first && p.id[0] === 'P') { const betOffset = ringOffset(print.camera, p) * k; g.globalAlpha = 0.5; if (on.has('rings')) { g.beginPath(); g.arc(0, betOffset, betRadius, 0, 7); g.stroke(); }
         if (on.has('numbers')) { g.font = `600 ${Math.round(0.02 * k)}px Georgia, serif`; g.fillStyle = GOLD; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(p.id[1], 0, betOffset); } }
       g.restore(); }
     texture.needsUpdate = true;
