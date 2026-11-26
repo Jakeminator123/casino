@@ -11,12 +11,12 @@
       "send": [
         "En gång per dealer och vilofilm: node tools/speech.ts bank --dealer paow",
         "En replik: node --env-file=.env.local tools/speech.ts say --dealer paow --line placebets (rösten läses hos ElevenLabs, munnen ritas, ansiktet läggs tillbaka i filmen)",
-        "Över en annan film, som munlapp: node tools/speech.ts over --dealer paow --film paow-giv-2-1-p4-04-01 --line goodluck",
+        "Över en annan film, som munlapp: node tools/speech.ts over --dealer paow --film paow-giv-2-3-p4-02-01 --line goodluck",
         "Många repliker i följd: node tools/speech.ts warm --dealer paow (håller renderern varm; den stänger sig efter fem minuter utan arbete)"
       ],
       "gives": "En hel talfilm i vila, eller en munlapp som spelet lägger på filmen medan den spelas; allt görs i förväg",
       "cost": "0 kr för grafikkortet; rösten betalas per tecken av det ElevenLabs-konto den ligger i",
-      "prepare": "En bank per film: 80–150 s på grafikkortet (mätt). Över en annan film tas bara filmer i 24 rutor/s (ingången, Kling-givarna, hålkortet halkort-04-02); filmer i 30 (WAN 3) kräver ett steg som inte är byggt",
+      "prepare": "En bank per film: 80–150 s på grafikkortet (mätt). Över en annan film tas bara filmer i 24 rutor/s (som Kling-givarna); filmer i 30 (WAN 3) kräver ett steg som inte är byggt",
       "runs": "today",
       "source": "tools/speech.ts och tools/speech-patch.ts (kommandona överst); docs/SYSTEM.md, Tal och munlappar"
     },
@@ -70,7 +70,7 @@
         "where": "Beslut 2026-11-17 kl. 21.38; versionerad profil och lokal hälsokontroll 2026-11-18"
       },
       "lines": {
-        "value": "den neutrala munnen: rendererns mun utan ritad underläpp (recipeOf i tools/speech.ts, Jakob 2026-11-21, anteckning 43 i Prov); spelet säger 24 av 25 repliker så, blackjack har kvar hans dömda tagning -04; vilket recept en tagning lades med står i dess kvitto",
+        "value": "den neutrala munnen: rendererns mun utan ritad underläpp (recipeOf i tools/speech.ts, Jakob 2026-11-21, anteckning 43 i Prov); spelet säger alla 25 repliker så (hans dömda blackjack -04 med den gamla munnen låg i trädet Casino, borttaget 2026-11-26); vilket recept en tagning lades med står i dess kvitto",
         "where": "tools/speech.ts (NEUTRAL_MOUTH, recipeOf)"
       },
       "runner": [
@@ -84,14 +84,14 @@
       "checks": [
         {
           "what": "Bank för Scoutgamings renderer",
-          "answer": "ja",
-          "note": "paow-v2 av vilan, och tre för munlappar: ingången, given till plats 4 och hålkortet",
-          "where": "Grundbilder nedan; assets/speech/paow/"
+          "answer": "nej",
+          "note": "paow-v2 byggdes 2026-11-13 av Casinos vila paow-vila-01-01, som togs bort med trädet Casino 2026-11-26; nästa bank byggs av Tatuerads vila paow-vila-tat-01-01 med node tools/speech.ts bank --dealer paow",
+          "where": "data/speech.json (rest); Grundbilder nedan"
         },
         {
           "what": "Repliker i spelet",
           "answer": "ja",
-          "note": "de tio en runda behöver och femton chattsvar i hennes egen röst, och fyra munlappar över filmer",
+          "note": "de tio en runda behöver och femton chattsvar i hennes egen röst; inga munlappar (de fyra låg på Casinos filmer och togs bort med trädet 2026-11-26)",
           "where": "data/speech-patches.json; docs/SYSTEM.md, Tal och munlappar"
         },
         {
@@ -190,7 +190,7 @@
     {
       "dealer": "paow",
       "bank": "paow-v2",
-      "use": "Alla repliker i vila (talfilmerna i spelet)",
+      "use": "Alla repliker i vila som finns (Tatuerads talfilmer är lagda tillbaka på paow-vila-tat-01-01); filmen togs bort med trädet Casino 2026-11-26",
       "film": "paow-vila-01-01",
       "frames": "ruta 3–114 (112 rutor)",
       "size": "1764 × 1174",
@@ -198,39 +198,6 @@
       "built": "2026-11-13",
       "reference": "Modellens förlaga för läpparna i varje ruta är den rutans egen bild ur filmen.",
       "where": "assets/speech/paow/bank/receipt.json"
-    },
-    {
-      "dealer": "paow",
-      "bank": "bank-paow-ingang-2-1-02-01",
-      "use": "Repliker över ingången (munlappar)",
-      "film": "paow-ingang-2-1-02-01",
-      "frames": "alla 97 rutor",
-      "size": "1764 × 1174",
-      "sha256": "ece306c06d59…",
-      "built": "2026-11-13",
-      "where": "assets/speech/paow/bank-paow-ingang-2-1-02-01/receipt.json"
-    },
-    {
-      "dealer": "paow",
-      "bank": "bank-paow-giv-2-1-p4-04-01",
-      "use": "Replik över given till plats 4 (munlapp)",
-      "film": "paow-giv-2-1-p4-04-01",
-      "frames": "alla 169 rutor",
-      "size": "1764 × 1174",
-      "sha256": "c14287343b02…",
-      "built": "2026-11-13",
-      "where": "assets/speech/paow/bank-paow-giv-2-1-p4-04-01/receipt.json"
-    },
-    {
-      "dealer": "paow",
-      "bank": "bank-paow-halkort-04-02",
-      "use": "Replik över hålkortets vändning (munlapp)",
-      "film": "paow-halkort-04-02",
-      "frames": "alla 121 rutor",
-      "size": "1764 × 1174",
-      "sha256": "19df879a1a64…",
-      "built": "2026-11-13",
-      "where": "assets/speech/paow/bank-paow-halkort-04-02/receipt.json"
     }
   ],
   "notUsedAsBase": [

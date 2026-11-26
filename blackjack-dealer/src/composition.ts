@@ -16,7 +16,7 @@
 //   - a seat's second card plays the film of its first, the drawn card laid at its own place (återbruk, the game's own rule).
 // Where the hand rests between steps is one tree's (the home): the one with rest films, the largest share first.
 //
-// Trees that rest on different pictures (A1) have different hands (Casino's are bare, Tatuerad's tattooed). Putting them
+// Trees that rest on different pictures (A1) have different hands (the removed tree Casino's were bare, Tatuerad's are tattooed). Putting them
 // together was refused from 2026-11-23 21.10; Jakob loosened it 2026-11-24 ("lossa detta förbud"): handsNote says it where
 // such a composition is listed, it is saved, and the game plays it when he chooses it (?komposition=). Nothing is mixed by
 // itself: without the word the game plays only trees in the state spelas. The bridges between rest pictures are theirs.
@@ -116,7 +116,7 @@ export type FilmChoice = {id: string; verdict: Verdict; percent: number};
 /**
  * One tree's part of a step. how: eget (the tree's own film of the step) or aterbruk (the film of the seat's first card, the
  * drawn card laid at its own place; of names that card). percent: the tree's share of the step among the trees that can play it.
- * via: the tree's other anchor at the shoe it is given from (Casino's seat 6 from A2.2).
+ * via: the tree's other anchor at the shoe it is given from (SEAT_HUB).
  */
 export type CoverPart = {tree: string; how: 'eget' | 'aterbruk'; percent: number; films: FilmChoice[]; of: string | null; via: string | null};
 export type CoverState = 'eget' | 'aterbruk' | 'lanat' | 'saknas';

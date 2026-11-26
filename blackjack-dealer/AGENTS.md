@@ -102,17 +102,22 @@ Jakob 2026-11-25: "alt skit som produceras ska som regel raderas". Allt en agent
 
 Allt annat raderas: det han underkänner eller själv tar bort, prov utan kort, leveranser som stannade på vägen och
 granskares förslag som inte gavs på hans uppdrag, om inget öppet orderutkast eller kort pekar på det. Radering går via
-papperskorgen `.runtime/papperskorg/` (14 dygn).
+papperskorgen `.runtime/papperskorg/` (14 dygn), eller till ett arkiv utanför repot som han har bett om.
 
 Det sker av sig självt: servern kör `node tools/media-thin.ts --auto` när den startar (planen, nivån säkert och
 papperskorgens dagar äldre än 14 dygn; logg i `.runtime/gallring.log`). Nivån säkert är regeln ovan: det han, en
 granskare på hans uppdrag eller en granskare utan det har underkänt, lösa filmer som inte är dömda bra och inte väntar
 på honom, äldre talfilmer där en nyare spelas, leveranser som aldrig blev en post och prov utan kort, med Runways
 leveranser, och byteidentiska filer som blir en fil. Efterarbetets kopior och hans sekundära alternativ är förslag på hans ord
-(`--kor --grupp <namn>`). `npm run gallra` visar planen (`.runtime/gallring/`). Spärren skyddar det spelet har,
-roller, original, referenser, noir-samlingen, filmen före spelet, det Beslut eller en öppen order nämner, det som väntar
-i Granska och allt yngre än tre dygn. `npm run media:status` skriver en översikt över lagringen och raderar
-inget. `npm run stada` raderar det i slasken som är äldre än sju dygn men lämnar `granska/` orörd.
+(`--kor --grupp <namn>`). `npm run gallra` visar planen (`.runtime/gallring/`). Spärren gäller det som sker av sig
+självt: gallringen tar aldrig det spelet har, roller, original, referenser, noir-samlingen, filmen före spelet, det
+Beslut eller en öppen order nämner, det som väntar i Granska eller något yngre än tre dygn. På hans uttryckliga ord, eller
+en agents på hans ord, tas också en film som spelet spelar eller som han dömt bra bort (Jakob 2026-11-26: "rensa så att
+'spelande filmer inte kan raderas' faktiskt kan raderas"): `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>"`,
+till papperskorgen eller med `--arkiv <mapp>` till ett arkiv utanför repot. Det ett register fortfarande pekar på (en roll
+i Material, en munlapp, ett träd, en komposition, Beslut, utgåvan, ett orderutkast) tas bort först; noir-samlingen, V6,
+original och referenser rörs aldrig. `npm run media:status` skriver en översikt över lagringen och raderar inget.
+`npm run stada` raderar det i slasken som är äldre än sju dygn men lämnar `granska/` orörd.
 
 ## Slasken och `.runtime/`
 

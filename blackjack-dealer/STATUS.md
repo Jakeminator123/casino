@@ -5,25 +5,29 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 ## Läget
 
 - **Datorn:** Jakob började om här 2026-11-25; det på den stationära kopieras inte hit, utom en enskild godkänd fil han
-  ber om. I `assets/` ligger bara det som hämtades ur Blob samma dag (258 filer, cirka 1,2 GB, varje fil kontrollerad mot
-  sin SHA-256): Paows filmer som kopian spelade och de bra filmerna i nodträdet som Blob hade, rummen, introfilmen och
-  brickan. Registren rensades samma dag: det som pekade på media som varken finns här eller i Blob är borta, liksom
-  Pamelas och V6:s hashlista i `data/manifest.json` (arkivet har sitt eget kvitto); hans domar på borttagna tagningar
-  står i `data/motions-removed.jsonl`. Utan fil här står nu bara det som väntar på honom (nedan), 49 tagningar vars film
-  finns i Blob (sekundära och underkända), de låsta beställningarna och ursprungsuppgifter (kvitton, källbilder, scenens
-  mätkällor). Alla kort i Beslut är besvarade. Nätdelen vilar; kopian på nätet står på `c9d006d` från 2026-11-20, och
-  Blob (`dealer-studio-media`) har kvar cirka 1,3 GB som inget använder: äldre utgåvors filmer, Pamelas filmer och
-  provfilmer.
+  ber om. I `assets/` ligger det tatuerade som hämtades ur Blob eller återskapades ur Runway (382 filer, cirka 0,67 GB,
+  varje fil kontrollerad mot sin SHA-256): Tatuerads filmer, ankarna, rummen, introfilmen och brickan. Hans domar på
+  borttagna tagningar står i `data/motions-removed.jsonl`. De otatuerade händerna togs bort 2026-11-26 på hans ord
+  ("radera alla filmer och referenser till och med de filmer som härrör till och från nodträdet Casino"): trädet Casino
+  med 281 poster, helfigursfilmerna in och ut, 144 filmer här (1,1 GB), deras roller och bilder i Material, 97
+  beställningar, de fyra munlapparna och kortspåren. Kopian, kontrollerad mot SHA-256, ligger i mappen
+  `casino-otatuerad-arkiv` bredvid repots mapp; `innehall.json` där säger vad varje fil är, med träd, steg och dom. Utan
+  fil här står nu bara det som väntar på honom (nedan), de låsta beställningarna och ursprungsuppgifter (kvitton,
+  källbilder, scenens mätkällor). Alla kort i Beslut är besvarade. Nätdelen vilar; kopian på nätet står på `c9d006d`
+  från 2026-11-20, och Blob (`dealer-studio-media`) har kvar cirka 1,3 GB som inget här använder: äldre utgåvors filmer,
+  Pamelas filmer, provfilmer och 49 av Casinos talfilmer.
 - **Dealern** är Paow, med de tatuerade händerna (Jakob 2026-11-24: "vi ska köra enbart med hennes nya händer och de
   tatuerade klippen"). Pamela och V6 är arkiverade utanför repot (2026-11-20, 2026-11-23).
 - **Film:** metoden som håller (2026-11-23): giv och återgång i en film, Kling 4, 4 s, första bild A2.3
   (`paow-ankare-2-3-d`), sista bild samma med kortet på platsen, dockans byggda film som referens. Från A2.1
-  (`paow-nyp-tatuerad`) underkände han fem av sex givar 2026-11-24 ("MÅSTE FINNAS METODFEL"). A2.2 och
-  landningsbilderna (A3) är arkiverade (2026-11-23, 2026-11-24).
-- **Karta:** två träd (2026-11-26): Casino (vilar; filmen före spelet är dess början, förut trädet Ingången) och
-  Tatuerad (spelas) med två grenar från samma A1: A2.3, skjutet (21 av 36 steg, det spelet spelar), och A2.1, nypet
-  (`tatuerad-nyp`, byggs, 9 av 36). En lista överst väljer ett träd, nätet (Alla träd) eller en komposition;
-  `tatuerad-skjut-nyp` bestämmer hur ofta varje gren spelas.
+  (`paow-nyp-tatuerad`) underkände han fem av sex givar 2026-11-24 ("MÅSTE FINNAS METODFEL"). A2.2 är arkiverad
+  (2026-11-23). A2.3:s äldre versioner (a, b, c med blicken åt sidan, utan vit linje), landningsbilderna (A3) och filmerna
+  som bara stod på dem är borta sedan 2026-11-26 (Jakob: "om en ny version i bokstavslogiken du har övertar en tidigare
+  så ska ju tidigare raderas"); ingen av dem spelades, och kopian ligger i arkivets `aldre-versioner/`.
+- **Karta:** ett träd, Tatuerad (spelas), med två grenar från samma A1: A2.3, skjutet (21 av 36 steg, det spelet
+  spelar), och A2.1, nypet (`tatuerad-nyp`, byggs, 9 av 36). Trädet Casino med de otatuerade händerna är borta
+  (2026-11-26); filmen före spelet står kvar för sig, utan träd. En lista överst väljer ett träd, nätet (Alla träd) eller
+  en komposition; `tatuerad-skjut-nyp` bestämmer hur ofta varje gren spelas.
 - **Kort:** ett kort per sida med märkena överallt; kortplanen i verkligt perspektiv genom filmens lins (Standard), som spelet och
   scenen följer. Det styva kortet utan vit kant har hans ja i Scen (2026-11-23).
 - **Studion:** ramen har neutral grafit och en meny med ett namn per rad (2026-11-25), väntar på hans ord om
@@ -47,9 +51,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   kort hos dockan), dockans sko (lägre baktill än filmens, 15–17 px), dockans huvud (något högre och smalare än
   hennes) och att dockan inte läser ett korts riktning ur planen. Dockans bord ritar markerlådan som en mörk försänkning
   med standardens mått.
-- **Spelet** spelar trädet Tatuerad med nödlösningar där film saknas (`STAND_IN_FILM`, `SEAT_HUB`). Realtidsmunnen
-  (storlek F) har hans ja men når 12–13 rutor/s på hans RTX 3060 mot 24. Den neutrala munnen gäller Paows repliker utom
-  blackjack (`paow-tal-blackjack-sv-04`, hans dom). Trailern är pausad (2026-11-17).
+- **Spelet** spelar trädet Tatuerad med nödlösningar där film saknas (`STAND_IN_FILM`). Realtidsmunnen
+  (storlek F) har hans ja men når 12–13 rutor/s på hans RTX 3060 mot 24. Den neutrala munnen gäller alla Paows repliker
+  (hans dömda blackjack med den gamla munnen låg i trädet Casino och finns i arkivet). Dealerbytet har ingen film sedan
+  helfigursfilmerna med de otatuerade händerna togs bort (2026-11-26): spelet hoppar över det och säger att filmen
+  saknas. Inga munlappar: alla fyra låg på Casinos filmer. Trailern är pausad (2026-11-17).
 - **3D-dockan:** en dockfilm görs i ett steg (`node tools/doll-order.ts paow P5.C1`, alltid från A2.3; nypet med
   `--fran a2-1`); givarna från A2.3 följer dockan svep24d, given från A2.1 `dealer3d/src/pinch-deal.ts`. Jakob
   2026-11-23: "Jag gillar verkligen docklabbet!" Dockan är kod (cylindrar och kulor ur mått, inget skelett) och
@@ -80,13 +86,14 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    handleden i vändningen; P7.C1:s vändning (förvalet 17 rutor, hans undanlagda standard 11); ställningen A2.1, där
    lång-, ring- och lillfingret ligger upp till 34 mm inne i skons kropp redan i första rutan
    (`dealer3d/data/ankare-2-1-paow.json`; lillfingrets topp syns som en vit prick i P7.C1, ruta 16–17); ett stängt nyp
-   (dockan lägger inget stängt kort från A2.1, fast hon gör det i `paow-giv-2-1-d-01-01`); en kropp som lutar sig mot
+   (dockan lägger inget stängt kort från A2.1, fast hon gjorde det i den otatuerade `paow-giv-2-1-d-01-01`, nu i
+   arkivet); en kropp som lutar sig mot
    plats 1–2; SAM-dockan ("Ja bygg den riktiga SAM-dockan", 2026-11-23).
 3. **Karta:** bryggorna för nypet (A2.1 → A1, A2.1 ↔ A2.3); kameran som en dimension (2026-11-23); kort 3–7
    återbrukar bara kort 2.
 4. **Spelet:** bara trädet när filmerna finns (lånen stryks), och en hel giv får hans ja i spelstorlek. För talet är
    läpparna i realtid på hans RunPod huvudmålet (2026-11-17), och talfilmerna förs in i nodträdet (2026-11-24). Hans
-   idé, obyggd: munnen ur hennes egen leendefilm `paow-vila-03-01`. Mungiporna och överläppen är inte lösta i hans ögon.
+   idé, obyggd: munnen ur hennes egen leendefilm (Tatuerads `paow-vila-tat-03-01`). Mungiporna och överläppen är inte lösta i hans ögon.
 5. **Kort:** kortets efterarbete i förväg per film (2026-11-17); grafiken på kortet prövad mot alla filmer
    (2026-11-23, `/kortlandning.html`).
 6. **Studion:** färre val, det uppenbart dubbla bort först: Casinos adress `/game/`, och verktygens meddelanden till
@@ -159,9 +166,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   vill ha Blenders vy; proven är raderade och hans ord står som krav i `../standarddocka/AGENTS.md`. Arbetet med
   bordet, blicken och rörelserna sker i `../standarddocka/` och visas för honom som prov härifrån.
 - Det som bara finns på den stationära, och som registren behåller tills han har bestämt om det kopieras hit eller görs
-  nytt: 82 bra tagningar utan film (Tatuerad 54, varav alla 25 talfilmer, vilan `paow-vila-tat-09-01` och fem delade
-  vilor; Casinos talfilmer (24 av 25); 3 utanför träden), ankarnas originalfiler, keystones och hans egna
-  bilder, kortets textur, 43 av dockans referensfilmer och spelets fyra munlappar. En beställning behöver texturen och
+  nytt: 51 bra tagningar utan film (alla Tatuerads, varav alla 25 talfilmer, vilan `paow-vila-tat-09-01` och fem delade
+  vilor), ankarnas originalfiler, keystones och hans egna bilder, kortets textur och 43 av dockans
+  referensfilmer. Talets nästa replik behöver en bank av Tatuerads vila `paow-vila-tat-01-01` (`data/speech.json`;
+  Casinos vila, som banken var byggd av, är borta). En beställning behöver texturen och
   dockans filmer.
 - Återskapat här ur Runways leveranser (2026-11-25; Runway behåller en leverans cirka fem dygn, och den hämtas gratis
   med uppdragets id): ankarna A1 `paow-vila-tatuerad`, A2.1 `paow-nyp-tatuerad`, A2.3 `paow-ankare-2-3-d`, `-c` och
@@ -169,15 +177,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   på disken för 20 av 36 steg, Tatuerad nyp för alla sina 8. Samma rutor som originalen men inte samma filer:
   posterna bär de nya filernas sha256, domarna är orörda, och ursprunget står i `assets/motions/<klipp>/generation.json`
   och ankarnas `receipt.json`.
-- Kortet `a21-marke` i Beslut (2026-11-26): A2.1 med kortets märke, kandidaten `paow-nyp-tatuerad-marke` (provet
-  `a21-marke-20261126`). Med hans ja får beställningar från A2.1 märkta kort.
-- Fem stolfilmer ur Runway utan post och utan dom i `../slask/blackjack-dealer/granska/runway-20261125/` (stol 1,
-  stol 2 två, stol 7 två; stol 2 har ingen annan film): döms och förs in, eller raderas. Stol 6:s film väntar i Granska.
-- Handbytet: bilderna före och efter i `../slask/blackjack-dealer/granska/handled/` väntar på hans ögon. Paows 15 sparade
+- Dockans standarder: Paows 15 sparade
   standarder är undanlagda på hans ord (2026-11-26, `dealer3d/standard/undanlagda/2026-11-26-011850/`): förvalet
   gäller på varje plats, och den förra tas tillbaka med Ta tillbaka den förra på dockans sida. Provet
-  `nyp-leken-20261126` visar att kortet inte längre går in i leken i skon, och provet `nyp-plats-1-2-20261126` nypet
-  till plats 1 och 2 bredvid hennes filmer (2026-11-26; dockan vänder kortet i luften, hon vid platsen).
+  `nyp-plats-1-2-20261126` visar nypet till plats 1 och 2 bredvid hennes filmer (dockan vänder kortet i luften, hon
+  vid platsen).
 - Hans ögon på spelvyn och linsen i Scen (2026-11-26): gruppen Spelvy (Visa Inspelningen, Dator eller Mobil; Spara
   som spelvy) och Lins under Bord. Spelet utan valt utseende och grundutseendena följer nu spelvyns Dator (9,7°
   lutning i stället för 8°); Jakob-1 och Profilval 1 har kvar sin egen inramning på dator. På mobil gäller alltid
@@ -194,10 +198,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   stegen RETUR och 2.2 lever kvar där för de sparade beställningarnas skull); och om 3D-banans äldre verktyg som kräver
   SAM-uppsättningen på den stationära ska vara kvar (`dealer3d/tools/docka-sam.py`, `docka-mat.ts`, `docka-jamfor.ts`,
   `lift.ts`, `deal-film.ts`, `pose-film.ts`, `doll-pose.ts`, `docka-hand.ts`).
-- Trädet Tatuerad har ingen egen film för A2.3 → A3P4C2: de godkända tagningarna dit (`…-p4-c2-h24-cykel-…`,
-  `…-p4-c2-stol-…`) ligger inte i trädet, så Inspelning och Scen visar den spelet spelar. Han väljer om de ska in.
+- Trädet Tatuerad har ingen egen film för A2.3 → A3P4C2: de godkända tagningarna dit (`…-p4-c2-stol-…`) är stolarnas
+  och spelas inte rakt, så Inspelning och Scen visar den spelet spelar. Han väljer om de ska in.
 - Hans dom på `paow-giv-2-3-d-03-01` och `paow-halkort-05-01` (filmerna finns nu här). På den stationära: den neutrala
-  `paow-tal-blackjack-sv-14`, stolsserien (Prov `stolsserien-p4c2-20261124`) och andelarna för skjut och nyp i Karta.
+  blackjack-repliken (`paow-tal-blackjack-tat-sv-01`), stolsserien (Prov `stolsserien-p4c2-20261124`) och andelarna för skjut och nyp i Karta.
 
 ## Kända brister
 

@@ -117,6 +117,11 @@ Allt annat raderas: det han underkänner eller själv tar bort, prov ingen fråg
 vägen och granskares förslag som inte gavs på hans uppdrag, om ingen agent har uppgiften att arbeta om det. Hur det
 görs står i projektets `AGENTS.md`.
 
+Det avgjorda raderas genast, av den som utförde det (Jakob 2026-11-26: "Väldigt mycket ska ofta RADERAS"): ett prov när
+ändringen är gjord eller frågan besvarad, en kandidat han har valt bort, en äldre version när en ny har tagit över, en
+sida eller mapp som inget längre använder, ett arbetsunderlag när arbetet är pushat. Vänta inte på en automatisk
+gallring, och lägg inget undan för säkerhets skull: en kopia eller ett arkiv görs bara när han ber om det.
+
 ## Slasken
 
 - `slask/` här är stället för det som är tillfälligt, framför allt det som produceras (filmer, bilder, 3D-modeller)

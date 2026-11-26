@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { committedFiles } from './committed.ts';
+import { committedFiles, committedText } from './committed.ts';
 import { createHash } from 'node:crypto';
 import {
   archivedReferenceIds, STEPS, agentSpentOn, canonical, checkPolicy, costOf, cutFrameOf, dayOf, groupBudget, hashInput, isArchived,
@@ -18,7 +18,7 @@ const policy = async () => JSON.parse(await readFile('data/order-policy.json', '
 async function drafts(): Promise<Order[]> {
   const out: Order[] = [];
   // The orders the repo holds: a draft of Jakob's that is not committed yet is his, and the lab judges it (tools/committed.ts).
-  for (const file of committedFiles('data/orders').filter((f) => f.endsWith('.json'))) out.push(JSON.parse(await readFile(file, 'utf8')));
+  for (const file of committedFiles('data/orders').filter((f) => f.endsWith('.json'))) out.push(JSON.parse(committedText(file)));
   return out;
 }
 

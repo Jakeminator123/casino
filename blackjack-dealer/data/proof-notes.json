@@ -1122,7 +1122,8 @@
       "file": "6-fran-sidan-standarddockan-och-paows-docka.png",
       "choice": "inte-bra",
       "text": "",
-      "at": "2026-11-26T00:50:21.805Z"
+      "at": "2026-11-26T00:50:21.805Z",
+      "read": "2026-11-26T02:09:39.714Z"
     },
     {
       "id": 121,
@@ -1130,7 +1131,8 @@
       "file": "1-vita-dockan-med-underkropp-och-pall.png",
       "choice": "inte-bra",
       "text": "",
-      "at": "2026-11-26T00:50:27.255Z"
+      "at": "2026-11-26T00:50:27.255Z",
+      "read": "2026-11-26T02:09:39.943Z"
     },
     {
       "id": 122,
@@ -1138,7 +1140,8 @@
       "file": "2-standarddockans-kropp-vid-skon.png",
       "choice": "inte-bra",
       "text": "",
-      "at": "2026-11-26T00:50:29.262Z"
+      "at": "2026-11-26T00:50:29.262Z",
+      "read": "2026-11-26T02:09:40.138Z"
     },
     {
       "id": 123,
@@ -1146,7 +1149,8 @@
       "file": "3-standarddockans-kropp-i-handbytet.png",
       "choice": "inte-bra",
       "text": "",
-      "at": "2026-11-26T00:50:31.050Z"
+      "at": "2026-11-26T00:50:31.050Z",
+      "read": "2026-11-26T02:09:40.348Z"
     },
     {
       "id": 124,
@@ -1154,7 +1158,8 @@
       "file": "5-handerna-i-handbytet-vit-docka-och-kropp.png",
       "choice": "inte-bra",
       "text": "",
-      "at": "2026-11-26T00:50:39.068Z"
+      "at": "2026-11-26T00:50:39.068Z",
+      "read": "2026-11-26T02:09:40.589Z"
     },
     {
       "id": 125,
@@ -1162,7 +1167,8 @@
       "file": "4-handerna-vid-skon-vit-docka-och-kropp.png",
       "choice": "inte-bra",
       "text": "",
-      "at": "2026-11-26T00:50:41.244Z"
+      "at": "2026-11-26T00:50:41.244Z",
+      "read": "2026-11-26T02:09:40.826Z"
     },
     {
       "id": 126,
@@ -1170,7 +1176,12 @@
       "file": "3-mannen-ger-ett-kort-till-plats-4.mp4",
       "choice": null,
       "text": "Är som ett litet hack i filmen på 50/120, som fösöker kompensera för att fingrarna inte är på rätt sida",
-      "at": "2026-11-26T01:02:39.135Z"
+      "at": "2026-11-26T01:02:39.135Z",
+      "answer": {
+        "text": "Hacket kommer av att fingrarna hamnar på fel sida och rättas till mitt i. Rörelsen görs om med fingrarna rätt från början.",
+        "at": "2026-11-26T02:09:39.452Z"
+      },
+      "read": "2026-11-26T02:09:39.452Z"
     },
     {
       "id": 127,
@@ -1178,7 +1189,8 @@
       "file": "1-fran-sidan-bordet-idag-och-15-cm-narmare.png",
       "choice": null,
       "text": "Markerhållaren har inte förskjutiits bak",
-      "at": "2026-11-26T01:03:03.584Z"
+      "at": "2026-11-26T01:03:03.584Z",
+      "read": "2026-11-26T02:09:41.076Z"
     },
     {
       "id": 128,
@@ -1186,7 +1198,8 @@
       "file": "2-filmens-kamera-bordet-idag-och-15-cm-narmare.png",
       "choice": "bra",
       "text": "markerbrädan har inte gått bak som bordet",
-      "at": "2026-11-26T01:03:45.790Z"
+      "at": "2026-11-26T01:03:45.790Z",
+      "read": "2026-11-26T02:09:41.302Z"
     },
     {
       "id": 129,
@@ -1194,7 +1207,8 @@
       "file": "4-stillbild-ur-filmen-kortet-laggs.png",
       "choice": null,
       "text": "markerhållaren återigen, men bra",
-      "at": "2026-11-26T01:04:11.848Z"
+      "at": "2026-11-26T01:04:11.848Z",
+      "read": "2026-11-26T02:09:41.527Z"
     },
     {
       "id": 130,
@@ -1202,7 +1216,65 @@
       "file": null,
       "choice": null,
       "text": "Förstår inte grundorsaken, för lixom är som förinställt att detta ska vara såhär på dena elelr likannde filmer, men återigen så är dealerns egna högerarm för vriden, med andra ord så ska standarden vara att dennes högerarm ska med hjälp av tummen ta emot kortet som sedan skjuts och vänds över än att hela handleden ska vridas i maxläge som är onaturligt, elelr snudd på runt frame 27 ser man dettta",
-      "at": "2026-11-26T01:06:15.764Z"
+      "at": "2026-11-26T01:06:15.764Z",
+      "answer": {
+        "text": "Taget som regel för standarddockan: högerhanden tar emot kortet med tummen och handleden vrids inte i maxläge. Rörelsen görs om så i den nya mappen standarddocka.",
+        "at": "2026-11-26T02:09:38.685Z"
+      },
+      "read": "2026-11-26T02:09:38.685Z"
+    },
+    {
+      "id": 131,
+      "proof": "standarddocka-miljo-20261126",
+      "file": "1-blender-mannen-vid-bordet-hela-miljon.png",
+      "choice": null,
+      "text": "Sitter inte i \"vila/A1\" som jag trodde alal startpossitioner skulle\". BOrdet här gillar jag, men r i grunden fel som standardbord då det har som en bortfal runt magen, vilket kanske beror på at markerbrickan ska vara där, som då i så fall nu skulle vara instoppat i bordet",
+      "at": "2026-11-26T01:23:34.671Z",
+      "answer": {
+        "text": "Vilan (A1) blir startläget i den nya vyn, och bordet görs helt mot dealern med markerbrickan nedsänkt inne i bordet.",
+        "at": "2026-11-26T02:09:38.934Z"
+      },
+      "read": "2026-11-26T02:09:38.934Z"
+    },
+    {
+      "id": 132,
+      "proof": "standarddocka-miljo-20261126",
+      "file": "2-blender-mannen-genom-filmens-kamera.png",
+      "choice": null,
+      "text": "Sama kritik som tidigare för blendermannen. Men här se man också att vinkeln int är naturlig utifrån att man skulle spela i casinot. Dock om vi kan vinkla ned vyn till när mn ska spela sp går deta å andra sidan..",
+      "at": "2026-11-26T01:24:39.184Z",
+      "read": "2026-11-26T02:09:41.760Z"
+    },
+    {
+      "id": 133,
+      "proof": "standarddocka-miljo-20261126",
+      "file": "3-studion-mannen-vid-bordet-fran-tva-hall.png",
+      "choice": null,
+      "text": "En \"karm\" finns som gör at armen från dealern går igenom karmen ungefär vid armbogen av framförallt dealerns egna högerarm",
+      "at": "2026-11-26T01:25:33.856Z",
+      "read": "2026-11-26T02:09:41.961Z"
+    },
+    {
+      "id": 134,
+      "proof": "standarddocka-miljo-20261126",
+      "file": "4-studion-mannen-filmens-kamera-och-fran-sidan.png",
+      "choice": null,
+      "text": "En \"karm\" finns som gör at armen från dealern går igenom karmen ungefär vid armbogen av framförallt dealerns egna högerarm och vänsterarm",
+      "at": "2026-11-26T01:25:54.757Z",
+      "answer": {
+        "text": "Armarna ska gå över bordskanten, aldrig genom den. Rättas i den nya vyn.",
+        "at": "2026-11-26T02:09:39.188Z"
+      },
+      "read": "2026-11-26T02:09:39.188Z"
+    },
+    {
+      "id": 135,
+      "proof": "standarddocka-miljo-20261126",
+      "file": "5-studion-paow-vid-samma-bord.png",
+      "choice": "inte-bra",
+      "text": "Paows arm är helt konstig",
+      "at": "2026-11-26T01:26:24.223Z",
+      "read": "2026-11-26T02:09:42.216Z"
     }
   ]
 }

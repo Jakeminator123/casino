@@ -11,7 +11,7 @@
 //                     (data/media-roles.json), an order's folder (data/orders/<id>.json), anything named by its exact id in Beslut,
 //                     data/studio-release.json or a document or instruction, a proof changed today, the card track a
 //                     played film needs, the scene's rooms, table and
-//                     props (data/scene-*.json, data/props.json), the lab's backdrops (src/placement-model.ts)
+//                     props (data/scene-*.json, data/props.json)
 //   referens          kept by the rules: data/manifest.json, a reference in Material, and the first or last picture of a
 //                     film that plays
 //   bara registrerad  a register names it, but nothing plays it, shows it as living work or builds on it
@@ -197,9 +197,8 @@ export function audit(repo: string): {items: Item[]; judged: Map<string, string>
   // Mouth patches the game lays on its films.
   for (const p of list(json('data/speech-patches.json')?.patches) as {path?: string; film?: string; id: string}[]) if (p.path && p.film && playedClips.has(/assets\/motions\/([^/]+)\//.exec(p.film)?.[1] ?? '')) claims.push({path: p.path, use: 'spelas', why: `data/speech-patches.json ${p.id}`});
   else if (p.path) claims.push({path: p.path, use: 'bara registrerad', why: `data/speech-patches.json ${p.id} (filmen spelas inte)`});
-  // What the game's own code loads, and the lab's backdrops.
+  // What the game's own code loads.
   for (const f of readdirSync(path.join(repo, 'src')).filter(f => /^(game|scene3d)[-a-z0-9]*\.ts$/.test(f) && !f.includes('test'))) for (const p of pathsIn(read(`src/${f}`))) if (!p.includes('$')) claims.push({path: p, use: 'spelas', why: `src/${f} laddar den`});
-  for (const p of pathsIn(read('src/placement-model.ts'))) claims.push({path: p, use: 'visas', why: 'src/placement-model.ts (labbets bakgrund)'});
   // Material.
   claims.push(...roleClaims(json('data/media-roles.json'), playedClips));
   // Orders: a folder per order record.

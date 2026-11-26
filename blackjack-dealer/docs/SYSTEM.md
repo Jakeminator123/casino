@@ -124,7 +124,8 @@ och kopian kör motorn i sidan (`cloud/studio/game-local.ts`). Hålkortets valö
   `tools/game-view.test.ts`.
 - **Spelets bank** (`judgedBank` i `src/game-director.ts`): bara tagningar med dom, utan `review.labOnly` och inte
   arkiverade. Utan `?trad=` spelas bara träd med läget `spelas`. Saknas en film: retur till vila via `READY>IDLE`,
-  kortet med filmen i `STAND_IN_FILM`, plats från A2.2 enligt `SEAT_HUB`; luckorna står i `window.game.gaps`. Efter
+  kortet med filmen i `STAND_IN_FILM`, en plats från ett annat ankare vid skon enligt `SEAT_HUB` när de fyra filmerna dit
+  finns; luckorna står i `window.game.gaps`, också dealerbytet utan film (hon går och kommer). Efter
   en giv väljs en retur med handen som lade kortet (`motion.releaseHand`). Dealerns första kort (D.C1) ligger stängt
   och D.C2 öppet (Jakob 2026-11-24).
 - **Dela ut går före väntande vilor** (Jakob 2026-11-23): vilan som visas spelas klart och ingången är nästa film

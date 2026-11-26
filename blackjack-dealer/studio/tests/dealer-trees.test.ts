@@ -160,8 +160,8 @@ test("the tree's nodes: a picture from Material or an empty box, with his short 
 // What a step shows (Jakob 2026-11-24 at A3P7C1: no film there "actually deals the card the way the return is"): the views
 // showed each step's best film by verdict alone, the game plays a deal with the return cut from it. On made-up films of a tree
 // on A2.3 with an A2.2: seat 7 has a rejected deal with an approved return and a newer deal and return that are variants;
-// seat 5 two approved pairs; seat 6 an approved pair of the tree's own and one from A2.2, where Paow's game deals the seat
-// from (SEAT_HUB); seat 4 a deal that waits and one rejected; seat 3 a rejected deal.
+// seat 5 two approved pairs; seat 6 an approved pair of the tree's own and one from A2.2, which no game deals the seat
+// from any longer; seat 4 a deal that waits and one rejected; seat 3 a rejected deal.
 test("a step's shown return continues its shown deal, and both are the films the game plays in the tree", () => {
   type Made = { id: string; clip: string; frames: [number, number]; from: string; to: string; decision?: string; variant?: boolean };
   const pair = (seat: number, word: string, from: string, deal: Partial<Made> = {}, back: Partial<Made> = {}): Made[] => [
@@ -208,10 +208,11 @@ test("a step's shown return continues its shown deal, and both are the films the
   assert.deepEqual(shown("P7.C1").films, ["p7-new-deal", "p7-new-back"], "the variant deal with its own return, not the approved return of a rejected deal");
   assert.deepEqual([shown("P7.C1").back.verdict, shown("P7.C1").back.state], ["variant", "finns"], "the step says the shown film's verdict");
   assert.deepEqual(shown("P5.C1").films, ["p5-b-deal", "p5-b-back"], "among equals the game plays the newest pair");
-  // Seat 6: the game deals it from A2.2 when that pose's four films play, so both steps show A2.2's films, given from there.
-  const six = shown("P6.C1"), fromB = hubChain(game, "READY-B", "P6.C1");
-  assert.deepEqual(six.films, fromB?.slice(1, 3).map((s) => s.take?.id), "the deal and the return the game plays from A2.2");
-  assert.deepEqual([six.films, six.deal.via, six.back.via], [["p6-b-deal", "p6-b-back"], "READY-B", "READY-B"]);
+  // Seat 6 has a pair of the tree's own and one from A2.2. No seat is dealt from another anchor since the tree with A2.2
+  // went (SEAT_HUB is empty, 2026-11-26), so the step shows the tree's own pair, as the game plays it.
+  const six = shown("P6.C1");
+  assert.deepEqual(six.films, plays([{ from: "READY", to: "P6.C1" }, { from: "P6.C1", to: "READY" }]), "P6.C1: the view shows the game's deal and return");
+  assert.deepEqual(six.films, ["p6-own-deal", "p6-own-back"]);
   assert.ok(returnFits(all.takes[six.back.take!], all.takes[six.deal.take!]));
 
   // Only which film is shown changes: every step keeps its state and its films, the shown one first; a step without an approved film is as it was.

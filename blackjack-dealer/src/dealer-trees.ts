@@ -1,6 +1,6 @@
 // The dealer's named trees (data/dealer-trees.json) as Jakob reads them: a tree's nodes (A1, its anchors at the shoe, an
 // A3 per player and card) and its 36 steps against his measure (Jakob 2026-11-21: "en giv per kort för respektive
-// spelare"), each with its state, and the one number per tree ("Casino 22/36"). Pure: no file system, no DOM, no network.
+// spelare"), each with its state, and the one number per tree ("Tatuerad 21/36"). Pure: no file system, no DOM, no network.
 // The lab server places the films in the trees (tools/dealer-tree.ts, GET /api/trees) and calls treeView; the studio draws
 // the answer (Karta) and counts with treeCount (the rail); the game plays one tree with cutBank (?trad=<id>, src/game-page.ts),
 // and without a tree word plays the trees that are spelas (gameBank: one such tree exactly as ?trad=, the others left out).
@@ -15,7 +15,7 @@
 //   vila A1 → A1 · ingång A1 → A2.x · 16 givar A2.x → A3 (P1–P7 kort 1 och 2, dealerns DC1 och DC2) · 16 returer A3 → A2.x
 //   · utgång A2.x → A1 · hålkortet A1 → DC1 upp.
 // The return A3 → A1 is not counted: a round goes back to the shoe and leaves by the exit. DC3, Borta and the seats' side
-// cameras are not counted. A tree's other A2.x anchors stand in for a step its own anchor lacks (Casino gives P6C1 from A2.2).
+// cameras are not counted. A tree's other A2.x anchors stand in for a step its own anchor lacks.
 //
 // A step's state: finns (a film Primär, Godkänd or Variant, his or given for him), prov (a film delivered and not yet judged,
 // or an order delivered that is not in the bank yet), saknas (nothing, or only films judged Inte bra). Verdicts and Primär
@@ -141,7 +141,7 @@ export function measure(hub: string): MeasureStep[] {
 }
 
 // ── The tree's nodes ────────────────────────────────────────────────────────
-/** The tree whose anchors and films a tree plays: the one it shares (no tree does since Ingången became the Casino's opening, 2026-11-26), else itself. */
+/** The tree whose anchors and films a tree plays: the one it shares (no tree does today), else itself. */
 export const homeOf = (tree: TreeDef, trees: readonly TreeDef[]): TreeDef => (tree.shares ? (trees.find((t) => t.id === tree.shares) ?? tree) : tree);
 
 /** The tree's levels from one camera: each node its anchors seen from there stand for, with the first anchor given for it. */
@@ -241,7 +241,7 @@ export type StepState = 'finns' | 'prov' | 'saknas';
  * The shown film is the one the game plays on the step in the tree (gameFilm), so a return is the one that continues the
  * deal shown for its card; where the game plays none of the step's approved films, its best by verdict, the tree's own
  * before a stand-in's, and with none approved the tree's first film that waits for his verdict. With the game's graph a
- * stand-in counts only where the game plays it (Casino's A2.2 for P6C1); without it, as the verdicts say. noFile: the shown
+ * stand-in counts only where the game plays it (SEAT_HUB); without it, as the verdicts say. noFile: the shown
  * film's file is not on this machine (the game has a gap there here).
  */
 export type TreeStep = MeasureStep & { name: string; state: StepState; take: string | null; verdict: Verdict | null; byJakob: boolean; provisional: boolean; via: string | null; takes: number; ids: string[]; deliveries: string[]; noFile?: boolean };
@@ -362,7 +362,7 @@ export type TreeView = {
   cut?: { own: string[]; drop: string[] };
   /**
    * Each of its other anchors at the shoe (others) measured on its own, with the tree's films that stand on it: Karta's net
-   * draws them as branches of A1 (the Casino's A2.2 has its entry, exit and two deals). Left out where there are none.
+   * draws them as branches of A1. Left out where there are none.
    */
   otherSteps?: { hub: string; steps: TreeStep[] }[];
   /**
@@ -380,7 +380,7 @@ export function waysOf(views: readonly TreeView[], id: string): TreeView[] {
 }
 /**
  * A deal to a card in a tree, from one of its anchors at the shoe: way: the way's id (its view, ?trad=); hub: the anchor at the
- * shoe; helper: an anchor of the tree that only stands in for some steps (otherSteps: the Casino's A2.2); state, take, verdict,
+ * shoe; helper: an anchor of the tree that only stands in for some steps (otherSteps); state, take, verdict,
  * via and noFile as the deal's step says them; back: the film of the return the step shows after it.
  */
 export type CardDeal = { way: string; hub: string; helper: boolean; state: StepState; take: string | null; verdict: Verdict | null; via: string | null; back: string | null; noFile?: boolean };

@@ -26,7 +26,7 @@ Kommandon körs från `blackjack-dealer/`; sökvägar räknas från casino-roten
 - **Det han väntar på** läggs också i `blackjack-dealer/STATUS.md`, under "Väntar på Jakob", tills det är besvarat.
 - En stillbild bredvid varje film, eftersom filmer kan se utfrätta ut i hans flik. Ett nytt utseende för alla, till
   exempel läpparna, visas i spelets storlek och i rörelse och kräver hans ja; granskarnas poäng räcker inte
-  (2026-11-17). Hans godkända `paow-tal-blackjack-sv-04` rörs inte.
+  (2026-11-17).
 - Text räcker inte för honom: visa i Karta eller spelet, i spelets storlek.
 - Ett fel på hans telefon läses med hans skärmbild av sidan med `?diagnos=1`; en headless-inspelning visar inte vad en
   telefon gör, och felet kallas inte rättat efter en inspelning.

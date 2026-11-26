@@ -6,7 +6,6 @@ import type {Part} from './scene3d-film.ts';
 import {filmToScene, type CardTrack} from './scene3d-geometry.ts';
 import {LINS_ALIAS_WORD, linsOfAlias} from './card-plan.ts';
 import {readRegister, type RoomId} from './scene3d-room.ts';
-import {EXIT_TRIAL, exitView} from './scene3d-exit.ts';
 import {FELT_MARKS, NATURES, RUNWAY_CLOTHS, TABLE_SIZE, feltMarks, isNature, isRunwayCloth, marksText, type FeltMark, type Nature, type RunwayCloth} from './scene3d-table.ts';
 
 const query = new URLSearchParams(location.search), bare = query.get('ui') === '0';
@@ -155,8 +154,6 @@ function build() {
   const select = el('select'); select.append(...rounds.map((r, i) => el('option', {value: `round:${i}`, textContent: r.label})), ...clips.map(c => el('option', {value: c.id, textContent: c.id}))); select.value = first;
   select.addEventListener('change', () => { scene.players.toggle(false); void scene.players.load(partsOf(select.value)); });
   group('Film', select, el('div', {className: 'btns'}, button('Pausa', () => scene.players.toggle(), 'play'), button('−1 ruta', () => void scene.players.step(-1)), button('+1 ruta', () => void scene.players.step(1))),
-    el('div', {className: 'btns'}, button('Prov: dealern lämnar bordet', () => exit.play()), button('Tillbaka till filmen', () => { exit.stop(); scene.players.toggle(false); void scene.players.load(partsOf(select.value)); })),
-    note('<b>Prov: dealern lämnar bordet</b> spelar filmagentens lågupplösta helkroppsprov: händerna lämnar bordet, hon reser sig, rättar till kavajen och går ut, medan kameran backar tills hon och hela bordet syns. Provfilmen är suddig och saknar ben; välj gärna Underrede <b>Två ben</b> först.'),
     check('Vik filmen mot bordet (händer och kort följer filten)', 'fold'), check('Visa hjälplinjer (filmruta, vikning, filmens bordsyta)', 'guides'),
     slider('Skuggor', 'shadow', 0, 1.6, 0.05), slider('Nyckel låg', 'keyLo', 0, 0.5, 0.01), slider('Nyckel hög', 'keyHi', 0.5, 1.2, 0.01),
     slider('Skugga ovanför bordskanten', 'shadowAbove', 0, 1, 0.05),
@@ -245,18 +242,6 @@ const shoe = (() => { let remove: (() => void) | null = null, box: number[] | nu
     else if (!on && remove) { remove(); remove = null; scene.hideFilm(null); } }};
 })();
 if (query.get('sko') === '3d') void shoe.set(true);
-
-// ---- the exit trial (src/scene3d-exit.ts): the film in two parts, and the camera that follows the second ----------------
-const exit = (() => {
-  let part = -1, from = {pitch: 0, zoom: 1};
-  scene.onFrame(() => { if (part !== 1) return; const goal = exitView(scene.players.frame(), scene.status().camera, from, EXIT_TRIAL.rise);
-    for (const key of ['yaw', 'pitch', 'zoom', 'dy', 'dz'] as const) state[key] += (goal[key] - state[key]) * 0.12; hud(); });
-  return {
-    play() { from = {pitch: state.pitch, zoom: state.zoom}; part = 0; state.mode = 'lean'; state.dx = 0; scene.players.toggle(false);
-      scene.players.play([{...EXIT_TRIAL.lead, track: null}, {...EXIT_TRIAL.probe, track: null}], {cut: true, onPart: index => { part = index; }, onEnd: () => { part = -1; sync(); }}); },
-    stop() { if (part < 0 && !state.dz && !state.dy) return; part = -1; scene.set({pitch: from.pitch, zoom: from.zoom, dy: 0, dz: 0, yaw: 0}); sync(); },
-  };
-})();
 
 // ---- mouse and keyboard ------------------------------------------------------------------------------
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));

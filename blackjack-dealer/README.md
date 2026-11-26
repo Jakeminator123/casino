@@ -45,7 +45,7 @@ Alla `npm`- och `node`-kommandon körs från den här mappen. Node 24.22.3 (Volt
 | `npm run hooks:install`, `npm run check` | installerar kontrollen före push för hela casino-repot; kör den på de commits som ska ut |
 | `npm run verify` | jämför registrerade filer med sin hash i `data/manifest.json` (kräver media) |
 | `npm run stada` | raderar projektets del av slasken som är äldre än sju dygn, utom `granska/` (`-- --torr` listar bara); `node ../slask/slask.ts` visar hela slasken |
-| `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (servern utför den säkra nivån själv när den startar); översikt över lagringen |
+| `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (servern utför den säkra nivån själv när den startar); översikt över lagringen. På Jakobs ord: `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>" [--arkiv <mapp>]` |
 
 Serverns adresser står i `tools/lab-routes.ts`; utan media på datorn visar studion och spelet inga filmer.
 
@@ -73,7 +73,7 @@ Orden står i studions Ordlista (`studio/lib/words.ts`). Vyerna:
 - **Karta**: dealerns träd, valda i en lista överst (Alla träd, träden, kompositionerna). Ett träd ritas med sina bilder och
   36 steg; ett träd med flera sätt att dela ut från samma A1 (Tatuerad: A2.3 och nypet från A2.1) har en grenväljare. Ett steg
   visar sina filmer som spelet spelar dem i just det trädet (Primär, sekundära, Gör primär), och talet ligger på A1. Alla träd
-  (`?trad=alla`) är nätet: A1, grenarna till A2.1, A2.2 och A2.3 och stegen under dem, med sök, "bara där de skiljer sig" och
+  (`?trad=alla`) är nätet: A1, grenarna till ankarna vid skon (i dag A2.1 och A2.3) och stegen under dem, med sök, "bara där de skiljer sig" och
   Sätt ihop till en komposition. Koden: `studio/components/map/`, träden ur `GET /api/trees` (`tools/dealer-tree.ts`).
 - **Granska**: Filmer (Jakobs domar) och Prov (provmapparna under `assets/proofs/`, `?prov=<mapp>`).
 - **Material** (vilka bilder som gäller), **Lipsync** (hur munnen görs, skrivskyddad), **Casino** (spelet med vald look).

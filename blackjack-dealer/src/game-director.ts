@@ -50,15 +50,15 @@ export const revealStep = (label: string): Step | null => { const to = revealNod
 export const STAND_IN_FILM: Readonly<Record<string, Readonly<Record<string, string>>>> = {paow: {'D.C2': 'D.C1'}};
 
 // The cards a dealer deals from another pose at the shoe than READY (anchor 2.1, the pinch), by the seat's first card: its second
-// card and every later card that plays the seat's film go the same way. Paow's seat 6 is dealt from READY-B (anchor 2.2: her hand
-// over the card in the shoe's window, drawing it out flat): fifteen takes of it from READY fell, and Jakob said 2026-11-13 that a
-// round should be able to go via anchor 2.2. It applies only where the dealer's bank can play the four films it needs, the entry
+// card and every later card that plays the seat's film go the same way. No dealer has such a seat now: Paow's seat 6 was dealt
+// from READY-B (anchor 2.2, her hand over the card in the shoe's window) in the tree Casino, which went with its films on Jakob's
+// word 2026-11-26. A seat named here is dealt that way only where the dealer's bank can play the four films it needs, the entry
 // IDLE>READY-B, the deal from READY-B, the return to READY-B and the exit READY-B>IDLE, each with a verdict (the game's bank, judgedBank
 // below); without them the card is dealt as before, from READY, with its stand-in, or laid without a hand.
-export const SEAT_HUB: Readonly<Record<string, Readonly<Record<string, string>>>> = {paow: {'P6.C1': 'READY-B'}};
+export const SEAT_HUB: Readonly<Record<string, Readonly<Record<string, string>>>> = {};
 
 /**
- * The pose at the shoe the game deals a card from for a dealer: its seat's pose on SEAT_HUB ('READY-B' for Paow's seat 6), else
+ * The pose at the shoe the game deals a card from for a dealer: its seat's pose on SEAT_HUB, else
  * READY. The game takes it when that pose's four films can be played (hubChain). The lab's default round and Beställ's row for a
  * card ask it here too, as Karta does (hubDeals): the plan's grip is not the source (the rescue lane Kedjan, finding 1).
  */

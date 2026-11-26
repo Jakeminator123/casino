@@ -8,6 +8,11 @@
 //   node tools/media-thin.ts --kor --grupp <namn>   carries out one named group of the proposals (only on Jakob's word)
 //   node tools/media-thin.ts --tom-korgen           deletes the trash days older than 14 days
 //   node tools/media-thin.ts --auto                 all three in turn: the report, the safe level, the trash (the lab server's start)
+//   node tools/media-thin.ts --ta-bort <id>[,<id>…] [--fran <fil>] --varfor "<text>" [--arkiv <mapp>]
+//                                                   on Jakob's word only (removeOnWord): the films and units named go although the game
+//                                                   plays them; to the trash, or copied to an archive outside the repo and removed here
+// The guard below is the automatic thinning's: what runs without anyone's word never takes what the game plays. On his word
+// (Jakob 2026-11-26: "rensa så att 'spelande filmer inte kan raderas' faktiskt kan raderas") --ta-bort takes a played film too.
 // Levels:
 //   säkert   what the rule decides alone (Jakob 2026-11-25: what is not used and does not wait for him goes): the films of a
 //            take rejected (Inte bra) by Jakob, for him by the main agent and a reviewer on his mandate, or by a reviewer
@@ -37,7 +42,7 @@ import {copyFileSync, existsSync, linkSync, lstatSync, mkdirSync, readFileSync, 
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {checkedPath, hash} from './media-dedupe.ts';
-import {MOTIONS_TEXT, filmFiles, motionRegister, type Removal} from './register-store.ts';
+import {MOTIONS_TEXT, filmFiles, filmOf, motionRegister, type Removal} from './register-store.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const DAY = 86_400_000, MIN_AGE_DAYS = 3, NOTE_DAYS = 14, TRASH_DAYS = 14, PLAN_HOURS = 24;
@@ -471,9 +476,11 @@ export function lasmig(p: Plan): string {
   L.push('## Valt bort', '', 'Det spärren eller en regel håller kvar (de största först):', '', '| Grupp | Skäl | Antal | MB | Exempel |', '|---|---|---|---|---|');
   for (const s of p.skipped.slice(0, 30)) L.push(`| ${s.group} | ${s.reason.replace(/\|/g, '/')} | ${s.count} | ${fmt(s.mb)} | ${s.examples.map(e => `\`${e}\``).join(', ')} |`);
   L.push('', ...p.notes.map(n => `- ${n}`), '');
-  L.push('## Spärren', '', 'Rörs aldrig, oavsett grupp: Primär, Godkänd och Variant (hans eller givna åt honom); allt spelet har (`gameTakes`, `usesOf`); allt med roll i Material som inte är en förkastad tagning; V6, original och referenser; `assets/noir/` och filer som delar fil med den; `assets/films/intro/`; scenen spelet använder; allt ett kort i Beslut, utgåvan eller en beställning under arbete nämner; filer yngre än tre dygn; allt utanför assets/. En fil som delar bytes med en skyddad fil är skyddad.', '');
+  L.push('## Spärren', '', 'Gallringen rör aldrig av sig själv, oavsett grupp (på Jakobs uttryckliga ord tar `--ta-bort` också det spelet har, se Köra): Primär, Godkänd och Variant (hans eller givna åt honom); allt spelet har (`gameTakes`, `usesOf`); allt med roll i Material som inte är en förkastad tagning; V6, original och referenser; `assets/noir/` och filer som delar fil med den; `assets/films/intro/`; scenen spelet använder; allt ett kort i Beslut, utgåvan eller en beställning under arbete nämner; filer yngre än tre dygn; allt utanför assets/. En fil som delar bytes med en skyddad fil är skyddad.', '');
   L.push('## Köra', '', `- \`node tools/media-thin.ts --kor\` gör säkert-nivån ur plan.json (yngre än ${PLAN_HOURS} timmar). Varje fil kontrolleras igen mot spärren och en ny plan; en flyttad fil kopieras till \`${p.trash}/<datum>/\`, SHA-256 jämförs, och först då tas den bort. Kvitto i \`.runtime/cleanup/\`.`,
-    '- `node tools/media-thin.ts --kor --grupp <namn>` gör en namngiven grupp, bara på Jakobs ord.', `- \`node tools/media-thin.ts --tom-korgen\` raderar korgar äldre än ${TRASH_DAYS} dygn.`, '');
+    '- `node tools/media-thin.ts --kor --grupp <namn>` gör en namngiven grupp, bara på Jakobs ord.',
+    '- `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>"` tar på hans uttryckliga ord bort en film med sina poster (också en som spelet spelar eller som han dömt bra), eller en mapp under assets/, till korgen eller med `--arkiv <mapp>` till ett arkiv utanför repot. Det som ett register fortfarande pekar på vägras tills pekaren är borta; noir, V6, original och referenser vägras alltid.',
+    `- \`node tools/media-thin.ts --tom-korgen\` raderar korgar äldre än ${TRASH_DAYS} dygn.`, '');
   return L.join('\n');
 }
 
@@ -553,6 +560,107 @@ export async function carryOut(p: Plan, groups: string[], o: {repo: string; tras
   return {receipt, result};
 }
 
+// ── On his word ─────────────────────────────────────────────────────────────
+/** What stays even on his word: his kept collection, V6, originals and references (and all outside assets/). The film before
+ *  the game is guarded in HARD only because it plays, so his word takes it as it takes any film the game plays. */
+const KEPT_ON_WORD = HARD.filter(([p]) => p !== 'assets/films/intro');
+/** The registers whose pointer keeps a unit even on his word until the pointer is taken away. The register of films and
+ *  data/clip-jobs.json are not among them: the removal takes their entries itself. A draft order (UTKAST) counts as well. */
+export const WORD_POINTERS = ['data/media-roles.json', 'data/speech-patches.json', 'data/dealer-trees.json', 'data/dealer-compositions.json', 'data/decisions.json', 'data/studio-release.json'];
+export type WordReceipt = {tool: string; started: string; why: string; to: string; archive: boolean; units: string[]; posts: string[]; verdicts: number; jobs: number;
+  done: Done[]; refused: {unit: string; reason: string}[]; error: string | null};
+const ARCHIVE_KIND: Record<string, string> = {motions: 'filmer', anchors: 'ankare', tracking: 'kortspår', speech: 'tal', orders: 'beställningar', proofs: 'prov'};
+/** Where a file of a unit lies in an archive outside the checkout: under its kind (assets/<top>), named by the unit's id. A unit
+ *  whose only file is source.<ext> or anchor.<ext> is that file under the id (filmer/<film>.mp4); any other keeps its folder (kortspår/<film>/…). */
+export function archivePath(file: string, unit: string, alone: boolean): string {
+  const top = unit.split('/')[1] ?? 'assets', id = unit.split('/').at(-1)!, inside = file.slice(unit.length + 1), kind = unit.includes('/patches/') ? 'munlappar' : ARCHIVE_KIND[top] ?? top;
+  if (file === unit) return `${kind}/${id}`; // a single file named on its own keeps its name
+  return alone && /^(source|anchor)\.[a-z0-9]+$/i.test(inside) ? `${kind}/${id}${path.extname(inside)}` : `${kind}/${id}/${inside}`;
+}
+/**
+ * Removal on Jakob's word, or an agent's on his word (Jakob 2026-11-26: "rensa så att 'spelande filmer inte kan raderas' faktiskt
+ * kan raderas"): what is named goes although the game plays it, he has judged it good or it is young. The automatic thinning
+ * never does this (makePlan's guard keeps all the game has, and --auto runs only that). A film's or a take's id takes the film:
+ * its posts leave the register (his verdicts, and those given for him, stay as rows in data/motions-removed.jsonl; data/clip-jobs.json
+ * lets them go), then its folder under assets/motions/, its card track and the talk folders of its posts. A path under assets/
+ * takes that unit (an anchor's folder, a mouth patch). The files go to the trash, or with archive to a folder outside the
+ * checkout, which is then the copy that is kept: copied, compared by SHA-256, only then removed; the emptied folders go.
+ * Refused even on his word: noir, V6, originals and references and anything outside assets/ (KEPT_ON_WORD), and a unit that a
+ * register still names (WORD_POINTERS, a draft order): the pointer goes first, so that nothing points at a file that is gone.
+ */
+export async function removeOnWord(targets: readonly string[], o: {repo: string; why: string; trash: string; receiptDir: string; archive?: string; now?: number}): Promise<{receipt: string; result: WordReceipt}> {
+  if (!o.why?.trim()) throw new Error('Säg vems ord och varför (--varfor "<text>").');
+  const {pathsIn, idsNamed} = await import('./media-audit.ts');
+  const now = o.now ?? Date.now(), day = new Date(now).toISOString().slice(0, 10), to = o.archive ? path.resolve(o.archive) : path.join(o.trash, day);
+  const outside = path.relative(path.resolve(o.repo), to);
+  if (o.archive && !(outside.startsWith('..') || path.isAbsolute(outside))) throw new Error('Arkivet ska ligga utanför utcheckningen.');
+  if (!o.archive && !existsSync(path.dirname(path.resolve(o.trash)))) throw new Error(`Korgen saknas: ${path.dirname(o.trash)} finns inte. Inget tas bort.`);
+  const read = (f: string) => { try { return readFileSync(path.join(o.repo, f), 'utf8'); } catch { return ''; } };
+  const list = (d: string) => existsSync(path.join(o.repo, d)) ? readdirSync(path.join(o.repo, d)) : [];
+  const register = motionRegister(o.repo), speakers = list('assets/speech').filter(d => !d.includes('.'));
+  // What each target takes: a film with its posts and its units, or one unit.
+  const films = new Map<string, {posts: string[]; units: string[]}>(), single: string[] = [];
+  for (const target of targets) {
+    if (target.startsWith('assets/')) { single.push(clean(target)); continue; }
+    const post = register.get(target), film = post ? filmOf(post) : target, own = register.ofFilm(film).map(e => e.id);
+    if (!own.length && !existsSync(path.join(o.repo, 'assets/motions', film))) throw new Error(`${target} är ingen film, tagning eller sökväg under assets/ här.`);
+    const dirs = filmFiles(register.ofFilm(film).map(e => e.post)).map(f => path.posix.dirname(clean(f))).filter(d => d.startsWith('assets/'));
+    films.set(film, {posts: own, units: [...new Set([`assets/motions/${film}`, ...dirs, `assets/tracking/${film}`, ...own.flatMap(id => speakers.flatMap(d => [`assets/speech/${d}/${id}`, `assets/speech/${d}/bank-${id}`]))])]});
+  }
+  // The pointers that still keep a unit. In a register's own words (a note, an about, where a picture came from) an id is its
+  // history, not a pointer: those fields are left out, except in Beslut and the release, where every word of a card counts.
+  const WORDS = new Set(['about', 'note', 'source', 'name', 'stateBy', 'missing', 'words', 'mandate']);
+  const pointing = (f: string, text: string) => { if (['data/decisions.json', 'data/studio-release.json'].includes(f)) return text; try { return JSON.stringify(JSON.parse(text), (k, v) => WORDS.has(k) ? undefined : v); } catch { return text; } };
+  const texts: [string, string][] = WORD_POINTERS.map(f => [f, pointing(f, read(f))]);
+  for (const name of list('data/orders').filter(n => n.endsWith('.json'))) { const text = read(`data/orders/${name}`); try { if (JSON.parse(text).status === 'UTKAST') texts.push([`data/orders/${name}`, text]); } catch { /* not an order */ } }
+  const named = (unit: string, ids: string[]): string | null => {
+    for (const [f, text] of texts) if (pathsIn(text).some(p => p === unit || p.startsWith(`${unit}/`)) || idsNamed(text, ids).length) return f;
+    return null;
+  };
+  const filesOf = (unit: string): string[] => { const out: string[] = []; const walk = (rel: string) => { for (const e of list(rel)) { const r = `${rel}/${e}`; const st = lstatSync(path.join(o.repo, r)); if (st.isDirectory()) walk(r); else out.push(r); } }; if (existsSync(path.join(o.repo, unit))) { if (lstatSync(path.join(o.repo, unit)).isDirectory()) walk(unit); else out.push(unit); } return out; };
+  const kept = (p: string): string | null => !p.startsWith('assets/') || p.split('/').some(x => x === '..' || x === '.' || x === '') ? 'utanför assets/' : KEPT_ON_WORD.find(([d]) => p === d || p.startsWith(`${d}/`))?.[1] ?? null;
+  const refusal = (unit: string, ids: string[]): string | null => {
+    const where = kept(unit) ?? filesOf(unit).map(kept).find(Boolean); if (where) return `skyddad också på hans ord: ${where}`;
+    const pointer = named(unit, ids); return pointer ? `${pointer} pekar fortfarande på den: ta bort pekaren först` : null;
+  };
+  mkdirSync(o.receiptDir, {recursive: true});
+  const receipt = path.join(o.receiptDir, `${new Date(now).toISOString().replace(/[:.]/g, '-')}-pa-hans-ord.json`);
+  const result: WordReceipt = {tool: 'tools/media-thin.ts --ta-bort', started: new Date(now).toISOString(), why: o.why.trim(), to: to.replace(/\\/g, '/'), archive: !!o.archive, units: [], posts: [], verdicts: 0, jobs: 0, done: [], refused: [], error: null};
+  const save = () => writeFileSync(receipt, JSON.stringify(result, null, 2) + '\n');
+  const going: string[] = [];
+  for (const [film, f] of films) {
+    const no = f.units.map(u => [u, refusal(u, u.startsWith('assets/motions/') ? [film, ...f.posts] : [u.split('/').at(-1)!])] as const).find(([, r]) => r);
+    if (no) result.refused.push({unit: film, reason: `${no[0]}: ${no[1]}`}); else going.push(...f.units);
+  }
+  for (const u of single) { const r = refusal(u, [u.split('/').at(-1)!]); if (r) result.refused.push({unit: u, reason: r}); else going.push(u); }
+  save();
+  try {
+    // The pointers of the register first: the posts of the films that go.
+    const gone = [...films.keys()].filter(f => !result.refused.some(r => r.unit === f));
+    if (gone.length) { const r = register.remove(gone, {why: o.why.trim(), at: new Date(now).toISOString()}); result.posts = r.removed; result.verdicts = r.verdicts.length; result.jobs = r.jobs; save(); }
+    for (const unit of going) {
+      const files = filesOf(unit);
+      if (!files.length) continue;
+      result.units.push(unit);
+      for (const rel of files) {
+        const abs = path.join(o.repo, rel); checkedPath(o.repo, abs);
+        const st = lstatSync(abs); if (st.isSymbolicLink() || !st.isFile()) throw new Error(`${rel} är ingen vanlig fil`);
+        const sha = await hash(abs), dest = path.join(to, o.archive ? archivePath(rel, unit, files.length === 1) : rel);
+        mkdirSync(path.dirname(dest), {recursive: true});
+        if (existsSync(dest)) { if (await hash(dest) !== sha) throw new Error(`${dest} finns redan med annat innehåll: ${rel} står kvar.`); }
+        else copyFileSync(abs, dest, constants.COPYFILE_EXCL);
+        if (await hash(dest) !== sha) { unlinkSync(dest); throw new Error(`Kopian blev inte lika: ${rel}`); }
+        unlinkSync(abs);
+        result.done.push({at: new Date().toISOString(), path: rel, action: o.archive ? 'arkiverad' : 'flyttad', bytes: st.size, sha256: sha, to: path.relative(to, dest).replace(/\\/g, '/')}); save();
+      }
+      const prune = (d: string) => { if (!existsSync(d) || !lstatSync(d).isDirectory()) return; for (const e of readdirSync(d)) prune(path.join(d, e)); if (!readdirSync(d).length) rmdirSync(d); };
+      prune(path.join(o.repo, unit));
+    }
+  } catch (error) { result.error = String(error); save(); throw error; }
+  save();
+  return {receipt, result};
+}
+
 /** Deletes the trash's day folders older than TRASH_DAYS. */
 export function emptyTrash(trash: string, now = Date.now()): {removed: string[]; kept: string[]} {
   if (!existsSync(trash)) throw new Error(`Korgen ${trash} finns inte.`);
@@ -568,6 +676,19 @@ async function main(argv: string[]): Promise<void> {
   // The lab server runs this once per start, so that what is not used goes by itself (Jakob 2026-11-25): the plan, its safe
   // level and the trash days older than 14 days.
   if (argv.length === 1 && argv[0] === '--auto') { await main([]); await main(['--kor']); return main(['--tom-korgen']); }
+  // On his word (removeOnWord): never part of --auto.
+  const ti = argv.indexOf('--ta-bort');
+  if (ti >= 0) {
+    const value = (flag: string) => { const i = argv.indexOf(flag); return i >= 0 && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : undefined; };
+    const from = value('--fran'), why = value('--varfor'), archive = value('--arkiv');
+    const ids = [...(value('--ta-bort')?.split(',') ?? []), ...(from ? readFileSync(path.resolve(from), 'utf8').split(/\r?\n/) : [])].map(s => s.trim()).filter(Boolean);
+    if (!ids.length || !why) throw new Error('Använd: node tools/media-thin.ts --ta-bort <id>[,<id>…] [--fran <fil med ett id per rad>] --varfor "<vems ord och varför>" [--arkiv <mapp utanför repot>]');
+    const trash = path.join(ROOT, TRASH); if (!archive) mkdirSync(trash, {recursive: true});
+    const {receipt, result} = await removeOnWord(ids, {repo: ROOT, why, trash, archive, receiptDir: path.join(ROOT, '.runtime/cleanup')});
+    console.log(`${result.posts.length} poster ur registret (${result.verdicts} domar står kvar som rader i data/motions-removed.jsonl, ${result.jobs} rader ur data/clip-jobs.json); ${result.done.length} filer, ${mb(result.done.reduce((n, d) => n + d.bytes, 0))} MB, ${archive ? 'kopierade till arkivet och borttagna här' : 'i papperskorgen'}: ${result.to}. ${result.refused.length} vägrade. Kvitto: ${path.relative(ROOT, receipt).replace(/\\/g, '/')}`);
+    for (const r of result.refused) console.log(`  vägrad: ${r.unit}: ${r.reason}`);
+    return;
+  }
   const kor = argv.includes('--kor'), empty = argv.includes('--tom-korgen'), gi = argv.indexOf('--grupp'), named = gi >= 0 ? argv[gi + 1] : null;
   if (argv.some((a, i) => !['--kor', '--tom-korgen', '--grupp'].includes(a) && i !== gi + 1) || (gi >= 0 && (!named || !kor)) || (kor && empty))
     throw new Error('Använd: node tools/media-thin.ts [--kor [--grupp <namn>]] | --tom-korgen');

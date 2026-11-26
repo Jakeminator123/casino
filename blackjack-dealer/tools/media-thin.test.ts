@@ -1,4 +1,4 @@
-// Skyddar: hans domar och val – det han godkänt, det spelet har och original raderas aldrig; bara via papperskorgen.
+// Skyddar: hans domar och val – det han godkänt och det spelet har raderas aldrig av sig självt, bara på hans ord; original aldrig; bara via papperskorgen eller ett arkiv.
 // The thinning tool's hard parts (tools/media-thin.ts): the guard that nothing gets past, the rule of what goes without more
 // words, and the execution against a temporary folder (moved to a trash with RADERAD.txt and a receipt, linked, refused
 // when guarded, young or changed, the trash emptied after 14 days). Needs no media: the "films" are a few bytes of text.
@@ -9,7 +9,7 @@ import {existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync,
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {DAY, MARKER, blocked, carryOut, deliveryGroup, emptyShield, emptyTrash, factOf, finishedOrder, guardKeys, levelOf, orderOpen, protect, rejectedGroup, type Action, type GroupPlan, type Plan} from './media-thin.ts';
+import {DAY, MARKER, blocked, carryOut, deliveryGroup, emptyShield, emptyTrash, factOf, finishedOrder, guardKeys, levelOf, orderOpen, protect, rejectedGroup, removeOnWord, type Action, type GroupPlan, type Plan} from './media-thin.ts';
 import {unitOf} from './media-audit.ts';
 import {motionRegister} from './register-store.ts';
 
@@ -144,6 +144,46 @@ test('linking: identical bytes become one file with both names, with no trash ne
     const other = t.put('assets/proofs/p3/b.png', 'moved');
     await assert.rejects(carryOut(planOf([{name: 'g', units: [{id: 'p3', reason: '', marker: null, files: [t.row(other)]}]}]), ['g'], {repo: t.repo, trash: nowhere, shield: emptyShield(), receiptDir: path.join(t.repo, '.runtime/cleanup')}), /Korgen saknas/);
     assert.ok(existsSync(path.join(t.repo, other)));
+  } finally { t.done(); }
+});
+
+test('on his word: a film the game plays goes with its posts, to an archive outside or the trash; a pointer, noir and references stay', async () => {
+  const t = sandbox();
+  try {
+    // Made today and played with his Primär: the automatic thinning keeps both (the guard above); his word takes it.
+    const film = t.put('assets/motions/played-01/source.mp4', 'his primary', Date.now()), track = t.put('assets/tracking/played-01/track.json', '{}');
+    const anchor = t.put('assets/anchors/a1/anchor.png', 'an anchor'), still = t.put('assets/lab/native.jpg', 'a still'), named = t.put('assets/motions/named-01/source.mp4', 'a role names it');
+    const noir = t.put('assets/noir/v4.mp4', 'the trailer');
+    // A role points at named-01 by its path; another's note that names played-01 is its history, not a pointer.
+    t.put('data/media-roles.json', JSON.stringify({dealers: {paow: {entries: [{id: 'n', role: 'film', path: named}, {id: 'm', role: 'film', path: 'assets/motions/x/source.mp4', note: 'made from played-01'}]}}}));
+    const register = motionRegister(t.repo), post = (id: string, clip: string, review?: unknown) => ({id, dealer: 'paow', source: {path: `assets/motions/${clip}/source.mp4`}, ...(review ? {review} : {})});
+    register.putAll([post('played-01', 'played-01'), post('played-01-deal', 'played-01', {decision: 'ACCEPTED', acceptedAs: 'MAIN', userAccepted: true, userReview: 'Jakob 2026-11-20: Bra.'}), post('named-01', 'named-01')]);
+    const archive = path.join(t.root, 'arkiv'), trash = path.join(t.repo, '.runtime/papperskorg'), receiptDir = path.join(t.repo, '.runtime/cleanup'), why = 'Jakob 2026-11-26: radera dem';
+    mkdirSync(path.dirname(trash), {recursive: true});
+    await assert.rejects(removeOnWord(['played-01'], {repo: t.repo, why, trash, receiptDir, archive: path.join(t.repo, 'arkiv')}), /utanför utcheckningen/);
+    await assert.rejects(removeOnWord(['played-01'], {repo: t.repo, why: ' ', trash, receiptDir, archive}), /varför/);
+    const {result} = await removeOnWord(['played-01-deal', 'named-01', 'assets/anchors/a1', 'assets/lab/native.jpg', 'assets/noir'], {repo: t.repo, why, trash, receiptDir, archive});
+
+    assert.deepEqual(result.posts, ['played-01', 'played-01-deal'], 'a take names its film: the film and all its posts go');
+    assert.deepEqual(register.removed().map(r => [r.id, r.acceptedAs, r.note, r.why]), [['played-01-deal', 'MAIN', 'Bra.', why]]);
+    assert.equal(readFileSync(path.join(archive, 'filmer/played-01.mp4'), 'utf8'), 'his primary');
+    assert.equal(readFileSync(path.join(archive, 'kortspår/played-01/track.json'), 'utf8'), '{}');
+    assert.equal(readFileSync(path.join(archive, 'ankare/a1.png'), 'utf8'), 'an anchor');
+    assert.equal(readFileSync(path.join(archive, 'lab/native.jpg'), 'utf8'), 'a still', 'one file named alone keeps its name');
+    assert.equal(result.done.find(d => d.path === film)?.sha256, sha('his primary'));
+    for (const p of [film, track, anchor, still]) assert.ok(!existsSync(path.join(t.repo, p)), `${p} is gone from the checkout`);
+    for (const d of ['assets/motions/played-01', 'assets/tracking/played-01', 'assets/anchors/a1']) assert.ok(!existsSync(path.join(t.repo, d)), `${d} is not left empty`);
+    assert.ok(!existsSync(trash), 'with an archive nothing goes to the trash');
+    // A role still names the film: it stays with its post until the pointer is gone; noir stays even on his word.
+    assert.deepEqual(result.refused.map(r => r.unit), ['named-01', 'assets/noir']);
+    assert.match(result.refused[0].reason, /media-roles\.json pekar/); assert.match(result.refused[1].reason, /bevarad samling/);
+    assert.ok(existsSync(path.join(t.repo, named)) && existsSync(path.join(t.repo, noir)) && register.has('named-01'));
+    // The pointer gone, the film goes; without an archive to the trash.
+    t.put('data/media-roles.json', JSON.stringify({dealers: {paow: {entries: []}}}));
+    const second = await removeOnWord(['named-01'], {repo: t.repo, why, trash, receiptDir});
+    assert.deepEqual([second.result.posts, second.result.refused], [['named-01'], []]);
+    assert.equal(readFileSync(path.join(trash, new Date().toISOString().slice(0, 10), named), 'utf8'), 'a role names it');
+    assert.deepEqual(register.ids(), []);
   } finally { t.done(); }
 });
 

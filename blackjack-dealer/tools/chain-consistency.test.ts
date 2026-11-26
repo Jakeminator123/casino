@@ -58,8 +58,8 @@ const anchors = Object.keys(ANCHOR_ROLE) as (keyof typeof ANCHOR_ROLE)[];
 const roleOfNode = new Map(anchors.map(a => [ANCHOR_NODE[a], ANCHOR_ROLE[a]]));
 
 // ── Material: which picture holds ────────────────────────────────────────────
-// The other poses at the shoe (2.2, 2.3) are a tree's own (data/dealer-trees.json): Jakob archived both A2.2 pictures in Material
-// 2026-11-23, and the Casino tree keeps its own for the one deal that starts there.
+// The other poses at the shoe (2.2, 2.3) are a tree's own (data/dealer-trees.json), not Material's: Jakob archived both A2.2
+// pictures in Material 2026-11-23.
 test('every dealer of data/dealers.json has a block in Material, and anchors 1 and 2.1 each have one picture that holds, at its node', () => {
   for (const d of dealerList) {
     assert.ok(roles.dealers[d.id], `${d.id} has no block in data/media-roles.json`);
@@ -106,7 +106,7 @@ test('a picture that holds for a dealer who is not paused says who made it hold 
 test('the game\'s maps name real places and real anchors: SEAT_HUB deals a seat\'s first card from a READY variant that is an anchor of one of the dealer\'s trees; STAND_IN_FILM stands one card for another', () => {
   const trees = json('data/dealer-trees.json').dealers as Record<string, {trees: {state: string; anchors: {entry: string}[]}[]}>;
   // Any tree, played or resting: the rule applies only where the films for it can be played (src/game-director.ts dealHub), and a
-  // resting tree is still played with its tree word (?trad=casino).
+  // resting tree is still played with its tree word (?trad=<id>).
   const inTree = (dealer: string) => new Set((trees[dealer]?.trees ?? []).flatMap(t => t.anchors.map(a => a.entry)));
   for (const [dealer, map] of Object.entries(SEAT_HUB)) {
     assert.ok(dealerList.some(d => d.id === dealer), `SEAT_HUB names ${dealer}, who is not in data/dealers.json`);
@@ -243,9 +243,9 @@ test('the hole card\'s turn is one node of the map, which the game takes from th
 });
 
 // ── Findings of the rescue lane Kedjan (FYND 1 to 11) that have been put right, each held by a test ──
-// FYND 1: the anchor a card is dealt from had two sources. The game's (SEAT_HUB: Paow's seat 6 from anchor 2.2, Jakob's own word
-// 2026-11-13, "Förvalen han sade ja till") is the one for a round; the plan's grip is not. Bordet's default round
-// followed the grip, so the lab played seat 6 from 2.1, where she has no film. (The films Inspelning lists and orders for
+// FYND 1: the anchor a card is dealt from had two sources. The game's (SEAT_HUB, a seat dealt from another anchor; empty
+// since the tree with A2.2 went, 2026-11-26) is the one for a round; the plan's grip is not. Bordet's default round
+// once followed the grip and played a seat from an anchor where she had no film. (The films Inspelning lists and orders for
 // a card go from the chosen tree's anchor since 2026-11-25, studio/lib/bordet.ts treeAnchor: the plan chooses none.)
 test('Bordet\'s default round deals a card from the anchor the game deals it from', async () => {
   const B = await import('../studio/lib/bordet.ts'), R = await import('../studio/lib/rounds.ts');
@@ -256,7 +256,7 @@ test('Bordet\'s default round deals a card from the anchor the game deals it fro
     const pose = beats.find(b => b.kind === 'DEAL' && b.own?.label === card)!.step!.from;
     assert.equal(R.roundFromText(B.roundFor(card, d.id), R.readyRounds()).steps[0]?.from, pose, `${d.name} ${card}: Bordet's round ${B.roundFor(card, d.id)}`);
   }
-  assert.equal(B.roundFor('P6.C1', 'paow'), 'A2.2 - A3P6C1 - A2.2'); // his notation since 2026-11-21: the card's anchor is A3 + player + card
+  assert.equal(B.roundFor('P6.C1', 'paow'), 'A2.1 - A3P6C1 - A2.1'); // his notation since 2026-11-21: the card's anchor is A3 + player + card
 });
 // FYND 4, fixed by the branch rak-linje: an archived take could still be offered as a reference film or give a deal its last picture.
 test('an archived take is never a reference film or a cut frame: with every take of the bank archived, the order model offers none', () => {

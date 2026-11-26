@@ -92,7 +92,7 @@ test('nothing is written without the revision that was read, for an unknown clip
 });
 
 test('a real tracked record survives a round of decisions with everything outside review untouched', async t => {
-  const root = await temp(t), name = 'paow-giv-2-3-p5-01-01', original = motionRegister(process.cwd()).get(name) as Record<string, any>;
+  const root = await temp(t), name = 'paow-fri-giv-p4-01-01-deal', original = motionRegister(process.cwd()).get(name) as Record<string, any>;
   assert.ok(original, `${name} står i registret`);
   motionRegister(root).put(name, original);
   const store = reviewStore(root, () => '2026-11-11');

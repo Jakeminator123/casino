@@ -2,10 +2,10 @@
 //   node tools/speech.ts check
 //   node tools/speech.ts bank  --dealer paow
 //   node --env-file=.env.local tools/speech.ts say --dealer paow --line placebets [--lang sv] [--voice <name>] [--text "…" --as <word>] [--again ja]
-//   node tools/speech.ts say   --dealer paow --from paow-tal-lose-sv-09      (one take laid back again with the dealer's mouth; no call)
-//   node tools/speech.ts say   --dealer paow --from paow-tal-placebets-sv-15 --rest paow-vila-tat-01-01   (the same, on another tree's rest)
+//   node tools/speech.ts say   --dealer paow --from <take>                  (one take laid back again with the dealer's mouth; no call)
+//   node tools/speech.ts say   --dealer paow --from <take> --rest <rest film>   (the same, on another rest film with other hands; how Tatuerad got its talk, 2026-11-23)
 //   node tools/speech.ts reel  --dealer paow --lines placebets,goodluck,blackjack,win [--name demo] [--rests <rest film>,…]
-//   node tools/speech.ts over  --dealer paow --film paow-giv-2-1-p4-04-01 --line goodluck [--at 0.6] [--patches <mapp>] [--lips '<json>']
+//   node tools/speech.ts over  --dealer paow --film paow-giv-2-3-p4-02-01 --line goodluck [--at 0.6] [--patches <mapp>] [--lips '<json>']
 //   node tools/speech.ts warm  --dealer paow [--idle 300]      (and: warm --dealer paow --stop ja)
 //   node tools/speech.ts proof --dealer paow
 // The mouth is drawn by Scoutgaming's lip-sync renderer (services/moving-gpu-worker in Jakeminator123/scoutgaming, MuseTalk), run as
