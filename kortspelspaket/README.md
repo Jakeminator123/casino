@@ -40,8 +40,8 @@ Det här är mätt ur rörelserna och syns i bordsvyn:
   vilar dealerns händer på filten strax framför brickan, som standarddockans.
 - Blackjackdealerns giv (24,7 s) är fem givar på cirka tre sekunder, med en och en halv sekunds vila emellan. Vänster
   hand håller leken och lyfter den, höger hand tar kortet och lägger det: paketet delar ur handen, inte ur en sko. De
-  fem korten hamnar i en båge som stämmer med spelets kortplatser: på plats 2, 4 och 6, och 10–15 cm innanför plats 1
-  och 7.
+  fem korten hamnar i en båge som följer spelets kortplatser: på plats 4, cirka 10 cm bortom korten på plats 2 och 6
+  (vid insatsringen), och 10–15 cm innanför plats 1 och 7 (talen står i `OVERLAMNING.md`).
 - Figuren (och Unreals docka, som rörelserna är gjorda för) är 186 cm lång, längre än standarddockan, så huvudet når
   högre i spelets vy.
 - Rörelserna har inga kort, marker eller andra saker: bara kroppen.
@@ -50,6 +50,9 @@ Det här är mätt ur rörelserna och syns i bordsvyn:
 
 Riktningen (Jakob 2026-11-26, `AGENTS.md`): bygga utifrån paketets rörelser och lyfta in det som behövs hit. Varje steg
 slutar i något han ser i visaren, och nästa börjar inte förrän han har sagt sitt om det. Inget steg är gjort än.
+
+Han vill ha två spår (2026-11-26): här arbetas katterna vid bordet vidare (kort, bord och det andra på plats), och
+rörelserna förs över till dockorna av den som äger dem, med `OVERLAMNING.md` som underlag.
 
 1. **En människa i stället för katten.** Standarddockans man får paketets skelett och sitter vid bordet i spelets vy
    och gör en utklippt giv (giv 3, till plats 4). Det visar om en inspelad giv ser bättre ut på vår docka än den
@@ -96,6 +99,7 @@ Håller inte steg 1 eller 2 för hans domar är paketet ändå en förebild att 
 | `visa/index.html`, `visa/visa.ts` | Visarens sida (three.js): listan, de två lägena, reglaget och bitarna |
 | `visa/bord.ts` | Bordsvyn: figurerna på sina platser vid spelets bord, pallarna och kamerorna |
 | `sekvenser.json` | De utklippta bitarna: per rörelse ett namn och två tider i sekunder |
+| `OVERLAMNING.md` | Underlaget för den agent som för över paketets rörelser till standarddockan: hur en rörelse läses, leden mot dockans, givens tal och det som skiljer mot Jakobs domar |
 | `STARTA visaren.cmd` | Packar upp vid behov och startar visaren |
 
 Bordsvyn lånar utan att kopiera: spelets mått och kamera (`../blackjack-dealer/src/table-lens.ts`), standardrummet
