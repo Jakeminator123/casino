@@ -1615,7 +1615,12 @@
       "file": "5-skon-med-frontplatta.png",
       "choice": null,
       "text": "Bra, meninte helt. Jag vill att frontplatan ska ha ne liten mynning längst upp. Samt kanske inte området som omgärdar kanten på kortets rygg ska vara vit. Kan misstas för kortets tuna sida, leler ännu värre att det misstas för att det vita är något annat såsom kansk karmen på skon eller ngt",
-      "at": "2026-11-26T07:38:04.593Z"
+      "at": "2026-11-26T07:38:04.593Z",
+      "answer": {
+        "text": "Noterat som din dom om skon: en liten mynning längst upp i frontplattan, och inget vitt runt kortryggens kant. Inte gjort än; jag frågar dig om mynningens form innan jag ändrar modellen.",
+        "at": "2026-11-26T08:13:52.123Z"
+      },
+      "read": "2026-11-26T08:13:52.123Z"
     },
     {
       "id": 166,
@@ -1623,7 +1628,12 @@
       "file": "4-editorn-kvinnan-ger-till-plats-4.png",
       "choice": null,
       "text": "Kanske bra, n hennes högerhan ser spänd och stiff ut i miten av videon.. otroligt at dettainte kan ändras",
-      "at": "2026-11-26T07:38:39.778Z"
+      "at": "2026-11-26T07:38:39.778Z",
+      "answer": {
+        "text": "Det är den gamla given, ritad för Paows hand. På standarddockans kropp sitter fingrarnas leder 1-2,6 cm fel, och det är det som ser spänt ut. Givarna ritas om för dockans egen kropp; den här bilden blir då inaktuell.",
+        "at": "2026-11-26T08:13:51.855Z"
+      },
+      "read": "2026-11-26T08:13:51.855Z"
     },
     {
       "id": 167,
@@ -1631,7 +1641,12 @@
       "file": "3-editorn-kvinnan-i-vilan.png",
       "choice": null,
       "text": "Ser bra ut. Kanke kan mannen och kvinnliga dockan i alal fall ha en någolunda grund så man inte behöver jobba dubbelt för grundposer osv. För mannn och kvinnan har aningen för utsträckta armbogar kanske..",
-      "at": "2026-11-26T07:39:54.377Z"
+      "at": "2026-11-26T07:39:54.377Z",
+      "answer": {
+        "text": "Mannen och kvinnan får samma grund: samma ankare och regler, bara kroppens mått skiljer, så en ställning görs en gång. Armbågarna: orsaken är funnen. Dockan sitter cirka 10 cm för lågt och 8 cm för långt från bordet, så armbågarna får inte plats under axlarna. Jämförelsebilder på fyra sitthöjder kommer som ett eget prov.",
+        "at": "2026-11-26T08:13:51.584Z"
+      },
+      "read": "2026-11-26T08:13:51.584Z"
     },
     {
       "id": 168,
@@ -1639,7 +1654,12 @@
       "file": "2-studions-dockvy-mannen.png",
       "choice": "inte-bra",
       "text": "Vi ska ha in vy/vinkel och allt det andra från \"standarddockan\"-mappensmini-blender",
-      "at": "2026-11-26T07:40:38.344Z"
+      "at": "2026-11-26T07:40:38.344Z",
+      "answer": {
+        "text": "Samma som för kvinnan: rummet och spelets vy är inne i studions dockvy nu. Mannen visas med ?figur=man i adressen; en knapp för det saknas ännu.",
+        "at": "2026-11-26T08:13:51.333Z"
+      },
+      "read": "2026-11-26T08:13:51.333Z"
     },
     {
       "id": 169,
@@ -1647,7 +1667,12 @@
       "file": "1-studions-dockvy-kvinnan.png",
       "choice": "inte-bra",
       "text": "Vi ska ha in vy/vinkel och allt det andra från \"standarddockan\"-mappensmini-blender",
-      "at": "2026-11-26T07:40:37.629Z"
+      "at": "2026-11-26T07:40:37.629Z",
+      "answer": {
+        "text": "Gjort nu för rummet och vyn: studions dockvy ritar samma bord, sko, bricka, stol och ljus som mini-blendern och öppnar i spelets vy. Ladda om fliken. Kvar: blicken mot kameran, armarna över kanten och kortet i skons öppning.",
+        "at": "2026-11-26T08:13:51.112Z"
+      },
+      "read": "2026-11-26T08:13:51.112Z"
     }
   ]
 }
