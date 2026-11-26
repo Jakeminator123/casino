@@ -3996,7 +3996,7 @@
           "name": "Nyp, tatuerade händer",
           "path": "assets/anchors/paow-nyp-tatuerad/anchor.png",
           "node": "READY",
-          "state": "gäller",
+          "state": "ersatt",
           "builtOn": [
             "paow-vila-tatuerad"
           ],
@@ -4005,7 +4005,7 @@
             "from": "sista rutan (96) i beställningen paow-ingang-2-1-tatuerad-01, tagning 1, lagad kopia fixed-1.mp4 (Kling 4 från Tatuerads A1; receipt.json bredvid bilden)",
             "when": "2026-11-23"
           },
-          "stateBy": "Jakob 2026-11-23 23:11: kandidat → gäller (Material)"
+          "stateBy": "Jakob 2026-11-26 01:21: gäller → ersatt (Nyp, tatuerade händer, kort med märke (prov) godkändes, hans svar Ja i Beslut 2026-11-25 på kortet \"A2.1 med kortets märke: ska nya filmer från A2.1 göras från den?\"; infört av Claude Code)"
         },
         {
           "id": "paow-ankare-2-3-d-stol-1",
@@ -4097,7 +4097,7 @@
           "name": "Nyp, tatuerade händer, kort med märke (prov)",
           "path": "assets/anchors/paow-nyp-tatuerad-marke/anchor.png",
           "node": "READY",
-          "state": "kandidat",
+          "state": "gäller",
           "note": "Tatuerads A2.1 ändrad bara på kortet i skons fönster: gula sidans märke (fylld röd cirkel i mitten, rosa kryss nära kortänden) ritat med projektets mått och färger, som A2.3 med märke. 465 bildpunkter ändrade; fingrarna och allt annat är A2.1:s. Beställningen ser märket (backMarkSeen). Inte sedd av en oberoende granskare. Kvittot ligger bredvid bilden.",
           "source": {
             "from": "paow-nyp-tatuerad (återskapad 2026-11-25 ur Runways film paow-ingang-2-1-tatuerad-01-01, sista rutan) med märket ritat lokalt",
@@ -4105,7 +4105,8 @@
           },
           "builtOn": [
             "paow-nyp-tatuerad"
-          ]
+          ],
+          "stateBy": "Jakob 2026-11-26 01:21: kandidat → gäller (hans svar Ja i Beslut 2026-11-25 på kortet \"A2.1 med kortets märke: ska nya filmer från A2.1 göras från den?\"; infört av Claude Code)"
         }
       ]
     },
