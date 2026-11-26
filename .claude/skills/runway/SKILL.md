@@ -210,6 +210,13 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     vändes kortet över kanten, och skon visade en rygg hela filmen. Given blir två klipp: ut till landningen, och
     tillbaka. En landningsbild görs som en ändring av startbilden (bara armen flyttas, med dockans ruta som förlaga
     för ställningen): som en ny bild ur dockans ruta flyttade bildmodellen skon 70 bildpunkter.
+  - **En kedja av bilder** (Jakobs förslag: kortet mitt i vändningen som mellanbild): WAN 3 tar bara första och sista
+    bild, så fyra bilder blir tre klipp mellan grannbilderna (vid skon, mitt i vändningen, kortet lagt, handen
+    tillbaka; 3 + 2 + 2 s i `auto_480p`, 35 krediter, plus 8 per ny bild). Klippen möts nästan exakt i bilderna
+    (50 dB mellan sista rutan i ett klipp och första i nästa, mer lika än två rutor i följd inom ett klipp), och
+    vändningen låg rätt. Rörelsen bromsar in och står nästan stilla kring varje bild, cirka en sekund mitt i
+    vändningen; FFmpegs `mpdecimate` tar bort de nästan lika rutorna. Mellanbilden gjordes som en ändring av
+    startbilden med dockans ruta mitt i vändningen som förlaga för ställningen.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: en hel film från en annan kamera än spelets (styrbilderna för plats 1 finns), Kling 4 med styrbilden som första bild och filmen som lös förlaga

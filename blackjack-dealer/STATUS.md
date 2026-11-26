@@ -184,7 +184,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   dealern läggs på vårt eget bord. Plats 4 är gjord; hans dom i chatten: rörelserna är stela (dockans rörelser, som
   Aleph kopierar). Därför också Pamelas sätt i samma prov: WAN 3 med en startbild och en slutbild i grönt och utan
   docka, given till plats 7 och plats 1, lagda på samma bord. Kortet frågar vilket av de två sätten som ska gälla.
-  Ett sista försök samma dag, efter hans förslag (landningsbild, sko med kortbunt, mönstrad kortrygg), rättade vändningen och skon. Allt i provet har kostat 1 664 krediter; de sex andra kamerorna är inspelade med dockan men inte beställda.
+  Ett sista försök samma dag, efter hans förslag (landningsbild, sko med kortbunt, mönstrad kortrygg), rättade vändningen och skon. En kedja av fyra bilder (hans idé om en mellanbild mitt i vändningen) är också prövad för plats 1. Allt i provet har kostat 1 715 krediter; de sex andra kamerorna är inspelade med dockan men inte beställda.
   Arbetet sker i `../standarddocka/` (läget och nästa steg i
   dess README) och visas för honom som prov härifrån; hans ord står som krav i `../standarddocka/AGENTS.md`.
 - Givarna till alla sju platser (provet `givar-sju-platser-20261126`) dömde han "Nja … I övrigt bra!": blicken vid
