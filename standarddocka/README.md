@@ -60,8 +60,10 @@ standarddocka/
                 före en inspelning som ska bli film (genom `titta.ts`, under det delade låset)
     stycka.ts   styckar en film av hela rundan i sina klipp efter klipplistan (`klipp/runda-c1-<docka>.json`):
                 dockans egen tagning, eller samma tagning omgjord till en person av en filmmodell som behåller
-                rutorna. `--marginal` tar bort stilla rutor på var sida om varje klipp, och `--ordning 4,1,7`
-                lägger givarna efter varandra i en annan ordning, för att se att klippen möts i ankaret
+                rutorna. `--utan-stillhet` tar bort stillheten, så att klippen spelade efter varandra går i ett
+                svep (`--marginal` bara några rutor); `--rikta` flyttar varje klipp hela bildpunkter dit det första
+                ankaret ligger, eftersom en filmmodell låter bilden glida under en lång tagning; och
+                `--ordning 4,1,7` lägger givarna efter varandra i en annan ordning, för att se att klippen möts
   rorelser/     det editorn sparar, en rörelse per kortplats: a1-a23-p<plats>c1.json (vilka grundrörelser, blicken,
                 farten per del, ändringarna), för en dockas egna rörelser a1-a23-p<plats>c1-<docka>.json, och
                 <namn>.rutor.json (hela rörelsen ruta för ruta i dockans format, med kroppens mått, skriven vid
@@ -162,9 +164,13 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   tryck, kasseringslådan borta, och korten i spårfärger. Färgerna står i `NYCKEL` i `editor/scen.ts`. Inspelade klipp
   får då `-nyckel` sist i namnet.
 - **Hela rundan** (`?runda=1`; `rundaAv` i `editor/rorelse.ts`): vilan till skon och sedan första kortet till plats 7,
-  6 … 1 (spelets ordning) i en tagning, med dockans egna rörelser som de är, version A. Han står 0,3 s i vilan först
+  6 … 1 (spelets ordning) i en tagning, med dockans egna rörelser som de är, version A. I editorn går den i ett svep,
+  som klippen sedan spelas: ankarets ställning står en enda gång i varje skarv (Jakob 2026-11-26: "nu hackar liksom
+  klippen", "själva ankarbilden ska bort, så allt flyter samman"). Med krysset "Med stillhet vid skon"
+  (`&stillhet=1`, och alltid i `--spela-in runda`) är den tagningen som ska bli film: han står 0,3 s i vilan först
   och 0,4 s vid skon mellan två rörelser (`STILLHET`: 0,2 s efter rörelsen med kortet kvar, och 0,2 s före nästa giv
-  med tomt bord), som samma ruta upprepad. Varje del är ett klipp som filmen
+  med tomt bord), som samma ruta upprepad, och `verktyg/stycka.ts --utan-stillhet` tar bort stillheten igen ur den
+  färdiga filmen. Varje del är ett klipp som filmen
   sedan klipps i: kortet ligger kvar på sin plats genom stillheten och står i skon igen från nästa klipps första ruta
   (spelet ritar själv korten som ligger, så varje klipp börjar med tomt bord), och blicken är mot kameran i vilan och
   på skon i varje ankare vid skon. Rundan slutar vid skon. Den tar inga ändringar, ingen egen takt och inga små rörelser och sparas inte: det

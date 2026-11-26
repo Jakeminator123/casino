@@ -272,7 +272,7 @@ export const RUNDANS_PLATSER = [7, 6, 5, 4, 3, 2, 1];
  */
 export type Rundklipp = {namn: string; grund: string; plats: number | null; forsta: number; stillaTill: number; kortetLamnarSkon: number | null; kortetLigger: number | null; stillaFran: number; sista: number};
 /** En hel runda: klippen, och per ruta hur mycket blicken är rörelsens egen (0: mot kameran, som i vilan; 1: helt, som vid skon och under en giv). */
-export type Runda = {klipp: Rundklipp[]; foljer: number[]};
+export type Runda = {klipp: Rundklipp[]; foljer: number[]; stillhet: typeof STILLHET};
 /** En grundrörelse med sitt filnamn (utan .json). */
 export type Namngiven = {namn: string; rorelse: Motion};
 
@@ -286,10 +286,15 @@ export type Namngiven = {namn: string; rorelse: Motion};
  * till skon medan han går dit; sedan är den rörelsens egen (foljerKortet): på skon i varje ankare vid skon, på kortet
  * medan det är på väg och tillbaka på skon när handen är det, så att två klipp som möts har samma huvud.
  *
+ * `stilla`: med stillheten vid skon, som i tagningen som ska bli film och klippas. Utan den (false) går rundan i ett
+ * svep, som klippen spelas efter varandra: ankarets ruta står då en enda gång i varje skarv, sist i klippet före
+ * (Jakob 2026-11-26 om stillheten: "nu hackar liksom klippen"; de stilla rutorna "ska automatiskt bort").
+ *
  * Alla rörelserna ska vara ritade för samma docka (samma höft och lika många rutor per sekund). Rundan tar inga
  * ändringar och inga små egna rörelser och sparas inte (det görs på en plats i taget): `held` och `stilla` är noll.
  */
-export function rundaAv(vila: Namngiven, givar: readonly (Namngiven & {plats: number})[]): Foljd {
+export function rundaAv(vila: Namngiven, givar: readonly (Namngiven & {plats: number})[], stilla = true): Foljd {
+  const S = stilla ? STILLHET : {...STILLHET, efter: 0, fore: 0};
   const fps = vila.rorelse.fps, hip = vila.rorelse.hip, rutorFor = (sekunder: number) => Math.round(sekunder * fps), lika = (a: Frame, b: Frame) => JSON.stringify(a) === JSON.stringify(b);
   if (!givar.length) throw Error('En runda har minst en giv.');
   for (const x of givar) if (x.rorelse.fps !== fps || dist(x.rorelse.hip, hip) > 1e-6 || x.rorelse.doll !== vila.rorelse.doll) throw Error(`Rundans rörelser är inte ritade för samma docka: ${x.namn} och ${vila.namn} har olika docka, höft eller antal rutor per sekund.`);
@@ -299,10 +304,13 @@ export function rundaAv(vila: Namngiven, givar: readonly (Namngiven & {plats: nu
     // Var rörelsen går ut ur sitt ankare och var den är framme: filens egna stilla rutor före och efter räknas inte in.
     let ut = 0, hem = r.length - 1; while (ut < hem && lika(r[ut + 1], r[0])) ut++; while (hem > ut && lika(r[hem - 1], r[r.length - 1])) hem--;
     if (giv && !(m.leavesShoe >= ut && m.rests > m.leavesShoe && m.rests <= hem)) throw Error(`${x.namn}: kortet lämnar skon vid ruta ${m.leavesShoe} och ligger vid ruta ${m.rests}, utanför rörelsen (ruta ${ut}–${hem}).`);
-    const forsta = frames.length, stillaTill = forsta + Math.max(0, rutorFor(nr ? STILLHET.fore : STILLHET.vila) - 1), stillaFran = stillaTill + hem - ut, sista = stillaFran + rutorFor(STILLHET.efter);
-    for (let i = forsta; i <= sista; i++) { const j = Math.max(ut, Math.min(hem, ut + i - stillaTill)); frames.push(kopia(r[j]));
+    // Utan stillhet börjar en giv på sin första rörliga ruta: ankarets egen ruta står redan sist i klippet före, och
+    // två gånger efter varandra blir den ett litet stopp (Jakob 2026-11-26: "själva ankarbilden ska bort, så allt flyter samman").
+    const bort = giv && !stilla ? 1 : 0;
+    const forsta = frames.length, stillaTill = forsta + Math.max(0, rutorFor(nr ? S.fore : S.vila) - 1), stillaFran = stillaTill + hem - ut - bort, sista = stillaFran + rutorFor(S.efter);
+    for (let i = forsta; i <= sista; i++) { const j = Math.max(ut + bort, Math.min(hem, ut + bort + i - stillaTill)); frames.push(kopia(r[j]));
       foljer.push(giv ? 1 : smooth((j - ut) / Math.max(1, hem - ut))); }
-    klipp.push({namn: giv ? `A2.3>P${giv.plats}.C1>A2.3` : 'A1>A2.3', grund: x.namn, plats: giv?.plats ?? null, forsta, stillaTill, kortetLamnarSkon: giv ? stillaTill + m.leavesShoe - ut : null, kortetLigger: giv ? stillaTill + m.rests - ut : null, stillaFran, sista});
+    klipp.push({namn: giv ? `A2.3>P${giv.plats}.C1>A2.3` : 'A1>A2.3', grund: x.namn, plats: giv?.plats ?? null, forsta, stillaTill, kortetLamnarSkon: giv ? stillaTill + m.leavesShoe - ut - bort : null, kortetLigger: giv ? stillaTill + m.rests - ut - bort : null, stillaFran, sista});
   });
   // Kortets långsida åt samma håll genom varje klipp, räknat bakåt från klippets sista ruta där kortet ligger (som i
   // sattIhop); klippet utan giv, där kortet står i skon, räknar vidare från nästa klipps första ruta.
@@ -313,7 +321,7 @@ export function rundaAv(vila: Namngiven, givar: readonly (Namngiven & {plats: nu
   const forstaGiv = klipp[1], motet = hopp(frames[klipp[0].sista], frames[forstaGiv.forsta], hip, hip), ingen = () => frames.map(() => ({R: 0, L: 0}));
   return {fps, frames, hip: [hip[0], hip[1], hip[2]], delar, spann: delar.map(d => ({...d})), skarv: {fore: motet, efter: motet, jamnasUt: [0, 0]}, held: ingen(), stilla: ingen(), kortTecken,
     blick: {fran: klipp[0].stillaTill / fps, full: klipp[0].stillaFran / fps},
-    forsta: vila.rorelse, andra: givar[0].rorelse, forskjutning: forstaGiv.forsta, plats: givar[0].plats, runda: {klipp, foljer}};
+    forsta: vila.rorelse, andra: givar[0].rorelse, forskjutning: forstaGiv.forsta, plats: givar[0].plats, runda: {klipp, foljer, stillhet: S}};
 }
 /**
  * Rundans skarvar och stillhet, mätta på rutorna som de är nu (millimeter, med hundradelar). Skarvarna: det största
@@ -339,7 +347,7 @@ export function rundansMatt(f: Foljd) {
 export function klipplista(f: Foljd, docka: string) {
   if (!f.runda) return null;
   return {namn: `runda-c1-${docka}`, om: 'Första kortet till alla platser i en tagning, ur standarddockans editor (standarddocka/editor/rorelse.ts rundaAv). Rutorna räknas från 0. Varje klipp går från forsta till och med sista. Det börjar stilla i sitt ankare (forsta–stillaTill, samma ruta upprepad: vilan, eller handen vid skon och bordet tomt) och slutar stilla (stillaFran–sista, samma ruta upprepad: handen vid skon och kortet kvar på sin plats). I nästa klipps första ruta står kortet i skon igen.',
-    docka, fps: f.fps, rutor: f.frames.length, sekunder: Math.round(f.frames.length / f.fps * 1000) / 1000, stillhet: {sekunder: STILLHET, rutor: {vila: Math.round(STILLHET.vila * f.fps), efter: Math.round(STILLHET.efter * f.fps), fore: Math.round(STILLHET.fore * f.fps)}}, klipp: f.runda.klipp, matt: rundansMatt(f)};
+    docka, fps: f.fps, rutor: f.frames.length, sekunder: Math.round(f.frames.length / f.fps * 1000) / 1000, stillhet: {sekunder: f.runda.stillhet, rutor: {vila: Math.round(f.runda.stillhet.vila * f.fps), efter: Math.round(f.runda.stillhet.efter * f.fps), fore: Math.round(f.runda.stillhet.fore * f.fps)}}, klipp: f.runda.klipp, matt: rundansMatt(f)};
 }
 /** Var i rutorna tiden t är. I en runda är en tid som är en hel ruta, sånär som på räkningens avrundning, den rutan: där byter kortet klipp mellan två rutor (rutaVid). */
 const rutplats = (f: Foljd, t: number) => { const at = Math.max(0, Math.min(f.frames.length - 1, t * f.fps)), hel = Math.round(at); return f.runda && Math.abs(at - hel) < 1e-6 ? hel : at; };

@@ -5,8 +5,9 @@
 //   ?plats=<1–7>&t=<sekunder>&kamera=<spel|film|plats1…plats7|sida|topp|fri>[&kulor=0][&utseende=nyckel][&docka=kvinna]
 //   öppnar ett läge direkt (förval: given till plats 4, spelets vy, mannen, Blenders bord som det är)
 //   ?giv=<namn>[&vilan=<namn>]   en grundrörelse på prov i stället för platsens (se PROV nedan)
-//   ?runda=1   hela rundan i en tagning: vilan till skon och sedan första kortet till alla sju platserna, plats 7 först,
-//   med en exakt stillhet vid skon efter varje rörelse (se RUNDA nedan); den tar inga ändringar och sparas inte
+//   ?runda=1   hela rundan: vilan till skon och sedan första kortet till alla sju platserna, plats 7 först, i ett svep
+//   (se RUNDA nedan); med &stillhet=1 en exakt stillhet vid skon före och efter varje rörelse, som i tagningen som ska
+//   bli film och klippas; den tar inga ändringar och sparas inte
 // window.editor (för kontrollen och verktyget ../verktyg/titta.ts): ready, setTime(t), setKamera(k), nara(vad, från), state(), addChange({...}),
 // slapp(id), removeChange(id), undo(), save(skrivÖver), kula(led), visa(vad, på), tillSparat(), tillGrund(), fart(del, gånger),
 // spelaIn(kameror, förstaDel, sistaDel), granskaGrund().
@@ -37,6 +38,8 @@ const PROVGIV = prov('giv'), PROVVILA = prov('vilan'), PROV = !!(PROVGIV || PROV
  * finns inte här, och inget sparas. Inte tillsammans med en grundrörelse på prov.
  */
 const RUNDA = query.get('runda') === '1' && !PROV;
+/** Rundan med stillheten vid skon (?stillhet=1): tagningen som ska bli film och klippas. Utan den går rundan i ett svep. */
+const STILLA = RUNDA && query.get('stillhet') === '1';
 /** Dockan som visas (?docka=kvinna). Den väljer också grundrörelserna: dockans egna där de finns (rorelse.ts EGNA), annars de äldre. */
 const DOCKA: Docka = query.get('docka') === 'kvinna' ? 'kvinna' : 'man';
 const EGEN = grundFor(DOCKA, PLATS);
@@ -77,7 +80,7 @@ const GRUND = RUNDA ? [EGEN.vila, ...RUNDGIVAR.map(g => g.namn)] : [PROVVILA ?? 
 const forsta = await hämta<Motion>(`/blackjack-dealer/dealer3d/data/${GRUND[0]}.json`);
 const FORVAL: Sparad = RUNDA ? {namn: 'Hela rundan: kort 1 till alla sju platserna', om: `A1 till A2.3 och sedan första kortet till plats ${RUNDANS_PLATSER.join(', ')}, i en tagning.`, grund: GRUND, andringar: []}
   : {namn: `Vilan, skon och given till plats ${PLATS} kort 1`, om: `A1 till A2.3 (${GRUND[0]}) och sedan given från A2.3 till plats ${PLATS} kort 1 och tillbaka (${GRUND[1]}). Ändringarna läggs ovanpå grundrörelserna.`, grund: GRUND, andringar: []};
-const foljd: Foljd = RUNDA ? rundaAv({namn: GRUND[0], rorelse: forsta}, RUNDGIVAR) : sattIhop(forsta, andra, PLATS);
+const foljd: Foljd = RUNDA ? rundaAv({namn: GRUND[0], rorelse: forsta}, RUNDGIVAR, STILLA) : sattIhop(forsta, andra, PLATS);
 // Ett sparat lager gäller bara de grundrörelser det sparades på: ändringarnas tider och farten per del hör till dem. Hör
 // det till andra (grundrörelserna har bytts ut), eller har det fel (det kan skrivas för hand: rorelse.ts lagretsFel),
 // läggs det inte på; det står kvar i filen tills han själv trycker Spara.
@@ -107,7 +110,7 @@ const canvas = $<HTMLCanvasElement>('#bild');
 /** Utseendet 'nyckel' (?utseende=nyckel): rena färger på bakgrund, bord och kort, för film där dealern ska skiljas ut (scen.ts). */
 const UTSEENDE: Utseende = query.get('utseende') === 'nyckel' ? 'nyckel' : 'vanligt';
 /** Sidans adress med ett annat val, och de val som ska följa med när den laddas om. */
-const medVal = (val: Record<string, string>) => { const q = new URLSearchParams({plats: String(PLATS), kamera, ...(DOCKA === 'kvinna' ? {docka: DOCKA} : {}), ...(UTSEENDE === 'nyckel' ? {utseende: UTSEENDE} : {}), ...(RUNDA ? {runda: '1'} : {}), ...val}); if (q.get('docka') === 'man') q.delete('docka'); if (!q.get('runda')) q.delete('runda'); return q.toString(); };
+const medVal = (val: Record<string, string>) => { const q = new URLSearchParams({plats: String(PLATS), kamera, ...(DOCKA === 'kvinna' ? {docka: DOCKA} : {}), ...(UTSEENDE === 'nyckel' ? {utseende: UTSEENDE} : {}), ...(RUNDA ? {runda: '1'} : {}), ...(STILLA ? {stillhet: '1'} : {}), ...val}); if (q.get('docka') === 'man') q.delete('docka'); if (!q.get('runda')) q.delete('runda'); if (!q.get('runda') || !q.get('stillhet')) q.delete('stillhet'); return q.toString(); };
 const scen: Scen = await byggScen(canvas, plan, foljd.hip, stallning(foljd, 0, []), laddarText, UTSEENDE, DOCKA, andra.doll);
 const {camera, scene, renderer} = scen;
 
@@ -368,7 +371,7 @@ let rundvarning = '';
 function visaStatus() { const s = $('#status'), omAldre = oanvant();
   // Hela rundan: vad den är, i stället för en plats sparade läge; den sparas inte.
   if (RUNDA) { s.className = rundvarning ? 'osparat' : ''; $<HTMLButtonElement>('#spara').disabled = true; const vanster = RUNDGIVAR.filter(g => g.rorelse.marke?.hander === 'vanster').map(g => g.plats);
-    s.textContent = `Hela rundan i en tagning: vilan till skon och sedan första kortet till plats ${RUNDANS_PLATSER.join(', ')}, med ${sek(STILLHET.efter + STILLHET.fore)} stilla vid skon efter varje kort, där filmen sedan klipps.${vanster.length ? ` Plats ${vanster.join(' och ')} ges med vänsterhanden ensam, de andra med handbyte.` : ''} Här ändras och sparas inget: det görs på en plats i taget.${rundvarning}`; return; }
+    s.textContent = `Hela rundan: vilan till skon och sedan första kortet till plats ${RUNDANS_PLATSER.join(', ')}, ${STILLA ? `med ${sek(STILLHET.efter + STILLHET.fore)} stilla vid skon efter varje kort, där filmen sedan klipps (tagningen som ska bli film)` : 'i ett svep, som klippen spelas efter varandra'}.${vanster.length ? ` Plats ${vanster.join(' och ')} ges med vänsterhanden ensam, de andra med handbyte.` : ''} Här ändras och sparas inget: det görs på en plats i taget.${rundvarning}`; return; }
   // Spelar platsen ännu de äldre rörelserna (ingen egen giv för dockan där än), sägs det först.
   const lanad = PROV || EGEN.egen ? '' : `Plats ${PLATS} spelar ännu den äldre rörelsen, ritad för en annan kropp än ${DOCKA === 'kvinna' ? 'kvinnans' : 'mannens'}. `;
   s.className = osparat ? 'osparat' : sparadKl ? 'bra' : '';
@@ -522,7 +525,7 @@ async function spelaIn(kameror: Kamera[], forst: number, sist: number): Promise<
   const post = async <X>(url: string, body: BodyInit | null): Promise<X> => { const r = await fetch(url, {method: 'POST', body}); if (!r.ok) throw Error(`Inspelningen stannade: ${(await r.text()).slice(0, 300)}`); return r.json() as Promise<X>; };
   // Klippets namn: rörelsen (på prov: grundrörelsernas namn), delen, kameran och dockan, så att mannens och kvinnans
   // klipp inte skriver över varandra. Hela rundan heter runda-c1 och har ingen del i namnet.
-  const rorelse = RUNDA ? 'runda-c1' : PROV ? `prov-${PROVVILA ? `${PROVVILA}-` : ''}${GRUND[1]}` : `a1-a23-p${PLATS}c1`, stam = delnamn ? `${rorelse}-${delnamn}` : rorelse;
+  const rorelse = RUNDA ? (STILLA ? 'runda-c1' : 'runda-c1-flyt') : PROV ? `prov-${PROVVILA ? `${PROVVILA}-` : ''}${GRUND[1]}` : `a1-a23-p${PLATS}c1`, stam = delnamn ? `${rorelse}-${delnamn}` : rorelse;
   // Panelen, tidslinjen, kameran och pilarna står still under inspelningen: inget han rör ändrar klippet medan det görs.
   const stang = (pa: boolean) => { for (const s of ['#panel', '#botten']) document.querySelector<HTMLElement>(s)!.inert = pa; orbit.enabled = !pa; flytta.enabled = !pa; };
   const lås = blickKamera(); blickLas = [lås[0], lås[1], lås[2]]; inspelning = {avbryt: false}; välj(null); stang(true); handtagTill(); ram(); text.style.display = 'grid'; status.className = 'tips'; status.textContent = '';
@@ -556,8 +559,10 @@ $<HTMLButtonElement>('[data-lage=vrida]').disabled = true;
 if (query.get('kulor') === '0') { $<HTMLInputElement>('#kulor').checked = false; handtagTill(); }
 // Hela rundan: det som hör till en plats i taget (ändringarna, de små rörelserna, Spara och Återställ) visas inte, och
 // raden under delarna säger vad en del är här.
+document.querySelectorAll<HTMLElement>('.bara-runda').forEach(x => { x.style.display = RUNDA ? '' : 'none'; });
+{ const ruta = document.querySelector<HTMLInputElement>('#stillhet'); if (ruta) { ruta.checked = STILLA; ruta.onchange = () => { location.search = medVal({stillhet: ruta.checked ? '1' : ''}); }; } }
 if (RUNDA) { document.querySelectorAll<HTMLElement>('.bara-plats').forEach(x => { x.style.display = 'none'; });
-  const tips = document.querySelector('#delar-tips'); if (tips) tips.textContent = `Varje del är ett klipp: ${sek(STILLHET.fore)} stilla vid skon med tomt bord, rörelsen, och ${sek(STILLHET.efter)} stilla med kortet kvar på sin plats. Filmen klipps mellan två delar, där kortet försvinner från bordet. Takten är fast här.`; }
+  const tips = document.querySelector('#delar-tips'); if (tips) tips.textContent = STILLA ? `Varje del är ett klipp: ${sek(STILLHET.fore)} stilla vid skon med tomt bord, rörelsen, och ${sek(STILLHET.efter)} stilla med kortet kvar på sin plats. Filmen klipps mellan två delar, där kortet försvinner från bordet. Takten är fast här.` : 'Varje del är ett klipp, och de spelas i ett svep. Kortet ligger kvar tills nästa del börjar; i spelet ritar spelet korten som ligger. Takten är fast här.'; }
 const bord = await scen.bord;
 // Armarna över bordskanten: grundrörelsen rättas en gång när bordet (och därmed dess kant) är på plats.
 laddarText('armarna över bordskanten'); await new Promise(r => setTimeout(r, 0));
@@ -566,7 +571,7 @@ const armar = lyftArmar(foljd, scen, bord);
 // vridning över tiden, så där en dockas rörelser behöver den nära ett ankare spiller den över stillheten och skarven.
 // Det rättas inte här (det hör till grundrörelserna eller regeln); det sägs i statusraden och i klipplistan (matt.ren).
 { const m = rundansMatt(foljd), mm = (n: number) => String(n).replace('.', ',');
-  if (m && !m.ren) { rundvarning = ` Obs: den här tagningen är inte ren att klippa. Inom en stillhet rör sig dockan upp till ${mm(m.storstaSkillnad)} mm, och i en skarv hoppar den upp till ${mm(m.storstaHopp)} mm.${armar.rutorVridna ? ` Det kommer av regeln som lyfter armbågarna över bordets kant: den ändrade ${armar.rutorVridna} rutor, eftersom ${DOCKA === 'kvinna' ? 'kvinnans' : 'mannens'} rörelser annars går genom kanten.` : ''}`; visaStatus(); } }
+  if (STILLA && m && !m.ren) { rundvarning = ` Obs: den här tagningen är inte ren att klippa. Inom en stillhet rör sig dockan upp till ${mm(m.storstaSkillnad)} mm, och i en skarv hoppar den upp till ${mm(m.storstaHopp)} mm.${armar.rutorVridna ? ` Det kommer av regeln som lyfter armbågarna över bordets kant: den ändrade ${armar.rutorVridna} rutor, eftersom ${DOCKA === 'kvinna' ? 'kvinnans' : 'mannens'} rörelser annars går genom kanten.` : ''}`; visaStatus(); } }
 // Kroppens mått för spärren, på den docka som visas, i vilan (rörelsens första ruta).
 laddarText('kroppens mått');
 granser = {matt: matKropp(scen, foljd.frames[0], foljd.hip), bord};
