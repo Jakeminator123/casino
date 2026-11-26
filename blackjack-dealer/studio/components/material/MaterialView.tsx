@@ -13,12 +13,15 @@
 import { ImagePlus } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { sameNode } from "../../../src/dealer-trees.ts";
 import { asApiError, type ApiError } from "../../lib/api.ts";
 import { useBank } from "../../lib/bank.ts";
 import { DEALER_PARAM, viewDealer } from "../../lib/dealer.ts";
 import { useViewContext } from "../../lib/context.ts";
+import type { Same } from "../../lib/lineage.ts";
 import { CHAIN, ROLES, roleStatus, type Entry, type MediaAnswer, type Role } from "../../lib/media.ts";
 import { isSnapshot } from "../../lib/mode.ts";
+import { useTrees } from "../map/useTrees";
 import { Page } from "../shell";
 import { Button, EmptyState, ErrorState, Skeleton } from "../ui";
 import { AddDialog } from "./AddDialog";
@@ -34,6 +37,16 @@ import { takeCount } from "./films.ts";
 const CUT_CHECKS = readCutChecks(cutFramesFile);
 
 type State = { status: "loading" } | { status: "ready"; answer: MediaAnswer } | { status: "error"; error: ApiError };
+
+/**
+ * The pictures the dealer's trees call the same node (markOf: only the card's mark differs, src/dealer-trees.ts sameNode, as
+ * Karta reads them), so that neither is "äldre" for the other, in the rows and in the choice's dialog. The rail's read of the
+ * trees, no extra request; none on the online copy.
+ */
+function useSameNode(dealer: string | null): Same {
+  const trees = useTrees(dealer, useBank().readAt).answer?.trees;
+  return useMemo(() => sameNode((trees ?? []).map((v) => v.tree)), [trees]);
+}
 
 /** Writes the view's choices into the address, so that a link brings back the same dealer and picture. */
 function setParams(next: Record<string, string | null>) {
@@ -80,6 +93,7 @@ export function MaterialView() {
     [dealer, open],
   );
   const lineage = answer?.lineage ?? {};
+  const same = useSameNode(dealer?.id ?? null);
   // The bank's graph is the studio's dealer's: its takes count only for her (a link may show another dealer here).
   const bankTakes = dealer?.films?.from && graph && dealer.id === studioDealer ? takeCount(graph) : 0;
 
@@ -158,11 +172,11 @@ export function MaterialView() {
         <div className="divide-y divide-line/70">
           {chain.map((role) =>
             role === "film" ? (
-              <FilmsRow key={role} dealer={live} graph={graph} step={step(role)} open={open?.id ?? null} onOpen={(e) => setParams({ bild: e.id })} lineage={lineage} />
+              <FilmsRow key={role} dealer={live} graph={graph} step={step(role)} open={open?.id ?? null} onOpen={(e) => setParams({ bild: e.id })} lineage={lineage} same={same} />
             ) : role === "landning" ? (
-              <LandingsRow key={role} dealer={live} all={dealer.entries} bank={bankFacts} step={step(role)} open={open?.id ?? null} onOpen={(e) => setParams({ bild: e.id })} />
+              <LandingsRow key={role} dealer={live} all={dealer.entries} bank={bankFacts} step={step(role)} open={open?.id ?? null} onOpen={(e) => setParams({ bild: e.id })} same={same} />
             ) : (
-              <RoleRow key={role} dealer={live} all={dealer.entries} role={role} step={step(role)} open={open?.id ?? null} onOpen={(e) => setParams({ bild: e.id })} />
+              <RoleRow key={role} dealer={live} all={dealer.entries} role={role} step={step(role)} open={open?.id ?? null} onOpen={(e) => setParams({ bild: e.id })} same={same} />
             ),
           )}
         </div>
@@ -170,14 +184,14 @@ export function MaterialView() {
         <div className="divide-y divide-line/70">
           {ROLES.filter((r) => !CHAIN.includes(r)).map((role) =>
             live.entries.some((e) => e.role === role) || dealer.missing?.[role] ? (
-              <RoleRow key={role} dealer={live} all={dealer.entries} role={role} step={null} open={open?.id ?? null} onOpen={(e) => setParams({ bild: e.id })} />
+              <RoleRow key={role} dealer={live} all={dealer.entries} role={role} step={null} open={open?.id ?? null} onOpen={(e) => setParams({ bild: e.id })} same={same} />
             ) : null,
           )}
         </div>
         <ArchivedRow dealer={dealer} open={open?.id ?? null} onOpen={(e) => setParams({ bild: e.id })} />
         <Measures measures={answer.measures} />
       </div>
-      <MaterialViewer entries={row} index={open ? row.indexOf(open) : null} onIndex={(i) => setParams({ bild: i === null ? null : (row[i]?.id ?? null) })} revision={answer.revision} onDecided={() => void read()} dealerEntries={dealer.entries} lineage={lineage} />
+      <MaterialViewer entries={row} index={open ? row.indexOf(open) : null} onIndex={(i) => setParams({ bild: i === null ? null : (row[i]?.id ?? null) })} revision={answer.revision} onDecided={() => void read()} dealerEntries={dealer.entries} lineage={lineage} same={same} />
       {!isSnapshot ? <AddDialog open={adding} onOpenChange={setAdding} dealers={answer.dealers} dealer={dealer.id} onAdded={added} /> : null}
     </Page>
   );

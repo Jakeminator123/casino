@@ -78,8 +78,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    handleden i vändningen; P7.C1:s vändning (förvalet 17 rutor, hans undanlagda standard 11); plats 1 från nypet
    (Jakob 2026-11-26: "plats ett ska få nyp"; beställningen vägrar den i dag, `tools/doll-order.ts`); en kropp som lutar sig mot plats 1–2; SAM-dockan ("Ja bygg den riktiga SAM-dockan", 2026-11-23).
 3. **Karta:** bryggorna för nypet (A2.1 → A1, A2.1 ↔ A2.3); kameran som en dimension (2026-11-23); kort 3–7
-   återbrukar bara kort 2. Material märker ännu filmerna på stolarnas ankare som "äldre A2.3" (`samePlace` i
-   `studio/lib/lineage.ts` ser inte stolen), och dess dialog om vilken bild som gäller känner inte `markOf`.
+   återbrukar bara kort 2.
 4. **Spelet:** bara trädet när filmerna finns (lånen stryks), och en hel giv får hans ja i spelstorlek. För talet är
    läpparna i realtid på hans RunPod huvudmålet (2026-11-17), och talfilmerna förs in i nodträdet (2026-11-24). Hans
    idé, obyggd: munnen ur hennes egen leendefilm `paow-vila-03-01`. Mungiporna och överläppen är inte lösta i hans ögon.

@@ -5,7 +5,8 @@
 // the same role, node and card (a keystone also of the same posture) aside. Pure, shared by the page (which names what follows
 // before anything is written) and the lab server (tools/media-roles.ts setState, PUT /api/media/<id>/state in
 // tools/order-routes.ts). Tests: tools/order-routes.test.ts.
-import { isStanding, kindOfPath, type Entry, type State } from "../../lib/media.ts";
+import { samePlaceAs, type PlaceLike } from "../../lib/lineage.ts";
+import { kindOfPath, type Entry, type State } from "../../lib/media.ts";
 
 export const CHANGES: Readonly<Record<State, readonly State[]>> = {
   kandidat: ["gäller", "ersatt", "arkiverad"],
@@ -36,12 +37,11 @@ export const isDecidable = (e: Pick<Entry, "role" | "path" | "frame">): boolean 
  * way, and a repaired copy approved after its original must take the original's place (2026-11-13). A keystone is also kept
  * apart by its posture: a dealer has a standing and a sitting one (2026-11-18), and a landing picture by its hand (A3: one per
  * seat and hand; absent is the left), and a picture seen from a seat's camera by that seat: it never sets the straight one aside.
+ * The place is studio/lib/lineage.ts samePlaceAs, the same rule that marks what is older.
  */
-export function replacedBy<T extends Pick<Entry, "id" | "role" | "node" | "card" | "state"> & { name?: string; hand?: string; seat?: number }>(entries: readonly T[], entry: T): T[] {
-  const samePosture = (e: T) => entry.role !== "keystone" || isStanding(e) === isStanding(entry);
-  const sameHand = (e: T) => entry.role !== "landning" || (e.hand ?? "LH") === (entry.hand ?? "LH");
-  const sameCamera = (e: T) => (e.seat ?? null) === (entry.seat ?? null);
-  return entries.filter((e) => e.id !== entry.id && e.role === entry.role && e.node === entry.node && e.card === entry.card && samePosture(e) && sameHand(e) && sameCamera(e) && (e.state === "kandidat" || e.state === "gäller"));
+export function replacedBy<T extends PlaceLike & Pick<Entry, "state">>(entries: readonly T[], entry: T): T[] {
+  const here = samePlaceAs(entry);
+  return entries.filter((e) => e.id !== entry.id && here(e) && (e.state === "kandidat" || e.state === "gäller"));
 }
 
 /** "Jakob 2026-11-12 22:40: kandidat → gäller (Material)". */

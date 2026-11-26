@@ -7,10 +7,8 @@
 // not listed here: a proof is registered by its own proof.json and shown in Granska's Prov.
 import { ArrowRight, ChevronRight, CircleAlert, FolderOpen } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { Graph } from "../../../src/clip-graph.ts";
-import { sameNode } from "../../../src/dealer-trees.ts";
-import { useOptionalBank } from "../../lib/bank.ts";
 import { BUCKET_SIGN, BUCKET_WORD, BUCKETS } from "../../lib/edge-stats.ts";
 import { CHAIN, ROLE_ABOUT, ROLE_LABEL, roleStatus, sizeWords, type DealerAnswer, type EntryAnswer, type Measure, type Role, type RoleStatus } from "../../lib/media.ts";
 import { ProofStill } from "../proofs";
@@ -21,18 +19,8 @@ import { endWord, seatEnds, seatEndsCount, seatEndsStatus, type SeatEndRow, type
 import { StateChip, Tile, coverOfEntry, filmLine, type TileMark } from "./Tile";
 import { dayWords } from "./day-words.ts";
 import { fromOlderChip, olderOf, type Lineage, type Same } from "../../lib/lineage.ts";
-import { useTrees } from "../map/useTrees";
 
 const rowId = (role: Role) => `roll-${role.replace(".", "-")}`;
-
-/**
- * The pictures the dealer's trees call the same node (markOf: only the card's mark differs, src/dealer-trees.ts sameNode, as
- * Karta reads them), so that neither is "äldre" for the other. The rail's read of the trees, no extra request; none on the copy.
- */
-function useSameNode(dealer: string): Same {
-  const trees = useTrees(dealer, useOptionalBank()?.readAt ?? null).answer?.trees;
-  return useMemo(() => sameNode((trees ?? []).map((v) => v.tree)), [trees]);
-}
 const scrollTo = (role: Role) => document.getElementById(rowId(role))?.scrollIntoView({ behavior: "smooth", block: "start" });
 
 const SIGN_TONE: Record<SeatEndsState, string> = {
@@ -174,6 +162,7 @@ export function RoleRow({
   last,
   open,
   onOpen,
+  same,
 }: {
   dealer: DealerAnswer;
   /** Every picture of the dealer, archived ones too: what an anchor was made from may be among them. */
@@ -183,8 +172,9 @@ export function RoleRow({
   last?: boolean;
   open: string | null;
   onOpen: (entry: EntryAnswer) => void;
+  /** Two pictures the dealer's trees call the same node (MaterialView useSameNode): neither is "äldre" for the other. */
+  same?: Same;
 }) {
-  const same = useSameNode(dealer.id);
   const list = dealer.entries.filter((e) => e.role === role);
   const status = step !== null ? roleStatus(dealer, role) : null;
   const missing = dealer.missing?.[role];
@@ -211,8 +201,7 @@ export function RoleRow({
  * the cut frame of the bank's own film to the seat (the frame where the return he approved begins), else "ingen slutbild".
  * Under the seats, the landing pictures of the register themselves (one that is set aside can be made to hold again).
  */
-export function LandingsRow({ dealer, all = dealer.entries, bank, step, open, onOpen }: { dealer: DealerAnswer; all?: readonly EntryAnswer[]; bank: BankFacts | null; step: number; open: string | null; onOpen: (entry: EntryAnswer) => void }) {
-  const same = useSameNode(dealer.id);
+export function LandingsRow({ dealer, all = dealer.entries, bank, step, open, onOpen, same }: { dealer: DealerAnswer; all?: readonly EntryAnswer[]; bank: BankFacts | null; step: number; open: string | null; onOpen: (entry: EntryAnswer) => void; same?: Same }) {
   const rows = seatEnds(dealer.entries, bank, dealer.id);
   const state = seatEndsStatus(rows);
   const list = dealer.entries.filter((e) => e.role === "landning");
@@ -274,9 +263,8 @@ function SeatEndTile({ row, bank, onOpen }: { row: SeatEndRow<EntryAnswer>; bank
  * The films: the bank in numbers per seat, the map one click away; for a dealer without films in the bank, what lies
  * outside it (where, on hover only: a path is no word for him). Under that, the films of the register (role film) that lie in the repo folder but not in the bank.
  */
-export function FilmsRow({ dealer, graph, step, open, onOpen, lineage = {} }: { dealer: DealerAnswer; graph: Graph | null; step: number; open: string | null; onOpen: (entry: EntryAnswer) => void; lineage?: Lineage }) {
+export function FilmsRow({ dealer, graph, step, open, onOpen, lineage = {}, same }: { dealer: DealerAnswer; graph: Graph | null; step: number; open: string | null; onOpen: (entry: EntryAnswer) => void; lineage?: Lineage; same?: Same }) {
   const [shown, setShown] = useState(false);
-  const same = useSameNode(dealer.id);
   const inBank = dealer.films?.from && graph ? takeCount(graph) : 0;
   const status: RoleStatus = inBank ? "finns" : "saknas";
   const outside = dealer.outside;
@@ -384,7 +372,7 @@ export function FilmsRow({ dealer, graph, step, open, onOpen, lineage = {} }: { 
 /**
  * A film of the register (role film, assets/motions/<clip>/source.mp4) built on a picture that no longer holds: one chip per
  * mark ("äldre A1", studio/lib/lineage.ts olderOf), a click opening the picture it was built on. same: the trees' same node
- * (markOf), never older for each other (useSameNode).
+ * (markOf), never older for each other (MaterialView useSameNode).
  */
 export function marksOfFilm(entry: EntryAnswer, entries: readonly EntryAnswer[], lineage: Lineage, onOpen: (entry: EntryAnswer) => void, same?: Same): TileMark[] {
   const clip = /^assets\/motions\/([^/]+)\//.exec(entry.path ?? "")?.[1];

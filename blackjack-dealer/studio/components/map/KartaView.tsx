@@ -26,7 +26,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { TARGETS, buildGraph } from "../../../src/clip-graph.ts";
-import { ALL_TREES, CAMERAS, STRAIGHT_CAMERA, cameraFromWord, cameraMade, cameraView, countWord, cutBank, markPairs, nodeCode, waysOf, type TreeAnswer, type TreeView, type ViewStep } from "../../../src/dealer-trees.ts";
+import { ALL_TREES, CAMERAS, STRAIGHT_CAMERA, cameraFromWord, cameraMade, cameraView, countWord, cutBank, nodeCode, sameNode, waysOf, type TreeAnswer, type TreeView, type ViewStep } from "../../../src/dealer-trees.ts";
 import type { CompositionView } from "../../../src/composition.ts";
 import { hubDeals, judgedBank } from "../../../src/game-director.ts";
 import { toPixels, type PlacementPlan } from "../../../src/placement-model.ts";
@@ -183,10 +183,7 @@ function TreeKarta({ answer }: { answer: TreeAnswer }) {
   const played = useMemo(() => (judged ? buildGraph(judged, { mode: "CARD", dealer }) : null), [judged, dealer]);
   const hubs = useMemo(() => (treeBank ? hubDeals(treeBank, dealer) : {}), [treeBank, dealer]);
   // The same picture with the card's mark (markOf) is the same node: a film on the one is not "older" for the other.
-  const same = useMemo(() => {
-    const pairs = markPairs(answer.trees.find((v) => v.tree.id === (tree.tree.wayOf ?? tree.tree.id))?.tree ?? tree.tree);
-    return (a: string, b: string) => pairs.some(([m, base]) => (m === a && base === b) || (m === b && base === a));
-  }, [answer, tree]);
+  const same = useMemo(() => sameNode([answer.trees.find((v) => v.tree.id === (tree.tree.wayOf ?? tree.tree.id))?.tree ?? tree.tree]), [answer, tree]);
   // The films panel lists the tree's own films on the step (its stand-ins' too), not the films of no tree that the cut keeps
   // on the same edge. A Primär on the edge that is none of the tree's films is such a film: said, since "Gör primär" replaces it.
   const filmStep = step && step.edge === edgeId ? step : (view.steps.find((s) => s.edge === edgeId && s.state === "finns") ?? null);

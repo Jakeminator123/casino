@@ -19,7 +19,7 @@ import { TakeChip, frameTime } from "../takes";
 import { Button, IconButton, Kbd, cn } from "../ui";
 import { StateDecision } from "./StateDecision";
 import { dayWords, fromWords } from "./day-words.ts";
-import type { Lineage } from "../../lib/lineage.ts";
+import type { Lineage, Same } from "../../lib/lineage.ts";
 import { StateChip } from "./Tile";
 
 const PAD = 24;
@@ -202,11 +202,14 @@ export function MaterialViewer({
   onDecided,
   dealerEntries = entries,
   lineage = {},
+  same,
 }: {
   entries: readonly EntryAnswer[];
   /** Every picture of the shown dealer (what a choice sets aside), and what each take was built on (studio/lib/lineage.ts). */
   dealerEntries?: readonly EntryAnswer[];
   lineage?: Lineage;
+  /** Two pictures the dealer's trees call the same node (markOf): a choice between them marks no clip as older. */
+  same?: Same;
   index: number | null;
   onIndex: (index: number | null) => void;
   /** The register's revision as read: with it, a picture gets his choices by hand (StateDecision). */
@@ -257,7 +260,7 @@ export function MaterialViewer({
                 {entry.state ? <StateChip state={entry.state} size="md" /> : null}
                 {onDecided ? (
                   <div className="ml-2 flex items-center gap-1.5">
-                    <StateDecision entry={entry} dealerEntries={dealerEntries} lineage={lineage} revision={revision} onDecided={onDecided} />
+                    <StateDecision entry={entry} dealerEntries={dealerEntries} lineage={lineage} same={same} revision={revision} onDecided={onDecided} />
                   </div>
                 ) : null}
                 <div className="ml-auto flex items-center gap-1.5">

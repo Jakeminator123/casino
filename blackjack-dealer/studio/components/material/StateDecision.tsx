@@ -10,7 +10,7 @@ import * as RD from "@radix-ui/react-dialog";
 import { Archive, Check, PauseCircle, Undo2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { asApiError } from "../../lib/api.ts";
-import type { Lineage } from "../../lib/lineage.ts";
+import type { Lineage, Same } from "../../lib/lineage.ts";
 import type { EntryAnswer, State } from "../../lib/media.ts";
 import { isSnapshot } from "../../lib/mode.ts";
 import { Button, useToast } from "../ui";
@@ -24,6 +24,7 @@ export function StateDecision({
   entry,
   dealerEntries,
   lineage,
+  same,
   revision,
   onDecided,
 }: {
@@ -31,6 +32,8 @@ export function StateDecision({
   /** Every picture of the shown dealer: what a choice sets aside and what is built on it is read from them. */
   dealerEntries: readonly EntryAnswer[];
   lineage: Lineage;
+  /** Two pictures the dealer's trees call the same node (markOf): the clips on the one are not marked older for the other. */
+  same?: Same;
   revision: string | null;
   onDecided: () => void;
 }) {
@@ -40,7 +43,7 @@ export function StateDecision({
   if (isSnapshot || !isDecidable(entry) || !revision) return null;
   const choices = offered(entry.state);
   if (!choices.length) return null;
-  const said = asking ? changeLines(entry, asking, dealerEntries, lineage) : null;
+  const said = asking ? changeLines(entry, asking, dealerEntries, lineage, same) : null;
 
   const decide = async () => {
     if (!asking) return;

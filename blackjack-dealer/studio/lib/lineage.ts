@@ -60,10 +60,24 @@ export function traceTakes(entries: readonly (Pick_ & { sha256?: string | null }
   return out;
 }
 
-type StateLike = Pick<Entry, "id" | "role" | "node" | "card" | "state" | "name">;
-/** The pictures that share a place with `entry`: the same role, node and card (a keystone also the same posture). */
-export const samePlace = <T extends StateLike>(entries: readonly T[], entry: T): T[] =>
-  entries.filter((e) => e.role === entry.role && e.node === entry.node && e.card === entry.card && (entry.role !== "keystone" || isStanding(e) === isStanding(entry)));
+/** A picture as far as its place goes: hand and seat as loose as Material's choice gives them (components/material/state.ts). */
+export type PlaceLike = Pick<Entry, "id" | "role" | "node" | "card"> & { name?: string; hand?: string; seat?: number };
+type StateLike = PlaceLike & Pick<Entry, "state">;
+/**
+ * Do two pictures stand in one place, where one picture holds: the same role, node and card; a keystone also the same posture
+ * (standing or sitting, 2026-11-18), a landing the same hand (absent: the left), and a picture seen from a seat's camera the
+ * same seat: it is never an older picture of the straight one, nor sets it aside. The one rule for Material's choice
+ * (components/material/state.ts replacedBy) and the marks of what is older here.
+ */
+export function samePlaceAs(entry: PlaceLike): (e: PlaceLike) => boolean {
+  return (e) =>
+    e.role === entry.role && e.node === entry.node && e.card === entry.card &&
+    (entry.role !== "keystone" || isStanding(e) === isStanding(entry)) &&
+    (entry.role !== "landning" || (e.hand ?? "LH") === (entry.hand ?? "LH")) &&
+    (e.seat ?? null) === (entry.seat ?? null);
+}
+/** The pictures that share a place with `entry` (samePlaceAs), `entry` among them. */
+export const samePlace = <T extends StateLike>(entries: readonly T[], entry: T): T[] => entries.filter(samePlaceAs(entry));
 
 /** The picture that holds now where `entry` stands, when that is another picture than `entry`; else null. */
 export function holderInstead<T extends StateLike>(entries: readonly T[], entry: T): T | null {
@@ -99,12 +113,13 @@ export const builtOnPicture = (lineage: Lineage, entryId: string): string[] => O
 
 /**
  * What follows when `entry` is made the one that holds: the takes built on the picture that holds there today (or on any
- * other picture of the same place) become marked as older. The one line the dialog says before he confirms.
+ * other picture of the same place) become marked as older. The one line the dialog says before he confirms. same: as
+ * olderOf's; a picture that is the same node as `entry` (only the card's mark differs) leaves its takes unmarked.
  */
-export function consequenceOfHolding<T extends StateLike>(entries: readonly T[], entry: T, lineage: Lineage): { takes: string[]; line: string } {
-  const others = samePlace(entries, entry).filter((e) => e.id !== entry.id).map((e) => e.id);
-  const takes = [...new Set(others.flatMap((id) => builtOnPicture(lineage, id)))];
-  const holder = samePlace(entries, entry).find((e) => e.id !== entry.id && e.state === "gäller");
+export function consequenceOfHolding<T extends StateLike>(entries: readonly T[], entry: T, lineage: Lineage, same?: Same): { takes: string[]; line: string } {
+  const others = samePlace(entries, entry).filter((e) => e.id !== entry.id && !same?.(e.id, entry.id));
+  const takes = [...new Set(others.flatMap((e) => builtOnPicture(lineage, e.id)))];
+  const holder = others.find((e) => e.state === "gäller");
   const line = takes.length === 0 ? "Inga klipp är byggda på de andra bilderna här; inget blir markerat."
     : `${takes.length} ${takes.length === 1 ? "klipp är byggt" : "klipp är byggda"} på ${holder ? "den bild som gäller nu" : "de andra bilderna här"} och blir markerade som äldre. De spelas som förut tills du väljer annat.`;
   return { takes, line };
