@@ -27,6 +27,54 @@
       "answer": null
     },
     {
+      "id": "docka-till-person-omgang-2",
+      "kind": "beslut",
+      "question": "Dockans film till en person, omgång 2: möts de två klippen utan skarv?",
+      "leads": "Ja: givarna filmas som korta klipp som fogas i ankarna; nej: de filmas i en följd och styckas.",
+      "proof": "docka-till-person-2-20261126",
+      "chips": [
+        {
+          "value": "ja",
+          "label": "Ja, skarven håller"
+        },
+        {
+          "value": "nastan",
+          "label": "Nästan"
+        },
+        {
+          "value": "nej",
+          "label": "Nej"
+        }
+      ],
+      "asked": "2026-11-26",
+      "from": "standarddocka",
+      "answer": null
+    },
+    {
+      "id": "docka-till-person-omgang-3",
+      "kind": "beslut",
+      "question": "Omgång 3: ska dealern filmas i nyckelfärger, så att spelet ritar bordet?",
+      "leads": "Ja: nästa omgång filmas med blå bakgrund och grönt bord, och spelet ritar bordet genom samma kamera.",
+      "proof": "docka-till-person-3-20261126",
+      "chips": [
+        {
+          "value": "ja",
+          "label": "Ja, nyckelfärger"
+        },
+        {
+          "value": "nej",
+          "label": "Nej, bordet i filmen"
+        },
+        {
+          "value": "prova",
+          "label": "Pröva mer först"
+        }
+      ],
+      "asked": "2026-11-26",
+      "from": "standarddocka",
+      "answer": null
+    },
+    {
       "id": "giv-utan-vandning-i-handen",
       "kind": "beslut",
       "question": "Efter Görans runda: duger en giv där kortet vänds först efter släppet?",

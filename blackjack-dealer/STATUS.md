@@ -183,6 +183,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   plats 4, och A till plats 5, med den nya kroppen vid halvmånen i spelets vy. Hans svar avgör vilken vändning som
   ritas till alla sju platser och för kvinnan. Arbetet sker i `../standarddocka/` (läget och nästa steg i dess README)
   och visas för honom som prov härifrån; hans ord står som krav i `../standarddocka/AGENTS.md`.
+- Dockans film omgjord till en person (betalda prov, 776 krediter): proven `docka-till-person-20261126` (dömt "Mycket
+  bra"), `docka-till-person-2-20261126` och `docka-till-person-3-20261126`; de två sista har var sitt kort i Beslut
+  (håller skarven mellan två klipp, och ska dealern filmas i nyckelfärger). Vad som prövades står i
+  `../standarddocka/README.md`, Nästa steg.
 - Om det som Material behåller utan fil ska kopieras hit från den stationära: hans två bilder av henne, hennes två
   keystones och kortets textur (`assets/cards/kortets-textur.png`), som en ny beställning ritar kortet med. Allt annat
   som bara fanns där är borta ur registren sedan 2026-11-26. Talets nästa replik behöver en bank av en tatuerad vila som
