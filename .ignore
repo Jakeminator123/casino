@@ -2,7 +2,7 @@
 # search what Git may keep but no search should wade through, in every project; a project's own .ignore adds to this
 # (blackjack-dealer/.ignore). Hidden from search is not missing: a file is still read by its path.
 
-# The slask: temporary work of every project, emptied after a week (AGENTS.md, "Slasken"). Its tool slask/slask.ts is
+# The slask: temporary work of every project, emptied of what has stood untouched for three hours (AGENTS.md, "Slasken"). Its tool slask/slask.ts is
 # code and searchable; what lies in the project folders is not. `node slask/slask.ts` lists it, and a file there is read
 # by its path.
 /slask/*
@@ -27,3 +27,6 @@ __pycache__/
 .pytest_cache/
 *.pyc
 *.log
+
+# Media and models (*.mp4, *.png, *.glb and the rest) need no line here: .gitignore already holds them back, and the
+# search reads that file too.
