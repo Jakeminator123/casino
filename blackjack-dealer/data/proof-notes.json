@@ -1115,6 +1115,94 @@
         "at": "2026-11-25T21:40:03.433Z"
       },
       "read": "2026-11-25T21:40:03.433Z"
+    },
+    {
+      "id": 120,
+      "proof": "docka-kropp-20261126",
+      "file": "6-fran-sidan-standarddockan-och-paows-docka.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T00:50:21.805Z"
+    },
+    {
+      "id": 121,
+      "proof": "docka-kropp-20261126",
+      "file": "1-vita-dockan-med-underkropp-och-pall.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T00:50:27.255Z"
+    },
+    {
+      "id": 122,
+      "proof": "docka-kropp-20261126",
+      "file": "2-standarddockans-kropp-vid-skon.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T00:50:29.262Z"
+    },
+    {
+      "id": 123,
+      "proof": "docka-kropp-20261126",
+      "file": "3-standarddockans-kropp-i-handbytet.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T00:50:31.050Z"
+    },
+    {
+      "id": 124,
+      "proof": "docka-kropp-20261126",
+      "file": "5-handerna-i-handbytet-vit-docka-och-kropp.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T00:50:39.068Z"
+    },
+    {
+      "id": 125,
+      "proof": "docka-kropp-20261126",
+      "file": "4-handerna-vid-skon-vit-docka-och-kropp.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T00:50:41.244Z"
+    },
+    {
+      "id": 126,
+      "proof": "standarddocka-man-bord-20261126",
+      "file": "3-mannen-ger-ett-kort-till-plats-4.mp4",
+      "choice": null,
+      "text": "Är som ett litet hack i filmen på 50/120, som fösöker kompensera för att fingrarna inte är på rätt sida",
+      "at": "2026-11-26T01:02:39.135Z"
+    },
+    {
+      "id": 127,
+      "proof": "standarddocka-man-bord-20261126",
+      "file": "1-fran-sidan-bordet-idag-och-15-cm-narmare.png",
+      "choice": null,
+      "text": "Markerhållaren har inte förskjutiits bak",
+      "at": "2026-11-26T01:03:03.584Z"
+    },
+    {
+      "id": 128,
+      "proof": "standarddocka-man-bord-20261126",
+      "file": "2-filmens-kamera-bordet-idag-och-15-cm-narmare.png",
+      "choice": "bra",
+      "text": "markerbrädan har inte gått bak som bordet",
+      "at": "2026-11-26T01:03:45.790Z"
+    },
+    {
+      "id": 129,
+      "proof": "standarddocka-man-bord-20261126",
+      "file": "4-stillbild-ur-filmen-kortet-laggs.png",
+      "choice": null,
+      "text": "markerhållaren återigen, men bra",
+      "at": "2026-11-26T01:04:11.848Z"
+    },
+    {
+      "id": 130,
+      "proof": "standarddocka-man-bord-20261126",
+      "file": null,
+      "choice": null,
+      "text": "Förstår inte grundorsaken, för lixom är som förinställt att detta ska vara såhär på dena elelr likannde filmer, men återigen så är dealerns egna högerarm för vriden, med andra ord så ska standarden vara att dennes högerarm ska med hjälp av tummen ta emot kortet som sedan skjuts och vänds över än att hela handleden ska vridas i maxläge som är onaturligt, elelr snudd på runt frame 27 ser man dettta",
+      "at": "2026-11-26T01:06:15.764Z"
     }
   ]
 }

@@ -3996,7 +3996,7 @@
           "name": "Nyp, tatuerade händer",
           "path": "assets/anchors/paow-nyp-tatuerad/anchor.png",
           "node": "READY",
-          "state": "ersatt",
+          "state": "arkiverad",
           "builtOn": [
             "paow-vila-tatuerad"
           ],
@@ -4005,7 +4005,7 @@
             "from": "sista rutan (96) i beställningen paow-ingang-2-1-tatuerad-01, tagning 1, lagad kopia fixed-1.mp4 (Kling 4 från Tatuerads A1; receipt.json bredvid bilden)",
             "when": "2026-11-23"
           },
-          "stateBy": "Jakob 2026-11-26 01:21: gäller → ersatt (Nyp, tatuerade händer, kort med märke (prov) godkändes, hans svar Ja i Beslut 2026-11-25 på kortet \"A2.1 med kortets märke: ska nya filmer från A2.1 göras från den?\"; infört av Claude Code)"
+          "stateBy": "Jakob 2026-11-26 01:59: ersatt → arkiverad (Material)"
         },
         {
           "id": "paow-ankare-2-3-d-stol-1",
