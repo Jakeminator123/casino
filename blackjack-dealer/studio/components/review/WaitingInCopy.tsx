@@ -21,7 +21,7 @@ export function WaitingInCopy({ items, onOpen, onAll }: { items: readonly QueueI
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto px-5 pb-6 pt-5 [scrollbar-gutter:stable]">
+    <div className="flex h-full min-h-0 flex-col gap-5 overflow-y-auto px-5 pb-6 pt-5 scrollbar-gutter-stable">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <h2 className="font-display text-xl font-semibold tracking-[-0.01em] text-ink">
           {waiting.length} {waiting.length === 1 ? "tagning väntar" : "tagningar väntar"} på Jakobs ord

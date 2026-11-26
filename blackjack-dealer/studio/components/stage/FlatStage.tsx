@@ -12,7 +12,7 @@ import { createFlatEngine, type Engine } from "./engines.ts";
 
 export function PictureBox({ className, children }: { className?: string; children?: ReactNode }) {
   return (
-    <div className={cn("pointer-events-none absolute inset-0 grid place-items-center [container-type:size]", className)}>
+    <div className={cn("pointer-events-none absolute inset-0 grid place-items-center @container-size", className)}>
       <div className="relative" style={{ aspectRatio: FILM_ASPECT, width: `min(100cqw, calc(100cqh * ${FILM_ASPECT}))` }}>
         {children}
       </div>

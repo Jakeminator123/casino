@@ -27,7 +27,7 @@ import type { PathPic } from "./PathBar";
 function Held({ pic, word, shown }: { pic: PathPic; word: string; shown: boolean }) {
   const cover = pic.entry ? coverOfEntry(pic.entry) : null;
   return (
-    <PictureBox className={shown ? "z-[3]" : "opacity-0"}>
+    <PictureBox className={shown ? "z-3" : "opacity-0"}>
       <div className="absolute inset-0 overflow-hidden bg-black">
         {cover ? (
           <ProofStill cover={cover} fps={pic.entry?.fps ?? 30} fit="contain" className="absolute inset-0" />

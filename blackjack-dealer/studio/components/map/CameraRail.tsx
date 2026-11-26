@@ -97,7 +97,7 @@ export function CameraRail({ stops, value, total, onChange, className }: { stops
             onClick={() => onChange(s.camera)}
             title={`Kamera ${s.camera}${s.camera === STRAIGHT_CAMERA ? ", rakt framifrån" : ""}: ${madeWord(s, total)}`}
             className={cn(
-              "relative block h-[30px] w-[44px] shrink-0 overflow-hidden rounded-[4px] border transition-colors duration-150",
+              "relative block h-[30px] w-[44px] shrink-0 overflow-hidden rounded-xs border transition-colors duration-150",
               cover ? "bg-well" : made ? "bg-raised" : "border-dashed",
               on ? "border-brass shadow-[0_0_0_1px_var(--color-brass)]" : made ? "border-line-strong hover:border-line-hi" : "border-line-strong/80 hover:border-line-hi",
             )}

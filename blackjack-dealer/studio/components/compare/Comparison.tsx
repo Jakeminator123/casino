@@ -360,7 +360,7 @@ export function Comparison({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto px-5 pb-4 pt-4 [scrollbar-gutter:stable]">
+    <div className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto px-5 pb-4 pt-4 scrollbar-gutter-stable">
       {same ? (
         <div role="radiogroup" aria-label="Visas" className="flex h-8 shrink-0 items-center justify-center gap-2">
           {(["a", "b"] as const).map((which) => {

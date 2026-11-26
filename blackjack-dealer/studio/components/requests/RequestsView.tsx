@@ -119,7 +119,7 @@ function PostCard({ post, seen, onPicture }: { post: Post; seen: Seen; onPicture
       ) : null}
 
       {post.svar ? (
-        <div className={cn("flex flex-col gap-1 rounded-md border px-3 py-2.5", fresh ? "border-brass/35 bg-brass/[0.06]" : "border-line-strong bg-raised")}>
+        <div className={cn("flex flex-col gap-1 rounded-md border px-3 py-2.5", fresh ? "border-brass/35 bg-brass/6" : "border-line-strong bg-raised")}>
           <span className="flex items-center gap-2 text-xs">
             <span className="font-semibold text-ink">Jakobs svar</span>
             <span className="text-faint">{when(post.andrad)}</span>

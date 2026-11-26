@@ -39,7 +39,7 @@ function StepPicture({ row, plan }: { row: ProductionRow; plan: PlanAnswer | nul
   const p = row.picture;
   const cards = p.cards.flatMap((c) => (plan?.seats[c.target] ? [{ quad: plan.seats[c.target].quad, side: c.side }] : []));
   return (
-    <div className="relative aspect-[1764/1174] w-[132px] shrink-0 overflow-hidden rounded-md border border-line bg-well">
+    <div className="relative aspect-1764/1174 w-[132px] shrink-0 overflow-hidden rounded-md border border-line bg-well">
       {p.path && p.frame === null && !p.path.endsWith(".mp4") ? (
         // eslint-disable-next-line @next/next/no-img-element -- a lab file
         <img src={labUrl(p.path)} alt="" className="size-full object-cover" loading="lazy" />
@@ -105,7 +105,7 @@ function StepCard({ row, plan, dealer, onOpen }: { row: ProductionRow; plan: Pla
 function AnchorTile({ anchor }: { anchor: ProductionAnchor }) {
   return (
     <figure className="flex w-[108px] flex-col gap-1">
-      <div className="relative aspect-[1764/1174] overflow-hidden rounded-md border border-line bg-well">
+      <div className="relative aspect-1764/1174 overflow-hidden rounded-md border border-line bg-well">
         {anchor.path ? (
           // eslint-disable-next-line @next/next/no-img-element -- a lab file
           <img src={labUrl(anchor.path)} alt={nodeCode(ANCHOR_NODE[anchor.at])} className={cn("size-full object-cover", anchor.state !== "gäller" && "opacity-60")} loading="lazy" />

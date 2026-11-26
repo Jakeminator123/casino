@@ -57,8 +57,8 @@ export function useArchive() {
   const dialog = (
     <RD.Root open={!!asking} onOpenChange={(open) => !open && !busy && setAsking(null)}>
       <RD.Portal>
-        <RD.Overlay className="fixed inset-0 z-[60] bg-black/60" />
-        <RD.Content className="fixed left-1/2 top-1/2 z-[61] flex w-[min(460px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-xl border border-line-strong bg-surface p-5 shadow-pop focus:outline-none">
+        <RD.Overlay className="fixed inset-0 z-60 bg-black/60" />
+        <RD.Content className="fixed left-1/2 top-1/2 z-61 flex w-[min(460px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-xl border border-line-strong bg-surface p-5 shadow-pop focus:outline-none">
           <RD.Title className="font-display text-lg font-semibold text-ink">{words ? `${words.button}: ${name}?` : ""}</RD.Title>
           <RD.Description asChild>
             <div className="flex flex-col gap-2 text-sm text-ink">

@@ -463,7 +463,7 @@ export function FilmPlayer({
       data-presentation={drawToCanvas ? (canvasReady ? "canvas" : "video") : undefined}
       className={cn("flex min-h-0 min-w-0 flex-col gap-2", className)}
     >
-      <div className={cn("relative grid min-h-0 flex-1 place-items-center [container-type:size]", stageClassName)}>
+      <div className={cn("relative grid min-h-0 flex-1 place-items-center @container-size", stageClassName)}>
         <div
           className="relative overflow-hidden rounded-lg bg-well shadow-[0_0_0_1px_var(--color-line)]"
           style={{ aspectRatio: aspect, width: `min(100cqw, calc(100cqh * ${aspect}))` }}
@@ -484,7 +484,7 @@ export function FilmPlayer({
             <canvas ref={canvas} aria-hidden="true" className={cn("pointer-events-none absolute inset-0 size-full object-contain", !canvasReady && "invisible")} />
           ) : null}
           {!loaded && !failed && !empty ? (
-            <div aria-hidden className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,#111316_0%,#1d2024_45%,#111316_90%)] bg-[length:200%_100%]" />
+            <div aria-hidden className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,#111316_0%,#1d2024_45%,#111316_90%)] bg-size-[200%_100%]" />
           ) : null}
           {failed || empty ? (
             <div className="absolute inset-0 grid place-items-center text-faint">

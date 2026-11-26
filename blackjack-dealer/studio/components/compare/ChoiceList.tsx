@@ -38,7 +38,7 @@ export function ChoiceList({ graph }: { graph: Graph }) {
                 href={compareHref(edge.id)}
                 className="group flex h-full flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-inset transition-[border-color,background-color] duration-150 hover:border-line-strong hover:bg-raised/50 focus-visible:outline-offset-2"
               >
-                <div className={cn("grid aspect-[5/2] gap-px bg-line", shown.length === 1 ? "grid-cols-1" : shown.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
+                <div className={cn("grid aspect-5/2 gap-px bg-line", shown.length === 1 ? "grid-cols-1" : shown.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
                   {shown.map((t) => (
                     <TakeThumb key={t.id} take={t} still="film" scrub={false} className="aspect-auto h-full rounded-none" />
                   ))}

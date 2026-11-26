@@ -61,7 +61,7 @@ export function Transport({
       <IconButton label="En ruta framåt" kbd="→" icon={<StepForward />} disabled={none} onClick={() => onStep(1)} />
       <ScrubBar parts={parts} clock={clock} onScrub={onScrub} onScrubEnd={onScrubEnd} />
       {/* a fixed width, so the bar does not move as the numbers change */}
-      <span className="w-[11.5rem] shrink-0 truncate text-right text-sm text-dim tabular-nums" aria-live="off">
+      <span className="w-46 shrink-0 truncate text-right text-sm text-dim tabular-nums" aria-live="off">
         {text}
       </span>
       <span aria-hidden className="mx-1 h-5 w-px shrink-0 bg-line-strong" />

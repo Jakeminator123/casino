@@ -143,7 +143,7 @@ export function TakeThumb({
   return (
     <div
       ref={ref}
-      className={cn("relative aspect-[3/2] w-full overflow-hidden rounded-md bg-well", className)}
+      className={cn("relative aspect-3/2 w-full overflow-hidden rounded-md bg-well", className)}
       onPointerMove={(event) => {
         if (!scrub || !video) return;
         const box = event.currentTarget.getBoundingClientRect();
@@ -163,7 +163,7 @@ export function TakeThumb({
           className={cn("absolute inset-0 size-full object-cover transition-opacity duration-300", loaded ? "opacity-100" : "opacity-0")}
         />
       ) : null}
-      {pending ? <div aria-hidden className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,#111316_0%,#1d2024_45%,#111316_90%)] bg-[length:200%_100%]" /> : null}
+      {pending ? <div aria-hidden className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,#111316_0%,#1d2024_45%,#111316_90%)] bg-size-[200%_100%]" /> : null}
       {failed ? (
         <div className="absolute inset-0 grid place-items-center text-faint">
           <div className="flex flex-col items-center gap-1.5 text-2xs">

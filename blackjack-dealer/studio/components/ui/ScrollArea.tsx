@@ -7,7 +7,7 @@ export function ScrollArea({ axis = "y", className, children, ...rest }: HTMLAtt
   return (
     <div
       className={cn(
-        "min-h-0 min-w-0 [scrollbar-gutter:stable]",
+        "min-h-0 min-w-0 scrollbar-gutter-stable",
         axis === "y" ? "overflow-y-auto overflow-x-hidden" : axis === "x" ? "overflow-x-auto overflow-y-hidden" : "overflow-auto",
         className,
       )}

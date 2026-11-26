@@ -73,7 +73,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div aria-live="polite" className={cn("pointer-events-none fixed bottom-4 left-[92px] z-[60] flex flex-col items-start gap-2")}>
+      <div aria-live="polite" className={cn("pointer-events-none fixed bottom-4 left-[92px] z-60 flex flex-col items-start gap-2")}>
         {items.map((item) => (
           <ToastView key={item.id} item={item} onDone={done} />
         ))}

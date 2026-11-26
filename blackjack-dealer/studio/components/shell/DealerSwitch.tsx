@@ -23,7 +23,7 @@ function PauseSign({ className }: { className?: string }) {
   );
 }
 
-const LABEL = "text-center text-[9.5px] font-semibold uppercase leading-3 tracking-[0.12em] text-faint rail:w-full rail:text-left rail:text-2xs rail:leading-4 rail:tracking-[0.1em]";
+const LABEL = "text-center text-[9.5px] font-semibold uppercase leading-3 tracking-[0.12em] text-faint rail:w-full rail:text-left rail:text-2xs rail:leading-4 rail:tracking-widest";
 
 export function DealerSwitch() {
   const { dealer, dealers, setDealer } = useBank();

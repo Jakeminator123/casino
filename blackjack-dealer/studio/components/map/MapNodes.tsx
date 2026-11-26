@@ -43,8 +43,8 @@ export type HubNodeType = Node<HubData, "hub">;
 export function Hooks() {
   return (
     <>
-      <Handle type="target" position={Position.Top} isConnectable={false} className="!pointer-events-none !size-px !min-h-0 !min-w-0 !border-0 !opacity-0" />
-      <Handle type="source" position={Position.Bottom} isConnectable={false} className="!pointer-events-none !size-px !min-h-0 !min-w-0 !border-0 !opacity-0" />
+      <Handle type="target" position={Position.Top} isConnectable={false} className="pointer-events-none! size-px! min-h-0! min-w-0! border-0! opacity-0!" />
+      <Handle type="source" position={Position.Bottom} isConnectable={false} className="pointer-events-none! size-px! min-h-0! min-w-0! border-0! opacity-0!" />
     </>
   );
 }

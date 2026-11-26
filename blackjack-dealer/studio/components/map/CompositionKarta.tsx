@@ -532,7 +532,7 @@ function Tile({ step, label, graph, colorOf, nameOf, alone = false, active, onPi
     : `${step.name}: ${step.parts.length ? step.parts.map((p) => `${nameOf(p.tree)} ${percentWord(p.percent)}${p.how === "aterbruk" ? " (återbruk)" : ""}`).join(", ") : "saknas"}${step.lacking.length ? ` · ${step.lacking.map(nameOf).join(", ")} lånar` : ""}`;
   return (
     <button type="button" onClick={onPick} title={title} aria-pressed={active} className={cn("group/tile flex min-w-0 flex-col gap-1 rounded-md text-left focus-visible:outline-offset-2", className)}>
-      <span className={cn("relative block aspect-[3/2] w-full overflow-hidden rounded-md border", step.parts.length ? "border-line-strong bg-well" : alone ? "border-dashed border-line-strong" : "border-dashed border-underkand/70", active && "ring-2 ring-brass/70")}>
+      <span className={cn("relative block aspect-3/2 w-full overflow-hidden rounded-md border", step.parts.length ? "border-line-strong bg-well" : alone ? "border-dashed border-line-strong" : "border-dashed border-underkand/70", active && "ring-2 ring-brass/70")}>
         {take ? <TakeThumb take={take} still="film" className="absolute inset-0" /> : null}
         {mark ? <span className="absolute left-1 top-1 grid size-5 place-items-center rounded-full bg-black/65 text-ink [&_svg]:size-3">{mark.icon}</span> : null}
         {step.variants ? <span aria-hidden className="absolute right-1.5 top-1.5 size-2 rounded-full bg-variant" /> : null}
@@ -591,7 +591,7 @@ function StepFilms({ step, graph, colorOf, nameOf, reuse, orders, held, onShare,
               const take = graph?.takes[film.id];
               return (
                 <div key={film.id} className="flex w-[132px] flex-col gap-1">
-                  {take ? <RowStill take={take} onOpen={() => onOpen(part.tree, take.edge, take.id)} /> : <span className="grid aspect-[3/2] w-full place-items-center rounded-md border border-dashed border-line-strong text-xs text-dim">ingen film här</span>}
+                  {take ? <RowStill take={take} onOpen={() => onOpen(part.tree, take.edge, take.id)} /> : <span className="grid aspect-3/2 w-full place-items-center rounded-md border border-dashed border-line-strong text-xs text-dim">ingen film här</span>}
                   <label className="flex items-center gap-1.5 text-xs text-dim">
                     <input
                       type="number"

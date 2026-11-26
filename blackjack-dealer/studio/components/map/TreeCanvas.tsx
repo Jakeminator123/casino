@@ -165,7 +165,7 @@ function TalkChip({ talk }: { talk: TalkChipData }) {
       aria-label={title}
       aria-pressed={talk.on}
       className={cn(
-        "nodrag nopan pointer-events-auto absolute bottom-1.5 right-1.5 z-[1] inline-flex items-center gap-1 rounded-full bg-black/70 px-1.5 font-medium tabular-nums shadow-[0_1px_5px_rgb(0_0_0/0.55)] backdrop-blur-sm transition-shadow duration-150",
+        "nodrag nopan pointer-events-auto absolute bottom-1.5 right-1.5 z-1 inline-flex items-center gap-1 rounded-full bg-black/70 px-1.5 font-medium tabular-nums shadow-[0_1px_5px_rgb(0_0_0/0.55)] backdrop-blur-sm transition-shadow duration-150",
         none ? "border border-dashed border-[#ef8b8b]/80 text-[#ef8b8b]" : "text-ink",
         talk.on && "shadow-[0_0_0_2px_rgb(217_185_106/0.7)]",
       )}

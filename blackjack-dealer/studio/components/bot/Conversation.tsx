@@ -34,7 +34,7 @@ function Empty({ onAsk }: { onAsk: (q: string) => void }) {
             <button
               type="button"
               onClick={() => onAsk(q)}
-              className="group flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm text-ink transition-colors hover:bg-raised focus-visible:outline-offset-[-2px]"
+              className="group flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm text-ink transition-colors hover:bg-raised focus-visible:-outline-offset-2"
             >
               <span className="min-w-0 flex-1">{q}</span>
               <ArrowRight className="size-4 shrink-0 text-faint transition-[color,transform] duration-150 group-hover:translate-x-0.5 group-hover:text-dim" />
@@ -56,7 +56,7 @@ function Question({ line }: { line: DuLine }) {
         ) : line.harBild ? (
           <span className="text-xs text-faint">(med bild)</span>
         ) : null}
-        <p className="whitespace-pre-wrap break-words">{line.text}</p>
+        <p className="whitespace-pre-wrap wrap-break-word">{line.text}</p>
       </div>
       {line.vy ? (
         <span className="flex max-w-full items-center gap-1 truncate text-2xs text-faint">

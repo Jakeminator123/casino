@@ -46,7 +46,7 @@ export function Select({
           className={cn(
             "group inline-flex w-full min-w-0 items-center justify-between gap-2 rounded-md border border-line-strong bg-well text-left text-ink shadow-inset",
             "transition-[border-color,background-color] duration-150 enabled:hover:border-line-hi disabled:cursor-not-allowed disabled:opacity-45",
-            "data-[state=open]:border-brass/70 data-[placeholder]:text-faint focus-visible:outline-none focus-visible:border-brass/70 focus-visible:ring-3 focus-visible:ring-brass/15",
+            "data-[state=open]:border-brass/70 data-placeholder:text-faint focus-visible:outline-none focus-visible:border-brass/70 focus-visible:ring-3 focus-visible:ring-brass/15",
             size === "sm" ? "h-7 px-2.5 text-xs" : "h-8 px-3 text-sm",
           )}
         >
@@ -63,7 +63,7 @@ export function Select({
             sideOffset={6}
             collisionPadding={12}
             className={cn(
-              "z-50 max-h-[min(var(--radix-select-content-available-height),360px)] min-w-[var(--radix-select-trigger-width)] overflow-hidden",
+              "z-50 max-h-[min(var(--radix-select-content-available-height),360px)] min-w-(--radix-select-trigger-width) overflow-hidden",
               "rounded-lg border border-line-strong bg-raised shadow-pop data-[state=open]:animate-pop-in",
             )}
           >
@@ -75,7 +75,7 @@ export function Select({
                   disabled={option.disabled}
                   className={cn(
                     "relative flex cursor-pointer select-none items-center gap-2 rounded-sm py-1.5 pl-7 pr-3 text-sm text-ink outline-none",
-                    "data-[highlighted]:bg-overlay data-[disabled]:cursor-not-allowed data-[disabled]:opacity-45",
+                    "data-highlighted:bg-overlay data-disabled:cursor-not-allowed data-disabled:opacity-45",
                   )}
                 >
                   <RS.ItemIndicator className="absolute left-2 inline-flex">

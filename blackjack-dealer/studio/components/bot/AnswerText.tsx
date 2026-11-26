@@ -17,7 +17,7 @@ export function CiteMark({ n, active, onClick }: { n: number; active?: boolean; 
       onClick={() => onClick?.(n)}
       aria-label={`Källa ${n}`}
       className={cn(
-        "relative -top-[0.5em] ml-[2px] inline-flex h-[14px] min-w-[14px] items-center justify-center rounded-[4px] border px-[3px] align-baseline text-[9px] font-semibold leading-none tabular-nums transition-colors",
+        "relative top-[-0.5em] ml-[2px] inline-flex h-[14px] min-w-[14px] items-center justify-center rounded-xs border px-[3px] align-baseline text-[9px] font-semibold leading-none tabular-nums transition-colors",
         active ? "border-line-strong bg-overlay text-ink" : "border-line bg-raised text-dim hover:border-line-strong hover:text-ink",
       )}
     >

@@ -55,12 +55,12 @@ export function RoomGrid({
                 aria-label={room.label}
                 onClick={() => onChange(room.id)}
                 className={cn(
-                  "group/room relative aspect-[16/10] overflow-hidden rounded-md border bg-well text-left transition-[border-color,box-shadow] duration-150",
+                  "group/room relative aspect-16/10 overflow-hidden rounded-md border bg-well text-left transition-[border-color,box-shadow] duration-150",
                   on ? "border-brass shadow-[0_0_0_1px_var(--color-brass)]" : "border-line hover:border-line-strong",
                 )}
               >
                 <img src={labUrl(room.thumb)} alt="" loading="lazy" decoding="async" className={cn("absolute inset-0 size-full object-cover transition-opacity duration-150", on ? "opacity-100" : "opacity-75 group-hover/room:opacity-100")} />
-                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent px-1.5 pb-1 pt-3 text-2xs font-medium leading-3 text-white">
+                <span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/85 to-transparent px-1.5 pb-1 pt-3 text-2xs font-medium leading-3 text-white">
                   {room.label}
                 </span>
                 {!room.game ? <span className="absolute right-1 top-1 rounded-xs bg-black/65 px-1 text-[10px] leading-[14px] text-dim">Prov</span> : null}
