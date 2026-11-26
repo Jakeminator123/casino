@@ -89,7 +89,7 @@ function pointHand(material: T.Material) {
     [0, 5, 9, 13, 17, 1].forEach((k, i) => palmAt.setXYZ(i, p[k][0], p[k][1], p[k][2])); palmAt.needsUpdate = true; palm.computeVertexNormals(); }};
 }
 
-export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {look?: Look; target?: string; read?: Read | null; figure?: Figure | null; doll?: Doll} = {}) {
+export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {look?: Look; target?: string; read?: Read | null; figure?: Figure | null; doll?: Doll; tableBack?: number} = {}) {
   const look = options.look ?? 'room', target = options.target ?? 'P4.C1', C = COLOUR[look === 'bare' ? 'plain' : look], lens = filmLens(), edge = dealerEdge(lens), all = spots(plan, lens);
   const four = all.find(s => s.id === 'P4.C1')!, to = all.find(s => s.id === target); if (!to) throw Error(`The plan has no place ${target}.`);
   const pose = shoePose(lens), inShoe = shoeCard(pose), deal = planDeal({lens, target, place: to.at, placeOfSeat4: four.at, shoe: inShoe}), doll = options.doll ?? dollNamed(options.read?.doll), frame = standing(lens, doll), rest = restingHand(lens), S = doll.shape;
@@ -102,7 +102,11 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   const matte = (colour: number, roughness = 0.9) => new T.MeshStandardMaterial({color: colour, roughness, metalness: 0});
 
   // The table: a straight dealer's edge and a half circle toward the players, the felt at y = 0; a rail round the players' side.
-  const radius = 1.02, rail = 0.12, half = (r: number) => { const s = new T.Shape(); s.moveTo(-r, 0); s.absarc(0, 0, r, Math.PI, 0, true); s.lineTo(-r, 0); return s; };
+  // options.tableBack (metres) draws the dealer's edge that much nearer her than the film's edge row: a trial of a table
+  // that comes to the dealer (Jakob 2026-11-26: "skjuta bak bordet litegranna så det kommer närmre dealern"), for a doll
+  // whose films are not yet made. Nothing else moves with it: the card places, the shoe and the tray stay where the
+  // standard has them. Without it the edge is the film's, as always.
+  const radius = 1.02, rail = 0.12, back = Math.max(0, options.tableBack ?? 0), half = (r: number) => { const s = new T.Shape(); s.moveTo(-r, 0); s.absarc(0, 0, r, Math.PI, 0, true); if (back) { s.lineTo(r, -back); s.lineTo(-r, -back); } s.lineTo(-r, 0); return s; };
   const lay = (g: T.BufferGeometry) => g.rotateX(Math.PI / 2).translate(edge[0], 0, edge[2]); // the shape lies in x-y with its arc toward +y; turned so that +y is world +z, toward the players, and its depth goes down
   const felt = new T.Mesh(lay(new T.ShapeGeometry(half(radius), 64)), new T.MeshStandardMaterial({color: C.felt, roughness: 0.95, side: T.DoubleSide})); felt.receiveShadow = true; scene.add(felt);
   const slab = new T.Mesh(lay(new T.ExtrudeGeometry(half(radius + rail), {depth: 0.06, bevelEnabled: false, curveSegments: 64})), new T.MeshStandardMaterial({color: C.wood, roughness: 0.8, side: T.DoubleSide})); slab.position.y = -0.0005; slab.receiveShadow = true; scene.add(slab);

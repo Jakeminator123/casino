@@ -6,6 +6,7 @@
 //   ?look=room     room (felt table), plain (white figure on grey, for a reference film) or bare (the figure alone on a transparent page)
 //   ?docka=paow    which doll (dealer3d/src/doll.ts); without it the one a read motion names, else the standard
 //   ?model=1       a rigged model (/model.glb, served by the recorder's --model) in the white figure's place, posed from the same joints
+//   ?bordbak=0.15  a trial: the table's dealer edge drawn that many metres nearer her (dealer3d/src/stage.ts, tableBack)
 //   ?tags=0        no names on the views and no clock
 //   ?t=1.9         the moment shown, seconds; ?play=1 runs the deal in a loop
 // The recorder (dealer3d/tools/shoot.ts) drives it through window.dealer3d: setTime(seconds) draws that moment.
@@ -22,7 +23,7 @@ const motion = /^[\w-]+$/.test(q.get('motion') ?? '') ? q.get('motion') : null, 
 const began = performance.now(), figure = q.get('model') === '1' ? await (await import('../src/figure-model.ts')).loadFigure('/model.glb') : null, loadMs = Math.round(performance.now() - began);
 const look: Look = q.get('look') === 'plain' ? 'plain' : q.get('look') === 'bare' ? 'bare' : 'room';
 if (look === 'bare') for (const e of [document.documentElement, document.body]) e.style.background = 'transparent';
-const stage = createStage(canvas, plan, {look, target: q.get('to') ?? 'P4.C1', read, figure, doll: q.get('docka') ? dollNamed(q.get('docka')) : undefined});
+const stage = createStage(canvas, plan, {look, target: q.get('to') ?? 'P4.C1', read, figure, doll: q.get('docka') ? dollNamed(q.get('docka')) : undefined, tableBack: Number(q.get('bordbak')) || 0});
 const names = {FRONT: 'ser framsidan', BACK: 'ser baksidan', EDGE: 'ser kortet på kant'}, host = document.getElementById('tags')!, clock = document.getElementById('clock')!;
 function draw() {
   const boxes = stage.render(views), shown = stage.state();
