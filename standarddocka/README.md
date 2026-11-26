@@ -75,8 +75,9 @@ egna sparade ändringar.
 - **Kameror:** spelets vy sedd från plats 1–7 (plats 4 är förvalet), från sidan, uppifrån, fri, och den gamla kameran
   för jämförelse. Spelets vy är den lägre kameran som Jakob valde som standard 2026-11-26: 0,58 m över filten, 12
   grader ned, samma lins som förut (`PLAY_LENS` i `../blackjack-dealer/src/table-lens.ts`); de andra platsernas kameror
-  räknas ur den med `seatView`. I vilan ser han in i kameran på plats 4: ansiktet vrids ända fram mot den, med ett lyft
-  som är satt efter bild (`BLICK_LYFT` i `editor/scen.ts`). En plats kamera är spelets egen regel
+  räknas ur den med `seatView`. I vilan ser han in i kameran på plats 4: dockans kod riktar linjen mellan hans ögon
+  mot blickpunkten (`../blackjack-dealer/dealer3d/src/figure-model.ts`). Höften står stilla på stolen och ryggen tar
+  lutningen och vridningen när han når ut över bordet. En plats kamera är spelets egen regel
   (`seatEye` i `../blackjack-dealer/dealer3d/src/world.ts`); plats 4 är spelets kamera.
 - **Dockan:** mannen eller kvinnan (knapparna "Dockan", eller `?docka=kvinna`). De har samma skelett, och där de
   spelar samma grundrörelser delar de det som sparas; en dockas egna rörelser har sitt eget sparade lager.

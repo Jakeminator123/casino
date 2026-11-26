@@ -6,7 +6,7 @@
 // Mätt på mannen själv: hans leder som dockans kod ställer dem och hans underarms tjocklek på huden. Här mäts också
 // kroppens mått för spärren i kropp.ts (matKropp), på samma sätt.
 import * as T from 'three';
-import {qrot, type Foljd, type Frame, type Q, type V3} from './rorelse.ts';
+import {qexp, qrot, type Foljd, type Frame, type Q, type V3} from './rorelse.ts';
 import {balensAxlar, iBalensAxlar, type Arm, type Bord, type Kroppsmatt} from './kropp.ts';
 
 /**
@@ -45,23 +45,35 @@ function tjocklek(k: Kropp, sida: 'Right' | 'Left'): (s: number) => number {
 /** Bålens ben (huden som hänger tyngst på dem är bålen) och huvudets (Head och benen under det, ansiktets). */
 const BAL = new Set(['Hips', 'Spine', 'Spine1', 'Spine2', 'LeftShoulder', 'RightShoulder', 'neck']);
 /**
+ * Bålens prov för hur skivorna följer axlarna (matKropp): axlarna lutade `luta` grader framåt och vridna `vrida` grader
+ * kring lodlinjen genom höften, en vanlig ställning när han lägger ett kort långt ut.
+ */
+const BOJ = {luta: 12, vrida: 25};
+/** Ställningen `f` lutad och vriden som en stel kropp kring höften (först framåt, sedan kring lodlinjen). */
+function vridenKringHoften(f: Frame, hip: number[], luta: number, vrida: number): Frame {
+  const a = qexp([luta * Math.PI / 180, 0, 0]), b = qexp([0, vrida * Math.PI / 180, 0]), rikt = (v: number[]) => qrot(b, qrot(a, v)), punkt = (v: number[]) => { const r = rikt([v[0] - hip[0], v[1] - hip[1], v[2] - hip[2]]); return [hip[0] + r[0], hip[1] + r[1], hip[2] + r[2]] as V3; };
+  const lem = (l: Frame['R']) => ({...l, s: punkt(l.s), e: punkt(l.e), w: punkt(l.w), p: l.p.map(punkt)});
+  return {...f, R: lem(f.R), L: lem(f.L), h: punkt(f.h), g: punkt(f.g), card: {...f.card, c: punkt(f.card.c), l: rikt(f.card.l), n: rikt(f.card.n)}};
+}
+/**
  * Kroppens mått för spärren (kropp.ts), mätta på huden en gång i ställningen `f`, i bålens egna axlar. Bålen: skivor
  * var 2 cm på höjden, från det lägsta till det högsta av huden som hänger på bålens ben; varje skiva har sin mitt
  * (mitt i dess utbredning) och sin radie åt 24 håll (den yttersta huden åt det hållet; tomma håll fylls från grannarna,
- * tomma skivor från närmaste skiva). Huvudet: en kula kring huden på huvudets ben, med radien som medlet av dess tre
- * halva mått. Armarna: modellens axelleder, benlängderna och tjockleken längs överarmen och underarmen. Mannen och
- * kvinnan mäts var för sig av samma kod.
+ * tomma skivor från närmaste skiva), och hur mycket den följer axlarna när ryggen böjs: huden i skivan ställd med
+ * axlarna lutade och vridna kring höften (BOJ), mot där den skulle vara om den stod med höften och om den följde
+ * axlarna. Huvudet: en kula kring huden på huvudets ben, med radien som medlet av dess tre halva mått. Armarna: modellens
+ * axelleder, benlängderna och tjockleken längs överarmen och underarmen. Mannen och kvinnan mäts var för sig av samma kod.
  */
 export function matKropp(k: Kropp, f: Frame, hip: number[]): Kroppsmatt {
   k.pose(f, hip); const m = k.hud; m.skeleton.update();
   const a = balensAxlar(f, hip), tyngst = tyngstaBen(m), ben = m.skeleton.bones, p = new T.Vector3();
   const iHuvudet = ben.map(b => { for (let x: T.Object3D | null = b; x; x = x.parent) if (x.name === 'Head') return true; return false; }), iBal = ben.map(b => BAL.has(b.name));
-  const bal: V3[] = [], huvud: V3[] = [];
+  const bal: V3[] = [], balHorn: number[] = [], huvud: V3[] = [];
   for (let i = 0; i < tyngst.length; i++) { const b = tyngst[i]; if (b < 0 || !(iBal[b] || iHuvudet[b])) continue;
-    m.getVertexPosition(i, p).applyMatrix4(m.matrixWorld); (iBal[b] ? bal : huvud).push(iBalensAxlar(a, [p.x, p.y, p.z])); }
+    m.getVertexPosition(i, p).applyMatrix4(m.matrixWorld); const q = iBalensAxlar(a, [p.x, p.y, p.z]); if (iBal[b]) { bal.push(q); balHorn.push(i); } else huvud.push(q); }
   const DY = 0.02, N = 24; let lagst = Infinity, hogst = -Infinity; for (const q of bal) { lagst = Math.min(lagst, q[1]); hogst = Math.max(hogst, q[1]); }
-  const antal = Math.max(2, Math.ceil((hogst - lagst) / DY) + 1), lager: V3[][] = Array.from({length: antal}, () => []);
-  for (const q of bal) lager[Math.min(antal - 1, Math.round((q[1] - lagst) / DY))].push(q);
+  const antal = Math.max(2, Math.ceil((hogst - lagst) / DY) + 1), lager: V3[][] = Array.from({length: antal}, () => []), lagerHorn: number[][] = Array.from({length: antal}, () => []);
+  bal.forEach((q, j) => { const l = Math.min(antal - 1, Math.round((q[1] - lagst) / DY)); lager[l].push(q); lagerHorn[l].push(balHorn[j]); });
   const skivor = lager.map(l => { if (!l.length) return null;
     let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity; for (const q of l) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); z0 = Math.min(z0, q[2]); z1 = Math.max(z1, q[2]); }
     const x = (x0 + x1) / 2, z = (z0 + z1) / 2, r = new Array<number>(N).fill(0);
@@ -76,7 +88,16 @@ export function matKropp(k: Kropp, f: Frame, hip: number[]): Kroppsmatt {
   for (const q of huvud) { lo = lo.map((v, i) => Math.min(v, q[i])) as V3; hi = hi.map((v, i) => Math.max(v, q[i])) as V3; }
   const armar = Object.fromEntries(SIDOR.map(([s, namn]) => { const S = k.bone(`${namn}Arm`), E = k.bone(`${namn}ForeArm`), W = k.bone(`${namn}Hand`);
     return [s, {axel: iBalensAxlar(a, [S.x, S.y, S.z]), over: S.distanceTo(E), under: E.distanceTo(W), tjockOver: fack(k, `${namn}Arm`, S, E), tjockUnder: fack(k, `${namn}ForeArm`, E, W)} as Arm]; })) as Record<'R' | 'L', Arm>;
-  return {bal: {y0: lagst, dy: DY, skivor: hela}, huvud: {c: lo.map((v, i) => (v + hi[i]) / 2) as V3, r: ((hi[0] - lo[0]) + (hi[1] - lo[1]) + (hi[2] - lo[2])) / 6}, armar};
+  // Hur mycket varje skiva följer axlarna: skivans hud i provet mot där den stod (med höften, som står still) och där den
+  // vore om den följde axlarna. En skiva utan hud eller där de två ligger för nära varandra får grannarnas.
+  const vilaVarld = (i: number) => m.getVertexPosition(i, new T.Vector3()).applyMatrix4(m.matrixWorld), medel = (h: number[], las: (i: number) => T.Vector3) => h.reduce((s, i) => s.add(las(i)), new T.Vector3()).multiplyScalar(1 / h.length);
+  const fore = lagerHorn.map(h => h.length ? medel(h, vilaVarld) : null), prov = vridenKringHoften(f, hip, BOJ.luta, BOJ.vrida), b = balensAxlar(prov, hip);
+  k.pose(prov, hip); m.skeleton.update();
+  const folj = lagerHorn.map((h, l) => { const P = fore[l]; if (!P) return null; const q = iBalensAxlar(a, [P.x, P.y, P.z]), S = new T.Vector3(...b.o).addScaledVector(new T.Vector3(...b.x), q[0]).addScaledVector(new T.Vector3(...b.y), q[1]).addScaledVector(new T.Vector3(...b.z), q[2]);
+    const nu = medel(h, vilaVarld), d = S.clone().sub(P); return d.length() < 0.005 ? null : Math.max(0, Math.min(1, nu.sub(P).dot(d) / d.lengthSq())); });
+  const harFolj = folj.map((s, i) => s === null ? -1 : i).filter(i => i >= 0), fylldFolj = folj.map((s, i) => s ?? (harFolj.length ? folj[harFolj.reduce((x, j) => Math.abs(j - i) < Math.abs(x - i) ? j : x, harFolj[0])]! : 1));
+  k.pose(f, hip);
+  return {bal: {y0: lagst, dy: DY, skivor: hela, folj: fylldFolj.map(s => Math.round(s * 1000) / 1000)}, huvud: {c: lo.map((v, i) => (v + hi[i]) / 2) as V3, r: ((hi[0] - lo[0]) + (hi[1] - lo[1]) + (hi[2] - lo[2])) / 6}, armar, vila: a};
 }
 
 /** Minsta luft under underarmen från armbågen E till handleden W där den är över bordet (framför kanten); Infinity om den inte är det. */

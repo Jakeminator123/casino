@@ -2,10 +2,13 @@
 // gå", de "borde vara blockerade". Det han drar i stannar därför vid kroppen, bordet och vad en led kan. Rent: ingen
 // three.js och ingen I/O, så att sidan och ett verktyg räknar likadant.
 //
-// Måtten mäts på dockans hud en gång (armar.ts matKropp), i bålens egna axlar, de som dealer3d/src/figure-model.ts
-// ställer bålen efter: origo mitt mellan rutans axlar, x från hans högra axel mot hans vänstra, y upp från höften mot
-// axlarnas mitt, z framåt. Bålen ställs stelt, så måtten gäller i varje ruta. Armen räknas som figure-model.ts ställer
-// den: från modellens egen axelled till rutans handled med modellens benlängder, armbågen åt det håll rutans armbåge står.
+// Måtten mäts på dockans hud en gång (armar.ts matKropp), i bålens egna axlar i vilan: origo mitt mellan rutans axlar,
+// x från hans högra axel mot hans vänstra, y upp från höften mot axlarnas mitt, z framåt. Bålen böjs som
+// dealer3d/src/figure-model.ts böjer den: höften står stilla på stolen och ryggen tar lutningen och vridningen, så att
+// bröstet följer axlarna och magen nästan står still. Varje skiva av bålen följer därför axlarna så mycket som den
+// gör på huden (matKropp mäter det), och står i övrigt med höften. Armen räknas som figure-model.ts ställer den: från
+// modellens egen axelled (som ligger på rutans) till rutans handled med modellens benlängder, armbågen åt det håll
+// rutans armbåge står.
 //
 // Spärren rör bara det en ändring gör. Ställningen utan ändringar räknas också, och det den själv gör (en arm som ligger
 // an mot bålen, en armbåge i en viss vinkel, en hand långt ut) är tillåtet: en ändring får inte göra det värre.
@@ -37,10 +40,12 @@ export type Bord = {kantZ: number; skivaY: number};
 /** En arm: modellens axelled (bålens axlar), överarmens och underarmens längd (meter), och tjockleken (radie) i tio fack längs var och en, från leden närmast axeln. */
 export type Arm = {axel: V3; over: number; under: number; tjockOver: number[]; tjockUnder: number[]};
 /**
- * Kroppen i bålens axlar. `bal`: skivor på höjden, den första vid y0 och sedan dy meter isär, varje skiva med sin mitt (x, z)
- * och sin radie åt `r.length` håll runt mitten (vinkeln räknad från +x mot +z). `huvud`: en kula.
+ * Kroppen i bålens axlar i vilan (`vila`, rutan måtten togs i). `bal`: skivor på höjden, den första vid y0 och sedan dy
+ * meter isär, varje skiva med sin mitt (x, z) och sin radie åt `r.length` håll runt mitten (vinkeln räknad från +x mot
+ * +z), och `folj`: hur mycket varje skiva följer axlarna när ryggen böjs (0 står med höften, 1 följer axlarna; utan
+ * `folj` följer hela bålen axlarna, som mått sparade före 2026-11-26). `huvud`: en kula.
  */
-export type Kroppsmatt = {bal: {y0: number; dy: number; skivor: {x: number; z: number; r: number[]}[]}; huvud: {c: V3; r: number}; armar: Record<'R' | 'L', Arm>};
+export type Kroppsmatt = {bal: {y0: number; dy: number; skivor: {x: number; z: number; r: number[]}[]; folj?: number[]}; huvud: {c: V3; r: number}; armar: Record<'R' | 'L', Arm>; vila?: Axlar};
 export type Granser = {matt: Kroppsmatt; bord: Bord};
 
 /**
@@ -49,8 +54,9 @@ export type Granser = {matt: Kroppsmatt; bord: Bord};
  * handleden som får ligga på filten (handen vilar där, som armar.ts ARMAR.handen). armbage: hur långt armbågen kan stå
  * kring linjen axel–handled, grader från rakt ned (negativt in mot kroppen, positivt ut och upp). bojd: mest armbågen
  * böjs (grader från rak). handled: mest handen står från underarmens linje (grader), samma som den ritade handen kan stå:
- * figure-model.ts lägger handen högst 50 grader från underarmen (WRIST där) medan fingrarna och kortet följer rutans
- * punkter, så en hand bortom 50 grader ritas inte som rutans. tol: det som är för litet att räknas (meter, grader).
+ * figure-model.ts vrider en hand som står längre ut tillbaka till 50 grader (WRIST där), hel med fingrarna, medan kortet
+ * följer rutans punkter, så en hand bortom 50 grader ritas inte som rutans. tol: det som är för litet att räknas (meter,
+ * grader).
  */
 export const GRANS = {armTjocklek: 0.85, hoppaOver: 1 / 3, underarmBord: 0.2, armbage: [-40, 130] as const, bojd: 150, handled: 50, tol: 0.001, tolGrader: 0.5};
 /** Handens 21 punkters tjocklek (radie, meter): fingrarna som dealer3d/src/hand-rule.ts ritar dem (DRAWN), handleden och tummens rot som handflatan. */
@@ -59,11 +65,12 @@ const HAND_R = [0.02, 0.012, 0.0088, 0.0082, 0.0076, ...[0, 1, 2, 3].flatMap(() 
 const FILT_TOL = 0.002;
 
 // ---- bålens axlar --------------------------------------------------------------------------------------------
-export type Axlar = {o: V3; x: V3; y: V3; z: V3};
-/** Bålens axlar i en ruta, som figure-model.ts pose ställer bålen. */
+/** Bålens axlar i en ruta (origo mitt mellan axlarna), och höften. */
+export type Axlar = {o: V3; x: V3; y: V3; z: V3; hip: V3};
+/** Bålens axlar i en ruta: axlarnas mitt, linjen mellan dem och riktningen från höften. */
 export function balensAxlar(f: Frame, hip: P): Axlar {
   const o = mix(f.R.s, f.L.s, 0.5), x = norm(sub(f.L.s, f.R.s)), z = norm(cross(x, norm(sub(o, hip)))), y = cross(z, x);
-  return {o, x, y, z};
+  return {o, x, y, z, hip: [hip[0], hip[1], hip[2]]};
 }
 /** En punkt i världen i bålens axlar. */
 export const iBalensAxlar = (a: Axlar, p: P): V3 => { const d = sub(p, a.o); return [dot(d, a.x), dot(d, a.y), dot(d, a.z)]; };
@@ -73,15 +80,29 @@ const iVarlden = (a: Axlar, q: P): V3 => add(a.o, riktning(a, q));
 // ---- djupet --------------------------------------------------------------------------------------------------
 /** Hur djupt (meter) en kula ligger i något, och åt vilket håll (världen) den kommer ut närmast. */
 type Djup = {djup: number; ut: V3};
+/** Ett tal ur en lista vid det brutna indexet i, rakt mellan grannarna, och listans ände utanför den. */
+const vid = (l: readonly number[], i: number) => { const k = Math.max(0, Math.min(l.length - 1, i)), a = Math.floor(k), b = Math.min(l.length - 1, a + 1); return l[a] + (l[b] - l[a]) * (k - a); };
+/**
+ * Var punkten `p` (världen) ligger i bålens axlar i vilan, där huden mättes, och hur mycket skivan där följer axlarna. En
+ * skiva som följer axlarna räknas i rutans axlar, en som står med höften i vilans axlar flyttade med höften (den står
+ * upprätt och vänd mot bordet i varje ruta, som figure-model.ts ställer den), och däremellan blandat: punkten räknas i
+ * båda och blandas efter skivan den hamnar i (tre varv, eftersom skivan beror på höjden).
+ */
+function iVilansBal(m: Kroppsmatt, a: Axlar, p: P): {q: V3; folj: number} {
+  const qS = iBalensAxlar(a, p), {folj, y0, dy} = m.bal; if (!folj?.length || !m.vila) return {q: qS, folj: 1};
+  const qP = iBalensAxlar(m.vila, add(sub(p, a.hip), m.vila.hip)); let q = qS, s = 1;
+  for (let k = 0; k < 3; k++) { s = vid(folj, (q[1] - y0) / dy); q = mix(qP, qS, s); }
+  return {q, folj: s};
+}
 /** En kula med radien r i `p` (världen) mot bålen; null utanför bålens höjd. Ut är rakt ut från skivans mitt. */
 function iBalen(m: Kroppsmatt, a: Axlar, p: P, r: number): Djup | null {
-  const q = iBalensAxlar(a, p), {y0, dy, skivor} = m.bal, i = (q[1] - y0) / dy;
+  const {q, folj} = iVilansBal(m, a, p), {y0, dy, skivor} = m.bal, i = (q[1] - y0) / dy;
   if (!(i >= 0 && i <= skivor.length - 1)) return null;
   const k = Math.min(skivor.length - 2, Math.floor(i)), t = i - k, A = skivor[k], B = skivor[k + 1];
   const dx = q[0] - (A.x + (B.x - A.x) * t), dz = q[2] - (A.z + (B.z - A.z) * t), d = Math.hypot(dx, dz), n = A.r.length;
   const u = ((Math.atan2(dz, dx) / (2 * Math.PI)) * n + n) % n, j = Math.floor(u) % n, f = u - Math.floor(u);
-  const radie = (s: {r: number[]}) => s.r[j] + (s.r[(j + 1) % n] - s.r[j]) * f, R = radie(A) + (radie(B) - radie(A)) * t;
-  return {djup: R + r - d, ut: d > 1e-6 ? riktning(a, [dx / d, 0, dz / d]) : a.z};
+  const radie = (s: {r: number[]}) => s.r[j] + (s.r[(j + 1) % n] - s.r[j]) * f, R = radie(A) + (radie(B) - radie(A)) * t, ut: V3 = [dx / d, 0, dz / d];
+  return {djup: R + r - d, ut: d > 1e-6 ? norm(mix(riktning(m.vila ?? a, ut), riktning(a, ut), folj)) : a.z};
 }
 function iHuvudet(m: Kroppsmatt, a: Axlar, p: P, r: number): Djup {
   const d = sub(p, iVarlden(a, m.huvud.c)), l = len(d); return {djup: m.huvud.r + r - l, ut: l > 1e-6 ? mul(d, 1 / l) : a.z};

@@ -22,8 +22,6 @@ const MODELLER = {man: '/avatar-auto-pipeline/assets/docka/standarddocka_man.glb
 export const bordFor = (rorelsensDocka: string | null | undefined) => rorelsensDocka === 'man' || rorelsensDocka === 'kvinna' ? MODELLER.bord23 : MODELLER.bord;
 /** Spelets kant mot dealern: mitten av dealerns bordskant på filten (dockans linsvärld). */
 export const KANT = ROOM_EDGE as V3;
-/** Hur många grader huvudets sikte lyfts över blickpunkten när han ser in i kameran (pose nedan). Satt efter bild 2026-11-26: vid 10 och 22 grader såg han under kameran, vid 34 in i den. */
-const BLICK_LYFT = 32;
 
 /** Kameran från en av de sex andra platserna vid bordet; plats 4 är spelets vy, 'spel'. */
 export type Platskamera = 'plats1' | 'plats2' | 'plats3' | 'plats5' | 'plats6' | 'plats7';
@@ -78,7 +76,7 @@ export type Scen = {
   synlig(vad: 'bord' | 'stol' | 'platser', pa: boolean): void;
   /** Hur stolen ställdes: sänkt, flyttad, sitsens överkant i modellen och nu (över golvet), luften från hans rygg till ryggstödet och från sitsens framkant till vaderna, och hans höftled i vilan. */
   stol: {sank: number; flytt: V3; sitsUppe: number; sitsNu: number; ryggstod: number; knaveck: number; hoft: V3};
-  /** Ställer mannen i en ruta. `motKameran` (0–1): ansiktet vrids ända fram mot blickpunkten (se pose nedan). */
+  /** Ställer mannen i en ruta. `motKameran` läses inte längre (se pose nedan). */
   pose(f: Frame, hip: number[], motKameran?: number): void;
   bone(name: string): T.Vector3;
   render(): void;
@@ -114,26 +112,15 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
   const bone = (name: string) => { const b = figure.root.getObjectByName(name); if (!b) throw Error(`Dockan saknar leden ${name}.`); return b.getWorldPosition(new T.Vector3()); };
   const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]);
   /** En ruta på mannen, som dealer3d/src/stage.ts gör det: bålen ur axlarna och höften, armarna ur lederna, händerna ur sina 21 punkter, huvudet mot blicken. */
-  // `motKameran` (0–1): hur mycket av vägen ansiktet vrids ända fram mot blickpunkten. Dockans kod vrider huvudet två
-  // tredjedelar av vinkeln mot blicken (på en människa gör ögonen resten, men mannens ögon står stilla), så utan det ser
-  // han under kameran. Jakob 2026-11-26: i vilan ska han alltid titta mot kameran. Ansiktet ställs därför en gång, det som
-  // är kvar till blicken mäts, och huvudet ställs igen mot en punkt så mycket längre bort att ansiktet hamnar rätt.
-  function pose(f: Frame, h: number[], motKameran = 0) {
+  // Blicken: dockans kod riktar linjen mellan hans ögon mot rutans blickpunkt, i vågen (figure-model.ts), så i vilan ser
+  // han in i spelets kamera (Jakob 2026-11-26: "A1 [ska] alltid ha avataren som tittar mot kameran").
+  function pose(f: Frame, h: number[]) {
     const s3 = (p: number[], q: number[]): V3 => [p[0] - q[0], p[1] - q[1], p[2] - q[2]];
     const hand = (p: number[][], side: 1 | -1) => { const n = cross(s3(p[5], p[0]), s3(p[17], p[0])), mid = [(p[9][0] + p[12][0]) / 2, (p[9][1] + p[12][1]) / 2, (p[9][2] + p[12][2]) / 2];
       return {forward: s3(mid, p[0]), palm: [n[0] * side, n[1] * side, n[2] * side] as V3, points: p as V3[]}; };
-    const looks = v(f.g).sub(v(f.h)).normalize(), hander = [hand(f.R.p, 1), hand(f.L.p, -1)];
-    const stall = (mot: T.Vector3) => figure.pose({hip: h as V3, shoulders: [f.R.s as V3, f.L.s as V3], arms: [{shoulder: f.R.s as V3, elbow: f.R.e as V3, wrist: f.R.w as V3}, {shoulder: f.L.s as V3, elbow: f.L.e as V3, wrist: f.L.w as V3}],
-      hands: hander, looks: [mot.x, mot.y, mot.z]});
-    // Leden dockans kod siktar med (från huvudets led till dess framkant) pekar brantare uppåt än ansiktet ser: siktet
-    // lyfts därför BLICK_LYFT grader över blickpunkten, så att ögonen, inte pannan, är riktade mot den.
-    const andel = Math.max(0, Math.min(1, motKameran)), vagratt = new T.Vector3().crossVectors(looks, new T.Vector3(0, 1, 0)).normalize();
-    const mal = andel > 0 ? looks.clone().applyAxisAngle(vagratt, BLICK_LYFT * Math.PI / 180 * andel) : looks;
-    stall(mal);
-    if (andel > 0 && figure.root.getObjectByName('headfront') && figure.root.getObjectByName('Head')) {
-      const fram = bone('headfront').sub(bone('Head')).normalize(), kvar = fram.angleTo(mal);
-      if (kvar > 0.005) stall(mal.clone().applyAxisAngle(new T.Vector3().crossVectors(fram, mal).normalize(), Math.min(0.6, 1.515 * kvar) * andel));
-    }
+    const looks = v(f.g).sub(v(f.h)).normalize();
+    figure.pose({hip: h as V3, shoulders: [f.R.s as V3, f.L.s as V3], arms: [{shoulder: f.R.s as V3, elbow: f.R.e as V3, wrist: f.R.w as V3}, {shoulder: f.L.s as V3, elbow: f.L.e as V3, wrist: f.L.w as V3}],
+      hands: [hand(f.R.p, 1), hand(f.L.p, -1)], looks: [looks.x, looks.y, looks.z], lookAt: f.g as V3});
     // Kortet: lokalt x tvärs, y ut ur framsidan (normalen), z längs långsidan, som dealer3d/src/stage.ts lägger sitt.
     const n = v(f.card.n).normalize(), l = v(f.card.l).normalize(), x = new T.Vector3().crossVectors(n, l);
     card.matrix.makeBasis(x, n, l).setPosition(v(f.card.c)); card.matrixWorldNeedsUpdate = true;
