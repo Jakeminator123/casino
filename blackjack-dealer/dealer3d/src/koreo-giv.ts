@@ -104,8 +104,13 @@ const iForm = (q: Vec3): Vec3 => [q[0], q[1], -q[2]];
  */
 const PEK: [number, number, number][] = [[30, 55, 25], [30, 60, 30], [35, 55, 25], [35, 60, 30]];
 const NYP = {mitt: [0.5, 0.65], fram: 0.035, upp: 0.006, isar: 0.008, ovriga: [15, 25, 12] as [number, number, number]};
+// En mindre hand (kvinnans) når inte med tummen i formerna ovan: de prövas först, så att mannens grepp är det det var, och
+// sedan ett mer böjt pekfinger och kontakten längre in eller ut på mellanfalangen.
+const PEK_MER: [number, number, number][] = [[40, 60, 30], [40, 65, 35], [45, 65, 35], [50, 65, 35], [25, 50, 20]];
+const FORSOK: [[number, number, number], number][] = [...PEK.flatMap(p => NYP.mitt.map(m => [p, m] as [[number, number, number], number])),
+  ...[...PEK, ...PEK_MER].flatMap(p => [0.5, 0.65, 0.35, 0.8, 0.2].map(m => [p, m] as [[number, number, number], number]))];
 export function nyckelgrepp(SR: Vec3[], topp: {finger: number; thumb: number}) {
-  for (const pek of PEK) for (const mitt of NYP.mitt) {
+  for (const [pek, mitt] of FORSOK) {
     const S0 = medLeder(SR, [pek, NYP.ovriga, NYP.ovriga, NYP.ovriga]), P = iRef(S0), pim = add(mul(P[6], 1 - mitt), mul(P[7], mitt));
     const zc = pim[2] + topp.finger + T / 2, mal = (extra: number): Vec3 => [pim[0], pim[1], zc + T / 2 + topp.thumb + extra];
     const S = thumbToward(S0, iForm(mal(0)), 80); if (length(sub(iRef(S)[4], mal(0))) > 0.003) continue;

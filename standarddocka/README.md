@@ -195,9 +195,10 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   bara 3 cm mot spelarna i stället (två tal i `DOLL_TABLE`) står den nästan hel i bild, med nästan lika fri arm.
 - **Skon** har en frontplatta med en rundad öppning (`sko_front`, måtten i `SKO_FRONT` i `bygg_bord.py`): kortets rygg
   syns i öppningen, kortet dras nedåt och ut genom springan under plattan, och nästa kort visar ryggen.
-- **Så sitter de:** axlarna 0,38 m bakom spelets kant; mannen 0,29 m över filten och kvinnan 0,31 (`HOJD` i
+- **Så sitter de:** axlarna 0,38 m bakom spelets kant och 0,29 m över filten, båda (`HOJD` i
   `../blackjack-dealer/dealer3d/tools/docka-standard.ts`: så högt som spelets bild rymmer, högst de 0,31 Jakob dömde;
-  den nya mannens hals och huvud är 3 cm högre än den kropp han dömde). Blenders egen vila (`SITT` i `bygg_docka.py`)
+  den nya mannens hals och huvud är 3 cm högre än den kropp han dömde, och på 0,31 når kvinnans kortare armar inte
+  handens plats vid skon inom handledens gräns). Blenders egen vila (`SITT` i `bygg_docka.py`)
   står kvar på 0,31 med den äldre höften och ska följa mannens `place` i `doll.ts`.
 - **Så ställs kroppen efter rörelsens punkter** (`../blackjack-dealer/dealer3d/src/figure-model.ts`): höften står
   stilla och ryggen böjs, armbågen böjs i modellens eget gångjärn, underarmens vridning läggs på vridbenen (fullt upp
@@ -218,7 +219,8 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 - **Editorn** (`editor/`): mannen eller kvinnan gör vilan → skon → kort 1 på en plats → tillbaka, med dockans egna
   rörelser där de finns (tabellen `EGNA` i `editor/rorelse.ts`, en rad per docka och plats) och annars de äldre,
   ritade för Paows docka. De äldre givarna är röda i `verktyg/mat.ts` på alla sju platser (finger genom kortet, kort
-  utan stöd, hopp) och ska inte filmas. Kvinnan spelar mannens rörelser tills hon har egna.
+  utan stöd, hopp) och ska inte filmas. Kvinnan har ingen rad där än, så hon spelar de äldre rörelserna vid det äldre
+  bordet, och ser därför sämre ut än mannen.
 - **Studion** (`../blackjack-dealer`): Standarddockan är en ingång i Bordet, i spelets vy med samma rum som editorn
   (`dealer3d/src/standard-room.ts`), och dockvyn hittar mannens givar på filnamnet. För en plats utan ritad giv visar
   den plats 4 med en rad om det.
@@ -239,11 +241,12 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    bordets kant; plats 3 kortet hoppar i en ruta; plats 6 bålen vid sitt tak (25 grader lutning, 20 vridning) och
    handleden 60 grader; plats 7 armen räcker inte. Riktiga dealrar ger de två platserna närmast skon med
    vänsterhanden ensam. Varje ny grön giv får en rad i `EGNA` i `editor/rorelse.ts`; studion hittar filen själv.
-3. Kvinnan: hon har en egen kropp men spelar mannens rörelser. Först i `doll.ts`: `--skriv` lägger blocket KVINNA
-   före `DOLLS`, och `DOLLS` ska få `kvinna: KVINNA`. Sedan, från `../blackjack-dealer/`:
-   `node dealer3d/tools/docka-standard.ts --docka kvinna --skriv`,
-   `node dealer3d/tools/ren-givar.ts --docka kvinna --ankare --vila` och
-   `node dealer3d/tools/ren-givar.ts --docka kvinna --plats 4 --koreo a`, och en rad i `EGNA` per giv.
+3. Kvinnan: hon är mätt (KVINNA i `doll.ts`) och har sitt ankare och sin väg till skon (`ankare-2-3-kvinna`,
+   `till-ankare-2-3-kvinna`, utan spärr). Hennes giv är inte klar: `node dealer3d/tools/ren-givar.ts --docka kvinna
+   --plats 4 --koreo a` från `../blackjack-dealer/` ritar den, men en ruta spärrar (vänsterhanden mot kortet, ruta 17,
+   strax efter bytet), och fingertopparna är bara 0,7 av fingret ut mot regelns 0,75. Hennes mindre hand fick fler
+   former av nyckelgreppet att välja bland (`PEK_MER` i `koreo-giv.ts`). När given är grön: en rad i `EGNA` per
+   plats, så att editorn spelar hennes egna rörelser vid halvmånen.
 4. Det som saknas för en hel runda: andra kortet till en plats, dealerns egna kort, och en återgång från kortplatsen
    direkt till vilan (Jakob 2026-11-23: sista given går direkt till A1). I studions Bordet ska platsknapparna visa
    vilka platser som har en ritad giv, och Jakob har bett om att slippa be en agent: en knapp som ritar en giv till

@@ -92,13 +92,13 @@ const natL = bojdSom(vanster, P.natural!.left); hand.natural = {left: natL, at: 
 // spelets kant ger magen några centimeter luft. Höjden valde han 2026-11-26 ur fyra prov (0,23, 0,27, 0,31, 0,35): 0,31 m
 // ("okej" i spelets vy, Bra från sidan; 0,35 klipper huvudet). Regeln är så högt som spelets bild rymmer hjässan, högst
 // hans 0,31: med människans mått (huvudagenten 2026-11-26) sitter mannen, vars hjässa står högre över axlarna, på 0,29
-// (hjässan på rad 9 i spelets vy; på 0,31 klipptes den) och kvinnan på 0,31 (rad 18). --hojd, --bakom och --kant-bak
+// (hjässan på rad 9 i spelets vy; på 0,31 klipptes den) och kvinnan också på 0,29: på 0,31 når hennes kortare armar inte ankarets högerhand inom handledens gräns. --hojd, --bakom och --kant-bak
 // prövar andra tal utan att skriva dockan. Bordets modell kan vara byggd med en annan kant (bygg_bord.py --kant-bak):
 // kanten, brickan och sargen räknas då dit SITS.kantBak säger.
 /** Hur långt standarddockan lutar framåt och vrider sig när armen inte räcker, radianer (doll.ts mostLean, mostTwist). */
 const BAL = {luta: 25 * Math.PI / 180, vrida: 20 * Math.PI / 180};
 /** Axelledernas höjd över filten per docka (meter): så högt som spelets bild rymmer hjässan, högst Jakobs 0,31. */
-const HOJD: Record<string, number> = {man: 0.29, kvinna: 0.31};
+const HOJD: Record<string, number> = {man: 0.29, kvinna: 0.29};
 const SITS = {bakom: Number(arg('--bakom') ?? 0.38), hojd: Number(arg('--hojd') ?? HOJD[NAMN]), kantBak: Number(arg('--kant-bak') ?? STANDARDBORD.kantBak)};
 if (PAOW.place.kind !== 'joints') throw Error('Paows plats är inte lederna.');
 const lens = TABLE_LENS, paowMitt = (() => { const f = dollFrame(lens, PAOW); return mul(add(f.shoulders[0], f.shoulders[1]), 0.5); })();
