@@ -4,16 +4,17 @@
 // table's lens (src/table-lens.ts, the 3D lane's), so cards nearer the dealer are larger than the plan's old projective plane
 // drew them (a real card narrows to 0.956 at its far edge). The plan says where a card lies and which way it points; its size
 // follows from the lens. How large the game draws its cards is afterwork (Efterarbete's "Kortens storlek").
-// How deep the table looks is one number of the plan, and it is only the cards' shape (tableProjection.perspective, Inspelning's
-// "Perspektiv"; Jakob 2026-11-17: "Om alla kort är exakt lika stora, blir de väldigt tvådimensionella", and 2026-11-18 of a
-// lens that also shrank the dealer's cards: "Kortet i skon är större än korten som ligger närmare oss"): size and place stay
-// the real camera's, and each card is drawn as a keystone about its own middle (planShape).
-// The rule every drawing of the plan in the lab and in an order uses: Bordet's Inspelning and card path, Ny beställning's
-// picture, an order's last picture (tools/order-images.ts). The game's lying cards (src/game-table.ts), the resting card of
-// the drawn cards (src/card-overlay.ts) and the 3D scene's film camera (src/scene3d-view.ts) follow the same rule and lens
-// by default since Jakob chose comparison B on 2026-11-19; a look may choose Bred lins instead (Lins, below).
+// The recording always has a real card (Jakob 2026-11-26): every drawing of the plan in the lab and in an order (Bordet's
+// Inspelning, an order's last picture in tools/order-images.ts) calls planCardQuad and planCardAt without a shape. How deep
+// the game's table looks is a choice of the look, and only the cards' shape (CARD_TAPER, Scen's "Kortens form"; Jakob
+// 2026-11-17: "Om alla kort är exakt lika stora, blir de väldigt tvådimensionella", and 2026-11-18 of a lens that also shrank
+// the dealer's cards: "Kortet i skon är större än korten som ligger närmare oss"): size and place stay the real camera's, and
+// each card is drawn as a keystone about its own middle (planShape). The game's lying cards (src/game-table.ts), the resting
+// card of the drawn cards (src/card-overlay.ts) and the 3D scene's film camera (src/scene3d-view.ts) follow the same rule and
+// lens, in the look's shape, by default since Jakob chose comparison B on 2026-11-19; a look may choose Bred lins instead (Lins,
+// below).
 // Pure; tests in tools/card-plan.test.ts.
-import { TABLE_PERSPECTIVE, flatQuad, planQuad, quad, toPixels, type Geometry, type PlacementPlan, type View } from './placement-model.ts';
+import { flatQuad, planQuad, quad, toPixels, type Geometry, type PlacementPlan, type View } from './placement-model.ts';
 import { FILM, TABLE_LENS, pixelToFelt, realCardQuad, type Lens, type Pixel } from './table-lens.ts';
 
 /**
@@ -31,8 +32,8 @@ export const cardGrow = (size: number, lins: Lins): number => (lins === 'standar
  * kortoverlay, bord, bordsfilt"): the scene key `lins` (SceneState in src/scene3d-view.ts), saved with every look and
  * changed live in Scen.
  * - 'standard': the film's own lens (TABLE_LENS). The game's lying cards, the drawn card at rest and the scene's film camera
- *   all follow the card plan's rule above, so the same plan and the same card give the same outline in Inspelning, in the
- *   game and in the scene.
+ *   all follow the card plan's rule above in the look's Kortens form (CARD_TAPER), so the same plan, card and form give the
+ *   same outline in the game and in the scene; at 96 % it is the real card Inspelning and an order draw.
  * - 'bred' (Bred lins): the older, wider camera of data/scene-contract.json (k = 2) with the plan's older projective plane for
  *   the lying cards (flatQuad) and the contract's card at rest. Casino's saved look carries it (Jakob 2026-11-21).
  * The card plan, Inspelning and every order always follow 'standard'.
@@ -56,30 +57,31 @@ export const filmToPlan = (p: Pixel): Pixel => ({ x: (p.x * PLAN_X) / FILM_X, y:
 const headingOf = (plan: PlacementPlan, reference: Geometry) => (((plan.tableProjection?.heading ?? 0) + reference.angle) * Math.PI) / 180;
 
 /**
- * The table's perspective, the share seat 4's far edge is of its near edge: the plan's value (Inspelning's "Bordets perspektiv"), else
- * seat 4's own stored taper (P4C1's, his 87 % of 11 Nov), else a real card's 0.956; within the control's 0.80 to 0.96.
+ * Scen's "Kortens form" (the look's key cardTaper, SceneState in src/scene3d-view.ts; Jakob 2026-11-26): how much narrower the
+ * game draws a lying card's far edge than its near edge, as the share at seat 4 under the lens Standard. 0.96 is a real card
+ * (the real camera's 0.956), as the recording always draws it; lower gives the table more depth. `chosen` is the look's
+ * default, his 87 %: the share his plan drew the game's cards with until the number left the plan, so that no picture of the
+ * game changed. Under Bred lins it does nothing.
  */
-export function planTaper(plan: Pick<PlacementPlan, 'tableProjection' | 'targets'>): number {
-  const t = plan.tableProjection?.perspective ?? plan.targets['P4.C1']?.geometry.native.taper ?? 0.956;
-  return Math.min(TABLE_PERSPECTIVE.max, Math.max(TABLE_PERSPECTIVE.min, t));
-}
+export const CARD_TAPER = { min: 0.8, max: 0.96, chosen: 0.87 } as const;
 /** A real card at a place of the plan's Dator view through the real camera, film pixels (corners far left, far right, near right, near left). */
 function realAt(plan: PlacementPlan, g: { u: number; v: number }, lens: Lens = TABLE_LENS): Pixel[] | null {
   return realCardQuad(planToFilm(toPixels(g, 'native')), headingOf(plan, plan.targets['P4.C1'].geometry.native), 1, lens);
 }
 /**
- * The plan's shape as one number for every card, film pixels: how much a card's sideways offsets from its own middle shrink
- * per pixel up the picture (0: a real card's shape), set so that seat 4's card (P4C1, real) has its far edge `planTaper` of
- * its near edge. 96 % is a real card's own shape.
+ * A card shape as one number for every card, film pixels: how much a card's sideways offsets from its own middle shrink per
+ * pixel up the picture (0: a real card's shape), set so that seat 4's card (P4C1, real) has its far edge `taper` of its near
+ * edge (the look's Kortens form, held to CARD_TAPER's range). Without a taper, and at 96 %, a real card's own shape: 0.
  */
-export function planShape(plan: PlacementPlan, lens: Lens = TABLE_LENS): number {
-  const t = planTaper(plan), q = realAt(plan, plan.targets['P4.C1'].geometry.native, lens);
-  if (!q || t >= TABLE_PERSPECTIVE.max) return 0;
+export function planShape(plan: PlacementPlan, lens: Lens = TABLE_LENS, taper?: number): number {
+  if (taper === undefined || !Number.isFinite(taper)) return 0;
+  const t = Math.min(CARD_TAPER.max, Math.max(CARD_TAPER.min, taper)), q = realAt(plan, plan.targets['P4.C1'].geometry.native, lens);
+  if (!q || t >= CARD_TAPER.max) return 0;
   const m = screenMeasure(q), near = Math.max(...q.map((p) => p.y)), far = (q[0].y + q[1].y) / 2;
   return near > far ? (1 - t / (m.far / m.near)) / (near - far) : 0;
 }
 /**
- * A real card drawn with the plan's shape: a keystone in the picture about the card's own middle axis up the picture (x of its
+ * A real card drawn in a card shape (planShape): a keystone in the picture about the card's own middle axis up the picture (x of its
  * place), the corner nearest the camera where it is and the sideways offsets shrinking linearly with how far up a point lies.
  * The card's middle and its near edge stay where the real camera puts them; its depth is the real camera's.
  */
@@ -93,24 +95,25 @@ export const throughLens = (plan: Pick<PlacementPlan, 'tableProjection'>, view: 
 /**
  * A card of the plan as the lab and an order draw it, in the view's pixels, corners far left, far right, near right, near
  * left: where the table is "Plant bord" in Dator a real card at the card's own place through the real camera, turned as the
- * table, in the plan's shape (keystone, planShape); else the plan's own rule (planQuad: the card's stored measures; Mobil keeps its
- * projective plane, since the lens is the film's).
+ * table; else the plan's own rule (planQuad: the card's stored measures; Mobil keeps its projective plane, since the lens is
+ * the film's). Without `taper` the card is a real card, as the recording always has it, whatever numbers the plan stores; the
+ * game passes the look's Kortens form (CARD_TAPER) and gets the card in that shape (keystone, planShape).
  */
-export function planCardQuad(plan: PlacementPlan, id: string, view: View, lens: Lens = TABLE_LENS): Pixel[] {
+export function planCardQuad(plan: PlacementPlan, id: string, view: View, lens: Lens = TABLE_LENS, taper?: number): Pixel[] {
   if (!throughLens(plan, view)) return planQuad(plan, id, view);
   const g = plan.targets[id]?.geometry.native;
   if (!g) throw Error(`Okänd kortplats ${id}.`);
-  return planCardAt(plan, g, view, lens);
+  return planCardAt(plan, g, view, lens, taper);
 }
 /**
  * The same rule for a card at any place of the view, for the places the plan does not name (the game's third and later cards,
  * split hands and the dealer's third card, which src/game-table.ts lays out from the plan's two per seat): `g` is the card's
  * place, with the stored measures the plan's own rule reads where the table is not drawn through the lens. In the view's pixels.
  */
-export function planCardAt(plan: PlacementPlan, g: Geometry, view: View, lens: Lens = TABLE_LENS): Pixel[] {
+export function planCardAt(plan: PlacementPlan, g: Geometry, view: View, lens: Lens = TABLE_LENS, taper?: number): Pixel[] {
   if (!throughLens(plan, view)) return plan.tableProjection?.mode === 'flat' ? flatQuad(g, plan.targets['P4.C1'].geometry[view], view, plan.tableProjection.heading) : quad(g, view);
   const q = realAt(plan, g, lens);
-  return q ? keystone(q, planToFilm(toPixels(g, 'native')).x, planShape(plan, lens)).map(filmToPlan) : quad(g, 'native');
+  return q ? keystone(q, planToFilm(toPixels(g, 'native')).x, planShape(plan, lens, taper)).map(filmToPlan) : quad(g, 'native');
 }
 
 // ---- from an outline back to the card ------------------------------------------------------------------------------------
@@ -122,7 +125,7 @@ const SIDEWAYS = 1.15; // an outline whose first side is this much longer than i
  * Where an outline (film pixels, four corners going round) lies on the table: the pixel of the card's middle, its turn on the
  * felt (radians, as realCardQuad takes it), whether the outline begins on one of the card's long sides (`turned`: the card's
  * own first corner is then the outline's second) and whether it runs the other way round than a card seen from above
- * (`mirrored`). `shape` is the plan's shape the outline was drawn with (planShape; 0 for a real card's own). Null for an
+ * (`mirrored`). `shape` is the card shape the outline was drawn with (planShape; 0 for a real card's own). Null for an
  * outline that is no card on the felt (at or above the horizon, folded).
  */
 export function cardPlace(outline: readonly Pixel[], shape = 0, lens: Lens = TABLE_LENS): { place: Pixel; heading: number; turned: boolean; mirrored: boolean } | null {
@@ -153,7 +156,7 @@ export function cardPlace(outline: readonly Pixel[], shape = 0, lens: Lens = TAB
 }
 /**
  * The rule's card where an outline lies: a card `grow` times a real one at the outline's place and turn, through the lens, in
- * the plan's `shape`; film pixels, in the card's own corner order as the outline has it (the corners of its far short side
+ * the card `shape` (planShape); film pixels, in the card's own corner order as the outline has it (the corners of its far short side
  * first; `turned` says that this is the outline's order a quarter turn on). An outline that is itself the rule's card of size 1
  * comes back as it is (within a thousandth of a pixel). Null where cardPlace gives none.
  */

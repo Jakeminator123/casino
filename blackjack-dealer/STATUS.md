@@ -47,8 +47,8 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   utseendet han ställer in i Scen och som Casino visar (rum, bord och duk, kortens ritning, linsen). Bred lins är sedan
   2026-11-26 ett reglage i utseendet (Lins under Bord), levande i Scen och sparat med varje utseende, så Scen öppnar
   Casinos utseende som Casino spelar det. Ett utseende ändrar inte måtten: i Standard är skalan alltid 1. Kvar att rätta
-  eller välja: Bred lins egna tal (steg 9 D), kortets form (87 % i spelet och i beställningens sista bild, ett verkligt
-  kort hos dockan), dockans sko (lägre baktill än filmens, 15–17 px), dockans huvud (något högre och smalare än
+  eller välja: Bred lins egna tal (steg 9 D), dockans sko (lägre baktill än filmens, 15–17 px), dockans huvud (något
+  högre och smalare än
   hennes) och att dockan inte läser ett korts riktning ur planen. Dockans bord ritar markerlådan som en mörk försänkning
   med standardens mått.
 - **Spelet** spelar trädet Tatuerad med nödlösningar där film saknas (`STAND_IN_FILM`). Realtidsmunnen
@@ -188,11 +188,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   spelvyns Mobil, så Profilval 1:s egen sidvridning syns inte längre där.
 - Korten under Bred lins (steg 9 D2): ska de ritas som filmens egna (dealerns kort 75 × 57 px i stället för 61 × 35)?
   Han svarar när han har sett en före- och efterbild.
-- Kortets form, det sista reglaget i Inspelning som inte styr dockan (frågat 2026-11-26): Bordets perspektiv i Hela
-  bordet står på hans 87 % och ändrar hur kortet ritas i spelet och i en beställnings sista bild, medan dockan och
-  hennes referensfilm alltid visar ett riktigt kort (96 %). En beställning bär alltså två kortformer. Förslaget:
-  inspelningen får det riktiga kortet (reglaget bort ur Inspelning), och hur spelets kort ritas blir ett val i
-  utseendet i Scen, där hans 87 % kan stå kvar. Bara han sparar planen.
+- Kortets form är avgjord (hans ja 2026-11-26): inspelningen har alltid ett riktigt kort, och spelets 87 % är reglaget
+  Kortens form i Scen. Kvar att göra efter det: måtten i `data/media-fit.json` (brickorna i Material) räknas om med
+  `node tools/media-audit.ts --fit --write`, eftersom de mäts mot planens kort, som nu är ett riktigt kort.
 - Två frågor om det som städades 2026-11-25: om
   egna returfilmer, landningsbilderna (A3) och A2.2 ska bort också ur beställningsmodellen (`tools/landing-make.ts` och
   stegen RETUR och 2.2 lever kvar där för de sparade beställningarnas skull); och om 3D-banans äldre verktyg som kräver

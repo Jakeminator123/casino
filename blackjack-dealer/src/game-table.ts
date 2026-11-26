@@ -7,11 +7,12 @@
 // the dealer. Seats are 1–7, seat 1 at camera left; nothing here knows the engine's zero-based boxes.
 //
 // A card's outline at its place follows the look's lens (the scene key lins; Lins in src/card-plan.ts): under 'standard' the
-// card plan's own rule (planCardAt: a real card through the table's lens in the plan's shape, the same for a place of the plan
-// and for a place made up here), the default since Jakob chose it on 2026-11-19; under 'bred' (Bred lins) the plan's older
-// projective plane (flatQuad), which the game follows where its look says so (Casino's since Jakob 2026-11-21).
+// card plan's own rule (planCardAt: a real card through the table's lens in the look's Kortens form, the scene key cardTaper,
+// the same for a place of the plan and for a place made up here), the default since Jakob chose it on 2026-11-19; under 'bred'
+// (Bred lins) the plan's older projective plane (flatQuad), which the game follows where its look says so (Casino's since Jakob
+// 2026-11-21).
 import {DEALER_THIRD_FILM, flatQuad, quad, toPixels, fromPixels, type Geometry, type PlacementPlan} from './placement-model.ts';
-import {LINS, filmToPlan, planCardAt, planToFilm, type Lins} from './card-plan.ts';
+import {CARD_TAPER, LINS, filmToPlan, planCardAt, planToFilm, type Lins} from './card-plan.ts';
 import type {Lens} from './table-lens.ts';
 
 export type Pt = {x: number; y: number};
@@ -57,13 +58,14 @@ export function slotFilm(slot: Slot): string {
 
 /**
  * fan: one step for every seat instead of FAN and FAN_AT (for trying values from the page's address). lins: the look's lens,
- * which decides the rule a card's outline follows (see the top); left out, Standard (LINS). lens: another lens than the
- * table's, for the tests that change the camera.
+ * which decides the rule a card's outline follows (see the top); left out, Standard (LINS). taper: the look's Kortens form
+ * under Standard (CARD_TAPER in src/card-plan.ts); left out, the look's default. lens: another lens than the table's, for the
+ * tests that change the camera.
  */
-export function createLayout(plan: PlacementPlan, options: {fan?: number | null; lins?: Lins; lens?: Lens} = {}) {
+export function createLayout(plan: PlacementPlan, options: {fan?: number | null; lins?: Lins; taper?: number; lens?: Lens} = {}) {
   const flat = plan.tableProjection?.mode === 'flat', heading = plan.tableProjection?.heading ?? 0, reference = plan.targets['P4.C1'].geometry.native;
-  const rule = options.lins ?? LINS;
-  const shape = (g: Geometry): Pt[] => (rule === 'standard' ? planCardAt(plan, g, 'native', options.lens) : flat ? flatQuad(g, reference, 'native', heading) : quad(g, 'native')).map(planToFilm);
+  const rule = options.lins ?? LINS, taper = options.taper ?? CARD_TAPER.chosen;
+  const shape = (g: Geometry): Pt[] => (rule === 'standard' ? planCardAt(plan, g, 'native', options.lens, taper) : flat ? flatQuad(g, reference, 'native', heading) : quad(g, 'native')).map(planToFilm);
   function geometry(slot: Slot): Geometry {
     const first = plan.targets[`${place(slot)}.C1`].geometry.native, second = plan.targets[`${place(slot)}.C2`].geometry.native;
     if (slot.hands === 1 && slot.index <= 1) return slot.index ? second : first;

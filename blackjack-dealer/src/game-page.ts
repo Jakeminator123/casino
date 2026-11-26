@@ -110,6 +110,9 @@ const lookNote = lookCode && look ? lookCode.lookNotice(look.asked, !!preset, [.
 // The look's lens (the scene key lins; Lins in src/card-plan.ts), one for the scene and the lying cards: the address's, else
 // the look's (Casino's saved look carries Bred lins; Jakob 2026-11-21), else Standard. Read once: the game does not change it.
 const lins: Lins = asked.lins ?? LINS;
+// The look's Kortens form (the scene key cardTaper; CARD_TAPER in src/card-plan.ts), how the lying cards are drawn under
+// Standard: the address's or the look's, else the scene's default. Read once, as the lens.
+const cardTaper = asked.cardTaper ?? DEFAULTS.cardTaper;
 // The 360-degree rooms Jakob has let into the game (game: true in data/scene-rooms.json); a new room is tried in the lab first,
 // and a look that chooses one is shown with it.
 const panoramas = registered.filter(r => r.game || r.id === asked.room);
@@ -126,7 +129,7 @@ const composition = compositionWord === null ? {cut: null, line: null as string 
   : compositionCode?.compositionPlay(compositionWord, compositionAnswer![0], nameOf(dealer)) ?? {cut: null, line: `Kompositionen "${compositionWord.slice(0, 40)}" kunde inte läsas. Spelet spelar som vanligt, med alla hennes filmer.`};
 const homeTree = composition.cut ? composition.cut.home ?? composition.cut.trees[0]?.tree ?? null : null;
 const playedBank = composition.cut && compositionCode && homeTree ? compositionCode.treeBank(bank, composition.cut, homeTree) : treeCut.bank;
-const plan = placements.plan ?? placements, judged = judgedBank(playedBank), graphs = new Map<string, Graph>(), layout = createLayout(plan, {fan: fanStep, lins});
+const plan = placements.plan ?? placements, judged = judgedBank(playedBank), graphs = new Map<string, Graph>(), layout = createLayout(plan, {fan: fanStep, lins, taper: cardTaper});
 const graphOf = (id: string) => { let g = graphs.get(id); if (!g) { g = buildGraph(judged, {dealer: id}); graphs.set(id, g); } return g; };
 const graph = graphOf(dealer);
 // A rest film can ask the scene to show another room for a moment (FilmEffect in src/clip-graph.ts: the champagne film's flash turns

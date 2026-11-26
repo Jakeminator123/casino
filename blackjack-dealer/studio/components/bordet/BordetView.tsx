@@ -15,7 +15,7 @@
 //                2 Hur det kommer dit (the side a dealer's card lies with, chosen there only, a player's card always open;
 //                the card's way from the anchor; the doll's own controls, which the doll lab lays there), 3 Ny film (the
 //                guide for the dealer chosen in the frame: her tree and the step, the step's recipe, what is sent and
-//                "Spara utkastet"; NewFilm.tsx), and Hela bordet. The
+//                "Spara utkastet"; NewFilm.tsx). The
 //                anchor the card goes from is the guide tree's (lib/bordet.ts treeAnchor): step 2, the pose the
 //                doll deals from and Scen's round all name it, and step 3 orders from it. Step 3 makes a deal from A2.3 to a
 //                player's card or one of the dealer's own from the doll's saved standard where the dealer has a doll of her
@@ -48,7 +48,7 @@ import { useTrees } from "../map/useTrees";
 import { getMedia } from "../material/client.ts";
 import { getLedger } from "../ledger/LedgerView";
 import { OrderView } from "../order/OrderView";
-import { MotionPanel, PlacePanel, TablePanel } from "../placement/Panels";
+import { MotionPanel, PlacePanel } from "../placement/Panels";
 import { SlotPicker } from "../placement/SlotPicker";
 import { useGesture, usePlanKeys } from "../placement/usePlanKeys.ts";
 import { draftActions, useDraft } from "../placement/useDraft.ts";
@@ -461,7 +461,6 @@ function TableBody({
   const d = draft.draft!;
   const plan = d.plan;
   const editable = !draft.saving;
-  const [tableOpen, setTableOpen] = useState(false);
   // "Dockans filmer": the doll's films for the card instead of her picture; "Spela kortbanan" plays her deal to it.
   const [films, setFilms] = useState(false);
   const [play, setPlay] = useState(0);
@@ -578,15 +577,6 @@ function TableBody({
               {s.body}
             </Step>
           ))}
-          {/* what holds for every card is not one card's step: the table, after the chosen card's steps */}
-          <section className={cn("border-b border-line", tableOpen && "bg-raised/25")}>
-            <button type="button" onClick={() => setTableOpen(!tableOpen)} aria-expanded={tableOpen} className="flex w-full items-center gap-2 px-4 py-3 text-left hover:bg-raised/40">
-              <span aria-hidden className="w-6 text-center text-dim">{tableOpen ? "▾" : "▸"}</span>
-              <span className="text-md font-semibold text-ink">Hela bordet</span>
-              <span className="text-xs text-dim">alla kort</span>
-            </button>
-            {tableOpen ? <TablePanel plan={plan} editable={editable} /> : null}
-          </section>
         </div>
       </aside>
     </div>

@@ -1,15 +1,16 @@
-// Skyddar: kontrakten, hans domar och val – planen, spelet och scenen ritar samma kort med standardens mått, under linsen han valt.
+// Skyddar: kontrakten, hans domar och val – inspelningen ritar alltid ett riktigt kort, och planen, spelet och scenen ritar samma kort med standardens mått, i den form och under den lins han valt.
 // The card plan drawn in the real perspective (src/card-plan.ts): on "Plant bord" each card is a real card through the table's
-// lens at its own place (size and place), in the plan's shape (the table's perspective, one keystone rule for every card), the
-// plan's own rule elsewhere. Needs no media; the plan is the model's start proposal
-// (with seat 4's and the dealer's first cards where placements/default.json had them on 2026-11-17), so the test holds after
-// Jakob saves his.
+// lens at its own place (size and place), as the recording always has it (Jakob 2026-11-26); the game draws it in the look's
+// Kortens form (CARD_TAPER, one keystone rule for every card); the plan's own rule elsewhere. Needs no media; the plan is the
+// model's start proposal (with seat 4's and the dealer's first cards where placements/default.json had them on 2026-11-17),
+// so the test holds after Jakob saves his.
 // Run: node --test tools/card-plan.test.ts
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { TABLE_PERSPECTIVE, TARGETS, defaultPlan, planQuad, setTablePerspective, toPixels, validatePlan, type PlacementPlan } from '../src/placement-model.ts';
+import { TARGETS, defaultPlan, planQuad, toPixels, validatePlan, type PlacementPlan } from '../src/placement-model.ts';
 import { TABLE_LENS, quadMeasure, realCardQuad, type Pixel } from '../src/table-lens.ts';
-import { filmToPlan, planCardQuad, planTaper, planToFilm, screenMeasure, throughLens } from '../src/card-plan.ts';
+import { CARD_TAPER, filmToPlan, planCardQuad, planToFilm, screenMeasure, throughLens } from '../src/card-plan.ts';
+import { planQuad as orderQuad } from './order-images.ts';
 import { readFile } from 'node:fs/promises';
 import { VIEWS, quad } from '../src/placement-model.ts';
 import { CARD, FILM, SEAT_FOUR_CARD, cardCorners, feltToPixel, inFrame, lensForFocal, pixelToFelt, planPixel, type Lens, type Vec3 } from '../src/table-lens.ts';
@@ -21,17 +22,18 @@ import { BET, betSpots, cameraFromContract, cardSpots, edgeRowOf, filmPixel, fil
 
 const near = (a: number, b: number, tolerance: number, what: string) => assert.ok(Math.abs(a - b) <= tolerance, `${what}: ${a} is not within ${tolerance} of ${b}`);
 const plan = (): PlacementPlan => { const p = defaultPlan(); validatePlan(p); return p; };
-/** The plan drawn card by card (its table taken off "Plant bord"), its perspective kept. */
+/** The plan drawn card by card (its table taken off "Plant bord"). */
 const cardByCard = (p: PlacementPlan): PlacementPlan => ({ ...p, tableProjection: { ...p.tableProjection, mode: 'individual', heading: 0 } });
 /** A real card at the plan's place through the real camera, in plan pixels: the size and place every value must keep. */
 const realOf = (p: PlacementPlan, id: string) => realCardQuad(planToFilm(toPixels(p.targets[id].geometry.native, 'native')), 0, 1, TABLE_LENS)!.map(filmToPlan);
 const same = (a: Pixel, b: Pixel, what: string) => { near(a.x, b.x, 1e-6, `${what} x`); near(a.y, b.y, 1e-6, `${what} y`); };
 
-test('on "Plant bord" every card is a real card (grow 1) through the table lens at its own place; a real card\'s own shape at 96 %', () => {
-  const p = setTablePerspective(plan(), TABLE_PERSPECTIVE.max);
+test('on "Plant bord" every card is a real card (grow 1) through the table lens at its own place; Kortens form at 96 % is that card', () => {
+  const p = plan();
   assert.equal(throughLens(p, 'native'), true);
   for (const id of TARGETS) {
     assert.deepEqual(planCardQuad(p, id, 'native'), realOf(p, id), id);
+    assert.deepEqual(planCardQuad(p, id, 'native', TABLE_LENS, CARD_TAPER.max), realOf(p, id), `${id} at 96 %`);
     near(quadMeasure(realOf(p, id)).taper, 0.956, 0.01, `${id} taper`);
   }
   // a card's size follows from its place: the plan's own width draws nothing on the real perspective
@@ -52,11 +54,11 @@ const his = (): PlacementPlan => {
   return p;
 };
 
-test('the table\'s perspective is only the shape: at every value all sixteen cards keep the real camera\'s near edge, depth and place', () => {
-  for (const v of [null, TABLE_PERSPECTIVE.max, 0.91, 0.87, TABLE_PERSPECTIVE.min]) {
-    const p = setTablePerspective(his(), v);
+test('Kortens form is only the shape: at every value every card keeps the real camera\'s near edge, depth and place', () => {
+  for (const v of [undefined, CARD_TAPER.max, 0.91, CARD_TAPER.chosen, CARD_TAPER.min]) {
+    const p = his();
     for (const id of TARGETS) {
-      const q = planCardQuad(p, id, 'native'), real = realOf(p, id);
+      const q = planCardQuad(p, id, 'native', TABLE_LENS, v), real = realOf(p, id);
       same(q[2], real[2], `${id} at ${v}: near right corner`); same(q[3], real[3], `${id} at ${v}: near left corner`);
       near(q[0].y, real[0].y, 1e-6, `${id} at ${v}: far edge's height`); near(q[1].y, real[1].y, 1e-6, `${id} at ${v}: far edge's height`);
       const m = screenMeasure(q), r = screenMeasure(real);
@@ -64,34 +66,10 @@ test('the table\'s perspective is only the shape: at every value all sixteen car
       assert.ok(m.far <= r.far * 1.005, `${id} at ${v}: the far edge is never wider than a real card's (${m.far} against ${r.far})`);
     }
     // the dealer's cards are as wide at every value: 75.1 px at the dealer's first card
-    near(screenMeasure(planCardQuad(p, 'D.C1', 'native')).near, 75.1, 0.15, `the dealer's card at ${v}`);
+    near(screenMeasure(planCardQuad(p, 'D.C1', 'native', TABLE_LENS, v)).near, 75.1, 0.15, `the dealer's card at ${v}`);
   }
 });
 
-test('the table\'s perspective: seat 4\'s far edge is the chosen share of its near edge; without a value, seat 4\'s stored taper', () => {
-  const taperAt = (p: PlacementPlan, id = 'P4.C1') => { const m = screenMeasure(planCardQuad(p, id, 'native')); return m.far / m.near; };
-  for (const v of [0.91, 0.87, 0.84, TABLE_PERSPECTIVE.min]) near(taperAt(setTablePerspective(his(), v)), v, 0.002, `seat 4 at ${v}`);
-  near(taperAt(setTablePerspective(his(), TABLE_PERSPECTIVE.max)), 0.956, 0.002, '96 %: a real card\'s own shape');
-  // no value: the plan's seat-4 taper (his 0.87), clamped to the control's range; the shape narrows the cards further off too
-  near(planTaper(his()), 0.87, 1e-9, 'his plan');
-  near(taperAt(his()), 0.87, 0.002, 'seat 4 with no value saved');
-  assert.ok(taperAt(his(), 'P1.C1') < 0.93 && taperAt(his(), 'D.C1') < 0.93, 'every card has depth in its shape');
-  const straight = his(); straight.targets['P4.C1'].geometry.native.taper = 1.2;
-  near(planTaper(straight), TABLE_PERSPECTIVE.max, 1e-9, 'a straight seat 4 (taper 1.2) draws a real card\'s shape');
-  const tight = his(); tight.targets['P4.C1'].geometry.native.taper = 0.5;
-  near(planTaper(tight), TABLE_PERSPECTIVE.min, 1e-9, 'and a very narrow one the control\'s end');
-});
-
-test('the perspective is stored with the table\'s projection: absent is seat 4\'s taper, a value within 0.80 to 0.96', () => {
-  const p = setTablePerspective(plan(), 0.87);
-  assert.deepEqual(p.tableProjection, { mode: 'flat', heading: 0, perspective: 0.87 }); validatePlan(p);
-  assert.deepEqual(setTablePerspective(p, null).tableProjection, { mode: 'flat', heading: 0 });
-  validatePlan(setTablePerspective(plan(), 0.8));
-  for (const bad of [0.5, 0.74, 0.79, 0.97, 1.2, '0.87', null, Number.NaN]) assert.throws(() => validatePlan({ ...p, tableProjection: { mode: 'flat', heading: 0, perspective: bad as number } }), `${bad}`);
-  assert.throws(() => validatePlan({ ...p, tableProjection: { mode: 'flat', heading: 0, perspective: 0.87, extra: true } as never }));
-  for (const bad of [0.5, 0.79, 1]) assert.throws(() => setTablePerspective(p, bad));
-  assert.deepEqual(p.targets['P1.C1'].geometry.native, plan().targets['P1.C1'].geometry.native, 'the places stay as they were');
-});
 
 // ---- one geometry for the table ----------------------------------------------------------------------------------------------
 // The same plan and the same card give the same outline in the lab's card plan, in the game's lying cards, in the drawn card at
@@ -104,32 +82,63 @@ const dist = (a: Pixel, b: Pixel) => Math.hypot(a.x - b.x, a.y - b.y);
 const outlines = (a: readonly Pixel[], b: readonly Pixel[], what: string, within = TOLERANCE) => { assert.equal(a.length, b.length, what); a.forEach((p, i) => assert.ok(dist(p, b[i]) <= within, `${what}: corner ${i} is ${dist(p, b[i]).toFixed(5)} px off (allowed ${within})`)); };
 
 // A plan as Jakob's is built (seats mirrored about the middle, the dealer's two cards centred, "Plant bord"), with places of the
-// test's own and, where asked, a Perspektiv; and the same plan drawn card by card ("individual").
-function testPlan(perspective: number | null = null, heading = 0): PlacementPlan {
+// test's own; and the same plan drawn card by card ("individual").
+function testPlan(heading = 0): PlacementPlan {
   const plan = defaultPlan(), rows = [0.164, 0.131, 0.098, 0.061];
   for (let seat = 1; seat <= 7; seat++) for (const second of [false, true]) {
     const k = Math.abs(seat - 4), u = 0.5 + (seat - 4) * 0.1176 + (second ? 0.0282 : -0.0141), v = rows[3 - k] + (second ? 0.009 : 0);
     Object.assign(plan.targets[`P${seat}.C${second ? 2 : 1}`].geometry.native, {u, v, width: 0.0492, height: 0.0612, taper: 0.87});
   }
   for (const [id, u] of [['D.C1', 0.4824], ['D.C2', 0.5176]] as const) Object.assign(plan.targets[id].geometry.native, {u, v: 0.2097, width: 0.0492, height: 0.0612, taper: 0.87});
-  const out = setTablePerspective({...plan, tableProjection: {mode: 'flat', heading}}, perspective);
+  const out: PlacementPlan = {...plan, tableProjection: {mode: 'flat', heading}};
   validatePlan(out); return out;
 }
 const slotOfTarget = (id: string): Slot => ({owner: id[0] === 'D' ? 'D' : 'P', seat: id[0] === 'D' ? 0 : Number(id[1]), hand: 0, hands: 1, index: Number(id.at(-1)) - 1});
 const headingOf = (plan: PlacementPlan) => ((plan.tableProjection?.heading ?? 0) + plan.targets['P4.C1'].geometry.native.angle) * Math.PI / 180;
 
-// The four ways one card of the plan is drawn, each in film pixels and in the card's own corner order.
-function ways(plan: PlacementPlan, id: string, lens: Lens = TABLE_LENS) {
-  const lab = planCardQuad(plan, id, 'native', lens).map(planToFilm);
-  const game = createLayout(plan, {lins: 'standard', lens}).quad(slotOfTarget(id));
-  const rest = restingQuad(planScene(null, plan, lens), game, 1).quad;
+// The four ways one card of the plan is drawn in the look's Kortens form (`taper`), each in film pixels and in the card's own corner order.
+function ways(plan: PlacementPlan, id: string, lens: Lens = TABLE_LENS, taper: number = CARD_TAPER.chosen) {
+  const lab = planCardQuad(plan, id, 'native', lens, taper).map(planToFilm);
+  const game = createLayout(plan, {lins: 'standard', lens, taper}).quad(slotOfTarget(id));
+  const rest = restingQuad(planScene(null, plan, lens, taper), game, 1).quad;
   // the 3D scene: the card place laid on the felt by the scene's film camera (cardSpots, dealer metres), a real card there in the
-  // scene's metres, its corners through the scene's own projection (filmPixel), in the plan's shape
+  // scene's metres, its corners through the scene's own projection (filmPixel), in the look's shape
   const camera = lensCamera(lens, EDGE_ROW), spot = cardSpots(plan, camera).find(s => s.id === id)!;
   const centre = spotToScene(camera, spot.x, spot.s) as Vec3, corners = cardCorners(centre, headingOf(plan)).map(p => filmPixel(camera, p)!);
-  const scene = keystone(corners, filmPixel(camera, centre)!.x, planShape(plan, lens));
+  const scene = keystone(corners, filmPixel(camera, centre)!.x, planShape(plan, lens, taper));
   return {lab, game, rest, scene};
 }
+
+const taperAt = (p: PlacementPlan, taper?: number, id = 'P4.C1') => { const m = screenMeasure(planCardQuad(p, id, 'native', TABLE_LENS, taper)); return m.far / m.near; };
+test('Kortens form: seat 4\'s far edge is the chosen share of its near edge, his 87 % the look\'s default, within 80 to 96 %', () => {
+  for (const v of [0.91, 0.87, 0.84, CARD_TAPER.min]) near(taperAt(his(), v), v, 0.002, `seat 4 at ${v}`);
+  near(taperAt(his(), CARD_TAPER.max), 0.956, 0.002, '96 %: a real card\'s own shape');
+  assert.ok(taperAt(his(), CARD_TAPER.chosen, 'P1.C1') < 0.93 && taperAt(his(), CARD_TAPER.chosen, 'D.C1') < 0.93, 'the shape narrows the cards further off too');
+  // held to the key's range: wider than a real card is a real card, narrower than 80 % is 80 %
+  near(taperAt(his(), 1.2), 0.956, 0.002, 'above 96 %'); near(taperAt(his(), 0.5), CARD_TAPER.min, 0.002, 'below 80 %');
+  // his 87 %, the share his plan drew the game's cards with: the look's default, which the game's layout and the drawn card at
+  // rest draw with when none is given
+  assert.equal(CARD_TAPER.chosen, 0.87);
+  for (const id of ['P1.C1', 'P4.C1', 'D.C1']) {
+    const his87 = planCardQuad(his(), id, 'native', TABLE_LENS, 0.87).map(planToFilm);
+    assert.deepEqual(createLayout(his(), {lins: 'standard'}).quad(slotOfTarget(id)), his87, id);
+    outlines(restingQuad(planScene(null, his()), his87, 1).quad, his87, `${id} at rest`);
+  }
+});
+
+test('the recording always has a real card (Jakob 2026-11-26): Inspelning\'s rule and an order\'s last picture, whatever the plan stores', () => {
+  // seat 4's stored taper (his 0.87, a straight one, a very narrow one) and a Bordets perspektiv saved before 2026-11-26
+  for (const stored of [0.87, 1.2, 0.5]) for (const perspective of [undefined, 0.84, 0.8]) {
+    const p = his(); p.targets['P4.C1'].geometry.native.taper = stored;
+    if (perspective !== undefined) (p.tableProjection as Record<string, unknown>).perspective = perspective;
+    const what = `seat 4 stores ${stored}, the table ${perspective ?? 'nothing'}`;
+    for (const id of TARGETS) {
+      assert.deepEqual(planCardQuad(p, id, 'native'), realOf(p, id), `${id}, ${what}: Inspelning`);
+      outlines(orderQuad(p, id).map(([x, y]) => ({x, y})), realOf(p, id).map(planToFilm), `${id}, ${what}: an order's last picture`, 1e-9);
+    }
+    near(taperAt(p), 0.956, 0.002, `${what}: seat 4 is a real card`);
+  }
+});
 
 test('the default lens is the film\'s own, the one Jakob chose in comparison B; the older word is read as an alias only', () => {
   // Changing this line of src/card-plan.ts is his yes. The card plan, Inspelning and every order always follow 'standard'.
@@ -166,23 +175,25 @@ test('a turn given as the lens reads it comes back as the contract writes it', (
   assert.ok(Math.abs(back.yaw - 9) < 1e-9); assert.ok(written.yaw > 22 && written.yaw < 23, `9 degrees under the lens is ${written.yaw.toFixed(2)} as written`);
 });
 
-test('the same plan and the same card: card plan, game, drawn card at rest and the scene\'s projection give one outline', () => {
-  for (const plan of [testPlan(), testPlan(0.9), testPlan(0.96), testPlan(0.8), testPlan(null, 15)]) for (const id of TARGETS) {
-    const w = ways(plan, id), what = `${id} at Perspektiv ${plan.tableProjection?.perspective ?? 'the plan\'s own'}, heading ${plan.tableProjection?.heading}`;
+test('the same plan, the same card and the same form: card plan, game, drawn card at rest and the scene\'s projection give one outline', () => {
+  for (const [plan, taper] of [[testPlan(), CARD_TAPER.chosen], [testPlan(), 0.9], [testPlan(), CARD_TAPER.max], [testPlan(), CARD_TAPER.min], [testPlan(15), CARD_TAPER.chosen]] as const) for (const id of TARGETS) {
+    const w = ways(plan, id, TABLE_LENS, taper), what = `${id} at Kortens form ${taper}, heading ${plan.tableProjection?.heading}`;
     outlines(w.game, w.lab, `game, ${what}`, 1e-9); outlines(w.rest, w.lab, `drawn card at rest, ${what}`); outlines(w.scene, w.lab, `scene, ${what}`);
   }
+  // at 96 % the game's card is the recording's: the real card Inspelning and an order draw
+  for (const id of TARGETS) outlines(ways(testPlan(), id, TABLE_LENS, CARD_TAPER.max).game, planCardQuad(testPlan(), id, 'native').map(planToFilm), `${id}: the game at 96 % is the recording's card`, 1e-9);
   // and it is the rule the lab had: a real card, 63 x 88 mm, at the card's own place (the outline's sides on the felt)
-  const plan = testPlan(0.96), q = planCardQuad(plan, 'P2.C1', 'native').map(planToFilm).map(p => pixelToFelt(p)!), side = (a: Vec3, b: Vec3) => Math.hypot(a[0] - b[0], a[2] - b[2]);
+  const plan = testPlan(), q = planCardQuad(plan, 'P2.C1', 'native').map(planToFilm).map(p => pixelToFelt(p)!), side = (a: Vec3, b: Vec3) => Math.hypot(a[0] - b[0], a[2] - b[2]);
   assert.ok(Math.abs(side(q[0], q[1]) - CARD.width) < 1e-4 && Math.abs(side(q[1], q[2]) - CARD.height) < 1e-4);
 });
 
 test('when the camera changes, all of them change together', () => {
-  const plan = testPlan(0.9), lenses: Lens[] = [lensForFocal(SEAT_FOUR_CARD, 1270), lensForFocal(SEAT_FOUR_CARD, 3200), {...TABLE_LENS, height: 1.3}, {...TABLE_LENS, pitch: 0.5, focalPx: 2000}];
+  const plan = testPlan(), lenses: Lens[] = [lensForFocal(SEAT_FOUR_CARD, 1270), lensForFocal(SEAT_FOUR_CARD, 3200), {...TABLE_LENS, height: 1.3}, {...TABLE_LENS, pitch: 0.5, focalPx: 2000}];
   for (const lens of lenses) {
     let moved = 0;
-    for (const id of TARGETS) { const w = ways(plan, id, lens), what = `${id} under focal ${Math.round(lens.focalPx)}, height ${lens.height.toFixed(2)}`;
+    for (const id of TARGETS) { const w = ways(plan, id, lens, 0.9), what = `${id} under focal ${Math.round(lens.focalPx)}, height ${lens.height.toFixed(2)}`;
       outlines(w.game, w.lab, `game, ${what}`, 1e-9); outlines(w.rest, w.lab, `drawn card at rest, ${what}`); outlines(w.scene, w.lab, `scene, ${what}`);
-      moved = Math.max(moved, ...w.lab.map((p, i) => dist(p, ways(plan, id).lab[i]))); }
+      moved = Math.max(moved, ...w.lab.map((p, i) => dist(p, ways(plan, id, TABLE_LENS, 0.9).lab[i]))); }
     assert.ok(moved > 2, 'another lens draws another card somewhere on the table');
   }
 });
@@ -201,12 +212,12 @@ test('when the picture\'s size changes, all of them change together', () => {
 });
 
 test('extra cards, split hands and the dealer\'s third card go the same way: a real card at the place the game makes up', () => {
-  const plan = testPlan(0.9), layout = createLayout(plan, {lins: 'standard'}), shape = planShape(plan), scene = planScene(sceneOf(contract), plan);
+  const plan = testPlan(), layout = createLayout(plan, {lins: 'standard', taper: 0.9}), shape = planShape(plan, TABLE_LENS, 0.9), scene = planScene(sceneOf(contract), plan, TABLE_LENS, 0.9);
   const slots: Slot[] = [{owner: 'P', seat: 4, hand: 0, hands: 1, index: 2}, {owner: 'P', seat: 4, hand: 0, hands: 1, index: 4}, {owner: 'P', seat: 4, hand: 1, hands: 2, index: 0}, {owner: 'P', seat: 1, hand: 2, hands: 3, index: 1},
     {owner: 'P', seat: 7, hand: 1, hands: 2, index: 3}, {owner: 'D', seat: 0, hand: 0, hands: 1, index: 2}, {owner: 'D', seat: 0, hand: 0, hands: 1, index: 4}];
   for (const slot of slots) {
     const q = layout.quad(slot), at = cardPlace(q, shape)!, what = slotLabel(slot);
-    // the plan's shape undone, the outline is a card of 63 x 88 mm on the felt, lying as every other card of the table
+    // the look's shape undone, the outline is a card of 63 x 88 mm on the felt, lying as every other card of the table
     const real = q.map(p => ({x: at.place.x + (p.x - at.place.x) / (1 - shape * (Math.max(...q.map(c => c.y)) - p.y)), y: p.y})).map(p => pixelToFelt(p)!), side = (a: Vec3, b: Vec3) => Math.hypot(a[0] - b[0], a[2] - b[2]);
     assert.ok(Math.abs(side(real[0], real[1]) - CARD.width) < 1e-6 && Math.abs(side(real[1], real[2]) - CARD.height) < 1e-6, `${what} is a real card`);
     assert.ok(Math.abs(at.heading - headingOf(plan)) < 1e-6 && !at.turned && !at.mirrored, `${what} lies as the table's cards lie`);
@@ -218,7 +229,7 @@ test('extra cards, split hands and the dealer\'s third card go the same way: a r
 });
 
 test('card one lies unchanged when card two comes, and after a third card and a split', () => {
-  const plan = testPlan(0.9), records = [1, 5, 9, 13].map(shoeDraw => ({shoeDraw, target: 'P4', r: '7', s: 'hearts'}));
+  const plan = testPlan(), records = [1, 5, 9, 13].map(shoeDraw => ({shoeDraw, target: 'P4', r: '7', s: 'hearts'}));
   for (const lins of ['bred', 'standard'] as const) {
     const layout = createLayout(plan, {lins}), scene = lins === 'standard' ? planScene(sceneOf(contract), plan) : sceneOf(contract)!;
     const lying = (table: TableCards, cards: number[]) => placedCards(table, records, cards, layout);
@@ -238,8 +249,8 @@ test('card one lies unchanged when card two comes, and after a third card and a 
   }
 });
 
-test('the drawn card by the plan\'s rule: size 1 is the plan\'s own outline, another size is that many times a real card at the same place', () => {
-  const plan = testPlan(0.9), shape = planShape(plan), scene = planScene(sceneOf(contract), plan), lab = planCardQuad(plan, 'P2.C1', 'native').map(planToFilm), place = cardPlace(lab, shape)!;
+test('the drawn card by the plan\'s rule: size 1 is the game\'s own outline, another size is that many times a real card at the same place', () => {
+  const plan = testPlan(), shape = planShape(plan, TABLE_LENS, 0.9), scene = planScene(sceneOf(contract), plan, TABLE_LENS, 0.9), lab = planCardQuad(plan, 'P2.C1', 'native', TABLE_LENS, 0.9).map(planToFilm), place = cardPlace(lab, shape)!;
   assert.ok(dist(place.place, planToFilm({x: plan.targets['P2.C1'].geometry.native.u * 1761, y: (1 - plan.targets['P2.C1'].geometry.native.v) * 1173})) < 1e-6, 'the outline\'s place is the plan\'s place');
   // from whichever corner the outline is listed, and the other way round, the card is the same card (turned says which corner is its first)
   for (let turn = 0; turn < 4; turn++) for (const mirror of [false, true]) {
@@ -274,9 +285,12 @@ test('the same settings give the same picture under the lens: a framing written 
 
 test('Kortens storlek is a share of the plan\'s card in both geometries: the scene\'s default is a real card under the lens', () => {
   assert.equal(cardGrow(PLAN_CARD_SIZE, 'standard'), 1); assert.equal(cardGrow(1.65, 'standard'), 1.65 / PLAN_CARD_SIZE); assert.equal(cardGrow(PLAN_CARD_SIZE, 'bred'), PLAN_CARD_SIZE); assert.equal(cardGrow(2, 'bred'), 2);
-  // so the game's card at its default size is the outline the studio's Inspelning draws
-  const plan = testPlan(0.9), layout = createLayout(plan, {lins: 'standard'}), scene = planScene(sceneOf(contract), plan);
-  for (const id of ['P1.C1', 'P4.C1', 'P6.C2', 'D.C2']) outlines(restingQuad(scene, layout.quad(slotOfTarget(id)), cardGrow(PLAN_CARD_SIZE, 'standard')).quad, planCardQuad(plan, id, 'native').map(planToFilm), id);
+  // so the game's card at its default size is the plan's outline in the look's form; at 96 % the real card the studio's Inspelning draws
+  const plan = testPlan();
+  for (const taper of [CARD_TAPER.chosen, CARD_TAPER.max]) {
+    const layout = createLayout(plan, {lins: 'standard', taper}), scene = planScene(sceneOf(contract), plan, TABLE_LENS, taper);
+    for (const id of ['P1.C1', 'P4.C1', 'P6.C2', 'D.C2']) outlines(restingQuad(scene, layout.quad(slotOfTarget(id)), cardGrow(PLAN_CARD_SIZE, 'standard')).quad, planCardQuad(plan, id, 'native', TABLE_LENS, taper).map(planToFilm), `${id} at ${taper}`);
+  }
   // and by the contract the same setting is the older plan's outline at seat 4 within a twentieth (why 1.2 was the default)
   const older = createLayout(plan, {lins: 'bred'}).quad(slotOfTarget('P4.C1')), drawn = restingQuad(sceneOf(contract)!, older, cardGrow(PLAN_CARD_SIZE, 'bred')).quad, wide = (q: Pixel[]) => Math.hypot(q[2].x - q[3].x, q[2].y - q[3].y);
   near(wide(drawn) / wide(older), 1, 0.05, 'the contract\'s card at 1.2 against the older plan\'s card at seat 4');

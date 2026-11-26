@@ -15,7 +15,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { CARD_RGB, WINDOW_CARD, cardMark, validatePlan, type PlacementPlan } from '../src/placement-model.ts';
-import { planCardQuad, planTaper, throughLens } from '../src/card-plan.ts';
+import { planCardQuad, throughLens } from '../src/card-plan.ts';
 import { scaleQuad, type Drawn } from '../src/order-model.ts';
 import { FILM } from '../src/table-lens.ts';
 
@@ -225,7 +225,7 @@ export function drawCard(base: Rgb, texture: Texture, plan: PlacementPlan, planF
     drawn: {
       target,
       side,
-      as: lens ? `verkligt perspektiv: ett verkligt kort genom bordets lins, formen ${Math.round(planTaper(plan) * 100)} % (src/card-plan.ts)` : 'kortets egen fyrhörning (quad)',
+      as: lens ? 'verkligt perspektiv: ett verkligt kort genom bordets lins (src/card-plan.ts)' : 'kortets egen fyrhörning (quad)',
       plan: { ...planFile, updatedAt: plan.updatedAt },
       texture: texture.source,
       quad: to.map(([x, y]) => [r(x), r(y)] as [number, number]),

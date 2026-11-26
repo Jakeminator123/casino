@@ -4,16 +4,16 @@
 // allt i 3d"). The table is always the real one: every card is a real card through the same camera as the dealer, so a card
 // has no direction or shape of its own to set. Step 1, Var kortet landar: PlacePanel (where the card lies). Step 2, Hur det
 // kommer dit: MotionPanel (for a dealer's card the side it lies with, "Kortet ligger", chosen here and nowhere else; a
-// player's card always lies open; the doll's own controls under it show and steer the way). Hela bordet: TablePanel (the table's one
-// shape number, Bordets perspektiv). A real card has no size of its own here (Jakob 2026-11-17: "kör vi 1.0 så kanske det
-// är bra"; its size is adjusted only in Efterarbete), and no grid to snap to or start proposal to go back to (Jakob
-// 2026-11-24: "färre val"). Every change goes to the draft as one step (a slider's drag is one step); nothing is saved here,
-// and the plan keeps every field it has, also those no panel shows.
+// player's card always lies open; the doll's own controls under it show and steer the way). The recording always has a real
+// card (Jakob 2026-11-26), so the table has no shape to set here; how the game draws its cards is the look's Kortens form,
+// chosen in Scen. A real card has no size of its own here (Jakob 2026-11-17: "kör vi 1.0 så kanske det är bra"; its size is
+// adjusted only in Efterarbete), and no grid to snap to or start proposal to go back to (Jakob 2026-11-24: "färre val").
+// Every change goes to the draft as one step; nothing is saved here, and the plan keeps every field it has, also those no
+// panel shows.
 import type { ReactNode } from "react";
-import { planTaper } from "../../../src/card-plan.ts";
-import { CARD_COLOUR, TABLE_PERSPECTIVE, editIntent, editPlace, setTablePerspective, type Place, type PlacementPlan } from "../../../src/placement-model.ts";
+import { CARD_COLOUR, editIntent, editPlace, type Place, type PlacementPlan } from "../../../src/placement-model.ts";
 import { PLAN_VIEW, isDealerCard } from "../../lib/placement.ts";
-import { SegmentedControl, Slider } from "../ui";
+import { SegmentedControl } from "../ui";
 import { NumberField } from "./NumberField";
 import { draftActions } from "./useDraft.ts";
 
@@ -26,71 +26,11 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
     </section>
   );
 }
-/** A slider's drag (or a run of its keys) is one step for Ångra. */
-function OneStep({ children, disabled }: { children: ReactNode; disabled?: boolean }) {
-  const start = () => {
-    if (disabled) return;
-    draftActions.begin();
-    window.addEventListener("pointerup", () => draftActions.end(), { once: true });
-  };
-  return (
-    <div onPointerDownCapture={start} onKeyDownCapture={() => !disabled && draftActions.begin()} onKeyUpCapture={() => draftActions.end()} onBlurCapture={() => draftActions.end()}>
-      {children}
-    </div>
-  );
-}
 const swatch = (colour: string) => <span aria-hidden className="inline-block size-2.5 rounded-[2px] border border-black/30" style={{ background: colour }} />;
 const SIDES = [
   { value: "BACK" as const, label: "Stängt", icon: swatch(CARD_COLOUR.BACK) },
   { value: "FRONT" as const, label: "Öppet", icon: swatch(CARD_COLOUR.FRONT) },
 ];
-
-// ── Bordets perspektiv ──
-// One number for the whole plan, and only the cards' shape (src/card-plan.ts planShape; Jakob 2026-11-17: "Om alla kort är
-// exakt lika stora, blir de väldigt tvådimensionella", and 2026-11-18 when a lens also shrank the dealer's cards: "Kortet i
-// skon är större än korten som ligger närmare oss"): how much narrower a card's far edge is drawn, as the share at seat 4,
-// from a real card's own 96 % down to 80 %. Every card keeps its real size and place. "Din plan" is seat 4's own stored
-// taper (87 % since 11 Nov), which the plan draws with when no value is saved. The game and an order's last picture draw
-// with it; the doll's 3D picture always shows a real card.
-const percent = (v: number) => `${Math.round(v * 100)} %`;
-function TableDepth({ plan, off }: { plan: PlacementPlan; off: boolean }) {
-  const value = planTaper(plan);
-  const span = TABLE_PERSPECTIVE.max - TABLE_PERSPECTIVE.min;
-  const own = planTaper({ targets: plan.targets, tableProjection: undefined });
-  const marks = [
-    { value: own, label: "Din plan", set: null },
-    { value: TABLE_PERSPECTIVE.max, label: "Riktigt kort", set: TABLE_PERSPECTIVE.max },
-  ];
-  return (
-    <div className="flex flex-col gap-1.5">
-      <OneStep disabled={off}>
-        <Slider label="Bordets perspektiv" value={value} min={TABLE_PERSPECTIVE.min} max={TABLE_PERSPECTIVE.max} step={TABLE_PERSPECTIVE.step} format={percent} disabled={off} onChange={(v) => draftActions.move((p) => setTablePerspective(p, v))} />
-      </OneStep>
-      <div aria-hidden className="relative mx-[7px] -mt-1 h-1.5">
-        {marks.map((m) => (
-          <span key={m.label} className="absolute top-0 h-1.5 w-px bg-faint" style={{ left: `${((m.value - TABLE_PERSPECTIVE.min) / span) * 100}%` }} />
-        ))}
-      </div>
-      <div className="relative mx-[7px] h-4">
-        {marks.map((m) => (
-          <button
-            key={m.label}
-            type="button"
-            disabled={off}
-            aria-pressed={Math.abs(value - m.value) < 0.005}
-            onClick={() => draftActions.edit((p) => setTablePerspective(p, m.set))}
-            // under its tick: the real card's at the right end, ending there; the others starting just left of theirs
-            style={m.value >= TABLE_PERSPECTIVE.max ? { right: "-7px" } : { left: `calc(${((m.value - TABLE_PERSPECTIVE.min) / span) * 100}% - 0.75rem)` }}
-            className="absolute top-0 whitespace-nowrap rounded-sm px-1 text-2xs text-dim underline decoration-dotted underline-offset-2 hover:text-ink disabled:opacity-45 aria-pressed:text-ink aria-pressed:no-underline"
-          >
-            {`${m.label} ${percent(m.value)}`}
-          </button>
-        ))}
-      </div>
-      <p className="text-xs leading-5 text-dim">Ändrar kortens form i spelet och i en beställnings sista bild. Dockans bild visar alltid ett riktigt kort.</p>
-    </div>
-  );
-}
 
 // ── Step 1: the place ──
 export function PlacePanel({ plan, id, editable }: { plan: PlacementPlan; id: Place; editable: boolean }) {
@@ -131,15 +71,6 @@ export function MotionPanel({ plan, id, editable }: { plan: PlacementPlan; id: P
       ) : (
         <p className="text-sm text-dim">Spelarens kort ligger alltid öppet.</p>
       )}
-    </Section>
-  );
-}
-
-// ── Hela bordet: what holds for every card ──
-export function TablePanel({ plan, editable }: { plan: PlacementPlan; editable: boolean }) {
-  return (
-    <Section title="Bordet">
-      <TableDepth plan={plan} off={!editable} />
     </Section>
   );
 }

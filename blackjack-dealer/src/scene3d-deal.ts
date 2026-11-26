@@ -16,10 +16,10 @@
 // no card object is drawn while a film shows its card; the passes that make the matte run here, on targets of the film's size.
 // The cards lying since earlier films are drawn as objects either way: a film lays one card, and later films do not show it.
 import * as T from 'three';
-import {poseAt, restOf, restFade, restShare, restingQuad, restingFilmPaperZone, returnCardAt, returnAfterFilmLanding, filmMarkerAt, sceneOf, planScene, cardRecord, cardFace, overridesOf, cardInFront, plausible, skirtSound, firstDrawn, turnOf, BACK, CARRY, FACE, UNDER, RIM, MARGIN, PLAUSIBLE, EASE, HOLD, TRIAL, trialParts, trialTrack, trackFolder, smearOf, lightStep, type CardTrack, type CardRecord, type Light, type LightRead} from './card-overlay.ts';
+import {poseAt, restOf, restFade, restShare, restingQuad, restingFilmPaperZone, returnCardAt, returnAfterFilmLanding, filmMarkerAt, sceneOf, planScene, cardRecord, cardFace, overridesOf, cardInFront, plausible, skirtSound, firstDrawn, turnOf, BACK, CARRY, FACE, UNDER, RIM, MARGIN, PLAUSIBLE, EASE, HOLD, TRIAL, trialParts, trialTrack, trackFolder, smearOf, lightStep, type CardTrack, type CardRecord, type Light, type LightRead, type Scene} from './card-overlay.ts';
 import {centre, clockwise, grown, signedArea, sound, type Pt} from './card-track.ts';
 import {FILM, edgeQuad, heldScale, solveCamera, squareToQuad, type FilmCamera} from './scene3d-geometry.ts';
-import {LINS, type Lins} from './card-plan.ts';
+import {CARD_TAPER, LINS, type Lins} from './card-plan.ts';
 import type {PlacementPlan} from './placement-model.ts';
 import {CARD_GLSL, CARD_SEEN_GLSL, type BackKey, type CardKey, type MatteKey} from './scene3d-film.ts';
 import {FAN_GLSL} from './scene3d-light.ts';
@@ -167,7 +167,8 @@ type FilmLayers = {shared: {map: {value: T.Texture | null}; grade: {value: T.Vec
 // renderer and view: for the motion samples, drawn into a target of their own before the frame; pixels: screen pixels per film pixel.
 // way: 'scene' (the card an object under the film) or 'matte' (the film's own card drawn over in place).
 // lins: the look's lens as it is now (Lins in src/card-plan.ts): under 'standard' the card rests by the card plan's rule (card-overlay.ts planScene), under 'bred' by the contract's card.
-type Options = {contract: unknown; plan: unknown; film: FilmLayers; light: Record<string, {value: unknown}>; camera: () => FilmCamera; edgeZ: () => number; renderer: T.WebGLRenderer; view: () => T.Camera; pixels: () => number; way?: 'scene' | 'matte'; lins?: () => Lins};
+// taper: the look's Kortens form as it is now (the key cardTaper, CARD_TAPER in src/card-plan.ts), the shape the card rests in under 'standard'.
+type Options = {contract: unknown; plan: unknown; film: FilmLayers; light: Record<string, {value: unknown}>; camera: () => FilmCamera; edgeZ: () => number; renderer: T.WebGLRenderer; view: () => T.Camera; pixels: () => number; way?: 'scene' | 'matte'; lins?: () => Lins; taper?: () => number};
 // Motion blur: the film's own card edges are soft over about a quarter of the distance it moves in a frame (2-4 px on the P4
 // deal; the hand smears more), so the card is drawn along its path over 0.25 of a frame, in as many samples as keep them about
 // a pixel apart, and never smeared over more than 12 screen pixels: a dark back blurred further reads as smoked glass, not as a
@@ -223,9 +224,12 @@ function mattePasses(renderer: T.WebGLRenderer, keep: <D extends {dispose(): voi
 }
 
 export function createDealLayer(o: Options) {
-  const byContract = sceneOf(o.contract), byPlan = (o.plan as PlacementPlan | null)?.targets?.['P4.C1'] ? planScene(byContract, o.plan as PlacementPlan) : null;
-  // The rule a card rests by follows the look's lens as it is now, so a change of lins holds from the next frame.
-  const resting = () => (o.lins?.() ?? LINS) === 'standard' && byPlan ? byPlan : byContract;
+  const byContract = sceneOf(o.contract), plan = (o.plan as PlacementPlan | null)?.targets?.['P4.C1'] ? o.plan as PlacementPlan : null;
+  // The rule a card rests by follows the look's lens and Kortens form as they are now, so a change of either holds from the
+  // next frame: the plan's rule is made again only when the form has changed.
+  let byPlan: {taper: number; scene: Scene} | null = null;
+  const planned = (p: PlacementPlan): Scene => { const taper = o.taper?.() ?? CARD_TAPER.chosen; if (!byPlan || byPlan.taper !== taper) byPlan = {taper, scene: planScene(byContract, p, undefined, taper)}; return byPlan.scene; };
+  const resting = () => (o.lins?.() ?? LINS) === 'standard' && plan ? planned(plan) : byContract;
   const group = new T.Group(), owned: {dispose(): void}[] = [], keep = <D extends {dispose(): void}>(d: D) => { owned.push(d); return d; };
   const targets = (o.plan as {targets?: Record<string, {material?: {bend?: number; gloss?: number}}>} | null)?.targets ?? {};
   // the study's card outline, flat: its front surface is drawn, the back surface and paper edge are left out (a card seen from

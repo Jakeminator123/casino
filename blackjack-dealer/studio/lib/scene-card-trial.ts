@@ -10,8 +10,11 @@ export function readSceneCardTrial(params: Pick<URLSearchParams, "get">): CardWo
   return params.get("kort") === "liggande" ? cardWords(params) : null;
 }
 
-/** Give playable deal/return pairs resolved by the lab round the same card options as a game part, laid out under the look's lens. */
-export function withSceneCardTrial(parts: PlayPart[], segments: readonly Segment[], plan: PlacementPlan, lins: Lins, words: CardWords, carry: Carry | null = "film"): PlayPart[] {
+/**
+ * Give playable deal/return pairs resolved by the lab round the same card options as a game part, laid out under the look's
+ * lens and in its Kortens form (`taper`, the key cardTaper; left out, the look's default, as src/game-table.ts createLayout).
+ */
+export function withSceneCardTrial(parts: PlayPart[], segments: readonly Segment[], plan: PlacementPlan, lins: Lins, words: CardWords, carry: Carry | null = "film", taper?: number): PlayPart[] {
   type Own = { label: string; shoeDraw: number; slot: Slot };
   const ownByStep = new Map<number, Own>(), ownByTarget = new Map<string, Own>();
   const table: TableCards = { hands: [], dealer: [] }, records: CardRecord[] = [];
@@ -39,7 +42,7 @@ export function withSceneCardTrial(parts: PlayPart[], segments: readonly Segment
     ownByStep.set(i + 1, own);
   }
   if (!ownByStep.size) return parts;
-  const layout = createLayout(plan, { lins }), placed = new Set<number>();
+  const layout = createLayout(plan, { lins, taper }), placed = new Set<number>();
   return parts.map((part, i) => {
     const own = ownByStep.get(i) ?? null;
     // The entry has no dealt card yet, but the shoe window must already use the round's carry mode and colours.

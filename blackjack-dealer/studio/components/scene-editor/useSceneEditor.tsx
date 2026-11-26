@@ -16,7 +16,7 @@
 // the player sees (Dator, Mobil); Scen opens on Dator. Visa is never saved with a look, and a look keeps zoom, pitch and yaw only
 // when "Egen inramning" is on (lib/scene-presets.ts savedState). "Spara som spelvy" writes the play view, on his click.
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { LINS } from "../../../src/card-plan.ts";
+import { CARD_TAPER, LINS } from "../../../src/card-plan.ts";
 import { PLAY_VIEW, sameFraming, type Framing, type PlayView } from "../../../src/play-view.ts";
 import type { PlacementPlan } from "../../../src/placement-model.ts";
 import type { RegisterRoom } from "../../../src/scene3d-room.ts";
@@ -572,6 +572,8 @@ export function useSceneEditor(firstLook: () => LookAsk) {
     casino: casinoAddress(forval, keys),
     /** The look's lens now (the key lins): Standard or Bred lins. */
     lins: current?.lins ?? initial.lins ?? LINS,
+    /** The look's form of the game's cards (the key cardTaper), for the cards Scen lays in a round. */
+    cardTaper: current?.cardTaper ?? initial.cardTaper ?? CARD_TAPER.chosen,
     savingCasino,
     useInCasino,
     /** Card places from Jakob's plan for the round; read: the plan has been read, or could not be. */

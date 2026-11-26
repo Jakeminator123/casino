@@ -74,23 +74,26 @@ test('the tracked plan loads with the new keys filled in: the saved draft',async
   for(const id of TARGETS)assert.deepEqual(Object.keys(plan.targets[id].intent).slice(-3),['grip','turnAt','flipAxis'],`${file} ${id}`);
  }
 });
-// A plan as it was saved before 2026-11-26: with the shoe's point and a checked mark on every card, which the plan no longer keeps.
-const withOldFields=()=>{const plan=defaultPlan() as any;plan.shoe={native:{u:.733,v:.322},portrait:{u:.84,v:.58}};for(const t of Object.values(plan.targets) as any[])for(const view of ['native','portrait'])t.geometry[view].reviewed=view==='native';return plan;};
+// A plan as it was saved before 2026-11-26: with the shoe's point, a checked mark on every card and the table's perspective
+// (Inspelning's "Bordets perspektiv"), which the plan no longer keeps.
+const withOldFields=()=>{const plan=defaultPlan() as any;plan.shoe={native:{u:.733,v:.322},portrait:{u:.84,v:.58}};plan.tableProjection.perspective=.87;for(const t of Object.values(plan.targets) as any[])for(const view of ['native','portrait'])t.geometry[view].reviewed=view==='native';return plan;};
 const GEOMETRY_KEYS=['u','v','width','height','angle','taper'];
-test('a plan saved with the shoe\'s point and checked marks loads without them, and the store writes neither',async()=>{
+test('a plan saved with the shoe\'s point, checked marks and the table\'s perspective loads without them, and the store writes none',async()=>{
  const old=withOldFields();delete old.targets['D.C3'];const before=structuredClone(old);validatePlan(old);
- assert.equal(Object.hasOwn(old,'shoe'),false);
+ assert.equal(Object.hasOwn(old,'shoe'),false);assert.deepEqual(old.tableProjection,{mode:'flat',heading:0});
+ // whatever number it held: the recording draws a real card and the game's form is the look's, so the number is not read
+ for(const perspective of [.8,.96,.5,'87 %',null]){const any=withOldFields();any.tableProjection.perspective=perspective;validatePlan(any);assert.deepEqual(any.tableProjection,{mode:'flat',heading:0},String(perspective));}
  for(const id of TARGETS)for(const view of ['native','portrait'] as const)assert.deepEqual(Object.keys(old.targets[id].geometry[view]),GEOMETRY_KEYS,`${id} ${view}`);
  assert.equal(old.targets['P5.C1'].geometry.native.u,before.targets['P5.C1'].geometry.native.u,'the places stay as they were');
- // only those two: any other unknown field is still refused, and a plan that fails keeps them (nothing half done)
+ // only those: any other unknown field is still refused, and a plan that fails keeps them (nothing half done)
  const extra=withOldFields();extra.targets['P1.C1'].geometry.native.checked=true;assert.throws(()=>validatePlan(extra));assert.equal(Object.hasOwn(extra,'shoe'),true);
  const base=path.resolve(tmpdir()),dir=await mkdtemp(path.join(base,'dealer-placement-test-'));assert.ok(path.resolve(dir).startsWith(base+path.sep));
  try{
   await mkdir(path.join(dir,'placements'));await writeFile(path.join(dir,'placements/default.json'),JSON.stringify(withOldFields(),null,2)+'\n');
-  const store=placementStore(dir),read=await store.load();assert.equal(Object.hasOwn(read.plan,'shoe'),false);
+  const store=placementStore(dir),read=await store.load();assert.equal(Object.hasOwn(read.plan,'shoe'),false);assert.equal(Object.hasOwn(read.plan.tableProjection!,'perspective'),false);
   // a client that still sends them gets a file without them
   await store.save(withOldFields(),read.revision);const text=await readFile(path.join(dir,'placements/default.json'),'utf8');
-  assert.doesNotMatch(text,/"shoe"|"reviewed"/);validatePlan(JSON.parse(text));
+  assert.doesNotMatch(text,/"shoe"|"reviewed"|"perspective"/);validatePlan(JSON.parse(text));
  }finally{assert.ok(path.resolve(dir).startsWith(base+path.sep+'dealer-placement-test-'));await rm(dir,{recursive:true,force:true});}
 });
 test('the store reads an older file with the defaults and writes the two keys when it saves',async()=>{

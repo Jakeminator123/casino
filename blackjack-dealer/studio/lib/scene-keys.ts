@@ -85,6 +85,7 @@ const NEEDS: Partial<Record<SceneKey, Needs>> = {
   cardInHand: { key: "cards", is: [true] },
   cardHand: { key: "cards", is: [true] },
   cardScale: { key: "cards", is: [true] },
+  cardTaper: { key: "cards", is: [true] },
   cardRank: { key: "cards", is: [true] },
   cardSuit: { key: "cards", is: [true] },
   focusDistance: { key: "focus", is: ["manual"] },
@@ -149,6 +150,8 @@ export const SCENE_KEYS: readonly KeySpec[] = [
   spec("cardMethod", "kort", "U", "Ritsätt", choice(["scene", "I scenen"], ["film", "I filmrutan"], ["matte", "Filmens matt"]), "I scenen: ett föremål under filmen. I filmrutan: det äldre sättet. Filmens matt (prov): filmens eget kort färgas om."),
   spec("cardHand", "kort", "U", "Kortet i handen", choice(["film", "Filmens storlek"], ["standard", "Standard"]), "Standard: kortet har vilans storlek hela vägen."),
   spec("cardScale", "kort", "U", "Kortens storlek", slider(0.8, 2, 0.05, "×"), "Alla ritade kort, förval 1,2. I Standard är 1,2 ett verkligt kort (63 × 88 mm)."),
+  // Kortens form (CARD_TAPER in src/card-plan.ts; Jakob 2026-11-26): the game's card shape, the recording's is always a real card.
+  spec("cardTaper", "kort", "D", "Kortens form", slider(0.8, 0.96, 0.01, " %"), "Hur mycket smalare kortets bortre kant ritas än den nära, vid plats 4. 96 % är ett riktigt kort, som inspelningen alltid har; lägre ger mer djup i bordet (ditt val 87 %). Gäller under linsen Standard."),
   spec("cardRank", "kort", "U", "Valör", choice(...["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"].map((r): [string, string] => [r, r])), "Bara för provet: i spelet bestämmer spelmotorn."),
   spec("cardSuit", "kort", "U", "Kortets färg", choice(["spades", "Spader"], ["hearts", "Hjärter"], ["diamonds", "Ruter"], ["clubs", "Klöver"]), "Bara för provet: i spelet bestämmer spelmotorn."),
   spec("chipGloss", "kort", "U", "Markernas glans", slider(0, 1, 0.01), "Markernas glans; 0,50 är deras utseende förut. Syns när insatser ligger."),
@@ -251,6 +254,8 @@ export function formatValue(s: KeySpec, value: unknown, roomName?: (id: string) 
       return value ? "På" : "Av";
     case "slider": {
       const v = Number(value);
+      // a share kept as 0–1 and shown in per cent (Kortens form: 0.87 is "87 %")
+      if (s.unit.trim() === "%") return `${decimal(v * 100, digitsOf(s.step * 100))}${s.unit}`;
       return `${decimal(v, digitsOf(s.step))}${s.unit}`;
     }
     case "choice": {

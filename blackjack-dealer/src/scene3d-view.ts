@@ -4,7 +4,7 @@
 // With focus on, they go through a full-size target and are blurred by their own distance from the focus.
 import * as T from 'three';
 import {FILM, aimCorrection, betSpots, cameraFromContract, cardFocusPixel, cardPixel, cardSpots, cloudLevel, edgeRowOf, filmToScene, flickerLevel, lensCamera, sceneToSpot, solveCamera, spotToScene, viewFovDeg, viewUnder, type CardTrack, type FilmCamera} from './scene3d-geometry.ts';
-import {cardGrow, type Lins} from './card-plan.ts';
+import {CARD_TAPER, cardGrow, type Lins} from './card-plan.ts';
 import {TABLE_LENS} from './table-lens.ts';
 import {EVEN, createFilmLayers, createPlayers, evenFor, frameAt, lightOnDealer, matchLeft, roomFlashAt, roomGlow, toneMatch, toneOf, toneUnder, type FilmTone, type Part, type RoomGlow, type ToneMatch} from './scene3d-film.ts';
 import {createFanLight} from './scene3d-light.ts';
@@ -32,6 +32,10 @@ export type SceneState = {
   fan: boolean; fanStrength: number; fanPeriod: number;
   tray: boolean; cups: boolean; base: TableBase; surface: TableSurface; roomLight: number; tableSize: number;
   cards: boolean; cardInHand: boolean; cardMethod: 'scene' | 'film' | 'matte'; cardRank: string; cardSuit: string; cardScale: number; cardHand: 'film' | 'standard';
+  // Kortens form (CARD_TAPER in src/card-plan.ts; Jakob 2026-11-26): how much narrower the game draws a lying card's far edge
+  // than its near edge, as the share at seat 4 under the lens Standard, 0.80 to 0.96 (a real card, as the recording always
+  // has it). Live: set({cardTaper}) holds for the drawn cards at rest from the next frame; the game reads it once for its layout.
+  cardTaper: number;
   clock: boolean; dust: number; flicker: boolean; flickerEvery: number; flickerStrength: number;
   filmBright: number; filmWarm: number; wrap: number;
   roomShift: 'cut' | 'shimmer'; roomShiftSeconds: number;
@@ -69,7 +73,7 @@ export const DEFAULTS: SceneState = {
   focus: 'off', focusDistance: 1.5, tolerance: 0.4,
   fan: false, fanStrength: 0.16, fanPeriod: 5,
   tray: false, cups: true, base: 'column', surface: 'painted', roomLight: 1, tableSize: 1,
-  cards: false, cardInHand: false, cardMethod: 'scene', cardRank: 'A', cardSuit: 'spades', cardScale: 1.2, cardHand: 'film',
+  cards: false, cardInHand: false, cardMethod: 'scene', cardRank: 'A', cardSuit: 'spades', cardScale: 1.2, cardHand: 'film', cardTaper: CARD_TAPER.chosen,
   clock: false, dust: 0, flicker: false, flickerEvery: 20, flickerStrength: 0.6,
   filmBright: 1, filmWarm: 0, wrap: 0,
   roomShift: 'cut', roomShiftSeconds: 2.6,
@@ -201,7 +205,7 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
   function loadCards() {
     const method = state.cardMethod; if (cardLayers[method] || cardLoads.has(method)) return; cardLoads.add(method);
     (method !== 'film' ? import('./scene3d-deal.ts').then(m => { if (gone) return null; const layer = m.createDealLayer({contract: data.contract, plan: data.plan, film, light: light.uniforms, camera: () => camera, edgeZ: () => edgeZ,
-      renderer, view: () => view, pixels: () => Math.min(canvas.width / W, canvas.height / H) * state.zoom, way: method, lins}); fg.add(layer.group); return layer; })
+      renderer, view: () => view, pixels: () => Math.min(canvas.width / W, canvas.height / H) * state.zoom, way: method, lins, taper: () => state.cardTaper}); fg.add(layer.group); return layer; })
       : import('./scene3d-cards.ts').then(m => gone ? null : m.createCardLayer(data.contract)))
       .then(layer => { if (!layer) return; cardLayers[method] = layer; cardError = ''; }, error => { cardError = String((error as Error)?.message ?? error); if (state.cardMethod === method) state.cards = false; })
       .then(() => { cardLoads.delete(method); if (gone) return; useCards(); data.onChange(); });

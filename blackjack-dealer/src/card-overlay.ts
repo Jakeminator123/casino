@@ -3,7 +3,7 @@
 // (tools/track-card.ts); size does not: a card has one physical size, taken from the scene contract.
 // No DOM, WebGL or file access here. The drawing itself is src/card-overlay-view.ts.
 import {classify, morph, blobs, grown, centre, signedArea, inside, clockwise, is, sound, YELLOW, BLUE, SHADE, TINT, TABLE, SKIN, DARK, type Pt, type Side} from './card-track.ts';
-import {planCardFrom, planShape, throughLens} from './card-plan.ts';
+import {CARD_TAPER, planCardFrom, planShape, throughLens} from './card-plan.ts';
 import {TABLE_LENS, type Lens} from './table-lens.ts';
 import type {PlacementPlan} from './placement-model.ts';
 
@@ -21,7 +21,8 @@ export type CardTrack = {clip?: string; width: number; height: number; hand?: bo
   leavesShoe?: number | null; restFrom: number | null; restQuad: number[][] | null; shoeWindow?: {box: number[]} | null};
 // toImage/toTable are homographies as eight numbers (the ninth is 1): table millimetres <-> image pixels.
 // rule: set by planScene, for a scene whose resting card is the card plan's own (src/card-plan.ts) and not the contract's:
-// the lens the card is seen through and the plan's shape, or `own` where the plan draws each card by its stored measures.
+// the lens the card is seen through and the look's card shape (planShape), or `own` where the plan draws each card by its
+// stored measures.
 export type Scene = {toImage: number[]; toTable: number[]; cardWidth: number; cardHeight: number; bodyScale: number; rule?: {lens: Lens; shape: number; own: boolean}};
 // How the card a film carries is shown while it is in her hand, when nothing says otherwise: the drawn card ('object'; the
 // address's kort=hand). On 2026-11-13 Jakob asked for the cards to be started over from the film's own ("orsaken till att vi inte
@@ -147,13 +148,15 @@ export function restingQuad(scene: Scene | null, film: Pt[], scale: number): {qu
 
 /**
  * A scene whose resting card follows the card plan's rule (the lens 'standard', Lins in src/card-plan.ts): a card `scale` times a
- * real one at the outline's place and turn, through the table's lens, in the plan's shape. Kortens storlek 1 on a place of the
- * plan is then the outline the studio's Inspelning draws there. The contract (`base`) is not read for it; without one the scene
- * stands by itself. `lens`: another lens than the table's, for the tests that change the camera.
+ * real one at the outline's place and turn, through the table's lens, in the look's Kortens form (`taper`, the scene key
+ * cardTaper; left out, the look's default, CARD_TAPER in src/card-plan.ts). Kortens storlek 1 on a place of the plan is then
+ * the outline the game lays there (src/game-table.ts, in the same form), and at 96 % the real card the studio's Inspelning
+ * draws. The contract (`base`) is not read for it; without one the scene stands by itself. `lens`: another lens than the
+ * table's, for the tests that change the camera.
  */
-export function planScene(base: Scene | null, plan: PlacementPlan, lens: Lens = TABLE_LENS): Scene {
+export function planScene(base: Scene | null, plan: PlacementPlan, lens: Lens = TABLE_LENS, taper: number = CARD_TAPER.chosen): Scene {
   const through = throughLens(plan, 'native');
-  return {...(base ?? {toImage: [1, 0, 0, 0, 1, 0, 0, 0], toTable: [1, 0, 0, 0, 1, 0, 0, 0], cardWidth: 63, cardHeight: 88, bodyScale: 1}), rule: {lens, shape: through ? planShape(plan, lens) : 0, own: !through}};
+  return {...(base ?? {toImage: [1, 0, 0, 0, 1, 0, 0, 0], toTable: [1, 0, 0, 0, 1, 0, 0, 0], cardWidth: 63, cardHeight: 88, bodyScale: 1}), rule: {lens, shape: through ? planShape(plan, lens, taper) : 0, own: !through}};
 }
 // The resting card by the plan's rule. Where the plan draws each card by its own stored measures ("individual"), and for an
 // outline that is no card on the felt, the outline itself is the card, `scale` times about its middle in the picture.

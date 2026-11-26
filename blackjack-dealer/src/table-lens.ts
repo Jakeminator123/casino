@@ -214,7 +214,7 @@ export const TABLE_RAIL = {centre: 0.057, lift: 0.012, halfWidth: 0.05, above: 0
 // The card lying at seat 4 has its film size and shape under a whole family of lenses, from a wide one close by to a long
 // one far away; the focal length alone decides how much a card narrows toward its far edge and how fast the cards shrink
 // away from the camera. TABLE_LENS is the member that draws the dealer at her real size (a card narrows to 0.956), and the
-// one the card plan draws through (src/card-plan.ts: Inspelning's "Bordets perspektiv" changes only a card's shape, not the lens).
+// one the card plan draws through (src/card-plan.ts; the recording always draws a real card, and the look's "Kortens form" changes only how the game draws a card, not the lens).
 // drawnCard and lensForFocal are lifted word for word from dealer3d/src/camera.ts (with the type of their card named here);
 // the card is world.ts MEASURED.restingCard.
 

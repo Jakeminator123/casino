@@ -21,30 +21,28 @@ export const TURN_AXES: readonly TurnAxis[] = ['FREE','LONG_EDGE'];
 // Plans saved before grip, turnAt or flipAxis existed lack them; validatePlan fills these in when a plan is read.
 export const INTENT_DEFAULTS: Readonly<Pick<Intent,'grip'|'turnAt'|'flipAxis'>> = Object.freeze({grip:'PINCH',turnAt:'AIR',flipAxis:'FREE'});
 export type Target = { geometry: Record<View, Geometry>; intent: Intent; material: { bend: number; gloss: number } };
-// perspective: on "Plant bord" every card is a real card at its place through the real camera (size and place), and
-// perspective is only its shape: how much narrower its far edge is drawn, as the share at seat 4 (far over near, 0.80 to
-// 0.96; src/card-plan.ts). Absent, seat 4's own stored taper (P4.C1's, 0.87 in his plan of 11 Nov). One number for the whole
-// plan (Jakob 2026-11-17/18: depth in the shape, "brist på djup i bordet", but sizes that agree with the shoe's card); the
-// game reads it under the lens 'standard' (Lins in src/card-plan.ts).
-export type TableProjection = { mode:'flat'|'individual'; heading:number; perspective?:number };
-/** The table's perspective on "Plant bord": its limits and step. 0.96 is a real card's own shape (the real camera's 0.956). */
-export const TABLE_PERSPECTIVE = { min: .80, max: .96, step: .01 } as const;
+// On "Plant bord" every card is a real card at its place through the real camera (size, place and shape; src/card-plan.ts).
+// Until 2026-11-26 the projection also held `perspective`, how much narrower the game drew a card's far edge; since then the
+// recording always has a real card and the game's card shape is the look's Kortens form (CARD_TAPER in src/card-plan.ts), so
+// validatePlan still reads a file that has it and leaves it out.
+export type TableProjection = { mode:'flat'|'individual'; heading:number };
 // The plan is the cards' places and how they are dealt. Until 2026-11-26 it also held the shoe's point and a checked mark per
 // card ("Kontrollerad"); nothing read either (the shoe's place is the standard's, src/table-lens.ts SHOE; Jakob 2026-11-24:
 // "färre val"), so validatePlan still reads a file that has them and leaves them out, and a save writes neither.
 export type PlacementPlan = { schemaVersion: 1; id: 'kortplan'; space: 'image-normalized-bottom-up'; updatedAt: string | null; targets: Record<string, Target>; tableProjection?:TableProjection };
 // The headings a flat table's plane may be saved with (validatePlan).
 const PLANE_HEADINGS=[-90,-45,-15,0,15,45,90] as const;
-export const VIEWS = { native: { width: 1762, height: 1174, label: 'Dator', profileId: 'v6-native', background: 'assets/lab/native.jpg' }, portrait: { width: 1080, height: 1920, label: 'Mobil', profileId: 'v6-portrait', background: 'assets/lab/portrait.jpg' } } as const;
+export const VIEWS = { native: { width: 1762, height: 1174, label: 'Dator' }, portrait: { width: 1080, height: 1920, label: 'Mobil' } } as const;
 // Inspelning has no picture of its own under the cards: the studio shows the plan's cards on the doll's 3D table
 // (dealer3d/page/docka.html in a frame; Jakob 2026-11-25: one picture, all of it in 3D).
 export const INITIAL_TARGETS = [...Array.from({length:7},(_,i)=>`P${i+1}`),'D'].flatMap(p=>[`${p}.C1`,`${p}.C2`]);
 export const TARGETS = [...INITIAL_TARGETS, 'D.C3'];
 // Older files did not store this slot. Preserve its former film-pixel position when upgrading them.
 export const DEALER_THIRD_FILM = {x:1069,y:926} as const;
-// The card standing in the shoe's window in the lab's two background pictures: its corners in the picture's pixels, clockwise
-// from the upper one. The pictures show the game's own card back there (black and gold); the lab paints the place yellow, the
-// colour a closed card has in the films and in the plan (Jakob 2026-11-11). Measured in assets/lab/native.jpg and portrait.jpg.
+// The card standing in the shoe's window in the lab's two former background pictures (V6's table in the Dator and the Mobil
+// view, no longer kept): its corners in the picture's pixels, clockwise from the upper one. The pictures showed the game's
+// own card back there (black and gold); the lab painted the place yellow, the colour a closed card has in the films and in
+// the plan (Jakob 2026-11-11). Measured by hand in those two pictures.
 export const SHOE_CARD: Readonly<Record<View, readonly {x:number;y:number}[]>> = {
  native:[{x:1298,y:757.5},{x:1337,y:780},{x:1285,y:854},{x:1244,y:829}],
  portrait:[{x:922.5,y:763.5},{x:955,y:777.5},{x:904.5,y:849.5},{x:867.5,y:826.5}],
@@ -65,7 +63,7 @@ export const WINDOW_CARD: Readonly<Record<View, readonly {x:number;y:number}[]>>
 // A card as the films show it, and as the labs where films are planned and ordered draw it (Jakob 2026-11-17: the back yellow,
 // the face blue; the print is the game's afterwork): one yellow and one blue, the film card's own. The blue is the median of
 // the card drawn on an order's last picture (the bank's real card pixels, tools/order-images.ts TEXTURE: 0, 130, 218), the
-// yellow the median of the card in the shoe's window of anchors 1 and 2.1 and the plan's backdrop (VIEWS; 239–245, 214–228, 0–3).
+// yellow the median of the card in the shoe's window of anchors 1 and 2.1 and the plan's former backdrop (239–245, 214–228, 0–3).
 // The game's lit film card (src/scene3d-deal.ts COLOUR: 232, 209, 5 and 0, 121, 227) lies within 13 of both.
 //
 // The film card's four colours, kept here and nowhere else (Jakob 2026-11-20: "Spara RGB-färgen för det gula, blåa, kryssets
@@ -190,13 +188,6 @@ export function editIntent<K extends keyof Intent>(plan: PlacementPlan, id: stri
  else if (key === 'startSide' || key === 'endSide') i.turn = i.startSide !== i.endSide;
  return next;
 }
-/** The table's perspective on "Plant bord" (one number for the whole plan), or null for the real camera's. */
-export function setTablePerspective(plan: PlacementPlan, perspective: number | null): PlacementPlan {
- if (perspective !== null && (!Number.isFinite(perspective) || perspective < TABLE_PERSPECTIVE.min || perspective > TABLE_PERSPECTIVE.max)) throw Error(`Välj ett perspektiv mellan ${TABLE_PERSPECTIVE.min} och ${TABLE_PERSPECTIVE.max}.`);
- const next = structuredClone(plan), t = next.tableProjection ?? {mode: 'flat' as const, heading: 0};
- next.tableProjection = {mode: t.mode, heading: t.heading, ...(perspective === null ? {} : {perspective: Math.round(perspective * 1000) / 1000})};
- return next;
-}
 export function defaultPlan(): PlacementPlan {
  const targets: Record<string,Target>={};
  for(const id of INITIAL_TARGETS){const dealer=id[0]==='D',seat=dealer?3:Number(id[1])-1,second=id.endsWith('2'),v=.08+Math.abs(seat-3)*.025,closed=(dealer&&second)||id==='P4.C2';
@@ -218,8 +209,9 @@ function keys(v:unknown,list:string[]): asserts v is Record<string,unknown>{if(!
 function number(v:unknown,lo:number,hi:number){if(typeof v!=='number'||!Number.isFinite(v)||v<lo||v>hi)throw Error('Koordinat eller reglage ligger utanför tillåtet intervall.');}
 const has=(v:unknown,key:string)=>object(v)&&Object.hasOwn(v,key);
 // Checks a plan strictly and, once all of it has passed, fills in the intent keys an older file lacks (grip, turnAt, flipAxis)
-// with their defaults and leaves out the two fields the plan no longer keeps (the shoe's point, a card's checked mark
-// `reviewed`; PlacementPlan), in place: every reader gets a complete plan, and a save or export writes the keys. The plan was
+// with their defaults and leaves out the three fields the plan no longer keeps (the shoe's point, a card's checked mark
+// `reviewed` and the table's `perspective`; PlacementPlan, TableProjection), in place: every reader gets a complete plan, and
+// a save or export writes the keys. The plan was
 // called 'pamela-table' until 2026-11-23; a copy with that id, such as a proof's frozen kortplan.json, reads as the plan and
 // is written as 'kortplan'.
 export function validatePlan(value: unknown): asserts value is PlacementPlan {
@@ -227,7 +219,6 @@ export function validatePlan(value: unknown): asserts value is PlacementPlan {
  if(Object.hasOwn(value,'tableProjection')){
   keys(value.tableProjection,['mode','heading',...(object(value.tableProjection)&&Object.hasOwn(value.tableProjection,'perspective')?['perspective']:[])]);
   if(!['flat','individual'].includes(value.tableProjection.mode as string)||!PLANE_HEADINGS.includes(value.tableProjection.heading as typeof PLANE_HEADINGS[number]))throw Error('Ogiltigt bordperspektiv eller riktning.');
-  if(Object.hasOwn(value.tableProjection,'perspective'))number(value.tableProjection.perspective,TABLE_PERSPECTIVE.min,TABLE_PERSPECTIVE.max);
  }
  if(value.schemaVersion!==1||(value.id!=='kortplan'&&value.id!=='pamela-table')||value.space!=='image-normalized-bottom-up'||!(value.updatedAt===null||(typeof value.updatedAt==='string'&&value.updatedAt.length<40&&Number.isFinite(Date.parse(value.updatedAt)))))throw Error('Okänd placering eller bildrymd.');
  keys(value.targets,[...(has(value.targets,'D.C3')?TARGETS:INITIAL_TARGETS)]);
@@ -245,6 +236,7 @@ export function validatePlan(value: unknown): asserts value is PlacementPlan {
  for(const target of Object.values(value.targets) as {intent:Record<string,unknown>}[])for(const [key,fallback] of Object.entries(INTENT_DEFAULTS))if(!Object.hasOwn(target.intent,key))target.intent[key]=fallback;
  if(!Object.hasOwn(value.targets,'D.C3'))value.targets['D.C3']=dealerThirdTarget(value.targets as Record<string,Target>);
  delete value.shoe;
+ if(object(value.tableProjection))delete value.tableProjection.perspective;
  for(const target of Object.values(value.targets) as {geometry:Record<View,Record<string,unknown>>}[])for(const view of ['native','portrait'] as View[])delete target.geometry[view].reviewed;
  value.id='kortplan';
 }

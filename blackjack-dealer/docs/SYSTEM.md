@@ -64,18 +64,18 @@ de två lika och planens platser på sina bildpunkter.
 | --- | --- | --- |
 | Dockan | linsen, bordet, kortet, skon och planens platser. Av hennes fem vyer är bara Filmens kamera standarden; Från sidan, Uppifrån, Från spelaren och Nära kortet är till för att titta | `filmLens`, `spots` i `dealer3d/src/world.ts`; `dealer3d/src/stage.ts` |
 | Dockans referensfilm | Filmens kamera i bildens storlek, vit docka på grått bord för en filmmodell att följa, 24 rutor/s (verktygets förval är 30) | `dealer3d/tools/render-reference.ts` |
-| Beställningens slutbild | kortet där planen säger, genom linsen, i planens form | `planQuad` i `tools/order-images.ts` |
-| Kortplanen | linsen för platsen och storleken, planens form | `planCardQuad` i `src/card-plan.ts` |
-| 3D-scenen i Standard | filmkameran är linsen i verkliga meter, skalan alltid 1; kortplatser och insatsringar där `pixelToFelt` lägger dem; markerlådan med standardens mått; liggande kort i planens form | `lensCamera` i `src/scene3d-geometry.ts` |
-| Spelet i Standard | samma regel som kortplanen | `createLayout` i `src/game-table.ts` |
+| Beställningens slutbild | kortet där planen säger, genom linsen, ett verkligt kort | `planQuad` i `tools/order-images.ts` |
+| Kortplanen | linsen för platsen och storleken, ett verkligt kort | `planCardQuad` i `src/card-plan.ts` |
+| 3D-scenen i Standard | filmkameran är linsen i verkliga meter, skalan alltid 1; kortplatser och insatsringar där `pixelToFelt` lägger dem; markerlådan med standardens mått; liggande kort i utseendets form (Kortens form) | `lensCamera` i `src/scene3d-geometry.ts` |
+| Spelet i Standard | samma regel som kortplanen, i utseendets form | `createLayout` i `src/game-table.ts` |
 
 Avvikelserna, med flit eller kvar:
 
-- **Kortets form.** Planen, spelet, 3D-scenen och beställningens slutbild ritar bortre kanten 87 % av den nära, för
-  djup i bordet (Jakob 2026-11-17, 2026-11-18): planen har inget `tableProjection.perspective`, så `planTaper` i
-  `src/card-plan.ts` tar P4.C1:s sparade 0,87 (gränserna i `TABLE_PERSPECTIVE`, `src/placement-model.ts`). Dockan och
-  hennes referensfilm ritar ett verkligt kort (96 %). Skillnaden är högst 4 px i de bortre hörnen; de nära hörnen är
-  desamma. Ett tal i planen (`tableProjection.perspective`) avgör det och kräver hans ord.
+- **Kortens form i spelet.** Inspelningen har alltid ett verkligt kort (bortre kanten 96 % av den nära vid plats 4):
+  dockan, hennes referensfilm, Inspelning och beställningens slutbild (Jakob 2026-11-26; planens tal för formen läses
+  inte längre). Hur spelets liggande och ritade kort ritas är utseendets: nyckeln `cardTaper`, Kortens form i Scen,
+  0,80–0,96 med hans 87 % som förval för djup i bordet (2026-11-17, 2026-11-18; `CARD_TAPER` i `src/card-plan.ts`).
+  Skillnaden mot inspelningens kort är högst 4 px i de bortre hörnen; de nära hörnen är desamma.
 - **Bred lins.** Ett utseende kan välja Bred lins (nyckeln `lins: 'bred'`, levande i Scen och sparad med utseendet;
   Casinos har den, Jakob 2026-11-21): kontraktets äldre vida kamera (`data/scene-contract.json`, brännvidd 886 px), ett
   bord byggt i kontraktets skala k = 2 och planens äldre plan för korten (`flatQuad`), inte filmens lins. Inspelning,
@@ -154,7 +154,7 @@ Ingen vit kant (Jakob 2026-11-17, 2026-11-23). Kortet är rent tills efterarbete
   finns olika format").
 - **En lins som förval** (`LINS` i `src/card-plan.ts`): under Standard ett verkligt kort 63 × 88 mm genom
   `TABLE_LENS` (`src/table-lens.ts`); `planCardQuad` är enda regeln för planens kort, och plan, spel och scen håller
-  samma fyrhörning inom en hundradels bildpunkt (`tools/card-plan.test.ts`). Bred lins (Standarden ovan) lever kvar i
+  samma fyrhörning inom en hundradels bildpunkt när de ritar i samma form (`tools/card-plan.test.ts`). Bred lins (Standarden ovan) lever kvar i
   bland annat `createLayout`, `cameraFromContract` och `viewUnder`.
 - **En linje för korten** (Jakob 2026-11-13): ritade kort hela vägen, en storlek (`cardScale` 1,2 = ett verkligt kort,
   storlek 1,00 i Efterarbete), en brytare i spelet. Kortmattan är ett val i studion, inte spelets. Överlägg i handen
@@ -166,7 +166,7 @@ Ingen vit kant (Jakob 2026-11-17, 2026-11-23). Kortet är rent tills efterarbete
 `placements/default.json` är Jakobs plan: 16 kort (P1–P7 och D, två var) och D.C3. Bara Bordet skriver filen, när han
 trycker Spara (Jakob 2026-11-11, 2026-11-12); har han ställt in korten där gäller det (2026-11-23). Formen och
 `validatePlan` i `src/placement-model.ts`: geometri per `native`/`portrait` (bara `native` läses); `angle` grader medurs;
-`perspective` 0,80–0,96 ändrar bara kortens form, ett värde för alla (hans 87 %; 2026-11-18); `intent.grip` `PINCH`
+kortets form är inte planens (ett äldre `perspective` i filen läses och sparas inte längre); `intent.grip` `PINCH`
 (A2.1) eller `DRAG` (A2.2), `turnAt` `AIR` eller `PLACE`. Av rörelsen väljs i studion bara sidan dealerns kort ligger
 med (`intent.endSide`, Inspelning steg 2; spelarens kort ligger alltid öppet); ingången (A2.1 eller A2.3) är trädets,
 inte planens `intent.pass`, och de övriga fälten i `intent` läses bara av receptets text (`tools/order-store.ts`) och

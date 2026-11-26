@@ -118,11 +118,11 @@ export function SceneBody({ kind, toolbar, roundText: cardRound }: { kind: Scene
     () => (graph && placesRead && round?.steps.length ? resolveRound(graph, ownSteps(round.steps, graph.dealer, owners), { holeCardDown: true, places }) : []),
     [graph, placesRead, round, places, owners],
   );
-  const lins = editor.lins;
+  const lins = editor.lins, cardTaper = editor.cardTaper;
   const parts = useMemo(() => {
     const parts = partsOf(segments), words = readSceneCardTrial(new URLSearchParams(searchText));
-    return plan ? withSceneCardTrial(parts, segments, plan, lins, words ?? {}, words ? "film" : null) : parts;
-  }, [segments, plan, searchText, lins]);
+    return plan ? withSceneCardTrial(parts, segments, plan, lins, words ?? {}, words ? "film" : null, cardTaper) : parts;
+  }, [segments, plan, searchText, lins, cardTaper]);
   const notation = round?.steps.length ? formatJakob(round.steps) : "";
   const mode = kind === "rafilm" ? "platt" : "3d";
   const flat = mode === "platt";
