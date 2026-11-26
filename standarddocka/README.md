@@ -33,13 +33,18 @@ standarddocka/
                 hand eller kortet (kamerorna narahoger, naravanster, narakort); `--andring '<json>'` lägger en
                 ändring före bilderna utan att spara den; `--kor` räknar ett uttryck i sidan och skriver svaret;
                 kör editorn i ett headless Chrome under det delade låset
-    mat.ts      mäter en rörelse ruta för ruta mot vad en hand och ett kort kan göra: fingrar i kortet eller filten,
-                kortet utan stöd, plötsliga vändningar, ryck, hopp på en ruta, landningen; ingen webbläsare. `--alla`
-                är spärren före en inspelning: alla sju platser, en rad var, och rött om någon har ett finger genom
-                kortet eller i filten, kortet utan stöd, ett hörn under filten, ett hopp eller en sned landning
+    mat.ts      mäter en rörelse ruta för ruta mot vad en hand och ett kort kan göra, räknad som editorn spelar den
+                (takten, de små rörelserna, spärren): fingrar i kortet eller filten, kortet utan stöd, plötsliga
+                vändningar, ryck, hopp på en ruta, landningen; ingen webbläsare. `--docka man|kvinna` (förval
+                mannen). `--alla` är spärren före en inspelning: alla sju platser, en rad var, och rött om någon
+                har ett finger genom kortet eller i filten, kortet utan stöd, ett hörn under filten, ett hopp, en
+                sned landning, ett ben (överarm, underarm, fingerben) som ändrar längd, en handled utom armens
+                räckvidd, eller en hand mer än 50 grader från underarmen (mer än kroppen ritar)
   rorelser/     det editorn sparar, en rörelse per kortplats: a1-a23-p<plats>c1.json (vilka grundrörelser, blicken,
-                farten per del, ändringarna) och a1-a23-p<plats>c1.rutor.json (hela rörelsen ruta för ruta i dockans
-                format, skriven vid Spara)
+                farten per del, ändringarna), för en dockas egna rörelser a1-a23-p<plats>c1-<docka>.json, och
+                <namn>.rutor.json (hela rörelsen ruta för ruta i dockans format, med kroppens mått, skriven vid
+                Spara). Ett lager som hör till en annan grundrörelse än den som spelas används inte, och sidan
+                säger det; mappen finns först när något har sparats
   klipp/        filmerna Spela in gör: <rörelse>-<del>-<kamera>.mp4 (1764 x 1174, 30 bilder i sekunden); en ny
                 inspelning med samma namn skriver över den förra; går inte in i Git
   STARTA editorn.cmd   dubbelklicka för att starta editorn och öppna den i webbläsaren
@@ -47,10 +52,12 @@ standarddocka/
 
 Editorn startas med dubbelklick på `STARTA editorn.cmd`, eller från casino-mappen med
 `node standarddocka/editor/server.ts --oppna`, och öppnas på `http://127.0.0.1:4320/standarddocka/editor/`. Den visar
-följden A1 → A2.3 → kort 1 på en plats → tillbaka: grundrörelserna `till-ankare-2-3-c` och Paows giv till den platsen
-(`giv-fran-2-3-p<plats>c1-…-paow`, listan `GIVAR` i `editor/editor.ts`) ur `../blackjack-dealer/dealer3d/data/`, som
-aldrig ändras härifrån. Platsen väljs med knapparna "Kortet ges till plats" (eller `?plats=1…7`, förval 4), och varje
-plats har sina egna sparade ändringar.
+följden A1 → A2.3 → kort 1 på en plats → tillbaka, ur `../blackjack-dealer/dealer3d/data/`. Dockans egna rörelser
+spelas där de finns (tabellen `EGNA` i `editor/rorelse.ts`, en rad per docka och plats; i dag mannen på plats 4:
+`till-ankare-2-3-man` och `giv-fran-2-3-p4c1-ren-a-man`). Annars spelas de äldre (`till-ankare-2-3-c` och Paows giv
+till platsen, listan `GIVAR` där), och statusraden säger att platsen ännu spelar en rörelse ritad för en annan
+kropp. Platsen väljs med knapparna "Kortet ges till plats" (eller `?plats=1…7`, förval 4), och varje plats har sina
+egna sparade ändringar.
 
 - **Kameror:** spelets vy sedd från plats 1–7 (plats 4 är förvalet), från sidan, uppifrån, fri, och den gamla kameran
   för jämförelse. Spelets vy är den lägre kameran som Jakob valde som standard 2026-11-26: 0,58 m över filten, 12
@@ -58,16 +65,24 @@ plats har sina egna sparade ändringar.
   räknas ur den med `seatView`. I vilan ser han in i kameran på plats 4: ansiktet vrids ända fram mot den, med ett lyft
   som är satt efter bild (`BLICK_LYFT` i `editor/scen.ts`). En plats kamera är spelets egen regel
   (`seatEye` i `../blackjack-dealer/dealer3d/src/world.ts`); plats 4 är spelets kamera.
-- **Dockan:** mannen eller kvinnan (knapparna "Dockan", eller `?docka=kvinna`). De har samma skelett och en rörelse är
-  händernas, armarnas och blickens lägen i rummet, så båda gör samma rörelser och delar det som sparas.
+- **Dockan:** mannen eller kvinnan (knapparna "Dockan", eller `?docka=kvinna`). De har samma skelett, och där de
+  spelar samma grundrörelser delar de det som sparas; en dockas egna rörelser har sitt eget sparade lager.
+- **Ändringarna** (rättat 2026-11-26 efter en utomstående granskning): en hands ändringar läggs ihop och läggs på en
+  gång, så ordningen de gjordes i spelar ingen roll, och det han ser är det som sparas, mäts och spelas in. Toningen,
+  blicken och greppet räknas i spelad tid, så inget hoppar där stillheten mellan två delar klipps bort. Kortet följer
+  en ändrad hand bara mellan skon och landningen (greppet tonas in och ut över 0,25 s) och ligger alltid på sin
+  plats när det har lagts. Kulorna står där lederna faktiskt är; en armbågsändring läggs på armbågens cirkel när han
+  släpper.
 - **Spärren** (Jakob 2026-11-26: "Sånna här rörelser ska ju bara inte gå"): det han drar i stannar vid kroppen,
   bordet och vad en led kan, och en rad överst i bilden säger vad som tog emot, till exempel "Höger armbåge kan inte gå
   längre in: kroppen är i vägen." När han släpper sparas ändringen som det som faktiskt blev, så att nästa drag börjar
   där armen står. Spärren gäller bara det han ändrar: grundrörelsen utan ändringar är ruta för ruta som förut, och det
   den själv gör är tillåtet. Kroppens mått tas på mannens eller kvinnans egen hud när sidan laddas. Det sparade går
   genom samma spärr. `window.editor.granskaGrund()` säger var grundrörelsen själv bryter mot gränserna (till för den
-  som ritar om den), och `state().sparr` vad spärren gjorde vid tiden som visas. Den täcker inte vridningen kring
-  underarmen, karmen, brickans väggar, låren eller stolen.
+  som ritar om den), och `state().sparr` vad spärren gjorde vid tiden som visas. Handen hålls högst 50 grader från
+  underarmen, samma gräns som kroppen ritas med (`WRIST` i `../blackjack-dealer/dealer3d/src/figure-model.ts`), så att
+  hand, fingrar och kort räknas ur samma hand; en armbåge stannar där handen inte kan böjas mer. Den täcker inte
+  vridningen kring underarmen, karmen, brickans väggar, låren eller stolen.
 - **Återställ:** "Tillbaka till det sparade" kastar det som inte är sparat, "Återställ till grundrörelsen" tar bort alla
   ändringar. Båda går att ångra (Ctrl+Z), och inget skrivs förrän Spara. Det sparade ligger i Git, så en äldre sparad
   version går alltid att hämta tillbaka.
@@ -76,7 +91,8 @@ plats har sina egna sparade ändringar.
   Varje del i listan "Rörelsen består av" visar sina sekunder; ett nytt tal gör delen fortare eller långsammare (en
   fjärdedel till fyra gånger grundrörelsens fart), jämnt genom delen. En egen fart sparas med rörelsen, följer med i
   inspelningen och i rutorna, och Återställ går tillbaka till förvalet. Ändringarna sitter kvar i samma ögonblick av
-  rörelsen när farten ändras.
+  rörelsen när farten ändras. En del som redan är i hans takt (dockans egna rörelser) spelas som den är, och den
+  klippta stillheten får aldrig dölja mer än 1 mm glid.
 - **Små egna rörelser:** fem slag som slås på var för sig och läggs ovanpå rörelsen utan att ändra den: han andas,
   huvudet rör sig lätt, en kort blick mot en spelare, ett finger lyfter på en hand som vilar, och kroppen väger över.
   "Slumpa om" lägger dem på andra ställen; samma frö ger samma rörelser. De är noll i varje dels början och slut, så

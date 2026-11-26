@@ -2,16 +2,26 @@
 // standarddocka/rorelser/ (ändringarna och farten), prövade mot vad en hand och ett kort kan göra. För den som granskar
 // en rörelse: talen säger var det är värt att titta (verktyg/titta.ts), de dömer inte rörelsen.
 //
-//   node standarddocka/verktyg/mat.ts --plats 7 [--json] [--giv <namn>] [--vilan <namn>]
-//   node standarddocka/verktyg/mat.ts --alla [--giv-monster giv-fran-2-3-p#c1-ren-a-paow]
+//   node standarddocka/verktyg/mat.ts --plats 7 [--json] [--giv <namn>] [--vilan <namn>] [--docka man|kvinna]
+//   node standarddocka/verktyg/mat.ts --alla [--giv-monster giv-fran-2-3-p#c1-ren-a-paow] [--docka man|kvinna]
+//   --docka: grundrörelserna editorn spelar för den dockan (rorelse.ts EGNA: dockans egna där de finns, annars de äldre),
+//   med det lagret; förvalet är mannen, som i editorn.
 //   --giv, --vilan: en grundrörelse på prov (en fil i blackjack-dealer/dealer3d/data, utan .json) i stället för platsens
 //   giv eller vilan till skon; då mäts den utan det sparade lagret.
 //   --alla: alla sju platser, en rad var, och slutkoden 1 om någon har en spärr (nedan). Med --giv-monster mäts en
 //   grundrörelse på prov per plats; # byts mot platsens nummer. Spärren är till för att köras innan något filmas.
 //
-// Vad som mäts (filten är y = 0, meter; tider är filmens sekunder):
+// Vad som mäts (filten är y = 0, meter; tider är filmens sekunder). Rörelsen räknas som editorn räknar den
+// (rorelse.ts stallning, med takten, ändringarna och de små egna rörelserna; spärren i kropp.ts med kroppens mått som
+// Spara skrev i .rutor.json, när de hör till det sparade), utan blicken och utan editorns lyft av armbågarna över
+// bordskanten (armar.ts, som kräver dockan):
+// - benen: överarmen, underarmen och varje fingerben ska ha samma längd i varje ruta av en grundrörelse (högst 1 mm från
+//   dess första ruta); dockan ritas med sina egna ben och följer inte en rörelse vars ben växer;
+// - armen: handleden inom armens räckvidd (BODY i blackjack-dealer/dealer3d/src/body.ts, armen som dockan skalas till,
+//   räknat från rörelsens axel), och handen högst GRANS.handled (50) grader från underarmen, den vinkel kroppen ritar
+//   (figure-model.ts; underarmen som dockan ställer den, med BODY:s ben och armbågen åt rörelsens håll);
 // - handen: en led bortom vad ett finger kan, fingrar i varandra, ett finger genom kortet eller i filten (handFaults i
-//   blackjack-dealer/dealer3d/src/hand-rule.ts, dockans egen regel), och handleden böjd mer än 70 grader;
+//   blackjack-dealer/dealer3d/src/hand-rule.ts, dockans egen regel);
 // - kortet: ett hörn under filten, en vändning på mer än 40 grader mellan två rutor, och rutor där kortet är ute ur skon
 //   utan stöd: varken hållet mellan fingrar på var sin sida, tryckt mot filten av ett finger, eller liggande; fallet före
 //   landningen jämförs med vad tyngdkraften ger;
@@ -19,16 +29,20 @@
 //   filmen; ett jämnt snabbt drag är inget hopp);
 // - landningen: plant, på filten, med framsidan upp, hur långt från planens plats, och stilla efteråt;
 // - farten: handledernas högsta fart och de häftigaste ryck.
-// Spärrar (det som inte får finnas i en rörelse som filmas): ett finger genom kortet, ett finger i filten, kortet utan
-// stöd, ett hörn under filten, ett hopp, och en landning som inte är plan, på platsen och stilla.
-// Armarna mot bordskanten mäts inte här: det gör editorn på mannens kropp (state().armar i verktyg/titta.ts).
+// Spärrar (det som inte får finnas i en rörelse som filmas): ett ben som ändrar längd, en handled bortom räckvidden, en
+// hand bortom den vinkel kroppen ritar, ett finger genom kortet, ett finger i filten, kortet utan stöd, ett hörn under
+// filten, ett hopp, och en landning som inte är plan, på platsen och stilla.
+// Armarna mot bordskanten mäts inte här: det gör editorn på mannens kropp (state().armar i verktyg/titta.ts), och
+// window.editor.granskaGrund() mäter räckvidden och handleden på dockans egen axel.
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {BODY} from '../../blackjack-dealer/dealer3d/src/body.ts';
 import {handFaults} from '../../blackjack-dealer/dealer3d/src/hand-rule.ts';
 import {spots, type Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
 import {CARD, TABLE_LENS, type Vec3} from '../../blackjack-dealer/src/table-lens.ts';
-import {GIVAR, TILL_SKON, rutaVid, medAndringar, sattIhop, taktFor, type Motion, type Sparad} from '../editor/rorelse.ts';
+import {GIVAR, grundFor, sattIhop, vilanFor, stallning, taktFor, type Limb, type Motion, type Sparad, type Standarddocka} from '../editor/rorelse.ts';
+import {GRANS, type Granser} from '../editor/kropp.ts';
 
 const arg = (name: string, fallback?: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : fallback; };
 const ROOT = fileURLToPath(new URL('../../', import.meta.url)), las = async <X>(fil: string) => JSON.parse(await readFile(path.join(ROOT, fil), 'utf8')) as X;
@@ -44,27 +58,55 @@ const horn = (c: Kort) => { const s = cross(c.n, c.l); return [[1, 1], [1, -1], 
 const mot = (c: Kort, p: number[]) => { const d = sub(p, c.c), u = dot(d, c.l), v = dot(d, cross(c.n, c.l)), w = dot(d, c.n); return Math.abs(u) < CARD.height / 2 + 0.01 && Math.abs(v) < CARD.width / 2 + 0.01 && Math.abs(w) < 0.016 ? w : null; };
 const FINGRAR = [2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20];
 /** Fynd som stoppar en rörelse från att filmas. */
-const SPARR = /ett finger i eller genom kortet|ett finger i filten|utan stöd|ett hörn under filten|hoppar/;
+const SPARR = /ändrar längd|bortom armens räckvidd|från underarmen|ett finger i eller genom kortet|ett finger i filten|utan stöd|ett hörn under filten|hoppar/;
+const SIDOR = [['R', 'höger'], ['L', 'vänster']] as const;
+/** Fingrarnas ben (MediaPipes punkter, varje finger från knogen ut), som dockans fingerben ligger mellan dem (figure-model.ts). */
+const FINGERBEN = ([['tummens', 1], ['pekfingrets', 5], ['långfingrets', 9], ['ringfingrets', 13], ['lillfingrets', 17]] as const).flatMap(([namn, s]) => [0, 1, 2].map(n => ({namn: `${namn} ${['första', 'andra', 'tredje'][n]} ben`, a: s + n, b: s + n + 1})));
+/** Armens längd när den är rak: dockan skalas så att armen blir BODY:s (figure-model.ts), och når 2 mm kortare än så. */
+const RACKVIDD = BODY.upperArm + BODY.forearm - 0.002;
+/** Underarmen som dockan ställer den: från axeln med BODY:s ben, armbågen åt det håll rörelsens armbåge står från linjen axel–handled (figure-model.ts pose). */
+function underarmen(l: Limb): Vec3 {
+  const d = sub(l.w, l.s), avst = len(d), dir = d.map(n => n / (avst || 1)), a = BODY.upperArm, b = BODY.forearm;
+  const far = Math.min(a + b - 0.002, Math.max(Math.abs(a - b) + 0.002, avst)), langs = (a * a - b * b + far * far) / (2 * far);
+  const r = sub(l.e, l.s), ut = sub(r, dir.map(n => n * dot(r, dir))), u = len(ut) > 1e-6 ? ut.map(n => n / len(ut)) : [0, -1, 0], h = Math.sqrt(Math.max(0, a * a - langs * langs));
+  return sub(l.w, [0, 1, 2].map(k => l.s[k] + dir[k] * langs + u[k] * h));
+}
 
 type Fynd = {vad: string; rutor: number; varst: string; vid: number};
-async function mat(plats: number, provgiv?: string, provvila?: string) {
-  const prov = !!(provgiv || provvila);
-  const [forsta, andra, plan] = await Promise.all([las<Motion>(`blackjack-dealer/dealer3d/data/${provvila ?? TILL_SKON}.json`), las<Motion>(`blackjack-dealer/dealer3d/data/${provgiv ?? GIVAR[plats]}.json`), las<Plan>('blackjack-dealer/placements/default.json')]);
-  const sparad = prov ? null : await las<Sparad>(`standarddocka/rorelser/a1-a23-p${plats}c1.json`).catch(() => null);
+async function mat(plats: number, provgiv?: string, provvila?: string, docka: Standarddocka = 'man') {
+  const egen = grundFor(docka, plats), prov = !!(provgiv || provvila), giv = provgiv ?? egen.giv;
+  const [andra, plan] = await Promise.all([las<Motion>(`blackjack-dealer/dealer3d/data/${giv}.json`), las<Plan>('blackjack-dealer/placements/default.json')]);
+  // En giv på prov utan --vilan börjar i vilan för den docka den är ritad för (som i editorn).
+  const namn = {vila: provvila ?? (provgiv ? vilanFor(andra.doll) : egen.vila), giv}, forsta = await las<Motion>(`blackjack-dealer/dealer3d/data/${namn.vila}.json`);
+  // Det sparade lagret gäller bara de grundrörelser det sparades på (som i editorn); kroppens mått för spärren står i
+  // .rutor.json från samma Spara.
+  const fil = prov ? null : await las<Sparad>(`standarddocka/rorelser/${egen.namn}.json`).catch(() => null);
+  const aldre = !!fil && !(fil.grund?.length === 2 && fil.grund[0] === namn.vila && fil.grund[1] === namn.giv), sparad = aldre ? null : fil;
+  const sparadeRutor = sparad ? await las<{made?: string; granser?: Granser}>(`standarddocka/rorelser/${egen.namn}.rutor.json`).catch(() => null) : null;
+  const granser = sparadeRutor?.made && sparadeRutor.made === sparad?.sparad ? sparadeRutor.granser : undefined;
   const f = sattIhop(forsta, andra, plats), T = taktFor(f, sparad?.fart, prov), fps = f.fps, antal = Math.round(T.langd * fps) + 1;
-  // Varje ruta i filmens takt, med ändringarna, och vad som håller kortet i den.
-  const rutor = Array.from({length: antal}, (_, i) => { const g = T.grund(i / fps), {frame, held} = rutaVid(f, g); return {t: i / fps, x: medAndringar(frame, held, g, sparad?.andringar ?? [])}; });
+  // Varje ruta i filmens takt, med ändringarna och de små egna rörelserna, som editorn ställer den.
+  const rutor = Array.from({length: antal}, (_, i) => ({t: i / fps, x: stallning(f, T.grund(i / fps), sparad?.andringar ?? [], null, sparad?.liv, granser, T.spelad)}));
   const lamnar = Math.round(T.ut((f.forskjutning + andra.leavesShoe) / fps) * fps), ligger = Math.min(antal - 1, Math.round(T.ut((f.forskjutning + andra.rests) / fps) * fps));
 
   const samla = new Map<string, {rutor: number; by: number; text: string; vid: number}>();
   const not = (nyckel: string, by: number, text: string, t: number) => { const s = samla.get(nyckel) ?? {rutor: 0, by: -Infinity, text: '', vid: t}; s.rutor++; if (by > s.by) { s.by = by; s.text = text; s.vid = t; } samla.set(nyckel, s); };
+  // Benens längd i var och en av grundrörelserna, mot dess första ruta. Rutan räknas om till filmens tid i följden
+  // (vilan till skon är följdens första rutor, given börjar där skon är).
+  for (const [m, mnamn, forst] of [[forsta, namn.vila, 0], [andra, namn.giv, f.forskjutning]] as const) for (const [s, sida] of SIDOR) {
+    const ben = [{del: 'arm', namn: 'överarmen', p: (l: Limb) => [l.s, l.e]}, {del: 'arm', namn: 'underarmen', p: (l: Limb) => [l.e, l.w]}, ...FINGERBEN.map(x => ({del: 'hand', namn: x.namn, p: (l: Limb) => [l.p[x.a], l.p[x.b]]}))];
+    for (const b of ben) { const l = m.frames.map(x => { const [p, q] = b.p(x[s]); return len(sub(p, q)); }), mm1 = (n: number) => Math.round(n * 10000) / 10;
+      l.forEach((x, j) => { const fran = x - l[0]; if (Math.abs(fran) > 0.001) not(`${sida} ${b.del}: ${b.namn} ändrar längd i ${mnamn}`, Math.abs(fran), `${fran > 0 ? '+' : ''}${mm1(fran)} mm (${mm1(Math.min(...l))}–${mm1(Math.max(...l))} mm)`, Math.min(T.langd, T.ut((forst + j) / fps))); }); }
+  }
   const utanStod: number[] = [];
   rutor.forEach(({t, x}, i) => {
     const ute = i > lamnar && i < ligger, kort = x.card as {c: Vec3; l: Vec3; n: Vec3};
     for (const [sida, namn, tecken] of [['R', 'höger hand', 1], ['L', 'vänster hand', -1]] as const) {
       for (const fel of handFaults(x[sida].p as Vec3[], tecken, null, i >= lamnar ? kort : null)) if (fel.kind !== 'ordning' && fel.kind !== 'grannen') not(`${namn}: ${fel.kind === 'led' ? 'en led bortom vad ett finger kan' : fel.kind === 'i varandra' ? 'fingrar i varandra' : fel.kind === 'kortet' ? 'ett finger i eller genom kortet' : fel.kind === 'filten' ? 'ett finger i filten' : fel.kind}`, fel.by, fel.what, t);
-      const led = grader(dot(sub(x[sida].w, x[sida].e), sub(x[sida].p[9], x[sida].p[0])) / (len(sub(x[sida].w, x[sida].e)) * len(sub(x[sida].p[9], x[sida].p[0])) || 1));
-      if (led > 70) not(`${namn}: handleden böjd mer än 70 grader`, led, `${Math.round(led)}°`, t);
+      const arm = sida === 'R' ? 'höger arm' : 'vänster arm', bort = len(sub(x[sida].w, x[sida].s)) - RACKVIDD;
+      if (bort > 0.001) not(`${arm}: handleden bortom armens räckvidd`, bort, `${mm(bort)} mm bortom`, t);
+      const led = grader(dot(underarmen(x[sida]), sub(x[sida].p[9], x[sida].p[0])) / (len(underarmen(x[sida])) * len(sub(x[sida].p[9], x[sida].p[0])) || 1));
+      if (led > GRANS.handled + GRANS.tolGrader) not(`${namn}: mer än ${GRANS.handled} grader från underarmen (den ritade handen följer inte)`, led, `${Math.round(led)}°`, t);
     }
     const lagst = Math.min(...horn(kort).map(p => p[1])); if (i >= lamnar && lagst < -0.002) not('kortet: ett hörn under filten', -lagst, `${mm(-lagst)} mm under`, t);
     if (ute) { const sidor = [...FINGRAR.map(k => mot(kort, x.R.p[k])), ...FINGRAR.map(k => mot(kort, x.L.p[k]))].filter(w => w !== null) as number[];
@@ -90,25 +132,28 @@ async function mat(plats: number, provgiv?: string, provvila?: string) {
   const landarRatt = landning.plant && landning.framsidanUpp && Math.abs(landning.overFiltenMm) <= 3 && (landning.franPlatsenMm ?? 0) <= 5 && landning.rorSigEfterMm <= 1;
   const sparrar = [...fynd.filter(x => SPARR.test(x.vad)).map(x => `${x.vad} (${x.rutor} rutor, vid ${x.vid} s)`), ...(landarRatt ? [] : ['landningen är inte plan, på platsen och stilla'])];
   const tider = [...new Set([...fynd.map(x => x.vid), landning.vid, r2(lamnar / fps), ...fart.kortet.haftigast.map(x => x.vid)])].sort((a, b) => a - b);
-  return {rorelse: prov ? `prov: ${provvila ?? TILL_SKON} och ${provgiv ?? GIVAR[plats]}` : `a1-a23-p${plats}c1`, plats, langd: r2(T.langd), fart: T.fart.map(r2), andringar: sparad?.andringar.length ?? 0,
+  const lagret = prov ? 'inget (på prov)' : aldre ? 'hör till en äldre rörelse och används inte' : !sparad ? 'inget sparat' : granser ? 'sparat, genom spärren' : 'sparat, utan spärren (kroppens mått saknas i .rutor.json från samma Spara)';
+  return {rorelse: prov ? `prov: ${namn.vila} och ${namn.giv}` : `${egen.namn} (${namn.vila} och ${namn.giv}${egen.egen ? `, ${docka === 'man' ? 'mannens' : 'kvinnans'} egna` : `, de äldre: ${docka === 'man' ? 'mannen' : 'kvinnan'} har ingen egen giv till plats ${plats} än`})`, plats, langd: r2(T.langd), fart: T.fart.map(r2), andringar: sparad?.andringar.length ?? 0, lagret,
     delar: T.delar.map(d => `${d.namn} ${r2(d.fran)}–${r2(d.till)} s`), kortetLamnarSkon: r2(lamnar / fps), fynd, sparrar, landning, fall, farten: fart, tiderAttTittaPa: tider};
 }
 
+const docka: Standarddocka = arg('--docka', 'man') === 'kvinna' ? 'kvinna' : 'man';
+if (!['man', 'kvinna'].includes(arg('--docka', 'man')!)) throw Error('--docka tar man eller kvinna.');
 if (process.argv.includes('--alla')) {
   const monster = arg('--giv-monster'); if (monster !== undefined && !namnOk(monster.replace('#', '1'))) throw Error('--giv-monster tar ett filnamn med # för platsens nummer.');
   let stopp = 0;
-  for (let plats = 1; plats <= 7; plats++) { const m = await mat(plats, monster?.replace('#', String(plats))); if (m.sparrar.length) stopp++;
-    console.log(`plats ${plats}: ${m.langd} s (${m.delar.map(d => d.split(' ').slice(-2).join(' ')).join(' · ')}) ${m.sparrar.length ? `SPÄRR: ${m.sparrar.join('; ')}` : 'grön'}`); }
+  for (let plats = 1; plats <= 7; plats++) { const m = await mat(plats, monster?.replace('#', String(plats)), undefined, docka); if (m.sparrar.length) stopp++;
+    console.log(`plats ${plats}: ${m.rorelse}, ${m.langd} s (${m.delar.map(d => d.split(' ').slice(-2).join(' ')).join(' · ')}) ${m.sparrar.length ? `SPÄRR: ${m.sparrar.join('; ')}` : 'grön'}`); }
   console.log(stopp ? `${stopp} av 7 platser har en spärr: filma inte de givarna.` : 'Alla sju platser är gröna.');
   process.exit(stopp ? 1 : 0);
 }
 const plats = Number(arg('--plats', '4')), provgiv = arg('--giv'), provvila = arg('--vilan');
 if (!GIVAR[plats]) throw Error('--plats tar 1–7.');
 if (!namnOk(provgiv) || !namnOk(provvila)) throw Error('--giv och --vilan tar ett filnamn ur blackjack-dealer/dealer3d/data, utan .json.');
-const ut = await mat(plats, provgiv, provvila);
+const ut = await mat(plats, provgiv, provvila, docka);
 if (process.argv.includes('--json')) console.log(JSON.stringify(ut, null, 1));
 else {
-  console.log(`${ut.rorelse}: ${ut.langd} s (${ut.delar.join(' · ')}), ${ut.andringar} ändringar, farten ${ut.fart.join(' / ')}`);
+  console.log(`${ut.rorelse}: ${ut.langd} s (${ut.delar.join(' · ')}), ${ut.andringar} ändringar (lagret: ${ut.lagret}), farten ${ut.fart.join(' / ')}`);
   console.log(ut.fynd.length ? ut.fynd.map(x => `  MÄRKT  ${x.vad}: ${x.rutor} rutor, värst vid ${x.vid} s (${x.varst})`).join('\n') : '  Inget märkt på händerna eller kortet.');
   const l = ut.landning;
   console.log(`  Landningen vid ${l.vid} s: ${l.plant ? 'plant' : `lutar ${l.lutarGrader}°`}, ${l.overFiltenMm} mm över filten, framsidan ${l.framsidanUpp ? 'upp' : 'NED'}, ${l.franPlatsenMm} mm från planens plats, rör sig ${l.rorSigEfterMm} mm efteråt.`);

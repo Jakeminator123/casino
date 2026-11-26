@@ -48,10 +48,11 @@ export type Granser = {matt: Kroppsmatt; bord: Bord};
  * den del av överarmen närmast axeln som inte prövas (den sitter i axeln). underarmBord: den del av underarmen närmast
  * handleden som får ligga på filten (handen vilar där, som armar.ts ARMAR.handen). armbage: hur långt armbågen kan stå
  * kring linjen axel–handled, grader från rakt ned (negativt in mot kroppen, positivt ut och upp). bojd: mest armbågen
- * böjs (grader från rak). handled: mest handen står från underarmens linje (grader). tol: det som är för litet att räknas
- * (meter, grader).
+ * böjs (grader från rak). handled: mest handen står från underarmens linje (grader), samma som den ritade handen kan stå:
+ * figure-model.ts lägger handen högst 50 grader från underarmen (WRIST där) medan fingrarna och kortet följer rutans
+ * punkter, så en hand bortom 50 grader ritas inte som rutans. tol: det som är för litet att räknas (meter, grader).
  */
-export const GRANS = {armTjocklek: 0.85, hoppaOver: 1 / 3, underarmBord: 0.2, armbage: [-40, 130] as const, bojd: 150, handled: 75, tol: 0.001, tolGrader: 0.5};
+export const GRANS = {armTjocklek: 0.85, hoppaOver: 1 / 3, underarmBord: 0.2, armbage: [-40, 130] as const, bojd: 150, handled: 50, tol: 0.001, tolGrader: 0.5};
 /** Handens 21 punkters tjocklek (radie, meter): fingrarna som dealer3d/src/hand-rule.ts ritar dem (DRAWN), handleden och tummens rot som handflatan. */
 const HAND_R = [0.02, 0.012, 0.0088, 0.0082, 0.0076, ...[0, 1, 2, 3].flatMap(() => [0.0078, 0.0071, 0.0064, 0.0064])];
 /** Filten ligger på y = 0; en hand får gå 2 mm in i den, som hand-rule.ts inFelt räknar. */
@@ -143,16 +144,17 @@ export type Stopp = {led: Led; orsak: Orsak; mangd: number; enhet: 'mm' | 'grade
 const TEXT: Record<'Hand' | 'Armbage', Partial<Record<Orsak, string>>> = {
   Hand: {kroppen: 'hand kan inte gå längre in: kroppen är i vägen.', huvudet: 'hand kan inte gå längre in: huvudet är i vägen.', filten: 'hand kan inte gå längre ned: den ligger på filten.',
     rackvidden: 'hand når inte längre: armen är rak.', bojen: 'hand kan inte komma närmare axeln: armbågen är böjd så mycket den kan.', handleden: 'hand kan inte böjas mer: handleden går inte längre.'},
-  Armbage: {kroppen: 'armbåge kan inte gå längre in: kroppen är i vägen.', huvudet: 'armbåge kan inte gå längre: huvudet är i vägen.', bordet: 'armbåge kan inte gå längre ned: armen tar i bordet.'}};
+  Armbage: {kroppen: 'armbåge kan inte gå längre in: kroppen är i vägen.', huvudet: 'armbåge kan inte gå längre: huvudet är i vägen.', bordet: 'armbåge kan inte gå längre ned: armen tar i bordet.',
+    handleden: 'armbåge kan inte gå längre: handen kan inte böjas mer i handleden.'}};
 
 /**
  * Håller ställningen C (med ändringar) inom gränserna där ändringarna rör armarna `sidor`, mot B, samma ställning utan
- * ändringar. C ändras på plats och lämnas tillbaka med det som hölls emot. `held`: hur mycket var hand håller kortet
- * (kortet följer en hand som flyttas eller vrids, som i rorelse.ts medAndringar).
+ * ändringar. C ändras på plats och lämnas tillbaka med det som hölls emot. `grepp`: hur mycket kortet följer var hand
+ * (kortet följer en hand som flyttas eller vrids, som i rorelse.ts medAndringar och greppVid).
  */
-export function hallInom(B: Frame, C: Frame, held: {R: number; L: number}, hip: P, gr: Granser, sidor: readonly ('R' | 'L')[]): {frame: Frame; stopp: Stopp[]} {
+export function hallInom(B: Frame, C: Frame, grepp: {R: number; L: number}, hip: P, gr: Granser, sidor: readonly ('R' | 'L')[]): {frame: Frame; stopp: Stopp[]} {
   const a = balensAxlar(C, hip), stopp: Stopp[] = [];
-  for (const s of sidor) hallArmen(gr, a, B, C, s, held[s], stopp);
+  for (const s of sidor) hallArmen(gr, a, B, C, s, grepp[s], stopp);
   for (const x of stopp) x.mangd = Math.round(x.mangd * 10) / 10;
   return {frame: C, stopp};
 }
@@ -174,8 +176,11 @@ function hallArmen(gr: Granser, a: Axlar, B: Frame, C: Frame, s: 'R' | 'L', held
     if (held > 0) { const k = vinkel * held; C.card.c = add(piv, vrid(sub(C.card.c, piv), axel, k)); C.card.l = vrid(C.card.l, axel, k); C.card.n = vrid(C.card.n, axel, k); }
     stoppa('Hand', 'handleden', v - tillatHandled, 'grader'); };
 
-  // 1. Handleden, mot underarmen som armbågen begärs (före handens läge, så att fingrar som vrids ned i filten inte lyfter handen i onödan).
-  const g0 = armen(a, arm, s, limb.w); handleden(armbagen(g0, begard(g0, limb)));
+  // 1. Handleden, mot underarmen som armbågen begärs (före handens läge, så att fingrar som vrids ned i filten inte lyfter
+  // handen i onödan). Bara när handen själv är ändrad: en armbåge som ensam vrider underarmen stannar i steg 3 där handen
+  // inte kan böjas mer, i stället för att handen vrids och lyfts.
+  const handRord = len(sub(limb.w, B[s].w)) > 1e-6 || limb.p.some((p, i) => len(sub(p, B[s].p[i])) > 1e-6);
+  const g0 = armen(a, arm, s, limb.w); if (handRord) handleden(armbagen(g0, begard(g0, limb)));
   // 2. Handen. Går den in i bålen eller huvudet djupare än utan ändringar, stannar den där den först tar i på vägen från
   // handleden utan ändringar till den begärda (så att den inte slinker igenom eller slår över till andra sidan när han drar
   // vidare). Sedan upp ur filten, inom armens räckvidd från modellens axelled, och det som återstår av bålen och huvudet
@@ -201,8 +206,13 @@ function hallArmen(gr: Granser, a: Axlar, B: Frame, C: Frame, s: 'R' | 'L', held
   // ändringar, går armbågen från vinkeln utan ändringar mot den begärda och stannar där något tar emot.
   const g = armen(a, arm, s, limb.w), lo = Math.min(GRANS.armbage[0], grund.vinkel), hi = Math.max(GRANS.armbage[1], grund.vinkel);
   const tA = {kroppen: Math.max(0, grund.arm.kroppen), huvudet: Math.max(0, grund.arm.huvudet), bordet: Math.max(0, grund.arm.bordet)};
-  const bryter = (v: number) => { const d = armensDjup(gr, a, g, arm, armbagen(g, v)); let mer = 0, orsak: Orsak = 'kroppen';
-    for (const k of ['kroppen', 'huvudet', 'bordet'] as const) if (d[k] - tA[k] > mer) { mer = d[k] - tA[k]; orsak = k; } return {mer, orsak}; };
+  // Handleden tar också emot: en armbåge som vrider underarmen så att handen skulle stå längre från den än kroppen ritar
+  // (och längre än vid vinkeln utan ändringar) stannar där, i stället för att handen vrids och lyfts ur filten i steg 4.
+  // Räknat som fingertopparnas väg (10 cm gånger vinkeln), så att det jämförs med de andra hindren i meter.
+  const handStart = handledsvinkel(limb, armbagen(g, Math.max(lo, Math.min(hi, grund.vinkel)))), handTak = Math.max(tillatHandled, handStart) + tolGrader;
+  const bryter = (v: number) => { const E = armbagen(g, v), d = armensDjup(gr, a, g, arm, E); let mer = 0, orsak: Orsak = 'kroppen';
+    for (const k of ['kroppen', 'huvudet', 'bordet'] as const) if (d[k] - tA[k] > mer) { mer = d[k] - tA[k]; orsak = k; }
+    const hand = (handledsvinkel(limb, E) - handTak) / GRAD * 0.1 + tol; if (hand > mer) { mer = hand; orsak = 'handleden'; } return {mer, orsak}; };
   // En armbåge som dras nära linjen axel–handled säger inte åt vilket håll den står (figure-model.ts läser bara riktningen
   // från linjen): den slår runt på en ruta när den passerar linjen. Där dämpas därför den begärda vinkeln mot vinkeln utan
   // ändringar, mjukt när den dragna armbågen kommer närmare linjen än halva avståndet utan ändringar.
