@@ -1,17 +1,20 @@
-"""Standarddockan: MPFB2 (CC0-kropp) + Mixamo-namngivet skelett (52 kropps-/handben + 16 ansiktsben under Head),
-ARKit-kompatibla shape keys för ansiktsuttryck, egna IK-kontroller, ledgränser och exportnamn som dealer3d kräver.
+"""Standarddockan: MPFB2 (CC0-kropp) + Mixamo-namngivet skelett (52 kropps-/handben + 16 ansiktsben under Head, och två
+vridben i varje underarm), ARKit-kompatibla shape keys för ansiktsuttryck, egna IK-kontroller, ledgränser och exportnamn
+som dealer3d kräver.
 
-Bygger två grunddockor med 100 % identiskt skelett/bennamn så alla rörelser kan återanvändas:
-  - standarddocka_kvinna.blend / .glb
-  - standarddocka_man.blend / .glb
-Med --matt naturlig (på prov): samma skelett och ansikte, men människans proportioner för kön och längd (NATURLIG nedan)
-i stället för den vita dockans armar, axlar och bål, som standarddocka_kvinna_naturlig och standarddocka_man_naturlig.
+Bygger två grunddockor med 100 % identiskt skelett/bennamn så alla rörelser kan återanvändas, med människans mått för
+kön och längd (MATT nedan: längderna, armarnas tjocklek, händerna och fötterna mot ANSUR II):
+  - standarddocka_kvinna.blend / .glb (1,65 m)
+  - standarddocka_man.blend / .glb (1,75 m)
+Med --namn N skrivs standarddocka_<kön>_N.blend/.glb och docka-rapport-<kön>_N.json i stället, så att de modeller som
+används inte skrivs över medan en ny prövas. En docka per körning av bygg_en: allt från den förra (också dess vila
+sitt_vila) tas bort först, så att varje fil bara har sin egen.
 
 Kräver MPFB2 som Blender-tillägg i användarprofilen (bl_ext.user_default.mpfb).
 Kör (utan --factory-startup, annars laddas inte tillägget):
-    blender -b --python-exit-code 1 --python scen/bygg_docka.py [-- --kon kvinna|man|bada] [--matt vit|naturlig]
+    blender -b --python-exit-code 1 --python scen/bygg_docka.py [-- --kon kvinna|man|bada] [--namn N]
 """
-import argparse, gzip, json, math, os, sys
+import argparse, gzip, json, math, os, re, sys, time
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _bpy_hjalp import *  # noqa
@@ -72,20 +75,34 @@ ARKIT_KARTA = [
 ]
 
 
-# --matt naturlig: människans proportioner i stället för den vita dockans. Kroppen är MPFB:s egen för könet och längden
-# (makrot height letas fram, så att MPFB:s egna proportioner för just den längden gäller). `passa` flyttar ett mått till
-# människans medel, ANSUR II (US Army 2012, de offentliga data) för personer av samma kön och längd ±2 cm, där MPFB:s
-# eget avviker: armarna (MPFB:s egen överarm är kort mot underarmen hos mannen, och kvinnans underarm kort), händerna,
-# fötterna och kvinnans axlar. Leden räknas ur hudens mått: överarm = akromion-radiale - 0,0257 x längden (axelleden
-# under akromion) - 0,010 (armbågsleden över radiale); underarm = radiale-stylion + 0,005; axelleder = biakromial
-# bredd - dockans egen hud utanför leden (31 mm hos kvinnan). Hand och fot är hudens mått.
-NATURLIG = {
-    'man': {'langd': 1.75, 'passa': {'ua': 0.279, 'fa': 0.272, 'hand': 0.193, 'fot': 0.271},
+# Människans mått för kön och längd. Kroppen är MPFB:s egen för könet och längden (makrot height letas fram, så att
+# MPFB:s egna proportioner för just den längden gäller). `passa` flyttar ett mått till människans medel, ANSUR II (US Army
+# 2012, de offentliga data) för personer av samma kön och längd ±2 cm, där MPFB:s eget avviker; alla tal är det färdiga
+# måttet efter skalningen till längden, och passas tillsammans (passa_matt nedan), eftersom de rör varandra.
+# - Leder: överarm = akromion-radiale - 0,0257 x längden (axelleden under akromion) - 0,010 (armbågsleden över radiale);
+#   underarm = radiale-stylion + 0,005; axelleder = biakromial bredd - dockans egen hud utanför leden (31 mm hos kvinnan).
+#   Hand och fot är hudens mått.
+# - Armarnas tjocklek: hudens omkrets i ett snitt vinkelrätt mot benet, som ett måttband (konvext hölje): underarmen där
+#   den är tjockast (en tiondel till tre tiondelar från armbågen), handleden (97 % av vägen till handleden) och överarmen
+#   på mitten, mot en avslappnad arm (ANSUR mäter underarmen spänd: 309 mm hos männen, 266 hos kvinnorna). MPFB:s egna
+#   armar var en femtedel för smala (underarmen 255 mot 290 mm hos mannen).
+# - Bara mannen: höftleden och knäleden över golvet (ANSUR trochanterion 896 [855-949], laterala epikondylen 489; MPFB:s
+#   egna ben var 3,5 cm för långa), bålen höftled-axelled (ANSUR akromion-trochanter 539 - akromion över axelleden 56) och
+#   huvudets bredd (ANSUR 155 [146-164]; hans var 147). Det benen lämnar går till bålen och halsen (hals None: resten, så
+#   att huvudet behåller MPFB:s egen storlek och längden står kvar; hans axelleder låg 18 mm högre än ANSUR:s).
+MATT = {
+    'man': {'langd': 1.75, 'passa': {'ua': 0.279, 'fa': 0.272, 'hand': 0.193, 'fot': 0.271,
+                                     'fa_omkr': 0.290, 'handled_omkr': 0.170, 'ua_omkr': 0.320,
+                                     'hoft_h': 0.903, 'kna_h': 0.490, 'ht': 0.483, 'hals': None, 'huvud_b': 0.152},
             'kalla': 'längden: ANSUR II män medel 1,756 m; måtten: ANSUR II män 1,73-1,77 m (n 940): akromion-radiale 333,7, '
-                     'radiale-stylion 266,7, hand 192,9, fot 270,7 mm; MPFB:s egen axelbredd (hud 418 mot 415 mm) och bål behålls'},
-    'kvinna': {'langd': 1.65, 'passa': {'ua': 0.263, 'fa': 0.249, 'sw': 0.337, 'hand': 0.1824, 'fot': 0.2488},
+                     'radiale-stylion 266,7, hand 192,9, fot 270,7, trochanterion 896,1, laterala epikondylen 489,1, '
+                     'akromion-trochanter 538,7, huvudets bredd 154,5 mm; armarnas omkrets avslappnad 290/170/320 mm '
+                     '(underarm/handled/överarm); MPFB:s egen axelbredd (hud 418 mot 415 mm) behålls'},
+    'kvinna': {'langd': 1.65, 'passa': {'ua': 0.263, 'fa': 0.249, 'sw': 0.337, 'hand': 0.1824, 'fot': 0.2488,
+                                        'fa_omkr': 0.255, 'handled_omkr': 0.150, 'ua_omkr': 0.285},
                'kalla': 'längden: ANSUR II kvinnor medel 1,629 m, 10 cm under mannen; måtten: ANSUR II kvinnor 1,63-1,67 m (n 442): '
-                        'akromion-radiale 315,5, radiale-stylion 244,1, biakromial 368,0, hand 182,4, fot 248,8 mm; MPFB:s egen bål behålls'},
+                        'akromion-radiale 315,5, radiale-stylion 244,1, biakromial 368,0, hand 182,4, fot 248,8 mm; armarnas '
+                        'omkrets avslappnad 255/150/285 mm (underarm/handled/överarm); MPFB:s egen bål, ben och huvud behålls'},
 }
 PASS_TGT = {  # måttet -> MPFB-targets (utan -incr/-decr), höger och vänster med samma vikt
     'hand': ['hands/r-hand-scale', 'hands/l-hand-scale'],
@@ -93,7 +110,34 @@ PASS_TGT = {  # måttet -> MPFB-targets (utan -incr/-decr), höger och vänster 
     'ua': ['arms/measure-upperarm-length'],
     'fa': ['arms/measure-lowerarm-length'],
     'sw': ['torso/measure-shoulder-dist'],
+    # underarmens tvärsnitt i båda leden vinkelräta mot den (scale-horiz förlänger den i stället), så att MPFB:s egen form
+    # längs den står kvar; handleden har en egen; överarmen MPFB:s måttband
+    'fa_omkr': ['arms/r-lowerarm-scale-depth', 'arms/l-lowerarm-scale-depth', 'arms/r-lowerarm-scale-vert', 'arms/l-lowerarm-scale-vert'],
+    'handled_omkr': ['hands/measure-wrist-circ'],
+    'ua_omkr': ['arms/measure-upperarm-circ'],
+    'hoft_h': ['legs/measure-upperleg-height'],
+    'kna_h': ['legs/measure-lowerleg-height'],
+    'ht': ['torso/measure-napetowaist-dist'],
+    'hals': ['neck/measure-neck-height'],
+    'huvud_b': ['head/head-scale-horiz'],
 }
+# Vridbenen: två per underarm, barn till underarmens ben och liggande längs det, vid en tredjedel och två tredjedelar av
+# dess längd. Underarmens vikt delas mellan ForeArm, ForeArmTwist1 och ForeArmTwist2 efter hörnets läge längs underarmen
+# (u = 0 vid armbågen, 1 vid handleden): bara ForeArm vid armbågen, lika mycket ForeArm och Twist1 vid u = 0,25, bara
+# Twist1 vid u = 0,5, bara Twist2 vid handleden och bortom den (linjärt emellan). Handens egna vikter rörs inte, så en kod
+# som inte känner vridbenen (de följer ForeArm) ställer dockan exakt som förut.
+VRID_NOD = (0.0, 0.5, 1.0)
+
+# Vilan i Blender (sitt_vila) står som dockan sitter i editorn och studion, så att samma scen inte ställs med två tal.
+# Standardramen: meter, Y bakåt från spelets dealerkant, Z upp; höjderna här över filten. Talen ska följa spelet:
+# - axellederna: `place` för MAN i blackjack-dealer/dealer3d/src/doll.ts (kind 'seat': shoulderHeight, behindEdge, x),
+#   rak bål under dem;
+# - låren: LAR i blackjack-dealer/dealer3d/src/sitter.ts (larRiktning), med rörelsens höft (hoft_under_filt) som där;
+#   smalbenen som figure-model.ts ställer dem;
+# - handlederna: vilan (ankare 1) som editorn spelar den för mannen, på filten framför markerbrickan.
+SITT = {'axlar_over_filt': 0.31, 'axlar_bakom_kant': 0.38, 'x': -0.0159, 'hoft_under_filt': 0.162,
+        'lar': {'ut': 0.12, 'fall': 0.08, 'fran': -0.19, 'brant': 6},
+        'handled': {'Right': (-0.207, 0.0963, 0.0341), 'Left': (0.1793, 0.0948, 0.0294)}}
 
 
 def las_target(path: Path):
@@ -104,6 +148,16 @@ def las_target(path: Path):
             if len(parts) == 4 and not parts[0].startswith('#'):
                 deltas[int(parts[0])] = (float(parts[1]), -float(parts[3]), float(parts[2]))
     return deltas
+
+
+def _rensa():
+    """Tar bort allt från en tidigare docka i samma Blender: objekten och all data, också aktionerna (sitt_vila har en
+    falsk användare och följde annars med in i nästa dockas fil)."""
+    for o in list(bpy.data.objects):
+        bpy.data.objects.remove(o, do_unlink=True)
+    for dblock in (bpy.data.meshes, bpy.data.armatures, bpy.data.materials, bpy.data.actions):
+        for item in list(dblock):
+            dblock.remove(item)
 
 
 def _hojd(obj):
@@ -125,12 +179,7 @@ def _naturlig_kropp(macro, langd):
     """MPFB-kroppen vars egen längd är `langd` m: makrot `height` letas fram, så att MPFB:s proportioner för den längden
     gäller och skalningen efteråt blir nära 1."""
     def ny(h):
-        for o in list(bpy.data.objects):
-            bpy.data.objects.remove(o, do_unlink=True)
-        for dblock in (bpy.data.meshes, bpy.data.armatures, bpy.data.materials, bpy.data.actions):
-            for item in list(dblock):
-                if item.users == 0:
-                    dblock.remove(item)
+        _rensa()
         macro['height'] = h
         b = HumanService.create_human(scale=0.1, macro_detail_dict=macro, feet_on_ground=True)
         return b, _hojd(b)
@@ -146,22 +195,96 @@ def _naturlig_kropp(macro, langd):
     return b, round(h1, 4)
 
 
-def bygg_en(kon: str, proportioner: str = 'vit'):
-    for o in list(bpy.data.objects):
-        bpy.data.objects.remove(o, do_unlink=True)
-    for dblock in (bpy.data.meshes, bpy.data.armatures, bpy.data.materials, bpy.data.actions):
-        for item in list(dblock):
-            if item.users == 0:
-                dblock.remove(item)
+def _hull_omkrets(q):
+    """Omkretsen av det konvexa höljet kring punkterna q (N x 2), som ett måttband runt snittet."""
+    q = sorted(map(tuple, q))
+    if len(q) < 3:
+        return 0.0
+    def kors(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lo, hi = [], []
+    for p in q:
+        while len(lo) >= 2 and kors(lo[-2], lo[-1], p) <= 0:
+            lo.pop()
+        lo.append(p)
+    for p in reversed(q):
+        while len(hi) >= 2 and kors(hi[-2], hi[-1], p) <= 0:
+            hi.pop()
+        hi.append(p)
+    h = np.array(lo[:-1] + hi[:-1])
+    return float(np.linalg.norm(h - np.roll(h, 1, axis=0), axis=1).sum())
 
+
+def _omkrets(co, kanter, a, b, t, radie=0.075):
+    """Hudens omkrets i planet vinkelrätt mot a->b vid andelen t: kanterna som planet skär, inom `radie` från benet."""
+    d = (b - a) / np.linalg.norm(b - a); p = a + t * (b - a)
+    s = (co - p) @ d; sa, sb = s[kanter[:, 0]], s[kanter[:, 1]]; m = sa * sb < 0
+    f = sa[m] / (sa[m] - sb[m]); pts = co[kanter[m, 0]] + f[:, None] * (co[kanter[m, 1]] - co[kanter[m, 0]])
+    pts = pts[np.linalg.norm(pts - p, axis=1) < radie]
+    u = np.cross(d, [0, 0, 1.0]); u /= np.linalg.norm(u); w = np.cross(d, u)
+    return _hull_omkrets(np.c_[(pts - p) @ u, (pts - p) @ w])
+
+
+def _vridben_vikter(body, rig):
+    """Högst fyra ben per hörn med summan 1 (det glTF-exporten annars gör själv), och underarmens vikt delad mellan
+    ForeArm och de två vridbenen efter VRID_NOD. Returnerar räkningen för rapporten."""
+    deform = {b.name for b in rig.data.bones if b.use_deform}
+    namn = {g.index: g.name for g in body.vertex_groups}
+    vgs = {g.name: g for g in body.vertex_groups}
+    begransade = 0
+    for v in body.data.vertices:
+        infl = sorted(((ge.weight, ge.group) for ge in v.groups if namn[ge.group] in deform and ge.weight > 0), reverse=True)
+        tot = sum(w for w, _ in infl[:4])
+        if len(infl) > 4 or abs(tot - 1.0) > 1e-6:
+            begransade += 1
+            for w, g in infl[4:]:
+                body.vertex_groups[g].remove([v.index])
+            for w, g in infl[:4]:
+                body.vertex_groups[g].add([v.index], w / tot, 'REPLACE')
+    M = rig.matrix_world.inverted() @ body.matrix_world
+    ut = {'hornen_begransade_till_fyra': begransade}
+    for side in ('Right', 'Left'):
+        fa = rig.data.bones[side + 'ForeArm']; e, wr = fa.head_local, fa.tail_local; dvec = wr - e; L = dvec.length; dvec = dvec / L
+        g_fa = vgs[side + 'ForeArm']; g_t = [body.vertex_groups.new(name=f'{side}ForeArmTwist{j}') for j in (1, 2)]
+        delade = sammanslagna = 0
+        for v in body.data.vertices:
+            wf = next((ge.weight for ge in v.groups if ge.group == g_fa.index), 0.0)
+            if wf <= 0:
+                continue
+            u = (M @ v.co - e).dot(dvec) / L
+            n0, n1, n2 = VRID_NOD
+            if u <= n0:
+                del_ = [wf, 0.0, 0.0]
+            elif u < n1:
+                f = (u - n0) / (n1 - n0); del_ = [wf * (1 - f), wf * f, 0.0]
+            elif u < n2:
+                f = (u - n1) / (n2 - n1); del_ = [0.0, wf * (1 - f), wf * f]
+            else:
+                del_ = [0.0, 0.0, wf]
+            for i in range(3):  # en liten del (under 0,1 %) läggs till grannen, så att inget ben får en vikt som inget gör
+                if 0 < del_[i] < 1e-3 * wf:
+                    j = i + 1 if i < 2 and del_[i + 1] > 0 else i - 1
+                    del_[j] += del_[i]; del_[i] = 0.0
+            antal = sum(1 for ge in v.groups if namn.get(ge.group) in deform and ge.weight > 0) - 1 + sum(1 for x in del_ if x > 0)
+            if antal > 4:  # då hela underarmens vikt på det ben som har mest av den
+                k = int(np.argmax(del_)); del_ = [wf if i == k else 0.0 for i in range(3)]; sammanslagna += 1
+            for g, x in zip([g_fa] + g_t, del_):
+                if x > 0:
+                    g.add([v.index], x, 'REPLACE')
+                elif g is g_fa:
+                    g.remove([v.index])
+            delade += 1
+        ut[side] = {'horn_med_underarmsvikt': delade, 'samlade_pa_ett_ben_for_fyra': sammanslagna}
+    return ut
+
+
+def bygg_en(kon: str, suffix: str = ''):
+    _rensa()
     sc = bpy.context.scene
     col = coll('standarddocka')
     is_man = (kon == 'man')
-    naturlig = proportioner == 'naturlig'
-    namn = f'{kon}_naturlig' if naturlig else kon
-    LANGD = NATURLIG[kon]['langd'] if naturlig else (1.75 if is_man else D['langd_staende'])
-    sw_mal = 0.3660 if is_man else float(np.linalg.norm(np.array(D['axel_hoger']) - np.array(D['axel_vanster'])))
-    ht_mal = float((D['axel_hoger'][2] + D['axel_vanster'][2]) / 2 - D['hoft'][2])
+    namn = f'{kon}_{suffix}' if suffix else kon
+    LANGD = MATT[kon]['langd']
 
     # ---------------------------------------------------------------- 1. kropp + måttpassning + skelett
     macro = TargetService.get_default_macro_info_dict()
@@ -173,10 +296,7 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
         'proportions': 0.5,
         'height': 0.5,
     })
-    if naturlig:
-        body, mpfb_height = _naturlig_kropp(macro, LANGD)
-    else:
-        body = HumanService.create_human(scale=0.1, macro_detail_dict=macro, feet_on_ground=True)
+    body, mpfb_height = _naturlig_kropp(macro, LANGD)
 
     def _koord():
         me = body.data; n = len(me.vertices); base = np.empty(n * 3); me.vertices.foreach_get('co', base); co = base.reshape(n, 3).copy()
@@ -194,88 +314,77 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
     for v in body.data.vertices:
         for ge in v.groups:
             _idx.setdefault(_grp[ge.group], []).append(v.index)
+    i_kropp = np.zeros(len(body.data.vertices), bool); i_kropp[_idx['body']] = True
+    kanter = np.empty(len(body.data.edges) * 2, dtype=np.int64); body.data.edges.foreach_get('vertices', kanter); kanter = kanter.reshape(-1, 2)
+    kanter = kanter[i_kropp[kanter[:, 0]] & i_kropp[kanter[:, 1]]]  # hudens kanter, utan hjälpgeometrin
 
     def matt():
-        co = _koord(); c = lambda n: co[_idx[n]].mean(axis=0)
-        kropp = co[_idx['body']] if 'body' in _idx else co
-        H = kropp[:, 2].max() - kropp[:, 2].min()
+        """Måtten som passas, i MPFB:s enheter före skalningen (meter vid skalan 1), på kroppen som den står nu."""
+        co = _koord(); c = lambda n: co[_idx[n]].mean(axis=0); kropp = co[i_kropp]
+        z0 = kropp[:, 2].min()
         rs, re_, rh, ls = c('joint-r-shoulder'), c('joint-r-elbow'), c('joint-r-hand'), c('joint-l-shoulder')
         hip = (c('joint-r-upper-leg') + c('joint-l-upper-leg')) / 2
-        return {'H': H, 'ua': np.linalg.norm(rs - re_), 'fa': np.linalg.norm(re_ - rh), 'sw': np.linalg.norm(rs - ls), 'ht': (rs + ls)[2] / 2 - hip[2]}
+        m = {'H': kropp[:, 2].max() - z0, 'ua': np.linalg.norm(rs - re_), 'fa': np.linalg.norm(re_ - rh), 'sw': np.linalg.norm(rs - ls),
+             'ht': (rs + ls)[2] / 2 - hip[2], 'hoft_h': hip[2] - z0, 'kna_h': c('joint-r-knee')[2] - z0,
+             'hals': c('joint-head')[2] - (rs + ls)[2] / 2, 'huvud': kropp[:, 2].max() - c('joint-head')[2]}
+        nara = kropp[np.linalg.norm(kropp - c('joint-r-finger-3-4'), axis=1) < 0.03]
+        m['hand'] = float(np.linalg.norm(nara - rh, axis=1).max())
+        fot = kropp[(kropp[:, 2] < z0 + 0.10) & (kropp[:, 0] < -0.02)]  # hälen till tåspetsen
+        m['fot'] = float(fot[:, 1].max() - fot[:, 1].min())
+        m['fa_omkr'] = max(_omkrets(co, kanter, re_, rh, t) for t in (0.1, 0.15, 0.2, 0.25, 0.3))
+        m['handled_omkr'] = _omkrets(co, kanter, re_, rh, 0.97)
+        m['ua_omkr'] = _omkrets(co, kanter, rs, re_, 0.5)
+        eye = (c('joint-r-eye') + c('joint-l-eye')) / 2; huv = kropp[kropp[:, 2] > eye[2] + 0.01]
+        m['huvud_b'] = max(float(b[:, 0].max() - b[:, 0].min()) for b in (huv[np.abs(huv[:, 2] - z) < 0.004] for z in np.arange(eye[2] + 0.01, kropp[:, 2].max() - 0.02, 0.004)) if len(b))
+        return {k: float(v) for k, v in m.items()}
 
+    # Passningen: varje mått har sina targets med en vikt (incr eller decr). Måtten rör varandra (handleden följer
+    # underarmen, höften knät, och allt följer skalningen till längden), så de passas tillsammans: F_j = m_j x längden -
+    # mål_j x H = 0 för alla j (måttet efter skalningen lika med målet), med Newtons metod och verkan av varje target mätt
+    # en gång vid vikten 1.
     tdir = Path(LocationService.get_mpfb_data('targets'))
-    if naturlig:
-        # MPFB:s egna proportioner för könet och längden; bara de mått som NATURLIG passar flyttas, mot människans medel
-        def matt_n():
-            co = _koord(); c = lambda n: co[_idx[n]].mean(axis=0); m = matt()
-            kropp = co[_idx['body']] if 'body' in _idx else co
-            wr, tip = c('joint-r-hand'), c('joint-r-finger-3-4')
-            nara = kropp[np.linalg.norm(kropp - tip, axis=1) < 0.03]
-            m['hand'] = float(np.linalg.norm(nara - wr, axis=1).max())
-            fot = kropp[(kropp[:, 2] < kropp[:, 2].min() + 0.10) & (kropp[:, 0] < -0.02)]  # hälen till tåspetsen
-            m['fot'] = float(fot[:, 1].max() - fot[:, 1].min())
-            return m
-        PASS = NATURLIG[kon].get('passa', {})
-        m0 = matt_n(); eff = {}
-        for k in PASS:
-            for d in ('incr', 'decr'):
-                sks = [TargetService.load_target(body, str(tdir / f'{t}-{d}.target.gz'), weight=1.0, name=f'fit-{k}-{i}-{d}')
-                       for i, t in enumerate(PASS_TGT[k])]
-                eff[(k, d)] = matt_n()[k] - m0[k]
-                for sk in sks:
-                    sk.value = 0.0
-        m1 = m0; vikter = {}
-        for _ in range(5):
-            s_est = LANGD / float(m1['H']); vikter = {}
-            for k, mal in PASS.items():
-                diff = mal / s_est - m0[k]; d = 'incr' if diff > 0 else 'decr'; e = eff[(k, d)]
-                w = float(min(1.0, max(0.0, diff / e))) if abs(e) > 1e-6 else 0.0
-                for i, t in enumerate(PASS_TGT[k]):
-                    body.data.shape_keys.key_blocks[f'fit-{k}-{i}-{d}'].value = w
-                    body.data.shape_keys.key_blocks[f'fit-{k}-{i}-{"decr" if d == "incr" else "incr"}'].value = 0.0
-                    vikter[f'{t}-{d}'] = round(w, 3)
-            m1 = matt_n()
-        sk_m = LANGD / float(m1['H'])
-        print(f'MPFB EGEN ({namn})', {k: round(float(v) * LANGD / float(m0['H']), 4) for k, v in m0.items()},
-              '-> PASSAD', {k: round(float(v) * sk_m, 4) for k, v in m1.items()}, vikter)
-    else:
-        TGT = {
-            'ua': 'arms/measure-upperarm-length',
-            'fa': 'arms/measure-lowerarm-length',
-            'sw': 'torso/measure-shoulder-dist',
-            'ht1': 'torso/measure-napetowaist-dist',
-            'ht2': 'torso/measure-waisttohip-dist',
-        }
-        m0 = matt(); eff = {}
-        for k, t in TGT.items():
-            for d in ('incr', 'decr'):
-                sk = TargetService.load_target(body, str(tdir / f'{t}-{d}.target.gz'), weight=1.0, name=f'fit-{k}-{d}')
-                mk = 'ht' if k.startswith('ht') else k
-                eff[(k, d)] = matt()[mk] - m0[mk]; sk.value = 0.0
+    PASS = dict(MATT[kon]['passa']); nycklar = list(PASS)
+    m0 = matt(); eff = {}
+    if 'hals' in PASS and PASS['hals'] is None:  # halsen tar det benen och bålen lämnar, så att huvudet behåller sin storlek
+        PASS['hals'] = LANGD - PASS['hoft_h'] - PASS['ht'] - m0['huvud'] * LANGD / m0['H']
+    for k in nycklar:
+        for d in ('incr', 'decr'):
+            sks = [TargetService.load_target(body, str(tdir / f'{t}-{d}.target.gz'), weight=1.0, name=f'fit-{k}-{i}-{d}')
+                   for i, t in enumerate(PASS_TGT[k])]
+            m = matt(); eff[(k, d)] = {j: m[j] - m0[j] for j in nycklar + ['H']}
+            for sk in sks:
+                sk.value = 0.0
+    riktning = {k: 'incr' if (PASS[k] * m0['H'] / LANGD - m0[k]) * eff[(k, 'incr')][k] >= 0 else 'decr' for k in nycklar}
 
-        mal_m = {'ua': D['over_arm'], 'fa': D['underarm'], 'sw': sw_mal, 'ht': ht_mal}
-        m1 = m0; vikter = {}
-        for _ in range(5):
-            s_est = LANGD / float(m1['H'])
-            for k in TGT:
+    def satt(w):
+        for k in nycklar:
+            for i in range(len(PASS_TGT[k])):
                 for d in ('incr', 'decr'):
-                    body.data.shape_keys.key_blocks[f'fit-{k}-{d}'].value = 0.0
-            vikter = {}
-            for k in ('ua', 'fa', 'sw'):
-                diff = mal_m[k] / s_est - m0[k]; d = 'incr' if diff > 0 else 'decr'; e = eff[(k, d)]
-                w = float(min(1.0, max(0.0, diff / e))) if abs(e) > 1e-6 else 0.0
-                body.data.shape_keys.key_blocks[f'fit-{k}-{d}'].value = w; vikter[f'{TGT[k]}-{d}'] = round(w, 3)
-            diff_ht = mal_m['ht'] / s_est - m0['ht']; d = 'incr' if diff_ht > 0 else 'decr'
-            e1, e2 = eff[('ht1', d)], eff[('ht2', d)]
-            w1 = float(min(1.0, max(0.0, (diff_ht * 0.5) / e1))) if abs(e1) > 1e-6 else 0.0
-            rem = diff_ht - w1 * e1
-            w2 = float(min(1.0, max(0.0, rem / e2))) if abs(e2) > 1e-6 else 0.0
-            if rem > w2 * e2 and w1 < 1.0 and abs(e1) > 1e-6:
-                w1 = float(min(1.0, max(0.0, (diff_ht - w2 * e2) / e1)))
-            body.data.shape_keys.key_blocks[f'fit-ht1-{d}'].value = w1; vikter[f'{TGT["ht1"]}-{d}'] = round(w1, 3)
-            body.data.shape_keys.key_blocks[f'fit-ht2-{d}'].value = w2; vikter[f'{TGT["ht2"]}-{d}'] = round(w2, 3)
-            m1 = matt()
-        print(f'PASSNING ({kon})', {k: round(float(v), 4) for k, v in m0.items()}, '->', {k: round(float(v), 4) for k, v in m1.items()}, vikter)
+                    body.data.shape_keys.key_blocks[f'fit-{k}-{i}-{d}'].value = w[k] if d == riktning[k] else 0.0
+
+    def jacobi():
+        return np.array([[LANGD * eff[(k, riktning[k])][j] - PASS[j] * eff[(k, riktning[k])]['H'] for k in nycklar] for j in nycklar])
+
+    w = {k: 0.0 for k in nycklar}; J = jacobi(); fel = None
+    for varv in range(12):
+        satt(w); m1 = matt()
+        F = np.array([m1[j] * LANGD - PASS[j] * m1['H'] for j in nycklar])
+        fel = {j: round(float(F[i] / m1['H']) * 1000, 2) for i, j in enumerate(nycklar)}  # mm efter skalningen
+        if np.abs(F).max() / m1['H'] < 2e-4:
+            break
+        dw = np.linalg.solve(J, -F); vand = False
+        for i, k in enumerate(nycklar):
+            nw = w[k] + float(dw[i])
+            if nw < -0.02:  # åt andra hållet: decr i stället för incr, eller tvärtom
+                riktning[k] = 'decr' if riktning[k] == 'incr' else 'incr'; nw = -nw; vand = True
+            w[k] = min(1.0, max(0.0, nw))
+        if vand:
+            J = jacobi()
+    satt(w); m1 = matt()
+    vikter = {f'{t}-{riktning[k]}': round(w[k], 3) for k in nycklar for t in PASS_TGT[k]}
+    sk_m = LANGD / float(m1['H'])
+    print(f'MPFB EGEN ({namn})', {k: round(v * LANGD / m0['H'], 4) for k, v in m0.items()},
+          '-> PASSAD', {k: round(v * sk_m, 4) for k, v in m1.items()}, 'FEL mm', fel, vikter)
 
     rig = HumanService.add_builtin_rig(body, 'mixamo')
     TargetService.bake_targets(body)
@@ -286,8 +395,6 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
     body.name = 'docka_kropp'; rig.name = 'docka_rigg'; rig.data.name = 'docka_rigg'
     rig['standarddocka'] = True
     rig['kon'] = kon
-    if naturlig:
-        rig['proportioner'] = 'naturlig'
 
     # Spara MakeHuman-vertexindex före MASK så både ansiktsvikter och blendshapes träffar exakt rätt
     mh_attr = body.data.attributes.new('mh_idx', 'INT', 'POINT')
@@ -351,7 +458,7 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
             b.name = b.name[len('mixamorig:'):]
     rig.data.bones['Neck'].name = 'neck'
 
-    # ---------------------------------------------------------------- 3. skala till doll.ts STANDARD
+    # ---------------------------------------------------------------- 3. skala till längden
     def head_pos(n):
         return rig.matrix_world @ rig.data.bones[n].head_local
 
@@ -410,7 +517,7 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
         kb.data.foreach_set('co', (base_co + delta).reshape(-1))
     body.data.attributes.remove(body.data.attributes['mh_idx'])
 
-    # ---------------------------------------------------------------- 4. extra ben: headfront, ansiktsben, IK-mål och polar
+    # ---------------------------------------------------------------- 4. extra ben: headfront, ansiktsben, vridben, IK-mål och polar
     bpy.context.view_layer.objects.active = rig
     bpy.ops.object.mode_set(mode='EDIT')
     eb = rig.data.edit_bones
@@ -426,6 +533,15 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
         fb.parent = hb
         fb.use_deform = True
 
+    # Vridbenen (VRID_NOD ovan): barn till underarmen, längs den med dess egen rullning, så att deras lokala Y är
+    # underarmens längd och en rullning kring den är underarmens vridning
+    for side in ('Right', 'Left'):
+        fe = eb[side + 'ForeArm']
+        for j, (t0, t1) in enumerate(((1 / 3, 2 / 3), (2 / 3, 1.0)), start=1):
+            tb = eb.new(f'{side}ForeArmTwist{j}')
+            tb.head = fe.head.lerp(fe.tail, t0); tb.tail = fe.head.lerp(fe.tail, t1); tb.roll = fe.roll
+            tb.parent = fe; tb.use_connect = False; tb.use_deform = True
+
     root = eb.new('rot'); root.head = (0, 0, 0); root.tail = (0, 0.25, 0); root.use_deform = False
     eb['Hips'].parent = root
     for k, side in SIDOR.items():
@@ -437,6 +553,15 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
         kn = eb[side + 'Leg']; pk = eb.new('pol_kna' + suf); pk.head = kn.head + Vector((0, -0.5, 0)); pk.tail = pk.head + Vector((0, -0.05, 0)); pk.parent = root; pk.use_deform = False
     bpy.ops.object.mode_set(mode='POSE')
     pbs = rig.pose.bones
+    vridinfo = _vridben_vikter(body, rig)
+    for side in ('Right', 'Left'):
+        fa_b = rig.data.bones[side + 'ForeArm']; e0 = fa_b.head_local; L0 = fa_b.length
+        for j in (1, 2):
+            tb = rig.data.bones[f'{side}ForeArmTwist{j}']
+            vinkel = math.degrees((fa_b.matrix_local.to_quaternion().rotation_difference(tb.matrix_local.to_quaternion())).angle)
+            vridinfo[f'{side}ForeArmTwist{j}'] = {'foralder': tb.parent.name, 'huvud_andel_av_underarmen': round((tb.head_local - e0).length / L0, 4),
+                                                  'svans_andel': round((tb.tail_local - e0).length / L0, 4), 'huvud_m': [round(x, 4) for x in tb.head_local],
+                                                  'svans_m': [round(x, 4) for x in tb.tail_local], 'vinkel_mot_underarmen_grader': round(vinkel, 4)}
 
     def bend_axis(pb, framat):
         b = pb.bone; m = (rig.matrix_world.to_3x3() @ b.matrix_local.to_3x3())
@@ -475,6 +600,8 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
         for f in ('Thumb', 'Index', 'Middle', 'Ring', 'Pinky'):
             for n in (1, 2, 3):
                 limit(pbs[f'{side}Hand{f}{n}'], 100, 25, 100)
+        for j in (1, 2):  # vridbenen tar bara rullning kring underarmens längd (lokal Y)
+            pt = pbs[f'{side}ForeArmTwist{j}']; pt.lock_rotation = (True, False, True); limit(pt, 0, 120, 0)
     for n in ('Spine', 'Spine1', 'Spine2'):
         limit(pbs[n], 30, 25, 25)
     limit(pbs['neck'], 35, 40, 30); limit(pbs['Head'], 35, 45, 30)
@@ -482,6 +609,8 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
     for ebone in ('eye.L', 'eye.R'):
         limit(pbs[ebone], 30, 5, 35)
     rig['ik_kontroller'] = 'IK_hand.R/L, pol_armbage.R/L, IK_fot.R/L, pol_kna.R/L under benet "rot"'
+    rig['vridben'] = ('RightForeArmTwist1/2 och LeftForeArmTwist1/2: barn till ForeArm vid 1/3 och 2/3 av den, bara rullning '
+                      'kring lokal Y; underarmens hud delad ForeArm -> Twist1 (mitten) -> Twist2 (handleden)')
 
     for k, side in SIDOR.items():
         for leg in (side + 'ForeArm', side + 'Leg'):
@@ -504,32 +633,34 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
         c.influence = 0.0
     bpy.context.view_layer.update()
 
-    # ---------------------------------------------------------------- 6. sittande vila (Action "sitt_vila")
+    # ---------------------------------------------------------------- 6. sittande vila (Action "sitt_vila"), som i editorn (SITT)
     hoft = Vector(D['hoft'])
-    rig.location = (hoft.x, hoft.y, 0.0)
+    rig.location = (hoft.x, hoft.y, 0.0)  # objektets läge som förut; dockan ställs med Hips nedan
     bpy.context.view_layer.update()
     for p in pbs:
         p.matrix_basis = Matrix.Identity(4)
     bpy.context.view_layer.update()
-    uplegs_mid = ((rig.matrix_world @ pbs['RightUpLeg'].matrix).translation + (rig.matrix_world @ pbs['LeftUpLeg'].matrix).translation) / 2
+    W = lambda n: (rig.matrix_world @ pbs[n].matrix).translation.copy()
+    axlar_mal = Vector((SITT['x'], SITT['axlar_bakom_kant'], FZ + SITT['axlar_over_filt']))
     hips = pbs['Hips']
     mw_h = rig.matrix_world @ hips.matrix
-    mw_h.translation += hoft - uplegs_mid
+    mw_h.translation += axlar_mal - (W('RightArm') + W('LeftArm')) / 2  # rak bål: axellederna där rörelsen har dem
     hips.matrix = rig.matrix_world.inverted() @ mw_h
     bpy.context.view_layer.update()
+    fall = SITT['lar']['fall'] + max(0.0, -SITT['hoft_under_filt'] - SITT['lar']['fran']) * SITT['lar']['brant']
+    for side, ut in (('Right', -1), ('Left', 1)):
+        sikta_ben(rig, pbs[side + 'UpLeg'], Vector((ut * SITT['lar']['ut'], -1, -fall))); bpy.context.view_layer.update()
+        sikta_ben(rig, pbs[side + 'Leg'], Vector((0, -0.08, -1))); bpy.context.view_layer.update()
     for side in ('Right', 'Left'):
-        sikta_ben(rig, pbs[side + 'UpLeg'], Vector((0, -1, -0.12))); bpy.context.view_layer.update()
-        sikta_ben(rig, pbs[side + 'Leg'], Vector((0, 0.22, -1))); bpy.context.view_layer.update()
-        sikta_ben(rig, pbs[side + 'Foot'], Vector((0, -1, -0.35))); bpy.context.view_layer.update()
-    vh = Vector(D['vilohand_handled']); fw = Vector(D['vilohand_framat'])
-    for side, sg in (('Right', 1), ('Left', -1)):
-        mal = Vector((vh.x * sg if sg > 0 else -vh.x + 2 * hoft.x, vh.y, vh.z))
-        sh = (rig.matrix_world @ pbs[side + 'Arm'].matrix).translation
+        mal = Vector(SITT['handled'][side]) + Vector((0, 0, FZ))
+        sh = W(side + 'Arm')
         pol = sh + Vector((0.5 * (-1 if side == 'Right' else 1), 0.4, -0.6))
         el, ok = tvaled_ik(sh, mal, pol, ua, fa)
         sikta_ben(rig, pbs[side + 'Arm'], el - sh); bpy.context.view_layer.update()
         sikta_ben(rig, pbs[side + 'ForeArm'], mal - el); bpy.context.view_layer.update()
-        f = Vector((fw.x * sg, fw.y, fw.z)); sikta_ben(rig, pbs[side + 'Hand'], f); bpy.context.view_layer.update()
+        f = (mal - el); f.z = 0; f = f.normalized() + Vector((0, 0, -0.1))  # handen som underarmen, lite ned mot filten
+        sikta_ben(rig, pbs[side + 'Hand'], f); bpy.context.view_layer.update()
+    hoft = (W('RightUpLeg') + W('LeftUpLeg')) / 2  # höftledernas mitt i vilan (räckvidden och rapporten nedan)
     act = bpy.data.actions.new('sitt_vila'); rig.animation_data_create(); rig.animation_data.action = act
     for p in pbs:
         p.keyframe_insert('location', frame=1)
@@ -568,28 +699,25 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
         rack[nm] = rad
     rapport = {
         'kon': kon,
-        'kalla': 'MPFB 2.0.18 (CC0-tillgångar) + mixamo-skelett + 16 ansiktsben + ARKit-shapekeys, bygg_docka.py',
+        'kalla': 'MPFB 2.0.18 (CC0-tillgångar) + mixamo-skelett + 16 ansiktsben + 4 vridben + ARKit-shapekeys, bygg_docka.py',
+        'mpfb_height': mpfb_height, 'passat_mot': {k: round(v, 4) for k, v in PASS.items()},'kalla_matten': MATT[kon]['kalla'],
+        'passat_blev': {k: round(v * sk_m, 4) for k, v in m1.items()}, 'passning_fel_mm': fel,
         'mpfb_passning_vikter': vikter,
         'skalfaktor_fran_mpfb': round(s, 4), 'langd_staende_m': round(langd, 4),
-        'over_arm_m': round(ua, 4), 'underarm_m': round(fa, 4), 'mal_over_arm': D['over_arm'], 'mal_underarm': D['underarm'],
+        'over_arm_m': round(ua, 4), 'underarm_m': round(fa, 4),
         'axelbredd_led_m': round((skuld['hoger'] - skuld['vanster']).length, 4),
-        'axelbredd_mal_m': round(sw_mal, 4),
         'axlar_sittande': {k: [round(c, 4) for c in v] for k, v in skuld.items()},
-        'hoft_till_axel_m': round(skuld['hoger'].z - hoft.z, 4), 'hoft_till_axel_spelet_m': round(ht_mal, 4),
+        'hoft_till_axel_m': round(skuld['hoger'].z - hoft.z, 4),
         'hoft_led_mitt': [round(c, 4) for c in hoft], 'rackvidd_arm_m': round(ua + fa, 4), 'rackvidd': rack,
         'ben': len(rig.data.bones), 'deformerande': sum(1 for b in rig.data.bones if b.use_deform),
-        'ansiktsben': ANSIKTSBEN,
+        'ansiktsben': ANSIKTSBEN, 'vridben': vridinfo,
         'shapekeys': [k.name for k in body.data.shape_keys.key_blocks] if body.data.shape_keys else [],
         'kravda_ben_saknas': [n for n in KRAVDA_BEN if n not in rig.data.bones],
         'gangjarn': {k: {'lokal_axel': 'XZ'[0 if v[0] == 0 else 1], 'tecken': v[1]} for k, v in gransinfo.items()},
+        'aktioner': [a.name for a in bpy.data.actions],
     }
-    if naturlig:
-        for k in ('mal_over_arm', 'mal_underarm', 'axelbredd_mal_m', 'hoft_till_axel_spelet_m'):
-            del rapport[k]
-        rapport.update({'proportioner': 'naturlig', 'mpfb_height': mpfb_height, 'passat_mot': NATURLIG[kon].get('passa', {}),
-                        'kalla_matten': NATURLIG[kon]['kalla']})
     (slask('bygge', BYGGRAPPORTER) / f'docka-rapport-{namn}.json').write_text(json.dumps(rapport, indent=1, ensure_ascii=False), encoding='utf-8')
-    print(f'RAPPORT ({kon})', json.dumps({k: rapport[k] for k in ('kon', 'langd_staende_m', 'over_arm_m', 'underarm_m', 'axelbredd_led_m', 'hoft_till_axel_m', 'ben', 'deformerande', 'kravda_ben_saknas')}, ensure_ascii=False))
+    print(f'RAPPORT ({namn})', json.dumps({k: rapport[k] for k in ('kon', 'langd_staende_m', 'over_arm_m', 'underarm_m', 'axelbredd_led_m', 'hoft_till_axel_m', 'ben', 'deformerande', 'kravda_ben_saknas', 'aktioner')}, ensure_ascii=False))
 
     bpy.ops.object.mode_set(mode='OBJECT')
     for p in pbs:
@@ -602,8 +730,17 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
     blend_kon = OUT / f'standarddocka_{namn}.blend'
     glb_kon = OUT / f'standarddocka_{namn}.glb'
     bpy.ops.wm.save_as_mainfile(filepath=str(blend_kon))
-    bpy.ops.export_scene.gltf(filepath=str(glb_kon), export_format='GLB', export_apply=True, export_animations=True,
+    # GLB:n skrivs under ett annat namn och byts in hel, så att editorn och studion (som läser den) aldrig får en halv fil
+    ny = OUT / f'standarddocka_{namn}.ny.glb'
+    bpy.ops.export_scene.gltf(filepath=str(ny), export_format='GLB', export_apply=True, export_animations=True,
                               export_yup=True, use_selection=False)
+    for forsok in range(40):
+        try:
+            os.replace(ny, glb_kon); break
+        except PermissionError:  # Windows: någon läser den gamla filen just nu
+            time.sleep(0.25)
+    else:
+        raise SystemExit(f'kunde inte byta in {glb_kon} (filen är upptagen); den nya ligger i {ny}')
     for f in OUT.glob('*.blend1'):
         os.remove(f)
     print('BYGGT', blend_kon)
@@ -611,9 +748,10 @@ def bygg_en(kon: str, proportioner: str = 'vit'):
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--kon', choices=['kvinna', 'man', 'bada'], default='bada')
-ap.add_argument('--matt', choices=['vit', 'naturlig'], default='vit',
-                help='vit: armarna, axlarna och bålen passade till den vita dockans mått (förval, de modeller som används); '
-                     'naturlig: människans proportioner (NATURLIG), byggd som standarddocka_<kön>_naturlig')
+ap.add_argument('--namn', default='', help='skriver standarddocka_<kön>_<namn>.blend/.glb (och rapporten med samma namn) i stället '
+                                          'för de modeller som används; små bokstäver, siffror och understreck')
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
+if args.namn and not re.fullmatch(r'[a-z0-9_]+', args.namn):
+    raise SystemExit('--namn tar små bokstäver, siffror och understreck, till exempel naturlig')
 for kon in (['kvinna', 'man'] if args.kon == 'bada' else [args.kon]):
-    bygg_en(kon, args.matt)
+    bygg_en(kon, args.namn)

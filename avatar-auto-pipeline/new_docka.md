@@ -36,7 +36,7 @@ Det finns **två vägar** som möts i samma standardscen och samma skelett.
 | A. Läs spelet | `scen/las_spelet.ts` läser spelets kod i `../blackjack-dealer`, och `scen/gen_standard.py` skriver `scen/standard.yaml` med källan på varje rad. Måttfilen ändras aldrig för hand. | `python scen/gen_standard.py` |
 | B. Bygg bordet | Procedurellt ur YAML: filt, rulle, sarg, ben, bricka, sko, kassering, 52 kort, markeringar, insatsringar. Default är spelets ovala standardbord. | `blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py` |
 | C. Alternativt bord | Njurformat BORD-02 (labb/utseende), skrivs till `assets/bord/bord_02.*` så standardfilen inte skrivs över. | samma, plus `-- --modell bord-02` |
-| D. Bygg dockorna | MPFB 2.0.18, kvinna + man, identiskt skelett. Kräver MPFB, därför inte `--factory-startup`. | `blender -b --python-exit-code 1 --python scen/bygg_docka.py` |
+| D. Bygg dockorna | MPFB 2.0.18, kvinna + man, identiskt skelett, människans mått (avsnitt 6). Kräver MPFB, därför inte `--factory-startup`. `-- --namn N` skriver `standarddocka_<kön>_N.*` (prov) i stället för de modeller som används. | `blender -b --python-exit-code 1 --python scen/bygg_docka.py` |
 | E. Bygg stolen | Meshy-stol skalad till `stol.sits_z` / `sits_mitt`. | `blender -b --factory-startup --python-exit-code 1 --python scen/bygg_stol.py` |
 | F. Importera en rörelse | dealer3d-JSON → Blender-Action på standarddockan. | se avsnitt 8 |
 | G. QC | Rendera fasta kameror, måttöverlägg, kontroll mot spelets kortpixlar. | se avsnitt 9 |
@@ -138,7 +138,7 @@ Källa standardoval: `scene3d-table.ts` `TABLE` / `REAL_TABLE` (under linsen, `t
 | Rulle bredd | 0,10 m (standard) | `TABLE.rail` |
 | Rulle mitt över filt | 0,012 m | `scene3d-table.ts CORE[1]` |
 | Rulle halv höjd | 0,034 m | `RAIL.top − CORE[1]` |
-| Sarg underkant | −0,16 m relativt filt | kommentar i `scene3d-table.ts`; `BASE.under = −0,15` |
+| Sarg underkant | −0,16 m relativt filt; på standarddockans bord (`--kant-bak`, `--docka`) −0,05 m där dealern sitter, 0,66 m brett från dealerkanten fram till Y = −0,16, så att låren går fria (`KNAN` i `bygg_bord.py`) | kommentar i `scene3d-table.ts`; `BASE.under = −0,15` |
 | Mässingslist | [−0,002, 0,005] m | `scene3d-table.ts BEAD` |
 | Bricka (TRAY) | x −0,30…+0,24 m, s 0…0,10 m, djup 0,03 m | `scene3d-props.ts` (officiell standard, även i `table-lens.ts` / `world.ts`) |
 | Mässingsram | 7 mm i filtnivå | `game3d-tray.ts` |
@@ -208,6 +208,8 @@ Finns **inte** i spelet. Speglad mot skon på dealerns höger: mitt (−0,62, �
 | Höger / vänster axel | (−0,1743, 0,38, 1,2989) / (0,1438, 0,38, 1,2989) | (−0,1989, 0,38, 1,1796) / (0,1672, 0,38, 1,1796) | härlett / PAOW |
 | Vilohand handled | (−0,1671, 0,0540, 0,9720) | – | `body.ts restingHand` |
 
+Tabellen är måttfilens `docka`-block (doll.ts STANDARD, den äldre vita dockan). Standarddockorna sitter i editorn och studion med axellederna 0,31 m över filten och 0,38 m bakom spelets kant (`place` för MAN i `doll.ts`), och Blenders vila `sitt_vila` står likadant: talen står i `SITT` högst upp i `bygg_docka.py` (axlarna, låren som `sitter.ts` ställer dem, handlederna på filten framför brickan som i rörelsens vila) och ska följa spelet.
+
 **Avståndet till bordet.** 0,38 m är avståndet från bordskanten till axellederna. Med en bål som är drygt 0,2 m djup blir det ungefär 0,26 m luft mellan magen och kanten, och det syns bara från sidan: filmens kamera ser henne rakt framifrån. För Paow är måttet läst ur hennes filmer (överarmarna hänger, underarmarna pekar fram och händerna vilar vid kanten) och kan inte ändras utan att filmerna görs om, eftersom hon, skon och korten ligger på bestämda ställen i bilden. För standarddockan och för en ny dealer är avståndet ett val: sitter hon närmare böjer hon armarna mer och lutar sig mindre, och varken skon eller kortplatserna behöver flyttas. Valet är Jakobs och inte gjort (2026-11-26).
 
 Stolen syns inte i filmen (spelet har inga ben). Våra antagna mått: `sits_z` 0,66 m (höftleden ca 9 cm över sitsen), `sits_mitt` (−0,0152, 0,46) så höften hamnar över sitsens främre del, sits 0,42 × 0,40 m, ryggstöd 0,35 m, fotstöd Z 0,22 m. Stolen är Meshy-modellen, skalad i `bygg_stol.py`.
@@ -224,16 +226,22 @@ Spelarplatser (antaget; spelet har inga spelarkroppar): på linjen från dealern
 
 Två grunddockor med **100 % identiskt skelett och samma bennamn**, så att alla Actions kan återanvändas rakt av. Motor: **MPFB 2.0.18** (CC0-tillgångar) + Mixamo-inbyggt skelett, namn utan `mixamorig:`-prefix, `neck` med litet n.
 
+Måtten är en människas för kön och längd: MPFB:s egen kropp för könet och längden, och där den avviker flyttad till medlet i ANSUR II (US Army 2012, personer av samma kön och längd ±2 cm). Talen och källorna står i `MATT` i `scen/bygg_docka.py`; bygget skriver vad det blev i `docka-rapport-<namn>.json` (slasken, `bygge/`).
+
 | | Kvinna | Man |
 | --- | --- | --- |
 | Fil | `assets/docka/standarddocka_kvinna.blend/.glb` | `assets/docka/standarddocka_man.blend/.glb` |
 | MPFB `gender` | 0,0 | 1,0 |
-| Stående längd | 1,70 m (YAML `langd_staende`, antaget så att sittande axlar/huvud stämmer) | 1,75 m |
-| Axelbredd (led) | 0,318 m (avståndet mellan STANDARD-axlarna) | 0,366 m |
-| Överarm / underarm | båda passade till 0,290 / 0,260 m | samma mål |
-| Bålhöjd höft→axel | båda passade till 0,549 m | samma mål |
+| Stående längd | 1,65 m | 1,75 m |
+| Axelleder isär | 0,337 m (akromion 368 mm, ANSUR 368) | 0,375 m, MPFB:s egen (akromion 418 mm, ANSUR 415) |
+| Överarm / underarm (leder) | 0,263 / 0,249 m | 0,279 / 0,272 m |
+| Armarnas omkrets: underarm som tjockast / handled / överarm mitt | 255 / 150 / 285 mm | 290 / 170 / 320 mm |
+| Hand / fot | 182 / 249 mm | 193 / 271 mm |
+| Höftled → axelleder (lodrätt) | 0,463 m, MPFB:s egen | 0,483 m |
+| Höftled / knäled över golvet | 0,851 / 0,459 m, MPFB:s egna | 0,903 / 0,490 m |
+| Huvudets bredd | 142 mm, MPFB:s egen | 152 mm |
 
-Passningen sker med MPFB-mått-targets: `arms/measure-upperarm-length`, `measure-lowerarm-length`, `torso/measure-shoulder-dist`, `measure-napetowaist-dist` + `measure-waisttohip-dist`. Ett tidigare fel (för kort bål, «ihopsjunken») rättades genom att fördela de 2,8 cm som saknades över de två bål-targets.
+Passningen sker med MPFB-targets, alla mått tillsammans (de rör varandra, och allt följer skalningen till längden): armarnas längd (`arms/measure-upperarm-length`, `measure-lowerarm-length`), armarnas tjocklek (underarmens tvärsnitt med `arms/*-lowerarm-scale-depth` och `-scale-vert`, handleden med `hands/measure-wrist-circ`, överarmen med `arms/measure-upperarm-circ`; `-scale-horiz` förlänger underarmen och används inte), händerna och fötterna, kvinnans axlar (`torso/measure-shoulder-dist`), och mannens ben (`legs/measure-upperleg-height`, `measure-lowerleg-height`), bål (`torso/measure-napetowaist-dist`), hals (`neck/measure-neck-height`, som tar det benen lämnar så att huvudet behåller sin storlek) och huvudets bredd (`head/head-scale-horiz`). Omkretsen mäts som ett måttband (konvext hölje) i ett snitt genom huden vinkelrätt mot benet.
 
 Kläder finns inte på grunddockan (naken mesh för QC). Se avsnitt 10.
 
@@ -241,37 +249,48 @@ Kläder finns inte på grunddockan (naken mesh för QC). Se avsnitt 10.
 
 ## 7. Skelett, leder, IK och ansikte
 
-**77 ben totalt**, varav **67 deformerande**. Hierarki (föräldern inom parentes där det hjälper). Längder nedan är kvinnans, ur `qc/inspektion/standarddocka_kvinna_glb.json`.
+**81 ben totalt**, varav **71 deformerande**: 77 som förut och två vridben i varje underarm (7.1b). Hierarki (föräldern inom parentes där det hjälper). Längder nedan är kvinnans / mannens, ur byggena.
 
 ### 7.1 Kropp och ben (Mixamo-namn, utan prefix)
 
 | Ben | Förälder | Längd (m) | Roll |
 | --- | --- | --- | --- |
 | rot | – | – | Rot; IK-kontroller hänger här. Deformerar inte. |
-| Hips | rot | 0,117 | Höft / pelvis |
-| Spine, Spine1, Spine2 | Hips → … | 0,116 / 0,135 / 0,146 | Ryggrad till axelgördel |
-| neck | Spine2 | 0,065 | Nacke (`neck` med litet n, som dealer3d) |
-| Head | neck | 0,059 | Huvud |
-| Left-/RightShoulder | Spine2 | 0,113 / 0,122 | Nyckelben |
-| Left-/RightArm | Shoulder | 0,290 | Överarm (passad till STANDARD) |
-| Left-/RightForeArm | Arm | 0,260 | Underarm |
-| Left-/RightHand | ForeArm | 0,040 | Handlov |
-| Left-/RightUpLeg | Hips | 0,375 | Lår |
-| Left-/RightLeg | UpLeg | 0,382 | Underben |
-| Left-/RightFoot | Leg | 0,132 | Fot |
-| Left-/RightToeBase | Foot | 0,132 | Tå |
+| Hips | rot | 0,124 / 0,090 | Höft / pelvis |
+| Spine, Spine1, Spine2 | Hips → … | 0,106 / 0,122 / 0,148 och 0,107 / 0,140 / 0,223 | Ryggrad till axelgördel |
+| neck | Spine2 | 0,064 / 0,062 | Nacke (`neck` med litet n, som dealer3d) |
+| Head | neck | 0,192 / 0,214 | Huvud |
+| Left-/RightShoulder | Spine2 | 0,123 / 0,130 och 0,142 / 0,137 | Nyckelben |
+| Left-/RightArm | Shoulder | 0,263 / 0,279 | Överarm |
+| Left-/RightForeArm | Arm | 0,249 / 0,272 | Underarm |
+| Left-/RightForeArmTwist1, Twist2 | ForeArm | 0,083 / 0,091 var | Vridben i underarmen (7.1b) |
+| Left-/RightHand | ForeArm | 0,079 / 0,083 | Handlov |
+| Left-/RightUpLeg | Hips | 0,395 / 0,417 | Lår |
+| Left-/RightLeg | UpLeg | 0,390 / 0,420 | Underben |
+| Left-/RightFoot | Leg | 0,153 / 0,157 | Fot |
+| Left-/RightToeBase | Foot | 0,056 / 0,058 | Tå |
+
+### 7.1b Vridben i underarmen
+
+En underarm som vrids mer än cirka 60 grader på `ForeArm` nyper huden vid armbågen (omkretsen vid armbågen 288 → 230 mm vid 100 grader hos mannen), eftersom hela underarmen vrids som en stel del mot överarmen. Därför har varje underarm två vridben, `RightForeArmTwist1`/`Twist2` och `LeftForeArmTwist1`/`Twist2`:
+
+- Barn till `ForeArm`, längs den med dess egen rullning (samma riktning och samma lokala axlar): `Twist1` från en tredjedel till två tredjedelar av underarmen, `Twist2` från två tredjedelar till handleden. Deras lokala Y är underarmens längd; de tar bara rullning kring den (X och Z låsta, ±120 grader).
+- Underarmens hud är delad efter läget längs underarmen (u = 0 vid armbågen, 1 vid handleden): bara `ForeArm` vid armbågen, `ForeArm` och `Twist1` lika vid u = 0,25, bara `Twist1` vid u = 0,5, `Twist1` och `Twist2` lika vid u = 0,75, bara `Twist2` vid handleden; handens egna vikter är orörda. Högst fyra ben per hörn, summan 1.
+- I vila, och så länge vridbenen inte vrids, är huden exakt som utan dem (mätt: högst 0,0002 mm), så en kod som inte känner dem och vrider `ForeArm` ställer dockan som förut.
+- En kod som känner dem böjer `ForeArm` utan rullning, lägger en tredjedel av rullningen på `Twist1`, två tredjedelar på `Twist2` och hela på handen: då fördelas vridningen jämnt längs underarmen till två tredjedelar vid handleden, och den sista tredjedelen tas över handleden där handens vikter tar vid (vid 100 grader: omkretsen vid armbågen 286 mm, högst 4 % mindre längs underarmen). Med halva rullningen på `Twist1` och hela på `Twist2` blir den jämn ända till handleden.
+- Kod som mäter underarmens hud efter det ben som väger tyngst ska räkna `ForeArm`, `ForeArmTwist1` och `ForeArmTwist2` som underarmen.
 
 ### 7.2 Fingrar (båda händer, tre leder vardera)
 
 Per hand, alla med förälder `*Hand` för länk 1 och sedan kedja 1→2→3:
 
-| Ben | Längd kvinna (m) |
+| Ben | Längd kvinna / man (m) |
 | --- | --- |
-| *HandThumb1 / 2 / 3 | 0,028 / 0,033 / 0,033 |
-| *HandIndex1 / 2 / 3 | 0,024 / 0,021 / 0,021 |
-| *HandMiddle1 / 2 / 3 | 0,031 / 0,025 / 0,025 |
-| *HandRing1 / 2 / 3 | 0,027 / 0,023 / 0,023 |
-| *HandPinky1 / 2 / 3 | 0,019 / 0,014 / 0,014 |
+| *HandThumb1 / 2 / 3 | 0,030 / 0,036 / 0,028 och 0,032 / 0,038 / 0,029 |
+| *HandIndex1 / 2 / 3 | 0,025 / 0,023 / 0,027 och 0,027 / 0,024 / 0,028 |
+| *HandMiddle1 / 2 / 3 | 0,033 / 0,027 / 0,027 och 0,035 / 0,029 / 0,028 |
+| *HandRing1 / 2 / 3 | 0,029 / 0,024 / 0,026 och 0,031 / 0,026 / 0,028 |
+| *HandPinky1 / 2 / 3 | 0,021 / 0,015 / 0,020 och 0,022 / 0,016 / 0,021 |
 
 ### 7.3 Ansiktsben under Head (16 st, inklusive headfront)
 
@@ -303,6 +322,7 @@ Lokala `LIMIT_ROTATION`-constraints (`ledgrans`), plus IK-gångjärn. Värden i 
 | --- | --- | --- | --- | --- |
 | ForeArm (IK-gångjärn) | 0…150° på böjaxeln, övriga låsta, Y låst | | | Armbågen böjs bara åt ett håll, max 150° |
 | Leg (IK-gångjärn) | samma, max 150° | | | Knä |
+| ForeArmTwist1 / Twist2 | 0 (låst) | ±120 | 0 (låst) | Bara rullning kring underarmen (7.1b) |
 | Fingerleder (Thumb/Index/Middle/Ring/Pinky 1–3) | ±100 | ±25 | ±100 | |
 | Spine, Spine1, Spine2 | ±30 | ±25 | ±25 | |
 | neck | ±35 | ±40 | ±30 | |
@@ -318,7 +338,7 @@ dealer3d (`figure-model.ts`) kräver exakt dessa exportnamn, **utan** `mixamorig
 
 `RightArm`, `LeftArm`, `RightForeArm`, `LeftForeArm`, `RightHand`, `LeftHand`, `RightUpLeg`, `LeftUpLeg`, `RightLeg`, `LeftLeg`, `RightFoot`, `LeftFoot`, `neck`, `Head`, `headfront`.
 
-Vår docka uppfyller listan. Fingrar och ansiktsben är utöver kraven och stör inte.
+Vår docka uppfyller listan. Fingrar, ansiktsben och vridben är utöver kraven och stör inte.
 
 ### 7.7 30 ARKit shape keys – och vad som saknas
 
@@ -450,8 +470,9 @@ Provdealern Rosalina, gjord från foton (cirka 95 krediter), raderades 2026-11-2
 - Grunddockan saknar kläder (medvetet). Nästa steg: skjorta/väst/byxor som separata mesh på samma rig.
 - Vägen från foton (steg 01–08) är inte kopplad till standardscenen: steg 08 bygger sitt eget bord. Ingen dealer från foton finns kvar: provdealern Rosalina raderades 2026-11-26.
 - Texturerna, korten och kortatlasen i `assets/bord/` hämtades för hand; adresserna står i `kallor.json` men inget skript hämtar dem eller bygger atlasen. Stolens råfil är betald och finns bara på datorn där den beställdes. På en annan dator kan bordet och stolen därför inte byggas förrän filerna finns där.
-- Vilan (`sitt_vila`) håller händerna i luften framför magen; i spelets filmer vilar händerna på filten vid bordskanten.
-- Standarddockans avstånd till bordet är inte valt: måttfilen sätter henne på Paows uppmätta 0,38 m med blackjack-dealers antagna armar (0,29 och 0,26 m), och blackjack-dealers egen standarddocka står på antagna 0,18 m. Se 5.9.
+- Måttfilens `docka`-block (höften 0,20 m under filten, axlarna 0,35 m över den, armarna 0,29 och 0,26 m) är doll.ts STANDARD:s äldre tal, inte standarddockornas plats (axlarna 0,31 m över filten, 0,38 m bakom spelets kant; `SITT` i `bygg_docka.py`). Se 5.9.
+- Knogarnas läge: i MPFB:s skelett sitter långfingrets knoge 107 mm från handleden hos mannen (100 hos kvinnan), mot en människas 86–95 mm; handflatan är lång och fingrarnas leder sitter för långt ut. Inte rättat.
+- Mannens hjässa står 364 mm över axellederna (en människas mått; den äldre dockan 332): med axellederna 0,31 m över filten når den överkanten av spelets bild, och för att hjässan ska stå där den äldre dockans gör behöver axlarna sitta cirka 0,28 m över filten.
 - Kortplans «dockans 3D-bord» är en halvcirkel r = 1,02 m, inte ovalen 1,90 × 1,15 m. Vi följer ovalen i Blender; avvikelsen är värd att känna till när man jämför med Kortplan.
 - `TABLE.b = 0,60 m` i spelets kontrakt skiljer sig från `REAL_TABLE.depth = 1,15 m` under linsen. Vi bygger det som filmen ser (1,15 m).
 - Kassering, en del rull-/bensmått, kläder och flera kameror (`dealer_ogon`, `hander`, `hel`, `topp`) är antagna.
