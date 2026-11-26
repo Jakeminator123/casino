@@ -6,6 +6,24 @@
   "giv-fran-2-3-p4c1-naturlig-cykel-a-paow"
  ],
  "blickMot": "lag",
- "andringar": [],
- "sparad": "2026-11-26T03:44:57.278Z"
+ "fart": [
+  1,
+  1,
+  1
+ ],
+ "andringar": [
+  {
+   "id": "1pahvju",
+   "tid": 2.962781229588578,
+   "led": "blick",
+   "flytt": [
+    1.4455110974412269,
+    -1.2262187905357764,
+    0
+   ],
+   "vrid": null,
+   "varar": 1.8
+  }
+ ],
+ "sparad": "2026-11-26T04:52:25.311Z"
 }
