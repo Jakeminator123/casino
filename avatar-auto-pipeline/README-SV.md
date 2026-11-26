@@ -25,7 +25,9 @@ avatar-auto-pipeline/
     qc_render.py             kontrollbilder genom de fasta kamerorna
   verktyg/                   bryggan mot blackjack-dealers docka, inspektion och kontrollbilder
   rorelser/katalog.yaml      rörelsekatalogen: vad som ska finnas och hur långt det har kommit
-  gemensamt/                 delad kod (mått, sökvägar, riggverktyg, Blender-studio)
+  gemensamt/                 delad kod: standard.py läser standard.yaml, riggverktyg.py räknar om mellan spelet och
+                             Blender, sokvagar.py hittar projektet och slasken; standardmatt.py (kroppens andelar)
+                             och blenderstudio.py hör till vägen från foton
   assets/                    det som byggs och laddas ned: bord, dockor, stol (inte i Git, se nedan)
   qc/                        kontrollbilder och inspektionsdumpar (inte i Git)
 
@@ -105,13 +107,13 @@ blender -b <fil.blend> --python-exit-code 1 --python verktyg/blender_till_dealer
 ## En dealer från foton
 
 1. En gång: kopiera `.env.example` till `.env` och fyll i `OPENAI_API_KEY` och `MESHY_API_KEY`. Nycklarna skrivs aldrig ut.
-2. Lägg 1–8 foton av samma person i t.ex. `input\rosalina\`. Skjortan ska vara tydligt icke-hudfärgad. Standard är mörkblå skjorta och mörka byxor (`--outfit` om du vill annat).
-3. Dubbelklicka på `STARTA avatar.cmd` (eller kör `.\starta_avatar.ps1 -Name rosalina`).
+2. Lägg 1–8 foton av samma person i `input\<namn>\`. Skjortan ska vara tydligt icke-hudfärgad. Standard är mörkblå skjorta och mörka byxor (`--outfit` om du vill annat).
+3. Dubbelklicka på `STARTA avatar.cmd` (eller kör `.\starta_avatar.ps1 -Name <namn>`).
 
 Gratis kontroll, utan OpenAI- eller Meshy-anrop:
 
 ```powershell
-.\.venv\Scripts\python.exe auto_avatar.py --name rosalina --dry-run
+.\.venv\Scripts\python.exe auto_avatar.py --name <namn> --dry-run
 ```
 
 Andra vanliga flaggor: `--from-step N`, `--only-step N`, `--no-video`, `--refs-only`, `--samples 24`.
@@ -127,6 +129,6 @@ Slutfilerna ligger i `output/<namn>/`:
 | `07-qc\resultat-oversikt.png` | Kvalitetsblad (helkropp, ansikte, handleder). |
 | `08-film\<namn>-ror-sig.mp4` | Rörelsefilmen, när den har renderats klart. |
 
-För Rosalina finns också `output\rosalina\08-film\rosalina-med-bord.blend`. Det är Blender-scenen med avatar och bord. Rörelsefilmen som mp4 är inte renderad. Kopian som ska dömas ligger i `../slask/avatar-auto-pipeline/granska/rosalina/`: dockan, kvalitetsbladet och samma Blender-scen.
+Ingen dealer från foton finns i mappen i dag: provdealern Rosalina raderades 2026-11-26.
 
 Om något avbryts kan du fortsätta utan att betala om: `--from-step 5` eller `--only-step 7`. Hoppa över filmen med `--no-video`. Betalda jobb sparar ett kvitto i stegmappen: `referenser.json`, `korning.json` och `riggjobb.json`. En omstart använder samma kvitto. Radera dem inte.

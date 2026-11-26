@@ -2,7 +2,7 @@
 filmlinsens värld) och lägger den på standarddockans rigg som en Blender Action.
 
 Kör:
-  blender -b assets/docka/standarddocka.blend --python-exit-code 1 --python verktyg/dealer3d_till_blender.py -- \
+  blender -b assets/docka/standarddocka_kvinna.blend --python-exit-code 1 --python verktyg/dealer3d_till_blender.py -- \
       --in <rörelse.json> [--namn ACTIONNAMN] [--spara NAMN.blend] [--naturlig-hand]
 Utan --spara hamnar scenen i slaskens rorelser/ (casino/slask/avatar-auto-pipeline/rorelser/NAMN.blend).
 

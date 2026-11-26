@@ -1,6 +1,6 @@
 """QC-renderingar ur standardscenen. Öppnar bordet, lägger ev. till dockan, sätter ljus och renderar namngivna kameror.
 
-Kör:  blender -b --python-exit-code 1 --python scen/qc_render.py -- --kameror topp film spelare_1 hel --ut qc --tagg bord [--docka assets/docka/standarddocka.blend] [--action NAMN --bildruta 30]
+Kör:  blender -b --python-exit-code 1 --python scen/qc_render.py -- --kameror topp film spelare_1 hel --ut qc --tagg bord [--docka assets/docka/standarddocka_kvinna.blend] [--action NAMN --bildruta 30]
 """
 import argparse, math, sys
 from pathlib import Path

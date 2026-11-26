@@ -1,6 +1,6 @@
 """Ett knapptryck: 1–8 foton av en person -> riggad 4K dealer-GLB i A-pose + QC-blad + kort rörelsefilm.
 
-    python auto_avatar.py --name rosalina
+    python auto_avatar.py --name dealer1
     python auto_avatar.py --photos p1.jpg p2.jpg p3.jpg --name kim --out output/kim
 
 Steg (varje steg skriver till egen numrerad mapp under output/<namn>/ och återupptas gratis via kvitton):
@@ -712,7 +712,7 @@ def pipeline(photos, name, out, outfit=None, video=True, seconds=6.0, samples=48
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--photos", nargs="+", type=Path, help="1–8 foton av samma person (annars läses input/<namn>/)")
-    ap.add_argument("--name", required=True, help="Namn på avataren (t.ex. rosalina)")
+    ap.add_argument("--name", required=True, help="Namn på avataren (t.ex. dealer1)")
     ap.add_argument("--out", type=Path, help="Utmapp (standard: output/<namn>)")
     ap.add_argument("--outfit", help="Engelsk klädbeskrivning (standard: mörkblå skjorta, mörka byxor). "
                                      "Skjortan måste vara tydligt icke-hudfärgad.")

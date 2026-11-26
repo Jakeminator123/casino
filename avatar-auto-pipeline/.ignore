@@ -18,3 +18,7 @@ _*.txt
 # Kontrollbilder och inspektionsdumpar som scen/qc_render.py och verktyg/inspektera.py skriver: maskinskrivna, upp
 # till 70 kB per dump. Läs en dump med sin sökväg (qc/inspektion/<modell>.json): där står skelettets ben och mått.
 qc/
+
+# Källistorna för texturerna och korten: maskinskrivna adresser (470 rader för korten) som bara ger brus i en
+# sökning. De står i Git och läses med sin sökväg: assets/bord/kort/kallor.json och assets/bord/texturer/kallor.json.
+assets/**/kallor.json

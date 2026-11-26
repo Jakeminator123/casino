@@ -225,7 +225,7 @@ Två grunddockor med **100 % identiskt skelett och samma bennamn**, så att alla
 
 | | Kvinna | Man |
 | --- | --- | --- |
-| Fil | `assets/docka/standarddocka_kvinna.blend/.glb` (även kopierad till `standarddocka.*`) | `assets/docka/standarddocka_man.blend/.glb` |
+| Fil | `assets/docka/standarddocka_kvinna.blend/.glb` | `assets/docka/standarddocka_man.blend/.glb` |
 | MPFB `gender` | 0,0 | 1,0 |
 | Stående längd | 1,70 m (YAML `langd_staende`, antaget så att sittande axlar/huvud stämmer) | 1,75 m |
 | Axelbredd (led) | 0,318 m (avståndet mellan STANDARD-axlarna) | 0,366 m |
@@ -439,7 +439,7 @@ Varje anrop loggas i `assets/meshy/meshy-logg.json` (saldo före/efter), bredvid
 
 2026-11-25 (Europe/Stockholm): **en** text-to-3D för dealerstolen, meshy-7.1, preview 20 + refine 10 = **30 krediter**, saldo **596 → 566**. Task preview `01a213fd-c334-71bd-93f2-fbcb2166bf4f`, refine `01a213fe-be63-7336-b4fd-0097f771171a`, båda SUCCEEDED (19:35–19:37). Prompt ungefär: hög blackjack-dealerpall, mörkbrun lädersits, låg rygg, svart metall, fotring. Skon, korten, chipsen och bordet byggs procedurellt.
 
-Den gamla fotopipelinen har dessutom förbrukning under `output/rosalina/02-meshy-delar/` (huvud/händer/kropp).
+Provdealern Rosalina, gjord från foton (cirka 95 krediter), raderades 2026-11-26 på Jakobs ord, med sina kvitton.
 
 ---
 
@@ -447,7 +447,7 @@ Den gamla fotopipelinen har dessutom förbrukning under `output/rosalina/02-mesh
 
 - Rörelsekatalogen är inte fylld med ~40 färdiga, godkända klipp. Nästa stora arbete efter standardscenen.
 - Grunddockan saknar kläder (medvetet). Nästa steg: skjorta/väst/byxor som separata mesh på samma rig.
-- Vägen från foton (steg 01–08) är inte kopplad till standardscenen: steg 08 bygger sitt eget bord. En namngiven dealer (Rosalina) finns bara i `output/`.
+- Vägen från foton (steg 01–08) är inte kopplad till standardscenen: steg 08 bygger sitt eget bord. Ingen dealer från foton finns kvar: provdealern Rosalina raderades 2026-11-26.
 - Texturerna, korten och kortatlasen i `assets/bord/` hämtades för hand; adresserna står i `kallor.json` men inget skript hämtar dem eller bygger atlasen. Stolens råfil är betald och finns bara på datorn där den beställdes. På en annan dator kan bordet och stolen därför inte byggas förrän filerna finns där.
 - Vilan (`sitt_vila`) håller händerna i luften framför magen; i spelets filmer vilar händerna på filten vid bordskanten.
 - Standarddockans avstånd till bordet är inte valt: måttfilen sätter henne på Paows uppmätta 0,38 m med blackjack-dealers antagna armar (0,29 och 0,26 m), och blackjack-dealers egen standarddocka står på antagna 0,18 m. Se 5.9.

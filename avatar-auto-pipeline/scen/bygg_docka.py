@@ -2,7 +2,7 @@
 ARKit-kompatibla shape keys för ansiktsuttryck, egna IK-kontroller, ledgränser och exportnamn som dealer3d kräver.
 
 Bygger två grunddockor med 100 % identiskt skelett/bennamn så alla rörelser kan återanvändas:
-  - standarddocka_kvinna.blend / .glb  (även speglad som standarddocka.blend / .glb)
+  - standarddocka_kvinna.blend / .glb
   - standarddocka_man.blend / .glb
 
 Kräver MPFB2 som Blender-tillägg i användarprofilen (bl_ext.user_default.mpfb).
@@ -80,7 +80,7 @@ def las_target(path: Path):
     return deltas
 
 
-def bygg_en(kon: str, kopiera_till_standard: bool = False):
+def bygg_en(kon: str):
     for o in list(bpy.data.objects):
         bpy.data.objects.remove(o, do_unlink=True)
     for dblock in (bpy.data.meshes, bpy.data.armatures, bpy.data.materials, bpy.data.actions):
@@ -491,10 +491,6 @@ def bygg_en(kon: str, kopiera_till_standard: bool = False):
     bpy.ops.wm.save_as_mainfile(filepath=str(blend_kon))
     bpy.ops.export_scene.gltf(filepath=str(glb_kon), export_format='GLB', export_apply=True, export_animations=True,
                               export_yup=True, use_selection=False)
-    if kopiera_till_standard:
-        bpy.ops.wm.save_as_mainfile(filepath=str(OUT / 'standarddocka.blend'))
-        bpy.ops.export_scene.gltf(filepath=str(OUT / 'standarddocka.glb'), export_format='GLB', export_apply=True, export_animations=True,
-                                  export_yup=True, use_selection=False)
     for f in OUT.glob('*.blend1'):
         os.remove(f)
     print('BYGGT', blend_kon)
@@ -503,8 +499,5 @@ def bygg_en(kon: str, kopiera_till_standard: bool = False):
 ap = argparse.ArgumentParser()
 ap.add_argument('--kon', choices=['kvinna', 'man', 'bada'], default='bada')
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
-if args.kon == 'bada':
-    bygg_en('kvinna', kopiera_till_standard=True)
-    bygg_en('man', kopiera_till_standard=False)
-else:
-    bygg_en(args.kon, kopiera_till_standard=(args.kon == 'kvinna'))
+for kon in (['kvinna', 'man'] if args.kon == 'bada' else [args.kon]):
+    bygg_en(kon)

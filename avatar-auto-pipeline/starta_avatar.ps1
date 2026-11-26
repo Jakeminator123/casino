@@ -60,7 +60,7 @@ if (-not $Name) {
     Write-Host "=========================================" -ForegroundColor Cyan
     if ($Folders.Count -eq 0) {
         Write-Host "Inga mappar finns under input\ ännu." -ForegroundColor Yellow
-        Write-Host "Skapa t.ex. input\rosalina och lägg in 1 till 8 foton."
+        Write-Host "Skapa t.ex. input\dealer1 och lägg in 1 till 8 foton."
         exit 1
     }
     Write-Host "Tillgängliga mappar i input\:"
