@@ -31,6 +31,11 @@ rörelse prövas mot innan den visas för honom.
   så fall nu skulle vara instoppat i bordet": ingen urgröpning mot magen, och markerbrickan nedsänkt inne i bordet.
 - **Markerbrickan följer bordet.** "Markerhållaren har inte förskjutits bak", "markerbrädan har inte gått bak som
   bordet": när bordet kommer närmare dealern ligger brickan vid dealerns kant.
+- **Markerbrickan är bordets kant mot dealern.** Om den första arbetsvyn: "Chipbrickan ska också vara så långt in mot
+  dealern, i bordet, att det faktiskt också är det som är 'gränsen' och slutet på bordet som vetter mot dealerns
+  mage": ingen remsa filt mellan brickan och kanten; brickans dealersida är bordets kant där dealern sitter.
+- **Händerna vilar på filten, inte i den.** "Händerna går in lite i bordet": ingen del av en hand under filtens yta,
+  och det ska synas att handen ligger på bordet.
 - **Armarna går aldrig genom bordets kant.** "En 'karm' finns som gör att armen från dealern går igenom karmen ungefär
   vid armbågen av framför allt dealerns egna högerarm och vänsterarm": underarmarna går över kanten.
 - **Högerhanden tar emot kortet med tummen, utan att handleden vrids i maxläge.** "Dealerns egna högerarm [är] för

@@ -1,0 +1,27 @@
+{
+  // For the editor only (Cursor, VS Code): where the type descriptions of Node are, for the TypeScript that lies outside
+  // the studio (the push check, the inbox, the slask's tool, the projects' own tools and browser modules). Without it
+  // an editor marks every `node:` import and `process` as unknown, though the code runs: Node runs these files itself
+  // and reads no tsconfig. Nothing is built from this file. The studio has its own (blackjack-dealer/studio/).
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "typeRoots": ["blackjack-dealer/studio/node_modules/@types"],
+    "types": ["node"]
+  },
+  "include": [
+    ".githooks/**/*.ts",
+    "inbox/**/*.ts",
+    "slask/slask.ts",
+    "avatar-auto-pipeline/scen/**/*.ts",
+    "standarddocka/**/*.ts",
+    "blackjack-dealer/**/*.ts"
+  ],
+  "exclude": ["**/node_modules", "blackjack-dealer/studio", "blackjack-dealer/.runtime"]
+}
