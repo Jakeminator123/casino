@@ -141,6 +141,13 @@ och kopian kör motorn i sidan (`cloud/studio/game-local.ts`). Hålkortets valö
 
 ## Ritade kort
 
+**Standardkortet (Jakob 2026-11-26):** kortet i standarddockans editor är standarden, "och finns låsningar och
+standarder som säger annat, stryk/radera/ändra det". Det är bordets eget kort ur Blenders modell (63 x 88 mm; ryggen
+och framsidorna ur `../avatar-auto-pipeline/assets/bord/kort/`), som editorn i `../standarddocka/` och studions dockvy
+ritar i standardrummet (`loadTable` i `dealer3d/src/standard-room.ts`). Standarddockans rörelser och de filmer som görs
+av dem utgår från det kortet. Det som står nedan om det gula och blå kortet gäller de filmer som redan finns (Paows)
+och de äldre utseendena i dockans scen, tills de är utbytta; ingenting nytt görs med det.
+
 Filmens kort har ingen valör: gult är ryggen (stängt) och blått framsidan (öppet), en sort per sida överallt (Jakob
 2026-11-17, 2026-11-20, 2026-11-24). Blå sidan bär rosa kryss och röd prick, gula sidan fylld röd cirkel och rosa kryss
 nära kortänden. `CARD_RGB` och `CARD_MARK` i `src/placement-model.ts`; dockan i Inspelning

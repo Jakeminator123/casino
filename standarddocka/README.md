@@ -146,6 +146,14 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   23 och 27 cm Inte bra, 31 cm "okej" i spelets vy och Bra från sidan, 35 cm Bra från sidan men Inte bra i spelets
   vy, där huvudet klipps. Dockan sitter därför med axlarna 0,31 m över filten. Vid den höjden går låren 11 mm emot
   bordets sarg med dagens fasta lårriktning (`figure-model.ts`): låren ska luta mer nedåt.
+- Mannens första egna rörelser finns (2026-11-26; dockan `man` i `../blackjack-dealer/dealer3d/src/doll.ts`, mätt på
+  modellen): vilan A1 till skon (`till-ankare-2-3-man`), ankaret (`ankare-2-3-man`) och given till plats 4
+  (`giv-fran-2-3-p4c1-ren-a-man`), byggda av `dealer3d/tools/ren-givar.ts`. Varje led ligger på rörelsens punkter i
+  varje ruta, benens längd håller, takten är Jakobs och given börjar och slutar i exakt ankaret. De spelas i editorn
+  med `?plats=4&vilan=till-ankare-2-3-man&giv=giv-fran-2-3-p4c1-ren-a-man`. Vilan håller för ögat. Given gör det inte
+  än (Jakob om rutan där kortet läggs: "vad gör dealern ens?"): högerhanden är knuten kring kortet, kortet ställs på
+  högkant, och bålen vrids 36 grader för att nå. Den ritas om med ett öppet grepp och mer lutning än vridning. Kvar:
+  de sex andra platserna och kvinnan.
 - Närmare bordet, utan att det blir trångt. Magen har 12 cm luft till kanten (Jakob 2026-11-26: "skjuta in dockorna
   aningen till mot bordet"); 8 cm närmare ger 4 cm. Flyttas dockan fram blir det trångt framför honom, som han såg
   ("du kan med fördel skjuta fram både sko/kort och dess placeringar om du skjuter fram dealern"): fingertopparna i

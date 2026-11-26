@@ -99,6 +99,20 @@ rörelse prövas mot innan den visas för honom.
   att anpassa unikt för respektive dealer som 'avatar-auto-pipeline' skapar, men fan, det ska kunna gå." Rörelserna
   ritas för standarddockornas egna kroppar, och en dealer från pipelinen ska kunna göra dem: den byggs på samma
   skelett, så att bara kroppens mått skiljer.
+- **Målet (2026-11-26).** "Skapa eller sätt in så man kan sätta in en av våra standarddockor i 'Bordet'. Alltså välja
+  en standarddealer som är en docka. Sedan ska den få bra rörelser enligt så som vi vill ha det." Och: "Sedan vill jag
+  se en manlig standarddocka på ett blackjackbord där allt faktiskt fungerar och där rörelserna är smidiga och
+  naturliga."
+- **Händer och kort hör ihop (2026-11-26).** "Se till att vi får till en väldigt bra och effektiv symmetri med händer
+  och kort." Om rutan där kortet läggs på plats 4 (handen knuten kring kortet, kortet på högkant): "vad gör dealern
+  ens? Förstår skripten att vi faktiskt byter hand?" Det ska synas vad varje hand gör: vänsterhanden drar kortet ur
+  skon, högerhanden tar det i ett öppet grepp, vänder det och lägger det, utan knuten hand och utan kort på högkant.
+- **Standardkortet är editorns (2026-11-26).** "Våra kort som används i 'standarddocka'-mappens editor är det som ska
+  användas som standard, och finns låsningar och standarder som säger annat, stryk/radera/ändra det." Kortet är
+  bordets eget (Blenders kort, 63 x 88 mm), i editorn och i studions dockvy.
+- **Skon och korten flyttas inte in (2026-11-26).** "Tänk på att sko och korten måste inte skjutas in såsom t.ex.
+  bordet eller annat såsom markerbricka behöver": bordets kant och brickan kommer till dockan; skon, korten och
+  kortplatserna står kvar.
 - **Sitthöjden (2026-11-26).** Av fyra höjder i vilan dömde han axlarna 23 och 27 cm över filten Inte bra, 31 cm
   "okej" i spelets vy och Bra från sidan, och 35 cm Bra från sidan men Inte bra i spelets vy (huvudet klipps):
   dockan sitter med axlarna 31 cm över filten. Om 31 cm: "i denna position som ser 'okej' ut så ska väl händerna mer
