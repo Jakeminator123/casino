@@ -121,12 +121,14 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   // bank's camera; without a floor to read that from, a view along the dealer's edge looks raised and one across it level.
   if (look === 'room') { const tiles = new T.GridHelper(40, 80, 0x4a525a, 0x343a40); tiles.position.set(edge[0], -0.898, edge[2]); scene.add(tiles); }
 
-  // The shoe: a wedge on the felt, its front plate leaning back; the next card shows on the plate.
+  // The shoe: a wedge on the felt, its front plate leaning back; the next card shows on the plate, 0.6 mm in behind the card
+  // that is drawn out (deal.card(0)'s normal looks into the shoe). Until 2026-11-26 it stood 0.6 mm in front of it, and the
+  // card drawn out came through it (Jakob: "åker in i den befintliga bakomliggande kortlekens kort").
   const profile = new T.Shape(), set = SHOE.frontHeight / Math.tan(SHOE.plateLean); profile.moveTo(0, 0); profile.lineTo(SHOE.length, 0); profile.lineTo(SHOE.length, SHOE.backHeight); profile.lineTo(set, SHOE.frontHeight); profile.lineTo(0, 0);
   const shoe = new T.Mesh(new T.ExtrudeGeometry(profile, {depth: SHOE.width, bevelEnabled: false}), new T.MeshStandardMaterial({color: C.shoe, roughness: 0.5, side: T.DoubleSide})); shoe.castShadow = true; shoe.receiveShadow = true; shoe.matrixAutoUpdate = false;
   const sideways: Vec3 = [-pose.back[2], 0, pose.back[0]], sameWay = sideways[0] * pose.far[0] + sideways[2] * pose.far[2] > 0; // back x up is one of the two ways across; the wedge is extruded along it
   place(shoe, pose.back, [0, 1, 0], sideways, sameWay ? pose.front : [pose.front[0] + pose.far[0] * SHOE.width, 0, pose.front[2] + pose.far[2] * SHOE.width]); scene.add(shoe);
-  const next = cardMesh(), start = deal.card(0); placeCard(next, {...start, centre: [start.centre[0] - start.normal[0] * 0.0006, start.centre[1] - start.normal[1] * 0.0006, start.centre[2] - start.normal[2] * 0.0006]}); scene.add(next);
+  const next = cardMesh(), start = deal.card(0); placeCard(next, {...start, centre: [start.centre[0] + start.normal[0] * 0.0006, start.centre[1] + start.normal[1] * 0.0006, start.centre[2] + start.normal[2] * 0.0006]}); scene.add(next);
   const card = cardMesh(); scene.add(card);
   // The cards a film of several has laid: each lies where the film says from its frame on.
   const lying = (options.read?.laid ?? []).map(l => { const m = cardMesh(), long = l.l as Vec3, normal = l.n as Vec3; placeCard(m, {centre: l.c as Vec3, long, normal, across: [normal[1] * long[2] - normal[2] * long[1], normal[2] * long[0] - normal[0] * long[2], normal[0] * long[1] - normal[1] * long[0]]}); m.visible = false; scene.add(m); return {from: l.from, mesh: m}; });
