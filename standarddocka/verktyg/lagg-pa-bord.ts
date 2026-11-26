@@ -4,7 +4,8 @@
 // bara dealern kommer ur filmen (Jakob 2026-11-26: "bordet och allt omkring bli grönt och sedan ska vi lägga in den
 // utskurne avataren ovanpå ... tillbaka till 3d-bordet. Så gör väl dealer").
 //
-//   node standarddocka/verktyg/lagg-pa-bord.ts <grön film.mp4> --platta <bordet ensamt.png> --ut <film.mp4>
+//   node standarddocka/verktyg/lagg-pa-bord.ts <grön film.mp4> [<fler filmer> …] --platta <bordet ensamt.png>
+//        (--ut <film.mp4> | --ut-mapp <mapp>)   flera filmer (klippen ur en tagning) läggs i en körning, med samma namn i mappen
 //        [--kortfarger]   spårkortets färger görs om till ett vanligt kort: den gula ryggen röd, ramen och märket vita
 //        [--skugga 1]     hur mycket av dealerns skugga på filten som läggs på vårt bord (0 ingen, 1 som i filmen)
 //        [--falt <film>]  det rena gröna mäts i den filmen i stället: hela tagningen, när filmen som läggs är ett klipp
@@ -21,10 +22,13 @@
 // Kräver FFmpeg på datorn (FFMPEG och FFPROBE pekar ut dem om de inte ligger i sökvägen).
 import {spawn, spawnSync} from 'node:child_process';
 import {once} from 'node:events';
+import {mkdirSync} from 'node:fs';
+import path from 'node:path';
 
 const arg = (name: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
-const film = process.argv[2], platta = arg('--platta'), ut = arg('--ut'), kortfarger = process.argv.includes('--kortfarger'), skugga = Number(arg('--skugga') ?? '1'), falt = arg('--falt') ?? film;
-if (!film || film.startsWith('--') || !platta || !ut || !(skugga >= 0 && skugga <= 1)) throw Error('node standarddocka/verktyg/lagg-pa-bord.ts <grön film.mp4> --platta <bordet ensamt.png> --ut <film.mp4> [--kortfarger] [--skugga 1]');
+const forstaVal = process.argv.findIndex((x, i) => i >= 2 && x.startsWith('--')), filmer = process.argv.slice(2, forstaVal < 0 ? undefined : forstaVal), film = filmer[0];
+const platta = arg('--platta'), ut = arg('--ut'), utMapp = arg('--ut-mapp'), kortfarger = process.argv.includes('--kortfarger'), skugga = Number(arg('--skugga') ?? '1'), falt = arg('--falt') ?? film;
+if (!film || !platta || !(filmer.length === 1 ? ut || utMapp : utMapp) || !(skugga >= 0 && skugga <= 1)) throw Error('node standarddocka/verktyg/lagg-pa-bord.ts <grön film.mp4> [<fler filmer> …] --platta <bordet ensamt.png> (--ut <film.mp4> | --ut-mapp <mapp>) [--kortfarger] [--skugga 1] [--falt <hela tagningen.mp4>]');
 const FFMPEG = process.env.FFMPEG || 'ffmpeg', FFPROBE = process.env.FFPROBE || 'ffprobe';
 const [W, H, takt] = spawnSync(FFPROBE, ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height,r_frame_rate', '-of', 'csv=p=0', film], {encoding: 'utf8'}).stdout.trim().split(',').map((x, i) => i < 2 ? Number(x) : x) as [number, number, string];
 if (!(W > 0 && H > 0)) throw Error(`${film} gick inte att läsa.`);
@@ -45,7 +49,7 @@ const gron = (r: number, g: number, b: number, ren: number) => { const s = (g - 
 
 // Första varvet, på var fjärde bildpunkt: raden där bordet börjar, och bordets rena gröna ljus per ställe (det ljusaste
 // en helt grön bildpunkt där har varit under filmen, räknat mot rutans eget hörn så att filmens glidning i ton inte räknas in).
-const C = 4, cw = Math.ceil(W / C), ch = Math.ceil(H / C), rent = new Float32Array(cw * ch); let kant = -1, antal = 0;
+const C = 4, cw = Math.ceil(W / C), ch = Math.ceil(H / C), rent = new Float32Array(cw * ch); let kant = -1;
 for await (const f of rutor(falt, falt !== film)) {
   const uppe = hornet(f, ...HORN.uppe), nere = hornet(f, ...HORN.nere), lu = ljus(uppe[0], uppe[1], uppe[2]), ln = ljus(nere[0], nere[1], nere[2]), rn = nere[1] - Math.max(nere[0], nere[2]);
   if (kant < 0) { for (let y = 8; y < H - 8 && kant < 0; y++) { const o = (y * W + 20) * 3, l = ljus(f[o], f[o + 1], f[o + 2]); if (Math.abs(l - ln) < Math.abs(l - lu)) kant = y; }
@@ -63,9 +67,12 @@ for (let varv = 0; varv < 3; varv++) { const forra = rent.slice(), R = 6; for (l
 // Andra varvet: varje ruta läggs på plattan.
 const P = (await rutor(platta, true).next()).value as Buffer; if (!P) throw Error(`${platta} gick inte att läsa.`);
 const KOD = ['-an', '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv', '-movflags', '+faststart'];
-const kod = spawn(FFMPEG, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', `${W}x${H}`, '-r', takt, '-i', '-', '-vf', 'scale=out_color_matrix=bt709:out_range=tv', ...KOD, ut], {stdio: ['pipe', 'ignore', 'inherit'], windowsHide: true});
-const klar = once(kod, 'close'), bild = Buffer.alloc(N);
-for await (const f of rutor(film)) {
+if (utMapp) mkdirSync(utMapp, {recursive: true});
+for (const en of filmer) {
+const mal = utMapp ? path.join(utMapp, path.basename(en)) : ut!;
+const kod = spawn(FFMPEG, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', `${W}x${H}`, '-r', takt, '-i', '-', '-vf', 'scale=out_color_matrix=bt709:out_range=tv', ...KOD, mal], {stdio: ['pipe', 'ignore', 'inherit'], windowsHide: true});
+const klar = once(kod, 'close'), bild = Buffer.alloc(N); let antal = 0;
+for await (const f of rutor(en)) {
   const uppe = hornet(f, ...HORN.uppe), nere = hornet(f, ...HORN.nere), ru = uppe[1] - Math.max(uppe[0], uppe[2]), rn = nere[1] - Math.max(nere[0], nere[2]), ln = ljus(nere[0], nere[1], nere[2]);
   for (let y = 0; y < H; y++) { const bord = y >= kant, ren = bord ? rn : ru, rad = (y / C | 0) * cw;
     for (let x = 0; x < W; x++) { const o = (y * W + x) * 3; let r = f[o], g = f[o + 1], b = f[o + 2]; const k = gron(r, g, b, ren);
@@ -75,11 +82,14 @@ for await (const f of rutor(film)) {
       if (k >= 1) { bild[o] = pr; bild[o + 1] = pg; bild[o + 2] = pb; continue; }
       // Dealern: det gröna som spiller över i kanten tas ned till det största av rött och blått.
       if (g > Math.max(r, b)) g = Math.max(r, b);
-      if (kortfarger) { // spårkortets färger (editor/scen.ts NYCKEL) blir ett vanligt kort: röd rygg, vit framsida
-        if (r > 170 && g > 130 && b < 110 && r - b > 100) { const l = ljus(r, g, b) / 205; r = Math.min(255, 184 * l); g = Math.min(255, 51 * l); b = Math.min(255, 59 * l); }
-        else if ((b > 170 && g > 130 && r < 120) || (r > 170 && b > 140 && g < 120)) { r = 244; g = 242; b = 236; } }
+      if (kortfarger) { // spårkortets färger (editor/scen.ts NYCKEL) blir ett vanligt kort: röd rygg, vit framsida.
+        // Gränserna är snäva: nästan inget blått i det gula, nästan inget rött i ramens blå och nästan inget grönt i
+        // märkets rosa, så att varken ljus hud eller en ljusblå skjorta i skugga räknas dit.
+        if (r > 185 && g > 140 && b < 75 && g > 0.7 * r) { const l = ljus(r, g, b) / 205; r = Math.min(255, 184 * l); g = Math.min(255, 51 * l); b = Math.min(255, 59 * l); }
+        else if ((r < 70 && g > 150 && b > 190) || (r > 190 && g < 90 && b > 160)) { r = 244; g = 242; b = 236; } }
       bild[o] = r * (1 - k) + pr * k; bild[o + 1] = g * (1 - k) + pg * k; bild[o + 2] = b * (1 - k) + pb * k; } }
   antal++; if (!kod.stdin.write(bild)) await once(kod.stdin, 'drain');
 }
 kod.stdin.end(); const [slut] = await klar; if (slut !== 0) throw Error('FFmpeg kunde inte skriva filmen.');
-console.log(`${antal} rutor lagda på ${platta}: ${ut} (bordet börjar vid rad ${kant})`);
+console.log(`${antal} rutor lagda på ${platta}: ${mal} (bordet börjar vid rad ${kant})`);
+}

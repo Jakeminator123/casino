@@ -178,19 +178,18 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Väntar på Jakob
 
-- Standarddockan (2026-11-26): givarna till alla sju platser, provet `givar-sju-platser-20261126` (Granska, Prov) med
-  kortet `givar-sju-platser` i Beslut. Om A och B till plats 4 (provet `giv-man-20261126`) svarade han "Superbra, 5/5
-  för båda" och "gärna A och B", så båda är ritade till alla platser, för mannen och kvinnan; plats 6 och 7 ges med
-  vänsterhanden ensam, och kortplatserna på dockornas bord är vända mot sin spelare. I chatten samma dag sade han att
-  vänsterhanden är "fine" men ska märkas (varje giv bär nu fältet `marke`, och editorn säger det), och att sju kort per
-  plats ur de två givarna inte får glömmas: det är nästa steg, överst i `../standarddocka/README.md`. Kvar att höra
-  från honom: om de vända kortplatserna ska bli standard.
-  Arbetet sker i `../standarddocka/` (läget och nästa steg i dess README) och visas för honom som prov härifrån; hans
-  ord står som krav i `../standarddocka/AGENTS.md`.
-- Dockans film omgjord till en person (betalda prov, 776 krediter): proven `docka-till-person-20261126` (dömt "Mycket
-  bra"), `docka-till-person-2-20261126` och `docka-till-person-3-20261126`; de två sista har var sitt kort i Beslut
-  (håller skarven mellan två klipp, och ska dealern filmas i nyckelfärger). Vad som prövades står i
-  `../standarddocka/README.md`, Nästa steg.
+- Standarddockan, hela kortrundan som en person (2026-11-26): provet `tomasz-runda-20261126` (Granska, Prov) med kortet
+  `tomasz-runda-plats-4` i Beslut. Dockan gör vilan till skon och första kortet till plats 7 till 1 i en tagning, filmad
+  med grönt överallt; Aleph 2 gör om den till personen; filmen styckas i åtta klipp utan stillhet, och den utskurna
+  dealern läggs på vårt eget bord. Plats 4 är gjord (1 427 krediter med försöken); de sex andra kamerorna är inspelade
+  med dockan och väntar på hans ja, cirka 440 krediter var. Arbetet sker i `../standarddocka/` (läget och nästa steg i
+  dess README) och visas för honom som prov härifrån; hans ord står som krav i `../standarddocka/AGENTS.md`.
+- Givarna till alla sju platser (provet `givar-sju-platser-20261126`) dömde han "Nja … I övrigt bra!": blicken vid
+  skon är rättad i alla givar. A och B till plats 4 fick "Superbra, 5/5 för båda" och "gärna A och B". Kvar från
+  honom där: sju kort per plats (nästa steg, överst i `../standarddocka/README.md`); de vända kortplatserna nämnde han
+  inte för sig. De tre äldre proven `docka-till-person-…` är besvarade: det första dömt "Mycket bra", om det andra
+  frågade han om kameran (det var den äldre, brantare; den nya serien är filmad med spelets kamera), och om det
+  tredje, nyckelfärgerna, lät han agenten avgöra: de används.
 - Om det som Material behåller utan fil ska kopieras hit från den stationära: hans två bilder av henne, hennes två
   keystones och kortets textur (`assets/cards/kortets-textur.png`), som en ny beställning ritar kortet med. Allt annat
   som bara fanns där är borta ur registren sedan 2026-11-26. Talets nästa replik behöver en bank av en tatuerad vila som

@@ -166,9 +166,32 @@ Vad som måste finnas före en körning, vilket sätt det än är:
   bildutsnitt, vid samma bord, och korten följer med (ur skon, från hand till hand, ner på platsen). 20 krediter: en
   femtedel av Aleph 2 för samma längd. Referensfilmen i 832 x 480 föll i kontrollen före anropet, utan kostnad: den ska
   vara minst 854 x 480.
+- Femte provet, 2026-11-26, en hel kortrunda i en tagning (agentens läsning; Jakobs dom står i provet
+  `tomasz-runda-20261126`, där filmerna ligger): dockans tagning på 15,5 s (vilan till skon och första kortet till sju
+  platser, 465 rutor, spelets kamera) genom **Aleph 2**, 420 krediter per tagning (28 gånger 15 hela sekunder).
+  - **En lång tagning håller.** Ut kom exakt lika många rutor som in, samma man hela vägen, och korten läggs och
+    försvinner där dockans gör det. Filmen styckas efter dockans egen klipplista (`standarddocka/verktyg/stycka.ts`).
+    Det är billigare än ett klipp i taget, eftersom en giv på 1,6 s annars kostar minst 56 krediter.
+  - **Receptet:** styrbilden för vilan vid sekund 0 och styrbilden för ankaret vid skon vid fyra av stoppen med tomt
+    bord (samma bild fyra gånger; `seconds` tar decimaler). Dockans tagning har 0,2 s exakt stillhet före och efter
+    varje rörelse, där kortet försvinner: bytet blev rent på en ruta, utan utsmetning.
+  - **Styrbilderna låser inte bildpunkterna.** Med bordet i filmen gled hela bilden upp till 4 bildpunkter i höjdled
+    över tagningen, olika mycket i olika delar av bilden; det syns som ett litet hopp när klippen spelas i en annan
+    ordning. `stycka.ts --rikta` flyttar tillbaka varje klipp. Med grönt överallt gled den högst 2.
+  - **Kortets framsida** blev röd i hela tagningen när ingen styrbild visade ett liggande kort. I ett klipp på 2,2 s
+    höll en styrbild med dockans vita kort inlagt (sist i klippet) framsidan vit. I den långa tagningen gjorde tre
+    sådana styrbilder, med kortet på tre olika platser, det sämre: ett kort låg kvar på den sista platsen nästan
+    hela filmen. Visa alltså aldrig kort på olika platser i styrbilderna för en och samma tagning.
+  - **Grönt överallt, och dealern lagd på vårt eget bord** (Jakobs väg, som blackjack-dealers filmer): editorns
+    utseende `nyckel` med grön bakgrund och grönt bord utan tryck höll genom hela tagningen, också mot en ljusblå
+    skjorta; blå bakgrund valdes bort för att den ligger för nära blå kläder. `standarddocka/verktyg/lagg-pa-bord.ts`
+    klipper ut dealern och lägger honom på en bild av bordet ensamt genom samma kamera, med skuggorna kvar. Bordet och
+    bakgrunden är då samma bildpunkter i varje klipp. Spårkortets framsida varierade i utseende mellan givarna.
+  - **Styrbilder för en sidokamera** (plats 1) med ett blad av personen ur fem vinklar som extra referens: samma man,
+    rätt ställning. Bladet och en helbild i 4K gjordes först ur hans tre foton (GPT Image 2.6, 10–16 krediter var).
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
-- Inte prövat hos oss: en annan kamera än spelets, Kling 4 med styrbilden som första bild och filmen som lös förlaga
+- Inte prövat hos oss: en hel film från en annan kamera än spelets (styrbilderna för plats 1 finns), Kling 4 med styrbilden som första bild och filmen som lös förlaga
   (det sätt som kan ge en naturligare rörelse än dockans; anropet ligger färdigt i tredje provets mapp), Seedance 2.5
   som redigerare, Act-Two med dockan som den som spelar, och flera kameror bredvid varandra i en och samma film.
 - **Korta klipp:** Aleph 2 tar ingen film under 2 s och Kling 4 ingen under 3 s. En rörelse på 1 s filmas därför

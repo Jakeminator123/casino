@@ -3,47 +3,19 @@
   "about": "What waits for Jakob: one entry per question (kind beslut) or per thing only he can do (kind gora), shown as one card each in the studio's view Beslut (/studio/beslut/, lab only). The list's order is the order of urgency, the most urgent first. An entry: id, kind, question (at most 14 words), leads (one sentence: what his answer leads to), optionally proof (a folder under assets/proofs/) with file, page (an address in the lab, e.g. game.html?table=casino), link (an address outside, shown as text to open on his phone) and cost (free text), chips (two to four {value, label} for beslut, one to four for gora), asked (date), from (the lane that asks) and answer. An agent adds an entry with answer null, changes only its own entries, reads the file right before editing it and keeps the form JSON.stringify gives with two spaces; it closes an entry by taking it out once his answer is carried out, and the commit says what he answered. Only the page writes answer ({value, note, at}, tools/decision-store.ts); no agent sets, changes or clears an answer he has given. The strict reader is tools/decision-register.ts. The repo is public: no secret, personal detail or path of this machine.",
   "decisions": [
     {
-      "id": "mannens-giv-vandningen",
+      "id": "tomasz-runda-plats-4",
       "kind": "beslut",
-      "question": "Mannens nya giv till plats 4: vilken vändning ska gälla?",
-      "leads": "Den du väljer ritas till alla sju platser och för kvinnan; säger du ingen ritas given om efter din anteckning.",
-      "proof": "giv-man-20261126",
-      "chips": [
-        {
-          "value": "a",
-          "label": "A: vänds på vägen"
-        },
-        {
-          "value": "b",
-          "label": "B: vänds vid platsen"
-        },
-        {
-          "value": "ingen",
-          "label": "Ingen av dem"
-        }
-      ],
-      "asked": "2026-11-26",
-      "from": "standarddocka",
-      "answer": {
-        "value": "a",
-        "note": "Superbra, 5/5 för båda faktist! Kanon skulle ju var att ha båda uppsöttningarna, men så de skulle kunan dela till alala spealre och upp till 7 kort för respekive spelare/seat så att säga på ett eelr aant sätt.. SÅ gärn A och B",
-        "at": "2026-11-26T11:54:40.085Z"
-      }
-    },
-    {
-      "id": "docka-till-person-omgang-2",
-      "kind": "beslut",
-      "question": "Dockans film till en person, omgång 2: möts de två klippen utan skarv?",
-      "leads": "Ja: givarna filmas som korta klipp som fogas i ankarna; nej: de filmas i en följd och styckas.",
-      "proof": "docka-till-person-2-20261126",
+      "question": "Hela kortrundan som Tomasz på vårt bord: är det här vägen?",
+      "leads": "Säger du ja görs de sex andra kamerorna likadant för cirka 440 krediter var, annars rättas det du antecknar först",
+      "proof": "tomasz-runda-20261126",
       "chips": [
         {
           "value": "ja",
-          "label": "Ja, skarven håller"
+          "label": "Ja, kör alla kameror"
         },
         {
           "value": "nastan",
-          "label": "Nästan"
+          "label": "Nästan: se anteckningen"
         },
         {
           "value": "nej",
@@ -52,39 +24,8 @@
       ],
       "asked": "2026-11-26",
       "from": "standarddocka",
-      "answer": {
-        "value": "nastan",
-        "note": "Är inte denan filmad med en annan kameravinkle?",
-        "at": "2026-11-26T11:55:12.925Z"
-      }
-    },
-    {
-      "id": "docka-till-person-omgang-3",
-      "kind": "beslut",
-      "question": "Omgång 3: ska dealern filmas i nyckelfärger, så att spelet ritar bordet?",
-      "leads": "Ja: nästa omgång filmas med blå bakgrund och grönt bord, och spelet ritar bordet genom samma kamera.",
-      "proof": "docka-till-person-3-20261126",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja, nyckelfärger"
-        },
-        {
-          "value": "nej",
-          "label": "Nej, bordet i filmen"
-        },
-        {
-          "value": "prova",
-          "label": "Pröva mer först"
-        }
-      ],
-      "asked": "2026-11-26",
-      "from": "standarddocka",
-      "answer": {
-        "value": "prova",
-        "note": "Deaa är gammal elelr? om inte så får du avgöra faktist",
-        "at": "2026-11-26T11:56:06.713Z"
-      }
+      "cost": "cirka 2 650 krediter för sex kameror",
+      "answer": null
     },
     {
       "id": "giv-utan-vandning-i-handen",
@@ -109,30 +50,6 @@
         "at": "2026-11-19T12:33:41.855Z"
       },
       "cost": "en film, cirka 64 krediter"
-    },
-    {
-      "id": "givar-sju-platser",
-      "kind": "beslut",
-      "question": "Standarddockans giv till alla sju platser: duger den?",
-      "leads": "Säger du ja är nästa steg fler kort per plats (upp till sju) och valet mellan A och B, annars ritas givarna om efter din anteckning",
-      "proof": "givar-sju-platser-20261126",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja, den duger"
-        },
-        {
-          "value": "nastan",
-          "label": "Nästan: se anteckningen"
-        },
-        {
-          "value": "nej",
-          "label": "Nej"
-        }
-      ],
-      "asked": "2026-11-26",
-      "from": "standarddocka",
-      "answer": null
     }
   ]
 }
