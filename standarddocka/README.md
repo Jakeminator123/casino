@@ -23,29 +23,42 @@ standarddocka/
     editor.ts   sidan: tidslinjen, kamerorna, handtagen, Spara, Återställ, Spela in
     scen.ts     scenen: dockan (mannen eller kvinnan) i standardrummet (bordet, stolen och ljuset ur
                 ../blackjack-dealer/dealer3d/src/standard-room.ts, samma som studions dockvy ritar), kortet, kamerorna
-    rorelse.ts  rörelsen: grundrörelser efter varandra, skarven utjämnad, ändringarna ovanpå, vem som håller kortet
+    rorelse.ts  rörelsen: grundrörelser efter varandra (dockans egna där de finns), skarven, takten, ändringarna
+                ovanpå, vem som håller kortet, och kontrollen av ett sparat lager (`lagretsFel`)
     armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp), och kroppens mått tagna
                 på dockans hud (bålen som skivor, huvudet, axellederna, armens tjocklek) för spärren
     kropp.ts    spärren: det han drar i hålls inom vad en kropp kan (ingen arm genom bålen, huvudet eller bordet,
                 ingen hand i filten eller bortom armens räckvidd, armbågen och handleden inom sina lägen); ren kod
   verktyg/      för agenter, utan fönster (hur de används: skillen granska-rorelse, ../.claude/skills/granska-rorelse/)
     titta.ts    stillbilder ur valda kameror vid valda tider, med editorns mått, eller en inspelning; närbilder av en
-                hand eller kortet (kamerorna narahoger, naravanster, narakort); `--andring '<json>'` lägger en
-                ändring före bilderna utan att spara den; `--kor` räknar ett uttryck i sidan och skriver svaret;
-                kör editorn i ett headless Chrome under det delade låset
-    mat.ts      mäter en rörelse ruta för ruta mot vad en hand och ett kort kan göra, räknad som editorn spelar den
-                (takten, de små rörelserna, spärren): fingrar i kortet eller filten, kortet utan stöd, plötsliga
-                vändningar, ryck, hopp på en ruta, landningen; ingen webbläsare. `--docka man|kvinna` (förval
-                mannen). `--alla` är spärren före en inspelning: alla sju platser, en rad var, och rött om någon
-                har ett finger genom kortet eller i filten, kortet utan stöd, ett hörn under filten, ett hopp, en
-                sned landning, ett ben (överarm, underarm, fingerben) som ändrar längd, en handled utom armens
-                räckvidd, eller en hand mer än 50 grader från underarmen (mer än kroppen ritar)
+                hand eller kortet (kamerorna narahoger, naravanster, narakort; de spelas inte in); `--andring '<json>'`
+                lägger en ändring före bilderna utan att spara den; `--kor` räknar ett uttryck i sidan och skriver
+                svaret; `--spara` skriver om det sparade ur filen innan farten, de små rörelserna och ändringarna
+                läggs på, och stannar med ett fel om lagret inte kan användas; ett ogiltigt namn i `--giv` eller
+                `--vilan` ger ett fel. Kör editorn i ett headless Chrome under det delade låset, som
+                `../blackjack-dealer/tools/lab-look.ts` tar det (väntar högst tre minuter; ett lås äldre än 20 minuter
+                är kvar efter en körning som dog och tas över)
+    mat.ts      mäter en rörelse ruta för ruta, räknad som editorn spelar den (takten, ändringarna, de små
+                rörelserna, blicken mot spelets kamera, spärren), utan webbläsare. Varje tid står i filmens sekunder
+                och bredvid "i lagret", grundrörelsens sekunder (det en ändrings `tid` tar), och takten som mättes
+                står överst. `--docka man|kvinna` (förval mannen). `--alla` är spärren före en inspelning: alla sju
+                platser, en rad var, och rött om något av det här finns: ett lager med fel; en giv som inte börjar
+                och slutar i sitt ankare, eller en vila som inte slutar i sitt (inom 0,5 mm); ett ben (överarm,
+                underarm, fingerben) som ändrar längd; en handled utom armens räckvidd; en hand mer än 50 grader
+                från underarmen (mer än kroppen ritar); en fingerled bortom sitt läge; ett finger i filten eller
+                genom kortet (också i skon); handflatan i filten; kortet utan stöd eller med ett hörn under filten;
+                ett hopp eller ett ryck (fartens ändring som vektor) i en handled, armbåge, fingertopp, kortet,
+                huvudet eller blicken, i alla rutor och med ankaret stilla före och efter; en sned landning.
+                Utskriften säger också vad mätningen inte ser (dockans egen kropp, armarna mot kanten och brickan,
+                låren och stolen, hur det ser ut)
   rorelser/     det editorn sparar, en rörelse per kortplats: a1-a23-p<plats>c1.json (vilka grundrörelser, blicken,
                 farten per del, ändringarna), för en dockas egna rörelser a1-a23-p<plats>c1-<docka>.json, och
                 <namn>.rutor.json (hela rörelsen ruta för ruta i dockans format, med kroppens mått, skriven vid
-                Spara). Ett lager som hör till en annan grundrörelse än den som spelas används inte, och sidan
-                säger det; mappen finns först när något har sparats
-  klipp/        filmerna Spela in gör: <rörelse>-<del>-<kamera>.mp4 (1764 x 1174, 30 bilder i sekunden); en ny
+                Spara). Ett lager som hör till en annan grundrörelse än den som spelas, eller som har fel (en
+                felstavad led, en vridning som inte har längden 1, en tid utanför rörelsen), används inte, och sidan
+                säger vad; mappen finns först när något har sparats
+  klipp/        filmerna Spela in gör: <rörelse>-<del>-<kamera>-<docka>[-nyckel].mp4, på prov
+                prov-[<vilan>-]<given>-<del>-<kamera>-<docka>.mp4 (1764 x 1174, 30 bilder i sekunden); en ny
                 inspelning med samma namn skriver över den förra; går inte in i Git
   STARTA editorn.cmd   dubbelklicka för att starta editorn och öppna den i webbläsaren
 ```
@@ -67,12 +80,16 @@ egna sparade ändringar.
   (`seatEye` i `../blackjack-dealer/dealer3d/src/world.ts`); plats 4 är spelets kamera.
 - **Dockan:** mannen eller kvinnan (knapparna "Dockan", eller `?docka=kvinna`). De har samma skelett, och där de
   spelar samma grundrörelser delar de det som sparas; en dockas egna rörelser har sitt eget sparade lager.
-- **Ändringarna** (rättat 2026-11-26 efter en utomstående granskning): en hands ändringar läggs ihop och läggs på en
-  gång, så ordningen de gjordes i spelar ingen roll, och det han ser är det som sparas, mäts och spelas in. Toningen,
-  blicken och greppet räknas i spelad tid, så inget hoppar där stillheten mellan två delar klipps bort. Kortet följer
+- **Ändringarna:** en hands ändringar läggs ihop och läggs på en gång, så ordningen de gjordes i spelar ingen roll,
+  och det han ser är det som sparas, mäts och spelas in. "Hur länge ändringen varar" är filmens sekunder åt varje håll;
+  blicken och greppet tonas i spelad tid, så inget hoppar där stillheten mellan två delar klipps bort. Kortet följer
   en ändrad hand bara mellan skon och landningen (greppet tonas in och ut över 0,25 s) och ligger alltid på sin
   plats när det har lagts. Kulorna står där lederna faktiskt är; en armbågsändring läggs på armbågens cirkel när han
-  släpper.
+  släpper. Ett drag inom 0,1 s från en ändring av samma led ändrar den i stället för att lägga en ny bredvid. Ctrl+Z
+  mitt i ett drag ångrar inget.
+- **Uppspelningen** stannar när en kula väljs eller ett drag börjar, så att draget görs i rutan som syns. Slingan står
+  0,8 s i slutet och 0,4 s i början innan den börjar om, så att steget från skon till vilan syns som en omstart och
+  inte som ett ryck.
 - **Spärren** (Jakob 2026-11-26: "Sånna här rörelser ska ju bara inte gå"): det han drar i stannar vid kroppen,
   bordet och vad en led kan, och en rad överst i bilden säger vad som tog emot, till exempel "Höger armbåge kan inte gå
   längre in: kroppen är i vägen." När han släpper sparas ändringen som det som faktiskt blev, så att nästa drag börjar
@@ -89,7 +106,8 @@ egna sparade ändringar.
 - **Takt:** förvalet är Jakobs takt (`AGENTS.md`): vilan till skon 1 s, kortet ut 1 s, handen tillbaka 0,6 s, räknat
   på tiden då något rör sig; stillheten i ankaret klipps bort (`STANDARDTAKT` och `taktFor` i `editor/rorelse.ts`).
   Varje del i listan "Rörelsen består av" visar sina sekunder; ett nytt tal gör delen fortare eller långsammare (en
-  fjärdedel till fyra gånger grundrörelsens fart), jämnt genom delen. En egen fart sparas med rörelsen, följer med i
+  fjärdedel till fyra gånger grundrörelsens fart), jämnt genom delen. Ett tomt fält eller 0 ändrar inget, och ett tal
+  utanför det delen kan ta ger ett besked vid fältet om vad den blev. En egen fart sparas med rörelsen, följer med i
   inspelningen och i rutorna, och Återställ går tillbaka till förvalet. Ändringarna sitter kvar i samma ögonblick av
   rörelsen när farten ändras. En del som redan är i hans takt (dockans egna rörelser) spelas som den är, och den
   klippta stillheten får aldrig dölja mer än 1 mm glid.
@@ -99,18 +117,29 @@ egna sparade ändringar.
   att klippen fortfarande möts i ankaren, och sparas med rörelsen (`liv` i filen; `medLiv` i `editor/rorelse.ts`).
 - **Blicken** är rörelsens egen: i vilan ser han rakt fram, mot spelaren på plats 4 i ögonhöjd, vilken kamera som än
   är vald, så att två klipp som möts har samma huvud.
-- **Spara mäter armarna** på den färdiga rörelsen, med ändringarna i, skriver måtten i rutornas fält `armar` och säger
-  till om en underarm går genom bordets kant.
+- **Spara** ser först efter om filen har ändrats sedan sidan laddades (i en annan flik eller av en agent), och om det
+  som ligger sparat inte används (det hör till en äldre rörelse eller har fel). Då frågas han i vanliga ord, med valen
+  "Ladda om sidan", "Spara ändå" och "Låt bli", och inget skrivs förrän han väljer. Ett sparande i taget: knappen är
+  avstängd medan det pågår, och servern skriver samma fil en gång i taget, var gång under ett eget tillfälligt namn.
+  Lagret prövas innan det skrivs. Spara mäter också armarna på den färdiga rörelsen, med ändringarna i, skriver
+  måtten i rutornas fält `armar` och säger till om en underarm går genom bordets kant.
 - **En grundrörelse på prov:** `?giv=<namn>` och `?vilan=<namn>` (eller `--giv`, `--vilan` i verktygen) spelar och mäter
   en annan fil ur `../blackjack-dealer/dealer3d/data/` i stället för platsens, utan det sparade lagret och utan att
-  kunna spara. För den som gör om en grundrörelse.
+  kunna spara. En giv på prov utan vila börjar i vilan för den docka den är ritad för. Ett namn som inte är ett namn
+  på en grundrörelse ger ett fel i stället för platsens vanliga rörelse. För den som gör om en grundrörelse.
 - **Nyckelfärger:** med `?utseende=nyckel` i adressen (eller `--utseende nyckel` i `verktyg/titta.ts`) ritas scenen för
   film där dealern ska skiljas ut i efterhand: bakgrunden blå och utan golv, bordet och markerbrickan gröna utan
   tryck, kasseringslådan borta, och korten i spårfärger. Färgerna står i `NYCKEL` i `editor/scen.ts`. Inspelade klipp
   får då `-nyckel` sist i namnet.
 - **Spela in:** hela rörelsen, en del av den eller given (kortet ut och handen tillbaka i samma film), från den valda
-  kameran eller från alla sju platserna i ett svep, utan kulor och pilar. Blicken står fast under inspelningen, så att det är samma rörelse från varje kamera. Filmerna hamnar i
-  `klipp/`. Kräver FFmpeg på datorn (`ffmpeg` i sökvägen, eller miljövariabeln `FFMPEG`).
+  kameran eller från alla sju platserna i ett svep, utan kulor och pilar. Blicken står fast under inspelningen, så
+  att det är samma rörelse från varje kamera, och panelen, tidslinjen och kameran går inte att röra medan den pågår
+  (Esc avbryter). Filmerna hamnar i `klipp/`, med dockan i namnet. Kräver FFmpeg på datorn (`ffmpeg` i sökvägen,
+  eller miljövariabeln `FFMPEG`).
+- **För verktygen:** `window.editor` (uppräkningen överst i `editor/editor.ts`). `state()` har utöver lägena bland
+  annat `sparr` (vad spärren höll emot), `handledGrader` (handledens vinkel som kroppen ritade den och som rutan bad
+  om), `lagretsFel`, `aldreSparat`, `dockansEgna`, `sparasSom`, `bildvinkel` och `sparar`. `save()` stannar med
+  sidans fråga som fel, så att ett verktyg aldrig skriver över i tysthet; `save(true)` skriver över.
 
 En ändring i `editor/server.ts` gäller först när servern har startats om: stäng fönstret den körs i och starta igen
 (en server som en agent har startat utan fönster stoppas med sitt process-id, efter att `/vem` har svarat
@@ -165,8 +194,8 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 - Mannens första egna rörelser finns (2026-11-26; dockan `man` i `../blackjack-dealer/dealer3d/src/doll.ts`, mätt på
   modellen): vilan A1 till skon (`till-ankare-2-3-man`), ankaret (`ankare-2-3-man`) och given till plats 4
   (`giv-fran-2-3-p4c1-ren-a-man`), byggda av `dealer3d/tools/ren-givar.ts`. Varje led ligger på rörelsens punkter i
-  varje ruta, benens längd håller, takten är Jakobs och given börjar och slutar i exakt ankaret. De spelas i editorn
-  med `?plats=4&vilan=till-ankare-2-3-man&giv=giv-fran-2-3-p4c1-ren-a-man`. Vilan håller för ögat. Given gör det inte
+  varje ruta, benens längd håller, takten är Jakobs och given börjar och slutar i exakt ankaret. Editorn spelar dem
+  på plats 4 med mannen (förvalet). Vilan håller för ögat. Given gör det inte
   än (Jakob om rutan där kortet läggs: "vad gör dealern ens?"): högerhanden är knuten kring kortet, kortet ställs på
   högkant, och bålen vrids 36 grader för att nå. Den ritas om med ett öppet grepp och mer lutning än vridning. Kvar:
   de sex andra platserna och kvinnan.
@@ -175,28 +204,31 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   ("du kan med fördel skjuta fram både sko/kort och dess placeringar om du skjuter fram dealern"): fingertopparna i
   vilan når då 20 cm förbi spelets kant, dealerns egna kortplatser börjar 11–12 cm förbi den, och vänsterhanden
   ligger på D.C3. Därför sitter dockan kvar där kortplanen räknar med (axlarna 0,38 m bakom spelets kant), och det är
-  bordets dealerkant och brickan som kommer 8 cm närmare honom: kanten 23 cm bakom spelets kant i stället för 15
-  (`--kant-bak 0.23` i `../avatar-auto-pipeline/scen/bygg_bord.py`). Kortplanen, skon och avstånden från dealern till
-  korten är då som de var. Det bordet är byggt som en egen modell, `standardbord_nara23`, och editorn visar det för en
+  bordets dealerkant och brickan som kommer 8 cm närmare honom: kanten 23 cm bakom spelets kant i stället för 15.
+  Kortplanen och avstånden från dealern till korten är då som de var. Det bordet är byggt som en egen modell,
+  `standardbord_nara23` (`--docka` i `../avatar-auto-pipeline/scen/bygg_bord.py`), och editorn visar det för en
   rörelse som är ritad för dockan `man` eller `kvinna` (`bordFor` i `editor/scen.ts`); de äldre rörelserna visas vid
   bordet med kanten 15 cm närmare (`standardbord_nara`) tills de är utbytta, och då tas det bordet och spelets
   ursprungliga (`standardbord`) bort.
-- Bordets form är en öppen fråga (Jakob 2026-11-26: "Är inte det för ovalt mot P4?"). Mätt: filten är 1,90 m bred och
-  1,15 m djup från spelets kant (spelets mått, `TABLE_TOP` i `../blackjack-dealer/src/table-lens.ts`), och allt som
-  ligger på den (dealerns kort 16 cm ut, spelarnas kort 23–40 cm, insatsringarna till cirka 55 cm) ryms på den
-  närmaste halvan: från insatsringen på plats 4 är det 60 cm tom filt till bortre kanten. Ett riktigt bord är cirka
-  2,1 m brett och 1,1 m djupt med insatsen 20–30 cm från kanten. Ett grundare bord prövas i bild innan något ändras.
+- Bordets form är dömd (Jakob 2026-11-26: "mindre äggformat ... mer som en halvmåne"; av tre bord i bild valde han
+  halvmånen): dockornas bord är 1,90 m brett och 0,95 m djupt från spelets kant, en halvcirkel, och skon står 8,5 cm
+  längre ut åt dealerns vänster, så att armen vid skon är mindre ihopklämd (armbågen 90 grader i stället för 81). De
+  fyra talen står på ett ställe, `DOLL_TABLE` i `../blackjack-dealer/src/table-lens.ts`; bordets modell byggs av dem
+  och rörelserna tar skons plats ur `dollShoe` där. Filmernas bord (`TABLE_TOP`, 1,15 m djupt) och sko gäller de
+  filmer som finns. Känt: skon står 2,6 cm från läderrullen, och i spelets vy ligger dess bakre halva utanför bilden
+  (kasseringslådan till hälften, på andra sidan); med bara 3 cm mot spelarna i stället står den 9,9 cm från rullen
+  och nästan hel i bild, med armbågen 88 grader. Det är ett byte av två tal om han vill det.
 - Skon har en frontplatta med en rundad öppning (`sko_front`, måtten i `SKO_FRONT` i
   `../avatar-auto-pipeline/scen/bygg_bord.py`): kortets rygg syns i öppningen, kortet dras nedåt och ut genom springan
   under plattan, och nästa kort visar ryggen när ett har gått. Springan är hög (59 mm över filten) eftersom givarna
   lutar ut kortet tidigt; den blir lägre först när kortet glider längre platt.
 - Jakob om den första arbetsvyn: "Ser ganska bra ut nu"; brickan ut i kanten, händerna och stolen är rättade efter
   hans anteckningar och väntar på hans dom.
-- Editorn finns (`editor/`) med den första följden: mannen gör Paows rörelser A1 → A2.3 → plats 4 kort 1 → tillbaka
-  (6,9 s, 209 rutor) vid det närmare bordet. Blicken går mot den valda kameran i vilan, följer kortet under given och
-  går tillbaka; kortet följer handen som håller det; underarmarna hålls minst 1 cm över bordets kant av en automatisk
-  regel (utan den gick höger underarm genom kanten i 116 av 209 rutor). Händer, armbågar och blick går att dra i, och
-  ändringarna sparas i `rorelser/`. Den öppnar i spelets vy.
+- Editorn finns (`editor/`): mannen eller kvinnan gör A1 → A2.3 → kort 1 på en plats → tillbaka vid det närmare
+  bordet, med dockans egna rörelser där de finns och annars Paows. Blicken går mot spelets kamera i vilan, följer
+  kortet under given och går tillbaka; kortet följer handen som håller det; underarmarna hålls minst 1 cm över bordets
+  kant av en automatisk regel (i Paows given till plats 4 gick höger underarm annars genom kanten i 116 av 209 rutor).
+  Händer, armbågar och blick går att dra i, och ändringarna sparas i `rorelser/`. Den öppnar i spelets vy.
 - Editorn har också givarna till alla sju platserna, kamerorna från de sju platserna, återställning och inspelning
   (Jakob 2026-11-26). Kontrollerat i en egen webbläsare: alla sju givar laddar utan fel och underarmarna hålls över
   kanten i varje ruta; givarna till plats 1, 2, 6 och 7 är inte granskade med ögat ruta för ruta, och i given till
@@ -204,11 +236,13 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 - Tre första klipp ligger i `klipp/`: vilan till skon (A1 → A2.3, 3,0 s) från plats 4, 1 och 7, och given till plats 4
   (4,0 s) genom spelets kamera.
 - Rörelserna granskas en per agent med skillen `granska-rorelse` (Jakob 2026-11-26: en svärm av agenter får granska
-  småsakerna, som att fingrarna kommer rätt med kortet och att kortet rör sig trovärdigt). Första mätningen med
-  `verktyg/mat.ts`, inte granskad med ögat: i given till plats 4 går pekfingret genom kortet kring 4,2 s och kortet är
-  utan stöd i 32 rutor; i given till plats 7 ligger lillfingret 1 cm i filten kring 4,2 s och vänster handled är böjd
-  77 grader. Rörelserna är ritade med regler, inte simulerade, och det behålls: det som skärps är reglerna för grepp,
-  vändning och släpp i `../blackjack-dealer/dealer3d/src/`, på det granskningen visar.
+  småsakerna, som att fingrarna kommer rätt med kortet och att kortet rör sig trovärdigt). `verktyg/mat.ts`
+  2026-11-26, inte granskat med ögat: Paows givar är röda på alla sju platser (ett finger genom kortet, kortet utan
+  stöd, en fingerled bortom sitt läge redan i vilans första ruta, handflatan i filten, hopp i fingertopparna, och på
+  plats 6 och 7 hopp och ryck i handlederna), och mannens giv till plats 4 på tre hack: vänster armbåge rycker när
+  given börjar, vänster handled rycker strax efter, och höger armbåge hoppar 17 mm på vägen tillbaka. Rörelserna är
+  ritade med regler, inte simulerade, och det behålls: det som skärps är reglerna för grepp, vändning och släpp i
+  `../blackjack-dealer/dealer3d/src/`, på det granskningen visar.
 - Granskningen av de sju givarna (2026-11-26, sju agenter) fann inget som editorns lager kan rätta: felen sitter i
   reglerna som ritar givarna (`../blackjack-dealer/dealer3d/src/`), framför allt greppet när högerhanden tar emot
   kortet, vändningen och släppet. På Jakobs ord görs de om där, som nya val och nya grundrörelser, med hans takt
@@ -227,10 +261,9 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   är ritade för Paows mått, och mannens knogar sitter cirka 2 cm längre ut från handleden med kortare fingerben. Ett
   grepp som stämmer i rörelsen stämmer alltså inte på kroppen. Därför ska givarna ritas för standarddockans egen
   kropp ("Plockas in", steg 2).
-- Känt i editorn: i vilan står armbågarna utvinklade, eftersom rörelserna är gjorda för Paows kropp och ett bord vars
-  kant låg 15 cm längre bort (en egen vila för det närmare bordet behövs); bålen lutar som Paows, 16 cm i given;
-  filten är mörkare än i Blenders bilder; vilan i den första delen är den
-  äldre vita dockans, inte den `scen/vy.py` lägger mannen i. Editorn och `scen/vy.py` ställer upp scenen var för sig
+- Känt i editorn, för de äldre rörelserna: i vilan står armbågarna utvinklade, eftersom rörelserna är gjorda för Paows
+  kropp och ett bord vars kant låg 15 cm längre bort; bålen lutar som Paows, 16 cm i given; vilan i den första delen
+  är den äldre vita dockans, inte den `scen/vy.py` lägger mannen i. Filten är mörkare än i Blenders bilder. Editorn och `scen/vy.py` ställer upp scenen var för sig
   (stolen, vilan, kamerorna): de ska läsa samma tal ur en fil.
 - Provat och bedömt av Jakob: bordet 15 cm närmare dealern räcker för att det ska nå magen och skon stå helt på
   bordet. Att luta bordet mot kameran är struket.
@@ -254,17 +287,15 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    4. Vinnaren från plats 1 och 7, med egna ankare för de kamerorna.
 
    Första omgången är körd (hans "kör igång" 2026-11-26, 345 krediter) och väntar på hans dom i studion, provet
-   `docka-till-person-20261126`. Underlaget ligger i `../slask/standarddocka/granska/docka-till-person-1/`, en mapp per
-   sätt med anropet och resultatet, och `OVERSIKT.md`: given till plats 4 (4 s) genom spelets kamera, omgjord med Aleph 2
-   och en styrbild, Aleph 2 och bara en text, Kling 4 som redigerare med hans tre bilder, och Gemini Omni 1.2 med hans
-   tre bilder (stoppad av Runways innehållsgranskning). Agentens läsning: Aleph 2 med styrbild följer dockan nästan ruta
-   för ruta och behåller bordet; Kling 4 kan klä dockan direkt ur bilderna (hans fråga), men tar då bakgrunden ur dem
-   och lägger kortet med baksidan upp. Lärdomarna står i skillen `runway`. Hans dom: "Mycket bra", och att ett hack i
-   dockans giv kring ruta 50–51 syns i filmen (`verktyg/mat.ts` pekar ut samma ögonblick: ryck i höger handled vid
-   4,67 s).
+   `docka-till-person-20261126`, där filmerna och bilderna ligger (`../blackjack-dealer/assets/proofs/`): given till
+   plats 4 (4 s) genom spelets kamera, omgjord med Aleph 2 och en styrbild, Aleph 2 och bara en text, och Kling 4 som
+   redigerare med hans tre bilder; Gemini Omni 1.2 med hans tre bilder stoppades av Runways innehållsgranskning.
+   Agentens läsning: Aleph 2 med styrbild följer dockan nästan ruta för ruta och behåller bordet; Kling 4 kan klä
+   dockan direkt ur bilderna (hans fråga), men tar då bakgrunden ur dem och lägger kortet med baksidan upp. Lärdomarna
+   står i skillen `runway`. Hans dom: "Mycket bra", och att ett hack i dockans giv kring ruta 50–51 syns i filmen
+   (`verktyg/mat.ts` pekade ut samma ögonblick, ett ryck i höger handled).
 
-   Andra omgången är körd (218 krediter) och väntar på hans dom, provet `docka-till-person-2-20261126`, med underlaget
-   i `../slask/standarddocka/granska/docka-till-person-2/`: vilan till skon som eget klipp med styrbild först och sist
+   Andra omgången är körd (218 krediter) och väntar på hans dom, provet `docka-till-person-2-20261126`: vilan till skon som eget klipp med styrbild först och sist
    möter given i ankaret nästan utan skarv; och hans udda prov, en färdig film skickad in igen för att bli
    "mer naturlig", gav samma rörelse tillbaka med hacket kvar. Kvar att pröva: plats 1 och 7, kort med spårfärger och
    en bakgrund i nyckelfärg (se nedan), och Kling 4 med dockans film som lös förlaga.
@@ -276,8 +307,7 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    flyttad) och varianter av en giv (annan vändning och landning ur givarnas regler, och ett eget frö för de små
    rörelserna). De byggs när de nya grundrörelserna finns.
 
-   Tredje omgången är körd (213 krediter) och väntar på hans dom, provet `docka-till-person-3-20261126`, med underlaget
-   i `../slask/standarddocka/granska/docka-till-person-3/`. Kling 4 med hans ord "gör dealerns rörelser mindre stela"
+   Tredje omgången är körd (213 krediter) och väntar på hans dom, provet `docka-till-person-3-20261126`. Kling 4 med hans ord "gör dealerns rörelser mindre stela"
    gav nästan samma rörelse och gjorde om korten till riktiga spelkort. Nyckelfärgerna håller: dockans giv inspelad
    med editorns utseende `nyckel` (blå bakgrund, grönt bord utan tryck, spårkort med gul rygg och vit framsida innanför
    en ljusblå ram med en rosa prick) kom tillbaka från Aleph 2 med färgerna rena, och dealern, korten och skon går att

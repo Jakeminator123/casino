@@ -1744,6 +1744,46 @@
       "text": "",
       "at": "2026-11-26T08:24:26.817Z",
       "read": "2026-11-26T08:35:43.581Z"
+    },
+    {
+      "id": 177,
+      "proof": "bordsform-20261126",
+      "file": "1-i-dag-uppifran.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T09:56:01.448Z",
+      "read": "2026-11-26T10:06:10.108Z"
+    },
+    {
+      "id": 178,
+      "proof": "bordsform-20261126",
+      "file": "2-halvmane-uppifran.png",
+      "choice": "bra",
+      "text": "konstigt för kortet från skon finns nu på 2 ställen",
+      "at": "2026-11-26T09:56:31.760Z",
+      "answer": {
+        "text": "Halvmånen är nu standardbordet för dockorna, och det djupare bordet är borta. Kortet på två ställen: det ena var rörelsens kort, som låg kvar där skon stod förut. Rörelserna ritas nu om för skons nya plats, och då ligger kortet bara i skon.",
+        "at": "2026-11-26T10:06:00.377Z"
+      },
+      "read": "2026-11-26T10:06:00.377Z"
+    },
+    {
+      "id": 179,
+      "proof": "bordsform-20261126",
+      "file": "3-grundare-halvmane-uppifran.png",
+      "choice": null,
+      "text": "..samma här. kortet från skon finns på två ställen",
+      "at": "2026-11-26T09:56:46.741Z",
+      "read": "2026-11-26T10:06:10.305Z"
+    },
+    {
+      "id": 180,
+      "proof": "bordsform-20261126",
+      "file": "4-i-dag-spelets-vy.png",
+      "choice": null,
+      "text": "okej vi fimpar dena då",
+      "at": "2026-11-26T09:57:03.805Z",
+      "read": "2026-11-26T10:06:10.537Z"
     }
   ]
 }

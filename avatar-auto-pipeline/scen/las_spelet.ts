@@ -29,7 +29,7 @@ for (let seat = 1; seat <= 7; seat++) { const own = firstCards.find((s: any) => 
 const shoePose = lensFile.shoePose(lens, lensFile.SHOE), planShoe = lensFile.planPixel(plan.shoe.native);
 const measures = (d: any) => ({upperArm: d.upperArm, forearm: d.forearm, reach: d.reach, hipBelowFelt: d.hipBelowFelt, mostLean: d.mostLean, mostTwist: d.mostTwist});
 const spelet = {
-  lens, fittedLens: world.filmLens(), FILM: lensFile.FILM, CARD: lensFile.CARD, SHOE: lensFile.SHOE,
+  lens, fittedLens: world.filmLens(), FILM: lensFile.FILM, CARD: lensFile.CARD, SHOE: lensFile.SHOE, DOLL_TABLE: lensFile.DOLL_TABLE,
   filmEye: eye, dealerEdge: world.dealerEdge(lens), playLens: lensFile.PLAY_LENS, playEye, playSeatEyes,
   targets: Object.fromEntries(Object.entries(plan.targets).map(([id, t]: [string, any]) => [id, t.geometry.native])),
   planShoe: plan.shoe, spots: world.spots(plan, lens), seatEyes,

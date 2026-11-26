@@ -121,7 +121,7 @@ Vad som måste finnas före en körning, vilket sätt det än är:
   fick den Jakobs "Bra" (2026-11-18, 2026-11-24). Resten står i `bestalla-film`, "Modellerna".
 - Första provet genom API:t, 2026-11-26: dockans giv till plats 4 (4 s, 1764 x 1174, 30 bilder/s, spelets kamera)
   omgjord till en provperson, en tagning per sätt. Det här är agentens läsning; Jakobs dom står i provet
-  `docka-till-person-20261126`, och underlaget i `slask/standarddocka/granska/docka-till-person-1/`.
+  `docka-till-person-20261126`, där också filmerna och bilderna ligger (`blackjack-dealer/assets/proofs/`).
   - **Aleph 2 med en styrbild vid sekund 0** (första rutan omgjord till personen): följer dockan nästan ruta för ruta,
     och personen, bordet och bakgrunden är styrbildens hela filmen. Ut kom infilmens mått och bildtakt. 112 krediter.
   - **Aleph 2 med bara text:** en annan man i ett annat rum, föremålen ändrade och ett kort för mycket. Duger inte för en
@@ -133,8 +133,8 @@ Vad som måste finnas före en körning, vilket sätt det än är:
   - **Styrbilden:** GPT Image 2.6 (`1920:1280`, rutan och tre foton som referens, 10 krediter) höll ställningen, blicken
     och scenen; Nano Banana Pro (`2528:1696`, 20 krediter) lät personen titta in i kameran och bytte bakgrund.
   Jakobs dom på det provet: "Mycket bra", "på riktigt skitbra", och att ett hack i dockans giv syns i filmen.
-- Andra provet, 2026-11-26 (agentens läsning; domen står i provet `docka-till-person-2-20261126`, underlaget i
-  `slask/standarddocka/granska/docka-till-person-2/`):
+- Andra provet, 2026-11-26 (agentens läsning; domen, filmerna och bilderna står i provet
+  `docka-till-person-2-20261126`):
   - **Skarven håller.** Vilan till skon som eget klipp hos Aleph 2, med styrbilden för A1 vid sekund 0 och styrbilden
     för A2.3 sist (`"at": 1`): klippets sista ruta är nästan samma bild som nästa klipps första, som gjordes för sig
     med samma styrbild. Två styrbilder i samma film fungerar.
@@ -144,13 +144,13 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     mer naturlig och utan ryck kom tillbaka med rörelsen oförändrad ruta för ruta (likhet 0,99), hacket kvar, och kortet
     med fel sida upp. Aleph behåller infilmens rörelse; rörelsen rättas i dockan. Samma sak som när Aleph föll som
     rättare.
-- Tredje provet, 2026-11-26 (agentens läsning; domen står i provet `docka-till-person-3-20261126`, underlaget i
-  `slask/standarddocka/granska/docka-till-person-3/`):
+- Tredje provet, 2026-11-26 (agentens läsning; domen, filmerna och bilderna står i provet
+  `docka-till-person-3-20261126`):
   - **Nyckelfärger håller genom Aleph 2.** Dockans film inspelad med blå bakgrund, grönt bord utan tryck och spårkort
     (editorns `?utseende=nyckel`), en styrbild gjord av första rutan, och en text som säger att färgerna ska vara rena
     och kortet inte ett tryckt spelkort: färgerna och kortets märken höll hela filmen. Dealern, korten och skon går
     sedan att skilja ut med FFmpeg (`chromakey` för blått och för grönt var för sig, ihoplagda), och bordet går att
-    byta med skuggorna kvar (den nya färgen gånger filmens ljushet i det gröna). Receptet står i provets `OVERSIKT.md`.
+    byta med skuggorna kvar (den nya färgen gånger filmens ljushet i det gröna).
   - **Kling 4 som redigerare med orden "gör dealerns rörelser mindre stela":** rörelsen nästan densamma, men korten
     gjordes om till riktiga spelkort med valör, också kortet i skon, och filmen fick 24 bilder/s. Utan styrbilder
     förskönar Kling korten. Jakobs dom: "Inte bra", "Ingen video gjorde rörelsen mer naturlig". En redigerande modell

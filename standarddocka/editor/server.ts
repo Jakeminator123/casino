@@ -83,13 +83,25 @@ async function body(req: IncomingMessage, res: ServerResponse): Promise<Buffer |
   return Buffer.concat(parts);
 }
 
-/** PUT till rorelser/: giltig JSON, skrivs hel till en tillfällig fil och byter sedan namn, så att en halv fil aldrig blir kvar. */
+/** De sparanden som pågår eller väntar, per fil: ett i taget, i den ordning de kom. */
+const koer = new Map<string, Promise<void>>();
+/**
+ * PUT till rorelser/: giltig JSON, skrivs hel till en egen tillfällig fil och byter sedan namn, så att en halv fil aldrig
+ * blir kvar. Två sparanden av samma fil (två flikar, en agent) väntar på varandra och har var sitt tillfälliga namn: förut
+ * delade de namnet, och det andra fick "Kunde inte spara (404)" eller en trasig fil.
+ */
 async function save(req: IncomingMessage, res: ServerResponse, file: string) {
   const sent = await body(req, res); if (!sent) return;
   const text = sent.toString('utf8');
   try { JSON.parse(text); } catch { res.writeHead(400).end('inte JSON'); return; }
-  const full = path.join(ROOT, file), temp = `${full}.${process.pid}.tmp`;
-  await mkdir(path.dirname(full), {recursive: true}); await writeFile(temp, text.endsWith('\n') ? text : text + '\n', 'utf8'); await rename(temp, full);
+  const full = path.join(ROOT, file), temp = `${full}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`;
+  const skriv = async () => {
+    await mkdir(path.dirname(full), {recursive: true}); await writeFile(temp, text.endsWith('\n') ? text : text + '\n', 'utf8');
+    // Windows kan vägra en stund medan någon läser filen: några försök till.
+    for (let i = 0; ; i++) { try { await rename(temp, full); return; } catch (e) { if (i >= 8 || !['EPERM', 'EBUSY', 'EACCES'].includes((e as NodeJS.ErrnoException).code ?? '')) throw e; await new Promise(r => setTimeout(r, 60)); } }
+  };
+  const tur = (koer.get(file) ?? Promise.resolve()).catch(() => {}).then(skriv); koer.set(file, tur);
+  try { await tur; } finally { if (koer.get(file) === tur) koer.delete(file); await rm(temp, {force: true}).catch(() => {}); }
   res.writeHead(200, {'content-type': 'application/json; charset=utf-8'}).end(JSON.stringify({sparad: file, bytes: Buffer.byteLength(text)}));
 }
 

@@ -57,6 +57,7 @@ de två lika och planens platser på sina bildpunkter.
 | Skon | foten fram (1268,1; 895,9) och bak (1666,5; 796,8) px; 0,436 × 0,082 m, 0,131 m hög bak och 0,10 m fram; plåten lutar 51,6°, kortet i fönstret står 22 mm över filten | `SHOE` |
 | Markerlådan | försänkt vid dealerkanten: från 0,30 m vänster om bildens mitt till 0,24 m höger om den (slutar före skon), 0,10 m mot spelarna, 0,03 m djup | `TRAY` |
 | Bordets form | en halv oval med rak dealerkant: 0,95 m från mitten till filtens kant, 1,15 m djupt (ett verkligt bords; ingen film visar spelarnas kant), sarg 0,10 m; golvet 0,95 m under filten, skivans undersida 0,15 m, två ben 0,58 m från mitten; sargens rulle 10 cm bred | `TABLE_TOP`, `TABLE_BASE`, `TABLE_RAIL` (3D-scenen bygger sitt bord av dem i `src/scene3d-table.ts`, dockan sitt i `dealer3d/src/stage.ts`, som får dem genom `dealer3d/src/world.ts`) |
+| Standarddockans bord | lika brett och med samma kortplatser, men en halvmåne: 0,95 m djupt (Jakob 2026-11-26: "mindre äggformat ... mer som en halvmåne"), dealerkanten och markerbrickan 0,23 m bakom spelets kant, där dockan sitter, och skon 8,5 cm längre ut åt dealerns vänster. Bordet och skon ovan är filmernas och gäller de filmer som finns | `DOLL_TABLE`, `dollShoe` (bordets modell byggs av dem i `../avatar-auto-pipeline`, `bygg_bord.py --docka`) |
 | Planens ruta | 1762 × 1174; planen sparar `u` och `v` (nerifrån), och `planPixel` ger filmens bildpunkt exakt: x = u × 1763, y = (1 − v) × 1173, samma som `planToFilm` i `src/card-plan.ts` | `planPixel` |
 
 **Vem följer den**

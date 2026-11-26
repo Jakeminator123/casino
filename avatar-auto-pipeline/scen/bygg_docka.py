@@ -4,10 +4,12 @@ ARKit-kompatibla shape keys för ansiktsuttryck, egna IK-kontroller, ledgränser
 Bygger två grunddockor med 100 % identiskt skelett/bennamn så alla rörelser kan återanvändas:
   - standarddocka_kvinna.blend / .glb
   - standarddocka_man.blend / .glb
+Med --matt naturlig (på prov): samma skelett och ansikte, men människans proportioner för kön och längd (NATURLIG nedan)
+i stället för den vita dockans armar, axlar och bål, som standarddocka_kvinna_naturlig och standarddocka_man_naturlig.
 
 Kräver MPFB2 som Blender-tillägg i användarprofilen (bl_ext.user_default.mpfb).
 Kör (utan --factory-startup, annars laddas inte tillägget):
-    blender -b --python-exit-code 1 --python scen/bygg_docka.py [-- --kon kvinna|man|bada]
+    blender -b --python-exit-code 1 --python scen/bygg_docka.py [-- --kon kvinna|man|bada] [--matt vit|naturlig]
 """
 import argparse, gzip, json, math, os, sys
 from pathlib import Path
@@ -70,6 +72,30 @@ ARKIT_KARTA = [
 ]
 
 
+# --matt naturlig: människans proportioner i stället för den vita dockans. Kroppen är MPFB:s egen för könet och längden
+# (makrot height letas fram, så att MPFB:s egna proportioner för just den längden gäller). `passa` flyttar ett mått till
+# människans medel, ANSUR II (US Army 2012, de offentliga data) för personer av samma kön och längd ±2 cm, där MPFB:s
+# eget avviker: armarna (MPFB:s egen överarm är kort mot underarmen hos mannen, och kvinnans underarm kort), händerna,
+# fötterna och kvinnans axlar. Leden räknas ur hudens mått: överarm = akromion-radiale - 0,0257 x längden (axelleden
+# under akromion) - 0,010 (armbågsleden över radiale); underarm = radiale-stylion + 0,005; axelleder = biakromial
+# bredd - dockans egen hud utanför leden (31 mm hos kvinnan). Hand och fot är hudens mått.
+NATURLIG = {
+    'man': {'langd': 1.75, 'passa': {'ua': 0.279, 'fa': 0.272, 'hand': 0.193, 'fot': 0.271},
+            'kalla': 'längden: ANSUR II män medel 1,756 m; måtten: ANSUR II män 1,73-1,77 m (n 940): akromion-radiale 333,7, '
+                     'radiale-stylion 266,7, hand 192,9, fot 270,7 mm; MPFB:s egen axelbredd (hud 418 mot 415 mm) och bål behålls'},
+    'kvinna': {'langd': 1.65, 'passa': {'ua': 0.263, 'fa': 0.249, 'sw': 0.337, 'hand': 0.1824, 'fot': 0.2488},
+               'kalla': 'längden: ANSUR II kvinnor medel 1,629 m, 10 cm under mannen; måtten: ANSUR II kvinnor 1,63-1,67 m (n 442): '
+                        'akromion-radiale 315,5, radiale-stylion 244,1, biakromial 368,0, hand 182,4, fot 248,8 mm; MPFB:s egen bål behålls'},
+}
+PASS_TGT = {  # måttet -> MPFB-targets (utan -incr/-decr), höger och vänster med samma vikt
+    'hand': ['hands/r-hand-scale', 'hands/l-hand-scale'],
+    'fot': ['feet/r-foot-scale-depth', 'feet/l-foot-scale-depth'],
+    'ua': ['arms/measure-upperarm-length'],
+    'fa': ['arms/measure-lowerarm-length'],
+    'sw': ['torso/measure-shoulder-dist'],
+}
+
+
 def las_target(path: Path):
     deltas = {}
     with gzip.open(path, 'rt', encoding='utf-8') as fh:
@@ -80,7 +106,47 @@ def las_target(path: Path):
     return deltas
 
 
-def bygg_en(kon: str):
+def _hojd(obj):
+    """Kroppens höjd i meter (hjässa till sula, utan hjälpgeometrin), med de shape keys som är på."""
+    me = obj.data; n = len(me.vertices); co = np.empty(n * 3); me.vertices.foreach_get('co', co); co = co.reshape(n, 3).copy()
+    if me.shape_keys:
+        for kb in me.shape_keys.key_blocks:
+            if kb != me.shape_keys.reference_key and kb.value != 0:
+                a = np.empty(n * 3); kb.data.foreach_get('co', a); r = np.empty(n * 3); kb.relative_key.data.foreach_get('co', r)
+                co += kb.value * (a - r).reshape(n, 3)
+    g = obj.vertex_groups.get('body')
+    if g is not None:
+        idx = [v.index for v in me.vertices if any(ge.group == g.index for ge in v.groups)]
+        co = co[idx]
+    return float(co[:, 2].max() - co[:, 2].min())
+
+
+def _naturlig_kropp(macro, langd):
+    """MPFB-kroppen vars egen längd är `langd` m: makrot `height` letas fram, så att MPFB:s proportioner för den längden
+    gäller och skalningen efteråt blir nära 1."""
+    def ny(h):
+        for o in list(bpy.data.objects):
+            bpy.data.objects.remove(o, do_unlink=True)
+        for dblock in (bpy.data.meshes, bpy.data.armatures, bpy.data.materials, bpy.data.actions):
+            for item in list(dblock):
+                if item.users == 0:
+                    dblock.remove(item)
+        macro['height'] = h
+        b = HumanService.create_human(scale=0.1, macro_detail_dict=macro, feet_on_ground=True)
+        return b, _hojd(b)
+    h0 = 0.5; b, H0 = ny(h0)
+    h1 = 0.6; b, H1 = ny(h1)
+    for _ in range(4):
+        if abs(H1 - langd) < 0.002 or abs(H1 - H0) < 1e-6:
+            break
+        h2 = min(1.0, max(0.0, h1 + (langd - H1) * (h1 - h0) / (H1 - H0)))
+        h0, H0 = h1, H1
+        h1 = h2; b, H1 = ny(h1)
+    print(f'MPFB-LÄNGD height={h1:.4f} ger {H1:.4f} m (mål {langd} m)')
+    return b, round(h1, 4)
+
+
+def bygg_en(kon: str, proportioner: str = 'vit'):
     for o in list(bpy.data.objects):
         bpy.data.objects.remove(o, do_unlink=True)
     for dblock in (bpy.data.meshes, bpy.data.armatures, bpy.data.materials, bpy.data.actions):
@@ -91,7 +157,9 @@ def bygg_en(kon: str):
     sc = bpy.context.scene
     col = coll('standarddocka')
     is_man = (kon == 'man')
-    LANGD = 1.75 if is_man else D['langd_staende']
+    naturlig = proportioner == 'naturlig'
+    namn = f'{kon}_naturlig' if naturlig else kon
+    LANGD = NATURLIG[kon]['langd'] if naturlig else (1.75 if is_man else D['langd_staende'])
     sw_mal = 0.3660 if is_man else float(np.linalg.norm(np.array(D['axel_hoger']) - np.array(D['axel_vanster'])))
     ht_mal = float((D['axel_hoger'][2] + D['axel_vanster'][2]) / 2 - D['hoft'][2])
 
@@ -105,7 +173,10 @@ def bygg_en(kon: str):
         'proportions': 0.5,
         'height': 0.5,
     })
-    body = HumanService.create_human(scale=0.1, macro_detail_dict=macro, feet_on_ground=True)
+    if naturlig:
+        body, mpfb_height = _naturlig_kropp(macro, LANGD)
+    else:
+        body = HumanService.create_human(scale=0.1, macro_detail_dict=macro, feet_on_ground=True)
 
     def _koord():
         me = body.data; n = len(me.vertices); base = np.empty(n * 3); me.vertices.foreach_get('co', base); co = base.reshape(n, 3).copy()
@@ -133,43 +204,78 @@ def bygg_en(kon: str):
         return {'H': H, 'ua': np.linalg.norm(rs - re_), 'fa': np.linalg.norm(re_ - rh), 'sw': np.linalg.norm(rs - ls), 'ht': (rs + ls)[2] / 2 - hip[2]}
 
     tdir = Path(LocationService.get_mpfb_data('targets'))
-    TGT = {
-        'ua': 'arms/measure-upperarm-length',
-        'fa': 'arms/measure-lowerarm-length',
-        'sw': 'torso/measure-shoulder-dist',
-        'ht1': 'torso/measure-napetowaist-dist',
-        'ht2': 'torso/measure-waisttohip-dist',
-    }
-    m0 = matt(); eff = {}
-    for k, t in TGT.items():
-        for d in ('incr', 'decr'):
-            sk = TargetService.load_target(body, str(tdir / f'{t}-{d}.target.gz'), weight=1.0, name=f'fit-{k}-{d}')
-            mk = 'ht' if k.startswith('ht') else k
-            eff[(k, d)] = matt()[mk] - m0[mk]; sk.value = 0.0
-
-    mal_m = {'ua': D['over_arm'], 'fa': D['underarm'], 'sw': sw_mal, 'ht': ht_mal}
-    m1 = m0; vikter = {}
-    for _ in range(5):
-        s_est = LANGD / float(m1['H'])
-        for k in TGT:
+    if naturlig:
+        # MPFB:s egna proportioner för könet och längden; bara de mått som NATURLIG passar flyttas, mot människans medel
+        def matt_n():
+            co = _koord(); c = lambda n: co[_idx[n]].mean(axis=0); m = matt()
+            kropp = co[_idx['body']] if 'body' in _idx else co
+            wr, tip = c('joint-r-hand'), c('joint-r-finger-3-4')
+            nara = kropp[np.linalg.norm(kropp - tip, axis=1) < 0.03]
+            m['hand'] = float(np.linalg.norm(nara - wr, axis=1).max())
+            fot = kropp[(kropp[:, 2] < kropp[:, 2].min() + 0.10) & (kropp[:, 0] < -0.02)]  # hälen till tåspetsen
+            m['fot'] = float(fot[:, 1].max() - fot[:, 1].min())
+            return m
+        PASS = NATURLIG[kon].get('passa', {})
+        m0 = matt_n(); eff = {}
+        for k in PASS:
             for d in ('incr', 'decr'):
-                body.data.shape_keys.key_blocks[f'fit-{k}-{d}'].value = 0.0
-        vikter = {}
-        for k in ('ua', 'fa', 'sw'):
-            diff = mal_m[k] / s_est - m0[k]; d = 'incr' if diff > 0 else 'decr'; e = eff[(k, d)]
-            w = float(min(1.0, max(0.0, diff / e))) if abs(e) > 1e-6 else 0.0
-            body.data.shape_keys.key_blocks[f'fit-{k}-{d}'].value = w; vikter[f'{TGT[k]}-{d}'] = round(w, 3)
-        diff_ht = mal_m['ht'] / s_est - m0['ht']; d = 'incr' if diff_ht > 0 else 'decr'
-        e1, e2 = eff[('ht1', d)], eff[('ht2', d)]
-        w1 = float(min(1.0, max(0.0, (diff_ht * 0.5) / e1))) if abs(e1) > 1e-6 else 0.0
-        rem = diff_ht - w1 * e1
-        w2 = float(min(1.0, max(0.0, rem / e2))) if abs(e2) > 1e-6 else 0.0
-        if rem > w2 * e2 and w1 < 1.0 and abs(e1) > 1e-6:
-            w1 = float(min(1.0, max(0.0, (diff_ht - w2 * e2) / e1)))
-        body.data.shape_keys.key_blocks[f'fit-ht1-{d}'].value = w1; vikter[f'{TGT["ht1"]}-{d}'] = round(w1, 3)
-        body.data.shape_keys.key_blocks[f'fit-ht2-{d}'].value = w2; vikter[f'{TGT["ht2"]}-{d}'] = round(w2, 3)
-        m1 = matt()
-    print(f'PASSNING ({kon})', {k: round(float(v), 4) for k, v in m0.items()}, '->', {k: round(float(v), 4) for k, v in m1.items()}, vikter)
+                sks = [TargetService.load_target(body, str(tdir / f'{t}-{d}.target.gz'), weight=1.0, name=f'fit-{k}-{i}-{d}')
+                       for i, t in enumerate(PASS_TGT[k])]
+                eff[(k, d)] = matt_n()[k] - m0[k]
+                for sk in sks:
+                    sk.value = 0.0
+        m1 = m0; vikter = {}
+        for _ in range(5):
+            s_est = LANGD / float(m1['H']); vikter = {}
+            for k, mal in PASS.items():
+                diff = mal / s_est - m0[k]; d = 'incr' if diff > 0 else 'decr'; e = eff[(k, d)]
+                w = float(min(1.0, max(0.0, diff / e))) if abs(e) > 1e-6 else 0.0
+                for i, t in enumerate(PASS_TGT[k]):
+                    body.data.shape_keys.key_blocks[f'fit-{k}-{i}-{d}'].value = w
+                    body.data.shape_keys.key_blocks[f'fit-{k}-{i}-{"decr" if d == "incr" else "incr"}'].value = 0.0
+                    vikter[f'{t}-{d}'] = round(w, 3)
+            m1 = matt_n()
+        sk_m = LANGD / float(m1['H'])
+        print(f'MPFB EGEN ({namn})', {k: round(float(v) * LANGD / float(m0['H']), 4) for k, v in m0.items()},
+              '-> PASSAD', {k: round(float(v) * sk_m, 4) for k, v in m1.items()}, vikter)
+    else:
+        TGT = {
+            'ua': 'arms/measure-upperarm-length',
+            'fa': 'arms/measure-lowerarm-length',
+            'sw': 'torso/measure-shoulder-dist',
+            'ht1': 'torso/measure-napetowaist-dist',
+            'ht2': 'torso/measure-waisttohip-dist',
+        }
+        m0 = matt(); eff = {}
+        for k, t in TGT.items():
+            for d in ('incr', 'decr'):
+                sk = TargetService.load_target(body, str(tdir / f'{t}-{d}.target.gz'), weight=1.0, name=f'fit-{k}-{d}')
+                mk = 'ht' if k.startswith('ht') else k
+                eff[(k, d)] = matt()[mk] - m0[mk]; sk.value = 0.0
+
+        mal_m = {'ua': D['over_arm'], 'fa': D['underarm'], 'sw': sw_mal, 'ht': ht_mal}
+        m1 = m0; vikter = {}
+        for _ in range(5):
+            s_est = LANGD / float(m1['H'])
+            for k in TGT:
+                for d in ('incr', 'decr'):
+                    body.data.shape_keys.key_blocks[f'fit-{k}-{d}'].value = 0.0
+            vikter = {}
+            for k in ('ua', 'fa', 'sw'):
+                diff = mal_m[k] / s_est - m0[k]; d = 'incr' if diff > 0 else 'decr'; e = eff[(k, d)]
+                w = float(min(1.0, max(0.0, diff / e))) if abs(e) > 1e-6 else 0.0
+                body.data.shape_keys.key_blocks[f'fit-{k}-{d}'].value = w; vikter[f'{TGT[k]}-{d}'] = round(w, 3)
+            diff_ht = mal_m['ht'] / s_est - m0['ht']; d = 'incr' if diff_ht > 0 else 'decr'
+            e1, e2 = eff[('ht1', d)], eff[('ht2', d)]
+            w1 = float(min(1.0, max(0.0, (diff_ht * 0.5) / e1))) if abs(e1) > 1e-6 else 0.0
+            rem = diff_ht - w1 * e1
+            w2 = float(min(1.0, max(0.0, rem / e2))) if abs(e2) > 1e-6 else 0.0
+            if rem > w2 * e2 and w1 < 1.0 and abs(e1) > 1e-6:
+                w1 = float(min(1.0, max(0.0, (diff_ht - w2 * e2) / e1)))
+            body.data.shape_keys.key_blocks[f'fit-ht1-{d}'].value = w1; vikter[f'{TGT["ht1"]}-{d}'] = round(w1, 3)
+            body.data.shape_keys.key_blocks[f'fit-ht2-{d}'].value = w2; vikter[f'{TGT["ht2"]}-{d}'] = round(w2, 3)
+            m1 = matt()
+        print(f'PASSNING ({kon})', {k: round(float(v), 4) for k, v in m0.items()}, '->', {k: round(float(v), 4) for k, v in m1.items()}, vikter)
 
     rig = HumanService.add_builtin_rig(body, 'mixamo')
     TargetService.bake_targets(body)
@@ -180,6 +286,8 @@ def bygg_en(kon: str):
     body.name = 'docka_kropp'; rig.name = 'docka_rigg'; rig.data.name = 'docka_rigg'
     rig['standarddocka'] = True
     rig['kon'] = kon
+    if naturlig:
+        rig['proportioner'] = 'naturlig'
 
     # Spara MakeHuman-vertexindex före MASK så både ansiktsvikter och blendshapes träffar exakt rätt
     mh_attr = body.data.attributes.new('mh_idx', 'INT', 'POINT')
@@ -475,7 +583,12 @@ def bygg_en(kon: str):
         'kravda_ben_saknas': [n for n in KRAVDA_BEN if n not in rig.data.bones],
         'gangjarn': {k: {'lokal_axel': 'XZ'[0 if v[0] == 0 else 1], 'tecken': v[1]} for k, v in gransinfo.items()},
     }
-    (slask('bygge', BYGGRAPPORTER) / f'docka-rapport-{kon}.json').write_text(json.dumps(rapport, indent=1, ensure_ascii=False), encoding='utf-8')
+    if naturlig:
+        for k in ('mal_over_arm', 'mal_underarm', 'axelbredd_mal_m', 'hoft_till_axel_spelet_m'):
+            del rapport[k]
+        rapport.update({'proportioner': 'naturlig', 'mpfb_height': mpfb_height, 'passat_mot': NATURLIG[kon].get('passa', {}),
+                        'kalla_matten': NATURLIG[kon]['kalla']})
+    (slask('bygge', BYGGRAPPORTER) / f'docka-rapport-{namn}.json').write_text(json.dumps(rapport, indent=1, ensure_ascii=False), encoding='utf-8')
     print(f'RAPPORT ({kon})', json.dumps({k: rapport[k] for k in ('kon', 'langd_staende_m', 'over_arm_m', 'underarm_m', 'axelbredd_led_m', 'hoft_till_axel_m', 'ben', 'deformerande', 'kravda_ben_saknas')}, ensure_ascii=False))
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -486,8 +599,8 @@ def bygg_en(kon: str):
             bpy.data.objects.remove(o, do_unlink=True)
     OUT.mkdir(parents=True, exist_ok=True)
     bpy.context.preferences.filepaths.save_version = 0
-    blend_kon = OUT / f'standarddocka_{kon}.blend'
-    glb_kon = OUT / f'standarddocka_{kon}.glb'
+    blend_kon = OUT / f'standarddocka_{namn}.blend'
+    glb_kon = OUT / f'standarddocka_{namn}.glb'
     bpy.ops.wm.save_as_mainfile(filepath=str(blend_kon))
     bpy.ops.export_scene.gltf(filepath=str(glb_kon), export_format='GLB', export_apply=True, export_animations=True,
                               export_yup=True, use_selection=False)
@@ -498,6 +611,9 @@ def bygg_en(kon: str):
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--kon', choices=['kvinna', 'man', 'bada'], default='bada')
+ap.add_argument('--matt', choices=['vit', 'naturlig'], default='vit',
+                help='vit: armarna, axlarna och bålen passade till den vita dockans mått (förval, de modeller som används); '
+                     'naturlig: människans proportioner (NATURLIG), byggd som standarddocka_<kön>_naturlig')
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 for kon in (['kvinna', 'man'] if args.kon == 'bada' else [args.kon]):
-    bygg_en(kon)
+    bygg_en(kon, args.matt)

@@ -16,28 +16,37 @@ fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt g�
   ritad med regler, inte simulerad: koden i `blackjack-dealer/dealer3d/src/` lägger greppet och de fria fingrarna
   (`natural.ts`), vändningen i handen (`turn-in-hand.ts`), landningen (`landing.ts`) och håller fingrarna inom vad en
   hand kan (`hand-rule.ts`). Kortet följer handen som håller det; det har ingen egen fysik.
-- **Lagret** ligger i `standarddocka/rorelser/a1-a23-p<plats>c1.json`: farten per del (`fart`) och ändringarna
-  (`andringar`) ovanpå grundrörelsen. Det är det enda som ändras. En ändring:
+- **Lagret** ligger i `standarddocka/rorelser/a1-a23-p<plats>c1.json` (för en dockas egna rörelser
+  `a1-a23-p<plats>c1-<docka>.json`): farten per del (`fart`) och ändringarna (`andringar`) ovanpå grundrörelsen. Det är
+  det enda som ändras. En ändring:
 
   ```json
   {"id": "p7-hand-1", "tid": 4.1, "led": "hogerHand", "flytt": [0, 0.01, 0], "vrid": null, "varar": 0.4}
   ```
 
-  `tid` är sekunder i grundrörelsens tid (det `mat.ts` och `lage.json` kallar grundtid; utan ändrad fart samma som
-  filmens tid). `led` är `hogerHand`, `vansterHand`, `hogerArmbage`, `vansterArmbage` eller `blick`; höger och vänster är
+  `tid` är sekunder i grundrörelsens tid: den tid `mat.ts` skriver "i lagret" bredvid filmens (och `lage.json` kallar
+  grundtid). Den är inte filmens tid, eftersom takten klipper stillheten och ändrar farten: ta tiden "i lagret" ur
+  mätningen. `led` är `hogerHand`, `vansterHand`, `hogerArmbage`, `vansterArmbage` eller `blick`; höger och vänster är
   dealerns egna. `flytt` är meter: x mot bildens höger (dealerns vänster), y upp från filten, z mot spelarna. `vrid` är en
-  vridning kring handleden som kvaternion `[x, y, z, w]` och gäller bara en hand. `varar` är hur många sekunder ändringen
-  tonas in och ut åt varje håll.
+  vridning kring handleden som kvaternion `[x, y, z, w]` med längden 1 och gäller bara en hand. `varar` är hur många
+  sekunder av filmen ändringen tonas in och ut åt varje håll. Ett lager med fel (en felstavad led, en vridning som inte
+  har längden 1, en tid utanför rörelsen) används inte: `mat.ts` och editorn säger vad som är fel.
 - **Rutorna** (`….rutor.json`) är hela den ändrade rörelsen och skrivs av editorn. Efter en ändring för hand i lagret
   skrivs de om med `node standarddocka/verktyg/titta.ts --plats <n> --spara --ut <din mapp>`; skriv dem aldrig själv.
+  `--spara` stannar med ett fel om lagret har fel eller hör till en äldre grundrörelse.
 
 ## Gången
 
-1. **Mät:** `node standarddocka/verktyg/mat.ts --plats <n>`. Den prövar varje ruta mot vad en hand och ett kort kan
-   göra, och slutar med tiderna som är värda att titta på. Ingen webbläsare, inget lås. Raden SPÄRR säger det som inte
-   får finnas i en rörelse som filmas (ett finger genom kortet eller i filten, kortet utan stöd, ett hörn under filten,
-   ett hopp på en ruta, en sned landning); `--alla` prövar alla sju platserna och slutar rött om någon har en spärr,
-   och med `--giv-monster giv-fran-2-3-p#c1-<namn>` prövas nya grundrörelser i stället för platsernas.
+1. **Mät:** `node standarddocka/verktyg/mat.ts --plats <n> [--docka man|kvinna]` (förval mannen, som i editorn). Den
+   prövar varje ruta, också den första och den sista, och slutar med tiderna som är värda att titta på: filmens
+   sekunder (det `titta.ts --tider` tar) och bredvid dem tiden i lagret (det en ändring skrivs med). Ingen webbläsare,
+   inget lås. Raden SPÄRR säger det som inte får finnas i en rörelse som filmas: ett lager med fel, en giv som inte
+   börjar och slutar i sitt ankare, ett ben som ändrar längd, en handled utom räckvidd eller en hand mer än 50 grader
+   från underarmen, en fingerled bortom sitt läge, ett finger i filten eller genom kortet (också i skon), handflatan i
+   filten, kortet utan stöd eller med ett hörn under filten, ett hopp eller ryck (farten byter tvärt) i en handled,
+   armbåge, fingertopp, kortet, huvudet eller blicken, och en sned landning. Utskriften säger också vad den inte ser.
+   `--alla` prövar alla sju platserna och slutar rött om någon har en spärr, och med
+   `--giv-monster giv-fran-2-3-p#c1-<namn>` prövas nya grundrörelser i stället för platsernas.
 2. **Titta:** lägg en lapp på din mapp (`node slask/slask.ts lapp standarddocka/granska-p<n> <ditt namn> "<vad>"`) och kör
    `node standarddocka/verktyg/titta.ts --ut slask/standarddocka/granska-p<n> --plats <n> --kamera lag,sida,topp,plats<n> --tider <tiderna>`.
    Läs bilderna. `lage.json` bär editorns mått vid varje tid, bland annat armarnas luft över bordskanten (`armar`) och
@@ -78,7 +87,7 @@ fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt g�
 
 ## Flera agenter samtidigt
 
-- En agent per rörelse. Den skriver bara i sin egen `standarddocka/rorelser/a1-a23-p<n>c1.json` och sin egen mapp
+- En agent per rörelse. Den skriver bara i sin egen `standarddocka/rorelser/a1-a23-p<n>c1[-<docka>].json` och sin egen mapp
   `slask/standarddocka/granska-p<n>/`.
 - Ingen commit, ingen push och inget betalt anrop av en underagent. Den som delade ut arbetet committar de ändrade
   filerna i `standarddocka/rorelser/`, efter att ha kört `mat.ts` på var och en.

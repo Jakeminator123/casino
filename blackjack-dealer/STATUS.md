@@ -173,11 +173,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Väntar på Jakob
 
-- Standarddockan (2026-11-26): hur högt dockan ska sitta. Provet `sitthojd-20261126` (Granska, Prov) visar mannen i
-  vilan med sina egna mått i fyra höjder (axlarna 23, 27, 31 och 35 cm över filten): högre ger avspända armar men
-  huvudet närmare bildens överkant, så kameran kan behöva följa med. Inga givar ritas för standarddockans egen kropp
-  förrän han har valt. Arbetet med bordet, blicken och rörelserna sker i `../standarddocka/` och visas för honom som
-  prov härifrån; hans ord står som krav i `../standarddocka/AGENTS.md`.
+- Standarddockan (2026-11-26): inget väntar på honom just nu. Bordet är dömt (halvmånen, 0,95 m djupt, skon 8,5 cm
+  längre ut) och byggt, och sitthöjden är dömd (axlarna 31 cm över filten). Nästa han får se är mannens nya giv som film
+  i Granska. Arbetet med bordet, blicken och rörelserna sker i `../standarddocka/` och visas för honom som prov härifrån;
+  hans ord står som krav i `../standarddocka/AGENTS.md`.
 - Det som bara finns på den stationära, och som registren behåller tills han har bestämt om det kopieras hit eller görs
   nytt: 51 bra tagningar utan film (alla Tatuerads, varav alla 25 talfilmer, vilan `paow-vila-tat-09-01` och fem delade
   vilor), ankarnas originalfiler, keystones och hans egna bilder, kortets textur och 43 av dockans

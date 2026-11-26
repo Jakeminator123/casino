@@ -54,7 +54,7 @@ dockorna och Node 24 för måtten. Allt körs från den här mappen.
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py                       spelets standardbord
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --modell bord-02   BORD-02
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --kant-bak 0.15    standardbordet med dealerkanten 15 cm närmare dealern och brickan nedsänkt i bordet (egna filer, standardbord_nara.*; bordet de äldre rörelserna visas vid i ../standarddocka)
-blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --kant-bak 0.23    samma bord med kanten 23 cm närmare (standardbord_nara23.*): bordet för standarddockans egna rörelser
+blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --docka            standarddockans bord (standardbord_nara23.*), det dockornas egna rörelser visas vid: en halvmåne (0,95 m djup), kanten 23 cm närmare dockan och skon 8 cm längre ut och 3 cm längre fram; talen står i spelets kod (DOLL_TABLE i ../blackjack-dealer/src/table-lens.ts) och kommer hit genom standard.yaml (dockans_bord). Andra former prövas med --djup, --sko-ut, --sko-fram och --namn (står i skriptets huvud)
 blender -b --python-exit-code 1 --python scen/bygg_docka.py                                        dockorna (MPFB, därför utan --factory-startup)
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_stol.py                       stolen
 ```

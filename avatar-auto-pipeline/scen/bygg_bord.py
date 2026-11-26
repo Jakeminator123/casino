@@ -3,13 +3,18 @@
 Kör:  blender -b --python-exit-code 1 --python scen/bygg_bord.py
       blender -b --python-exit-code 1 --python scen/bygg_bord.py -- --modell bord-02
       blender -b --python-exit-code 1 --python scen/bygg_bord.py -- --kant-bak 0.15
+      blender -b --python-exit-code 1 --python scen/bygg_bord.py -- --docka
 Ut:   assets/bord/standardbord.blend och assets/bord/standardbord.glb
       (bord-02 skriver assets/bord/bord_02.blend/.glb så standardfilen inte skrivs över)
 Allt mått kommer ur standard.yaml – ändra där, inte här.
 Default är spelets tableModel "standard" (oval halv-ellips, rak dealerkant).
 BORD-02 är ett behållet labbalternativ via --modell bord-02.
 
---kant-bak D (meter, standardbordet) är standarddockans bord (../standarddocka): dealerkanten D m närmare dealern
+--docka bygger standarddockans bord, det hans och hennes egna rörelser visas vid (Jakob 2026-11-26: halvmånen, skon
+längre ut): kanten, filtens djup och skons flytt ur standard.yaml (dockans_bord, ur spelets DOLL_TABLE), utan egna tal.
+Det är --kant-bak, --djup, --sko-ut och --sko-fram nedan med de talen, och skriver standardbord_nara23.blend/.glb.
+
+--kant-bak D (meter, standardbordet) är samma bord med kanten på ett annat ställe (../standarddocka): dealerkanten D m närmare dealern
 (Y = +D), med raka sidor bakåt från spelarbågen och markerbrickan flyttad med kanten. Skon, korten, kortplatserna,
 insatsringarna, benen och kamerorna står kvar där standard.yaml har dem, och origo ligger kvar under den gamla kanten.
 Valet rättar också kanten och brickan: brickan sitter nedsänkt ända ute i dealerkanten och dess bakvägg är bordets
@@ -17,14 +22,28 @@ kant där dealern sitter, i linje med kanten på båda sidor och med mässingsli
 för ett hack som är öppet bakåt; sargen är hel under brickan och når filten; rullen följer sidorna och slutar rundad
 vid dealerkanten; brickan har rundade rännor där markerna ligger (rullarna stack annars ut genom brickans botten).
 Det skriver assets/bord/standardbord_nara.blend/.glb för 0.15 (bordet de äldre rörelserna visas vid) och
-standardbord_nara<cm>.blend/.glb för ett annat avstånd (--kant-bak 0.23 skriver standardbord_nara23: bordet för
-standarddockans egna rörelser, där dockan sitter kvar på kortplanens plats och kanten kommer till den, Jakob
-2026-11-26); utan valet byggs allt exakt som förut.
+standardbord_nara<cm>.blend/.glb för ett annat avstånd (0.23 är standarddockans, där dockan sitter kvar på kortplanens
+plats och kanten kommer till den, Jakob 2026-11-26: bygg det med --docka, så får det också sin form och sin sko);
+utan valet byggs allt exakt som förut.
 
 Skon är densamma i alla byggen: kilen ur standard.yaml och framtill en dealerskos frontplatta (sko_front) med en
 U-formad öppning, framför skons kort och med springan under (måtten och varför i SKO_FRONT nedan).
+
+Prov av bordets form och skons plats (Jakob 2026-11-26: "mindre äggformat ... mer som en halvmåne", och skon "aningen
+längre bort från dealern"), bara för standardbordet och alltid under ett eget namn:
+      blender -b --python-exit-code 1 --python scen/bygg_bord.py -- --kant-bak 0.23 --djup 0.95 --sko-ut 0.08 --namn prov_a
+--djup D    filtens djup från spelets kant längs mittlinjen (standard.yaml: 1,15); bågen och rullen följer med, halva
+            bredden är densamma, och med D lika med halva bredden (0,95) är bågen en halvcirkel.
+--sko-ut D  skon med frontplattan, korten och bunten flyttad D m utåt längs sin egen längd (mot sin bakre ände, bort från
+            dealerns mitt); kasseringslådan, speglad mot skon, flyttas lika långt åt sitt håll.
+--sko-fram D  skon flyttad D m vinkelrätt mot sin längd, ut mot spelarna (dess nära vägg och mynning går före); det är
+            riktningen bort från dealerns vänstra axel (längs skon flyttas handen mest åt sidan). Lådan speglad som ovan.
+--namn N    skriver assets/bord/standardbord_N.blend/.glb (små bokstäver, siffror, understreck). Krävs med --djup,
+            --sko-ut och --sko-fram, så att de modeller som används aldrig skrivs över; namnen nara och nara<cm> hör till
+            --kant-bak.
+Utan de fyra valen byggs allt som förut.
 """
-import bisect, math, os, sys, time
+import bisect, math, os, re, sys, time
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _bpy_hjalp import *  # noqa: F401,F403  (bpy, bmesh, Vector, STD, ...)
@@ -53,11 +72,51 @@ def _valj_kant_bak():
     return d
 
 
+def _valj_tal(namn, lo, hi, exempel):
+    if namn not in sys.argv:
+        return None
+    i = sys.argv.index(namn)
+    try:
+        d = float(sys.argv[i + 1])
+    except (IndexError, ValueError):
+        raise SystemExit('%s kräver ett tal i meter, till exempel %s' % (namn, exempel))
+    if not lo <= d <= hi:
+        raise SystemExit('%s ska vara mellan %s och %s m' % (namn, lo, hi))
+    return d
+
+
+def _valj_namn():
+    if '--namn' not in sys.argv:
+        return None
+    i = sys.argv.index('--namn')
+    n = sys.argv[i + 1] if i + 1 < len(sys.argv) else ''
+    if not re.fullmatch(r'[a-z0-9_]+', n):
+        raise SystemExit('--namn tar små bokstäver, siffror och understreck, till exempel prov_halvcirkel')
+    if re.fullmatch(r'nara\d*', n):
+        raise SystemExit('namnet %s hör till --kant-bak (standardbord_nara*), som används; välj ett annat' % n)
+    return n
+
+
 MODELL = _valj_modell()
 KANT_BAK = _valj_kant_bak()
+DJUP = _valj_tal('--djup', 0.6, 1.3, '0.95')       # filtens djup från spelets kant; None = standard.yaml
+SKO_UT = _valj_tal('--sko-ut', 0.0, 0.3, '0.08')   # skon utåt längs sin längd; None = där standard.yaml har den
+SKO_FRAM = _valj_tal('--sko-fram', 0.0, 0.2, '0.05')  # skon vinkelrätt mot sin längd, mot spelarna
+NAMN = _valj_namn()
+DOCKA = '--docka' in sys.argv  # standarddockans bord: de fyra talen ur standard.yaml (dockans_bord), inga egna
+if DOCKA:
+    if MODELL != 'standard' or KANT_BAK is not None or DJUP is not None or SKO_UT is not None or SKO_FRAM is not None or NAMN:
+        raise SystemExit('--docka tar inga andra val: måtten står i standard.yaml (dockans_bord)')
+    _d = STD['dockans_bord']
+    KANT_BAK, DJUP, SKO_UT, SKO_FRAM = _d['kant_bak'], _d['djup'], _d['sko_ut'], _d['sko_fram']
 NARA = KANT_BAK is not None  # standarddockans bord: kanten närmare och kanten/brickan rättade
+NYA = not DOCKA and (DJUP is not None or SKO_UT is not None or SKO_FRAM is not None)
 if NARA and MODELL != 'standard':
     raise SystemExit('--kant-bak gäller bara standardbordet')
+if (NYA or NAMN) and MODELL != 'standard':
+    raise SystemExit('--djup, --sko-ut, --sko-fram och --namn gäller bara standardbordet')
+if NYA and not NAMN:
+    raise SystemExit('--djup, --sko-ut och --sko-fram kräver --namn, så att de bord som används inte skrivs över')
 if MODELL == 'bord-02':
     if 'bord_02' not in STD:
         raise SystemExit('standard.yaml saknar bord_02')
@@ -70,9 +129,13 @@ TEX = ASSETS / 'texturer'
 KORT = ASSETS / 'kort'
 FZ = STD['filt_z']
 B = STD['bord']
+if DJUP is not None:  # bågen (outline, rail) läser fram_s; halva bredden är densamma
+    B['fram_s'] = DJUP; B['djup'] = DJUP
 print('bygg_bord modell=%s typ=%s bredd=%.3f djup=%.3f' % (MODELL, B.get('typ'), B['bredd'], B['djup']))
 if NARA:
     print('bygg_bord kant-bak=%.3f (dealerkanten vid Y = +%.3f)' % (KANT_BAK, KANT_BAK))
+if SKO_UT is not None or SKO_FRAM is not None:
+    print('bygg_bord sko-ut=%.3f sko-fram=%.3f (skon och kasseringslådan speglad)' % (SKO_UT or 0.0, SKO_FRAM or 0.0))
 
 
 # ---------------------------------------------------------------- kontur (samma som bord02Outline)
@@ -550,6 +613,10 @@ def main():
     # ---- sko: kilen ur standard.yaml med en riktig dealerskos frontplatta framför korten (sko_front ovan)
     sk = STD['sko']; front = Vector(sk['fot_fram']); yawb = math.radians(sk['yaw_bakat'])
     ax = Vector((math.cos(yawb), math.sin(yawb), 0)); side = Vector((-ax.y, ax.x, 0))
+    # --sko-ut längs skons längd och --sko-fram vinkelrätt mot spelarna (-side: side pekar mot den bortre väggen, mot
+    # dealern): allt som hör till skon flyttas lika långt. Kroppen och frontplattan byggs där standard.yaml har dem och
+    # flyttas sedan hela (objektets läge), så att deras hörn fogas ihop exakt som förut.
+    sko_flytt = ax * (SKO_UT or 0.0) - side * (SKO_FRAM or 0.0)
     lean = math.radians(sk['platta_lutning_grader']); hf, hb, ln, wd = sk['hojd_fram'], sk['hojd_bak'], sk['langd'], sk['bredd']
     uf = hf / math.tan(lean)   # där plattans topp möter locket
     base_h = sk['fonster_lyft']; wt = 0.004
@@ -571,7 +638,9 @@ def main():
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6); bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     shoe = obj_from_bm('sko_kropp', bm, c_sko, m_shoe)
     sol = shoe.modifiers.new('tjocklek', 'SOLIDIFY'); sol.thickness = 0.003
-    sko_front(P, lean, hf, wd, wt, c_sko)
+    skofront = sko_front(P, lean, hf, wd, wt, c_sko)
+    if sko_flytt.length > 0:
+        shoe.location = sko_flytt; skofront.location = sko_flytt
     # kort i skon: översta korten som egna objekt (dragbara), resten som en bunt. Egen mesh med ryggen på båda sidor;
     # den heter inte kort_*, eftersom editorn (standarddocka/editor/scen.ts) döljer bordets lösa kort med det namnet,
     # och då syntes buntens vita kant i stället för skons rygg.
@@ -580,7 +649,7 @@ def main():
     if nrm.dot(ax) > 0:  # normalen ska peka ut ur skon (framåt), med bevarad högerhandad matris (det=+1)
         ac = -ac; nrm = -nrm
     rot = Matrix((ac, up, nrm)).transposed().to_4x4()
-    c0 = Vector(sk['fonsterkort_mitt']); step = ax * (K['tjocklek'] / math.sin(lean))
+    c0 = Vector(sk['fonsterkort_mitt']) + sko_flytt; step = ax * (K['tjocklek'] / math.sin(lean))
     for k in range(5):
         ob = bpy.data.objects.new(f'sko_kort_{k+1}', mes); c_sko.objects.link(ob)
         ob.matrix_world = Matrix.Translation(c0 + step * k) @ rot @ Matrix.Rotation(math.pi, 4, 'Y')  # baksidan utåt
@@ -596,6 +665,7 @@ def main():
 
     # ---- kassering
     ks = STD['kassering']; w, d, h = ks['yttermatt']; t = ks['vaggtjocklek']; fm = Vector(ks['fot_mitt']); yk = math.radians(ks['yaw'])
+    fm = fm + Vector((-sko_flytt.x, sko_flytt.y, 0))  # speglad mot skon: lika långt utåt på dealerns högra sida
     kparts = [('botten', (w, d, t), (0, 0, t/2)), ('vagg_v', (t, d, h), (-w/2 + t/2, 0, h/2)), ('vagg_h', (t, d, h), (w/2 - t/2, 0, h/2)),
               ('vagg_fram', (w, t, h), (0, -d/2 + t/2, h/2)), ('vagg_bak', (w, t, h), (0, d/2 - t/2, h/2))]
     for nm, sz, off in kparts:
@@ -615,11 +685,17 @@ def main():
     em['standard'] = 'scen/standard.yaml'; em['axlar'] = '+X dealerns vanster, +Y bakat (spelarna pa -Y), +Z upp, meter'
     if NARA:
         em['kant_bak'] = KANT_BAK  # dealerkanten vid Y = +kant_bak; origo ligger kvar under standardbordets kant
+    if DJUP is not None:
+        em['djup'] = DJUP  # filtens djup från spelets kant (standard.yaml har bord.djup)
+    if SKO_UT is not None:
+        em['sko_ut'] = SKO_UT  # skon och kasseringslådan så långt utåt längs sina längder från standard.yaml:s plats
+    if SKO_FRAM is not None:
+        em['sko_fram'] = SKO_FRAM  # och så långt vinkelrätt ut mot spelarna
 
     ASSETS.mkdir(parents=True, exist_ok=True)
     # Ett annat avstånd än 0,15 m får sitt eget namn (standardbord_nara23), så att bordet de äldre rörelserna visas vid står kvar.
-    nara_namn = 'standardbord_nara' if abs(KANT_BAK - 0.15) < 1e-9 else 'standardbord_nara%d' % round(KANT_BAK * 100)
-    namn = 'bord_02' if MODELL == 'bord-02' else (nara_namn if NARA else 'standardbord')
+    nara_namn = 'standardbord_nara' if not NARA or abs(KANT_BAK - 0.15) < 1e-9 else 'standardbord_nara%d' % round(KANT_BAK * 100)
+    namn = 'bord_02' if MODELL == 'bord-02' else ('standardbord_' + NAMN if NAMN else (nara_namn if NARA else 'standardbord'))
     bpy.ops.file.make_paths_relative() if bpy.data.filepath else None
     bpy.ops.wm.save_as_mainfile(filepath=str(ASSETS / (namn + '.blend')), relative_remap=True)
     bpy.ops.file.make_paths_relative(); bpy.ops.wm.save_mainfile()
@@ -634,7 +710,9 @@ def main():
             time.sleep(0.25)
     else:
         raise SystemExit('kunde inte byta in %s (filen är upptagen); den nya ligger i %s' % (glb, ny))
-    print('BYGGT', ASSETS / namn, 'modell', MODELL, *(['kant-bak', KANT_BAK] if NARA else []))
+    print('BYGGT', ASSETS / namn, 'modell', MODELL, *(['kant-bak', KANT_BAK] if NARA else []),
+          *(['djup', DJUP] if DJUP is not None else []), *(['sko-ut', SKO_UT] if SKO_UT is not None else []),
+          *(['sko-fram', SKO_FRAM] if SKO_FRAM is not None else []))
 
 
 main()

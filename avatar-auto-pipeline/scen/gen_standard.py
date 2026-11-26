@@ -221,6 +221,14 @@ w(f'  fonsterkort_tvars: {fmt(Bdir(sc["across"]))}  # källa: {src["shoeCard"]}'
 ps = d['shoeAtPlan']
 w(f'  kortplanens_skopunkt: {fmt(B(ps))}  # källa: placements/default.json shoe.native (u 0.733, v 0.322) på filten; en planmarkör, inte skons fot')
 w('')
+# ---------------- STANDARDDOCKANS BORD
+dt = d['DOLL_TABLE']
+w('dockans_bord:  # standarddockans bord (Jakob 2026-11-26: en halvmåne, och skon längre ut). källa: blackjack-dealer/src/table-lens.ts (DOLL_TABLE); byggs med scen/bygg_bord.py --docka')
+w(f'  djup: {dt["depth"]}  # filtens djup från spelets kant; lika med halva bredden, så bågen är en halvcirkel (bord.djup är filmernas bord)')
+w(f'  kant_bak: {dt["edgeBack"]}  # dealerkanten och markerbrickan så långt bakom spelets kant, där dockan sitter')
+w(f'  sko_ut: {dt["shoeOut"]}  # skon så långt utåt längs sin längd från sko.fot_fram (bort från dealerns mitt); kasseringslådan speglad')
+w(f'  sko_fram: {dt["shoeForward"]}  # och så långt vinkelrätt mot sin längd, mot spelarna')
+w('')
 # ---------------- KASSERING
 w('kassering:  # finns inte i spelet – speglad mot skon på dealerns höger')
 w(f'  fot_mitt: [-0.6200, -0.0300, {FELT:.4f}]  # antaget: spegling av skons mitt (X -0,54) något längre ut, utanför brickans urtag (X < -0,30)')

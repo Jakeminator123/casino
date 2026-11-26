@@ -172,6 +172,12 @@ sko:  # dealerns sko på bildens högra sida (dealerns vänster); fot_fram/bak f
   fonsterkort_tvars: [-0.3936, 0.9193, 0.0000]  # källa: blackjack-dealer/src/table-lens.ts shoeCard()
   kortplanens_skopunkt: [0.3872, 0.0658, 0.9500]  # källa: placements/default.json shoe.native (u 0.733, v 0.322) på filten; en planmarkör, inte skons fot
 
+dockans_bord:  # standarddockans bord (Jakob 2026-11-26: en halvmåne, och skon längre ut). källa: blackjack-dealer/src/table-lens.ts (DOLL_TABLE); byggs med scen/bygg_bord.py --docka
+  djup: 0.95  # filtens djup från spelets kant; lika med halva bredden, så bågen är en halvcirkel (bord.djup är filmernas bord)
+  kant_bak: 0.23  # dealerkanten och markerbrickan så långt bakom spelets kant, där dockan sitter
+  sko_ut: 0.08  # skon så långt utåt längs sin längd från sko.fot_fram (bort från dealerns mitt); kasseringslådan speglad
+  sko_fram: 0.03  # och så långt vinkelrätt mot sin längd, mot spelarna
+
 kassering:  # finns inte i spelet – speglad mot skon på dealerns höger
   fot_mitt: [-0.6200, -0.0300, 0.9500]  # antaget: spegling av skons mitt (X -0,54) något längre ut, utanför brickans urtag (X < -0,30)
   yaw: -23.180  # antaget: spegling av skons yaw

@@ -118,6 +118,12 @@ rörelse prövas mot innan den visas för honom.
   dockan sitter med axlarna 31 cm över filten. Om 31 cm: "i denna position som ser 'okej' ut så ska väl händerna mer
   vara i samma riktning som underarmarna väl?": i vilan pekar handen som underarmen, inte vinklad i handleden. Om
   bilden uppifrån: "bordet ser lite för tillspetsat ut väl?"
+- **Bordet är en halvmåne och skon står längre ut (2026-11-26).** "Vad sägs om vi gör det mindre äggformat så att
+  toppen inte används lika mycket, utan att det blir mer som en halvmåne", och skon "aningen längre bort från dealern
+  så att dealern ... inte ska behöva sitta så otroligt ihopklämd till skon". Av tre bord dömde han det 1,15 m djupa
+  Inte bra ("okej vi fimpar dena då") och halvmånen Bra: bordet är 0,95 m djupt (en halvcirkel) och skon står 8,5 cm
+  längre ut åt dealerns vänster. Om samma bilder: "kortet från skon finns nu på 2 ställen": rörelsens kort ligger där
+  skon står, aldrig på skons förra plats. Talen står i `DOLL_TABLE` i `../blackjack-dealer/src/table-lens.ts`.
 - **Inte trångt framför dealern (2026-11-26).** "Tänk på att du med fördel kan skjuta fram både sko/kort och dess
   placeringar om du skjuter fram dealern. Annars kanske det liksom blir för trångt?" När dockan och bordet kommer
   närmare varandra ska händerna i vilan, brickan, dealerns egna kort och skon fortfarande ha plats: ingen hand vilar

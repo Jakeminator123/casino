@@ -6,13 +6,13 @@
 //   öppnar ett läge direkt (förval: given till plats 4, spelets vy, mannen, Blenders bord som det är)
 //   ?giv=<namn>[&vilan=<namn>]   en grundrörelse på prov i stället för platsens (se PROV nedan)
 // window.editor (för kontrollen och verktyget ../verktyg/titta.ts): ready, setTime(t), setKamera(k), nara(vad, från), state(), addChange({...}),
-// removeChange(id), undo(), save(), kula(led), visa(vad, på), tillSparat(), tillGrund(), fart(del, gånger),
+// removeChange(id), undo(), save(skrivÖver), kula(led), visa(vad, på), tillSparat(), tillGrund(), fart(del, gånger),
 // spelaIn(kameror, förstaDel, sistaDel), granskaGrund().
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import type {Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
-import {FART, GIVAR, LEDER, LEDNAMN, LIVSDELAR, VARAR, foljerKortet, grundFor, vilanFor, grundensBrott, rutor, sattIhop, somDenBlev, stallning, stallningOchStopp, taktFor, vikt, type Andring, type Foljd, type Frame, type Led, type Liv, type Livsdel, type Motion, type Q, type Sparad, type V3} from './rorelse.ts';
+import {FART, GIVAR, LEDER, LEDNAMN, LIVSDELAR, VARAR, foljerKortet, grundFor, lagretsFel, langd, vilanFor, grundensBrott, rutor, sattIhop, somDenBlev, stallning, stallningOchStopp, taktFor, vikt, type Andring, type Foljd, type Frame, type Led, type Liv, type Livsdel, type Motion, type Q, type Sparad, type V3} from './rorelse.ts';
 import {byggScen, kameraVy, kameransPlats, platskamera, somKamera, type Docka, type Kamera, type Scen, type Utseende} from './scen.ts';
 import {ARMAR, lyftArmar, matArmar, matKropp} from './armar.ts';
 import type {Granser, Stopp} from './kropp.ts';
@@ -22,8 +22,12 @@ const query = new URLSearchParams(location.search);
 const PLATS = GIVAR[Number(query.get('plats'))] ? Number(query.get('plats')) : 4;
 // En grundrörelse på prov (?giv=<namn> och ?vilan=<namn>, filer i blackjack-dealer/dealer3d/data): spelas i stället för
 // platsens giv eller vilan till skon, utan det sparade lagret, och går inte att spara. För den som gör om en grundrörelse.
-const prov = (namn: string | null) => namn && /^[a-z0-9][a-z0-9-]*$/.test(namn) ? namn : null;
-const PROVGIV = prov(query.get('giv')), PROVVILA = prov(query.get('vilan')), PROV = !!(PROVGIV || PROVVILA);
+// Ett namn som inte är ett namn på en grundrörelse ger ett fel (visas när felrutan finns, nedan) i stället för att
+// platsens vanliga rörelse visas.
+const provFel: string[] = [];
+const prov = (vad: 'giv' | 'vilan') => { const namn = query.get(vad); if (namn === null || namn === '') return null;
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(namn)) { provFel.push(`?${vad}=${namn} är inget namn på en grundrörelse (små bokstäver, siffror och bindestreck, utan .json): inget visas i stället för fel rörelse.`); return '-'; } return namn; };
+const PROVGIV = prov('giv'), PROVVILA = prov('vilan'), PROV = !!(PROVGIV || PROVVILA);
 /** Dockan som visas (?docka=kvinna). Den väljer också grundrörelserna: dockans egna där de finns (rorelse.ts EGNA), annars de äldre. */
 const DOCKA: Docka = query.get('docka') === 'kvinna' ? 'kvinna' : 'man';
 const EGEN = grundFor(DOCKA, PLATS);
@@ -35,12 +39,13 @@ const fel: string[] = [];
 const visaFel = (text: string) => { fel.push(text); const box = $('#fel'); box.style.display = 'block'; box.textContent = 'Något gick fel: ' + fel.join('\n'); };
 window.addEventListener('error', e => visaFel(String(e.message)));
 window.addEventListener('unhandledrejection', e => visaFel(String((e.reason as Error)?.message ?? e.reason)));
+if (provFel.length) { visaFel(provFel.join(' ')); await new Promise(() => {}); } // sidan stannar här, med felet synligt
 const laddarText = (vad: string) => { $('#laddar').firstChild!.textContent = `Laddar ${vad} …`; };
 const sek = (t: number) => t.toFixed(2).replace('.', ',') + ' s';
 
 type Visa = 'bord' | 'stol' | 'platser';
 type Klipp = {fil: string; rutor: number; bytes: number};
-type Api = {ready: boolean; setTime(t: number): void; setKamera(k: Kamera): void; nara(vad: 'hogerHand' | 'vansterHand' | 'kort', fran?: V3): void; state(): unknown; addChange(a: Partial<Andring> & {led: Led}): string; removeChange(id: string): void; undo(): void; save(): Promise<unknown>; visa(vad: Visa, på: boolean): void; kula(led: Led): {x: number; y: number};
+type Api = {ready: boolean; setTime(t: number): void; setKamera(k: Kamera): void; nara(vad: 'hogerHand' | 'vansterHand' | 'kort', fran?: V3): void; state(): unknown; addChange(a: Partial<Andring> & {led: Led}): string; removeChange(id: string): void; undo(): void; save(skrivOver?: boolean): Promise<unknown>; visa(vad: Visa, på: boolean): void; kula(led: Led): {x: number; y: number};
   tillSparat(): void; tillGrund(): void; fart(del: number, ganger: number): void; liv(delar: Livsdel[], fro?: number): void; spelaIn(kameror: Kamera[], fran: number, till: number): Promise<Klipp[]>; granskaGrund(): unknown};
 declare global { interface Window { editor: Api } }
 const api: Api = {ready: false} as Api; window.editor = api;
@@ -49,21 +54,29 @@ const hämta = async <X>(url: string): Promise<X> => { const r = await fetch(url
 
 // ---- data ----------------------------------------------------------------------------------------------------
 laddarText('rörelserna');
-const [plan, andra, sparadFil] = await Promise.all([
+/** Det sparade lagret som text, som det låg när sidan laddades ('' om inget): före Spara jämförs filen med det. */
+const lasSparat = () => fetch(SPARAS, {cache: 'no-store'}).then(r => r.status === 200 ? r.text() : ''); // 204: inget sparat ännu
+const [plan, andra, sparadText] = await Promise.all([
   hämta<Plan>('/blackjack-dealer/placements/default.json'),
   hämta<Motion>(`/blackjack-dealer/dealer3d/data/${PROVGIV ?? EGEN.giv}.json`),
-  PROV ? null : fetch(SPARAS, {cache: 'no-store'}).then(r => r.status === 200 ? r.json() as Promise<Sparad> : null), // 204: inget sparat ännu
+  PROV ? '' : lasSparat(),
 ]);
 // En giv på prov utan vila i adressen börjar i vilan för den docka den är ritad för (rorelse.ts vilanFor).
 const GRUND = [PROVVILA ?? (PROVGIV ? vilanFor(andra.doll) : EGEN.vila), PROVGIV ?? EGEN.giv];
 const forsta = await hämta<Motion>(`/blackjack-dealer/dealer3d/data/${GRUND[0]}.json`);
 const FORVAL: Sparad = {namn: `Vilan, skon och given till plats ${PLATS} kort 1`, om: `A1 till A2.3 (${GRUND[0]}) och sedan given från A2.3 till plats ${PLATS} kort 1 och tillbaka (${GRUND[1]}). Ändringarna läggs ovanpå grundrörelserna.`, grund: GRUND, andringar: []};
+const foljd: Foljd = sattIhop(forsta, andra, PLATS);
 // Ett sparat lager gäller bara de grundrörelser det sparades på: ändringarnas tider och farten per del hör till dem. Hör
-// det till andra (grundrörelserna har bytts ut) läggs det inte på; det står kvar i filen tills han själv trycker Spara.
+// det till andra (grundrörelserna har bytts ut), eller har det fel (det kan skrivas för hand: rorelse.ts lagretsFel),
+// läggs det inte på; det står kvar i filen tills han själv trycker Spara.
 const sammaGrund = (g: readonly string[] | undefined) => !!g && g.length === GRUND.length && g.every((n, i) => n === GRUND[i]);
-const aldreSparat = sparadFil && !sammaGrund(sparadFil.grund) ? sparadFil : null;
-const sparad: Sparad = sparadFil && !aldreSparat ? {...FORVAL, ...sparadFil, grund: GRUND} : structuredClone(FORVAL);
-const foljd: Foljd = sattIhop(forsta, andra, PLATS), RUTA = 1 / foljd.fps;
+const sparadFil: Sparad | null = (() => { if (!sparadText) return null; try { return JSON.parse(sparadText) as Sparad; } catch { return null; } })();
+const aldreSparat = sparadFil && Array.isArray(sparadFil.grund) && !sammaGrund(sparadFil.grund) ? sparadFil : null;
+const lagretFel = sparadText && !aldreSparat ? (sparadFil ? lagretsFel(sparadFil, langd(foljd), foljd.delar.length) : ['filen är inte giltig JSON']) : [];
+if (lagretFel.length) console.warn('Det sparade lagret har fel och används inte:', lagretFel);
+const sparad: Sparad = sparadFil && !aldreSparat && !lagretFel.length ? {...FORVAL, ...sparadFil, grund: GRUND} : structuredClone(FORVAL);
+/** Filen som den låg när sidan laddades, eller som den här sidan sparade den senast. */
+let kandText = sparadText;
 // Takten: farten per del. `tid` och DUR är filmens tid (det tidslinjen visar); ändringarna, blicken och rutorna räknas i
 // grundrörelsens tid, som tak.grund(tid) ger.
 // Förvalet är Jakobs takt (1 s, 1 s och 0,6 s) på tiden då något rör sig; en fart han själv har satt gäller före den
@@ -111,12 +124,14 @@ const blickMot = (): 'spel' => 'spel';
 let blickLas: V3 | null = null;
 const blickKamera = () => blickLas ?? kameraVy(blickMot(), plan).pos;
 let vald: Led | null = null, lage: 'flytta' | 'vrida' = 'flytta', varar = VARAR, osparat = false, sparadKl = '';
+/** Ett sparande pågår: Spara är avstängd tills det är klart, så att två aldrig skriver samma fil samtidigt. */
+let sparar = false;
 /** Det armarnas mätning sade vid senaste Spara, om en underarm går genom bordets kant. */
 let sparadVarning = '';
 /** En inspelning som pågår: handtagen är dolda och Esc avbryter. */
 let inspelning: {avbryt: boolean} | null = null;
 const angraLista: string[] = [];
-let nu: Frame = stallning(foljd, tak.grund(tid), sparad.andringar, blickKamera(), sparad.liv, undefined, tak.spelad);
+let nu: Frame = stallning(foljd, tak.grund(tid), sparad.andringar, blickKamera(), sparad.liv, undefined, tak);
 /**
  * Kroppens gränser (kropp.ts; Jakob 2026-11-26 om en armbåge dragen in i bålen: "Sånna här rörelser ska ju bara inte
  * gå"): mätta på dockan när bordet har kommit. Det han drar i stannar vid kroppen, bordet och vad en led kan, och
@@ -127,7 +142,7 @@ const nyId = () => Math.random().toString(36).slice(2, 9);
 const visaKulor = () => $<HTMLInputElement>('#kulor').checked;
 
 // Ansiktet vrids ända fram mot kameran när han inte följer kortet (scen.ts pose): då ser han in i den, inte under den.
-function stall() { const grundtid = tak.grund(tid), r = stallningOchStopp(foljd, grundtid, sparad.andringar, blickKamera(), sparad.liv, granser, tak.spelad); nu = r.frame; stoppNu = r.stopp; scen.pose(nu, foljd.hip, 1 - foljerKortet(foljd.blick, grundtid, tak.spelad)); visaStopp(); }
+function stall() { const grundtid = tak.grund(tid), r = stallningOchStopp(foljd, grundtid, sparad.andringar, blickKamera(), sparad.liv, granser, tak); nu = r.frame; stoppNu = r.stopp; scen.pose(nu, foljd.hip, 1 - foljerKortet(foljd.blick, grundtid, tak.spelad)); visaStopp(); }
 /** En rad i bilden om vad som tog emot, i vanliga ord; borta när inget stoppas och under en inspelning. */
 function visaStopp() { const box = $('#stopp'), text = inspelning ? '' : [...new Set(stoppNu.map(s => s.text))].join(' '); box.textContent = text; box.style.display = text ? 'block' : 'none'; }
 /** Handtagen där mannens leder och blicken är nu (utom det som dras). */
@@ -153,12 +168,20 @@ function ritaNu() { stall(); handtagTill(); visa(); }
 
 // ---- tiden och uppspelningen ------------------------------------------------------------------------------------
 function setTime(t: number) { tid = Math.max(0, Math.min(DUR, t)); stall(); handtagTill(); visaTid(); visaVarar(); rita(); }
-let förra = 0;
+/**
+ * Slingan: i slutet står han stilla en stund vid skon, och sedan börjar rörelsen om i vilan och står en stund där, så
+ * att omstarten syns som en omstart och inte som ett ryck i rörelsen (från skon till vilan flyttar sig handlederna 17–18
+ * cm och kortet 52 cm). Sekunder på klockan, vilken fart uppspelningen än har.
+ */
+const SLINGA = {slut: 0.8, borjan: 0.4};
+let förra = 0, stillaKvar = 0, omstart = false;
 function steg(now: number) {
-  if (spelar) { const dt = Math.min(0.1, (now - förra) / 1000); tid += dt * fart; if (tid >= DUR) { if (slinga) tid = tid % DUR; else { tid = DUR; spela(false); } } setTime(tid); }
+  if (spelar) { const dt = Math.min(0.1, (now - förra) / 1000);
+    if (stillaKvar > 0) { stillaKvar -= dt; if (stillaKvar <= 0 && omstart) { omstart = false; stillaKvar = SLINGA.borjan; setTime(0); } }
+    else { const t = tid + dt * fart; if (t < DUR) setTime(t); else { setTime(DUR); if (slinga) { stillaKvar = SLINGA.slut; omstart = true; } else spela(false); } } }
   förra = now; requestAnimationFrame(steg);
 }
-function spela(på: boolean) { spelar = på; $('#spela').textContent = på ? '❚❚ Paus' : '▶ Spela'; if (på && tid >= DUR - 1e-6) tid = 0; }
+function spela(på: boolean) { spelar = på; stillaKvar = 0; omstart = false; $('#spela').textContent = på ? '❚❚ Paus' : '▶ Spela'; if (på && tid >= DUR - 1e-6) tid = 0; }
 
 // ---- kamerorna ---------------------------------------------------------------------------------------------------
 function setKamera(k: Kamera) {
@@ -176,6 +199,7 @@ function ram() { const r = scen.filmRam(), box = $('#ram'), plats = kameransPlat
 type Nara = 'hogerHand' | 'vansterHand' | 'kort';
 function nara(vad: Nara, fran: V3 = [0, 0.2, 0.36]) {
   const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]), hand = vad === 'kort' ? null : nu[vad === 'hogerHand' ? 'R' : 'L'], mal = hand ? v(hand.w).add(v(hand.p[9])).multiplyScalar(0.5) : v(nu.card.c);
+  scen.setKamera('spel'); // spelets bildvinkel, inte den förra kamerans (sidans eller uppifrån)
   kamera = 'fri'; camera.position.copy(mal).add(v(fran)); camera.up.set(0, 1, 0); camera.lookAt(mal); orbit.target.copy(mal); orbit.update(); scen.storlek();
   document.querySelectorAll<HTMLButtonElement>('#kameror button').forEach(b => b.classList.toggle('vald', b.dataset.kamera === 'fri')); ram(); rita();
 }
@@ -205,8 +229,13 @@ function tillSparat() { if (!olikt()) return; spara(); tillOgonblick(sparatLage)
 /** Alla ändringar tas bort och farten blir grundrörelsens: kvar är grundrörelsen som den är. */
 const ärGrund = () => !sparad.andringar.length && tak.forval && !sparad.liv?.delar.length;
 function tillGrund() { if (ärGrund()) return; spara(); sparad.andringar = []; sparad.fart = undefined; sparad.liv = undefined; nyTakt(); visaLiv(); välj(null); ändrat(); }
-/** Ändringen för en led som gäller just nu (gjord vid den här tiden), om det finns en. */
-const härNu = (led: Led) => { const grundtid = tak.grund(tid); return sparad.andringar.find(a => a.led === led && Math.abs(a.tid - grundtid) < RUTA / 2) ?? null; };
+/**
+ * Ändringen för en led som gäller just nu: den närmaste av ledens ändringar inom NARA sekunder (filmens) från där
+ * tidslinjen står, om det finns en. Ett drag där ändrar den i stället för att lägga en ny, nästan ovanpå (efter ett drag i
+ * tidslinjen står den sällan på exakt samma ruta).
+ */
+const NARA = 0.1;
+const härNu = (led: Led) => { let bast: Andring | null = null, avst = NARA; for (const a of sparad.andringar) { const d = Math.abs(tak.ut(a.tid) - tid); if (a.led === led && d < avst) { avst = d; bast = a; } } return bast; };
 function ångra() { const förra = angraLista.pop(); if (förra === undefined) return; tillOgonblick(förra); ändrat(); }
 function taBort(id: string) { spara(); sparad.andringar = sparad.andringar.filter(a => a.id !== id); ändrat(); }
 /** En ändring där tidslinjen står, eller vid filmens tid `a.tid`; den sparas i grundrörelsens tid. */
@@ -215,14 +244,15 @@ function läggTill(a: Partial<Andring> & {led: Led}): string {
   spara(); const ny: Andring = {id: nyId(), tid: tak.grund(a.tid ?? tid), led: a.led, flytt: (a.flytt ?? [0, 0, 0]) as V3, vrid: a.vrid ?? null, varar: a.varar ?? varar}; sparad.andringar.push(ny); ändrat(); return ny.id;
 }
 
-// skala: blickens kula står närmare än blickpunkten, så dess förflyttning förstoras till blickpunktens avstånd.
+// skala: blickens kula står närmare än blickpunkten, så dess förflyttning förstoras till blickpunktens avstånd, och
+// delas med ändringens vikt där tidslinjen står (en ändring strax bredvid verkar lite mindre här än vid sin egen tid).
 let drag: {led: Led; a: Andring; start: T.Vector3; startQ: T.Quaternion; flytt0: V3; vrid0: Q | null; ny: boolean; skala: number} | null = null;
 flytta.addEventListener('dragging-changed', e => { orbit.enabled = !e.value; });
 flytta.addEventListener('mouseDown', () => {
-  if (!vald) return; spara(); let a = härNu(vald), ny = false;
+  if (!vald) return; spela(false); spara(); let a = härNu(vald), ny = false; // ett drag görs i den ruta som syns
   if (!a) { a = {id: nyId(), tid: tak.grund(tid), led: vald, flytt: [0, 0, 0], vrid: null, varar}; sparad.andringar.push(a); ny = true; }
   const m = dragpunkt; if (lage === 'vrida') m.quaternion.identity();
-  const skala = vald === 'blick' ? Math.hypot(nu.g[0] - nu.h[0], nu.g[1] - nu.h[1], nu.g[2] - nu.h[2]) / BLICK : 1;
+  const skala = (vald === 'blick' ? Math.hypot(nu.g[0] - nu.h[0], nu.g[1] - nu.h[1], nu.g[2] - nu.h[2]) / BLICK : 1) / Math.max(0.2, vikt(a, tak.grund(tid), tak.ut));
   drag = {led: vald, a, start: m.position.clone(), startQ: m.quaternion.clone(), flytt0: [...a.flytt] as V3, vrid0: a.vrid ? [...a.vrid] as Q : null, ny, skala};
 });
 flytta.addEventListener('objectChange', () => {
@@ -236,12 +266,13 @@ flytta.addEventListener('mouseUp', () => {
   if (!rörd) { if (drag.ny) sparad.andringar = sparad.andringar.filter(x => x !== a); angraLista.pop(); drag = null; handtagTill(); rita(); return; }
   // Höll spärren emot blir ändringen det som faktiskt blev (en armbåge alltid: den läggs på sin cirkel), så att nästa drag
   // börjar där armen står.
-  const blev = granser ? somDenBlev(foljd, a, sparad.andringar, blickKamera(), sparad.liv, granser, tak.spelad) : null; if (blev) { a.flytt = blev.flytt; a.vrid = blev.vrid; }
+  const blev = granser ? somDenBlev(foljd, a, sparad.andringar, blickKamera(), sparad.liv, granser, tak) : null; if (blev) { a.flytt = blev.flytt; a.vrid = blev.vrid; }
   if (Math.hypot(...a.flytt) < 1e-6 && (!a.vrid || Math.abs(a.vrid[3]) > 0.999999)) sparad.andringar = sparad.andringar.filter(x => x !== a); // tillbaka där den var: ingen ändring
   drag = null; dragpunkt.quaternion.identity(); ändrat();
 });
 
 function välj(led: Led | null) {
+  if (led) spela(false); // en kula väljs i den ruta som syns: bilden står still medan han drar
   vald = led; if (led !== 'hogerHand' && led !== 'vansterHand' && lage === 'vrida') sättLäge('flytta');
   if (led) { dragpunkt.position.copy(handtag[led].position); dragpunkt.quaternion.identity(); flytta.attach(dragpunkt); flytta.setMode(lage === 'vrida' ? 'rotate' : 'translate'); } else flytta.detach();
   document.querySelectorAll<HTMLButtonElement>('#leder button').forEach(b => b.classList.toggle('vald', b.dataset.led === led));
@@ -260,7 +291,7 @@ canvas.addEventListener('pointerdown', e => {
   const hit = pek.intersectObjects(LEDER.map(l => handtag[l]).filter(m => m.visible))[0];
   if (hit) { ner.på = true; orbit.enabled = false; välj(hit.object.userData.led as Led); }
 }, {capture: true});
-window.addEventListener('pointerup', e => { if (!drag) orbit.enabled = true; if (!ner.på && Math.hypot(e.clientX - ner.x, e.clientY - ner.y) < 4 && e.target === canvas && vald) välj(null); ner.på = false; });
+window.addEventListener('pointerup', e => { if (!drag && !inspelning) orbit.enabled = true; if (!ner.på && Math.hypot(e.clientX - ner.x, e.clientY - ner.y) < 4 && e.target === canvas && vald) välj(null); ner.på = false; });
 
 // ---- panelen ----------------------------------------------------------------------------------------------------
 function visaTid() {
@@ -279,26 +310,29 @@ function visaVarar() {
 }
 function visaLista() {
   const ul = $('#lista'); ul.replaceChildren();
-  const alla = [...sparad.andringar].sort((a, b) => a.tid - b.tid || a.led.localeCompare(b.led)), grundtid = tak.grund(tid);
+  const alla = [...sparad.andringar].sort((a, b) => a.tid - b.tid || a.led.localeCompare(b.led)), valdNu = vald ? härNu(vald) : null;
   if (!alla.length) { const li = document.createElement('li'); li.className = 'tom'; li.textContent = 'Inga ändringar ännu.'; ul.append(li); }
   for (const a of alla) {
     const li = document.createElement('li'), text = document.createElement('span'), cm = Math.round(Math.hypot(...a.flytt) * 1000) / 10, grader = a.vrid ? Math.round(2 * Math.acos(Math.min(1, Math.abs(a.vrid[3]))) * 180 / Math.PI) : 0;
     text.textContent = `${sek(tak.ut(a.tid))} · ${LEDNAMN[a.led]} · ${[cm ? `${String(cm).replace('.', ',')} cm` : '', grader ? `vriden ${grader}°` : ''].filter(Boolean).join(', ') || 'ingen skillnad'}`;
     const bort = document.createElement('button'); bort.textContent = 'Ta bort'; bort.title = 'Ta bort ändringen'; bort.onclick = e => { e.stopPropagation(); taBort(a.id); };
     li.onclick = () => { setTime(tak.ut(a.tid)); välj(a.led); };
-    li.classList.toggle('har', Math.abs(a.tid - grundtid) < RUTA / 2 && vald === a.led); li.append(text, bort); ul.append(li);
+    li.classList.toggle('har', a === valdNu); li.append(text, bort); ul.append(li);
   }
   $<HTMLButtonElement>('#angra').disabled = !angraLista.length;
   const linje = $('#tidslinje'); linje.querySelectorAll('.prick').forEach(p => p.remove());
   for (const a of alla) { const p = document.createElement('div'), t = tak.ut(a.tid); p.className = 'prick'; p.style.left = `${t / DUR * 100}%`; p.title = `${LEDNAMN[a.led]}, ${sek(t)}`; linje.append(p); }
 }
-function visaStatus() { const s = $('#status'), aldre = aldreSparat && !sparadKl, omAldre = 'Det som är sparat för den här platsen hör till en äldre rörelse och används inte';
+/** Varför det som ligger sparat inte används ('' när det används eller inget finns), i vanliga ord. */
+const oanvant = () => sparadKl ? '' : aldreSparat ? 'Det som är sparat för den här platsen hör till en äldre rörelse och används inte'
+  : lagretFel.length ? `Det som är sparat för den här platsen har fel och används inte (${lagretFel.slice(0, 2).join('; ')}${lagretFel.length > 2 ? ` och ${lagretFel.length - 2} till` : ''})` : '';
+function visaStatus() { const s = $('#status'), omAldre = oanvant();
   // Spelar platsen ännu de äldre rörelserna (ingen egen giv för dockan där än), sägs det först.
   const lanad = PROV || EGEN.egen ? '' : `Plats ${PLATS} spelar ännu den äldre rörelsen, ritad för en annan kropp än ${DOCKA === 'kvinna' ? 'kvinnans' : 'mannens'}. `;
   s.className = osparat ? 'osparat' : sparadKl ? 'bra' : '';
-  s.textContent = lanad + (PROV ? `På prov: ${GRUND.join(' och ')}. Sparas inte.` : osparat ? `Ändrat – inte sparat ännu.${aldre ? ` ${omAldre}; Spara skriver över det.` : ''}` : sparadKl ? `Sparat kl. ${sparadKl}.${sparadVarning}` : aldre ? `${omAldre}. Det står kvar tills du trycker Spara.` : sparadFil ? 'Allt är sparat.' : 'Inget sparat ännu.');
-  if ((sparadVarning && !osparat) || aldre) s.className = 'osparat';
-  $<HTMLButtonElement>('#spara').disabled = PROV;
+  s.textContent = lanad + (PROV ? `På prov: ${GRUND.join(' och ')}. Sparas inte.` : sparar ? 'Sparar …' : osparat ? `Ändrat – inte sparat ännu.${omAldre ? ` ${omAldre}; Spara skriver över det.` : ''}` : sparadKl ? `Sparat kl. ${sparadKl}.${sparadVarning}` : omAldre ? `${omAldre}. Det står kvar tills du trycker Spara.` : sparadFil ? 'Allt är sparat.' : 'Inget sparat ännu.');
+  if ((sparadVarning && !osparat) || omAldre) s.className = 'osparat';
+  $<HTMLButtonElement>('#spara').disabled = PROV || sparar;
   $<HTMLButtonElement>('#till-sparat').disabled = !osparat; $<HTMLButtonElement>('#till-grund').disabled = ärGrund(); }
 
 /** Vad som kan spelas in: hela rörelsen, en del, eller given (kortet ut och handen tillbaka i samma film). Värdet är första och sista delen. */
@@ -316,13 +350,20 @@ function visaDelar() {
     const grundlängd = tak.spann[i].till - tak.spann[i].fran;
     nr.textContent = `${i + 1}.`; namn.textContent = d.namn; li.title = `Börjar vid ${sek(d.fran)}. Grundrörelsen tar ${sek(grundlängd)} här${tak.forval ? '; tiden är förvalet (1 s, 1 s och 0,6 s)' : ''}.`;
     längd.type = 'number'; längd.step = '0.1'; längd.min = (grundlängd / FART.mest).toFixed(1); längd.max = (grundlängd / FART.minst).toFixed(1); längd.value = (d.till - d.fran).toFixed(2); längd.title = 'Hur många sekunder delen ska ta. Skriv ett nytt tal för att göra den fortare eller långsammare.';
+    längd.dataset.del = String(i);
     s.textContent = Math.abs(fart - 1) < 0.005 ? 's' : `s · ${Math.round(fart * 100)} %`; s.classList.toggle('andrad', !tak.forval);
-    längd.onclick = e => e.stopPropagation(); längd.onchange = () => { const sekunder = Number(längd.value); sattFart(i, sekunder > 0 ? grundlängd / sekunder : 1); };
+    // Ett tomt fält, 0 eller ett tal utanför det delen kan ta sägs vid fältet; tomt och 0 ändrar ingenting.
+    längd.onclick = e => e.stopPropagation(); längd.oninput = () => längd.setCustomValidity('');
+    längd.onchange = () => { const sekunder = Number(längd.value), [lo, hi] = [grundlängd / FART.mest, grundlängd / FART.minst];
+      if (!(sekunder > 0)) { visaDelar(); sagVidDel(i, `Skriv hur många sekunder delen ska ta, ett tal större än 0 (${sek(lo)} till ${sek(hi)}). Inget ändrades.`); return; }
+      sattFart(i, grundlängd / sekunder); if (sekunder < lo - 1e-6 || sekunder > hi + 1e-6) sagVidDel(i, `Delen kan ta ${sek(lo)} till ${sek(hi)}; den tar nu ${sek(tak.delar[i].till - tak.delar[i].fran)}.`); };
     li.append(nr, namn, längd, s); li.onclick = () => { spela(false); setTime(tak.delar[i].fran); }; ul.append(li); });
   const linje = $('#tidslinje'), spets = linje.querySelector('.spets'); linje.querySelectorAll('.del').forEach(x => x.remove());
   for (const d of tak.delar) { const del = document.createElement('div'); del.className = 'del'; del.textContent = d.namn; del.style.left = `${d.fran / DUR * 100}%`; del.style.width = `calc(${(d.till - d.fran) / DUR * 100}% - 2px)`; linje.insertBefore(del, spets); }
   const val = $<HTMLSelectElement>('#inspela-del'), förr = val.value; val.replaceChildren(...OMFANG().map(o => { const x = document.createElement('option'); x.value = o.varde; x.textContent = o.text; return x; })); if (OMFANG().some(o => o.varde === förr)) val.value = förr;
 }
+/** Ett besked vid en dels längd i panelen (webbläsarens egen ruta vid fältet). */
+function sagVidDel(i: number, text: string) { const f = document.querySelector<HTMLInputElement>(`#delar input[data-del="${i}"]`); if (!f) return; f.setCustomValidity(text); f.reportValidity(); }
 // Tidslinjen: delarna med namn, en prick per ändring och spetsen där han står; dra i den för att gå i tiden.
 { const linje = $('#tidslinje'), spets = document.createElement('div'); spets.className = 'spets'; linje.append(spets); visaDelar();
   const gå = (e: PointerEvent) => { const r = linje.getBoundingClientRect(); setTime((e.clientX - r.left) / r.width * DUR); };
@@ -340,7 +381,7 @@ $<HTMLInputElement>('#kulor').onchange = () => { handtagTill(); rita(); };
   input.addEventListener('input', () => { const n = Number(input.value), a = vald ? härNu(vald) : null;
     if (a) { if (!pågår) { spara(); pågår = true; } a.varar = n; osparat = olikt(); stall(); handtagTill(); visaStatus(); rita(); } else varar = n; visaVarar(); });
   input.addEventListener('change', () => { pågår = false; input.blur(); visaLista(); visaVarar(); }); }
-$('#angra').onclick = ångra;
+$('#angra').onclick = () => { if (!drag) ångra(); };
 $('#spara').onclick = () => { void sparaFiler(); };
 $('#till-sparat').onclick = tillSparat;
 $('#till-grund').onclick = tillGrund;
@@ -358,7 +399,7 @@ document.querySelectorAll<HTMLButtonElement>('#dockor button').forEach(b => { co
 window.addEventListener('keydown', e => {
   if (inspelning) { if (e.key === 'Escape') inspelning.avbryt = true; e.preventDefault(); return; }
   const iText = (e.target as HTMLElement).tagName === 'INPUT' && (e.target as HTMLInputElement).type !== 'checkbox';
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); ångra(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (!drag) ångra(); return; } // mitt i ett drag ångras inget: draget är inte klart
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); void sparaFiler(); return; }
   if (iText) return;
   if (e.key === ' ') { e.preventDefault(); spela(!spelar); }
@@ -373,19 +414,44 @@ function visaDel(vad: Visa, på: boolean) { synligt[vad] = på; scen.synlig(vad,
 (['bord', 'stol', 'platser'] as Visa[]).forEach(vad => { $<HTMLInputElement>(`#visa-${vad}`).onchange = e => visaDel(vad, (e.target as HTMLInputElement).checked); });
 
 // ---- spara -------------------------------------------------------------------------------------------------------
-async function sparaFiler() {
+/** En fråga under Spara, med ett val per knapp; borta när han väljer (eller när en ny fråga kommer). */
+function fraga(text: string, val: [string, () => void][]) {
+  let box = document.querySelector<HTMLElement>('#fraga'); if (!box) { box = document.createElement('div'); box.id = 'fraga'; box.style.marginTop = '6px'; $('#status').after(box); }
+  const p = document.createElement('p'), knappar = document.createElement('div'); p.className = 'tips'; p.style.color = 'var(--warn)'; p.textContent = text; knappar.className = 'knappar';
+  for (const [namn, gor] of val) { const b = document.createElement('button'); b.textContent = namn; b.onclick = () => { box!.remove(); gor(); }; knappar.append(b); }
+  box.replaceChildren(p, knappar);
+}
+/** Lika som lager (samma JSON), oavsett radbrytningar. */
+const sammaText = (a: string, b: string) => { try { return JSON.stringify(a ? JSON.parse(a) : null) === JSON.stringify(b ? JSON.parse(b) : null); } catch { return a === b; } };
+/**
+ * Spara. Före skrivningen ses efter om filen har ändrats sedan sidan laddades (en annan flik, en agent) och om det som
+ * ligger där inte används (äldre rörelse, fel): då frågas han i vanliga ord, med valet att ladda om sidan eller skriva
+ * över, och inget skrivs förrän han väljer. `skrivOver` hoppar över frågan. Ett sparande i taget.
+ */
+async function sparaFiler(skrivOver = false): Promise<{sparat: boolean; varfor?: string; svar?: unknown}> {
   if (PROV) throw Error('En grundrörelse på prov sparas inte: öppna editorn utan giv och vilan i adressen.');
+  if (sparar) return {sparat: false, varfor: 'Ett sparande pågår redan.'};
   const fil: Sparad = {namn: sparad.namn, om: sparad.om, grund: GRUND, blickMot: blickMot(), ...(tak.forval ? {} : {fart: tak.fart}), ...(sparad.liv ? {liv: sparad.liv} : {}), andringar: [...sparad.andringar].sort((a, b) => a.tid - b.tid || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)), sparad: new Date().toISOString()};
-  const put = async (url: string, data: unknown) => { const r = await fetch(url, {method: 'PUT', headers: {'content-type': 'application/json'}, body: JSON.stringify(data, null, 1)}); if (!r.ok) throw Error(`Kunde inte spara (${r.status}).`); return r.json(); };
-  $('#status').textContent = 'Sparar …';
-  // Armarna mäts på den färdiga rörelsen, med hans ändringar i: regeln rättar bara grundrörelsen, och en hand han har
-  // dragit i kan föra underarmen ned i kanten igen. Måtten sparas med rutorna, och han får veta om en arm går igenom.
-  const rattning = `armbågarna vridna ut och upp av editorns regel (standarddocka/editor/armar.ts, minst ${ARMAR.luft * 100} cm luft i grundrörelsen), ändringarna hållna inom kroppen, bordet och lederna (standarddocka/editor/kropp.ts); luften på den färdiga rörelsen står i fältet armar`;
-  const data = rutor(foljd, fil, blickKamera(), rattning, tak, granser), armarNu = matArmar(data.frames as unknown as Frame[], foljd.hip, scen, bord), genom = armarNu.R.genomRutor + armarNu.L.genomRutor; stall();
-  // Kroppens mått och bordet följer med rutorna, så att verktyg/mat.ts räknar det sparade genom samma spärr som här.
-  const svar = [await put(SPARAS, fil), await put(RUTOR, {...data, armar: armarNu, granser})];
-  sparadVarning = genom ? ` Obs: en underarm går genom bordets kant i ${genom} rutor (höger ${armarNu.R.genomRutor}, vänster ${armarNu.L.genomRutor}).` : '';
-  sparatLage = ogonblick(); osparat = false; sparadKl = new Date().toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'}); visaStatus(); return svar;
+  const fel = lagretsFel(fil, langd(foljd), foljd.delar.length); if (fel.length) throw Error(`Det här lagret har fel och sparas inte: ${fel.join('; ')}.`);
+  const put = async (url: string, data: unknown) => { const r = await fetch(url, {method: 'PUT', headers: {'content-type': 'application/json'}, body: JSON.stringify(data, null, 1)}); if (!r.ok) throw Error(`Kunde inte spara (${r.status}: ${(await r.text()).slice(0, 200)}).`); return r.json(); };
+  sparar = true; document.querySelector('#fraga')?.remove(); visaStatus();
+  try {
+    if (!skrivOver) {
+      const nuText = await lasSparat(), andrad = !sammaText(nuText, kandText), inteAnvant = oanvant();
+      const varfor = andrad ? 'Det sparade för den här platsen har ändrats sedan sidan laddades (i en annan flik eller av en agent). Spara skriver över det med det du ser här.'
+        : inteAnvant ? `${inteAnvant}. Spara skriver över det med det du ser här.` : '';
+      if (varfor) { fraga(varfor, [['Ladda om sidan', () => { osparat = false; location.reload(); }], ['Spara ändå', () => { void sparaFiler(true); }], ['Låt bli', () => {}]]); return {sparat: false, varfor}; }
+    }
+    // Armarna mäts på den färdiga rörelsen, med hans ändringar i: regeln rättar bara grundrörelsen, och en hand han har
+    // dragit i kan föra underarmen ned i kanten igen. Måtten sparas med rutorna, och han får veta om en arm går igenom.
+    const rattning = `armbågarna vridna ut och upp av editorns regel (standarddocka/editor/armar.ts, minst ${ARMAR.luft * 100} cm luft i grundrörelsen), ändringarna hållna inom kroppen, bordet och lederna (standarddocka/editor/kropp.ts); luften på den färdiga rörelsen står i fältet armar`;
+    const data = rutor(foljd, fil, blickKamera(), rattning, tak, granser), armarNu = matArmar(data.frames as unknown as Frame[], foljd.hip, scen, bord), genom = armarNu.R.genomRutor + armarNu.L.genomRutor; stall();
+    // Kroppens mått och bordet följer med rutorna, så att verktyg/mat.ts räknar det sparade genom samma spärr som här.
+    const svar = [await put(SPARAS, fil), await put(RUTOR, {...data, armar: armarNu, granser})];
+    kandText = JSON.stringify(fil);
+    sparadVarning = genom ? ` Obs: en underarm går genom bordets kant i ${genom} rutor (höger ${armarNu.R.genomRutor}, vänster ${armarNu.L.genomRutor}).` : '';
+    sparatLage = ogonblick(); osparat = false; sparadKl = new Date().toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'}); return {sparat: true, svar};
+  } finally { sparar = false; visaStatus(); }
 }
 
 // ---- spela in ----------------------------------------------------------------------------------------------------
@@ -402,13 +468,18 @@ async function spelaIn(kameror: Kamera[], forst: number, sist: number): Promise<
   const delnamn = OMFANG().find(o => o.varde === `${forst}-${sist}`)?.namn ?? `del-${forst + 1}-${sist + 1}`;
   const före = {tid, kamera, pos: camera.position.clone(), kvat: camera.quaternion.clone(), mot: orbit.target.clone()}, klara: Klipp[] = [], text = $('#laddar'), status = $('#inspela-status');
   const post = async <X>(url: string, body: BodyInit | null): Promise<X> => { const r = await fetch(url, {method: 'POST', body}); if (!r.ok) throw Error(`Inspelningen stannade: ${(await r.text()).slice(0, 300)}`); return r.json() as Promise<X>; };
-  const lås = blickKamera(); blickLas = [lås[0], lås[1], lås[2]]; inspelning = {avbryt: false}; välj(null); handtagTill(); ram(); text.style.display = 'grid'; status.className = 'tips'; status.textContent = '';
+  // Klippets namn: rörelsen (på prov: grundrörelsernas namn), delen, kameran och dockan, så att mannens och kvinnans
+  // klipp inte skriver över varandra.
+  const rorelse = PROV ? `prov-${PROVVILA ? `${PROVVILA}-` : ''}${GRUND[1]}` : `a1-a23-p${PLATS}c1`;
+  // Panelen, tidslinjen, kameran och pilarna står still under inspelningen: inget han rör ändrar klippet medan det görs.
+  const stang = (pa: boolean) => { for (const s of ['#panel', '#botten']) document.querySelector<HTMLElement>(s)!.inert = pa; orbit.enabled = !pa; flytta.enabled = !pa; };
+  const lås = blickKamera(); blickLas = [lås[0], lås[1], lås[2]]; inspelning = {avbryt: false}; välj(null); stang(true); handtagTill(); ram(); text.style.display = 'grid'; status.className = 'tips'; status.textContent = '';
   let id: string | null = null, gjorda = 0;
   try {
     scen.filmstorlek(true);
     for (const k of kameror) {
       if (k !== 'fri') scen.setKamera(k);
-      id = (await post<{id: string}>('/inspelning/start', JSON.stringify({namn: `${NAMN}-${delnamn}-${KAMERANAMN(k)}${UTSEENDE === 'nyckel' ? '-nyckel' : ''}`, fps: foljd.fps}))).id;
+      id = (await post<{id: string}>('/inspelning/start', JSON.stringify({namn: `${rorelse}-${delnamn}-${KAMERANAMN(k)}-${DOCKA}${UTSEENDE === 'nyckel' ? '-nyckel' : ''}`, fps: foljd.fps}))).id;
       for (let i = fran; i <= till; i++) {
         if (inspelning.avbryt) break;
         tid = i / foljd.fps; stall(); await post(`/inspelning/${id}/ruta`, await scen.bild()); gjorda++;
@@ -419,7 +490,7 @@ async function spelaIn(kameror: Kamera[], forst: number, sist: number): Promise<
     }
   } finally {
     if (id) await fetch(`/inspelning/${id}/avbryt`, {method: 'POST'}).catch(() => {});
-    const avbruten = inspelning.avbryt; inspelning = null; blickLas = null; scen.filmstorlek(false); text.style.display = 'none';
+    const avbruten = inspelning.avbryt; inspelning = null; blickLas = null; stang(false); scen.filmstorlek(false); text.style.display = 'none';
     if (före.kamera === 'fri') { kamera = 'fri'; camera.position.copy(före.pos); camera.quaternion.copy(före.kvat); orbit.target.copy(före.mot); orbit.update(); scen.storlek(); } else setKamera(före.kamera);
     setTime(före.tid); ritaNu();
     status.className = klara.length && !avbruten ? 'tips bra' : 'tips'; status.textContent = `${avbruten ? 'Avbruten. ' : ''}${klara.length ? `${klara.length === 1 ? 'Klippet ligger' : `${klara.length} klipp ligger`} i mappen standarddocka/klipp: ${klara.map(c => c.fil.split('/').pop()).join(', ')}` : ''}`;
@@ -450,7 +521,9 @@ Object.assign(api, {
   addChange: (a: Partial<Andring> & {led: Led}) => { const id = läggTill(a); ritaNu(); return id; },
   removeChange: (id: string) => { taBort(id); ritaNu(); },
   undo: () => { ångra(); ritaNu(); },
-  save: () => sparaFiler(),
+  // Som Spara; frågar sidan något (filen har ändrats, det sparade används inte) stannar det med frågan som fel, så att ett
+  // verktyg aldrig skriver över i tysthet. save(true) skriver över.
+  save: async (skrivOver = false) => { const r = await sparaFiler(skrivOver); document.querySelector('#fraga')?.remove(); if (!r.sparat) throw Error(r.varfor); return r.svar; },
   visa: (vad: Visa, på: boolean) => { visaDel(vad, på); ritaNu(); },
   tillSparat: () => { tillSparat(); ritaNu(); },
   tillGrund: () => { tillGrund(); ritaNu(); },
@@ -475,11 +548,11 @@ Object.assign(api, {
     // underarmen (wrist) och hur långt rutans hand bad om (wristAsked); lika när den ritade handen är rutans.
     const {wrist, wristAsked} = scen.figure.measure();
     return {namn: NAMN, handledGrader: {ritad: wrist, begard: wristAsked}, fingrarFranPunkternaMm: fingrar, handledFranPunktenMm: handled, armbageFranPunktenMm: armbage, axelFranPunktenMm: axel, plats: PLATS, grund: GRUND, tid, grundtid, langd: DUR, fart: tak.fart, forvaldTakt: tak.forval, kamera, kameraLage: p(camera.position), spelar, vald, osparat, andringar: sparad.andringar, delar: tak.delar, grunddelar: foljd.delar, skarv: foljd.skarv, platser: bord, stol: scen.stol, armar, synligt, fel,
-      dockansEgna: EGEN.egen, sparasSom: NAMN,
+      dockansEgna: EGEN.egen, sparasSom: NAMN, lagretsFel: lagretFel, bildvinkel: Math.round(camera.fov * 100) / 100, sparar,
       blick: {mot: blickMot(), foljerKortet: Math.round(foljerKortet(foljd.blick, grundtid, tak.spelad) * 100) / 100, tider: foljd.blick, punkt: nu.g},
       hoft: {rorelsen: foljd.hip, mannen: p(hips), skillnadMm: Math.round(hips.distanceTo(new T.Vector3(...foljd.hip)) * 1000)},
       leder: {hogerHand: p(scen.bone('RightHand')), vansterHand: p(scen.bone('LeftHand')), hogerArmbage: p(scen.bone('RightForeArm')), vansterArmbage: p(scen.bone('LeftForeArm')), huvud: p(scen.bone('Head')), hogerLar: p(scen.bone('RightUpLeg')), hogerKna: p(scen.bone('RightLeg')), hogerFot: p(scen.bone('RightFoot'))},
-      malHogerHand: nu.R.w, malVansterHand: nu.L.w, kort: nu.card.c, vikter: sparad.andringar.map(a => ({id: a.id, vikt: vikt(a, grundtid, tak.spelad)})), aldreSparat: aldreSparat ? aldreSparat.grund ?? [] : null,
+      malHogerHand: nu.R.w, malVansterHand: nu.L.w, kort: nu.card.c, vikter: sparad.andringar.map(a => ({id: a.id, vikt: vikt(a, grundtid, tak.ut)})), aldreSparat: aldreSparat ? aldreSparat.grund ?? [] : null,
       // Vad spärren höll emot vid tiden som visas (led, vad som tog emot, hur mycket, och raden i bilden).
       sparr: {klar: !!granser, stopp: stoppNu, matt: granser && (({bal, huvud, armar: a}) => ({balensHojd: [bal.y0, bal.y0 + (bal.skivor.length - 1) * bal.dy].map(mm), skivor: bal.skivor.length, huvud: {c: huvud.c.map(mm), r: mm(huvud.r)},
         armar: Object.fromEntries((['R', 'L'] as const).map(s => [s, {axel: a[s].axel.map(mm), over: mm(a[s].over), under: mm(a[s].under), tjockUnder: a[s].tjockUnder.map(mm)}]))}))(granser.matt)}};

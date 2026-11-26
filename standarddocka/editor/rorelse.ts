@@ -21,8 +21,9 @@ export type Led = 'hogerHand' | 'vansterHand' | 'hogerArmbage' | 'vansterArmbage
 export const LEDER: Led[] = ['hogerHand', 'vansterHand', 'hogerArmbage', 'vansterArmbage', 'blick'];
 export const LEDNAMN: Record<Led, string> = {hogerHand: 'Höger hand', vansterHand: 'Vänster hand', hogerArmbage: 'Höger armbåge', vansterArmbage: 'Vänster armbåge', blick: 'Blicken'};
 /**
- * En ändring: leden förskjuts `flytt` meter (och en hand vrids `vrid` kring handleden) mot grundrörelsen vid tiden `tid`
- * (sekunder), helt just då och mjukt in och ut `varar` sekunder åt varje håll.
+ * En ändring: leden förskjuts `flytt` meter (och en hand vrids `vrid` kring handleden, en kvaternion med längden 1) mot
+ * grundrörelsen vid tiden `tid` (grundrörelsens sekunder), helt just då och mjukt in och ut `varar` sekunder åt varje håll
+ * (filmens sekunder, de han ser).
  */
 export type Andring = {id: string; tid: number; led: Led; flytt: V3; vrid: Q | null; varar: number};
 /**
@@ -69,6 +70,37 @@ export function grundFor(docka: Standarddocka, plats: number): {vila: string; gi
 /** Vilan till skon för en giv på prov: den docka given är ritad för (fältet `doll`) har sin egen, annars den äldre. */
 export const vilanFor = (doll: string | undefined) => EGNA.find(r => r.docka === doll)?.vila ?? TILL_SKON;
 
+/**
+ * Felen i ett sparat lager, i vanliga ord (tomt om inga): det som läses och det som sparas prövas så, i editorn och i
+ * verktyg/mat.ts, eftersom ett lager också kan skrivas för hand. En felstavad led, en vridning som inte har längden 1,
+ * ett tal som inte är ett tal eller en tid utanför rörelsen läggs aldrig på. `langd`: följdens längd i grundrörelsens
+ * sekunder, `delar`: hur många delar den har.
+ */
+export function lagretsFel(x: unknown, langd = Infinity, delar = 3): string[] {
+  const fel: string[] = [], tal = (n: unknown) => typeof n === 'number' && Number.isFinite(n), s = x as Partial<Sparad> | null;
+  if (!s || typeof s !== 'object') return ['filen är inget lager (ingen JSON-post)'];
+  if (!Array.isArray(s.grund) || s.grund.length !== 2 || !s.grund.every(g => typeof g === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(g))) fel.push('"grund" ska vara två namn på grundrörelser');
+  if (!Array.isArray(s.andringar)) fel.push('"andringar" ska vara en lista');
+  const id = new Set<string>();
+  (Array.isArray(s.andringar) ? s.andringar : []).forEach((a: Partial<Andring>, i) => {
+    const vem = `ändring ${i + 1}${typeof a?.id === 'string' ? ` (${a.id})` : ''}`;
+    if (!a || typeof a !== 'object') { fel.push(`${vem} är ingen post`); return; }
+    if (typeof a.id !== 'string' || !a.id) fel.push(`${vem}: "id" saknas`); else if (id.has(a.id)) fel.push(`${vem}: samma id som en annan ändring`); else id.add(a.id);
+    if (!LEDER.includes(a.led as Led)) fel.push(`${vem}: leden "${String(a.led)}" finns inte (de som finns: ${LEDER.join(', ')})`);
+    if (!tal(a.tid) || a.tid! < 0 || a.tid! > langd + 1e-6) fel.push(`${vem}: "tid" ska vara grundrörelsens sekunder, 0 till ${Number.isFinite(langd) ? langd.toFixed(2) : 'rörelsens längd'}`);
+    if (!Array.isArray(a.flytt) || a.flytt.length !== 3 || !a.flytt.every(n => tal(n) && Math.abs(n) <= 2)) fel.push(`${vem}: "flytt" ska vara tre tal i meter`);
+    if (a.vrid !== null && a.vrid !== undefined) {
+      if (!Array.isArray(a.vrid) || a.vrid.length !== 4 || !a.vrid.every(tal)) fel.push(`${vem}: "vrid" ska vara null eller fyra tal (x, y, z, w)`);
+      else if (Math.abs(Math.hypot(...a.vrid) - 1) > 1e-3) fel.push(`${vem}: "vrid" har längden ${Math.hypot(...a.vrid).toFixed(3)}, ska vara 1`);
+      else if (a.led !== 'hogerHand' && a.led !== 'vansterHand') fel.push(`${vem}: bara en hand kan vridas`);
+    }
+    if (!tal(a.varar) || a.varar! <= 0 || a.varar! > 10) fel.push(`${vem}: "varar" ska vara filmens sekunder, större än 0`);
+  });
+  if (s.fart !== undefined && (!Array.isArray(s.fart) || s.fart.length !== delar || !s.fart.every(n => tal(n) && n >= FART.minst && n <= FART.mest))) fel.push(`"fart" ska vara ${delar} tal mellan ${FART.minst} och ${FART.mest}`);
+  if (s.liv !== undefined && (!s.liv || !tal(s.liv.fro) || !Array.isArray(s.liv.delar) || !s.liv.delar.every(d => LIVSDELAR.includes(d)))) fel.push(`"liv" ska ha ett frö (tal) och delar bland ${LIVSDELAR.join(', ')}`);
+  return fel;
+}
+
 /** Förvalet för hur länge en ny ändring tonas in och ut, åt varje håll (Jakob 2026-11-26 via claude-dockan: 0,4 s). */
 export const VARAR = 0.4;
 
@@ -107,8 +139,14 @@ const kopia = (f: Frame): Frame => JSON.parse(JSON.stringify(f));
  */
 export type Spelad = (grundtid: number) => number;
 const RAK: Spelad = t => t;
-/** Hur mycket av en ändring som gäller vid tiden t: 1 vid dess tid, mjukt ned till 0 `varar` sekunder därifrån, räknat i den spelade tiden. */
-export const vikt = (a: Andring, t: number, spelad: Spelad = RAK) => smooth(1 - Math.abs(spelad(t) - spelad(a.tid)) / Math.max(1e-3, a.varar));
+/** Takten som spelas, så mycket som det tonade behöver: filmens tid (`ut`, för ändringarna) och den spelade tiden (`spelad`, för blicken och greppet). */
+export type Tider = {ut: Spelad; spelad: Spelad};
+const RAKA: Tider = {ut: RAK, spelad: RAK};
+/**
+ * Hur mycket av en ändring som gäller vid tiden t (grundrörelsens tid): 1 vid dess tid, mjukt ned till 0 `varar`
+ * sekunder därifrån, räknat i filmens tid (`ut`: Takt.ut), så att det han ser och ställer in är filmens sekunder.
+ */
+export const vikt = (a: Andring, t: number, ut: Spelad = RAK) => smooth(1 - Math.abs(ut(t) - ut(a.tid)) / Math.max(1e-3, a.varar));
 /** Ändringarnas ordning: efter tid och sedan id. Summan beror inte på den, men samma ordning ger exakt samma tal. */
 const iOrdning = (a: Andring, b: Andring) => a.tid - b.tid || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
@@ -266,10 +304,10 @@ export function rutaVid(f: Foljd, t: number): {frame: Frame; held: {R: number; L
  * han ser, det som sparas, det som mäts och det som spelas in blir då samma rörelse, hur listan än ligger. En ensam
  * ändring blir som förut.
  */
-export function medAndringar(frame: Frame, grepp: {R: number; L: number}, t: number, andringar: readonly Andring[], spelad: Spelad = RAK): Frame {
+export function medAndringar(frame: Frame, grepp: {R: number; L: number}, t: number, andringar: readonly Andring[], ut: Spelad = RAK): Frame {
   const hand = {R: {d: [0, 0, 0] as V3, v: [0, 0, 0] as V3, n: 0}, L: {d: [0, 0, 0] as V3, v: [0, 0, 0] as V3, n: 0}};
   for (const a of [...andringar].sort(iOrdning)) {
-    const w = vikt(a, t, spelad); if (w <= 0) continue;
+    const w = vikt(a, t, ut); if (w <= 0) continue;
     if (a.led === 'blick') { frame.g = add(frame.g, mul(a.flytt, w)); continue; }
     const s = a.led === 'hogerHand' || a.led === 'hogerArmbage' ? 'R' : 'L';
     if (a.led === 'hogerArmbage' || a.led === 'vansterArmbage') { frame[s].e = add(frame[s].e, mul(a.flytt, w)); continue; }
@@ -311,11 +349,11 @@ export function foljerKortet(b: BlickTider, t: number, spelad: Spelad = RAK): nu
 /**
  * Ställningen vid tiden t: grundrörelsen, blicken mot kameran `kamera` (ett läge i världen) utom när han följer kortet,
  * och ändringarna ovanpå. Utan kamera är blicken rörelsens egen. Med `granser` (kroppens mått och bordet) hålls det
- * ändringarna gör inom kroppen, bordet och lederna (kropp.ts); grundrörelsen själv rörs aldrig. `spelad` är takten som
- * spelas (Takt.spelad): det som tonas räknas i den.
+ * ändringarna gör inom kroppen, bordet och lederna (kropp.ts); grundrörelsen själv rörs aldrig. `tider` är takten som
+ * spelas (en Takt): det som tonas räknas i den.
  */
-export function stallning(f: Foljd, t: number, andringar: readonly Andring[], kamera: readonly number[] | null = null, liv?: Liv, granser?: Granser, spelad: Spelad = RAK): Frame {
-  return stallningOchStopp(f, t, andringar, kamera, liv, granser, spelad).frame;
+export function stallning(f: Foljd, t: number, andringar: readonly Andring[], kamera: readonly number[] | null = null, liv?: Liv, granser?: Granser, tider: Tider = RAKA): Frame {
+  return stallningOchStopp(f, t, andringar, kamera, liv, granser, tider).frame;
 }
 /** Vilken arm en led hör till. */
 const ARM: Record<Led, 'R' | 'L' | null> = {hogerHand: 'R', hogerArmbage: 'R', vansterHand: 'L', vansterArmbage: 'L', blick: null};
@@ -324,11 +362,11 @@ const ARM: Record<Led, 'R' | 'L' | null> = {hogerHand: 'R', hogerArmbage: 'R', v
  * samma ställning utan ändringar: där ingen ändring verkar på en arm är rutan exakt som utan spärren. Armarna prövas i
  * samma ordning (höger, sedan vänster) vilken ordning ändringarna än har.
  */
-export function stallningOchStopp(f: Foljd, t: number, andringar: readonly Andring[], kamera: readonly number[] | null = null, liv?: Liv, granser?: Granser, spelad: Spelad = RAK): {frame: Frame; stopp: Stopp[]} {
-  const {frame, held, stilla} = rutaVid(f, t), grepp = greppVid(f, t, held, spelad);
-  if (kamera) frame.g = mix(kamera, frame.g, foljerKortet(f.blick, t, spelad));
-  const sidor = granser ? (['R', 'L'] as const).filter(s => andringar.some(a => ARM[a.led] === s && vikt(a, t, spelad) > 0)) : [];
-  const utan = sidor.length ? medLiv(kopia(frame), t, f, liv, held, stilla, spelad) : null, med = medLiv(medAndringar(frame, grepp, t, andringar, spelad), t, f, liv, held, stilla, spelad);
+export function stallningOchStopp(f: Foljd, t: number, andringar: readonly Andring[], kamera: readonly number[] | null = null, liv?: Liv, granser?: Granser, tider: Tider = RAKA): {frame: Frame; stopp: Stopp[]} {
+  const {frame, held, stilla} = rutaVid(f, t), grepp = greppVid(f, t, held, tider.spelad);
+  if (kamera) frame.g = mix(kamera, frame.g, foljerKortet(f.blick, t, tider.spelad));
+  const sidor = granser ? (['R', 'L'] as const).filter(s => andringar.some(a => ARM[a.led] === s && vikt(a, t, tider.ut) > 0)) : [];
+  const utan = sidor.length ? medLiv(kopia(frame), t, f, liv, held, stilla, tider.spelad) : null, med = medLiv(medAndringar(frame, grepp, t, andringar, tider.ut), t, f, liv, held, stilla, tider.spelad);
   return utan && granser ? hallInom(utan, med, grepp, f.hip, granser, sidor) : {frame: med, stopp: []};
 }
 /** Vridningen som för en hand (21 punkter) till en annan, kring handleden: ur handens egna axlar (mot långfingrets knoge och tvärs knogarna) i båda. */
@@ -349,11 +387,11 @@ function handvridning(fran: number[][], till: number[][]): Q {
  * lika långt längs och ut från linjen som utan ändringen, åt det håll den står. Det av draget som inte syns (in mot linjen
  * eller längs den) ligger då inte kvar i ändringen, och nästa drag börjar där armbågen står.
  */
-export function somDenBlev(f: Foljd, a: Andring, andringar: readonly Andring[], kamera: readonly number[] | null, liv: Liv | undefined, granser: Granser, spelad: Spelad = RAK): {flytt: V3; vrid: Q | null} | null {
+export function somDenBlev(f: Foljd, a: Andring, andringar: readonly Andring[], kamera: readonly number[] | null, liv: Liv | undefined, granser: Granser, tider: Tider = RAKA): {flytt: V3; vrid: Q | null} | null {
   const s = ARM[a.led]; if (!s) return null;
   const armbage = a.led === 'hogerArmbage' || a.led === 'vansterArmbage';
-  const med = stallningOchStopp(f, a.tid, andringar, kamera, liv, granser, spelad), egna = med.stopp.filter(x => ARM[x.led] === s); if (!egna.length && !armbage) return null;
-  const utan = stallning(f, a.tid, andringar.filter(x => x !== a), kamera, liv, granser, spelad)[s], ny = med.frame[s], w = vikt(a, a.tid, spelad) || 1;
+  const med = stallningOchStopp(f, a.tid, andringar, kamera, liv, granser, tider), egna = med.stopp.filter(x => ARM[x.led] === s); if (!egna.length && !armbage) return null;
+  const utan = stallning(f, a.tid, andringar.filter(x => x !== a), kamera, liv, granser, tider)[s], ny = med.frame[s], w = vikt(a, a.tid, tider.ut) || 1;
   if (armbage) {
     const linje = norm(sub(ny.w, ny.s)), r = sub(ny.e, ny.s), ut = sub(r, mul(linje, dot(r, linje)));
     const linje0 = norm(sub(utan.w, utan.s)), r0 = sub(utan.e, utan.s), langs = dot(r0, linje0), radie = Math.hypot(...sub(r0, mul(linje0, langs)));
@@ -426,7 +464,7 @@ export function rutor(f: Foljd, sparad: Sparad, kamera: readonly number[] | null
   // Rutorna tas i filmens takt; givens ögonblick (grundrörelsens rutor) räknas om till filmens rutor. Med `granser` är
   // ändringarna hållna inom kroppen, bordet och lederna, som i editorn.
   const antal = Math.round(T.langd * f.fps) + 1, ruta = (grundruta: number) => Math.round(T.ut(grundruta / f.fps) * f.fps);
-  const frames = Array.from({length: antal}, (_, i) => { const x = stallning(f, T.grund(i / f.fps), sparad.andringar, kamera, sparad.liv, granser, T.spelad), limb = (l: Limb) => ({s: r4(l.s), e: r4(l.e), w: r4(l.w), k: l.k, p: l.p.map(r4)});
+  const frames = Array.from({length: antal}, (_, i) => { const x = stallning(f, T.grund(i / f.fps), sparad.andringar, kamera, sparad.liv, granser, T), limb = (l: Limb) => ({s: r4(l.s), e: r4(l.e), w: r4(l.w), k: l.k, p: l.p.map(r4)});
     return {card: {c: r4(x.card.c), l: r4(x.card.l), n: r4(x.card.n)}, L: limb(x.L), R: limb(x.R), h: r4(x.h), g: r4(x.g)}; });
   return {about: `${sparad.namn}: ${sparad.grund.join(' och sedan ')} efter varandra (skarven utjämnad i standarddocka/editor/rorelse.ts), ${rattning}, blicken mot kameran ${kamera ? r4([...kamera]).join(', ') : '(rörelsens egen)'} utom när kortet är på väg, farten per del ${T.fart.join(', ')} gånger grundrörelsens, och ${sparad.andringar.length} ändringar från editorn i standarddocka. Samma fält som dealer3d/data.`,
     film: `a1-a23-p${f.plats}c1`, pose: 'A1', to: `P${f.plats}.C1`, fps: f.fps, frameCount: frames.length, leavesShoe: ruta(off + b.leavesShoe), edge: b.edge.map(n => ruta(off + n)), folds: ruta(off + b.folds), rests: ruta(off + b.rests),

@@ -231,6 +231,24 @@ export const TABLE_BASE = {floor: -0.95, under: -0.15, legX: 0.58, legZ: 0.25, r
  * the felt (lift), its half width, and how far it rises above and reaches below that middle.
  */
 export const TABLE_RAIL = {centre: 0.057, lift: 0.012, halfWidth: 0.05, above: 0.034, below: 0.031};
+/**
+ * The standard doll's table (Jakob 2026-11-26, the proof bordsform-20261126: "mindre äggformat ... mer som en halvmåne",
+ * and the shoe "aningen längre bort från dealern"; he chose the half moon and scrapped the deeper table). As wide as
+ * TABLE_TOP and with the same card places, but `depth` deep: as deep as half its width, so the players' side is half a
+ * circle. `edgeBack`: its dealer's edge and tray lie that far behind the game's edge, where the doll sits (the doll sits
+ * where the plan has the dealer and the edge comes to it). The shoe stands `shoeOut` further out along its own length,
+ * away from the dealer's middle, and `shoeForward` across it toward the players (dollShoe below); the shoe stands
+ * askew, so the two together move it 8.5 cm straight toward the dealer's left and no nearer the players. The one place these
+ * four numbers stand: avatar-auto-pipeline builds the table from them (scen/standard.yaml dockans_bord, bygg_bord.py
+ * --docka) and the doll's motions take the shoe from dollShoe. TABLE_TOP and SHOE are the films' table and shoe.
+ */
+export const DOLL_TABLE = {depth: 0.95, edgeBack: 0.23, shoeOut: 0.08, shoeForward: 0.03};
+/** The shoe at the standard doll's table: `shoe` moved as DOLL_TABLE says, its foot read back into the film's pixels. */
+export function dollShoe(lens: Lens = TABLE_LENS, shoe: Shoe = SHOE): Shoe {
+  const eye = filmEye(lens), pose = shoePose(lens, shoe), f = pose.front, o = DOLL_TABLE.shoeOut, w = DOLL_TABLE.shoeForward;
+  const moved = (p: Vec3): Pixel => see(eye, [p[0] + pose.back[0] * o - pose.far[0] * w, 0, p[2] + pose.back[2] * o - pose.far[2] * w])!;
+  return {...shoe, foot: {front: moved(f), back: moved([f[0] + pose.back[0] * pose.footLength, 0, f[2] + pose.back[2] * pose.footLength])}};
+}
 
 // ---- the family of lenses ---------------------------------------------------------------------------------------
 // The card lying at seat 4 has its film size and shape under a whole family of lenses, from a wide one close by to a long
