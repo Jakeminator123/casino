@@ -8,7 +8,8 @@
 //   Inspelning   one picture and one column (Jakob 2026-11-25: "Jag vill att vi skapar ett och samma läge för detta ... jag
 //                vill ha allt i 3d ... Det andra ska raderas. ... Simplifiera väldigt mycket, men framförallt så inte
 //                förväxlingar kan ske."). The picture is the doll's, in 3D, for every step: the table, the chosen dealer's
-//                doll and the draft plan's cards on the felt (DollPanel.tsx), and with the picture's slider "Filmen" the
+//                doll (for the menu's Standarddockan the standard doll's man or woman, which orders nothing: step 3 says
+//                so; lib/dealer.ts STANDARD_DOLL) and the draft plan's cards on the felt (DollPanel.tsx), and with the picture's slider "Filmen" the
 //                dealer's film of the card's deal from the tree's anchor over her, in the films' camera (lib/bordet.ts
 //                cardFilm); "Dockans filmer" shows her films for the card instead, and "Spela kortbanan" plays her deal to it. The column: the card and its buttons, then the steps for
 //                the chosen card, 1 Var kortet landar (the place; the card can be dragged in the picture while it is open),
@@ -40,6 +41,7 @@ import type { MediaAnswer } from "../../lib/media.ts";
 import { useBank } from "../../lib/bank.ts";
 import { cardFilm, filmRow, hasRound, lastOrder, pathCard, roundFor, sceneWords, stepTwoSummary, treeAnchor, wishKey, type FilmWish, type RowChoice } from "../../lib/bordet.ts";
 import { useViewContext } from "../../lib/context.ts";
+import { isStandardDoll } from "../../lib/dealer.ts";
 import { isSnapshot, swedishMoment } from "../../lib/mode.ts";
 import { GUIDE_WORDS, cardOf, filmCode, guideOf, itemOf, pickFor, pickOfWish, pickTree, sameIn, treeBase, type GuideItem, type StepPick } from "../../lib/new-film.ts";
 import { getOrders, orderingState, presetOf, type CreatedOrders, type DollOrdered } from "../../lib/orders.ts";
@@ -257,7 +259,8 @@ export function BordetView() {
   const paused = !!orders?.dealers?.find((x) => x.id === dealer)?.paused;
   const dealerName = dealers.find((x) => x.id === dealer)?.name ?? dealer;
   const madeAnswer = guideRow && made[guideRow.key] ? (orders?.orders.find((a) => a.order.id === made[guideRow.key]) ?? null) : null;
-  const blocked = !ordersRead ? "Läser beställningarna …" : !orders ? "Beställningarna kunde inte läsas från servern." : paused ? `${dealerName} är pausad: inget nytt beställs.` : !orderable ? `Filmer till ${dealerName} kan inte beställas härifrån.` : draft.dirty ? "Spara kortplanen först: utkastet ritar kortet där den sparade planen lägger det." : guideRow && made[guideRow.key] && !madeAnswer ? "Utkastet är sparat: läser Kön …" : null;
+  // (the standard doll is no dealer: nothing is ordered for it; a dealer's films are ordered in her own studio, lib/dealer.ts STANDARD_DOLL)
+  const blocked = !ordersRead ? "Läser beställningarna …" : !orders ? "Beställningarna kunde inte läsas från servern." : isStandardDoll(dealer) ? "Standarddockan är ingen dealer: inga filmer beställs för den. Välj en dealer i menyn för att beställa hennes filmer." : paused ? `${dealerName} är pausad: inget nytt beställs.` : !orderable ? `Filmer till ${dealerName} kan inte beställas härifrån.` : draft.dirty ? "Spara kortplanen först: utkastet ritar kortet där den sparade planen lägger det." : guideRow && made[guideRow.key] && !madeAnswer ? "Utkastet är sparat: läser Kön …" : null;
   // The dealers the guide can order for: those not paused.
   const orderDealers = orders?.dealers ? orders.dealers.filter((x) => !x.paused) : dealers;
 
@@ -273,7 +276,7 @@ export function BordetView() {
   const dollMade = (made: DollOrdered) => madeDraft(made.id, `Med dockans film ${made.film}. Det godkänns i Kön.`);
   // The doll's standard for the chosen card (step 2 says it, step 3 orders from it), and the doll's films by card.
   const standard = useDollStandard(dealer, place, savedTick, mode === "kortplan" && (step === "motion" || step === "order"));
-  const doll = useDollGroups(orders, ledger);
+  const doll = useDollGroups(orders, ledger, dealer);
   // The dealer's film of the card's deal from the tree's anchor, which the doll's picture can lay over her (lib/bordet.ts cardFilm).
   const found = useMemo(() => (isSnapshot ? null : cardFilm(graph, view, place)), [graph, view, place]);
   const dollFilm = useDollFilm(found, view?.tree.name ?? null);
@@ -336,8 +339,11 @@ export function BordetView() {
     />
   ) : null;
   const gaps = view ? view.steps.filter((s) => s.state === "saknas").length : 0;
-  const guideSummary = item ? item.name : view ? `${view.tree.name} · ${gaps ? `${gaps} saknas` : "inget saknas"}` : null;
-  const newFilm = (go: (card: Place) => void) => (
+  const guideSummary = isStandardDoll(dealer) ? "inga filmer beställs för standarddockan" : item ? item.name : view ? `${view.tree.name} · ${gaps ? `${gaps} saknas` : "inget saknas"}` : null;
+  // (the standard doll gets no guide: nothing is ordered for it, and it has no tree)
+  const newFilm = (go: (card: Place) => void) => isStandardDoll(dealer) ? (
+    <p data-new-film className="px-4 pb-4 text-sm leading-5 text-dim">{blocked ?? "Standarddockan är ingen dealer: inga filmer beställs för den."}</p>
+  ) : (
     <NewFilm
       dealer={dealer}
       dealers={orderDealers}

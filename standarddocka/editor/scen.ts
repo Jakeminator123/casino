@@ -107,7 +107,10 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
 
   // Dockan: mannen eller kvinnan.
   laddar(docka === 'kvinna' ? 'kvinnan' : 'mannen');
-  const figure = await loadFigure(MODELLER[docka]); scene.add(figure.root);
+  // En modell på prov (?modell=<namn> och ?bord=<namn> i adressen: standarddocka_<namn>.glb och standardbord_<namn>.glb
+  // ur avatar-auto-pipeline/assets), för den som bygger om dockan eller bordet och vill se det innan det byts in.
+  const prov = (nyckel: string) => { const n = new URLSearchParams(location.search).get(nyckel); return n && /^[a-z0-9_]+$/.test(n) ? n : null; };
+  const figure = await loadFigure(prov('modell') ? `/avatar-auto-pipeline/assets/docka/standarddocka_${prov('modell')}.glb` : MODELLER[docka]); scene.add(figure.root);
   const bone = (name: string) => { const b = figure.root.getObjectByName(name); if (!b) throw Error(`Dockan saknar leden ${name}.`); return b.getWorldPosition(new T.Vector3()); };
   const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]);
   /** En ruta på mannen, som dealer3d/src/stage.ts gör det: bålen ur axlarna och höften, armarna ur lederna, händerna ur sina 21 punkter, huvudet mot blicken. */
@@ -157,7 +160,7 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
   // Blenders), utom med nyckelfärgerna, där spårkortet står kvar. Måtten: planens kortplatser mot bordets tryckta
   // (millimeter), bordets kant mot dealern och skivans överkant.
   let bordRot: T.Object3D | null = null; const markeringar: T.Object3D[] = [];
-  const bord = loadTable(bordFor(rorelsensDocka), scene, plan, {key: nyckel ? {table: NYCKEL.bord, cardBack: NYCKEL.kortrygg} : undefined, progress: share => laddar(`bordet ${Math.round(share * 100)} %`)}).then(b => {
+  const bord = loadTable(prov('bord') ? `/avatar-auto-pipeline/assets/bord/standardbord_${prov('bord')}.glb` : bordFor(rorelsensDocka), scene, plan, {key: nyckel ? {table: NYCKEL.bord, cardBack: NYCKEL.kortrygg} : undefined, progress: share => laddar(`bordet ${Math.round(share * 100)} %`)}).then(b => {
     if (b.card && !nyckel) { card.remove(enkelt); card.add(b.card); }
     bordRot = b.root; markeringar.push(...b.marks);
     return {platser: b.places, maxMm: b.maxMm, kortP4Mm: b.cardP4Mm, kantZ: b.edgeZ, skivaY: b.topY};

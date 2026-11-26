@@ -12,6 +12,7 @@ import { buildGraph, dealersOf, type BankData, type Graph } from "../../src/clip
 import { ApiError, asApiError, readBank, type ClipBankResponse } from "./api.ts";
 import {
   DEALER_MEMORY,
+  STANDARD_DOLL,
   addressWord,
   bankDealers,
   chooseDealer,
@@ -49,7 +50,8 @@ export type BankStatus = "loading" | "ready" | "error";
  * bank and the dealer are read. status: "loading" until then, "error" when there has never been an answer, else "ready".
  * error: the last failed read (kept beside old data: the data is then stale, not gone). readAt: when the data last changed
  * (ms). reload(): read now, resolved when the new data is in (use it after a write).
- * dealer: whose studio it is; dealers: the bank's dealers for the switch, with names and how many takes wait for Jakob;
+ * dealer: whose studio it is (a dealer, or the standard doll's entry, lib/dealer.ts STANDARD_DOLL); dealers: the switch's
+ * entries, the standard doll's first and then the bank's dealers, with names and how many takes wait for Jakob;
  * setDealer(id): choose one (the address and the memory follow); owners: whose each take is, by id.
  */
 export type BankState = {
@@ -161,13 +163,14 @@ export function BankProvider({ children, every = 4000 }: { children: ReactNode; 
   const settled = seen !== null;
   const address = seen?.address ?? null;
   const ids = useMemo(() => bankDealers(data.owners), [data.owners]);
-  const known = useMemo(() => (loaded ? [...new Set([...ids, ...Object.keys(register ?? {})])] : null), [loaded, ids, register]);
+  // (the standard doll's entry is known beside the dealers, in the local studio only: lib/dealer.ts STANDARD_DOLL)
+  const known = useMemo(() => (loaded ? [...new Set([...ids, ...Object.keys(register ?? {}), ...(isSnapshot ? [] : [STANDARD_DOLL])])] : null), [loaded, ids, register]);
   const chosen = chooseDealer({ address, remembered: seen?.memory ?? null, known, owners: data.owners });
   const dealer = chosen.id;
   // A dealer the register knows and the bank has no take of yet still has a graph: every film missing.
   const graph = useMemo(() => (settled && data.bank ? (data.graphs[dealer] ?? build(data.bank, dealer)) : null), [settled, data.bank, data.graphs, dealer]);
   const shown = useMemo(() => (ids.includes(dealer) ? ids : [...ids, dealer]), [ids, dealer]);
-  const dealers = useMemo(() => dealerEntries(shown, graph && !data.graphs[dealer] ? { ...data.graphs, [dealer]: graph } : data.graphs, register), [shown, data.graphs, graph, dealer, register]);
+  const dealers = useMemo(() => dealerEntries(shown, graph && !data.graphs[dealer] ? { ...data.graphs, [dealer]: graph } : data.graphs, register, !isSnapshot), [shown, data.graphs, graph, dealer, register]);
 
   // The address's choice is remembered once it is known for certain (the bank read, so that an unknown word is not kept), and
   // only for a dealer who is not paused (keepsChoice; a click on the switch keeps any, setDealer). A dealer the visitor was

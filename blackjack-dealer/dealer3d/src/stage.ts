@@ -5,7 +5,8 @@
 // alone on nothing (a transparent picture), the table, the shoe and the cards hiding what is behind them without being
 // drawn and the felt catching the figure's shadow, for a still laid over a picture of the table. And 'standard': the room
 // is the standard room's (standard-room.ts: Blender's table, the stool and the light, which the page lays into the scene),
-// so this stage's own table, tray, shoe, stool, floor and light are not shown. The figure is a doll
+// so this stage's own table, tray, shoe, stool, floor and light are not shown, and its cards are the table's own
+// (dressCards), as the editor of standarddocka/ draws them; the older looks keep the trace card. The figure is a doll
 // (dealer3d/src/doll.ts): options.doll, else the one a read motion names, else the standard.
 import * as T from 'three';
 import {CARD, FILM, filmEye, fovYDeg, orbit, type Eye, type Vec3} from './camera.ts';
@@ -54,6 +55,14 @@ function cardMesh(): T.Group {
   add(new T.CircleGeometry(B.dot.radius * W, 32), side(M.dot.colour), -lift);
   for (const turn of [1, -1]) add(new T.PlaneGeometry(B.cross.stroke * W, 2 * B.cross.arm * W).rotateZ(turn * Math.PI / 4).translate(0, end, 0), side(M.cross.colour), -lift);
   g.matrixAutoUpdate = false; return g;
+}
+/**
+ * The standard room's card before its table has come (look 'standard'), as the editor of standarddocka/ draws it: a plain
+ * card of the table's card's size, the face light and the back red. Local axes as cardMesh's.
+ */
+function plainCard(): T.Group {
+  const edge = new T.MeshStandardMaterial({color: 0xe8e4dc}), m = new T.Mesh(new T.BoxGeometry(0.063, 0.0003, 0.088), [edge, edge, new T.MeshStandardMaterial({color: 0xf4f2ec}), new T.MeshStandardMaterial({color: 0xb8333b}), edge, edge]);
+  m.castShadow = true; const g = new T.Group(); g.add(m); g.matrixAutoUpdate = false; return g;
 }
 const place = (o: T.Object3D, x: Vec3, y: Vec3, z: Vec3, at: Vec3) => { o.matrix.makeBasis(v3(x), v3(y), v3(z)).setPosition(v3(at)); o.matrixWorldNeedsUpdate = true; };
 const placeCard = (o: T.Object3D, c: {centre: Vec3; long: Vec3; normal: Vec3; across: Vec3}) => place(o, c.across, c.normal, c.long, c.centre);
@@ -182,9 +191,15 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   // 'standard': all of the room made so far (the light, the table, the tray, the roll, the floor, the shoe and its card)
   // is left unseen, for the standard room stands in its place; the plan's outlines stay, and the card that is dealt.
   if (look === 'standard') for (const o of scene.children) if (!(o as T.LineLoop).isLineLoop) o.visible = false;
-  const card = cardMesh(); scene.add(card);
+  // The card that is dealt, and the cards laid: the trace card (yellow and blue with the plan's marks) in the older looks,
+  // which Paow's reference films and the card track for her films are made with; in 'standard' the editor's card
+  // (Jakob 2026-11-26: "Våra kort som används i 'standarddocka'-mappens editor är det som ska användas som standard"), one
+  // of the standard table's own cards, laid in by dressCards when the table has come (dealer3d/src/standard-room.ts
+  // loadTable `card`), a plain card until then, as the editor has it (standarddocka/editor/scen.ts).
+  const newCard = () => look === 'standard' ? plainCard() : cardMesh();
+  const card = newCard(); scene.add(card);
   // The cards a film of several has laid: each lies where the film says from its frame on.
-  const lying = (options.read?.laid ?? []).map(l => { const m = cardMesh(), long = l.l as Vec3, normal = l.n as Vec3; placeCard(m, {centre: l.c as Vec3, long, normal, across: [normal[1] * long[2] - normal[2] * long[1], normal[2] * long[0] - normal[0] * long[2], normal[0] * long[1] - normal[1] * long[0]]}); m.visible = false; scene.add(m); return {from: l.from, mesh: m}; });
+  const lying = (options.read?.laid ?? []).map(l => { const m = newCard(), long = l.l as Vec3, normal = l.n as Vec3; placeCard(m, {centre: l.c as Vec3, long, normal, across: [normal[1] * long[2] - normal[2] * long[1], normal[2] * long[0] - normal[0] * long[2], normal[0] * long[1] - normal[1] * long[0]]}); m.visible = false; scene.add(m); return {from: l.from, mesh: m}; });
 
   // 'bare': the table, the shoe and the cards write depth only (drawn first, so that what lies behind them is not drawn
   // either), the floor is gone, and a sheet just over the felt shows only the shadows the figure casts on it.
@@ -295,7 +310,16 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
     return boxes;
   }
   setTime(0);
-  return {duration, moments, lens, setTime, render, eyeOf, state: () => shown, time: () => now, film: read?.film ?? null,
+  /**
+   * The standard room's cards dressed as `model` (look 'standard' only): the card dealt and each card laid become copies of
+   * it, its middle on the card's place, its long side along the card's, its face out of the card's face. Every other look
+   * keeps its trace card.
+   */
+  function dressCards(model: T.Object3D | null) {
+    if (look !== 'standard' || !model) return;
+    for (const g of [card, ...lying.map(l => l.mesh)]) { g.clear(); g.add(model.clone()); }
+  }
+  return {duration, moments, lens, setTime, render, eyeOf, dressCards, state: () => shown, time: () => now, film: read?.film ?? null,
     /** What the bank's camera would measure of the card that lies at the target: near edge, far edge, depth, taper, in pixels. */
     landed: () => realCardAt(lens, to.pixel)};
 }

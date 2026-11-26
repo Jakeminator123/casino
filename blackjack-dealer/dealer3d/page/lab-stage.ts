@@ -117,7 +117,8 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
   let roomFault: string | null = null;
   if (standard) { roomLight(scene, renderer); const failed = (what: string) => (e: unknown) => { roomFault = `${what}: ${e instanceof Error ? e.message : String(e)}`; console.error(roomFault); };
     void seatStool(standard.stool, scene, figure!.root).then(() => { dirty = true; }, failed('The stool'));
-    void loadTable(standard.table, scene, plan).then(() => { dirty = true; }, failed('The table')); }
+    // (the card dealt and the cards laid become the table's own card, the editor's: stage.ts dressCards)
+    void loadTable(standard.table, scene, plan).then(t => { stage.dressCards(t.card); dirty = true; }, failed('The table')); }
 
   const lens = stage.lens, edge = dealerEdge(lens), body = standing(lens, doll), film = stage.eyeOf('film');
   let planNow = plan, all: Spot[] = spots(plan, lens);

@@ -49,6 +49,8 @@ function fileFor(url: string): string | null {
   if (FIXED[url]) return FIXED[url];
   if (url === '/' + HERE || url === `/${HERE}index.html`) return HERE + 'index.html';
   let m = url.match(new RegExp(`^/${HERE}(${NAME})\\.ts$`, 'i')); if (m && m[1] !== 'server') return `${HERE}${m[1]}.ts`;
+  // En bords- eller dockmodell på prov (editorns ?bord=<namn> och ?modell=<namn>): bara de två mapparna, bara de två namnens början.
+  m = url.match(/^\/avatar-auto-pipeline\/assets\/(bord\/standardbord|docka\/standarddocka)_([a-z0-9_]+)\.glb$/); if (m) return `avatar-auto-pipeline/assets/${m[1]}_${m[2]}.glb`;
   m = url.match(/^\/blackjack-dealer\/dealer3d\/src\/([a-z0-9-]+)\.ts$/i); if (m) return `blackjack-dealer/dealer3d/src/${m[1]}.ts`;
   m = url.match(new RegExp(`^/blackjack-dealer/dealer3d/data/(${NAME})\\.json$`)); if (m) return `blackjack-dealer/dealer3d/data/${m[1]}.json`;
   m = url.match(new RegExp(`^/${SAVES}(${NAME}(?:\\.rutor)?)\\.json$`)); if (m) return `${SAVES}${m[1]}.json`;

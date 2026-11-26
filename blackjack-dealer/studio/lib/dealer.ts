@@ -24,11 +24,23 @@ export const TAKE_PARAMS = ["tagning", "a", "b"] as const;
  */
 export const DEALER_MEMORY = "studio.dealer.3";
 
+/**
+ * The standard doll's entry in the switch (Jakob 2026-11-26: "en ingång typ som är 'standarddocka: man/kvinna' [som kan]
+ * väljas för att börja skapa sina klipp"; that Paow's doll is the standard "är ju väl fel"). It stands beside the dealers
+ * and is none of them: the man and the woman of dealer3d/src/doll.ts that own every motion, chosen in Bordet's
+ * Inspelning, with no films, trees, pictures or voice of their own, and nothing ordered for them. It is the studio's, not
+ * data/dealers.json's (the dealers films are ordered for, each with her anchors), and not in the online copy (no doll lab).
+ */
+export const STANDARD_DOLL = "standarddocka";
+export const STANDARD_DOLL_NAME = "Standarddockan";
+/** Whether a dealer's word is the standard doll's entry rather than a dealer. */
+export const isStandardDoll = (id: string | null | undefined): boolean => id === STANDARD_DOLL;
+
 const ID = /^[a-z0-9]+$/;
 /** A dealer's id as the bank writes it (a–z, 0–9), or null. */
 export const dealerId = (value: unknown): string | null => (typeof value === "string" && ID.test(value) ? value : null);
-/** A dealer's name when data/dealers.json does not give one: the id with a capital. */
-export const nameOf = (id: string): string => id.charAt(0).toUpperCase() + id.slice(1);
+/** A dealer's name when data/dealers.json does not give one: the id with a capital (the standard doll's entry its own). */
+export const nameOf = (id: string): string => (isStandardDoll(id) ? STANDARD_DOLL_NAME : id.charAt(0).toUpperCase() + id.slice(1));
 
 // ── Who there is ────────────────────────────────────────────────────────────
 /** The dealers the bank holds takes of: the bank's dealer first (with or without takes), then the others in the order their first take comes. */
@@ -60,17 +72,21 @@ export function dealerGraphs(bank: BankData, ids: readonly string[], build: (ban
   return Object.fromEntries(ids.map((id) => [id, build(bank, id)]));
 }
 
-/** One dealer in the switch: name, pause, how many takes the bank holds and how many of them wait for Jakob's word. */
-export type DealerEntry = { id: string; name: string; paused: string | null; takes: number; waiting: number };
+/**
+ * One entry in the switch: name, pause, how many takes the bank holds and how many of them wait for Jakob's word; `doll`
+ * for the standard doll's entry (STANDARD_DOLL), which is no dealer.
+ */
+export type DealerEntry = { id: string; name: string; paused: string | null; takes: number; waiting: number; doll?: true };
 
-/** The switch's dealers in the bank's order, a paused dealer after the others (Jakob 2026-11-18). */
-export function dealerEntries(ids: readonly string[], graphs: Readonly<Record<string, Graph>>, register: DealerRegister | null): DealerEntry[] {
-  const order = [...ids].sort((a, b) => Number(!!register?.[a]?.paused) - Number(!!register?.[b]?.paused));
-  return order.map((id) => {
+/** The switch's entries: the standard doll's first where it is offered (`doll`), then the dealers in the bank's order, a paused dealer after the others (Jakob 2026-11-18). */
+export function dealerEntries(ids: readonly string[], graphs: Readonly<Record<string, Graph>>, register: DealerRegister | null, doll = false): DealerEntry[] {
+  const order = [...ids].filter((id) => !isStandardDoll(id)).sort((a, b) => Number(!!register?.[a]?.paused) - Number(!!register?.[b]?.paused));
+  const dealers = order.map((id) => {
     const graph = graphs[id];
     const note = register?.[id];
     return { id, name: note?.name ?? nameOf(id), paused: note?.paused ?? null, takes: graph ? Object.keys(graph.takes).length : 0, waiting: graph ? awaitingJakob(graph).length : 0 };
   });
+  return doll ? [{ id: STANDARD_DOLL, name: STANDARD_DOLL_NAME, paused: null, takes: 0, waiting: 0, doll: true }, ...dealers] : dealers;
 }
 
 // ── Which one ───────────────────────────────────────────────────────────────

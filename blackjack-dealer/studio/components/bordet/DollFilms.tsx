@@ -84,7 +84,8 @@ function TakeLine({ row, dealer, many }: { row: LedgerRow; dealer: string; many:
   );
 }
 
-const DOLL_WORD: Record<string, string> = { paow: "Paows docka" };
+// (a film without a doll of its own was made with the older white doll; "Standarddockan" is the man and the woman since 2026-11-26)
+const DOLL_WORD: Record<string, string> = { paow: "Paows docka", man: "Standarddockan, mannen", kvinna: "Standarddockan, kvinnan" };
 const seconds = (n: number) => `${String(n).replace(".", ",")} s`;
 
 /** One film of the doll's and the takes made with it, side by side. */
@@ -104,7 +105,7 @@ function FilmRow({ entry, dealer }: { entry: DollFilm; dealer: string }) {
         <h3 className="font-mono text-sm font-semibold text-ink" title={entry.film.id}>
           {entry.name}
         </h3>
-        <Badge tone={entry.doll ? "brass" : "neutral"}>{entry.doll ? (DOLL_WORD[entry.doll] ?? entry.doll) : "Standarddockan"}</Badge>
+        <Badge tone={entry.doll ? "brass" : "neutral"}>{entry.doll ? (DOLL_WORD[entry.doll] ?? entry.doll) : "Den vita dockan"}</Badge>
         {entry.film.shape === "ROUND_TRIP" ? <Badge>giv och återgång</Badge> : null}
         <span className="text-xs tabular-nums text-faint">{seconds(entry.film.seconds)}</span>
         {takes.length ? (

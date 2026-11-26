@@ -6,14 +6,16 @@
 // What is shown is what an order films (Jakob 2026-11-26: "everything must be watertight and not unnecessarily
 // complicated"): the deal with its return to the entry's pose, laid by the one chain of page/natural-lab.ts (filmRules,
 // filmDeal, filmed) that dealer3d/tools/docka-cykel.ts writes an order's motion with, from the same state. From A2.3 a
-// dealer's doll deals "Naturlig" and the standard doll as the deal was laid before (natural-lab.ts wayFor: no choice of it);
-// from A2.1 the deal is the pinch's own, built on the doll's bones with its return (dealer3d/src/pinch-deal.ts, as
-// docka-cykel.ts builds it), and nothing here steers it. The room and the doll are dealer3d/src/stage.ts's
-// (page/lab-stage.ts): nothing is drawn or posed here that those and the chain do not make.
+// dealer's doll deals "Naturlig" and the white doll (only from the address, ?docka=standard) as the deal was laid before
+// (natural-lab.ts wayFor: no choice of it); from A2.1 the deal is the pinch's own, built on the doll's bones with its
+// return (dealer3d/src/pinch-deal.ts, as docka-cykel.ts builds it), and nothing here steers it. The standard doll's man
+// and woman (Jakob 2026-11-26) play only their own motions, as drawn for their own bodies (below, "own"): Paow's are not
+// played on them. The room and the doll are dealer3d/src/stage.ts's (page/lab-stage.ts): nothing is drawn or posed here
+// that those and the chain do not make.
 // A control that cannot act where it stands is not shown (Jakob 2026-11-26), each condition measured: from A2.1 none of
 // them; for a card laid closed no turn, no landing, and not the hand's height or where and when the turn begins; for a
 // recipe without a contact grip (the roll: seats 6 and 7's first card and her own cards) no hand's angle on the card; for
-// the standard doll no landing, turn, shoulders or elbows (only "Naturlig" has them).
+// the white doll no landing, turn, shoulders or elbows (only "Naturlig" has them); for the standard doll none.
 // Everything is laid here, with the shoe the films have (src/table-lens.ts SHOE). A standard he has saved is laid again
 // from its recipe and his sliders by the same chain; the file's frames are not played.
 // The side a dealer's card lies with is the plan's, and only the plan's (its intent.endSide, read as it stands; lay.ts
@@ -22,18 +24,18 @@
 // side is laid with the plan's. A closed card is slid face down and never turned (natural-lab.ts filmRules).
 // A click in the picture (no drag) chooses the place nearest the point of the felt under the pointer, as its button does.
 // Embedded in the studio (?inbaddad=1, Bordet's Inspelning: one picture, the 3D one, Jakob 2026-11-25) the doll is the dealer
-// chosen there, the entry is the studio's (its guide tree's anchor: the lab shows no choice of it), the plan is the studio's
+// chosen there (for the studio's Standarddockan the standard doll, its man or woman chosen in the picture's row), the entry is the studio's (its guide tree's anchor: the lab shows no choice of it), the plan is the studio's
 // draft as it is changed, the page is the picture alone and the controls stand in the studio's own column (the end of this
 // file); a place can be moved on the felt by hand while the studio asks for it, and the dealer's film of the card's deal can
 // be laid over the doll in "Filmens kamera" (the film over the doll, below).
 // window.docklabb is for a test that looks at the page: ready, facts() of what is shown, and at(place): where a place lies in the picture.
 import {createLabStage, type LabStage, type Touch, type ViewName} from './lab-stage.ts';
-import {DEALER_CARD, NO_STEER, cardInFilmsShoe, cardTempoMost, cardTempoOf, placeFrom, planPoint, recipeOf, shares, sideOf, sideOfPlan, standardName, type Entry, type Side, type LaidDeal, type PoseFilm, type Recipe, type Steer, type Stored} from './lay.ts';
+import {DEALER_CARD, NO_STEER, cardInFilmsShoe, cardTempoMost, cardTempoOf, placeFrom, planPoint, recipeFor, recipeOf, shares, sideOf, sideOfPlan, standardName, type Entry, type EntryPlace, type Side, type LaidDeal, type PoseFilm, type Recipe, type Steer, type Stored} from './lay.ts';
 import {ENDS, NO_KNOBS, dollFor, filmDeal, filmRules, filmed, gripYawsOf, onDoll, savedState, wayFor, type FilmInput, type Knobs, type Way} from './natural-lab.ts';
 import {LANDINGS, LANDING_DEFAULT, SHAPING_KNOBS, asBefore, landingOf, landingWords, type Landing, type LandingReceipt} from '../src/landing.ts';
 import {TURNS, TURN_DEFAULT, type TurnId, type TurnReceipt} from '../src/turn-in-hand.ts';
 import type {PoseOptions} from './pose-on-doll.ts';
-import {dollNamed, type Doll} from '../src/doll.ts';
+import {DOLLS as ALL_DOLLS, dollNamed, type Doll} from '../src/doll.ts';
 import {filmLens, spots, type Plan} from '../src/world.ts';
 import {pinchDeal, type Anchor21} from '../src/pinch-deal.ts';
 import {CARD, type Vec3} from '../src/camera.ts';
@@ -42,8 +44,8 @@ import type {Read} from '../src/stage.ts';
 
 type Pose = 'A1' | 'A2.1' | 'A2.3';
 type Shown = {kind: 'pose'; pose: Pose} | {kind: 'deal'};
-/** How a deal shown was laid: a way from A2.3, or built (from A2.1). */
-type How = Way | 'byggd';
+/** How a deal shown was laid: a way from A2.3, built (from A2.1), or the standard doll's own as drawn. */
+type How = Way | 'byggd' | 'egen';
 type Motion = Read & {doll?: string; lab?: Record<string, unknown>; cycle?: unknown};
 type Standard = {name: string; doll: string; place: string; savedAt: string};
 /** What a saved standard carries of how it was made: the recipe, the sliders, for "Naturlig" the shoulders and elbows (`naturlig`, which a standard saved before has not), the landing and the turn where they are not the default (`landing`, landing.ts; `turn`, turn-in-hand.ts), and when it was saved (`savedAt`). (Its return, `back`, is a record only: it is laid again from the rest.) */
@@ -56,7 +58,7 @@ const root = document.querySelector<HTMLElement>('.docklabb-styr')!, aside = doc
 const ctl = <T extends HTMLElement = HTMLElement>(id: string) => root.querySelector<T>(`#${id}`)!, ctls = <T extends HTMLElement = HTMLButtonElement>(selector: string) => [...root.querySelectorAll<T>(selector)];
 // The address may name the doll, the entry and the card to begin on (/dealer3d/docka?docka=paow&fran=a2-1&plats=p4c1):
 // the studio's Bordet opens the lab on the card chosen there. Without the words, or with a place no deal is laid to
-// from the entry, it begins as before. `inbaddad=1` in a frame of the lab's own origin: embedded (the end of this file).
+// from the entry, it begins as before, on the standard doll (the woman where she is measured, else the man). `inbaddad=1` in a frame of the lab's own origin: embedded (the end of this file).
 const asked = new URLSearchParams(location.search), embedded = asked.get('inbaddad') === '1' && parent !== window;
 // What the page around says before the lab has started waits until it has.
 const early: MessageEvent[] = []; let hear: ((e: MessageEvent) => void) | null = null;
@@ -64,10 +66,26 @@ if (embedded) addEventListener('message', e => { if (hear) hear(e); else early.p
 const get =async (address: string) => { const r = await fetch(address, {cache: 'no-store'}); if (!r.ok) throw Error(`${address}: ${r.status}`); return r.json(); };
 const files = new Map<string, Promise<unknown>>(), stored = <T>(name: string) => { let p = files.get(name); if (!p) { p = get(`/dealer3d/data/${name}.json`); files.set(name, p); } return p as Promise<T>; };
 const comma = (n: number, digits = 0) => n.toFixed(digits).replace('.', ',').replace('-', '−');
-const DOLLS: Record<string, string> = {paow: 'Paow', standard: 'Standarddockan'}, LENT = {'seat 5': 'receptet lånat av plats 5', 'her first card': 'receptet lånat av kort 1'};
-/** Why no deal goes from the entry to a place (lay.ts placeFrom's `none`), in his words. */
-const WHY: Record<string, string> = {reach: 'en spelares andra kort läggs alltid med svepet, och med svepet räcker inte hennes högra arm dit', unposed: 'dockan har ingen ställning A2.1', closed: 'ett stängt kort vänds aldrig i hennes fingrar, så det läggs från A2.3'};
-const whyOf = (r: ReturnType<typeof placeFrom>) => r && 'none' in r ? WHY[r.none] ?? 'dockan lägger inget kort dit' : '';
+const LENT = {'seat 5': 'receptet lånat av plats 5', 'her first card': 'receptet lånat av kort 1'};
+// The dolls (Jakob 2026-11-26: standarddockan, "en grund-3D-mesh-avatar som är en man och en kvinna som i alla fall äger
+// alla rörelser"; Paows gamla docka som standard "är ju väl fel"): read from dealer3d/src/doll.ts as they are, so that a
+// doll added there is offered here without a word in this file. A doll measured on its own model (place 'seat') is the
+// standard doll's man or woman; any other is a dealer's own doll (Paow's). The older white doll with guessed measures
+// ('standard') is no longer offered: its name is still taken from the address (?docka=standard) for an agent's look.
+const isSeat = (name: string) => ALL_DOLLS[name]?.place.kind === 'seat';
+const BODY_WORD: Record<string, string> = {man: 'Mannen', kvinna: 'Kvinnan'};
+/** The standard doll's man and woman, the woman first (the body shown by default since 2026-11-26), then any other. */
+const SEAT_DOLLS = Object.keys(ALL_DOLLS).filter(isSeat).sort((a, b) => Number(b === 'kvinna') - Number(a === 'kvinna'));
+/** The dealers' own dolls offered beside them. */
+const DEALER_DOLLS = Object.keys(ALL_DOLLS).filter(n => !isSeat(n) && n !== 'standard');
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
+/** A doll in his words: "Standarddockan, mannen", "Paow", "Den vita dockan". */
+const dollWords = (name: string) => isSeat(name) ? `Standarddockan, ${(BODY_WORD[name] ?? cap(name)).toLowerCase()}` : name === 'standard' ? 'Den vita dockan' : cap(name);
+/** Whose a doll is, as in "byggd på Paows kropp". */
+const dollOwner = (name: string) => isSeat(name) ? `standarddockans` : name === 'standard' ? 'den vita dockans' : `${cap(name)}s`;
+/** Why no deal goes from the entry to a place (lay.ts placeFrom's `none`, and `own` for the standard doll), in his words. */
+const WHY: Record<string, string> = {reach: 'en spelares andra kort läggs alltid med svepet, och med svepet räcker inte hennes högra arm dit', unposed: 'dockan har ingen ställning A2.1', closed: 'ett stängt kort vänds aldrig i hennes fingrar, så det läggs från A2.3', own: 'standarddockans egen giv dit är inte ritad än'};
+const whyOf = (r: Placed | null) => r && 'none' in r ? WHY[r.none] ?? 'dockan lägger inget kort dit' : '';
 // The pose films: A1 is the first frame of the film to A2.3 and A2.3 its last; A2.1, the pinch at the shoe, is the first
 // frame of her built deal (pinch-deal.ts, from her pose A2.1, lay.ts POSE_21).
 const POSES: Record<Pose, {film: string; end: boolean; built?: boolean; said?: string}> = {
@@ -87,12 +105,48 @@ const sided = (steer: Steer, id: string): Steer => { const {side: _side, ...rest
 /** The steering where nothing is moved: the recipe as it is, and the card on the side the plan has it. */
 const baseSteer = (id: string): Steer => sided({...NO_STEER}, id);
 // (`wanted`: a card asked for that no deal goes to from the entry; the picture keeps the card it shows, and says why)
-const state = {doll: 'paow', entry: 'A2.3' as Entry, shown: {kind: 'deal'} as Shown, place: 'P4.C1', wanted: null as string | null, steer: {...NO_STEER} as Steer, knobs: knobsOf(), landing: {id: LANDING_DEFAULT} as Landing, turn: TURN_DEFAULT as TurnId, touched: false, playing: false, speed: 1, loop: false, joints: false, view: (new URLSearchParams(location.search).get('scen') === 'gammal' ? 'film' : 'spel') as ViewName, t: 0};
-/** Whether a deal goes from `entry` to the place `id` (for the chosen doll: from A2.1 one with the pose A2.1). */
-const opens = (entry: Entry, id: string) => { const r = placeFrom(entry, id, state.doll, plan); return !!r && !('none' in r); };
+// (the doll begins as the standard doll, the woman where she is measured; the address may name another, below)
+const state = {doll: SEAT_DOLLS[0] ?? 'paow', entry: 'A2.3' as Entry, shown: {kind: 'deal'} as Shown, place: 'P4.C1', wanted: null as string | null, steer: {...NO_STEER} as Steer, knobs: knobsOf(), landing: {id: LANDING_DEFAULT} as Landing, turn: TURN_DEFAULT as TurnId, touched: false, playing: false, speed: 1, loop: false, joints: false, view: (new URLSearchParams(location.search).get('scen') === 'gammal' ? 'film' : 'spel') as ViewName, t: 0};
+// The standard doll's own motions (Jakob 2026-11-26: drawn for its own body, not Paow's; dealer3d/tools/ren-givar.ts and
+// docka-standard.ts write them): its rest A1, its pose A2.3 and its deals from A2.3, each a file of dealer3d/data/ found
+// by its name when the doll is chosen. They are played as they are drawn: nothing here lays or steers them, and nothing of
+// Paow's is played on its body. A place it has no deal of its own to is closed and says so; a pose it has none of is said.
+// The rest A1 is the first frame of its own way from the rest to the shoe (till-ankare-2-3-<doll>, as POSES has A1 for a
+// dealer's doll), else a rest drawn on its own (vila-a1-<doll>, or the trial at its own shoulder height); A2.3 its anchor,
+// else the last frame of that way.
+type OwnPose = {file: string; at: 'first' | 'last' | 'all'};
+type Own = {A1: OwnPose | null; 'A2.3': OwnPose | null; deals: Map<string, string>};
+let own: Own | null = null;
+const ownDealName = (doll: string, id: string) => `giv-fran-2-3-${id.toLowerCase().replace('.', '')}-ren-a-${doll}`;
+// (the server names the motions there are, GET /dealer3d/data; a server started before it had that answer is asked per file)
+let names: Promise<Set<string> | null> = Promise.resolve(null);
+const there = async (name: string) => { const known = await names; return known ? known.has(name) : fetch(`/dealer3d/data/${name}.json`, {method: 'HEAD', cache: 'no-store'}).then(r => r.ok, () => false); };
+/** What of its own the standard doll `doll` has: its rest, its pose A2.3, and a deal to each place. */
+async function ownOf(doll: string): Promise<Own> {
+  names = get('/dealer3d/data').then(a => Array.isArray(a?.names) ? new Set<string>(a.names) : null, () => null);
+  const p = ALL_DOLLS[doll].place, height = p.kind === 'seat' ? Math.round(p.shoulderHeight * 100) : null;
+  const first = async (names: string[]) => { for (const n of names) if (await there(n)) return n; return null; };
+  const toShoe = `till-ankare-2-3-${doll}`, anchor = `ankare-2-3-${doll}`;
+  const [way, rest, pose, deals] = await Promise.all([there(toShoe), first([`vila-a1-${doll}`, ...(height ? [`vila-a1-${doll}-h${height}`] : [])]), there(anchor),
+    Promise.all(Object.keys(plan.targets).map(async id => [id, await there(ownDealName(doll, id))] as const))]);
+  return {A1: way ? {file: toShoe, at: 'first'} : rest ? {file: rest, at: 'all'} : null, 'A2.3': pose ? {file: anchor, at: 'all'} : way ? {file: toShoe, at: 'last'} : null,
+    deals: new Map(deals.filter(([, yes]) => yes).map(([id]) => [id, ownDealName(doll, id)]))};
+}
+/** Where a deal from `entry` to a place comes from for the chosen doll: for the standard doll its own deal or why none (`own`), for a dealer's doll as lay.ts placeFrom says. */
+type Placed = EntryPlace | {own: string} | {none: 'own'};
+function placeFor(entry: Entry, id: string): Placed | null {
+  if (!own) return placeFrom(entry, id, state.doll, plan);
+  if (!recipeFor(id)) return null;
+  const file = entry === 'A2.3' ? own.deals.get(id) : undefined;
+  return file ? {own: file} : entry === 'A2.1' ? {none: 'unposed'} : {none: 'own'};
+}
+/** Whether a deal goes from `entry` to the place `id` (for the chosen doll: from A2.1 one with the pose A2.1; for the standard doll its own). */
+const opens = (entry: Entry, id: string) => { const r = placeFor(entry, id); return !!r && !('none' in r); };
 /** The first place of the plan a deal goes to from `entry`. */
 const firstOpen = (entry: Entry) => Object.keys(plan.targets).find(id => opens(entry, id));
-{ if (Object.hasOwn(DOLLS, asked.get('docka') ?? '')) state.doll = asked.get('docka')!; if (asked.get('fran') === 'a2-1') state.entry = 'A2.1';
+// (a doll the address names that is not measured yet, the woman before her measures are in, is the standard doll there is)
+{ const word = asked.get('docka') ?? ''; if (Object.hasOwn(ALL_DOLLS, word)) state.doll = word; else if (Object.hasOwn(BODY_WORD, word) && SEAT_DOLLS.length) state.doll = SEAT_DOLLS[0];
+  if (asked.get('fran') === 'a2-1') state.entry = 'A2.1';
   const m = /^(?:p([1-7])|d)c([123])$/.exec(asked.get('plats') ?? ''), id = m ? `${m[1] ? `P${m[1]}` : 'D'}.C${m[2]}` : null;
   if (id && Object.hasOwn(plan.targets, id) && opens(state.entry, id)) state.place = id; else if (!opens(state.entry, state.place)) state.place = Object.keys(plan.targets).find(k => opens(state.entry, k)) ?? state.place;
   state.steer = baseSteer(state.place); }
@@ -100,7 +154,7 @@ const firstOpen = (entry: Entry) => Object.keys(plan.targets).find(id => opens(e
 const wayOf = (): Way => wayFor(dollNamed(state.doll));
 // What is on the stage now: the motion, and for a deal what it was laid from. `from`: a saved standard (laid again from what it was saved with), laid here as steered, or a pose. `savedAt`: when the standard shown was saved (its lab.savedAt). `rules`: what the chain laid it by (natural-lab.ts filmRules). `fault`: why the last laying did not go (the motion is then the last that did).
 type Now = {doll: string; place: string | null; entry: Entry; motion: Motion; deal: LaidDeal | null; recipe: Recipe | null; lent: string | null; shortMm: number; saved: boolean; said: string | null;
-  way: How; from: 'saved' | 'laid' | 'pose'; savedAt: string | null; bodyShare: number | null; receipt: ReturnType<typeof filmed>['receipt'] | null; landed: LandingReceipt | null; turned: TurnReceipt | null; rules: ReturnType<typeof filmRules> | null};
+  way: How; from: 'saved' | 'laid' | 'pose' | 'own'; savedAt: string | null; bodyShare: number | null; receipt: ReturnType<typeof filmed>['receipt'] | null; landed: LandingReceipt | null; turned: TurnReceipt | null; rules: ReturnType<typeof filmRules> | null};
 let now: Now | null = null, fault: string | null = null, laid: {key: string; value: LaidDeal} | null = null;
 // His saved standards, and the one before each (`forra`: what a save replaced or "Alla till förvalet" laid aside, which
 // "Ta tillbaka den förra" takes back; dealer3d/page/server.ts). Read when the page starts and from every answer that changes
@@ -126,11 +180,35 @@ async function builtDeal(pose: string, place: string, D: Doll) {
 }
 /** A recipe by the name of its stored deal, and the pose film it begins on. */
 const recipeNamed = async (name: string) => { const recipe = recipeOf(name, await stored<Stored & Motion>(name)); return {recipe, pose: await stored<PoseFilm>(recipe.poseFilm ?? 'till-ankare-2-3')}; };
-/** Where the deal from the entry to the place comes from: a recipe (A2.3) or her pose A2.1, which it is built from. */
-async function dealOfPlace(entry: Entry, place: string, doll: string) {
-  const r = placeFrom(entry, place, doll, plan); if (!r || 'none' in r) return null;
+/** Where the deal from the entry to the place comes from: a recipe (A2.3), her pose A2.1, which it is built from, or the standard doll's own deal. */
+async function dealOfPlace(entry: Entry, place: string) {
+  const r = placeFor(entry, place); if (!r || 'none' in r) return null;
+  if ('own' in r) return {own: r.own, lent: null};
   if ('pinch' in r) return {pinch: r.pinch, lent: null};
   return {...await recipeNamed(r.recipe), lent: r.lent ? LENT[r.lent] : null};
+}
+/**
+ * One of the standard doll's own motions as the stage plays it: a deal or a rest as drawn (`all`), or a pose held for two
+ * frames: an anchor's one frame and hip, or the first or last frame of a way (`first`, `last`).
+ */
+async function ownMotion(name: string, at: OwnPose['at'] = 'all'): Promise<Motion> {
+  const m = await stored<Motion & {frame?: Motion['frames'][number]}>(name);
+  if (at === 'all' && m.frames?.length >= 2) return m;
+  const f = at === 'last' ? m.frames?.[m.frames.length - 1] : m.frame ?? m.frames?.[0]; if (!f) throw Error(`${name} har ingen ruta`);
+  return {...m, film: name, fps: 30, frameCount: 2, leavesShoe: 1, edge: [1, 1], folds: 1, rests: 1, hip: m.hip, frames: [f, f], cycle: undefined};
+}
+/**
+ * The standard doll's own deal as it is shown: from its rest (Jakob 2026-11-26: "Allt börjar i A1"), its own way to the
+ * shoe and then the deal and the hand back to the shoe, in one motion, where the way is drawn and ends where the deal
+ * begins (the deal's first frame, which is the way's last, is not shown twice); the deal alone where the way is not drawn
+ * or does not meet it. Whether the way goes with it is said in the picture (`fromRest`).
+ */
+async function ownDealMotion(file: string): Promise<{motion: Motion; fromRest: boolean}> {
+  const deal = await ownMotion(file), way = own?.A1?.at === 'first' ? await ownMotion(own.A1.file) : null;
+  const last = way?.frames[way.frames.length - 1], first = deal.frames[0], off = (p: number[], q: number[]) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+  if (!way || !last || way.fps !== deal.fps || off(last.R.w, first.R.w) > 0.002 || off(last.L.w, first.L.w) > 0.002 || off(last.card.c, first.card.c) > 0.002) return {motion: deal, fromRest: false};
+  const shift = way.frames.length - 1, frames = [...way.frames, ...deal.frames.slice(1)];
+  return {fromRest: true, motion: {...deal, film: `${own!.A1!.file} + ${file}`, frameCount: frames.length, frames, leavesShoe: deal.leavesShoe + shift, edge: deal.edge.map(e => e + shift), folds: deal.folds + shift, rests: deal.rests + shift, cycle: undefined}};
 }
 const untouched = () => JSON.stringify(state.steer) === JSON.stringify(baseSteer(state.place)) && JSON.stringify(state.knobs) === JSON.stringify(NO_KNOBS) && asBefore(state.landing) && state.turn === TURN_DEFAULT;
 type Laid = {motion: Motion; deal: LaidDeal | null; shortMm: number; bodyShare: number | null; receipt: Now['receipt']; landed: LandingReceipt | null; turned: TurnReceipt | null; rules: Now['rules']};
@@ -141,9 +219,14 @@ type Laid = {motion: Motion; deal: LaidDeal | null; shortMm: number; bodyShare: 
  * not go.
  */
 async function showDeal(keepTime = false) {
-  const place = state.place, doll = state.doll, entry = state.entry, planned = planNo, found = await dealOfPlace(entry, place, doll);
+  const place = state.place, doll = state.doll, entry = state.entry, planned = planNo, found = await dealOfPlace(entry, place);
   const stale = () => place !== state.place || doll !== state.doll || entry !== state.entry || planned !== planNo;
   if (!found || stale()) return;
+  if (found.own !== undefined) {
+    // The standard doll's own deal, played as it is drawn (dealer3d/src/ren-giv.ts): no recipe, no slider, no saved standard.
+    let motion: Motion, fromRest = false; try { ({motion, fromRest} = await ownDealMotion(found.own)); } catch (e) { console.warn(e); fault = 'går inte att läsa'; paint(); return; } if (stale()) return;
+    now = {doll, place, entry, recipe: null, lent: null, said: fromRest ? 'från vilan via skon' : 'vägen från vilan är inte ritad än', way: 'egen', saved: false, from: 'own', savedAt: null, motion, deal: null, shortMm: 0, bodyShare: null, receipt: null, landed: null, turned: null, rules: null};
+    fault = null; state.shown = {kind: 'deal'}; const t = keepTime ? state.t : 0; stage!.setTarget(place); stage!.setMotion(motion); state.t = Math.min(t, stage!.duration()); stage!.setTime(state.t); paint(); return; }
   // (a standard is saved from A2.3 only: from A2.1 nothing here steers the deal)
   let saved = state.touched || entry !== 'A2.3' ? undefined : standards.find(s => s.name === standardName(doll, place)); const D = dollNamed(doll);
   try {
@@ -168,7 +251,7 @@ async function showDeal(keepTime = false) {
       if (laid?.key !== key) laid = {key, value: filmDeal(input)};
       const f = filmed(laid.value, input);
       shown = {motion: f.motion as unknown as Motion, deal: laid.value, shortMm: f.shortMm, bodyShare: f.bodyShare, receipt: f.receipt, landed: f.landing, turned: f.turn, rules}; }
-    now = {doll, place, entry, recipe, lent: found.lent, said: way === 'byggd' ? `byggd på ${DOLLS[doll]}s kropp` : null, way, saved: !!saved, from: saved ? 'saved' : 'laid', savedAt: saved ? savedWhen.get(saved.name) ?? saved.savedAt : null, ...shown};
+    now = {doll, place, entry, recipe, lent: found.lent, said: way === 'byggd' ? `byggd på ${dollOwner(doll)} kropp` : null, way, saved: !!saved, from: saved ? 'saved' : 'laid', savedAt: saved ? savedWhen.get(saved.name) ?? saved.savedAt : null, ...shown};
     fault = null;
   } catch (e) { fault = plain(e); console.warn(e); if (!now || now.place !== place || now.doll !== doll || now.entry !== entry || state.shown.kind !== 'deal') { paint(); return; } }
   if (stale()) return;
@@ -177,36 +260,66 @@ async function showDeal(keepTime = false) {
 async function showPose(pose: Pose) {
   // A1 and A2.3 on the doll as the way has her (in "Naturlig" her left hand at the shoe as her picture has it); A2.1 the first frame of her built deal.
   const p = POSES[pose], doll = state.doll; let posed: {motion: Motion};
+  if (own) {
+    // The standard doll's own rest or pose A2.3, as drawn; a pose it has none of is said, and the picture keeps what it shows.
+    const mine = pose === 'A2.1' ? null : own[pose];
+    if (!mine) { fault = pose === 'A2.1' ? WHY.unposed : `standarddockans egen ställning ${pose} är inte ritad än`; paint(); return; }
+    let motion: Motion; try { motion = await ownMotion(mine.file, mine.at); } catch (e) { console.warn(e); fault = 'går inte att läsa'; paint(); return; } if (doll !== state.doll) return;
+    state.shown = {kind: 'pose', pose}; state.playing = false; fault = null;
+    now = {doll, place: null, entry: state.entry, motion, deal: null, recipe: null, lent: null, shortMm: 0, saved: false, said: pose === 'A1' ? 'egen vila' : 'egen ställning', way: 'egen', from: 'pose', savedAt: null, bodyShare: null, receipt: null, landed: null, turned: null, rules: null};
+    stage!.setMotion(motion); state.t = 0; stage!.setTime(0); paint(); return; }
   if (p.built) { const r = placeFrom('A2.1', 'P4.C1', doll); if (!r || !('pinch' in r)) { fault = WHY.unposed; paint(); return; }
     const m = (await builtDeal(r.pinch, 'P4.C1', dollNamed(doll))).motion as unknown as Motion & {frames: unknown[]}; if (doll !== state.doll) return;
     posed = {motion: {...m, frameCount: 1, frames: m.frames.slice(0, 1), cycle: undefined} as Motion}; }
   else { const film = await stored<Motion>(p.film); if (doll !== state.doll) return;
     posed = posedOn(film, dollFor(wayOf(), dollNamed(doll))); posed.motion = cardInFilmsShoe(posed.motion as Motion & {frames: {card: {c: number[]; l: number[]; n: number[]}}[]}); } // the pose films' card stood in the shoe of before 2026-11-23
   state.shown = {kind: 'pose', pose}; state.playing = false; fault = null;
-  now = {doll, place: null, entry: state.entry, motion: posed.motion, deal: null, recipe: null, lent: null, shortMm: 0, saved: false, said: p.said && doll !== 'standard' ? `${p.said} på ${DOLLS[doll]}s kropp` : p.said ?? null, way: wayOf(), from: 'pose', savedAt: null, bodyShare: null, receipt: null, landed: null, turned: null, rules: null};
+  now = {doll, place: null, entry: state.entry, motion: posed.motion, deal: null, recipe: null, lent: null, shortMm: 0, saved: false, said: p.said && doll !== 'standard' ? `${p.said} på ${dollOwner(doll)} kropp` : p.said ?? null, way: wayOf(), from: 'pose', savedAt: null, bodyShare: null, receipt: null, landed: null, turned: null, rules: null};
   stage!.setMotion(posed.motion); state.t = p.end ? stage!.duration() : 0; stage!.setTime(state.t); paint();
 }
 const show = (keepTime = false) => state.shown.kind === 'deal' ? showDeal(keepTime) : showPose(state.shown.pose);
 
 // The body that is drawn (Jakob 2026-11-26: "Se till att vi använder denna nya standarddocka för allt som syns i också
-// 'blackjack-dealer'"): the standard doll's model, the woman unless the address says ?figur=man, posed from the same joints
-// as the white figure and made as large as the figure's arms are. ?figur=vit, or a computer where the model is not built
-// (it is local media of avatar-auto-pipeline), keeps the white figure. The doll chosen on the page is still whose measures
-// the motion is laid for; the model is only what is seen.
-const FIGURE = asked.get('figur') === 'vit' ? null : asked.get('figur') === 'man' ? 'man' : 'kvinna';
-const figureNow = async () => FIGURE ? (await import('../src/figure-model.ts')).loadFigure(`/dealer3d/figur/${FIGURE}.glb`).catch(() => null) : null;
+// 'blackjack-dealer'"): the standard doll's model, posed from the same joints as the white figure and made as large as the
+// figure's arms are. It follows the doll: the man's model for the man, the woman's for the woman, and for a dealer's doll
+// (Paow's) the woman unless the address says ?figur=man. ?figur=vit, or a computer where the model is not built (it is
+// local media of avatar-auto-pipeline), keeps the white figure. The doll chosen is whose measures the motion is for; the
+// model is only what is seen.
+const figureOf = (doll: string) => asked.get('figur') === 'vit' ? null : isSeat(doll) ? doll : asked.get('figur') === 'man' ? 'man' : 'kvinna';
+const figureNow = async (doll: string) => { const f = figureOf(doll); return f ? (await import('../src/figure-model.ts')).loadFigure(`/dealer3d/figur/${f}.glb`).catch(() => null) : null; };
 // The room she is drawn in (Jakob 2026-11-26: "Vi ska ha in vy/vinkel och allt det andra från 'standarddockan'-mappens
 // mini-blender"): the standard room of dealer3d/src/standard-room.ts, the same table, shoe, stool and light as the
 // editor of standarddocka/ draws, seen first through the game's view. Its models are local media of
 // avatar-auto-pipeline: where the server has none, or with ?scen=gammal, the stage's own older room is drawn.
-const ROOM = asked.get('scen') === 'gammal' ? null : {table: '/dealer3d/figur/bord.glb', stool: '/dealer3d/figur/stol.glb'};
-const roomNow = async () => ROOM && FIGURE && await fetch(ROOM.table, {method: 'HEAD'}).then(r => r.ok, () => false) ? ROOM : null;
-/** A stage for the chosen doll on a canvas of its own (a stage's doll is fixed when it is made). */
+// The table follows the doll, as in the editor (standarddocka/editor/scen.ts bordFor): the standard doll's own motions are
+// drawn at the table whose edge and tray lie 23 cm behind the game's edge (bord23), a dealer's doll (Paow's) at the older
+// one, 15 cm; where the nearer one is not built, the older one.
+const ROOM = asked.get('scen') === 'gammal' ? null : {table: '/dealer3d/figur/bord.glb', near: '/dealer3d/figur/bord23.glb', stool: '/dealer3d/figur/stol.glb'};
+const built = (url: string) => fetch(url, {method: 'HEAD'}).then(r => r.ok, () => false);
+/** The table drawn now (its address), or null for the stage's own older room. */
+let tableNow: string | null = null;
+const roomNow = async (doll: string) => { if (!ROOM || !figureOf(doll)) return null;
+  const table = isSeat(doll) && await built(ROOM.near) ? ROOM.near : await built(ROOM.table) ? ROOM.table : null; return table ? {table, stool: ROOM.stool} : null; };
+/**
+ * A stage for the chosen doll on a canvas of its own (a stage's doll is fixed when it is made). The standard doll begins in
+ * its own rest (Jakob 2026-11-26: "Startläget är vilan (A1)"), and on the chosen place's deal where it has one of its own;
+ * where it has no rest of its own yet, the white doll's rest on its body, said in the picture.
+ */
 async function setDoll(name: string) {
-  state.doll = name; state.touched = false; notice = null; state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT;
-  const [film, figure, room] = await Promise.all([stored<Motion>('till-ankare-2-3-c'), figureNow(), roomNow()]);
-  const first = posedOn(film, dollNamed(name)).motion, old = $('stage'), canvas = document.createElement('canvas'); canvas.id = 'stage';
+  state.doll = name; state.touched = false; notice = null; state.wanted = null; state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT;
+  // (another doll chosen while this one is read: that one's stage is made, not this one's)
+  own = null; const mine = isSeat(name) ? await ownOf(name) : null; if (state.doll !== name) return; own = mine; if (own) state.entry = 'A2.3';
+  const [film, figure, room] = await Promise.all([stored<Motion>('till-ankare-2-3-c'), figureNow(name), roomNow(name)]); if (state.doll !== name) return;
+  tableNow = figure && room ? room.table : null;
+  const rest = own?.A1 ?? own?.['A2.3'] ?? null, first = rest ? await ownMotion(rest.file, rest.at) : posedOn(film, dollNamed(name)).motion;
+  if (state.doll !== name) return;
+  const old = $('stage'), canvas = document.createElement('canvas'); canvas.id = 'stage';
   stage?.dispose(); old.replaceWith(canvas); size(canvas); stage = createLabStage(canvas, plan, dollNamed(name), first, figure, figure ? room : null); stage.setJoints(state.joints); stage.setGrips(gripsShown()); stage.setTarget(state.place); stage.view(state.view);
+  // (a place it has no deal of its own to stays asked for, `wanted`, and the page says why; the picture shows one it has)
+  if (own) { if (!opens(state.entry, state.place)) { const open = firstOpen(state.entry); if (open) { state.wanted = state.place; state.place = open; } }
+    if (!opens(state.entry, state.place)) { state.shown = {kind: 'pose', pose: own.A1 ? 'A1' : own['A2.3'] ? 'A2.3' : 'A1'}; state.playing = false;
+      if (!rest) { now = {doll: name, place: null, entry: state.entry, motion: first, deal: null, recipe: null, lent: null, shortMm: 0, saved: false, said: null, way: wayOf(), from: 'pose', savedAt: null, bodyShare: null, receipt: null, landed: null, turned: null, rules: null}; fault = null; paint(); return; } }
+    else state.shown = {kind: 'deal'}; }
   await show();
 }
 function size(canvas = $<HTMLCanvasElement>('stage')) { const box = $('frame').getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1), w = Math.max(2, Math.round(box.width * dpr)), h = Math.max(2, Math.round(box.height * dpr));
@@ -273,28 +386,35 @@ const shapers = SHAPING_KNOBS.map(k => { const label = document.createElement('l
 
 /** Shows or hides a part of the page (also inline: embedded, the studio's own stylesheet gives the controls their display, app/globals.css). */
 const display = (el: HTMLElement, yes: boolean) => { el.hidden = !yes; el.style.display = yes ? '' : 'none'; };
-const cap = (s: string) => s[0].toUpperCase() + s.slice(1), moment = (iso: string) => new Date(iso).toLocaleString('sv-SE', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
+const moment = (iso: string) => new Date(iso).toLocaleString('sv-SE', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
 /** Everything on the page that says what is chosen and shown. */
 function paint() {
   const deal = state.shown.kind === 'deal', read = state.entry === 'A2.1', saved = read ? undefined : standards.find(s => s.name === standardName(state.doll, state.place));
-  for (const b of document.querySelectorAll<HTMLButtonElement>('#dolls button')) b.setAttribute('aria-pressed', String(b.dataset.doll === state.doll));
+  for (const b of document.querySelectorAll<HTMLButtonElement>('#dolls button, #bodies button')) b.setAttribute('aria-pressed', String(b.dataset.doll === state.doll));
+  // (embedded the standard doll's man and woman are chosen in the picture's row: the studio names only the standard doll)
+  for (const el of document.querySelectorAll<HTMLElement>('#bodies, #bodyLook')) display(el, embedded && !!own && SEAT_DOLLS.length > 1);
+  // (the standard doll has no pose A2.1 of its own: neither the entry nor the pose is offered for it)
+  const entries = root.querySelector<HTMLElement>('#entries'), pinch = document.querySelector<HTMLElement>('#views button[data-pose="A2.1"]');
+  if (entries) display(entries, !own); if (pinch) display(pinch, !own);
   for (const b of document.querySelectorAll<HTMLButtonElement>('#views button[data-pose]')) b.setAttribute('aria-pressed', String(!deal && b.dataset.pose === (state.shown as {pose?: string}).pose));
   for (const b of ctls('#entries button')) b.setAttribute('aria-pressed', String(b.dataset.entry === state.entry));
   // (embedded neither the entry's buttons nor the places' grid is there, the studio's own choosing both: the head names them)
   ctl('dealHead').textContent = embedded ? `Giv från ${state.entry} till ${placeWords(state.place)}` : `Giv från ${state.entry} till`;
   const buttons = new Map(ctls('#places button').map(b => [b.dataset.place!, b]));
-  for (const id of gridIds()) { const b = buttons.get(id); if (!b) continue; const r = placeFrom(state.entry, id, state.doll, plan), open = !!r && !('none' in r), why = whyOf(r);
+  for (const id of gridIds()) { const b = buttons.get(id); if (!b) continue; const r = placeFor(state.entry, id), open = !!r && !('none' in r), why = whyOf(r);
     b.disabled = !open; b.textContent = open ? '●' : '–'; b.title = why ? `${cap(placeWords(id))}: ${why}.` : placeWords(id);
     b.setAttribute('aria-pressed', String(deal && id === state.place)); b.classList.toggle('saved', !read && standards.some(s => s.name === standardName(state.doll, id))); }
   // (why no deal goes to a card is said only for the card asked for, `wanted`; the picture keeps the card it shows)
-  const wantedWhy = state.wanted ? whyOf(placeFrom(state.entry, state.wanted, state.doll, plan)) : '';
+  const wantedWhy = state.wanted ? whyOf(placeFor(state.entry, state.wanted)) : '';
   ctl('closed').textContent = read && !opens('A2.1', 'P4.C1') ? `Från A2.1: ${WHY.unposed}.` : wantedWhy ? `${cap(placeWords(state.wanted!))} ges inte från ${state.entry}: ${wantedWhy}. Bilden visar ${placeWords(state.place)}.` : '';
   display(ctl('sideNote'), deal && !read && closedNow());
   for (const b of document.querySelectorAll<HTMLButtonElement>('#views button[data-view]')) b.setAttribute('aria-pressed', String(b.dataset.view === state.view));
   for (const b of document.querySelectorAll<HTMLButtonElement>('#speed button')) b.setAttribute('aria-pressed', String(Number(b.dataset.speed) === state.speed));
   // What cannot act is not shown: from A2.1 nothing here steers the deal; the turn and the landing only in "Naturlig" and for a card that is turned; each slider where it acts.
-  const lon = landingOn(), steers = !(deal && read);
-  display(ctl('turnBox'), lon); display(ctl('landingBox'), lon); display(ctl('builtNote'), !steers); display(ctl('knobs'), steers); display(ctl('steerActs'), steers);
+  // (the standard doll's own motions are played as drawn: nothing steers them, and no standard is saved for them)
+  const lon = landingOn(), steers = !(deal && read) && !own, builtNote = ctl('builtNote'), standardActs = root.querySelector<HTMLElement>('#standardActs');
+  builtNote.textContent = own ? 'Standarddockans egna rörelser spelas som de är ritade, för hans och hennes egen kropp; de styrs inte här.' : 'Från A2.1 ger dockan nypets egen rörelse; den styrs inte här.';
+  display(ctl('turnBox'), lon); display(ctl('landingBox'), lon); display(builtNote, !steers); display(ctl('knobs'), steers); display(ctl('steerActs'), steers); if (standardActs) display(standardActs, !own);
   for (const {k, label, out, input} of knobs) { const on = deal && k.on() && !(k.turns && closedNow()); input.disabled = !on; display(label, on); input.min = String(k.min()); input.max = String(k.max());
     if (on) { const v = Math.max(k.min(), Math.min(k.max(), k.value())); input.value = String(v); out.textContent = k.text(k.value()); } else out.textContent = ''; }
   for (const head of new Set(knobs.map(x => x.head))) if (head) display(head, knobs.some(x => x.head === head && !x.label.hidden));
@@ -314,13 +434,17 @@ function paint() {
   ctl<HTMLButtonElement>('reset').disabled = !deal || !recipe || (!steered && !now?.saved); ctl<HTMLButtonElement>('save').disabled = !deal || read || !now || now.saved || !now.deal || !!fault || now.shortMm > 0;
   const prior = read ? undefined : before.find(s => s.name === standardName(state.doll, state.place)), mine = standards.filter(s => s.doll === state.doll).length, back = ctl<HTMLButtonElement>('back'), all = ctl<HTMLButtonElement>('allDefault');
   back.disabled = busy || !deal || (!prior && !saved); back.title = prior ? `Byter till standarden som var sparad här förut (${moment(prior.savedAt)}). Det du har nu blir det förra, så ett tryck till byter tillbaka.` : saved ? 'Före den sparade gällde förvalet här: lägger undan den sparade, så att förvalet gäller igen. Ett tryck till tar tillbaka den.' : 'Det finns inget förra att ta tillbaka för den här platsen.';
-  all.disabled = busy || !mine; all.title = mine ? `Lägger undan ${DOLLS[state.doll]}s ${mine} sparade standarder, så att förvalet gäller på varje plats. Inget raderas: Ta tillbaka den förra tar tillbaka en plats i taget.` : `${DOLLS[state.doll]} har ingen sparad standard: förvalet gäller överallt.`;
+  all.disabled = busy || !mine; all.title = mine ? `Lägger undan ${dollOwner(state.doll)} ${mine} sparade standarder, så att förvalet gäller på varje plats. Inget raderas: Ta tillbaka den förra tar tillbaka en plats i taget.` : `${dollWords(state.doll)} har ingen sparad standard: förvalet gäller överallt.`;
   // The line about the saved standard: whether one holds for the card (an order films it) and when it was saved (its own lab.savedAt).
   const status = ctl('status'), when = now?.savedAt ? moment(now.savedAt) : saved ? moment(savedWhen.get(saved.name) ?? saved.savedAt) : '', there = embedded ? 'kortet i bilden' : 'platsen';
   status.className = fault || (deal && now?.shortMm) ? 'small warn' : 'small';
   // (embedded there is no grid of places: the card is chosen in the studio, or by a click on it in the picture)
-  status.textContent = !deal ? (embedded ? 'Ställningen visas. Spela visar given till kortet igen.' : 'Ställningen visas. Välj en plats, eller tryck Spela, för given.')
+  const ownDeals = own ? own.deals.size : 0;
+  status.textContent = own && !ownDeals ? 'Standarddockans egna givar är inte ritade än: bilden visar vilan. Paows givar spelas inte på standarddockan.'
+    : own && !deal ? (opens(state.entry, state.place) ? 'Ställningen visas. Spela visar standarddockans egen giv till kortet.' : `Ställningen visas. Egen giv finns till ${[...own.deals.keys()].map(placeWords).join(', ')}.`)
+    : !deal ? (embedded ? 'Ställningen visas. Spela visar given till kortet igen.' : 'Ställningen visas. Välj en plats, eller tryck Spela, för given.')
     : fault ? `Går inte: ${fault}. Bilden visar den senaste som gick, och den här kan inte sparas.`
+    : now?.from === 'own' ? (now.said === 'från vilan via skon' ? 'Standarddockans egna rörelser, som de är ritade: vilan, vägen till skon, given och handen tillbaka till skon.' : 'Standarddockans egen giv, som den är ritad. Vägen från vilan till skon är inte ritad än.')
     : read ? 'Nypets egen rörelse, som en beställning från A2.1 filmar den.'
     : now?.shortMm ? `Armen når inte hela vägen (${comma(now.shortMm)} mm), så den här kan inte sparas.`
     : now?.saved ? `Din sparade standard (${when}): det är den en beställning filmar.`
@@ -330,8 +454,10 @@ function paint() {
     : 'Ändrad, inte sparad. Ingen sparad standard för kortet: dockan ger med förvalet tills du sparar.';
   if (notice) { status.textContent += ` ${notice.text}`; if (notice.warn) status.className = 'small warn'; }
   // The line in the picture: what is shown, and what is not as it should be.
-  const what = deal ? `${state.entry} → ${placeWords(state.place)}` : (state.shown as {pose: string}).pose, notes: string[] = [], warns: string[] = [];
-  if (deal && now) notes.push(now.saved ? 'sparad standard' : now.way === 'byggd' ? 'nypets egen rörelse' : steered ? 'ändrad' : 'förvalet');
+  const fromRest = now?.from === 'own' && now.said === 'från vilan via skon';
+  const what = deal ? (fromRest ? `A1 → A2.3 → ${placeWords(state.place)} → A2.3` : `${state.entry} → ${placeWords(state.place)}`) : (state.shown as {pose: string}).pose, notes: string[] = [], warns: string[] = [];
+  if (deal && now) notes.push(now.from === 'own' ? 'egen giv' : now.saved ? 'sparad standard' : now.way === 'byggd' ? 'nypets egen rörelse' : steered ? 'ändrad' : 'förvalet');
+  if (own && !deal && !own.A1 && !own['A2.3']) warns.push('ingen egen vila är ritad än: bilden visar den vita dockans vila på kroppen');
   if (deal && now?.recipe && DEALER_CARD.test(state.place)) notes.push(closedNow() ? 'stängt' : 'öppet');
   if (deal && now?.turned?.laid) notes.push('vändning: i handen');
   if (deal && now?.landed) notes.push(`landning: ${landingWords({id: now.landed.id, ...now.landed.shaping}).toLowerCase()}`);
@@ -342,7 +468,7 @@ function paint() {
   // A deal that could not be laid is said in the picture too, not only under Styr: the stage then still shows the last motion
   // that could (at first the pose to A2.3), and beside a film that reads as the doll doing something else (Jakob 2026-11-25).
   if (deal && fault) warns.unshift(`given går inte att lägga (${fault}): bilden visar ${now ? 'den senaste som gick' : 'ställningen, inte given'}`);
-  const note = $('note'); note.replaceChildren(); const strong = document.createElement('b'); strong.textContent = `${DOLLS[state.doll]} · ${what}`; note.append(strong);
+  const note = $('note'); note.replaceChildren(); const strong = document.createElement('b'); strong.textContent = `${dollWords(state.doll)} · ${what}`; note.append(strong);
   if (notes.length) note.append(` · ${notes.join(' · ')}`); if (warns.length) { const w = document.createElement('span'); w.className = 'warn'; w.textContent = ` · ${warns.join(' · ')}`; note.append(w); }
   transport(); grip(true); paintFilm();
 }
@@ -393,7 +519,17 @@ if (embedded) ctl('entries').remove();
         const b = document.createElement('button'); b.dataset.place = id; b.textContent = '●'; b.title = placeWords(id); b.setAttribute('aria-label', placeWords(id));
         b.addEventListener('click', () => choose(id)); grid.append(b); } } } }
 
-for (const b of document.querySelectorAll<HTMLButtonElement>('#dolls button')) b.addEventListener('click', () => { if (b.dataset.doll !== state.doll) setDoll(b.dataset.doll!); });
+// The choice of doll: on the page alone, the standard doll's man and woman and the dealers' own dolls (Paow's), each under
+// its own word so that a dealer's doll is not taken for the standard; embedded, where the studio names the doll, only the
+// standard doll's man and woman, in the picture's row, while the standard doll is shown.
+{ const box = document.getElementById('dolls'), bodies = document.getElementById('bodies');
+  const button = (name: string, words: string, title: string) => { const b = document.createElement('button'); b.dataset.doll = name; b.textContent = words; b.title = title;
+    b.addEventListener('click', () => { if (b.dataset.doll !== state.doll) void setDoll(name); }); return b; };
+  const seatTitle = (name: string) => `Standarddockans ${name === 'man' ? 'man' : name === 'kvinna' ? 'kvinna' : name}: grunden alla rörelser görs för, med ${name === 'man' ? 'hans' : 'hennes'} egna mått och egna rörelser.`;
+  const row = (words: string, names: string[], title: (n: string) => string, text: (n: string) => string) => { if (!box || !names.length) return; const r = document.createElement('div'); r.className = 'row';
+    const s = document.createElement('span'); s.textContent = words; r.append(s, ...names.map(n => button(n, text(n), title(n)))); box.append(r); };
+  if (box) { box.replaceChildren(); row('Standarddockan', SEAT_DOLLS, seatTitle, n => BODY_WORD[n] ?? cap(n)); row('Dealer', DEALER_DOLLS, n => `${cap(n)}s egen docka: en dealer, inte standarden.`, cap); }
+  if (bodies) bodies.replaceChildren(...SEAT_DOLLS.map(n => button(n, BODY_WORD[n] ?? cap(n), seatTitle(n)))); }
 for (const b of document.querySelectorAll<HTMLButtonElement>('#views button[data-pose]')) b.addEventListener('click', () => showPose(b.dataset.pose as Pose));
 for (const b of ctls('#entries button')) b.addEventListener('click', () => chooseEntry(b.dataset.entry as Entry));
 for (const b of document.querySelectorAll<HTMLButtonElement>('#views button[data-view]')) b.addEventListener('click', () => { state.view = b.dataset.view as ViewName; stage!.view(state.view); stage!.setGrips(gripsShown()); paint(); });
@@ -441,7 +577,7 @@ ctl('back').addEventListener('click', () => { const name = standardName(state.do
   changeStandards('tillbaka', {name}, () => standards.some(s => s.name === name) ? 'Det förra är tillbaka. Det du hade ligger nu som det förra: ett tryck till byter tillbaka.' : 'Förvalet gäller här igen. Den sparade ligger som den förra: ett tryck till tar tillbaka den.'); });
 ctl('allDefault').addEventListener('click', () => {
   const n = standards.filter(s => s.doll === state.doll).length; if (!n) return;
-  if (!confirm(`Lägga undan alla ${n} sparade standarder för ${DOLLS[state.doll]}, så att förvalet gäller på varje plats?\n\nInget raderas: Ta tillbaka den förra tar tillbaka en plats i taget.`)) return;
+  if (!confirm(`Lägga undan alla ${n} sparade standarder för ${dollWords(state.doll)}, så att förvalet gäller på varje plats?\n\nInget raderas: Ta tillbaka den förra tar tillbaka en plats i taget.`)) return;
   changeStandards('aterstall', {doll: state.doll}, a => { const u = a.undanlagt as {when?: string; names?: string[]} | undefined; return `${u?.names?.length ?? n} sparade standarder är undanlagda (${u?.when ?? 'i dag'}); förvalet gäller nu. Ta tillbaka den förra tar tillbaka en plats.`; });
 });
 
@@ -604,6 +740,7 @@ if (asked.get('spela') === '1') void play();
   /** Where a place of the plan lies in the picture now, in this page's client pixels (a test clicks or drags there); null where it is not drawn. */
   at: (id: string) => { const p = spotNow(id), box = $('stage').getBoundingClientRect(), s = p && stage ? stage.seen(p) : null; return s ? {x: box.left + s.x, y: box.top + s.y} : null; },
   facts: () => ({doll: state.doll, way: wayOf(), entry: state.entry, shown: state.shown, place: state.place, steer: state.steer, side: sideOf(state.steer), planSide: planSide(state.place), knobs: state.knobs, playing: state.playing, t: state.t, duration: stage?.duration(), fault, saved: now?.saved ?? false, from: now?.from ?? null, savedAt: now?.savedAt ?? null, wanted: state.wanted, shortMm: now?.shortMm ?? 0,
+  own: own ? {A1: own.A1, 'A2.3': own['A2.3'], deals: Object.fromEntries(own.deals)} : null, figure: figureOf(state.doll), table: tableNow,
   frames: now?.motion.frameCount, forced: (now?.deal as LaidDeal | null)?.elbowForced ?? null, throughShoe: now?.deal?.throughShoe ?? null, note: $('note').textContent, status: ctl('status').textContent, grip: $('grip').textContent, standards: standards.map(s => s.name), camera: stage?.camera(), bodyShare: now?.bodyShare ?? null,
   gripYaw: R() ? gripYawsOf(R()!, state.steer, wayOf()) : null, landing: state.landing, landed: now?.landed ?? null, landingNote: ctl('landingNote').textContent, turn: state.turn, turned: now?.turned ?? null, turnNote: ctl('turnNote').textContent,
   // Where the controls stand (this page's own column, or the studio's), whether a place can be moved by hand, and where the chosen place lies on the felt.

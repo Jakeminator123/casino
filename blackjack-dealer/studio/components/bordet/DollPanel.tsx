@@ -29,7 +29,8 @@
 //                                          sent back after it is what the lab lays the deal from again
 // "Dockans filmer" shows the doll's films for the chosen card instead of the picture (DollFilms.tsx); the frame stays loaded
 // beside them. The doll is the chosen dealer's own where a doll is named as she is (dealer3d/src/doll.ts), else the standard
-// doll, and only for a dealer with her own is a deal ordered from the doll (step 3; lib/orders.ts orderDoll,
+// doll (its man or woman, chosen in the lab's picture; also for the switch's Standarddockan, lib/dealer.ts STANDARD_DOLL),
+// and only for a dealer with her own is a deal ordered from the doll (step 3; lib/orders.ts orderDoll,
 // tools/doll-order.ts): what is saved in the lab is what is ordered. The side a dealer's card lies with is the plan's alone
 // (step 2, "Kortet ligger"; a player's card always lies open); the lab lays it as the plan it is sent says. Only in the local
 // studio: the copy has no doll lab, and no Inspelning.
@@ -40,6 +41,7 @@ import type { Place, PlacementPlan } from "../../../src/placement-model.ts";
 import type { cardFilm } from "../../lib/bordet.ts";
 import { dollFilms, takesOf, type DollGroup } from "../../lib/doll-films.ts";
 import type { Ledger } from "../../lib/ledger.ts";
+import { isStandardDoll } from "../../lib/dealer.ts";
 import { swedishMoment } from "../../lib/mode.ts";
 import { nodeCode } from "../../lib/names.ts";
 import { placeCode, placeFromCode } from "../../lib/placement.ts";
@@ -53,17 +55,24 @@ const ENTRY = "ingang";
 /** The cards a deal from A2.3 is ordered to from the doll: a player's, or one of the dealer's own (tools/doll-order.ts). */
 export const DOLL_CARD = /^(?:P[1-7]\.C[12]|D\.C[1-3])$/;
 
-/** The doll lab's word for the chosen dealer's doll: hers where one is named as she is, else the standard doll. */
-const dollWord = (dealer: string) => (dealer !== "standard" && Object.hasOwn(DOLLS, dealer) ? dealer : "standard");
+/**
+ * The doll lab's word for the chosen dealer's doll: hers where one is named as she is, else the standard doll, the woman
+ * (the lab takes the man where she is not measured yet, and offers both in its picture: dealer3d/page/docka.ts). The
+ * standard doll's entry in the switch (lib/dealer.ts STANDARD_DOLL) is the standard doll. The older white doll
+ * ("standard") is no longer shown here.
+ */
+const dollWord = (dealer: string) => (!isStandardDoll(dealer) && dealer !== "standard" && dealer !== "man" && dealer !== "kvinna" && Object.hasOwn(DOLLS, dealer) ? dealer : "kvinna");
 /** Whether the dealer has a doll of her own: only then is a deal ordered from the doll (tools/doll-order.ts takes her doll). */
 export const ownDoll = (dealer: string) => dollWord(dealer) === dealer;
 
-/** The doll's films grouped by card, and how many there are in all. */
-export function useDollGroups(orders: OrdersAnswer | null, ledger: Ledger | null) {
+/** The doll's films grouped by card, and how many there are in all: the standard doll's own for its entry, the others for a dealer. */
+export function useDollGroups(orders: OrdersAnswer | null, ledger: Ledger | null, dealer: string) {
+  const standard = isStandardDoll(dealer);
   return useMemo(() => {
-    const groups = dollFilms(orders?.rendered ?? [], orders?.orders ?? [], ledger?.rows ?? []);
+    const rendered = (orders?.rendered ?? []).filter((f) => (f.doll === "man" || f.doll === "kvinna") === standard);
+    const groups = dollFilms(rendered, orders?.orders ?? [], ledger?.rows ?? []);
     return { groups, count: groups.reduce((n, g) => n + g.films.length, 0) };
-  }, [orders, ledger]);
+  }, [orders, ledger, standard]);
 }
 
 /** His saved standard for the doll's deal from A2.3 to a card, as the lab saved it (dealer3d/standard/<doll>-<card>.json). */
@@ -101,11 +110,17 @@ export function useDollStandard(dealer: string, place: Place, tick: number, on: 
 
 /**
  * Step 2's one line on the doll: whose doll it is, when the card's standard was saved, and the card's tempo where it is not
- * the ordinary; without a standard, the way the doll moves: "Naturlig" for a dealer's own doll, the older deal for the
- * standard doll, which has only that (dealer3d/page/docka.ts wayOf).
+ * the ordinary; without a standard, the way the doll moves: "Naturlig" for a dealer's own doll. The standard doll plays
+ * its own motions as they are drawn, and nothing is saved for it (dealer3d/page/docka.ts, "own").
  */
 export function DollNote({ dealer, place, standard }: { dealer: string; place: Place; standard: StandardState }) {
   const word = dollWord(dealer);
+  if (!ownDoll(dealer))
+    return (
+      <p data-doll-note className="mx-4 mt-3 text-sm leading-5 text-dim">
+        <span className="font-semibold text-ink">Standarddockan</span> · {isStandardDoll(dealer) ? "egna rörelser, som de är ritade" : "dealern har ingen egen docka"}
+      </p>
+    );
   const saved = standard.state === "läst" ? standard.standard : null;
   const said =
     standard.state === "läser"
@@ -114,8 +129,8 @@ export function DollNote({ dealer, place, standard }: { dealer: string; place: P
         ? "standarden kunde inte läsas"
         : saved
           ? [`sparad ${swedishMoment(saved.savedAt) ?? "utan datum"}`, saved.cardTempo !== 1 ? `kortet ${Math.round(saved.cardTempo * 100)} %` : null].filter(Boolean).join(" · ")
-          : `ingen sparad standard · ${word === "standard" ? "Äldre given" : "Naturlig"}`;
-  const whose = word === "standard" ? "Standarddockan" : `${genitive(word.charAt(0).toUpperCase() + word.slice(1))} docka`;
+          : "ingen sparad standard · Naturlig";
+  const whose = `${genitive(word.charAt(0).toUpperCase() + word.slice(1))} docka`;
   return (
     <p data-doll-note title={saved ? `Din sparade standard ${saved.name}` : undefined} className="mx-4 mt-3 text-sm leading-5 text-dim">
       <span className="font-semibold text-ink">{whose}</span> · {said}

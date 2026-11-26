@@ -32,9 +32,10 @@ import { hubDeals, judgedBank } from "../../../src/game-director.ts";
 import { toPixels, type PlacementPlan } from "../../../src/placement-model.ts";
 import { spokenLine, type SpeechTake } from "../../../src/speech-lines.ts";
 import { BankStatus, Page } from "@/components/shell";
-import { Button, ErrorState, IconButton, SegmentedControl, Skeleton, cn } from "@/components/ui";
+import { Button, EmptyState, ErrorState, IconButton, SegmentedControl, Skeleton, cn } from "@/components/ui";
 import { getPlacements } from "@/lib/api";
 import { useBank } from "@/lib/bank";
+import { isStandardDoll } from "@/lib/dealer";
 import { bankSummary, edgeInfo, isSecondary, primaryOf, type EdgeInfo, type Summary } from "@/lib/edge-stats";
 import { mapLayout, treeLayout, type PlanPoints } from "@/lib/map-layout";
 import type { EntryAnswer } from "@/lib/media";
@@ -135,6 +136,13 @@ function Karta() {
         <div className="grid h-full place-items-center p-10">
           <Skeleton className="h-[60%] w-[80%]" />
         </div>
+      </Page>
+    );
+  // The standard doll is no dealer and has no films (lib/dealer.ts STANDARD_DOLL): no map of steps it will never have.
+  if (isStandardDoll(dealer))
+    return (
+      <Page title="Karta">
+        <EmptyState title="Standarddockan har inga filmer i ett träd">Karta visar en dealers filmer, steg för steg. Standarddockans rörelser ses i Bordet, Inspelning. Välj en dealer i menyn för hennes träd.</EmptyState>
       </Page>
     );
   return <BankKarta />;

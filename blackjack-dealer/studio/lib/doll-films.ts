@@ -14,7 +14,7 @@ export type DollFilm = {
   place: string | null;
   /** What tells it from the place's other films: "naturlig cykel a", "svep24d", "f". */
   name: string;
-  /** Whose doll it is filmed with: "paow", or null for the standard doll. */
+  /** Whose doll it is filmed with: "paow", "man" or "kvinna" (the standard doll), or null for the older white doll. */
   doll: string | null;
   orders: DollOrder[];
 };

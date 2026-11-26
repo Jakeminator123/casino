@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { sameNode } from "../../../src/dealer-trees.ts";
 import { asApiError, type ApiError } from "../../lib/api.ts";
 import { useBank } from "../../lib/bank.ts";
-import { DEALER_PARAM, viewDealer } from "../../lib/dealer.ts";
+import { DEALER_PARAM, isStandardDoll, viewDealer } from "../../lib/dealer.ts";
 import { useViewContext } from "../../lib/context.ts";
 import type { Same } from "../../lib/lineage.ts";
 import { CHAIN, ROLES, roleStatus, type Entry, type MediaAnswer, type Role } from "../../lib/media.ts";
@@ -117,6 +117,13 @@ export function MaterialView() {
             </div>
           ))}
         </div>
+      </Page>
+    );
+  // The standard doll is no dealer and has no pictures here (lib/dealer.ts STANDARD_DOLL): the view says so, and never shows a dealer's pictures under its name.
+  if (isStandardDoll(studioDealer) && !(asked && answer?.dealers.some((d) => d.id === asked)))
+    return (
+      <Page title="Material">
+        <EmptyState title="Standarddockan har inga bilder">Material visar en dealers bilder: ankarna, keystones och landningarna hennes filmer görs från. Standarddockan är grunden för rörelserna och har inga bilder. Välj en dealer i menyn.</EmptyState>
       </Page>
     );
   if (state.status === "error" || !answer || !dealer)

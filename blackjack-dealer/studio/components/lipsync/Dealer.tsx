@@ -7,6 +7,7 @@ import { CircleCheck, CircleDashed, CircleHelp, FlaskConical } from "lucide-reac
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { dayWord, forDealer, groupChecks, proofHref, speechWord, voiceWord, type Check, type DealerFacts, type LipsyncAnswer, type Still } from "../../lib/lipsync.ts";
+import { isStandardDoll } from "../../lib/dealer.ts";
 import { labUrl } from "../../lib/lab.ts";
 import { Badge } from "../ui/Badge";
 import { Card, Panel } from "../ui/Card";
@@ -147,7 +148,9 @@ export function Dealer({ facts, dealer, name, paused }: { facts: LipsyncAnswer; 
       {mine ? (
         <p className="rounded-md border border-brass/25 bg-brass/8 px-3 py-2 text-md font-medium text-ink">{mine.summary}</p>
       ) : (
-        <Card className="p-4 text-sm text-dim">Lipsync har inga uppgifter om {name}: okänt. En post för henne under dealers i data/lipsync.json behövs.</Card>
+        <Card className="p-4 text-sm text-dim">
+          {isStandardDoll(dealer) ? "Standarddockan talar inte: läppsynken hör till en dealer. Välj en dealer i menyn." : `Läppsynken har inga uppgifter om ${name} än.`}
+        </Card>
       )}
       {paused ? <p className="text-xs text-faint">Pausad: {paused}</p> : null}
       <div className={proof && (film || still) ? "grid items-start gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]" : "flex flex-col"}>

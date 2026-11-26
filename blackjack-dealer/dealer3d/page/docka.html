@@ -47,6 +47,9 @@
   .docklabb-styr { display: grid; gap: 10px; }
   h1 { margin: 0; font-size: 17px; font-weight: 600; }
   .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .dolls { display: grid; gap: 6px; width: 100%; }
+  .dolls .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .dolls .row span { min-width: 104px; font-size: 12px; color: var(--muted); }
   h2 { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
   .small { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
   .grid { display: grid; grid-template-columns: 46px repeat(8, 1fr); gap: 4px; align-items: center; }
@@ -115,6 +118,8 @@
         <!-- Her poses to look at (docka.ts showPose): nothing is written, and Spela shows the deal again. -->
         <span class="look">Visa ställning:</span>
         <button data-pose="A1" title="Visa ställningen A1. Spela visar given igen.">A1</button><button data-pose="A2.1" title="Visa ställningen A2.1, nypet vid skon. Spela visar given igen.">A2.1</button><button data-pose="A2.3" title="Visa ställningen A2.3. Spela visar given igen.">A2.3</button>
+        <!-- Embedded, while the studio shows the standard doll: its man or woman (docka.ts fills it). -->
+        <span class="look" id="bodyLook" hidden>Standarddockan:</span><span class="seg" id="bodies" role="group" aria-label="Standarddockan" hidden></span>
       </div>
       <p class="grip" id="grip"></p>
       <div class="foot"><p class="filmnote" id="filmNote" hidden></p><p class="note" id="note">Laddar …</p></div>
@@ -129,7 +134,8 @@
     <p class="hint">Dra vrider · hjulet zoomar · högerknapp eller skift flyttar</p>
   </section>
   <aside>
-    <div class="head"><h1>Dockan</h1><div class="seg" id="dolls" role="group" aria-label="Docka"><button data-doll="paow">Paow</button><button data-doll="standard">Standarddockan</button></div></div>
+    <!-- The dolls (docka.ts fills it from dealer3d/src/doll.ts): the standard doll's man and woman, then the dealers' own. -->
+    <div class="head"><h1>Dockan</h1><div class="dolls" id="dolls" role="group" aria-label="Docka"></div></div>
     <!-- The controls (docka.ts): each part is shown only where it can act (docka.ts paint). -->
     <div class="docklabb-styr">
     <div><h2 id="dealHead">Giv från A2.3 till</h2>
@@ -148,7 +154,7 @@
       <div id="knobs"></div>
       <div class="acts" id="steerActs"><button id="reset">Återställ</button><button id="save">Spara som standard</button></div>
       <!-- His saved standards, forgiving (Jakob 2026-11-26): nothing is deleted, a standard replaced or laid aside can be taken back (dealer3d/page/server.ts). -->
-      <div class="acts"><button id="back">Ta tillbaka den förra</button><button id="allDefault">Alla till förvalet</button></div>
+      <div class="acts" id="standardActs"><button id="back">Ta tillbaka den förra</button><button id="allDefault">Alla till förvalet</button></div>
       <p class="small" id="status"></p></div>
     </div>
   </aside>
