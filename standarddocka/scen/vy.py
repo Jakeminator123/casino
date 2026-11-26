@@ -608,5 +608,20 @@ if not A.utan_bilder:
     if riktad != 'film':
         rikta_blicken(BLICK['film'])
 sc.camera = kameror['film']
+# För den som öppnar vy.blend i Blender (Jakob 2026-11-26, om ett fönster fullt av kamerornas och lampornas trådramar:
+# "Ser ut såhär i blender nu"): fönstret öppnas genom spelets kamera med materialen på, och trådramarna för kameror
+# och lampor är släckta där. De finns kvar i listan och renderar som förut; de tänds igen under Overlays, Extras.
+for kamera in kameror.values():
+    kamera.data.display_size = 0.1
+for skarm in bpy.data.screens:
+    for yta in skarm.areas:
+        if yta.type != 'VIEW_3D':
+            continue
+        for rum in yta.spaces:
+            if rum.type == 'VIEW_3D':
+                rum.overlay.show_extras = False
+                rum.shading.type = 'MATERIAL'
+                if rum.region_3d:
+                    rum.region_3d.view_perspective = 'CAMERA'
 bpy.ops.wm.save_as_mainfile(filepath=str(UT / 'vy.blend'), relative_remap=True)
 print('VY SPARAD', UT / 'vy.blend')
