@@ -63,7 +63,8 @@ export type Skarv = {fore: Record<string, number>; efter: Record<string, number>
 export type Del = {namn: string; fran: number; till: number};
 /** När blicken följer kortet (sekunder): börjar vända från kameran vid `fran`, följer helt från `full` tills kortet ligger (`ligger`), och är tillbaka mot kameran `ut` sekunder senare. */
 export type BlickTider = {fran: number; full: number; ligger: number; ut: number};
-export type Foljd = {fps: number; frames: Frame[]; hip: V3; delar: Del[]; skarv: Skarv; held: {R: number; L: number}[]; blick: BlickTider; forsta: Motion; andra: Motion; forskjutning: number};
+/** `plats`: kortplatsen (1–7) som given går till. */
+export type Foljd = {fps: number; frames: Frame[]; hip: V3; delar: Del[]; skarv: Skarv; held: {R: number; L: number}[]; blick: BlickTider; forsta: Motion; andra: Motion; forskjutning: number; plats: number};
 
 /** Hur långt varje led hoppar mellan två rutor, i meter (för skarven). */
 function hopp(a: Frame, b: Frame, hipA: number[], hipB: number[]): Record<string, number> {
@@ -76,13 +77,13 @@ function hopp(a: Frame, b: Frame, hipA: number[], hipB: number[]): Record<string
 
 /**
  * Två rörelser efter varandra: från vilan till skon (gjord för den vita standarddockan, med axlarna 0,18 m bakom spelets
- * kant) och given (Paows, med axlarna 0,38 m bakom kanten och höften lägre). Den första delens bål (höft, axlar och
+ * kant) och given till kortplatsen `plats` (Paows, med axlarna 0,38 m bakom kanten och höften lägre). Den första delens bål (höft, axlar och
  * huvud, som står still i den) läggs därför i den andras, armbågarna halva vägen med axlarna, och kortet står i skon där
  * den andra delen har det (den första stod med en äldre sko, 3 cm därifrån). Det som då återstår av hoppet (händerna och
  * armbågarna) jämnas ut medan händerna rör sig i den första delen, så att han kommer fram till skon precis som den andra
  * delen börjar. Den första delens sista ruta är då den andras första och tas bort.
  */
-export function sattIhop(forsta: Motion, andra: Motion): Foljd {
+export function sattIhop(forsta: Motion, andra: Motion, plats: number): Foljd {
   if (forsta.fps !== andra.fps) throw Error('Delarna har olika antal rutor per sekund.');
   const b0 = andra.frames[0], sista = forsta.frames.length - 1, fore = hopp(forsta.frames[sista], b0, forsta.hip, andra.hip);
   const lagd = forsta.frames.map(f => {
@@ -108,8 +109,8 @@ export function sattIhop(forsta: Motion, andra: Motion): Foljd {
   const held = frames.map((f, i) => { if (i >= ligger) return {R: 0, L: 0}; const near = (l: Limb) => Math.min(...FINGRAR.map(j => dist(l.p[j], f.card.c))), h = (d: number) => smooth((0.08 - d) / 0.025);
     let R = h(near(f.R)), L = h(near(f.L)); const sum = R + L; if (sum > 1) { R /= sum; L /= sum; } return {R, L}; });
   const lamnar = (sista + andra.leavesShoe) / fps;
-  return {fps, frames, hip: [andra.hip[0], andra.hip[1], andra.hip[2]], held, forsta, andra, forskjutning: sista,
-    delar: [{namn: 'Vilan till skon', fran: 0, till: skon}, {namn: 'Kortet till plats 4', fran: skon, till: ligger / fps}, {namn: 'Tillbaka', fran: ligger / fps, till: (frames.length - 1) / fps}],
+  return {fps, frames, hip: [andra.hip[0], andra.hip[1], andra.hip[2]], held, forsta, andra, forskjutning: sista, plats,
+    delar: [{namn: 'Vilan till skon', fran: 0, till: skon}, {namn: `Kortet till plats ${plats}`, fran: skon, till: ligger / fps}, {namn: 'Tillbaka', fran: ligger / fps, till: (frames.length - 1) / fps}],
     blick: {fran: lamnar - 0.4, full: lamnar, ligger: ligger / fps, ut: 0.6},
     skarv: {fore, efter, jamnasUt: [fran / fps, till / fps]}};
 }
@@ -169,6 +170,6 @@ export function rutor(f: Foljd, sparad: Sparad, kamera: readonly number[] | null
   const frames = f.frames.map((_, i) => { const x = stallning(f, i / f.fps, sparad.andringar, kamera), limb = (l: Limb) => ({s: r4(l.s), e: r4(l.e), w: r4(l.w), k: l.k, p: l.p.map(r4)});
     return {card: {c: r4(x.card.c), l: r4(x.card.l), n: r4(x.card.n)}, L: limb(x.L), R: limb(x.R), h: r4(x.h), g: r4(x.g)}; });
   return {about: `${sparad.namn}: ${sparad.grund.join(' och sedan ')} efter varandra (skarven utjämnad i standarddocka/editor/rorelse.ts), ${rattning}, blicken mot kameran ${kamera ? r4([...kamera]).join(', ') : '(rörelsens egen)'} utom när kortet är på väg, och ${sparad.andringar.length} ändringar från editorn i standarddocka. Samma fält som dealer3d/data.`,
-    film: 'a1-a23-p4c1', pose: 'A1', to: 'P4.C1', fps: f.fps, frameCount: frames.length, leavesShoe: off + b.leavesShoe, edge: b.edge.map(n => off + n), folds: off + b.folds, rests: off + b.rests,
+    film: `a1-a23-p${f.plats}c1`, pose: 'A1', to: `P${f.plats}.C1`, fps: f.fps, frameCount: frames.length, leavesShoe: off + b.leavesShoe, edge: b.edge.map(n => off + n), folds: off + b.folds, rests: off + b.rests,
     hip: r4(f.hip), doll: b.doll, grund: sparad.grund, blickMot: sparad.blickMot ?? null, andringar: sparad.andringar.length, made: sparad.sparad, frames};
 }

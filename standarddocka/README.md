@@ -15,22 +15,42 @@ standarddocka/
                 mot kameran; ställningen, stolen och blicken är tal och steg överst i filen
   vy/           den senaste arbetsvyn, skriven av scen/vy.py (varje körning skriver över den förra): vy.blend
                 (dubbelklicka för att öppna scenen i Blender), bilderna och mätningen; går inte in i Git
-  editor/       editorn i webbläsaren: mannen vid bordet, en tidslinje att spela och dra i, kameror, och handtag på
-                händer, armbågar och blick som blir ändringar ovanpå grundrörelserna
-    server.ts   editorns egen server (bara den här datorn, port 4320); lämnar ut sidan, modellerna och rörelserna
-    editor.ts   sidan: tidslinjen, kamerorna, handtagen, Spara
+  editor/       editorn i webbläsaren: mannen vid bordet, en tidslinje att spela och dra i, kameror (också från de
+                sju platserna), handtag på händer, armbågar och blick som blir ändringar ovanpå grundrörelserna,
+                återställning och inspelning av klipp
+    server.ts   editorns egen server (bara den här datorn, port 4320); lämnar ut sidan, modellerna och rörelserna,
+                tar emot det som sparas och gör film av inspelningens bilder (FFmpeg)
+    editor.ts   sidan: tidslinjen, kamerorna, handtagen, Spara, Återställ, Spela in
     scen.ts     scenen: bordet, stolen och mannen i spelets mått, ljuset, kortet, kamerorna
     rorelse.ts  rörelsen: grundrörelser efter varandra, skarven utjämnad, ändringarna ovanpå, vem som håller kortet
     armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp)
-  rorelser/     det editorn sparar: <namn>.json (vilka grundrörelser, blicken, ändringarna) och <namn>.rutor.json
-                (hela rörelsen ruta för ruta i dockans format, skriven vid Spara)
+  rorelser/     det editorn sparar, en rörelse per kortplats: a1-a23-p<plats>c1.json (vilka grundrörelser, blicken,
+                ändringarna) och a1-a23-p<plats>c1.rutor.json (hela rörelsen ruta för ruta i dockans format, skriven
+                vid Spara)
+  klipp/        filmerna Spela in gör: <rörelse>-<del>-<kamera>.mp4 (1764 x 1174, 30 bilder i sekunden); en ny
+                inspelning med samma namn skriver över den förra; går inte in i Git
   STARTA editorn.cmd   dubbelklicka för att starta editorn och öppna den i webbläsaren
 ```
 
 Editorn startas med dubbelklick på `STARTA editorn.cmd`, eller från casino-mappen med
 `node standarddocka/editor/server.ts --oppna`, och öppnas på `http://127.0.0.1:4320/standarddocka/editor/`. Den visar
-följden A1 → A2.3 → plats 4 kort 1 → tillbaka (grundrörelserna `till-ankare-2-3-c` och
-`giv-fran-2-3-p4c1-naturlig-cykel-a-paow` ur `../blackjack-dealer/dealer3d/data/`, som aldrig ändras härifrån).
+följden A1 → A2.3 → kort 1 på en plats → tillbaka: grundrörelserna `till-ankare-2-3-c` och Paows giv till den platsen
+(`giv-fran-2-3-p<plats>c1-…-paow`, listan `GIVAR` i `editor/editor.ts`) ur `../blackjack-dealer/dealer3d/data/`, som
+aldrig ändras härifrån. Platsen väljs med knapparna "Kortet ges till plats" (eller `?plats=1…7`, förval 4), och varje
+plats har sina egna sparade ändringar.
+
+- **Kameror:** Lägre kamera, från sidan, uppifrån, fri, och "Sedd från plats" 1–7. En plats kamera är spelets egen regel
+  (`seatEye` i `../blackjack-dealer/dealer3d/src/world.ts`); plats 4 är spelets kamera.
+- **Återställ:** "Tillbaka till det sparade" kastar det som inte är sparat, "Återställ till grundrörelsen" tar bort alla
+  ändringar. Båda går att ångra (Ctrl+Z), och inget skrivs förrän Spara. Det sparade ligger i Git, så en äldre sparad
+  version går alltid att hämta tillbaka.
+- **Spela in:** hela rörelsen eller en del av den, från den valda kameran eller från alla sju platserna i ett svep, utan
+  kulor och pilar. Blicken står fast under inspelningen, så att det är samma rörelse från varje kamera. Filmerna hamnar i
+  `klipp/`. Kräver FFmpeg på datorn (`ffmpeg` i sökvägen, eller miljövariabeln `FFMPEG`).
+
+En ändring i `editor/server.ts` gäller först när servern har startats om: stäng fönstret den körs i och starta igen
+(en server som en agent har startat utan fönster stoppas med sitt process-id, efter att `/vem` har svarat
+"standarddockans editor").
 
 Arbetsvyn körs från den här mappen (Blender 5.3, utan fönster; bygger bordet själv om det saknas):
 
@@ -71,7 +91,12 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   (6,9 s, 209 rutor) vid det närmare bordet. Blicken går mot den valda kameran i vilan, följer kortet under given och
   går tillbaka; kortet följer handen som håller det; underarmarna hålls minst 1 cm över bordets kant av en automatisk
   regel (utan den gick höger underarm genom kanten i 116 av 209 rutor). Händer, armbågar och blick går att dra i, och
-  ändringarna sparas i `rorelser/`. Den öppnar i Lägre kamera (10 grader ned).
+  ändringarna sparas i `rorelser/`. Den öppnar i Lägre kamera (10 grader ned), som Jakob gillar och vill fila på senare.
+- Editorn har också givarna till alla sju platserna, kamerorna från de sju platserna, återställning och inspelning
+  (Jakob 2026-11-26). Kontrollerat i en egen webbläsare: alla sju givar laddar utan fel och underarmarna hålls över
+  kanten i varje ruta; givarna till plats 1, 2, 6 och 7 är inte granskade med ögat ruta för ruta, och i given till
+  plats 7 går armen tätt över eller genom skon. Från plats 1 och 7 syns att scenen saknar rum bakom bordet (bara golv).
+- Tre första klipp ligger i `klipp/`: vilan till skon (A1 → A2.3, 3,0 s) från plats 4, 1 och 7.
 - Känt i editorn: i vilan står armbågarna utvinklade, eftersom rörelserna är gjorda för Paows kropp och ett bord vars
   kant låg 15 cm längre bort (en egen vila för det närmare bordet behövs); bålen lutar som Paows, 16 cm i given;
   huvudet vrids högst 40 grader, så blicken ser lite låg ut; skons främsta kort visar sin vita framsida när kortet
@@ -86,14 +111,24 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 1. Vyn: Jakob dömer arbetsvyn (bordets kant och bricka, vilan, kamerans vinkel), och den rättas tills han är nöjd.
 2. Jakob dömer den första följden i editorn. En egen vila för det närmare bordet, så att armbågarna inte står ut.
 3. Ett fristående prov av metoden "3D-rendering görs om till film" (Jakob 2026-11-26): den nakna dockan gör A1 →
-   A2.3 på 2–3 sekunder, filmad ur editorn genom spelets kamera och stolarnas kameror, och klippen görs om till en
-   riktig person av en filmmodell med en bild av utseendet. Editorn behöver stolarnas kameror och ett sätt att spela
-   in ett klipp. Betalda körningar bara på Jakobs ord.
+   A2.3 på 2–3 sekunder, filmad ur editorn genom spelets kamera och platsernas kameror, och klippen görs om till en
+   riktig person av en filmmodell med en bild av utseendet. Klippen finns (`klipp/`, plats 4, 1 och 7; rörelsen är
+   3,0 s och kan behöva kortas). Jakob gjorde samma sak för hand i Runways app (Aleph 2) 2026-11-24 och det gick
+   "skitbra"; förslaget är en körning per kamera med samma bild av utseendet, och en med tre vinklar bredvid varandra i
+   samma film. Han laddar upp i appen själv (`../blackjack-dealer/tools/runway-api.ts` kan bara bild till film):
+   agenten lägger klippen, bilden och texten färdiga. Betalda körningar bara på Jakobs ord.
 4. Rörelserna en i taget, tills var och en är riktigt bra, och sättet att föra över dem till en annan kropp.
 5. Kvinnan, på samma skelett och med samma rörelser.
 6. Ordningen i mapparna (Jakob 2026-11-26): det som bygger standarden (måttfilen, bordet, dockorna, stolen och
    deras byggskript i `../avatar-auto-pipeline/scen/`, `verktyg/`, `rorelser/` och `assets/`) flyttar hit, så att
-   `../avatar-auto-pipeline/` bara gör en dealer från foton på den här standarden.
+   `../avatar-auto-pipeline/` bara gör en dealer från foton på den här standarden. Väntar på svaret från den
+   utomstående granskare Jakob har gett hela upplägget till (rörelser till en annan kropp, film eller realtid, sju
+   platser, kameran, editorn eller Blender, mappordningen).
+
+Lovat Jakob, inte gjort (2026-11-26): kvinnan bredvid mannen i Blenders vy; en gemensam uppställningsfil som både
+`scen/vy.py` och `editor/scen.ts` läser; skon genomskinlig som ett val, så att den blir tydligare som förlaga; filtens
+färg som ett val i `../avatar-auto-pipeline/scen/bygg_bord.py`; och en mätning i bild av hans iakttagelse att uppvända
+kort på bordet ser bredare ut än kortet i skon (båda byggs 63 x 88 mm).
 
 ## Plockas in när Jakob är nöjd
 

@@ -2,15 +2,19 @@
 //   node standarddocka/editor/server.ts [--port 4320] [--oppna]
 //   --oppna   öppnar sidan i webbläsaren när servern är igång (det STARTA editorn.cmd gör); är en editor redan igång på
 //             porten öppnas den i stället.
-// Bara GET, utom PUT till standarddocka/rorelser/ (där Spara skriver). Det som lämnas ut har sökvägar som speglar
+// Bara GET, utom PUT till standarddocka/rorelser/ (där Spara skriver) och POST till /inspelning/ (där Spela in skickar
+// sina bilder; FFmpeg gör filmen av dem i standarddocka/klipp/). Det som lämnas ut har sökvägar som speglar
 // casino-mappen (så att sidans relativa importer är desamma i webbläsaren och på disken), och varje namn kontrolleras
 // mot en lista eller ett mönster: ingen sökväg utifrån kan peka ut ur mapparna. TypeScript lämnas ut med typerna
 // strukna (som blackjack-dealer/dealer3d/tools/shoot.ts gör), three.js ur blackjack-dealer/node_modules.
 import {createServer, type IncomingMessage, type ServerResponse} from 'node:http';
 import {createReadStream} from 'node:fs';
-import {mkdir, readFile, rename, stat, writeFile} from 'node:fs/promises';
+import {mkdir, readFile, rename, rm, stat, writeFile} from 'node:fs/promises';
 import {stripTypeScriptTypes} from 'node:module';
-import {spawn} from 'node:child_process';
+import {spawn, type ChildProcessByStdio} from 'node:child_process';
+import {randomBytes} from 'node:crypto';
+import {once} from 'node:events';
+import type {Readable, Writable} from 'node:stream';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 
@@ -18,10 +22,11 @@ const arg = (name: string) => { const i = process.argv.indexOf(name); return i >
 const PORT = Number(arg('--port') ?? 4320), OPEN = process.argv.includes('--oppna');
 if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) throw Error('--port tar ett heltal 1–65535.');
 const ROOT = fileURLToPath(new URL('../../', import.meta.url)); // casino-mappen, hittad från serverns egen plats
-const HERE = 'standarddocka/editor/', SAVES = 'standarddocka/rorelser/';
+const HERE = 'standarddocka/editor/', SAVES = 'standarddocka/rorelser/', CLIPS = 'standarddocka/klipp/';
+const FFMPEG = process.env.FFMPEG ?? 'ffmpeg';
 const THREE = 'blackjack-dealer/node_modules/three/';
 
-/** Fasta adresser: three.js och dess tillägg, modellerna, grundrörelserna och planen. */
+/** Fasta adresser: three.js och dess tillägg, modellerna och planen. */
 const FIXED: Record<string, string> = {
   '/vendor/three.module.js': THREE + 'build/three.module.js',
   '/vendor/three.core.js': THREE + 'build/three.core.js',
@@ -33,18 +38,17 @@ const FIXED: Record<string, string> = {
   '/avatar-auto-pipeline/assets/docka/standarddocka_man.glb': 'avatar-auto-pipeline/assets/docka/standarddocka_man.glb',
   '/avatar-auto-pipeline/assets/bord/standardbord_nara.glb': 'avatar-auto-pipeline/assets/bord/standardbord_nara.glb',
   '/avatar-auto-pipeline/assets/stol/dealerstol.glb': 'avatar-auto-pipeline/assets/stol/dealerstol.glb',
-  '/blackjack-dealer/dealer3d/data/till-ankare-2-3-c.json': 'blackjack-dealer/dealer3d/data/till-ankare-2-3-c.json',
-  '/blackjack-dealer/dealer3d/data/giv-fran-2-3-p4c1-naturlig-cykel-a-paow.json': 'blackjack-dealer/dealer3d/data/giv-fran-2-3-p4c1-naturlig-cykel-a-paow.json',
   '/blackjack-dealer/placements/default.json': 'blackjack-dealer/placements/default.json',
   '/blackjack-dealer/src/table-lens.ts': 'blackjack-dealer/src/table-lens.ts',
 };
 const NAME = '[a-z0-9][a-z0-9-]*';
-/** Mönstren: sidans egna filer, dockans moduler (blackjack-dealer/dealer3d/src) och det som sparats i rorelser/. */
+/** Mönstren: sidans egna filer, dockans moduler (blackjack-dealer/dealer3d/src), grundrörelserna (dealer3d/data, bara att läsa) och det som sparats i rorelser/. */
 function fileFor(url: string): string | null {
   if (FIXED[url]) return FIXED[url];
   if (url === '/' + HERE || url === `/${HERE}index.html`) return HERE + 'index.html';
   let m = url.match(new RegExp(`^/${HERE}(${NAME})\\.ts$`, 'i')); if (m && m[1] !== 'server') return `${HERE}${m[1]}.ts`;
   m = url.match(/^\/blackjack-dealer\/dealer3d\/src\/([a-z0-9-]+)\.ts$/i); if (m) return `blackjack-dealer/dealer3d/src/${m[1]}.ts`;
+  m = url.match(new RegExp(`^/blackjack-dealer/dealer3d/data/(${NAME})\\.json$`)); if (m) return `blackjack-dealer/dealer3d/data/${m[1]}.json`;
   m = url.match(new RegExp(`^/${SAVES}(${NAME}(?:\\.rutor)?)\\.json$`)); if (m) return `${SAVES}${m[1]}.json`;
   return null;
 }
@@ -68,21 +72,74 @@ async function send(req: IncomingMessage, res: ServerResponse, file: string) {
   res.writeHead(200, {'content-type': TYPES[ext] ?? 'application/octet-stream', 'cache-control': 'no-store'}).end(ext === '.ts' ? stripTypeScriptTypes(body) : body);
 }
 
+/** Det som skickades med, eller null (och svaret 413) om det är större än MOST. */
+async function body(req: IncomingMessage, res: ServerResponse): Promise<Buffer | null> {
+  const parts: Buffer[] = []; let size = 0;
+  for await (const chunk of req) { size += (chunk as Buffer).length; if (size > MOST) { res.writeHead(413).end('för stor'); return null; } parts.push(chunk as Buffer); }
+  return Buffer.concat(parts);
+}
+
 /** PUT till rorelser/: giltig JSON, skrivs hel till en tillfällig fil och byter sedan namn, så att en halv fil aldrig blir kvar. */
 async function save(req: IncomingMessage, res: ServerResponse, file: string) {
-  const parts: Buffer[] = []; let size = 0;
-  for await (const chunk of req) { size += (chunk as Buffer).length; if (size > MOST) { res.writeHead(413).end('för stor'); return; } parts.push(chunk as Buffer); }
-  const text = Buffer.concat(parts).toString('utf8');
+  const sent = await body(req, res); if (!sent) return;
+  const text = sent.toString('utf8');
   try { JSON.parse(text); } catch { res.writeHead(400).end('inte JSON'); return; }
   const full = path.join(ROOT, file), temp = `${full}.${process.pid}.tmp`;
   await mkdir(path.dirname(full), {recursive: true}); await writeFile(temp, text.endsWith('\n') ? text : text + '\n', 'utf8'); await rename(temp, full);
   res.writeHead(200, {'content-type': 'application/json; charset=utf-8'}).end(JSON.stringify({sparad: file, bytes: Buffer.byteLength(text)}));
 }
 
+// ---- inspelningen ------------------------------------------------------------------------------------------------
+// Sidan ritar rörelsen bild för bild och skickar varje bild som PNG; FFmpeg tar emot dem i tur och ordning och gör en
+// film (H.264, som de flesta program läser) i standarddocka/klipp/<namn>.mp4. Filmen skrivs under ett tillfälligt namn
+// och byter namn när den är hel; en ny inspelning med samma namn skriver över den förra.
+//   POST /inspelning/start {namn, fps} → {id}    POST /inspelning/<id>/ruta (PNG)    POST /inspelning/<id>/klar | avbryt
+type Recording = {child: ChildProcessByStdio<Writable, null, Readable>; file: string; temp: string; frames: number; error: string; closed: Promise<number>};
+const recordings = new Map<string, Recording>();
+async function record(req: IncomingMessage, res: ServerResponse, id: string, step: string | undefined) {
+  const json = (code: number, data: unknown) => { res.writeHead(code, {'content-type': 'application/json; charset=utf-8'}).end(JSON.stringify(data)); };
+  if (id === 'start' && !step) {
+    const sent = await body(req, res); if (!sent) return;
+    let ask: {namn?: unknown; fps?: unknown}; try { ask = JSON.parse(sent.toString('utf8')); } catch { res.writeHead(400).end('inte JSON'); return; }
+    const fps = Number(ask.fps);
+    if (typeof ask.namn !== 'string' || !new RegExp(`^${NAME}$`).test(ask.namn) || ask.namn.length > 120 || !(fps >= 1 && fps <= 120)) { res.writeHead(400).end('namn eller fps saknas'); return; }
+    const file = `${CLIPS}${ask.namn}.mp4`, full = path.join(ROOT, file), temp = `${full}.${process.pid}.tmp`;
+    await mkdir(path.dirname(full), {recursive: true});
+    // Färgerna märks som BT.709 och räknas om dit, så att filmen ser ut som bilden i webbläsaren.
+    const child = spawn(FFMPEG, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-',
+      '-vf', 'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p', '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
+      '-movflags', '+faststart', '-f', 'mp4', temp], {stdio: ['pipe', 'ignore', 'pipe'], windowsHide: true});
+    const r: Recording = {child, file, temp, frames: 0, error: '', closed: new Promise<number>(resolve => {
+      child.on('error', e => { r.error += (e as NodeJS.ErrnoException).code === 'ENOENT' ? 'FFmpeg hittades inte på datorn (det behövs för att göra filmen).' : String(e); resolve(-1); });
+      child.on('close', code => resolve(code ?? -1)); })};
+    child.stderr.on('data', d => { r.error += String(d); }); child.stdin.on('error', () => {}); // ett avbrutet FFmpeg stänger sin ingång; felet kommer med dess slut
+    const key = randomBytes(5).toString('hex'); recordings.set(key, r); json(200, {id: key, fil: file}); return;
+  }
+  const r = recordings.get(id);
+  if (!r) { res.writeHead(404).end('ingen sådan inspelning'); return; }
+  const full = path.join(ROOT, r.file);
+  const stop = async (why: string) => { recordings.delete(id); r.child.kill(); await r.closed; await rm(r.temp, {force: true}); res.writeHead(500, {'content-type': 'text/plain; charset=utf-8'}).end(why); };
+  if (step === 'ruta') {
+    const png = await body(req, res); if (!png) return;
+    if (r.child.exitCode !== null || r.error) { await stop(r.error.trim() || 'FFmpeg stannade.'); return; }
+    if (!r.child.stdin.write(png)) await Promise.race([once(r.child.stdin, 'drain'), r.closed]);
+    r.frames++; json(200, {rutor: r.frames}); return;
+  }
+  if (step === 'klar') {
+    r.child.stdin.end(); const code = await r.closed;
+    if (code !== 0 || !r.frames) { await stop(r.error.trim() || `FFmpeg slutade med ${code}.`); return; }
+    recordings.delete(id); await rename(r.temp, full); json(200, {fil: r.file, rutor: r.frames, bytes: (await stat(full)).size}); return;
+  }
+  if (step === 'avbryt') { recordings.delete(id); r.child.kill(); await r.closed; await rm(r.temp, {force: true}); json(200, {avbruten: true}); return; }
+  res.writeHead(404).end('finns inte');
+}
+
 const server = createServer(async (req, res) => {
   try {
     if (!ownHost(req)) { res.writeHead(403).end('bara 127.0.0.1'); return; }
     const url = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname);
+    const rec = url.match(/^\/inspelning\/([a-z0-9]+)(?:\/(ruta|klar|avbryt))?$/);
+    if (rec) { if (req.method !== 'POST') { res.writeHead(405).end('bara POST'); return; } if (!sameOrigin(req)) { res.writeHead(403).end('fel ursprung'); return; } await record(req, res, rec[1], rec[2]); return; }
     if (url === '/favicon.ico') { res.writeHead(204).end(); return; }
     if (url === '/' || url === '/standarddocka/editor') { res.writeHead(302, {location: '/' + HERE}).end(); return; }
     if (url === '/vem') { res.writeHead(200, {'content-type': 'text/plain; charset=utf-8'}).end('standarddockans editor'); return; }

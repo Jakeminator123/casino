@@ -18,7 +18,10 @@ Läget, nästa steg och det som ska plockas in står i `README.md`.
 - **Rörelserna:** de avgör. En rörelse är klar först när den är riktigt bra i den här vyn.
 - **Editorn:** en sida i webbläsaren (`editor/`, hans ord 2026-11-26: "mini-blender") där han själv spelar upp en
   rörelse och drar i händer, armbågar och blick. Grundrörelserna i `../blackjack-dealer/dealer3d/data/` ändras aldrig
-  härifrån; det han ändrar sparas ovanpå dem i `rorelser/`.
+  härifrån; det han ändrar sparas ovanpå dem i `rorelser/`, och han kan alltid gå tillbaka (hans ord 2026-11-26: "en
+  resetknapp så att vi kan återgå till rörelserna som finns, så jag inte ändrar värden som är oåterkalleliga"). Den ska
+  gå att hantera ungefär som den tidigare dockan, "men utan onödiga grejer": kortet till var och en av de sju
+  platserna, bilden från var och en av dem, och inspelning av ett klipp.
 
 Struket: att luta bordet mot kameran (hans ord 2026-11-26: "Vi skiter i lutning av bordet").
 
@@ -83,6 +86,8 @@ rörelse prövas mot innan den visas för honom.
   så att Jakob hittar den i mappen och kan öppna scenen i Blender (hans ord 2026-11-26: "varför har vi ens mappen
   'standarddocka' om vi inte ska använda eller jobba där?"). En körning skriver över den förra; inget av det går in i
   Git.
+- Klippen som editorns Spela in gör ligger i `klipp/` här, av samma skäl; en ny inspelning med samma namn skriver över
+  den förra, och inget av det går in i Git.
 - Annat arbete (försök, jämförelser, skärmbilder) i `../slask/standarddocka/<uppgift>/`, med mappens lapp.
 - Det Jakob ska se visas som ett prov i studion (`../blackjack-dealer/assets/proofs/<namn>/` med `proof.json`, sidan
   Granska, Prov), eftersom det är där han tittar. Hans domar läses med `node tools/proof-notes.ts` från

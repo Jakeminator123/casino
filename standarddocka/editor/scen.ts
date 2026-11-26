@@ -5,7 +5,7 @@ import * as T from 'three';
 import {GLTFLoader, type GLTF} from 'three/addons/loaders/GLTFLoader.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {loadFigure, type Figure} from '../../blackjack-dealer/dealer3d/src/figure-model.ts';
-import {dealerEdge, spots, type Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
+import {dealerEdge, seatEye, spots, type Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
 import {FILM, TABLE_BASE, TABLE_LENS, filmEye, fovYDeg} from '../../blackjack-dealer/src/table-lens.ts';
 import {cross, type Frame, type V3} from './rorelse.ts';
 
@@ -32,11 +32,21 @@ export const BLENDER_TILL_LINS: V3 = [0, TABLE_BASE.floor, KANT[2]];
  */
 export const STOL = {ryggLuft: 0.03, knaveckLuft: 0.02, sitsIntryck: 0.005, sitsMitt: [-0.0152, -0.46], benTill: 0.5};
 
-export type Kamera = 'film' | 'lag' | 'sida' | 'topp' | 'fri';
-/** De fasta kamerorna: läge, punkten de ser mot och lodrät bildvinkel i grader. */
-export function kameraVy(k: Exclude<Kamera, 'fri'>): {pos: V3; mot: V3; fov: number} {
-  const eye = filmEye(TABLE_LENS), fov = fovYDeg(TABLE_LENS.focalPx), z = KANT[2];
-  if (k === 'film') return {pos: eye.position, mot: [eye.position[0] + eye.forward[0] * 2, eye.position[1] + eye.forward[1] * 2, eye.position[2] + eye.forward[2] * 2], fov};
+/** Kameran från en av de sex andra platserna vid bordet; plats 4 är spelets kamera, 'film'. */
+export type Platskamera = 'plats1' | 'plats2' | 'plats3' | 'plats5' | 'plats6' | 'plats7';
+export type Kamera = 'film' | 'lag' | 'sida' | 'topp' | 'fri' | Platskamera;
+/** Kameran för en plats 1–7 vid bordet. */
+export const platskamera = (plats: number): Kamera => plats === 4 ? 'film' : `plats${plats}` as Platskamera;
+/** Platsen (1–7) en kamera står på, eller null för de kameror som inte är en spelares. */
+export const kameransPlats = (k: Kamera): number | null => k === 'film' ? 4 : k.startsWith('plats') ? Number(k.slice(5)) : null;
+/**
+ * De fasta kamerorna: läge, punkten de ser mot och lodrät bildvinkel i grader. En plats kamera är spelets egen regel
+ * (seatEye i blackjack-dealer/dealer3d/src/world.ts): den står till platsens första kort som spelets kamera står till
+ * plats 4:s, lika högt och lika brant, så att spelarens eget kort hamnar på samma ställe i bilden från varje plats.
+ */
+export function kameraVy(k: Exclude<Kamera, 'fri'>, plan: Plan): {pos: V3; mot: V3; fov: number} {
+  const plats = kameransPlats(k), eye = plats && plats !== 4 ? seatEye(plats, plan, TABLE_LENS) : filmEye(TABLE_LENS), fov = fovYDeg(TABLE_LENS.focalPx), z = KANT[2];
+  if (plats) return {pos: eye.position, mot: [eye.position[0] + eye.forward[0] * 2, eye.position[1] + eye.forward[1] * 2, eye.position[2] + eye.forward[2] * 2], fov};
   // Samma håll och lins som spelets kamera, men lägre: 10 grader ned i stället för 25, mot bröstet (som 'lag' i scen/vy.py).
   if (k === 'lag') return {pos: [0, 0.58, 0], mot: [0, 0.2, z - 0.3], fov};
   if (k === 'sida') return {pos: [-2.4, 0.32, z - 0.12], mot: [0, -0.06, z - 0.12], fov: 34}; // från hans högra sida, som 'sida' i scen/vy.py
@@ -58,6 +68,10 @@ export type Scen = {
   render(): void;
   setKamera(k: Kamera): void;
   storlek(): void;
+  /** Inspelningens läge på eller av: bilden ritas i filmens storlek (FILM) i stället för fönstrets. */
+  filmstorlek(pa: boolean): void;
+  /** Ritar bilden som den står nu och lämnar den som PNG (för inspelningen, i filmens storlek). */
+  bild(): Promise<Blob>;
   filmRam(): {left: number; top: number; width: number; height: number};
 };
 
@@ -157,18 +171,23 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
 
   const ram = () => { const W = canvas.clientWidth, H = canvas.clientHeight, a = FILM.width / FILM.height;
     return W / H >= a ? {width: H * a, height: H, left: (W - H * a) / 2, top: 0} : {width: W, height: W / a, left: 0, top: (H - W / a) / 2}; };
-  let fovNu = 30, filmlik = true;
+  let fovNu = 30, filmlik = true, spelasIn = false;
   function storlek() {
-    const W = canvas.clientWidth, H = canvas.clientHeight; renderer.setSize(W, H, false); camera.aspect = W / H;
-    // Spelets och den lägre kamerans bild ryms hel: är fönstret smalare än filmens ruta vidgas vinkeln.
-    const a = FILM.width / FILM.height; camera.fov = filmlik && W / H < a ? 2 * Math.atan(Math.tan(fovNu * Math.PI / 360) * a / (W / H)) * 180 / Math.PI : fovNu;
+    const a = FILM.width / FILM.height;
+    if (spelasIn) { renderer.setPixelRatio(1); renderer.setSize(FILM.width, FILM.height, false); camera.aspect = a; camera.fov = fovNu; camera.updateProjectionMatrix(); return; }
+    const W = canvas.clientWidth, H = canvas.clientHeight; renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); renderer.setSize(W, H, false); camera.aspect = W / H;
+    // Spelets, platsernas och den lägre kamerans bild ryms hel: är fönstret smalare än filmens ruta vidgas vinkeln.
+    camera.fov = filmlik && W / H < a ? 2 * Math.atan(Math.tan(fovNu * Math.PI / 360) * a / (W / H)) * 180 / Math.PI : fovNu;
     camera.updateProjectionMatrix();
   }
   function setKamera(k: Kamera) {
-    if (k === 'fri') return; const vy = kameraVy(k); fovNu = vy.fov; filmlik = k === 'film' || k === 'lag';
+    if (k === 'fri') return; const vy = kameraVy(k, plan); fovNu = vy.fov; filmlik = k !== 'sida' && k !== 'topp';
     camera.position.set(...vy.pos); camera.up.set(0, 1, 0); camera.lookAt(v(vy.mot)); storlek();
   }
+  const filmstorlek = (pa: boolean) => { spelasIn = pa; storlek(); };
+  // Bilden tas i samma steg som den ritas: efter det får webbläsaren tömma ritytan.
+  const bild = () => { renderer.render(scene, camera); return new Promise<Blob>((klar, fel) => canvas.toBlob(b => b ? klar(b) : fel(Error('Bilden kunde inte läsas ur ritytan.')), 'image/png')); };
   const mm = (n: number) => Math.round(n * 1000) / 1000;
   return {renderer, scene, camera, figure, card, bord, stol: {sank: mm(sank), flytt: flytt.map(mm) as V3, sitsUppe: mm(sitsUppe), sitsNu: mm(sitsNu), ryggstod: mm(bak - (KANT[2] + ryggstod + flytt[2])), knaveck: mm(vad - (KANT[2] + framkant + flytt[2])), hoft: [höft.x, höft.y, höft.z].map(mm) as V3},
-    pose, bone, hud: hud!, synlig, render: () => renderer.render(scene, camera), setKamera, storlek, filmRam: ram};
+    pose, bone, hud: hud!, synlig, render: () => renderer.render(scene, camera), setKamera, storlek, filmstorlek, bild, filmRam: ram};
 }

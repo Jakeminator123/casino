@@ -50,6 +50,11 @@
   #status.osparat { color: var(--warn); }
   #status.bra { color: var(--accent); }
   .tips { font-size: 12px; color: var(--dim); }
+  .tips.bra { color: var(--accent); }
+  .platser { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+  .platser span { flex: 0 0 100%; color: var(--dim); font-size: 13px; }
+  .platser button { padding: 5px 0; width: 36px; text-align: center; }
+  select { font: inherit; color: var(--text); background: var(--button); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 100%; margin-bottom: 8px; }
   .visa { display: flex; flex-wrap: wrap; gap: 6px 14px; }
   #botten { flex: none; display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--panel); }
   #spela { min-width: 110px; font-size: 15px; background: #2c5a50; border-color: #3f7d70; color: #fff; }
@@ -93,17 +98,26 @@
   <section>
     <h2>Rörelsen består av</h2>
     <ol id="delar"></ol>
+    <div class="platser" id="malplatser" title="Vilken plats kortet ges till. Varje plats har sin egen rörelse och sina egna ändringar.">
+      <span>Kortet ges till plats</span>
+      <button data-plats="1">1</button><button data-plats="2">2</button><button data-plats="3">3</button><button data-plats="4">4</button><button data-plats="5">5</button><button data-plats="6">6</button><button data-plats="7">7</button>
+    </div>
   </section>
   <section>
     <h2>Kamera</h2>
-    <div class="knappar" id="kameror">
-      <button data-kamera="lag">Lägre kamera</button>
-      <button data-kamera="film">Spelets kamera</button>
-      <button data-kamera="sida">Från sidan</button>
-      <button data-kamera="topp">Uppifrån</button>
-      <button data-kamera="fri">Fri</button>
+    <div id="kameror">
+      <div class="knappar">
+        <button data-kamera="lag">Lägre kamera</button>
+        <button data-kamera="sida">Från sidan</button>
+        <button data-kamera="topp">Uppifrån</button>
+        <button data-kamera="fri">Fri</button>
+      </div>
+      <div class="platser" title="Bilden en spelare på den platsen får. Plats 4 är spelets kamera, den filmerna spelas in med.">
+        <span>Sedd från plats</span>
+        <button data-kamera="plats1">1</button><button data-kamera="plats2">2</button><button data-kamera="plats3">3</button><button data-kamera="film">4</button><button data-kamera="plats5">5</button><button data-kamera="plats6">6</button><button data-kamera="plats7">7</button>
+      </div>
     </div>
-    <p class="tips" style="margin-top:8px">Dra i bilden för att vrida runt honom, rulla för att komma närmare. Han tittar mot kameran när han inte följer kortet.</p>
+    <p class="tips" style="margin-top:8px">Plats 4 är spelets kamera. Dra i bilden för att vrida runt honom, rulla för att komma närmare. Han tittar rakt fram, mot spelaren på plats 4, när han inte följer kortet.</p>
     <div class="visa">
       <label class="rad"><input type="checkbox" id="visa-bord" checked> Visa bordet</label>
       <label class="rad"><input type="checkbox" id="visa-stol" checked> Visa stolen</label>
@@ -144,6 +158,24 @@
     </div>
     <p id="status" style="margin-top:8px"></p>
     <p class="tips">Mellanslag: spela och pausa · Pil vänster och höger: en bild i taget · Ctrl+Z: ångra · Esc: släpp vald del</p>
+  </section>
+  <section>
+    <h2>Återställ</h2>
+    <p>Grundrörelsen kan du aldrig förstöra härifrån: det du ändrar läggs ovanpå den. Båda knapparna går att ångra, och inget skrivs förrän du trycker Spara.</p>
+    <div class="knappar">
+      <button id="till-sparat" title="Kastar det du har ändrat sedan du senast sparade">Tillbaka till det sparade</button>
+      <button id="till-grund" title="Tar bort alla ändringar, så att rörelsen är som den var från början">Återställ till grundrörelsen</button>
+    </div>
+  </section>
+  <section>
+    <h2>Spela in</h2>
+    <p>Gör en film av rörelsen, utan kulor och pilar, i spelets bildstorlek.</p>
+    <select id="inspela-del" title="Vad som ska spelas in"><option value="-1">Hela rörelsen</option></select>
+    <div class="knappar">
+      <button id="inspela-en">Spela in den här kameran</button>
+      <button id="inspela-alla">Spela in från alla sju platserna</button>
+    </div>
+    <p class="tips" id="inspela-status" style="margin-top:8px"></p>
   </section>
 </aside>
 <script type="module" src="./editor.ts"></script>
