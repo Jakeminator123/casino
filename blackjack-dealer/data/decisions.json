@@ -114,7 +114,7 @@
       "id": "givar-sju-platser",
       "kind": "beslut",
       "question": "Standarddockans giv till alla sju platser: duger den?",
-      "leads": "Ja: fler kort per plats (upp till sju) och valet mellan A och B är nästa steg. Annars ritas givarna om efter din anteckning; säg också om plats 6 och 7 ska ges med vänsterhanden ensam och om kortplatserna ska vara vända mot spelarna.",
+      "leads": "Säger du ja är nästa steg fler kort per plats (upp till sju) och valet mellan A och B, annars ritas givarna om efter din anteckning",
       "proof": "givar-sju-platser-20261126",
       "chips": [
         {
