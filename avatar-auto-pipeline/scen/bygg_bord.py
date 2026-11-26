@@ -12,11 +12,11 @@ BORD-02 är ett behållet labbalternativ via --modell bord-02.
 --kant-bak D (meter, standardbordet) är standarddockans bord (../standarddocka): dealerkanten D m närmare dealern
 (Y = +D), med raka sidor bakåt från spelarbågen och markerbrickan flyttad med kanten. Skon, korten, kortplatserna,
 insatsringarna, benen och kamerorna står kvar där standard.yaml har dem, och origo ligger kvar under den gamla kanten.
-Valet rättar också kanten och brickan: dealerkanten är hel från sida till sida och brickan sitter nedsänkt inne i
-bordet med en remsa filt (BRICKA_REMSA) mot kanten, i stället för ett hack som är öppet bakåt; sargen är hel under
-brickan och når filten; rullen följer sidorna och slutar rundad vid dealerkanten; brickan har rundade rännor där
-markerna ligger (rullarna stack annars ut genom brickans botten). Det skriver assets/bord/standardbord_nara.blend/.glb;
-utan valet byggs allt exakt som förut.
+Valet rättar också kanten och brickan: brickan sitter nedsänkt ända ute i dealerkanten och dess bakvägg är bordets
+kant där dealern sitter, i linje med kanten på båda sidor och med mässingslisten obruten längs hela kanten, i stället
+för ett hack som är öppet bakåt; sargen är hel under brickan och når filten; rullen följer sidorna och slutar rundad
+vid dealerkanten; brickan har rundade rännor där markerna ligger (rullarna stack annars ut genom brickans botten).
+Det skriver assets/bord/standardbord_nara.blend/.glb; utan valet byggs allt exakt som förut.
 """
 import bisect, math, sys
 from pathlib import Path
@@ -50,9 +50,6 @@ def _valj_kant_bak():
 MODELL = _valj_modell()
 KANT_BAK = _valj_kant_bak()
 NARA = KANT_BAK is not None  # standarddockans bord: kanten närmare och kanten/brickan rättade
-# Med --kant-bak sitter brickan nedsänkt inne i bordet, med en remsa filt mellan brickan och dealerkanten, så att
-# kanten är hel från sida till sida (Jakob 2026-11-26: inget bortfall i bordet vid dealerns mage).
-BRICKA_REMSA = 0.03  # antaget: en smal remsa, 3 cm
 if NARA and MODELL != 'standard':
     raise SystemExit('--kant-bak gäller bara standardbordet')
 if MODELL == 'bord-02':
@@ -89,12 +86,11 @@ def outline(notch=None):
         # t = 0 at (+a, 0) = dealerkant höger, t = pi at (-a, 0) = vänster, via spelarkanten (0, fr)
         arc = [[a * math.cos(math.pi * i / n), fr * math.sin(math.pi * i / n)] for i in range(n + 1)]
         if NARA:
-            # raka sidor från bågens ändar bak till dealerkanten vid s = -D; med urtag går hacket från kanten till
-            # brickans framkant, och remsan bakom brickan (bord_remsa) fyller det mellan kanten och brickan
+            # raka sidor från bågens ändar bak till dealerkanten vid s = -D; urtaget för brickan går från kanten till
+            # brickans framkant (brickans bakvägg står i kanten och sargen är hel under den)
             d = -KANT_BAK; side = [[-a, d]]
             if notch:
-                x0, x1, s0, s1 = notch['x0'], notch['x1'], notch['s0'], notch['s1']
-                side += [[x0, d], [x0, s0], [x0, s1], [x1, s1], [x1, s0], [x1, d]]
+                side += [[notch['x0'], d], [notch['x0'], notch['s1']], [notch['x1'], notch['s1']], [notch['x1'], d]]
             pts = arc + side + [[a, d]]
         elif notch:
             x0, x1, s1 = notch['x0'], notch['x1'], notch['s1']
@@ -151,18 +147,12 @@ def prism(name, pts, z0, z1, col, mat, uvscale=1.0):
     return obj_from_bm(name, bm, col, mat)
 
 
-def felt_sheet(name, pts, z, col, mat, extra=()):
+def felt_sheet(name, pts, z, col, mat):
     bm = bmesh.new(); vs = [bm.verts.new((x, y, z)) for x, y in pts]
     f = bm.faces.new(vs)
     if f.normal.z < 0:
         f.normal_flip()
-    for ex in extra:  # fler ytor i samma ark (--kant-bak: remsan bakom brickan), hopfogade med arket
-        fe = bm.faces.new([bm.verts.new((x, y, z)) for x, y in ex])
-        if fe.normal.z < 0:
-            fe.normal_flip()
-    if extra:
-        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6)
-    bmesh.ops.triangulate(bm, faces=bm.faces[:] if extra else [f], quad_method='BEAUTY', ngon_method='BEAUTY')
+    bmesh.ops.triangulate(bm, faces=[f], quad_method='BEAUTY', ngon_method='BEAUTY')
     uv_planar(bm)
     return obj_from_bm(name, bm, col, mat)
 
@@ -396,20 +386,17 @@ def main():
     nt.links.new(ti.outputs[0], nt.nodes['Principled BSDF'].inputs['Base Color'])
 
     tr = STD['markerbricka']
-    if NARA:  # brickan följer dealerkanten bakåt, med remsan mellan sig och kanten
-        sk = BRICKA_REMSA - KANT_BAK
-        tr = dict(tr, s0=tr['s0'] + sk, s1=tr['s1'] + sk, urtag=dict(tr['urtag'], s0=tr['s0'] + sk, s1=tr['urtag']['s1'] + sk))
-        remsa = [(tr['x0'], KANT_BAK), (tr['x1'], KANT_BAK), (tr['x1'], -tr['s0']), (tr['x0'], -tr['s0'])]  # (X, Y)
+    if NARA:  # brickan följer dealerkanten bakåt: dess bakvägg står i den nya kanten
+        tr = dict(tr, s0=tr['s0'] - KANT_BAK, s1=tr['s1'] - KANT_BAK, urtag=dict(tr['urtag'], s1=tr['urtag']['s1'] - KANT_BAK))
     pts, narc = outline(notch=tr['urtag'])
-    felt = felt_sheet('bord_filt', pts, FZ, c_bord, m_felt, extra=[remsa] if NARA else ())
+    felt = felt_sheet('bord_filt', pts, FZ, c_bord, m_felt)
     sg = B['sarg']
     if NARA:
         # sargen hel under brickan (brickan i en ficka, inte i en öppen skåra genom hela sargen) och upp mot filten,
-        # så att ingen springa syns under mässingslisten längs dealerkanten; remsan bakom brickan är också hel
+        # så att ingen springa syns under mässingslisten längs dealerkanten
         ficka = FZ - bricka_nara(tr, c_bricka, m_tray, m_brass) - 0.001
         prism('bord_sarg', outline()[0], FZ + sg['underkant'], ficka, c_bord, m_wood)
         prism('bord_sarg_ficka', pts, ficka, FZ - 0.001, c_bord, m_wood)
-        prism('bord_sarg_remsa', remsa, ficka, FZ - 0.001, c_bord, m_wood)
     else:
         prism('bord_sarg', pts, FZ + sg['underkant'], FZ + sg['underlagg'], c_bord, m_wood)
     band('bord_massingslinje', outline()[0] if NARA else pts, FZ + sg['massingslinje'][0], FZ + sg['massingslinje'][1], 0.0008, c_bord, m_brass)
@@ -550,7 +537,6 @@ def main():
     em['standard'] = 'scen/standard.yaml'; em['axlar'] = '+X dealerns vanster, +Y bakat (spelarna pa -Y), +Z upp, meter'
     if NARA:
         em['kant_bak'] = KANT_BAK  # dealerkanten vid Y = +kant_bak; origo ligger kvar under standardbordets kant
-        em['bricka_remsa'] = BRICKA_REMSA  # filt mellan brickans bakkant och dealerkanten
 
     ASSETS.mkdir(parents=True, exist_ok=True)
     namn = 'bord_02' if MODELL == 'bord-02' else ('standardbord_nara' if NARA else 'standardbord')

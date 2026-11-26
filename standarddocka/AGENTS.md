@@ -73,7 +73,11 @@ rörelse prövas mot innan den visas för honom.
 
 ## Det som produceras
 
-- Arbete (renderingar, försök) i `../slask/standarddocka/<uppgift>/`, med mappens lapp; det går inte in i Git.
+- Arbetsbänkens aktuella vy ligger i `vy/` här (scenen `vy.blend`, bilderna och mätningen som `scen/vy.py` skriver),
+  så att Jakob hittar den i mappen och kan öppna scenen i Blender (hans ord 2026-11-26: "varför har vi ens mappen
+  'standarddocka' om vi inte ska använda eller jobba där?"). En körning skriver över den förra; inget av det går in i
+  Git.
+- Annat arbete (försök, jämförelser, skärmbilder) i `../slask/standarddocka/<uppgift>/`, med mappens lapp.
 - Det Jakob ska se visas som ett prov i studion (`../blackjack-dealer/assets/proofs/<namn>/` med `proof.json`, sidan
   Granska, Prov), eftersom det är där han tittar. Hans domar läses med `node tools/proof-notes.ts` från
   `../blackjack-dealer/`.

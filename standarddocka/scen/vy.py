@@ -1,15 +1,17 @@
-"""Standarddockans arbetsvy i Blender: mannen i vilan (A1) vid bordet, med stolen under sig, båda händerna platt på
-filten och blicken mot kameran, renderad genom spelets kamera (film), en lägre kamera från samma håll (lag) och från
-flera håll till.
+"""Standarddockans arbetsvy i Blender: mannen i vilan (A1) vid bordet, med stolen under sig, båda händerna på filten
+och blicken mot kameran, renderad genom spelets kamera (film), en lägre kamera från samma håll (lag) och från flera
+håll till.
 
 Kör från standarddocka/ (Blender 5.3, utan fönster):
   blender -b --factory-startup --python-exit-code 1 --python scen/vy.py
   blender -b --factory-startup --python-exit-code 1 --python scen/vy.py -- --vyer film sida --skala 0.5
-Ut i ../slask/standarddocka/vy/: vy_<vy>.png (film, lag, hel, sida, arm_nara, bak, nara), vy_matt.json (ledernas
-lägen och kontrollerna: händerna mot filten, armarna och låren mot bordet, magen mot kanten, det som går igenom bordet
-eller stolen) och vy.blend (scenen att öppna i Blender; IK-kontrollerna är påslagna, så händerna kan dras).
+Ut i standarddocka/vy/ (arbetsbänkens aktuella vy; varje körning skriver över den förra): vy_<vy>.png (film, lag,
+hel, sida, arm_nara, bak, nara, och hand_fram och hand_sida med kameran i filtens plan), vy_matt.json (ledernas lägen
+och kontrollerna: handflatans och varje fingers lägsta punkt mot filten, armarna och låren mot bordet, magen mot
+kanten, stolen, det som går igenom bordet eller stolen) och vy.blend (scenen att öppna i Blender; IK-kontrollerna är
+påslagna, så händerna kan dras).
 Spelets egna bildpunkter för kort och sko över filmbilden (vanlig Python, från ../avatar-auto-pipeline):
-  .venv/Scripts/python.exe verktyg/qc_kontroll_film.py ../slask/standarddocka/vy/vy_film.png ../slask/standarddocka/vy/vy_film_kontroll.png
+  .venv/Scripts/python.exe verktyg/qc_kontroll_film.py ../standarddocka/vy/vy_film.png ../standarddocka/vy/vy_film_kontroll.png
 
 Bordet är standardbordet med dealerkanten KANT_BAK närmare dealern (../avatar-auto-pipeline/scen/bygg_bord.py
 --kant-bak). Skriptet bygger det själv om det saknas, är äldre än byggskriptet eller måtten, eller har en annan kant.
@@ -23,11 +25,12 @@ from pathlib import Path
 HAR = Path(__file__).resolve().parent
 PROJEKT = HAR.parent
 AVATAR = PROJEKT.parent / 'avatar-auto-pipeline'
-UT = PROJEKT.parent / 'slask' / 'standarddocka' / 'vy'
+UT = PROJEKT / 'vy'   # arbetsbänkens aktuella vy: varje körning skriver över den förra
 for p in (AVATAR / 'scen', AVATAR):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 from _bpy_hjalp import *  # noqa: F401,F403  (bpy, bmesh, Vector, Matrix, STD, coll, pbr, look_at, make_cameras)
+import numpy as np
 from mathutils import Quaternion
 from mathutils.bvhtree import BVHTree
 from gemensamt.riggverktyg import hand_axlar, sikta_ben, SIDOR
@@ -54,24 +57,33 @@ AXLAR_Y = D['axlar_bakom_kant']       # 0,38
 # 3. Stolen: sitsen sänks lika mycket som höften, så att höftleden ligger lika högt över sitsen som förut
 #    (standard.yaml: höft 0,75 och sits 0,66). En lägre stol: benen och fotringen under sitsen kortas i samma mån.
 STOL_LYFT_ZON = (0.0, 0.50)           # Z där stolen trycks ihop (golvet till sitsens underkant); allt över sänks
-# 4. Benen (IK_fot, pol_kna): fotlederna ovanför stolens fotring mellan stolens framben, knäna fram under bordet,
-#    fötterna lite nedåt.
-FOTLED = {'R': (-0.085, 0.30, 0.25), 'L': (0.055, 0.30, 0.25)}
+#    Stolen flyttas sedan fram under honom (han själv står kvar) tills sätet ligger RYGG_LUFT framför ryggstödet,
+#    så att han sitter på sitsen och inte på dess framkant, men aldrig längre än att sitsens framkant står
+#    KNAVECK_LUFT bakom vaderna.
+RYGG_LUFT = 0.03
+KNAVECK_LUFT = 0.02
+SITS_INTRYCK = 0.005                  # stolen höjs eller sänks till sist så att dynan ger efter så här mycket under honom
+# 4. Benen (IK_fot, pol_kna): knäna fram under bordet, underbenen nästan lodräta (högst 11 grader bakåt) och
+#    fötterna hängande avslappnat strax framför stolens fotring. Med stolen under honom når fötterna inte ringen
+#    utan att vaderna går in i sitsens framkant (prövat: med fötterna på ringen kom stolen bara 1 cm fram).
+FOTLED = {'R': (-0.07, 0.10, 0.22), 'L': (0.04, 0.10, 0.22)}
 KNA_POL = {'R': (-0.12, -0.45, 0.60), 'L': (0.09, -0.45, 0.60)}
-FOT_RIKTNING = (0.0, -1.0, -0.35)     # framåt och lite ned
+FOT_RIKTNING = (0.0, -1.0, -0.7)      # framåt och ned, avslappnat
 # 5. Händerna (IK_hand, pol_armbage): handlederna symmetriskt kring kroppens mitt, HAND_ISAR från mitten (Paows
-#    vilande händer ligger vid X -0,16 och +0,14), strax framför brickans främre mässingslist (Y +0,014 med bordets
-#    remsa på 3 cm); handflatorna platt ned, fingrarna fram och lite inåt. Höjden justeras sedan så att handens lägsta
-#    punkt ligger HAND_OVER_FILT över filten.
+#    vilande händer ligger vid X -0,16 och +0,14), strax framför brickans främre mässingslist (Y +0,044, brickan i
+#    dealerkanten); handflatorna ned, fingrarna fram och lite inåt. Sedan läggs handen på filten: handflatans lägsta
+#    punkt HAND_OVER_FILT över filten, och varje finger (och tummen) böjs mer eller mindre från FINGER_NED_GRADER
+#    tills fingrets lägsta punkt också vilar HAND_OVER_FILT över filten. Ingen del av handen hamnar under filten.
 HAND_ISAR = 0.15
-HANDLED_Y = -0.005
+HANDLED_Y = 0.025
 HANDLED = {'R': (HOFT_X - HAND_ISAR, HANDLED_Y, 0.975), 'L': (HOFT_X + HAND_ISAR, HANDLED_Y, 0.975)}
 FINGRAR_INAT_GRADER = 12.0            # handen (handled -> knogar) vriden inåt mot mitten
-HAND_NED_GRADER = 3.0                 # handryggen lutar knappt ned mot knogarna
-FINGER_NED_GRADER = (2.0, 5.0, 9.0)   # fingrarnas tre leder lutar så här mycket ned från vågrätt: platt, avslappnad
+HAND_NED_GRADER = -4.0                # handled -> knogar stiger lite: handloven vilar, knogarna välvda (prövat:
+                                      # -8, -4 och 0; vid -4 behöver fingrarna ungefär sin grundböj för att nå filten)
+FINGER_NED_GRADER = (10.0, 22.0, 30.0)  # fingrarnas tre leder, grader ned från vågrätt: lätt böjda, avslappnad hand
 FINGRAR_IHOP = 0.7                    # fingrarnas spretning i vila (MPFB) minskas med 70 %
 TUMME_INAT_GRADER = 35.0              # tummen pekar fram och så här mycket inåt från handens riktning
-TUMME_NED_GRADER = (12.0, 6.0, 6.0)
+TUMME_NED_GRADER = (0.0, 20.0, 30.0)  # tummens bas ligger kvar; de två yttre lederna böjs ned tills tumtoppen vilar
 HAND_OVER_FILT = 0.002
 # 6. Armbågarna hänger: planet genom axel, armbåge och handled vrids ARMBAGE_UTAT_GRADER utåt från rakt ned, och
 #    sedan 2 grader i taget till (högst 60) tills armen inte går igenom någon del av bordet (skiva, kant, mässingslist,
@@ -84,18 +96,22 @@ ARM_LUFT = 0.003
 NACKE_ANDEL = 0.4
 
 # ================================================================ vyerna
-# film och hel är standard.yaml:s kameror; de övriga: (läge, mål, brännvidd mm, ortografisk bredd m eller None)
+# film och hel är standard.yaml:s kameror; de övriga: (läge, mål, brännvidd mm, ortografisk bredd m eller None,
+# linsförskjutning uppåt). hand_fram och hand_sida står i filtens plan (5 mm över den) och tittar vågrätt, så att
+# allt som ligger under filten döljs och glappet eller kontakten mellan hand och filt syns.
 LINS_MM = STD['lins']['brannvidd_mm']
 EGNA_VYER = {
     # spelarens håll som film (samma lins, samma avstånd), men lägre: 10 grader ned i stället för 25, mot bröstet
-    'lag': ((0.0, STD['kameror']['film']['pos'][1], 1.53), (0.0, 0.30, 1.15), LINS_MM, None),
-    'sida': ((-3.0, 0.05, 1.20), (0.0, 0.05, 0.80), None, 2.5),         # från dealerns höger, golv till huvud
-    'arm_nara': ((-0.80, 0.62, 1.07), (-0.22, 0.12, 0.965), 50.0, None), # högerarmen över dealerkanten, bakifrån
-    'bak': ((-1.35, 2.05, 1.80), (0.0, 0.12, 0.98), 35.0, None),        # snett bakifrån, över hans högra axel
-    'nara': ((0.0, -0.78, 1.38), (-0.01, 0.04, 0.98), 50.0, None),      # händerna, brickan och kanten framifrån
+    'lag': ((0.0, STD['kameror']['film']['pos'][1], 1.53), (0.0, 0.30, 1.15), LINS_MM, None, 0.0),
+    'sida': ((-3.0, 0.05, 1.20), (0.0, 0.05, 0.80), None, 2.5, 0.0),          # från dealerns höger, golv till huvud
+    'arm_nara': ((-0.80, 0.62, 1.07), (-0.22, 0.12, 0.965), 50.0, None, 0.0), # högerarmen över dealerkanten, bakifrån
+    'bak': ((-1.35, 2.05, 1.80), (0.0, 0.12, 0.98), 35.0, None, 0.0),        # snett bakifrån, över hans högra axel
+    'nara': ((0.0, -0.78, 1.38), (-0.01, 0.06, 0.98), 50.0, None, 0.0),      # händerna, brickan och kanten framifrån
+    'hand_fram': ((HOFT_X, -0.95, FZ + 0.005), (HOFT_X, 0.0, FZ + 0.005), 85.0, None, 0.3),   # framifrån
+    'hand_sida': ((-0.52, -0.06, FZ + 0.005), (0.0, -0.06, FZ + 0.005), 35.0, None, 0.3),     # högerhanden från sidan
 }
 BLICK_MOT_EGEN_KAMERA = ('film', 'lag')
-ALLA_VYER = ['film', 'lag', 'hel', 'sida', 'arm_nara', 'bak', 'nara']
+ALLA_VYER = ['film', 'lag', 'hel', 'sida', 'arm_nara', 'bak', 'nara', 'hand_fram', 'hand_sida']
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--vyer', nargs='+', default=ALLA_VYER, choices=ALLA_VYER)
@@ -219,6 +235,44 @@ def armbagens_pol(sida, handled, utat_grader):
     return (S + Vector(handled)) / 2 + riktning * 0.45
 
 
+def dominerande_ben():
+    """Det deformerande ben som väger tyngst i varje hörn (MPFB:s hjälpgrupper som Left/Right/Mid räknas inte)."""
+    deform = {b.name for b in rig.data.bones if b.use_deform}
+    namn = {g.index: g.name for g in kropp.vertex_groups if g.name in deform}
+    ut = []
+    for v in kropp.data.vertices:
+        best = max((g for g in v.groups if g.group in namn), key=lambda g: g.weight, default=None)
+        ut.append(namn[best.group] if best else '')
+    return ut
+
+
+BEN = dominerande_ben()
+BEN_NP = np.array(BEN)
+
+
+def kroppens_horn():
+    dg = bpy.context.evaluated_depsgraph_get(); ev = kropp.evaluated_get(dg); me = ev.to_mesh()
+    co = [kropp.matrix_world @ v.co for v in me.vertices]
+    if hasattr(me, 'calc_loop_triangles'):
+        me.calc_loop_triangles()
+    tris = [tuple(t.vertices) for t in me.loop_triangles]
+    ev.to_mesh_clear()
+    return co, tris
+
+
+def kropp_np():
+    """Kroppens hörn i världen som en numpy-tabell (snabb, för mätningarna i loopar)."""
+    dg = bpy.context.evaluated_depsgraph_get(); ev = kropp.evaluated_get(dg); me = ev.to_mesh()
+    a = np.empty(len(me.vertices) * 3); me.vertices.foreach_get('co', a)
+    ev.to_mesh_clear()
+    M = np.array(kropp.matrix_world)
+    return a.reshape(-1, 3) @ M[:3, :3].T + M[:3, 3]
+
+
+def hornen_for(co, prefix):
+    return [p for p, b in zip(co, BEN) if b.startswith(prefix)]
+
+
 # 2.0 vila, ingen Action, IK på för armar och ben
 if rig.animation_data:
     rig.animation_data.action = None
@@ -237,11 +291,64 @@ for _ in range(2):
     axlar_y = (W('RightArm').y + W('LeftArm').y) / 2
     hoft = (W('RightUpLeg') + W('LeftUpLeg')) / 2
     flytta_hoften((HOFT_X, hoft.y + AXLAR_Y - axlar_y, HOFT_Z))
-# 2.4 benen
-for sida, s in SIDOR.items():
-    satt_kontroll('IK_fot.' + sida, FOTLED[sida])
-    satt_kontroll('pol_kna.' + sida, KNA_POL[sida])
-upd()
+# 2.3b stolen fram under honom: sätets baksida RYGG_LUFT framför ryggstödet
+SITS_Z = STD['stol']['sits_z'] - STOL_SANK
+P = kropp_np(); hoft_y = ((W('RightUpLeg') + W('LeftUpLeg')) / 2).y
+sate = np.isin(BEN_NP, ('Hips', 'RightUpLeg', 'LeftUpLeg')) & (P[:, 2] > SITS_Z - 0.02) & (P[:, 2] < SITS_Z + 0.25) & (P[:, 1] > hoft_y)
+sate_bak = float(P[sate, 1].max())
+STOL_P = [stol.matrix_world @ v.co for v in stol.data.vertices]   # stolen där den står (sänkt, inte flyttad)
+rygg_fram = min(p.y for p in STOL_P if SITS_Z + 0.08 < p.z < SITS_Z + 0.35 and p.y > sate_bak - 0.1)
+sits_fram = min(p.y for p in STOL_P if SITS_Z - 0.11 < p.z < SITS_Z and abs(p.x - HOFT_X) < 0.15)
+STOL_FLYTT_Y = sate_bak + RYGG_LUFT - rygg_fram   # negativt: stolen fram mot bordet
+
+
+# 2.4 benen, och stolen tillbaka så långt som vaderna kräver
+def satt_benen():
+    stol.location.y = STOL_Y0 + STOL_FLYTT_Y
+    for sida in SIDOR:
+        satt_kontroll('IK_fot.' + sida, FOTLED[sida])
+        satt_kontroll('pol_kna.' + sida, KNA_POL[sida])
+    upd()
+
+
+STOL_Y0 = stol.location.y
+for _ in range(3):
+    satt_benen()
+    P = kropp_np()
+    vad = np.isin(BEN_NP, ('RightLeg', 'LeftLeg')) & (P[:, 2] > SITS_Z - 0.11) & (P[:, 2] < SITS_Z) & (np.abs(P[:, 0] - HOFT_X) < 0.2)
+    vad_bak = float(P[vad, 1].max()) if vad.any() else -1.0
+    STOL_FLYTT_Y = max(STOL_FLYTT_Y, vad_bak + KNAVECK_LUFT - sits_fram)
+satt_benen()
+
+
+def varld_bvh(ob):
+    dg = bpy.context.evaluated_depsgraph_get(); ev = ob.evaluated_get(dg); me = ev.to_mesh()
+    co = [ob.matrix_world @ v.co for v in me.vertices]
+    if hasattr(me, 'calc_loop_triangles'):
+        me.calc_loop_triangles()
+    tris = [tuple(t.vertices) for t in me.loop_triangles]
+    ev.to_mesh_clear()
+    return BVHTree.FromPolygons(co, tris, all_triangles=True), co
+
+
+def sate_mot_stolen():
+    """Sätets och lårens kortaste avstånd till stolen: positivt glapp, negativt inpressat i dynan."""
+    sb, _c = varld_bvh(stol); P = kropp_np()
+    m = np.isin(BEN_NP, ('Hips', 'RightUpLeg', 'LeftUpLeg')) & (P[:, 2] < SITS_Z + 0.1)
+    d = 1.0
+    for p in P[m]:
+        h = sb.find_nearest(Vector(p))
+        if h[0] is not None:
+            d = min(d, (Vector(p) - h[0]).dot(h[1]))
+    return d
+
+
+# 2.4b stolen upp eller ned så att dynan ger efter SITS_INTRYCK under honom
+STOL_HOJD = 0.0
+for _ in range(2):
+    dz = sate_mot_stolen() + SITS_INTRYCK
+    stol.location.z += dz; STOL_HOJD += dz
+    upd()
 for sida, s in SIDOR.items():
     sikta_ben(rig, pbs[s + 'Foot'], Vector(FOT_RIKTNING)); upd()
 # 2.5 händerna och armbågarna
@@ -260,64 +367,57 @@ def rikta_finger(s, f, kurs, ned_grader):
         upd()
 
 
+FINGRAR = ('Thumb', 'Index', 'Middle', 'Ring', 'Pinky')
+kurs = {}
 for sida, s in SIDOR.items():
     fram = handram_nu(sida).col[0]; fram = Vector((fram.x, fram.y, 0)).normalized()
-    for f in ('Index', 'Middle', 'Ring', 'Pinky'):
+    for f in FINGRAR[1:]:
         d = (MW @ pbs[f'{s}Hand{f}1'].matrix).to_3x3().col[1]
-        kurs = Vector((d.x, d.y, 0)).normalized().lerp(fram, FINGRAR_IHOP).normalized()
-        rikta_finger(s, f, kurs, FINGER_NED_GRADER)
-    inat = math.radians(TUMME_INAT_GRADER) * (1 if sida == 'R' else -1)
-    rikta_finger(s, 'Thumb', Quaternion((0, 0, 1), inat) @ fram, TUMME_NED_GRADER)
+        kurs[sida, f] = Vector((d.x, d.y, 0)).normalized().lerp(fram, FINGRAR_IHOP).normalized()
+    kurs[sida, 'Thumb'] = Quaternion((0, 0, 1), math.radians(TUMME_INAT_GRADER) * (1 if sida == 'R' else -1)) @ fram
+    for f in FINGRAR:
+        rikta_finger(s, f, kurs[sida, f], TUMME_NED_GRADER if f == 'Thumb' else FINGER_NED_GRADER)
 
-
-# 2.7 handen ned (eller upp) tills dess lägsta punkt ligger HAND_OVER_FILT över filten
-def dominerande_ben():
-    """Det deformerande ben som väger tyngst i varje hörn (MPFB:s hjälpgrupper som Left/Right/Mid räknas inte)."""
-    deform = {b.name for b in rig.data.bones if b.use_deform}
-    namn = {g.index: g.name for g in kropp.vertex_groups if g.name in deform}
-    ut = []
-    for v in kropp.data.vertices:
-        best = max((g for g in v.groups if g.group in namn), key=lambda g: g.weight, default=None)
-        ut.append(namn[best.group] if best else '')
-    return ut
-
-
-BEN = dominerande_ben()
-
-
-def kroppens_horn():
-    dg = bpy.context.evaluated_depsgraph_get(); ev = kropp.evaluated_get(dg); me = ev.to_mesh()
-    co = [kropp.matrix_world @ v.co for v in me.vertices]
-    if hasattr(me, 'calc_loop_triangles'):
-        me.calc_loop_triangles()
-    tris = [tuple(t.vertices) for t in me.loop_triangles]
-    ev.to_mesh_clear()
-    return co, tris
-
-
-def hornen_for(co, prefix):
-    return [p for p, b in zip(co, BEN) if b.startswith(prefix)]
-
-
+# 2.7 handen läggs på filten: handflatans lägsta punkt HAND_OVER_FILT över filten, sedan varje finger böjt (faktor
+#     på FINGER_NED_GRADER, 0 till 3) tills dess lägsta punkt också ligger HAND_OVER_FILT över filten; tre varv
+HANDFLATA = {s: BEN_NP == s + 'Hand' for s in SIDOR.values()}
+FINGERHORN = {(s, f): np.isin(BEN_NP, [f'{s}Hand{f}{k}' for k in (1, 2, 3)]) for s in SIDOR.values() for f in FINGRAR}
+# tummen mäts på sina två yttre leder (basen vid handloven ligger redan lägst och skulle annars hålla tumtoppen uppe)
+SOK_HORN = {(s, f): (np.isin(BEN_NP, [f'{s}Hand{f}{k}' for k in (2, 3)]) if f == 'Thumb' else FINGERHORN[s, f])
+            for s in SIDOR.values() for f in FINGRAR}
+MAL_Z = FZ + HAND_OVER_FILT
+boj = {}
 for _ in range(3):
-    co, _t = kroppens_horn()
+    P = kropp_np()
     for sida, s in SIDOR.items():
-        lagst = min(p.z for p in hornen_for(co, s + 'Hand'))
-        handled[sida].z += FZ + HAND_OVER_FILT - lagst
+        handled[sida].z += MAL_Z - float(P[HANDFLATA[s], 2].min())
         satt_kontroll('IK_hand.' + sida, handled[sida], handrot[sida])
         satt_kontroll('pol_armbage.' + sida, armbagens_pol(sida, handled[sida], utat[sida]))
     upd()
+    for sida, s in SIDOR.items():
+        for f in FINGRAR:
+            bas = TUMME_NED_GRADER if f == 'Thumb' else FINGER_NED_GRADER
+
+            def lagst(k):
+                rikta_finger(s, f, kurs[sida, f], [a * k for a in bas])
+                return float(kropp_np()[SOK_HORN[s, f], 2].min())
+
+            ovan, under = 0.0, 3.0                       # ovan: fingret över målet; under: fingret når målet
+            if lagst(ovan) <= MAL_Z:
+                k = ovan                                 # når filten redan rakt fram: böjs inte
+            elif lagst(under) > MAL_Z:
+                k = under
+            else:
+                for _i in range(12):
+                    mitt = (ovan + under) / 2
+                    if lagst(mitt) > MAL_Z:
+                        ovan = mitt
+                    else:
+                        under = mitt
+                k = ovan                                 # sidan över filten
+            rikta_finger(s, f, kurs[sida, f], [a * k for a in bas])
+            boj[sida, f] = round(k, 3)
 # 2.7b armbågarna utåt tills armarna går fria från bordet (handen står kvar)
-def varld_bvh(ob):
-    dg = bpy.context.evaluated_depsgraph_get(); ev = ob.evaluated_get(dg); me = ev.to_mesh()
-    co = [ob.matrix_world @ v.co for v in me.vertices]
-    if hasattr(me, 'calc_loop_triangles'):
-        me.calc_loop_triangles()
-    tris = [tuple(t.vertices) for t in me.loop_triangles]
-    ev.to_mesh_clear()
-    return BVHTree.FromPolygons(co, tris, all_triangles=True), co
-
-
 BORD_BVH = [varld_bvh(o)[0] for o in bpy.data.objects if o.type == 'MESH' and not o.name.startswith('kort_')
             and o.users_collection[0].name in ('bord', 'markerbricka')]
 
@@ -389,14 +489,7 @@ for k in ('lag', 'film'):  # filmens sist: den gäller för de övriga bilderna 
 # ================================================================ 3. kontrollen
 co, tris = kroppens_horn()
 kropp_bvh = BVHTree.FromPolygons(co, tris, all_triangles=True)
-stol_bvh, _c = varld_bvh(stol)
-sits_z = STD['stol']['sits_z'] - STOL_SANK
-sits_in = 0.0  # hur djupt sätet och låren går ned i sitsens dyna (dynan ger efter; några cm är rimligt)
-for p, b in zip(co, BEN):
-    if b in ('Hips', 'RightUpLeg', 'LeftUpLeg') and p.z < sits_z + 0.05:
-        hit = stol_bvh.ray_cast(Vector((p.x, p.y, sits_z + 0.3)), Vector((0, 0, -1)))
-        if hit[0] is not None and hit[0].z > p.z:
-            sits_in = max(sits_in, hit[0].z - p.z)
+sits_in = sate_mot_stolen()
 genom = {}
 hinder = [o for o in bpy.data.objects if o.type == 'MESH' and o is not kropp and not o.name.startswith('kort_')
           and (o.users_collection[0].name in ('bord', 'sko', 'markerbricka', 'exempelgiv') or o is stol)]
@@ -405,10 +498,21 @@ for o in hinder:
     par = kropp_bvh.overlap(bvh)
     if par:
         ben = sorted({BEN[tris[a][0]] for a, _b in par})
-        genom[o.name] = {'par': len(par), 'ben': ben}
+        pk = [co[i] for a, _b in par for i in tris[a]]
+        genom[o.name] = {'par': len(par), 'ben': ben, 'y': [round(min(p.y for p in pk), 3), round(max(p.y for p in pk), 3)],
+                         'z': [round(min(p.z for p in pk), 3), round(max(p.z for p in pk), 3)]}
 sarg_under = FZ + STD['bord']['sarg']['underkant']
 ben_under_bord = [p for p, b in zip(co, BEN) if (b.endswith('UpLeg') or b.endswith('Leg')) and p.y < KANT_Y]
 bal = [p for p, b in zip(co, BEN) if b in ('Hips', 'Spine', 'Spine1', 'Spine2') and sarg_under - 0.02 < p.z < FZ + 0.05]
+P = kropp_np()
+handen = {}  # varje dels lägsta punkt över filten (m) och hur många av handens hörn som ligger under filten
+for k, sida in (('hoger', 'R'), ('vanster', 'L')):
+    s = SIDOR[sida]; alla = HANDFLATA[s].copy()
+    handen[k] = {'handflata': round(float(P[HANDFLATA[s], 2].min()) - FZ, 4)}
+    for f in FINGRAR:
+        handen[k][f] = round(float(P[FINGERHORN[s, f], 2].min()) - FZ, 4); alla |= FINGERHORN[s, f]
+    handen[k]['horn_under_filten'] = int((P[alla, 2] < FZ).sum())
+    handen[k]['fingrarnas_boj_faktor'] = {f: boj[sida, f] for f in FINGRAR}
 matt = {
     'kant_bak_m': KANT_BAK, 'dealerkant_y': KANT_Y,
     'hoft_led_mitt': r3((W('RightUpLeg') + W('LeftUpLeg')) / 2),
@@ -419,9 +523,12 @@ matt = {
     'knan': {'hoger': r3(W('RightLeg')), 'vanster': r3(W('LeftLeg'))},
     'fotleder': {'hoger': r3(W('RightFoot')), 'vanster': r3(W('LeftFoot'))},
     'ogon': r3(ogonen()),
-    'stol_sankt_m': round(STOL_SANK, 4), 'stol_sits_overkant_z': round(sits_z, 4),
-    'sitsens_dyna_inpressad_m': round(sits_in, 4),
-    'handens_lagsta_over_filt_m': {k: round(min(p.z for p in hornen_for(co, s + 'Hand')) - FZ, 4) for k, s in (('hoger', 'Right'), ('vanster', 'Left'))},
+    'stol_sankt_m': round(STOL_SANK - STOL_HOJD, 4), 'stol_sits_overkant_z': round(SITS_Z + STOL_HOJD, 4),
+    'stol_flyttad_y_m': round(STOL_FLYTT_Y, 4),
+    'satets_baksida_till_ryggstodet_m': round(rygg_fram + STOL_FLYTT_Y - sate_bak, 4),
+    'sitsens_framkant_bakom_vaderna_m': round(sits_fram + STOL_FLYTT_Y - vad_bak, 4),
+    'sate_mot_stolen_m': round(sits_in, 4),
+    'handen_lagsta_over_filt_m': handen,
     'luft_lar_till_sargens_underkant_m': round(sarg_under - max(p.z for p in ben_under_bord), 4) if ben_under_bord else None,
     'luft_mage_till_kanten_m': round(min(p.y for p in bal) - KANT_Y, 4) if bal else None,
     'underarmens_lagsta_over_bordet_m': {k: round(min(p.z for p in hornen_for(co, s + 'ForeArm') if p.y < KANT_Y) - FZ, 4)
@@ -447,6 +554,9 @@ for namn, plats, storlek, effekt, sikte in (
         ('fyll', (-0.9, -1.9, 1.6), 1.5, 50, (0.0, 0.1, 1.0)),
         ('bak', (-0.4, 1.9, 2.2), 1.5, 120, (0.0, 0.35, 1.3))):
     ld = bpy.data.lights.new(namn, 'AREA'); ld.size = storlek; ld.energy = effekt
+    for egenskap, varde in (('use_shadow_jitter', True), ('shadow_maximum_resolution', 0.0005)):
+        if hasattr(ld, egenskap):  # mjuka skuggor med kontakt: handen syns ligga på filten
+            setattr(ld, egenskap, varde)
     ob = bpy.data.objects.new('ljus_' + namn, ld); lc.objects.link(ob); ob.location = plats; look_at(ob, sikte)
 golv = bpy.data.meshes.new('golv'); bm = bmesh.new(); bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=4); bm.to_mesh(golv); bm.free()
 golv.materials.append(pbr('vy_golv', (0.18, 0.17, 0.16, 1), rough=0.8))
@@ -454,13 +564,14 @@ lc.objects.link(bpy.data.objects.new('vy_golv', golv))
 
 kc = coll('vy_kameror')
 kameror = make_cameras(kc, ['film', 'hel'])
-for namn, (plats, sikte, mm, orto) in EGNA_VYER.items():
+for namn, (plats, sikte, mm, orto, upp) in EGNA_VYER.items():
     cd = bpy.data.cameras.new('kam_' + namn); cd.sensor_width = STD['lins']['sensor_mm']; cd.sensor_fit = 'HORIZONTAL'
     if orto:
         cd.type = 'ORTHO'; cd.ortho_scale = orto
     else:
         cd.lens = mm
-    cd.clip_start = 0.01; cd.clip_end = 50
+    cd.shift_y = upp
+    cd.clip_start = 0.005; cd.clip_end = 50
     ob = bpy.data.objects.new('kam_' + namn, cd); kc.objects.link(ob); ob.location = plats; look_at(ob, sikte)
     kameror[namn] = ob
 sc.camera = kameror['film']
@@ -475,10 +586,12 @@ else:
             sc.render.engine = e; break
         except TypeError:
             continue
-    try:
-        sc.eevee.taa_render_samples = 48
-    except AttributeError:
-        pass
+    # strålföljning och närljus (fast GI) ger skuggan i glappet mellan hand och filt; fler skuggstrålar mjukare kant
+    for egenskap, varde in (('taa_render_samples', 64), ('use_raytracing', True), ('use_fast_gi', True),
+                            ('fast_gi_distance', 0.25), ('shadow_ray_count', 3), ('shadow_step_count', 12),
+                            ('shadow_resolution_scale', 1.0)):
+        if hasattr(sc.eevee, egenskap):
+            setattr(sc.eevee, egenskap, varde)
 sc.view_settings.view_transform = 'AgX'
 bx, by = STD['lins']['bild_px']
 sc.render.resolution_x, sc.render.resolution_y = int(bx * A.skala), int(by * A.skala)
