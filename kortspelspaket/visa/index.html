@@ -26,6 +26,7 @@
   #vy { position: absolute; inset: 0 0 0 290px; }
   #rad { position: absolute; top: 10px; left: 304px; right: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   #rad label { display: flex; align-items: center; gap: 6px; }
+  #rad label[hidden] { display: none; }
   #rad select { background: #15171a; color: inherit; border: 1px solid #3a3d42; border-radius: 4px; font: inherit; }
   #bordhojd { width: 110px; }
   #bordhojdtext { min-width: 86px; color: #c9a55c; }
@@ -66,6 +67,7 @@
   <button class="bordet" data-vy="runt">Hela bordet</button>
   <button class="bordet" data-vy="sida">Från sidan</button>
   <button class="bordet" data-vy="topp">Uppifrån</button>
+  <label class="bordet" id="bordslagrad" hidden>Bord <select id="bordslag"></select></label>
   <label class="bordet">Spelare <select id="spelare"><option value="7">alla sju</option><option value="3">tre</option><option value="0">inga</option></select></label>
   <label class="bordet" title="Flyttar bordet upp eller ner i den här vyn. Dubbelklicka för spelets höjd.">Bordet <input type="range" id="bordhojd" min="-10" max="5" step="0.5" value="0"> <span id="bordhojdtext">spelets höjd</span></label>
   <span class="skilje"></span>

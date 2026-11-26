@@ -41,6 +41,10 @@ export type Bord = {
   klart: Promise<string>;
   /** Flyttar bordet upp eller ner från spelets höjd (meter; minus är ner). Figurerna, pallarna och golvet står kvar. */
   hojd(meter: number): void;
+  /** Borden som går att välja i vyn (sidan visar valet när de är fler än ett), det valda bordets id, och bytet: spelarna flyttas till det bordets platser. */
+  bordslag: {id: string; namn: string}[];
+  valtBord(): string;
+  valjBord(id: string): void;
 };
 
 /**
@@ -103,5 +107,6 @@ export async function byggBord(renderer: T.WebGLRenderer, figur: () => T.Object3
     const e = filmEye(PLAY_LENS), p = v(...e.position);
     return {pos: p, mot: p.clone().addScaledVector(v(...e.forward), 1.6), fov: fovYDeg(e.focalPx), kvot: FILM.width / FILM.height};
   }
-  return {scene, sitsar, kamera, klart, hojd};
+  const bordslag = [{id: 'spel', namn: 'spelets'}]; let valt = 'spel';
+  return {scene, sitsar, kamera, klart, hojd, bordslag, valtBord: () => valt, valjBord: id => { if (bordslag.some(b => b.id === id)) valt = id; }};
 }

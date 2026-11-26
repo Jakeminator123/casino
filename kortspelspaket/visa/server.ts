@@ -135,7 +135,10 @@ async function saveCuts(req: IncomingMessage, res: ServerResponse) {
 // ---- servern -------------------------------------------------------------------------------------------------------
 const ownHost = (req: IncomingMessage) => [`127.0.0.1:${PORT}`, `localhost:${PORT}`].includes(req.headers.host ?? '');
 const sameOrigin = (req: IncomingMessage) => !req.headers.origin || [`http://127.0.0.1:${PORT}`, `http://localhost:${PORT}`].includes(req.headers.origin);
-const typed = async (res: ServerResponse, file: string) => { res.writeHead(200, {'content-type': TYPES['.ts'], 'cache-control': 'no-store'}).end(stripTypeScriptTypes(await readFile(path.join(ROOT, file), 'utf8'))); };
+const typed = async (res: ServerResponse, file: string) => {
+  const code = stripTypeScriptTypes(await readFile(path.join(ROOT, file), 'utf8')); // läses först: en fil som saknas ska bli 404, inte ett halvt svar
+  res.writeHead(200, {'content-type': TYPES['.ts'], 'cache-control': 'no-store'}).end(code);
+};
 
 /** three.js: byggfilerna och tilläggen (examples/jsm), lokalt eller från jsDelivr. */
 async function vendor(res: ServerResponse, rest: string) {
@@ -162,8 +165,9 @@ const server = createServer(async (req, res) => {
     if (url === '/' || url === '/kortspelspaket/visa') { res.writeHead(302, {location: '/' + HERE}).end(); return; }
     if (url === '/vem') { res.writeHead(200, {'content-type': 'text/plain; charset=utf-8'}).end('kortspelspaketets visare'); return; }
     if (url === '/' + HERE || url === `/${HERE}index.html`) { res.writeHead(200, {'content-type': TYPES['.html'], 'cache-control': 'no-store'}).end(await readFile(path.join(ROOT, HERE, 'index.html'), 'utf8')); return; }
-    let m = url.match(new RegExp(`^/${HERE}(visa|bord)\\.ts$`));
-    if (m) { await typed(res, `${HERE}${m[1]}.ts`); return; }
+    // Sidans moduler: varje .ts-fil i visa/ utom servern själv.
+    let m = url.match(new RegExp(`^/${HERE}([a-z][a-z0-9-]*)\\.ts$`));
+    if (m && m[1] !== 'server') { await typed(res, `${HERE}${m[1]}.ts`); return; }
     // Det som inte har sparats ännu är inget fel: inga sekvenser.
     if (url === '/' + CUTS) { res.writeHead(200, {'content-type': TYPES['.json'], 'cache-control': 'no-store'}).end(await readFile(path.join(ROOT, CUTS), 'utf8').catch(() => '{}')); return; }
     // Bordsvyns lån: spelets mått och rum (kod, med typerna strukna), kortplanen och de byggda modellerna.

@@ -322,6 +322,17 @@ function tableHeight() {
 }
 heightSlider.oninput = tableHeight;
 heightSlider.ondblclick = () => { heightSlider.value = '0'; tableHeight(); };
+// Bordet: spelets, eller ett annat som bordsvyn har (bord.ts). Valet visas när det finns fler än ett.
+const kindSelect = el<HTMLSelectElement>('bordslag');
+let askedKind: string | null = null;
+function tableKinds() {
+  if (!table) return;
+  kindSelect.replaceChildren(...table.bordslag.map(b => new Option(b.namn, b.id)));
+  el('bordslagrad').hidden = table.bordslag.length < 2;
+  if (askedKind) { table.valjBord(askedKind); askedKind = null; }
+  kindSelect.value = table.valtBord();
+}
+kindSelect.onchange = () => { if (!table) return; table.valjBord(kindSelect.value); kindSelect.value = table.valtBord(); tableHeight(); seen(); look(tableView); };
 const viewButtons = [...document.querySelectorAll<HTMLButtonElement>('button[data-vy]')];
 function look(vy: Vy) {
   tableView = vy;
@@ -357,7 +368,7 @@ async function setMode(to: typeof mode) {
     const start = s.nr ? PLAYER_START[(s.nr - 1) % PLAYER_START.length] : DEALER_START;
     if (!s.namn && rows.has(start)) seat(s, start);
   }
-  tableHeight(); look(tableView);
+  tableKinds(); tableHeight(); look(tableView);
   // Det som var valt i utställningen spelas av sin plats vid bordet; annars är dealern och hans rörelse vald.
   const keep = selected ?? table.sitsar[0].namn; selected = null; if (!keep || keep.includes('_Dealer_')) chosen = 0; select(keep);
 }
@@ -472,6 +483,7 @@ if (askedView && viewButtons.some(b => b.dataset.vy === askedView)) tableView = 
 const askedPlayers = asked.get('spelare') === 'nej' ? '0' : asked.get('spelare'), askedHeight = Number(asked.get('bord'));
 if (askedPlayers && ['0', '3', '7'].includes(askedPlayers)) players.value = askedPlayers;
 if (asked.get('bord') && Number.isFinite(askedHeight)) heightSlider.value = String(askedHeight);
+askedKind = asked.get('bordslag');
 await setMode(asked.get('vy') === 'bord' ? 'bord' : 'utstallning');
 if (askedClip && rows.has(askedClip)) select(askedClip);
 if (askedTime !== null && Number.isFinite(Number(askedTime))) {
