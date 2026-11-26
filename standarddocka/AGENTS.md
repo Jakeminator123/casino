@@ -99,6 +99,11 @@ rörelse prövas mot innan den visas för honom.
   att anpassa unikt för respektive dealer som 'avatar-auto-pipeline' skapar, men fan, det ska kunna gå." Rörelserna
   ritas för standarddockornas egna kroppar, och en dealer från pipelinen ska kunna göra dem: den byggs på samma
   skelett, så att bara kroppens mått skiljer.
+- **Sitthöjden (2026-11-26).** Av fyra höjder i vilan dömde han axlarna 23 och 27 cm över filten Inte bra, 31 cm
+  "okej" i spelets vy och Bra från sidan, och 35 cm Bra från sidan men Inte bra i spelets vy (huvudet klipps):
+  dockan sitter med axlarna 31 cm över filten. Om 31 cm: "i denna position som ser 'okej' ut så ska väl händerna mer
+  vara i samma riktning som underarmarna väl?": i vilan pekar handen som underarmen, inte vinklad i handleden. Om
+  bilden uppifrån: "bordet ser lite för tillspetsat ut väl?"
 - **Inte trångt framför dealern (2026-11-26).** "Tänk på att du med fördel kan skjuta fram både sko/kort och dess
   placeringar om du skjuter fram dealern. Annars kanske det liksom blir för trångt?" När dockan och bordet kommer
   närmare varandra ska händerna i vilan, brickan, dealerns egna kort och skon fortfarande ha plats: ingen hand vilar

@@ -16,6 +16,9 @@
 //              [--liv andning,huvud,blick,hand,kropp] [--fro 1]  de små egna rörelserna på, med slumpens frö (utan att spara)
 //              [--giv <namn>] [--vilan <namn>]  en grundrörelse på prov (en fil i blackjack-dealer/dealer3d/data, utan .json)
 //                         i stället för platsens giv eller vilan till skon, utan det sparade lagret
+//              [--andring '<json>']  en ändring som window.editor.addChange tar ({"led": "hogerArmbage", "tid": 1.2,
+//                         "flytt": [0.28, 0.05, 0.05]}; tid i filmens sekunder), lagd efter --spara och före bilderna, utan
+//                         att sparas; flera gånger för flera ändringar
 //              [--kor "<uttryck>"]  räknar ett uttryck i sidan (window.editor …) efter att allt ovan är ställt, och skriver
 //                         svaret som JSON; går också utan --ut och --spela-in
 //   Kameror: spel (spelets vy, plats 4: standarden; det äldre namnet lag går också), plats1 … plats7 (samma vy från
@@ -38,6 +41,8 @@ const ROOT = fileURLToPath(new URL('../../', import.meta.url)), LOCK = path.join
 const PORT = Number(arg('--port', '4321')), plats = Number(arg('--plats', '4')), [W, H] = arg('--storlek', '1600x1000')!.split('x').map(Number);
 const kameror = arg('--kamera', 'spel')!.split(',').filter(Boolean), tider = arg('--tider', '0')!.split(',').map(Number), ut = arg('--ut'), spelaIn = arg('--spela-in');
 const fart = (arg('--fart', '') ?? '').split(',').filter(Boolean).map(x => x.split(':').map(Number)), utan = (arg('--utan', '') ?? '').split(',').filter(Boolean);
+const andringar = process.argv.flatMap((x, i) => x === '--andring' ? [JSON.parse(process.argv[i + 1] ?? 'null')] : []);
+if (andringar.some(a => !a || typeof a !== 'object' || typeof a.led !== 'string')) throw Error('--andring tar en ändring som JSON med minst "led".');
 const kor = arg('--kor'), naraFran = arg('--nara-fran')?.split(',').map(Number), NARA: Record<string, string> = {narahoger: 'hogerHand', naravanster: 'vansterHand', narakort: 'kort'};
 if (!spelaIn && !ut && !kor) throw Error('Säg vart bilderna ska: --ut <mapp>, eller --spela-in hela|given|<första>-<sista>, eller --kor "<uttryck>".');
 if (naraFran && (naraFran.length !== 3 || !naraFran.every(Number.isFinite))) throw Error('--nara-fran tar tre tal: x,y,z i meter.');
@@ -70,6 +75,7 @@ try {
   for (const vad of utan) await kör(`window.editor.visa(${JSON.stringify(vad)}, false)`);
   if (arg('--liv')) await kör(`window.editor.liv(${JSON.stringify(arg('--liv')!.split(',').filter(Boolean))}, ${Number(arg('--fro', '1'))})`);
   if (flag('--spara')) console.log(`Sparat: ${JSON.stringify(await kör('window.editor.save()'))}`);
+  for (const a of andringar) await kör(`window.editor.addChange(${JSON.stringify(a)})`);
 
   if (kor) console.log(JSON.stringify(await kör(kor), null, 1));
   if (spelaIn) {

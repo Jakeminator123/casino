@@ -5,6 +5,7 @@
 // linsvärld (y upp, filten på y = 0, kameran mot -z), per ruta `L`/`R` (`s` axel, `e` armbåge, `w` handled, `p` handens
 // 21 punkter i MediaPipes ordning), `h` huvudet, `g` blicken och `card` (`c` mitt, `l` långsida, `n` normal). R är
 // dealerns högra sida, L hans vänstra.
+import {brott, hallInom, type Granser, type Slag, type Stopp} from './kropp.ts';
 
 export type V3 = [number, number, number];
 /** En vridning som kvaternion: x, y, z, w. */
@@ -230,12 +231,59 @@ export function foljerKortet(b: BlickTider, t: number): number {
 }
 /**
  * Ställningen vid tiden t: grundrörelsen, blicken mot kameran `kamera` (ett läge i världen) utom när han följer kortet,
- * och ändringarna ovanpå. Utan kamera är blicken rörelsens egen.
+ * och ändringarna ovanpå. Utan kamera är blicken rörelsens egen. Med `granser` (kroppens mått och bordet) hålls det
+ * ändringarna gör inom kroppen, bordet och lederna (kropp.ts); grundrörelsen själv rörs aldrig.
  */
-export function stallning(f: Foljd, t: number, andringar: readonly Andring[], kamera: readonly number[] | null = null, liv?: Liv): Frame {
+export function stallning(f: Foljd, t: number, andringar: readonly Andring[], kamera: readonly number[] | null = null, liv?: Liv, granser?: Granser): Frame {
+  return stallningOchStopp(f, t, andringar, kamera, liv, granser).frame;
+}
+/** Vilken arm en led hör till. */
+const ARM: Record<Led, 'R' | 'L' | null> = {hogerHand: 'R', hogerArmbage: 'R', vansterHand: 'L', vansterArmbage: 'L', blick: null};
+/**
+ * Som `stallning`, och vad spärren höll emot. Den verkar bara på en arm som en ändring rör vid tiden t, och jämför med
+ * samma ställning utan ändringar: där ingen ändring verkar på en arm är rutan exakt som utan spärren.
+ */
+export function stallningOchStopp(f: Foljd, t: number, andringar: readonly Andring[], kamera: readonly number[] | null = null, liv?: Liv, granser?: Granser): {frame: Frame; stopp: Stopp[]} {
   const {frame, held, stilla} = rutaVid(f, t);
   if (kamera) frame.g = mix(kamera, frame.g, foljerKortet(f.blick, t));
-  return medLiv(medAndringar(frame, held, t, andringar), t, f, liv, held, stilla);
+  const sidor = granser ? [...new Set(andringar.filter(a => ARM[a.led] && vikt(a, t) > 0).map(a => ARM[a.led]!))] : [];
+  const utan = sidor.length ? medLiv(kopia(frame), t, f, liv, held, stilla) : null, med = medLiv(medAndringar(frame, held, t, andringar), t, f, liv, held, stilla);
+  return utan && granser ? hallInom(utan, med, held, f.hip, granser, sidor) : {frame: med, stopp: []};
+}
+/** Vridningen som för en hand (21 punkter) till en annan, kring handleden: ur handens egna axlar (mot långfingrets knoge och tvärs knogarna) i båda. */
+function handvridning(fran: number[][], till: number[][]): Q {
+  const axlar = (p: number[][]) => { const f = norm(sub(p[9], p[0])), t = sub(p[5], p[17]), s = norm(sub(t, mul(f, dot(t, f)))); return [f, s, cross(f, s)]; };
+  const A = axlar(fran), B = axlar(till), R = [0, 1, 2].map(i => [0, 1, 2].map(j => B[0][i] * A[0][j] + B[1][i] * A[1][j] + B[2][i] * A[2][j]));
+  const sp = R[0][0] + R[1][1] + R[2][2];
+  if (sp > 0) { const S = Math.sqrt(sp + 1) * 2; return [(R[2][1] - R[1][2]) / S, (R[0][2] - R[2][0]) / S, (R[1][0] - R[0][1]) / S, S / 4]; }
+  if (R[0][0] > R[1][1] && R[0][0] > R[2][2]) { const S = Math.sqrt(1 + R[0][0] - R[1][1] - R[2][2]) * 2; return [S / 4, (R[0][1] + R[1][0]) / S, (R[0][2] + R[2][0]) / S, (R[2][1] - R[1][2]) / S]; }
+  if (R[1][1] > R[2][2]) { const S = Math.sqrt(1 + R[1][1] - R[0][0] - R[2][2]) * 2; return [(R[0][1] + R[1][0]) / S, S / 4, (R[1][2] + R[2][1]) / S, (R[0][2] - R[2][0]) / S]; }
+  const S = Math.sqrt(1 + R[2][2] - R[0][0] - R[1][1]) * 2; return [(R[0][2] + R[2][0]) / S, (R[1][2] + R[2][1]) / S, S / 4, (R[1][0] - R[0][1]) / S];
+}
+/**
+ * Det en ändring faktiskt gjorde där spärren höll emot vid dess tid: läget med den (spärrat) minus läget utan den, och
+ * för en hand som spärren vred tillbaka också vridningen. Skrivs in i ändringen när han släpper, så att nästa drag börjar
+ * där armen står. null när inget hölls emot på den armen; då står ändringen som den är.
+ */
+export function somDenBlev(f: Foljd, a: Andring, andringar: readonly Andring[], kamera: readonly number[] | null, liv: Liv | undefined, granser: Granser): {flytt: V3; vrid: Q | null} | null {
+  const s = ARM[a.led]; if (!s) return null;
+  const med = stallningOchStopp(f, a.tid, andringar, kamera, liv, granser), egna = med.stopp.filter(x => ARM[x.led] === s); if (!egna.length) return null;
+  const utan = stallning(f, a.tid, andringar.filter(x => x !== a), kamera, liv, granser)[s], ny = med.frame[s], w = vikt(a, a.tid) || 1;
+  if (a.led === 'hogerArmbage' || a.led === 'vansterArmbage') return {flytt: mul(sub(ny.e, utan.e), 1 / w), vrid: a.vrid};
+  return {flytt: mul(sub(ny.w, utan.w), 1 / w), vrid: egna.some(x => x.orsak === 'handleden') ? handvridning(utan.p, ny.p) : a.vrid};
+}
+/**
+ * Var grundrörelsen själv (utan ändringar) går utanför gränserna, per arm och slag (kropp.ts brott: millimeter eller
+ * grader): i hur många rutor, värst hur mycket och i vilken ruta, och första och sista rutan. `tid` räknar en ruta om
+ * till filmens tid. Rättar ingenting; till för den som ritar om grundrörelserna.
+ */
+export function grundensBrott(f: Foljd, granser: Granser, tid: (grundtid: number) => number = t => t) {
+  type Fynd = {rutor: number; varst: number; ruta: number; tid: number; fran: number; till: number};
+  const ut: Record<'R' | 'L', Partial<Record<Slag, Fynd>>> = {R: {}, L: {}}, sek = (i: number) => Math.round(tid(i / f.fps) * 100) / 100;
+  f.frames.forEach((frame, i) => { const b = brott(frame, f.hip, granser); for (const s of ['R', 'L'] as const) for (const [slag, v] of Object.entries(b[s]) as [Slag, number][]) { if (!(v > 0)) continue;
+    const x = ut[s][slag] ??= {rutor: 0, varst: 0, ruta: i, tid: 0, fran: i, till: i}; x.rutor++; x.till = i; if (v > x.varst) { x.varst = v; x.ruta = i; } } });
+  for (const s of ['R', 'L'] as const) for (const x of Object.values(ut[s])) { x.tid = sek(x.ruta); x.fran = sek(x.fran); x.till = sek(x.till); }
+  return {rutor: f.frames.length, enheter: 'millimeter, utom armbagen och handleden i grader; tid, fran och till i filmens sekunder', hoger: ut.R, vanster: ut.L};
 }
 
 // ---- de små egna rörelserna ------------------------------------------------------------------------------------
@@ -283,11 +331,12 @@ export function medLiv(frame: Frame, t: number, f: Foljd, liv: Liv | undefined, 
  * Hela den ändrade rörelsen i grundrörelsernas format (dealer3d/data), ruta för ruta, så att den kan läggas in i de
  * andra mapparna. Givens ögonblick (kortet lämnar skon, vänds, ligger) räknas om till följdens rutor.
  */
-export function rutor(f: Foljd, sparad: Sparad, kamera: readonly number[] | null, rattning: string, T: Takt = taktFor(f, sparad.fart)) {
+export function rutor(f: Foljd, sparad: Sparad, kamera: readonly number[] | null, rattning: string, T: Takt = taktFor(f, sparad.fart), granser?: Granser) {
   const r4 = (a: number[]) => a.map(n => Math.round(n * 10000) / 10000), off = f.forskjutning, b = f.andra;
-  // Rutorna tas i filmens takt; givens ögonblick (grundrörelsens rutor) räknas om till filmens rutor.
+  // Rutorna tas i filmens takt; givens ögonblick (grundrörelsens rutor) räknas om till filmens rutor. Med `granser` är
+  // ändringarna hållna inom kroppen, bordet och lederna, som i editorn.
   const antal = Math.round(T.langd * f.fps) + 1, ruta = (grundruta: number) => Math.round(T.ut(grundruta / f.fps) * f.fps);
-  const frames = Array.from({length: antal}, (_, i) => { const x = stallning(f, T.grund(i / f.fps), sparad.andringar, kamera, sparad.liv), limb = (l: Limb) => ({s: r4(l.s), e: r4(l.e), w: r4(l.w), k: l.k, p: l.p.map(r4)});
+  const frames = Array.from({length: antal}, (_, i) => { const x = stallning(f, T.grund(i / f.fps), sparad.andringar, kamera, sparad.liv, granser), limb = (l: Limb) => ({s: r4(l.s), e: r4(l.e), w: r4(l.w), k: l.k, p: l.p.map(r4)});
     return {card: {c: r4(x.card.c), l: r4(x.card.l), n: r4(x.card.n)}, L: limb(x.L), R: limb(x.R), h: r4(x.h), g: r4(x.g)}; });
   return {about: `${sparad.namn}: ${sparad.grund.join(' och sedan ')} efter varandra (skarven utjämnad i standarddocka/editor/rorelse.ts), ${rattning}, blicken mot kameran ${kamera ? r4([...kamera]).join(', ') : '(rörelsens egen)'} utom när kortet är på väg, farten per del ${T.fart.join(', ')} gånger grundrörelsens, och ${sparad.andringar.length} ändringar från editorn i standarddocka. Samma fält som dealer3d/data.`,
     film: `a1-a23-p${f.plats}c1`, pose: 'A1', to: `P${f.plats}.C1`, fps: f.fps, frameCount: frames.length, leavesShoe: ruta(off + b.leavesShoe), edge: b.edge.map(n => ruta(off + n)), folds: ruta(off + b.folds), rests: ruta(off + b.rests),

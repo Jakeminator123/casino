@@ -1673,6 +1673,77 @@
         "at": "2026-11-26T08:13:51.112Z"
       },
       "read": "2026-11-26T08:13:51.112Z"
+    },
+    {
+      "id": 170,
+      "proof": "sitthojd-20261126",
+      "file": "7-fran-sidan-35-cm.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-26T08:22:35.346Z",
+      "read": "2026-11-26T08:35:42.059Z"
+    },
+    {
+      "id": 171,
+      "proof": "sitthojd-20261126",
+      "file": "8-uppifran-31-cm.png",
+      "choice": null,
+      "text": "Bran, men altså bodet se lite för tillspetsat ut väl? ska lixom inte palceringarna för där korten hamnar följa med frammåt med att dealer kmmer fram, men också sko/kort?",
+      "at": "2026-11-26T08:23:19.802Z",
+      "answer": {
+        "text": "Ja, du har rätt, jag mätte: händerna når då in över dealerns kortplatser. Det löses åt andra hållet: dockan sitter kvar där kortplanen räknar med, och bordets kant och brickan kommer 8 cm närmare honom. Då flyttas inget i din plan och skon står kvar. Bordets form (för djupt mot plats 4) visar jag i bild med ett grundare bord innan något ändras.",
+        "at": "2026-11-26T08:35:41.674Z"
+      },
+      "read": "2026-11-26T08:35:41.674Z"
+    },
+    {
+      "id": 172,
+      "proof": "sitthojd-20261126",
+      "file": "6-fran-sidan-31-cm.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-26T08:23:23.875Z",
+      "read": "2026-11-26T08:35:42.441Z"
+    },
+    {
+      "id": 173,
+      "proof": "sitthojd-20261126",
+      "file": "4-axlarna-35-cm-over-filten.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T08:23:40.573Z",
+      "read": "2026-11-26T08:35:42.847Z"
+    },
+    {
+      "id": 174,
+      "proof": "sitthojd-20261126",
+      "file": "3-axlarna-31-cm-over-filten.png",
+      "choice": null,
+      "text": "i denna possition som sr \"okej\" ut ås ska väl händerna mer vara i samam riktning som unerarmarna väl?",
+      "at": "2026-11-26T08:24:10.995Z",
+      "answer": {
+        "text": "Ja. Du har valt: axlarna 31 cm över filten. I vilan ska handen peka som underarmen, utan vinkel i handleden; det ritas om så, med fingrarna lätt böjda i stället för raka.",
+        "at": "2026-11-26T08:35:41.325Z"
+      },
+      "read": "2026-11-26T08:35:41.325Z"
+    },
+    {
+      "id": 175,
+      "proof": "sitthojd-20261126",
+      "file": "2-axlarna-27-cm-over-filten.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T08:24:25.994Z",
+      "read": "2026-11-26T08:35:43.234Z"
+    },
+    {
+      "id": 176,
+      "proof": "sitthojd-20261126",
+      "file": "1-axlarna-23-cm-over-filten-som-i-dag.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T08:24:26.817Z",
+      "read": "2026-11-26T08:35:43.581Z"
     }
   ]
 }

@@ -7,14 +7,15 @@
 //   ?giv=<namn>[&vilan=<namn>]   en grundrörelse på prov i stället för platsens (se PROV nedan)
 // window.editor (för kontrollen och verktyget ../verktyg/titta.ts): ready, setTime(t), setKamera(k), nara(vad, från), state(), addChange({...}),
 // removeChange(id), undo(), save(), kula(led), visa(vad, på), tillSparat(), tillGrund(), fart(del, gånger),
-// spelaIn(kameror, förstaDel, sistaDel).
+// spelaIn(kameror, förstaDel, sistaDel), granskaGrund().
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import type {Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
-import {FART, GIVAR, LEDER, LEDNAMN, LIVSDELAR, TILL_SKON, VARAR, foljerKortet, rutor, sattIhop, stallning, taktFor, vikt, type Andring, type Foljd, type Frame, type Led, type Liv, type Livsdel, type Motion, type Q, type Sparad, type V3} from './rorelse.ts';
+import {FART, GIVAR, LEDER, LEDNAMN, LIVSDELAR, TILL_SKON, VARAR, foljerKortet, grundensBrott, rutor, sattIhop, somDenBlev, stallning, stallningOchStopp, taktFor, vikt, type Andring, type Foljd, type Frame, type Led, type Liv, type Livsdel, type Motion, type Q, type Sparad, type V3} from './rorelse.ts';
 import {byggScen, kameraVy, kameransPlats, platskamera, somKamera, type Docka, type Kamera, type Scen, type Utseende} from './scen.ts';
-import {ARMAR, lyftArmar, matArmar} from './armar.ts';
+import {ARMAR, lyftArmar, matArmar, matKropp} from './armar.ts';
+import type {Granser, Stopp} from './kropp.ts';
 
 const query = new URLSearchParams(location.search);
 /** Platsen kortet ges till (varje plats har sin egen rörelse och sina egna sparade ändringar). */
@@ -39,7 +40,7 @@ const sek = (t: number) => t.toFixed(2).replace('.', ',') + ' s';
 type Visa = 'bord' | 'stol' | 'platser';
 type Klipp = {fil: string; rutor: number; bytes: number};
 type Api = {ready: boolean; setTime(t: number): void; setKamera(k: Kamera): void; nara(vad: 'hogerHand' | 'vansterHand' | 'kort', fran?: V3): void; state(): unknown; addChange(a: Partial<Andring> & {led: Led}): string; removeChange(id: string): void; undo(): void; save(): Promise<unknown>; visa(vad: Visa, på: boolean): void; kula(led: Led): {x: number; y: number};
-  tillSparat(): void; tillGrund(): void; fart(del: number, ganger: number): void; liv(delar: Livsdel[], fro?: number): void; spelaIn(kameror: Kamera[], fran: number, till: number): Promise<Klipp[]>};
+  tillSparat(): void; tillGrund(): void; fart(del: number, ganger: number): void; liv(delar: Livsdel[], fro?: number): void; spelaIn(kameror: Kamera[], fran: number, till: number): Promise<Klipp[]>; granskaGrund(): unknown};
 declare global { interface Window { editor: Api } }
 const api: Api = {ready: false} as Api; window.editor = api;
 
@@ -106,11 +107,19 @@ let sparadVarning = '';
 let inspelning: {avbryt: boolean} | null = null;
 const angraLista: string[] = [];
 let nu: Frame = stallning(foljd, tak.grund(tid), sparad.andringar, blickKamera(), sparad.liv);
+/**
+ * Kroppens gränser (kropp.ts; Jakob 2026-11-26 om en armbåge dragen in i bålen: "Sånna här rörelser ska ju bara inte
+ * gå"): mätta på dockan när bordet har kommit. Det han drar i stannar vid kroppen, bordet och vad en led kan, och
+ * `stoppNu` är vad som hölls emot i ställningen som visas.
+ */
+let granser: Granser | undefined, stoppNu: Stopp[] = [];
 const nyId = () => Math.random().toString(36).slice(2, 9);
 const visaKulor = () => $<HTMLInputElement>('#kulor').checked;
 
 // Ansiktet vrids ända fram mot kameran när han inte följer kortet (scen.ts pose): då ser han in i den, inte under den.
-function stall() { const grundtid = tak.grund(tid); nu = stallning(foljd, grundtid, sparad.andringar, blickKamera(), sparad.liv); scen.pose(nu, foljd.hip, 1 - foljerKortet(foljd.blick, grundtid)); }
+function stall() { const grundtid = tak.grund(tid), r = stallningOchStopp(foljd, grundtid, sparad.andringar, blickKamera(), sparad.liv, granser); nu = r.frame; stoppNu = r.stopp; scen.pose(nu, foljd.hip, 1 - foljerKortet(foljd.blick, grundtid)); visaStopp(); }
+/** En rad i bilden om vad som tog emot, i vanliga ord; borta när inget stoppas och under en inspelning. */
+function visaStopp() { const box = $('#stopp'), text = inspelning ? '' : [...new Set(stoppNu.map(s => s.text))].join(' '); box.textContent = text; box.style.display = text ? 'block' : 'none'; }
 /** Handtagen där mannens leder och blicken är nu (utom det som dras). */
 function handtagTill() {
   // Blickens kula står BLICK meter framför ansiktet åt det håll han ser (blickpunkten själv kan ligga i kameran).
@@ -214,6 +223,8 @@ flytta.addEventListener('objectChange', () => {
 flytta.addEventListener('mouseUp', () => {
   if (!drag) return; const a = drag.a, rörd = Math.hypot(...a.flytt.map((n, i) => n - drag!.flytt0[i])) > 1e-5 || JSON.stringify(a.vrid) !== JSON.stringify(drag.vrid0);
   if (!rörd) { if (drag.ny) sparad.andringar = sparad.andringar.filter(x => x !== a); angraLista.pop(); drag = null; handtagTill(); rita(); return; }
+  // Höll spärren emot blir ändringen det som faktiskt blev, så att nästa drag börjar där armen står.
+  const blev = granser ? somDenBlev(foljd, a, sparad.andringar, blickKamera(), sparad.liv, granser) : null; if (blev) { a.flytt = blev.flytt; a.vrid = blev.vrid; }
   if (Math.hypot(...a.flytt) < 1e-6 && (!a.vrid || Math.abs(a.vrid[3]) > 0.999999)) sparad.andringar = sparad.andringar.filter(x => x !== a); // tillbaka där den var: ingen ändring
   drag = null; handtag[a.led].quaternion.identity(); ändrat();
 });
@@ -353,8 +364,8 @@ async function sparaFiler() {
   $('#status').textContent = 'Sparar …';
   // Armarna mäts på den färdiga rörelsen, med hans ändringar i: regeln rättar bara grundrörelsen, och en hand han har
   // dragit i kan föra underarmen ned i kanten igen. Måtten sparas med rutorna, och han får veta om en arm går igenom.
-  const rattning = `armbågarna vridna ut och upp av editorns regel (standarddocka/editor/armar.ts, minst ${ARMAR.luft * 100} cm luft i grundrörelsen); luften på den färdiga rörelsen står i fältet armar`;
-  const data = rutor(foljd, fil, blickKamera(), rattning, tak), armarNu = matArmar(data.frames as unknown as Frame[], foljd.hip, scen, bord), genom = armarNu.R.genomRutor + armarNu.L.genomRutor; stall();
+  const rattning = `armbågarna vridna ut och upp av editorns regel (standarddocka/editor/armar.ts, minst ${ARMAR.luft * 100} cm luft i grundrörelsen), ändringarna hållna inom kroppen, bordet och lederna (standarddocka/editor/kropp.ts); luften på den färdiga rörelsen står i fältet armar`;
+  const data = rutor(foljd, fil, blickKamera(), rattning, tak, granser), armarNu = matArmar(data.frames as unknown as Frame[], foljd.hip, scen, bord), genom = armarNu.R.genomRutor + armarNu.L.genomRutor; stall();
   const svar = [await put(SPARAS, fil), await put(RUTOR, {...data, armar: armarNu})];
   sparadVarning = genom ? ` Obs: en underarm går genom bordets kant i ${genom} rutor (höger ${armarNu.R.genomRutor}, vänster ${armarNu.L.genomRutor}).` : '';
   sparatLage = ogonblick(); osparat = false; sparadKl = new Date().toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'}); visaStatus(); return svar;
@@ -407,9 +418,13 @@ const bord = await scen.bord;
 // Armarna över bordskanten: grundrörelsen rättas en gång när bordet (och därmed dess kant) är på plats.
 laddarText('armarna över bordskanten'); await new Promise(r => setTimeout(r, 0));
 const armar = lyftArmar(foljd, scen, bord);
+// Kroppens mått för spärren, på den docka som visas, i vilan (rörelsens första ruta).
+laddarText('kroppens mått');
+granser = {matt: matKropp(scen, foljd.frames[0], foljd.hip), bord};
 $('#laddar').style.display = 'none'; ritaNu(); requestAnimationFrame(steg);
 console.log('Kortplatserna, planen mot bordets tryckta (mm):', JSON.stringify(bord));
 console.log('Armarna över bordskanten, före och efter (minsta luft i mm):', JSON.stringify(armar));
+console.log('Kroppens mått för spärren:', granser.matt);
 
 Object.assign(api, {
   setTime: (t: number) => { spela(false); setTime(t); ritaNu(); },
@@ -425,10 +440,12 @@ Object.assign(api, {
   fart: (del: number, ganger: number) => { sattFart(del, ganger); ritaNu(); },
   liv: (delar: Livsdel[], fro?: number) => { sattLiv(delar, fro); ritaNu(); },
   spelaIn,
+  // Var grundrörelsen själv, utan ändringar, går utanför kroppens gränser (rorelse.ts grundensBrott). Rättar ingenting.
+  granskaGrund: () => granser ? grundensBrott(foljd, granser, tak.ut) : null,
   // Var en kula syns i fönstret (bildpunkter), så att kontrollen kan dra i den med musen.
   kula: (led: Led) => { const p = handtag[led].position.clone().project(camera), r = canvas.getBoundingClientRect(); return {x: r.left + (p.x + 1) / 2 * r.width, y: r.top + (1 - p.y) / 2 * r.height}; },
   state: () => {
-    const p = (v: T.Vector3) => [v.x, v.y, v.z].map(n => Math.round(n * 10000) / 10000), hips = scen.bone('Hips');
+    const p = (v: T.Vector3) => [v.x, v.y, v.z].map(n => Math.round(n * 10000) / 10000), hips = scen.bone('Hips'), mm = (n: number) => Math.round(n * 1000) / 1000;
     const grundtid = tak.grund(tid);
     // Hur långt modellens fingerleder ligger från rörelsens handpunkter (mm): knoge, mellanled och ytterled per finger,
     // tummen först. Punkterna är rörelsens (Paows hand); lederna är dockans egna, så skillnaden är vad kroppen inte följer.
@@ -441,7 +458,10 @@ Object.assign(api, {
       blick: {mot: blickMot(), foljerKortet: Math.round(foljerKortet(foljd.blick, grundtid) * 100) / 100, tider: foljd.blick, punkt: nu.g},
       hoft: {rorelsen: foljd.hip, mannen: p(hips), skillnadMm: Math.round(hips.distanceTo(new T.Vector3(...foljd.hip)) * 1000)},
       leder: {hogerHand: p(scen.bone('RightHand')), vansterHand: p(scen.bone('LeftHand')), hogerArmbage: p(scen.bone('RightForeArm')), vansterArmbage: p(scen.bone('LeftForeArm')), huvud: p(scen.bone('Head')), hogerLar: p(scen.bone('RightUpLeg')), hogerKna: p(scen.bone('RightLeg')), hogerFot: p(scen.bone('RightFoot'))},
-      malHogerHand: nu.R.w, malVansterHand: nu.L.w, kort: nu.card.c, vikter: sparad.andringar.map(a => ({id: a.id, vikt: vikt(a, grundtid)}))};
+      malHogerHand: nu.R.w, malVansterHand: nu.L.w, kort: nu.card.c, vikter: sparad.andringar.map(a => ({id: a.id, vikt: vikt(a, grundtid)})),
+      // Vad spärren höll emot vid tiden som visas (led, vad som tog emot, hur mycket, och raden i bilden).
+      sparr: {klar: !!granser, stopp: stoppNu, matt: granser && (({bal, huvud, armar: a}) => ({balensHojd: [bal.y0, bal.y0 + (bal.skivor.length - 1) * bal.dy].map(mm), skivor: bal.skivor.length, huvud: {c: huvud.c.map(mm), r: mm(huvud.r)},
+        armar: Object.fromEntries((['R', 'L'] as const).map(s => [s, {axel: a[s].axel.map(mm), over: mm(a[s].over), under: mm(a[s].under), tjockUnder: a[s].tjockUnder.map(mm)}]))}))(granser.matt)}};
   },
 });
 api.ready = true;

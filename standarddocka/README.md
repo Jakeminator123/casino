@@ -24,11 +24,15 @@ standarddocka/
     scen.ts     scenen: dockan (mannen eller kvinnan) i standardrummet (bordet, stolen och ljuset ur
                 ../blackjack-dealer/dealer3d/src/standard-room.ts, samma som studions dockvy ritar), kortet, kamerorna
     rorelse.ts  rörelsen: grundrörelser efter varandra, skarven utjämnad, ändringarna ovanpå, vem som håller kortet
-    armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp)
+    armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp), och kroppens mått tagna
+                på dockans hud (bålen som skivor, huvudet, axellederna, armens tjocklek) för spärren
+    kropp.ts    spärren: det han drar i hålls inom vad en kropp kan (ingen arm genom bålen, huvudet eller bordet,
+                ingen hand i filten eller bortom armens räckvidd, armbågen och handleden inom sina lägen); ren kod
   verktyg/      för agenter, utan fönster (hur de används: skillen granska-rorelse, ../.claude/skills/granska-rorelse/)
     titta.ts    stillbilder ur valda kameror vid valda tider, med editorns mått, eller en inspelning; närbilder av en
-                hand eller kortet (kamerorna narahoger, naravanster, narakort); `--kor` räknar ett uttryck i sidan
-                och skriver svaret; kör editorn i ett headless Chrome under det delade låset
+                hand eller kortet (kamerorna narahoger, naravanster, narakort); `--andring '<json>'` lägger en
+                ändring före bilderna utan att spara den; `--kor` räknar ett uttryck i sidan och skriver svaret;
+                kör editorn i ett headless Chrome under det delade låset
     mat.ts      mäter en rörelse ruta för ruta mot vad en hand och ett kort kan göra: fingrar i kortet eller filten,
                 kortet utan stöd, plötsliga vändningar, ryck, hopp på en ruta, landningen; ingen webbläsare. `--alla`
                 är spärren före en inspelning: alla sju platser, en rad var, och rött om någon har ett finger genom
@@ -56,6 +60,14 @@ plats har sina egna sparade ändringar.
   (`seatEye` i `../blackjack-dealer/dealer3d/src/world.ts`); plats 4 är spelets kamera.
 - **Dockan:** mannen eller kvinnan (knapparna "Dockan", eller `?docka=kvinna`). De har samma skelett och en rörelse är
   händernas, armarnas och blickens lägen i rummet, så båda gör samma rörelser och delar det som sparas.
+- **Spärren** (Jakob 2026-11-26: "Sånna här rörelser ska ju bara inte gå"): det han drar i stannar vid kroppen,
+  bordet och vad en led kan, och en rad överst i bilden säger vad som tog emot, till exempel "Höger armbåge kan inte gå
+  längre in: kroppen är i vägen." När han släpper sparas ändringen som det som faktiskt blev, så att nästa drag börjar
+  där armen står. Spärren gäller bara det han ändrar: grundrörelsen utan ändringar är ruta för ruta som förut, och det
+  den själv gör är tillåtet. Kroppens mått tas på mannens eller kvinnans egen hud när sidan laddas. Det sparade går
+  genom samma spärr. `window.editor.granskaGrund()` säger var grundrörelsen själv bryter mot gränserna (till för den
+  som ritar om den), och `state().sparr` vad spärren gjorde vid tiden som visas. Den täcker inte vridningen kring
+  underarmen, karmen, brickans väggar, låren eller stolen.
 - **Återställ:** "Tillbaka till det sparade" kastar det som inte är sparat, "Återställ till grundrörelsen" tar bort alla
   ändringar. Båda går att ångra (Ctrl+Z), och inget skrivs förrän Spara. Det sparade ligger i Git, så en äldre sparad
   version går alltid att hämta tillbaka.
@@ -130,8 +142,10 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 - Dockan sitter för lågt och för långt från bordet (mätt 2026-11-26 på mannen vid det närmare bordet). Axlarna står
   0,23 m över filten (Paows mått), och överarmen är 0,29 m: armbågen får inte plats under axeln när underarmen ska
   gå över bordet, utan måste cirka 16 cm ut åt sidan. Det är de utvinklade armbågarna i vilan. En riktig sittande
-  dealer har axlarna 0,31–0,35 m över bordet. Hur högt dockan sitter är Jakobs val, eftersom huvudet då kommer
-  närmare överkanten i spelets bild: provet `sitthojd-20261126` i studion visar fyra höjder, och det väntar på honom.
+  dealer har axlarna 0,31–0,35 m över bordet. Jakob dömde provet `sitthojd-20261126` (fyra höjder) 2026-11-26:
+  23 och 27 cm Inte bra, 31 cm "okej" i spelets vy och Bra från sidan, 35 cm Bra från sidan men Inte bra i spelets
+  vy, där huvudet klipps. Dockan sitter därför med axlarna 0,31 m över filten. Vid den höjden går låren 11 mm emot
+  bordets sarg med dagens fasta lårriktning (`figure-model.ts`): låren ska luta mer nedåt.
 - Närmare bordet, utan att det blir trångt. Magen har 12 cm luft till kanten (Jakob 2026-11-26: "skjuta in dockorna
   aningen till mot bordet"); 8 cm närmare ger 4 cm. Flyttas dockan fram blir det trångt framför honom, som han såg
   ("du kan med fördel skjuta fram både sko/kort och dess placeringar om du skjuter fram dealern"): fingertopparna i
@@ -174,9 +188,15 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   (kortet ut högst 1 s, handen tillbaka cirka 0,6 s) och med handen vid skon redo: varken lyft och spänd eller slapp.
   Den nya generatorn är `dealer3d/src/ren-giv.ts`. De första nya givarna (`giv-fran-2-3-p<n>c1-ren-a-paow`, ritade
   för dockan paow) klarar spärren på alla sju platserna
-  (`verktyg/mat.ts --alla --giv-monster giv-fran-2-3-p#c1-ren-a-paow`); bara plats 4 är sedd med ögat. Editorn spelar
-  fortfarande de gamla givarna i en snabbare takt, och där är spärren röd på alla sju (finger genom kortet och kortet
-  utan stöd): inget av dem ska filmas för en betald film.
+  (`verktyg/mat.ts --alla --giv-monster giv-fran-2-3-p#c1-ren-a-paow`); bara plats 4 är sedd med ögat. De är ändå
+  inte godkända: en utomstående granskning 2026-11-26 fann, och en egen mätning bekräftade, att höger underarm i fem
+  av de sju blir längre än dockans 275 mm kring landningen (plats 3: 299 mm, plats 4: 355, plats 5: 349, plats 6: 293,
+  plats 7: 363). Generatorn tar armbågen ur armens räkning (`arm()` i `dealer3d/src/body.ts`) men sparar handleden den
+  bad om, också när den ligger utom räckhåll, och varken `granska` eller `mat.ts` prövar benens längd. Kroppen kan
+  alltså inte följa, och kortet hamnar bortom den ritade handen. De ersätts av givarna för standarddockans egen
+  kropp, där bålen lutar så långt räckvidden kräver och benens längd är en spärr. Editorn spelar fortfarande de gamla
+  givarna i en snabbare takt, och där är spärren röd på alla sju (finger genom kortet och kortet utan stöd): inget av
+  dem ska filmas för en betald film.
 - Kroppen följer inte rörelsens punkter (mätt 2026-11-26 på mannen i given till plats 4; måtten står i editorns
   `state()`: `axelFranPunktenMm`, `armbageFranPunktenMm`, `handledFranPunktenMm`, `fingrarFranPunkternaMm`). Axlar och
   handleder ligger rätt, men armbågarna hamnar 15–25 mm och fingrarnas leder 12–26 mm från rörelsens punkter: givarna
