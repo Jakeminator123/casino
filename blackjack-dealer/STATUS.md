@@ -11,9 +11,13 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   ("radera alla filmer och referenser till och med de filmer som härrör till och från nodträdet Casino"): trädet Casino
   med 281 poster, helfigursfilmerna in och ut, 144 filmer här (1,1 GB), deras roller och bilder i Material, 97
   beställningar, de fyra munlapparna och kortspåren. Kopian, kontrollerad mot SHA-256, ligger i mappen
-  `casino-otatuerad-arkiv` bredvid repots mapp; `innehall.json` där säger vad varje fil är, med träd, steg och dom. Utan
-  fil här står nu bara det som väntar på honom (nedan), de låsta beställningarna och ursprungsuppgifter (kvitton,
-  källbilder, scenens mätkällor). Alla kort i Beslut är besvarade. Nätdelen vilar; kopian på nätet står på `c9d006d`
+  `casino-otatuerad-arkiv` bredvid repots mapp; `innehall.json` där säger vad varje fil är, med träd, steg och dom.
+  Registren pekar sedan 2026-11-26 bara på det som finns här (Jakob: "DU får radera typ alla gamla poster eller
+  historiska pekare i studion som går till paow:s filmer som inte finns eller tomma reffs"): 56 poster i 48 filmer (alla
+  25 talfilmer, 17 vilor och sex givar), 35 bilder och filmer i Material, dockans 43 referensfilmer, 26
+  beställningar utan film här och 15 besvarade kort i Beslut vars prov inte finns är borta; domarna på posterna står som
+  rader i `data/motions-removed.jsonl`. Utan fil står bara det som väntar på honom (nedan), läppsynkens prov och
+  ursprungsuppgifter (kvitton, källbilder, scenens mätkällor). Nätdelen vilar; kopian på nätet står på `c9d006d`
   från 2026-11-20, och Blob (`dealer-studio-media`) har kvar cirka 1,3 GB som inget här använder: äldre utgåvors filmer,
   Pamelas filmer, provfilmer och 49 av Casinos talfilmer.
 - **Dealern** är Paow, med de tatuerade händerna (Jakob 2026-11-24: "vi ska köra enbart med hennes nya händer och de
@@ -52,8 +56,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   hennes) och att dockan inte läser ett korts riktning ur planen. Dockans bord ritar markerlådan som en mörk försänkning
   med standardens mått.
 - **Spelet** spelar trädet Tatuerad med nödlösningar där film saknas (`STAND_IN_FILM`). Realtidsmunnen
-  (storlek F) har hans ja men når 12–13 rutor/s på hans RTX 3060 mot 24. Den neutrala munnen gäller alla Paows repliker
-  (hans dömda blackjack med den gamla munnen låg i trädet Casino och finns i arkivet). Dealerbytet har ingen film sedan
+  (storlek F) har hans ja men når 12–13 rutor/s på hans RTX 3060 mot 24. Den neutrala munnen gäller alla Paows repliker,
+  men talfilmerna finns inte här: de 25 tatuerade fanns bara på den stationära och togs ur registren 2026-11-26 (hans
+  dömda blackjack med den gamla munnen låg i trädet Casino och finns i arkivet). Dealerbytet har ingen film sedan
   helfigursfilmerna med de otatuerade händerna togs bort (2026-11-26): spelet hoppar över det och säger att filmen
   saknas. Inga munlappar: alla fyra låg på Casinos filmer. Trailern är pausad (2026-11-17).
 - **3D-dockan:** en dockfilm görs i ett steg (`node tools/doll-order.ts paow P5.C1`, alltid från A2.3; nypet med
@@ -82,9 +87,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Nästa steg
 
-0. **Det tatuerade materialet:** ankarna och 37 filmer är återskapade här ur Runway (väntar på Jakob, nedan). Det som
-   återstår på den stationära: kopieras det hit eller görs det om? Görs det om tas tagningarnas poster bort med
-   `node tools/register.ts remove <id> --why "<text>"`, så att domarna står kvar i `data/motions-removed.jsonl`.
+0. **Det tatuerade materialet:** ankarna och 37 filmer är återskapade här ur Runway. Det som bara fanns på den
+   stationära är borta ur registren (2026-11-26, på hans ord) och görs om här när det behövs: talfilmerna (först en bank
+   av en tatuerad vila som finns här), vilorna och dockans referensfilmer (`node tools/doll-order.ts`).
 1. **Film:** fyll Tatuerad från A2.3: plats 7 (händerna vände inte kortet) och filmen som vänder upp D.C1 (utkastet
    `paow-halkort-06`). Sedan A2.1 igen med EN pilot som han ser i spelstorlek först. En nästan bra film görs om "bara
    litegranna"; givens tid cirka 1,3 s ut och 0,8 s tillbaka (2026-11-23, 2026-11-24).
@@ -103,7 +108,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    återbrukar bara kort 2.
 4. **Spelet:** bara trädet när filmerna finns (lånen stryks), och en hel giv får hans ja i spelstorlek. För talet är
    läpparna i realtid på hans RunPod huvudmålet (2026-11-17), och talfilmerna förs in i nodträdet (2026-11-24). Hans
-   idé, obyggd: munnen ur hennes egen leendefilm (Tatuerads `paow-vila-tat-03-01`). Mungiporna och överläppen är inte lösta i hans ögon.
+   idé, obyggd: munnen ur hennes egen leendefilm (Tatuerads `paow-vila-tat-03-01`, som bara fanns på den stationära). Mungiporna och överläppen är inte lösta i hans ögon.
 5. **Kort:** kortets efterarbete i förväg per film (2026-11-17); grafiken på kortet prövad mot alla filmer
    (2026-11-23, `/kortlandning.html`).
 6. **Studion:** färre val, det uppenbart dubbla bort först: Casinos adress `/game/`, och verktygens meddelanden till
@@ -177,12 +182,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   längre ut) och byggt, och sitthöjden är dömd (axlarna 31 cm över filten). Nästa han får se är mannens nya giv som film
   i Granska. Arbetet med bordet, blicken och rörelserna sker i `../standarddocka/` och visas för honom som prov härifrån;
   hans ord står som krav i `../standarddocka/AGENTS.md`.
-- Det som bara finns på den stationära, och som registren behåller tills han har bestämt om det kopieras hit eller görs
-  nytt: 51 bra tagningar utan film (alla Tatuerads, varav alla 25 talfilmer, vilan `paow-vila-tat-09-01` och fem delade
-  vilor), ankarnas originalfiler, keystones och hans egna bilder, kortets textur och 43 av dockans
-  referensfilmer. Talets nästa replik behöver en bank av Tatuerads vila `paow-vila-tat-01-01` (`data/speech.json`;
-  Casinos vila, som banken var byggd av, är borta). En beställning behöver texturen och
-  dockans filmer.
+- Om det som Material behåller utan fil ska kopieras hit från den stationära: hans två bilder av henne, hennes två
+  keystones och kortets textur (`assets/cards/kortets-textur.png`), som en ny beställning ritar kortet med. Allt annat
+  som bara fanns där är borta ur registren sedan 2026-11-26. Talets nästa replik behöver en bank av en tatuerad vila som
+  finns här: `data/speech.json` pekar ännu på `paow-vila-tat-01-01`, som inte gör det.
 - Återskapat här ur Runways leveranser (2026-11-25; Runway behåller en leverans cirka fem dygn, och den hämtas gratis
   med uppdragets id): ankarna A1 `paow-vila-tatuerad`, A2.1 `paow-nyp-tatuerad`, A2.3 `paow-ankare-2-3-d`, `-c` och
   `-marke` och stolarnas sex, som rutor ur filmerna, och 37 filmer genom `tools/film-after.ts`: Tatuerad har film
@@ -208,8 +211,8 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   `lift.ts`, `deal-film.ts`, `pose-film.ts`, `doll-pose.ts`, `docka-hand.ts`).
 - Trädet Tatuerad har ingen egen film för A2.3 → A3P4C2: de godkända tagningarna dit (`…-p4-c2-stol-…`) är stolarnas
   och spelas inte rakt, så Inspelning och Scen visar den spelet spelar. Han väljer om de ska in.
-- Hans dom på `paow-giv-2-3-d-03-01` och `paow-halkort-05-01` (filmerna finns nu här). På den stationära: den neutrala
-  blackjack-repliken (`paow-tal-blackjack-tat-sv-01`), stolsserien (Prov `stolsserien-p4c2-20261124`) och andelarna för skjut och nyp i Karta.
+- Hans dom på `paow-giv-2-3-d-03-01` och `paow-halkort-05-01` (filmerna finns här), och andelarna för skjut och nyp i
+  Karta.
 
 ## Kända brister
 
