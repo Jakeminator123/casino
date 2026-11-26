@@ -21,8 +21,9 @@ type Limb = {s: number[]; e: number[]; w: number[]; k: number; p: number[][]};
 export type Read = {film: string; fps: number; frameCount: number; leavesShoe: number; edge: number[]; folds: number; rests: number; hip: number[]; laid?: {from: number; c: number[]; l: number[]; n: number[]}[]; frames: {card: {c: number[]; l: number[]; n: number[]; id?: number}; L: Limb; R: Limb; h: number[]; g?: number[]}[]; doll?: string}; // g: where she looks in that frame, if the film says (dealer3d/tools/pose-film.ts); without it her eyes follow the card. card.id and laid: a film of several cards (dealer3d/tools/deal-film.ts) says which card is in play and which lie, each from its frame
 export type View = 'film' | number | {round: number}; // the bank's camera, a seat 1-7 (seat 4 is the bank's camera), or the bank's camera carried that many degrees round the dealer
 const COLOUR = {
-  room: {ground: 0x101214, felt: 0x1f7045, rail: 0x3a2417, wood: 0x2a1a10, figure: 0xe6e1d8, shoe: 0x1b1c1f, mark: 0xd8c27a, fog: 0x101214},
-  plain: {ground: 0x767d84, felt: 0xb4b9bd, rail: 0xb4b9bd, wood: 0x9aa0a5, figure: 0xf3f1ec, shoe: 0x2a2c30, mark: 0xb4b9bd, fog: 0x767d84},
+  // well, brass, chips: the chip tray's well, its rim and its rows of chips from the outermost row in (the small chips outermost)
+  room: {ground: 0x101214, felt: 0x1f7045, rail: 0x3a2417, wood: 0x2a1a10, figure: 0xe6e1d8, shoe: 0x1b1c1f, mark: 0xd8c27a, fog: 0x101214, well: 0x15120f, brass: 0xb8923f, chips: [0xe8e4da, 0xa8242c, 0x2a7a4c, 0x222326, 0x5a3187]},
+  plain: {ground: 0x767d84, felt: 0xb4b9bd, rail: 0xb4b9bd, wood: 0x9aa0a5, figure: 0xf3f1ec, shoe: 0x2a2c30, mark: 0xb4b9bd, fog: 0x767d84, well: 0x62696f, brass: 0xc8ccd0, chips: [0xa4aaaf, 0x8e9499]},
   back: 0xf4d21c, face: 0x1e8be0, edge: 0xf2efe6,
 };
 const v3 = (p: Vec3) => new T.Vector3(p[0], p[1], p[2]), UP = new T.Vector3(0, 1, 0);
@@ -102,21 +103,51 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   const matte = (colour: number, roughness = 0.9) => new T.MeshStandardMaterial({color: colour, roughness, metalness: 0});
 
   // The table: a straight dealer's edge and a half circle toward the players, the felt at y = 0; a rail round the players' side.
+  // Not yet the standard's table (a half ellipse with a padded rail, an apron, two legs and the floor under it: TABLE,
+  // REAL_TABLE and BASE in src/scene3d-table.ts), for the doll's page loads nothing of src/ but src/table-lens.ts.
   // options.tableBack (metres) draws the dealer's edge that much nearer her than the film's edge row: a trial of a table
   // that comes to the dealer (Jakob 2026-11-26: "skjuta bak bordet litegranna så det kommer närmre dealern"), for a doll
-  // whose films are not yet made. Nothing else moves with it: the card places, the shoe and the tray stay where the
-  // standard has them. Without it the edge is the film's, as always.
-  const radius = 1.02, rail = 0.12, back = Math.max(0, options.tableBack ?? 0), half = (r: number) => { const s = new T.Shape(); s.moveTo(-r, 0); s.absarc(0, 0, r, Math.PI, 0, true); if (back) { s.lineTo(r, -back); s.lineTo(-r, -back); } s.lineTo(-r, 0); return s; };
+  // whose films are not yet made. The chip tray goes back with the edge, for a tray belongs at the dealer's edge with her
+  // hands on the felt in front of it; the card places and the shoe stay where the standard has them. Without it the edge
+  // is the film's, as always. The felt and the board under it are cut out where the tray is sunk in: a notch from the
+  // dealer's edge to the tray's players' side (TRAY.s0 is 0: the tray begins at the edge), as the scene cuts its felt.
+  const radius = 1.02, rail = 0.12, back = Math.max(0, options.tableBack ?? 0);
+  const trayAt = {x0: TRAY.x0, x1: TRAY.x1, s0: TRAY.s0 - back, s1: TRAY.s1 - back}; // the tray in the shape's x-y: x across, y toward the players from the film's edge
+  const half = (r: number, cut = false) => { const s = new T.Shape(); s.moveTo(-r, 0); s.absarc(0, 0, r, Math.PI, 0, true); if (back) s.lineTo(r, -back);
+    if (cut) { s.lineTo(trayAt.x1, -back); s.lineTo(trayAt.x1, trayAt.s1); s.lineTo(trayAt.x0, trayAt.s1); s.lineTo(trayAt.x0, -back); }
+    if (back) s.lineTo(-r, -back); s.lineTo(-r, 0); return s; };
   const lay = (g: T.BufferGeometry) => g.rotateX(Math.PI / 2).translate(edge[0], 0, edge[2]); // the shape lies in x-y with its arc toward +y; turned so that +y is world +z, toward the players, and its depth goes down
-  const felt = new T.Mesh(lay(new T.ShapeGeometry(half(radius), 64)), new T.MeshStandardMaterial({color: C.felt, roughness: 0.95, side: T.DoubleSide})); felt.receiveShadow = true; scene.add(felt);
-  const slab = new T.Mesh(lay(new T.ExtrudeGeometry(half(radius + rail), {depth: 0.06, bevelEnabled: false, curveSegments: 64})), new T.MeshStandardMaterial({color: C.wood, roughness: 0.8, side: T.DoubleSide})); slab.position.y = -0.0005; slab.receiveShadow = true; scene.add(slab);
+  // The tray is drawn in the look 'room' only, as it always was: 'plain' and 'bare' are what a reference film is made of,
+  // and a tray with chips there would be a tray for the film model to draw. There the felt and the board are whole.
+  const withTray = look === 'room';
+  const felt = new T.Mesh(lay(new T.ShapeGeometry(half(radius, withTray), 64)), new T.MeshStandardMaterial({color: C.felt, roughness: 0.95, side: T.DoubleSide})); felt.receiveShadow = true; scene.add(felt);
+  const slab = new T.Mesh(lay(new T.ExtrudeGeometry(half(radius + rail, withTray), {depth: 0.06, bevelEnabled: false, curveSegments: 64})), new T.MeshStandardMaterial({color: C.wood, roughness: 0.8, side: T.DoubleSide})); slab.position.y = -0.0005; slab.receiveShadow = true; scene.add(slab);
+  // The chip tray, the standard's (src/table-lens.ts TRAY; Jakob 2026-11-25: the doll's table, the scene's and the films' are
+  // one table of fixed measures), sunk into the table at her edge as deep as the standard says: a dark well, a brass rim
+  // flush with the felt round the three sides the felt meets (the dealer's side is the table's edge), and rows of chips
+  // lying on edge toward the players, stacked from the players' end, as the scene fills its tray. Where it lies, how large
+  // and how deep is the standard. The chips are not: the scene's rows, sizes and colours (src/game3d-tray.ts) live in
+  // modules the doll's page cannot load, so here each row is one plain cylinder, the chips resting on the well's floor with
+  // their tops just under the felt, as many rows as fit across, the small chips outermost.
+  const tray = new T.Group(); {
+    const wall = 0.004, rim = 0.007, sink = 0.002, gap = 0.003; // the drawing's own: the well's walls, the rim's breadth, the chips' tops under the felt, room between two rows
+    const {x0, x1, s0, s1} = trayAt, depth = TRAY.depth, width = x1 - x0, length = s1 - s0, x = edge[0] + (x0 + x1) / 2, z = (s: number) => edge[2] + s, mid = z((s0 + s1) / 2);
+    const dark = matte(C.well, 0.8), brass = new T.MeshStandardMaterial({color: C.brass, roughness: 0.45, metalness: look === 'room' ? 0.35 : 0});
+    const box = (w: number, h: number, d: number, material: T.Material, at: Vec3) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), material); m.position.set(at[0], at[1], at[2]); m.receiveShadow = true; tray.add(m); };
+    box(width, 0.002, length, dark, [x, -depth - 0.001, mid]); // the floor
+    for (const [w, d, cx, cz] of [[width, wall, x, z(s0 + wall / 2)], [width, wall, x, z(s1 - wall / 2)], [wall, length, edge[0] + x0 + wall / 2, mid], [wall, length, edge[0] + x1 - wall / 2, mid]]) box(w, depth, d, dark, [cx, -depth / 2, cz]); // the walls
+    for (const [w, d, cx, cz] of [[width + 2 * rim, rim, x, z(s1 + rim / 2)], [rim, length, edge[0] + x0 - rim / 2, mid], [rim, length, edge[0] + x1 + rim / 2, mid]]) box(w, 0.002, d, brass, [cx, 0.0002, cz]); // the rim
+    const r = (depth - sink) / 2, rows = Math.max(1, Math.floor((width - 2 * wall) / (2 * r + gap))), pitch = (width - 2 * wall) / rows, room = length - 2 * wall - 0.004;
+    for (let i = 0; i < rows; i++) {
+      const out = Math.abs(i - (rows - 1) / 2) / Math.max(1, (rows - 1) / 2), colour = C.chips[Math.min(C.chips.length - 1, Math.floor((1 - out) * C.chips.length))]; // 1 at the ends, 0 in the middle
+      const stack = room * (0.62 + 0.38 * ((i * 7 + 3) % 5) / 4), row = new T.Mesh(new T.CylinderGeometry(r, r, stack, 28).rotateX(Math.PI / 2), matte(colour, 0.55));
+      row.position.set(edge[0] + x0 + wall + pitch * (i + 0.5), -sink - r, z(s1 - wall - 0.002 - stack / 2)); row.receiveShadow = true; tray.add(row);
+      if (i) box(0.0016, r + 0.006, length - 2 * wall, dark, [edge[0] + x0 + wall + pitch * i, -depth + (r + 0.006) / 2, mid]); // a divider between two rows
+    }
+  }
+  if (withTray) scene.add(tray);
   if (look === 'room') { const ring = half(radius + rail); ring.holes.push(new T.Path(half(radius).getPoints(64)));
     const r = new T.Mesh(lay(new T.ExtrudeGeometry(ring, {depth: 0.03, bevelEnabled: false, curveSegments: 64})).translate(0, 0.03, 0), new T.MeshStandardMaterial({color: C.rail, roughness: 0.55, side: T.DoubleSide})); r.castShadow = true; r.receiveShadow = true; scene.add(r);
-    // The standard's chip tray (src/table-lens.ts TRAY) as a dark recess with a brass rim at her edge, where and as large as
-    // the scene builds its tray (Jakob 2026-11-25: the doll's table, the scene's and the films' are one table of fixed measures).
-    { const w = TRAY.x1 - TRAY.x0, d = TRAY.s1 - TRAY.s0, x = edge[0] + (TRAY.x0 + TRAY.x1) / 2, z = edge[2] + (TRAY.s0 + TRAY.s1) / 2, sheet = () => new T.PlaneGeometry(w, d).rotateX(-Math.PI / 2);
-      const well = new T.Mesh(sheet(), matte(0x15120f, 0.8)); well.position.set(x, 0.0004, z); well.receiveShadow = true;
-      const rim = new T.LineSegments(new T.EdgesGeometry(sheet()), new T.LineBasicMaterial({color: 0xb8923f})); rim.position.set(x, 0.0007, z); scene.add(well, rim); }
     // The plan's places as thin outlines of a real card, so that one sees where each card is to lie.
     for (const s of all) { const w = CARD.width / 2 + 0.003, h = CARD.height / 2 + 0.003, pts = [[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, z]) => new T.Vector3(s.at[0] + x, 0.0006, s.at[2] + z));
       scene.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({color: C.mark, transparent: true, opacity: s.id === target ? 0.95 : 0.4}))); } }
@@ -141,7 +172,7 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   // either), the floor is gone, and a sheet just over the felt shows only the shadows the figure casts on it.
   if (look === 'bare') {
     const hidden = new T.MeshBasicMaterial({colorWrite: false});
-    for (const o of [felt, slab, shoe, next, card, ...lying.map(l => l.mesh)]) o.traverse(m => { if (m instanceof T.Mesh) { m.material = hidden; m.renderOrder = -1; m.castShadow = false; } });
+    for (const o of [felt, slab, tray, shoe, next, card, ...lying.map(l => l.mesh)]) o.traverse(m => { if (m instanceof T.Mesh) { m.material = hidden; m.renderOrder = -1; m.castShadow = false; } });
     floor.visible = false;
     const shade = new T.Mesh(lay(new T.ShapeGeometry(half(radius), 64)), new T.ShadowMaterial({opacity: 0.3})); shade.position.y = 0.0004; shade.receiveShadow = true; scene.add(shade);
   }

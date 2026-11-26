@@ -57,7 +57,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   antagna, och varje grundrörelse läggs på standarddockan och förs över till den valda dockan. Sedan 2026-11-26 har
   den vita dockan bäcken, lår, underben och en pall (gissade mått, lika för alla dockor; de syns bara i vyerna runt
   henne, filmens kamera ser henne som förut), och en riggad kropp med fingerben kan stå på den vita dockans plats och
-  följa samma leder med fingrarna böjda som dockans (`dealer3d/src/figure-model.ts`, sidans `?model=1`). I Naturlig tar
+  följa samma leder med fingrarna böjda som dockans (`dealer3d/src/figure-model.ts`, sidans `?model=1`). Markerbrickan
+  är i rummets utseende en riktig försänkt bricka med mässingsram och marker på standardens plats; referensfilmens
+  utseenden ritar ingen bricka, som förut. I Naturlig tar
   högerhanden emot kortet med handryggen upp, pekfingret på kortet och tummen under kanten (2026-11-25: "handrygg syns
   mer och att tummen istället kommer mer under kortet"); handleden vid handbytet böjer nu 11–26° i stället för 25–40°
   på platserna 1–4.
@@ -105,12 +107,20 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    filmens höjd; Scen visar dockan i samma bild som filmen, rummet och bordet, så att Inspelning och Scen blir ett läge.
 8. **Standarddockan** (Jakob 2026-11-25, 2026-11-26): byggd i `../avatar-auto-pipeline` som en kvinna och en man med
    samma skelett, som Blender öppnar, med måtten skrivna ur spelets kod (`scen/gen_standard.py`, `scen/bygg_docka.py`);
-   kvinnans kropp följer dockans rörelser här, med fingrar (provet `docka-kropp-20261126`). Kvar: kroppen som ett val i
-   Inspelning (modellen behöver en plats i `assets/` med en roll, och sidan en väg att ladda den); standarddockans
-   avstånd till bordet, som är hans val (här antagna 0,18 m, i Blender Paows uppmätta 0,38 m); generiska rörelser som
-   varje dealers docka får sin anpassning av, så att en ny docka ärver standarddockans sparade justeringar tills hon
-   har egna; och en man som docka här. Paows docka, skon och kortplatserna flyttas inte: filmerna är gjorda efter dem.
-   SAM-uppsättningen och Paows avläsningar finns inte på den här datorn.
+   kropparna följer dockans rörelser här, med fingrar (mannen ger till plats 4 i provet
+   `standarddocka-man-bord-20261126`). Hans riktning 2026-11-26: standarddockan ska kunna rörelser som är riktigt bra
+   och bära standarden för bordet, korten, skon och kortplatserna, för nästa dealer; Paows docka får vara som den är;
+   och bordet ska komma närmare dealern ("skjuta bak bordet litegranna"), med kortplatserna, skon och kameran kvar.
+   Det provas med `tableBack` i `dealer3d/src/stage.ts` (sidans `?bordbak=`): 15 cm räcker för att bordet ska nå
+   magen och skon stå helt på bordet, och markerbrickan följer då med till dealerns kant. Kvar: bordet självt, som
+   ännu är en halvcirkel med radie 1,02 m och golv på −0,90 i stället för standardens halva ellips 1,90 × 1,15 m med
+   golv på −0,95 (måtten `TABLE`, `REAL_TABLE` och `BASE` står i `src/scene3d-table.ts`, som dockans sida inte kan
+   ladda: de behöver stå i `src/table-lens.ts`); markernas storlek och färger av samma skäl; rörelser gjorda för
+   standarddockans mått och det närmare bordet (underarmen går i dag genom den flyttade kanten); standarddockorna som
+   dockor i `doll.ts`; kroppen som ett val i Inspelning (modellen behöver en plats i `assets/` med en roll); och att
+   en ny docka ärver standarddockans sparade justeringar tills hon har egna. För Paows filmer kan kanten bara flyttas
+   på sidorna om henne: kroppen är avklippt där den gamla kanten gick. SAM-uppsättningen och Paows avläsningar finns
+   inte på den här datorn.
 9. **Bred lins räknad ur standarden** (Jakob 2026-11-25 och 2026-11-26: Bred lins "som bara kan göras utifrån en
    standard"). Byggt 2026-11-26: linsen är nyckeln `lins` i utseendet, spelvyn är en egen sparad standard, Scens
    knappar är Prova i Casino → Använd i Casino → Publicera, och ett utseende har ingen egen skala eller kamera längre
@@ -138,9 +148,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Väntar på Jakob
 
-- Dockans kropp (2026-11-26): hans ögon på provet `docka-kropp-20261126` (den vita dockan med underkropp och pall,
-  och standarddockans kropp med fingrar i samma giv), och två val: om kroppen ska kunna väljas i Inspelning, och hur
-  nära bordet standarddockan ska sitta (förslag: axlarna 0,25 m bakom kanten).
+- Standarddockan och bordet (2026-11-26): han gav Inte bra på alla sex bilderna i `docka-kropp-20261126` och sa
+  "markerbrickan och bordet i sin helhet måste fixas". Provet `standarddocka-man-bord-20261126` svarar på det: bordet
+  15 cm närmare dealern med standarddockans man, filmen där han ger till plats 4, och markerbrickan som en riktig
+  bricka. Hans val: om bordet ska stå 15 cm närmare för standarddockan och nästa dealer, om kroppen då får skymmas
+  av bordet högre upp i bilden, och om kroppen ska kunna väljas i Inspelning.
 - Det som bara finns på den stationära, och som registren behåller tills han har bestämt om det kopieras hit eller görs
   nytt: 82 bra tagningar utan film (Tatuerad 54, varav alla 25 talfilmer, vilan `paow-vila-tat-09-01` och fem delade
   vilor; Casinos talfilmer (24 av 25); 3 utanför träden), ankarnas originalfiler, keystones och hans egna
