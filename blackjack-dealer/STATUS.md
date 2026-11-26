@@ -52,7 +52,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   `--fran a2-1`); givarna från A2.3 följer dockan svep24d, given från A2.1 `dealer3d/src/pinch-deal.ts`. Jakob
   2026-11-23: "Jag gillar verkligen docklabbet!" Dockan är kod (cylindrar och kulor ur mått, inget skelett) och
   rörelserna ledernas lägen i meter; Blender kan inte öppna dem. Paows mått kommer från SAM 3D Body, standarddockans är
-  antagna, och varje grundrörelse läggs på standarddockan och förs över till den valda dockan. I Naturlig tar
+  antagna, och varje grundrörelse läggs på standarddockan och förs över till den valda dockan. Sedan 2026-11-26 har
+  den vita dockan bäcken, lår, underben och en pall (gissade mått, lika för alla dockor; de syns bara i vyerna runt
+  henne, filmens kamera ser henne som förut), och en riggad kropp med fingerben kan stå på den vita dockans plats och
+  följa samma leder med fingrarna böjda som dockans (`dealer3d/src/figure-model.ts`, sidans `?model=1`). I Naturlig tar
   högerhanden emot kortet med handryggen upp, pekfingret på kortet och tummen under kanten (2026-11-25: "handrygg syns
   mer och att tummen istället kommer mer under kortet"); handleden vid handbytet böjer nu 11–26° i stället för 25–40°
   på platserna 1–4.
@@ -95,10 +98,14 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    tjugotal filer ännu skriver själva (`src/film-after.ts`, `film-fix.ts`, `order-model.ts`, `tools/order-store.ts`,
    `studio/lib/rounds.ts` med flera), hämtas från `src/table-lens.ts`; dockans bord ritar en sko med
    filmens höjd; Scen visar dockan i samma bild som filmen, rummet och bordet, så att Inspelning och Scen blir ett läge.
-8. **Standarddockan i Blender** (Jakob 2026-11-25): standarddockan blir en riggad modell som Blender öppnar (samma
-   slags skelett som avatar-auto-pipeline gör), med generiska rörelser som varje dealers docka får sin anpassning av;
-   en ny docka ärver då standarddockans sparade justeringar tills hon har egna. SAM-uppsättningen och Paows avläsningar
-   finns inte på den här datorn.
+8. **Standarddockan** (Jakob 2026-11-25, 2026-11-26): byggd i `../avatar-auto-pipeline` som en kvinna och en man med
+   samma skelett, som Blender öppnar, med måtten skrivna ur spelets kod (`scen/gen_standard.py`, `scen/bygg_docka.py`);
+   kvinnans kropp följer dockans rörelser här, med fingrar (provet `docka-kropp-20261126`). Kvar: kroppen som ett val i
+   Inspelning (modellen behöver en plats i `assets/` med en roll, och sidan en väg att ladda den); standarddockans
+   avstånd till bordet, som är hans val (här antagna 0,18 m, i Blender Paows uppmätta 0,38 m); generiska rörelser som
+   varje dealers docka får sin anpassning av, så att en ny docka ärver standarddockans sparade justeringar tills hon
+   har egna; och en man som docka här. Paows docka, skon och kortplatserna flyttas inte: filmerna är gjorda efter dem.
+   SAM-uppsättningen och Paows avläsningar finns inte på den här datorn.
 9. **Bred lins räknad ur standarden** (Jakob 2026-11-25 och 2026-11-26: Bred lins "som bara kan göras utifrån en
    standard"). Byggt 2026-11-26: linsen är nyckeln `lins` i utseendet, spelvyn är en egen sparad standard, Scens
    knappar är Prova i Casino → Använd i Casino → Publicera, och ett utseende har ingen egen skala eller kamera längre
@@ -126,6 +133,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Väntar på Jakob
 
+- Dockans kropp (2026-11-26): hans ögon på provet `docka-kropp-20261126` (den vita dockan med underkropp och pall,
+  och standarddockans kropp med fingrar i samma giv), och två val: om kroppen ska kunna väljas i Inspelning, och hur
+  nära bordet standarddockan ska sitta (förslag: axlarna 0,25 m bakom kanten).
 - Det som bara finns på den stationära, och som registren behåller tills han har bestämt om det kopieras hit eller görs
   nytt: 82 bra tagningar utan film (Tatuerad 54, varav alla 25 talfilmer, vilan `paow-vila-tat-09-01` och fem delade
   vilor; Casinos och Ingångens 25 talfilmer; 3 utanför träden), ankarnas originalfiler, keystones och hans egna

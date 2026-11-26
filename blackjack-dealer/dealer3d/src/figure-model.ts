@@ -1,16 +1,22 @@
-// A rigged model of the dealer (a GLB with a skeleton, as Meshy rigs one) seated at the table and posed from the same
-// joints the white figure is drawn from. For looking at how such a model sits in the scene, not for a reference film.
-// The model's bones are found by the names Meshy gives them. It has no finger bones: its hands are aimed and turned as a
-// whole, and its fingers stay as they were modelled, so it never holds the card. Loaded only when the page asks for it
-// (?model=1). It is made as large as its arm needs to be to equal the figure's (BODY.upperArm + BODY.forearm), so that
-// its wrists come to the figure's wrists: Jakob's first model becomes 1.10 of its own size.
+// A rigged model of the dealer (a GLB with a skeleton, as Meshy rigs one or as avatar-auto-pipeline builds the standard
+// doll) seated at the table and posed from the same joints the white figure is drawn from. For looking at how such a
+// model sits in the scene, not for a reference film. The model's bones are found by name (Mixamo's, without a prefix).
+// A model with finger bones (<Side>Hand<Finger>1-3, as the standard doll has) bends each finger as the doll's hand does;
+// one without them (Meshy's) has its hands aimed and turned as a whole, its fingers stay as they were modelled and it
+// never holds the card. Loaded only when the page asks for it (?model=1). It is made as large as its arm needs to be to
+// equal the figure's (BODY.upperArm + BODY.forearm), so that its wrists come to the figure's wrists: Jakob's first model
+// becomes 1.10 of its own size.
 import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import type {Vec3} from './camera.ts';
 import {BODY} from './body.ts';
 
-/** What the model is posed from, in the scene's metres: her right then her left for shoulders, arms and hands; `looks` is the way her head faces. */
-export type FigurePose = {hip: Vec3; shoulders: [Vec3, Vec3]; arms: {shoulder: Vec3; elbow: Vec3; wrist: Vec3}[]; hands: ({forward: Vec3; palm: Vec3} | null)[]; looks: Vec3};
+/**
+ * What the model is posed from, in the scene's metres: her right then her left for shoulders, arms and hands; `looks` is
+ * the way her head faces. A hand's `points` are the doll's 21 hand points (MediaPipe's order, the wrist first): with them a
+ * model that has finger bones lays its palm as the doll's palm lies and bends each finger as the doll's.
+ */
+export type FigurePose = {hip: Vec3; shoulders: [Vec3, Vec3]; arms: {shoulder: Vec3; elbow: Vec3; wrist: Vec3}[]; hands: ({forward: Vec3; palm: Vec3; points?: Vec3[]} | null)[]; looks: Vec3};
 /** `measure`: the arms as last posed, degrees, her right then her left: how far the upper arm was rolled to set the elbow's hinge, how far the elbow is bent, how far the hand stands off the forearm's line, and how far the figure's hand asked it to. */
 export type Figure = {root: T.Group; scale: number; triangles: number; about: Record<string, unknown>; pose(p: FigurePose): void; measure(): {roll: number[]; elbow: number[]; wrist: number[]; wristAsked: number[]}};
 const WRIST = 50 * Math.PI / 180;
@@ -37,7 +43,14 @@ export async function loadFigure(url: string): Promise<Figure> {
   if (!skinned) throw Error('The model has no skinned mesh.'); const mesh = skinned as T.SkinnedMesh;
   const at = (o: T.Object3D) => o.getWorldPosition(new T.Vector3());
   const arms = SIDES.map(s => ({upper: bone(`${s}Arm`), fore: bone(`${s}ForeArm`), hand: bone(`${s}Hand`), thigh: bone(`${s}UpLeg`), shin: bone(`${s}Leg`), foot: bone(`${s}Foot`)}));
-  const neck = bone('neck'), head = bone('Head'), front = bone('headfront'), posed = [...arms.flatMap(a => [a.upper, a.fore, a.hand, a.thigh, a.shin]), neck, head], bind = new Map(posed.map(b => [b, b.quaternion.clone()]));
+  // Finger bones, where the model has them for a whole hand: three to a finger, the thumb's first from the wrist. Bone n
+  // of a finger lies between the doll's hand points start+n and start+n+1 (MediaPipe's order). The way each bone points as
+  // it was modelled is kept in its own frame: toward the next bone, and for the last one the same way as the one before it.
+  const FINGERS = [['Thumb', 1], ['Index', 5], ['Middle', 9], ['Ring', 13], ['Pinky', 17]] as const;
+  const fingers = SIDES.map(s => { const all = FINGERS.map(([name, start]) => ({start, bones: [1, 2, 3].map(n => gltf.scene.getObjectByName(`${s}Hand${name}${n}`))}));
+    return all.every(f => f.bones.every(Boolean)) ? all.map(f => ({start: f.start, bones: f.bones as T.Object3D[]})) : null; });
+  const fingerWays = fingers.map(side => side && side.map(f => f.bones.map((b, n) => at(f.bones[Math.min(n, 1) + 1]).sub(at(f.bones[Math.min(n, 1)])).normalize().applyQuaternion(b.getWorldQuaternion(new T.Quaternion()).invert()))));
+  const neck = bone('neck'), head = bone('Head'), front = bone('headfront'), posed = [...arms.flatMap(a => [a.upper, a.fore, a.hand, a.thigh, a.shin]), neck, head, ...fingers.flatMap(side => side ? side.flatMap(f => f.bones) : [])], bind = new Map(posed.map(b => [b, b.quaternion.clone()]));
   // As she was modelled: the middle between her shoulder joints, the lengths of her arm bones, and each hand's own forward
   // and palm directions, read off the vertices that hang on the hand bone (their long axis and their flat one), kept in the
   // hand bone's own frame. Which way along the flat axis the palm is, the thumb tells: it is the side the hand's width
@@ -46,7 +59,15 @@ export async function loadFigure(url: string): Promise<Figure> {
   // turned up on Jakob's model, whose two hands are not modelled as each other's mirror.)
   const middle = at(arms[0].upper).add(at(arms[1].upper)).multiplyScalar(0.5), lengths = arms.map(a => [at(a.upper).distanceTo(at(a.fore)), at(a.fore).distanceTo(at(a.hand))]);
   const scale = (BODY.upperArm + BODY.forearm) / (lengths[1][0] + lengths[1][1]), position = mesh.geometry.attributes.position, index = mesh.geometry.attributes.skinIndex, weight = mesh.geometry.attributes.skinWeight, about: Record<string, unknown> = {};
-  const handAxes = arms.map((a, side) => { const which = mesh.skeleton.bones.indexOf(a.hand as T.Bone), cloud: T.Vector3[] = [];
+  const handAxes = arms.map((a, side) => {
+    // A hand with finger bones says it itself, as the doll's hand does: forward from the wrist to the middle finger's
+    // knuckle, the palm's way from the wrist and the two outer knuckles.
+    const own = fingers[side];
+    if (own) { const [, index, middle, , little] = own, from = at(a.hand), forward = at(middle.bones[0]).sub(from).normalize(), local = a.hand.getWorldQuaternion(new T.Quaternion()).invert();
+      const palm = new T.Vector3().crossVectors(at(index.bones[0]).sub(from), at(little.bones[0]).sub(from)).multiplyScalar(side ? -1 : 1); palm.sub(forward.clone().multiplyScalar(palm.dot(forward))).normalize();
+      about[`${SIDES[side]}Hand`] = {fingers: true, forward: round(forward), palm: round(palm)};
+      return {forward: forward.clone().applyQuaternion(local), palm: palm.applyQuaternion(local), long: from.distanceTo(at(middle.bones[0])) + at(middle.bones[0]).distanceTo(at(middle.bones[2])) * 1.5}; }
+    const which = mesh.skeleton.bones.indexOf(a.hand as T.Bone), cloud: T.Vector3[] = [];
     for (let i = 0; i < position.count; i++) for (let k = 0; k < 4; k++) if (index.getComponent(i, k) === which && weight.getComponent(i, k) > 0.6) cloud.push(mesh.getVertexPosition(i, new T.Vector3()).applyMatrix4(mesh.matrixWorld));
     const wrist = at(a.hand), along = at(a.hand).sub(at(a.fore)).normalize(), toLocal = a.hand.getWorldQuaternion(new T.Quaternion()).invert();
     if (cloud.length < 50) { about[`${SIDES[side]}Hand`] = `only ${cloud.length} vertices hang on the hand bone; its directions are guessed`; return {forward: along.clone().applyQuaternion(toLocal), palm: new T.Vector3(wrist.x > 0 ? -0.7 : 0.7, -0.7, 0).applyQuaternion(toLocal), long: 0.17}; }
@@ -97,16 +118,23 @@ export async function loadFigure(url: string): Promise<Figure> {
       // Her hand: along the figure's hand, then turned about its own length until its palm looks where the figure's palm
       // looks. Half of that turn is given to the forearm, as a forearm turns with its hand, and the hand is laid again.
       // Her fingers are stiff, so a hand aimed down at the table would go through it: its tips stay a finger's thickness over the felt (y = 0).
-      const forward = v(hand.forward).normalize(), reach = handAxes[i].long * scale, clear = 0.012, asked = fore.angleTo(forward); last.wristAsked[i] = degrees(asked);
+      // With the doll's hand points and fingers of her own to bend, her palm lies as the doll's palm lies (not along the
+      // whole hand, which is for stiff fingers) and no tip needs holding off the felt: the fingers follow the doll's.
+      const bent = hand.points?.length === 21 && fingers[i] ? hand.points.map(v) : null;
+      const palmWay = bent ? new T.Vector3().crossVectors(bent[5].clone().sub(bent[0]), bent[17].clone().sub(bent[0])).multiplyScalar(i ? -1 : 1) : v(hand.palm);
+      const forward = (bent ? bent[9].clone().sub(bent[0]) : v(hand.forward)).normalize(), reach = handAxes[i].long * scale, clear = 0.012, asked = fore.angleTo(forward); last.wristAsked[i] = degrees(asked);
       // Her forearm is not the figure's (her shoulders are broader and her bones her own), so the figure's hand can stand
       // farther off her forearm's line than a wrist bends: it is brought back to 50 degrees off it.
       if (asked > WRIST) { const part = new T.Quaternion().slerp(new T.Quaternion().setFromUnitVectors(fore, forward), WRIST / asked); forward.copy(fore).applyQuaternion(part).normalize(); }
-      if (w.y > clear && w.y + forward.y * reach < clear) { forward.y = (clear - w.y) / reach; const k = Math.sqrt(Math.max(0, 1 - forward.y * forward.y)) / (Math.hypot(forward.x, forward.z) || 1); forward.x *= k; forward.z *= k; }
-      const want = flatten(v(hand.palm), forward), lay = () => { swing(a.hand, handAxes[i].forward.clone().applyQuaternion(a.hand.getWorldQuaternion(new T.Quaternion())), forward);
+      if (!bent && w.y > clear && w.y + forward.y * reach < clear) { forward.y = (clear - w.y) / reach; const k = Math.sqrt(Math.max(0, 1 - forward.y * forward.y)) / (Math.hypot(forward.x, forward.z) || 1); forward.x *= k; forward.z *= k; }
+      const want = flatten(palmWay, forward), lay = () => { swing(a.hand, handAxes[i].forward.clone().applyQuaternion(a.hand.getWorldQuaternion(new T.Quaternion())), forward);
         return flatten(handAxes[i].palm.clone().applyQuaternion(a.hand.getWorldQuaternion(new T.Quaternion())), forward); };
       const now = lay(), angle = Math.atan2(new T.Vector3().crossVectors(now, want).dot(forward), now.dot(want)), axis = at(a.hand).sub(at(a.fore)).normalize();
       turned(a.fore, turn.setFromAxisAngle(axis, angle * 0.5 * Math.max(0, axis.dot(forward)))); swing(a.hand, lay(), want);
       last.wrist[i] = degrees(at(a.hand).sub(at(a.fore)).angleTo(handAxes[i].forward.clone().applyQuaternion(a.hand.getWorldQuaternion(new T.Quaternion()))));
+      // Her fingers, from the knuckle out: each bone is turned the shortest way to point as the doll's finger bone points.
+      if (bent) fingers[i]!.forEach((f, k) => f.bones.forEach((b, n) => { const to = bent[f.start + n + 1].clone().sub(bent[f.start + n]);
+        if (to.lengthSq() > 1e-10) swing(b, fingerWays[i]![k][n].clone().applyQuaternion(b.getWorldQuaternion(new T.Quaternion())), to); }));
     });
     // Her head goes two thirds of the way toward where the figure's head faces, at most 40 degrees (the eyes do the rest, and
     // a head bowed farther hides her face under her hair); her neck takes the first part of it.

@@ -158,6 +158,21 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   const moments = read ? {leavesShoe: read.leavesShoe / read.fps, edgeOn: (read.edge[0] + read.edge[1]) / 2 / read.fps, lands: read.rests / read.fps, end: duration} : MOMENTS;
   const stiff = read ? [] : [handMesh(skin, -1), handMesh(skin, 1)], jointed = read ? [pointHand(skin), pointHand(skin)] : []; // her right hand, her left
   scene.add(...stiff, ...jointed.map(h => h.group)); if (!read) place(stiff[0], cross([0, -1, 0], rest.forward), [0, -1, 0], rest.forward, rest.wrist); // palm down on the felt
+  // Below the hip: a pelvis, thighs forward under the table, shins down and back to a foot ring, and the stool she sits
+  // on. No film shows any of it (the bank's camera sees her down to the table edge and the table hides the rest), so the
+  // measures are guessed and the same for every doll; only the views round her show them. Without them her trunk ended in
+  // the air behind the table (Jakob 2026-11-26: she "tycks sitta med ett mellanrum till bordet"). The hip does not move in
+  // a deal, so they stand still. The stool is furniture, not figure: the look 'bare' leaves it out.
+  const seated = (read?.hip as Vec3 | undefined) ?? frame.hip, hipWide = Math.max(0.165, 0.47 * Math.hypot(frame.shoulders[1][0] - frame.shoulders[0][0], frame.shoulders[1][1] - frame.shoulders[0][1], frame.shoulders[1][2] - frame.shoulders[0][2]));
+  const pelvis = ball(skin, 1); pelvis.scale.set(hipWide, 0.16, 0.125); pelvis.position.copy(v3(seated));
+  const legJoints = [-1, 1].map(side => { const hipJoint: Vec3 = [seated[0] + side * hipWide * 0.5, seated[1] - 0.02, seated[2] + 0.02], knee: Vec3 = [hipJoint[0] + side * 0.02, hipJoint[1] - 0.05, hipJoint[2] + 0.4], ankle: Vec3 = [knee[0], knee[1] - 0.36, knee[2] - 0.2]; return {hipJoint, knee, ankle, toe: [ankle[0], ankle[1] - 0.045, ankle[2] + 0.17] as Vec3}; });
+  const below = [pelvis, ...legJoints.flatMap(j => { const thigh = limb(skin, 0.078, 0.058), shin = limb(skin, 0.054, 0.038), foot = limb(skin, 0.04, 0.03), kneeBall = ball(skin, 0.058), ankleBall = ball(skin, 0.04);
+    thigh.set(j.hipJoint, j.knee); shin.set(j.knee, j.ankle); foot.set(j.ankle, j.toe); kneeBall.position.copy(v3(j.knee)); ankleBall.position.copy(v3(j.ankle)); return [thigh.mesh, shin.mesh, foot.mesh, kneeBall, ankleBall]; })];
+  scene.add(...below); if (options.figure) for (const o of below) o.visible = false; // a rigged model has legs of its own
+  if (look !== 'bare') { const steel = matte(look === 'room' ? 0x1c1d20 : 0x8f9499, 0.6), pad = matte(look === 'room' ? 0x3a241c : 0xa3a8ad, 0.8), seatTop = seated[1] - 0.09, post = seatTop - 0.06 - floor.position.y;
+    const disc = (r: number, height: number, y: number, material: T.Material) => { const m = new T.Mesh(new T.CylinderGeometry(r, r, height, 40), material); m.position.set(seated[0], y, seated[2] - 0.05); m.castShadow = true; m.receiveShadow = true; return m; };
+    const ring = new T.Mesh(new T.TorusGeometry(0.25, 0.011, 10, 48).rotateX(Math.PI / 2), steel); ring.position.set(seated[0], legJoints[0].ankle[1] - 0.055, seated[2] - 0.05); ring.castShadow = true;
+    scene.add(disc(0.19, 0.06, seatTop - 0.03, pad), disc(0.028, post, floor.position.y + post / 2, steel), disc(0.24, 0.02, floor.position.y + 0.01, steel), ring); }
   // A rigged model in the figure's place (options.figure): the white figure is made as always and not drawn, and the model is posed from its joints.
   const figure = options.figure ?? null; if (figure) { scene.add(figure.root); for (const o of [torso, ...yokes.map(y => y.mesh), neck.mesh, head, ...arms.flatMap(a => [a.upper.mesh, a.fore.mesh, a.shoulder, a.elbow, a.wrist]), ...stiff, ...jointed.map(h => h.group)]) o.visible = false; }
   const mix = (a: number[], b: number[], t: number): Vec3 => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t], norm = (v: Vec3): Vec3 => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
@@ -202,11 +217,11 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
     if (read?.frames[0].g) { const at = Math.min(read.frameCount - 1, now * read.fps), i = Math.min(read.frameCount - 2, Math.floor(at)); gaze = v3(mix(read.frames[i].g!, read.frames[i + 1].g!, at - i)); } // a film that says where she looks
     head.lookAt(gaze);
     if (figure) {
-      // Each hand as a whole, since the model has no fingers to move: from the wrist toward the middle of the middle finger
+      // Each hand as a whole, for a model with no fingers to move: from the wrist toward the middle of the middle finger
       // (half way between its knuckle and its tip, so that a stiff hand points between the palm and the bent fingers), the
-      // palm's way from the wrist and the two outer knuckles.
-      const sub = (p: number[], q: number[]): Vec3 => [p[0] - q[0], p[1] - q[1], p[2] - q[2]], whole = (p: number[][], side: 1 | -1) => { const n = cross(sub(p[5], p[0]), sub(p[17], p[0])); return {forward: sub(mix(p[9], p[12], 0.5), p[0]), palm: [n[0] * side, n[1] * side, n[2] * side] as Vec3}; };
-      let hands: {forward: Vec3; palm: Vec3}[];
+      // palm's way from the wrist and the two outer knuckles. And the hand's 21 points, for a model that has finger bones.
+      const sub = (p: number[], q: number[]): Vec3 => [p[0] - q[0], p[1] - q[1], p[2] - q[2]], whole = (p: number[][], side: 1 | -1) => { const n = cross(sub(p[5], p[0]), sub(p[17], p[0])); return {forward: sub(mix(p[9], p[12], 0.5), p[0]), palm: [n[0] * side, n[1] * side, n[2] * side] as Vec3, points: p as Vec3[]}; };
+      let hands: {forward: Vec3; palm: Vec3; points?: Vec3[]}[];
       if (read) { const at = Math.min(read.frameCount - 1, now * read.fps), i = Math.min(read.frameCount - 2, Math.floor(at)), k = at - i, a = read.frames[i], b = read.frames[i + 1], points = (s: 'L' | 'R') => a[s].p.map((p, j) => mix(p, b[s].p[j], k)); hands = [whole(points('R'), 1), whole(points('L'), -1)]; }
       else { const h = deal.hand(now); hands = [{forward: rest.forward, palm: [0, -1, 0]}, {forward: h.forward, palm: h.palm}]; }
       const looks = new T.Vector3(0, 0, 1).applyQuaternion(head.quaternion);
