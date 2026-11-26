@@ -25,15 +25,17 @@ standarddocka/
                 ../blackjack-dealer/dealer3d/src/standard-room.ts, samma som studions dockvy ritar), kortet, kamerorna
     rorelse.ts  rörelsen: grundrörelser efter varandra (dockans egna där de finns), skarven, takten, ändringarna
                 ovanpå, vem som håller kortet, och kontrollen av ett sparat lager (`lagretsFel`); och hela rundan i
-                en tagning (`rundaAv`) med sin klipplista och sina mått (`klipplista`, `rundansMatt`)
+                en tagning (`rundaAv`) med sin klipplista och sina mått (`klipplista`, `rundansMatt`) och sina små
+                egna rörelser, blinkningen med (`medRundliv`, måtten i `RUNDLIV`)
     armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp), och kroppens mått tagna
                 på dockans hud (bålen som skivor, huvudet, axellederna, armens tjocklek) för spärren
     kropp.ts    spärren: det han drar i hålls inom vad en kropp kan (ingen arm genom bålen, huvudet eller bordet,
                 ingen hand i filten eller bortom armens räckvidd, armbågen och handleden inom sina lägen); ren kod
   verktyg/      för agenter, utan fönster (hur de används: skillen granska-rorelse, ../.claude/skills/granska-rorelse/)
     titta.ts    stillbilder ur valda kameror vid valda tider, med editorns mått, eller en inspelning (`--spela-in
-                runda` filmar hela rundan och skriver klipplistan; `--runda` visar den för bilder); närbilder av en
-                hand eller kortet (kamerorna narahoger, naravanster, narakort; de spelas inte in); `--andring '<json>'`
+                runda` filmar hela rundan och skriver klipplistan; `--runda` visar den för bilder, och med `--liv
+                [--fro 1]` har den sina små egna rörelser och blinkningen); närbilder av en hand, kortet eller
+                ansiktet (kamerorna narahoger, naravanster, narakort, naraansikte; de spelas inte in); `--andring '<json>'`
                 lägger en ändring före bilderna utan att spara den; `--kor` räknar ett uttryck i sidan och skriver
                 svaret; `--spara` skriver om det sparade ur filen innan farten, de små rörelserna och ändringarna
                 läggs på, och stannar med ett fel om lagret inte kan användas; ett ogiltigt namn i `--giv` eller
@@ -77,8 +79,9 @@ standarddocka/
                 säger vad; mappen finns först när något har sparats
   klipp/        filmerna Spela in gör: <rörelse>-<del>-<kamera>-<docka>[-nyckel].mp4, på prov
                 prov-[<vilan>-]<given>-<del>-<kamera>-<docka>.mp4 (1764 x 1174, 30 bilder i sekunden); hela rundan
-                runda-c1-<kamera>-<docka>[-nyckel].mp4 (kameran plats-1 … plats-7) med klipplistan
-                runda-c1-<docka>.json; en ny inspelning med samma namn skriver över den förra; går inte in i Git
+                runda-c1-<kamera>-<docka>[-nyckel][-liv].mp4 (kameran plats-1 … plats-7) med klipplistan
+                runda-c1-<docka>[-liv].json (-liv: med rundans små egna rörelser); en ny inspelning med samma
+                namn skriver över den förra; går inte in i Git
   STARTA editorn.cmd   dubbelklicka för att starta editorn och öppna den i webbläsaren
 ```
 
@@ -180,8 +183,16 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   färdiga filmen. Varje del är ett klipp som filmen
   sedan klipps i: kortet ligger kvar på sin plats genom stillheten och står i skon igen från nästa klipps första ruta
   (spelet ritar själv korten som ligger, så varje klipp börjar med tomt bord), och blicken är mot kameran i vilan och
-  på skon i varje ankare vid skon. Rundan slutar vid skon. Den tar inga ändringar, ingen egen takt och inga små rörelser och sparas inte: det
-  görs på en plats i taget. `node standarddocka/verktyg/titta.ts --spela-in runda --kamera plats1,plats2,…,plats7
+  på skon i varje ankare vid skon. Rundan slutar vid skon. Den tar inga ändringar och ingen egen takt och sparas inte: det
+  görs på en plats i taget. Krysset "Små egna rörelser och blinkning" (`&liv=1&fro=<tal>`, `--liv [--fro <tal>]` i
+  `verktyg/titta.ts`; av tills Jakob har sett det) lägger liv i varje klipp utan att ändra given (`medRundliv` i
+  `editor/rorelse.ts`): han andas in en gång, väger över några millimeter och rör huvudet lätt, i sex av tio klipp
+  blinkar han (0,15 s), efter tre av sju kort lyfter han blicken mot spelaren med ett litet leende innan den går
+  tillbaka till skon, och ett finger lyfter på handen som ligger fri (högern när vänstern ger). Vilka klipp som får vad
+  dras ur fröet ("Slumpa om" ger ett nytt), så samma frö ger samma tagning. Allt är noll, utan fart, i ankaret före
+  och efter varje rörelse, och handlederna, händerna vid kortet och skon och kortet rörs aldrig: `matt.ren` mäts på
+  rutorna med rörelserna på, ansiktet med. Det som ska gå jämnt över klippens gränser (andning, vaggning) kan inte
+  ligga i klippen; det läggs på filmen när den spelas (`dealerLife` i `../blackjack-dealer`). `node standarddocka/verktyg/titta.ts --spela-in runda --kamera plats1,plats2,…,plats7
   [--docka kvinna] [--utseende nyckel]` gör en film per kamera och klipplistan `klipp/runda-c1-<docka>.json`: rutor
   per sekund, antal rutor, och för varje klipp namnet (`A1>A2.3`, `A2.3>P7.C1>A2.3` …), första och sista rutan, rutan
   där kortet ligger och rutan där handen är tillbaka (`stillaFran`), med skarvarna och stillheten mätta på rutorna.
@@ -197,10 +208,12 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
 - **För verktygen:** `window.editor` (uppräkningen överst i `editor/editor.ts`). `state()` har utöver lägena bland
   annat `sparr` (vad spärren höll emot), `handledGrader` (handledens vinkel som kroppen ritade den och som rutan bad
   om), `lagretsFel`, `aldreSparat`, `dockansEgna`, `sparasSom`, `bildvinkel`, `sparar`, `kortetsUtseende`, `runda`
-  (klipplistan i hela rundan, annars null), `lage` och
+  (klipplistan i hela rundan, annars null), `rundliv` (vad rundans små rörelser gör i varje klipp), `liv`, `ansikte`
+  (ansiktsformernas vikter i rutan som visas), `ansiktsformer` (de modellen har), `lage` och
   `ringensX` (i läget Vrida: ringens axel längs underarmen) och `axelLeder`. `slapp(id)` gör med en ändring det som
   händer när han släpper musen. `save()` stannar med sidans fråga som fel, så att ett verktyg aldrig skriver över i
-  tysthet; `save(true)` skriver över.
+  tysthet; `save(true)` skriver över. `ansikte({eyeBlinkLeft: 1})` lägger ansiktsformer på prov i bilden (null tar
+  bort dem), för den som vill se en form på modellen.
 
 En ändring i `editor/server.ts` gäller först när servern har startats om: stäng fönstret den körs i och starta igen
 (en server som en agent har startat utan fönster stoppas med sitt process-id, efter att `/vem` har svarat
@@ -250,7 +263,8 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 - **Så ställs kroppen efter rörelsens punkter** (`../blackjack-dealer/dealer3d/src/figure-model.ts`): höften står
   stilla och ryggen böjs, armbågen böjs i modellens eget gångjärn, underarmens vridning läggs på vridbenen (fullt upp
   till 100 grader), huvudet riktar linjen mellan ögonen mot blickpunkten, och en hand som slår i handledens gräns
-  (50 grader) vrids tillbaka hel med fingrarna.
+  (50 grader) vrids tillbaka hel med fingrarna. Ansiktet ställs efter rutans ansiktsformer (fältet `a`, vikter 0–1
+  efter ARKits namn) när ställningen ger ett (`face`); studions dockvy ger inget och rörs inte.
 - **Dockornas egna rörelser** (dockorna `man` och `kvinna` i `../blackjack-dealer/dealer3d/src/doll.ts`, mätta på
   modellerna av `dealer3d/tools/docka-standard.ts`): för var och en ankaret vid skon (`ankare-2-3-<docka>`), vilan
   till skon (`till-ankare-2-3-<docka>`) och första kortet till alla sju platserna, ritade av
@@ -404,9 +418,11 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 8. Rörelserna en i taget, tills var och en är riktigt bra, och sättet att föra över dem till en annan kropp. Den
    första hela följden ska sluta i vilan: i dag slutar den vid skon (A2.3), och en återgång från kortplatsen direkt
    till A1 (Jakob 2026-11-23: sista given går direkt till A1) finns inte som dockrörelse.
-9. Ansiktet: båda modellerna har 30 ansiktsformer (blinkning, ögonbryn, mun, käke, efter ARKits namn) och leder för
-   ögon och käke, men inget styr dem än och en rörelses rutor har inget fält för ansiktet. Nästa steg är en blinkning
-   och ögon som följer blicken som en av de små egna rörelserna; minspel därutöver gör filmmodellen ur personens bilder.
+9. Ansiktet: båda modellerna har 30 ansiktsformer (blinkning, ögonbryn, mun, käke, efter ARKits namn), och de går
+   att styra: en ruta har fältet `a`, och i hela rundan driver de små egna rörelserna blinkningen, ett litet leende
+   och ögonbrynen (Hela rundan ovan), av tills Jakob har sett dem. Kvar: ögonen har ingen iris (hela dockan har ett
+   material), så vart ögonen ser syns bara på huvudet; rörelserna på en plats i taget blinkar inte än; och en sparad
+   grundrörelse (`dealer3d/data`) har inget ansikte. Minspel därutöver gör filmmodellen ur personens bilder.
 10. Ordningen i mapparna (Jakob 2026-11-26): det som bygger standarden (måttfilen, bordet, dockorna, stolen och
    deras byggskript i `../avatar-auto-pipeline/scen/`, `verktyg/`, `rorelser/` och `assets/`) flyttar hit, så att
    `../avatar-auto-pipeline/` bara gör en dealer från foton på den här standarden. Väntar på svaret från den

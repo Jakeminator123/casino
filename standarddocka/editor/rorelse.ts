@@ -12,7 +12,13 @@ export type V3 = [number, number, number];
 export type Q = [number, number, number, number];
 export type Limb = {s: number[]; e: number[]; w: number[]; k: number; p: number[][]};
 export type Card = {c: number[]; l: number[]; n: number[]; id?: number};
-export type Frame = {card: Card; L: Limb; R: Limb; h: number[]; g: number[]};
+/**
+ * Ansiktet i en ruta: hur mycket av var ansiktsform som är på, 0–1 efter formens namn (dockorna har 30, med ARKits namn:
+ * eyeBlinkLeft, browInnerUp, mouthSmileRight …; avatar-auto-pipeline/new_docka.md 7.7). En form som inte står är i vila.
+ * Grundrörelserna har inget ansikte; det läggs på av de små egna rörelserna (medRundliv).
+ */
+export type Ansikte = Record<string, number>;
+export type Frame = {card: Card; L: Limb; R: Limb; h: number[]; g: number[]; a?: Ansikte};
 /** En sparad rörelse som den ligger i dealer3d/data (bara det editorn läser). */
 export type Motion = {fps: number; frameCount: number; hip: number[]; frames: Frame[]; leavesShoe: number; edge: number[]; folds: number; rests: number; doll?: string; film?: string;
   /** Givens märke (blackjack-dealer/dealer3d/src/koreo-giv.ts GivMarke): vilken hand som ger, hur kortet vänds och hur det sätts ned. */
@@ -44,8 +50,10 @@ export type Sparad = {namn: string; om?: string; grund: string[]; andringar: And
  * spelare, ett finger på en hand som vilar lyfter, och kroppen väger över. `fro` är slumpens frö (samma frö ger samma
  * rörelser), `delar` vilka som är på. De tonar ut helt i varje dels början och slut, så att klippen möts i ankaren.
  */
-export type Livsdel = 'andning' | 'huvud' | 'blick' | 'hand' | 'kropp';
+export type Livsdel = 'andning' | 'huvud' | 'blick' | 'hand' | 'kropp' | 'blinkning' | 'ansikte';
 export const LIVSDELAR: Livsdel[] = ['andning', 'huvud', 'blick', 'hand', 'kropp'];
+/** De små egna rörelserna i en hel runda: samma fem med rundans egna regler, och ansiktets två (medRundliv). */
+export const RUNDANS_LIV: Livsdel[] = [...LIVSDELAR, 'blinkning', 'ansikte'];
 export type Liv = {fro: number; delar: Livsdel[]};
 
 /** Grundrörelserna (blackjack-dealer/dealer3d/data): från vilan till skon, och Paows giv från skon (A2.3) till kort 1 på var och en av de sju platserna och tillbaka. */
@@ -178,6 +186,12 @@ function hopp(a: Frame, b: Frame, hipA: number[], hipB: number[]): Record<string
   for (const k of Object.keys(r)) r[k] = Math.round(r[k] * 1000) / 1000;
   return r;
 }
+/**
+ * Hur mycket en hand är vid ett kort med mitten `c` (0–1): fingrarna (tummen och fingertopparna, och fingrarnas leder)
+ * närmast kortets mitt, helt inom 5,5 cm och inte alls bortom 8 cm.
+ */
+const FINGRAR = [2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20];
+const vidKortet = (l: Limb, c: number[]) => smooth((0.08 - Math.min(...FINGRAR.map(j => dist(l.p[j], c)))) / 0.025);
 
 /**
  * Två rörelser efter varandra: från vilan till skon (gjord för den vita standarddockan, med axlarna 0,18 m bakom spelets
@@ -212,12 +226,10 @@ export function sattIhop(forsta: Motion, andra: Motion, plats: number): Foljd {
   }
   const efter = hopp(lagd[sista], b0, andra.hip, andra.hip);
   const frames = [...lagd.slice(0, sista), ...andra.frames.map(kopia)], fps = forsta.fps, skon = sista / fps, ligger = sista + andra.rests;
-  // Vilken hand som håller kortet i varje ruta: den vars fingrar (tummen och fingertopparna, och fingrarnas leder) är
-  // närmast kortets mitt, helt inom 5,5 cm och inte alls bortom 8 cm; delas mellan händerna när båda håller (när det
-  // lämnas över). När kortet har lagts håller ingen det.
-  const FINGRAR = [2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20];
-  const held = frames.map((f, i) => { if (i >= ligger) return {R: 0, L: 0}; const near = (l: Limb) => Math.min(...FINGRAR.map(j => dist(l.p[j], f.card.c))), h = (d: number) => smooth((0.08 - d) / 0.025);
-    let R = h(near(f.R)), L = h(near(f.L)); const sum = R + L; if (sum > 1) { R /= sum; L /= sum; } return {R, L}; });
+  // Vilken hand som håller kortet i varje ruta (vidKortet); delas mellan händerna när båda håller (när det lämnas
+  // över). När kortet har lagts håller ingen det.
+  const held = frames.map((f, i) => { if (i >= ligger) return {R: 0, L: 0};
+    let R = vidKortet(f.R, f.card.c), L = vidKortet(f.L, f.card.c); const sum = R + L; if (sum > 1) { R /= sum; L /= sum; } return {R, L}; });
   const lamnar = (sista + andra.leavesShoe) / fps;
   // Var en hand ligger stilla: handleden rör sig mindre än 1,5 mm per ruta i de sju rutorna omkring.
   const steg = (i: number, s: 'R' | 'L') => dist(frames[i][s].w, frames[i - 1][s].w);
@@ -291,7 +303,8 @@ export type Namngiven = {namn: string; rorelse: Motion};
  * (Jakob 2026-11-26 om stillheten: "nu hackar liksom klippen"; de stilla rutorna "ska automatiskt bort").
  *
  * Alla rörelserna ska vara ritade för samma docka (samma höft och lika många rutor per sekund). Rundan tar inga
- * ändringar och inga små egna rörelser och sparas inte (det görs på en plats i taget): `held` och `stilla` är noll.
+ * ändringar och sparas inte (det görs på en plats i taget): `held` och `stilla` är noll. De små egna rörelserna har
+ * rundan sina egna regler för (medRundliv), lagda ovanpå rutorna när den spelas.
  */
 export function rundaAv(vila: Namngiven, givar: readonly (Namngiven & {plats: number})[], stilla = true): Foljd {
   const S = stilla ? STILLHET : {...STILLHET, efter: 0, fore: 0};
@@ -329,25 +342,36 @@ export function rundaAv(vila: Namngiven, givar: readonly (Namngiven & {plats: nu
  * händernas punkter och blickpunkten; kortet räknas inte, det ska stå i skon igen. Stillheten: hur mycket rutorna i
  * varje klipps stillhet (och i vilan före det första) skiljer sig från varandra, kortet med; 0 är exakt samma ruta.
  * `ren`: tagningen går att klippa i sina klipp, det vill säga inget hopp i någon skarv och varje stillhet exakt.
+ *
+ * Med `liv` (rundans små egna rörelser) mäts rutorna som de spelas, med dem på: då räknas också ansiktet (`ansikte`: den
+ * största skillnaden i en ansiktsforms vikt, 0–1, inte millimeter), och `livVidAnkare` säger hur långt de små rörelserna
+ * som mest har flyttat något (axlar, armbågar, huvud, blickpunkt, händernas punkter; millimeter) i rutan närmast efter
+ * och närmast före ett ankare, och hur mycket ansikte som är på där: de börjar och slutar utan fart, så det ska vara
+ * nära noll.
  */
-export function rundansMatt(f: Foljd) {
+export function rundansMatt(f: Foljd, liv?: Liv) {
   if (!f.runda) return null;
   const mm = (m: number) => Math.round(m * 100000) / 100, SIDOR = ['R', 'L'] as const, storst = (a: Frame, b: Frame, punkter: (l: Limb) => number[][]) => Math.max(...SIDOR.flatMap(s => punkter(a[s]).map((p, i) => dist(p, punkter(b[s])[i]))));
-  const mellan = (a: Frame, b: Frame) => ({handleder: mm(storst(a, b, l => [l.w])), armbagar: mm(storst(a, b, l => [l.e])), axlar: mm(storst(a, b, l => [l.s])), huvud: mm(dist(a.h, b.h)), hander: mm(storst(a, b, l => l.p)), blick: mm(dist(a.g, b.g))});
-  const olika = (fran: number, till: number) => { let mest = 0; for (let i = fran + 1; i <= till; i++) mest = Math.max(mest, ...Object.values(mellan(f.frames[fran], f.frames[i])), mm(dist(f.frames[fran].card.c, f.frames[i].card.c))); return mest; };
-  const k = f.runda.klipp, hoppen = k.slice(1).map((x, i) => mellan(f.frames[k[i].sista], f.frames[x.forsta]));
+  const medLivet = !!liv?.delar.length, rutor = medLivet ? f.frames.map((x, i) => medRundliv(kopia(x), i / f.fps, f, liv)) : f.frames;
+  const ansikte = (a: Frame, b: Frame) => Math.round(Math.max(0, ...[...new Set([...Object.keys(a.a ?? {}), ...Object.keys(b.a ?? {})])].map(n => Math.abs((a.a?.[n] ?? 0) - (b.a?.[n] ?? 0)))) * 10000) / 10000;
+  const mellan = (a: Frame, b: Frame) => ({handleder: mm(storst(a, b, l => [l.w])), armbagar: mm(storst(a, b, l => [l.e])), axlar: mm(storst(a, b, l => [l.s])), huvud: mm(dist(a.h, b.h)), hander: mm(storst(a, b, l => l.p)), blick: mm(dist(a.g, b.g)), ansikte: ansikte(a, b)});
+  const olika = (fran: number, till: number) => { let mest = 0; for (let i = fran + 1; i <= till; i++) mest = Math.max(mest, ...Object.values(mellan(rutor[fran], rutor[i])), mm(dist(rutor[fran].card.c, rutor[i].card.c))); return mest; };
+  const k = f.runda.klipp, hoppen = k.slice(1).map((x, i) => mellan(rutor[k[i].sista], rutor[x.forsta]));
   const stillhet = k.flatMap(x => [{klipp: x.namn, vad: x.plats ? 'vid skon före rörelsen' : 'i vilan före rörelsen', rutor: x.stillaTill - x.forsta + 1, skillnad: olika(x.forsta, x.stillaTill)}, {klipp: x.namn, vad: 'vid skon efter rörelsen', rutor: x.sista - x.stillaFran + 1, skillnad: olika(x.stillaFran, x.sista)}]);
   const storstaHopp = Math.max(...hoppen.flatMap(h => Object.values(h))), storstaSkillnad = Math.max(...stillhet.map(s => s.skillnad));
-  return {ren: storstaHopp === 0 && storstaSkillnad === 0, storstaHopp, storstaSkillnad, skarvar: k.slice(1).map((x, i) => ({fran: k[i].namn, till: x.namn, ruta: x.forsta, ...hoppen[i]})), stillhet};
+  const narmast = medLivet ? rundlivsplan(f, liv.fro).flatMap(x => [x.a + 1, x.b - 1]).map(i => mellan(f.frames[i], rutor[i])) : [];
+  return {ren: storstaHopp === 0 && storstaSkillnad === 0, storstaHopp, storstaSkillnad, skarvar: k.slice(1).map((x, i) => ({fran: k[i].namn, till: x.namn, ruta: x.forsta, ...hoppen[i]})), stillhet,
+    ...(medLivet ? {livVidAnkare: {mm: Math.max(...narmast.flatMap(({ansikte: _, ...m}) => Object.values(m))), ansikte: Math.max(...narmast.map(m => m.ansikte))}} : {})};
 }
 /**
  * Klipplistan för en runda: det som skrivs bredvid filmerna (verktyg/titta.ts --spela-in runda), så att tagningen kan
- * styckas i sina klipp. Räknad ur rundan själv; rutorna räknas från 0.
+ * styckas i sina klipp. Räknad ur rundan själv; rutorna räknas från 0. `liv`: de små egna rörelserna tagningen spelas
+ * med (null utan), som måtten då är tagna med.
  */
-export function klipplista(f: Foljd, docka: string) {
+export function klipplista(f: Foljd, docka: string, liv?: Liv) {
   if (!f.runda) return null;
   return {namn: `runda-c1-${docka}`, om: 'Första kortet till alla platser i en tagning, ur standarddockans editor (standarddocka/editor/rorelse.ts rundaAv). Rutorna räknas från 0. Varje klipp går från forsta till och med sista. Det börjar stilla i sitt ankare (forsta–stillaTill, samma ruta upprepad: vilan, eller handen vid skon och bordet tomt) och slutar stilla (stillaFran–sista, samma ruta upprepad: handen vid skon och kortet kvar på sin plats). I nästa klipps första ruta står kortet i skon igen.',
-    docka, fps: f.fps, rutor: f.frames.length, sekunder: Math.round(f.frames.length / f.fps * 1000) / 1000, stillhet: {sekunder: f.runda.stillhet, rutor: {vila: Math.round(f.runda.stillhet.vila * f.fps), efter: Math.round(f.runda.stillhet.efter * f.fps), fore: Math.round(f.runda.stillhet.fore * f.fps)}}, klipp: f.runda.klipp, matt: rundansMatt(f)};
+    docka, fps: f.fps, rutor: f.frames.length, sekunder: Math.round(f.frames.length / f.fps * 1000) / 1000, stillhet: {sekunder: f.runda.stillhet, rutor: {vila: Math.round(f.runda.stillhet.vila * f.fps), efter: Math.round(f.runda.stillhet.efter * f.fps), fore: Math.round(f.runda.stillhet.fore * f.fps)}}, klipp: f.runda.klipp, liv: liv?.delar.length ? liv : null, matt: rundansMatt(f, liv)};
 }
 /** Var i rutorna tiden t är. I en runda är en tid som är en hel ruta, sånär som på räkningens avrundning, den rutan: där byter kortet klipp mellan två rutor (rutaVid). */
 const rutplats = (f: Foljd, t: number) => { const at = Math.max(0, Math.min(f.frames.length - 1, t * f.fps)), hel = Math.round(at); return f.runda && Math.abs(at - hel) < 1e-6 ? hel : at; };
@@ -564,6 +588,7 @@ const LYFT = {punkter: [[6, 7, 8], [10, 11, 12]], andel: [0.35, 0.7, 1]};
  */
 export function medLiv(frame: Frame, t: number, f: Foljd, liv: Liv | undefined, held: {R: number; L: number}, stilla: {R: number; L: number}, spelad: Spelad = RAK): Frame {
   if (!liv?.delar.length) return frame;
+  if (f.runda) return medRundliv(frame, t, f, liv); // en hel runda har sina egna regler
   // Tonen är noll där rörelsen i en del börjar och slutar (och i stillheten omkring), ett mitt i den.
   const d = f.spann.find(x => t < x.till) ?? f.spann[f.spann.length - 1], u = Math.max(0, Math.min(1, (t - d.fran) / Math.max(1e-6, d.till - d.fran))), ton = Math.sin(Math.PI * u) ** 2;
   if (ton <= 0) return frame;
@@ -575,6 +600,131 @@ export function medLiv(frame: Frame, t: number, f: Foljd, liv: Liv | undefined, 
   if (har('hand')) for (const s of sidor) { const ledig = stilla[s] * (1 - Math.min(1, held[s] * 4)); if (ledig <= 0) continue;
     for (const l of p.lyft) { const w = smooth(1 - Math.abs(t - l.t) / 0.22) * ton * ledig; if (w > 0) LYFT.punkter[l.finger].forEach((j, n) => { frame[s].p[j] = add(frame[s].p[j], [0, 0.007 * w * LYFT.andel[n], 0]); }); } }
   return frame;
+}
+
+// ---- rundans små egna rörelser ---------------------------------------------------------------------------------
+/**
+ * Måtten för de små egna rörelserna i en hel runda (medRundliv). Längder i meter, tider i sekunder.
+ * - ton: så länge de tonas in efter ett ankare och ut före nästa (högst en tredjedel av rörelsen).
+ * - andning: så högt axlarna lyfts i ett andetag, minst och mest (de sänks aldrig: underarmarna ligger nära bordets kant).
+ * - kropp: så långt bålen väger över åt sidan, minst och mest, och `djup` som mest framåt eller bakåt.
+ * - rack: hur sträckt en arm får vara (axel–handled mot armens längd) innan bålen står stilla; då dras aldrig en hand
+ *   från sin plats av att axeln flyttas.
+ * - huvud: så långt blickpunkten vandrar, åt sidan och i höjd.
+ * - blick: `andel` av givarna får en blick upp mot spelaren när kortet har landat: `mest` av vägen från kortet mot
+ *   spelarens ögon, som räknas ligga `bort` bortom kortet sett från dealern och `hojd` över filten (där spelets kamera
+ *   står för plats 4). Den börjar när kortet ligger, är störst `topp` efter det och är över `efter` efter det.
+ * - hand: hur högt ett finger lyfter på en hand som ligger fri, minst och mest.
+ * - blinkning: `andel` av klippen får en blinkning.
+ * - ansikte: `motSpelaren` är minen som följer blicken mot spelaren; `andel` av de andra givarna får `bryn` (när kortet
+ *   sätts ned) eller `mun` (medan det bärs). Ansiktsformernas vikter som mest.
+ */
+export const RUNDLIV = {ton: 0.4, andning: [0.002, 0.004], kropp: {sida: [0.003, 0.007], djup: 0.002}, rack: 0.985, huvud: [0.025, 0.015],
+  blick: {andel: 0.43, mest: [0.35, 0.5], bort: 1.4, hojd: 0.58, topp: [0.22, 0.28], efter: 0.53}, hand: [0.004, 0.007], blinkning: {andel: 0.6},
+  ansikte: {andel: 0.5, motSpelaren: {mouthSmileLeft: 0.35, mouthSmileRight: 0.35, browInnerUp: 0.2, browOuterUpLeft: 0.15, browOuterUpRight: 0.15} as Ansikte,
+    bryn: {browInnerUp: 0.3, browOuterUpLeft: 0.2, browOuterUpRight: 0.2} as Ansikte, mun: {mouthPressLeft: 0.4, mouthPressRight: 0.4} as Ansikte}};
+/**
+ * En blinkning: ögat stängs på 0,05 s, är stängt 0,02 s och öppnas på 0,08 s, 0,15 s i allt (en människas tar 0,1–0,2 s
+ * och öppnas långsammare än den stängs). Den börjar på en hel ruta, så att en av filmens rutor har ögat helt stängt.
+ */
+export const BLINK = {stang: 0.05, stangd: 0.02, oppna: 0.08};
+const blinkar = (s: number) => s <= 0 ? 0 : s < BLINK.stang ? smooth(s / BLINK.stang) : s <= BLINK.stang + BLINK.stangd ? 1 : smooth((BLINK.stang + BLINK.stangd + BLINK.oppna - s) / BLINK.oppna);
+/** Mjukt från 0 till 1 utan fart och utan fartändring i ändarna, så att det som tonas varken börjar eller slutar med ett ryck. */
+const mjuk = (x: number) => { const k = Math.max(0, Math.min(1, x)); return k * k * k * (10 - 15 * k + 6 * k * k); };
+/** En puckel: 0 till och med `fran`, mjukt upp till 1 vid `topp` och mjukt ned till 0 vid `till`. */
+const puckel = (s: number, fran: number, topp: number, till: number) => s <= fran || s >= till ? 0 : s < topp ? mjuk((s - fran) / (topp - fran)) : mjuk((till - s) / (till - topp));
+/**
+ * Vad fröet ger ett klipp i rundan. `a` är rutan i ankaret han går ut ur och `b` rutan där han är framme i nästa; allt
+ * däremellan räknas i sekunder från `a`, så att klippet får samma små rörelser med och utan stillheten vid skon.
+ */
+type Klippliv = {a: number; b: number; langd: number; ton: number; andning: {upp: number; topp: number}; kropp: {v: V3; topp: number}; huvud: {x: Vag; y: Vag};
+  blick: {mot: V3; fran: number; topp: number; till: number; mest: number} | null; lyft: {t: number; finger: number; hojd: number}; ledig: Record<'R' | 'L', number[]>;
+  blink: number | null; uttryck: {former: Ansikte; fran: number; topp: number; till: number} | null};
+const rundplaner = new WeakMap<Foljd, Map<number, Klippliv[]>>();
+/**
+ * Rundans plan för de små rörelserna, ett stycke per klipp, ur fröet: samma frö ger samma tagning, och varje klipp
+ * drar sina egna tal, så att de sju givarna inte blir kopior av varandra. Vilka klipp som blinkar och vilka givar som
+ * får blicken mot spelaren dras för hela rundan, så många som måtten säger.
+ */
+function rundlivsplan(f: Foljd, fro: number): Klippliv[] {
+  let per = rundplaner.get(f); if (!per) rundplaner.set(f, per = new Map());
+  const finns = per.get(fro); if (finns) return finns;
+  const {klipp, stillhet} = f.runda!, fps = f.fps, M = RUNDLIV, r0 = slump(fro);
+  const dragna = (lista: number[], andel: number) => { const l = [...lista]; for (let i = l.length - 1; i > 0; i--) { const j = Math.floor(r0() * (i + 1)); [l[i], l[j]] = [l[j], l[i]]; } return new Set(l.slice(0, Math.round(l.length * andel))); };
+  const alla = klipp.map((_, i) => i), givar = alla.filter(i => klipp[i].plats !== null), medBlick = dragna(givar, M.blick.andel), medBlink = dragna(alla, M.blinkning.andel), medUttryck = dragna(givar.filter(i => !medBlick.has(i)), M.ansikte.andel);
+  const plan = klipp.map((k, nr): Klippliv => {
+    const r = slump(fro * 8191 + nr * 131 + 7), mellan = (lagst: number, hogst: number) => lagst + (hogst - lagst) * r(), tecken = () => r() < 0.5 ? -1 : 1;
+    // Ankaret han går ut ur: stillhetens sista ruta, och utan stillhet vid skon rutan före givens första (rundaAv).
+    const a = k.plats !== null && !stillhet.fore ? k.forsta - 1 : k.stillaTill, b = k.stillaFran, langd = (b - a) / fps, ligger = k.kortetLigger === null ? null : (k.kortetLigger - a) / fps;
+    const vagor = (): Vag => [[0.6, mellan(0.3, 0.7), mellan(0, 6.28)], [0.4, mellan(0.7, 1.3), mellan(0, 6.28)]];
+    const andning = {upp: mellan(M.andning[0], M.andning[1]), topp: mellan(0.3, 0.5) * langd}, kropp = {v: [tecken() * mellan(M.kropp.sida[0], M.kropp.sida[1]), 0, mellan(-M.kropp.djup, M.kropp.djup)] as V3, topp: mellan(0.4, 0.65) * langd}, huvud = {x: vagor(), y: vagor()};
+    // Blicken mot spelaren: ögonen bortom kortet där det landade, på linjen från dealern genom kortet.
+    const kort = k.kortetLigger === null ? null : f.frames[k.kortetLigger].card.c, ut = kort && norm([kort[0] - f.hip[0], 0, kort[2] - f.hip[2]]);
+    const blick = medBlick.has(nr) && kort && ut && ligger !== null ? {mot: add(add(kort, mul(ut, M.blick.bort)), [0, M.blick.hojd, 0]), fran: ligger, topp: ligger + mellan(M.blick.topp[0], M.blick.topp[1]), till: Math.min(langd - 2 / fps, ligger + M.blick.efter), mest: mellan(M.blick.mest[0], M.blick.mest[1])} : null;
+    // En hand är fri när den ligger stilla (handleden rör sig mindre än 1,5 mm per ruta i de sju rutorna omkring) och
+    // varken är vid kortet som ges eller vid skon, där nästa kort står (kortets plats i klippets första ruta).
+    const sko = f.frames[k.forsta].card.c, steg = (i: number, s: 'R' | 'L') => dist(f.frames[i][s].w, f.frames[i - 1][s].w);
+    const ledig = (s: 'R' | 'L') => Array.from({length: b - a + 1}, (_, n) => { const i = a + n, x = f.frames[i]; let mest = 0; for (let j = Math.max(a + 1, i - 3); j <= Math.min(b, i + 3); j++) mest = Math.max(mest, steg(j, s));
+      return smooth(1 - mest / 0.0015) * (1 - vidKortet(x[s], x.card.c)) * (1 - vidKortet(x[s], sko)); });
+    const lyft = {t: mellan(0.35, 0.65) * langd, finger: Math.floor(r() * 2), hojd: mellan(M.hand[0], M.hand[1])};
+    // Blinkningen: med blicken mot spelaren när den lyfts, annars tidigt i given eller när blicken går tillbaka till
+    // skon, och på vägen från vilan när blicken sänks mot skon. Ögat är öppet minst 0,1 s efter ankaret och före nästa.
+    const helRuta = (s: number) => Math.round(s * fps) / fps, blinklangd = BLINK.stang + BLINK.stangd + BLINK.oppna;
+    const blink = !medBlink.has(nr) ? null : helRuta(Math.max(0.1, Math.min(langd - blinklangd - 0.1, blick ? blick.fran + mellan(0, 0.08) : ligger === null ? mellan(0.25, 0.5) * langd : r() < 0.5 ? mellan(0.15, 0.4) : ligger + mellan(0.08, 0.25))));
+    const uttryck = blick ? {former: M.ansikte.motSpelaren, fran: blick.fran + 0.05, topp: blick.topp + 0.05, till: blick.till} : !medUttryck.has(nr) || ligger === null ? null
+      : r() < 0.5 ? {former: M.ansikte.bryn, fran: ligger - 0.3, topp: ligger, till: Math.min(langd - 2 / fps, ligger + 0.45)} : {former: M.ansikte.mun, fran: 0.2, topp: ligger * 0.7, till: ligger + 0.2};
+    return {a, b, langd, ton: Math.min(M.ton, langd / 3), andning, kropp, huvud, blick, lyft, ledig: {R: ledig('R'), L: ledig('L')}, blink, uttryck};
+  });
+  per.set(fro, plan); return plan;
+}
+/**
+ * De små egna rörelserna i en hel runda, lagda på en ruta vid tiden t (Jakob 2026-11-26: "smarta funktioner som gör att
+ * vi får en mer naturlighet i allt", "ansiktsuttryck och mycket annat mänskligt"). Filmmodellen följer dockan ruta för
+ * ruta, så det dockan inte gör, gör inte filmen heller. Regeln som allt här lyder: varje klipp börjar och slutar exakt i
+ * sitt ankare, så att klippen kan läggas efter varandra i vilken ordning som helst. Därför är allt noll, utan fart, i
+ * ankaret han går ut ur och i det han kommer fram till, och genom stillheten där: inget andetag och ingen vaggning går
+ * över ett klipps gräns (det som ska gå jämnt över gränserna läggs på filmen när den spelas, som blackjack-dealers
+ * dealerLife). Händerna och kortet står där given har dem: bara ett finger på en hand som ligger fri lyfts, aldrig en
+ * hand vid kortet eller vid skon, och axlarna flyttas inte när en arm är nästan sträckt.
+ *
+ * Delarna (liv.delar, alla i RUNDANS_LIV): andning (axlarna lyfts i ett andetag och sjunker tillbaka), kropp (bålen
+ * väger över några millimeter och kommer tillbaka), huvud (blickpunkten vandrar lätt), blick (i några givar lyfts
+ * blicken mot spelaren när kortet har landat, innan den går tillbaka till skon), hand (ett finger lyfter på handen som
+ * ligger fri: högerhanden när vänstern ger ensam), blinkning och ansikte (en liten min: med blicken mot spelaren, när
+ * kortet sätts ned eller medan det bärs). Måtten står i RUNDLIV. Ögonens leder vrids redan mot blickpunkten av dockans
+ * kod; på en docka utan iris syns det inte, så blicken bärs av huvudet.
+ */
+export function medRundliv(frame: Frame, t: number, f: Foljd, liv: Liv | undefined): Frame {
+  if (!f.runda || !liv?.delar.length) return frame;
+  const at = rutplats(f, t), k = rundlivsplan(f, liv.fro).find(x => at > x.a && at < x.b); if (!k) return frame;
+  const s = (at - k.a) / f.fps, har = (x: Livsdel) => liv.delar.includes(x), sidor = ['R', 'L'] as const, ton = mjuk(s / k.ton) * mjuk((k.langd - s) / k.ton);
+  // Bålen: axlarna flyttas, armbågarna halva vägen och huvudet med; handlederna, händerna och kortet står kvar.
+  let bal: V3 = [0, 0, 0];
+  if (har('andning')) bal = add(bal, [0, k.andning.upp * puckel(s, 0, k.andning.topp, k.langd), 0]);
+  if (har('kropp')) bal = add(bal, mul(k.kropp.v, puckel(s, 0, k.kropp.topp, k.langd)));
+  if (bal.some(n => n !== 0)) { const strackt = Math.max(...sidor.map(x => dist(frame[x].s, frame[x].w) / (dist(frame[x].s, frame[x].e) + dist(frame[x].e, frame[x].w)))), d = mul(bal, smooth((RUNDLIV.rack - strackt) / 0.03));
+    for (const x of sidor) { frame[x].s = add(frame[x].s, d); frame[x].e = add(frame[x].e, mul(d, 0.5)); } frame.h = add(frame.h, d); }
+  if (har('huvud')) frame.g = add(frame.g, [RUNDLIV.huvud[0] * vag(k.huvud.x, s) * ton, RUNDLIV.huvud[1] * vag(k.huvud.y, s) * ton, 0]);
+  // Blicken mot spelaren: mot en punkt åt spelarens ögon till, lika långt från huvudet som det han annars ser på.
+  if (har('blick') && k.blick) { const w = k.blick.mest * puckel(s, k.blick.fran, k.blick.topp, k.blick.till); if (w > 0) frame.g = mix(frame.g, add(frame.h, mul(norm(sub(k.blick.mot, frame.h)), dist(frame.g, frame.h))), w); }
+  if (har('hand')) for (const x of sidor) { const l = k.ledig[x], i = Math.min(l.length - 2, Math.floor(at - k.a)), fri = l[i] + (l[i + 1] - l[i]) * (at - k.a - i), w = fri * ton * puckel(s, k.lyft.t - 0.2, k.lyft.t, k.lyft.t + 0.3);
+    if (w > 0) LYFT.punkter[k.lyft.finger].forEach((j, n) => { frame[x].p[j] = add(frame[x].p[j], [0, k.lyft.hojd * w * LYFT.andel[n], 0]); }); }
+  const a: Ansikte = {};
+  if (har('blinkning') && k.blink !== null) { const w = blinkar(s - k.blink); if (w > 0) a.eyeBlinkLeft = a.eyeBlinkRight = w; }
+  if (har('ansikte') && k.uttryck) { const w = puckel(s, k.uttryck.fran, k.uttryck.topp, k.uttryck.till) * ton; if (w > 0) for (const [namn, mest] of Object.entries(k.uttryck.former)) a[namn] = mest * w; }
+  if (Object.keys(a).length) frame.a = a;
+  return frame;
+}
+/**
+ * Vad rundans små rörelser gör i varje klipp med det här fröet, för statusraden och den som granskar: rutan där en
+ * blinkning börjar, om blicken lyfts mot spelaren, vilken min, och om ett finger lyfter på en fri hand. null utan liv.
+ */
+export function rundlivet(f: Foljd, liv: Liv | undefined) {
+  if (!f.runda || !liv?.delar.length) return null;
+  const har = (x: Livsdel) => liv.delar.includes(x), M = RUNDLIV.ansikte;
+  return rundlivsplan(f, liv.fro).map((k, i) => { const vid = Math.round(k.lyft.t * f.fps);
+    return {klipp: f.runda!.klipp[i].namn, plats: f.runda!.klipp[i].plats, blinkarVidRuta: har('blinkning') && k.blink !== null ? k.a + Math.round(k.blink * f.fps) : null, blickMotSpelaren: har('blick') && !!k.blick,
+      min: !har('ansikte') || !k.uttryck ? null : k.uttryck.former === M.motSpelaren ? 'ett litet leende mot spelaren' : k.uttryck.former === M.bryn ? 'ögonbrynen lyfts lätt' : 'läpparna pressas lätt', fingerLyfter: har('hand') && (k.ledig.R[vid] > 0.5 || k.ledig.L[vid] > 0.5)}; });
 }
 
 /**

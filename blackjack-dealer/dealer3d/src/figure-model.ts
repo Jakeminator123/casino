@@ -17,9 +17,12 @@ import {fingertopp} from './fingertopp.ts';
  * What the model is posed from, in the scene's metres: her right then her left for shoulders, arms and hands; `looks` is
  * the way her head faces, and `lookAt` (if given) the point she looks at, which her eyes' line is aimed at. A hand's
  * `points` are the doll's 21 hand points (MediaPipe's order, the wrist first): with them a model that has finger bones
- * lays its palm as the doll's palm lies and bends each finger as the doll's.
+ * lays its palm as the doll's palm lies and bends each finger as the doll's. `face` (if given) is how much of each of her
+ * face's shapes is on, 0-1 by the shape's name (the standard dolls have 30, named as ARKit names them: eyeBlinkLeft,
+ * browInnerUp, mouthSmileRight ...); a shape not named is at rest, and a name she does not have is passed over. Without
+ * `face` her face is left as it is.
  */
-export type FigurePose = {hip: Vec3; shoulders: [Vec3, Vec3]; arms: {shoulder: Vec3; elbow: Vec3; wrist: Vec3}[]; hands: ({forward: Vec3; palm: Vec3; points?: Vec3[]} | null)[]; looks: Vec3; lookAt?: Vec3};
+export type FigurePose = {hip: Vec3; shoulders: [Vec3, Vec3]; arms: {shoulder: Vec3; elbow: Vec3; wrist: Vec3}[]; hands: ({forward: Vec3; palm: Vec3; points?: Vec3[]} | null)[]; looks: Vec3; lookAt?: Vec3; face?: Record<string, number>};
 /**
  * `measure`: the arms and the head as last posed, degrees, her right then her left: how far the upper arm was rolled to
  * set the elbow's hinge, how far the elbow is bent, how far the hand stands off the forearm's line and how far the
@@ -117,6 +120,8 @@ export async function loadFigure(url: string, {twistBones = true}: {twistBones?:
   let skinned: T.SkinnedMesh | null = null, triangles = 0;
   gltf.scene.traverse(o => { const m = o as T.SkinnedMesh; if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; triangles += (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3; if (m.isSkinnedMesh) skinned = m; } });
   if (!skinned) throw Error('The model has no skinned mesh.'); const mesh = skinned as T.SkinnedMesh;
+  // Her face's shapes (morph targets), on every mesh that has them by name; a model without any has no face to pose.
+  const shaped: T.Mesh[] = []; gltf.scene.traverse(o => { const m = o as T.Mesh; if (m.isMesh && m.morphTargetDictionary && m.morphTargetInfluences?.length) shaped.push(m); });
   const at = (o: T.Object3D) => o.getWorldPosition(new T.Vector3()), worldQ0 = (o: T.Object3D) => o.getWorldQuaternion(new T.Quaternion());
   const arms = SIDES.map(s => ({upper: bone(`${s}Arm`), fore: bone(`${s}ForeArm`), hand: bone(`${s}Hand`), thigh: bone(`${s}UpLeg`), shin: bone(`${s}Leg`), foot: bone(`${s}Foot`)}));
   // Twist bones in the forearm, where a doll has both (the standard dolls since 2026-11-26: <Side>ForeArmTwist1 and 2,
@@ -184,7 +189,7 @@ export async function loadFigure(url: string, {twistBones = true}: {twistBones?:
     if (n.length() < 0.1 * upper.length() * fore.length()) n.crossVectors(upper, new T.Vector3(0, 0, 1));
     return n.normalize().applyQuaternion(a.upper.getWorldQuaternion(new T.Quaternion()).invert()); });
   const last = {roll: [0, 0], elbow: [0, 0], wrist: [0, 0], wristAsked: [0, 0], twist: [0, 0], wristTwist: [0, 0], gazeShort: 0}, degrees = (n: number) => Math.round(n * 1800 / Math.PI) / 10;
-  root.scale.setScalar(scale); root.updateMatrixWorld(true); about.arm = lengths.map(l => l.map(n => Math.round(n * 1000) / 1000)); about.shouldersApart = Math.round(at(arms[0].upper).distanceTo(at(arms[1].upper)) * 1000) / 1000; about.forearmTwistBones = twists.map(t => !!t);
+  root.scale.setScalar(scale); root.updateMatrixWorld(true); about.arm = lengths.map(l => l.map(n => Math.round(n * 1000) / 1000)); about.shouldersApart = Math.round(at(arms[0].upper).distanceTo(at(arms[1].upper)) * 1000) / 1000; about.forearmTwistBones = twists.map(t => !!t); about.faceShapes = [...new Set(shaped.flatMap(m => Object.keys(m.morphTargetDictionary!)))];
   // From her hip joint to her shoulders' middle, as modelled (her size).
   const trunk = at(arms[0].upper).add(at(arms[1].upper)).multiplyScalar(0.5).distanceTo(at(spine[0].bone));
   /** Each forearm's turn in the last pose, for the next: it is chosen near the last where a hand turns past half a turn. */
@@ -293,6 +298,9 @@ export async function loadFigure(url: string, {twistBones = true}: {twistBones?:
     last.gazeShort = degrees(headForward.clone().applyQuaternion(head.getWorldQuaternion(new T.Quaternion())).angleTo(goal.clone().sub(eyesAt())));
     eyes.forEach((e, k) => { const now = eyeForward[k].clone().applyQuaternion(e.getWorldQuaternion(new T.Quaternion())), to = goal.clone().sub(at(e)).normalize(), angle = now.angleTo(to);
       if (angle > 1e-6) turned(e, new T.Quaternion().slerp(new T.Quaternion().setFromUnitVectors(now, to), Math.min(1, EYES / angle))); });
+    // Her face, only when the pose gives one: every shape at rest, then the named ones as far on as it says.
+    if (p.face) for (const m of shaped) { const on = m.morphTargetInfluences!; on.fill(0);
+      for (const [name, share] of Object.entries(p.face)) { const i = m.morphTargetDictionary![name]; if (i !== undefined) on[i] = Math.min(1, Math.max(0, share)); } }
   }
   return {root, scale, triangles: Math.round(triangles), about, pose, measure: () => JSON.parse(JSON.stringify(last))};
 }

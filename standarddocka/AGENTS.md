@@ -171,8 +171,10 @@ rörelse prövas mot innan den visas för honom.
   fantastiskt, men se till att det inte glöms bort och att du lyckas med det logiska kring detta, hur dessa två kan
   faktiskt sys ihop inbördes mellan givar till spelare." Det är nästa steg och står överst i README, med logiken.
 - **Ansiktet (2026-11-26, en önskan).** "Dock undrar jag om vi kanske ska lägga på det som kanske kan göra lite
-  uttryck ... som blinkningar och ansiktsgester": dockorna har ansiktsformerna och ögonens leder, men inget styr dem
-  än (README, Nästa steg, Ansiktet).
+  uttryck ... som blinkningar och ansiktsgester": dockorna har ansiktsformerna och ögonens leder. I hela rundan finns
+  de som ett val, avstängt tills han har sett det ("Små egna rörelser och blinkning": en andning, en liten
+  viktförskjutning, en blinkning, i några givar en blick upp mot spelaren med ett svagt leende), alltid noll i varje
+  klipps början och slut (README, Hela rundan).
 - **Inte trångt framför dealern (2026-11-26).** "Tänk på att du med fördel kan skjuta fram både sko/kort och dess
   placeringar om du skjuter fram dealern. Annars kanske det liksom blir för trångt?" När dockan och bordet kommer
   närmare varandra ska händerna i vilan, brickan, dealerns egna kort och skon fortfarande ha plats: ingen hand vilar
