@@ -38,7 +38,10 @@
   #delar li.nu { border-color: var(--accent); background: #22322f; }
   #delar li b { font-weight: 600; min-width: 1.2em; }
   #delar li span { flex: 1; }
-  #delar li small { color: var(--dim); font-variant-numeric: tabular-nums; }
+  #delar li { align-items: center; }
+  #delar li small { color: var(--dim); font-variant-numeric: tabular-nums; min-width: 14px; }
+  #delar li small.andrad { color: var(--accent2); }
+  #delar li input { width: 58px; font: inherit; font-variant-numeric: tabular-nums; text-align: right; color: var(--text); background: #15181c; border: 1px solid var(--line); border-radius: 5px; padding: 2px 4px; }
   #lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
   #lista li { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 6px; background: #20242a; cursor: pointer; }
   #lista li:hover { background: #262b31; }
@@ -98,6 +101,7 @@
   <section>
     <h2>Rörelsen består av</h2>
     <ol id="delar"></ol>
+    <p class="tips" style="margin-top:6px">Talet är hur många sekunder delen tar. Skriv ett nytt tal för att göra den fortare eller långsammare.</p>
     <div class="platser" id="malplatser" title="Vilken plats kortet ges till. Varje plats har sin egen rörelse och sina egna ändringar.">
       <span>Kortet ges till plats</span>
       <button data-plats="1">1</button><button data-plats="2">2</button><button data-plats="3">3</button><button data-plats="4">4</button><button data-plats="5">5</button><button data-plats="6">6</button><button data-plats="7">7</button>
@@ -170,7 +174,7 @@
   <section>
     <h2>Spela in</h2>
     <p>Gör en film av rörelsen, utan kulor och pilar, i spelets bildstorlek.</p>
-    <select id="inspela-del" title="Vad som ska spelas in"><option value="-1">Hela rörelsen</option></select>
+    <select id="inspela-del" title="Vad som ska spelas in"></select>
     <div class="knappar">
       <button id="inspela-en">Spela in den här kameran</button>
       <button id="inspela-alla">Spela in från alla sju platserna</button>

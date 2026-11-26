@@ -24,8 +24,17 @@ export const LEDNAMN: Record<Led, string> = {hogerHand: 'Höger hand', vansterHa
  * (sekunder), helt just då och mjukt in och ut `varar` sekunder åt varje håll.
  */
 export type Andring = {id: string; tid: number; led: Led; flytt: V3; vrid: Q | null; varar: number};
-/** Det som sparas: vilka grundrörelser i vilken ordning, skarvens övertoning och ändringarna. Grundrörelserna ändras aldrig. */
-export type Sparad = {namn: string; om?: string; grund: string[]; andringar: Andring[]; sparad?: string; blickMot?: 'film' | 'lag'};
+/**
+ * Det som sparas: vilka grundrörelser i vilken ordning, ändringarna och farten per del (`fart`: 1 är grundrörelsens,
+ * 1,5 en och en halv gång så fort; saknas den är allt 1). Grundrörelserna ändras aldrig. En ändrings `tid` står i
+ * grundrörelsens tid, så att den sitter kvar i samma ögonblick av rörelsen när farten ändras.
+ */
+export type Sparad = {namn: string; om?: string; grund: string[]; andringar: Andring[]; fart?: number[]; sparad?: string; blickMot?: 'film' | 'lag'};
+
+/** Grundrörelserna (blackjack-dealer/dealer3d/data): från vilan till skon, och Paows giv från skon (A2.3) till kort 1 på var och en av de sju platserna och tillbaka. */
+export const TILL_SKON = 'till-ankare-2-3-c';
+export const GIVAR: Record<number, string> = {1: 'giv-fran-2-3-p1c1-naturlig-cykel-a-paow', 2: 'giv-fran-2-3-p2c1-naturlig-cykel-a-paow', 3: 'giv-fran-2-3-p3c1-naturlig-cykel-a-paow', 4: 'giv-fran-2-3-p4c1-naturlig-cykel-a-paow',
+  5: 'giv-fran-2-3-p5c1-naturlig-cykel-b-paow', 6: 'giv-fran-2-3-p6c1-bestalld-a-paow', 7: 'giv-fran-2-3-p7c1-bestalld-a-paow'};
 
 /** Förvalet för hur länge en ny ändring tonas in och ut, åt varje håll (Jakob 2026-11-26 via claude-dockan: 0,4 s). */
 export const VARAR = 0.4;
@@ -116,6 +125,26 @@ export function sattIhop(forsta: Motion, andra: Motion, plats: number): Foljd {
 }
 export const langd = (f: Foljd) => (f.frames.length - 1) / f.fps;
 
+// ---- takten ----------------------------------------------------------------------------------------------------
+/** Hur mycket fortare eller långsammare än grundrörelsen en del får gå. */
+export const FART = {minst: 0.25, mest: 4};
+/** Delarna som de blir i den färdiga filmen, och omräkningen mellan filmens tid (`ut`) och grundrörelsens (`grund`). */
+export type Takt = {fart: number[]; delar: Del[]; langd: number; grund(t: number): number; ut(grundtid: number): number};
+/**
+ * Takten (Jakob 2026-11-26: "Kan jag snabba upp eller korta av en rörelse?"): varje del av följden går med sin egen
+ * fart, jämnt genom hela delen. Delarna börjar och slutar i ett ankare, där händerna står stilla, så bytet av fart
+ * syns inte. Allt annat (ändringarna, blicken, vem som håller kortet) räknas i grundrörelsens tid.
+ */
+export function takt(f: Foljd, fart: readonly number[] = []): Takt {
+  const k = f.delar.map((_, i) => Math.max(FART.minst, Math.min(FART.mest, Number(fart[i]) || 1))), delar: Del[] = []; let t = 0;
+  f.delar.forEach((d, i) => { const l = (d.till - d.fran) / k[i]; delar.push({namn: d.namn, fran: t, till: t + l}); t += l; });
+  const del = (lista: Del[], x: number) => { const i = lista.findIndex(d => x < d.till); return i < 0 ? lista.length - 1 : i; };
+  const mellan = (x: number, d: Del) => Math.max(d.fran, Math.min(d.till, x));
+  return {fart: k, delar, langd: t,
+    grund: x => { const i = del(delar, x); return mellan(f.delar[i].fran + (x - delar[i].fran) * k[i], f.delar[i]); },
+    ut: x => { const i = del(f.delar, x); return mellan(delar[i].fran + (x - f.delar[i].fran) / k[i], delar[i]); }};
+}
+
 /** Grundrörelsen vid tiden t, mellan två rutor (som dealer3d/src/stage.ts setTime), och hur mycket var hand håller kortet. */
 export function rutaVid(f: Foljd, t: number): {frame: Frame; held: {R: number; L: number}} {
   const at = Math.max(0, Math.min(f.frames.length - 1, t * f.fps)), i = Math.min(f.frames.length - 2, Math.floor(at)), k = at - i, a = f.frames[i], b = f.frames[i + 1];
@@ -166,10 +195,12 @@ export function stallning(f: Foljd, t: number, andringar: readonly Andring[], ka
  * andra mapparna. Givens ögonblick (kortet lämnar skon, vänds, ligger) räknas om till följdens rutor.
  */
 export function rutor(f: Foljd, sparad: Sparad, kamera: readonly number[] | null, rattning: string) {
-  const r4 = (a: number[]) => a.map(n => Math.round(n * 10000) / 10000), off = f.forskjutning, b = f.andra;
-  const frames = f.frames.map((_, i) => { const x = stallning(f, i / f.fps, sparad.andringar, kamera), limb = (l: Limb) => ({s: r4(l.s), e: r4(l.e), w: r4(l.w), k: l.k, p: l.p.map(r4)});
+  const r4 = (a: number[]) => a.map(n => Math.round(n * 10000) / 10000), off = f.forskjutning, b = f.andra, T = takt(f, sparad.fart);
+  // Rutorna tas i filmens takt; givens ögonblick (grundrörelsens rutor) räknas om till filmens rutor.
+  const antal = Math.round(T.langd * f.fps) + 1, ruta = (grundruta: number) => Math.round(T.ut(grundruta / f.fps) * f.fps);
+  const frames = Array.from({length: antal}, (_, i) => { const x = stallning(f, T.grund(i / f.fps), sparad.andringar, kamera), limb = (l: Limb) => ({s: r4(l.s), e: r4(l.e), w: r4(l.w), k: l.k, p: l.p.map(r4)});
     return {card: {c: r4(x.card.c), l: r4(x.card.l), n: r4(x.card.n)}, L: limb(x.L), R: limb(x.R), h: r4(x.h), g: r4(x.g)}; });
-  return {about: `${sparad.namn}: ${sparad.grund.join(' och sedan ')} efter varandra (skarven utjämnad i standarddocka/editor/rorelse.ts), ${rattning}, blicken mot kameran ${kamera ? r4([...kamera]).join(', ') : '(rörelsens egen)'} utom när kortet är på väg, och ${sparad.andringar.length} ändringar från editorn i standarddocka. Samma fält som dealer3d/data.`,
-    film: `a1-a23-p${f.plats}c1`, pose: 'A1', to: `P${f.plats}.C1`, fps: f.fps, frameCount: frames.length, leavesShoe: off + b.leavesShoe, edge: b.edge.map(n => off + n), folds: off + b.folds, rests: off + b.rests,
-    hip: r4(f.hip), doll: b.doll, grund: sparad.grund, blickMot: sparad.blickMot ?? null, andringar: sparad.andringar.length, made: sparad.sparad, frames};
+  return {about: `${sparad.namn}: ${sparad.grund.join(' och sedan ')} efter varandra (skarven utjämnad i standarddocka/editor/rorelse.ts), ${rattning}, blicken mot kameran ${kamera ? r4([...kamera]).join(', ') : '(rörelsens egen)'} utom när kortet är på väg, farten per del ${T.fart.join(', ')} gånger grundrörelsens, och ${sparad.andringar.length} ändringar från editorn i standarddocka. Samma fält som dealer3d/data.`,
+    film: `a1-a23-p${f.plats}c1`, pose: 'A1', to: `P${f.plats}.C1`, fps: f.fps, frameCount: frames.length, leavesShoe: ruta(off + b.leavesShoe), edge: b.edge.map(n => ruta(off + n)), folds: ruta(off + b.folds), rests: ruta(off + b.rests),
+    hip: r4(f.hip), doll: b.doll, grund: sparad.grund, fart: T.fart, blickMot: sparad.blickMot ?? null, andringar: sparad.andringar.length, made: sparad.sparad, frames};
 }

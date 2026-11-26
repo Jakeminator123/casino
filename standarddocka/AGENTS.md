@@ -21,7 +21,10 @@ Läget, nästa steg och det som ska plockas in står i `README.md`.
   härifrån; det han ändrar sparas ovanpå dem i `rorelser/`, och han kan alltid gå tillbaka (hans ord 2026-11-26: "en
   resetknapp så att vi kan återgå till rörelserna som finns, så jag inte ändrar värden som är oåterkalleliga"). Den ska
   gå att hantera ungefär som den tidigare dockan, "men utan onödiga grejer": kortet till var och en av de sju
-  platserna, bilden från var och en av dem, och inspelning av ett klipp.
+  platserna, bilden från var och en av dem, farten per del och inspelning av ett klipp.
+- **Granskningen:** en rörelse granskas och rättas med skillen `granska-rorelse`
+  (`../.claude/skills/granska-rorelse/SKILL.md`) och verktygen i `verktyg/`; flera agenter kan ta var sin rörelse, var
+  och en i sin egen fil i `rorelser/`.
 
 Struket: att luta bordet mot kameran (hans ord 2026-11-26: "Vi skiter i lutning av bordet").
 

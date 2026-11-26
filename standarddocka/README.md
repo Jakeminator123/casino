@@ -24,9 +24,14 @@ standarddocka/
     scen.ts     scenen: bordet, stolen och mannen i spelets mått, ljuset, kortet, kamerorna
     rorelse.ts  rörelsen: grundrörelser efter varandra, skarven utjämnad, ändringarna ovanpå, vem som håller kortet
     armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp)
+  verktyg/      för agenter, utan fönster (hur de används: skillen granska-rorelse, ../.claude/skills/granska-rorelse/)
+    titta.ts    stillbilder ur valda kameror vid valda tider, med editorns mått, eller en inspelning; kör editorn i
+                ett headless Chrome under det delade låset
+    mat.ts      mäter en rörelse ruta för ruta mot vad en hand och ett kort kan göra: fingrar i kortet eller filten,
+                kortet utan stöd, plötsliga vändningar, ryck, landningen; ingen webbläsare
   rorelser/     det editorn sparar, en rörelse per kortplats: a1-a23-p<plats>c1.json (vilka grundrörelser, blicken,
-                ändringarna) och a1-a23-p<plats>c1.rutor.json (hela rörelsen ruta för ruta i dockans format, skriven
-                vid Spara)
+                farten per del, ändringarna) och a1-a23-p<plats>c1.rutor.json (hela rörelsen ruta för ruta i dockans
+                format, skriven vid Spara)
   klipp/        filmerna Spela in gör: <rörelse>-<del>-<kamera>.mp4 (1764 x 1174, 30 bilder i sekunden); en ny
                 inspelning med samma namn skriver över den förra; går inte in i Git
   STARTA editorn.cmd   dubbelklicka för att starta editorn och öppna den i webbläsaren
@@ -44,8 +49,12 @@ plats har sina egna sparade ändringar.
 - **Återställ:** "Tillbaka till det sparade" kastar det som inte är sparat, "Återställ till grundrörelsen" tar bort alla
   ändringar. Båda går att ångra (Ctrl+Z), och inget skrivs förrän Spara. Det sparade ligger i Git, så en äldre sparad
   version går alltid att hämta tillbaka.
-- **Spela in:** hela rörelsen eller en del av den, från den valda kameran eller från alla sju platserna i ett svep, utan
-  kulor och pilar. Blicken står fast under inspelningen, så att det är samma rörelse från varje kamera. Filmerna hamnar i
+- **Fart:** varje del i listan "Rörelsen består av" visar hur många sekunder den tar; ett nytt tal gör delen fortare
+  eller långsammare (en fjärdedel till fyra gånger grundrörelsens fart), jämnt genom delen. Farten sparas med rörelsen,
+  följer med i inspelningen och i rutorna, och återställs med de andra ändringarna. Ändringarna sitter kvar i samma
+  ögonblick av rörelsen när farten ändras.
+- **Spela in:** hela rörelsen, en del av den eller given (kortet ut och handen tillbaka i samma film), från den valda
+  kameran eller från alla sju platserna i ett svep, utan kulor och pilar. Blicken står fast under inspelningen, så att det är samma rörelse från varje kamera. Filmerna hamnar i
   `klipp/`. Kräver FFmpeg på datorn (`ffmpeg` i sökvägen, eller miljövariabeln `FFMPEG`).
 
 En ändring i `editor/server.ts` gäller först när servern har startats om: stäng fönstret den körs i och starta igen
@@ -96,7 +105,14 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   (Jakob 2026-11-26). Kontrollerat i en egen webbläsare: alla sju givar laddar utan fel och underarmarna hålls över
   kanten i varje ruta; givarna till plats 1, 2, 6 och 7 är inte granskade med ögat ruta för ruta, och i given till
   plats 7 går armen tätt över eller genom skon. Från plats 1 och 7 syns att scenen saknar rum bakom bordet (bara golv).
-- Tre första klipp ligger i `klipp/`: vilan till skon (A1 → A2.3, 3,0 s) från plats 4, 1 och 7.
+- Tre första klipp ligger i `klipp/`: vilan till skon (A1 → A2.3, 3,0 s) från plats 4, 1 och 7, och given till plats 4
+  (4,0 s) genom spelets kamera.
+- Rörelserna granskas en per agent med skillen `granska-rorelse` (Jakob 2026-11-26: en svärm av agenter får granska
+  småsakerna, som att fingrarna kommer rätt med kortet och att kortet rör sig trovärdigt). Första mätningen med
+  `verktyg/mat.ts`, inte granskad med ögat: i given till plats 4 går pekfingret genom kortet kring 4,2 s och kortet är
+  utan stöd i 32 rutor; i given till plats 7 ligger lillfingret 1 cm i filten kring 4,2 s och vänster handled är böjd
+  77 grader. Rörelserna är ritade med regler, inte simulerade, och det behålls: det som skärps är reglerna för grepp,
+  vändning och släpp i `../blackjack-dealer/dealer3d/src/`, på det granskningen visar.
 - Två brister en utomstående granskare fann i editorn 2026-11-26, som stämmer och inte är rättade: armarna mäts mot
   bordskanten en gång, på grundrörelsen, så efter Jakobs egna ändringar kan en underarm gå genom kanten utan att det
   märks, och den sparade rörelsens text säger ändå att armarna har 1 cm luft; och blickens mål i vilan följer den
@@ -128,6 +144,11 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    3. Samma två klipp med Kling 4 (första och sista bild, dockans film som referensfilm, det sätt Paows givar är
       gjorda med), och det andra klippet med Gemini Omni 1.2 som billig jämförelse.
    4. Vinnaren från plats 1 och 7, med egna ankare för de kamerorna.
+
+   Första omgången (hans "kör igång" 2026-11-26) ligger i `../slask/standarddocka/granska/docka-till-person-1/`, en
+   mapp per sätt med anropet och resultatet: given till plats 4 (4 s) genom spelets kamera, omgjord med Aleph 2 och bara
+   en text, Aleph 2 och en styrbild, Kling 4 som redigerare med hans tre bilder, och Gemini Omni 1.2 med hans tre
+   bilder. De två sista prövar hans fråga om en modell kan klä dockan direkt ur bilderna, utan styrbild.
 
    En tagning per sätt (hans regel i `bestalla-film`). Skattat ur prislistan 2026-11-26: cirka 800 krediter för allt
    (ankarna 100–250, Aleph 195, jämförelsen 205, plats 1 och 7 cirka 220). Anropen läggs som prov genom
