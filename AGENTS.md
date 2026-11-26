@@ -129,16 +129,19 @@ gallring, och lägg inget undan för säkerhets skull: en kopia eller ett arkiv 
   `slask/<projekt>/granska/<namn>/` och står kvar tills han har dömt: godkänt flyttas in i projektet, underkänt raderas.
 - Allt annat i slasken är arbetsfiler: `slask/<projekt>/<uppgift>/`, en mapp per uppgift eller verktyg, inga lösa
   filer. Hjälpskript skrivs i TypeScript som projektets kod (Node 24 kör `.ts` direkt). Agenten tar bort sin
-  uppgiftsmapp när den är klar; det som ändå blir kvar och är äldre än sju dygn raderas.
+  uppgiftsmapp när den är klar; det som ändå blir kvar och inte har ändrats på tre timmar raderas (Jakob 2026-11-26:
+  "Slasken ska raderas var 3 timme om arbete inte används"). Lägg därför aldrig något där som ska finnas kvar: det som
+  ska bestå skrivs i projektet och går in i Git, och det han ska döma ligger i `granska/` eller i projektets granskning.
 - Varje mapp bär en lapp, `lapp.json`: vad den är, vilken chatt eller vilket verktyg som äger den, när, och när den får
   gå. Den som gör mappen skriver lappen, och mappen med den: `node slask/slask.ts lapp <projekt>/<mapp> <ägare> "<vad>"
   ["<när den får gå>"]`, där ägaren är chattens namn i `inbox/`. Registret är `node slask/slask.ts`, räknat ur mapparna
   och lapparna varje gång och sparat ingenstans: storlek, filer, ålder, lappen, det som väntar på dom och det
-  sjudygnsregeln tar. `node slask/slask.ts stada` raderar efter sjudygnsregeln i alla projekt (`--torr` listar bara) och
+  tretimmarsregeln tar. `node slask/slask.ts stada` raderar efter den regeln i alla projekt (`--torr` listar bara) och
   rör aldrig `granska/`. Verktyget är det enda i slasken som Git har och sökningen ser.
 - Ett projekts verktyg hittar sin undermapp som `../slask/<projekt>` från projektets rot, eller med en miljövariabel
  (`DEALER_SLASK` i `blackjack-dealer`). Ingen kod eller text pekar på en viss disk eller dator. `npm run stada` i
- `blackjack-dealer` gör samma städning för den delen, och dess server kör den när den startar.
+ `blackjack-dealer` gör samma städning för den delen, och dess server kör städningen i alla projekt när den startar
+ och var tredje timme medan den går.
 - Projektens kommandon (`npm start`, `npm test`, `npm run check`) körs från projektets mapp, till exempel
   `blackjack-dealer/`.
 - Ett projekt kan ha en egen dold mapp för verktygens tillstånd, som `blackjack-dealer/.runtime/`: databaser som byggs

@@ -45,7 +45,7 @@ Verktygen som gjorde datasetet över kortets rygg och framsida ruta för ruta, m
 och bygger provet `kortprov` (Scen öppnad med `?kortprov=1`; delarna och regeln står vid `TRIAL` i
 `src/card-overlay.ts`). Skripten läser och skriver datasetet
 i slasken, `kort-dataset/` (etiketter i `labels/`, `manifest.jsonl`, `rutor.csv`), och läser repots `assets/`. Den
-tränade modellen skrivs inte dit, eftersom slasken töms efter sju dygn: `train.py` lägger den i `tools/python/models/`
+tränade modellen skrivs inte dit, eftersom slasken töms på det som inte har ändrats på tre timmar: `train.py` lägger den i `tools/python/models/`
 (`kortmodell-v<n>.pt`, eller där `DEALER_MODELS` pekar), och `eval.py` och `spar_modell.py` läser den därifrån; `inventory.py` tar sina rötter som argument. Referensfilmen från YouTube mäts men kopieras
 aldrig; ur den sparas inga utsnitt. Skripten behöver bara `numpy` och `cv2`: etiketteringen kördes i repots `.venv`
 (OpenCV 5.0), mätningarna och provets skript med systemets Python 3.13 (OpenCV 4.13). `train.py` och `eval.py`
