@@ -725,6 +725,9 @@ export const MODELS: Record<string, ModelDef> = {
   wan3: { id: 'wan3', tool: 'generate_video', label: 'WAN 3', durations: [2, 30], resolutions: ['480p', '720p', '1080p'], frames: true, middle: false, videos: false, ratio: 'adaptive', audio: 'off', about: 'Ger bankens 1764 × 1174 direkt.', note: 'Två bilder och en text; ratio adaptive ger bankens 1764 × 1174.' },
   // Runway's generate_video schema 2026-11-13: 3–15 s, resolution fixed 4k ("omit or pass 4k"), audio optional, no reference
   // pictures or films. Its model table says it takes an end frame; the endFrame field's own list of models leaves it out.
+  // Runway's developer API (api.md and assets/inputs.md, read 2026-11-26): kling3.0_4k takes a first frame, or a first and a
+  // last; with both, the film takes the first frame's shape; ratio 3840:2160, 2160:3840 or 2880:2880. Whether the app's
+  // generate_video does the same is not known, so the note below stands.
   'kling-3-4k': {
     id: 'kling-3-4k', tool: 'generate_video', label: 'Kling 3.0 4K', durations: [3, 15], resolutions: ['4k'], frames: true, middle: false, videos: false, audio: 'off',
     shape: 'okänt om 4K-filmen följer första bildens form eller kommer i 16:9 (3840 × 2160)',

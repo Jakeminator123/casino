@@ -64,7 +64,7 @@ test('the exact call per take: pictures by name, nothing the tool does not take,
 test('cost from the price table, with the worst case where the listed price is higher; no price, no order', async () => {
   const { prices } = await policy();
   assert.deepEqual(priceOf({ model: 'kling-4', params: { resolution: '1080p', duration: 7 } }, prices)?.perTake, 150, '21,3 × 7 = 149,1, rounded up');
-  assert.deepEqual(costOf({ model: 'kling-4', params: { resolution: '1080p', duration: 4 } }, 2, prices), { perTake: 86, total: 172, worstPerTake: 94, worstTotal: 188, basis: priceOf({ model: 'kling-4', params: { resolution: '1080p', duration: 4 } }, prices)!.basis });
+  assert.deepEqual(costOf({ model: 'kling-4', params: { resolution: '1080p', duration: 4 } }, 2, prices), { perTake: 86, total: 172, worstPerTake: 113, worstTotal: 226, basis: priceOf({ model: 'kling-4', params: { resolution: '1080p', duration: 4 } }, prices)!.basis });
   assert.equal(costOf({ model: 'wan3', params: { resolution: '1080p', duration: 4 } }, 1, prices)?.total, 80);
   assert.equal(costOf({ model: 'nano-banana-pro', params: { imageSize: '4K' } }, 2, prices)?.total, 80);
   assert.equal(costOf({ model: 'nano-banana-pro', params: { imageSize: '1K' } }, 1, prices), null, 'no price, no order');
@@ -78,7 +78,7 @@ test('cost from the price table, with the worst case where the listed price is h
 test('the policy: switch, cap per order, floor on the balance; the worst case counts', async () => {
   // The limits are Jakob's and move; the arithmetic is tested on fixed ones.
   const p = { ...(await policy()), enabled: true, maxPerOrder: 400, minBalance: 2000 };
-  const order = { cost: { perTake: 86, total: 172, worstPerTake: 94, worstTotal: 188, basis: '' } };
+  const order = { cost: { perTake: 86, total: 172, worstPerTake: 113, worstTotal: 226, basis: '' } };
   assert.equal(checkPolicy(order, p, 17884).ok, true);
   assert.match(checkPolicy(order, { ...p, enabled: false }, 17884).refusals[0], /avstängda/);
   assert.match(checkPolicy({ cost: { ...order.cost, worstTotal: 401 } }, p, 17884).refusals.join(' '), /taket per beställning är 400/);
