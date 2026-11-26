@@ -117,9 +117,12 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    Det provas med `tableBack` i `dealer3d/src/stage.ts` (sidans `?bordbak=`): 15 cm räcker för att bordet ska nå
    magen och skon stå helt på bordet, och markerbrickan följer då med till dealerns kant. Dockans bord är sedan
    samma natt standardens (halv ellips 1,90 × 1,15 m, sarg, rulle, två ben och golv 0,95 m under filten, måtten ur
-   `src/table-lens.ts`); miljön med mannen visas i provet `standarddocka-miljo-20261126`. Hans tankar samma natt, inte
-   prövade: kameran ser dealern för mycket uppifrån, och bordet kunde lutas mot kameran i stället (då kan kameran
-   sänkas lika många grader med korten, skon och platserna kvar på samma ställen i bilden). Kvar: markernas storlek
+   `src/table-lens.ts`); miljön med mannen visas i provet `standarddocka-miljo-20261126`. Hans tanke samma natt:
+   kameran ser dealern för mycket uppifrån, och bordet kunde lutas mot kameran i stället. Det provas med `tableTilt`
+   (sidans `?bordlut=`): bordet och bankens kamera vrids lika många grader kring dealerkantens linje, så att korten,
+   skon och platserna ligger kvar på samma ställen i bilden och dealern syns mer framifrån; händerna följer bordet
+   (provet `bordet-lutat-20261126`, 0, 10 och 15 grader). Varken `tableBack` eller `tableTilt` är standard: de är prov
+   tills han har valt. Kvar: markernas storlek
    och färger (spelets står i moduler dockans sida inte laddar, och han har inte bett om dem); rörelser gjorda för
    standarddockans mått och det närmare bordet (underarmen går i dag genom den flyttade kanten); standarddockorna som
    dockor i `doll.ts`; kroppen som ett val i Inspelning (modellen behöver en plats i `assets/` med en roll); och att
@@ -145,11 +148,13 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    Mätningen som håller Casino på plats: `tools/scene-measure.ts` (sidorna på dator och mobil för `tools/lab-look.ts`,
    och största flytt i bildpunkter mellan två körningar). Nyckeln lins och spelvyn höll varje punkt inom 0,01 bildpunkt;
    det enda som flyttade sig var det som skulle: Casinos råkade sidvridning (0,07°) är borta.
-10. **Inspelning: välja film och dra i dockan** (Jakob 2026-11-26). Han vill kunna spela dealerns filmer för kortet,
-   träd för träd, mot dockans rörelse (i dag väljer bilden själv en film: trädets egen, annars den spelet spelar,
-   `cardFilm` i `studio/lib/bordet.ts`), och kunna dra en hand, en armbåge eller huvudet med musen i stället för bara
-   med reglagen. Filmvalet byggs när trädens sammanslagning i Karta är klar (samma natt, en annan chatt); dragningen
-   hör till dockans bana och binder musen till de reglage som redan sparas med Spara som standard.
+10. **Inspelning: dra i dockan** (Jakob 2026-11-26: "en hand eller kanske armbåge kan dras i en lite annorlunda bana
+   eller kanske kunna vrida huvud"). Byggt samma natt: trädet väljs i raden ovanför bilden och avgör varifrån dockan
+   ger, vilken film Filmen lägger över henne och vilka filmer steg 3 listar; och varje reglage under steg 2 är mätt
+   (lederna flyttas 3–39 cm mellan ändlägena), de som var gamla val är borta och de som inte kan verka i läget visas
+   inte (`docs/SYSTEM.md`, Dockan). Kvar: dragningen med musen, som dockans chatt tar; den binds till samma reglage, så
+   att det finns en väg och ett sparat värde, genom kedjan i `dealer3d/page/natural-lab.ts`. Kvar i dockans server
+   (`dealer3d/page/server.ts`): namnmönstret för en A2.1-standard, som ingenting längre skriver eller läser.
 
 ## Väntar på Jakob
 
@@ -184,9 +189,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   spelvyns Mobil, så Profilval 1:s egen sidvridning syns inte längre där.
 - Korten under Bred lins (steg 9 D2): ska de ritas som filmens egna (dealerns kort 75 × 57 px i stället för 61 × 35)?
   Han svarar när han har sett en före- och efterbild.
-- Hans ögon på Inspelningens enda bild (2026-11-25), och ett val: ska kortets form bli en standard? Reglaget Bordets
-  perspektiv i Hela bordet står på hans 87 %; på Riktigt kort ritar spelet och beställningens sista bild samma kort som
-  dockan och dess referensfilm. Bara han sparar planen.
+- Kortets form, det sista reglaget i Inspelning som inte styr dockan (frågat 2026-11-26): Bordets perspektiv i Hela
+  bordet står på hans 87 % och ändrar hur kortet ritas i spelet och i en beställnings sista bild, medan dockan och
+  hennes referensfilm alltid visar ett riktigt kort (96 %). En beställning bär alltså två kortformer. Förslaget:
+  inspelningen får det riktiga kortet (reglaget bort ur Inspelning), och hur spelets kort ritas blir ett val i
+  utseendet i Scen, där hans 87 % kan stå kvar. Bara han sparar planen.
 - Två frågor om det som städades 2026-11-25: om
   egna returfilmer, landningsbilderna (A3) och A2.2 ska bort också ur beställningsmodellen (`tools/landing-make.ts` och
   stegen RETUR och 2.2 lever kvar där för de sparade beställningarnas skull); och om 3D-banans äldre verktyg som kräver

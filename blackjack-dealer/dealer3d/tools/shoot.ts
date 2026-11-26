@@ -8,6 +8,7 @@
 //        [--doll paow]              a doll other than the standard, or than the one the motion names (dealer3d/src/doll.ts)
 //        [--model <file.glb>]       a rigged model in the white figure's place (dealer3d/src/figure-model.ts); the file stays where it is
 //        [--table-back 0.15]        a trial: the table's dealer edge drawn that many metres nearer her (the page's ?bordbak)
+//        [--table-tilt 15]          a trial: the table sloping that many degrees down toward the players, the bank's camera with it (the page's ?bordlut)
 //        [--motion-file <file.json>] [--plan <file.json>]   serve these frozen inputs for the named motion and plan
 //        [--prefix ruta] [--profile <new folder>] [--port 0] [--serve 0]   0 chooses a free port
 // Run it under the shared lock for the graphics card and headless Chrome (AGENTS.md, "Servern"): one run at a time, short.
@@ -166,7 +167,7 @@ try {
   await send('Runtime.enable'); await send('Page.enable'); await send('Network.enable');
   await send('Emulation.setDeviceMetricsOverride', {width: W, height: H, deviceScaleFactor: 1, mobile: false});
   if (arg('--look') === 'bare') await send('Emulation.setDefaultBackgroundColorOverride', {color: {r: 0, g: 0, b: 0, a: 0}});
-  const query = new URLSearchParams({eyes: arg('--eyes', '1,4')!, to: arg('--to', 'P4.C1')!, look: arg('--look', 'room')!, tags: arg('--tags', '1')!, ...(motion ? {motion} : {}), ...(MODEL ? {model: '1'} : {}), ...(arg('--doll') ? {docka: arg('--doll')!} : {}), ...(arg('--table-back') ? {bordbak: arg('--table-back')!} : {})});
+  const query = new URLSearchParams({eyes: arg('--eyes', '1,4')!, to: arg('--to', 'P4.C1')!, look: arg('--look', 'room')!, tags: arg('--tags', '1')!, ...(motion ? {motion} : {}), ...(MODEL ? {model: '1'} : {}), ...(arg('--doll') ? {docka: arg('--doll')!} : {}), ...(arg('--table-back') ? {bordbak: arg('--table-back')!} : {}), ...(arg('--table-tilt') ? {bordlut: arg('--table-tilt')!} : {})});
   await send('Page.navigate', {url: `http://127.0.0.1:${servePort}/dealer3d/page/index.html?${query}`});
   // A model is tens of megabytes to fetch, read and send to the graphics card: the page gets two minutes instead of twenty seconds.
   let ready = false; for (let i = 0; i < (MODEL ? 480 : 80) && !ready; i++) { assertRunning(); await sleep(250); ready = await run('!!(window.dealer3d && window.dealer3d.ready)'); if (errors.length) break; }
