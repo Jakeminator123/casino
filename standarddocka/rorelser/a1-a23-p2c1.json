@@ -5,7 +5,22 @@
   "till-ankare-2-3-c",
   "giv-fran-2-3-p2c1-naturlig-cykel-a-paow"
  ],
- "blickMot": "film",
+ "blickMot": "lag",
+ "fart": [
+  1.561,
+  1.754,
+  2.593
+ ],
+ "liv": {
+  "fro": 322965787,
+  "delar": [
+   "andning",
+   "huvud",
+   "blick",
+   "hand",
+   "kropp"
+  ]
+ },
  "andringar": [],
- "sparad": "2026-11-26T04:29:30.420Z"
+ "sparad": "2026-11-26T06:44:32.903Z"
 }

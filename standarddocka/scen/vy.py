@@ -101,8 +101,9 @@ NACKE_ANDEL = 0.4
 # allt som ligger under filten döljs och glappet eller kontakten mellan hand och filt syns.
 LINS_MM = STD['lins']['brannvidd_mm']
 EGNA_VYER = {
-    # spelarens håll som film (samma lins, samma avstånd), men lägre: 10 grader ned i stället för 25, mot bröstet
-    'lag': ((0.0, STD['kameror']['film']['pos'][1], 1.53), (0.0, 0.30, 1.15), LINS_MM, None, 0.0),
+    # spelets vy (Jakob 2026-11-26: den lägre kameran är standarden för standarddockans filmer): standard.yaml:s kamera
+    # 'spel', skriven ur PLAY_LENS i blackjack-dealer/src/table-lens.ts; bilden heter fortfarande vy_lag
+    'lag': (tuple(STD['kameror']['spel']['pos']), tuple(STD['kameror']['spel']['mal']), LINS_MM, None, 0.0),
     'sida': ((-3.0, 0.05, 1.20), (0.0, 0.05, 0.80), None, 2.5, 0.0),          # från dealerns höger, golv till huvud
     'arm_nara': ((-0.80, 0.62, 1.07), (-0.22, 0.12, 0.965), 50.0, None, 0.0), # högerarmen över dealerkanten, bakifrån
     'bak': ((-1.35, 2.05, 1.80), (0.0, 0.12, 0.98), 35.0, None, 0.0),        # snett bakifrån, över hans högra axel

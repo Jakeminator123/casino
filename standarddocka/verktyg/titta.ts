@@ -1,10 +1,10 @@
 // Tittar på en rörelse i editorn utan fönster: stillbilder ur valda kameror vid valda tider, med editorns egna mått, eller
 // en inspelning. För en agent som ska granska en rörelse eller göra ett klipp; Jakob använder editorn själv.
 //
-//   node standarddocka/verktyg/titta.ts --ut <mapp> [--plats 4] [--kamera lag,plats7,sida] [--tider 0,1.5,3.2]
+//   node standarddocka/verktyg/titta.ts --ut <mapp> [--plats 4] [--kamera spel,plats7,sida] [--tider 0,1.5,3.2]
 //        Stillbilder: <kamera>-<sekunder>.png (bara bilden, utan panelen) och lage.json med editorns state() vid varje
 //        tid (händernas, armbågarnas och kortets lägen i meter, vilken del, blicken, armarnas luft över bordskanten, fel).
-//   node standarddocka/verktyg/titta.ts --spela-in hela|given|<första>-<sista> [--plats 4] [--kamera film,plats1,plats7]
+//   node standarddocka/verktyg/titta.ts --spela-in hela|given|<första>-<sista> [--plats 4] [--kamera spel,plats1,plats7]
 //        Filmar genom editorn (delarna räknas från 0; given är kortet ut och handen tillbaka): klippen hamnar i
 //        standarddocka/klipp/, och deras namn skrivs ut.
 //   Gemensamt: [--fart 0:1.5,1:1.2]  farten för en del, utan att spara     [--utan platser,stol,bord]  dölj det
@@ -15,7 +15,8 @@
 //              [--liv andning,huvud,blick,hand,kropp] [--fro 1]  de små egna rörelserna på, med slumpens frö (utan att spara)
 //              [--giv <namn>] [--vilan <namn>]  en grundrörelse på prov (en fil i blackjack-dealer/dealer3d/data, utan .json)
 //                         i stället för platsens giv eller vilan till skon, utan det sparade lagret
-//   Kameror: lag (lägre), film (spelets, plats 4), plats1 … plats7, sida, topp. Tider är filmens sekunder.
+//   Kameror: spel (spelets vy, plats 4: standarden; det äldre namnet lag går också), plats1 … plats7 (samma vy från
+//   de andra platserna), sida, topp, och film (den gamla, brantare kameran). Tider är filmens sekunder.
 //
 // Startar en egen editorserver för körningen och ett headless Chrome under det delade låset för grafikkortet
 // (../slask/blackjack-dealer/gpu-och-headless.lock; väntar högst tre minuter på det), och stänger allt efter sig.
@@ -30,7 +31,7 @@ const arg = (name: string, fallback?: string) => { const i = process.argv.indexO
 const flag = (name: string) => process.argv.includes(name);
 const ROOT = fileURLToPath(new URL('../../', import.meta.url)), LOCK = path.join(ROOT, 'slask/blackjack-dealer/gpu-och-headless.lock');
 const PORT = Number(arg('--port', '4321')), plats = Number(arg('--plats', '4')), [W, H] = arg('--storlek', '1600x1000')!.split('x').map(Number);
-const kameror = arg('--kamera', 'lag')!.split(',').filter(Boolean), tider = arg('--tider', '0')!.split(',').map(Number), ut = arg('--ut'), spelaIn = arg('--spela-in');
+const kameror = arg('--kamera', 'spel')!.split(',').filter(Boolean), tider = arg('--tider', '0')!.split(',').map(Number), ut = arg('--ut'), spelaIn = arg('--spela-in');
 const fart = (arg('--fart', '') ?? '').split(',').filter(Boolean).map(x => x.split(':').map(Number)), utan = (arg('--utan', '') ?? '').split(',').filter(Boolean);
 if (!spelaIn && !ut) throw Error('Säg vart bilderna ska: --ut <mapp>, eller --spela-in hela|given|<första>-<sista>.');
 if (![PORT, plats, W, H, ...tider].every(Number.isFinite) || plats < 1 || plats > 7) throw Error('--plats tar 1–7, och --tider, --storlek och --port tar tal.');

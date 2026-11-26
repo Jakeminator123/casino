@@ -44,15 +44,21 @@ följden A1 → A2.3 → kort 1 på en plats → tillbaka: grundrörelserna `til
 aldrig ändras härifrån. Platsen väljs med knapparna "Kortet ges till plats" (eller `?plats=1…7`, förval 4), och varje
 plats har sina egna sparade ändringar.
 
-- **Kameror:** Lägre kamera, från sidan, uppifrån, fri, och "Sedd från plats" 1–7. En plats kamera är spelets egen regel
+- **Kameror:** spelets vy sedd från plats 1–7 (plats 4 är förvalet), från sidan, uppifrån, fri, och den gamla kameran
+  för jämförelse. Spelets vy är den lägre kameran som Jakob valde som standard 2026-11-26: 0,58 m över filten, 12
+  grader ned, samma lins som förut (`PLAY_LENS` i `../blackjack-dealer/src/table-lens.ts`); de andra platsernas kameror
+  räknas ur den med `seatView`. I vilan ser han in i kameran på plats 4: ansiktet vrids ända fram mot den, med ett lyft
+  som är satt efter bild (`BLICK_LYFT` i `editor/scen.ts`). En plats kamera är spelets egen regel
   (`seatEye` i `../blackjack-dealer/dealer3d/src/world.ts`); plats 4 är spelets kamera.
 - **Återställ:** "Tillbaka till det sparade" kastar det som inte är sparat, "Återställ till grundrörelsen" tar bort alla
   ändringar. Båda går att ångra (Ctrl+Z), och inget skrivs förrän Spara. Det sparade ligger i Git, så en äldre sparad
   version går alltid att hämta tillbaka.
-- **Fart:** varje del i listan "Rörelsen består av" visar hur många sekunder den tar; ett nytt tal gör delen fortare
-  eller långsammare (en fjärdedel till fyra gånger grundrörelsens fart), jämnt genom delen. Farten sparas med rörelsen,
-  följer med i inspelningen och i rutorna, och återställs med de andra ändringarna. Ändringarna sitter kvar i samma
-  ögonblick av rörelsen när farten ändras.
+- **Takt:** förvalet är Jakobs takt (`AGENTS.md`): vilan till skon 1 s, kortet ut 1 s, handen tillbaka 0,6 s, räknat
+  på tiden då något rör sig; stillheten i ankaret klipps bort (`STANDARDTAKT` och `taktFor` i `editor/rorelse.ts`).
+  Varje del i listan "Rörelsen består av" visar sina sekunder; ett nytt tal gör delen fortare eller långsammare (en
+  fjärdedel till fyra gånger grundrörelsens fart), jämnt genom delen. En egen fart sparas med rörelsen, följer med i
+  inspelningen och i rutorna, och Återställ går tillbaka till förvalet. Ändringarna sitter kvar i samma ögonblick av
+  rörelsen när farten ändras.
 - **Små egna rörelser:** fem slag som slås på var för sig och läggs ovanpå rörelsen utan att ändra den: han andas,
   huvudet rör sig lätt, en kort blick mot en spelare, ett finger lyfter på en hand som vilar, och kroppen väger över.
   "Slumpa om" lägger dem på andra ställen; samma frö ger samma rörelser. De är noll i varje dels början och slut, så
@@ -176,11 +182,12 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    "mer naturlig", gav samma rörelse tillbaka med hacket kvar. Kvar att pröva: plats 1 och 7, kort med spårfärger och
    en bakgrund i nyckelfärg (se nedan), och Kling 4 med dockans film som lös förlaga.
 
-   Tre saker inför nästa omgång, som väntar på att granskningen av rörelserna är klar (editorn ändras inte medan den
-   pågår): takten 1 s, 1 s och 0,5 s (`AGENTS.md`) läggs in som editorns förval, med stillheten i ankaret skild från
-   rörelsen; ett klipp till filmmodellen måste vara minst 2 s (Aleph 2) eller 3 s (Kling 4), så en rörelse på 1 s filmas
-   med stillheten i ankaret efter sig och klipps där; och blicken görs till rörelsens egen, så att två klipp som möts
-   har samma huvud (klippen i första och andra omgången spelades in med blicken mot olika kameror).
+   Inför nästa omgång: takten är editorns förval och blicken rörelsens egen (ovan). Kvar: ett klipp till filmmodellen
+   måste vara minst 2 s (Aleph 2) eller 3 s (Kling 4), så rörelser på 1 s filmas flera efter varandra i en längre film
+   (Aleph 2 tar 30 s och fem styrbilder) med en kort stillhet i ankaret mellan varje, och styckas där. Det kräver
+   följder i editorn: flera givar efter varandra, också fler kort till samma plats (samma rörelse med landningspunkten
+   flyttad) och varianter av en giv (annan vändning och landning ur givarnas regler, och ett eget frö för de små
+   rörelserna). De byggs när de nya grundrörelserna finns.
 
    Tredje omgången är körd (213 krediter) och väntar på hans dom, provet `docka-till-person-3-20261126`, med underlaget
    i `../slask/standarddocka/granska/docka-till-person-3/`. Kling 4 med hans ord "gör dealerns rörelser mindre stela"
@@ -192,10 +199,13 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    första förslag och inte spelets spårkort (`../blackjack-dealer/dealer3d/src/card-marks.ts`, gult och blått med kryss
    och prick): vilket som blir standard är Jakobs val.
 
-   Kamerans höjd (hans fråga 2026-11-26): en film går inte att luta om i efterhand, så den höjd och lutning som väljs
-   för inspelningen är också spelets. Lägre kamera (10 grader) visar mer av dealern men trycker ihop kortplatserna; ett
-   mellanläge är inte prövat. Varje plats kamera har samma höjd, lutning och lins som plats 4:s och är bara flyttad
-   runt bordet.
+   Kamerans höjd är avgjord (Jakob 2026-11-26): den lägre kameran är spelets vy och standarden för de här filmerna
+   (`AGENTS.md`, provet `spelets-vy-20261126`). Den följs av editorn, de sju platsernas kameror och Blenders standard
+   (`../avatar-auto-pipeline/scen/standard.yaml`, som `scen/vy.py` läser sin lägre vy ur). Det som inte har följt med
+   än: bilderna i `vy/` är från före bytet (skriptet körs om när skon är ombyggd), och spelet självt ritar sina kort
+   och sitt bord genom den gamla kameran tills de nya filmerna tas in där; då räknas kortplatsernas bildpunkter ur
+   samma punkter på bordet genom spelets vy (`see(filmEye(PLAY_LENS), punkt)`). En film går inte att luta om i
+   efterhand, så bordet spelet ritar måste gå genom exakt den här kameran.
 
    En tagning per sätt (hans regel i `bestalla-film`). Skattat ur prislistan 2026-11-26: cirka 800 krediter för allt
    (ankarna 100–250, Aleph 195, jämförelsen 205, plats 1 och 7 cirka 220). Anropen läggs som prov genom

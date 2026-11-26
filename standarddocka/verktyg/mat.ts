@@ -21,7 +21,7 @@ import path from 'node:path';
 import {handFaults} from '../../blackjack-dealer/dealer3d/src/hand-rule.ts';
 import {spots, type Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
 import {CARD, TABLE_LENS, type Vec3} from '../../blackjack-dealer/src/table-lens.ts';
-import {GIVAR, TILL_SKON, rutaVid, medAndringar, sattIhop, takt, type Motion, type Sparad} from '../editor/rorelse.ts';
+import {GIVAR, TILL_SKON, rutaVid, medAndringar, sattIhop, taktFor, type Motion, type Sparad} from '../editor/rorelse.ts';
 
 const arg = (name: string, fallback?: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : fallback; };
 const plats = Number(arg('--plats', '4')); if (!GIVAR[plats]) throw Error('--plats tar 1–7.');
@@ -30,7 +30,7 @@ const ROOT = fileURLToPath(new URL('../../', import.meta.url)), las = async <X>(
 const provgiv = arg('--giv'), provvila = arg('--vilan'); if (![provgiv, provvila].every(n => n === undefined || /^[a-z0-9][a-z0-9-]*$/.test(n))) throw Error('--giv och --vilan tar ett filnamn ur blackjack-dealer/dealer3d/data, utan .json.');
 const [forsta, andra, plan] = await Promise.all([las<Motion>(`blackjack-dealer/dealer3d/data/${provvila ?? TILL_SKON}.json`), las<Motion>(`blackjack-dealer/dealer3d/data/${provgiv ?? GIVAR[plats]}.json`), las<Plan>('blackjack-dealer/placements/default.json')]);
 const sparad = provgiv || provvila ? null : await las<Sparad>(`standarddocka/rorelser/a1-a23-p${plats}c1.json`).catch(() => null);
-const f = sattIhop(forsta, andra, plats), T = takt(f, sparad?.fart), fps = f.fps, antal = Math.round(T.langd * fps) + 1;
+const f = sattIhop(forsta, andra, plats), T = taktFor(f, sparad?.fart, !!(provgiv || provvila)), fps = f.fps, antal = Math.round(T.langd * fps) + 1;
 
 const sub = (a: number[], b: number[]): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dot = (a: number[], b: number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const cross = (a: number[], b: number[]): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];

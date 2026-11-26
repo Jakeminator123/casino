@@ -25,6 +25,11 @@ lins:  # filmkamerans lins; hela spelets värld är räknad ur den
   sensor_mm: 36.0  # antaget: Blender-standard, sensor_fit HORIZONTAL; brännvidden nedan räknas om så att bilden blir exakt spelets
   brannvidd_mm: 47.6327  # härlett: focal_px / bild_bredd * sensor_mm
 
+spelvy:  # spelets vy (Jakob 2026-11-26): kameran standarddockan filmas genom och spelets bord ritas genom för de filmerna; samma lins och plats över bordet som filmkameran, men lägre och flackare
+  focal_px: 2334  # källa: blackjack-dealer/src/table-lens.ts (PLAY_LENS)
+  pitch_rad: 0.2094395102  # källa: blackjack-dealer/src/table-lens.ts (PLAY_LENS) (= 12.000 grader nedåt)
+  hojd_over_filt: 0.5800000000  # källa: blackjack-dealer/src/table-lens.ts (PLAY_LENS)
+
 bord_modell: standard  # källa: blackjack-dealer/src/scene3d-view.ts DEFAULTS.tableModel
 bord:  # spelets standardbord (oval halv-ellips, rak dealerkant). källa: blackjack-dealer/src/scene3d-table.ts (TABLE, REAL_TABLE) under linsen (tableUnder: bredd TABLE.a*2, djup REAL_TABLE.depth)
   typ: oval_halvellis
@@ -289,6 +294,48 @@ kameror:  # alla perspektivkameror: sensor 36 mm horisontellt, upplösning 1764 
     mal: [-0.3487, 0.1367, 0.9500]
     brannvidd_mm: 47.6327
     kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 7 "
+  spel:
+    typ: perspektiv
+    pos: [0.0000, -1.8438, 1.5300]
+    mal: [0.0000, 0.8849, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/src/table-lens.ts (PLAY_LENS) filmEye – spelets vy från plats 4, standarden för standarddockans filmer (Jakob 2026-11-26)"
+  spel_plats_1:
+    typ: perspektiv
+    pos: [-1.8160, -0.9035, 1.5300]
+    mal: [0.6217, 0.3226, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 1"
+  spel_plats_2:
+    typ: perspektiv
+    pos: [-1.4179, -1.2767, 1.5300]
+    mal: [0.6069, 0.5524, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 2"
+  spel_plats_3:
+    typ: perspektiv
+    pos: [-0.8031, -1.6501, 1.5300]
+    mal: [0.3916, 0.8032, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 3"
+  spel_plats_5:
+    typ: perspektiv
+    pos: [0.8164, -1.6259, 1.5300]
+    mal: [-0.4065, 0.8134, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 5"
+  spel_plats_6:
+    typ: perspektiv
+    pos: [1.4587, -1.1927, 1.5300]
+    mal: [-0.6555, 0.5323, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 6"
+  spel_plats_7:
+    typ: perspektiv
+    pos: [1.8441, -0.7736, 1.5300]
+    mal: [-0.6760, 0.2726, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 7"
   dealer_ogon:
     typ: perspektiv
     pos: [-0.0080, 0.2900, 1.5219]

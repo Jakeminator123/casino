@@ -11,8 +11,8 @@ Läget, nästa steg och det som ska plockas in står i `README.md`.
 
 - **Standarddockan:** en man först, sedan en kvinna, med samma skelett. Hon och han är grunden som nästa dealers docka
   görs av, och bär standarden för bordet, korten, skon och kortplatserna.
-- **Vyn:** Blenders bild av dealern vid bordet, genom spelets kamera (stol 4, framifrån). Hans ord: "den mycket bättre
-  vyn" än dockans scen i `blackjack-dealer`.
+- **Vyn:** Blenders bild av dealern vid bordet, genom spelets vy (plats 4, framifrån, den lägre kameran; se domarna
+  nedan). Hans ord: "den mycket bättre vyn" än dockans scen i `blackjack-dealer`.
 - **Bordet rätt:** kanten ("karmen"), markerbrickan, skon, korten och kortplatserna, och bordet närmare dealern.
 - **Blicken:** mot kameran, lite högre än dockan tittar i dag.
 - **Rörelserna:** de avgör. En rörelse är klar först när den är riktigt bra i den här vyn.
@@ -58,14 +58,32 @@ rörelse prövas mot innan den visas för honom.
 - **Kamerans vinkel.** Inspelningens kamera ser dealern uppifrån, och "vinkeln [är] inte naturlig utifrån att man
   skulle spela i casinot. Dock om vi kan vinkla ned vyn till när man ska spela så går detta å andra sidan": vyn
   spelaren får ska vara mer framifrån än inspelningens, och blicken mot kameran.
+- **Spelets vy är den lägre kameran (2026-11-26).** Om bilden genom den lägre kameran: "Jag tror jag gillar denna
+  kameravinkel som standard faktiskt! Men ska vi sätta denna standard måste vi se till att allt hänger med, så att vi
+  inte bara ändrar en kameravinkel här och sedan kommer det inte följa med i de led som har med .glb-/3d/andra mappars
+  standarder och/eller andra kameror som filmar från andra platser". Och att insatsringen på plats 4 inte ska brytas
+  av bilden. Talen står på ett ställe, `PLAY_LENS` i `../blackjack-dealer/src/table-lens.ts` (0,58 m över filten,
+  12 grader ned), och allt läser dem därifrån: editorn, de sju platsernas kameror (`seatView`), och Blenders standard
+  (`../avatar-auto-pipeline/scen/standard.yaml`, `spelvy` och kamerorna `spel` och `spel_plats_N`). En ny kamera läggs
+  aldrig in som egna tal i en mapp.
+- **I vilan ser han in i kameran (2026-11-26).** "A1 [ska] alltid ha avataren som tittar mot kameran … mot P4:as kamera
+  för tillfället."
 - **Takten (2026-11-26).** "En ny standard som jag skulle vilja ha för rörelserna med nya standarddockan. A1 - A2.3 ska
   ta 1 sekund ungefär. Sedan ska respektive giv, såsom A2.3 till P4C1 ta 1 sekund ungefär", och senare samma dag:
   "respektive utgivning är max 1 sekund och tillbakagången till A1 och/eller A2.3 eller så ska göras på ca 0,6
   sekunder". Alltså: från vilan till skon cirka 1 s, kortet ut högst 1 s, och handen tillbaka (till skon eller till
   vilan) cirka 0,6 s. Det är rörelsens tid; stillastående i ett ankare räknas inte in.
-- **Handen vid skon vilar medan den andra ger (2026-11-26).** "Dealerns hand som för ut kortet ur skon liksom lyfts upp
-  och spänns medan den andra [handen] faktiskt delar ut kortet", i alla givarna: handen som tog kortet ur skon ska
-  ligga avspänd, inte hänga spänd i luften, medan den andra handen lägger kortet.
+- **Handen vid skon är redo medan den andra ger (2026-11-26).** "Dealerns hand som för ut kortet ur skon liksom lyfts upp
+  och spänns medan den andra [handen] faktiskt delar ut kortet", i alla givarna. Och: "dockan ska inte vara avspänd vid
+  skon i REDO/A2.3". Handen som tog kortet ur skon går alltså tillbaka till sin redo-ställning vid skon och håller den
+  lugnt medan den andra handen lägger kortet: varken lyft och spänd i luften, eller slapp.
+- **Vilan ska se avslappnad ut (2026-11-26).** "I A1/VILA-position ska han se mer avslappnad och naturlig ut med blicken
+  mot P4."
+- **Skons kort ska synas som kort (2026-11-26).** Kortens rygg får vara som den är, men "se bara till att det blir
+  supertydligt vad som på skon faktiskt är ett kort och inte", gärna med "ett litet skydd/hölje, så man måste verkligen
+  dra ut ett kort i taget": en riktig dealerskos frontplatta med en halvmåneformad öppning för fingret.
+- **Varianter (2026-11-26).** "Det ultimata hade varit ett system där man har ca 5 unika givar till respektive plats",
+  med egna små rörelser för huvud, kropp och andra armen.
 - **Allt börjar i A1.** "Rörelserna måste kunna läggas in i hela det system med A1 som allt börjar på": varje rörelse
   går mellan två ankare (A1 vilan, A2.3 handen vid skon) och börjar och slutar stilla i dem, så att klippen kan läggas
   efter varandra i spelets träd.

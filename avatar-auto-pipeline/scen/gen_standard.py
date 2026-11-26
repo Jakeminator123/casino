@@ -38,6 +38,7 @@ src = {
  'chip': 'blackjack-dealer/src/game3d-chips.ts (CHIP_RADIUS, CHIP_HEIGHT)', 'gold': 'blackjack-dealer/src/scene3d-table.ts (GOLD)',
  'bet': 'blackjack-dealer/src/scene3d-geometry.ts (BET)',
  'rest': 'blackjack-dealer/dealer3d/src/body.ts restingHand(TABLE_LENS)', 'figure': 'blackjack-dealer/dealer3d/src/figure-model.ts',
+ 'play': 'blackjack-dealer/src/table-lens.ts (PLAY_LENS)', 'playSeat': 'blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS))',
 }
 w('# STANDARD – en enda sanning för bord, platser, sko, kort, docka och kameror.')
 w('# Skriven av scen/gen_standard.py ur spelets egen kod (casino/blackjack-dealer, som scen/las_spelet.ts läser).')
@@ -67,6 +68,12 @@ w(f'  dealerkant_lins_z: {ZE:.10f}  # källa: {src["edge"]} – dealerkantens z 
 sens = 36.0; lensmm = L0['focalPx'] / d['FILM']['width'] * sens
 w(f'  sensor_mm: {sens}  # antaget: Blender-standard, sensor_fit HORIZONTAL; brännvidden nedan räknas om så att bilden blir exakt spelets')
 w(f'  brannvidd_mm: {lensmm:.4f}  # härlett: focal_px / bild_bredd * sensor_mm')
+w('')
+LP = d['playLens']
+w('spelvy:  # spelets vy (Jakob 2026-11-26): kameran standarddockan filmas genom och spelets bord ritas genom för de filmerna; samma lins och plats över bordet som filmkameran, men lägre och flackare')
+w(f'  focal_px: {LP["focalPx"]}  # källa: {src["play"]}')
+w(f'  pitch_rad: {LP["pitch"]:.10f}  # källa: {src["play"]} (= {deg(LP["pitch"]):.3f} grader nedåt)')
+w(f'  hojd_over_filt: {LP["height"]:.10f}  # källa: {src["play"]}')
 w('')
 # ---------------- BORD
 # Spelets default (scene3d-view.ts tableModel: "standard"):
@@ -324,6 +331,13 @@ cam_line('film', pos, tg, lensmm, f'{src["lens"]} filmEye – exakt spelets film
 for N in range(1, 8):
     pos, tg = target_on_felt(d['seatEyes'][str(N)])
     cam_line(f'spelare_{N}', pos, tg, lensmm, f'{src["seatEye"]} seat {N} ' + (' – ersätter giv-seat-5' if N == 5 else ''))
+# Spelets vy: standarden för standarddockans filmer (plats 4), och samma vy från de andra platserna.
+pos, tg = target_on_felt(d['playEye'])
+cam_line('spel', pos, tg, lensmm, f'{src["play"]} filmEye – spelets vy från plats 4, standarden för standarddockans filmer (Jakob 2026-11-26)')
+for N in range(1, 8):
+    if N == 4: continue
+    pos, tg = target_on_felt(d['playSeatEyes'][str(N)])
+    cam_line(f'spel_plats_{N}', pos, tg, lensmm, f'{src["playSeat"]} plats {N}')
 head = hd_adj
 cam_line('dealer_ogon', [head[0], head[1]-0.09, head[2]+0.03], [0.0, -0.30, FELT], 24.0, 'antaget: dealerns ögon 9 cm framför huvudets mitt, 3 cm upp; tittar på P4-området; 24 mm vidvinkel')
 cam_line('hander', [0.0, -1.05, FELT+0.40], [0.12, -0.10, FELT+0.02], 85.0, 'antaget: närbild händer/sko/kort från spelarsidan')

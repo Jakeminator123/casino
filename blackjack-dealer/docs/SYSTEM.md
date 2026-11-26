@@ -52,6 +52,7 @@ de två lika och planens platser på sina bildpunkter.
 | Bilden | 1764 × 1174; bildpunkternas mitt, origo uppe till vänster | `FILM` |
 | Kortet | 63 × 88 mm, 0,3 mm tjockt, hörn 3,5 mm; vid plats 4 nära kanten 84,5 px, 72 px djupt, bortre kanten 96 % av den nära | `CARD`, `SEAT_FOUR_CARD` |
 | Linsen | brännvidd 2334 px; synfält 28,2° lodrätt och 41,4° vågrätt; 25,06° ned; 1,110 m över filten; 1,844 m längs filten till dealerkanten (rad 831,5); horisonten ovanför bilden | `TABLE_LENS`; `dealerEdge` i `dealer3d/src/world.ts` |
+| Spelets vy | standarddockans filmer tas genom en lägre kamera (Jakob 2026-11-26): samma lins och plats över bordet, 0,58 m över filten och 12° ned. Bankens filmer, planens bildpunkter och skons fot hör fortfarande till linsen ovan; en punkt på bordet räknas till spelets vy med `see(filmEye(PLAY_LENS), punkt)`, och en annan plats kamera med `seatView` | `PLAY_LENS`, `seatView` |
 | Bordet | filten är planet y = 0 i verkliga meter, x åt höger, y upp, z mot kameran; kameran står i (0; 1,110; 0) och ser längs −z | `pixelToFelt`, `feltToPixel` |
 | Skon | foten fram (1268,1; 895,9) och bak (1666,5; 796,8) px; 0,436 × 0,082 m, 0,131 m hög bak och 0,10 m fram; plåten lutar 51,6°, kortet i fönstret står 22 mm över filten | `SHOE` |
 | Markerlådan | försänkt vid dealerkanten: från 0,30 m vänster om bildens mitt till 0,24 m höger om den (slutar före skon), 0,10 m mot spelarna, 0,03 m djup | `TRAY` |

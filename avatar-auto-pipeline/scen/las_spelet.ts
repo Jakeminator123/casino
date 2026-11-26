@@ -20,11 +20,17 @@ const plan = JSON.parse(readFileSync(path.join(game, 'placements', 'default.json
 const lens = lensFile.TABLE_LENS, eye = lensFile.filmEye(lens);
 const seatEyes: Record<number, unknown> = {};
 for (let seat = 1; seat <= 7; seat++) { try { seatEyes[seat] = world.seatEye(seat, plan, lens); } catch (error) { seatEyes[seat] = String(error); } }
+// The play view (table-lens.ts PLAY_LENS, Jakob 2026-11-26): the camera the standard doll is filmed through, at seat 4,
+// and the same view from every other seat (table-lens.ts seatView).
+const playEye = lensFile.filmEye(lensFile.PLAY_LENS), firstCards = world.spots(plan, lens), fourth = firstCards.find((s: any) => s.id === 'P4.C1');
+const playSeatEyes: Record<number, unknown> = {};
+for (let seat = 1; seat <= 7; seat++) { const own = firstCards.find((s: any) => s.id === `P${seat}.C1`);
+  playSeatEyes[seat] = own && fourth ? (seat === 4 ? playEye : lensFile.seatView(playEye, own.at, fourth.at, world.dealerEdge(lens))) : `The plan has no first card for seat ${seat}.`; }
 const shoePose = lensFile.shoePose(lens, lensFile.SHOE), planShoe = lensFile.planPixel(plan.shoe.native);
 const measures = (d: any) => ({upperArm: d.upperArm, forearm: d.forearm, reach: d.reach, hipBelowFelt: d.hipBelowFelt, mostLean: d.mostLean, mostTwist: d.mostTwist});
 const spelet = {
   lens, fittedLens: world.filmLens(), FILM: lensFile.FILM, CARD: lensFile.CARD, SHOE: lensFile.SHOE,
-  filmEye: eye, dealerEdge: world.dealerEdge(lens),
+  filmEye: eye, dealerEdge: world.dealerEdge(lens), playLens: lensFile.PLAY_LENS, playEye, playSeatEyes,
   targets: Object.fromEntries(Object.entries(plan.targets).map(([id, t]: [string, any]) => [id, t.geometry.native])),
   planShoe: plan.shoe, spots: world.spots(plan, lens), seatEyes,
   shoePose, shoeCard: lensFile.shoeCard(shoePose, lensFile.SHOE), shoeAtPlan: lensFile.onPlane(eye, planShoe.x, planShoe.y),

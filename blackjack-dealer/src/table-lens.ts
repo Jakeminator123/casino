@@ -34,6 +34,18 @@ export type Eye = {position: Vec3; forward: Vec3; focalPx: number};
  * two pixels a card; under 1500 she is plainly too large.
  */
 export const TABLE_LENS: Lens = {focalPx: 2334, pitch: 0.4373194931932115, height: 1.1099955533438894};
+/**
+ * The play view (Jakob 2026-11-26, on stills of the standard doll through a lower camera: "Jag tror jag gillar denna
+ * kameravinkel som standard faktist!", and that everything must then follow it: the other seats' cameras and the 3D
+ * standards). The camera the standard doll is filmed through, and the one the game's table must be drawn through for those
+ * films, since a film cannot be tilted afterwards. The same lens and the same place over the table as the film camera,
+ * but lower and less steep, as a player sees the dealer: 0.58 m over the felt and 12 degrees down. (The stills he chose
+ * from were 10 degrees; two more so that seat 4's bet ring is whole in the picture, his note the same day.)
+ * TABLE_LENS stays what the bank's films were shot through: the plan's pixels and the shoe's foot are read under it. A
+ * point of the table goes to the play view's picture through see(filmEye(PLAY_LENS), point), and another seat's eye for
+ * it is seatView below.
+ */
+export const PLAY_LENS: Lens = {focalPx: TABLE_LENS.focalPx, pitch: 12 * Math.PI / 180, height: 0.58};
 
 const CX = (FILM.width - 1) / 2, CY = (FILM.height - 1) / 2;
 export const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -80,6 +92,16 @@ export function onUpright(e: Eye, px: number, py: number, z: number): Vec3 | nul
 export function orbit(e: Eye, pivot: Vec3, angle: number): Eye {
   const c = Math.cos(angle), s = Math.sin(angle), turn = (v: Vec3): Vec3 => [v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c];
   return {position: add(pivot, turn(sub(e.position, pivot))), forward: turn(e.forward), focalPx: e.focalPx};
+}
+/**
+ * The eye of another seat, for a view whose own eye is seat 4's: it stands to that seat's first card (`own`) as `view`
+ * stands to seat 4's (`four`), as far behind it, as high over the felt and looking as steeply down, turned round the table
+ * by the angle between the two cards as seen from `pivot`, the middle of the dealer's edge. The rule of
+ * dealer3d/src/world.ts seatEye, for any view; all three points on the felt, in metres.
+ */
+export function seatView(view: Eye, own: Vec3, four: Vec3, pivot: Vec3): Eye {
+  const bearing = (p: Vec3) => Math.atan2(p[0] - pivot[0], p[2] - pivot[2]), turned = orbit(view, four, bearing(own) - bearing(four));
+  return {...turned, position: [turned.position[0] + own[0] - four[0], turned.position[1], turned.position[2] + own[2] - four[2]]};
 }
 
 /** The four corners of a card lying flat at `centre`: far left, far right, near right, near left for heading 0. `grow` enlarges the card about its middle. */

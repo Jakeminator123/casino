@@ -5,8 +5,8 @@ import * as T from 'three';
 import {GLTFLoader, type GLTF} from 'three/addons/loaders/GLTFLoader.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {loadFigure, type Figure} from '../../blackjack-dealer/dealer3d/src/figure-model.ts';
-import {dealerEdge, seatEye, spots, type Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
-import {FILM, TABLE_BASE, TABLE_LENS, filmEye, fovYDeg} from '../../blackjack-dealer/src/table-lens.ts';
+import {dealerEdge, spots, type Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
+import {FILM, PLAY_LENS, TABLE_BASE, TABLE_LENS, filmEye, fovYDeg, seatView} from '../../blackjack-dealer/src/table-lens.ts';
 import {cross, type Frame, type V3} from './rorelse.ts';
 
 const MODELLER = {man: '/avatar-auto-pipeline/assets/docka/standarddocka_man.glb', bord: '/avatar-auto-pipeline/assets/bord/standardbord_nara.glb', stol: '/avatar-auto-pipeline/assets/stol/dealerstol.glb'};
@@ -31,26 +31,40 @@ export const BLENDER_TILL_LINS: V3 = [0, TABLE_BASE.floor, KANT[2]];
  * rörelsens, så sitsen ställs efter hans kropp.)
  */
 export const STOL = {ryggLuft: 0.03, knaveckLuft: 0.02, sitsIntryck: 0.005, sitsMitt: [-0.0152, -0.46], benTill: 0.5};
+/** Hur många grader huvudets sikte lyfts över blickpunkten när han ser in i kameran (pose nedan). Satt efter bild 2026-11-26: vid 10 och 22 grader såg han under kameran, vid 34 in i den. */
+const BLICK_LYFT = 32;
 
-/** Kameran från en av de sex andra platserna vid bordet; plats 4 är spelets kamera, 'film'. */
+/** Kameran från en av de sex andra platserna vid bordet; plats 4 är spelets vy, 'spel'. */
 export type Platskamera = 'plats1' | 'plats2' | 'plats3' | 'plats5' | 'plats6' | 'plats7';
-export type Kamera = 'film' | 'lag' | 'sida' | 'topp' | 'fri' | Platskamera;
-/** Kameran för en plats 1–7 vid bordet. */
-export const platskamera = (plats: number): Kamera => plats === 4 ? 'film' : `plats${plats}` as Platskamera;
-/** Platsen (1–7) en kamera står på, eller null för de kameror som inte är en spelares. */
-export const kameransPlats = (k: Kamera): number | null => k === 'film' ? 4 : k.startsWith('plats') ? Number(k.slice(5)) : null;
 /**
- * De fasta kamerorna: läge, punkten de ser mot och lodrät bildvinkel i grader. En plats kamera är spelets egen regel
- * (seatEye i blackjack-dealer/dealer3d/src/world.ts): den står till platsens första kort som spelets kamera står till
- * plats 4:s, lika högt och lika brant, så att spelarens eget kort hamnar på samma ställe i bilden från varje plats.
+ * Kamerorna. 'spel' är spelets vy, standarden för standarddockans filmer (Jakob 2026-11-26, den lägre kameran: "Jag tror
+ * jag gillar denna kameravinkel som standard faktiskt!"; talen är PLAY_LENS i blackjack-dealer/src/table-lens.ts): det
+ * spelaren på plats 4 ser, och de andra platsernas kameror räknas ur den. 'film' är den gamla inspelningens kamera
+ * (TABLE_LENS, 25 grader ned), den Paows filmer är tagna med.
+ */
+export type Kamera = 'spel' | 'film' | 'sida' | 'topp' | 'fri' | Platskamera;
+const KAMEROR: readonly string[] = ['spel', 'film', 'sida', 'topp', 'fri', 'plats1', 'plats2', 'plats3', 'plats5', 'plats6', 'plats7'];
+/** En kamera ur ett namn i en adress eller ett verktyg. De äldre namnen 'lag' och 'mellan' och 'plats4' är spelets vy. */
+export const somKamera = (namn: string | null | undefined): Kamera | null => namn === 'lag' || namn === 'mellan' || namn === 'plats4' ? 'spel' : KAMEROR.includes(namn ?? '') ? namn as Kamera : null;
+/** Kameran för en plats 1–7 vid bordet. */
+export const platskamera = (plats: number): Kamera => plats === 4 ? 'spel' : `plats${plats}` as Platskamera;
+/** Platsen (1–7) en kamera står på, eller null för de kameror som inte är en spelares. */
+export const kameransPlats = (k: Kamera): number | null => k === 'spel' ? 4 : k.startsWith('plats') ? Number(k.slice(5)) : null;
+/**
+ * De fasta kamerorna: läge, punkten de ser mot och lodrät bildvinkel i grader. En plats kamera följer spelets regel
+ * (seatView i blackjack-dealer/src/table-lens.ts): den står till platsens första kort som spelets vy står till plats
+ * 4:s, lika högt och lika brant, så att spelarens eget kort hamnar på samma ställe i bilden från varje plats.
  */
 export function kameraVy(k: Exclude<Kamera, 'fri'>, plan: Plan): {pos: V3; mot: V3; fov: number} {
-  const plats = kameransPlats(k), eye = plats && plats !== 4 ? seatEye(plats, plan, TABLE_LENS) : filmEye(TABLE_LENS), fov = fovYDeg(TABLE_LENS.focalPx), z = KANT[2];
-  if (plats) return {pos: eye.position, mot: [eye.position[0] + eye.forward[0] * 2, eye.position[1] + eye.forward[1] * 2, eye.position[2] + eye.forward[2] * 2], fov};
-  // Samma håll och lins som spelets kamera, men lägre: 10 grader ned i stället för 25, mot bröstet (som 'lag' i scen/vy.py).
-  if (k === 'lag') return {pos: [0, 0.58, 0], mot: [0, 0.2, z - 0.3], fov};
+  const z = KANT[2], oga = (e: {position: V3; forward: V3; focalPx: number}) => ({pos: e.position, mot: [e.position[0] + e.forward[0] * 2, e.position[1] + e.forward[1] * 2, e.position[2] + e.forward[2] * 2] as V3, fov: fovYDeg(e.focalPx)});
   if (k === 'sida') return {pos: [-2.4, 0.32, z - 0.12], mot: [0, -0.06, z - 0.12], fov: 34}; // från hans högra sida, som 'sida' i scen/vy.py
-  return {pos: [0.06, 2.15, z + 0.32], mot: [0.06, 0, z + 0.1], fov: 42}; // uppifrån, han överst i bilden
+  if (k === 'topp') return {pos: [0.06, 2.15, z + 0.32], mot: [0.06, 0, z + 0.1], fov: 42}; // uppifrån, han överst i bilden
+  if (k === 'film') return oga(filmEye(TABLE_LENS));
+  const spel = filmEye(PLAY_LENS), plats = kameransPlats(k);
+  if (!plats || plats === 4) return oga(spel);
+  const alla = spots(plan, TABLE_LENS), egen = alla.find(s => s.id === `P${plats}.C1`), fyra = alla.find(s => s.id === 'P4.C1');
+  if (!egen || !fyra) throw Error(`Planen saknar det första kortet för plats ${plats}.`);
+  return oga(seatView(spel, egen.at, fyra.at, KANT));
 }
 
 /**
@@ -73,7 +87,8 @@ export type Scen = {
   synlig(vad: 'bord' | 'stol' | 'platser', pa: boolean): void;
   /** Hur stolen ställdes: sänkt, flyttad, sitsens överkant i modellen och nu (över golvet), luften från hans rygg till ryggstödet och från sitsens framkant till vaderna, och hans höftled i vilan. */
   stol: {sank: number; flytt: V3; sitsUppe: number; sitsNu: number; ryggstod: number; knaveck: number; hoft: V3};
-  pose(f: Frame, hip: number[]): void;
+  /** Ställer mannen i en ruta. `motKameran` (0–1): ansiktet vrids ända fram mot blickpunkten (se pose nedan). */
+  pose(f: Frame, hip: number[], motKameran?: number): void;
   bone(name: string): T.Vector3;
   render(): void;
   setKamera(k: Kamera): void;
@@ -117,13 +132,26 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
   const bone = (name: string) => { const b = figure.root.getObjectByName(name); if (!b) throw Error(`Mannen saknar leden ${name}.`); return b.getWorldPosition(new T.Vector3()); };
   const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]);
   /** En ruta på mannen, som dealer3d/src/stage.ts gör det: bålen ur axlarna och höften, armarna ur lederna, händerna ur sina 21 punkter, huvudet mot blicken. */
-  function pose(f: Frame, h: number[]) {
+  // `motKameran` (0–1): hur mycket av vägen ansiktet vrids ända fram mot blickpunkten. Dockans kod vrider huvudet två
+  // tredjedelar av vinkeln mot blicken (på en människa gör ögonen resten, men mannens ögon står stilla), så utan det ser
+  // han under kameran. Jakob 2026-11-26: i vilan ska han alltid titta mot kameran. Ansiktet ställs därför en gång, det som
+  // är kvar till blicken mäts, och huvudet ställs igen mot en punkt så mycket längre bort att ansiktet hamnar rätt.
+  function pose(f: Frame, h: number[], motKameran = 0) {
     const s3 = (p: number[], q: number[]): V3 => [p[0] - q[0], p[1] - q[1], p[2] - q[2]];
     const hand = (p: number[][], side: 1 | -1) => { const n = cross(s3(p[5], p[0]), s3(p[17], p[0])), mid = [(p[9][0] + p[12][0]) / 2, (p[9][1] + p[12][1]) / 2, (p[9][2] + p[12][2]) / 2];
       return {forward: s3(mid, p[0]), palm: [n[0] * side, n[1] * side, n[2] * side] as V3, points: p as V3[]}; };
-    const looks = v(f.g).sub(v(f.h)).normalize();
-    figure.pose({hip: h as V3, shoulders: [f.R.s as V3, f.L.s as V3], arms: [{shoulder: f.R.s as V3, elbow: f.R.e as V3, wrist: f.R.w as V3}, {shoulder: f.L.s as V3, elbow: f.L.e as V3, wrist: f.L.w as V3}],
-      hands: [hand(f.R.p, 1), hand(f.L.p, -1)], looks: [looks.x, looks.y, looks.z]});
+    const looks = v(f.g).sub(v(f.h)).normalize(), hander = [hand(f.R.p, 1), hand(f.L.p, -1)];
+    const stall = (mot: T.Vector3) => figure.pose({hip: h as V3, shoulders: [f.R.s as V3, f.L.s as V3], arms: [{shoulder: f.R.s as V3, elbow: f.R.e as V3, wrist: f.R.w as V3}, {shoulder: f.L.s as V3, elbow: f.L.e as V3, wrist: f.L.w as V3}],
+      hands: hander, looks: [mot.x, mot.y, mot.z]});
+    // Leden dockans kod siktar med (från huvudets led till dess framkant) pekar brantare uppåt än ansiktet ser: siktet
+    // lyfts därför BLICK_LYFT grader över blickpunkten, så att ögonen, inte pannan, är riktade mot den.
+    const andel = Math.max(0, Math.min(1, motKameran)), vagratt = new T.Vector3().crossVectors(looks, new T.Vector3(0, 1, 0)).normalize();
+    const mal = andel > 0 ? looks.clone().applyAxisAngle(vagratt, BLICK_LYFT * Math.PI / 180 * andel) : looks;
+    stall(mal);
+    if (andel > 0 && figure.root.getObjectByName('headfront') && figure.root.getObjectByName('Head')) {
+      const fram = bone('headfront').sub(bone('Head')).normalize(), kvar = fram.angleTo(mal);
+      if (kvar > 0.005) stall(mal.clone().applyAxisAngle(new T.Vector3().crossVectors(fram, mal).normalize(), Math.min(0.6, 1.515 * kvar) * andel));
+    }
     // Kortet: lokalt x tvärs, y ut ur framsidan (normalen), z längs långsidan, som dealer3d/src/stage.ts lägger sitt.
     const n = v(f.card.n).normalize(), l = v(f.card.l).normalize(), x = new T.Vector3().crossVectors(n, l);
     card.matrix.makeBasis(x, n, l).setPosition(v(f.card.c)); card.matrixWorldNeedsUpdate = true;

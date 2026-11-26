@@ -29,7 +29,7 @@ export type Andring = {id: string; tid: number; led: Led; flytt: V3; vrid: Q | n
  * 1,5 en och en halv gång så fort; saknas den är allt 1). Grundrörelserna ändras aldrig. En ändrings `tid` står i
  * grundrörelsens tid, så att den sitter kvar i samma ögonblick av rörelsen när farten ändras.
  */
-export type Sparad = {namn: string; om?: string; grund: string[]; andringar: Andring[]; fart?: number[]; liv?: Liv; sparad?: string; blickMot?: 'film' | 'lag'};
+export type Sparad = {namn: string; om?: string; grund: string[]; andringar: Andring[]; fart?: number[]; liv?: Liv; sparad?: string; blickMot?: 'film' | 'lag' | 'spel'};
 
 /**
  * De små egna rörelserna (Jakob 2026-11-26: "5 autonoma mikrorörelser med den andra handen, eller huvudet och/eller små
@@ -82,8 +82,11 @@ export type Skarv = {fore: Record<string, number>; efter: Record<string, number>
 export type Del = {namn: string; fran: number; till: number};
 /** När blicken följer kortet (sekunder): börjar vända från kameran vid `fran`, följer helt från `full` tills kortet ligger (`ligger`), och är tillbaka mot kameran `ut` sekunder senare. */
 export type BlickTider = {fran: number; full: number; ligger: number; ut: number};
-/** `plats`: kortplatsen (1–7) som given går till. `stilla`: hur stilla var hand ligger i varje ruta (1: handleden rör sig inte). */
-export type Foljd = {fps: number; frames: Frame[]; hip: V3; delar: Del[]; skarv: Skarv; held: {R: number; L: number}[]; stilla: {R: number; L: number}[]; blick: BlickTider; forsta: Motion; andra: Motion; forskjutning: number; plats: number};
+/**
+ * `plats`: kortplatsen (1–7) som given går till. `stilla`: hur stilla var hand ligger i varje ruta (1: handleden rör sig
+ * inte). `delar` är grundrörelsens delar med stillheten i ankaret; `spann` är den tid i varje del då något rör sig.
+ */
+export type Foljd = {fps: number; frames: Frame[]; hip: V3; delar: Del[]; spann: Del[]; skarv: Skarv; held: {R: number; L: number}[]; stilla: {R: number; L: number}[]; blick: BlickTider; forsta: Motion; andra: Motion; forskjutning: number; plats: number};
 
 /** Hur långt varje led hoppar mellan två rutor, i meter (för skarven). */
 function hopp(a: Frame, b: Frame, hipA: number[], hipB: number[]): Record<string, number> {
@@ -131,8 +134,14 @@ export function sattIhop(forsta: Motion, andra: Motion, plats: number): Foljd {
   // Var en hand ligger stilla: handleden rör sig mindre än 1,5 mm per ruta i de sju rutorna omkring.
   const steg = (i: number, s: 'R' | 'L') => dist(frames[i][s].w, frames[i - 1][s].w);
   const stilla = frames.map((_, i) => { const lugn = (s: 'R' | 'L') => { let mest = 0; for (let j = Math.max(1, i - 3); j <= Math.min(frames.length - 1, i + 3); j++) mest = Math.max(mest, steg(j, s)); return smooth(1 - mest / 0.0015); }; return {R: lugn('R'), L: lugn('L')}; });
-  return {fps, frames, hip: [andra.hip[0], andra.hip[1], andra.hip[2]], held, stilla, forsta, andra, forskjutning: sista, plats,
-    delar: [{namn: 'Vilan till skon', fran: 0, till: skon}, {namn: `Kortet till plats ${plats}`, fran: skon, till: ligger / fps}, {namn: 'Tillbaka', fran: ligger / fps, till: (frames.length - 1) / fps}],
+  const delar: Del[] = [{namn: 'Vilan till skon', fran: 0, till: skon}, {namn: `Kortet till plats ${plats}`, fran: skon, till: ligger / fps}, {namn: 'Tillbaka', fran: ligger / fps, till: (frames.length - 1) / fps}];
+  // Var i varje del något rör sig: från första till sista rutan där en handled eller kortet flyttar sig mer än 1 mm, med
+  // en rutas marginal. Det som står stilla före och efter hör till ankaret och räknas inte in i delens tid.
+  const flyttar = (i: number) => Math.max(steg(i, 'R'), steg(i, 'L'), dist(frames[i].card.c, frames[i - 1].card.c)) > 0.001;
+  const spann = delar.map(d => { const a = Math.round(d.fran * fps), b = Math.round(d.till * fps); let forst = -1, sist = -1;
+    for (let i = a + 1; i <= b; i++) if (flyttar(i)) { if (forst < 0) forst = i - 1; sist = i; }
+    return forst < 0 ? {...d} : {namn: d.namn, fran: Math.max(a, forst - 1) / fps, till: Math.min(b, sist + 1) / fps}; });
+  return {fps, frames, hip: [andra.hip[0], andra.hip[1], andra.hip[2]], held, stilla, forsta, andra, forskjutning: sista, plats, delar, spann,
     blick: {fran: lamnar - 0.4, full: lamnar, ligger: ligger / fps, ut: 0.6},
     skarv: {fore, efter, jamnasUt: [fran / fps, till / fps]}};
 }
@@ -141,21 +150,42 @@ export const langd = (f: Foljd) => (f.frames.length - 1) / f.fps;
 // ---- takten ----------------------------------------------------------------------------------------------------
 /** Hur mycket fortare eller långsammare än grundrörelsen en del får gå. */
 export const FART = {minst: 0.25, mest: 4};
-/** Delarna som de blir i den färdiga filmen, och omräkningen mellan filmens tid (`ut`) och grundrörelsens (`grund`). */
-export type Takt = {fart: number[]; delar: Del[]; langd: number; grund(t: number): number; ut(grundtid: number): number};
+/**
+ * Delarna som de blir i den färdiga filmen, och omräkningen mellan filmens tid (`ut`) och grundrörelsens (`grund`).
+ * `spann` är den del av grundrörelsen som varje del spelar; `forval` säger om farten är förvalet och inte hans eget val.
+ */
+export type Takt = {fart: number[]; delar: Del[]; spann: Del[]; langd: number; forval: boolean; grund(t: number): number; ut(grundtid: number): number};
+/**
+ * Jakobs takt (standarddocka/AGENTS.md, 2026-11-26): från vilan till skon cirka 1 s, kortet ut högst 1 s, handen
+ * tillbaka cirka 0,6 s. Sekunder per del, för rörelsen själv: stillheten i ankaret räknas inte in.
+ */
+export const STANDARDTAKT = [1.0, 1.0, 0.6];
+const inom = (k: number) => Math.max(FART.minst, Math.min(FART.mest, k));
 /**
  * Takten (Jakob 2026-11-26: "Kan jag snabba upp eller korta av en rörelse?"): varje del av följden går med sin egen
  * fart, jämnt genom hela delen. Delarna börjar och slutar i ett ankare, där händerna står stilla, så bytet av fart
- * syns inte. Allt annat (ändringarna, blicken, vem som håller kortet) räknas i grundrörelsens tid.
+ * syns inte. Allt annat (ändringarna, blicken, vem som håller kortet) räknas i grundrörelsens tid. `spann` är vad av
+ * grundrörelsen som spelas i varje del: hela delen, eller bara tiden då något rör sig.
  */
-export function takt(f: Foljd, fart: readonly number[] = []): Takt {
-  const k = f.delar.map((_, i) => Math.max(FART.minst, Math.min(FART.mest, Number(fart[i]) || 1))), delar: Del[] = []; let t = 0;
-  f.delar.forEach((d, i) => { const l = (d.till - d.fran) / k[i]; delar.push({namn: d.namn, fran: t, till: t + l}); t += l; });
-  const del = (lista: Del[], x: number) => { const i = lista.findIndex(d => x < d.till); return i < 0 ? lista.length - 1 : i; };
+export function takt(f: Foljd, fart: readonly number[] = [], spann: readonly Del[] = f.delar, forval = false): Takt {
+  const k = spann.map((_, i) => inom(Number(fart[i]) || 1)), delar: Del[] = []; let t = 0;
+  spann.forEach((d, i) => { const l = (d.till - d.fran) / k[i]; delar.push({namn: d.namn, fran: t, till: t + l}); t += l; });
+  const del = (lista: readonly Del[], x: number) => { const i = lista.findIndex(d => x < d.till); return i < 0 ? lista.length - 1 : i; };
   const mellan = (x: number, d: Del) => Math.max(d.fran, Math.min(d.till, x));
-  return {fart: k, delar, langd: t,
-    grund: x => { const i = del(delar, x); return mellan(f.delar[i].fran + (x - delar[i].fran) * k[i], f.delar[i]); },
-    ut: x => { const i = del(f.delar, x); return mellan(delar[i].fran + (x - f.delar[i].fran) / k[i], delar[i]); }};
+  return {fart: k, delar, spann: [...spann], langd: t, forval,
+    grund: x => { const i = del(delar, x); return mellan(spann[i].fran + (x - delar[i].fran) * k[i], spann[i]); },
+    ut: x => { const i = del(spann, x); return mellan(delar[i].fran + (x - spann[i].fran) / k[i], delar[i]); }};
+}
+/**
+ * Takten som gäller för en följd. Har han valt en fart själv (en sparad fart som inte är 1 överallt) gäller den. Annars
+ * förvalet: bara tiden då något rör sig, i Jakobs takt. En grundrörelse på prov spelas som den är, med stillheten kvar,
+ * så att den som gör om den ser och mäter just den.
+ */
+export function taktFor(f: Foljd, sparadFart: readonly number[] | undefined, prov = false): Takt {
+  const eget = !!sparadFart?.some(k => k !== 1);
+  if (prov) return takt(f, eget ? sparadFart : [], f.delar, !eget);
+  if (eget) return takt(f, sparadFart, f.spann);
+  return takt(f, f.spann.map((d, i) => STANDARDTAKT[i] ? inom((d.till - d.fran) / STANDARDTAKT[i]) : 1), f.spann, true);
 }
 
 /** Grundrörelsen vid tiden t, mellan två rutor (som dealer3d/src/stage.ts setTime), och hur mycket var hand håller kortet. */
@@ -232,7 +262,8 @@ const LYFT = {punkter: [[6, 7, 8], [10, 11, 12]], andel: [0.35, 0.7, 1]};
  */
 export function medLiv(frame: Frame, t: number, f: Foljd, liv: Liv | undefined, held: {R: number; L: number}, stilla: {R: number; L: number}): Frame {
   if (!liv?.delar.length) return frame;
-  const d = f.delar.find(x => t < x.till) ?? f.delar[f.delar.length - 1], u = Math.max(0, Math.min(1, (t - d.fran) / Math.max(1e-6, d.till - d.fran))), ton = Math.sin(Math.PI * u) ** 2;
+  // Tonen är noll där rörelsen i en del börjar och slutar (och i stillheten omkring), ett mitt i den.
+  const d = f.spann.find(x => t < x.till) ?? f.spann[f.spann.length - 1], u = Math.max(0, Math.min(1, (t - d.fran) / Math.max(1e-6, d.till - d.fran))), ton = Math.sin(Math.PI * u) ** 2;
   if (ton <= 0) return frame;
   const p = livsplan(f, liv.fro), har = (x: Livsdel) => liv.delar.includes(x), sidor = ['R', 'L'] as const;
   if (har('andning')) { const upp = 0.0025 * Math.sin(2 * Math.PI * 0.27 * t + p.fas) * ton; for (const s of sidor) frame[s].s = add(frame[s].s, [0, upp, 0]); frame.h = add(frame.h, [0, upp * 0.6, 0]); }
@@ -248,8 +279,8 @@ export function medLiv(frame: Frame, t: number, f: Foljd, liv: Liv | undefined, 
  * Hela den ändrade rörelsen i grundrörelsernas format (dealer3d/data), ruta för ruta, så att den kan läggas in i de
  * andra mapparna. Givens ögonblick (kortet lämnar skon, vänds, ligger) räknas om till följdens rutor.
  */
-export function rutor(f: Foljd, sparad: Sparad, kamera: readonly number[] | null, rattning: string) {
-  const r4 = (a: number[]) => a.map(n => Math.round(n * 10000) / 10000), off = f.forskjutning, b = f.andra, T = takt(f, sparad.fart);
+export function rutor(f: Foljd, sparad: Sparad, kamera: readonly number[] | null, rattning: string, T: Takt = taktFor(f, sparad.fart)) {
+  const r4 = (a: number[]) => a.map(n => Math.round(n * 10000) / 10000), off = f.forskjutning, b = f.andra;
   // Rutorna tas i filmens takt; givens ögonblick (grundrörelsens rutor) räknas om till filmens rutor.
   const antal = Math.round(T.langd * f.fps) + 1, ruta = (grundruta: number) => Math.round(T.ut(grundruta / f.fps) * f.fps);
   const frames = Array.from({length: antal}, (_, i) => { const x = stallning(f, T.grund(i / f.fps), sparad.andringar, kamera, sparad.liv), limb = (l: Limb) => ({s: r4(l.s), e: r4(l.e), w: r4(l.w), k: l.k, p: l.p.map(r4)});

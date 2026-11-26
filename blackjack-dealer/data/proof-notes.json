@@ -1486,6 +1486,75 @@
       "text": "",
       "at": "2026-11-26T06:14:57.906Z",
       "read": "2026-11-26T06:17:13.698Z"
+    },
+    {
+      "id": 155,
+      "proof": "docka-till-person-3-20261126",
+      "file": "7-styrbilden-med-nyckelfarger.png",
+      "choice": null,
+      "text": "Oklart, men kanske bra. Jag oroar mig för att skuggan kanske inte ska finnas, ller om den ska det? Ljuset kan ju ändras utifrån bakgrunden. Hur markeras tex vart kort ska landa osv här?",
+      "at": "2026-11-26T06:19:16.607Z"
+    },
+    {
+      "id": 156,
+      "proof": "docka-till-person-3-20261126",
+      "file": "9-kamerans-hojd-lagre-10-grader.png",
+      "choice": "bra",
+      "text": "Jag tror jag gillar denna kameravinkel som standard faktist!. Men ska vi sätta denna standard måste vi se till att allt hänger med, så at vi inte bara ändrar en kameravinkel här oc hsedan kommer det inte följa med i de led so mhar med .glb-/3d/andra mappas standarder och/eller andra kameror som filmar fårn anda platser?!",
+      "at": "2026-11-26T06:19:18.195Z",
+      "answer": {
+        "text": "Gjort: den lägre kameran är nu standarden för standarddockans filmer (0,58 m över filten, 12 grader ned; två grader mer än bilden du valde, så att insatsringen på plats 4 syns hel). Talen står på ett ställe och editorn, de sju platsernas kameror och Blenders standard läser dem därifrån. Se provet spelets-vy-20261126.",
+        "at": "2026-11-26T06:57:33.955Z"
+      },
+      "read": "2026-11-26T06:57:33.955Z"
+    },
+    {
+      "id": 157,
+      "proof": "docka-till-person-2-20261126",
+      "file": "1-vilan-till-skon-och-sedan-given-skarven-vid-3-sekunder.mp4",
+      "choice": null,
+      "text": "förstår inte riktigt, en från vila till redo, altså från A1 till A2.3 ser rikigt bra ut, bara det att det tar lite lång tid. Finns ingen regel typ att om sama frame finnsi videon i mer är 5 frames så ska typ mellanliggande frames klippas bort eelr ngt? Kanske öfr grovt. Men förkalra gärna vad som ska vara bättre me detta.. Vad är skarven?",
+      "at": "2026-11-26T06:22:42.168Z",
+      "answer": {
+        "text": "Skarven är stället där ett klipp slutar och nästa börjar. Spelet spelar klippen efter varandra, och om sista bilden i ett och första i nästa skiljer sig ser man ett hopp. Här möts de. Din regel finns nu: stillheten i ankaret klipps bort, så vilan till skon tar 1 sekund i stället för 3.",
+        "at": "2026-11-26T06:57:34.442Z"
+      },
+      "read": "2026-11-26T06:57:34.442Z"
+    },
+    {
+      "id": 158,
+      "proof": "docka-till-person-2-20261126",
+      "file": "2-skarven-klippets-sista-ruta-och-givens-forsta.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-26T06:23:04.249Z",
+      "read": "2026-11-26T06:57:35.601Z"
+    },
+    {
+      "id": 159,
+      "proof": "docka-till-person-2-20261126",
+      "file": "3-styrbilden-for-vilan.png",
+      "choice": null,
+      "text": "Nja, han ser inte naturligt avslappnd ut i vilan, dessutom, och framförallt om vi byter kamravinkel så vi ser mer frammirån så kanske vi kan se aningen mer av bordet så at inte spealre 4:as bettingcirkel bryts av bilden. Men framförallt sak \"A1\" altid ha avataren som tittar mot kameran (A1) mot P4:as kamera för tillfälelt",
+      "at": "2026-11-26T06:25:03.123Z",
+      "answer": {
+        "text": "I vilan ser han nu in i kameran på plats 4 (provet spelets-vy-20261126, bild 1), och den nya vyn visar insatsringen hel. Ställningen i vilan är fortfarande den gamla med armbågarna ut; den görs om för mannens egen kropp.",
+        "at": "2026-11-26T06:57:34.813Z"
+      },
+      "read": "2026-11-26T06:57:34.813Z"
+    },
+    {
+      "id": 160,
+      "proof": "docka-till-person-2-20261126",
+      "file": null,
+      "choice": null,
+      "text": "Ser lika dant ut. Men på Runway sk det finnas typ en videoeditor-modell so mkan t emot videos och göra ytterst små förändringar, finns inte det?",
+      "at": "2026-11-26T06:26:59.881Z",
+      "answer": {
+        "text": "Aleph 2 är den modellen: den tar en film och ändrar små saker i hur det ser ut (person, kläder, föremål, ljus). Men den behåller rörelsen som den är. Ska rörelsen ändras måste en modell göra om filmen med din film som lös förlaga (Kling 4 eller Seedance), eller så rättas rörelsen i dockan, vilket pågår.",
+        "at": "2026-11-26T06:57:35.251Z"
+      },
+      "read": "2026-11-26T06:57:35.251Z"
     }
   ]
 }
