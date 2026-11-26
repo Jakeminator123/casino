@@ -190,6 +190,26 @@ export function shoeCardQuad(centre: Pixel | null = null, grow = 1, lens: Lens =
  */
 export const TRAY = {x0: -0.3, x1: 0.24, s0: 0, s1: 0.1, depth: 0.03};
 
+// ---- the table --------------------------------------------------------------------------------------------------
+/**
+ * The table itself, part of the standard (Jakob 2026-11-26: "markerbrickan och bordet i sin helhet"): half an oval with a
+ * straight dealer's edge, in metres. halfWidth: from the picture's middle to the felt's edge along the dealer's edge.
+ * depth: from the dealer's edge to the players', a real blackjack table's (no film shows the players' edge, so nothing
+ * measures it; it is also what keeps the felt under the whole of the game's picture). rail: the leather roll's width outside
+ * the felt. The 3D scene builds its table from these (src/scene3d-table.ts) and so does the doll's (dealer3d/src/world.ts).
+ */
+export const TABLE_TOP = {halfWidth: 0.95, depth: 1.15, rail: 0.1};
+/**
+ * What the table stands on: heights above the felt (floor, the underside of the top, where the rail's apron ends) and where
+ * the two legs stand (legX from the middle, legZ from the dealer's edge toward the players).
+ */
+export const TABLE_BASE = {floor: -0.95, under: -0.15, legX: 0.58, legZ: 0.25, rail: -0.72};
+/**
+ * The leather roll round the players' side, its section: the middle of the roll out from the felt's edge (centre) and above
+ * the felt (lift), its half width, and how far it rises above and reaches below that middle.
+ */
+export const TABLE_RAIL = {centre: 0.057, lift: 0.012, halfWidth: 0.05, above: 0.034, below: 0.031};
+
 // ---- the family of lenses ---------------------------------------------------------------------------------------
 // The card lying at seat 4 has its film size and shape under a whole family of lenses, from a wide one close by to a long
 // one far away; the focal length alone decides how much a card narrows toward its far edge and how fast the cards shrink

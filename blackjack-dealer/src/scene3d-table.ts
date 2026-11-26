@@ -9,9 +9,13 @@
 // roll's leather and the room's light from the table's group (userData.rail).
 import * as T from 'three';
 import {BET, ringOffset, spotToScene, tableToFilm, type FilmCamera, type Spot} from './scene3d-geometry.ts';
+import {TABLE_BASE, TABLE_RAIL, TABLE_TOP} from './table-lens.ts';
 
 export const FELTS: Record<string, [string, string]> = {green: ['#134232', '#0a2a20'], blue: ['#16325e', '#0b1c38'], vin: ['#571a26', '#330d15'], svart: ['#23272a', '#101214']};
-export const TABLE = {a: 0.95, b: 0.6, rail: 0.1}; // half width, depth toward the players, rail width
+// Half width, depth toward the players, rail width. The width and the rail are the standard's (TABLE_TOP in src/table-lens.ts,
+// where the doll's table reads them too); b is the depth of the table as it was drawn for Bred lins's camera, half a real
+// table's: under the standard's lens the depth is TABLE_TOP.depth (REAL_TABLE, tableUnder below).
+export const TABLE = {a: TABLE_TOP.halfWidth, b: 0.6, rail: TABLE_TOP.rail};
 // The serving shelf behind the dealer's edge at her right hand (state shelf; a lab trial of 2026-11-13, off from the start). The film
 // in which she takes a champagne glass from beside the table has her arm go down behind a table top that reaches further back
 // there than this table does (the film's own table: her arm ends against the green at rows 776 to 800 of the frame), so without
@@ -38,7 +42,7 @@ export function sized(size: TableSize = 1): {a: number; b: number} {
  * and the floor. No film shows the players' edge, so nothing measures the depth: it is set to a real table's, 1.15 m from the
  * dealer's edge to the players', which is also what keeps the felt under the whole of the game's picture.
  */
-export const REAL_TABLE = {depth: 1.15};
+export const REAL_TABLE = {depth: TABLE_TOP.depth};
 /** The table's size under a film camera: under the lens as wide as asked and a real table's depth, else the size as it is. */
 export const tableUnder = (camera: {source: string}, size: number): TableSize => camera.source === 'lens' ? {wide: size, deep: REAL_TABLE.depth / TABLE.b} : size;
 // What the table stands on. column: the first base, one thick leg on a brass foot; it was never meant to be seen, and from a
@@ -237,7 +241,7 @@ float lampLight(vec3 p){
   vec3 l = lampAt - p; float d2 = dot(l, l), d = sqrt(d2);
   return 1. - lampOn + lampOn * min(1., max(l.y, 0.) / d / d2 * smoothstep(lampCone, 1., dot(-l / d, lampAxis)) * lampRef);
 }`;
-export const BASE ={floor: -0.95, under: -0.15, legX: 0.58, legZ: 0.25, rail: -0.72}; // heights above the felt and places, dealer metres
+export const BASE = TABLE_BASE; // heights above the felt and places, dealer metres: the standard's (src/table-lens.ts)
 export const PRINT = {width: 2.8, depth: 1.4, back: 0.1, pxW: 4096, pxH: 2048}; // the felt image covers width x depth metres and starts `back` behind the dealer edge
 export const FELT_PX_PER_M = PRINT.pxW / PRINT.width; // what a cloth tile is stored at, to be drawn into the felt image as it is
 const GOLD = '#d8b665';
@@ -259,10 +263,11 @@ export function section(points: number[][], shade: (o: number, y: number) => num
 // the apron by 9 mm, with a shallow groove on each shoulder where the top panel is sewn to the sides. Sampled densely at the seams and
 // sparsely on the underside that nothing sees. The points run from the middle of the underside up the inner face, over the top and
 // back round, so the faces point outward; the shade darkens the creases at the brass bead and under the overhang.
-const CORE = [0.057, 0.012], SEAMS = [2.3, 0.84]; // seam angles round the core, radians from the outward side
-export const RAIL = {centre: CORE[0], top: CORE[1] + 0.034}; // the middle of the roll's top: out from the felt edge, and above the felt (for what is set into the rail, src/scene3d-rail.ts)
+// The section's measures are the standard's (TABLE_RAIL in src/table-lens.ts), which the doll's table reads too.
+const CORE = [TABLE_RAIL.centre, TABLE_RAIL.lift], SEAMS = [2.3, 0.84]; // seam angles round the core, radians from the outward side
+export const RAIL = {centre: CORE[0], top: CORE[1] + TABLE_RAIL.above}; // the middle of the roll's top: out from the felt edge, and above the felt (for what is set into the rail, src/scene3d-rail.ts)
 const ROLL = (() => {
-  const at = (q: number) => { const c = Math.cos(q), s = Math.sin(q), e = s > 0 ? 0.8 : 0.66, x = 0.05 * Math.sign(c) * Math.abs(c) ** e, y = (s > 0 ? 0.034 : 0.031) * Math.sign(s) * Math.abs(s) ** e;
+  const at = (q: number) => { const c = Math.cos(q), s = Math.sin(q), e = s > 0 ? 0.8 : 0.66, x = TABLE_RAIL.halfWidth * Math.sign(c) * Math.abs(c) ** e, y = (s > 0 ? TABLE_RAIL.above : TABLE_RAIL.below) * Math.sign(s) * Math.abs(s) ** e;
     const dent = SEAMS.reduce((sum, m) => sum + Math.exp(-(((q - m) / 0.075) ** 2)), 0), f = 1 - 0.0016 * dent / Math.hypot(x, y); return [CORE[0] + x * f, CORE[1] + y * f]; };
   const F = 2880, fine: number[][] = [], length = [0], weight = [0];
   for (let i = 0; i <= F; i++) { const q = 1.5 * Math.PI - 2 * Math.PI * i / F; fine.push(at(q)); if (!i) continue;
