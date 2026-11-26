@@ -43,7 +43,7 @@ att slå ihop.
 
 Spelets bord, kamera och rum kommer ur `../blackjack-dealer/` (`src/table-lens.ts`, `dealer3d/src/standard-room.ts`)
 och modellerna ur `../avatar-auto-pipeline/assets/`, som standarddockans editor gör. Ett mått eller en kamera för
-spelets bord skrivs aldrig in här; det som är paketets eget (dess bord 80 cm högt, var den som sitter är) står i
+spelets bord skrivs aldrig in här; det som är paketets eget (dess bord 78 cm högt, var den som sitter är) står i
 `visa/bord.ts` och är mätt ur rörelserna.
 
 ## Köra
@@ -54,5 +54,12 @@ spelets bord skrivs aldrig in här; det som är paketets eget (dess bord 80 cm h
   utcheckning utan `npm install`) hämtar sidan samma version från jsDelivr. Typerna kontrolleras med rotens
   `tsconfig.json`.
 - Sökningen ser inte `paket/` (`.ignore` här): läs en fil där med sin sökväg.
+- Se själv vad en ändring gjorde innan den visas för Jakob: `node kortspelspaket/verktyg/titta.ts` tar bilder av
+  visaren utan fönster, under det delade låset för headless Chrome (`../blackjack-dealer/AGENTS.md`, "Servern").
+  Bilderna är arbete och läggs i `../slask/kortspelspaket/<uppgift>/`.
+- Arbetet görs i huvudmappen på `main`, utan gren och eget träd (Jakob frågade 2026-11-26 och lät agenten föreslå):
+  mappen delar inga filer med de andra projekten, så inget krockar, och det som görs finns genast för de andra. Ett
+  försök (en annan bordshöjd, fler platser) är ett reglage eller ett val i visaren, inte en gren, och det ändrar aldrig
+  spelets mått.
 - Blender kan läsa paketets FBX-filer utan fönster (`blender -b`); rör aldrig ett Blender-fönster som redan är öppet.
 - Inga betalda anrop (Meshy, Runway) med paketets filer utan Jakobs ord.

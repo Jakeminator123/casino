@@ -25,10 +25,14 @@
   .bit.vald button.spela { color: #ffd98a; }
   #vy { position: absolute; inset: 0 0 0 290px; }
   #rad { position: absolute; top: 10px; left: 304px; right: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  #rad label { display: flex; align-items: center; gap: 6px; }
+  #rad select { background: #15171a; color: inherit; border: 1px solid #3a3d42; border-radius: 4px; font: inherit; }
+  #bordhojd { width: 110px; }
+  #bordhojdtext { min-width: 86px; color: #c9a55c; }
   #rad button, #rad label, #info button, #info input[type=text] { background: #24272c; color: inherit; border: 1px solid #3a3d42; border-radius: 6px; padding: 6px 10px; font: inherit; cursor: pointer; }
   #rad button.pa, #info button.pa { background: #3a3220; border-color: #c9a55c; color: #ffd98a; }
   #rad .skilje { width: 1px; align-self: stretch; background: #3a3d42; margin: 0 4px; }
-  body.bord .utstallning, body:not(.bord) .bordet { display: none; }
+  body.bord .utstallning, body:not(.bord) .bordet { display: none !important; }
   #info { position: absolute; bottom: 14px; left: 304px; right: 14px; background: #15171ae6; padding: 8px 12px; border-radius: 6px; }
   #info[hidden] { display: none; }
   #info .rad { display: flex; gap: 10px; align-items: center; }
@@ -49,7 +53,7 @@
 <nav id="lista">
   <h1>Card Games Animation Pack</h1>
   <p class="utstallning">The Mighty Cat. Unity-demots utställning: varje figur spelar en rörelse. Klicka på en rad eller en figur.</p>
-  <p class="bordet">Paketets figur vid spelets blackjackbord. Klicka på en rörelse: dealerns spelas av dealern, en spelares av sin spelare. ● spelas just nu.</p>
+  <p class="bordet">Paketets figur vid spelets blackjackbord. Klicka på en figur för att välja den, och på en rörelse för att låta den spela den: dealerns rörelser går till dealern, spelarnas till den valda spelaren. ● spelas just nu.</p>
 </nav>
 <div id="vy"></div>
 <div id="rad">
@@ -62,7 +66,8 @@
   <button class="bordet" data-vy="runt">Hela bordet</button>
   <button class="bordet" data-vy="sida">Från sidan</button>
   <button class="bordet" data-vy="topp">Uppifrån</button>
-  <label class="bordet"><input type="checkbox" id="spelare" checked> Spelare</label>
+  <label class="bordet">Spelare <select id="spelare"><option value="7">alla sju</option><option value="3">tre</option><option value="0">inga</option></select></label>
+  <label class="bordet" title="Flyttar bordet upp eller ner i den här vyn. Dubbelklicka för spelets höjd.">Bordet <input type="range" id="bordhojd" min="-10" max="5" step="0.5" value="0"> <span id="bordhojdtext">spelets höjd</span></label>
   <span class="skilje"></span>
   <button id="paus">Pausa</button>
 </div>

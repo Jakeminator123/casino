@@ -32,13 +32,14 @@ döma. Hur det görs väljer den som äger dockan. Två vägar, ingen prövad:
 - Enheten är centimeter, z är upp, och den som sitter är vänd mot minus y. Till meter med y upp: `(x, z, -y) / 100`.
 - Läget bärs av två led: `root` (cirka 95 cm från ramens mitt, med en liten vridning) och `pelvis` under den. Höften
   hamnar omkring (2, 115, 54): 115 cm från mitten, 54 cm över golvet. Alla andra led bara vrids.
-- Paketets bord: skivan 80 cm över golvet (där vilar fingrarna i vilan), plan, utan upphöjd kant och utan nedsänkt
-  bricka. Vid spelets bord läggs den skivan på filten (y = 0) och dealerns höft 15 cm bakom dockbordets kant; talen och
+- Paketets bord: skivan 78 cm över golvet (fingrarnas leder ligger 80–81 cm över golvet i vilan; vid 78 ligger
+  figurens fingrar på filten, vid 80 sjunker de ner i den), plan, utan upphöjd kant och utan nedsänkt bricka. Vid spelets bord läggs den skivan på filten (y = 0) och dealerns höft 15 cm bakom dockbordets kant; talen och
   uträkningen står i `visa/bord.ts` (`PACK`, `DEALER_BEHIND`).
 - I three.js: `FBXLoader` läser filerna. Paketets figur har `root` som en grupp som reser figuren (z upp till y upp),
   inte som ett led, så rotens rörelse måste läggas in i höftens innan rörelsen spelas (`fit` i `visa/visa.ts`).
 - Blender läser FBX-filerna utan fönster (`blender -b`); det är inte prövat här.
-- En viss ruta i bild: `http://127.0.0.1:4330/kortspelspaket/visa/?vy=bord&kamera=topp&spelare=nej&t=12.7`.
+- En viss ruta i bild: `http://127.0.0.1:4330/kortspelspaket/visa/?vy=bord&kamera=topp&spelare=nej&t=12.7`,
+  eller som fil med `node kortspelspaket/verktyg/titta.ts` (`README.md`, Kartan).
 
 ## Leden: paketet mot dockan
 
@@ -86,9 +87,10 @@ Hans domar står i `../standarddocka/AGENTS.md`. Mot dem:
 - Paketet delar ur handen, inte ur skon, och har inget kort, ingen lek och ingen sko i rörelsen.
 - En giv tar cirka tre sekunder; hans takt är högst en sekund ut och 0,6 tillbaka.
 - Fem platser i en båge, inte sju, och bara plats 4 träffas på korten.
-- I bordsvyn sjunker kattens händer ner i filten och brickans kant, och spelarnas armar går genom den vadderade kanten
-  och låren in i sargen (hans bilder 2026-11-26: "allt är inte kanon"). Orsaken är paketets plana bord och längre kropp
-  (186 cm), inte rörelserna; det rättas inte med att flytta figuren utan med att händerna styrs efter vårt bord.
+- I bordsvyn sjönk kattens händer ner i filten, och spelarnas armar går genom den vadderade kanten och låren in i
+  sargen (hans bilder 2026-11-26: "allt är inte kanon"). Händerna är rättade (figuren stod 2 cm för lågt). Armarna och
+  låren beror på paketets plana bord och längre kropp (186 cm), inte på rörelserna; det rättas inte med att flytta
+  figuren utan med att händerna styrs efter vårt bord.
 
 ## Regler som följer med
 

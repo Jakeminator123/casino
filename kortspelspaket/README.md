@@ -14,11 +14,14 @@ Visaren har två lägen, valda med knapparna överst:
 - **Utställningen** ställer upp paketets Unity-demo (`Demo_CardGames.unity`) som den är: sex golv i en rad, en figur per
   rörelse som spelar den om och om igen, och demots kamera. Ett klick på en rad eller en figur går fram till den, och
   "Visa bara den valda" döljer de andra.
-- **Blackjackbordet** sätter paketets figur vid spelets bord: en dealer och tre spelare (plats 2, 4 och 6), i samma rum
-  som standarddockans editor visar (bordet, skon, brickan, ljuset) och med spelets kamera. Ett klick på en rörelse i
-  listan låter den som rörelsen är inspelad för spela den: dealern dealerns, en spelare en spelares; en prick i listan
-  visar vad som spelas just nu. Kamerorna är Spelets vy (bara dealern, som i spelet), Hela bordet, Från sidan och
-  Uppifrån, och bilden går att vrida med musen.
+- **Blackjackbordet** sätter paketets figur vid spelets bord: en dealer och en spelare på var och en av de sju
+  platserna, i samma rum som standarddockans editor visar (bordet, skon, brickan, ljuset) och med spelets kamera. Ett
+  klick på en figur väljer den, och ett klick på en rörelse i listan låter den spela den: en dealerrörelse går alltid
+  till dealern, en spelarrörelse till den valda spelaren (är dealern vald: spelaren på plats 4). En prick i listan visar
+  vad som spelas just nu. Kamerorna är Spelets vy (bara dealern, som i spelet), Hela bordet, Från sidan och Uppifrån,
+  och bilden går att vrida med musen. "Spelare" visar alla sju, tre (plats 2, 4 och 6) eller inga. Reglaget "Bordet"
+  flyttar bordet upp eller ner i den här vyn, för att pröva vilken höjd som passar rörelserna; ett dubbelklick ställer
+  det på spelets höjd. Det ändrar inga mått i spelet.
 
 Listan till vänster har rörelserna i grupper med sin längd, och reglaget nertill stegar genom den valda rörelsen.
 Rörelserna laddas fyra i taget (cirka en halv minut för alla); bordet och det som spelas vid det kommer först.
@@ -35,9 +38,15 @@ blackjackdealerns giv är utklippta från början.
 
 Det här är mätt ur rörelserna och syns i bordsvyn:
 
-- Rörelserna är inspelade vid ett bord vars skiva ligger 80 cm över golvet, med den som sitter cirka 115 cm från
+- Rörelserna är inspelade vid ett bord vars skiva ligger 78 cm över golvet, med den som sitter cirka 115 cm från
   bordets mitt. Ställs den skivan på spelets filt och dealerns höft där standarddockans är (15 cm bakom bordets kant),
-  vilar dealerns händer på filten strax framför brickan, som standarddockans.
+  vilar dealerns händer på filten strax framför brickan, som standarddockans. (Fingrarnas leder ligger 80–81 cm över
+  golvet i vilan; med skivan vid 80 sjönk fingrarna ner i filten, prövat i bild.)
+- Sju spelare av figurens storlek får knappt plats vid spelets bord. Kortplatserna ligger 16 grader isär sedda från
+  dealerns kant, vilket ger 32 cm mellan stolarna; spelarna sitter därför glesare än sina kort (24 grader, 48 cm), vända
+  mot dem, och sitter ändå axel mot axel. Bordet är 1,9 m brett; ett riktigt bord för sju är drygt två meter.
+- Spelarnas armar går genom bordets vadderade kant, som ligger 3,4 cm över filten: paketets bord är plant. Sänks bordet
+  med reglaget kommer armarna över kanten, men då svävar händerna över filten. Det går inte att få båda med en höjd.
 - Blackjackdealerns giv (24,7 s) är fem givar på cirka tre sekunder, med en och en halv sekunds vila emellan. Vänster
   hand håller leken och lyfter den, höger hand tar kortet och lägger det: paketet delar ur handen, inte ur en sko. De
   fem korten hamnar i en båge som följer spelets kortplatser: på plats 4, cirka 10 cm bortom korten på plats 2 och 6
@@ -97,7 +106,8 @@ Håller inte steg 1 eller 2 för hans domar är paketet ändå en förebild att 
 | `paket/unreal/CardGameAnimPack55/` | Unreal-projektet (ur `CardGameAnimPack55.zip`); öppnas med `CardGameAnimPack55.uproject` |
 | `visa/server.ts` | Visarens server: läser Unity-scenen, lämnar ut figuren, rörelserna, sidan och det bordsvyn lånar, och sparar bitarna |
 | `visa/index.html`, `visa/visa.ts` | Visarens sida (three.js): listan, de två lägena, reglaget och bitarna |
-| `visa/bord.ts` | Bordsvyn: figurerna på sina platser vid spelets bord, pallarna och kamerorna |
+| `visa/bord.ts` | Bordsvyn: figurerna på sina platser vid spelets bord, pallarna, kamerorna och bordets höjd |
+| `verktyg/titta.ts` | Tar bilder av visaren utan fönster, för en agent som ska se vad en ändring gjorde: `node kortspelspaket/verktyg/titta.ts slask/kortspelspaket/<uppgift> topp=vy=bord,kamera=topp,t=12.7` (visaren ska vara igång; sidans fel skrivs ut) |
 | `sekvenser.json` | De utklippta bitarna: per rörelse ett namn och två tider i sekunder |
 | `OVERLAMNING.md` | Underlaget för den agent som för över paketets rörelser till standarddockan: hur en rörelse läses, leden mot dockans, givens tal och det som skiljer mot Jakobs domar |
 | `STARTA visaren.cmd` | Packar upp vid behov och startar visaren |
@@ -108,7 +118,8 @@ de byggda modellerna av bordet och pallen (`../avatar-auto-pipeline/assets/`, so
 inte är byggda säger sidan det och visar figurerna utan bord).
 
 Adressen kan välja vad som visas, för den som vill peka på en viss bild:
-`?vy=bord&kamera=spel|runt|sida|topp&spelare=nej&rorelse=<AS_namn>&t=<sekunder>` (med `t` står rörelsen stilla där).
+`?vy=bord&kamera=spel|runt|sida|topp&spelare=7|3|nej&bord=<cm>&rorelse=<AS_namn>&t=<sekunder>` (med `t` står rörelsen
+stilla där; `bord` är reglagets värde, minus är ner).
 
 `paket/` går aldrig in i Git (`AGENTS.md`). På en annan dator: lägg de tre filerna i Hämtade filer och dubbelklicka
 `STARTA visaren.cmd`, eller kör `node kortspelspaket/packa-upp.ts --fran <mapp>` med mappen där de ligger.

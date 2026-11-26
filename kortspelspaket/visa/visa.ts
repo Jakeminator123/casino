@@ -1,11 +1,11 @@
 // Visarens sida, med paketets egen figur (MightyCat_Queen) i två lägen:
 // - Utställningen: Unity-demots uppställning (Demo_CardGames.unity), en figur per rörelse. Uppställningen, golven och
 //   kameran kommer ur scenen genom /demo.json (server.ts).
-// - Blackjackbordet: figuren som dealer och tre spelare vid spelets bord (bord.ts).
+// - Blackjackbordet: figuren som dealer och sju spelare vid spelets bord (bord.ts).
 // I båda går en rörelse att stega igenom, och en bit av den att märka ut, spela om och om igen och spara med ett namn
 // (kortspelspaket/sekvenser.json).
-// Adressen kan välja läget: ?vy=bord, &kamera=spel|runt|sida|topp, &spelare=nej, &rorelse=<AS_namn> och &t=<sekunder>
-// (står då stilla där).
+// Adressen kan välja läget: ?vy=bord, &kamera=spel|runt|sida|topp, &spelare=7|3|nej, &bord=<cm upp eller ner>,
+// &rorelse=<AS_namn> och &t=<sekunder> (står då stilla där).
 import * as THREE from 'three';
 import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -30,8 +30,10 @@ type Cut = {namn: string; fran: number; till: number};
 type Lens = {fov: number; kvot?: number};
 
 const GROUPS: [string, string][] = [['Blackjack', 'Blackjack'], ['Poker', 'Poker'], ['Bonus', 'Bonus'], ['CCG', 'Kortspel (CCG)'], ['Reactions', 'Reaktioner']];
-/** Det bordet spelar när det öppnas: blackjackdealerns giv och de tre blackjackspelarna. */
-const AT_TABLE = ['AS_Blackjack_Dealer_DealCard', 'AS_Blackjack_Player_01', 'AS_Blackjack_Player_02', 'AS_Blackjack_Player_03'];
+/** Det bordet spelar när det öppnas: dealern blackjackgiven, och spelarna de tre blackjackspelarna i tur och ordning runt bordet. */
+const DEALER_START = 'AS_Blackjack_Dealer_DealCard', PLAYER_START = ['AS_Blackjack_Player_01', 'AS_Blackjack_Player_02', 'AS_Blackjack_Player_03'];
+/** Platsen som får en spelarrörelse när ingen spelare är vald: den i mitten. */
+const MIDDLE = 4;
 const CUTS = '/kortspelspaket/sekvenser.json';
 const demo: Demo = await (await fetch('/demo.json')).json();
 const el = <E extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as E;
@@ -226,11 +228,13 @@ let saved: Record<string, Cut[]> = {};
 let table: Bord | null = null, building: Promise<Bord> | null = null, tableTime = 0, tableView: Vy = 'runt';
 for (let i = 0; i < 4; i++) worker();
 
-const alone = el<HTMLInputElement>('ensam'), players = el<HTMLInputElement>('spelare');
+const alone = el<HTMLInputElement>('ensam'), players = el<HTMLSelectElement>('spelare');
+/** Den som är vald vid bordet: dealern (0) eller spelaren på en plats (1–7). Ett klick på en figur väljer den. */
+let chosen = 0;
 const nameField = el('namn'), seconds = el('sek'), slider = el<HTMLInputElement>('tid');
 const lengthOf = (namn: string | null) => namn ? rows.get(namn)!.length : 0;
-/** Vem vid bordet som spelar en rörelse: dealern (0) dealerns, och spelare 1–3 den som är inspelad för just den spelaren; övriga spelarrörelser spelaren i mitten. */
-const seatFor = (namn: string) => namn.includes('_Dealer_') ? 0 : Number(namn.match(/^AS_(?:Blackjack|Poker)_Player_0([123])$/)?.[1] ?? namn.match(/^AS_Reactions_Player0([123])_/)?.[1] ?? 2);
+/** Vem vid bordet som får en rörelse: dealern (0) en dealerrörelse, och den valda spelaren en spelarrörelse (är dealern vald: spelaren i mitten). */
+const seatFor = (namn: string) => namn.includes('_Dealer_') ? 0 : chosen || MIDDLE;
 /** Tiden i den valda rörelsen. Bordets klocka går fritt, och var och en vid bordet är på den tiden räknat i sin egen rörelses längd. */
 const now = () => mode !== 'bord' ? (selected && figures.get(selected)?.action?.time) || 0 : lengthOf(selected) ? tableTime % lengthOf(selected) : tableTime;
 function setTime(t: number) {
@@ -270,7 +274,7 @@ function select(namn: string | null, piece?: Cut) {
   const same = namn === selected;
   selected = namn; cut = piece ? {fran: piece.fran, till: piece.till} : same ? cut : null;
   if (namn) { const b = rows.get(namn)!.button; b.classList.add('vald'); b.scrollIntoView({block: 'nearest'}); }
-  if (mode === 'bord') { if (namn) seat(namn, true); }
+  if (mode === 'bord') { if (namn && table) { chosen = seatFor(namn); seat(table.sitsar[chosen], namn, true); } }
   else {
     const figure = namn ? figures.get(namn)! : null;
     for (const f of figures.values()) f.root.visible = !alone.checked || !figure || f === figure;
@@ -291,11 +295,9 @@ const pause = (on: boolean) => { paused = on; pauseButton.textContent = paused ?
 pauseButton.onclick = () => pause(!paused);
 
 // ---- bordet --------------------------------------------------------------------------------------------------------
-/** Den som spelar rörelsen vid bordet börjar spela den. `show`: syns den inte (spelarna dolda, eller platsen kameran står på) visas den. */
-async function seat(namn: string, show = false) {
-  if (!table) return;
-  const s: Sits = table.sitsar[seatFor(namn)];
-  if (show && s.nr && (!players.checked || inTheWay(s))) { players.checked = true; if (inTheWay(s)) look('runt'); seen(); }
+/** En vid bordet börjar spela en rörelse. `show`: syns den inte (för få spelare visade, eller i vägen för kameran) visas den. */
+async function seat(s: Sits, namn: string, show = false) {
+  if (show && s.nr && (!counted(s) || inTheWay(s))) { if (!counted(s)) players.value = '7'; if (inTheWay(s)) look('runt'); seen(); }
   if (s.namn === namn) return;
   s.namn = namn; playing();
   const {clip} = await clipOf(namn).catch(() => ({clip: null}));
@@ -304,11 +306,22 @@ async function seat(namn: string, show = false) {
 }
 /** Pricken i listan på de rörelser som spelas vid bordet. */
 function playing() { for (const row of rows.values()) row.button.classList.toggle('spelas', !!table?.sitsar.some(s => s.namn === row.namn)); }
-/** Spelare som sitter i vägen för kameran: i spelets vy alla (kameran står bakom dem, och spelets bild har bara dealern), från sidan den på plats 2 (närmast kameran). */
-const inTheWay = (s: Sits) => tableView === 'spel' || (tableView === 'sida' && s.plats === 2);
+/** Spelare som sitter i vägen för kameran: i spelets vy alla (kameran står bakom dem, och spelets bild har bara dealern), från sidan de på kamerans sida om bordets mitt. */
+const inTheWay = (s: Sits) => tableView === 'spel' || (tableView === 'sida' && s.holder.position.x < -0.1);
+/** Spelarna som valet "Spelare" visar: alla sju, de tre på plats 2, 4 och 6, eller inga. */
+const counted = (s: Sits) => players.value === '7' || (players.value === '3' && [2, 4, 6].includes(s.plats ?? 0));
 /** Spelarna visas eller döljs, och den som sitter i vägen för kameran är borta. */
-function seen() { if (table) for (const s of table.sitsar) if (s.nr) s.holder.visible = players.checked && !inTheWay(s); }
+function seen() { if (table) for (const s of table.sitsar) if (s.nr) s.holder.visible = counted(s) && !inTheWay(s); }
 players.onchange = seen;
+// Bordets höjd: reglaget flyttar bara bordet i den här vyn, för att pröva vilken höjd som passar paketets rörelser.
+const heightSlider = el<HTMLInputElement>('bordhojd'), heightText = el('bordhojdtext');
+function tableHeight() {
+  const cm = Number(heightSlider.value);
+  heightText.textContent = cm === 0 ? 'spelets höjd' : `${cm > 0 ? '+' : '−'}${String(Math.abs(cm)).replace('.', ',')} cm`;
+  table?.hojd(cm / 100);
+}
+heightSlider.oninput = tableHeight;
+heightSlider.ondblclick = () => { heightSlider.value = '0'; tableHeight(); };
 const viewButtons = [...document.querySelectorAll<HTMLButtonElement>('button[data-vy]')];
 function look(vy: Vy) {
   tableView = vy;
@@ -336,12 +349,17 @@ async function setMode(to: typeof mode) {
     return made;
   })();
   first = building.then(made => made.klart).catch(() => null);
-  try { table = await building; } catch (e) { building = null; say('bord', `Bordsvyn kunde inte byggas: ${e instanceof Error ? e.message : e}`); await setMode('utstallning'); return; }
+  try { table = await building; }
+  catch (e) { building = null; console.error(e); await setMode('utstallning'); say('bord', `Bordsvyn kunde inte byggas: ${e instanceof Error ? e.message : e}`); return; }
   if (mode !== 'bord') return;
   renderer.toneMapping = THREE.AgXToneMapping; // standardrummets tonkurva
-  for (const namn of AT_TABLE) if (rows.has(namn) && !table.sitsar[seatFor(namn)].namn) seat(namn);
-  look(tableView);
-  const keep = selected ?? (rows.has(AT_TABLE[0]) ? AT_TABLE[0] : null); selected = null; select(keep);
+  for (const s of table.sitsar) {
+    const start = s.nr ? PLAYER_START[(s.nr - 1) % PLAYER_START.length] : DEALER_START;
+    if (!s.namn && rows.has(start)) seat(s, start);
+  }
+  tableHeight(); look(tableView);
+  // Det som var valt i utställningen spelas av sin plats vid bordet; annars är dealern och hans rörelse vald.
+  const keep = selected ?? table.sitsar[0].namn; selected = null; if (!keep || keep.includes('_Dealer_')) chosen = 0; select(keep);
 }
 el('lageBord').onclick = () => setMode('bord');
 el('lageUtstallning').onclick = () => setMode('utstallning');
@@ -410,8 +428,10 @@ renderer.domElement.addEventListener('pointerup', e => {
   let o = ray.intersectObjects(among.filter(x => x.visible), true)[0]?.object as THREE.Object3D | undefined;
   while (o && o.userData[key] === undefined) o = o.parent ?? undefined;
   if (!o) return;
-  const namn = atTable ? atTable.sitsar[o.userData.sits as number].namn : o.userData.figure as string;
-  if (namn) select(namn);
+  if (!atTable) { select(o.userData.figure as string); return; }
+  // Vid bordet väljer klicket platsen, och med den rörelsen den spelar.
+  const s = atTable.sitsar[o.userData.sits as number];
+  if (s.namn) { chosen = s.nr; select(s.namn); }
 });
 
 // ---- bild för bild -------------------------------------------------------------------------------------------------
@@ -449,7 +469,9 @@ renderer.setAnimationLoop(() => {
 // ---- det adressen ber om -------------------------------------------------------------------------------------------
 const asked = new URLSearchParams(location.search), askedView = asked.get('kamera'), askedClip = asked.get('rorelse'), askedTime = asked.get('t');
 if (askedView && viewButtons.some(b => b.dataset.vy === askedView)) tableView = askedView as Vy;
-if (asked.get('spelare') === 'nej') players.checked = false;
+const askedPlayers = asked.get('spelare') === 'nej' ? '0' : asked.get('spelare'), askedHeight = Number(asked.get('bord'));
+if (askedPlayers && ['0', '3', '7'].includes(askedPlayers)) players.value = askedPlayers;
+if (asked.get('bord') && Number.isFinite(askedHeight)) heightSlider.value = String(askedHeight);
 await setMode(asked.get('vy') === 'bord' ? 'bord' : 'utstallning');
 if (askedClip && rows.has(askedClip)) select(askedClip);
 if (askedTime !== null && Number.isFinite(Number(askedTime))) {
