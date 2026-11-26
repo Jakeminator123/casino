@@ -64,6 +64,11 @@ standarddocka/
                 svep (`--marginal` bara några rutor); `--rikta` flyttar varje klipp hela bildpunkter dit det första
                 ankaret ligger, eftersom en filmmodell låter bilden glida under en lång tagning; och
                 `--ordning 4,1,7` lägger givarna efter varandra i en annan ordning, för att se att klippen möts
+    lagg-pa-bord.ts  lägger en dealer filmad i utseendet nyckel på vårt eget bord: klipper ut dealern, stolen, skon
+                och korten ur den gröna filmen och lägger dem på en bild av bordet ensamt genom samma kamera
+                (`titta.ts --runda --spela-in 0-0 --utan docka,kort,sko,stol`, första rutan). Det gröna mäts i varje
+                rutas egna hörn och skuggan läggs som en kvot mot vårt bord (två knep ur blackjack-dealer);
+                `--kortfarger` gör spårkortet till ett vanligt kort
   rorelser/     det editorn sparar, en rörelse per kortplats: a1-a23-p<plats>c1.json (vilka grundrörelser, blicken,
                 farten per del, ändringarna), för en dockas egna rörelser a1-a23-p<plats>c1-<docka>.json, och
                 <namn>.rutor.json (hela rörelsen ruta för ruta i dockans format, med kroppens mått, skriven vid
@@ -160,9 +165,11 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   kunna spara. En giv på prov utan vila börjar i vilan för den docka den är ritad för. Ett namn som inte är ett namn
   på en grundrörelse ger ett fel i stället för platsens vanliga rörelse. För den som gör om en grundrörelse.
 - **Nyckelfärger:** med `?utseende=nyckel` i adressen (eller `--utseende nyckel` i `verktyg/titta.ts`) ritas scenen för
-  film där dealern ska skiljas ut i efterhand: bakgrunden blå och utan golv, bordet och markerbrickan gröna utan
-  tryck, kasseringslådan borta, och korten i spårfärger. Färgerna står i `NYCKEL` i `editor/scen.ts`. Inspelade klipp
-  får då `-nyckel` sist i namnet.
+  film där dealern ska skiljas ut i efterhand: allt omkring honom grönt (Jakob 2026-11-26, som blackjack-dealers
+  filmer), det vill säga bakgrunden grön och utan golv, bordet och markerbrickan gröna utan tryck, kasseringslådan
+  borta, och korten i spårfärger. Färgerna står i `NYCKEL` i `editor/scen.ts`. Inspelade klipp får då `-nyckel` sist
+  i namnet. Den utskurna dealern läggs sedan på vårt eget bord med `verktyg/lagg-pa-bord.ts`: bordet, bakgrunden och
+  ljuset är då samma bildpunkter i varje klipp, och bara dealern kommer ur filmen.
 - **Hela rundan** (`?runda=1`; `rundaAv` i `editor/rorelse.ts`): vilan till skon och sedan första kortet till plats 7,
   6 … 1 (spelets ordning) i en tagning, med dockans egna rörelser som de är, version A. I editorn går den i ett svep,
   som klippen sedan spelas: ankarets ställning står en enda gång i varje skarv (Jakob 2026-11-26: "nu hackar liksom
