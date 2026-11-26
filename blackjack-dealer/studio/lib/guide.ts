@@ -38,7 +38,7 @@ export const GUIDE: readonly GuideView[] = [
     adress: "/studio/karta/",
     kort: "Se dealerns nodträd",
     text:
-      "Dealerns nodträd, ett i taget (till exempel Casino 22/36 och Tatuerad 0/36): bilderna för A1, trädets ankare vid skon " +
+      "Dealerns nodträd, ett i taget (till exempel Tatuerad 21/36): bilderna för A1, trädets ankare vid skon " +
       "och varje kort, och de 36 stegen i Jakobs mått som linjer. Heldragen linje: steget har film; streckad: ett prov väntar " +
       "på dom; röd: steget saknas. Ett steg med film visar sin Primär och de andra tagningarna; ett saknat steg visar vad en " +
       "beställning har och saknar, priset och kommandot som gör ett utkast. En klickad bild visas stor. Med Väg klickar man " +
