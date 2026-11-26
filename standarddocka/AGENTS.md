@@ -16,6 +16,9 @@ Läget, nästa steg och det som ska plockas in står i `README.md`.
 - **Bordet rätt:** kanten ("karmen"), markerbrickan, skon, korten och kortplatserna, och bordet närmare dealern.
 - **Blicken:** mot kameran, lite högre än dockan tittar i dag.
 - **Rörelserna:** de avgör. En rörelse är klar först när den är riktigt bra i den här vyn.
+- **Editorn:** en sida i webbläsaren (`editor/`, hans ord 2026-11-26: "mini-blender") där han själv spelar upp en
+  rörelse och drar i händer, armbågar och blick. Grundrörelserna i `../blackjack-dealer/dealer3d/data/` ändras aldrig
+  härifrån; det han ändrar sparas ovanpå dem i `rorelser/`.
 
 Struket: att luta bordet mot kameran (hans ord 2026-11-26: "Vi skiter i lutning av bordet").
 
@@ -70,6 +73,9 @@ rörelse prövas mot innan den visas för honom.
   (`blackjack-dealer/AGENTS.md`, "Servern"): en körning i taget.
 - Ingen kod eller text pekar på en viss dator: grannprojekten hittas som `../avatar-auto-pipeline` och
   `../blackjack-dealer`.
+- Editorn har en egen liten server (`node standarddocka/editor/server.ts`, port 4320, bara den här datorn) och lånar
+  three.js ur `../blackjack-dealer/node_modules/`; mappen har inga egna paket. Jakob startar den med
+  `STARTA editorn.cmd`. Typerna kontrolleras med rotens `tsconfig.json`.
 
 ## Det som produceras
 

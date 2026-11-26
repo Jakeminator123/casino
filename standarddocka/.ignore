@@ -1,3 +1,6 @@
 # Arbetsbänkens aktuella vy (scen/vy.py skriver den): bilder, en Blender-scen och en maskinskriven mätning. Dold för
 # sökningen; läs mätningen med sin sökväg, standarddocka/vy/vy_matt.json.
 vy/
+# Rörelsernas rutor (editorn skriver dem vid Spara): tal per ruta, 0,6 MB per rörelse, text ingen sökning ska läsa.
+# De ligger i Git; läs en med sin sökväg, till exempel standarddocka/rorelser/a1-a23-p4c1.rutor.json.
+rorelser/*.rutor.json

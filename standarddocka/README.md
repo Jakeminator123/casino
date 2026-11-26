@@ -15,7 +15,22 @@ standarddocka/
                 mot kameran; ställningen, stolen och blicken är tal och steg överst i filen
   vy/           den senaste arbetsvyn, skriven av scen/vy.py (varje körning skriver över den förra): vy.blend
                 (dubbelklicka för att öppna scenen i Blender), bilderna och mätningen; går inte in i Git
+  editor/       editorn i webbläsaren: mannen vid bordet, en tidslinje att spela och dra i, kameror, och handtag på
+                händer, armbågar och blick som blir ändringar ovanpå grundrörelserna
+    server.ts   editorns egen server (bara den här datorn, port 4320); lämnar ut sidan, modellerna och rörelserna
+    editor.ts   sidan: tidslinjen, kamerorna, handtagen, Spara
+    scen.ts     scenen: bordet, stolen och mannen i spelets mått, ljuset, kortet, kamerorna
+    rorelse.ts  rörelsen: grundrörelser efter varandra, skarven utjämnad, ändringarna ovanpå, vem som håller kortet
+    armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp)
+  rorelser/     det editorn sparar: <namn>.json (vilka grundrörelser, blicken, ändringarna) och <namn>.rutor.json
+                (hela rörelsen ruta för ruta i dockans format, skriven vid Spara)
+  STARTA editorn.cmd   dubbelklicka för att starta editorn och öppna den i webbläsaren
 ```
+
+Editorn startas med dubbelklick på `STARTA editorn.cmd`, eller från casino-mappen med
+`node standarddocka/editor/server.ts --oppna`, och öppnas på `http://127.0.0.1:4320/standarddocka/editor/`. Den visar
+följden A1 → A2.3 → plats 4 kort 1 → tillbaka (grundrörelserna `till-ankare-2-3-c` och
+`giv-fran-2-3-p4c1-naturlig-cykel-a-paow` ur `../blackjack-dealer/dealer3d/data/`, som aldrig ändras härifrån).
 
 Arbetsvyn körs från den här mappen (Blender 5.3, utan fönster; bygger bordet själv om det saknas):
 
@@ -52,15 +67,33 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   (`dealer3d/src/figure-model.ts`), men den vyn är inte den Jakob vill arbeta i.
 - Jakob om den första arbetsvyn: "Ser ganska bra ut nu"; brickan ut i kanten, händerna och stolen är rättade efter
   hans anteckningar och väntar på hans dom.
+- Editorn finns (`editor/`) med den första följden: mannen gör Paows rörelser A1 → A2.3 → plats 4 kort 1 → tillbaka
+  (6,9 s, 209 rutor) vid det närmare bordet. Blicken går mot den valda kameran i vilan, följer kortet under given och
+  går tillbaka; kortet följer handen som håller det; underarmarna hålls minst 1 cm över bordets kant av en automatisk
+  regel (utan den gick höger underarm genom kanten i 116 av 209 rutor). Händer, armbågar och blick går att dra i, och
+  ändringarna sparas i `rorelser/`. Den öppnar i Lägre kamera (10 grader ned).
+- Känt i editorn: i vilan står armbågarna utvinklade, eftersom rörelserna är gjorda för Paows kropp och ett bord vars
+  kant låg 15 cm längre bort (en egen vila för det närmare bordet behövs); bålen lutar som Paows, 16 cm i given;
+  huvudet vrids högst 40 grader, så blicken ser lite låg ut; skons främsta kort visar sin vita framsida när kortet
+  har lämnat skon (Blender visar baksidan); filten är mörkare än i Blenders bilder; vilan i den första delen är den
+  äldre vita dockans, inte den `scen/vy.py` lägger mannen i. Editorn och `scen/vy.py` ställer upp scenen var för sig
+  (stolen, vilan, kamerorna): de ska läsa samma tal ur en fil.
 - Provat och bedömt av Jakob: bordet 15 cm närmare dealern räcker för att det ska nå magen och skon stå helt på
   bordet. Att luta bordet mot kameran är struket.
 
 ## Nästa steg
 
 1. Vyn: Jakob dömer arbetsvyn (bordets kant och bricka, vilan, kamerans vinkel), och den rättas tills han är nöjd.
-2. Rörelserna in i den vyn: en giv som finns görs om till en rörelse på dockans skelett och renderas som film här.
-3. Rörelserna en i taget, tills var och en är riktigt bra.
-4. Kvinnan, på samma skelett och med samma rörelser.
+2. Jakob dömer den första följden i editorn. En egen vila för det närmare bordet, så att armbågarna inte står ut.
+3. Ett fristående prov av metoden "3D-rendering görs om till film" (Jakob 2026-11-26): den nakna dockan gör A1 →
+   A2.3 på 2–3 sekunder, filmad ur editorn genom spelets kamera och stolarnas kameror, och klippen görs om till en
+   riktig person av en filmmodell med en bild av utseendet. Editorn behöver stolarnas kameror och ett sätt att spela
+   in ett klipp. Betalda körningar bara på Jakobs ord.
+4. Rörelserna en i taget, tills var och en är riktigt bra, och sättet att föra över dem till en annan kropp.
+5. Kvinnan, på samma skelett och med samma rörelser.
+6. Ordningen i mapparna (Jakob 2026-11-26): det som bygger standarden (måttfilen, bordet, dockorna, stolen och
+   deras byggskript i `../avatar-auto-pipeline/scen/`, `verktyg/`, `rorelser/` och `assets/`) flyttar hit, så att
+   `../avatar-auto-pipeline/` bara gör en dealer från foton på den här standarden.
 
 ## Plockas in när Jakob är nöjd
 

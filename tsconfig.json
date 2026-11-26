@@ -13,7 +13,13 @@
     "skipLibCheck": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "typeRoots": ["blackjack-dealer/studio/node_modules/@types"],
-    "types": ["node"]
+    "types": ["node"],
+    // three.js is installed once, in blackjack-dealer/; the editor of standarddocka/ borrows it from there (its server
+    // hands the browser the same copy), so the type descriptions are pointed out for the files outside that folder.
+    "paths": {
+      "three": ["./blackjack-dealer/node_modules/@types/three"],
+      "three/addons/*": ["./blackjack-dealer/node_modules/@types/three/examples/jsm/*"]
+    }
   },
   "include": [
     ".githooks/**/*.ts",
