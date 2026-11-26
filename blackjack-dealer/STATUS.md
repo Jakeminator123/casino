@@ -173,10 +173,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Väntar på Jakob
 
-- Standarddockan (2026-11-26): inget väntar på honom här. Han dömde de tre första proven (Inte bra på de första sex
-  bilderna, "markerbrickan och bordet i sin helhet måste fixas", "karmen och andra saker måste rättas på bordet") och
-  vill ha Blenders vy; proven är raderade och hans ord står som krav i `../standarddocka/AGENTS.md`. Arbetet med
-  bordet, blicken och rörelserna sker i `../standarddocka/` och visas för honom som prov härifrån.
+- Standarddockan (2026-11-26): hur högt dockan ska sitta. Provet `sitthojd-20261126` (Granska, Prov) visar mannen i
+  vilan med sina egna mått i fyra höjder (axlarna 23, 27, 31 och 35 cm över filten): högre ger avspända armar men
+  huvudet närmare bildens överkant, så kameran kan behöva följa med. Inga givar ritas för standarddockans egen kropp
+  förrän han har valt. Arbetet med bordet, blicken och rörelserna sker i `../standarddocka/` och visas för honom som
+  prov härifrån; hans ord står som krav i `../standarddocka/AGENTS.md`.
 - Det som bara finns på den stationära, och som registren behåller tills han har bestämt om det kopieras hit eller görs
   nytt: 51 bra tagningar utan film (alla Tatuerads, varav alla 25 talfilmer, vilan `paow-vila-tat-09-01` och fem delade
   vilor), ankarnas originalfiler, keystones och hans egna bilder, kortets textur och 43 av dockans
