@@ -47,8 +47,13 @@ Rörelserna laddas fyra i taget (cirka en halv minut för alla); bordet och det 
 En lång rörelse består ofta av flera: dealerns giv är fem givar efter varandra. Ställ reglaget där biten ska börja och
 tryck "Börjar här", ställ det där den ska sluta och tryck "Slutar här": biten spelas då om och om igen. Ge den ett namn
 och tryck "Spara biten", så står den under sin rörelse i listan; ett klick där spelar den, krysset tar bort den, och
-"Hela rörelsen" spelar allt igen. Bitarna sparas i `sekvenser.json` (namn och tider, inget ur paketet). De fem givarna i
-blackjackdealerns giv är utklippta från början.
+"Hela rörelsen" spelar allt igen. Bitarna sparas i `sekvenser.json` (namn och tider, inget ur paketet).
+
+Alla 66 rörelser är redan delade i sina naturliga bitar (2026-11-26, av en agent med `verktyg/mat.ts`): 161 bitar i 62
+rörelser. De fyra rena väntrörelserna (`Poker_Dealer_Card_Idle_01` och `Idle_01`–`03`) har inga. Dealerns bitar är
+kontrollerade mot bilder; spelarnas (Bonus, CCG, Reaktioner) mot streckgubbar, så ett tjugotal av deras namn är
+tolkningar (en cigarett, ett glas, "händerna till ansiktet"). Ett namn som är fel tas bort med krysset och sparas om.
+"Höger" och "vänster" i namnen är figurens egna.
 
 ## Paketet vid spelets bord
 
@@ -77,7 +82,14 @@ Det här är mätt ur rörelserna och syns i bordsvyn:
   10–15 cm innanför plats 1 och 7 (talen står i `OVERLAMNING.md`).
 - Figuren (och Unreals docka, som rörelserna är gjorda för) är 186 cm lång, längre än standarddockan, så huvudet når
   högre i spelets vy.
-- Rörelserna har inga kort, marker eller andra saker: bara kroppen. Korten i blackjackgiven lägger visaren till.
+- Rörelserna har inga kort, marker eller andra saker: bara kroppen. Korten i blackjackgiven lägger visaren till, och
+  i pokerdealerns giv ur maskin (`To_Players_From_Machine_01`), som har samma mönster: vänster hand hämtar kortet på
+  samma ställe till vänster om dealern.
+- De tre blackjackspelarna gör samma fem saker i samma ordning: knackar i bordet (ett kort till), vinkar av (stannar),
+  dubblar (en insats till och ett finger), delar (två fingrar) och lägger sin insats. Det är spelets egna val, färdiga
+  som rörelser.
+- Kort läggs också i `To_Players_01` och `_02` (ur leken i vänster hand), `Reveal_Cards_01` och `_FromMachine_01`
+  (floppen och två kort till) och `RevealHouseCard_01` och `_02` (husets kort vänds); tiderna står som bitar i listan.
 
 ## Vägen
 
@@ -133,6 +145,7 @@ Håller inte steg 1 eller 2 för hans domar är paketet ändå en förebild att 
 | `visa/bord.ts` | Bordsvyn: figurerna på sina platser vid spelets bord, pallarna, kamerorna och bordets höjd |
 | `visa/paketbord.ts` | De egna borden för paketets figurer: formen, platserna, kortplatserna, brickan och skon |
 | `visa/kort.ts` | Korten i blackjackdealerns giv: när kortet dras ur skon, byter hand och släpps räknas ur rörelsen, och kortet följer händerna |
+| `verktyg/mat.ts` | Mäter en rörelse utan webbläsare: `node kortspelspaket/verktyg/mat.ts <AS_namn>` ger föreslagna bitar, händernas hållpunkter med grepp och en tidslinje; `--alla` alla 66 med en rad per bit; `--sparade` mäter bitarna i `sekvenser.json`; `--bilder <mapp>` ritar varje bit som streckgubbar, utan grafikkort och lås |
 | `verktyg/titta.ts` | Tar bilder av visaren utan fönster, för en agent som ska se vad en ändring gjorde: `node kortspelspaket/verktyg/titta.ts slask/kortspelspaket/<uppgift> topp=vy=bord,kamera=topp,t=12.7` (visaren ska vara igång; sidans fel skrivs ut) |
 | `sekvenser.json` | De utklippta bitarna: per rörelse ett namn och två tider i sekunder |
 | `OVERLAMNING.md` | Underlaget för den agent som för över paketets rörelser till standarddockan: hur en rörelse läses, leden mot dockans, givens tal och det som skiljer mot Jakobs domar |

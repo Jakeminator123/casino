@@ -25,5 +25,907 @@
       "fran": 19.9,
       "till": 23.1
     }
+  ],
+  "AS_Blackjack_Dealer_RevealHouseCard_01": [
+    {
+      "namn": "Vänder husets kort",
+      "fran": 2.03,
+      "till": 5.43
+    }
+  ],
+  "AS_Blackjack_Dealer_RevealHouseCard_02": [
+    {
+      "namn": "Vänder husets kort och lägger det till rätta",
+      "fran": 0.7,
+      "till": 5
+    }
+  ],
+  "AS_Blackjack_Player_01": [
+    {
+      "namn": "Knackar i bordet: ett kort till",
+      "fran": 1.7,
+      "till": 3.8
+    },
+    {
+      "namn": "Vinkar av med öppen hand: stannar",
+      "fran": 4.73,
+      "till": 7.33
+    },
+    {
+      "namn": "Lägger en insats till och visar ett finger: dubblar",
+      "fran": 8.5,
+      "till": 11.73
+    },
+    {
+      "namn": "Lägger en insats till och visar två fingrar: delar",
+      "fran": 12.83,
+      "till": 17.3
+    },
+    {
+      "namn": "Plockar marker och lägger sin insats",
+      "fran": 19.03,
+      "till": 23.8
+    }
+  ],
+  "AS_Blackjack_Player_02": [
+    {
+      "namn": "Knackar i bordet: ett kort till",
+      "fran": 1.53,
+      "till": 3.3
+    },
+    {
+      "namn": "Vinkar av med öppen hand: stannar",
+      "fran": 4.1,
+      "till": 6.77
+    },
+    {
+      "namn": "Lägger en insats till och visar ett finger: dubblar",
+      "fran": 6.97,
+      "till": 10.27
+    },
+    {
+      "namn": "Lägger en insats till och visar två fingrar: delar",
+      "fran": 10.93,
+      "till": 14.3
+    },
+    {
+      "namn": "Plockar marker och lägger sin insats",
+      "fran": 17.73,
+      "till": 23.4
+    }
+  ],
+  "AS_Blackjack_Player_03": [
+    {
+      "namn": "Knackar i bordet: ett kort till",
+      "fran": 1.83,
+      "till": 3.4
+    },
+    {
+      "namn": "Vinkar av med öppen hand: stannar",
+      "fran": 3.97,
+      "till": 5.57
+    },
+    {
+      "namn": "Lägger en insats till och visar ett finger: dubblar",
+      "fran": 5.93,
+      "till": 8.73
+    },
+    {
+      "namn": "Lägger en insats till och visar två fingrar: delar",
+      "fran": 9.67,
+      "till": 13.67
+    },
+    {
+      "namn": "Plockar marker och lägger sin insats",
+      "fran": 15.47,
+      "till": 21
+    }
+  ],
+  "AS_Poker_Dealer_Card_Idle_Break_01": [
+    {
+      "namn": "Lägger ifrån sig leken och vilar händerna",
+      "fran": 1.27,
+      "till": 3.43
+    },
+    {
+      "namn": "Tar upp leken igen",
+      "fran": 6.17,
+      "till": 9.33
+    }
+  ],
+  "AS_Poker_Dealer_GatherChips_ByHand": [
+    {
+      "namn": "Drar in marker från sin högra sida",
+      "fran": 0.63,
+      "till": 4.8
+    },
+    {
+      "namn": "Drar in marker rakt framifrån",
+      "fran": 5.17,
+      "till": 9.67
+    },
+    {
+      "namn": "Drar in marker från sin vänstra sida",
+      "fran": 11.1,
+      "till": 15.43
+    },
+    {
+      "namn": "Drar in marker från sin högra sida, andra gången",
+      "fran": 16.03,
+      "till": 19.7
+    },
+    {
+      "namn": "Drar in marker rakt framifrån, andra gången",
+      "fran": 20.63,
+      "till": 24.1
+    },
+    {
+      "namn": "Drar in marker från sin vänstra sida, andra gången",
+      "fran": 25.5,
+      "till": 28.83
+    }
+  ],
+  "AS_Poker_Dealer_GatherChips_ByStick": [
+    {
+      "namn": "Tar rakan till höger om sig",
+      "fran": 1.3,
+      "till": 3.77
+    },
+    {
+      "namn": "Rakar in marker längst från höger",
+      "fran": 4.2,
+      "till": 7.8
+    },
+    {
+      "namn": "Rakar in marker snett från höger",
+      "fran": 7.8,
+      "till": 10.77
+    },
+    {
+      "namn": "Rakar in marker rakt framifrån",
+      "fran": 11.1,
+      "till": 14.93
+    },
+    {
+      "namn": "Rakar in marker snett från vänster",
+      "fran": 15.1,
+      "till": 19.77
+    },
+    {
+      "namn": "Rakar in marker längst från vänster",
+      "fran": 20.07,
+      "till": 23.9
+    },
+    {
+      "namn": "Lägger ifrån sig rakan",
+      "fran": 23.9,
+      "till": 26.33
+    }
+  ],
+  "AS_Poker_Dealer_Give_Chips": [
+    {
+      "namn": "Tar marker och betalar ut till höger",
+      "fran": 0.83,
+      "till": 6.9
+    },
+    {
+      "namn": "Tar marker och betalar ut snett till höger",
+      "fran": 7.13,
+      "till": 12.95
+    },
+    {
+      "namn": "Tar marker och betalar ut rakt fram",
+      "fran": 13.47,
+      "till": 18.7
+    },
+    {
+      "namn": "Tar marker och betalar ut snett till vänster",
+      "fran": 19.57,
+      "till": 24.37
+    },
+    {
+      "namn": "Tar marker och betalar ut till vänster, i två omgångar",
+      "fran": 25.83,
+      "till": 32.5
+    }
+  ],
+  "AS_Poker_Dealer_Reveal_Cards_01": [
+    {
+      "namn": "Lägger upp bordets första kort (floppen)",
+      "fran": 0.9,
+      "till": 2.7
+    },
+    {
+      "namn": "Lägger upp bordets andra kort (floppen)",
+      "fran": 2.7,
+      "till": 4.07
+    },
+    {
+      "namn": "Lägger upp bordets tredje kort (floppen)",
+      "fran": 4.07,
+      "till": 5.87
+    },
+    {
+      "namn": "Lägger upp bordets fjärde kort",
+      "fran": 6.27,
+      "till": 8.33
+    },
+    {
+      "namn": "Lägger upp bordets femte kort",
+      "fran": 8.7,
+      "till": 10.73
+    }
+  ],
+  "AS_Poker_Dealer_Reveal_Cards_FromMachine_01": [
+    {
+      "namn": "Ur maskinen: lägger upp bordets första kort",
+      "fran": 0.9,
+      "till": 3.05
+    },
+    {
+      "namn": "Ur maskinen: lägger upp bordets andra kort",
+      "fran": 3.05,
+      "till": 5.1
+    },
+    {
+      "namn": "Ur maskinen: lägger upp bordets tredje kort",
+      "fran": 5.1,
+      "till": 7.25
+    },
+    {
+      "namn": "Ur maskinen: lägger ett kort nära sig",
+      "fran": 7.25,
+      "till": 10.13
+    },
+    {
+      "namn": "Ur maskinen: lägger upp bordets fjärde kort",
+      "fran": 11.83,
+      "till": 13.7
+    },
+    {
+      "namn": "Ur maskinen: lägger ett kort nära sig, andra gången",
+      "fran": 13.7,
+      "till": 16.3
+    }
+  ],
+  "AS_Poker_Dealer_Shuffling_01": [
+    {
+      "namn": "Tar leken till höger om sig",
+      "fran": 0.8,
+      "till": 1.87
+    },
+    {
+      "namn": "Blandar i handen: första omgången",
+      "fran": 2,
+      "till": 6.5
+    },
+    {
+      "namn": "Blandar i handen: andra omgången",
+      "fran": 6.67,
+      "till": 10.6
+    },
+    {
+      "namn": "Lägger ner leken framför sig och går till vila",
+      "fran": 10.8,
+      "till": 15.7
+    }
+  ],
+  "AS_Poker_Dealer_Shuffling_02": [
+    {
+      "namn": "Tar leken och lägger den framför sig",
+      "fran": 1.43,
+      "till": 3.93
+    },
+    {
+      "namn": "Blandar på bordet: första riffeln",
+      "fran": 4.07,
+      "till": 6
+    },
+    {
+      "namn": "Blandar på bordet: andra riffeln, och tar upp leken",
+      "fran": 6,
+      "till": 8.13
+    },
+    {
+      "namn": "Låter korten falla från höger hand ner i vänster",
+      "fran": 8.43,
+      "till": 10.63
+    },
+    {
+      "namn": "Låter korten falla från vänster hand ner i höger",
+      "fran": 10.83,
+      "till": 12.9
+    },
+    {
+      "namn": "Lägger ner leken och går till vila",
+      "fran": 12.9,
+      "till": 16
+    }
+  ],
+  "AS_Poker_Dealer_To_Players_01": [
+    {
+      "namn": "Giv 1: längst till höger",
+      "fran": 1.77,
+      "till": 3.6
+    },
+    {
+      "namn": "Giv 2: snett till höger",
+      "fran": 3.73,
+      "till": 5.53
+    },
+    {
+      "namn": "Giv 3: fram, till höger om mitten",
+      "fran": 5.83,
+      "till": 7.47
+    },
+    {
+      "namn": "Giv 4: fram, till vänster om mitten",
+      "fran": 7.6,
+      "till": 9.6
+    },
+    {
+      "namn": "Giv 5: snett till vänster",
+      "fran": 9.6,
+      "till": 11.9
+    }
+  ],
+  "AS_Poker_Dealer_To_Players_02": [
+    {
+      "namn": "Ger korten i ett svep från höger till vänster",
+      "fran": 1.3,
+      "till": 6.9
+    }
+  ],
+  "AS_Poker_Dealer_To_Players_From_Machine_01": [
+    {
+      "namn": "Giv 1 ur maskinen: längst till höger",
+      "fran": 0.73,
+      "till": 3.83
+    },
+    {
+      "namn": "Giv 2 ur maskinen: snett till höger",
+      "fran": 5.2,
+      "till": 8.4
+    },
+    {
+      "namn": "Giv 3 ur maskinen: fram, till höger om mitten",
+      "fran": 10.27,
+      "till": 13.1
+    },
+    {
+      "namn": "Giv 4 ur maskinen: rakt fram",
+      "fran": 15.07,
+      "till": 18.37
+    },
+    {
+      "namn": "Giv 5 ur maskinen: snett till vänster",
+      "fran": 19.57,
+      "till": 23.53
+    }
+  ],
+  "AS_Poker_Player_01": [
+    {
+      "namn": "Lyfter på sina kort och tittar",
+      "fran": 2.93,
+      "till": 7
+    },
+    {
+      "namn": "Lägger en insats",
+      "fran": 7.93,
+      "till": 11.5
+    },
+    {
+      "namn": "Skjuter fram alla marker med båda händerna",
+      "fran": 13.67,
+      "till": 17.97
+    },
+    {
+      "namn": "Tar upp korten och kastar in dem",
+      "fran": 19.47,
+      "till": 23.5
+    },
+    {
+      "namn": "Drar hem potten med båda händerna, tre tag",
+      "fran": 24.2,
+      "till": 30.07
+    }
+  ],
+  "AS_Poker_Player_02": [
+    {
+      "namn": "Lyfter på sina kort med båda händerna och lutar sig tillbaka",
+      "fran": 2.13,
+      "till": 7.6
+    },
+    {
+      "namn": "Lägger en insats",
+      "fran": 8.2,
+      "till": 14.47
+    },
+    {
+      "namn": "Skjuter fram alla marker med båda händerna, två tag",
+      "fran": 15.57,
+      "till": 22.53
+    },
+    {
+      "namn": "Skjuter in sina kort",
+      "fran": 24,
+      "till": 27.67
+    },
+    {
+      "namn": "Drar hem potten med båda händerna",
+      "fran": 28.3,
+      "till": 34.1
+    }
+  ],
+  "AS_Poker_Player_03": [
+    {
+      "namn": "Lyfter på sina kort och tittar",
+      "fran": 2.23,
+      "till": 5.7
+    },
+    {
+      "namn": "Lyfter en öppen hand över bordet och tar tillbaka den",
+      "fran": 6.8,
+      "till": 9.9
+    },
+    {
+      "namn": "Lägger en insats",
+      "fran": 10.43,
+      "till": 14.1
+    },
+    {
+      "namn": "Skjuter in sina kort",
+      "fran": 14.5,
+      "till": 17
+    },
+    {
+      "namn": "Drar hem potten med båda händerna och lutar sig tillbaka",
+      "fran": 18.33,
+      "till": 25.3
+    }
+  ],
+  "AS_Bonus_Dealer_01": [
+    {
+      "namn": "Sveper handen över bordet: inga fler insatser",
+      "fran": 0.53,
+      "till": 3.27
+    },
+    {
+      "namn": "Slår ut med händerna, handflatorna upp",
+      "fran": 3.4,
+      "till": 4.9
+    },
+    {
+      "namn": "Sträcker höger hand åt vänster över bordet och tar tillbaka den",
+      "fran": 4.9,
+      "till": 8.2
+    }
+  ],
+  "AS_Bonus_Dealer_02": [
+    {
+      "namn": "Visar tomma händer: handflatorna upp, sedan vända",
+      "fran": 1.47,
+      "till": 4.9
+    }
+  ],
+  "AS_Bonus_Dealer_03": [
+    {
+      "namn": "För höger hand fram och långt åt vänster",
+      "fran": 0.67,
+      "till": 3.1
+    },
+    {
+      "namn": "Höjer pekfingret två gånger, vänd åt höger",
+      "fran": 3.1,
+      "till": 5.4
+    },
+    {
+      "namn": "Tar ner handen, lyfter vänster hand och går till vila",
+      "fran": 5.4,
+      "till": 8.63
+    }
+  ],
+  "AS_Bonus_Dealer_04": [
+    {
+      "namn": "Visar med öppen hand mot spelaren till höger",
+      "fran": 0.93,
+      "till": 3.9
+    },
+    {
+      "namn": "Visar med öppen hand mot spelaren till vänster",
+      "fran": 4.43,
+      "till": 7.67
+    }
+  ],
+  "AS_Bonus_Player_01": [
+    {
+      "namn": "Tänder en cigarett",
+      "fran": 0.57,
+      "till": 5.8
+    },
+    {
+      "namn": "Lägger ifrån sig tändaren, tar ett bloss och sänker handen",
+      "fran": 7.3,
+      "till": 11.83
+    },
+    {
+      "namn": "För cigaretten till munnen igen",
+      "fran": 12.2,
+      "till": 13.73
+    }
+  ],
+  "AS_Bonus_Player_02": [
+    {
+      "namn": "Tar ett glas till vänster, dricker och ställer tillbaka det",
+      "fran": 0.53,
+      "till": 8.2
+    }
+  ],
+  "AS_Bonus_Player_03": [
+    {
+      "namn": "Sätter sig till rätta och sträcker fram händerna",
+      "fran": 0.77,
+      "till": 2.6
+    },
+    {
+      "namn": "Plockar med korten eller markerna framför sig",
+      "fran": 3.3,
+      "till": 15.95
+    },
+    {
+      "namn": "Drar tillbaka händerna",
+      "fran": 16,
+      "till": 17.37
+    }
+  ],
+  "AS_Bonus_Player_04": [
+    {
+      "namn": "Tar något till höger om sig",
+      "fran": 1,
+      "till": 2.83
+    },
+    {
+      "namn": "Lyfter det mot huvudet",
+      "fran": 3.97,
+      "till": 4.87
+    },
+    {
+      "namn": "Lägger tillbaka det och drar in handen",
+      "fran": 7.13,
+      "till": 9.7
+    }
+  ],
+  "AS_Bonus_Player_05": [
+    {
+      "namn": "Båda händerna till ansiktet, sedan ner på bordet, höger hand ut åt sidan",
+      "fran": 0.93,
+      "till": 5.8
+    }
+  ],
+  "AS_Bonus_Player_06": [
+    {
+      "namn": "Borstar av vänster axel och ärm med höger hand",
+      "fran": 1.03,
+      "till": 3.55
+    },
+    {
+      "namn": "Borstar av höger arm med vänster hand",
+      "fran": 3.55,
+      "till": 4.7
+    },
+    {
+      "namn": "Tar tag i stolen och sätter sig till rätta",
+      "fran": 4.7,
+      "till": 8.53
+    }
+  ],
+  "AS_Bonus_Player_07": [
+    {
+      "namn": "Lutar sig fram över bordet med händerna ihop",
+      "fran": 1.07,
+      "till": 2.53
+    },
+    {
+      "namn": "Lutar sig tillbaka igen",
+      "fran": 7.7,
+      "till": 9.47
+    }
+  ],
+  "AS_CCG_Player_Discard_01": [
+    {
+      "namn": "Tar ett kort från bordet och lägger det i högen till vänster",
+      "fran": 1.3,
+      "till": 5.57
+    }
+  ],
+  "AS_CCG_Player_Discard_02": [
+    {
+      "namn": "Tar ett kort ur handen och lägger det i högen till vänster",
+      "fran": 1.23,
+      "till": 4.37
+    }
+  ],
+  "AS_CCG_Player_DrawFromDeck": [
+    {
+      "namn": "Drar ett kort från leken till höger",
+      "fran": 1.57,
+      "till": 4.6
+    }
+  ],
+  "AS_CCG_Player_PickUpFromBoard": [
+    {
+      "namn": "Tar upp ett kort från bordet till handen",
+      "fran": 0.87,
+      "till": 4.23
+    }
+  ],
+  "AS_CCG_Player_PickupDropCard": [
+    {
+      "namn": "Tar upp ett kort och håller det framför sig",
+      "fran": 0.97,
+      "till": 3.8
+    },
+    {
+      "namn": "Lägger ner kortet och lutar sig tillbaka",
+      "fran": 11.33,
+      "till": 14.5
+    }
+  ],
+  "AS_CCG_Player_PlayFromHand": [
+    {
+      "namn": "Spelar ut ett kort ur handen på bordet",
+      "fran": 1.73,
+      "till": 4.4
+    }
+  ],
+  "AS_CCG_Player_ResetTable": [
+    {
+      "namn": "Samlar ihop korten närmast sig",
+      "fran": 1.3,
+      "till": 5.2
+    },
+    {
+      "namn": "Samlar ihop korten längre bort",
+      "fran": 5.2,
+      "till": 7.7
+    },
+    {
+      "namn": "Jämnar till leken",
+      "fran": 7.7,
+      "till": 9.6
+    },
+    {
+      "namn": "Drar tillbaka händerna till knät",
+      "fran": 9.6,
+      "till": 11.2
+    }
+  ],
+  "AS_CCG_Player_RevealHand": [
+    {
+      "namn": "Lägger ner handen öppet, slår ut med vänster hand och lutar sig bakåt",
+      "fran": 1.33,
+      "till": 5.73
+    }
+  ],
+  "AS_CCG_Player_SetupTable": [
+    {
+      "namn": "Tar leken till höger och lägger den i vänster hand",
+      "fran": 0.93,
+      "till": 3.83
+    },
+    {
+      "namn": "Lägger ut korten ett och ett på bordet",
+      "fran": 4.73,
+      "till": 14.3
+    },
+    {
+      "namn": "Lägger undan resten av leken och vilar händerna på bordet",
+      "fran": 14.3,
+      "till": 17.3
+    }
+  ],
+  "AS_Reactions_Player01_Lose_01": [
+    {
+      "namn": "Tar sig för pannan, först med höger hand och sedan med vänster",
+      "fran": 1.27,
+      "till": 5.1
+    }
+  ],
+  "AS_Reactions_Player01_Lose_02": [
+    {
+      "namn": "Lutar sig fram mot bordet och slår ut med vänster hand",
+      "fran": 1.13,
+      "till": 5.3
+    }
+  ],
+  "AS_Reactions_Player01_Neutral_01": [
+    {
+      "namn": "Tittar ner i bordet och upp igen",
+      "fran": 1.53,
+      "till": 4.6
+    }
+  ],
+  "AS_Reactions_Player01_Neutral_02": [
+    {
+      "namn": "Lyfter vänster hand framför sig och sänker den igen",
+      "fran": 0.77,
+      "till": 4.13
+    }
+  ],
+  "AS_Reactions_Player01_WaitingOthers": [
+    {
+      "namn": "Lägger höger hand på bordet",
+      "fran": 4.4,
+      "till": 5.6
+    },
+    {
+      "namn": "Lägger vänster hand på bordet och lutar sig fram",
+      "fran": 10.03,
+      "till": 11.73
+    },
+    {
+      "namn": "Lutar sig tillbaka med händerna i knät",
+      "fran": 11.87,
+      "till": 14.4
+    },
+    {
+      "namn": "Lyfter vänster hand till bordet",
+      "fran": 14.4,
+      "till": 15.93
+    },
+    {
+      "namn": "Trummar med fingrarna, tre gånger",
+      "fran": 16.27,
+      "till": 19.5
+    },
+    {
+      "namn": "Tar ner handen i knät",
+      "fran": 19.93,
+      "till": 21.53
+    }
+  ],
+  "AS_Reactions_Player01_Win_01": [
+    {
+      "namn": "Slår ut med båda armarna, handflatorna upp, två gånger",
+      "fran": 0.23,
+      "till": 4.47
+    }
+  ],
+  "AS_Reactions_Player01_Win_02": [
+    {
+      "namn": "Jublar med hela kroppen: svänger armarna och slår ut dem",
+      "fran": 0,
+      "till": 7.37
+    }
+  ],
+  "AS_Reactions_Player01_Win_03": [
+    {
+      "namn": "Liten segergest med båda händerna framför sig",
+      "fran": 0.9,
+      "till": 4.03
+    }
+  ],
+  "AS_Reactions_Player02_Lose_01": [
+    {
+      "namn": "Lyfter händerna och vänder sig åt höger",
+      "fran": 1.47,
+      "till": 6.43
+    }
+  ],
+  "AS_Reactions_Player02_Lose_02": [
+    {
+      "namn": "Slår i bordet, tar sig för huvudet, reser sig halvt och slänger ut armen",
+      "fran": 1.17,
+      "till": 8.2
+    }
+  ],
+  "AS_Reactions_Player02_Neutral_01": [
+    {
+      "namn": "Lyfter händerna lite och lutar sig bakåt",
+      "fran": 1.13,
+      "till": 4.9
+    }
+  ],
+  "AS_Reactions_Player02_Neutral_02": [
+    {
+      "namn": "Lägger fram vänster hand, sedan höger, och lutar sig tillbaka",
+      "fran": 0.8,
+      "till": 7.13
+    }
+  ],
+  "AS_Reactions_Player02_WaitingOthers": [
+    {
+      "namn": "Lyfter höger hand mot ansiktet",
+      "fran": 2.17,
+      "till": 4.05
+    },
+    {
+      "namn": "Låter höger arm hänga ner vid sidan",
+      "fran": 4.1,
+      "till": 6
+    },
+    {
+      "namn": "Sträcker fram vänster hand på bordet och tar tillbaka den",
+      "fran": 7.3,
+      "till": 9.37
+    },
+    {
+      "namn": "Lägger händerna i knät igen",
+      "fran": 9.93,
+      "till": 11.73
+    }
+  ],
+  "AS_Reactions_Player02_Win_01": [
+    {
+      "namn": "Sträcker sig fram och drar hem vinsten med båda händerna",
+      "fran": 1.07,
+      "till": 5.97
+    }
+  ],
+  "AS_Reactions_Player02_Win_02": [
+    {
+      "namn": "Reser sig med armarna i luften och knyter nävarna",
+      "fran": 1.73,
+      "till": 7.5
+    }
+  ],
+  "AS_Reactions_Player03_Lose_01": [
+    {
+      "namn": "Slår ut med vänster hand över bordet och lutar sig bakåt",
+      "fran": 1.5,
+      "till": 5.97
+    }
+  ],
+  "AS_Reactions_Player03_Lose_02": [
+    {
+      "namn": "Slår ut med armarna och lutar sig bakåt",
+      "fran": 1.5,
+      "till": 5.63
+    }
+  ],
+  "AS_Reactions_Player03_Neutral_01": [
+    {
+      "namn": "Lyfter höger hand, släpper hakan och lutar sig bakåt",
+      "fran": 3.23,
+      "till": 6.4
+    }
+  ],
+  "AS_Reactions_Player03_Neutral_02": [
+    {
+      "namn": "Sträcker fram höger hand och vänder sig åt höger",
+      "fran": 1.13,
+      "till": 2.73
+    },
+    {
+      "namn": "Tar tillbaka handen och vänder sig åt vänster",
+      "fran": 5.8,
+      "till": 7.03
+    }
+  ],
+  "AS_Reactions_Player03_WaitingOthers": [
+    {
+      "namn": "Ser sig om med hakan i handen",
+      "fran": 9,
+      "till": 14.67
+    },
+    {
+      "namn": "Tar ner höger hand i knät",
+      "fran": 14.8,
+      "till": 17.97
+    }
+  ],
+  "AS_Reactions_Player03_Win_01": [
+    {
+      "namn": "Slår ut med båda händerna, handflatorna upp",
+      "fran": 2.07,
+      "till": 6.03
+    }
+  ],
+  "AS_Reactions_Player03_Win_02": [
+    {
+      "namn": "Knyter nävarna, slår ut med armarna och lutar sig bakåt",
+      "fran": 2.67,
+      "till": 6.9
+    }
   ]
 }

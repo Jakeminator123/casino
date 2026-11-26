@@ -520,10 +520,17 @@ if (asked.get('bord') && Number.isFinite(askedHeight)) heightSlider.value = Stri
 askedKind = asked.get('bordslag');
 if (asked.get('kort') === 'nej') cardBox.checked = false;
 await setMode(asked.get('vy') === 'bord' ? 'bord' : 'utstallning');
-if (askedClip && rows.has(askedClip)) select(askedClip);
+if (askedClip && rows.has(askedClip)) {
+  // I utställningen får figuren sin rörelse när kön kommer till den: den efterfrågade går först.
+  const at = queue.findIndex(f => f.namn === askedClip);
+  if (at > 0) queue.unshift(...queue.splice(at, 1));
+  select(askedClip);
+}
 if (askedTime !== null && Number.isFinite(Number(askedTime))) {
   pause(true);
   if (selected) await clipOf(selected).catch(() => null);
+  // (utställningens figur spelar först när kön har gett den rörelsen; tiden går inte att ställa före det)
+  for (let i = 0; i < 300 && asked.get('vy') !== 'bord' && selected && !figures.get(selected)?.action; i++) await new Promise(r => setTimeout(r, 100));
   setTime(Number(askedTime));
 }
 // En egen kamera för en närbild: &kam=x_y_z_x_y_z_vinkel (läget, punkten den ser mot och bildvinkeln, i bordets meter).

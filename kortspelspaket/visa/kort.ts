@@ -12,8 +12,12 @@ import * as T from 'three';
 import {CARD, TABLE_LENS, dollShoe, shoeCard, shoePose} from '../../blackjack-dealer/src/table-lens.ts';
 import type {Sits} from './bord.ts';
 
-/** Rörelserna där dealern delar ur skon: bara i dem visas korten. */
-const DEALS = new Set(['AS_Blackjack_Dealer_DealCard']);
+/**
+ * Rörelserna där dealern delar ur skon: bara i dem visas korten. Pokerdealerns giv ur maskin har samma mönster som
+ * blackjackgiven (vänster hand hämtar kortet på samma ställe till vänster om dealern, höger lägger det; mätt med
+ * verktyg/mat.ts), så där står skon för maskinen.
+ */
+const DEALS = new Set(['AS_Blackjack_Dealer_DealCard', 'AS_Poker_Dealer_To_Players_From_Machine_01']);
 /** Kortets tjocklek i bild (ett riktigt kort är för tunt för att synas från sidan). */
 const CARD_THICK = 0.0008;
 /** Så långt från vilan högerhanden ska vara för att det ska räknas som en giv (meter), och så länge (sekunder). */
