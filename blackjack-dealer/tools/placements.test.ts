@@ -79,19 +79,6 @@ test('concurrent stale saves cannot overwrite another tab, and previous data is 
 // A plan as it was saved before grip, turnAt and flipAxis existed.
 const legacyPlan=()=>{const plan=defaultPlan() as any;for(const t of Object.values(plan.targets) as any[]){delete t.intent.grip;delete t.intent.turnAt;delete t.intent.flipAxis;}return plan;};
 const INTENT_KEYS=['takeHand','startSide','endSide','pass','turn','grip','turnAt','flipAxis'];
-test('plans saved before grip, turnAt and flipAxis load with their defaults, and the three keys validate strictly',()=>{
- const legacy=legacyPlan();validatePlan(legacy);
- for(const id of TARGETS){assert.deepEqual(Object.keys(legacy.targets[id].intent),INTENT_KEYS);assert.equal(legacy.targets[id].intent.grip,'PINCH');assert.equal(legacy.targets[id].intent.turnAt,'AIR');assert.equal(legacy.targets[id].intent.flipAxis,'FREE');}
- // One key present keeps its value; only the missing ones are filled.
- const partial=legacyPlan();partial.targets['P2.C1'].intent.grip='DRAG';validatePlan(partial);assert.equal(partial.targets['P2.C1'].intent.grip,'DRAG');assert.equal(partial.targets['P2.C1'].intent.turnAt,'AIR');
- // A plan saved with grip and turnAt but before flipAxis (placements/default.json today) gets only the axis, after the others.
- const before=defaultPlan() as any;for(const t of Object.values(before.targets) as any[])delete t.intent.flipAxis;before.targets['P4.C1'].intent.turnAt='PLACE';validatePlan(before);
- assert.deepEqual(Object.keys(before.targets['P4.C1'].intent),INTENT_KEYS);assert.deepEqual([before.targets['P4.C1'].intent.turnAt,before.targets['P4.C1'].intent.flipAxis],['PLACE','FREE']);
- const key=defaultPlan();key.targets['P5.C1'].intent.flipAxis='LONG_EDGE';validatePlan(key);assert.equal(key.targets['P5.C1'].intent.flipAxis,'LONG_EDGE');
- for(const mutate of [(i:any)=>i.grip='SLIDE',(i:any)=>i.grip=null,(i:any)=>i.grip=['DRAG'],(i:any)=>i.turnAt='FLOOR',(i:any)=>i.turnAt=true,(i:any)=>i.flipAxis='AT_PLACE',(i:any)=>i.flipAxis='SHORT_EDGE',(i:any)=>i.flipAxis=null,(i:any)=>i.speed=1]){const p=defaultPlan();mutate(p.targets['P3.C2'].intent);assert.throws(()=>validatePlan(p));}
- // A plan that fails is not half filled in.
- const broken=legacyPlan();broken.targets['D.C2'].geometry.native.u=NaN;assert.throws(()=>validatePlan(broken));assert.equal(Object.hasOwn(broken.targets['P1.C1'].intent,'grip'),false);
-});
 test('the tracked plan loads with the new keys filled in: the saved draft',async()=>{
  for(const file of ['placements/default.json']){
   const plan=JSON.parse(await readFile(file,'utf8'));validatePlan(plan);

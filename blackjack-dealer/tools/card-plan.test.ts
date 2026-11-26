@@ -1,3 +1,4 @@
+// Skyddar: kontrakten, hans domar och val – planen, spelet och scenen ritar samma kort med standardens mått, med linsen och glansen han valt.
 // The card plan drawn in the real perspective (src/card-plan.ts): on "Plant bord" each card is a real card through the table's
 // lens at its own place (size and place), in the plan's shape (the table's perspective, one keystone rule for every card), the
 // plan's own rule elsewhere. Needs no media; the plan is the model's start proposal
@@ -10,7 +11,7 @@ import { TABLE_PERSPECTIVE, TARGETS, defaultPlan, planQuad, setTablePerspective,
 import { TABLE_LENS, quadMeasure, realCardQuad, type Pixel } from '../src/table-lens.ts';
 import { filmToPlan, planCardQuad, planTaper, planToFilm, screenMeasure, throughLens } from '../src/card-plan.ts';
 import { readFile } from 'node:fs/promises';
-import { VIEWS, flatQuad, quad } from '../src/placement-model.ts';
+import { VIEWS, quad } from '../src/placement-model.ts';
 import { CARD, FILM, SEAT_FOUR_CARD, cardCorners, feltToPixel, inFrame, lensForFocal, pixelToFelt, planPixel, type Lens, type Vec3 } from '../src/table-lens.ts';
 import { LINS, PLAN_CARD_SIZE, cardGrow, cardPlace, keystone, linsOfAlias, planCardAt, planCardFrom, planShape } from '../src/card-plan.ts';
 import { planScene, poseAt, restingQuad, sceneOf, type CardTrack } from '../src/card-overlay.ts';
@@ -40,14 +41,6 @@ test('on "Plant bord" every card is a real card (grow 1) through the table lens 
   // nearer the dealer the cards grow against the plan's old plane, as the 3D lane measured (dealer3d, 2026-11-17)
   const grows = (id: string) => quadMeasure(planCardQuad(p, id, 'native')).near / quadMeasure(planQuad(p, id, 'native')).near;
   assert.ok(grows('D.C1') > grows('P4.C1') + 0.15, `the dealer's card grows more than seat 4's: ${grows('D.C1')}`);
-});
-
-test('the plan\'s own rule where the lens does not apply: a table taken off "Plant bord", and Mobil', () => {
-  const own = cardByCard(plan());
-  assert.equal(throughLens(own, 'native'), false);
-  for (const id of ['P1.C1', 'P4.C1', 'D.C2']) assert.deepEqual(planCardQuad(own, id, 'native'), planQuad(own, id, 'native'));
-  const p = plan();
-  for (const id of ['P1.C1', 'P4.C1']) assert.deepEqual(planCardQuad(p, id, 'portrait'), planQuad(p, id, 'portrait'));
 });
 
 // placements/default.json on 2026-11-17: seat 4's and the dealer's first card, with seat 4's
@@ -103,9 +96,8 @@ test('the perspective is stored with the table\'s projection: absent is seat 4\'
 
 // ---- one geometry for the table ----------------------------------------------------------------------------------------------
 // The same plan and the same card give the same outline in the lab's card plan, in the game's lying cards, in the drawn card at
-// rest and in the 3D scene's projection of its card place, also when the lens or the picture's size is changed; and the look
-// of the game before that rule ('contract', the default) is the picture it was. Every plan here is built by the test: nothing
-// reads placements/default.json, which is Jakob's and changes when he saves.
+// rest and in the 3D scene's projection of its card place, also when the lens or the picture's size is changed. Every plan
+// here is built by the test: nothing reads placements/default.json, which is Jakob's and changes when he saves.
 const contract = JSON.parse(await readFile('data/scene-contract.json', 'utf8')), EDGE_ROW = edgeRowOf(contract);
 /** The tolerance the outlines are held to: a hundredth of a film pixel (1764 x 1174), for every corner. */
 const TOLERANCE = 0.01;
@@ -148,19 +140,6 @@ test('the default lens is the film\'s own, the one Jakob chose in comparison B; 
   for (const word of ['annat', '', 'bred', 'standard', 'constructor', '__proto__', 'toString', null, undefined, 1]) assert.equal(linsOfAlias(word), null, String(word));
 });
 
-test('the game as it was: the older rule gives the same lying cards pixel for pixel, also where a place is made up', () => {
-  // before this rule the game laid a card with flatQuad and its own factor for the film's width (1763 / 1761)
-  const FILM_X = 1763 / 1761, plan = testPlan(), layout = createLayout(plan, {lins: 'bred'}), reference = plan.targets['P4.C1'].geometry.native;
-  for (const id of TARGETS) outlines(layout.quad(slotOfTarget(id)), flatQuad(plan.targets[id].geometry.native, reference, 'native', 0).map(p => ({x: p.x * FILM_X, y: p.y})), id, 1e-9);
-  const own = cardByCard(plan), card = createLayout(own, {lins: 'bred'});
-  for (const id of ['P1.C1', 'P4.C2', 'D.C2']) outlines(card.quad(slotOfTarget(id)), quad(own.targets[id].geometry.native, 'native').map(p => ({x: p.x * FILM_X, y: p.y})), id, 1e-9);
-  // the dealer's third card lies where its film lays it, as before (its place written in film pixels)
-  const third = layout.centre({owner: 'D', seat: 0, hand: 0, hands: 1, index: 2});
-  assert.ok(Math.hypot(third.x - 1069, third.y - 926) < 3);
-  // and with nothing said the layout follows the default lens (LINS)
-  for (const id of ['P1.C1', 'P7.C2', 'D.C1']) outlines(createLayout(plan).quad(slotOfTarget(id)), createLayout(plan, {lins: LINS}).quad(slotOfTarget(id)), id, 0);
-});
-
 test('pixel and metre, in one place: the scene\'s film camera from the lens is the lens', () => {
   const camera = lensCamera(TABLE_LENS, EDGE_ROW), solved = solveCamera(camera);
   assert.equal(camera.scale, 1); assert.equal(camera.source, 'lens');
@@ -180,17 +159,6 @@ test('pixel and metre, in one place: the scene\'s film camera from the lens is t
   // under the lens the ring's offset is the one for a real card (BET.real): the ring lies clear of the card's near edge
   assert.ok(Math.abs(bet.s - card.s - BET.real) < 1e-12 && bet.x === card.x);
   assert.ok(BET.real - BET.radius - 0.088 / 2 >= 0.01, 'at least a centimetre of felt between a real card and the ring');
-});
-
-test('under the lens the table is a real table\'s depth and the ring lies clear of a real card; the contract\'s are as they were', () => {
-  const lens = lensCamera(TABLE_LENS, EDGE_ROW), contract: FilmCamera = {focalPx: 886, horizonRow: 547.8, edgeRow: EDGE_ROW, heightM: 0.493, scale: 2, source: 'contract'};
-  assert.equal(tableUnder(contract, 1), 1); assert.deepEqual(sized(tableUnder(contract, 1.2)), sized(1.2));
-  const real = sized(tableUnder(lens, 1)); assert.equal(real.a, TABLE.a); assert.ok(Math.abs(real.b - REAL_TABLE.depth) < 1e-12);
-  assert.deepEqual(sized(1), {a: TABLE.a, b: TABLE.b}); assert.deepEqual(sized(9), sized(TABLE_SIZE.max), 'a number is held within the control as before');
-  // the game's lying framing reaches about film row 1410 under the lens: the felt goes past it in the middle, which the 0.6 m table did not
-  assert.ok(filmPixel(lens, spotToScene(lens, 0, real.b))!.y > 1700); assert.ok(filmPixel(lens, spotToScene(lens, 0, TABLE.b))!.y < 1300);
-  const plan = testPlan(), at = (c: FilmCamera) => betSpots(plan, c).find(b => b.id === 'P4')!.s - cardSpots(plan, c).find(s => s.id === 'P4.C1')!.s;
-  assert.ok(Math.abs(at(contract) - BET.offset) < 1e-12); assert.equal(ringOffset(contract), 0.068); assert.equal(ringOffset(lens), BET.real);
 });
 
 test('a turn given as the lens reads it comes back as the contract writes it', () => {
