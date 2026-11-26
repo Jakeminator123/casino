@@ -1,7 +1,6 @@
 // What game.html sets by itself when no look is asked for (src/game-page.ts), and the words of its address that are its own.
 // Pure and small: the page reads it at once, while the look (src/game-look.ts) is read only when the address asks for one.
-// The studio's base preset basgrund is a copy of this look (studio/lib/scene-presets.ts BASE); tools/casino-default.test.ts
-// holds the two together.
+// The studio's base preset basgrund is this look (GAME in studio/lib/scene-presets.ts); a change here is made there too.
 
 /** The scene as the game sets it: the picture filling the stage, the first room (its blur is the room's own,
  *  data/scene-rooms.json), the tray and the drawn cards on, and a room changed under a shimmer. How the picture is framed

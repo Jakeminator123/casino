@@ -36,7 +36,7 @@ export function chipsFor(amount: number, values: number[]): number[] {
   return out;
 }
 /** How a total is written: 17, or 7/17 while an ace still counts both ways. */
-export const totalText = (hand: {total: number | null; soft: boolean}) => hand.total === null ? '' : hand.soft && hand.total <= 21 && hand.total > 11 ? `${hand.total - 10}/${hand.total}` : String(hand.total);
+const totalText = (hand:{total: number | null; soft: boolean}) => hand.total === null ? '' : hand.soft && hand.total <= 21 && hand.total > 11 ? `${hand.total - 10}/${hand.total}` : String(hand.total);
 
 export function mountOverlay(host: HTMLElement, on: Handlers) {
   const root = el('div', 'go'), status = el('div', 'go-status'), table = el('div'), bar = el('div', 'go-bar');

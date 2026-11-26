@@ -28,8 +28,7 @@ export const GROUPS: readonly { id: GroupId; label: string; folded: boolean }[] 
 
 export type Control =
   | { kind: "switch" }
-  /** special: a value outside the range that still means something (scale 0 = the contract's own k). */
-  | { kind: "slider"; min: number; max: number; step: number; unit: string; special?: { value: number; label: string } }
+  | { kind: "slider"; min: number; max: number; step: number; unit: string }
   /** open: values beyond the options are allowed (the rooms of the register, named at run time). */
   | { kind: "choice"; options: readonly Option[]; open?: boolean }
   /** Several of a list held in one word: "all", "none" or a comma list (the felt's marks). */
@@ -172,8 +171,6 @@ export const SCENE_KEYS: readonly KeySpec[] = [
   spec("aim", "kamera", "U", "Sikta på dealern", toggle, "Kameran håller blicken på dealern när den flyttas."),
   // ── Avancerat: kalibrering ──
   spec("panoramaTurn", "avancerat", "U", "Panoramats vridning", slider(0, 360, 1, "°"), "Hur 360°-bilden är vriden; 90 lägger bildens mitt bakom dealern."),
-  spec("lens", "avancerat", "U", "Filmkamera", choice(["plan", "Bordets"], ["estimate", "Dealerns lins"]), "Bordets kamera: i Standard filmens egen lins i verkliga meter (samma som dockan och Inspelning), i Bred lins den äldre, vidare kameran. Dealerns lins är en skattning."),
-  spec("scale", "avancerat", "U", "Skala k", { kind: "slider", min: 1, max: 2.6, step: 0.05, unit: "×", special: { value: 0, label: "kontraktets" } }, "Gäller Bred lins och dealerns lins: hur mycket större dealerns värld är än planens kort; 0 är kontraktets egen. I Standard är allt i verkliga meter och skalan alltid 1."),
   spec("keyLo", "avancerat", "U", "Nyckel låg", slider(0, 0.5, 0.01), "Nyckelns nedre gräns mot filmens gröna."),
   spec("keyHi", "avancerat", "U", "Nyckel hög", slider(0.5, 1.2, 0.01), "Nyckelns övre gräns mot filmens gröna."),
   spec("shadow", "avancerat", "U", "Skuggor på filten", slider(0, 1.6, 0.05), "Skuggan av händer, kort och sko på filten; 1 är som förut."),
@@ -188,6 +185,12 @@ const BY_KEY = new Map<string, KeySpec>(SCENE_KEYS.map((s) => [s.key, s]));
 /** The control of a key, or null for a word that is not a key of the scene. */
 export const keySpec = (key: string): KeySpec | null => BY_KEY.get(key) ?? null;
 export const isSceneKey = (key: string): key is SceneKey => BY_KEY.has(key);
+/**
+ * Keys a look could carry until 2026-11-26 and no longer has: scale ("Skala k") and lens ("Dealerns lins") gave a look a
+ * scale and a camera of its own beside the standard. A saved look or an address that still names one is read without it
+ * and without a word about it (lib/scene-presets.ts; src/game-look.ts RETIRED_KEYS is the same list for the game).
+ */
+export const RETIRED_KEYS: readonly string[] = ["scale", "lens"];
 
 // ── The felt's marks in one word (feltMarks / marksText of src/scene3d-table.ts, same rules) ──
 export function marksOf(text: string | null | undefined): Set<string> {
@@ -213,7 +216,6 @@ export function checkValue(s: KeySpec, value: unknown, rooms?: readonly string[]
       return typeof value === "boolean" ? null : "ska vara sant eller falskt";
     case "slider":
       if (typeof value !== "number" || !Number.isFinite(value)) return "ska vara ett tal";
-      if (s.special && value === s.special.value) return null;
       return value >= s.min - 1e-9 && value <= s.max + 1e-9 ? null : `ska ligga mellan ${decimal(s.min)} och ${decimal(s.max)}`;
     case "choice":
       if (typeof value !== "string") return "ska vara ett av valen";
@@ -249,7 +251,6 @@ export function formatValue(s: KeySpec, value: unknown, roomName?: (id: string) 
       return value ? "På" : "Av";
     case "slider": {
       const v = Number(value);
-      if (s.special && v === s.special.value) return s.special.label;
       return `${decimal(v, digitsOf(s.step))}${s.unit}`;
     }
     case "choice": {

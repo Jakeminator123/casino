@@ -1,11 +1,11 @@
 // Changes on their way to the scene. A slider moved fast sends many values: they are gathered and handed to scene.set once
-// per drawn frame. A key that builds the table again (scale) or paints the felt again (the logo text) waits until the
-// hand has stopped for a moment, as the lab page does it (src/scene3d-ui.ts: 120 ms for the scale).
+// per drawn frame. A key that builds the table again (the table's size) or paints the felt again (the logo text) waits
+// until the hand has stopped for a moment.
 import type { SceneState } from "../../../src/scene3d-view.ts";
 import type { SceneKey } from "../../lib/scene-keys.ts";
 import type { Scene } from "../stage/engines.ts";
 
-const SLOW: ReadonlySet<SceneKey> = new Set<SceneKey>(["scale", "logo"]);
+const SLOW: ReadonlySet<SceneKey> = new Set<SceneKey>(["tableSize", "logo"]);
 const WAIT_MS = 160;
 
 export type Patcher = {

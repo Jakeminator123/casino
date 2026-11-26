@@ -18,8 +18,7 @@ import {LINS_ALIAS_WORD, linsOfAlias} from './card-plan.ts';
 export type LookKey = keyof SceneState;
 export type KeyKind =
   | {kind: 'switch'}
-  /** special: a value outside the range that still means something (scale 0 = the contract's own k). */
-  | {kind: 'slider'; min: number; max: number; special?: number}
+  | {kind: 'slider'; min: number; max: number}
   /** open: room ids of the register beyond the options. */
   | {kind: 'choice'; options: readonly string[]; open?: true}
   | {kind: 'set'; options: readonly string[]}
@@ -50,9 +49,15 @@ export const KEYS: Readonly<Record<LookKey, KeyKind>> = {
   mode: one('look', 'lean'), sway: on, focus: one('off', 'dealer', 'follow', 'card', 'manual'), focusDistance: range(0.3, 12), tolerance: range(0, 0.8),
   yaw: range(-60, 60), pitch: range(-35, 25), zoom: range(0.45, 2.5), dx: range(-0.9, 0.9), dy: range(-0.3, 0.5), dz: range(-0.5, 1.6), aim: on, format: one('desk', 'mob', 'fill'),
   lins: one('standard', 'bred'), // the look's lens: Standard or Bred lins (Lins in src/card-plan.ts)
-  panoramaTurn: range(0, 360), lens: one('plan', 'estimate'), scale: {kind: 'slider', min: 1, max: 2.6, special: 0}, keyLo: range(0, 0.5), keyHi: range(0.5, 1.2), shadow: range(0, 1.6), fold: on, guides: on,
+  panoramaTurn: range(0, 360), keyLo: range(0, 0.5), keyHi: range(0.5, 1.2), shadow: range(0, 1.6), fold: on, guides: on,
 };
 export const isLookKey = (word: string): word is LookKey => Object.prototype.hasOwnProperty.call(KEYS, word);
+/**
+ * Keys a look could carry until 2026-11-26 and no longer has: scale (Skala k) and lens (Dealerns lins) gave a look a scale
+ * and a camera of its own beside the standard. A saved look or an address that still names one is read without it and
+ * without a word about it (studio/lib/scene-keys.ts RETIRED_KEYS is the same list; tools/game-look.test.ts compares).
+ */
+export const RETIRED_KEYS: readonly string[] = ['scale', 'lens'];
 
 const hasControl = (text: string) => [...text].some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127);
 
@@ -60,7 +65,7 @@ const hasControl = (text: string) => [...text].some(c => c.charCodeAt(0) < 32 ||
 export function fits(k: KeyKind, value: unknown, rooms?: readonly string[]): boolean {
   switch (k.kind) {
     case 'switch': return typeof value === 'boolean';
-    case 'slider': return typeof value === 'number' && Number.isFinite(value) && (value === k.special || value >= k.min - 1e-9 && value <= k.max + 1e-9);
+    case 'slider': return typeof value === 'number' && Number.isFinite(value) && value >= k.min - 1e-9 && value <= k.max + 1e-9;
     case 'choice': return typeof value === 'string' && (k.options.includes(value) || !!k.open && ROOM_ID.test(value) && (!rooms || rooms.includes(value)));
     case 'set': {
       if (typeof value !== 'string') return false;
@@ -110,7 +115,7 @@ export function presetFrom(answer: unknown, rooms?: readonly string[]): {state: 
   const preset = (answer as {preset?: {state?: unknown; geometri?: unknown}} | null)?.preset, state = preset?.state;
   if (!state || typeof state !== 'object' || Array.isArray(state)) return null;
   const kept: Record<string, unknown> = {}, dropped: string[] = [];
-  for (const [word, value] of Object.entries(state)) if (isLookKey(word) && fits(KEYS[word], value, rooms)) kept[word] = value; else dropped.push(word);
+  for (const [word, value] of Object.entries(state)) if (isLookKey(word) && fits(KEYS[word], value, rooms)) kept[word] = value; else if (!RETIRED_KEYS.includes(word)) dropped.push(word);
   const alias = kept.lins === undefined ? linsOfAlias(preset?.geometri) : null;
   if (alias) kept.lins = alias;
   return {state: kept as Partial<SceneState>, dropped};

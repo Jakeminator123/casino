@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val, kontrakten – spelvyn skrivs bara på hans klick mot senaste revisionen, och spelet får alltid en inramning scenen kan visa.
 // The play view (src/play-view.ts) and its store (tools/play-view-store.ts): the one framing of the game for every look,
 // written only on Jakob's click and against the revision last read.   node --test tools/play-view.test.ts
 import test from 'node:test';

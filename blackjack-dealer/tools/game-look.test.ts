@@ -1,10 +1,11 @@
+// Skyddar: kontrakten, hans domar och val – spelet läser utseendet som studion skriver det, linsen han sparat spelas, och äldre länkar läses.
 // The look game.html is played with from the studio (src/game-look.ts): its copy of the key catalogue against the studio's
 // own (studio/lib/scene-keys.ts), the address and preset reading, and the game's own words that share a name with a key.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {BUILT_BLUR, BUILT_ROOMS, KEYS, NAME_LIMIT, PRESET_NAME, ROOM_ID, decode, fits, lookState, presetFrom, readLook, type KeyKind} from '../src/game-look.ts';
-import {BUILT_BLUR as STUDIO_BLUR, BUILT_ROOMS as STUDIO_ROOMS, ROOM_ID as STUDIO_ROOM_ID, SCENE_KEYS, checkValue, decodeValue, type KeySpec} from '../studio/lib/scene-keys.ts';
+import {BUILT_BLUR, BUILT_ROOMS, KEYS, NAME_LIMIT, PRESET_NAME, RETIRED_KEYS, ROOM_ID, decode, fits, lookState, presetFrom, readLook, type KeyKind} from '../src/game-look.ts';
+import {BUILT_BLUR as STUDIO_BLUR, BUILT_ROOMS as STUDIO_ROOMS, RETIRED_KEYS as STUDIO_RETIRED, ROOM_ID as STUDIO_ROOM_ID, SCENE_KEYS, checkValue, decodeValue, type KeySpec} from '../studio/lib/scene-keys.ts';
 import {NAME_LIMIT as STUDIO_NAME_LIMIT, PRESET_NAME as STUDIO_PRESET_NAME, SHIPPED, effective} from '../studio/lib/scene-presets.ts';
 import {DEFAULTS} from '../src/scene3d-view.ts';
 import {cardsChoice} from '../src/game-film.ts';
@@ -14,7 +15,7 @@ const params = (text: string) => new URLSearchParams(text);
 const kindOf = (s: KeySpec): KeyKind => {
   switch (s.kind) {
     case 'switch': return {kind: 'switch'};
-    case 'slider': return s.special ? {kind: 'slider', min: s.min, max: s.max, special: s.special.value} : {kind: 'slider', min: s.min, max: s.max};
+    case 'slider': return {kind: 'slider', min: s.min, max: s.max};
     case 'choice': return s.open ? {kind: 'choice', options: s.options.map(o => o.value), open: true} : {kind: 'choice', options: s.options.map(o => o.value)};
     case 'set': return {kind: 'set', options: s.options.map(o => o.value)};
     case 'text': return {kind: 'text', maxLength: s.maxLength};
@@ -78,6 +79,14 @@ test('the lens is a key of the look (Bred lins, Jakob 2026-11-21 and 2026-11-25)
   assert.deepEqual(presetFrom({preset: {...casino, state: {...casino.state, lins: 'vid'}}}), {state: casino.state, dropped: ['lins']}, 'a value the key does not have is dropped and named');
 });
 
+test('a look has no scale and no camera of its own: the retired keys are read past in the game and in the studio alike', () => {
+  assert.deepEqual([...RETIRED_KEYS].sort(), [...STUDIO_RETIRED].sort());
+  for (const key of RETIRED_KEYS) { assert.equal(key in KEYS, false, key); assert.equal(key in DEFAULTS, false, key); }
+  // Casino's look as it was saved until 2026-11-26, and an old link: the look without them, and nothing said on the page
+  assert.deepEqual(presetFrom({preset: {state: {room: 'panorama', scale: 2, lens: 'estimate'}}}), {state: {room: 'panorama'}, dropped: []});
+  assert.deepEqual(readLook(params('forval=casino&scale=2&lens=estimate&dust=0.5')), {asked: 'casino', forval: 'casino', keys: {dust: 0.5}, ignored: []});
+});
+
 test('the lens the game plays: the address\'s, else the look\'s, else Standard; the older address word is an alias', () => {
   const blurOf = () => 11, bred = {room: 'panorama', lins: 'bred'} as const;
   const played = (address: string, preset: object | null) => lookState(DEFAULTS, preset, readLook(params(address)).keys, blurOf).lins ?? DEFAULTS.lins;
@@ -94,11 +103,6 @@ test('the lens the game plays: the address\'s, else the look\'s, else Standard; 
   assert.deepEqual(readLook(params('lins=vid')).ignored, ['lins']);
   // the film before the game (cloud/studio/gate.ts TRAILER_HOME) names neither a look nor a lens: Standard, as before
   assert.equal(played('intro=noir-3&room=monaco&roomLife=1&table=casino&dealer=paow', null), 'standard');
-});
-
-test('a preset is asked for only with ?forval: the film before the game gets no saved geometry', () => {
-  // the address of the film before the game (cloud/studio/gate.ts TRAILER_HOME) names no preset
-  assert.equal(readLook(params('intro=noir-3&room=monaco&roomLife=1&table=casino&dealer=paow')).forval, null);
 });
 
 test('the look over the game: a preset is a whole look, keys alone lie over the game\'s own', () => {

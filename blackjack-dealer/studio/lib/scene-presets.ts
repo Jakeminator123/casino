@@ -15,7 +15,7 @@
 import { LINS_ALIAS_WORD, linsOfAlias } from "../../src/card-plan.ts";
 import { FRAMING_KEYS, type Framing } from "../../src/play-view.ts";
 import type { SceneState } from "../../src/scene3d-view.ts";
-import { SCENE_KEYS, checkValue, decodeValue, hasControl, isSceneKey, keySpec, sameValue, type SceneKey } from "./scene-keys.ts";
+import { RETIRED_KEYS, SCENE_KEYS, checkValue, decodeValue, hasControl, isSceneKey, keySpec, sameValue, type SceneKey } from "./scene-keys.ts";
 
 export type ScenePreset = { schemaVersion: 1; name: string; label: string; about: string; state: Partial<SceneState>; updatedAt: string };
 
@@ -92,12 +92,17 @@ export const SHIPPED_NAMES: readonly string[] = SHIPPED.map((p) => p.name);
 export const isShipped = (name: string) => SHIPPED_NAMES.includes(name);
 
 // ── Checking ──
-/** The state of a preset: every key known, every value in its range. rooms: the rooms the scene has, when known. */
+/**
+ * The state of a preset: every key known, every value in its range. A key that has been retired (RETIRED_KEYS: a look's own
+ * scale and camera) is left out without an error, so that a look saved with one still reads and is written without it the
+ * next time it is saved. rooms: the rooms the scene has, when known.
+ */
 export function validateState(value: unknown, rooms?: readonly string[]): { state: Partial<SceneState>; errors: string[] } {
   const errors: string[] = [];
   const state: Record<string, unknown> = {};
   if (!value || typeof value !== "object" || Array.isArray(value)) return { state: {}, errors: ["state ska vara ett objekt"] };
   for (const [key, v] of Object.entries(value)) {
+    if (RETIRED_KEYS.includes(key)) continue;
     const s = keySpec(key);
     if (!s) {
       errors.push(`okänd nyckel ${key.slice(0, 40)}`);
@@ -265,7 +270,7 @@ export function readAddress(params: Params, rooms?: readonly string[]): { forval
   const patch: Record<string, unknown> = {};
   const ignored: string[] = [];
   params.forEach((value, key) => {
-    if (key === "forval" || key === LINS_ALIAS_WORD) return;
+    if (key === "forval" || key === LINS_ALIAS_WORD || RETIRED_KEYS.includes(key)) return; // a retired key in an old link is no word at all
     const s = isSceneKey(key) ? keySpec(key) : null;
     const decoded = s ? decodeValue(s, value, rooms) : null;
     if (s && decoded !== null) patch[key] = decoded;

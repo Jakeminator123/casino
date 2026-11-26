@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val, kontrakten – hans utseenden sparas bara mot senaste revisionen, de medföljande skrivs aldrig över, äldre filer läses.
 // Offline tests for the presets of the 3D scene (tools/scene-preset-store.ts) and the three that ship in data/scene-presets/.
 // Every write goes to a temporary copy; the checkout's own presets and room register are only read.
 import test from 'node:test';
@@ -68,7 +69,7 @@ test('the three shipped presets: in the checkout, read-only, and exactly what th
     assert.deepEqual(file, p, `${p.name}.json is SHIPPED in studio/lib/scene-presets.ts`);
   }
   const [basgrund, levande, rumsstudien] = SHIPPED.map(p => effective(DEFAULTS, p.state));
-  // basgrund is what game.html sets by itself: held against src/game-page.ts in tools/casino-default.test.ts
+  // basgrund's room is the register's panorama, with its blur, a room the game has
   const vegas = JSON.parse(await readFile('data/scene-rooms.json', 'utf8')).rooms.find((r: {id: string}) => r.id === 'panorama');
   assert.equal(vegas.blur, basgrund.blur); assert.equal(vegas.game, true);
   // levande: basgrund plus the look Jakob remembers, the camera leaning without swaying (Jakob 2026-11-13); rumsstudien:
@@ -168,8 +169,10 @@ test('every key is checked against the catalogue: unknown keys, values out of ra
   await refused({...mine, name: 'annat'}, /namnet i förvalet och i adressen skiljer sig/);
   await refused(mine, /a–z/, 'Stora-Bokstäver');
   await assert.rejects(store.load('../placements/default'), fails(400));
-  // what the scene has: built rooms, register rooms, scale 0 (the contract's k), marks as a list
-  const ok = await store.save('prov', {...mine, state: {room: 'dimskog', scale: 0, marks: 'rings,numbers', logo: 'SCOUT', filmWarm: -0.2}}, undefined);
+  // what the scene has: built rooms, register rooms, marks as a list; a key that has been retired (a look's own scale and
+  // camera, 2026-11-26) is left out of what is kept, without an error, so a look saved with one still reads
+  const ok = await store.save('prov', {...mine, state: {room: 'dimskog', scale: 2, lens: 'estimate', marks: 'rings,numbers', logo: 'SCOUT', filmWarm: -0.2}}, undefined);
+  assert.deepEqual(ok.preset.state, {room: 'dimskog', marks: 'rings,numbers', logo: 'SCOUT', filmWarm: -0.2});
   assert.equal(ok.preset.state.room, 'dimskog');
   await store.save('hall', {...mine, state: {room: 'hall'}}, undefined);
 });

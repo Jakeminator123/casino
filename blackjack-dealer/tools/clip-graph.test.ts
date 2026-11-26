@@ -1,4 +1,5 @@
-// Offline tests for the clip-bank graph: the bank's model, how a round resolves to films between the anchors, and that Jakob's
+// Skyddar: hans domar och val, spelets regler – underkänt och arkiverat spelas aldrig, hans Primär gäller, en runda får film eller namngiven lucka.
+// Offline tests for the clip-bank graph:the bank's model, how a round resolves to films between the anchors, and that Jakob's
 // verdicts hold (a rejected or archived film never plays, his Primär and approved films do, the inbox waits). No network, media or ffmpeg.
 import test from 'node:test';
 import assert from 'node:assert/strict';

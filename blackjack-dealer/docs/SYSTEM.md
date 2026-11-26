@@ -37,8 +37,10 @@ Tre lager (Jakob 2026-11-25: "grunden måste vara densamma").
 Lagren, sist vinner: scenens grund (`DEFAULTS` i `src/scene3d-view.ts`) → spelvyns Dator → utseendets nycklar →
 adressens nycklar (`lookState` i `src/game-look.ts`, `effective` i `studio/lib/scene-presets.ts`); på en telefon gäller
 alltid spelvyns Mobil. Reglagen och deras gränser står i `studio/lib/scene-keys.ts`. Ett utseende ändrar aldrig
-standardens mått: i Standard är scenens värld verkliga meter och skalan 1 vad ett förval än säger (`filmCamera` i
-`src/scene3d-view.ts`; Skala k hör till Bred lins och dealerns lins).
+standardens mått: i Standard är scenens värld verkliga meter och skalan 1, och under Bred lins kontraktets egen skala
+(`filmCamera` i `src/scene3d-view.ts`). Ett utseende har ingen egen skala och ingen egen kamera: nycklarna `scale`
+(Skala k) och `lens` (Dealerns lins) togs bort 2026-11-26, och ett sparat utseende eller en adress som bär dem läses
+utan dem (`RETIRED_KEYS` i `src/game-look.ts` och `studio/lib/scene-keys.ts`).
 
 Filmen, dockan, kortplanen, beställningens slutbild och 3D-scenen i Standard delar en kamera, ett bord och ett kort
 (Jakob 2026-11-25: "eller detta ska vara en standard ska jag säga"). Talen står en gång, i `src/table-lens.ts`; dockan

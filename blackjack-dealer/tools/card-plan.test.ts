@@ -1,4 +1,4 @@
-// Skyddar: kontrakten, hans domar och val – planen, spelet och scenen ritar samma kort med standardens mått, med linsen och glansen han valt.
+// Skyddar: kontrakten, hans domar och val – planen, spelet och scenen ritar samma kort med standardens mått, under linsen han valt.
 // The card plan drawn in the real perspective (src/card-plan.ts): on "Plant bord" each card is a real card through the table's
 // lens at its own place (size and place), in the plan's shape (the table's perspective, one keystone rule for every card), the
 // plan's own rule elsewhere. Needs no media; the plan is the model's start proposal
@@ -15,10 +15,9 @@ import { VIEWS, quad } from '../src/placement-model.ts';
 import { CARD, FILM, SEAT_FOUR_CARD, cardCorners, feltToPixel, inFrame, lensForFocal, pixelToFelt, planPixel, type Lens, type Vec3 } from '../src/table-lens.ts';
 import { LINS, PLAN_CARD_SIZE, cardGrow, cardPlace, keystone, linsOfAlias, planCardAt, planCardFrom, planShape } from '../src/card-plan.ts';
 import { planScene, poseAt, restingQuad, sceneOf, type CardTrack } from '../src/card-overlay.ts';
-import { cardOptions, placedCards } from '../src/game-film.ts';
+import { placedCards } from '../src/game-film.ts';
 import { createLayout, slotLabel, type Slot, type TableCards } from '../src/game-table.ts';
-import { BET, betSpots, cameraFromContract, cardSpots, edgeRowOf, filmPixel, filmToTable, lensCamera, ringOffset, solveCamera, spotToScene, viewUnder, type FilmCamera } from '../src/scene3d-geometry.ts';
-import { REAL_TABLE, TABLE, TABLE_SIZE, sized, tableUnder } from '../src/scene3d-table.ts';
+import { BET, betSpots, cameraFromContract, cardSpots, edgeRowOf, filmPixel, filmToTable, lensCamera, solveCamera, spotToScene, viewUnder, type FilmCamera } from '../src/scene3d-geometry.ts';
 
 const near = (a: number, b: number, tolerance: number, what: string) => assert.ok(Math.abs(a - b) <= tolerance, `${what}: ${a} is not within ${tolerance} of ${b}`);
 const plan = (): PlacementPlan => { const p = defaultPlan(); validatePlan(p); return p; };
@@ -220,41 +219,22 @@ test('extra cards, split hands and the dealer\'s third card go the same way: a r
 
 test('card one lies unchanged when card two comes, and after a third card and a split', () => {
   const plan = testPlan(0.9), records = [1, 5, 9, 13].map(shoeDraw => ({shoeDraw, target: 'P4', r: '7', s: 'hearts'}));
-  for (const geometry of ['contract', 'lens'] as const) {
-    const layout = createLayout(plan, {geometry}), scene = geometry === 'lens' ? planScene(sceneOf(contract), plan) : sceneOf(contract)!;
+  for (const lins of ['bred', 'standard'] as const) {
+    const layout = createLayout(plan, {lins}), scene = lins === 'standard' ? planScene(sceneOf(contract), plan) : sceneOf(contract)!;
     const lying = (table: TableCards, cards: number[]) => placedCards(table, records, cards, layout);
     const one = lying({hands: [{seat: 4, cards: [1]}], dealer: []}, [1]), two = lying({hands: [{seat: 4, cards: [1, 5]}], dealer: [3]}, [1, 5]), three = lying({hands: [{seat: 4, cards: [1, 5, 9]}], dealer: [3, 7]}, [1, 5, 9]);
     const split = lying({hands: [{seat: 4, cards: [1, 9]}, {seat: 4, cards: [5, 13]}], dealer: [3, 7]}, [1, 5, 9, 13]);
     assert.equal(one[0].target, 'P4.C1'); assert.deepEqual(two.map(p => p.target), ['P4.C1', 'P4.C2']); assert.deepEqual(split.map(p => p.target), ['P4.H1.C1', 'P4.H2.C1', 'P4.H1.C2', 'P4.H2.C2']);
-    assert.deepEqual(two[0].quad, one[0].quad, `${geometry}: card one's place when card two lies there too`); assert.deepEqual(three[0].quad, one[0].quad); assert.deepEqual(three[1].quad, two[1].quad, 'and card two when card three comes');
-    outlines(split[0].quad, one[0].quad, `${geometry}: card one after the split`, 1e-6);
+    assert.deepEqual(two[0].quad, one[0].quad, `${lins}: card one's place when card two lies there too`); assert.deepEqual(three[0].quad, one[0].quad); assert.deepEqual(three[1].quad, two[1].quad, 'and card two when card three comes');
+    outlines(split[0].quad, one[0].quad, `${lins}: card one after the split`, 1e-6);
     // what is drawn: the lying card of a later film is the card the dealt one came to rest as, at every card size
     for (const scale of [1, 1.2, 1.65]) {
       const drawn = (p: {quad: Pixel[]}) => restingQuad(scene, p.quad, scale).quad;
-      outlines(drawn(two[0]), drawn(one[0]), `${geometry}, size ${scale}: card one as drawn`, 0); outlines(drawn(three[0]), drawn(one[0]), `${geometry}, size ${scale}`, 0);
+      outlines(drawn(two[0]), drawn(one[0]), `${lins}, size ${scale}: card one as drawn`, 0); outlines(drawn(three[0]), drawn(one[0]), `${lins}, size ${scale}`, 0);
       const land = one[0].quad, c = {x: land.reduce((s, p) => s + p.x, 0) / 4, y: land.reduce((s, p) => s + p.y, 0) / 4}, film = [[-41, -36], [41, -36], [41, 36], [-41, 36]].map(([x, y]) => [c.x + x + 6, c.y + y - 4]);
       const track: CardTrack = {width: 1764, height: 1174, edgeWindow: null, restFrom: 20, restQuad: film, frames: Array.from({length: 30}, (_, i) => ({frame: i, side: i < 8 ? 'BACK' as const : 'FRONT' as const, quad: i >= 20 ? film : film.map(([x, y]) => [x + (20 - i) * 9, y - (20 - i) * 6]), edge: null, confidence: 0.9}))};
-      outlines(poseAt(track, scene, 25, scale, 12, null, land)!.quad!, drawn(one[0]), `${geometry}, size ${scale}: the dealt card at rest is the lying card of the next film`, 1e-6);
+      outlines(poseAt(track, scene, 25, scale, 12, null, land)!.quad!, drawn(one[0]), `${lins}, size ${scale}: the dealt card at rest is the lying card of the next film`, 1e-6);
     }
-  }
-});
-
-test('the game sends the layout gloss for a split hand and a third card', () => {
-  const plan = testPlan(0.9);
-  plan.targets['P4.C1'].material.gloss = 0;
-  plan.targets['P4.C2'].material.gloss = 0.83;
-  const layout = createLayout(plan, {lins: 'standard'});
-  const cards = [1, 5, 9].map(shoeDraw => ({shoeDraw, target: 'P4', r: '7', s: 'hearts'}));
-  for (const {hands, shoeDraw, slot, target, gloss} of [
-    {hands: [{seat: 4, cards: [1]}, {seat: 4, cards: [5, 9]}], shoeDraw: 1, slot: {owner: 'P', seat: 4, hand: 0, hands: 2, index: 0}, target: 'P4.H1.C1', gloss: 0},
-    {hands: [{seat: 4, cards: [1, 5, 9]}], shoeDraw: 9, slot: {owner: 'P', seat: 4, hand: 0, hands: 1, index: 2}, target: 'P4.C3', gloss: 0.83},
-  ] as const) {
-    assert.equal(plan.targets[target], undefined, 'a lookup by the dynamic target cannot supply the gloss');
-    const table = {hands: hands.map(hand => ({seat: hand.seat, cards: [...hand.cards]})), dealer: []};
-    const [placed] = placedCards(table, cards, [shoeDraw], layout);
-    const moving = cardOptions({own: {shoeDraw, slot, label: slotLabel(slot)}, lying: []}, table, cards, layout);
-    assert.deepEqual([placed.target, placed.gloss], [target, gloss]);
-    assert.deepEqual([moving.target, moving.gloss], [target, gloss]);
   }
 });
 

@@ -9,13 +9,10 @@ import {FILM, horizonRow, planPixel, type Lens} from './table-lens.ts';
 
 /** The bank's frame, the standard's picture: src/table-lens.ts holds it, and the scene's modules read it from here. */
 export {FILM};
-export type FilmCamera = {focalPx: number; horizonRow: number; edgeRow: number; heightM: number; scale: number; source: 'contract' | 'estimate' | 'lens'};
+export type FilmCamera = {focalPx: number; horizonRow: number; edgeRow: number; heightM: number; scale: number; source: 'contract' | 'lens'};
 export type TablePoint = {x: number; z: number};
 export type Spot = {id: string; x: number; s: number}; // dealer metres: x across the table, s from the dealer-side edge toward the players
 const CX = (FILM.width - 1) / 2, CY = (FILM.height - 1) / 2;
-
-// A lens estimated from the dealer herself (proportions, horizon at eye height). Not measured; kept only for comparison.
-export const DEALER_LENS_ESTIMATE: FilmCamera = {focalPx: 1270, horizonRow: 215, edgeRow: 831.5, heightM: 0.55, scale: 1, source: 'estimate'};
 
 type Figure = {value?: unknown};
 const figure = (group: Record<string, Figure> | undefined, name: string): number => {

@@ -100,20 +100,20 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    en ny docka ärver då standarddockans sparade justeringar tills hon har egna. SAM-uppsättningen och Paows avläsningar
    finns inte på den här datorn.
 9. **Bred lins räknad ur standarden** (Jakob 2026-11-25 och 2026-11-26: Bred lins "som bara kan göras utifrån en
-   standard"). Byggt 2026-11-26: linsen är nyckeln `lins` i utseendet, spelvyn är en egen sparad standard, och Scens
-   knappar är Prova i Casino → Använd i Casino → Publicera (`docs/SYSTEM.md`, Standarden). Kvar är Bred lins egna tal,
-   två steg som aldrig blandas:
+   standard"). Byggt 2026-11-26: linsen är nyckeln `lins` i utseendet, spelvyn är en egen sparad standard, Scens
+   knappar är Prova i Casino → Använd i Casino → Publicera, och ett utseende har ingen egen skala eller kamera längre
+   (Skala k och Dealerns lins är borta; `docs/SYSTEM.md`, Standarden). Kvar är Bred lins egna tal, två steg som aldrig
+   blandas och som båda ändrar Casinos bild, så han ser en före- och efterbild innan något av dem går in:
    - **D1, måtten ur standarden.** Skalan räknas vid dealerkanten ur de två linserna genom filmens bildpunkter (1,897 i
      stället för kontraktets 2; `node tools/scene-measure.ts skala` räknar den) och blir aldrig en nyckel. Med den följer:
      insatsringarna får en regel under båda linserna (halva det lagda kortet + radien + 12 mm; `BET` i
      `src/scene3d-geometry.ts`), bordets djup är ett verkligt bords lagt genom bildpunkterna (1,26 enheter mot 1,2 i dag;
      med bara skalan slutar filten ovanför bildens nederkant på en telefon; `tableUnder` i `src/scene3d-table.ts`),
-     markerlådan tar skalan tvärs och sitt lagda fotavtryck på djupet, vyns grader räknas mot en fast enhet i stället
-     för mot kontraktets kamera (`viewUnder`, `aimAt` i `src/game-page.ts`), och nycklarna `scale` (Skala k) och `lens`
-     (Dealerns lins) försvinner ur katalogen, förvalen (tyst, i `validatePreset`) och 3D-sidan. Bordets saker krymper
-     5,2 % kring dealerkantens mitt under Bred lins; korten och Standard rör sig inte. Rummet behåller kontraktets
-     kamera: ingen film mäter en kuliss.
-   - **D2, efter hans ja på en före- och efterbild:** en kortregel under båda linserna (dealerns kort 75 × 57 px i
+     markerlådan tar skalan tvärs och sitt lagda fotavtryck på djupet, och vyns grader räknas mot en fast enhet i
+     stället för mot kontraktets kamera (`viewUnder`, `aimAt` i `src/game-page.ts`). Bordets saker krymper 5,2 % kring
+     dealerkantens mitt under Bred lins; korten och Standard rör sig inte. Rummet behåller kontraktets kamera: ingen
+     film mäter en kuliss.
+   - **D2:** en kortregel under båda linserna (dealerns kort 75 × 57 px i
      stället för 61 × 35 under Bred lins); `flatQuad` i `createLayout` och kontraktets vilande kort går då bort.
    Mätningen som håller Casino på plats: `tools/scene-measure.ts` (sidorna på dator och mobil för `tools/lab-look.ts`,
    och största flytt i bildpunkter mellan två körningar). Nyckeln lins och spelvyn höll varje punkt inom 0,01 bildpunkt;

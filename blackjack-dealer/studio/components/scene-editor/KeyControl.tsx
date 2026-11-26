@@ -114,10 +114,9 @@ export function KeyControl({
       return <KeyRow {...common} control={<Switch size="sm" checked={!!value} onChange={onChange} aria-label={spec.label} />} />;
     case "slider": {
       const v = Number(value);
-      const special = spec.special && v === spec.special.value;
       return (
         <KeyRow {...common} value={formatValue(spec, v)}>
-          <Slider value={special ? spec.min : v} min={spec.min} max={spec.max} step={spec.step} format={null} aria-label={spec.label} onChange={onChange} />
+          <Slider value={v} min={spec.min} max={spec.max} step={spec.step} format={null} aria-label={spec.label} onChange={onChange} />
         </KeyRow>
       );
     }

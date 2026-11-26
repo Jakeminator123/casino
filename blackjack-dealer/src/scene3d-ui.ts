@@ -72,7 +72,7 @@ function hud() {
     state.shadowAbove < 1 && 'skugga ovanför kanten bort', marksText(feltMarks(state.marks)) !== 'all' && 'valda markeringar', state.cloth === 'v6' && 'V6-duken', isRunwayCloth(state.cloth) && RUNWAY_CLOTHS[state.cloth].name.split(':')[0], isNature(state.surface) && NATURES[state.surface].name.split(':')[0].toLowerCase(), state.lamp > 0 && 'lampa över dealern', state.chipGloss !== DEFAULTS.chipGloss && 'markernas glans', state.roomLife && 'rörelse i rummet', state.dealerRoom > 0 && 'rummets ljus på dealern', state.tableSize !== 1 && 'annan bordsstorlek'].filter(Boolean);
   hudBox.replaceChildren(chip(id),
     s.view === 'moved' ? chip('Kameran är flyttad: 2,5D-närmevärde, inte filmens sanning', 'warn') : s.view === 'turned' ? chip('Bara vridning/zoom: filmen är geometriskt exakt', 'ok') : chip('Hemvy: filmen pixel för pixel', 'ok'),
-    s.camera.source === 'contract' ? chip(`Kamera: planens (kontraktet) · skala k = ${decimal(s.camera.scale)} skattad`) : s.camera.source === 'lens' ? chip('Kamera: bordets lins (kortplanens) · verkliga meter', 'ok') : chip('Kamera: egen skattning, inte uppmätt', 'warn'),
+    s.camera.source === 'contract' ? chip(`Lins: Bred lins (kontraktets kamera) · skala k = ${decimal(s.camera.scale)}`) : chip('Lins: Standard (filmens egen) · verkliga meter', 'ok'),
     added.length ? chip(`Utöver v1: ${added.join(' + ')}`) : chip('Som kontrollpunkt v1'),
     ...(s.focus ? [chip(`Skärpan ligger på ${s.focus.what}${Number.isFinite(s.focus.distance) ? ` · ${decimal(s.focus.distance)} m` : ''}${(state.focus === 'card' || state.focus === 'follow') && !s.focus.tracked ? ' · klippet saknar kortspårning' : ''}`)] : []),
     ...(s.cards.error ? [chip('Renderade kort kunde inte läsas in: ' + s.cards.error, 'warn')] : state.cards && s.cards.loading ? [chip('Läser in kortritaren…')] : state.cards && !s.cards.tracked ? [chip('Klippet saknar kortspårning: filmens färgyta visas', 'warn')] : []),
@@ -202,17 +202,12 @@ function build() {
     slider('Markernas glans', 'chipGloss', 0, 1, 0.01, '', () => { chipsLab.gloss(); hud(); }),
     note('<b>Markernas glans</b> följer markerstudiens lutning (grovhet 0,64 − 0,28 × glans) kring markernas utseende förut, 0,50. Syns när insatser ligger.'),
     note('Spelets marker med tyngd, och en bricka med <b>samma marker</b> på högkant i stället för den byggda. En förlorad insats lyfts, vänds på högkant och sätts ner i sin rad; en vinst bärs ut ur brickan och ställs bredvid insatsen. Ingen hand syns: det kräver en film där hon sträcker sig.'));
-  let timer = 0; const scale = slider('Skala k', 'scale', 1, 2.6, 0.05, '×', () => { clearTimeout(timer); timer = window.setTimeout(() => scene.rebuild(), 120); }), shown = setters.scale as unknown as (v: number) => void;
-  setters.scale = ((v: number) => shown(v > 0 ? v : scene.status().camera.scale)) as never;
   // Lins is the look's lens (SceneState.lins): Standard is the table's lens (the film's camera, the standard), Bred lins the
-  // contract's older wide camera (src/scene3d-view.ts filmCamera). The second row: that lens's own camera, or the estimate.
-  group('Filmkamera och skala', el('label', {className: 'row two'}, el('span', {textContent: 'Lins'}), choice('lins', [['standard', 'Standard'], ['bred', 'Bred lins']], lins => { scene.home(); scene.set({lins}); })),
-    choice('lens', [['plan', 'Bordets kamera (linsen ovan)'], ['estimate', 'Dealerns lins (skattad)']], lens => { scene.home(); scene.set({lens, scale: 0}); }), scale,
-    note('Hemvyn är filmen oavsett kamera. Kameran styr hur filttrycket, bordet och rummet ligger i perspektiv och hur vridning och parallax ser ut. '
+  // contract's older wide camera (src/scene3d-view.ts filmCamera). There is no other camera and no scale of a look's own.
+  group('Lins', el('label', {className: 'row two'}, el('span', {textContent: 'Lins'}), choice('lins', [['standard', 'Standard'], ['bred', 'Bred lins']], lins => { scene.home(); scene.set({lins}); })),
+    note('Hemvyn är filmen oavsett lins. Linsen styr hur filttrycket, bordet och rummet ligger i perspektiv och hur vridning och parallax ser ut. '
       + '<b>Standard</b> är filmens egen kamera: kortplanen, dockan och beställningarnas slutbild ritar genom samma lins, med ett verkligt kort och dealern i verklig storlek. '
-      + '<b>Bred lins</b> är den äldre, vidare kameran som passar kortrutorna men inte är filmens egen; dealern är inte ritad med den linsen. '
-      + '<b>Dealerns lins</b> är en skattning ur dealerns proportioner och ögonhöjd, inte uppmätt. <b>k</b> är hur många gånger större dealerns värld är än korten: '
-      + 'i Standard 1, verkliga mått; för den breda kameran skattad till 1,8–2,5.'));
+      + '<b>Bred lins</b> är den äldre, vidare kameran som passar kortrutorna men inte är filmens egen; dealern är inte ritad med den linsen, och bordet byggs i kontraktets skala (k = 2).'));
 }
 
 // ---- chips and the house's tray (src/game3d-chips.ts, src/game3d-tray.ts): tried here without a game behind them ----------

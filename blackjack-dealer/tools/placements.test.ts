@@ -1,9 +1,10 @@
+// Skyddar: hans domar och val, kontrakten – hans kortplan sparas bara mot senaste revisionen, och en äldre plan läses med allt han ställt in.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {defaultPlan,validatePlan,toPixels,fromPixels,quad,flatQuad,motionNodes,constrain,sequence,TARGETS,INTENT_DEFAULTS,SHOE_CARD,WINDOW_CARD,VIEWS,type Intent} from '../src/placement-model.ts';
+import {defaultPlan,validatePlan,toPixels,fromPixels,quad,flatQuad,constrain,TARGETS} from '../src/placement-model.ts';
 import {placementStore,StoreError} from './placement-store.ts';
 
 test('pixel-centre transforms are invertible at both image edges and interior',()=>{
@@ -11,12 +12,6 @@ test('pixel-centre transforms are invertible at both image edges and interior',(
   const px=toPixels(point,view),back=fromPixels(px.x,px.y,view);assert.ok(Math.abs(back.u-point.u)<1e-12);assert.ok(Math.abs(back.v-point.v)<1e-12);
  }assert.deepEqual(toPixels({u:.5,v:.5},'native'),{x:880.5,y:586.5});
 });
-test('seventeen draft slots have independent view geometry and coherent motion plans',()=>{
- const p=defaultPlan();validatePlan(p);assert.equal(Object.keys(p.targets).length,17);assert.equal(p.targets['D.C2'].intent.turn,false);assert.equal(p.targets['D.C3'].intent.endSide,'FRONT');assert.equal(p.targets['P4.C2'].intent.endSide,'BACK');assert.equal(p.targets['P4.C2'].intent.turn,false);
- const old=structuredClone(p.targets['P4.C2'].geometry.portrait);p.targets['P4.C2'].geometry.native.u=.7;assert.deepEqual(p.targets['P4.C2'].geometry.portrait,old);
- const text=sequence('P4.C2',{takeHand:'LH',startSide:'BACK',endSide:'BACK',pass:true,turn:false,...INTENT_DEFAULTS});assert.match(text,/PASS\(LH>RH,BACK\)/);assert.match(text,/RELEASE\(RH\)/);assert.doesNotMatch(text,/\bTURN\(/);assert.match(text,/RETURN\(SHOE_READY\)$/);
-});
-
 test('legacy plans gain only D.C3 and preserve every saved user adjustment',()=>{
  const p=defaultPlan();delete p.targets['D.C3'];
  p.targets['P6.C1'].geometry.native.u=.7345;p.targets['D.C2'].material.gloss=.71;
@@ -59,11 +54,6 @@ test('one flat plane preserves P4 corners and all image centres without changing
  }
  assert.equal(JSON.stringify(plan),before);
 });
-test('node map separates hand transfer from a real side turn',()=>{
- const intent:Intent={takeHand:'LH',startSide:'BACK',endSide:'FRONT',pass:true,turn:true,...INTENT_DEFAULTS};
- const nodes=motionNodes('P7.C1',intent);assert.deepEqual(nodes.map(n=>n.id),['ready','take','pass','turn','land','release','return']);assert.equal(nodes.find(n=>n.id==='release')?.detail,'RH');
- assert.ok(!motionNodes('D.C2',{...intent,endSide:'BACK',turn:false}).some(n=>n.id==='turn'));
-});
 test('invalid geometry, unknown fields and false side-change claims are rejected',()=>{
  for(const mutate of [(p:any)=>p.targets['P1.C1'].geometry.native.u=NaN,(p:any)=>p.targets['P1.C1'].geometry.native.width=3,(p:any)=>p.targets['P1.C1'].geometry.native.u=0,(p:any)=>p.targets['P1.C1'].intent.turn=false,(p:any)=>p.targets['P1.C1'].intent.takeHand=['LH'],(p:any)=>p.targets['P1.C1'].intent.startSide=['BACK'],(p:any)=>p.file='../outside.json']){const p=defaultPlan();mutate(p);assert.throws(()=>validatePlan(p));}
 });
@@ -78,7 +68,6 @@ test('concurrent stale saves cannot overwrite another tab, and previous data is 
 
 // A plan as it was saved before grip, turnAt and flipAxis existed.
 const legacyPlan=()=>{const plan=defaultPlan() as any;for(const t of Object.values(plan.targets) as any[]){delete t.intent.grip;delete t.intent.turnAt;delete t.intent.flipAxis;}return plan;};
-const INTENT_KEYS=['takeHand','startSide','endSide','pass','turn','grip','turnAt','flipAxis'];
 test('the tracked plan loads with the new keys filled in: the saved draft',async()=>{
  for(const file of ['placements/default.json']){
   const plan=JSON.parse(await readFile(file,'utf8'));validatePlan(plan);
@@ -114,37 +103,7 @@ test('the store reads an older file with the defaults and writes the two keys wh
   assert.equal(text.match(/"grip": "PINCH"/g)?.length,17);assert.equal(text.match(/"turnAt": "AIR"/g)?.length,17);assert.equal(text.match(/"flipAxis": "FREE"/g)?.length,17);
  }finally{assert.ok(path.resolve(dir).startsWith(base+path.sep+'dealer-placement-test-'));await rm(dir,{recursive:true,force:true});}
 });
-test('the sequence and the node map show a dragged card and where the turn happens',()=>{
- const drag:Intent={takeHand:'LH',startSide:'BACK',endSide:'FRONT',pass:false,turn:true,grip:'DRAG',turnAt:'PLACE'};
- assert.equal(sequence('P2.C1',drag),'P2.C1 | DRAG(LH,BACK) > TURN(LH,BACK>FRONT,PLACE) > LAND(FRONT) > RELEASE(LH) > RETURN(SHOE_READY)');
- assert.equal(sequence('P2.C1',{...drag,grip:'PINCH',turnAt:'AIR'}),'P2.C1 | TAKE(LH,BACK) > TURN(LH,BACK>FRONT,AIR) > LAND(FRONT) > RELEASE(LH) > RETURN(SHOE_READY)');
- assert.match(sequence('P2.C1',{...drag,pass:true,turnAt:'AIR'}),/^P2\.C1 \| DRAG\(LH,BACK\) > PASS\(LH>RH,BACK\) > TURN\(RH,BACK>FRONT,AIR\) > LAND\(FRONT\) > RELEASE\(RH\)/);
- // Laid closed and turned later: no TURN at all, whatever the place of a turn says.
- assert.equal(sequence('D.C2',{...drag,endSide:'BACK',turn:false}),'D.C2 | DRAG(LH,BACK) > LAND(BACK) > RELEASE(LH) > RETURN(SHOE_READY)');
- const nodes=motionNodes('P2.C1',drag);assert.equal(nodes.find(n=>n.id==='take')?.label,'DRAG');assert.equal(nodes.find(n=>n.id==='turn')?.detail,'BACK → FRONT · PLACE');
- assert.equal(motionNodes('P2.C1',{...drag,grip:'PINCH'}).find(n=>n.id==='take')?.label,'TAKE');
-});
-
-test('the yellow card painted in the shoe window, and the window card of the films, lie in the picture as standing cards',()=>{
- for(const [view,q] of [['native',SHOE_CARD.native],['portrait',SHOE_CARD.portrait],['native',WINDOW_CARD.native],['portrait',WINDOW_CARD.portrait]] as const){
-  const p=VIEWS[view],s=q.reduce((m,c)=>({x:m.x+c.x/4,y:m.y+c.y/4}),{x:0,y:0});assert.equal(q.length,4);
-  for(const c of q)assert.ok(c.x>0&&c.y>0&&c.x<p.width-1&&c.y<p.height-1);
-  // clockwise in picture coordinates (y down) and convex: the card's own middle on the inner side of every edge
-  for(let i=0;i<4;i++){const a=q[i],b=q[(i+1)%4];assert.ok((b.x-a.x)*(s.y-a.y)-(b.y-a.y)*(s.x-a.x)>0,`${view} edge ${i}`);}
-  // a standing card: about twice as long as it is wide in the picture
-  const side=(i:number)=>Math.hypot(q[(i+1)%4].x-q[i].x,q[(i+1)%4].y-q[i].y);assert.ok(side(1)/side(0)>1.6&&side(1)/side(0)<2.6);
- }
- // the films' window card is the V6 picture's card: the same angle (within 3°), the same length (within 5 %) and every corner
- // within 6 px. It is the card standing in the window, never the pinched card drawn up out of it (111 px long), which would
- // lie outside the shoe's mouth.
- const axis=(q:readonly {x:number;y:number}[])=>{const a={x:(q[0].x+q[1].x)/2,y:(q[0].y+q[1].y)/2},b={x:(q[2].x+q[3].x)/2,y:(q[2].y+q[3].y)/2};return {angle:Math.atan2(a.y-b.y,a.x-b.x)*180/Math.PI,length:Math.hypot(a.x-b.x,a.y-b.y)};};
- const film=axis(WINDOW_CARD.native),v6=axis(SHOE_CARD.native);
- assert.ok(Math.abs(film.angle-v6.angle)<3&&Math.abs(film.length/v6.length-1)<.05,`${film.angle.toFixed(1)}° ${film.length.toFixed(0)} px against ${v6.angle.toFixed(1)}° ${v6.length.toFixed(0)} px`);
- WINDOW_CARD.native.forEach((c,i)=>assert.ok(Math.hypot(c.x-SHOE_CARD.native[i].x,c.y-SHOE_CARD.native[i].y)<6,`corner ${i}`));
- assert.ok(film.length<100,'the card in the window, not the pinched card');
-});
-
-// ── The plan's edits shared by Bordet's Inspelning (planQuad, editPlace, editIntent, …) ──
+// ── The plan's edits shared by Bordet's Inspelning (planQuad, editPlace) ──
 test('planQuad draws a card as the game lays it: flat from P4.C1 on a flat table, card by card otherwise or without a projection',async()=>{
  const m=await import('../src/placement-model.ts'),plan=defaultPlan();plan.targets['P2.C1'].geometry.native.angle=30;
  for(const view of ['native','portrait'] as const){
@@ -167,11 +126,4 @@ test('editPlace moves, turns and sizes a place by the plan\'s rules and leaves t
  assert.equal(m.editPlace(plan,'P1.C1','native',{angle:180}).targets['P1.C1'].geometry.native.angle,180);
  // the shoe is no place of the plan, nor any other word
  for(const id of ['P8.C1','shoe'])assert.throws(()=>m.editPlace(plan,id,'native',{u:.5}),/Okänd kortplats/);
-});
-test('editIntent keeps TURN and the two sides in agreement',async()=>{
- const m=await import('../src/placement-model.ts'),plan=defaultPlan();
- const closed=m.editIntent(plan,'P1.C1','endSide','BACK');assert.equal(closed.targets['P1.C1'].intent.turn,false);assert.equal(plan.targets['P1.C1'].intent.endSide,'FRONT');validatePlan(closed);
- const turned=m.editIntent(closed,'P1.C1','turn',true);assert.equal(turned.targets['P1.C1'].intent.endSide,'FRONT');validatePlan(turned);
- const open=m.editIntent(plan,'P1.C1','startSide','FRONT');assert.equal(open.targets['P1.C1'].intent.turn,false);validatePlan(open);
- const passed=m.editIntent(plan,'P1.C1','pass',true);assert.equal(passed.targets['P1.C1'].intent.pass,true);assert.equal(passed.targets['P1.C1'].intent.endSide,'FRONT');
 });

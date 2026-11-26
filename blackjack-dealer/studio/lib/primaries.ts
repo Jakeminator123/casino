@@ -31,7 +31,7 @@ import { VERDICT_LABEL, verdictOf, verdictPhrase } from "./verdict.ts";
 const REST = "IDLE>IDLE";
 
 export type Role = "deal" | "ready" | "idle" | "entry" | "exit" | "rest" | "reveal" | "arrive" | "leave";
-export const roleOf = (edge: Pick<Edge, "kind" | "target" | "to">): Role =>
+const roleOf = (edge:Pick<Edge, "kind" | "target" | "to">): Role =>
   edge.kind === "DEAL" ? "deal"
   : edge.kind === "RETURN" ? (edge.target ? (edge.to === "READY" ? "ready" : "idle") : "exit")
   : edge.kind === "ENTRY" ? "entry"
