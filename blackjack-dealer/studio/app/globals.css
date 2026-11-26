@@ -236,9 +236,9 @@
   }
 
   /* The doll's controls in Bordet's Inspelning, step 2 (components/bordet/DollPanel.tsx): the doll lab lays its own markup
-     (dealer3d/page/docka.html: Rörelse, Ställning, Giv från, Vändning, Landning, Styr, each a div with an h2) into the host
+     (dealer3d/page/docka.html: Vändning, Landning, Styr, each a div with an h2) into the host
      as one <div class="docklabb-styr">, and its own stylesheet does not reach this document. Its controls keep their ids
-     here (#ways, #entries, #knobs, #save, #status …): no other element of the studio may use them, and every rule stays
+     here (#knobs, #save, #status …): no other element of the studio may use them, and every rule stays
      under .docklabb-styr. Drawn in the studio's look: the headings as a column section's, the button groups (.seg, chosen
      by aria-pressed, unavailable :disabled) as SegmentedControl, the other buttons as Button (Spara som standard, #save, as
      the primary), the sliders (label.knob: name, value, range; .off when unavailable) as Slider, the notes (.small, .warn

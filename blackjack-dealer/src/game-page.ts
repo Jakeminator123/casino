@@ -71,7 +71,7 @@ const forval = query.get('forval');
 const lookAsked = [...query.keys()].some(word => !OWN_WORDS.includes(word) && !['kort', 'cardBack', 'cardFace'].includes(word)); // kort, cardBack, cardFace: how the card in her hand is shown (below), not a look
 // The dealers the game offers, each with her own films. ?dealer=paow (the studio's word, which the Casino view passes on) or the
 // choice remembered from the console's Dealer menu; without either the first dealer (DEALER in src/clip-graph.ts: Paow).
-const DEALERS = [{id: 'paow', label: 'Paow', note: 'Ny dealer, inte alla filmer än', thumb: 'assets/anchors/paow-vila-ung-2/anchor.png'}];
+const DEALERS = [{id: 'paow', label: 'Paow', note: 'Ny dealer, inte alla filmer än', thumb: 'assets/anchors/paow-vila-tatuerad/anchor.png'}];
 const dealerMemory = (() => { try { return localStorage.getItem('dealer.dealer'); } catch { return null; } })();
 let dealer = DEALERS.find(d => d.id === query.get('dealer'))?.id ?? DEALERS.find(d => d.id === dealerMemory)?.id ?? DEALER;
 const nameOf = (id: string) => DEALERS.find(d => d.id === id)?.label ?? id;

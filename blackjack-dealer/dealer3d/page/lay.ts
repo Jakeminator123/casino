@@ -37,7 +37,8 @@ export type Recipe = {from: string; frames: number; beats: number[]; poseFilm: s
  * card (Pace.gripYawEnd; Jakob 2026-11-23). Left out (as in every steering saved before it) or null: `gripYaw` all the way.
  * `body`: degrees [leaning sideways, the right shoulder forward, leaning forward] she has at the place, in place of what
  * the reach asks. `tempo`: how many times faster the whole deal is laid (every beat that much sooner, her free hand's way
- * back too; the still end keeps its length): the lab's choice until 2026-11-23, kept beside the next.
+ * back too; the still end keeps its length): the lab's choice until 2026-11-23, its slider "Hela given" until 2026-11-26;
+ * every filmed deal now has 1 (natural-lab.ts filmRules), and the tools that lay a stored deal again keep it.
  * `cardTempo` (Jakob 2026-11-23: "det är hennes rörelser med kortet som ska gå snabbare", her other arm and the turns of
  * her head "behöver inte skyndas upp"): how many times faster the hands with the card go, on top of `tempo`. The card's
  * beats from the take until it meets the felt (b to g) come that much sooner; the settle after it (g to h) and the still
@@ -70,8 +71,6 @@ export function sideOfPlan(plan: unknown, target: string): Side | null {
 export function planPoint(at: Vec3, lens: Lens): {u: number; v: number} | null {
   const p = feltToPixel(at, lens); return p ? {u: p.x / (FILM.width - 1), v: 1 - p.y / (FILM.height - 1)} : null;
 }
-/** The turn at the place, as the trial of 2026-11-23 has it for the doll paow (Prov docka-paow-vandning-20261123; Jakob: "Bättre, men inte än"): --turn-near 0.7, wait=14 and --grip-yaw -20, on a sweep recipe. */
-export const TURN_AT_PLACE = {turnNear: 0.7, wait: 14, gripYaw: -20};
 /** Whether both hands have the card through the change in this recipe: then the turn waits on `wait`, and the contact grip has a yaw to steer. */
 export const shares = (recipe: Recipe): boolean => recipe.pace.contactGrip === 'sweep' && !!recipe.pace.sharedChange;
 
@@ -213,13 +212,13 @@ export function recipeFor(target: string): PlaceRecipe | null {
 
 /**
  * The pose a deal begins in and, with its return, ends in (Jakob 2026-11-23: "A2.1, A2.2 och A2.3 är olika in- och
- * utgångar", a saved deal per player and per entry). A2.3: every deal laid above. A2.1, the pinch at the shoe: her
+ * utgångar"; a saved deal per card from A2.3, standardName). A2.3: every deal laid above. A2.1, the pinch at the shoe: her
  * one-hand deal to every place but a card laid closed (dealer3d/src/doll-choices.ts), built on the doll's bones
  * (dealer3d/src/pinch-deal.ts) from her pose A2.1 (POSE_21), one way. A2.2 is archived: no deal begins in it.
  */
 export type Entry = 'A2.1' | 'A2.3';
-/** A saved standard's name (dealer3d/standard/<name>.json): <doll>-<place> from A2.3, as every standard saved before the entries were, and <doll>-a2-1-<place> from A2.1. */
-export const standardName = (doll: string, entry: Entry, place: string) => `${doll}-${entry === 'A2.3' ? '' : `${entry.toLowerCase().replace('.', '-')}-`}${place.toLowerCase().replace('.', '')}`;
+/** A saved standard's name (dealer3d/standard/<name>.json): <doll>-<place>, a deal from A2.3. From A2.1 nothing is saved: the deal there is the pinch's own and nothing steers it (Jakob 2026-11-26). */
+export const standardName = (doll: string, place: string) => `${doll}-${place.toLowerCase().replace('.', '')}`;
 /** The pose A2.1 per doll that has it (dealer3d/data/<name>.json: the first frame of the deal the lab showed as A2.1, and her hip), which pinch-deal.ts builds the deal from. */
 export const POSE_21: Record<string, string> = {paow: 'ankare-2-1-paow'};
 export type EntryPlace = PlaceRecipe | {pinch: string} | {none: 'unposed' | 'closed'};

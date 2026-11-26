@@ -1,17 +1,16 @@
-// A doll's deal and its return in one film (Jakob 2026-11-23: "giv och återgång i en film"), for any place of the plan, laid
-// as the doll lab lays it (dealer3d/page/docka.ts, "Giv och återgång"): from A2.3 "Naturlig" by default, and the standard
-// Jakob saved for the doll, entry and place (dealer3d/standard/, lay.ts standardName) where there is one, laid again from
-// its recipe and sliders in the way he saved it in ("hans standard vinner där den finns"). From A2.1 one way: her one-hand
+// A doll's deal and its return in one film (Jakob 2026-11-23: "giv och återgång i en film"), for any place of the plan,
+// exactly as Inspelning shows it (dealer3d/page/docka.ts): from A2.3 through the one chain of page/natural-lab.ts
+// (filmRules, filmDeal, filmed), from the standard Jakob saved for the doll and place (dealer3d/standard/, lay.ts
+// standardName) where there is one ("hans standard vinner där den finns"), else from nothing moved. The way is the doll's
+// (natural-lab.ts wayFor: "Naturlig" for a dealer's doll, as before for the standard doll). From A2.1 one way: her one-hand
 // deal built on the doll's bones from her pose A2.1 (dealer3d/src/pinch-deal.ts, dealer3d/data/ankare-2-1-<doll>.json), its
-// return in the same motion. The deal from A2.3 is laid with the standard doll, given its return, posed on the doll and, in
-// "Naturlig", moved as a person moves: page/natural-lab.ts withReturn, as the lab does. Writes the motion to a new file
-// only, and prints what to read beside it and the render command.
+// return in the same motion; nothing is saved or steered for it. Writes the motion to a new file only, and prints what to
+// read beside it and the render command.
 //   node dealer3d/tools/docka-cykel.ts --to P5.C1 --out dealer3d/data/<new>.json [--from A2.3|A2.1] [--doll paow]
-//     [--way naturlig|forut] [--no-standard] [--flat-hand] [--sam-hand] [--recipe-grip-yaw] [--fingrar-som-forut] [--en-vinkel] [--hold 76] [--ready 116]
+//     [--no-standard] [--flat-hand] [--sam-hand] [--recipe-grip-yaw] [--fingrar-som-forut] [--en-vinkel] [--hold 76] [--ready 116]
 //     [--duration 4] [--lift 0.022] [--kortets-fart 150] [--sida stangt|oppet]
-// --from: the pose the deal begins and ends in (A2.3 if left out). --way: the way where no standard is
-// used (the standard doll has only "forut"; from A2.1 there is one way, built). --no-standard: lay the place as if no
-// standard were saved. --flat-hand: the right hand flat as it lays the card (natural.ts `flatHand`; "Naturlig" only).
+// --from: the pose the deal begins and ends in (A2.3 if left out). --no-standard: lay the place as if no standard were
+// saved. --flat-hand: the right hand flat as it lays the card (natural.ts `flatHand`; "Naturlig" only).
 // --sam-hand and --recipe-grip-yaw: "Naturlig" as it was before 2026-11-23 (natural-lab.ts AsBefore), her left hand at
 // the shoe as SAM read it, and the recipe's own angle of the hand on the card where nothing steers it (the lab's is −30):
 // to make a film made then again. --fingrar-som-forut: her free fingers as they were before the hand rule of 2026-11-23
@@ -26,13 +25,15 @@
 // (`lab.turn`), "forut" where it has none; --vandning <id> lays that turn instead, on top of the standard without changing
 // its landing or anything else. It prints one line `vändning <id>` ("vändning ingen" where the way has no turn).
 // The card's tempo (lay.ts Steer.cardTempo, Jakob 2026-11-23: only the hands with the card go faster) is the standard's,
-// 100 % where it has none; --kortets-fart <percent> lays that one instead (100 to the most the recipe's turn allows; from
-// A2.3 only). Its return then comes as natural-lab.ts quickReturn times it, unless --hold, --ready or --duration say otherwise.
+// 100 % where it has none; --kortets-fart <percent> lays that one instead (100 to the end the lab's slider has: natural-lab.ts
+// ENDS and lay.ts cardTempoMost; from A2.3 only). Its return then comes as natural-lab.ts quickReturn times it, unless
+// --hold, --ready or --duration say otherwise. The whole deal's tempo (Steer.tempo) is not laid any more (filmRules).
 // The side a dealer's card lies with (lay.ts Steer.side, Jakob 2026-11-24: closed or open as he chooses; D.C1 to D.C3 only)
-// is the standard's (open where it says none, as every standard saved before it was laid), and where no standard is used the
-// plan's as it stands (placements/default.json, the place's intent.endSide); --sida stangt|oppet lays that side instead. A
-// closed card is slid face down and never turned, so it has no turn and no landing of its own. It prints one line
-// `sida stängt|öppet (planen: ...)` for a dealer's card, and the side is in `made.side`.
+// is the plan's as it stands (placements/default.json, the place's intent.endSide), as the lab lays it, whatever a standard
+// was saved with; --sida stangt|oppet lays that side instead. A closed card is slid face down and never turned: it has no
+// turn and no landing, and where and when its turn would begin does not steer it (natural-lab.ts filmRules), so a standard
+// saved with them is laid without them. It prints one line `sida stängt|öppet (planen: ...)` for a dealer's card, and the
+// side is in `made.side`.
 import {createHash} from 'node:crypto';
 import {existsSync} from 'node:fs';
 import {readFile, writeFile} from 'node:fs/promises';
@@ -43,22 +44,21 @@ import {filmLens, spots} from '../src/world.ts';
 import {pinchDeal, type Anchor21} from '../src/pinch-deal.ts';
 import {handChange} from '../src/doll-choices.ts';
 import {dollNamed} from '../src/doll.ts';
-import {DEALER_CARD, NO_STEER, cardTempoMost, cardTempoOf, layDeal, placeFrom, recipeOf, sideOf, sideOfPlan, standardName, type Entry, type Recipe, type Steer, type Stored} from '../page/lay.ts';
-import {NO_KNOBS, gripYawsOf, layNatural, withReturn, type AsBefore, type Knobs, type Way} from '../page/natural-lab.ts';
-import {LANDINGS, asBefore, landingOf, landingWords, shaped, type Landing} from '../src/landing.ts';
-import {TURNS, TURN_DEFAULT, turnOf, type TurnId} from '../src/turn-in-hand.ts';
+import {DEALER_CARD, cardTempoMost, cardTempoOf, placeFrom, recipeOf, sideOf, sideOfPlan, standardName, type Entry, type Recipe, type Stored} from '../page/lay.ts';
+import {ENDS, filmDeal, filmed, gripYawsOf, savedState, wayFor, type AsBefore, type FilmInput, type SavedLab} from '../page/natural-lab.ts';
+import {LANDINGS, asBefore, landingWords, shaped, type Landing} from '../src/landing.ts';
+import {TURNS, TURN_DEFAULT, type TurnId} from '../src/turn-in-hand.ts';
 import {SLASK} from '../../tools/slask.ts';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
-const USAGE = 'node dealer3d/tools/docka-cykel.ts --to <place, e.g. P5.C1> --out dealer3d/data/<new>.json [--from A2.3|A2.1] [--doll paow|standard] [--way naturlig|forut] [--no-standard] [--flat-hand] [--sam-hand] [--recipe-grip-yaw] [--fingrar-som-forut] [--en-vinkel] [--landning <id>] [--vandning forut|i-handen] [--hold <frame>] [--ready <frame>] [--duration <seconds>] [--lift <metres>] [--kortets-fart <percent>] [--sida stangt|oppet]';
-const {values} = parseArgs({options: {to: {type: 'string'}, out: {type: 'string'}, from: {type: 'string'}, doll: {type: 'string'}, way: {type: 'string'}, 'no-standard': {type: 'boolean'}, 'flat-hand': {type: 'boolean'},
+const USAGE = 'node dealer3d/tools/docka-cykel.ts --to <place, e.g. P5.C1> --out dealer3d/data/<new>.json [--from A2.3|A2.1] [--doll paow|standard] [--no-standard] [--flat-hand] [--sam-hand] [--recipe-grip-yaw] [--fingrar-som-forut] [--en-vinkel] [--landning <id>] [--vandning forut|i-handen] [--hold <frame>] [--ready <frame>] [--duration <seconds>] [--lift <metres>] [--kortets-fart <percent>] [--sida stangt|oppet]';
+const {values} = parseArgs({options: {to: {type: 'string'}, out: {type: 'string'}, from: {type: 'string'}, doll: {type: 'string'}, 'no-standard': {type: 'boolean'}, 'flat-hand': {type: 'boolean'},
   'sam-hand': {type: 'boolean'}, 'recipe-grip-yaw': {type: 'boolean'}, 'fingrar-som-forut': {type: 'boolean'}, 'en-vinkel': {type: 'boolean'}, landning: {type: 'string'}, vandning: {type: 'string'}, hold: {type: 'string'}, ready: {type: 'string'}, duration: {type: 'string'}, lift: {type: 'string'}, 'kortets-fart': {type: 'string'}, sida: {type: 'string'}, help: {type: 'boolean', short: 'h'}}});
 if (values.help) { console.log(USAGE); process.exit(0); }
 function fail(why: string): never { console.error(why); process.exit(1); }
 const place = values.to, out = values.out, dollName = values.doll ?? 'paow', entry = (values.from ?? 'A2.3') as Entry;
 if (!place || !out) fail(USAGE);
 if (!['A2.1', 'A2.3'].includes(entry)) fail('--from ska vara A2.3 eller A2.1.');
-if (values.way && values.way !== 'naturlig' && values.way !== 'forut') fail('--way ska vara naturlig eller forut.');
 const number = (v: string | undefined, flag: string) => { if (v === undefined) return undefined; const n = Number(v); if (!v.trim() || !Number.isFinite(n)) fail(`${flag} ska vara ett tal.`); return n; };
 const before: AsBefore = {...(values['sam-hand'] ? {samHand: true} : {}), ...(values['recipe-grip-yaw'] ? {recipeGripYaw: true} : {}), ...(values['fingrar-som-forut'] ? {fingers: true} : {}), ...(values['en-vinkel'] ? {oneGripYaw: true} : {})};
 if (values.landning !== undefined && !LANDINGS.some(l => l.id === values.landning)) fail(`--landning ska vara en av ${LANDINGS.map(l => l.id).join(', ')}.`);
@@ -75,48 +75,44 @@ const used: Record<string, string> = {'placements/default.json': sha(planBytes)}
 const readData = async (name: string) => { const r = `dealer3d/data/${name}.json`, b = await bytesOf(r); used[r] = sha(b); return json(b); };
 const recipeNamed = async (name: string) => { const recipe: Recipe = recipeOf(name, await readData(name) as Stored); return {recipe, pose: await readData(recipe.poseFilm ?? 'till-ankare-2-3')}; };
 
-// The place's deal from the entry, as the lab finds it (lay.ts placeFrom), and the standard saved for the doll, entry and place, as the lab reads it.
+// The place's deal from the entry, as the lab finds it (lay.ts placeFrom), and the standard saved for the doll and place, as the lab reads it.
 if (entry === 'A2.1') { await fromPinch(); process.exit(0); }
 const found = placeFrom(entry, place!); if (!found) fail(`${place} är ingen plats som docklabbet känner.`);
 if (!('recipe' in found)) fail(`${place}: dockan lägger ingen giv dit från ${entry}${'none' in found ? ` (${found.none})` : ''}.`);
-const standardPath = `dealer3d/standard/${standardName(dollName, entry, place)}.json`, saved = !values['no-standard'] && existsSync(file(standardPath));
-let steer: Steer = {...NO_STEER}, knobs: Knobs = structuredClone(NO_KNOBS), standard: string | null = null, savedLab: {recipe?: string; steer?: Partial<Steer>; naturlig?: {knobs?: Partial<Knobs>}; landing?: unknown; turn?: unknown} = {};
+const standardPath = `dealer3d/standard/${standardName(dollName, place)}.json`, saved = !values['no-standard'] && existsSync(file(standardPath));
+let standard: string | null = null, savedLab: SavedLab | null = null;
 if (saved) { const b = await bytesOf(standardPath); savedLab = json(b).lab ?? {}; used[standardPath] = sha(b); standard = standardPath; }
-// The landing: the flag's, else the standard's, else the default (the hand as before). The turn likewise.
-const landing: Landing = values.landning ? {id: values.landning as Landing['id']} : landingOf(savedLab.landing);
-const turn: TurnId = values.vandning ? values.vandning as TurnId : turnOf(savedLab.turn);
 
-// The deal with the standard doll, as the lab lays it the chosen way, and the file it is laid from.
-let way: Way, laid: Parameters<typeof withReturn>[0], recipe: Recipe | null = null, source: string;
-{
-  let pose; ({recipe, pose} = await recipeNamed(found.recipe)); way = dollName === 'standard' ? 'forut' : (values.way as Way | undefined) ?? 'naturlig';
-  if (saved) { steer = {...NO_STEER, ...savedLab.steer};
-    knobs = {shoulderR: [...(savedLab.naturlig?.knobs?.shoulderR ?? NO_KNOBS.shoulderR)], shoulderL: [...(savedLab.naturlig?.knobs?.shoulderL ?? NO_KNOBS.shoulderL)], elbowOut: [...(savedLab.naturlig?.knobs?.elbowOut ?? NO_KNOBS.elbowOut)]} as Knobs;
-    way = dollName === 'standard' ? 'forut' : savedLab.naturlig ? 'naturlig' : 'forut';
-    if (savedLab.recipe && savedLab.recipe !== recipe.from) ({recipe, pose} = await recipeNamed(savedLab.recipe)); }
-  const fast = number(values['kortets-fart'], '--kortets-fart');
-  if (fast !== undefined) { const most = Math.round(cardTempoMost(recipe!, steer) * 100); if (fast < 100 || fast > most) fail(`--kortets-fart ska vara från 100 till ${most} (procent) för ${place}: vändningen behöver sina rutor.`); if (fast === 100) delete steer.cardTempo; else steer.cardTempo = fast / 100; }
-  if (values['flat-hand'] && way !== 'naturlig') fail(`--flat-hand finns bara i Naturlig; ${place} läggs ${standard ? `som hans sparade standard (${standard}), ` : ''}i Som förut.`);
-  if (values.landning && way !== 'naturlig') fail(`--landning finns bara i Naturlig; ${place} läggs ${standard ? `som hans sparade standard (${standard}), ` : ''}i Som förut.`);
-  if (values.vandning && way !== 'naturlig') fail(`--vandning finns bara i Naturlig; ${place} läggs ${standard ? `som hans sparade standard (${standard}), ` : ''}i Som förut.`);
-  // (the side: the flag's, else the standard's, else the plan's as it stands; only 'BACK' is kept in the steering, so an open card is laid and written as before)
-  if (DEALER_CARD.test(place)) { const side = values.sida ? (values.sida === 'stangt' ? 'BACK' : 'FRONT') : saved ? sideOf(steer) : sideOfPlan(plan, place) ?? 'FRONT';
-    if (side === 'BACK') steer.side = 'BACK'; else delete steer.side;
-    if (side === 'BACK' && (values.landning || values.vandning || !asBefore(landing) || turn !== TURN_DEFAULT)) fail(`${place} läggs stängt: kortet skjuts med baksidan upp och vänds aldrig, så det har ingen egen landning eller vändning.`); }
-  laid = (way === 'naturlig' ? layNatural({plan, target: place, recipe: recipe!, pose, steer, lens, doll, before}).deal : layDeal({plan, target: place, recipe: recipe!, pose, steer})) as never;
-  source = `dealer3d/data/${recipe!.from}.json`;
-}
-// Its return (return-cycle.ts checks the standard's arms), on the doll, moved as a person moves.
+// The state as the lab holds it: the standard's recipe, steering, shoulders and elbows, landing and turn, read as the lab
+// reads them (natural-lab.ts savedState; the landing and the turn the flag's where one is given), else nothing moved; the
+// side the plan's (or the flag's). The chain's rules then hold for it as for the lab (natural-lab.ts filmRules).
+const own = savedState(savedLab), way = wayFor(doll), {steer, knobs} = own;
+let {recipe, pose} = await recipeNamed(found.recipe); if (own.recipe && own.recipe !== recipe.from) ({recipe, pose} = await recipeNamed(own.recipe));
+const landing: Landing = values.landning ? {id: values.landning as Landing['id']} : own.landing;
+const turn: TurnId = values.vandning ? values.vandning as TurnId : own.turn;
+const fast = number(values['kortets-fart'], '--kortets-fart');
+if (fast !== undefined) { const most = Math.round(Math.min(ENDS.cardTempo, cardTempoMost(recipe, steer)) * 100); if (fast < 100 || fast > most) fail(`--kortets-fart ska vara från 100 till ${most} (procent) för ${place}, som Kortets fart i Inspelning.`); if (fast === 100) delete steer.cardTempo; else steer.cardTempo = fast / 100; }
+if (values['flat-hand'] && way !== 'naturlig') fail(`--flat-hand finns bara för en dealers docka (Naturlig); standarddockan ger som förut.`);
+if (values.landning && way !== 'naturlig') fail(`--landning finns bara för en dealers docka (Naturlig); standarddockan ger som förut.`);
+if (values.vandning && way !== 'naturlig') fail(`--vandning finns bara för en dealers docka (Naturlig); standarddockan ger som förut.`);
+// (the side: the flag's, else the plan's as it stands, as the lab lays it; only 'BACK' is kept in the steering, so an open card is laid and written as before)
+if (DEALER_CARD.test(place)) { const side = values.sida ? (values.sida === 'stangt' ? 'BACK' : 'FRONT') : sideOfPlan(plan, place) ?? 'FRONT';
+  if (side === 'BACK') steer.side = 'BACK'; else delete steer.side;
+  if (side === 'BACK' && (values.landning || values.vandning)) fail(`${place} läggs stängt: kortet skjuts med baksidan upp och vänds aldrig, så det har ingen egen landning eller vändning.`); }
+else delete steer.side;
+// The deal and its return through the one chain, as the lab shows it (return-cycle.ts checks the standard's arms).
+const source = `dealer3d/data/${recipe.from}.json`;
 const options = {holdThrough: number(values.hold, '--hold'), readyFrom: number(values.ready, '--ready'), durationSeconds: number(values.duration, '--duration'), liftMeters: number(values.lift, '--lift')};
-const done = withReturn(laid, {way, body: steer.body, knobs, lens, doll, source: {path: source, sha256: used[source]}, cycle: options, cardTempo: cardTempoOf(steer), flatHand: !!values['flat-hand'], before, landing, turn});
-const landingSaid = way === 'naturlig' ? landing : null, turnSaid = way === 'naturlig' ? turn : null;
+const input: FilmInput = {plan, place, recipe, pose, doll, lens, steer, knobs, landing, turn, source: {path: source, sha256: used[source]}, cycle: options, flatHand: !!values['flat-hand'], before};
+const done = filmed(filmDeal(input), input), rules = done.rules, turned = rules.way === 'naturlig' && !rules.closed;
+const landingSaid = turned ? rules.landing : null, turnSaid = turned ? rules.turn : null;
 const cycle = done.cycle, motion = done.motion as typeof done.motion & {frames: {card: {c: number[]}; L: Limb; R: Limb}[]}, flatDeg = done.receipt?.frames.map(f => f.flatDeg ?? 0) ?? [];
 
-const words = place.replace(/^P(\d)\.C(\d)$/, 'plats $1 kort $2').replace(/^D\.C(\d)$/, 'dealerns kort $1'), WAY = {naturlig: 'Naturlig', forut: 'Som förut'};
-const how = standard ? `hans sparade standard ${standard} (i ${WAY[way]})` : `${WAY[way]}, inget reglage rört`;
+const words = place.replace(/^P(\d)\.C(\d)$/, 'plats $1 kort $2').replace(/^D\.C(\d)$/, 'dealerns kort $1'), WAY = {naturlig: 'Naturlig', forut: 'som förut (standarddockan)'};
+const how = standard ? `hans sparade standard ${standard} (${WAY[way]})` : `${WAY[way]}, inget reglage rört`;
 const about = `${doll.name === 'paow' ? 'Paow' : 'Standarddockan'}, ${entry} till ${words} och tillbaka till ${entry} i samma film, lagd som dockans sida lägger den: ${how}${cardTempoOf(steer) !== 1 ? `, kortets fart ${Math.round(cardTempoOf(steer) * 100)} % (bara händerna med kortet går fortare)` : ''}${values['flat-hand'] ? ', högerhanden plan vid nedsläppet (natural.ts flatHand)' : ''}${before.samHand ? ', vänsterhanden vid skon som SAM läste den' : ''}${before.recipeGripYaw ? ', handens vinkel på kortet receptets' : ''}${before.oneGripYaw && !before.recipeGripYaw ? ', en vinkel för handen på kortet hela vägen' : ''}${landingSaid && !asBefore(landingSaid) ? `, landningen: ${landingWords(landingSaid).toLowerCase()}` : ''}${done.turn?.laid ? ', kortet vänt i högerhanden av handleden (turn-in-hand.ts)' : ''}${sideOf(steer) === 'BACK' ? ', lagt stängt (baksidan upp hela vägen, aldrig vänt)' : ''}. Skriven av dealer3d/tools/docka-cykel.ts; filmas med render-reference.ts --seconds ${cycle.frameCount / cycle.fps} --fps 24.`;
-const made = {tool: 'dealer3d/tools/docka-cykel.ts', place, from: entry, doll: doll.name, way, standard, recipe: recipe?.from ?? null, poseFilm: recipe ? recipe.poseFilm ?? 'till-ankare-2-3' : null, steer, knobs,
-  gripYaw: recipe ? gripYawsOf(recipe, steer, way, before) : null, ...(DEALER_CARD.test(place) ? {side: sideOf(steer)} : {}), flatHand: !!values['flat-hand'], before, landing: landingSaid, landed: done.landing, ...(turnSaid && turnSaid !== TURN_DEFAULT ? {turn: turnSaid, turned: done.turn} : {}), cycle: options, sources: used};
+const made = {tool: 'dealer3d/tools/docka-cykel.ts', place, from: entry, doll: doll.name, way, standard, recipe: recipe.from, poseFilm: recipe.poseFilm ?? 'till-ankare-2-3', steer: rules.steer, knobs: rules.knobs,
+  gripYaw: gripYawsOf(recipe, rules.steer, way, before), ...(DEALER_CARD.test(place) ? {side: sideOf(steer)} : {}), flatHand: !!values['flat-hand'], before, landing: landingSaid, landed: done.landing, ...(turnSaid && turnSaid !== TURN_DEFAULT ? {turn: turnSaid, turned: done.turn} : {}), cycle: options, sources: used};
 await writeFile(out, JSON.stringify({...motion, about, made}) + '\n', {flag: 'wx'});
 
 type Limb = {s: number[]; e: number[]; w: number[]; p: number[][]};

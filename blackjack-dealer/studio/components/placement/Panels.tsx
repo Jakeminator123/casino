@@ -4,16 +4,15 @@
 // allt i 3d"). The table is always the real one: every card is a real card through the same camera as the dealer, so a card
 // has no direction or shape of its own to set. Step 1, Var kortet landar: PlacePanel (where the card lies). Step 2, Hur det
 // kommer dit: MotionPanel (for a dealer's card the side it lies with, "Kortet ligger", chosen here and nowhere else; a
-// player's card always lies open; the card's way from the anchor it goes from). Hela bordet: TablePanel (the table's one
+// player's card always lies open; the doll's own controls under it show and steer the way). Hela bordet: TablePanel (the table's one
 // shape number, Bordets perspektiv). A real card has no size of its own here (Jakob 2026-11-17: "kör vi 1.0 så kanske det
 // är bra"; its size is adjusted only in Efterarbete), and no grid to snap to or start proposal to go back to (Jakob
 // 2026-11-24: "färre val"). Every change goes to the draft as one step (a slider's drag is one step); nothing is saved here,
 // and the plan keeps every field it has, also those no panel shows.
 import type { ReactNode } from "react";
-import type { Anchor } from "../../../src/order-model.ts";
 import { planTaper } from "../../../src/card-plan.ts";
 import { CARD_COLOUR, TABLE_PERSPECTIVE, editIntent, editPlace, setTablePerspective, type Place, type PlacementPlan } from "../../../src/placement-model.ts";
-import { PLAN_VIEW, isDealerCard, motionSteps } from "../../lib/placement.ts";
+import { PLAN_VIEW, isDealerCard } from "../../lib/placement.ts";
 import { SegmentedControl, Slider } from "../ui";
 import { NumberField } from "./NumberField";
 import { draftActions } from "./useDraft.ts";
@@ -114,13 +113,14 @@ export function PlacePanel({ plan, id, editable }: { plan: PlacementPlan; id: Pl
 /**
  * What the plan steers of the card's way: for a dealer's card (DC1–DC3) the side it lies with ("Kortet ligger", the plan's
  * endSide: the doll lays it so, and an order's text says it). A player's card always lies open, and the doll lays it open
- * whatever the plan says, so it has nothing to choose. Everything else the anchor the card goes from (`anchor`, the guide
- * tree's: lib/bordet.ts treeAnchor) decides, and Kortbanan shows the card's way from that anchor. The doll's picture and its
- * own controls (how it moves, lands and turns, under this panel) show the motion; step 3 says what an order sends.
+ * whatever the plan says, so it has nothing to choose. Everything else the anchor the card goes from (the guide tree's:
+ * lib/bordet.ts treeAnchor) and the doll decide: its picture and its own controls under this panel (how it lands and turns,
+ * its body and the card's speed) show the motion an order films; step 3 says what an order sends. (A row of the way's steps
+ * read from the plan's hidden fields stood here until 2026-11-26: it named steps the doll does not make. `anchor` is
+ * no longer read.)
  */
-export function MotionPanel({ plan, id, editable, anchor }: { plan: PlacementPlan; id: Place; editable: boolean; anchor: Exclude<Anchor, "1"> }) {
+export function MotionPanel({ plan, id, editable }: { plan: PlacementPlan; id: Place; editable: boolean }) {
   const intent = plan.targets[id].intent;
-  const way = motionSteps(id, intent, anchor);
   return (
     <Section title="Det som styr">
       {isDealerCard(id) ? (
@@ -131,18 +131,6 @@ export function MotionPanel({ plan, id, editable, anchor }: { plan: PlacementPla
       ) : (
         <p className="text-sm text-dim">Spelarens kort ligger alltid öppet.</p>
       )}
-      {/* the card's way from the anchor; "Spela kortbanan" plays the doll's deal to the card */}
-      <ol className="flex flex-wrap items-center gap-1" aria-label="Kortbanan">
-        {way.steps.map((s, n) => (
-          <li key={s.id} className="flex items-center gap-1">
-            {n ? <span aria-hidden className="text-faint">→</span> : null}
-            <span data-step={s.id} className="flex flex-col rounded-md border border-line-strong bg-raised px-2 py-1 leading-tight">
-              <b className="text-xs font-semibold text-brass-hi">{s.label}</b>
-              <span className="text-2xs text-dim">{s.detail}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
     </Section>
   );
 }

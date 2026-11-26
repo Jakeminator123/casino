@@ -1,27 +1,25 @@
-// The doll lab (Jakob 2026-11-23): the white doll at the table in a view the mouse turns, set in her poses (A1, A2.1,
-// A2.3) and dealing one card from an entry (A2.3, or A2.1; lay.ts Entry) to a place of his plan, with play, pause,
-// scrubbing and speed, the joints and the fingertips on the card marked, the sliders that lay the deal again as they are
-// moved, and "Spara som standard", which writes what is shown as a motion file for that doll, entry and place
-// (dealer3d/standard/, lay.ts standardName; the routes are dealer3d/page/server.ts). The deal is shown alone: its return to
-// the entry's pose is laid by dealer3d/tools/docka-cykel.ts when a film is ordered, always ("giv och återgång i en film"),
-// from the standard's recipe and sliders, so it is no choice here (Jakob 2026-11-24: "färre val"). The room and the doll are
-// dealer3d/src/stage.ts's (page/lab-stage.ts), a deal from A2.3 is laid by dealer3d/src/two-hand.ts from the recipe of a
-// stored deal (page/lay.ts) and posed on the doll paow as dealer3d/tools/doll-pose.ts poses it (page/pose-on-doll.ts), and
-// one from A2.1 is built on the doll's bones with its return (dealer3d/src/pinch-deal.ts, as docka-cykel.ts builds it):
-// nothing is drawn or posed here that those do not make.
-// Two ways of dealing from A2.3 (page/natural-lab.ts): "Naturlig", the standard for Paow (the hands hand the card over
-// without meeting, thumb and forefinger hold its corner, her left hand at the shoe as her picture has it, the body,
-// shoulders and elbows steered on her as far as her arms reach; dealer3d/src/natural.ts), and "Äldre given" (the way
-// 'forut'), the deal as the lab laid it before, kept until Jakob has said yes to the new. From A2.1 there is one: the deal
-// as built.
-// Everything is laid here, with the shoe the films have (src/table-lens.ts SHOE): a stored file began in the shoe of before
-// 2026-11-23, 3 cm off, and is not played. A standard he has saved is laid again from its recipe and his sliders, the way
-// he saved it in, whichever way is chosen; the file stays as it is.
+// The doll (Jakob 2026-11-23): the white doll at the table in a view the mouse turns, dealing one card from an entry (A2.3,
+// or A2.1; lay.ts Entry) to a place of his plan, with play, pause, scrubbing and speed, the joints and the fingertips on the
+// card marked, her poses A1, A2.1 and A2.3 to look at (in the picture's row), the sliders that lay the deal again as they
+// are moved, and "Spara som standard", which writes what is shown as a motion file for that doll and place
+// (dealer3d/standard/, lay.ts standardName; the routes are dealer3d/page/server.ts).
+// What is shown is what an order films (Jakob 2026-11-26: "everything must be watertight and not unnecessarily
+// complicated"): the deal with its return to the entry's pose, laid by the one chain of page/natural-lab.ts (filmRules,
+// filmDeal, filmed) that dealer3d/tools/docka-cykel.ts writes an order's motion with, from the same state. From A2.3 a
+// dealer's doll deals "Naturlig" and the standard doll as the deal was laid before (natural-lab.ts wayFor: no choice of it);
+// from A2.1 the deal is the pinch's own, built on the doll's bones with its return (dealer3d/src/pinch-deal.ts, as
+// docka-cykel.ts builds it), and nothing here steers it. The room and the doll are dealer3d/src/stage.ts's
+// (page/lab-stage.ts): nothing is drawn or posed here that those and the chain do not make.
+// A control that cannot act where it stands is not shown (Jakob 2026-11-26), each condition measured: from A2.1 none of
+// them; for a card laid closed no turn, no landing, and not the hand's height or where and when the turn begins; for a
+// recipe without a contact grip (the roll: seats 6 and 7's first card and her own cards) no hand's angle on the card; for
+// the standard doll no landing, turn, shoulders or elbows (only "Naturlig" has them).
+// Everything is laid here, with the shoe the films have (src/table-lens.ts SHOE). A standard he has saved is laid again
+// from its recipe and his sliders by the same chain; the file's frames are not played.
 // The side a dealer's card lies with is the plan's, and only the plan's (its intent.endSide, read as it stands; lay.ts
 // Steer.side): the same fact was chosen in two places, in Inspelning and in a choice of the lab's own, until Jakob
 // 2026-11-25 ("Simplifiera väldigt mycket, men framförallt så inte förväxlingar kan ske"). A standard saved with the other
-// side is laid with the plan's. A closed card is slid face down and never turned, so it has no turn, landing or turning
-// sliders of its own.
+// side is laid with the plan's. A closed card is slid face down and never turned (natural-lab.ts filmRules).
 // A click in the picture (no drag) chooses the place nearest the point of the felt under the pointer, as its button does.
 // Embedded in the studio (?inbaddad=1, Bordet's Inspelning: one picture, the 3D one, Jakob 2026-11-25) the doll is the dealer
 // chosen there, the entry is the studio's (its guide tree's anchor: the lab shows no choice of it), the plan is the studio's
@@ -30,10 +28,10 @@
 // be laid over the doll in "Filmens kamera" (the film over the doll, below).
 // window.docklabb is for a test that looks at the page: ready, facts() of what is shown, and at(place): where a place lies in the picture.
 import {createLabStage, type LabStage, type Touch, type ViewName} from './lab-stage.ts';
-import {DEALER_CARD, NO_STEER, TURN_AT_PLACE, cardInFilmsShoe, cardTempoMost, cardTempoOf, layDeal, placeFrom, planPoint, recipeOf, shares, sideOf, sideOfPlan, standardName, type Entry, type Side, type LaidDeal, type PoseFilm, type Recipe, type Steer, type Stored} from './lay.ts';
-import {NO_KNOBS, dollFor, gripYawsOf, layNatural, moveNatural, onDoll, type Knobs, type LaidNatural, type Way} from './natural-lab.ts';
+import {DEALER_CARD, NO_STEER, cardInFilmsShoe, cardTempoMost, cardTempoOf, placeFrom, planPoint, recipeOf, shares, sideOf, sideOfPlan, standardName, type Entry, type Side, type LaidDeal, type PoseFilm, type Recipe, type Steer, type Stored} from './lay.ts';
+import {ENDS, NO_KNOBS, dollFor, filmDeal, filmRules, filmed, gripYawsOf, onDoll, savedState, wayFor, type FilmInput, type Knobs, type Way} from './natural-lab.ts';
 import {LANDINGS, LANDING_DEFAULT, SHAPING_KNOBS, asBefore, landingOf, landingWords, type Landing, type LandingReceipt} from '../src/landing.ts';
-import {TURNS, TURN_DEFAULT, turnOf, type TurnId, type TurnReceipt} from '../src/turn-in-hand.ts';
+import {TURNS, TURN_DEFAULT, type TurnId, type TurnReceipt} from '../src/turn-in-hand.ts';
 import type {PoseOptions} from './pose-on-doll.ts';
 import {dollNamed, type Doll} from '../src/doll.ts';
 import {filmLens, spots, type Plan} from '../src/world.ts';
@@ -48,8 +46,8 @@ type Shown = {kind: 'pose'; pose: Pose} | {kind: 'deal'};
 type How = Way | 'byggd';
 type Motion = Read & {doll?: string; lab?: Record<string, unknown>; cycle?: unknown};
 type Standard = {name: string; doll: string; place: string; savedAt: string};
-/** What a saved standard carries of how it was made: the recipe, the sliders, for "Naturlig" the shoulders and elbows (`naturlig`, which a standard saved before has not), and the landing and the turn where they are not the default (`landing`, landing.ts; `turn`, turn-in-hand.ts). (One saved while the lab could show the return also has it, `back`; nothing reads it.) */
-type SavedLab = {recipe?: string; steer?: Steer; bodyAsked?: [number, number, number]; shortMm?: number; naturlig?: {knobs?: Partial<Knobs>; bodyShare?: number}; landing?: unknown; turn?: unknown};
+/** What a saved standard carries of how it was made: the recipe, the sliders, for "Naturlig" the shoulders and elbows (`naturlig`, which a standard saved before has not), the landing and the turn where they are not the default (`landing`, landing.ts; `turn`, turn-in-hand.ts), and when it was saved (`savedAt`). (Its return, `back`, is a record only: it is laid again from the rest.) */
+type SavedLab = {recipe?: string; steer?: Steer; bodyAsked?: [number, number, number]; shortMm?: number; naturlig?: {knobs?: Partial<Knobs>; bodyShare?: number}; landing?: unknown; turn?: unknown; savedAt?: string};
 /** An element of the picture, which is always this page's own (#stage, #frame, #views, #joints, #grip, #note, #play, #scrub, #clock, #speed, #loop, and the film over the doll: #film, #filmKnob, #filmShare, #filmShown, #filmNote). */
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 // The controls: everything under one root, which embedded may stand in the page around (attach, below); so a control is
@@ -67,8 +65,9 @@ const get =async (address: string) => { const r = await fetch(address, {cache: '
 const files = new Map<string, Promise<unknown>>(), stored = <T>(name: string) => { let p = files.get(name); if (!p) { p = get(`/dealer3d/data/${name}.json`); files.set(name, p); } return p as Promise<T>; };
 const comma = (n: number, digits = 0) => n.toFixed(digits).replace('.', ',').replace('-', '−');
 const DOLLS: Record<string, string> = {paow: 'Paow', standard: 'Standarddockan'}, LENT = {'seat 5': 'receptet lånat av plats 5', 'her first card': 'receptet lånat av kort 1'};
-const WHY = {reach: 'når inte', unposed: 'dockan har ingen ställning A2.1', over: 'vänster arm skulle gå över hennes högra hand, så där byter kortet hand och givs från A2.3'};
-const WAYS: Record<How, string> = {naturlig: 'Naturlig', forut: 'Äldre given', byggd: 'Byggd giv'};
+/** Why no deal goes from the entry to a place (lay.ts placeFrom's `none`), in his words. */
+const WHY: Record<string, string> = {reach: 'en spelares andra kort läggs alltid med svepet, och med svepet räcker inte hennes högra arm dit', unposed: 'dockan har ingen ställning A2.1', closed: 'ett stängt kort vänds aldrig i hennes fingrar, så det läggs från A2.3'};
+const whyOf = (r: ReturnType<typeof placeFrom>) => r && 'none' in r ? WHY[r.none] ?? 'dockan lägger inget kort dit' : '';
 // The pose films: A1 is the first frame of the film to A2.3 and A2.3 its last; A2.1, the pinch at the shoe, is the first
 // frame of her built deal (pinch-deal.ts, from her pose A2.1, lay.ts POSE_21).
 const POSES: Record<Pose, {film: string; end: boolean; built?: boolean; said?: string}> = {
@@ -87,7 +86,8 @@ const planSide = (id: string): Side | null => DEALER_CARD.test(id) ? sideOfPlan(
 const sided = (steer: Steer, id: string): Steer => { const {side: _side, ...rest} = steer; return planSide(id) === 'BACK' ? {...rest, side: 'BACK'} : rest; };
 /** The steering where nothing is moved: the recipe as it is, and the card on the side the plan has it. */
 const baseSteer = (id: string): Steer => sided({...NO_STEER}, id);
-const state = {doll: 'paow', way: 'naturlig' as Way, entry: 'A2.3' as Entry, shown: {kind: 'deal'} as Shown, place: 'P4.C1', steer: {...NO_STEER} as Steer, knobs: knobsOf(), landing: {id: LANDING_DEFAULT} as Landing, turn: TURN_DEFAULT as TurnId, touched: false, playing: false, speed: 1, loop: false, joints: false, view: 'film' as ViewName, t: 0};
+// (`wanted`: a card asked for that no deal goes to from the entry; the picture keeps the card it shows, and says why)
+const state = {doll: 'paow', entry: 'A2.3' as Entry, shown: {kind: 'deal'} as Shown, place: 'P4.C1', wanted: null as string | null, steer: {...NO_STEER} as Steer, knobs: knobsOf(), landing: {id: LANDING_DEFAULT} as Landing, turn: TURN_DEFAULT as TurnId, touched: false, playing: false, speed: 1, loop: false, joints: false, view: 'film' as ViewName, t: 0};
 /** Whether a deal goes from `entry` to the place `id` (for the chosen doll: from A2.1 one with the pose A2.1). */
 const opens = (entry: Entry, id: string) => { const r = placeFrom(entry, id, state.doll, plan); return !!r && !('none' in r); };
 /** The first place of the plan a deal goes to from `entry`. */
@@ -96,15 +96,17 @@ const firstOpen = (entry: Entry) => Object.keys(plan.targets).find(id => opens(e
   const m = /^(?:p([1-7])|d)c([123])$/.exec(asked.get('plats') ?? ''), id = m ? `${m[1] ? `P${m[1]}` : 'D'}.C${m[2]}` : null;
   if (id && Object.hasOwn(plan.targets, id) && opens(state.entry, id)) state.place = id; else if (!opens(state.entry, state.place)) state.place = Object.keys(plan.targets).find(k => opens(state.entry, k)) ?? state.place;
   state.steer = baseSteer(state.place); }
-/** The way a deal from A2.3 is shown now: "Naturlig" is Paow's (the standard doll is locked, and keeps "Äldre given"). */
-const wayOf = (): Way => state.doll === 'standard' ? 'forut' : state.way;
-// What is on the stage now: the motion, and for a deal what it was laid from. `from`: a saved standard (laid again from what it was saved with), laid here as steered, or a pose. `fault`: why the last laying did not go (the motion is then the last that did).
+/** The way the chosen doll deals from A2.3 (natural-lab.ts wayFor): "Naturlig", or as the deal was laid before for the standard doll. */
+const wayOf = (): Way => wayFor(dollNamed(state.doll));
+// What is on the stage now: the motion, and for a deal what it was laid from. `from`: a saved standard (laid again from what it was saved with), laid here as steered, or a pose. `savedAt`: when the standard shown was saved (its lab.savedAt). `rules`: what the chain laid it by (natural-lab.ts filmRules). `fault`: why the last laying did not go (the motion is then the last that did).
 type Now = {doll: string; place: string | null; entry: Entry; motion: Motion; deal: LaidDeal | null; recipe: Recipe | null; lent: string | null; shortMm: number; saved: boolean; said: string | null;
-  way: How; from: 'saved' | 'laid' | 'pose'; savedWay: How | null; bodyShare: number | null; receipt: ReturnType<typeof moveNatural>['receipt'] | null; landed: LandingReceipt | null; turned: TurnReceipt | null};
-let now: Now | null = null, fault: string | null = null, laid: {key: string; value: LaidNatural} | null = null;
+  way: How; from: 'saved' | 'laid' | 'pose'; savedAt: string | null; bodyShare: number | null; receipt: ReturnType<typeof filmed>['receipt'] | null; landed: LandingReceipt | null; turned: TurnReceipt | null; rules: ReturnType<typeof filmRules> | null};
+let now: Now | null = null, fault: string | null = null, laid: {key: string; value: LaidDeal} | null = null;
 // His saved standards, and the one before each (`forra`: what a save replaced or "Alla till förvalet" laid aside, which
-// "Ta tillbaka den förra" takes back; dealer3d/page/server.ts). Read when the page starts and from every answer that changes them.
+// "Ta tillbaka den förra" takes back; dealer3d/page/server.ts). Read when the page starts and from every answer that changes
+// them. `savedWhen`: when each standard read was saved, as its own file says (lab.savedAt).
 let standards: Standard[] = [], before: Standard[] = [], stage: LabStage | null = null, held = 0;
+const savedWhen = new Map<string, string>();
 const takeLists = (a: {standards?: Standard[]; forra?: Standard[]}) => { standards = a.standards ?? []; before = a.forra ?? []; };
 const readLists = async () => takeLists(await get('/dealer3d/standard').catch(() => ({})));
 await readLists();
@@ -131,45 +133,42 @@ async function dealOfPlace(entry: Entry, place: string, doll: string) {
   return {...await recipeNamed(r.recipe), lent: r.lent ? LENT[r.lent] : null};
 }
 const untouched = () => JSON.stringify(state.steer) === JSON.stringify(baseSteer(state.place)) && JSON.stringify(state.knobs) === JSON.stringify(NO_KNOBS) && asBefore(state.landing) && state.turn === TURN_DEFAULT;
-type Laid = {motion: Motion; deal: LaidDeal | null; shortMm: number; bodyShare: number | null; receipt: Now['receipt']; landed: LandingReceipt | null; turned: TurnReceipt | null};
+type Laid = {motion: Motion; deal: LaidDeal | null; shortMm: number; bodyShare: number | null; receipt: Now['receipt']; landed: LandingReceipt | null; turned: TurnReceipt | null; rules: Now['rules']};
 /**
- * Lays the deal from the chosen entry to the chosen place the chosen way, as steered, on the doll; or, untouched, the
- * standard saved for the doll, entry and place, laid again from its recipe and his sliders the way it was saved in. Keeps
- * what is shown where the laying does not go.
+ * Lays the deal from the chosen entry to the chosen place as an order films it (natural-lab.ts filmed: the deal with its
+ * return), as steered, on the doll; or, untouched, the standard saved for the doll and place, laid again from its recipe
+ * and his sliders by the same chain. From A2.1 the pinch's own deal, as built. Keeps what is shown where the laying does
+ * not go.
  */
 async function showDeal(keepTime = false) {
-  const place = state.place, doll = state.doll, entry = state.entry, chosen = wayOf(), planned = planNo, found = await dealOfPlace(entry, place, doll);
-  const stale = () => place !== state.place || doll !== state.doll || entry !== state.entry || chosen !== wayOf() || planned !== planNo;
+  const place = state.place, doll = state.doll, entry = state.entry, planned = planNo, found = await dealOfPlace(entry, place, doll);
+  const stale = () => place !== state.place || doll !== state.doll || entry !== state.entry || planned !== planNo;
   if (!found || stale()) return;
-  let saved = state.touched ? null : standards.find(s => s.name === standardName(doll, entry, place)); const D = dollNamed(doll);
+  // (a standard is saved from A2.3 only: from A2.1 nothing here steers the deal)
+  let saved = state.touched || entry !== 'A2.3' ? undefined : standards.find(s => s.name === standardName(doll, place)); const D = dollNamed(doll);
   try {
     let lab: SavedLab | null = null;
     // (a standard laid aside since the list was read, in another tab or by an agent, is no longer there: the default holds)
     if (saved) { const file = await get(`/dealer3d/standard/${saved.name}.json`).catch(() => null) as Motion | null; if (stale()) return;
-      if (file) lab = (file.lab ?? {}) as SavedLab; else { saved = undefined; await readLists(); if (stale()) return; } }
-    let way: How, savedWay: How | null = null, recipe: Recipe | null = null, shown: Laid;
+      if (file) { lab = (file.lab ?? {}) as SavedLab; if (typeof lab.savedAt === 'string') savedWhen.set(saved.name, lab.savedAt); } else { saved = undefined; await readLists(); if (stale()) return; } }
+    let way: How, recipe: Recipe | null = null, shown: Laid;
     if (found.pinch !== undefined) {
-      // From A2.1: built on her bones with its return; shown alone, it ends as her hand is lifted off the card.
+      // From A2.1: built on her bones with its return, as docka-cykel.ts films it from A2.1.
       const built = await builtDeal(found.pinch, place, D); if (stale()) return;
-      const m = built.motion as unknown as Motion & {frames: unknown[]; frameCount: number}, n = built.times.lifted + 1;
-      way = 'byggd'; savedWay = saved ? 'byggd' : null;
-      shown = {motion: {...m, frameCount: n, frames: m.frames.slice(0, n), cycle: undefined} as Motion, deal: null, shortMm: built.shortMm, bodyShare: null, receipt: null, landed: null, turned: null}; }
+      way = 'byggd'; shown = {motion: built.motion as unknown as Motion, deal: null, shortMm: built.shortMm, bodyShare: null, receipt: null, landed: null, turned: null, rules: null}; }
     else {
-      let {recipe: own, pose} = found; way = chosen;
-      // (the side is the plan's, whichever the standard was saved with; a closed card has no landing or turn of its own)
-      if (lab) { state.steer = sided({...NO_STEER, ...lab.steer}, place); const shut = sideOf(state.steer) === 'BACK'; state.knobs = knobsOf(lab.naturlig?.knobs); state.landing = shut ? {id: LANDING_DEFAULT} : landingOf(lab.landing); state.turn = shut ? TURN_DEFAULT : turnOf(lab.turn); savedWay = lab.naturlig ? 'naturlig' : 'forut'; way = doll === 'standard' ? 'forut' : savedWay;
-        if (lab.recipe && lab.recipe !== own.from) ({recipe: own, pose} = await recipeNamed(lab.recipe)); if (stale()) return; }
-      recipe = own;
-      if (way === 'naturlig') {
-        // (laid again only when what the laying takes has changed: the body, shoulders and elbows move the doll on the deal laid last)
-        const key = JSON.stringify([planned, doll, place, own.from, {...state.steer, body: null}]);
-        if (laid?.key !== key) laid = {key, value: layNatural({plan, target: place, recipe: own, pose, steer: state.steer, lens, doll: D})};
-        const moved = moveNatural(laid.value, state.steer.body, state.knobs, lens, state.landing, state.turn); shown = {motion: moved.motion as unknown as Motion, deal: laid.value.deal, shortMm: laid.value.shortMm, bodyShare: moved.bodyShare, receipt: moved.receipt, landed: moved.landing, turned: moved.turn}; }
-      else {
-        // "Äldre given": the deal as the lab laid it before, as steered.
-        const deal = layDeal({plan, target: place, recipe: own, pose, steer: state.steer}), r = posedOn(deal, D);
-        shown = {motion: r.motion as unknown as Motion, deal, shortMm: r.shortMm, bodyShare: null, receipt: null, landed: null, turned: null}; } }
-    now = {doll, place, entry, recipe, lent: found.lent, said: way === 'byggd' ? `byggd på ${DOLLS[doll]}s kropp` : null, way, saved: !!saved, from: saved ? 'saved' : 'laid', savedWay, ...shown};
+      let {recipe: own, pose} = found;
+      // (the side is the plan's, whichever the standard was saved with)
+      if (lab) { const s = savedState(lab); state.steer = sided(s.steer, place); state.knobs = s.knobs; state.landing = s.landing; state.turn = s.turn;
+        if (s.recipe && s.recipe !== own.from) ({recipe: own, pose} = await recipeNamed(s.recipe)); if (stale()) return; }
+      recipe = own; way = wayFor(D);
+      const input: FilmInput = {plan, place, recipe: own, pose, doll: D, lens, steer: state.steer, knobs: state.knobs, landing: state.landing, turn: state.turn}, rules = filmRules(input);
+      // (the deal is laid again only when what it takes has changed: the body (in "Naturlig"), shoulders, elbows, landing and turn move the doll after it, natural-lab.ts filmDeal)
+      const key = JSON.stringify([planned, doll, place, own.from, rules.way === 'naturlig' ? {...rules.steer, body: null} : rules.steer]);
+      if (laid?.key !== key) laid = {key, value: filmDeal(input)};
+      const f = filmed(laid.value, input);
+      shown = {motion: f.motion as unknown as Motion, deal: laid.value, shortMm: f.shortMm, bodyShare: f.bodyShare, receipt: f.receipt, landed: f.landing, turned: f.turn, rules}; }
+    now = {doll, place, entry, recipe, lent: found.lent, said: way === 'byggd' ? `byggd på ${DOLLS[doll]}s kropp` : null, way, saved: !!saved, from: saved ? 'saved' : 'laid', savedAt: saved ? savedWhen.get(saved.name) ?? saved.savedAt : null, ...shown};
     fault = null;
   } catch (e) { fault = plain(e); console.warn(e); if (!now || now.place !== place || now.doll !== doll || now.entry !== entry || state.shown.kind !== 'deal') { paint(); return; } }
   if (stale()) return;
@@ -184,7 +183,7 @@ async function showPose(pose: Pose) {
   else { const film = await stored<Motion>(p.film); if (doll !== state.doll) return;
     posed = posedOn(film, dollFor(wayOf(), dollNamed(doll))); posed.motion = cardInFilmsShoe(posed.motion as Motion & {frames: {card: {c: number[]; l: number[]; n: number[]}}[]}); } // the pose films' card stood in the shoe of before 2026-11-23
   state.shown = {kind: 'pose', pose}; state.playing = false; fault = null;
-  now = {doll, place: null, entry: state.entry, motion: posed.motion, deal: null, recipe: null, lent: null, shortMm: 0, saved: false, said: p.said && doll !== 'standard' ? `${p.said} på ${DOLLS[doll]}s kropp` : p.said ?? null, way: wayOf(), from: 'pose', savedWay: null, bodyShare: null, receipt: null, landed: null, turned: null};
+  now = {doll, place: null, entry: state.entry, motion: posed.motion, deal: null, recipe: null, lent: null, shortMm: 0, saved: false, said: p.said && doll !== 'standard' ? `${p.said} på ${DOLLS[doll]}s kropp` : p.said ?? null, way: wayOf(), from: 'pose', savedAt: null, bodyShare: null, receipt: null, landed: null, turned: null, rules: null};
   stage!.setMotion(posed.motion); state.t = p.end ? stage!.duration() : 0; stage!.setTime(state.t); paint();
 }
 const show = (keepTime = false) => state.shown.kind === 'deal' ? showDeal(keepTime) : showPose(state.shown.pose);
@@ -201,23 +200,25 @@ function size(canvas = $<HTMLCanvasElement>('stage')) { const box = $('frame').g
 /** The fingertips on the card are marked with the joints, and always close on the card. */
 const gripsShown = () => state.joints || state.view === 'card';
 
-// The sliders: each shows the recipe's own value until it is moved (the hand's angle on the card: in "Naturlig" 17° as her right hand takes it and −30° once it is turned, natural-lab.ts gripYawsOf), and lays the deal again when it is. From A2.1 none: the deal is as built.
-type Knob = {name: string; group?: string; min: () => number; max: () => number; step: number; on: () => boolean; value: () => number; set: (v: number) => void; text: (v: number) => string; only?: string; turns?: boolean};
+// The sliders: each shows the recipe's own value until it is moved (the hand's angle on the card: in "Naturlig" 17° as her
+// right hand takes it and −30° once it is turned, natural-lab.ts gripYawsOf), and lays the deal again when it is. Each is
+// shown only where it can act (`on`; `turns`: not for a card laid closed, which the chain never turns: natural-lab.ts
+// filmRules); from A2.1 none. "Var kortet vänds" and "Kortets fart" end where every card they apply to still lays
+// (natural-lab.ts ENDS).
+type Knob = {name: string; group?: string; min: () => number; max: () => number; step: number; on: () => boolean; value: () => number; set: (v: number) => void; text: (v: number) => string; turns?: boolean};
 /** Whether the card shown is laid closed (lay.ts Steer.side): it is never turned. */
 const closedNow = () => sideOf(state.steer) === 'BACK';
 const R = () => now?.recipe ?? null, bodyNow = (): [number, number, number] => state.steer.body ?? ((now?.deal?.lab as {bodyAsked?: [number, number, number]} | undefined)?.bodyAsked ?? ((now?.motion.lab as {bodyAsked?: [number, number, number]} | undefined)?.bodyAsked) ?? [0, 0, 0]);
-/** The way the deal on the stage was laid in (a saved standard is laid in its own), or the chosen one. */
-const wayShown = (): Way => now && now.way !== 'byggd' && state.shown.kind === 'deal' ? now.way : wayOf();
 /** The hand's two angles on the card, as her right hand takes it and once it is turned; moving either slider sets both, the other as it shows (both at −30: "Naturlig" as it was before the two). */
-const yawsNow = (): [number, number] => (R() && gripYawsOf(R()!, state.steer, wayShown())) ?? [15, 15];
+const yawsNow = (): [number, number] => (R() && gripYawsOf(R()!, state.steer, wayOf())) ?? [15, 15];
 const yawKnob = (j: 0 | 1, name: string): Knob => ({name, min: () => -45, max: () => 40, step: 1, on: () => !!R()?.pace.contactGrip, value: () => yawsNow()[j], set: v => { const y = yawsNow(); y[j] = v; state.steer.gripYaw = y[0]; state.steer.gripYawEnd = y[1]; }, text: v => `${comma(v)}°`});
 const body = (i: number, name: string, min: number, max: number, text: (v: number) => string, group?: string): Knob => ({name, group, min: () => min, max: () => max, step: 0.5, on: () => !!R(), value: () => bodyNow()[i], set: v => { const b = [...bodyNow()] as [number, number, number]; b[i] = v; state.steer.body = b; }, text});
 /** A slider of "Naturlig" only: a shoulder or an elbow, laid on the doll by dealer3d/src/natural.ts. */
 const natural = (key: keyof Knobs, j: 0 | 1, name: string, min: number, max: number, step: number, text: (v: number) => string): Knob => ({name, min: () => min, max: () => max, step, on: () => !!R() && wayOf() === 'naturlig', value: () => state.knobs[key][j],
-  set: v => { const k = [...state.knobs[key]] as [number, number]; k[j] = v; state.knobs = {...state.knobs, [key]: k}; }, text, only: 'Bara i Naturlig'});
+  set: v => { const k = [...state.knobs[key]] as [number, number]; k[j] = v; state.knobs = {...state.knobs, [key]: k}; }, text});
 const cm = (up: string, down: string) => (v: number) => v ? `${comma(Math.abs(v), 1)} cm ${v > 0 ? up : down}` : '0', out = (v: number) => v ? `${comma(Math.abs(v))}° ${v > 0 ? 'ut' : 'in'}` : '0°';
 const KNOBS: Knob[] = [
-  {name: 'Var kortet vänds', group: 'Kortet', turns: true, min: () => 0, max: () => 90, step: 5, on: () => !!R()?.pace.single, value: () => Math.round((state.steer.turnNear ?? R()?.pace.turnNear ?? 0) * 100), set: v => { state.steer.turnNear = v / 100; }, text: v => v ? `${v} % av vägen` : 'från handbytet'},
+  {name: 'Var kortet vänds', group: 'Kortet', turns: true, min: () => 0, max: () => Math.round(ENDS.turnNear * 100), step: 5, on: () => !!R()?.pace.single, value: () => Math.round((state.steer.turnNear ?? R()?.pace.turnNear ?? 0) * 100), set: v => { state.steer.turnNear = v / 100; }, text: v => v ? `${v} % av vägen` : 'från handbytet'},
   {name: 'Vändningen börjar', turns: true, min: () => R() && shares(R()!) ? -(R()!.pace.shared?.wait ?? 1) : -6, max: () => R() && shares(R()!) ? 20 : 10, step: 1, on: () => !!R(), value: () => state.steer.turnLater, set: v => { state.steer.turnLater = v; }, text: v => v ? `${v > 0 ? '+' : ''}${comma(v / 30, 2)} s` : 'som receptet'},
   {name: 'Handens höjd', turns: true, min: () => 1, max: () => 12, step: 0.5, on: () => !!R()?.pace.single, value: () => (state.steer.carry ?? R()?.pace.carry ?? TWO_HAND.heights.carry) * 100, set: v => { state.steer.carry = v / 100; }, text: v => `${comma(v, 1)} cm`},
   yawKnob(0, 'Handens vinkel när högerhanden tar kortet'),
@@ -231,18 +232,19 @@ const KNOBS: Knob[] = [
   natural('shoulderL', 1, 'Vänster axel fram', -3, 4, 0.5, cm('fram', 'bak')),
   natural('elbowOut', 0, 'Höger armbåge ut', -20, 40, 1, out),
   natural('elbowOut', 1, 'Vänster armbåge ut', -20, 40, 1, out),
-  // (Jakob 2026-11-23: "det är hennes rörelser med kortet som ska gå snabbare"; lay.ts Steer.cardTempo. "Hela given" is the tempo of before, everything faster.)
-  {name: 'Kortets fart', group: 'Fart', min: () => 100, max: () => R() ? Math.round(cardTempoMost(R()!, state.steer) * 100) : 100, step: 5, on: () => !!R(), value: () => Math.round(cardTempoOf(state.steer) * 100), set: v => { if (v === 100) delete state.steer.cardTempo; else state.steer.cardTempo = v / 100; }, text: v => v === 100 ? '100 %' : `${v} %, bara korthänderna`},
-  {name: 'Hela given', min: () => 40, max: () => R() && shares(R()!) ? 100 : 150, step: 5, on: () => !!R(), value: () => Math.round(state.steer.tempo * 100), set: v => { state.steer.tempo = v / 100; }, text: v => `${v} %`},
+  // (Jakob 2026-11-23: "det är hennes rörelser med kortet som ska gå snabbare"; lay.ts Steer.cardTempo: the one speed, the whole deal's tempo having gone 2026-11-26.)
+  {name: 'Kortets fart', group: 'Fart', min: () => 100, max: () => R() ? Math.round(Math.min(ENDS.cardTempo, cardTempoMost(R()!, state.steer)) * 100) : 100, step: 5, on: () => !!R(), value: () => Math.round(cardTempoOf(state.steer) * 100), set: v => { if (v === 100) delete state.steer.cardTempo; else state.steer.cardTempo = v / 100; }, text: v => v === 100 ? '100 %' : `${v} %, bara korthänderna`},
 ];
-const knobs = KNOBS.map(k => { const box = ctl('knobs'); if (k.group) { const h = document.createElement('h3'); h.textContent = k.group; box.append(h); }
+// (each slider under the heading of its group, `head`, which is shown while one of its sliders is)
+let groupHead: HTMLElement | null = null;
+const knobs = KNOBS.map(k => { const box = ctl('knobs'); if (k.group) { groupHead = document.createElement('h3'); groupHead.textContent = k.group; box.append(groupHead); } const head = groupHead;
   const label = document.createElement('label'), name = document.createElement('span'), out = document.createElement('output'), input = document.createElement('input'); label.className = 'knob'; name.textContent = k.name; input.type = 'range'; input.step = String(k.step); label.append(name, out, input); box.append(label);
   input.addEventListener('input', () => { k.set(Number(input.value)); out.textContent = k.text(Number(input.value)); state.touched = true; clearTimeout(held); held = setTimeout(() => showDeal(true), 140); });
   input.addEventListener('change', () => { clearTimeout(held); showDeal(true); });
-  return {k, label, out, input}; });
+  return {k, label, out, input, head}; });
 // The landing (dealer3d/src/landing.ts, "Naturlig" only): her right hand's end pose at the laid card, one of LANDINGS, and
 // his own shaping on top of it (how far onto the card, the hand rolled, the wrist bent, the fingers spread, the free fingers curled).
-const landingOn = () => state.shown.kind === 'deal' && !!R() && wayShown() === 'naturlig' && !closedNow();
+const landingOn = () => state.shown.kind === 'deal' && !!R() && wayOf() === 'naturlig' && !closedNow();
 const landingButtons = LANDINGS.map(l => { const b = document.createElement('button'); b.dataset.landing = l.id; b.textContent = l.label; ctl('landings').append(b);
   b.addEventListener('click', () => { if (b.disabled || state.landing.id === l.id) return; state.landing = {...state.landing, id: l.id}; state.touched = true; showDeal(true); }); return b; });
 // The turn (dealer3d/src/turn-in-hand.ts, "Naturlig" only): how her right hand turns the card face up, one of TURNS.
@@ -255,57 +257,67 @@ const shapers = SHAPING_KNOBS.map(k => { const label = document.createElement('l
   input.addEventListener('change', () => { clearTimeout(held); showDeal(true); });
   return {k, label, out, input, said}; });
 
+/** Shows or hides a part of the page (also inline: embedded, the studio's own stylesheet gives the controls their display, app/globals.css). */
+const display = (el: HTMLElement, yes: boolean) => { el.hidden = !yes; el.style.display = yes ? '' : 'none'; };
+const cap = (s: string) => s[0].toUpperCase() + s.slice(1), moment = (iso: string) => new Date(iso).toLocaleString('sv-SE', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
 /** Everything on the page that says what is chosen and shown. */
 function paint() {
-  const deal = state.shown.kind === 'deal', saved = standards.find(s => s.name === standardName(state.doll, state.entry, state.place)), way = wayOf(), read = state.entry === 'A2.1';
+  const deal = state.shown.kind === 'deal', read = state.entry === 'A2.1', saved = read ? undefined : standards.find(s => s.name === standardName(state.doll, state.place));
   for (const b of document.querySelectorAll<HTMLButtonElement>('#dolls button')) b.setAttribute('aria-pressed', String(b.dataset.doll === state.doll));
-  for (const b of ctls('#ways button')) { const off = (state.doll === 'standard' && b.dataset.way === 'naturlig') || (read && deal); b.setAttribute('aria-pressed', String(!(read && deal) && b.dataset.way === way)); b.disabled = off; b.title = !off ? '' : read && deal ? 'Från A2.1 finns ett sätt: given byggd på dockan' : 'Bara för Paow'; }
-  ctl('wayNote').textContent = read && deal ? 'Från A2.1: given med vänsterhanden, byggd på dockans ben: nyp, längs plåten, lågt till platsen medan handleden vänder kortet, läggs på platsen. Ett sätt, inga reglage.' : state.doll === 'standard' ? 'Naturlig finns bara för Paow.' : way === 'naturlig' ? 'Händerna möts inte vid handbytet, tummen och pekfingret håller kortets hörn, vänsterhanden ligger på skon som i hennes bild, och kroppen följer reglagen så långt armarna når.' : 'Given som studion lade den före 23 november, med filmens sko.';
-  for (const b of ctls('#poses button')) b.setAttribute('aria-pressed', String(!deal && b.dataset.pose === (state.shown as {pose?: string}).pose));
+  for (const b of document.querySelectorAll<HTMLButtonElement>('#views button[data-pose]')) b.setAttribute('aria-pressed', String(!deal && b.dataset.pose === (state.shown as {pose?: string}).pose));
   for (const b of ctls('#entries button')) b.setAttribute('aria-pressed', String(b.dataset.entry === state.entry));
   // (embedded neither the entry's buttons nor the places' grid is there, the studio's own choosing both: the head names them)
   ctl('dealHead').textContent = embedded ? `Giv från ${state.entry} till ${placeWords(state.place)}` : `Giv från ${state.entry} till`;
-  const closed = new Map<string, string[]>(), buttons = new Map(ctls('#places button').map(b => [b.dataset.place!, b]));
-  for (const id of gridIds()) { const r = placeFrom(state.entry, id, state.doll, plan), open = !!r && !('none' in r), why = !open && r ? WHY[(r as {none: keyof typeof WHY}).none] : '';
-    if (why) closed.set(why, [...closed.get(why) ?? [], placeWords(id)]); const b = buttons.get(id); if (!b) continue;
-    b.disabled = !open; b.textContent = open ? '●' : '–'; b.title = why ? `${placeWords(id)}: ${why}` : placeWords(id);
-    b.setAttribute('aria-pressed', String(deal && id === state.place)); b.classList.toggle('saved', standards.some(s => s.name === standardName(state.doll, state.entry, id))); }
-  const shutSaid = [...closed].map(([w, ids]) => `${ids.join('; ')}: ${w}.`).map(s => s[0].toUpperCase() + s.slice(1));
-  ctl('closed').textContent = read && !opens('A2.1', 'P4.C1') ? `Från A2.1: ${WHY.unposed}.` : [...read ? ['Från A2.1 byggs given på dockans ben.'] : [], ...shutSaid].join(' ');
-  for (const b of document.querySelectorAll<HTMLButtonElement>('#views button')) b.setAttribute('aria-pressed', String(b.dataset.view === state.view));
+  const buttons = new Map(ctls('#places button').map(b => [b.dataset.place!, b]));
+  for (const id of gridIds()) { const b = buttons.get(id); if (!b) continue; const r = placeFrom(state.entry, id, state.doll, plan), open = !!r && !('none' in r), why = whyOf(r);
+    b.disabled = !open; b.textContent = open ? '●' : '–'; b.title = why ? `${cap(placeWords(id))}: ${why}.` : placeWords(id);
+    b.setAttribute('aria-pressed', String(deal && id === state.place)); b.classList.toggle('saved', !read && standards.some(s => s.name === standardName(state.doll, id))); }
+  // (why no deal goes to a card is said only for the card asked for, `wanted`; the picture keeps the card it shows)
+  const wantedWhy = state.wanted ? whyOf(placeFrom(state.entry, state.wanted, state.doll, plan)) : '';
+  ctl('closed').textContent = read && !opens('A2.1', 'P4.C1') ? `Från A2.1: ${WHY.unposed}.` : wantedWhy ? `${cap(placeWords(state.wanted!))} ges inte från ${state.entry}: ${wantedWhy}. Bilden visar ${placeWords(state.place)}.` : '';
+  display(ctl('sideNote'), deal && !read && closedNow());
+  for (const b of document.querySelectorAll<HTMLButtonElement>('#views button[data-view]')) b.setAttribute('aria-pressed', String(b.dataset.view === state.view));
   for (const b of document.querySelectorAll<HTMLButtonElement>('#speed button')) b.setAttribute('aria-pressed', String(Number(b.dataset.speed) === state.speed));
-  for (const {k, label, out, input} of knobs) { const on = deal && k.on() && !(k.turns && closedNow()); input.disabled = !on; label.classList.toggle('off', !on); label.title = !on && deal ? (read ? 'Från A2.1 är given byggd, ett sätt' : k.turns && closedNow() ? 'Ett stängt kort vänds inte' : k.only ?? '') : ''; input.min = String(k.min()); input.max = String(k.max());
+  // What cannot act is not shown: from A2.1 nothing here steers the deal; the turn and the landing only in "Naturlig" and for a card that is turned; each slider where it acts.
+  const lon = landingOn(), steers = !(deal && read);
+  display(ctl('turnBox'), lon); display(ctl('landingBox'), lon); display(ctl('builtNote'), !steers); display(ctl('knobs'), steers); display(ctl('steerActs'), steers);
+  for (const {k, label, out, input} of knobs) { const on = deal && k.on() && !(k.turns && closedNow()); input.disabled = !on; display(label, on); input.min = String(k.min()); input.max = String(k.max());
     if (on) { const v = Math.max(k.min(), Math.min(k.max(), k.value())); input.value = String(v); out.textContent = k.text(k.value()); } else out.textContent = ''; }
-  const lon = landingOn(), ld = lon ? now?.landed ?? null : null, landingNote = ctl('landingNote');
-  const shut = deal && closedNow(), why = shut ? 'Ett stängt kort vänds inte' : 'Bara i Naturlig';
-  for (const b of landingButtons) { b.disabled = !lon; b.setAttribute('aria-pressed', String(lon && b.dataset.landing === state.landing.id)); b.title = !lon && deal ? why : ''; }
-  for (const {k, label, out, input, said} of shapers) { const v = state.landing[k.key] ?? 0; input.disabled = !lon; label.classList.toggle('off', !lon); label.title = !lon && deal ? why : ''; input.value = String(v); out.textContent = lon ? said(v) : ''; }
+  for (const head of new Set(knobs.map(x => x.head))) if (head) display(head, knobs.some(x => x.head === head && !x.label.hidden));
+  const ld = lon ? now?.landed ?? null : null, landingNote = ctl('landingNote');
+  for (const b of landingButtons) { b.disabled = !lon; b.setAttribute('aria-pressed', String(lon && b.dataset.landing === state.landing.id)); }
+  for (const {k, out, input, said} of shapers) { const v = state.landing[k.key] ?? 0; input.disabled = !lon; input.value = String(v); out.textContent = lon ? said(v) : ''; }
   landingNote.className = ld && (ld.liftedMm || ld.shortMm) ? 'small warn' : 'small';
-  landingNote.textContent = !deal ? '' : shut ? 'Ett stängt kort har ingen egen landning: handen ligger kvar där den skjutit kortet.' : !lon ? 'Landningen finns bara i Naturlig.' : !ld ? 'Förvalet: långfingret på kortet, som hon alltid har lagt det.'
+  landingNote.textContent = !lon ? '' : !ld ? 'Förvalet: långfingret på kortet, som hon alltid har lagt det.'
     : [`På kortet: ${ld.touching.length ? ld.touching.join(', ') : 'inget finger'}`, ld.liftedMm ? `handen lyft ${comma(ld.liftedMm)} mm så att ingen led går in i kortet` : '', ld.shortMm ? `armen räcker inte hela vägen, ${comma(ld.shortMm)} mm kortare` : ''].filter(Boolean).join(' · ') + '.';
   const td = lon ? now?.turned ?? null : null, turnNote = ctl('turnNote');
-  for (const b of turnButtons) { b.disabled = !lon; b.setAttribute('aria-pressed', String(lon && b.dataset.turn === state.turn)); b.title = !lon && deal ? why : ''; }
+  for (const b of turnButtons) { b.disabled = !lon; b.setAttribute('aria-pressed', String(lon && b.dataset.turn === state.turn)); }
   turnNote.className = td && (!td.laid || td.shortMm) ? 'small warn' : 'small';
-  turnNote.textContent = !deal ? '' : shut ? 'Ett stängt kort vänds inte.' : !lon ? 'Vändningen finns bara i Naturlig.' : !td ? 'Förvalet: kortet vänds som given själv vänder det.' : !td.laid ? `Går inte här: ${td.why}.`
+  turnNote.textContent = !lon ? '' : !td ? 'Förvalet: kortet vänds som given själv vänder det.' : !td.laid ? `Går inte här: ${td.why}.`
     : [`Höger hand tar kortet i ${td.edge === 'long' ? 'långsidan' : 'kortsidan'} när vänster har släppt det, vrider det ${Math.round(td.heldInAll!)}° i greppet och släpper det strax före det ligger`,
       `handleden böjd högst ${comma(td.wrist!.most)}° (förut ${comma(td.wristBefore!.most)}°)`, td.shortMm ? `armen räcker inte hela vägen, ${comma(td.shortMm)} mm kortare` : ''].filter(Boolean).join(' · ') + '.';
   const steered = !untouched(), recipe = R();
-  ctl<HTMLButtonElement>('atplace').disabled = !deal || !recipe || !shares(recipe); ctl<HTMLButtonElement>('reset').disabled = !deal || !recipe || (!steered && !now?.saved); ctl<HTMLButtonElement>('save').disabled = !deal || !now || now.saved || !now.deal || !!fault || now.shortMm > 0;
-  const moment = (s: Standard) => new Date(s.savedAt).toLocaleString('sv-SE', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'});
-  const prior = before.find(s => s.name === standardName(state.doll, state.entry, state.place)), mine = standards.filter(s => s.doll === state.doll).length, back = ctl<HTMLButtonElement>('back'), all = ctl<HTMLButtonElement>('allDefault');
-  back.disabled = busy || !deal || (!prior && !saved); back.title = prior ? `Byter till standarden som var sparad här förut (${moment(prior)}). Det du har nu blir det förra, så ett tryck till byter tillbaka.` : saved ? 'Före den sparade gällde förvalet här: lägger undan den sparade, så att förvalet gäller igen. Ett tryck till tar tillbaka den.' : 'Det finns inget förra att ta tillbaka för den här platsen.';
+  ctl<HTMLButtonElement>('reset').disabled = !deal || !recipe || (!steered && !now?.saved); ctl<HTMLButtonElement>('save').disabled = !deal || read || !now || now.saved || !now.deal || !!fault || now.shortMm > 0;
+  const prior = read ? undefined : before.find(s => s.name === standardName(state.doll, state.place)), mine = standards.filter(s => s.doll === state.doll).length, back = ctl<HTMLButtonElement>('back'), all = ctl<HTMLButtonElement>('allDefault');
+  back.disabled = busy || !deal || (!prior && !saved); back.title = prior ? `Byter till standarden som var sparad här förut (${moment(prior.savedAt)}). Det du har nu blir det förra, så ett tryck till byter tillbaka.` : saved ? 'Före den sparade gällde förvalet här: lägger undan den sparade, så att förvalet gäller igen. Ett tryck till tar tillbaka den.' : 'Det finns inget förra att ta tillbaka för den här platsen.';
   all.disabled = busy || !mine; all.title = mine ? `Lägger undan ${DOLLS[state.doll]}s ${mine} sparade standarder, så att förvalet gäller på varje plats. Inget raderas: Ta tillbaka den förra tar tillbaka en plats i taget.` : `${DOLLS[state.doll]} har ingen sparad standard: förvalet gäller överallt.`;
-  const status = ctl('status'), when = saved ? moment(saved) : '';
-  status.className = fault ? 'small warn' : 'small';
+  // The line about the saved standard: whether one holds for the card (an order films it) and when it was saved (its own lab.savedAt).
+  const status = ctl('status'), when = now?.savedAt ? moment(now.savedAt) : saved ? moment(savedWhen.get(saved.name) ?? saved.savedAt) : '', there = embedded ? 'kortet i bilden' : 'platsen';
+  status.className = fault || (deal && now?.shortMm) ? 'small warn' : 'small';
   // (embedded there is no grid of places: the card is chosen in the studio, or by a click on it in the picture)
-  status.textContent = !deal ? (embedded ? 'Ställningen visas. Spela visar given till kortet igen.' : 'Ställningen visas. Välj en plats, eller tryck Spela, för given.') : fault ? `Går inte: ${fault}. Senaste som gick visas.`
-    : now?.saved ? `Din sparade standard (${when}, ${now.savedWay === 'byggd' ? 'från A2.1' : `gjord i ${WAYS[now.savedWay ?? 'forut']}`}), lagd ${now.savedWay === 'byggd' ? 'som den byggs' : 'med dina värden'} och filmens sko.${now.savedWay !== 'byggd' && now.savedWay !== way ? ` Dra i ett reglage för ${WAYS[way]} med dina värden.` : ''}`
-    : saved ? `Inte den sparade (${when}). Klicka på ${embedded ? 'kortet i bilden' : 'platsen'} för den.` : steered ? 'Ändrad, inte sparad.'
-    : read ? 'Byggd giv från A2.1, ett sätt.' : way === 'naturlig' ? 'Naturlig grundrörelse. Ingen standard sparad.' : 'Äldre given. Ingen standard sparad.';
+  status.textContent = !deal ? (embedded ? 'Ställningen visas. Spela visar given till kortet igen.' : 'Ställningen visas. Välj en plats, eller tryck Spela, för given.')
+    : fault ? `Går inte: ${fault}. Bilden visar den senaste som gick, och den här kan inte sparas.`
+    : read ? 'Nypets egen rörelse, som en beställning från A2.1 filmar den.'
+    : now?.shortMm ? `Armen når inte hela vägen (${comma(now.shortMm)} mm), så den här kan inte sparas.`
+    : now?.saved ? `Din sparade standard (${when}): det är den en beställning filmar.`
+    : saved && !steered ? `Reglagen visar förvalet; din sparade standard (${when}) gäller tills du sparar. Klicka på ${there} för att se den.`
+    : saved ? `Ändrad, inte sparad. Din sparade standard (${when}) gäller tills du sparar.`
+    : !steered ? 'Ingen sparad standard för kortet: dockan ger med förvalet.'
+    : 'Ändrad, inte sparad. Ingen sparad standard för kortet: dockan ger med förvalet tills du sparar.';
   if (notice) { status.textContent += ` ${notice.text}`; if (notice.warn) status.className = 'small warn'; }
   // The line in the picture: what is shown, and what is not as it should be.
   const what = deal ? `${state.entry} → ${placeWords(state.place)}` : (state.shown as {pose: string}).pose, notes: string[] = [], warns: string[] = [];
-  if (deal && now) notes.push(now.saved ? 'sparad standard' : WAYS[now.way]);
+  if (deal && now) notes.push(now.saved ? 'sparad standard' : now.way === 'byggd' ? 'nypets egen rörelse' : steered ? 'ändrad' : 'förvalet');
   if (deal && now?.recipe && DEALER_CARD.test(state.place)) notes.push(closedNow() ? 'stängt' : 'öppet');
   if (deal && now?.turned?.laid) notes.push('vändning: i handen');
   if (deal && now?.landed) notes.push(`landning: ${landingWords({id: now.landed.id, ...now.landed.shaping}).toLowerCase()}`);
@@ -340,16 +352,16 @@ const post = (said: Record<string, unknown>) => { if (embedded) parent.postMessa
 let hush = false;
 /** The page around is told the card chosen here (`hush`: while it is the page around that chooses, told once at the end). */
 const tell = () => { if (!hush) post({place: state.place}); };
-/** Chooses a place as its button does: the deal to it from the chosen entry, untouched (his saved standard where there is one), played from the start. */
+/** Chooses a place as its button does: the deal to it from the chosen entry, untouched (his saved standard where there is one), played from the start. A place no deal goes to is `wanted`: the picture keeps its card, and says why. */
 function choose(id: string) {
-  if (!opens(state.entry, id)) return;
-  state.place = id; state.touched = false; notice = null; state.steer = baseSteer(id); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT; state.shown = {kind: 'deal'}; state.playing = false; tell();
+  if (!opens(state.entry, id)) { state.wanted = id; paint(); return; }
+  state.place = id; state.wanted = null; state.touched = false; notice = null; state.steer = baseSteer(id); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT; state.shown = {kind: 'deal'}; state.playing = false; tell();
   showDeal().then(() => { if (state.view === 'player') stage!.view('player'); if (state.shown.kind === 'deal' && !fault) { state.t = 0; state.playing = true; paint(); } });
 }
 /** Chooses an entry: the place stays where a deal goes there from the new one, else the first that has one. */
 function chooseEntry(entry: Entry) {
   if (entry === state.entry && state.shown.kind === 'deal') return;
-  state.entry = entry; if (!opens(entry, state.place)) state.place = firstOpen(entry) ?? state.place;
+  state.entry = entry; state.wanted = null; if (!opens(entry, state.place)) state.place = firstOpen(entry) ?? state.place;
   state.touched = false; notice = null; state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT; state.shown = {kind: 'deal'}; state.playing = false; tell(); showDeal();
 }
 // The places: a row for each card and a column for each seat and for the dealer; a place no deal goes to from the chosen
@@ -368,10 +380,9 @@ if (embedded) ctl('entries').remove();
         b.addEventListener('click', () => choose(id)); grid.append(b); } } } }
 
 for (const b of document.querySelectorAll<HTMLButtonElement>('#dolls button')) b.addEventListener('click', () => { if (b.dataset.doll !== state.doll) setDoll(b.dataset.doll!); });
-for (const b of ctls('#ways button')) b.addEventListener('click', () => { const way = b.dataset.way as Way; if (b.disabled || way === state.way) return; state.way = way; if (state.shown.kind === 'deal') showDeal(true); else showPose(state.shown.pose); });
-for (const b of ctls('#poses button')) b.addEventListener('click', () => showPose(b.dataset.pose as Pose));
+for (const b of document.querySelectorAll<HTMLButtonElement>('#views button[data-pose]')) b.addEventListener('click', () => showPose(b.dataset.pose as Pose));
 for (const b of ctls('#entries button')) b.addEventListener('click', () => chooseEntry(b.dataset.entry as Entry));
-for (const b of document.querySelectorAll<HTMLButtonElement>('#views button')) b.addEventListener('click', () => { state.view = b.dataset.view as ViewName; stage!.view(state.view); stage!.setGrips(gripsShown()); paint(); });
+for (const b of document.querySelectorAll<HTMLButtonElement>('#views button[data-view]')) b.addEventListener('click', () => { state.view = b.dataset.view as ViewName; stage!.view(state.view); stage!.setGrips(gripsShown()); paint(); });
 for (const b of document.querySelectorAll<HTMLButtonElement>('#speed button')) b.addEventListener('click', () => { state.speed = Number(b.dataset.speed); paint(); });
 $<HTMLInputElement>('loop').addEventListener('change', e => { state.loop = (e.target as HTMLInputElement).checked; });
 $<HTMLInputElement>('joints').addEventListener('change', e => { state.joints = (e.target as HTMLInputElement).checked; stage!.setJoints(state.joints); stage!.setGrips(gripsShown()); grip(true); });
@@ -379,16 +390,17 @@ const play = async () => { if (state.shown.kind !== 'deal') { await showDeal(); 
 $('play').addEventListener('click', play);
 addEventListener('keydown', e => { if (e.code === 'Space' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); play(); } });
 $<HTMLInputElement>('scrub').addEventListener('input', e => { state.playing = false; state.t = Number((e.target as HTMLInputElement).value) / 1000 * stage!.duration(); stage!.setTime(state.t); transport(); grip(); });
+// "Återställ": the sliders back to the default; a standard saved for the card still holds (an order films it) until he saves.
 ctl('reset').addEventListener('click', () => { state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT; state.touched = true; showDeal(true); });
-ctl('atplace').addEventListener('click', () => { const r = R(); if (!r) return; const {gripYawEnd: _end, ...steer} = state.steer; state.steer = {...steer, turnNear: TURN_AT_PLACE.turnNear, turnLater: TURN_AT_PLACE.wait - (r.pace.shared?.wait ?? 1), gripYaw: TURN_AT_PLACE.gripYaw}; state.touched = true; showDeal(true); });
 ctl('save').addEventListener('click', async () => {
-  if (!now?.deal || state.shown.kind !== 'deal' || fault) return; const name = standardName(state.doll, state.entry, state.place), button = ctl<HTMLButtonElement>('save'); button.disabled = true;
-  // Exactly the frames on the stage, for this doll, with what they were laid from: the entry, and for "Naturlig" also the shoulders and elbows and how much of the body's steering she took and the landing and the turn where they are not the default.
-  const landing = now.way === 'naturlig' && now.landed ? {landing: landingOf({id: now.landed.id, ...now.landed.shaping})} : {}, turn = now.way === 'naturlig' && now.turned?.laid ? {turn: now.turned.id} : {};
-  const lab = {...now.deal.lab, steer: state.steer, from: state.entry, doll: state.doll, place: state.place, shortMm: now.shortMm, savedAt: new Date().toISOString(), ...(now.way === 'naturlig' ? {naturlig: {knobs: state.knobs, bodyShare: now.bodyShare}} : {}), ...landing, ...turn};
-  const motion = {...now.motion, doll: state.doll, lab} as Motion;
-  try { const r = await fetch(`/dealer3d/standard/${name}.json`, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(motion)}), answer = await r.json(); if (!r.ok) throw Error(answer.error ?? String(r.status));
-    takeLists(answer); now = {...now, motion: {...now.motion, doll: state.doll, lab}, saved: true, from: 'saved', savedWay: now.way};
+  if (!now?.deal || !now.rules || state.shown.kind !== 'deal' || state.entry !== 'A2.3' || fault || now.shortMm > 0) return; const name = standardName(state.doll, state.place), button = ctl<HTMLButtonElement>('save'); button.disabled = true;
+  // Exactly the motion on the stage, the deal with its return, for this doll, with what it was laid from as the chain's rules have it (the steering, for "Naturlig" also the shoulders and elbows and how much of the body's steering she took, the landing and the turn where they are not the default, natural-lab.ts filmRules): docka-cykel.ts lays an order from `lab` through the same chain. The return goes in `lab.back`, a record.
+  const r = now.rules, {cycle, ...shown} = now.motion, savedAt = new Date().toISOString();
+  const landing = r.way === 'naturlig' && now.landed ? {landing: landingOf({id: now.landed.id, ...now.landed.shaping})} : {}, turn = r.way === 'naturlig' && now.turned?.laid ? {turn: now.turned.id} : {};
+  const lab = {...now.deal.lab, steer: r.steer, from: 'A2.3', doll: state.doll, place: state.place, shortMm: now.shortMm, savedAt, ...(r.way === 'naturlig' ? {naturlig: {knobs: r.knobs, bodyShare: now.bodyShare}} : {}), ...landing, ...turn, ...(cycle ? {back: cycle} : {})};
+  const motion = {...shown, doll: state.doll, lab} as Motion;
+  try { const res = await fetch(`/dealer3d/standard/${name}.json`, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(motion)}), answer = await res.json(); if (!res.ok) throw Error(answer.error ?? String(res.status));
+    takeLists(answer); savedWhen.set(name, savedAt); now = {...now, motion: {...now.motion, doll: state.doll, lab}, saved: true, from: 'saved', savedAt};
     notice = before.some(s => s.name === name) ? {text: 'Den du hade sparad här förut ligger kvar: Ta tillbaka den förra byter tillbaka.'} : null; paint();
     // (embedded: the page around is told, so that what it says of the saved standard is read again)
     post({place: state.place, saved: name}); }
@@ -407,11 +419,11 @@ async function changeStandards(kind: 'aterstall' | 'tillbaka', ask: Record<strin
     if (!r.ok || !answer) throw Error(answer?.error ?? (r.status === 404 || r.status === 405 ? 'servern behöver startas om för den här knappen' : String(r.status)));
     takeLists(answer); notice = {text: said(answer)};
     state.touched = false; state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT;
-    post({place: state.place, saved: standardName(state.doll, state.entry, state.place)});
+    post({place: state.place, saved: standardName(state.doll, state.place)});
   } catch (e) { notice = {text: `Gick inte: ${String((e as Error).message ?? e)}.`, warn: true}; }
   busy = false; if (state.shown.kind === 'deal') await showDeal(true); else paint();
 }
-ctl('back').addEventListener('click', () => { const name = standardName(state.doll, state.entry, state.place);
+ctl('back').addEventListener('click', () => { const name = standardName(state.doll, state.place);
   changeStandards('tillbaka', {name}, () => standards.some(s => s.name === name) ? 'Det förra är tillbaka. Det du hade ligger nu som det förra: ett tryck till byter tillbaka.' : 'Förvalet gäller här igen. Den sparade ligger som den förra: ett tryck till tar tillbaka den.'); });
 ctl('allDefault').addEventListener('click', () => {
   const n = standards.filter(s => s.doll === state.doll).length; if (!n) return;
@@ -577,9 +589,9 @@ if (asked.get('spela') === '1') void play();
 (window as unknown as {docklabb: unknown}).docklabb = {ready: true,
   /** Where a place of the plan lies in the picture now, in this page's client pixels (a test clicks or drags there); null where it is not drawn. */
   at: (id: string) => { const p = spotNow(id), box = $('stage').getBoundingClientRect(), s = p && stage ? stage.seen(p) : null; return s ? {x: box.left + s.x, y: box.top + s.y} : null; },
-  facts: () => ({doll: state.doll, way: wayOf(), entry: state.entry, shown: state.shown, place: state.place, steer: state.steer, side: sideOf(state.steer), planSide: planSide(state.place), knobs: state.knobs, playing: state.playing, t: state.t, duration: stage?.duration(), fault, saved: now?.saved ?? false, from: now?.from ?? null, savedWay: now?.savedWay ?? null, shortMm: now?.shortMm ?? 0,
+  facts: () => ({doll: state.doll, way: wayOf(), entry: state.entry, shown: state.shown, place: state.place, steer: state.steer, side: sideOf(state.steer), planSide: planSide(state.place), knobs: state.knobs, playing: state.playing, t: state.t, duration: stage?.duration(), fault, saved: now?.saved ?? false, from: now?.from ?? null, savedAt: now?.savedAt ?? null, wanted: state.wanted, shortMm: now?.shortMm ?? 0,
   frames: now?.motion.frameCount, forced: (now?.deal as LaidDeal | null)?.elbowForced ?? null, throughShoe: now?.deal?.throughShoe ?? null, note: $('note').textContent, status: ctl('status').textContent, grip: $('grip').textContent, standards: standards.map(s => s.name), camera: stage?.camera(), bodyShare: now?.bodyShare ?? null,
-  gripYaw: R() ? gripYawsOf(R()!, state.steer, wayShown()) : null, landing: state.landing, landed: now?.landed ?? null, landingNote: ctl('landingNote').textContent, turn: state.turn, turned: now?.turned ?? null, turnNote: ctl('turnNote').textContent,
+  gripYaw: R() ? gripYawsOf(R()!, state.steer, wayOf()) : null, landing: state.landing, landed: now?.landed ?? null, landingNote: ctl('landingNote').textContent, turn: state.turn, turned: now?.turned ?? null, turnNote: ctl('turnNote').textContent,
   // Where the controls stand (this page's own column, or the studio's), whether a place can be moved by hand, and where the chosen place lies on the felt.
   controls: root.ownerDocument === document ? 'sidan' : 'studion', flytta, spot: spotNow(state.place),
   // The film over the doll: the one named, the slider, whether it is seen, what is loaded, its time against the lab's and where it should stand, and its box against the canvas's (client pixels).
@@ -599,7 +611,8 @@ if (asked.get('spela') === '1') void play();
 // Heard: {place, entry?, play?}: the entry the page around names (the guide tree's anchor, studio/lib/bordet.ts treeAnchor)
 // is always taken, there being no other choice of it (sliders moved for a deal from the other entry go with it); a card
 // chosen there is chosen here, except where sliders are moved and not saved: the deal then stays, and the answer names the
-// card still shown; `play`: its "Spela kortbanan", the deal played from the start. {plan}: the studio's
+// card still shown; a card no deal goes to from the entry is `wanted` (the deal stays, and the page says why);
+// `play`: its "Spela kortbanan", the deal played from the start. {plan}: the studio's
 // draft (takePlan). {attach: true}: the controls attached again (attach). {flytta: boolean}: whether a place can be moved
 // by hand (false until it is said). {film: {src, label, start, end, speed} | null}: the dealer's film of the card's deal (a
 // path on this server; its words; the seconds of the deal in the file, `end` where its return begins; the speed it is
@@ -615,7 +628,9 @@ if (embedded) {
     if (typeof said.place === 'string') { const place = said.place, entry = said.entry === 'A2.1' || said.entry === 'A2.3' ? said.entry : null;
       hush = true;
       // (free: nothing moved by hand since the deal was laid, or it is saved; a pose shown instead of the deal changes neither)
-      try { if (entry && entry !== state.entry) chooseEntry(entry); const free = !state.touched || untouched() || !!now?.saved; if (free && place !== state.place && Object.hasOwn(plan.targets, place) && opens(state.entry, place)) choose(place); }
+      try { if (entry && entry !== state.entry) chooseEntry(entry); const free = !state.touched || untouched() || !!now?.saved;
+        // (the answer names the card still shown, which the page around then sends back: `wanted` stays said until another card is chosen)
+        if (free && Object.hasOwn(plan.targets, place)) { if (!opens(state.entry, place)) { state.wanted = place; paint(); } else if (place !== state.place) choose(place); } }
       finally { hush = false; }
       tell();
       if (said.play === true) { state.t = 0; if (!state.playing) void play(); else paint(); } }

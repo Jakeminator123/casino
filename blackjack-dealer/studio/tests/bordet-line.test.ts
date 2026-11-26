@@ -22,10 +22,8 @@ import { orderRoutes } from "../../tools/order-routes.ts";
 import { TEXTURE } from "../../tools/order-images.ts";
 import { LANDS_LABEL, modelFor, modelsFor, openEndWords, readCutChecks, stepOf, type BankFacts, type MandateBudget, type OrdersAnswer, type RenderedReference } from "../../src/order-model.ts";
 import { NO_RECIPE, methodFor, recipeWords, referenceAbsent, referenceByRule } from "../../src/order-methods.ts";
-import type { Intent } from "../../src/placement-model.ts";
 import { MARK_NAMES, NOT_FROM_HERE, NO_LENGTH, NO_MODEL, orderBody, type FilmWish, type RowChoice, filmRow, hasRound, referenceOwner, referenceRole, roundFor, stepTwoSummary, treeAnchor } from "../lib/bordet.ts";
 import { dealAnchor, orderingState } from "../lib/orders.ts";
-import { motionSteps } from "../lib/placement.ts";
 
 const repo = path.resolve(import.meta.dirname, "../..");
 const base = os.tmpdir();
@@ -81,17 +79,6 @@ test("step 2 and the card's films: from the anchor of the guide's tree, never fr
   assert.equal(hasRound(graph("ACCEPTED"), "P4.C2", "2.3"), true);
   assert.equal(hasRound(graph("REJECTED"), "P4.C2", "2.3"), false);
   assert.equal(hasRound(null, "P4.C2", "2.3"), false);
-  // The motion's steps from the anchor the films go from, whatever grip and handbyte the plan still holds: from A2.3 never
-  // A2.2 or the grip "Släp", and always a handbyte; from A2.1 a pinch and no handbyte.
-  const intent: Intent = { takeHand: "LH", startSide: "BACK", endSide: "FRONT", pass: false, turn: true, grip: "DRAG", turnAt: "AIR", flipAxis: "FREE" };
-  const said = motionSteps("P4.C2", intent, "2.3").steps;
-  assert.equal(said[0].label, "A2.3");
-  assert.equal(said.find((s) => s.id === "take")?.label, "Drar ut");
-  assert.ok(said.some((s) => s.id === "pass"), "from A2.3 the card changes hands");
-  const noDrag = (steps: { label: string; detail: string }[]) => steps.every((s) => !/A2\.2/.test(`${s.label} ${s.detail}`) && s.label !== "Släp");
-  assert.ok(noDrag(said), JSON.stringify(said));
-  const pinch = motionSteps("P4.C1", { ...intent, pass: true }, "2.1").steps;
-  assert.deepEqual([pinch[0].label, pinch.find((s) => s.id === "take")?.label, pinch.some((s) => s.id === "pass")], ["A2.1", "Nyp", false]);
 });
 
 test("the ordering block's state in one line", () => {

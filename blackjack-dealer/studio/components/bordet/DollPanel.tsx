@@ -3,7 +3,7 @@
 // The doll in Bordet's Inspelning: Inspelning's one picture, for every step (Jakob 2026-11-25: "Jag vill att vi skapar ett och
 // samma läge för detta ... jag vill ha allt i 3d ... Det andra ska raderas."). The doll lab, embedded
 // (dealer3d/page/docka.html?inbaddad=1), shows the table, the chosen dealer's doll and the draft plan's cards on the felt in
-// 3D, with its view buttons, its note and its transport row. Its controls (Rörelse, Ställning, Vändning, Landning, Styr with
+// 3D, with its view buttons, its note and its transport row. Its controls (Vändning, Landning, Styr with
 // "Spara som standard") the lab lays itself into step 2's host, DollControls: an element React never fills, found as
 // [data-docklabb-styr]; their look is the studio's (app/globals.css .docklabb-styr). The pose the doll deals from is the
 // guide tree's anchor and nothing else: embedded the lab shows no choice of it (Jakob 2026-11-24: "en väg för varje sak").

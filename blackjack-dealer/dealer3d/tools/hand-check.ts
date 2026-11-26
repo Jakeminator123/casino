@@ -53,7 +53,7 @@ const recipeNamed = async (name: string) => { const recipe: Recipe = recipeOf(na
 async function laid(place: string, before: AsBefore) {
   const found = placeFrom('A2.3', place); if (!found || 'none' in found || 'pinch' in found) return null;
   let {recipe, pose} = await recipeNamed(found.recipe);
-  const file = `dealer3d/standard/${standardName(dollName, 'A2.3', place)}.json`, saved = existsSync(path.join(ROOT, file));
+  const file = `dealer3d/standard/${standardName(dollName, place)}.json`, saved = existsSync(path.join(ROOT, file));
   let steer: Steer = {...NO_STEER}, knobs: Knobs = structuredClone(NO_KNOBS), landing = landingOf(undefined), turn = turnOf(undefined), way = dollName === 'standard' ? 'forut' : 'naturlig';
   if (saved) { const lab = (await json(file)).lab ?? {}; steer = {...NO_STEER, ...lab.steer}; knobs = {...NO_KNOBS, ...(lab.naturlig?.knobs ?? {})}; landing = landingOf(lab.landing); turn = turnOf(lab.turn);
     if (dollName !== 'standard') way = lab.naturlig ? 'naturlig' : 'forut'; if (lab.recipe && lab.recipe !== recipe.from) ({recipe, pose} = await recipeNamed(lab.recipe)); }

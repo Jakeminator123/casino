@@ -1,10 +1,10 @@
 // The thin helpers of Bordet's Inspelning, where Jakob's card plan is changed with the doll's 3D picture beside it: places in
-// his words, the draft with its undo and what differs from the saved plan, an arrow key's nudge, numbers with a decimal comma
-// and the card's way in his words (Kortbanan). The plan's own rules (where a card lies, how an edit is made) are
-// src/placement-model.ts. Pure: no DOM, no network; the motion's words are tested in studio/tests/bordet-line.test.ts.
-import { ANCHOR_NODE, type Anchor } from "../../src/order-model.ts";
-import { TARGETS, VIEWS, editPlace, motionNodes, sequence, type Hand, type Intent, type Place, type PlacementPlan, type Side, type View } from "../../src/placement-model.ts";
-import { cardCode, nodeCode } from "./names.ts";
+// his words, the draft with its undo and what differs from the saved plan, an arrow key's nudge and numbers with a decimal
+// comma. The plan's own rules (where a card lies, how an edit is made) are src/placement-model.ts. How the card travels is
+// not said here any more (a row of boxes described it from the plan's hidden fields until 2026-11-26): the doll's picture
+// shows it. Pure: no DOM, no network.
+import { TARGETS, VIEWS, editPlace, type Place, type PlacementPlan, type View } from "../../src/placement-model.ts";
+import { cardCode } from "./names.ts";
 
 // ── Places ──────────────────────────────────────────────────────────────────
 // The places are the plan's cards only. The shoe was one until 2026-11-26: its place is the standard's (src/table-lens.ts
@@ -37,8 +37,6 @@ export function placeFromCode(code: string | null | undefined): Place | null {
  * reads; validatePlan keeps accepting it and the studio leaves it as it stands.
  */
 export const PLAN_VIEW: View = "native";
-const handWord = (h: Hand) => (h === "LH" ? "vänster" : "höger");
-const sideWord = (s: Side) => (s === "BACK" ? "stängt" : "öppet");
 
 // ── Numbers ─────────────────────────────────────────────────────────────────
 /** 12.5 → "12,5" with `digits` decimals (the minus sign as "−"). */
@@ -106,29 +104,4 @@ export function nudged(plan: PlacementPlan, id: Place, view: View, key: string, 
   const step = shift ? 10 : 1;
   const old = plan.targets[id].geometry[view];
   return editPlace(plan, id, view, { u: old.u + (d[0] * step) / (v.width - 1), v: old.v - (d[1] * step) / (v.height - 1) });
-}
-
-// ── The motion, in his words ────────────────────────────────────────────────
-export type MotionStep = { id: string; label: string; detail: string };
-/** How the hand at the shoe takes the card from each anchor. */
-const TAKE_WORD: Record<Exclude<Anchor, "1">, string> = { "2.1": "Nyp", "2.2": "Släp", "2.3": "Drar ut" };
-/**
- * The card's way from the shoe and back (motionNodes), in Swedish, from `anchor`: the anchor the card's films go from
- * (lib/bordet.ts treeAnchor). From A2.3 the card changes hands, whatever the plan's own "Handbyte" says. `code` is the
- * model's own line for the exact reading. The turn says only what the plan steers (the sides); where and how it turns the
- * doll's picture shows, and an order's recipe and reference film decide.
- */
-export function motionSteps(id: string, intent: Intent, anchor: Exclude<Anchor, "1">): { steps: MotionStep[]; code: string } {
-  const way: Intent = { ...intent, pass: anchor === "2.3" };
-  const at = nodeCode(ANCHOR_NODE[anchor]);
-  const words: Record<string, (detail: string) => MotionStep> = {
-    ready: () => ({ id: "ready", label: at, detail: sideWord(way.startSide) }),
-    take: () => ({ id: "take", label: TAKE_WORD[anchor], detail: handWord(way.takeHand) }),
-    pass: () => ({ id: "pass", label: "Handbyte", detail: `${handWord(way.takeHand)} → ${handWord(way.takeHand === "LH" ? "RH" : "LH")}` }),
-    turn: () => ({ id: "turn", label: "Vänd", detail: `${sideWord(way.startSide)} → ${sideWord(way.endSide)}` }),
-    land: () => ({ id: "land", label: "Landar", detail: `${nodeCode(id)} · ${sideWord(way.endSide)}` }),
-    release: (detail) => ({ id: "release", label: "Släpper", detail: handWord(detail as Hand) }),
-    return: () => ({ id: "return", label: "Tillbaka", detail: at }),
-  };
-  return { steps: motionNodes(id, way).map((n) => words[n.id](n.detail)), code: sequence(id, way) };
 }

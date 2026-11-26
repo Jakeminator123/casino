@@ -32,7 +32,6 @@ import type { EntryAnswer } from "../../lib/media.ts";
 import { kartaHref, tileNode, tilesOf, treeOwns, type GuideItem } from "../../lib/new-film.ts";
 import { orderDoll, picturesInOrder, type CreatedOrders, type DollOrdered, type NewOrderInput, type Order, type OrderAnswer, type OrdersAnswer } from "../../lib/orders.ts";
 import type { Trees } from "../map/useTrees";
-import { treeChip } from "../map/TreeRow";
 import { coverOfEntry } from "../material/Tile";
 import { PreviewOrder, PreviewPictures, useDraftSave, usePreview } from "../order/OrderPreview";
 import { WayChip, pictureName } from "../order/Pictures";
@@ -49,15 +48,14 @@ const STATE_CHIP = { saknas: { tone: "remark", word: "saknas" }, prov: { tone: "
 export type DollWay = { place: string; standard: StandardState; treePicture: string | null };
 
 export function NewFilm({
-  dealer, dealers, trees, view, onTree, item, phase, onPhase, onPick, place, row, body, sends, entries, names, ordering, blocked, made, orders, composition, onCreated, doll, onDollMade,
+  dealer, dealers, trees, view, item, phase, onPhase, onPick, place, row, body, sends, entries, names, ordering, blocked, made, orders, composition, onCreated, doll, onDollMade,
 }: {
   dealer: string;
   /** The dealers films can be ordered for (not paused): their names. */
   dealers: readonly { id: string; name: string }[];
   trees: Trees;
-  /** The chosen tree (lib/new-film.ts pickTree), or null without trees. */
+  /** The chosen tree (lib/new-film.ts pickTree; chosen in the row above the picture, BordetView), or null without trees. */
   view: TreeView | null;
-  onTree: (id: string) => void;
   item: GuideItem | null;
   phase: Phase;
   onPhase: (p: Phase) => void;
@@ -123,7 +121,7 @@ export function NewFilm({
         className="self-start"
       />
       {phase === "vad" ? (
-        <Choose dealer={dealer} dealers={dealers} trees={trees} view={view} onTree={onTree} item={item} onPick={onPick} place={place} pictureOf={pictureOf} />
+        <Choose dealer={dealer} dealers={dealers} trees={trees} view={view} item={item} onPick={onPick} place={place} pictureOf={pictureOf} />
       ) : item ? (
         <>
           <Head item={item} view={view} onBack={() => onPhase("vad")} />
@@ -161,7 +159,7 @@ export function NewFilm({
 }
 
 // ── Vad ─────────────────────────────────────────────────────────────────────
-function Choose({ dealer, dealers, trees, view, onTree, item, onPick, place, pictureOf }: { dealer: string; dealers: readonly { id: string; name: string }[]; trees: Trees; view: TreeView | null; onTree: (id: string) => void; item: GuideItem | null; onPick: (item: GuideItem) => void; place: string; pictureOf: (node: string) => EntryAnswer | null }) {
+function Choose({ dealer, dealers, trees, view, item, onPick, place, pictureOf }: { dealer: string; dealers: readonly { id: string; name: string }[]; trees: Trees; view: TreeView | null; item: GuideItem | null; onPick: (item: GuideItem) => void; place: string; pictureOf: (node: string) => EntryAnswer | null }) {
   const tiles = tilesOf(view, place);
   const choosable = (trees.answer?.trees ?? []).filter((v) => !v.tree.shares || v.tree.id === view?.tree.id);
   const grid = (list: readonly GuideItem[]) => (
@@ -176,7 +174,8 @@ function Choose({ dealer, dealers, trees, view, onTree, item, onPick, place, pic
       {trees.state === "loading" ? (
         <Skeleton className="h-40 rounded-md" />
       ) : choosable.length ? (
-        <SegmentedControl size="sm" label="Träd" value={view?.tree.id ?? ""} onChange={onTree} options={choosable.map((v) => ({ value: v.tree.id, label: treeChip(v) }))} className="max-w-full flex-wrap self-start" />
+        // The tree is chosen in the row above the picture (BordetView), one place for the doll's entry, the film and this list.
+        <p className="text-sm text-dim">{view ? `Filmerna i ${view.tree.name}. Trädet väljs i raden ovanför bilden.` : "Välj ett träd i raden ovanför bilden."}</p>
       ) : (
         <p className="text-sm text-dim">
           {trees.state === "ready" ? `${dealers.find((d) => d.id === dealer)?.name ?? dealer} har inget nodträd än.` : (trees.error ?? "Träden kunde inte läsas.")} Stegen nedan gäller kortet på bilden.

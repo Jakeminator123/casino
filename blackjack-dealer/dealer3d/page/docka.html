@@ -111,6 +111,9 @@
         <span class="look">Titta runt:</span>
         <button data-view="side" title="Titta runt: från hennes högra sida, i höjd med armarna. Inte filmernas kamera.">Från sidan</button><button data-view="above" title="Titta runt: rakt ovanifrån bordet. Inte filmernas kamera.">Uppifrån</button><button data-view="player" title="Titta runt: från spelarens stol vid kortet. Inte filmernas kamera.">Från spelaren</button><button data-view="card" title="Titta runt: nära kortet, och följer det. Inte filmernas kamera.">Nära kortet</button>
         <label class="switch"><input id="joints" type="checkbox">Leder</label>
+        <!-- Her poses to look at (docka.ts showPose): nothing is written, and Spela shows the deal again. -->
+        <span class="look">Visa ställning:</span>
+        <button data-pose="A1" title="Visa ställningen A1. Spela visar given igen.">A1</button><button data-pose="A2.1" title="Visa ställningen A2.1, nypet vid skon. Spela visar given igen.">A2.1</button><button data-pose="A2.3" title="Visa ställningen A2.3. Spela visar given igen.">A2.3</button>
       </div>
       <p class="grip" id="grip"></p>
       <div class="foot"><p class="filmnote" id="filmNote" hidden></p><p class="note" id="note">Laddar …</p></div>
@@ -126,25 +129,23 @@
   </section>
   <aside>
     <div class="head"><h1>Dockan</h1><div class="seg" id="dolls" role="group" aria-label="Docka"><button data-doll="paow">Paow</button><button data-doll="standard">Standarddockan</button></div></div>
+    <!-- The controls (docka.ts): each part is shown only where it can act (docka.ts paint). -->
     <div class="docklabb-styr">
-    <div><h2>Rörelse</h2>
-      <div class="seg" id="ways" role="group" aria-label="Rörelse"><button data-way="naturlig">Naturlig</button><button data-way="forut">Äldre given</button></div>
-      <p class="small" id="wayNote"></p></div>
-    <div><h2>Ställning</h2>
-      <div class="seg" id="poses"><button data-pose="A1">A1</button><button data-pose="A2.1">A2.1</button><button data-pose="A2.3">A2.3</button></div></div>
     <div><h2 id="dealHead">Giv från A2.3 till</h2>
       <div class="seg" id="entries" role="group" aria-label="Giv från"><button data-entry="A2.1">Från A2.1</button><button data-entry="A2.3">Från A2.3</button></div>
-      <div class="grid" id="places"></div><p class="small" id="closed"></p></div>
-    <div><h2>Vändning</h2>
+      <div class="grid" id="places"></div><p class="small" id="closed"></p>
+      <p class="small" id="sideNote" hidden>Kortet läggs stängt, som planen säger: det skjuts med baksidan upp och vänds aldrig, så det har ingen vändning eller landning.</p></div>
+    <div id="turnBox"><h2>Vändning</h2>
       <div class="seg" id="turns" role="group" aria-label="Vändning"></div>
       <p class="small" id="turnNote"></p></div>
-    <div><h2>Landning</h2>
+    <div id="landingBox"><h2>Landning</h2>
       <div class="seg" id="landings" role="group" aria-label="Landning"></div>
       <div id="shaping"></div>
       <p class="small" id="landingNote"></p></div>
     <div><h2>Styr</h2>
+      <p class="small" id="builtNote" hidden>Från A2.1 ger dockan nypets egen rörelse; den styrs inte här.</p>
       <div id="knobs"></div>
-      <div class="acts"><button id="atplace">Vänd vid platsen</button><button id="reset">Återställ</button><button id="save">Spara som standard</button></div>
+      <div class="acts" id="steerActs"><button id="reset">Återställ</button><button id="save">Spara som standard</button></div>
       <!-- His saved standards, forgiving (Jakob 2026-11-26): nothing is deleted, a standard replaced or laid aside can be taken back (dealer3d/page/server.ts). -->
       <div class="acts"><button id="back">Ta tillbaka den förra</button><button id="allDefault">Alla till förvalet</button></div>
       <p class="small" id="status"></p></div>

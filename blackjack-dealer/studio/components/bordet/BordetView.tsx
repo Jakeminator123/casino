@@ -16,7 +16,7 @@
 //                the card's way from the anchor; the doll's own controls, which the doll lab lays there), 3 Ny film (the
 //                guide for the dealer chosen in the frame: her tree and the step, the step's recipe, what is sent and
 //                "Spara utkastet"; NewFilm.tsx), and Hela bordet. The
-//                anchor the card goes from is the guide tree's (lib/bordet.ts treeAnchor): step 2, Kortbanan, the pose the
+//                anchor the card goes from is the guide tree's (lib/bordet.ts treeAnchor): step 2, the pose the
 //                doll deals from and Scen's round all name it, and step 3 orders from it. Step 3 makes a deal from A2.3 to a
 //                player's card or one of the dealer's own from the doll's saved standard where the dealer has a doll of her
 //                own.
@@ -54,6 +54,7 @@ import { useGesture, usePlanKeys } from "../placement/usePlanKeys.ts";
 import { draftActions, useDraft } from "../placement/useDraft.ts";
 import { Page } from "../shell";
 import { Badge, Button, ErrorState, IconButton, SegmentedControl, Skeleton, cn, useToast } from "../ui";
+import { treeChip } from "../map/TreeRow";
 import type { Made } from "./FilmList";
 import { DOLL_CARD, DollControls, DollNote, DollStage, ownDoll, useDollFilm, useDollGroups, useDollStandard, type DollEntry, type DollFilm, type StandardState } from "./DollPanel";import type { DollGroup } from "../../lib/doll-films.ts";
 import { NewFilm, type Phase } from "./NewFilm";
@@ -293,6 +294,17 @@ export function BordetView() {
     const next = views?.find((v) => v.tree.id === id);
     setGuide((g) => ({ ...g, tree: id, composition: null, pick: next && item ? sameIn(next, item) : g.pick }));
   };
+  // The tree, chosen in one place, in the row above the picture (Jakob 2026-11-26: the dealer's films for the card, tree by
+  // tree, against the doll). It says where the doll deals from (A2.3, or the nyp from A2.1), which film Filmen lays over her
+  // (lib/bordet.ts cardFilm) and which films step 3 lists. Offered: every tree and way of the dealer; a tree put together
+  // only while it is the one shown.
+  const choosableTrees = (views ?? []).filter((v) => !v.tree.shares || v.tree.id === view?.tree.id);
+  const treeChoice = choosableTrees.length > 1 ? (
+    <span className="flex shrink-0 items-center gap-2" title="Trädet avgör varifrån dockan ger kortet, vilken film reglaget Filmen lägger över henne och vilka filmer steg 3 visar">
+      <span aria-hidden className="h-5 w-px shrink-0 bg-line" />
+      <SegmentedControl size="sm" label="Träd" value={view?.tree.id ?? ""} onChange={chooseTree} options={choosableTrees.map((v) => ({ value: v.tree.id, label: treeChip(v) }))} />
+    </span>
+  ) : null;
 
   const save = async () => {
     const result = await draftActions.save();
@@ -331,7 +343,7 @@ export function BordetView() {
       dealers={orderDealers}
       trees={trees}
       view={view}
-      onTree={chooseTree}
+
       item={item}
       phase={guide.phase}
       onPhase={(phase) => setGuide((g) => ({ ...g, phase }))}
@@ -409,6 +421,7 @@ export function BordetView() {
             standard={standard}
             dollCount={doll.count}
             lab={{ orders, ordersRead, groups: doll.groups, onSaved: onDollSaved, film: dollFilm }}
+            treeChoice={treeChoice}
             newFilm={newFilm}
             newFilmSummary={guideSummary}
           />
@@ -421,9 +434,11 @@ export function BordetView() {
 }
 
 function TableBody({
-  menu, step, setStep, place, setPlace, dealer, from, standard, dollCount, lab, newFilm, newFilmSummary,
+  menu, step, setStep, place, setPlace, dealer, from, standard, dollCount, lab, treeChoice, newFilm, newFilmSummary,
 }: {
   menu: ReactNode;
+  /** The choice of tree for the row above the picture, or null where the dealer has one tree or none. */
+  treeChoice: ReactNode;
   step: StepId | null;
   setStep: (s: StepId | null) => void;
   place: Place;
@@ -486,7 +501,7 @@ function TableBody({
       summary: stepTwoSummary(place, from, target.intent.endSide),
       body: (
         <>
-          <MotionPanel plan={plan} id={place} editable={editable} anchor={from} />
+          <MotionPanel plan={plan} id={place} editable={editable} />
           <DollNote dealer={dealer} place={place} standard={standard} />
         </>
       ),
@@ -524,6 +539,7 @@ function TableBody({
           <Button size="sm" variant="secondary" icon={<Clapperboard />} aria-pressed={films} onClick={() => setFilms(!films)} className="shrink-0" title={films ? "Tillbaka till dockans bild" : "Dockans filmer till kortet, var och en med filmerna som beställdes med den"}>
             {dollCount ? `Dockans filmer · ${dollCount}` : "Dockans filmer"}
           </Button>
+          {treeChoice}
         </div>
         {draft.conflict ? <p className="shrink-0 border-b border-underkand/30 bg-underkand/8 px-4 py-1.5 text-xs text-[#ef8b8b]">Planen har ändrats på annat håll sedan den lästes.</p> : null}
         {/* the doll's picture: in one column the film's shape and the lab's transport row under it, at most most of the window; side by side all the height there is */}
