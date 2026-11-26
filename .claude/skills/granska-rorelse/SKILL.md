@@ -47,6 +47,9 @@ fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt g�
    armbåge, fingertopp, kortet, huvudet eller blicken, och en sned landning. Utskriften säger också vad den inte ser.
    `--alla` prövar alla sju platserna och slutar rött om någon har en spärr, och med
    `--giv-monster giv-fran-2-3-p#c1-<namn>` prövas nya grundrörelser i stället för platsernas.
+   **Mät också kroppen:** `node standarddocka/verktyg/kropp.ts --plats <n> [--docka kvinna]` (eller `--alla`, `--runda`)
+   stegar editorn 60 gånger per sekund och säger om modellens axlar, armbågar eller handleder hoppar från rörelsens
+   punkter: det `mat.ts` inte ser, och det Jakob ser som att det "hackar till". Tar det delade låset.
 2. **Titta:** lägg en lapp på din mapp (`node slask/slask.ts lapp standarddocka/granska-p<n> <ditt namn> "<vad>"`) och kör
    `node standarddocka/verktyg/titta.ts --ut slask/standarddocka/granska-p<n> --plats <n> --kamera lag,sida,topp,plats<n> --tider <tiderna>`.
    Läs bilderna. `lage.json` bär editorns mått vid varje tid, bland annat armarnas luft över bordskanten (`armar`) och
@@ -74,7 +77,7 @@ fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt g�
   bär kortet gör något naturligt; den är inte stel eller spänd.
 - **Armarna:** underarmarna går över bordets kant, aldrig genom kanten, markerbrickan eller skon. Titta från sidan.
 - **Inga hack:** farten ändras mjukt. De häftigaste rycken i `mat.ts` är värda en bild strax före och strax efter.
-- **Blicken:** mot kameran i vilan, på kortet medan det är på väg, och tillbaka.
+- **Blicken:** mot kameran i vilan (A1), på skon vid skon (A2.3), på kortet medan det är på väg, och tillbaka på skon.
 - **Bålen:** lutar inte mer än räckvidden kräver.
 
 ## Vad lagret kan och inte kan

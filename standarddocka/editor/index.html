@@ -59,6 +59,7 @@
   .platser { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
   .platser span { flex: 0 0 100%; color: var(--dim); font-size: 13px; }
   .platser button { padding: 5px 0; width: 36px; text-align: center; }
+  .platser button.bred { width: auto; padding: 5px 10px; }
   select { font: inherit; color: var(--text); background: var(--button); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 100%; margin-bottom: 8px; }
   .visa { display: flex; flex-wrap: wrap; gap: 6px 14px; }
   #botten { flex: none; display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--panel); }
@@ -104,14 +105,15 @@
   <section>
     <h2>Rörelsen består av</h2>
     <ol id="delar"></ol>
-    <p class="tips" style="margin-top:6px">Talet är hur många sekunder delen tar. Skriv ett nytt tal för att göra den fortare eller långsammare.</p>
+    <p class="tips" id="delar-tips" style="margin-top:6px">Talet är hur många sekunder delen tar. Skriv ett nytt tal för att göra den fortare eller långsammare.</p>
     <div class="platser" id="malplatser" title="Vilken plats kortet ges till. Varje plats har sin egen rörelse och sina egna ändringar.">
       <span>Kortet ges till plats</span>
       <button data-plats="1">1</button><button data-plats="2">2</button><button data-plats="3">3</button><button data-plats="4">4</button><button data-plats="5">5</button><button data-plats="6">6</button><button data-plats="7">7</button>
+      <button id="hela-rundan" class="bred" title="Vilan till skon och sedan första kortet till plats 7, 6, 5, 4, 3, 2 och 1 i en enda tagning, med en kort stillhet vid skon efter varje kort. För att se hela rundan och spela in den som en film som sedan klipps.">Hela rundan (kort 1 till alla sju)</button>
     </div>
     <div class="platser" id="dockor" title="De två standarddockorna har samma skelett och gör samma rörelser. Det du ändrar och sparar gäller båda.">
       <span>Dockan</span>
-      <button data-docka="man">Mannen</button><button data-docka="kvinna">Kvinnan</button>
+      <button data-docka="man" class="bred">Mannen</button><button data-docka="kvinna" class="bred">Kvinnan</button>
     </div>
   </section>
   <section>
@@ -135,7 +137,8 @@
       <label class="rad"><input type="checkbox" id="visa-platser" checked> Visa kortplatserna</label>
     </div>
   </section>
-  <section>
+  <!-- bara-plats: det som hör till en plats i taget och inte visas i hela rundan (editor.ts RUNDA). -->
+  <section class="bara-plats">
     <h2>Ändra rörelsen</h2>
     <p>Välj en del (eller klicka på en kula i bilden) och dra i pilarna. Ändringen görs där tidslinjen står och tonas in och ut mjukt. Höger och vänster är hans egna.</p>
     <div class="knappar" id="leder">
@@ -158,7 +161,7 @@
       <p class="tips" id="varar-om"></p>
     </div>
   </section>
-  <section>
+  <section class="bara-plats">
     <h2>Små egna rörelser</h2>
     <p>Lägger liv i honom utan att ändra rörelsen. De tonar ut i varje dels början och slut, så att klippen fortfarande möts.</p>
     <div class="visa" id="liv">
@@ -170,19 +173,19 @@
     </div>
     <div class="knappar" style="margin-top:8px"><button id="liv-slumpa" title="Samma slags rörelser, på andra ställen och i en annan takt">Slumpa om</button></div>
   </section>
-  <section>
+  <section class="bara-plats">
     <h2>Ändringar</h2>
     <ul id="lista"></ul>
   </section>
   <section>
-    <div class="knappar">
+    <div class="knappar bara-plats">
       <button id="angra">Ångra senaste</button>
       <button id="spara" class="stor spara">Spara</button>
     </div>
     <p id="status" style="margin-top:8px"></p>
     <p class="tips">Mellanslag: spela och pausa · Pil vänster och höger: en bild i taget · Ctrl+Z: ångra · Esc: släpp vald del</p>
   </section>
-  <section>
+  <section class="bara-plats">
     <h2>Återställ</h2>
     <p>Grundrörelsen kan du aldrig förstöra härifrån: det du ändrar läggs ovanpå den. Båda knapparna går att ångra, och inget skrivs förrän du trycker Spara.</p>
     <div class="knappar">

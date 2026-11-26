@@ -68,6 +68,11 @@ rörelse prövas mot innan den visas för honom.
   aldrig in som egna tal i en mapp.
 - **I vilan ser han in i kameran (2026-11-26).** "A1 [ska] alltid ha avataren som tittar mot kameran … mot P4:as kamera
   för tillfället."
+- **Vid skon ser han på skon (2026-11-26).** Om givarna till sju platser, som börjar och slutar vid skon: "Nja. Detta är
+  ju inte A1 som dessa startar på. Denna är ju A2.3, därför ska dockans blick riktas mot skon när den går från skon och
+  skjuter ut kortet, men också återvända till samma ställe med samma blick. En annan sak hade varit om han skulle
+  återvända till A1. I övrigt bra!" Blicken är alltså mot kameran bara i vilan (A1). I A2.3 är den på kortet i skons
+  mynning, under given på kortet, och tillbaka på skon när handen är det.
 - **Takten (2026-11-26).** "En ny standard som jag skulle vilja ha för rörelserna med nya standarddockan. A1 - A2.3 ska
   ta 1 sekund ungefär. Sedan ska respektive giv, såsom A2.3 till P4C1 ta 1 sekund ungefär", och senare samma dag:
   "respektive utgivning är max 1 sekund och tillbakagången till A1 och/eller A2.3 eller så ska göras på ca 0,6
@@ -148,7 +153,9 @@ rörelse prövas mot innan den visas för honom.
   hamnar mer rätt?" Ja: prövat samma dag är dockornas bord byggt med spelarnas ramar vända mot sin spelare (långsidan
   längs linjen från dealern genom platsen; plats 4 rakt, de yttersta 40 grader, dealerns egna rakt), och givarna
   lägger kortet så. Handleden står då högst 36 grader från underarmen på varje plats (förut 60 och 69 på plats 6 och
-  7). Det väntar på hans dom i provet `givar-sju-platser-20261126`; hur det tas bort igen står i README, Nästa steg.
+  7). Hans svar på provet `givar-sju-platser-20261126` samma dag gällde blicken vid skon och slutade "I övrigt bra!";
+  de vända platserna nämnde han inte för sig (agentens läsning: de står kvar). Hur de tas bort igen står i README,
+  Nästa steg.
 - **A och B (2026-11-26).** Om mannens giv till plats 4, version A (vänds på vägen) och B (vänds vid platsen):
   "Superbra, 5/5 för båda faktiskt! Kanon skulle ju vara att ha båda uppsättningarna, men så de skulle kunna dela
   till alla spelare och upp till 7 kort för respektive spelare/seat så att säga på ett eller annat sätt. Så gärna A

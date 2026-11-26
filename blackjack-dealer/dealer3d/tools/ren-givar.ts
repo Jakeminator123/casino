@@ -14,8 +14,9 @@
 //               skon som Naturlig har den (ren-giv.ts rentAnkare);
 //   man, kvinna dockans egna axlar, armar och händer (dealer3d/src/doll.ts, mätta på modellen och skrivna av
 //               dealer3d/tools/docka-standard.ts): högerhanden där dockan har den på filten (hand.at.right), vänsterhanden
-//               vid skon som Naturlig (rentAnkare), kortet och blicken Paows; armbågarna så att underarmarna går över
-//               bordets kant (ren-giv.ts armbageOverKanten).
+//               vid skon som Naturlig (rentAnkare), kortet Paows och blicken på kortet i skons mynning (Jakob
+//               2026-11-26: i A2.3 riktas blicken mot skon); armbågarna så att underarmarna går över bordets kant
+//               (ren-giv.ts armbageOverKanten).
 // --vila (man, kvinna): dealer3d/data/till-ankare-2-3-<docka>.json, från vilan A1 (dockans hand.rest, armbågarna över
 //   kanten) till exakt ankarets första ruta (ren-giv.ts renVila).
 // Givarna: dealer3d/data/giv-fran-2-3-p<n>c1-ren-a-<docka>.json. Varje fil får `about` och `made`; en rörelse med röd
@@ -94,8 +95,8 @@ if (process.argv.includes('--ankare')) {
     const eL = (() => { if (!hudar || vridenTill(e0) <= VRIDEN) return e0; for (let x = 2; x <= 90; x += 2) { const e = arm(g.L.s, g.L.w, turned(unit(sub(e0, g.L.s)), linje, x * Math.PI / 180), doll).elbow;
       if (vridenTill(e) <= VRIDEN && handled(e) <= 40 && (!kant || underarmLuft(e, g.L.w, kant) >= kant.luft)) return e; } return e0; })();
     const L: Limb = {...g.L, e: r4(eL)};
-    ut = {about: `Ställningen A2.3 för dockan ${NAMN} (standarddockans ${NAMN === 'man' ? 'man' : 'kvinna'}), ren: dockans egna axlar, armar och händer (dealer3d/src/doll.ts, mätta på modellen av dealer3d/tools/docka-standard.ts): högerhanden där dockan har den på filten (hand.at.right), vänsterhanden vid skon som Naturlig (hand.natural, rentAnkare), armbågarna åt samma håll som Paows i hennes ankare ${fran} (sha256 ${sha(b)}) och ut så att underarmarna går över bordets kant (${STANDARDBORD.kantBak} m bakom spelets kant); kortet i skon (flyttat med skon till standarddockornas bord, hud.ts SKON) och blicken hennes. Vilan till skon (till-ankare-2-3-${NAMN}) och de rena givarna (dealer3d/src/ren-giv.ts, dealer3d/tools/ren-givar.ts --docka ${NAMN}) slutar och börjar här.`,
-      doll: NAMN, from: fran, hip: r4(fr.hip), frame: {card: kort, L, R, h: r4(fr.head), g: f.g}};
+    ut = {about: `Ställningen A2.3 för dockan ${NAMN} (standarddockans ${NAMN === 'man' ? 'man' : 'kvinna'}), ren: dockans egna axlar, armar och händer (dealer3d/src/doll.ts, mätta på modellen av dealer3d/tools/docka-standard.ts): högerhanden där dockan har den på filten (hand.at.right), vänsterhanden vid skon som Naturlig (hand.natural, rentAnkare), armbågarna åt samma håll som Paows i hennes ankare ${fran} (sha256 ${sha(b)}) och ut så att underarmarna går över bordets kant (${STANDARDBORD.kantBak} m bakom spelets kant); kortet i skon (flyttat med skon till standarddockornas bord, hud.ts SKON), och blicken på kortet i skons mynning (Jakob 2026-11-26: i A2.3 riktas blicken mot skon, och en giv återvänder dit med samma blick). Vilan till skon (till-ankare-2-3-${NAMN}) och de rena givarna (dealer3d/src/ren-giv.ts, dealer3d/tools/ren-givar.ts --docka ${NAMN}) slutar och börjar här.`,
+      doll: NAMN, from: fran, hip: r4(fr.hip), frame: {card: kort, L, R, h: r4(fr.head), g: kort.c}};
   }
   // (ett ankare med röd spärr ersätter aldrig ett som står: det skrivs då bara under provnamn)
   const f = ut.frame, fel = (l: Limb, sign: number, kort: Frame['card'] | null) => handFaults(l.p, sign, null, kort).filter(x => x.kind !== 'ordning' && x.kind !== 'grannen').map(x => x.what).join(' | ') || 'inga fel';

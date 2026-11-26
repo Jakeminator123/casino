@@ -24,13 +24,15 @@ standarddocka/
     scen.ts     scenen: dockan (mannen eller kvinnan) i standardrummet (bordet, stolen och ljuset ur
                 ../blackjack-dealer/dealer3d/src/standard-room.ts, samma som studions dockvy ritar), kortet, kamerorna
     rorelse.ts  rörelsen: grundrörelser efter varandra (dockans egna där de finns), skarven, takten, ändringarna
-                ovanpå, vem som håller kortet, och kontrollen av ett sparat lager (`lagretsFel`)
+                ovanpå, vem som håller kortet, och kontrollen av ett sparat lager (`lagretsFel`); och hela rundan i
+                en tagning (`rundaAv`) med sin klipplista och sina mått (`klipplista`, `rundansMatt`)
     armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp), och kroppens mått tagna
                 på dockans hud (bålen som skivor, huvudet, axellederna, armens tjocklek) för spärren
     kropp.ts    spärren: det han drar i hålls inom vad en kropp kan (ingen arm genom bålen, huvudet eller bordet,
                 ingen hand i filten eller bortom armens räckvidd, armbågen och handleden inom sina lägen); ren kod
   verktyg/      för agenter, utan fönster (hur de används: skillen granska-rorelse, ../.claude/skills/granska-rorelse/)
-    titta.ts    stillbilder ur valda kameror vid valda tider, med editorns mått, eller en inspelning; närbilder av en
+    titta.ts    stillbilder ur valda kameror vid valda tider, med editorns mått, eller en inspelning (`--spela-in
+                runda` filmar hela rundan och skriver klipplistan; `--runda` visar den för bilder); närbilder av en
                 hand eller kortet (kamerorna narahoger, naravanster, narakort; de spelas inte in); `--andring '<json>'`
                 lägger en ändring före bilderna utan att spara den; `--kor` räknar ett uttryck i sidan och skriver
                 svaret; `--spara` skriver om det sparade ur filen innan farten, de små rörelserna och ändringarna
@@ -51,6 +53,15 @@ standarddocka/
                 huvudet eller blicken, i alla rutor och med ankaret stilla före och efter; en sned landning.
                 Utskriften säger också vad mätningen inte ser (dockans egen kropp, armarna mot kanten och brickan,
                 låren och stolen, hur det ser ut)
+    kropp.ts    mäter det mat.ts inte ser: hur dockans kropp ritas. Stegar editorn 60 gånger per sekund genom en
+                plats (`--plats`), alla (`--alla`) eller hela rundan (`--runda`) och läser hur långt modellens
+                axlar, armbågar, handleder och fingrar hamnar från rörelsens punkter, och hur handleden och
+                underarmen vrids. Rött om en axel, armbåge eller handled hoppar 20 mm eller mer på ett steg; körs
+                före en inspelning som ska bli film (genom `titta.ts`, under det delade låset)
+    stycka.ts   styckar en film av hela rundan i sina klipp efter klipplistan (`klipp/runda-c1-<docka>.json`):
+                dockans egen tagning, eller samma tagning omgjord till en person av en filmmodell som behåller
+                rutorna. `--marginal` tar bort stilla rutor på var sida om varje klipp, och `--ordning 4,1,7`
+                lägger givarna efter varandra i en annan ordning, för att se att klippen möts i ankaret
   rorelser/     det editorn sparar, en rörelse per kortplats: a1-a23-p<plats>c1.json (vilka grundrörelser, blicken,
                 farten per del, ändringarna), för en dockas egna rörelser a1-a23-p<plats>c1-<docka>.json, och
                 <namn>.rutor.json (hela rörelsen ruta för ruta i dockans format, med kroppens mått, skriven vid
@@ -58,8 +69,9 @@ standarddocka/
                 felstavad led, en vridning som inte har längden 1, en tid utanför rörelsen), används inte, och sidan
                 säger vad; mappen finns först när något har sparats
   klipp/        filmerna Spela in gör: <rörelse>-<del>-<kamera>-<docka>[-nyckel].mp4, på prov
-                prov-[<vilan>-]<given>-<del>-<kamera>-<docka>.mp4 (1764 x 1174, 30 bilder i sekunden); en ny
-                inspelning med samma namn skriver över den förra; går inte in i Git
+                prov-[<vilan>-]<given>-<del>-<kamera>-<docka>.mp4 (1764 x 1174, 30 bilder i sekunden); hela rundan
+                runda-c1-<kamera>-<docka>[-nyckel].mp4 (kameran plats-1 … plats-7) med klipplistan
+                runda-c1-<docka>.json; en ny inspelning med samma namn skriver över den förra; går inte in i Git
   STARTA editorn.cmd   dubbelklicka för att starta editorn och öppna den i webbläsaren
 ```
 
@@ -71,7 +83,8 @@ kvinnan på alla sju platserna, till exempel `till-ankare-2-3-man` och `giv-fran
 de äldre (`till-ankare-2-3-c` och Paows giv
 till platsen, listan `GIVAR` där), och statusraden säger att platsen ännu spelar en rörelse ritad för en annan
 kropp. Platsen väljs med knapparna "Kortet ges till plats" (eller `?plats=1…7`, förval 4), och varje plats har sina
-egna sparade ändringar.
+egna sparade ändringar. Knappen "Hela rundan (kort 1 till alla sju)" under dem (eller `?runda=1`) spelar i stället
+första kortet till alla sju platserna i en tagning (Hela rundan nedan).
 
 - **Kameror:** spelets vy sedd från plats 1–7 (plats 4 är förvalet), från sidan, uppifrån, fri, och den gamla kameran
   för jämförelse. Spelets vy är den lägre kameran som Jakob valde som standard 2026-11-26: 0,58 m över filten, 12
@@ -129,8 +142,11 @@ egna sparade ändringar.
   huvudet rör sig lätt, en kort blick mot en spelare, ett finger lyfter på en hand som vilar, och kroppen väger över.
   "Slumpa om" lägger dem på andra ställen; samma frö ger samma rörelser. De är noll i varje dels början och slut, så
   att klippen fortfarande möts i ankaren, och sparas med rörelsen (`liv` i filen; `medLiv` i `editor/rorelse.ts`).
-- **Blicken** är rörelsens egen: i vilan ser han rakt fram, mot spelaren på plats 4 i ögonhöjd, vilken kamera som än
-  är vald, så att två klipp som möts har samma huvud.
+- **Blicken** är rörelsens egen: i vilan (A1) ser han rakt fram, mot spelaren på plats 4 i ögonhöjd, vilken kamera som
+  än är vald; vid skon (A2.3) ser han på kortet i skons mynning, under en giv på kortet, och tillbaka på skon när
+  handen är där (Jakob 2026-11-26, `AGENTS.md`). Ankarets blick står i `ankare-2-3-<docka>` (skriven av
+  `dealer3d/tools/ren-givar.ts --ankare`), och editorn lägger bara kameran över den i vilan (`foljerKortet`), så att
+  två klipp som möts har samma huvud.
 - **Spara** ser först efter om filen har ändrats sedan sidan laddades (i en annan flik eller av en agent), och om det
   som ligger sparat inte används (det hör till en äldre rörelse eller har fel). Då frågas han i vanliga ord, med valen
   "Ladda om sidan", "Spara ändå" och "Låt bli", och inget skrivs förrän han väljer. Ett sparande i taget: knappen är
@@ -145,6 +161,21 @@ egna sparade ändringar.
   film där dealern ska skiljas ut i efterhand: bakgrunden blå och utan golv, bordet och markerbrickan gröna utan
   tryck, kasseringslådan borta, och korten i spårfärger. Färgerna står i `NYCKEL` i `editor/scen.ts`. Inspelade klipp
   får då `-nyckel` sist i namnet.
+- **Hela rundan** (`?runda=1`; `rundaAv` i `editor/rorelse.ts`): vilan till skon och sedan första kortet till plats 7,
+  6 … 1 (spelets ordning) i en tagning, med dockans egna rörelser som de är, version A. Han står 0,3 s i vilan först
+  och 0,4 s vid skon mellan två rörelser (`STILLHET`: 0,2 s efter rörelsen med kortet kvar, och 0,2 s före nästa giv
+  med tomt bord), som samma ruta upprepad. Varje del är ett klipp som filmen
+  sedan klipps i: kortet ligger kvar på sin plats genom stillheten och står i skon igen från nästa klipps första ruta
+  (spelet ritar själv korten som ligger, så varje klipp börjar med tomt bord), och blicken är mot kameran i vilan och
+  på skon i varje ankare vid skon. Rundan slutar vid skon. Den tar inga ändringar, ingen egen takt och inga små rörelser och sparas inte: det
+  görs på en plats i taget. `node standarddocka/verktyg/titta.ts --spela-in runda --kamera plats1,plats2,…,plats7
+  [--docka kvinna] [--utseende nyckel]` gör en film per kamera och klipplistan `klipp/runda-c1-<docka>.json`: rutor
+  per sekund, antal rutor, och för varje klipp namnet (`A1>A2.3`, `A2.3>P7.C1>A2.3` …), första och sista rutan, rutan
+  där kortet ligger och rutan där handen är tillbaka (`stillaFran`), med skarvarna och stillheten mätta på rutorna.
+  Mannens tagning är ren att klippa (inget hopp i någon skarv, varje stillhet exakt; `matt.ren` i listan). Kvinnans är
+  det inte än: hennes rörelser går genom bordets kant utan regeln som lyfter armbågarna (`editor/armar.ts`), och regelns
+  utjämning över tiden spiller över stillheten (armbågarna rör sig upp till 20 mm) och skarvarna (1,6 mm). Statusraden
+  och verktyget säger det, och `--spela-in runda` slutar då rött.
 - **Spela in:** hela rörelsen, en del av den eller given (kortet ut och handen tillbaka i samma film), från den valda
   kameran eller från alla sju platserna i ett svep, utan kulor och pilar. Blicken står fast under inspelningen, så
   att det är samma rörelse från varje kamera, och panelen, tidslinjen och kameran går inte att röra medan den pågår
@@ -152,7 +183,8 @@ egna sparade ändringar.
   eller miljövariabeln `FFMPEG`).
 - **För verktygen:** `window.editor` (uppräkningen överst i `editor/editor.ts`). `state()` har utöver lägena bland
   annat `sparr` (vad spärren höll emot), `handledGrader` (handledens vinkel som kroppen ritade den och som rutan bad
-  om), `lagretsFel`, `aldreSparat`, `dockansEgna`, `sparasSom`, `bildvinkel`, `sparar`, `kortetsUtseende`, `lage` och
+  om), `lagretsFel`, `aldreSparat`, `dockansEgna`, `sparasSom`, `bildvinkel`, `sparar`, `kortetsUtseende`, `runda`
+  (klipplistan i hela rundan, annars null), `lage` och
   `ringensX` (i läget Vrida: ringens axel längs underarmen) och `axelLeder`. `slapp(id)` gör med en ändring det som
   händer när han släpper musen. `save()` stannar med sidans fråga som fel, så att ett verktyg aldrig skriver över i
   tysthet; `save(true)` skriver över.
@@ -242,7 +274,8 @@ Mappen lånar det som redan finns i stället för att kopiera det:
     vänsterhandsgiven är fingrarna raka och tummen gör inget. Efter bytet lyfter vänstern fingrarna tydligt (50
     grader) för att gå fri från kortet.
 - **Editorn** (`editor/`): mannen eller kvinnan gör vilan → skon → kort 1 på en plats → tillbaka med sina egna
-  rörelser på alla sju platser (tabellen `EGNA` i `editor/rorelse.ts`), version A. Version B spelas på prov
+  rörelser på alla sju platser (tabellen `EGNA` i `editor/rorelse.ts`), version A, och hela rundan (kort 1 till alla
+  sju) i en tagning. Version B spelas på prov
   (`?giv=giv-fran-2-3-p4c1-ren-b-man`); ett val mellan A och B i panelen finns inte än. De äldre givarna, ritade för
   Paows docka, spelas inte längre av någon av dockorna.
 - **Studion** (`../blackjack-dealer`): Standarddockan är en ingång i Bordet, i spelets vy med samma rum som editorn
@@ -272,17 +305,18 @@ Mappen lånar det som redan finns i stället för att kopiera det:
      korten (i dag mäts bara kortet som ges), och nedsättningen kring långsidan sveper över grannkortet.
    - Val per kort i `ren-givar.ts` (`--kort <n>`), filnamn `…-p<plats>c<kort>-ren-<a|b>-<docka>`, och rader i `EGNA`;
      editorn och studions dockvy väljer i dag bara kort 1.
-   - Följden: en lista (plats, kort, variant) som editorn spelar och spelar in i ett svep, med sista given direkt till
+   - Följden: första kortet till alla sju (version A) spelas och spelas in i ett svep i dag (Hela rundan, ovan). Kvar
+     är en lista (plats, kort, variant) i stället för den fasta, med sista given direkt till
      vilan (A1). Här avgörs också vem som väljer variant: A eller B, och hur kortet sätts ned, efter vem som ska få
      kortet visat för sig (`AGENTS.md`, Vänsterhandsgiven och märkningen).
    - En snabbare runda senare: vänstern kan dra nästa kort medan högern går hem (i dag väntar den i ankaret).
-2. Jakobs dom över givarna till alla sju platser: provet `givar-sju-platser-20261126` i studions Granska med kortet
-   `givar-sju-platser` i Beslut. I chatten har han sagt att vänsterhanden är "fine" och att A och B båda ska finnas;
-   kvar att höra är de vända kortplatserna. Det han säger ser fel ut ändras i `koreo-giv.ts` och gäller då alla
-   platser och båda dockorna; `node dealer3d/tools/ren-givar.ts --docka <docka> --alla --koreo a` (och `b`) från
-   `../blackjack-dealer/` ritar om dem. Säger han nej till de vända kortplatserna: ta bort `cardsFrom` ur
-   `DOLL_TABLE`, kör `gen_standard.py` och `bygg_bord.py --docka`, och rita om; de yttre platserna får då tillbaka
-   handledens vridning.
+2. Givarna till alla sju platser är dömda (provet `givar-sju-platser-20261126`, Jakob 2026-11-26: "Nja … I övrigt
+   bra!"): det han fällde var blicken vid skon, som nu är rättad i ankaret (Blicken, ovan) och i alla givar. I chatten
+   har han sagt att vänsterhanden är "fine" och att A och B båda ska finnas; de vända kortplatserna nämnde han inte
+   för sig. Det han säger ser fel ut i en giv ändras i `koreo-giv.ts` och gäller då alla platser och båda dockorna;
+   `node dealer3d/tools/ren-givar.ts --docka <docka> --alla --koreo a` (och `b`) från `../blackjack-dealer/` ritar om
+   dem. Säger han nej till de vända kortplatserna: ta bort `cardsFrom` ur `DOLL_TABLE`, kör `gen_standard.py` och
+   `bygg_bord.py --docka`, och rita om; de yttre platserna får då tillbaka handledens vridning.
 3. Val mellan A och B i editorn och i studions Bordet (i dag spelas A), märket synligt i Bordet, en giv som sätter
    ned kortet plant (`satts: plant`; kräver ett annat grepp än nyckelgreppet, där hela handen står under kortets
    plan), och hans önskan om cirka fem varianter per plats (`AGENTS.md`, Varianter).
@@ -326,10 +360,10 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 
    Inför nästa omgång: takten är editorns förval och blicken rörelsens egen (ovan). Kvar: ett klipp till filmmodellen
    måste vara minst 2 s (Aleph 2) eller 3 s (Kling 4), så rörelser på 1 s filmas flera efter varandra i en längre film
-   (Aleph 2 tar 30 s och fem styrbilder) med en kort stillhet i ankaret mellan varje, och styckas där. Det kräver
-   följder i editorn: flera givar efter varandra, också fler kort till samma plats (samma rörelse med landningspunkten
-   flyttad) och varianter av en giv (annan vändning och landning ur givarnas regler, och ett eget frö för de små
-   rörelserna). De byggs när de nya grundrörelserna finns.
+   (Aleph 2 tar 30 s och fem styrbilder) med en kort stillhet i ankaret mellan varje, och styckas där. Första kortet
+   till alla sju finns så (Hela rundan ovan, 15,9 s, med klipplistan). Kvar som följd: fler kort till samma plats
+   (samma rörelse med landningspunkten flyttad) och varianter av en giv (annan vändning och landning ur givarnas
+   regler, och ett eget frö för de små rörelserna).
 
    Tredje omgången är körd (213 krediter) och väntar på hans dom, provet `docka-till-person-3-20261126`. Kling 4 med hans ord "gör dealerns rörelser mindre stela"
    gav nästan samma rörelse och gjorde om korten till riktiga spelkort. Nyckelfärgerna håller: dockans giv inspelad
