@@ -7,6 +7,8 @@
 //   node standarddocka/verktyg/lagg-pa-bord.ts <grön film.mp4> --platta <bordet ensamt.png> --ut <film.mp4>
 //        [--kortfarger]   spårkortets färger görs om till ett vanligt kort: den gula ryggen röd, ramen och märket vita
 //        [--skugga 1]     hur mycket av dealerns skugga på filten som läggs på vårt bord (0 ingen, 1 som i filmen)
+//        [--falt <film>]  det rena gröna mäts i den filmen i stället: hela tagningen, när filmen som läggs är ett klipp
+//                         ur den (i ett kort klipp ligger skuggan kvar på samma ställe och räknas annars som rent grönt)
 //
 // Plattan: node standarddocka/verktyg/titta.ts --runda --spela-in 0-0 --utan docka,kort,sko,stol --kamera plats4, och
 // första rutan ur det klippet. Två knep är lånade ur blackjack-dealer (src/scene3d-film.ts, src/film-after.ts):
@@ -21,7 +23,7 @@ import {spawn, spawnSync} from 'node:child_process';
 import {once} from 'node:events';
 
 const arg = (name: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
-const film = process.argv[2], platta = arg('--platta'), ut = arg('--ut'), kortfarger = process.argv.includes('--kortfarger'), skugga = Number(arg('--skugga') ?? '1');
+const film = process.argv[2], platta = arg('--platta'), ut = arg('--ut'), kortfarger = process.argv.includes('--kortfarger'), skugga = Number(arg('--skugga') ?? '1'), falt = arg('--falt') ?? film;
 if (!film || film.startsWith('--') || !platta || !ut || !(skugga >= 0 && skugga <= 1)) throw Error('node standarddocka/verktyg/lagg-pa-bord.ts <grön film.mp4> --platta <bordet ensamt.png> --ut <film.mp4> [--kortfarger] [--skugga 1]');
 const FFMPEG = process.env.FFMPEG || 'ffmpeg', FFPROBE = process.env.FFPROBE || 'ffprobe';
 const [W, H, takt] = spawnSync(FFPROBE, ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height,r_frame_rate', '-of', 'csv=p=0', film], {encoding: 'utf8'}).stdout.trim().split(',').map((x, i) => i < 2 ? Number(x) : x) as [number, number, string];
@@ -44,12 +46,11 @@ const gron = (r: number, g: number, b: number, ren: number) => { const s = (g - 
 // Första varvet, på var fjärde bildpunkt: raden där bordet börjar, och bordets rena gröna ljus per ställe (det ljusaste
 // en helt grön bildpunkt där har varit under filmen, räknat mot rutans eget hörn så att filmens glidning i ton inte räknas in).
 const C = 4, cw = Math.ceil(W / C), ch = Math.ceil(H / C), rent = new Float32Array(cw * ch); let kant = -1, antal = 0;
-for await (const f of rutor(film)) {
+for await (const f of rutor(falt, falt !== film)) {
   const uppe = hornet(f, ...HORN.uppe), nere = hornet(f, ...HORN.nere), lu = ljus(uppe[0], uppe[1], uppe[2]), ln = ljus(nere[0], nere[1], nere[2]), rn = nere[1] - Math.max(nere[0], nere[2]);
   if (kant < 0) { for (let y = 8; y < H - 8 && kant < 0; y++) { const o = (y * W + 20) * 3, l = ljus(f[o], f[o + 1], f[o + 2]); if (Math.abs(l - ln) < Math.abs(l - lu)) kant = y; }
-    if (kant < 0 || !(rn > 30)) throw Error(`${film}: hittar inte det gröna bordet nere till vänster och den gröna bakgrunden uppe till vänster. Är filmen inspelad i utseendet nyckel?`); }
+    if (kant < 0 || !(rn > 30)) throw Error(`${falt}: hittar inte det gröna bordet nere till vänster och den gröna bakgrunden uppe till vänster. Är filmen inspelad i utseendet nyckel?`); }
   for (let y = kant; y < H; y += C) for (let x = 0; x < W; x += C) { const o = (y * W + x) * 3, r = f[o], g = f[o + 1], b = f[o + 2]; if (gron(r, g, b, rn) < 1) continue; const k = (y / C | 0) * cw + (x / C | 0), l = ljus(r, g, b) / ln; if (l > rent[k]) rent[k] = l; }
-  antal++;
 }
 // Ställen som aldrig var rent gröna (under skon, vid kanten) får grannarnas värde; sedan jämnas fältet ut, så att en
 // skugga som låg kvar på ett ställe hela filmen fylls i av det omkring.
@@ -78,7 +79,7 @@ for await (const f of rutor(film)) {
         if (r > 170 && g > 130 && b < 110 && r - b > 100) { const l = ljus(r, g, b) / 205; r = Math.min(255, 184 * l); g = Math.min(255, 51 * l); b = Math.min(255, 59 * l); }
         else if ((b > 170 && g > 130 && r < 120) || (r > 170 && b > 140 && g < 120)) { r = 244; g = 242; b = 236; } }
       bild[o] = r * (1 - k) + pr * k; bild[o + 1] = g * (1 - k) + pg * k; bild[o + 2] = b * (1 - k) + pb * k; } }
-  if (!kod.stdin.write(bild)) await once(kod.stdin, 'drain');
+  antal++; if (!kod.stdin.write(bild)) await once(kod.stdin, 'drain');
 }
 kod.stdin.end(); const [slut] = await klar; if (slut !== 0) throw Error('FFmpeg kunde inte skriva filmen.');
 console.log(`${antal} rutor lagda på ${platta}: ${ut} (bordet börjar vid rad ${kant})`);

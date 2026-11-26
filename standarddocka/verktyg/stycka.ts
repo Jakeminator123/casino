@@ -45,7 +45,7 @@ if (Number(antal) !== lista.rutor || Math.abs(fps - lista.fps) > 0.01) throw Err
 // tagningens första och sista ruta).
 const bitar = lista.klipp.map((k, i) => {
   const fran = tatt ? (i ? k.stillaTill + 1 : k.forsta) : k.forsta + (i ? marginal : 0), till = tatt ? k.stillaFran : k.sista - (i < lista.klipp.length - 1 ? marginal : 0);
-  if (fran > k.stillaTill || till < k.stillaFran) throw Error(`${k.namn}: marginalen ${marginal} är större än klippets stillhet (rutorna ${k.forsta}–${k.stillaTill} före och ${k.stillaFran}–${k.sista} efter).`);
+  if (!tatt && (fran > k.stillaTill || till < k.stillaFran)) throw Error(`${k.namn}: marginalen ${marginal} är större än klippets stillhet (rutorna ${k.forsta}–${k.stillaTill} före och ${k.stillaFran}–${k.sista} efter).`);
   return {...k, fran, till, flytt: [0, 0] as [number, number], fil: `${String(i + 1).padStart(2, '0')}-${k.namn.toLowerCase().replaceAll('.', '').replaceAll('>', '-')}.mp4`};
 });
 
