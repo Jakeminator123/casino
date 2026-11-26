@@ -10,6 +10,8 @@ import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import type {Vec3} from './camera.ts';
 import {BODY} from './body.ts';
+import {larRiktning} from './sitter.ts';
+import {fingertopp} from './fingertopp.ts';
 
 /**
  * What the model is posed from, in the scene's metres: her right then her left for shoulders, arms and hands; `looks` is
@@ -45,11 +47,18 @@ export async function loadFigure(url: string): Promise<Figure> {
   const arms = SIDES.map(s => ({upper: bone(`${s}Arm`), fore: bone(`${s}ForeArm`), hand: bone(`${s}Hand`), thigh: bone(`${s}UpLeg`), shin: bone(`${s}Leg`), foot: bone(`${s}Foot`)}));
   // Finger bones, where the model has them for a whole hand: three to a finger, the thumb's first from the wrist. Bone n
   // of a finger lies between the doll's hand points start+n and start+n+1 (MediaPipe's order). The way each bone points as
-  // it was modelled is kept in its own frame: toward the next bone, and for the last one the same way as the one before it.
+  // it was modelled is kept in its own frame: toward the next bone, and for the last one toward the fingertip on the skin.
   const FINGERS = [['Thumb', 1], ['Index', 5], ['Middle', 9], ['Ring', 13], ['Pinky', 17]] as const;
   const fingers = SIDES.map(s => { const all = FINGERS.map(([name, start]) => ({start, bones: [1, 2, 3].map(n => gltf.scene.getObjectByName(`${s}Hand${name}${n}`))}));
     return all.every(f => f.bones.every(Boolean)) ? all.map(f => ({start: f.start, bones: f.bones as T.Object3D[]})) : null; });
-  const fingerWays = fingers.map(side => side && side.map(f => f.bones.map((b, n) => at(f.bones[Math.min(n, 1) + 1]).sub(at(f.bones[Math.min(n, 1)])).normalize().applyQuaternion(b.getWorldQuaternion(new T.Quaternion()).invert()))));
+  // The last bone has no next bone: it points toward the fingertip measured on the skin (fingertopp.ts), as the doll's hand
+  // has its tip there (dealer3d/tools/docka-standard.ts). (Until 2026-11-26 it pointed as the bone before it; the standard
+  // doll's thumb tip is bent 19 degrees from that, so the skin's tip missed the hand point's by 7 mm, the forefinger's by 3.)
+  const tipOf = (b2: T.Object3D, b3: T.Object3D): T.Vector3 | null => { const which = mesh.skeleton.bones.indexOf(b3 as T.Bone), idx = mesh.geometry.attributes.skinIndex, wt = mesh.geometry.attributes.skinWeight, moln: Vec3[] = [], q = new T.Vector3();
+    for (let i = 0; i < idx.count; i++) for (let k = 0; k < 4; k++) if (idx.getComponent(i, k) === which && wt.getComponent(i, k) >= 0.5) { mesh.getVertexPosition(i, q).applyMatrix4(mesh.matrixWorld); moln.push([q.x, q.y, q.z]); }
+    const p = (o: T.Object3D): Vec3 => { const w = at(o); return [w.x, w.y, w.z]; }, tip = fingertopp(p(b2), p(b3), moln); return tip ? v(tip.punkt) : null; };
+  const fingerWays = fingers.map(side => side && side.map(f => f.bones.map((b, n) => { const tip = n === 2 ? tipOf(f.bones[1], f.bones[2]) : null;
+    return (tip ? tip.sub(at(f.bones[2])) : at(f.bones[Math.min(n, 1) + 1]).sub(at(f.bones[Math.min(n, 1)]))).normalize().applyQuaternion(b.getWorldQuaternion(new T.Quaternion()).invert()); })));
   const neck = bone('neck'), head = bone('Head'), front = bone('headfront'), posed = [...arms.flatMap(a => [a.upper, a.fore, a.hand, a.thigh, a.shin]), neck, head, ...fingers.flatMap(side => side ? side.flatMap(f => f.bones) : [])], bind = new Map(posed.map(b => [b, b.quaternion.clone()]));
   // As she was modelled: the middle between her shoulder joints, the lengths of her arm bones, and each hand's own forward
   // and palm directions, read off the vertices that hang on the hand bone (their long axis and their flat one), kept in the
@@ -97,8 +106,8 @@ export async function loadFigure(url: string): Promise<Figure> {
     const mid = v(p.shoulders[0]).add(v(p.shoulders[1])).multiplyScalar(0.5), x = v(p.shoulders[1]).sub(v(p.shoulders[0])).normalize(), up = mid.clone().sub(v(p.hip)).normalize(), z = new T.Vector3().crossVectors(x, up).normalize(), y = new T.Vector3().crossVectors(z, x);
     root.quaternion.setFromRotationMatrix(new T.Matrix4().makeBasis(x, y, z)); root.position.copy(mid).sub(middle.clone().multiplyScalar(scale).applyQuaternion(root.quaternion)); root.updateMatrixWorld(true);
     arms.forEach((a, i) => {
-      // Seated on a high stool: thighs forward under the table, shins down.
-      swing(a.thigh, at(a.shin).sub(at(a.thigh)), new T.Vector3(i ? 0.12 : -0.12, -0.08, 1)); swing(a.shin, at(a.foot).sub(at(a.shin)), new T.Vector3(0, -1, 0.08));
+      // Seated on a high stool: thighs forward under the table, sloping down more the higher the hip sits (sitter.ts), shins down.
+      swing(a.thigh, at(a.shin).sub(at(a.thigh)), new T.Vector3(...larRiktning(p.hip[1], !i))); swing(a.shin, at(a.foot).sub(at(a.shin)), new T.Vector3(0, -1, 0.08));
       // Her arm: from her own shoulder to the figure's wrist, her own bone lengths, the elbow out the way the figure's elbow is.
       const s = at(a.upper), w = v(p.arms[i].wrist), l1 = lengths[i][0] * scale, l2 = lengths[i][1] * scale, far = Math.min(l1 + l2 - 0.002, Math.max(Math.abs(l1 - l2) + 0.002, s.distanceTo(w)));
       // The side her elbow is on is the figure's own: the figure's elbow off the figure's own line from shoulder to wrist.

@@ -13,14 +13,18 @@
 // - Fler fingrar på kortet vid slutet: pek- och långfingret följer det ned och vilar på det en stund innan handen går hem.
 // - Handen vid skon: vänsterhanden drar ut kortet och skjuter det till högern, släpper det och lägger sig i ankaret,
 //   avspänd, medan högern ger ("lyfts upp och spänns medan den andra delar ut kortet" var felet).
-// Det som redan används rörs inte: det här är ett eget sätt bredvid de andra (dealer3d/tools/docka-cykel.ts --ren).
+// - Armarna: aldrig en handled armen inte når (bålen lutar och vrider sig så mycket räckvidden kräver, högst dockans
+//   mostLean och mostTwist), och med bordets kant (RenInput kant) går underarmarna över den ("Armarna går aldrig genom
+//   bordets kant").
+// Här finns också vilan till skon (renVila, A1 till A2.3) för standarddockorna. Det som redan används rörs inte: det här
+// är ett eget sätt bredvid de andra, och dealer3d/tools/ren-givar.ts skriver det (ankaret, vilan och givarna per docka).
 // Rent: ingen I/O och ingen three.js.
 import {CARD, add, cross, dot, length, mul, sub, unit, type Lens, type Vec3} from './camera.ts';
 import {arm, turned} from './body.ts';
 import type {Doll} from './doll.ts';
 import {axesOf, between, local, placed, shapeBetween, thumbToward, type Axes} from './hand-pose.ts';
 import {BALL, bendFinger} from './landing.ts';
-import {DRAWN, bendsOf, fingerFrom, handFaults} from './hand-rule.ts';
+import {DRAWN, bendsOf, boneLengths, fingerFrom, handFaults} from './hand-rule.ts';
 import {FINGERS} from './capture.ts';
 import {handsApart} from './natural.ts';
 import {thumbRound} from './turn-in-hand.ts';
@@ -92,6 +96,35 @@ function armbage(s: Vec3, w: Vec3, pol: Vec3, a: Axes, doll: Doll) {
   return {vrid: best, cost};
 }
 
+// ---- underarmen över bordets kant ---------------------------------------------------------------------------------
+/**
+ * Bordets kant mot dealern för underarmarna (Jakob 2026-11-26: "Armarna går aldrig genom bordets kant"), som editorn i
+ * standarddocka mäter den (standarddocka/editor/armar.ts): kantens läge `z` och skivans överkant `y`, underarmens radie på
+ * huden i tio delar från armbågen till handleden (`radie`, meter), och den luft som minst ska finnas under den där den är
+ * över bordet (`luft`). Den del närmast handleden som får vila på filten (`handen`, en andel av underarmen) räknas inte.
+ */
+export type Kant = {z: number; y: number; radie: number[]; luft: number; handen: number};
+/** Minsta luft under underarmen från armbågen `e` till handleden `w` där den är över bordet (meter); Infinity där den inte är det. */
+export function underarmLuft(e: Vec3, w: Vec3, kant: Kant): number {
+  let minst = Infinity;
+  for (let k = 0; k <= 24; k++) { const s = k / 24 * (1 - kant.handen), p = add(e, mul(sub(w, e), s)); if (p[2] <= kant.z) continue; minst = Math.min(minst, p[1] - kant.radie[Math.min(9, Math.floor(s * 10))] - kant.y); }
+  return minst;
+}
+/**
+ * Armbågen för en arm från axeln `s` till handleden `w`, vriden kring linjen mellan dem från polen `pol` så lite som ger
+ * underarmen luften över kanten, åt det håll som för armbågen ut från kroppen (`ut`: -1 hans högra arm, +1 den vänstra,
+ * längs x). `vrid` är vridningen i radianer (positiv: utåt), `luft` luften det gav; räcker ingen vridning upp till
+ * `mest` radianer: den som gav mest luft.
+ */
+export function armbageOverKanten(s: Vec3, w: Vec3, pol: Vec3, doll: Doll, kant: Kant, ut: number, mest = rad(110)) {
+  const line = unit(sub(w, s)), e0 = arm(s, w, pol, doll).elbow, tecken = dot(sub(arm(s, w, turned(pol, line, 0.05), doll).elbow, e0), [ut, 0, 0]) >= 0 ? 1 : -1;
+  const vid = (v: number) => arm(s, w, turned(pol, line, tecken * v), doll).elbow;
+  let bast = {vrid: 0, luft: underarmLuft(e0, w, kant), e: e0};
+  if (bast.luft >= kant.luft) return bast;
+  for (let v = rad(0.5); v <= mest + 1e-9; v += rad(0.5)) { const e = vid(v), l = underarmLuft(e, w, kant); if (l > bast.luft) bast = {vrid: v, luft: l, e}; if (l >= kant.luft) return {vrid: v, luft: l, e}; }
+  return bast;
+}
+
 /**
  * En form en del av vägen till en annan: fingrarna led för led (hand-rule.ts bendsOf och fingerFrom, så att ingen led går
  * bortom vad de två formerna har), tummen ben för ben (hand-pose.ts shapeBetween). Knogarna är desamma i båda.
@@ -117,8 +150,12 @@ function medLeder(S: Vec3[], bojar: [number, number, number][]): Vec3[] {
 const REF: Axes = {forward: X, palm: Y, across: NZ};
 const iRef = (S: Vec3[]) => placed(S, REF, [0, 0, 0]);
 const tillForm = (v: Vec3): Vec3 => [v[0], v[1], -v[2]];
-/** Pek- och långfingrets leder (från knogen, grader mot handflatan), från rakast; ring- och lillfingret böjda undan. */
-const HALL: [number, number, number][] = [[25, 30, 15], [30, 40, 20], [20, 50, 25], [35, 45, 20], [25, 60, 30], [40, 50, 25], [30, 70, 35]];
+/**
+ * Pek- och långfingrets leder (från knogen, grader mot handflatan), från rakast; ring- och lillfingret böjda undan. De sista
+ * med knogen mer böjd: en hand vars tumrot sitter längre ut och närmare handflatans plan (standarddockans) når kortet
+ * under fingertopparna först med fingrarna böjda mer i knogen och mindre i mellanleden.
+ */
+const HALL: [number, number, number][] = [[25, 30, 15], [30, 40, 20], [20, 50, 25], [35, 45, 20], [25, 60, 30], [40, 50, 25], [30, 70, 35], [40, 70, 35], [50, 70, 35], [60, 60, 30], [70, 50, 25], [70, 60, 30]];
 const FRIA: [number, number, number][] = [[50, 70, 40], [60, 80, 45], [65, 95, 50], [70, 100, 55]];
 /** Felen mat.ts räknar (hand-rule.ts handFaults utom ordning och grannen). */
 const fel = (p: Vec3[], sign: number, kort: Kort | null) => handFaults(p, sign, null, kort).filter(f => f.kind !== 'ordning' && f.kind !== 'grannen');
@@ -151,20 +188,20 @@ function refKort(g: Grepp, phi: number, lang: boolean, tecken: number, glid: num
  * Samma hand ger samma grepp: det räknas en gång.
  */
 const greppMinne = new Map<string, Grepp>();
-function greppForm(bas: Vec3[]): Grepp {
-  const nyckel = JSON.stringify(bas), minns = greppMinne.get(nyckel); if (minns) return minns;
+function greppForm(bas: Vec3[], topp: {finger: number; thumb: number}): Grepp {
+  const nyckel = JSON.stringify([bas, topp]), minns = greppMinne.get(nyckel); if (minns) return minns;
   let bast: (Grepp & {antal: number}) | null = null;
   for (const hall of HALL) for (const fria of FRIA.slice(0, 2)) {
     const S = bas.map(q => [...q] as Vec3); bendFinger(S, 1, hall);
     // långfingrets knoge så att dess topp ligger i pekfingrets djup
     let b0 = hall[0], c0 = Infinity; for (let b = hall[0] - 30; b <= hall[0] + 30; b += 0.5) { const Q = S.map(q => [...q] as Vec3); bendFinger(Q, 2, [b, hall[1], hall[2]]); const c = Math.abs(Q[12][1] - Q[8][1]); if (c < c0) { c0 = c; b0 = b; } }
     bendFinger(S, 2, [b0, hall[1], hall[2]]); bendFinger(S, 3, fria); bendFinger(S, 4, [fria[0] - 5, fria[1] - 5, fria[2] - 5]);
-    const P = iRef(S), t8 = P[8], t12 = P[12], djup = (t8[1] + t12[1]) / 2 + REN.topp + T / 2, Lt = length(sub(S[4], S[3]));
+    const P = iRef(S), t8 = P[8], t12 = P[12], djup = (t8[1] + t12[1]) / 2 + topp.finger + T / 2, Lt = length(sub(S[4], S[3]));
     const g: Grepp = {djup, t8, t12, hall: [...hall, b0], fria, tummar: new Map()};
     for (let phi = 0; phi < 360; phi += 15) {
       const o = utAt(phi), tvars = cross(Y, o), mid = mul(add(t8, t12), 0.5), kant = kantVid(g, o);
       found: for (const inne of [0.005, 0.007, 0.003]) for (const slant of [15, 25, 35, 45]) for (const sida of [0, -20, 20, -40, 40]) {
-        const mal = add(add(mul(o, kant - inne), mul(tvars, dot(mid, tvars))), mul(Y, djup + T / 2 + REN.tumme));
+        const mal = add(add(mul(o, kant - inne), mul(tvars, dot(mid, tvars))), mul(Y, djup + T / 2 + topp.thumb));
         const ut = turned(o, Y, rad(sida)), led = add(add(mal, mul(ut, Lt * Math.cos(rad(slant)))), mul(Y, Lt * Math.sin(rad(slant))));
         const St = thumbRound(S, tillForm(led), tillForm(mal)); if (length(sub(iRef(St)[4], mal)) > 0.003) continue;
         if ([true, false].every(lang => felIRum(iRef(St), refKort(g, phi, lang, 1, 0)).length === 0)) { g.tummar.set(phi, St); break found; } }
@@ -193,27 +230,31 @@ function bal(hip: Vec3, mot: Vec3, lean: number, twist: number) {
   const axis = unit(cross(UP, flat(sub(mot, hip)))), spine = turned(UP, axis, lean);
   return (p: Vec3, k = 1) => add(hip, turned(turned(sub(p, hip), axis, lean * k), spine, twist * k));
 }
-/** Den minsta lutningen (med vridningen i takt, åt det håll som för högeraxeln närmare) där högerarmen når varje handled i `mal`. */
+/** Den minsta lutningen (med vridningen i takt, åt det håll som för högeraxeln närmare) där högerarmen når varje handled i `mal`; högst dockans mostLean och mostTwist (och REN.luta, REN.vrida). */
 function rackvidd(hip: Vec3, s0: Vec3, mal: Vec3[], mot: Vec3, doll: Doll) {
-  const nar = doll.upperArm + doll.forearm - REN.marginal;
+  const nar = doll.upperArm + doll.forearm - REN.marginal, luta = Math.min(REN.luta, doll.mostLean), vrida = Math.min(REN.vrida, doll.mostTwist);
   const way = length(sub(mal[0], bal(hip, mot, 0, 0.1)(s0))) < length(sub(mal[0], bal(hip, mot, 0, -0.1)(s0))) ? 1 : -1;
-  const langst = (lean: number) => Math.max(...mal.map(w => length(sub(w, bal(hip, mot, lean, way * REN.vrida * lean / REN.luta)(s0)))));
-  let lean = 0; if (langst(0) > nar) { let lo = 0, hi = REN.luta; if (langst(hi) > nar) lean = hi; else { for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (langst(m) > nar) lo = m; else hi = m; } lean = hi; } }
-  return {lean, twist: way * REN.vrida * lean / REN.luta, kortMm: Math.max(0, mm(langst(lean) - nar - REN.marginal))};
+  const langst = (lean: number) => Math.max(...mal.map(w => length(sub(w, bal(hip, mot, lean, way * vrida * lean / luta)(s0)))));
+  let lean = 0; if (langst(0) > nar) { let lo = 0, hi = luta; if (langst(hi) > nar) lean = hi; else { for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (langst(m) > nar) lo = m; else hi = m; } lean = hi; } }
+  return {lean, twist: way * vrida * lean / luta, kortMm: Math.max(0, mm(langst(lean) - nar - REN.marginal))};
 }
 
 // ---- granskningen --------------------------------------------------------------------------------------------------------
 /**
  * En giv mätt som standarddocka/verktyg/mat.ts mäter den (på givens egna rutor): rutor med något som spärrar (ett finger
  * i kortet eller filten, kortet ute ur skon utan stöd, ett hörn under filten, en handled eller kortet som hoppar på en
- * ruta) och rutor med handleden böjd mer än 70 grader eller fingrar i varandra. `poang`: hundra per spärrande ruta, tio per
- * böjd handled, en per fingrar i varandra (noll: grön).
+ * ruta) och rutor med handleden böjd mer än 70 grader eller fingrar i varandra. Med dockan `doll` spärrar också ett ben som
+ * inte har sin längd (överarmen och underarmen dockans, varje fingerben som i första rutan, högst 0,5 mm fel): en handled
+ * armen inte når, eller en hand som inte är dockans. `poang`: hundra per spärrande ruta, tio per böjd handled, en per
+ * fingrar i varandra (noll: grön).
  */
-export function granska(m: {frames: {card: Kort; L: Limb; R: Limb}[]; leavesShoe: number; rests: number}) {
+export function granska(m: {frames: {card: Kort; L: Limb; R: Limb}[]; leavesShoe: number; rests: number}, doll?: Doll) {
   const F = m.frames, utom = (k: string) => k !== 'ordning' && k !== 'grannen', FING = [2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20];
   const mot = (c: Kort, p: Vec3) => { const d = sub(p, c.c), u = dot(d, c.l), v = dot(d, cross(c.n, c.l)), w = dot(d, c.n); return Math.abs(u) < HK / 2 + 0.01 && Math.abs(v) < WK / 2 + 0.01 && Math.abs(w) < 0.016 ? w : null; };
-  const spar = new Set<number>(); let bojdRutor = 0, varandra = 0; const vad = new Set<string>();
+  const spar = new Set<number>(); let bojdRutor = 0, varandra = 0; const vad = new Set<string>(), ben0 = {R: boneLengths(F[0].R.p), L: boneLengths(F[0].L.p)};
   F.forEach((f, i) => {
+    if (doll) for (const s of ['R', 'L'] as const) { const l = f[s], fel = Math.max(Math.abs(length(sub(l.e, l.s)) - doll.upperArm), Math.abs(length(sub(l.w, l.e)) - doll.forearm), ...boneLengths(l.p).map((x, k) => Math.abs(x - ben0[s][k])));
+      if (fel > 0.0005) { spar.add(i); vad.add(`${s} ben`); } }
     for (const [s, sign] of [['R', 1], ['L', -1]] as const) { const fl = handFaults(f[s].p, sign, null, i >= m.leavesShoe ? f.card : null).filter(x => utom(x.kind));
       if (fl.some(x => x.kind === 'kortet' || x.kind === 'filten')) { spar.add(i); vad.add(`${s} ${fl.find(x => x.kind === 'kortet' || x.kind === 'filten')!.kind}`); }
       if (fl.some(x => x.kind === 'i varandra')) varandra++;
@@ -253,13 +294,14 @@ export function rentAnkare(frame: Ankare23['frame'], doll: Doll): Ankare23['fram
 }
 
 // ---- given ------------------------------------------------------------------------------------------------------------
-export type RenInput = {start: Ankare23; place: string; at: Vec3; doll: Doll; lens: Lens; shoe?: Shoe};
+/** `kant`: bordets kant mot dealern, som underarmarna ska gå över (utan den: armbågarna som handlederna vill). */
+export type RenInput = {start: Ankare23; place: string; at: Vec3; doll: Doll; lens: Lens; shoe?: Shoe; kant?: Kant};
 /** Den rena given från A2.3 till platsen vid `at` (en punkt på filten) och tillbaka, på dockan `doll`. */
 export function renGiv(input: RenInput) {
   const {start, doll, lens} = input, f0 = start.frame, hip = start.hip;
   const HR0 = axesOf(f0.R.p, 1), SR0 = local(f0.R.p, HR0), HL0 = axesOf(f0.L.p, -1);
-  const T0 = Date.now(), grepp = greppForm(SR0);
-  if (process.env.REN_DEBUG) console.error('greppet', grepp.tummar.size, 'håll', Date.now() - T0, 'ms');
+  // (fingertopparnas och tummens punkt så långt från det de rör: ritade (REN), eller dockans topp på huden om den är tjockare)
+  const topp = {finger: Math.max(REN.topp, doll.hand?.topp?.finger ?? 0), thumb: Math.max(REN.tumme, doll.hand?.topp?.thumb ?? 0)}, grepp = greppForm(SR0, topp);
 
   // 1. Vägen ut ur skon (pinch-deal.ts leavingShoe, som two-hand.ts tar ut kortet), till kortet ligger platt med baksidan upp.
   const skon = input.shoe ?? SHOE, ut = leavingShoe(lens, skon), aSlut = skon.windowLift / Math.sin(skon.plateLean) + HK, ute = ut(aSlut);
@@ -344,7 +386,7 @@ export function renGiv(input: RenInput) {
   // och armen inom räckvidd.
   type Slapp = {gj: (typeof gangjarn)[number]; phi: number; lang: boolean; tecken: number; glid: number; slapp: number; rho: number; S: Vec3[]; ref: Kort; hr: Hand; cost: number};
   const slapp: Slapp[] = [];
-  for (const gj of gangjarn.filter(g => process.env.REN_KANT === undefined || g.j === Number(process.env.REN_KANT))) { const lage = lageFor(gj), eF = cross(UP, gj.o);
+  for (const gj of gangjarn) { const lage = lageFor(gj), eF = cross(UP, gj.o);
     for (const [phi, S] of grepp.tummar) for (const lang of [true, false]) for (const tecken of [1, -1]) for (const glidAndel of [-1, 0, 1]) {
       const glid = glidAndel * ((lang ? HK : WK) / 2 - 0.016), ref = refKort(grepp, phi, lang, tecken, glid);
       if (felIRum(iRef(S), ref).length) continue;
@@ -360,7 +402,6 @@ export function renGiv(input: RenInput) {
           const cost = 1.5 * bR.cost + (utanfor(rulle(hr.a)) / 10) ** 2 + 1e5 * Math.max(0, -fri) ** 2 + 0.5 * need.kortMm ** 2 + (rh / 40) ** 2 + (Math.max(0, fallTid - 0.12) / 0.03) ** 2;
           slapp.push({gj, phi, lang, tecken, glid, slapp: rad(sl), rho: rad(rh), S, ref, hr, cost}); } } } }
   slapp.sort((a, b) => a.cost - b.cost);
-  if (process.env.REN_DEBUG) console.error('steg ett', slapp.length, 'sätt', Date.now() - T0, 'ms');
   // Steg två, där hon tar det: hur vänsterhanden har skjutit och vridit det, hur lyft kanten är på tummen; handleden
   // minst böjd där och halvvägs, underarmen inom vad den vrids, händerna isär och vänsterhanden inte i maxläge.
   type Val = ReturnType<typeof prova>;
@@ -413,14 +454,11 @@ export function renGiv(input: RenInput) {
       const v = prova(s, rad(dy), flytt, hi); if (!val || v.cost < val.cost) val = v; if (!sBast || v.cost < sBast.cost) sBast = v;
       const b = perKant.get(s.gj.j); if (!b || v.cost < b.cost) perKant.set(s.gj.j, v); }
     if (sBast) basta.push(sBast); }
-  if (process.env.REN_DEBUG) for (const [j, v] of perKant) console.error('kant', j, 'o', v.gj.o, 'phi', v.phi, v.lang ? 'lång' : 'kort', 'kostar', Math.round(v.cost * 10) / 10, JSON.stringify(v.kostar, (k, x) => typeof x === 'number' ? Math.round(x * 10) / 10 : x), 'böjd', JSON.stringify(v.bojdGrader), 'rulle', v.vt, v.vr, 'yaw', grad(v.dYaw), 'isar', mm(v.isar), 'släpp', grad(v.slapp), 'skjut', grad(v.rho));
-  if (process.env.REN_DEBUG) console.error('steg två', Date.now() - T0, 'ms');
   if (!val) throw Error(`ren-giv: ${input.place}: inget grepp går.`);
   // Steg tre: de billigaste byggs hela och mäts som mat.ts mäter (granska); den första utan något som spärrar vinner,
   // annars den med minst.
   let vald: {r: ReturnType<typeof bygg>; g: ReturnType<typeof granska>} | null = null;
-  for (const V of basta.sort((a, b) => a.cost - b.cost).slice(0, REN.byggs)) { const r = bygg(V), g = granska(r.motion);
-    if (process.env.REN_DEBUG) console.error('bygg', 'kant', V.gj.j, 'kostar', Math.round(V.cost), 'granska', JSON.stringify(g));
+  for (const V of basta.sort((a, b) => a.cost - b.cost).slice(0, REN.byggs)) { const r = bygg(V), g = granska(r.motion, doll);
     if (!vald || g.poang < vald.g.poang) vald = {r, g}; if (g.poang === 0) break; }
   return {...vald!.r, granskning: vald!.g};
 
@@ -496,9 +534,9 @@ export function renGiv(input: RenInput) {
     const S = medLeder(SR0, [[40, 12, 6], [38, 12, 6], [64, 92, 48], [58, 88, 46]]); // (landing.ts pek-lang)
     const Lf = lage(0, 0, [0, 0, 0]), kf = kortAv(Lf, D), af = cross(kf.n, kf.l), hf = handVid(kf, ref, V.S), pf = punkter(hf), mal = mul(add(pf[8], pf[12]), 0.5), fram0 = flat(hRel.a.forward);
     // (tummen där den har följt kortet ned, så att handen inte hoppar dit: topparna läggs nära den)
-    const kr = kortVid(tR), ar = cross(kr.n, kr.l), dt = sub(punkter(hRel)[4], kr.c), malTumme = add(add(add(kf.c, mul(kf.l, dot(dt, kr.l))), mul(af, dot(dt, ar))), mul(UP, REN.tumme + 0.0025 + T / 2));
+    const kr = kortVid(tR), ar = cross(kr.n, kr.l), dt = sub(punkter(hRel)[4], kr.c), malTumme = add(add(add(kf.c, mul(kf.l, dot(dt, kr.l))), mul(af, dot(dt, ar))), mul(UP, topp.thumb + 0.0025 + T / 2));
     let bast: {h: Hand; c: number} | null = null;
-    for (const du of [-0.02, 0, 0.02]) for (const dv of [-0.02, 0, 0.02]) { const p0 = add(add(mal, mul(kf.l, du)), mul(af, dv)), pa: Vec3 = [p0[0], T + REN.topp, p0[2]];
+    for (const du of [-0.02, 0, 0.02]) for (const dv of [-0.02, 0, 0.02]) { const p0 = add(add(mal, mul(kf.l, du)), mul(af, dv)), pa: Vec3 = [p0[0], T + topp.finger, p0[2]];
       for (let pitch = 0; pitch <= 50; pitch += 5) for (let roll = -24; roll <= 24; roll += 8) for (let yaw = -30; yaw <= 30; yaw += 15) {
         const fram = turned(fram0, UP, rad(yaw)), tvars = unit(cross(mul(UP, -1), fram));
         let a: Axes = {forward: fram, palm: mul(UP, -1), across: tvars}; a = {forward: turned(a.forward, a.across, -rad(pitch)), palm: turned(a.palm, a.across, -rad(pitch)), across: a.across};
@@ -525,7 +563,7 @@ export function renGiv(input: RenInput) {
     const k = mjuk(u), ner = t <= tL ? 0 : smooth(Math.min(1, 1.6 * (t - tL) / (tRor - tL))), ac = cross(kc.n, kc.l);
     // (tummen står kvar där den var mot framsidan första rutan, medan fingrarna böjs ut från baksidan, och glider sedan
     // en knapp centimeter ut; innan kortet ligger håller den sig innanför kortets kanter, där den stöder det)
-    const inom = (x: number, h: number) => t <= tL ? Math.max(-h + 0.004, Math.min(h - 0.004, x)) : x, ut0 = REN.tumme + T / 2;
+    const inom = (x: number, h: number) => t <= tL ? Math.max(-h + 0.004, Math.min(h - 0.004, x)) : x, ut0 = topp.thumb + T / 2;
     const cu = inom(tummeKort[0] + (tummeVila[0] - tummeKort[0]) * k, HK / 2), cv = inom(tummeKort[1] + (tummeVila[1] - tummeKort[1]) * k, WK / 2), cw = (ut0 + 0.0025 * smooth((j - 1) / 2)) * (1 - ner) + tummeVila[2] * ner;
     const mal = add(add(add(kc.c, mul(kc.l, cu)), mul(ac, cv)), mul(kc.n, cw));
     return {a: A, w: sub(mal, add(add(mul(A.forward, S[4][0]), mul(A.palm, S[4][1])), mul(A.across, S[4][2]))), S}; };
@@ -546,7 +584,6 @@ export function renGiv(input: RenInput) {
   // (handens vinkel som den fasta handen på kortet har den, jämnad över rutorna intill: kortet vrids fort när det lämnar plåten)
   let aDrag: Axes[] = Array.from({length: tU + 1}, (_, t) => t === 0 ? HL0 : vansterDrag(kortVid(t)).a);
   for (let pass = 0; pass < 3; pass++) aDrag = aDrag.map((a, t) => t === 0 || t === tU ? a : between(between(aDrag[t - 1], aDrag[t + 1], 0.5), a, 0.5));
-  if (process.env.REN_DEBUG) for (let t = 0; t <= tU; t++) { const k = kortVid(t), hd = vansterDrag(k), hr = vansterPa(k); console.error('drag', t, 'kort', k.c.map(x => Math.round(x * 1000)).join(','), 'n', k.n.map(x => x.toFixed(2)).join(','), 'fri drag', mm(Math.min(...punkter(hd).map((q, j) => q[1] - BALL(j)))), 'fri rigid', mm(Math.min(...punkter(hr).map((q, j) => q[1] - BALL(j)))), 'w', hd.w.map(x => Math.round(x * 1000)).join(',')); }
   const dragen = (t: number): Hand => { const k = kortVid(t), a = cross(k.n, k.l), P = add(add(add(k.c, mul(k.l, tippPaKort[0])), mul(a, tippPaKort[1])), mul(k.n, tippPaKort[2]));
     const A = aDrag[t]; return {a: A, w: sub(P, add(add(mul(A.forward, tippLokal[0]), mul(A.palm, tippLokal[1])), mul(A.across, tippLokal[2]))), S: SL0}; };
   const rullad = (h: Hand, x: number): Hand => { if (!x) return h; const p = punkter(h), ax = unit(sub(p[12], p[8])), o = p[8], r = (v: Vec3) => turned(v, ax, x);
@@ -558,18 +595,29 @@ export function renGiv(input: RenInput) {
     return bast.x; };
   const rullV = Array.from({length: tU + 1}, (_, t) => t === 0 ? 0 : rullBehov(dragen(t)));
   const rullJamn = rullV.map((_, t) => t === 0 ? 0 : rullV.reduce((s, x, j) => Math.abs(x) * (1 - smooth(Math.abs(t - j) / 3)) > Math.abs(s) ? x * (1 - smooth(Math.abs(t - j) / 3)) : s, 0));
-  if (process.env.REN_DEBUG) for (let t = 0; t <= tU; t++) { const djup = (h: Hand) => Math.max(0, ...fel(punkter(h), -1, null).filter(f => f.kind === 'filten').map(f => f.by)); console.error('vdrag', t, 'dragen', djup(dragen(t)), 'drag', djup(vansterDrag(kortVid(t))), 'rullad', djup(rullad(dragen(t), rullJamn[t])), 'rull', rullV[t].toFixed(2), rullJamn[t].toFixed(2)); }
   // (och lyfts det lilla som ändå behövs för att inget finger ska gå i filten, jämnat över rutorna intill)
   const lyftV0 = rullV.map((_, t) => t === 0 ? 0 : Math.max(0, -friV(rullad(dragen(t), rullJamn[t])) / 1000));
   const lyftVJ = lyftV0.map((_, t) => t === 0 ? 0 : Math.max(...lyftV0.map((x, j) => x * (1 - smooth(Math.abs(t - j) / 3)))));
   const upp = (h: Hand, y: number): Hand => y ? {...h, w: add(h.w, [0, y, 0])} : h;
   const vansterVid = (t: number): Hand => t === 0 ? {a: HL0, w: f0.L.w, S: SL0} : t <= tU ? upp(rullad(dragen(t), rullJamn[t]), lyftVJ[t]) : vansterHem(upp(rullad(dragen(tU), rullJamn[tU]), lyftVJ[tU]), t - tU);
 
-  // 9. Bålen, armarna, huvudet och blicken.
-  const need = rackvidd(hip, f0.R.s, [hRel.w, ror.w], F.c, doll), torso = bal(hip, F.c, need.lean, need.twist);
-  const balUt = (t: number) => t <= tT ? 0 : t <= tR ? mjuk((t - tT) / (tR - tT)) : t <= tVila ? 1 : 1 - mjuk((t - tVila) / (slut - tVila));
+  // 9. Bålen, armarna, huvudet och blicken. Bålen lutar och vrider sig mot platsen (bal) bara så mycket som räckvidden
+  // kräver i varje ruta, för båda händerna (en handled armen inte når sparas aldrig: body.ts arm), högst dockans mostLean
+  // och mostTwist, och tonas mjukt in och ut över rutorna intill. Armbågen vrids så att handleden böjs minst (armbage),
+  // och med bordets kant (input.kant) ut så mycket mer som underarmen behöver för luften över kanten (Jakob: "Armarna går
+  // aldrig genom bordets kant"), också den mjukt in och ut.
   const n = slut + 1, H: Hand[] = [], L: Hand[] = [], K: Kort[] = [];
   for (let t = 0; t < n; t++) { H.push(hogerVid(t)); L.push(vansterVid(t)); K.push(kortVid(t)); }
+  // (efter släppet lyfts högerhanden så mycket som behövs för att ingen del av den ska gå i filten, jämnat över rutorna intill)
+  const iFilten = H.map((h, t) => t <= tR ? 0 : Math.max(0, ...fel(punkter(h), 1, null).filter(f => f.kind === 'filten').map(f => f.by / 1000 + 0.0025)));
+  const lyftH = iFilten.map((_, t) => Math.max(0, ...iFilten.map((x, j) => x * smooth(1 - Math.abs(t - j) / 4))));
+  lyftH.forEach((y, t) => { if (y > 0) H[t] = {...H[t], w: add(H[t].w, [0, y, 0])}; });
+  const need = rackvidd(hip, f0.R.s, [...H.map(h => h.w)], F.c, doll), torso = bal(hip, F.c, need.lean, need.twist);
+  const nar = doll.upperArm + doll.forearm - REN.marginal, nas = (k: number, t: number) => length(sub(H[t].w, torso(f0.R.s, k))) <= nar && length(sub(L[t].w, torso(f0.L.s, k))) <= nar;
+  const kravs = H.map((_, t) => { if (nas(0, t)) return 0; let lo = 0, hi = 1; if (!nas(1, t)) return 1; for (let i = 0; i < 20; i++) { const m = (lo + hi) / 2; if (nas(m, t)) hi = m; else lo = m; } return hi; });
+  // (tonat över TONA rutor åt varje håll, men noll i första och sista rutan: given börjar och slutar i exakt ankaret)
+  const TONA = 8, fonster = (t: number) => smooth(t / 4) * smooth((n - 1 - t) / 4), tonad = (v: number[]) => v.map((_, t) => Math.max(v[t], fonster(t) * Math.max(0, ...v.map((x, j) => x * smooth(1 - Math.abs(t - j) / (TONA + 1))))));
+  const andel = tonad(kravs), mestAndel = Math.max(0, ...andel), balUt = (t: number) => andel[Math.max(0, Math.min(n - 1, t))];
   const sR = (t: number) => torso(f0.R.s, balUt(t)), sL = (t: number) => torso(f0.L.s, balUt(t));
   const polL = unit(sub(f0.L.e, f0.L.s));
   const vridR = H.map((h, t) => t === 0 || t === n - 1 ? 0 : armbage(sR(t), h.w, pol0, h.a, doll).vrid), vridL = L.map((h, t) => t === 0 || t === n - 1 ? 0 : armbage(sL(t), h.w, polL, h.a, doll).vrid);
@@ -577,10 +625,17 @@ export function renGiv(input: RenInput) {
   const jamn = (v: number[], hemma: (t: number) => boolean) => v.map((_, t) => { if (hemma(t)) return 0; const s = v.slice(Math.max(0, t - 2), t + 3); return s.reduce((x, y) => x + y, 0) / s.length; });
   const hemmaR = (t: number) => t <= REN.fran || t === n - 1, hemmaL = (t: number) => t === 0 || t >= vHemma;
   const vR = jamn(vridR, hemmaR), vL = jamn(vridL, hemmaL);
+  // (armbågen ut över kanten: i varje ruta den vridning till, åt det håll som för armbågen ut, som ger underarmen luften)
+  const overKanten = (s: (t: number) => Vec3, hand: Hand[], pol: Vec3, v: number[], ut: number) => hand.map((h, t) => { if (!input.kant) return 0;
+    const S = s(t), line = unit(sub(h.w, S)), e = (x: number) => arm(S, h.w, turned(pol, line, x), doll).elbow, tecken = dot(sub(e(v[t] + 0.05), e(v[t])), [ut, 0, 0]) >= 0 ? 1 : -1;
+    for (let x = 0; x <= rad(110); x += rad(0.5)) if (underarmLuft(e(v[t] + tecken * x), h.w, input.kant) >= input.kant.luft) return tecken * x;
+    return tecken * rad(110); });
+  const tonadVrid = (v: number[]) => v.map((_, t) => { let b = 0; v.forEach((x, j) => { const y = x * smooth(1 - Math.abs(t - j) / (TONA + 1)) * (j === t ? 1 : fonster(t)); if (Math.abs(y) > Math.abs(b)) b = y; }); return b; });
+  const extraR = tonadVrid(overKanten(sR, H, pol0, vR, -1)), extraL = tonadVrid(overKanten(sL, L, polL, vL, 1));
   const g0 = f0.g, frames: {card: Kort & {id: number}; L: Limb; R: Limb; h: Vec3; g: Vec3}[] = [];
   for (let t = 0; t < n; t++) {
     const s1 = sR(t), s2 = sL(t), h = H[t], l = L[t], k = K[t];
-    const e1 = hemmaR(t) ? f0.R.e : arm(s1, h.w, turned(pol0, unit(sub(h.w, s1)), vR[t]), doll).elbow, e2 = hemmaL(t) && balUt(t) === 0 ? f0.L.e : arm(s2, l.w, turned(polL, unit(sub(l.w, s2)), vL[t]), doll).elbow;
+    const e1 = hemmaR(t) && !extraR[t] && !balUt(t) ? f0.R.e : arm(s1, h.w, turned(pol0, unit(sub(h.w, s1)), vR[t] + extraR[t]), doll).elbow, e2 = hemmaL(t) && !extraL[t] && !balUt(t) ? f0.L.e : arm(s2, l.w, turned(polL, unit(sub(l.w, s2)), vL[t] + extraL[t]), doll).elbow;
     const pR = hemmaR(t) ? f0.R.p : punkter(h), pL = (t === 0 || (t >= vHemma)) ? f0.L.p : punkter(l);
     const blick = t <= 3 ? lerp(g0, k.c, mjuk(t / 3)) : t <= tL ? k.c : lerp(k.c, g0, mjuk((t - tL) / (slut - tL)));
     frames.push({card: {c: r4(k.c), l: r4(unit(k.l)), n: r4(unit(k.n)), id: 0}, R: {s: r4(s1), e: r4(e1), w: r4(hemmaR(t) ? f0.R.w : h.w), k: f0.R.k, p: pR.map(r4)}, L: {s: r4(s2), e: r4(e2), w: r4(t === 0 || t >= vHemma ? f0.L.w : l.w), k: f0.L.k, p: pL.map(r4)},
@@ -589,7 +644,7 @@ export function renGiv(input: RenInput) {
 
   // 10. Kvittot: vad som valdes och hur det blev.
   const kvitto = {bojdGrader: V.bojdGrader, gangjarn: V.gj.D === HK ? 'kortsidan' : 'långsidan', phiGrader: V.phi, glidMm: mm(V.glid), yawVidTagGrader: grad(V.dYaw), flyttMm: V.flytt.map(mm), tauGrader: grad(tau), lyftMm: mm(lyft),
-    rulle: {tar: V.vt, slapper: V.vr}, isarMm: mm(V.isar), lutGrader: grad(need.lean), vridGrader: grad(need.twist), armenKortMm: need.kortMm, fallTid: Math.round(fallTid * 1000) / 1000, omega: Math.round(omega0 * 100) / 100,
+    rulle: {tar: V.vt, slapper: V.vr}, isarMm: mm(V.isar), lutGrader: grad(need.lean * mestAndel), vridGrader: grad(need.twist * mestAndel), armenKortMm: need.kortMm, armbagenUtGrader: {R: grad(Math.max(...extraR.map(Math.abs))), L: grad(Math.max(...extraL.map(Math.abs)))}, fallTid: Math.round(fallTid * 1000) / 1000, omega: Math.round(omega0 * 100) / 100,
     skonSkillnadMm: skillnad0, kostar: Object.fromEntries(Object.entries(V.kostar).map(([k, x]) => [k, Math.round(x * 100) / 100])), grepp: {hall: grepp.hall, fria: grepp.fria}};
   const times = {ute: tU, tar: tT, slapper: tR, ligger: tL, fingrarPa: tRor, hemFran: tVila, slut};
   const motion = {fps: FPS, frameCount: n, leavesShoe: tU, edge: [tR, tR], folds: tR, rests: tL, hip, doll: doll.name, to: [input.place], frames,
@@ -599,3 +654,50 @@ export function renGiv(input: RenInput) {
   }
 }
 export type RenGiv = ReturnType<typeof renGiv>;
+
+// ---- vilan till skon --------------------------------------------------------------------------------------------------
+/**
+ * Takten för vilan till skon (Jakob 2026-11-26: "A1 - A2.3 ska ta 1 sekund ungefär"): rutor stilla i vilan, rutor i
+ * rörelse, rutor stilla i ankaret; hur högt högerhanden lyfts på vägen och hur vänsterhanden går till kortet i skon
+ * (`over`: upp ur vilan, `fore`: så långt utanför kortets yta och över det den är innan den sänks på det).
+ */
+export const VILA_TILL_SKON = {stillaFore: 3, ror: 30, stillaEfter: 3, lyft: 0.02, over: 0.07, fore: [0.05, 0.03] as [number, number]};
+/**
+ * Vilan till skon (A1 till A2.3) rent, på dockans ben: börjar stilla i vilan `a1` och slutar stilla i exakt ankarets
+ * första ruta (`a23.frame`), så att den och givarna från ankaret möts utan skarv. Axlarna och kortet i skon står stilla.
+ * Högerhanden glider från vilan till sin plats på filten, lyft lite på vägen; vänsterhanden lyfts ur vilan, förs över och
+ * sänks på kortet i skon utifrån, längs kortets yta; varje hand byter form led för led (formMellan) och vrids i en enda
+ * vridning (hand-pose.ts between). Armbågarna går från vilans till ankarets, och med bordets kant (`kant`) ut så mycket
+ * mer som underarmen behöver för luften över den, mjukt in och ut.
+ */
+export function renVila(input: {a1: Ankare23['frame']; a23: Ankare23; doll: Doll; kant?: Kant}) {
+  const {a1, a23, doll, kant} = input, f2 = a23.frame, V = VILA_TILL_SKON, n = V.stillaFore + V.ror + V.stillaEfter, sista = V.stillaFore + V.ror;
+  const u = (t: number) => clamp01((t - V.stillaFore) / V.ror);
+  const sidor = (['R', 'L'] as const).map(s => { const sign = s === 'R' ? 1 : -1, A1 = axesOf(a1[s].p, sign), A2 = axesOf(f2[s].p, sign);
+    return {s, sign, A1, A2, S1: local(a1[s].p, A1), S2: local(f2[s].p, A2), w1: a1[s].w, w2: f2[s].w, e1: a1[s].e, e2: f2[s].e, sh: f2[s].s, ut: s === 'R' ? -1 : 1}; });
+  // (vänsterhanden till kortet utifrån: kortets yta åt fingertopparnas håll)
+  const k2 = f2.card, toppar = mul(add(f2.L.p[8], f2.L.p[12]), 0.5), utat = mul(k2.n, Math.sign(dot(sub(toppar, k2.c), k2.n)) || 1);
+  const bezier = (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, k: number): Vec3 => { const a = 1 - k; return add(add(mul(p0, a * a * a), mul(p1, 3 * a * a * k)), add(mul(p2, 3 * a * k * k), mul(p3, k * k * k))); };
+  const handAt = (i: number, t: number): Hand => { const x = sidor[i], k = mjuk(u(t));
+    if (i === 0) return {a: between(x.A1, x.A2, k), w: add(lerp(x.w1, x.w2, k), [0, V.lyft * Math.sin(Math.PI * k), 0]), S: formMellan(x.S1, x.S2, k)};
+    const p1 = add(x.w1, [0, V.over, 0]), p2 = add(add(x.w2, mul(utat, V.fore[0])), [0, V.fore[1], 0]);
+    return {a: between(x.A1, x.A2, k), w: bezier(x.w1, p1, p2, x.w2, k), S: formMellan(x.S1, x.S2, mjuk(Math.min(1, u(t) / 0.8)))}; };
+  const H = [0, 1].map(i => Array.from({length: n}, (_, t) => handAt(i, t)));
+  // armbågarna: mot det håll som går från vilans armbåge till ankarets, och ut över kanten där det behövs
+  const pol = (i: number, t: number) => { const x = sidor[i], k = mjuk(u(t)); return unit(lerp(unit(sub(x.e1, x.sh)), unit(sub(x.e2, x.sh)), k)); };
+  const behov = [0, 1].map(i => H[i].map((h, t) => { if (!kant) return 0; const x = sidor[i], line = unit(sub(h.w, x.sh)), e = (v: number) => arm(x.sh, h.w, turned(pol(i, t), line, v), doll).elbow;
+    const tecken = dot(sub(e(0.05), e(0)), [x.ut, 0, 0]) >= 0 ? 1 : -1; for (let v = 0; v <= rad(110); v += rad(0.5)) if (underarmLuft(e(tecken * v), h.w, kant) >= kant.luft) return tecken * v; return tecken * rad(110); }));
+  const TONA = 8, tonad = (v: number[]) => v.map((_, t) => { let b = 0; v.forEach((x, j) => { const y = x * smooth(1 - Math.abs(t - j) / (TONA + 1)); if (Math.abs(y) > Math.abs(b)) b = y; }); return b; });
+  const extra = behov.map(tonad);
+  const frames: {card: Kort & {id?: number}; L: Limb; R: Limb; h: Vec3; g: Vec3}[] = [];
+  for (let t = 0; t < n; t++) {
+    if (t <= V.stillaFore) { frames.push(JSON.parse(JSON.stringify({...a1, card: f2.card}))); continue; }
+    if (t >= sista) { frames.push(JSON.parse(JSON.stringify(f2))); continue; }
+    const limb = (i: number): Limb => { const x = sidor[i], h = H[i][t], e = arm(x.sh, h.w, turned(pol(i, t), unit(sub(h.w, x.sh)), extra[i][t]), doll).elbow;
+      return {s: x.sh, e: r4(e), w: r4(h.w), k: f2[x.s].k, p: punkter(h).map(r4)}; };
+    const k = mjuk(u(t));
+    frames.push({card: f2.card, R: limb(0), L: limb(1), h: r4(lerp(a1.h, f2.h, k)), g: r4(lerp(a1.g, f2.g, k))});
+  }
+  return {fps: FPS, frameCount: n, leavesShoe: n, edge: [n, n], folds: n, rests: n, hip: a23.hip, doll: doll.name, to: ['A2.3'], frames,
+    times: {borjar: V.stillaFore, framme: sista}, armbagenUtGrader: extra.map(v => grad(Math.max(...v.map(Math.abs))))};
+}
