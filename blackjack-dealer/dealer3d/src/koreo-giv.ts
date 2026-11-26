@@ -358,7 +358,7 @@ function koreoEnsam(input: KoreoInput) {
   const fig = figur({start, doll, kant, R, L, C, mal: F.c, ger: 'L', vansterHemma: n - 1, ligger: E.ligger});
   const times = {ute: dra, framme: E.framme, rest: E.framme, greppat: E.framme, tar: E.framme, vansterLyfter: E.vilar, nere: E.ligger, slapper: E.ligger, ligger: E.ligger, slut: E.hemma};
   const kvitto = {hand: 'L', fore: r4(fore), yawGrader: grad(psi), ...fig.kvitto};
-  const motion = {fps: 30, frameCount: n, leavesShoe: dra, edge: [E.ligger, E.ligger], folds: E.ligger, rests: E.ligger, hip: start.hip, doll: doll.name, to: [input.place], frames: fig.frames,
+  const motion = {fps: 30, frameCount: n, leavesShoe: dra, edge: [E.ligger, E.ligger], folds: E.ligger, rests: E.ligger, hip: start.hip, doll: doll.name, to: [input.place], marke: {hander: 'vanster', vands: 'ande-over-ande', satts: 'kortsida'} as GivMarke, frames: fig.frames,
     cycle: {holdThrough: E.vilar, liftStarts: E.vilar, liftEnds: E.vilar + 2, readyFrom: n - 1, durationSeconds: n / 30, liftMeters: 0.02, method: 'Choreographed from A2.3 by dealer3d/src/koreo-giv.ts, the left hand alone (the places nearest the shoe): drawn out of the shoe flat by the left fingertips and on along the felt to just short of the place, turned to point at its player; the fingertips slide back to its near end, lift that end and turn the card over end to end about its far short side, away from the dealer, onto the place face up, following the face down; they rest on it and the hand goes home to the shoe. The right hand stays in the anchor.'}};
   return {motion, times, kvitto};
 }
@@ -376,6 +376,16 @@ export type KoreoInput = {start: Ankare23; place: string; at: Vec3; doll: Doll; 
  * vänster axel än höger (platserna närmast skon), annars högern efter handbytet.
  */
 export const ENSAM_NARMARE = 0.1;
+/**
+ * Givens märke, i rörelsens fält `marke`: det som skiljer en giv från en annan, för den som väljer, visar eller sätter
+ * ihop givar (Jakob 2026-11-26: vänsterhandsgiven är "fine, men det måste liksom markeras så man vet att dessa skiljer
+ * sig från tvåhandsutdelningen", och om hur kortet sätts ned, kring långsidan eller plant: "samma där"; senare väljs det
+ * efter vem som ska få kortet visat för sig, spelaren på platsen eller en spelare på en annan plats).
+ * - hander: 'tva' handbytet (vänstern drar, högern lägger), 'vanster' vänsterhanden ensam.
+ * - vands: 'pa-vagen' (version A), 'vid-platsen' (version B), 'ande-over-ande' (vänsterhanden ensam).
+ * - satts: kanten kortet läggs ned kring: 'langsida', 'kortsida', eller 'plant' (ingen giv gör det än).
+ */
+export type GivMarke = {hander: 'tva' | 'vanster'; vands: 'pa-vagen' | 'vid-platsen' | 'ande-over-ande'; satts: 'langsida' | 'kortsida' | 'plant'};
 export const vilkenHand = (start: Ankare23, at: Vec3): 'R' | 'L' => length(sub(at, start.frame.R.s)) - length(sub(at, start.frame.L.s)) > ENSAM_NARMARE ? 'L' : 'R';
 export function koreoGiv(input: KoreoInput) {
   if (input.hand === 'L') return koreoEnsam(input);
@@ -540,7 +550,7 @@ export function koreoGiv(input: KoreoInput) {
   const kvitto = {hand: 'R', grepp: {pek: grepp.pek, mitt: grepp.mitt}, mote: r4(M), sattGrader: satt, yawGrader: grad(psi), vantarRutor: vanta, ...fig.kvitto};
   const metod = B ? 'version B (turned near the place): drawn out of the shoe flat by the left hand to the meeting point out over the table, stood on its far long side facing the dealer, nipped from above by the right (thumb down on the face, forefinger on the back), carried hanging on its edge low over the felt and rolled forward by the forearm only in the last centimetres, set down flat, pushed onto the place by the fingertips and released.'
     : 'version A (the key turn, read from Jakob\'s words and two training films): drawn out of the shoe flat by the left hand to the meeting point out over the table, stood on its far long side facing the dealer, nipped from above by the right (thumb down on the face, forefinger on the back), rolled forward away from the dealer by the forearm turning outward like a key (back of the hand up to a handshake), carried flat and low, set down flat, pushed onto the place by the fingertips and released.';
-  const motion = {fps: 30, frameCount: n, leavesShoe: dra, edge: [K.nere, K.nere], folds: K.nere, rests: K.ligger, hip, doll: doll.name, to: [input.place], frames: fig.frames,
+  const motion = {fps: 30, frameCount: n, leavesShoe: dra, edge: [K.nere, K.nere], folds: K.nere, rests: K.ligger, hip, doll: doll.name, to: [input.place], marke: {hander: 'tva', vands: B ? 'vid-platsen' : 'pa-vagen', satts: 'langsida'} as GivMarke, frames: fig.frames,
     cycle: {holdThrough: K.vilar, liftStarts: K.vilar, liftEnds: K.vilar + 2, readyFrom: n - 1, durationSeconds: n / 30, liftMeters: 0.02, method: `Choreographed from A2.3 by dealer3d/src/koreo-giv.ts, ${metod}`}};
   return {motion, times, kvitto};
 }

@@ -229,6 +229,11 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   - **Takten** är hans: kortet ligger efter 1,0 s och handen är hemma 0,6 s senare. Farten är en klocka över kortets
     egen väg, ur skon och under bärandet, så att inget rycker. Bålen lutar 4–8 grader till plats 1–3, 6 och 7 och 15–16
     till plats 4 och 5 (mannen; kvinnan 10–21).
+  - **Märket** (Jakob 2026-11-26: vänsterhandsgiven "måste markeras så man vet att dessa skiljer sig från
+    tvåhandsutdelningen"; om långsida eller plant: "samma där"): varje giv bär fältet `marke` (`GivMarke` i
+    `koreo-giv.ts`): `hander` (`tva` eller `vanster`), `vands` (`pa-vagen` A, `vid-platsen` B, `ande-over-ande`
+    vänstern) och `satts` (`langsida`, `kortsida`; `plant` gör ingen giv än). Editorns statusrad säger det i ord
+    ("Plats 6 ges med vänsterhanden ensam …"). Studions Bordet visar det inte än.
   - **Kontrollen**: `givRegler` i `ren-giv.ts` mäter bytet, den öppna handen, kortet i handen, kroppen och
     vridningen och sparar talen i filen (`made.checked`); en giv med röd spärr skrivs bara under provnamn. Alla 24
     givarna är gröna där och i `verktyg/mat.ts --alla` (båda dockorna).
@@ -250,19 +255,37 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 
 ## Nästa steg
 
-1. Jakobs dom över givarna till alla sju platser: provet `givar-sju-platser-20261126` i studions Granska med kortet
-   `givar-sju-platser` i Beslut (mannen till alla sju platser, B till plats 1 och 4, kvinnan till plats 4 och 7, och
-   bordet uppifrån med de vända ramarna). Det han säger ser fel ut ändras i `koreo-giv.ts` och gäller då alla
+1. **Sju kort per plats, och givarna sydda ihop till en runda** (Jakob 2026-11-26, får inte glömmas: "alla 7 kort kan
+   ges utifrån dessa två utdelningar", "se till ... att du lyckas med det logiska kring detta, hur dessa två kan
+   faktiskt sys ihop inbördes mellan givar till spelare"). Det som redan håller:
+   - Varje giv börjar och slutar stilla i exakt samma ankare vid skon (A2.3), med båda händerna där
+     (`verktyg/mat.ts` spärrar annars, inom 0,5 mm). Därför kan vilken giv som helst följa på vilken som helst:
+     handbyte efter vänsterhand, A efter B, plats 7 efter plats 1. En runda är en lista av givar efter varandra.
+   - Given tar vilken punkt på filten som helst (`at`) och vilken vinkel som helst (`yaw`); handen väljs av var
+     punkten ligger (`vilkenHand`). Inget i koreografin är bundet till kort 1.
+
+   Det som saknas, i den här ordningen:
+   - Var kort 2–7 ligger på en plats. Planen har bara C1 och C2 per spelare. Det behövs en regel för hur korten
+     läggs omlott (riktning och steg längs platsens egen vinkel, så att varje kort syns), på ett ställe bredvid
+     `dollCardYaw`, och ramar för dem på dockornas bord om han vill se dem.
+   - Att ett kort läggs på eller intill kort som redan ligger: fingrarna och kortets kant får inte gå i de liggande
+     korten (i dag mäts bara kortet som ges), och nedsättningen kring långsidan sveper över grannkortet.
+   - Val per kort i `ren-givar.ts` (`--kort <n>`), filnamn `…-p<plats>c<kort>-ren-<a|b>-<docka>`, och rader i `EGNA`;
+     editorn och studions dockvy väljer i dag bara kort 1.
+   - Följden: en lista (plats, kort, variant) som editorn spelar och spelar in i ett svep, med sista given direkt till
+     vilan (A1). Här avgörs också vem som väljer variant: A eller B, och hur kortet sätts ned, efter vem som ska få
+     kortet visat för sig (`AGENTS.md`, Vänsterhandsgiven och märkningen).
+   - En snabbare runda senare: vänstern kan dra nästa kort medan högern går hem (i dag väntar den i ankaret).
+2. Jakobs dom över givarna till alla sju platser: provet `givar-sju-platser-20261126` i studions Granska med kortet
+   `givar-sju-platser` i Beslut. I chatten har han sagt att vänsterhanden är "fine" och att A och B båda ska finnas;
+   kvar att höra är de vända kortplatserna. Det han säger ser fel ut ändras i `koreo-giv.ts` och gäller då alla
    platser och båda dockorna; `node dealer3d/tools/ren-givar.ts --docka <docka> --alla --koreo a` (och `b`) från
    `../blackjack-dealer/` ritar om dem. Säger han nej till de vända kortplatserna: ta bort `cardsFrom` ur
    `DOLL_TABLE`, kör `gen_standard.py` och `bygg_bord.py --docka`, och rita om; de yttre platserna får då tillbaka
    handledens vridning.
-2. Fler kort till varje plats (Jakob 2026-11-26: "upp till 7 kort för respektive spelare/seat"): planen har två
-   platser per spelare (C1, C2). Given tar redan vilken punkt som helst (`at`) och vinkel (`yaw`), så det som
-   saknas är var kort 3–7 ligger (en regel för hur de läggs omlott) och ett val av kort i `ren-givar.ts`, editorn
-   och studion.
-3. Val mellan A och B i editorn och i studions Bordet (i dag spelas A), och hans önskan om cirka fem varianter per
-   plats (`AGENTS.md`, Varianter).
+3. Val mellan A och B i editorn och i studions Bordet (i dag spelas A), märket synligt i Bordet, en giv som sätter
+   ned kortet plant (`satts: plant`; kräver ett annat grepp än nyckelgreppet, där hela handen står under kortets
+   plan), och hans önskan om cirka fem varianter per plats (`AGENTS.md`, Varianter).
 4. Det som saknas för en hel runda: dealerns egna kort, och en återgång från kortplatsen direkt till vilan (Jakob
    2026-11-23: sista given går direkt till A1). Jakob har bett om att slippa be en agent: en knapp som ritar en giv
    till alla platser är ett förslag, inte byggt.

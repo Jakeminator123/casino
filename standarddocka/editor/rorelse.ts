@@ -14,7 +14,12 @@ export type Limb = {s: number[]; e: number[]; w: number[]; k: number; p: number[
 export type Card = {c: number[]; l: number[]; n: number[]; id?: number};
 export type Frame = {card: Card; L: Limb; R: Limb; h: number[]; g: number[]};
 /** En sparad rörelse som den ligger i dealer3d/data (bara det editorn läser). */
-export type Motion = {fps: number; frameCount: number; hip: number[]; frames: Frame[]; leavesShoe: number; edge: number[]; folds: number; rests: number; doll?: string; film?: string};
+export type Motion = {fps: number; frameCount: number; hip: number[]; frames: Frame[]; leavesShoe: number; edge: number[]; folds: number; rests: number; doll?: string; film?: string;
+  /** Givens märke (blackjack-dealer/dealer3d/src/koreo-giv.ts GivMarke): vilken hand som ger, hur kortet vänds och hur det sätts ned. */
+  marke?: {hander: 'tva' | 'vanster'; vands: 'pa-vagen' | 'vid-platsen' | 'ande-over-ande'; satts: 'langsida' | 'kortsida' | 'plant'}};
+/** Givens märke i vanliga ord, för statusraden: tomt för en giv utan märke (de äldre). */
+export const markeText = (m: Motion, plats: number): string => !m.marke ? '' : m.marke.hander === 'vanster' ? `Plats ${plats} ges med vänsterhanden ensam: kortet vänds ände över ände på platsen. `
+  : `Plats ${plats} ges med handbyte, version ${m.marke.vands === 'vid-platsen' ? 'B: kortet vänds vid platsen' : 'A: kortet vänds på vägen'}${m.marke.satts === 'plant' ? ' och sätts ned plant' : ' och sätts ned kring sin långsida'}. `;
 
 /** Lederna en ändring kan flytta. Höger och vänster är dealerns egna. */
 export type Led = 'hogerHand' | 'vansterHand' | 'hogerArmbage' | 'vansterArmbage' | 'blick';

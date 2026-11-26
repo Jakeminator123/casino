@@ -181,8 +181,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - Standarddockan (2026-11-26): givarna till alla sju platser, provet `givar-sju-platser-20261126` (Granska, Prov) med
   kortet `givar-sju-platser` i Beslut. Om A och B till plats 4 (provet `giv-man-20261126`) svarade han "Superbra, 5/5
   för båda" och "gärna A och B", så båda är ritade till alla platser, för mannen och kvinnan; plats 6 och 7 ges med
-  vänsterhanden ensam, och kortplatserna på dockornas bord är vända mot sin spelare. Det han ska säga: om givarna
-  till de yttre platserna duger, om vänsterhandsgiven är rätt sätt, och om de vända kortplatserna ska bli standard.
+  vänsterhanden ensam, och kortplatserna på dockornas bord är vända mot sin spelare. I chatten samma dag sade han att
+  vänsterhanden är "fine" men ska märkas (varje giv bär nu fältet `marke`, och editorn säger det), och att sju kort per
+  plats ur de två givarna inte får glömmas: det är nästa steg, överst i `../standarddocka/README.md`. Kvar att höra
+  från honom: om de vända kortplatserna ska bli standard.
   Arbetet sker i `../standarddocka/` (läget och nästa steg i dess README) och visas för honom som prov härifrån; hans
   ord står som krav i `../standarddocka/AGENTS.md`.
 - Dockans film omgjord till en person (betalda prov, 776 krediter): proven `docka-till-person-20261126` (dömt "Mycket

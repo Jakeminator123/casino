@@ -153,6 +153,16 @@ rörelse prövas mot innan den visas för honom.
   "Superbra, 5/5 för båda faktiskt! Kanon skulle ju vara att ha båda uppsättningarna, men så de skulle kunna dela
   till alla spelare och upp till 7 kort för respektive spelare/seat så att säga på ett eller annat sätt. Så gärna A
   och B." Båda ritas till alla platser; fler kort per plats är nästa steg (README).
+- **Vänsterhandsgiven och märkningen (2026-11-26).** Om givarna till alla sju platser: "Vänsterhanden är fine, men det
+  måste liksom markeras så man vet att dessa skiljer sig från tvåhandsutdelningen bara." Om att kortet sätts ned kring
+  sin långsida i stället för plant: "långsida/plant, samma där – senare kommer detta vara beroende på om spelaren på
+  platsen eller spelaren på annan plats ska få kortet visat för sig." Varje giv bär därför ett märke (fältet `marke` i
+  rörelsens fil: vilken hand, hur kortet vänds, hur det sätts ned), och editorns statusrad säger det. Agentens läsning:
+  båda sätten att sätta ned kortet ska finnas som märkta varianter, och vilket som används väljs senare efter vem som
+  ska se kortet.
+- **Sju kort ur de två givarna (2026-11-26).** "Det där med att alla 7 kort kan ges utifrån dessa två utdelningar är
+  fantastiskt, men se till att det inte glöms bort och att du lyckas med det logiska kring detta, hur dessa två kan
+  faktiskt sys ihop inbördes mellan givar till spelare." Det är nästa steg och står överst i README, med logiken.
 - **Ansiktet (2026-11-26, en önskan).** "Dock undrar jag om vi kanske ska lägga på det som kanske kan göra lite
   uttryck ... som blinkningar och ansiktsgester": dockorna har ansiktsformerna och ögonens leder, men inget styr dem
   än (README, Nästa steg, Ansiktet).
