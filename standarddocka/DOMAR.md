@@ -44,11 +44,11 @@ en dom han har ändrat sig om ersätts. Hur mappen är byggd och läget står i 
   skjuter ut kortet, men också återvända till samma ställe med samma blick. En annan sak hade varit om han skulle
   återvända till A1. I övrigt bra!" Blicken är alltså mot kameran bara i vilan (A1). I A2.3 är den på kortet i skons
   mynning, under given på kortet, och tillbaka på skon när handen är det.
-- **Takten (2026-11-26).** "En ny standard som jag skulle vilja ha för rörelserna med nya standarddockan. A1 - A2.3 ska
-  ta 1 sekund ungefär. Sedan ska respektive giv, såsom A2.3 till P4C1 ta 1 sekund ungefär", och senare samma dag:
-  "respektive utgivning är max 1 sekund och tillbakagången till A1 och/eller A2.3 eller så ska göras på ca 0,6
-  sekunder". Alltså: från vilan till skon cirka 1 s, kortet ut högst 1 s, och handen tillbaka (till skon eller till
-  vilan) cirka 0,6 s. Det är rörelsens tid; stillastående i ett ankare räknas inte in.
+- **Takten (2026-11-27).** "Jag vill ändra standarddockans tid för att ge kort. Att ge ett kort ska ta 1.2 sek och
+  återgången 0.8. Det bör passa bättre för övrigt." Alltså: från vilan till skon cirka 1 s, kortet ut (från skon till
+  att det ligger) 1,2 s, och handen tillbaka (till skon eller till vilan) 0,8 s. Det är rörelsens tid; stillastående i
+  ett ankare räknas inte in. Bakgrund: 2026-11-26 satte han "A1 - A2.3 ska ta 1 sekund ungefär", "respektive utgivning
+  är max 1 sekund och tillbakagången ... ca 0,6 sekunder", och gav A och B till plats 4 i den takten 5/5.
 - **Handen vid skon är redo medan den andra ger (2026-11-26).** "Dealerns hand som för ut kortet ur skon liksom lyfts upp
   och spänns medan den andra [handen] faktiskt delar ut kortet", i alla givarna. Och: "dockan ska inte vara avspänd vid
   skon i REDO/A2.3". Handen som tog kortet ur skon går alltså tillbaka till sin redo-ställning vid skon och håller den

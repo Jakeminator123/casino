@@ -96,7 +96,7 @@ Hans domar står i `../standarddocka/DOMAR.md`. Mot dem:
 
 - Given går ur en sko vid dealerns vänstra sida, med vänster hand som drar och höger som lägger, som hans dom säger
   (sett i bild 2026-11-26). Rörelsen har inget kort och ingen sko: de finns bara i visaren.
-- En giv tar cirka tre sekunder; hans takt är högst en sekund ut och 0,6 tillbaka.
+- En giv tar cirka tre sekunder; hans takt är 1,2 sekunder ut och 0,8 tillbaka (2026-11-27).
 - Fem platser i en båge, inte sju, och bara plats 4 träffas på korten.
 - I bordsvyn sjönk kattens händer ner i filten, och spelarnas armar går genom den vadderade kanten och låren in i
   sargen (hans bilder 2026-11-26: "allt är inte kanon"). Händerna är rättade (figuren stod 2 cm för lågt). Armarna och

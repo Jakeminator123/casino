@@ -34,7 +34,7 @@ import {arm, turned} from '../src/body.ts';
 import {dollCardYaw, dollFrame, dollNamed, naturalDoll, type Doll, type HandPlace} from '../src/doll.ts';
 import {placed} from '../src/hand-pose.ts';
 import {handFaults} from '../src/hand-rule.ts';
-import {REN, armbageOverKanten, givRegler, granska, renGiv, renVila, rentAnkare, underarmLuft, type Ankare23, type Kant} from '../src/ren-giv.ts';
+import {armbageOverKanten, givRegler, granska, renGiv, renVila, rentAnkare, underarmLuft, type Ankare23, type Kant} from '../src/ren-giv.ts';
 import {koreoGiv, vilkenHand} from '../src/koreo-giv.ts';
 import {spots, type Plan} from '../src/world.ts';
 import {TABLE_LENS} from '../../src/table-lens.ts';
@@ -147,7 +147,7 @@ if (platser.length) {
     const rod = m.g.sparrRutor > 0, fil = rod && !PROV ? `giv-fran-2-3-p${plats}c1-prov-${version === 'b' ? 'b-' : ''}${NAMN}` : namn;
     writeFileSync(path.join(ROOT, `${DATA}${fil}.json`), JSON.stringify({...r.motion, about, made}) + '\n');
     if (rod) { rott++; if (fil !== namn) console.log(`SPÄRR: ${namn} skrevs inte; given står i stället som ${fil}.`); }
-    console.log(`${fil}: ${r.motion.frames.length} rutor, ${Date.now() - t0} ms; kortet ute ${t.ute}, taget ${t.tar}, släppt ${t.slapper}, ligger ${t.ligger} (${(t.ligger / 30).toFixed(2)} s, högst ${REN.ligger}), hemma ${t.slut} (${((t.slut - t.ligger) / 30).toFixed(2)} s efter); bålen lutar ${r.kvitto.lutGrader}° och vrids ${r.kvitto.vridGrader}°, armbågen ut över kanten ${r.kvitto.armbagenUtGrader.R}/${r.kvitto.armbagenUtGrader.L}°; ${m.text}`);
+    console.log(`${fil}: ${r.motion.frames.length} rutor, ${Date.now() - t0} ms; kortet ute ${t.ute}, taget ${t.tar}, släppt ${t.slapper}, ligger ${t.ligger} (${(t.ligger / 30).toFixed(2)} s), hemma ${t.slut} (${((t.slut - t.ligger) / 30).toFixed(2)} s efter); bålen lutar ${r.kvitto.lutGrader}° och vrids ${r.kvitto.vridGrader}°, armbågen ut över kanten ${r.kvitto.armbagenUtGrader.R}/${r.kvitto.armbagenUtGrader.L}°; ${m.text}`);
     console.log(`   strängt: ${strang.sparrRutor ? `${strang.sparrRutor} rutor (${strang.vad.join(', ')}; ${strang.rutor.join(',')})` : 'ingen spärr'}; reglerna: ${regler.bryter.join('; ') || 'alla hålls'}`);
     console.log(`   ${JSON.stringify(regler.tal)}`);
   }

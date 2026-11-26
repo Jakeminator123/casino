@@ -3,8 +3,10 @@
 // rörelse, byggd på dockans ben från ankaret. Den läggs inte ovanpå Naturlig (natural.ts, turn-in-hand.ts, landing.ts):
 // felen där satt i hur de lagren rättade varandra, och filmmodellen kopierar dockan ruta för ruta. Det han har sagt om
 // givarna, och som byggs in här:
-// - Takten: kortet ligger senast 1 s efter första rutan och handen är åter i A2.3 ungefär 0,6 s därefter ("respektive
-//   utgivning är max 1 sekund och tillbakagången ... ca 0,6 sekunder"); rörelsen börjar och slutar stilla i ankaret.
+// - Takten: kortet ligger senast 1 s efter första rutan och handen är åter i A2.3 ungefär 0,6 s därefter, hans takt
+//   2026-11-26 ("respektive utgivning är max 1 sekund och tillbakagången ... ca 0,6 sekunder"); rörelsen börjar och
+//   slutar stilla i ankaret. Hans takt sedan 2026-11-27 är 1,2 s och 0,8 s (standarddocka/DOMAR.md): standarddockornas
+//   givar ritas i den av koreo-giv.ts, och ingen fil i data/ är ritad av den rena given här.
 // - Greppet: högerhanden tar emot kortet med tummen; tummen under kanten och pek- och långfingret på baksidan, på var sin
 //   sida från början ("fingrarna ska vara på rätt sida av kortet från början"), och greppet hålls fast tills hon släpper.
 // - Vändningen: en gång, av underarmen (handflatan nedåt till tummen uppåt), inte med handleden i maxläge.
@@ -64,7 +66,7 @@ export const REN = {
   slapp: [90, 96, 102, 110], fart: 1.4, skjut: [0, 30, 45, 60],
   topp: DRAWN.finger[2] - 0.0005, tumme: DRAWN.thumb[2] - 0.0005, in: 0.009, bakomTumme: 0.006,
   lyft: 0.008,
-  /** Rutan kortet senast ligger i (Jakob 2026-11-26: "respektive utgivning är max 1 sekund"). */
+  /** Rutan kortet senast ligger i, i den rena given (Jakobs takt 2026-11-26: "respektive utgivning är max 1 sekund"). */
   ligger: 30,
   /** Hur många av de bästa sätten att släppa kortet som prövas med alla sätt att ta det. */
   provas: 14,

@@ -133,7 +133,7 @@ rörelserna förs över till dockorna av den som äger dem, med `OVERLAMNING.md`
    rörelsen omräknad till dockans skelett. Det visar om en inspelad giv ser bättre ut på vår docka än den ritade, och
    hur fingrarna håller. Lånas: dockans kropp ur `../avatar-auto-pipeline/`.
 2. **Given som spelet behöver den.** Paketets giv går ur skon som spelets, men tar tre sekunder och når fem platser;
-   spelets ska gå till var och en av de sju platserna, högst en sekund ut och 0,6 tillbaka, och börja och sluta i vilan
+   spelets ska gå till var och en av de sju platserna, 1,2 sekunder ut och 0,8 tillbaka (hans takt 2026-11-27, `../standarddocka/DOMAR.md`), och börja och sluta i vilan
    (A1) eller vid skon (A2.3). Den byggs av utklippta bitar som snabbas upp och styrs till platsen. Det här steget
    avgör om vägen håller.
 3. **En dealer från foton.** En dealer som avatar-pipelinen bygger har standarddockans skelett och kan därför spela

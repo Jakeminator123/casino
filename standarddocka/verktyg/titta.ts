@@ -82,6 +82,9 @@ const profile = await mkdtemp(path.join(tmpdir(), 'standarddocka-chrome-'));
 const chrome = spawn(chromePath(), ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--hide-scrollbars', '--mute-audio', '--ignore-gpu-blocklist', '--use-angle=d3d11', `--window-size=${W},${H}`, 'about:blank'], {stdio: 'ignore', windowsHide: true});
 let ws: WebSocket | undefined;
 try {
+  // (servern ska vara editorns: står något annat på porten, till exempel studions utvecklingsserver, startar vår inte)
+  let vem = ''; for (let i = 0; i < 40 && vem !== 'standarddockans editor'; i++) { await sleep(250); vem = await fetch(`http://127.0.0.1:${PORT}/vem`, {signal: AbortSignal.timeout(1500)}).then(r => r.ok ? r.text() : `svar ${r.status}`).catch(() => ''); }
+  if (vem !== 'standarddockans editor') throw Error(`Porten ${PORT} ${vem ? 'används av en annan server' : 'svarar inte'}: välj en annan med --port.`);
   let port = 0; for (let i = 0; i < 80 && !port; i++) { await sleep(250); port = Number((await readFile(path.join(profile, 'DevToolsActivePort'), 'utf8').catch(() => '')).split(/\r?\n/)[0]) || 0; }
   if (!port) throw Error('Chrome startade inte.');
   const target = await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, {method: 'PUT'})).json() as {webSocketDebuggerUrl: string};

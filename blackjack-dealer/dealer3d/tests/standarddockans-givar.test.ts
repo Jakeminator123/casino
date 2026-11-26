@@ -1,6 +1,6 @@
-// Skyddar: Jakobs domar – standarddockans grundrörelser (vilan till skon och givarna från A2.3, skrivna av dealer3d/tools/ren-givar.ts): takten (vilan till skon cirka 1 s, kortet ut högst 1 s, handen tillbaka cirka 0,6 s), landningen plan på platsen och stilla, inget som spärrar, och att varje rörelse börjar och slutar i exakt ankaret.
-// Jakobs domar (standarddocka/DOMAR.md, 2026-11-26): "A1 - A2.3 ska ta 1 sekund ungefär", "respektive utgivning är max 1
-// sekund och tillbakagången till A1 och/eller A2.3 eller så ska göras på ca 0,6 sekunder"; kortet ligger sedan plant på
+// Skyddar: Jakobs domar – standarddockans grundrörelser (vilan till skon och givarna från A2.3, skrivna av dealer3d/tools/ren-givar.ts): takten (vilan till skon cirka 1 s, kortet ut 1,2 s, handen tillbaka 0,8 s), landningen plan på platsen och stilla, inget som spärrar, och att varje rörelse börjar och slutar i exakt ankaret.
+// Jakobs domar (standarddocka/DOMAR.md): "A1 - A2.3 ska ta 1 sekund ungefär" (2026-11-26), "Att ge ett kort ska ta 1.2 sek
+// och återgången 0.8" (2026-11-27); kortet ligger sedan plant på
 // planens plats och flyttas inte; "Allt börjar i A1": varje rörelse börjar och slutar stilla i sitt ankare, så att klippen
 // läggs efter varandra utan skarv; och det som spärrar en rörelse från att filmas (dealer3d/src/ren-giv.ts granska med
 // dockan: ett finger i kortet eller filten, kortet utan stöd, ett hörn under filten, ett hopp, och ett ben som inte har
@@ -44,8 +44,8 @@ for (const docka of ['man', 'kvinna']) {
     assert.equal(m.doll, docka);
     assert.equal(kroppen(F[0]), kroppen(ankaret), 'första rutan är inte ankaret');
     assert.equal(kroppen(F.at(-1)!), kroppen(ankaret), 'sista rutan är inte ankaret');
-    assert.ok(m.rests / m.fps <= 1 + 1e-9, `kortet ligger först efter ${(m.rests / m.fps).toFixed(2)} s`);
-    const tillbaka = (F.length - 1 - m.rests) / m.fps; assert.ok(tillbaka >= 0.5 && tillbaka <= 0.7, `handen tillbaka på ${tillbaka.toFixed(2)} s`);
+    const ute = m.rests / m.fps; assert.ok(ute >= 1.1 && ute <= 1.2 + 1e-9, `kortet ligger efter ${ute.toFixed(2)} s`);
+    const tillbaka = (F.length - 1 - m.rests) / m.fps; assert.ok(tillbaka >= 0.7 && tillbaka <= 0.9, `handen tillbaka på ${tillbaka.toFixed(2)} s`);
     const kort = F[m.rests].card;
     assert.ok(kort.n[1] >= Math.cos(Math.PI / 180), 'kortet ligger inte plant med framsidan upp');
     assert.ok(Math.abs(kort.c[1] - CARD.thickness / 2) <= 0.0005, `kortet ${((kort.c[1] - CARD.thickness / 2) * 1000).toFixed(1)} mm från filten`);

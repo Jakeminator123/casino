@@ -37,7 +37,9 @@
 // vrider det den kortaste vägen och böjer av mjukt mot mötet; bärandets fart är en klocka över kortets egen väg (klocka),
 // med svängen i takt med handledens väg. Platserna närmast skon, dit högerarmen inte når, ges med vänsterhanden ensam
 // (koreoEnsam, vilkenHand): kortet dras ur skon, skjuts fram och vänds ände över ände på platsen.
-// Takten (Jakob 2026-11-26): kortet ute och lagt på högst 1 s, handen tillbaka cirka 0,6 s.
+// Takten (Jakob 2026-11-27, standarddocka/DOMAR.md): "Att ge ett kort ska ta 1.2 sek och återgången 0.8": kortet ligger i
+// ruta 36 (1,2 s) och handen är hemma i ruta 60, 0,8 s senare. Rutorna är de han gav 5/5 i takten 1 s och 0,6 s, flyttade
+// i proportion (gången ut 1,2 gånger, vägen hem 4/3), så att formen är densamma.
 // Rent: ingen I/O och ingen three.js.
 import {CARD, add, cross, dot, length, mul, sub, unit, type Lens, type Vec3} from './camera.ts';
 import {arm, turned} from './body.ts';
@@ -85,8 +87,8 @@ const vinkel = (a: Vec3, b: Vec3) => Math.acos(Math.max(-1, Math.min(1, dot(unit
  *   grader handleden lyfts kring fingertopparna innan de släpper; vansterUpp: vänsterns lyft från kortet.
  */
 export const KOREO = {
-  framme: 9, restFore: 2, restat: 12, hogerFran: 2, nyp: 13, sluta: 4, vansterSlapper: 14, vansterUppRutor: 4, vansterHemma: 26,
-  vantaMest: 3, svang: 0.12, rull: [0, 0.55], rullB: 0.6, nere: 23, plant: 27, ligger: 30, vilar: 33, hemma: 48,
+  framme: 11, restFore: 3, restat: 14, hogerFran: 2, nyp: 16, sluta: 5, vansterSlapper: 17, vansterUppRutor: 5, vansterHemma: 31,
+  vantaMest: 4, svang: 0.12, rull: [0, 0.55], rullB: 0.6, nere: 28, plant: 32, ligger: 36, vilar: 40, hemma: 60,
   mote: {x: 0.1, z: 0.31}, moteYaw: 90,
   rest: 80, ovanfor: 0.025, lyft: 0.05, satt: 20, skjut: 0.02, rulleVila: 15, vilaLyft: 6, vansterOppna: 50, vansterUpp: 0.04, vansterBak: 0.03, vansterBage: 0.04,
 };
@@ -264,7 +266,7 @@ function figur(a: {start: Ankare23; doll: Doll; kant?: Kant; R: Hand[]; L: Hand[
       if (x <= 0) break; const ax = unit(cross(fram, fore)), o = toppMitt(R[t]); R[t] = vridHand(R[t], o, ax, x); C[t] = vridKort(C[t], o, ax, x); e1 = armbageR(); }
     const e2 = ände ? f0.L.e : arm(s2, L[t].w, turned(polL, unit(sub(L[t].w, s2)), vL[t] + extraL[t]), doll).elbow;
     // (K8: blicken till kortet när det lämnar skon, på händerna vid bytet och sedan med kortet till platsen; hem igen)
-    const k = C[t], blick = t <= 10 ? lerp(g0, k.c, mjuk(t / 10)) : t <= a.ligger ? k.c : lerp(k.c, g0, mjuk((t - a.ligger) / (n - 1 - a.ligger)));
+    const k = C[t], blick = t <= 12 ? lerp(g0, k.c, mjuk(t / 12)) : t <= a.ligger ? k.c : lerp(k.c, g0, mjuk((t - a.ligger) / (n - 1 - a.ligger)));
     frames.push({card: {c: r4(k.c), l: r4(unit(k.l)), n: r4(unit(k.n)), id: 0},
       R: {s: r4(s1), e: r4(e1), w: r4(ände ? f0.R.w : R[t].w), k: f0.R.k, p: (ände ? f0.R.p : punkter(R[t])).map(r4)},
       L: {s: r4(s2), e: r4(e2), w: r4(ände ? f0.L.w : L[t].w), k: f0.L.k, p: (ände ? f0.L.p : punkter(L[t])).map(r4)},
@@ -293,7 +295,7 @@ function figur(a: {start: Ankare23; doll: Doll; kant?: Kant; R: Hand[]; L: Hand[
  * vilka grader de går vidare runt änden och glider in på framsidan; in: hur långt in från kortets närmre kortsida de
  * till sist vilar; hem: hur högt över den raka vägen hem handleden går.
  */
-export const ENSAM = {ute: 7, framme: 15, ligger: 30, vilar: 33, hemma: 48, lutning: [25, 15, 22], bojda: [12, 18, 10] as [number, number, number], hake: 55, hakeVid: [12, 40], over: [60, 105], pa: [95, 180], in: 0.03, hem: [0.05, 0.04]};
+export const ENSAM = {ute: 8, framme: 18, ligger: 36, vilar: 40, hemma: 60, lutning: [25, 15, 22], bojda: [12, 18, 10] as [number, number, number], hake: 55, hakeVid: [12, 40], over: [60, 105], pa: [95, 180], in: 0.03, hem: [0.05, 0.04]};
 function koreoEnsam(input: KoreoInput) {
   const {start, doll, kant} = input, f0 = start.frame, E = ENSAM, n = E.hemma + 1;
   const HR0 = axesOf(f0.R.p, 1), SR0 = local(f0.R.p, HR0), HL0 = axesOf(f0.L.p, -1), SL0 = local(f0.L.p, HL0);
@@ -461,8 +463,10 @@ export function koreoGiv(input: KoreoInput) {
   const vilande = (s: number) => vridHand(hVila, toppMitt(hVila), lyftAxel, rad(K.vilaLyft) * smooth(s));
   // K6: nedsättningen, ruta för ruta: kortet läggs ned kring gångjärnet (vinkeln en klocka till noll), och handen går från
   // greppet till fingertopparna på framsidan: vriden kring sin framåt (Z) och med fingertopparna längs en båge, flyttade
-  // och vridna så lite som håller handen ur kortet och filten och tummen eller en fingertopp nära kortet.
-  const lutVid = (t: number) => satt * (1 - mjuk((t - K.nere) / (K.plant - K.nere)));
+  // och vridna så lite som håller handen ur kortet och filten och tummen eller en fingertopp nära kortet. Sökningen
+  // fortsätter handens väg från bärandet: dess fart in i nedsättningen tas 1,2 rutor före `nere`, en ruta i den takt Jakob
+  // gav 5/5 (1 s ut), så att nedsättningen blir densamma som då (med en hel ruta kom handen 4 mm från kortet i första rutan).
+  const lutVid =(t: number) => satt * (1 - mjuk((t - K.nere) / (K.plant - K.nere)));
   const rullad = (rho: number): Axes => { const palm = turned([0, -1, 0], Z, rad(rho)); return {forward: Z, palm, across: cross(palm, Z)}; };
   const medToppar = (A: Axes, S: Vec3[], P: Vec3): Hand => { const q = mul(add(S[8], S[12]), 0.5); return {a: A, w: sub(P, add(add(mul(A.forward, q[0]), mul(A.palm, q[1])), mul(A.across, q[2]))), S}; };
   const rho0 = 90 - satt, T0 = toppMitt(hNereK), PT = toppMitt(hTryck);
@@ -472,7 +476,7 @@ export function koreoGiv(input: KoreoInput) {
     return Math.min(...[4, 8, 12, 16, 20].map(j => { const d = sub(p[j], k.c); return Math.abs(dot(d, k.l)) < HK / 2 + 0.005 && Math.abs(dot(d, a)) < WK / 2 + 0.005 ? Math.abs(dot(d, k.n)) - T / 2 - (j === 4 ? topp.thumb : topp.finger) : Infinity; })); };
   const formLagg = (u: number) => formMellan(SK, SV, smooth(u / 0.7));
   let laggR: Hand[] = [];
-  const laggRakna = (): Hand[] => { const ut: Hand[] = [hNereK], spar: {P: Vec3; rho: number}[] = [{P: urV(toppMitt(handBar(K.nere - 1))), rho: rho0}, {P: T0, rho: rho0}];
+  const laggRakna = (): Hand[] => { const ut: Hand[] = [hNereK], spar: {P: Vec3; rho: number}[] = [{P: urV(toppMitt(handBar(K.nere - 1.2))), rho: rho0}, {P: T0, rho: rho0}];
     for (let t = K.nere + 1; t < K.plant; t++) { const u = (t - K.nere) / (K.plant - K.nere), k = kortLutat(lutVid(t)), S = formLagg(u), nom = nominell(u);
       const [a, b] = spar.slice(-2), gissP = sub(mul(b.P, 2), a.P), gissR = 2 * b.rho - a.rho; let bast: {h: Hand; P: Vec3; rho: number; c: number} | null = null;
       for (let dx = -LAGG.sok; dx <= LAGG.sok + 1e-9; dx += LAGG.steg) for (let dy = -LAGG.sok; dy <= LAGG.sok + 1e-9; dy += LAGG.steg) for (let dr = -LAGG.rulle; dr <= LAGG.rulle; dr += 5) {

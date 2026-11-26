@@ -102,7 +102,7 @@ if (RUNDA) sparad.liv = rundlivUr(query.get('liv'), Number(query.get('fro')));
 let kandText = sparadText;
 // Takten: farten per del. `tid` och DUR är filmens tid (det tidslinjen visar); ändringarna, blicken och rutorna räknas i
 // grundrörelsens tid, som tak.grund(tid) ger.
-// Förvalet är Jakobs takt (1 s, 1 s och 0,6 s) på tiden då något rör sig; en fart han själv har satt gäller före den
+// Förvalet är Jakobs takt (1 s, 1,2 s och 0,8 s) på tiden då något rör sig; en fart han själv har satt gäller före den
 // (rorelse.ts taktFor).
 // Rundan spelas som den är, ruta för ruta, med sin stillhet i ankaren.
 const taktNu = () => RUNDA ? takt(foljd, [], foljd.delar, true) : taktFor(foljd, sparad.fart, PROV);
@@ -440,7 +440,7 @@ function visaDelar() {
   const ul = $('#delar'); ul.replaceChildren();
   tak.delar.forEach((d, i) => { const li = document.createElement('li'), nr = document.createElement('b'), namn = document.createElement('span'), längd = document.createElement('input'), s = document.createElement('small'), fart = tak.fart[i];
     const grundlängd = tak.spann[i].till - tak.spann[i].fran;
-    nr.textContent = `${i + 1}.`; namn.textContent = d.namn; li.title = `Börjar vid ${sek(d.fran)}. Grundrörelsen tar ${sek(grundlängd)} här${tak.forval ? '; tiden är förvalet (1 s, 1 s och 0,6 s)' : ''}.`;
+    nr.textContent = `${i + 1}.`; namn.textContent = d.namn; li.title = `Börjar vid ${sek(d.fran)}. Grundrörelsen tar ${sek(grundlängd)} här${tak.forval ? '; tiden är förvalet (1 s, 1,2 s och 0,8 s)' : ''}.`;
     längd.type = 'number'; längd.step = '0.1'; längd.min = (grundlängd / FART.mest).toFixed(1); längd.max = (grundlängd / FART.minst).toFixed(1); längd.value = (d.till - d.fran).toFixed(2); längd.title = 'Hur många sekunder delen ska ta. Skriv ett nytt tal för att göra den fortare eller långsammare.';
     längd.dataset.del = String(i);
     // Hela rundan: takten är fast, och raden säger klippets rutor i tagningen.

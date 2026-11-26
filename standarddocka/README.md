@@ -145,7 +145,7 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
 - **Återställ:** "Tillbaka till det sparade" kastar det som inte är sparat, "Återställ till grundrörelsen" tar bort alla
   ändringar. Båda går att ångra (Ctrl+Z), och inget skrivs förrän Spara. Det sparade ligger i Git, så en äldre sparad
   version går alltid att hämta tillbaka.
-- **Takt:** förvalet är Jakobs takt (`DOMAR.md`): vilan till skon 1 s, kortet ut 1 s, handen tillbaka 0,6 s, räknat
+- **Takt:** förvalet är Jakobs takt (`DOMAR.md`): vilan till skon 1 s, kortet ut 1,2 s, handen tillbaka 0,8 s, räknat
   på tiden då något rör sig; stillheten i ankaret klipps bort (`STANDARDTAKT` och `taktFor` i `editor/rorelse.ts`).
   Varje del i listan "Rörelsen består av" visar sina sekunder; ett nytt tal gör delen fortare eller långsammare (en
   fjärdedel till fyra gånger grundrörelsens fart), jämnt genom delen. Ett tomt fält eller 0 ändrar inget, och ett tal
@@ -290,8 +290,10 @@ Mappen lånar det som redan finns i stället för att kopiera det:
     ramarna vridna likadant (`bygg_bord.py --docka`, `dockans_bord.kort_mot_spelaren` i `standard.yaml`). Handen kommer
     då längs kortet på varje plats som på plats 4: handleden står högst 36 grader från underarmen (förut 60–69 på de
     yttre). Dealerns egna platser ligger rakt, och filmernas plan är orörd.
-  - **Takten** är hans: kortet ligger efter 1,0 s och handen är hemma 0,6 s senare. Farten är en klocka över kortets
-    egen väg, ur skon och under bärandet, så att inget rycker. Bålen lutar 4–8 grader till plats 1–3, 6 och 7 och 15–16
+  - **Takten** är hans (2026-11-27): kortet ligger efter 1,2 s (ruta 36) och handen är hemma 0,8 s senare (ruta 60).
+    Rutorna är de han gav 5/5 i den förra takten (1 s och 0,6 s), flyttade i proportion i `KOREO` och `ENSAM` i
+    `koreo-giv.ts`, så att formen är densamma. Farten är en klocka över kortets egen väg, ur skon och under bärandet,
+    så att inget rycker. Bålen lutar 4–8 grader till plats 1–3, 6 och 7 och 15–16
     till plats 4 och 5 (mannen; kvinnan 10–21).
   - **Märket** (Jakob 2026-11-26: vänsterhandsgiven "måste markeras så man vet att dessa skiljer sig från
     tvåhandsutdelningen"; om långsida eller plant: "samma där"): varje giv bär fältet `marke` (`GivMarke` i
@@ -304,7 +306,7 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   - **Känt:** i handbytet sätts kortet ned kring sin ena långsida (det lutar cirka 60 grader när den når filten) i
     stället för plant; orsaken är greppet, där hela handen står under kortets plan när tummen är uppe. I
     vänsterhandsgiven är fingrarna raka och tummen gör inget. Efter bytet lyfter vänstern fingrarna tydligt (50
-    grader) för att gå fri från kortet.
+    grader på fem rutor, 0,17 s) för att gå fri från kortet.
 - **Editorn** (`editor/`): mannen eller kvinnan gör vilan → skon → kort 1 på en plats → tillbaka med sina egna
   rörelser på alla sju platser (tabellen `EGNA` i `editor/rorelse.ts`), version A, och hela rundan (kort 1 till alla
   sju) i en tagning. Version B spelas på prov
