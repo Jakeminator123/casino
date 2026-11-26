@@ -1,0 +1,84 @@
+{
+ "filt": {
+  "id": "scuba_suede",
+  "namn": "Scuba Suede",
+  "upphovsperson": [
+   "colormass",
+   "Rico Cilliers"
+  ],
+  "licens": "CC0 (Poly Haven, https://polyhaven.com/license)",
+  "sida": "https://polyhaven.com/a/scuba_suede",
+  "fysisk_storlek_mm": [
+   285.2202902890041,
+   278.89999747276306
+  ],
+  "filer": {
+   "diff": {
+    "fil": "filt_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/scuba_suede/scuba_suede_diff_2k.jpg"
+   },
+   "nor_gl": {
+    "fil": "filt_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/scuba_suede/scuba_suede_nor_gl_2k.jpg"
+   },
+   "rough": {
+    "fil": "filt_rough_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/scuba_suede/scuba_suede_rough_2k.jpg"
+   }
+  }
+ },
+ "tra": {
+  "id": "american_walnut_veneer",
+  "namn": "American Walnut Veneer",
+  "upphovsperson": [
+   "Jenelle van Heerden"
+  ],
+  "licens": "CC0 (Poly Haven, https://polyhaven.com/license)",
+  "sida": "https://polyhaven.com/a/american_walnut_veneer",
+  "fysisk_storlek_mm": [
+   1000,
+   1000
+  ],
+  "filer": {
+   "diff": {
+    "fil": "tra_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/american_walnut_veneer/american_walnut_veneer_diff_2k.jpg"
+   },
+   "nor_gl": {
+    "fil": "tra_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/american_walnut_veneer/american_walnut_veneer_nor_gl_2k.jpg"
+   },
+   "rough": {
+    "fil": "tra_rough_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/american_walnut_veneer/american_walnut_veneer_rough_2k.jpg"
+   }
+  }
+ },
+ "lader": {
+  "id": "brown_leather",
+  "namn": "Brown Leather",
+  "upphovsperson": [
+   "Rob Tuytel"
+  ],
+  "licens": "CC0 (Poly Haven, https://polyhaven.com/license)",
+  "sida": "https://polyhaven.com/a/brown_leather",
+  "fysisk_storlek_mm": [
+   400.0000059604645,
+   400.00003576278687
+  ],
+  "filer": {
+   "diff": {
+    "fil": "lader_diff_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/brown_leather/brown_leather_albedo_2k.jpg"
+   },
+   "nor_gl": {
+    "fil": "lader_nor_gl_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/brown_leather/brown_leather_nor_gl_2k.jpg"
+   },
+   "rough": {
+    "fil": "lader_rough_2k.jpg",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/brown_leather/brown_leather_rough_2k.jpg"
+   }
+  }
+ }
+}

@@ -1,0 +1,406 @@
+"""Bygger standardbordet procedurellt ur scen/standard.yaml (meter, Z upp).
+
+Kör:  blender -b --python-exit-code 1 --python scen/bygg_bord.py
+      blender -b --python-exit-code 1 --python scen/bygg_bord.py -- --modell bord-02
+Ut:   assets/bord/standardbord.blend och assets/bord/standardbord.glb
+      (bord-02 skriver assets/bord/bord_02.blend/.glb så standardfilen inte skrivs över)
+Allt mått kommer ur standard.yaml – ändra där, inte här.
+Default är spelets tableModel "standard" (oval halv-ellips, rak dealerkant).
+BORD-02 är ett behållet labbalternativ via --modell bord-02.
+"""
+import math, sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _bpy_hjalp import *  # noqa: F401,F403  (bpy, bmesh, Vector, STD, ...)
+
+def _valj_modell():
+    if '--modell' not in sys.argv:
+        return 'standard'
+    i = sys.argv.index('--modell')
+    if i + 1 >= len(sys.argv):
+        raise SystemExit('--modell kräver standard eller bord-02')
+    m = sys.argv[i + 1]
+    if m not in ('standard', 'bord-02'):
+        raise SystemExit('okänd modell: ' + m)
+    return m
+
+MODELL = _valj_modell()
+if MODELL == 'bord-02':
+    if 'bord_02' not in STD:
+        raise SystemExit('standard.yaml saknar bord_02')
+    mer = dict(STD['bord'])
+    mer.update(STD['bord_02'])
+    STD['bord'] = mer
+
+ASSETS = ROOT / 'assets' / 'bord'
+TEX = ASSETS / 'texturer'
+KORT = ASSETS / 'kort'
+FZ = STD['filt_z']
+B = STD['bord']
+print('bygg_bord modell=%s typ=%s bredd=%.3f djup=%.3f' % (MODELL, B.get('typ'), B['bredd'], B['djup']))
+
+
+# ---------------------------------------------------------------- kontur (samma som bord02Outline)
+def cubic(p, steps):
+    out = []
+    for i in range(steps):
+        t = (i + 1) / steps; u = 1 - t; w = [u*u*u, 3*u*u*t, 3*u*t*t, t*t*t]
+        out.append([sum(w[j] * p[j][a] for j in range(4)) for a in (0, 1)])
+    return out
+
+
+def outline(notch=None):
+    typ = B.get('typ', 'oval_halvellis')
+    n = B['kontur_bagsteg']
+    if typ == 'oval_halvellis' or 'dealersida_bezier' not in B:
+        a, fr = B.get('halv_bredd', B['radie']), B['fram_s']
+        # t = 0 at (+a, 0) = dealerkant höger, t = pi at (-a, 0) = vänster, via spelarkanten (0, fr)
+        arc = [[a * math.cos(math.pi * i / n), fr * math.sin(math.pi * i / n)] for i in range(n + 1)]
+        if notch:
+            x0, x1, s1 = notch['x0'], notch['x1'], notch['s1']
+            # rak dealerkant från (-a, 0) till (+a, 0) med brickurtag inåt mot spelarna (+s)
+            side = [[-a, 0.0], [x0, 0.0], [x0, s1], [x1, s1], [x1, 0.0]]
+            pts = arc + side[1:]  # arc slutar redan i (-a, 0)
+        else:
+            pts = arc
+    else:
+        R, sh, fr = B['radie'], B['axel_s'], B['fram_s']
+        arc = [[R * math.cos(math.pi * i / n), sh if i == n else sh + (fr - sh) * math.sin(math.pi * i / n)] for i in range(n + 1)]
+        bz = B['dealersida_bezier']; side = []
+        for k in ('vanster_vinge', 'vanster_urtag', 'hoger_urtag', 'hoger_vinge'):
+            side += cubic(bz[k], 24)
+        side.pop()
+        if notch:
+            whole = [arc[n]] + side + [arc[0]]
+            def s_at(x):
+                for i in range(1, len(whole)):
+                    (xa, sa), (xb, sb) = whole[i-1], whole[i]
+                    if xa <= x <= xb:
+                        return sa + (sb - sa) * (x - xa) / (xb - xa) if xb > xa else sa
+                return 0
+            x0, x1, s1 = notch['x0'], notch['x1'], notch['s1']
+            side = [p for p in side if p[0] < x0 - 1e-6] + [[x0, s_at(x0)], [x0, s1], [x1, s1], [x1, s_at(x1)]] + [p for p in side if p[0] > x1 + 1e-6]
+        pts = arc + side
+    # rensa dubbletter
+    clean = []
+    for p in pts:
+        if not clean or math.dist(p, clean[-1]) > 1e-5:
+            clean.append(p)
+    if math.dist(clean[0], clean[-1]) < 1e-5:
+        clean.pop()
+    return [(x, -s) for x, s in clean], n  # -> (X, Y)
+
+
+def prism(name, pts, z0, z1, col, mat, uvscale=1.0):
+    bm = bmesh.new(); vs = [bm.verts.new((x, y, z0)) for x, y in pts]
+    f = bm.faces.new(vs)
+    if f.normal.z > 0:
+        f.normal_flip()
+    r = bmesh.ops.extrude_face_region(bm, geom=[f])
+    top = [e for e in r['geom'] if isinstance(e, bmesh.types.BMVert)]
+    bmesh.ops.translate(bm, verts=top, vec=(0, 0, z1 - z0))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    lay = bm.loops.layers.uv.verify()
+    for fc in bm.faces:  # sidor: u längs konturen ungefär via atan, topp/botten planärt
+        for l in fc.loops:
+            co = l.vert.co
+            if abs(fc.normal.z) > 0.5:
+                l[lay].uv = (co.x / uvscale, co.y / uvscale)
+            else:
+                l[lay].uv = ((co.x + co.y) / uvscale, co.z / uvscale)
+    return obj_from_bm(name, bm, col, mat)
+
+
+def felt_sheet(name, pts, z, col, mat):
+    bm = bmesh.new(); vs = [bm.verts.new((x, y, z)) for x, y in pts]
+    f = bm.faces.new(vs)
+    if f.normal.z < 0:
+        f.normal_flip()
+    bmesh.ops.triangulate(bm, faces=[f], quad_method='BEAUTY', ngon_method='BEAUTY')
+    uv_planar(bm)
+    return obj_from_bm(name, bm, col, mat)
+
+
+def band(name, pts, z0, z1, grow, col, mat):
+    """Remsa längs konturen, utflyttad `grow` meter (för mässingslinjen)."""
+    n = len(pts); bm = bmesh.new(); lo, hi = [], []
+    for i in range(n):
+        a, b, c = Vector(pts[i-1]), Vector(pts[i]), Vector(pts[(i+1) % n])
+        t = (c - a).normalized(); nrm = Vector((t.y, -t.x))  # utåt för moturs kontur
+        p = b + nrm * grow
+        lo.append(bm.verts.new((p.x, p.y, z0))); hi.append(bm.verts.new((p.x, p.y, z1)))
+    for i in range(n):
+        j = (i + 1) % n; bm.faces.new((lo[i], lo[j], hi[j], hi[i]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return obj_from_bm(name, bm, col, mat)
+
+
+def rail(col, mat):
+    rl = B['vadderad_kant']; n = B['kontur_bagsteg']
+    typ = B.get('typ', 'oval_halvellis')
+    if typ == 'oval_halvellis' or 'dealersida_bezier' not in B:
+        aa, bb = B.get('halv_bredd', B['radie']), B['fram_s']
+        def pos_nrm(t):
+            x, s = aa * math.cos(t), bb * math.sin(t)
+            # utåtriktad normal för ellips
+            l = math.hypot(bb * math.cos(t), aa * math.sin(t)) or 1
+            return x, s, (bb * math.cos(t)) / l, (aa * math.sin(t)) / l
+    else:
+        R, sh, fr = B['radie'], B['axel_s'], B['fram_s']; D = fr - sh
+        def pos_nrm(t):
+            x, s = R * math.cos(t), sh + D * math.sin(t)
+            l = math.hypot(D * math.cos(t), R * math.sin(t)) or 1
+            return x, s, (D * math.cos(t)) / l, (R * math.sin(t)) / l
+    half = rl['bredd'] / 2; P = 24
+    bm = bmesh.new(); rings = []; lay = None; along = 0.0; prev = None
+    for i in range(n + 1):
+        t = math.pi * i / n; x, s, nx, ns = pos_nrm(t)
+        cx, cs = x - nx * half, s - ns * half
+        ring = []
+        for j in range(P):
+            a = 2 * math.pi * j / P
+            r_out = half * math.cos(a); zz = FZ + rl['mitt_over_filt'] + rl['halv_hojd'] * math.sin(a)
+            ring.append(bm.verts.new((cx + nx * r_out, -(cs + ns * r_out), zz)))
+        rings.append(ring)
+    for i in range(n):
+        for j in range(P):
+            bm.faces.new((rings[i][j], rings[i][(j+1) % P], rings[i+1][(j+1) % P], rings[i+1][j]))
+    bm.faces.new(rings[0]); bm.faces.new(list(reversed(rings[-1])))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    lay = bm.loops.layers.uv.verify()
+    for f in bm.faces:
+        for lp in f.loops:
+            co = lp.vert.co; lp[lay].uv = (math.atan2(-co.y, co.x) * B.get('halv_bredd', B['radie']), (co.z - FZ) * 4)
+    ob = obj_from_bm('bord_vaddering', bm, col, mat)
+    for p in ob.data.polygons:
+        p.use_smooth = True
+    return ob
+
+
+def cylinder(name, loc, r0, r1, h, col, mat, seg=48, axis='Z'):
+    bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=True, segments=seg, radius1=r0, radius2=r1, depth=h)
+    ob = obj_from_bm(name, bm, col, mat)
+    if axis == 'Y':
+        ob.rotation_euler = (math.radians(90), 0, 0)
+    ob.location = loc
+    for p in ob.data.polygons:
+        p.use_smooth = True
+    return ob
+
+
+def box(name, size, loc, col, mat, rot_z=0.0):
+    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1.0)
+    bmesh.ops.scale(bm, vec=size, verts=bm.verts); uv_planar(bm)
+    ob = obj_from_bm(name, bm, col, mat); ob.location = loc; ob.rotation_euler = (0, 0, rot_z); return ob
+
+
+# ---------------------------------------------------------------- kort
+def card_mesh(name, cell, back_cell, cols=13, rows=5):
+    K = STD['kort']; w, l, t, rc = K['bredd'], K['langd'], K['tjocklek'], K['hornradie']
+    bm = bmesh.new()
+    vs = [bm.verts.new(v) for v in ((-w/2, -l/2, 0), (w/2, -l/2, 0), (w/2, l/2, 0), (-w/2, l/2, 0))]
+    f = bm.faces.new(vs)
+    bmesh.ops.bevel(bm, geom=vs, offset=rc, segments=4, affect='VERTICES')
+    bm.faces.ensure_lookup_table(); face = bm.faces[0]
+    r = bmesh.ops.extrude_face_region(bm, geom=[face])
+    top = [e for e in r['geom'] if isinstance(e, bmesh.types.BMVert)]
+    bmesh.ops.translate(bm, verts=top, vec=(0, 0, t))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    lay = bm.loops.layers.uv.verify()
+    def cell_uv(c, co, flip):
+        cx, cy = c % cols, c // cols
+        u = (co.x / w + 0.5); v = (co.y / l + 0.5)
+        if flip:
+            u = 1 - u
+        return ((cx + u) / cols, 1 - (cy + 1 - v) / rows)
+    for fc in bm.faces:
+        for lp in fc.loops:
+            if fc.normal.z > 0.5:
+                lp[lay].uv = cell_uv(cell, lp.vert.co, False); fc.material_index = 0
+            elif fc.normal.z < -0.5:
+                lp[lay].uv = cell_uv(back_cell, lp.vert.co, True); fc.material_index = 0
+            else:
+                lp[lay].uv = (0.0005, 0.9995); fc.material_index = 1  # kant: vit
+    me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
+    return me
+
+
+def main():
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    bpy.context.preferences.filepaths.save_version = 0  # inga .blend1-kopior
+    sc = bpy.context.scene; sc.unit_settings.system = 'METRIC'; sc.unit_settings.length_unit = 'METERS'
+    top = coll('standardbord'); c_bord = coll('bord', top); c_sko = coll('sko', top); c_bricka = coll('markerbricka', top)
+    c_mark = coll('markeringar', top); c_lek = coll('kortlek', top); c_giv = coll('exempelgiv', top)
+
+    m_felt = pbr('filt', hexcol(B['filtfarg_srgb']), rough=0.95, maps={'nor': TEX/'filt_nor_gl_2k.jpg', 'rough': TEX/'filt_rough_2k.jpg', 'diff': TEX/'filt_diff_2k.jpg'},
+                 tile=(B.get('texturer_skala_m') or {}).get('filt', [0.40, 0.40])[0], tint=(hexcol(B['filtfarg_srgb']), 1.3))
+    m_wood = pbr('tra_valnot', maps={'diff': TEX/'tra_diff_2k.jpg', 'nor': TEX/'tra_nor_gl_2k.jpg', 'rough': TEX/'tra_rough_2k.jpg'}, tile=1.8)
+    m_leather = pbr('lader_brun', maps={'diff': TEX/'lader_diff_2k.jpg', 'nor': TEX/'lader_nor_gl_2k.jpg', 'rough': TEX/'lader_rough_2k.jpg'}, tile=0.4)
+    m_brass = pbr('massing', (0.78, 0.6, 0.3, 1), rough=0.3, metal=1.0)
+    m_gold = pbr('markering_guld', hexcol(B['markeringsfarg_srgb']), rough=0.6)
+    m_shoe = pbr('sko_svart', (0.02, 0.02, 0.022, 1), rough=0.35)
+    m_acryl = pbr('kassering_akryl', (0.9, 0.95, 1.0, 1), rough=0.05)
+    m_acryl.node_tree.nodes['Principled BSDF'].inputs['Alpha'].default_value = 0.3
+    try:
+        m_acryl.surface_render_method = 'BLENDED'
+    except AttributeError:
+        m_acryl.blend_method = 'BLEND'
+    m_tray = pbr('bricka_svart', (0.015, 0.015, 0.015, 1), rough=0.5)
+    m_edge = pbr('kortkant', (0.92, 0.91, 0.88, 1), rough=0.6)
+    m_card = pbr('kort', rough=0.35)
+    nt = m_card.node_tree; ti = tex_node(nt, KORT/'kortatlas.png'); ti.interpolation = 'Cubic'
+    nt.links.new(ti.outputs[0], nt.nodes['Principled BSDF'].inputs['Base Color'])
+
+    tr = STD['markerbricka']
+    pts, narc = outline(notch=tr['urtag'])
+    felt = felt_sheet('bord_filt', pts, FZ, c_bord, m_felt)
+    sg = B['sarg']
+    prism('bord_sarg', pts, FZ + sg['underkant'], FZ + sg['underlagg'], c_bord, m_wood)
+    band('bord_massingslinje', pts, FZ + sg['massingslinje'][0], FZ + sg['massingslinje'][1], 0.0008, c_bord, m_brass)
+    rail(c_bord, m_leather)
+    lg = B['ben']; legh = FZ + sg['underkant'] - lg['platta_hojd']
+    for sx in (-1, 1):
+        cylinder(f'bord_ben_{"v" if sx < 0 else "h"}', (sx * lg['x'], -lg['s'], lg['platta_hojd'] + legh / 2), lg['radie_fot'], lg['radie_topp'], legh, c_bord, m_wood)
+        cylinder(f'bord_benplatta_{"v" if sx < 0 else "h"}', (sx * lg['x'], -lg['s'], lg['platta_hojd'] / 2), lg['platta_radie'], lg['platta_radie'], lg['platta_hojd'], c_bord, m_brass)
+
+    # ---- markerbricka: låda nedsänkt i urtaget, chips på kant i rader längs Y
+    x0, x1, s0, s1, dep = tr['x0'], tr['x1'], tr['s0'], tr['s1'], tr['djup']; wall = 0.004
+    box('bricka_botten', (x1 - x0, s1 - s0, 0.004), ((x0 + x1) / 2, -(s0 + s1) / 2, FZ - dep), c_bricka, m_tray)
+    for nm, sz, lc in (('bricka_vagg_v', (wall, s1 - s0, dep), (x0 + wall/2, -(s0+s1)/2, FZ - dep/2)),
+                       ('bricka_vagg_h', (wall, s1 - s0, dep), (x1 - wall/2, -(s0+s1)/2, FZ - dep/2)),
+                       ('bricka_vagg_fram', (x1 - x0, wall, dep), ((x0+x1)/2, -s1 + wall/2, FZ - dep/2)),
+                       ('bricka_vagg_bak', (x1 - x0, wall, dep), ((x0+x1)/2, -s0 - wall/2, FZ - dep/2))):
+        box(nm, sz, lc, c_bricka, m_tray)
+    rim = tr.get('kant_bredd', 0.007)
+    box('bricka_ram_v', (rim, s1 - s0 + rim, 0.0028), (x0 - rim/2 + 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
+    box('bricka_ram_h', (rim, s1 - s0 + rim, 0.0028), (x1 + rim/2 - 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
+    box('bricka_ram_fram', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s1 - rim/2 + 0.001, FZ + 0.0009), c_bricka, m_brass)
+    box('bricka_ram_bak', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s0 - rim/2, FZ + 0.0009), c_bricka, m_brass)
+    chipcol = {5: (0.55, 0.03, 0.03, 1), 25: (0.02, 0.32, 0.08, 1), 100: (0.02, 0.02, 0.02, 1), 500: (0.3, 0.05, 0.42, 1), 1000: (0.85, 0.55, 0.05, 1)}
+    rows = tr['rad_valorer']; pitch = (x1 - x0 - 2 * wall) / len(rows); cr, chh = tr['chip_radie'], tr['chip_hojd']
+    nchips = 20; L = nchips * chh
+    for i, v in enumerate(rows):
+        x = x0 + wall + pitch * (i + 0.5); s_end = s1 - wall - 0.002
+        m = pbr(f'chip_{v}', chipcol[v], rough=0.4)
+        cylinder(f'bricka_rad_{i+1:02d}_{v}', (x, -(s_end - L / 2), FZ - 0.002 - cr), cr, cr, L, c_bricka, m, seg=32, axis='Y')
+
+    # ---- markeringar: guldram runt varje kortplats (spelet lägger korten rakt: yaw 0)
+    K = STD['kort']; mg, lw = K['markering']['marginal'], K['markering']['linjebredd']
+    for pid, p in STD['platser'].items():
+        cx, cy = p['pos'][0], p['pos'][1]; hw, hl = K['bredd']/2 + mg, K['langd']/2 + mg
+        bm = bmesh.new()
+        outer = [(cx-hw, cy-hl), (cx+hw, cy-hl), (cx+hw, cy+hl), (cx-hw, cy+hl)]
+        inner = [(cx-hw+lw, cy-hl+lw), (cx+hw-lw, cy-hl+lw), (cx+hw-lw, cy+hl-lw), (cx-hw+lw, cy+hl-lw)]
+        vo = [bm.verts.new((x, y, FZ + 0.0002)) for x, y in outer]; vi = [bm.verts.new((x, y, FZ + 0.0002)) for x, y in inner]
+        for k in range(4):
+            bm.faces.new((vo[k], vo[(k+1) % 4], vi[(k+1) % 4], vi[k]))
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        for f in bm.faces:
+            if f.normal.z < 0:
+                f.normal_flip()
+        ob = obj_from_bm('markering_' + pid, bm, c_mark, m_gold); ob['plats'] = pid
+    if 'bet_ringar' in STD:
+        br = STD['bet_ringar']; rr, blw = br['radie'], br['linjebredd']
+        for bid, bp in br['platser'].items():
+            bx, by = bp[0], bp[1]; bm = bmesh.new(); seg = 48
+            vo = [bm.verts.new((bx + (rr + blw/2)*math.cos(2*math.pi*i/seg), by + (rr + blw/2)*math.sin(2*math.pi*i/seg), FZ + 0.0002)) for i in range(seg)]
+            vi = [bm.verts.new((bx + (rr - blw/2)*math.cos(2*math.pi*i/seg), by + (rr - blw/2)*math.sin(2*math.pi*i/seg), FZ + 0.0002)) for i in range(seg)]
+            for i in range(seg):
+                j = (i + 1) % seg
+                bm.faces.new((vo[i], vo[j], vi[j], vi[i]))
+            bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+            for fc in bm.faces:
+                if fc.normal.z < 0:
+                    fc.normal_flip()
+            ob = obj_from_bm('markering_bet_' + bid, bm, c_mark, m_gold); ob['bet'] = bid
+
+    # ---- kortlek: 52 kort + baksida (atlas 13 x 5, rad 5 = baksida)
+    suits, ranks = ['S', 'H', 'D', 'C'], ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+    back_cell = 4 * 13
+    meshes = {}
+    for j, s in enumerate(suits):
+        for i, r in enumerate(ranks):
+            me = card_mesh(f'kort_{s}{r}', j * 13 + i, back_cell); me.materials.append(m_card); me.materials.append(m_edge)
+            meshes[s + r] = me
+            ob = bpy.data.objects.new(f'kort_{s}{r}', me); c_lek.objects.link(ob)
+            ob.location = (-1.3 + i * 0.07, 1.0 + j * 0.1, 0.0005)  # på golvet bakom bordet, utanför bild
+            ob['kort'] = s + r
+    meb = card_mesh('kort_baksida', back_cell, back_cell); meb.materials.append(m_card); meb.materials.append(m_edge)
+
+    # ---- sko
+    sk = STD['sko']; front = Vector(sk['fot_fram']); yawb = math.radians(sk['yaw_bakat'])
+    ax = Vector((math.cos(yawb), math.sin(yawb), 0)); side = Vector((-ax.y, ax.x, 0))
+    lean = math.radians(sk['platta_lutning_grader']); hf, hb, ln, wd = sk['hojd_fram'], sk['hojd_bak'], sk['langd'], sk['bredd']
+    uf = hf / math.tan(lean)   # där plattans topp möter locket
+    base_h = sk['fonster_lyft']; wt = 0.004
+    def P(u, v, h):  # skons lokala: u bakåt längs axeln, v åt sidan, h upp
+        q = front + ax * u + side * v; return (q.x, q.y, q.z + h)
+    bm = bmesh.new()
+    def quad(a, b, c, d):
+        bm.faces.new([bm.verts.new(P(*a)), bm.verts.new(P(*b)), bm.verts.new(P(*c)), bm.verts.new(P(*d))])
+    prof = [(0, 0), (ln, 0), (ln, hb), (uf, hf), (0, 0)]
+    for v in (0.0, wd - wt):  # sidoväggar: v=0 är nära väggen (fot_fram), v=wd är bortre väggen (pose.far)
+        for vv in (v, v + wt):
+            bm.faces.new([bm.verts.new(P(u, vv, h)) for u, h in prof[:4]])
+    quad((0, 0, 0), (ln, 0, 0), (ln, wd, 0), (0, wd, 0))                                 # botten
+    quad((0, 0, base_h), (ln, 0, base_h), (ln, wd, base_h), (0, wd, base_h))             # golv i skon
+    quad((ln, 0, 0), (ln, wd, 0), (ln, wd, hb), (ln, 0, hb))                             # bakvägg
+    quad((uf, 0, hf), (ln, 0, hb), (ln, wd, hb), (uf, wd, hf))                           # lock
+    lip = 0.03  # plattans övre läpp ovanför fönstret (antaget)
+    ul = (hf - lip) / math.tan(lean)
+    quad((ul, 0, hf - lip), (uf, 0, hf), (uf, wd, hf), (ul, wd, hf - lip))               # plattans läpp
+    quad((0, 0, 0), (0, wd, 0), (base_h / math.tan(lean), wd, base_h), (base_h / math.tan(lean), 0, base_h))  # nos
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6); bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    shoe = obj_from_bm('sko_kropp', bm, c_sko, m_shoe)
+    sol = shoe.modifiers.new('tjocklek', 'SOLIDIFY'); sol.thickness = 0.003
+    # kort i skon: översta korten som egna objekt (dragbara), resten som en bunt
+    up = Vector(sk['fonsterkort_upp']).normalized(); ac = Vector(sk['fonsterkort_tvars']).normalized(); nrm = ac.cross(up)
+    if nrm.dot(ax) > 0:  # normalen ska peka ut ur skon (framåt), med bevarad högerhandad matris (det=+1)
+        ac = -ac; nrm = -nrm
+    rot = Matrix((ac, up, nrm)).transposed().to_4x4()
+    c0 = Vector(sk['fonsterkort_mitt']); step = ax * (K['tjocklek'] / math.sin(lean))
+    for k in range(5):
+        ob = bpy.data.objects.new(f'sko_kort_{k+1}', meb); c_sko.objects.link(ob)
+        ob.matrix_world = Matrix.Translation(c0 + step * k) @ rot @ Matrix.Rotation(math.pi, 4, 'Y')  # baksidan utåt
+        ob['dragbart'] = True
+    ndecks = K['lekar_i_skon']; ncards = ndecks * 52 - 5; depth = ncards * step.length
+    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1.0)
+    bmesh.ops.scale(bm, vec=(K['bredd'], K['langd'], 1), verts=bm.verts)
+    for v in bm.verts:  # skjuv: varje kort förskjuts horisontellt bakåt
+        k = v.co.z + 0.5; v.co.z = 0
+        v.co = rot.to_3x3() @ v.co + step.normalized() * (step.length * 5 + depth * k)
+    bunt = obj_from_bm('sko_kortbunt', bm, c_sko, m_edge); bunt.location = c0
+    bunt['kort'] = ncards
+
+    # ---- kassering
+    ks = STD['kassering']; w, d, h = ks['yttermatt']; t = ks['vaggtjocklek']; fm = Vector(ks['fot_mitt']); yk = math.radians(ks['yaw'])
+    kparts = [('botten', (w, d, t), (0, 0, t/2)), ('vagg_v', (t, d, h), (-w/2 + t/2, 0, h/2)), ('vagg_h', (t, d, h), (w/2 - t/2, 0, h/2)),
+              ('vagg_fram', (w, t, h), (0, -d/2 + t/2, h/2)), ('vagg_bak', (w, t, h), (0, d/2 - t/2, h/2))]
+    for nm, sz, off in kparts:
+        o = Vector(off); o.rotate(Matrix.Rotation(yk, 3, 'Z'))
+        box('kassering_' + nm, sz, fm + o, c_bord, m_acryl, rot_z=yk)
+
+    # ---- exempelgiv: ett kort per C1 och dealerns två (länkade kopior = instanser)
+    demo = {'P1.C1': 'HA', 'P2.C1': 'S10', 'P3.C1': 'D7', 'P4.C1': 'CK', 'P5.C1': 'H5', 'P6.C1': 'SQ', 'P7.C1': 'D9', 'D.C1': 'C8'}
+    for pid, card in demo.items():
+        p = STD['platser'][pid]; ob = bpy.data.objects.new('giv_' + pid, meshes[card]); c_giv.objects.link(ob)
+        ob.location = (p['pos'][0], p['pos'][1], FZ + 0.0002); ob['plats'] = pid
+    ob = bpy.data.objects.new('giv_D.C2', meb); c_giv.objects.link(ob)
+    p = STD['platser']['D.C2']; ob.location = (p['pos'][0], p['pos'][1], FZ + 0.0002 + K['tjocklek']); ob.rotation_euler = (0, math.pi, 0)
+
+    # ---- origo-markör och anteckning
+    em = bpy.data.objects.new('ORIGO_golv_under_dealerkant', None); top.objects.link(em); em.empty_display_type = 'ARROWS'; em.empty_display_size = 0.2
+    em['standard'] = 'scen/standard.yaml'; em['axlar'] = '+X dealerns vanster, +Y bakat (spelarna pa -Y), +Z upp, meter'
+
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    namn = 'bord_02' if MODELL == 'bord-02' else 'standardbord'
+    bpy.ops.file.make_paths_relative() if bpy.data.filepath else None
+    bpy.ops.wm.save_as_mainfile(filepath=str(ASSETS / (namn + '.blend')), relative_remap=True)
+    bpy.ops.file.make_paths_relative(); bpy.ops.wm.save_mainfile()
+    # glb: kortleken bakom bordet följer med; modifierare tillämpas
+    bpy.ops.export_scene.gltf(filepath=str(ASSETS / (namn + '.glb')), export_format='GLB', export_apply=True, export_yup=True)
+    print('BYGGT', ASSETS / namn, 'modell', MODELL)
+
+
+main()

@@ -1,0 +1,319 @@
+# STANDARD – en enda sanning för bord, platser, sko, kort, docka och kameror.
+# Skriven av scen/gen_standard.py ur spelets egen kod (casino/blackjack-dealer, som scen/las_spelet.ts läser).
+# Ändra aldrig för hand: ändra i spelet eller i gen_standard.py och kör python scen/gen_standard.py.
+# Varje värde har "# källa: fil (namn)" eller "# antaget: motivering". Spelet vinner över allt annat.
+#
+# KOORDINATER (Blender, Z upp, meter, högerhänt):
+#   origo  = golvet rakt under dealerkantens mitt (dealerEdge i dealer3d, s = 0; gäller både standardovalen och BORD-02:s urtag)
+#   +X     = dealerns vänster = bildens höger sett från spelarna/filmkameran (samma x som spelets lins-värld)
+#   +Y     = bakåt, från spelarna mot dealerns rygg (spelarna står på -Y). Blenders "Front"-vy (från -Y) ser alltså dealern framifrån
+#   +Z     = upp; filten ligger på Z = filt_z
+#   Omräkning från spelets lins-värld (three.js, y upp, filmkameran i (0, h, 0) tittar mot -z):
+#     X = x,  Y = -(z - dealerEdge.z) = -(z + 1.843773),  Z = y + filt_z
+#   Bordets egna (x, s) (samma för standardovalen och BORD-02): X = x, Y = -s.  Vinkel "yaw" = grader moturs sett ovanifrån, 0 = längs +X.
+
+enhet: m
+format_version: 1
+filt_z: 0.9500  # källa: blackjack-dealer/src/scene3d-table.ts (BASE.floor) – scenens golv ligger 0,95 m under filten (BORD-02-källans 75 cm används inte, se avvikelser)
+
+lins:  # filmkamerans lins; hela spelets värld är räknad ur den
+  focal_px: 2334  # källa: blackjack-dealer/src/table-lens.ts (TABLE_LENS)
+  pitch_rad: 0.4373194932  # källa: blackjack-dealer/src/table-lens.ts (TABLE_LENS) (= 25.057 grader nedåt)
+  hojd_over_filt: 1.1099955533  # källa: blackjack-dealer/src/table-lens.ts (TABLE_LENS)
+  bild_px: [1764, 1174]  # källa: blackjack-dealer/src/table-lens.ts (FILM)
+  dealerkant_lins_z: -1.8437725961  # källa: blackjack-dealer/dealer3d/src/world.ts dealerEdge(TABLE_LENS) – dealerkantens z i spelets lins-värld (för omräkning, se huvudet)
+  sensor_mm: 36.0  # antaget: Blender-standard, sensor_fit HORIZONTAL; brännvidden nedan räknas om så att bilden blir exakt spelets
+  brannvidd_mm: 47.6327  # härlett: focal_px / bild_bredd * sensor_mm
+
+bord_modell: standard  # källa: blackjack-dealer/src/scene3d-view.ts DEFAULTS.tableModel
+bord:  # spelets standardbord (oval halv-ellips, rak dealerkant). källa: blackjack-dealer/src/scene3d-table.ts (TABLE, REAL_TABLE) under linsen (tableUnder: bredd TABLE.a*2, djup REAL_TABLE.depth)
+  typ: oval_halvellis
+  bredd: 1.9000  # källa: blackjack-dealer/src/scene3d-table.ts (TABLE, REAL_TABLE) TABLE.a * 2
+  djup: 1.1500  # källa: blackjack-dealer/src/scene3d-table.ts (TABLE, REAL_TABLE) REAL_TABLE.depth (TABLE.b = 0,60 m är kontraktets kortare bord; under filmlinsen används 1,15 m)
+  halv_bredd: 0.95  # källa: blackjack-dealer/src/scene3d-table.ts (TABLE, REAL_TABLE) TABLE.a
+  radie: 0.95  # alias för halv_bredd (samma nyckel som QC-överlägget använder)
+  axel_s: 0.0  # rak dealerkant börjar vid s = 0 (inga vingar)
+  fram_s: 1.1500  # spelarkanten mitt fram (Y = -1.1500)
+  bak_s: 0.0  # rak dealerkant vid s = 0 (Y = 0); inga vingar bakåt
+  kontur_bagsteg: 180  # antaget: samma täthet som BORD-02-bågen
+  vadderad_kant:  # läderrulle längs spelarbågen (inte längs dealerkanten)
+    bredd: 0.1  # källa: blackjack-dealer/src/scene3d-table.ts (TABLE, REAL_TABLE) TABLE.rail (~10 cm, RAIL.centre 0,057 + 5 cm halvsektion)
+    mitt_over_filt: 0.012  # källa: blackjack-dealer/src/scene3d-table.ts CORE[1]
+    halv_hojd: 0.034  # källa: blackjack-dealer/src/scene3d-table.ts RAIL.top - CORE[1]
+    som_in: 0.0  # antaget: standardbordets sömmar är en del av rullens sektion, inte ett separat mått
+    som_hojd: 0.0
+    andradie: 0.05  # antaget: rullens ändar vid dealerkanten
+  sarg:  # valnötssarg under rullens överhäng, höjder relativt filten
+    underkant: -0.16  # källa: kommentar i scene3d-table.ts (lackad valnötssarg under rullen); BASE.under = -0.15
+    massingslinje: [-0.002, 0.005]  # källa: scene3d-table.ts BEAD (mässingslist mot filten, ~2 mm över)
+    underlagg: -0.008  # antaget: samma underläggstjocklek som BORD-02, för att filten ska ligga an
+  ben:  # två ben (x = ±x, s mot spelarna). källa: blackjack-dealer/src/scene3d-table.ts (BASE)
+    x: 0.58  # källa: BASE.legX
+    s: 0.25  # källa: BASE.legZ (s mot spelarna, Y = -0.25)
+    radie_topp: 0.07  # antaget: standardbordets ben är fotograferat trä, typisk topp
+    radie_fot: 0.09  # antaget
+    platta_radie: 0.10  # antaget: mässingsfot
+    platta_hojd: 0.015  # antaget
+  hylla_bakom_dealerkant:  # källa: scene3d-table.ts SHELF, avstängd som standard (labb 2026-11-13)
+    djup_bakat: 0.40
+    inre_x: 0.27
+    tjocklek: 0.035
+    pa_som_standard: false
+  filtfarg_srgb: "#134232"  # källa: blackjack-dealer/src/scene3d-table.ts FELTS.green[0]
+  markeringsfarg_srgb: "#d8b665"  # källa: blackjack-dealer/src/scene3d-table.ts (GOLD)
+  texturer_skala_m:
+    filt: [0.40, 0.40]  # antaget: standardfilten (V6/runway-tyger) upprepas på ca 40 cm; BORD-02:s scuba_suede var 0,285 m
+    tra: [1.8, 1.8]  # samma valnötsfaner som BORD-02 (Poly Haven)
+    lader: [0.4, 0.4]  # samma bruna läder som BORD-02
+  dockans_forenklade_bord:  # det Kortplan visar sedan 9e440db. källa: dealer3d/src/stage.ts
+    typ: halvcirkel
+    radie: 1.02  # feltens radie; bredd 2,04 m, djup 1,02 m, rak dealerkant
+    rulle_bredd: 0.12
+    golv_under_filt: 0.90  # stage.ts floor.position.y = -0.9
+
+bord_02:  # labb-/utseende-alternativ (tableModel: "bord-02"), inte spelets default. källa: blackjack-dealer/src/scene3d-bord02.ts (BORD02)
+  typ: njurformat
+  bredd: 1.9200
+  djup: 1.2960
+  radie: 0.96
+  axel_s: 0.07
+  fram_s: 1.056
+  bak_s: -0.24  # vingar bakåt till Y = +0.24
+  dealersida_bezier:
+    vanster_vinge: [[-0.96, 0.07], [-0.96, -0.24], [-0.66, -0.24], [-0.5, -0.24]]
+    vanster_urtag: [[-0.5, -0.24], [-0.31, -0.24], [-0.25, 0.0], [0.0, 0.0]]
+    hoger_urtag: [[0.0, 0.0], [0.25, 0.0], [0.31, -0.24], [0.5, -0.24]]
+    hoger_vinge: [[0.5, -0.24], [0.66, -0.24], [0.96, -0.24], [0.96, 0.07]]
+  vadderad_kant:
+    bredd: 0.062  # källa: blackjack-dealer/src/scene3d-bord02.ts (BORD02) rail.width
+    mitt_over_filt: 0.009
+    halv_hojd: 0.024
+    som_in: 0.052
+    som_hojd: 0.0275
+    andradie: 0.017
+  sarg:
+    underkant: -0.085
+    massingslinje: [-0.0800, -0.0768]
+    underlagg: -0.008
+  ben:
+    x: 0.48
+    s: 0.29
+    radie_topp: 0.101
+    radie_fot: 0.087
+    platta_radie: 0.092
+    platta_hojd: 0.015
+  filtfarg_srgb: "#215343"  # BORD02_CLOTH.colour
+  texturer_skala_m:
+    filt: [0.28522, 0.2789]
+    tra: [1.8, 1.8]
+    lader: [0.4, 0.4]
+
+kort:
+  bredd: 0.063  # källa: blackjack-dealer/src/table-lens.ts (CARD)
+  langd: 0.088  # källa: blackjack-dealer/src/table-lens.ts (CARD)
+  tjocklek: 0.0003  # källa: blackjack-dealer/src/table-lens.ts (CARD)
+  hornradie: 0.0035  # källa: blackjack-dealer/src/table-lens.ts (CARD)
+  lekar_i_skon: 8  # antaget: vanlig kasinosko 6–8 lekar; 8 x 52 x 0,3 mm = 0,125 m kortbunt
+  markering:  # kortplatsernas guldram på filten
+    marginal: 0.004  # antaget: 4 mm runt kortet så kortet syns inne i ramen
+    linjebredd: 0.003  # antaget: tunn tryckt linje
+
+platser:  # kortens mittpunkter på filten. källa: blackjack-dealer/dealer3d/src/world.ts spots(placements/default.json, TABLE_LENS). yaw_kort = 0 (spelet lägger korten rakt, placements angle 0)
+  # riktning_mot_dealer = yaw från kortet mot dealerns höft (Y = +0,38 m, för givrörelser)
+  P1.C1: {pos: [-0.5321, -0.2365, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 50.02, avstand_hoft_xy: 0.8045}
+  P1.C2: {pos: [-0.5034, -0.2246, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 51.08, avstand_hoft_xy: 0.7771}
+  P2.C1: {pos: [-0.3571, -0.2928, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 63.07, avstand_hoft_xy: 0.7547}
+  P2.C2: {pos: [-0.3253, -0.2805, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 64.85, avstand_hoft_xy: 0.7296}
+  P3.C1: {pos: [-0.1867, -0.3410, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 76.62, avstand_hoft_xy: 0.7412}
+  P3.C2: {pos: [-0.1520, -0.3283, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 79.07, avstand_hoft_xy: 0.7213}
+  P4.C1: {pos: [-0.0190, -0.3970, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 89.72, avstand_hoft_xy: 0.7770}
+  P4.C2: {pos: [0.0191, -0.3838, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 92.58, avstand_hoft_xy: 0.7646}
+  P5.C1: {pos: [0.1510, -0.3410, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 102.99, avstand_hoft_xy: 0.7400}
+  P5.C2: {pos: [0.1879, -0.3283, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 106.01, avstand_hoft_xy: 0.7368}
+  P6.C1: {pos: [0.3258, -0.2928, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 116.88, avstand_hoft_xy: 0.7543}
+  P6.C2: {pos: [0.3592, -0.2805, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 119.55, avstand_hoft_xy: 0.7592}
+  P7.C1: {pos: [0.5007, -0.2365, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 129.92, avstand_hoft_xy: 0.8039}
+  P7.C2: {pos: [0.5350, -0.2246, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 132.30, avstand_hoft_xy: 0.8176}
+  D.C1: {pos: [-0.0265, -0.1626, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 88.81, avstand_hoft_xy: 0.5427}
+  D.C2: {pos: [0.0266, -0.1576, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 94.45, avstand_hoft_xy: 0.5392}
+  D.C3: {pos: [0.1606, -0.1561, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 108.16, avstand_hoft_xy: 0.5642}
+
+bet_ringar:  # insatsringar framför C1 mot spelarna. källa: blackjack-dealer/src/scene3d-geometry.ts (BET)
+  offset_framfor_c1: 0.083  # källa: blackjack-dealer/src/scene3d-geometry.ts (BET) BET.real
+  radie: 0.027  # källa: blackjack-dealer/src/scene3d-geometry.ts (BET) BET.radius
+  linjebredd: 0.003  # antaget: samma tryckbredd som kortmarkering
+  platser:
+    P1: [-0.5321, -0.3195, 0.9500]
+    P2: [-0.3571, -0.3758, 0.9500]
+    P3: [-0.1867, -0.4240, 0.9500]
+    P4: [-0.0190, -0.4800, 0.9500]
+    P5: [0.1510, -0.4240, 0.9500]
+    P6: [0.3258, -0.3758, 0.9500]
+    P7: [0.5007, -0.3195, 0.9500]
+
+sko:  # dealerns sko på bildens högra sida (dealerns vänster); fot_fram/bak följer skons nära vägg (shoePose.front)
+  fot_fram: [0.3382, -0.1086, 0.9500]  # källa: blackjack-dealer/src/table-lens.ts shoePose(TABLE_LENS) front – nära kanten av fotens framkant (kortfönstret)
+  fot_bak: [0.7390, 0.0630, 0.9500]  # härlett: fot_fram + bakriktning * langd
+  fot_mitt: [0.5386, -0.0228, 0.9500]  # härlett
+  yaw_bakat: 23.180  # härlett ur blackjack-dealer/src/table-lens.ts shoePose(TABLE_LENS) back = [0.9193, 0.3936, 0.0000]; skon pekar med fronten mot yaw+180
+  langd: 0.436  # källa: blackjack-dealer/src/table-lens.ts (SHOE)
+  bredd: 0.082  # källa: blackjack-dealer/src/table-lens.ts (SHOE)
+  hojd_bak: 0.131  # källa: blackjack-dealer/src/table-lens.ts (SHOE)
+  hojd_fram: 0.1  # källa: blackjack-dealer/src/table-lens.ts (SHOE)
+  platta_lutning_grader: 51.60  # källa: blackjack-dealer/src/table-lens.ts (SHOE) plateLean
+  fonster_lyft: 0.022  # källa: blackjack-dealer/src/table-lens.ts (SHOE) windowLift
+  fonsterkort_mitt: [0.3625, -0.0536, 1.0071]  # källa: blackjack-dealer/src/table-lens.ts shoeCard() – översta kortets mitt i fönstret (där handen tar)
+  fonsterkort_upp: [0.5710, 0.2445, 0.7837]  # källa: blackjack-dealer/src/table-lens.ts shoeCard()
+  fonsterkort_tvars: [-0.3936, 0.9193, 0.0000]  # källa: blackjack-dealer/src/table-lens.ts shoeCard()
+  kortplanens_skopunkt: [0.3872, 0.0658, 0.9500]  # källa: placements/default.json shoe.native (u 0.733, v 0.322) på filten; en planmarkör, inte skons fot
+
+kassering:  # finns inte i spelet – speglad mot skon på dealerns höger
+  fot_mitt: [-0.6200, -0.0300, 0.9500]  # antaget: spegling av skons mitt (X -0,54) något längre ut, utanför brickans urtag (X < -0,30)
+  yaw: -23.180  # antaget: spegling av skons yaw
+  yttermatt: [0.080, 0.105, 0.140]  # antaget: akrylhållare för 8 lekar (inre 68 x 93 mm, 125 mm bunt + marginal)
+  vaggtjocklek: 0.004  # antaget: 4 mm akryl
+
+markerbricka:  # nedsänkt i filten vid dealerkanten, chipsens toppar i nivå med filten
+  x0: -0.3  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY)
+  x1: 0.24  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY)
+  s0: 0  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY) (Y = -s)
+  s1: 0.1  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY)
+  djup: 0.03  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY)
+  kant_bredd: 0.007  # källa: blackjack-dealer/src/game3d-tray.ts (rim = 0.007 m mässingslist i filtnivå)
+  ror: 12  # källa: blackjack-dealer/src/game3d-tray.ts (TRAY_ROWS har 12 rader; TRAY.tubes = 11 i scene3d-props)
+  urtag: {x0: -0.3, x1: 0.24, s1: 0.1}  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY) – exakt brickans ytterkant (mässingsram täcker skarven)
+  chip_radie: 0.0195  # källa: blackjack-dealer/src/game3d-chips.ts (CHIP_RADIUS, CHIP_HEIGHT)
+  chip_hojd: 0.003145  # källa: blackjack-dealer/src/game3d-chips.ts (CHIP_RADIUS, CHIP_HEIGHT)
+  fyllnad_start: 20  # källa: blackjack-dealer/src/game3d-tray.ts TRAY_FILL.start
+  rad_valorer: [5, 5, 25, 25, 100, 100, 500, 1000, 500, 100, 25, 5]  # källa: blackjack-dealer/src/game3d-tray.ts
+
+docka:  # standarddockan bakom dealerkanten. Arm/höjd ur doll.ts STANDARD, men X/Y flyttad till PAOW behindEdge=0,38 m för BORD-02
+  over_arm: 0.29  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD)
+  underarm: 0.26  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD)
+  rackvidd: 0.535  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD) (axel -> handled, något under över_arm+underarm)
+  hoft_under_filt: 0.2  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD) (hög kasinopall, sits 0,66 m)
+  mest_lutning_rad: 0.6  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD)
+  mest_vridning_rad: 0.6  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD)
+  axlar_bakom_kant: 0.38  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW) (0,38 m fri från BORD-02 vingar vid 0,24 m; gamla ASSUMED var 0,18 m)
+  hoft: [-0.0152, 0.3800, 0.7500]  # härlett: X,Z ur blackjack-dealer/dealer3d/src/doll.ts dollFrame(TABLE_LENS, STANDARD), Y = +0,38 m ur blackjack-dealer/dealer3d/src/doll.ts (PAOW)
+  axel_hoger: [-0.1743, 0.3800, 1.2989]  # härlett (flyttad +0,20 m i Y med höften)
+  axel_vanster: [0.1438, 0.3800, 1.2989]  # härlett
+  nacke: [-0.0152, 0.3800, 1.3289]  # härlett
+  huvud_mitt: [-0.0080, 0.3800, 1.4919]  # härlett
+  huvud_radie: 0.1269  # källa: blackjack-dealer/dealer3d/src/doll.ts dollFrame(TABLE_LENS, STANDARD)
+  vilohand_handled: [-0.1671, 0.0540, 0.9720]  # källa: blackjack-dealer/dealer3d/src/body.ts restingHand(TABLE_LENS)
+  vilohand_framat: [0.5319, -0.8468, 0.0000]  # källa: blackjack-dealer/dealer3d/src/body.ts restingHand(TABLE_LENS)
+  # Ben och stol finns inte i spelet (stolen syns aldrig i filmen):
+  larbenslangd: 0.386  # källa: assets/docka/standarddocka.blend (MPFB, LeftUpLeg-längd efter passning) – spelet har inga ben
+  underbenslangd: 0.399  # källa: assets/docka/standarddocka.blend (MPFB, LeftLeg-längd)
+  fotledshojd: 0.07  # antaget
+  langd_staende: 1.70  # antaget: stämmer med axlarnas 1,30 m och huvudets 1,49 m över golvet sittande
+  benamning:  # exportnamn som dealer3d kräver; källa: blackjack-dealer/dealer3d/src/figure-model.ts
+    kravs: ["RightArm", "LeftArm", "RightForeArm", "LeftForeArm", "RightHand", "LeftHand", "RightUpLeg", "LeftUpLeg", "RightLeg", "LeftLeg", "RightFoot", "LeftFoot", "neck", "Head", "headfront"]
+    prefix: ""  # inga mixamorig:-prefix
+
+docka_paow:  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW) (uppmätt ur film med SAM 3D Body)
+  over_arm: 0.293  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
+  underarm: 0.275  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
+  rackvidd: 0.552  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
+  hoft_under_filt: 0.278  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
+  axlar_bakom_kant: 0.38  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
+  hoft: [-0.0159, 0.3800, 0.6720]  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
+  axel_hoger: [-0.1989, 0.3800, 1.1796]  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
+  axel_vanster: [0.1672, 0.3800, 1.1796]  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
+
+stol:  # dealerns stol – syns inte i filmen
+  sits_z: 0.6600  # antaget: höftleden ligger ca 9 cm över sitsen (sittbensknölar + mjukdel)
+  sits_mitt: [-0.0152, 0.4600]  # antaget: höftleden över sitsens främre del, sitsdjup 0,40
+  sits_bredd: 0.42  # antaget: barstol
+  sits_djup: 0.40  # antaget
+  ryggstod_hojd_over_sits: 0.35  # antaget
+  fotstod_z: 0.22  # antaget: barstolens fotring; dockan når golvet med fötterna i sitt_vila
+
+spelarplatser:  # var spelare N sitter: på linjen från dealerns höft genom C1/C2-mitten, 0,30 m utanför bordskanten
+  # antaget: spelet har inga spelarkroppar; linjen och 0,30 m (stolsmitt bakom vadderingen) är våra
+  1: {kant: [-0.8147, -0.5915], stol: [-1.0054, -0.8231], yaw_mot_dealer: 50.54}
+  2: {kant: [-0.6247, -0.8664], stol: [-0.7564, -1.1360], yaw_mot_dealer: 63.94}
+  3: {kant: [-0.3298, -1.0785], stol: [-0.3930, -1.3717], yaw_mot_dealer: 77.83}
+  4: {kant: [0.0152, -1.1499], stol: [0.0212, -1.4498], yaw_mot_dealer: 91.14}
+  5: {kant: [0.3583, -1.0651], stol: [0.4334, -1.3555], yaw_mot_dealer: 104.49}
+  6: {kant: [0.6430, -0.8466], stol: [0.7848, -1.1109], yaw_mot_dealer: 118.22}
+  7: {kant: [0.8213, -0.5781], stol: [1.0186, -0.8041], yaw_mot_dealer: 131.12}
+
+kameror:  # alla perspektivkameror: sensor 36 mm horisontellt, upplösning 1764 x 1174 om inget annat sägs; mål = där optiska axeln möter filten
+  film:
+    typ: perspektiv
+    pos: [0.0000, -1.8438, 2.0600]
+    mal: [0.0000, 0.5305, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/src/table-lens.ts (TABLE_LENS) filmEye – exakt spelets filmkamera = spelare 4 (ersätter halvbild)"
+  spelare_1:
+    typ: perspektiv
+    pos: [-1.8160, -0.9035, 2.0600]
+    mal: [0.3051, 0.1633, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 1 "
+  spelare_2:
+    typ: perspektiv
+    pos: [-1.4179, -1.2767, 2.0600]
+    mal: [0.3439, 0.3148, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 2 "
+  spelare_3:
+    typ: perspektiv
+    pos: [-0.8031, -1.6501, 2.0600]
+    mal: [0.2364, 0.4845, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 3 "
+  spelare_4:
+    typ: perspektiv
+    pos: [0.0000, -1.8438, 2.0600]
+    mal: [0.0000, 0.5305, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 4 "
+  spelare_5:
+    typ: perspektiv
+    pos: [0.8164, -1.6259, 2.0600]
+    mal: [-0.2477, 0.4966, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 5  – ersätter giv-seat-5"
+  spelare_6:
+    typ: perspektiv
+    pos: [1.4587, -1.1927, 2.0600]
+    mal: [-0.3809, 0.3083, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 6 "
+  spelare_7:
+    typ: perspektiv
+    pos: [1.8441, -0.7736, 2.0600]
+    mal: [-0.3487, 0.1367, 0.9500]
+    brannvidd_mm: 47.6327
+    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 7 "
+  dealer_ogon:
+    typ: perspektiv
+    pos: [-0.0080, 0.2900, 1.5219]
+    mal: [0.0000, -0.3000, 0.9500]
+    brannvidd_mm: 24.0000
+    kalla: "antaget: dealerns ögon 9 cm framför huvudets mitt, 3 cm upp; tittar på P4-området; 24 mm vidvinkel"
+  hander:
+    typ: perspektiv
+    pos: [0.0000, -1.0500, 1.3500]
+    mal: [0.1200, -0.1000, 0.9700]
+    brannvidd_mm: 85.0000
+    kalla: "antaget: närbild händer/sko/kort från spelarsidan"
+  hel:
+    typ: perspektiv
+    pos: [1.7000, -2.5000, 1.7000]
+    mal: [0.0000, 0.1500, 0.8500]
+    brannvidd_mm: 35.0000
+    kalla: "antaget: docka, stol och bord för QC"
+  topp:
+    typ: ortografisk
+    pos: [0.0000, -0.4000, 4.0000]
+    mal: [0.0000, -0.4000, 0.9500]
+    ortho_skala: 2.3
+    kalla: "antaget: ortografisk QC rakt uppifrån, täcker 2,3 m"
+
+rackviddstest:  # punkter dockans händer ska nå (handled ovanför punkten)
+  mal: ["sko.fonsterkort_mitt", "platser.D.C1", "platser.P1.C1", "platser.P7.C1"]
+  handled_over_kort: 0.02  # källa: blackjack-dealer/dealer3d/src/world.ts (ASSUMED) knuckleLift

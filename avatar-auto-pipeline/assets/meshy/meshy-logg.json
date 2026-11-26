@@ -1,0 +1,39 @@
+[
+ {
+  "anrop": "GET balance",
+  "saldo": 596,
+  "tid": "2026-11-25 19:35:30"
+ },
+ {
+  "anrop": "POST text-to-3d preview",
+  "task": "01a213fd-c334-71bd-93f2-fbcb2166bf4f",
+  "modell": "meshy-7.1",
+  "pris_enligt_docs": 20,
+  "prompt": "casino blackjack dealer chair, tall bar-height stool with padded dark brown leather seat and low backrest, black metal frame, four legs, round chrome footrest ring, realistic, clean, no text",
+  "tid": "2026-11-25 19:35:32"
+ },
+ {
+  "anrop": "preview klar",
+  "task": "01a213fd-c334-71bd-93f2-fbcb2166bf4f",
+  "status": "SUCCEEDED",
+  "tid": "2026-11-25 19:36:34"
+ },
+ {
+  "anrop": "POST text-to-3d refine",
+  "task": "01a213fe-be63-7336-b4fd-0097f771171a",
+  "pris_enligt_docs": 10,
+  "tid": "2026-11-25 19:36:34"
+ },
+ {
+  "anrop": "refine klar",
+  "task": "01a213fe-be63-7336-b4fd-0097f771171a",
+  "status": "SUCCEEDED",
+  "tid": "2026-11-25 19:37:36"
+ },
+ {
+  "anrop": "GET balance",
+  "saldo": 566,
+  "forbrukat": 30,
+  "tid": "2026-11-25 19:37:37"
+ }
+]

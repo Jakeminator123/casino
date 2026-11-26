@@ -13,3 +13,7 @@ _*.txt
 *.usdz
 *.stl
 *.3mf
+
+# Kontrollbilder och inspektionsdumpar som scen/qc_render.py och verktyg/inspektera.py skriver: maskinskrivna och
+# gjorda om med ett kommando (README-SV.md, Kontroll).
+qc/

@@ -10,7 +10,7 @@ slutsatsen först, och förklara val i vanliga ord.
 | Mapp | Vad det är | Börja med |
 | --- | --- | --- |
 | `blackjack-dealer/` | En filmad dealer till blackjackspelet: studion i webbläsaren, 3D-dockan och spelmotorn. Började om här 2026-11-25; historiken före dess ligger i arkivet `Jakeminator123/dealer`. | `blackjack-dealer/AGENTS.md`, sedan `STATUS.md` |
-| `avatar-auto-pipeline/` | Från foton till en riggad 3D-dealer (gpt-image-2, Meshy, Blender), med egen Python-miljö (`.venv`). Foton i `input/`, resultat i `output/`, nycklar i `.env` och den portabla Blendern i `tools/`: inget av det går in i Git. | `avatar-auto-pipeline/AGENTS.md` |
+| `avatar-auto-pipeline/` | Standarddockan i Blender (en kvinna och en man med samma skelett, vid spelets bord med spelets kamera och mått), och vägen från foton till en riggad 3D-dealer (gpt-image-2, Meshy, Blender); egen Python-miljö (`.venv`). Foton i `input/`, resultat i `output/`, det som byggs i `assets/` och `qc/`, nycklar i `.env` och den portabla Blendern i `tools/`: inget av det går in i Git. | `avatar-auto-pipeline/AGENTS.md`, sedan `README-SV.md` |
 
 Kommer ett projekt till eller tas ett bort ändras tabellen i samma steg. Läs projektets `AGENTS.md` innan du arbetar i
 det, även om ditt verktyg inte laddar den själv. Ett återkommande arbetsmoment har en skill i

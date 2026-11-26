@@ -37,6 +37,29 @@ def add_paths(root=None) -> Path:
     return root
 
 
+BYGGRAPPORTER = "Byggrapporter från scen/bygg_docka.py, bygg_stol.py och verktyg/qc_kort_matt.py: mått på det som byggdes."
+
+
+def slask(uppgift: str, vad: str, root=None) -> Path:
+    """Arbetsmappen för en uppgift: <casino>/slask/avatar-auto-pipeline/<uppgift>/ (casino/AGENTS.md, Slasken).
+
+    Skapar mappen och dess lapp (lapp.json, som `node slask/slask.ts` läser) när de saknas. Det som ligger där är
+    tillfälligt: sjudygnsregeln tar det, och verktyget som skrev det gör om det.
+    """
+    import json
+    from datetime import datetime, timezone
+
+    root = Path(root) if root is not None else project_root()
+    mapp = root.parent / "slask" / root.name / uppgift
+    mapp.mkdir(parents=True, exist_ok=True)
+    lapp = mapp / "lapp.json"
+    if not lapp.exists():
+        nu = datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+        text = json.dumps({"what": vad, "owner": f"{root.name} (verktygen)", "at": nu}, indent=1, ensure_ascii=False)
+        lapp.write_text(text + "\n", encoding="utf-8")
+    return mapp
+
+
 def env_candidates(root=None) -> list[Path]:
     root = Path(root) if root is not None else project_root()
     return [
