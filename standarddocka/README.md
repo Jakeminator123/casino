@@ -97,6 +97,11 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   kanten i varje ruta; givarna till plats 1, 2, 6 och 7 är inte granskade med ögat ruta för ruta, och i given till
   plats 7 går armen tätt över eller genom skon. Från plats 1 och 7 syns att scenen saknar rum bakom bordet (bara golv).
 - Tre första klipp ligger i `klipp/`: vilan till skon (A1 → A2.3, 3,0 s) från plats 4, 1 och 7.
+- Två brister en utomstående granskare fann i editorn 2026-11-26, som stämmer och inte är rättade: armarna mäts mot
+  bordskanten en gång, på grundrörelsen, så efter Jakobs egna ändringar kan en underarm gå genom kanten utan att det
+  märks, och den sparade rörelsens text säger ändå att armarna har 1 cm luft; och blickens mål i vilan följer den
+  kamera som är vald när han sparar (spelets eller den lägre), så den sparade rörelsen beror på det. Båda rättas innan
+  en ändrad rörelse filmas för betalning; grundrörelserna, som provet använder, berörs inte.
 - Känt i editorn: i vilan står armbågarna utvinklade, eftersom rörelserna är gjorda för Paows kropp och ett bord vars
   kant låg 15 cm längre bort (en egen vila för det närmare bordet behövs); bålen lutar som Paows, 16 cm i given;
   huvudet vrids högst 40 grader, så blicken ser lite låg ut; skons främsta kort visar sin vita framsida när kortet
@@ -110,14 +115,28 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 
 1. Vyn: Jakob dömer arbetsvyn (bordets kant och bricka, vilan, kamerans vinkel), och den rättas tills han är nöjd.
 2. Jakob dömer den första följden i editorn. En egen vila för det närmare bordet, så att armbågarna inte står ut.
-3. Ett fristående prov av metoden "3D-rendering görs om till film" (Jakob 2026-11-26): den nakna dockan gör A1 →
-   A2.3 på 2–3 sekunder, filmad ur editorn genom spelets kamera och platsernas kameror, och klippen görs om till en
-   riktig person av en filmmodell med en bild av utseendet. Klippen finns (`klipp/`, plats 4, 1 och 7; rörelsen är
-   3,0 s och kan behöva kortas). Jakob gjorde samma sak för hand i Runways app (Aleph 2) 2026-11-24 och det gick
-   "skitbra"; förslaget är en körning per kamera med samma bild av utseendet, och en med tre vinklar bredvid varandra i
-   samma film. Han laddar upp i appen själv (`../blackjack-dealer/tools/runway-api.ts` kan bara bild till film):
-   agenten lägger klippen, bilden och texten färdiga. Betalda körningar bara på Jakobs ord.
-4. Rörelserna en i taget, tills var och en är riktigt bra, och sättet att föra över dem till en annan kropp.
+3. Provet "dockans film görs om till en person" (Jakob 2026-11-26), med en provperson: en man, vars tre bilder
+   (porträtt, helfigur, halvfigur) ligger hos Jakob utanför repot och aldrig går in i Git. Dockan är förlagan för
+   rörelsen och bilderna för utseendet; personen behöver aldrig bli en 3D-modell för det här. Modellerna, fälten och
+   priserna står i skillen `runway` (`../.claude/skills/runway/SKILL.md`). Jakob gjorde samma sak för hand i Runways
+   app (Aleph 2) 2026-11-24 och det gick "skitbra". Förslaget, som väntar på hans ord (inget betalas utan det), är fyra
+   steg, där nästa tas först när han har dömt det förra:
+   1. Ankare: rutan i vilan (A1) och rutan vid skon (A2.3) ur dockans film från plats 4, omgjorda till personen med
+      en bildmodell och hans bilder. Han dömer om det är personen och om händerna ligger rätt.
+   2. Aleph 2: klippen A1 → A2.3 (3,0 s) och A2.3 → plats 4 → A2.3 (4,0 s) var för sig, med ankarna som styrbilder
+      först och sist. Visar utseendet, kortgreppet och om två klipp möts utan skarv i samma ankare.
+   3. Samma två klipp med Kling 4 (första och sista bild, dockans film som referensfilm, det sätt Paows givar är
+      gjorda med), och det andra klippet med Gemini Omni 1.2 som billig jämförelse.
+   4. Vinnaren från plats 1 och 7, med egna ankare för de kamerorna.
+
+   En tagning per sätt (hans regel i `bestalla-film`). Skattat ur prislistan 2026-11-26: cirka 800 krediter för allt
+   (ankarna 100–250, Aleph 195, jämförelsen 205, plats 1 och 7 cirka 220). Anropen läggs som prov genom
+   `../blackjack-dealer/tools/runway-api.ts place`, som bokför dem. Tre kameror bredvid varandra i en och samma film
+   är ett senare försök: inget belägger att det ger samma ansikte i alla tre. Hela målet, 40 rörelser från 7 kameror à
+   4 s, är med Alephs pris cirka 31 000 krediter per omgång och dealer; därför görs plats 4 färdig först.
+4. Rörelserna en i taget, tills var och en är riktigt bra, och sättet att föra över dem till en annan kropp. Den
+   första hela följden ska sluta i vilan: i dag slutar den vid skon (A2.3), och en återgång från kortplatsen direkt
+   till A1 (Jakob 2026-11-23: sista given går direkt till A1) finns inte som dockrörelse.
 5. Kvinnan, på samma skelett och med samma rörelser.
 6. Ordningen i mapparna (Jakob 2026-11-26): det som bygger standarden (måttfilen, bordet, dockorna, stolen och
    deras byggskript i `../avatar-auto-pipeline/scen/`, `verktyg/`, `rorelser/` och `assets/`) flyttar hit, så att

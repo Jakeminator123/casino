@@ -56,6 +56,9 @@ Signerade adresser läggs i en skriptfil i slasken, aldrig i `node -e`, `data/` 
 
 ## Modellerna
 
+Vad Runway har i dag (alla modeller, fält, gränser och listpriser, och var det färska står): skillen `runway`. Här står
+det vi beställer med och vad proven har visat.
+
 | Modell | Till | Kostar (krediter) |
 | --- | --- | --- |
 | Kling 4 (`kling-4`) | givar med dockans film som referens, returer, helfigur (16:9, två delar), redigering från en annan stol | cirka 21 per s i 1080p; referensfilm 11,28 per s till 2026-11-30, sedan 14,1 |

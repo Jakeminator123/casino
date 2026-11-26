@@ -12,7 +12,8 @@ väntar på Jakob).
 
 Allt annat slås upp när arbetet kräver det: [`README.md`](README.md) (mapparna, körningen, registren),
 [`docs/SYSTEM.md`](docs/SYSTEM.md) (kontrakten) och en skill i `../.claude/skills/<namn>/SKILL.md` för ett arbetsmoment:
-`ny-dealer`, `bestalla-film`, `granska-film`, `visa-for-jakob`, `avsluta-arbete`, `publicera-kopian`. Läs den som gäller
+`ny-dealer`, `bestalla-film`, `granska-film`, `visa-for-jakob`, `avsluta-arbete`, `publicera-kopian`, och `runway` (vad
+Runway har i dag; gäller alla projekt). Läs den som gäller
 innan du börjar, med sökvägen om verktyget inte laddar den själv. Inga tak för dokumentens längd och inga tester av
 deras form (Jakob 2026-11-25).
 
