@@ -52,8 +52,12 @@ function back(): T.Texture {
   return t;
 }
 
-export function byggKort(scene: T.Scene, dealer: Sits): Kort {
-  const bone = (name: string) => { const b = dealer.holder.getObjectByName(name); if (!b) throw Error(`Figuren saknar leden ${name}.`); return b; };
+/**
+ * `led` översätter paketets lednamn till figurens, för en figur med ett annat skelett (en docka ur avatar-pipelinen,
+ * docka.ts); utan den är figuren paketets egen.
+ */
+export function byggKort(scene: T.Scene, dealer: Sits, led: (paketets: string) => string | null = name => name): Kort {
+  const bone = (name: string) => { const b = dealer.holder.getObjectByName(led(name) ?? name); if (!b) throw Error(`Figuren saknar leden ${led(name) ?? name}.`); return b; };
   const hand = (side: 'r' | 'l') => ({wrist: bone(`hand_${side}`), index: [bone(`index_01_${side}`), bone(`index_02_${side}`), bone(`index_03_${side}`)], pinky: bone(`pinky_01_${side}`), mirror: side === 'l' ? -1 : 1});
   const right = hand('r'), left = hand('l');
   const at = (b: T.Object3D) => b.getWorldPosition(new T.Vector3());

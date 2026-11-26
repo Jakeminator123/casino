@@ -73,7 +73,7 @@ try {
     let state = '';
     for (let i = 0; i < 120; i++) {
       await sleep(250);
-      state = String(await evaluate(`(() => { const l = document.getElementById('laddar')?.textContent ?? 'x', s = document.getElementById('sek')?.textContent ?? '', bord = ${JSON.stringify(query)}.includes('vy=bord'); return (bord ? document.body.classList.contains('bord') && !/bordet|Bygger/.test(l) : true) && (s.includes('/') || !${JSON.stringify(query)}.includes('rorelse=') && !bord) ? 'klar ' + l : 'väntar ' + l; })()`) ?? '');
+      state = String(await evaluate(`(() => { const l = document.getElementById('laddar')?.textContent ?? 'x', s = document.getElementById('sek')?.textContent ?? '', bord = ${JSON.stringify(query)}.includes('vy=bord'); return (bord ? document.body.classList.contains('bord') && !/bordet|Bygger|Läser/.test(l) : true) && (s.includes('/') || !${JSON.stringify(query)}.includes('rorelse=') && !bord) ? 'klar ' + l : 'väntar ' + l; })()`) ?? '');
       if (state.startsWith('klar')) break;
     }
     await sleep(1500); // kameran flyger fram och skuggorna ritas

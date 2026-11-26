@@ -236,7 +236,7 @@ let saved: Record<string, Cut[]> = {};
 const figureKind = (kind => kind === 'man' || kind === 'kvinna' ? kind : null)(new URLSearchParams(location.search).get('figur'));
 let doll: Docka | null = null;
 const dollClips = new Map<string, THREE.AnimationClip>();
-/** Leken och korten i dealerns händer (kort.ts). De följer paketets egna led, så de finns bara med paketets figur. */
+/** Korten i dealerns händer (kort.ts): de följer figurens led, paketets egna eller dockans. */
 let cards: Kort | null = null;
 /** Bordet, när det har byggts, dess klocka (alla vid bordet följer den) och kameran. */
 let table: Bord | null = null, building: Promise<Bord> | null = null, tableTime = 0, tableView: Vy = 'runt';
@@ -388,9 +388,11 @@ async function setMode(to: typeof mode) {
   building ??= (async () => {
     say('bord', 'Bygger bordet …');
     const {byggBord} = await import('./bord.ts');
-    if (figureKind) { say('bord', 'Läser dockan …'); doll = await (await import('./docka.ts')).laddaDocka(figureKind, {figur: template}); }
+    const dolls = figureKind ? await import('./docka.ts') : null;
+    if (dolls && figureKind) { say('bord', 'Läser dockan …'); doll = await dolls.laddaDocka(figureKind, {figur: template}); }
     const made = await byggBord(renderer, () => doll ? doll.figur() : clone(template), SCALE, text => say('bord', text));
-    if (!doll) { cards = (await import('./kort.ts')).byggKort(made.scene, made.sitsar[0]); cards.visa(cardBox.checked); }
+    // Korten följer dealerns led: paketets egna, eller dockans motsvarande.
+    cards = (await import('./kort.ts')).byggKort(made.scene, made.sitsar[0], dolls?.dockansLed); cards.visa(cardBox.checked);
     made.klart.then(text => say('bord', text));
     return made;
   })();

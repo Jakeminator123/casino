@@ -91,6 +91,23 @@ Det här är mätt ur rörelserna och syns i bordsvyn:
 - Kort läggs också i `To_Players_01` och `_02` (ur leken i vänster hand), `Reveal_Cards_01` och `_FromMachine_01`
   (floppen och två kort till) och `RevealHouseCard_01` och `_02` (husets kort vänds); tiderna står som bitar i listan.
 
+## Dockan i paketets rörelser (prov)
+
+Väljaren "Figur" i bordsvyn (eller `?figur=man|kvinna`) byter paketets katt mot standarddockans man eller kvinna, som
+då spelar alla 66 rörelserna vid bordet, som dealer och som spelare (`visa/docka.ts`). De har samma skelett som varje
+dealer avatar-pipelinen bygger, så det som går över till dem går över till en dealer från foton.
+
+- Rörelsen räknas om i webbläsaren när den läses och sparas inte: varje led hos dockan vrids lika mycket i rummet från
+  sin vila som paketets led gör från sin, efter att armarnas, benens och fingrarnas riktningar och handens läge i vilan
+  har rättats mot paketets. Dockan byggs inte om.
+- Dockan skalas så att bål och arm är lika långa som paketets (mannen 0,97, kvinnan 1,03) och ställs med axlarna där
+  figurens är (med höften där sjönk händerna 3 cm ner i filten).
+- Mätt över alla 66 (`verktyg/mat-docka.ts`): handlederna hamnar 3 cm från figurens (kvinnan 2,4), nästan allt i
+  sidled, eftersom dockans axlar är 4–5 cm bredare. Händerna ligger på filten och når kortplatsen. Fingrarna kröks och
+  spretar som figurens, men ingen hand styrs: när kortet byter hand är händerna 5–7 cm längre isär än kattens.
+- Korten följer dockans händer som kattens. Sett i bild: blackjackgiven, blandningen, två spelarrörelser och kvinnan i
+  en ruta; bara stillbilder, ingen rörelse sedd i fart.
+
 ## Från figur till person (prov)
 
 Jakobs idé 2026-11-26: skicka figurens rörelse som film till en filmmodell hos Runway tillsammans med en bild av en
@@ -104,20 +121,21 @@ läggs med `node tools/runway-api.ts place` från `../blackjack-dealer/`, och ba
 ## Vägen
 
 Riktningen (Jakob 2026-11-26, `AGENTS.md`): bygga utifrån paketets rörelser och lyfta in det som behövs hit. Varje steg
-slutar i något han ser i visaren, och nästa börjar inte förrän han har sagt sitt om det. Inget steg är gjort än.
+slutar i något han ser i visaren, och nästa börjar inte förrän han har sagt sitt om det. Steg 1 är prövat i visaren
+(2026-11-26, avsnittet "Dockan i paketets rörelser") och väntar på hans ord; de andra är inte gjorda.
 
 Han vill ha två spår (2026-11-26): här arbetas katterna vid bordet vidare (kort, bord och det andra på plats), och
 rörelserna förs över till dockorna av den som äger dem, med `OVERLAMNING.md` som underlag.
 
-1. **En människa i stället för katten.** Standarddockans man får paketets skelett och sitter vid bordet i spelets vy
-   och gör en utklippt giv (giv 3, till plats 4). Det visar om en inspelad giv ser bättre ut på vår docka än den
-   ritade, och hur fingrarna håller. Lånas: dockans kropp ur `../avatar-auto-pipeline/`.
+1. **En människa i stället för katten.** Standarddockans man sitter vid bordet i spelets vy och gör paketets giv, med
+   rörelsen omräknad till dockans skelett. Det visar om en inspelad giv ser bättre ut på vår docka än den ritade, och
+   hur fingrarna håller. Lånas: dockans kropp ur `../avatar-auto-pipeline/`.
 2. **Given som spelet behöver den.** Paketets giv går ur skon som spelets, men tar tre sekunder och når fem platser;
    spelets ska gå till var och en av de sju platserna, högst en sekund ut och 0,6 tillbaka, och börja och sluta i vilan
    (A1) eller vid skon (A2.3). Den byggs av utklippta bitar som snabbas upp och styrs till platsen. Det här steget
    avgör om vägen håller.
-3. **En ny dealer på samma skelett.** Avatar-pipelinen bygger nästa dealer på paketets skelett, så att hon kan alla
-   rörelser utan att något görs om. Då lyfts pipelinen in.
+3. **En dealer från foton.** En dealer som avatar-pipelinen bygger har standarddockans skelett och kan därför spela
+   samma omräknade rörelser; det prövas på den första som byggs. Då lyfts det som behövs ur pipelinen in.
 4. **Studion och filmerna.** Dockans film blir film av en person, och klippen läggs i spelets träd. Då lyfts det som
    behövs ur `../blackjack-dealer/` in.
 
@@ -154,8 +172,10 @@ Håller inte steg 1 eller 2 för hans domar är paketet ändå en förebild att 
 | `visa/index.html`, `visa/visa.ts` | Visarens sida (three.js): listan, de två lägena, reglaget och bitarna |
 | `visa/bord.ts` | Bordsvyn: figurerna på sina platser vid spelets bord, pallarna, kamerorna och bordets höjd |
 | `visa/paketbord.ts` | De egna borden för paketets figurer: formen, platserna, kortplatserna, brickan och skon |
+| `visa/docka.ts` | Standarddockans man eller kvinna i stället för paketets figur: läser dockan och räknar om en rörelse från paketets skelett till dockans |
 | `visa/kort.ts` | Korten i blackjackdealerns giv: när kortet dras ur skon, byter hand och släpps räknas ur rörelsen, och kortet följer händerna |
 | `verktyg/mat.ts` | Mäter en rörelse utan webbläsare: `node kortspelspaket/verktyg/mat.ts <AS_namn>` ger föreslagna bitar, händernas hållpunkter med grepp och en tidslinje; `--alla` alla 66 med en rad per bit; `--sparade` mäter bitarna i `sekvenser.json`; `--bilder <mapp>` ritar varje bit som streckgubbar, utan grafikkort och lås |
+| `verktyg/mat-docka.ts` | Mäter dockan i paketets rörelser utan webbläsare (visaren ska vara igång): var varje led hamnar mot figurens, för en rörelse, en tid (`--t`) eller alla 66 (`--alla`) |
 | `verktyg/titta.ts` | Tar bilder av visaren utan fönster, för en agent som ska se vad en ändring gjorde: `node kortspelspaket/verktyg/titta.ts slask/kortspelspaket/<uppgift> topp=vy=bord,kamera=topp,t=12.7` (visaren ska vara igång; sidans fel skrivs ut). Med `--film --fran <s> --till <s>` blir det en film (MP4) av rörelsen mellan de tiderna, utan listan och knapparna; `--bredd` och `--hojd` ger måtten |
 | `sekvenser.json` | De utklippta bitarna: per rörelse ett namn och två tider i sekunder |
 | `OVERLAMNING.md` | Underlaget för den agent som för över paketets rörelser till standarddockan: hur en rörelse läses, leden mot dockans, givens tal och det som skiljer mot Jakobs domar |
@@ -167,7 +187,7 @@ de byggda modellerna av bordet och pallen (`../avatar-auto-pipeline/assets/`, so
 inte är byggda säger sidan det och visar figurerna utan bord).
 
 Adressen kan välja vad som visas, för den som vill peka på en viss bild:
-`?vy=bord&kamera=spel|runt|sida|topp&bordslag=spel|paket|stort&spelare=7|3|nej&kort=nej&bord=<cm>&rorelse=<AS_namn>&t=<sekunder>`
+`?vy=bord&kamera=spel|runt|sida|topp&bordslag=spel|paket|stort&figur=man|kvinna&spelare=7|3|nej&kort=nej&bord=<cm>&rorelse=<AS_namn>&t=<sekunder>`
 (med `t` står rörelsen stilla där; `bord` är reglagets värde, minus är ner), `&kam=x_y_z_x_y_z_vinkel` ställer en
 egen kamera för en närbild (läget, punkten den ser mot och bildvinkeln), och `&ren=1` visar bara scenen, utan listan
 och knapparna.

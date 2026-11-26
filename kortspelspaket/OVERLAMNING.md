@@ -9,7 +9,9 @@ fyra steg står i `README.md` och upprepas inte här. Skriven 2026-11-26; stryk 
 - Allt ligger i `main`, i den här mappen. Det köpta är uppackat i `paket/` på Jakobs stationära dator (Git har det
   inte; `node kortspelspaket/packa-upp.ts` gör om det ur de tre köpta filerna i Hämtade filer).
 - Visaren (`STARTA visaren.cmd`, port 4330) visar paketets egen figur, en robotkatt, vid spelets bord. Det är bevisat i
-  bild att paketets mått passar vårt bord. Inget är ännu gjort med standarddockan.
+  bild att paketets mått passar vårt bord. Standarddockans man och kvinna kan väljas i stället för katten och spelar
+  då alla 66 rörelserna omräknade till sitt skelett (`visa/docka.ts`; `README.md`, "Dockan i paketets rörelser"). Det
+  är ett prov i visaren: inget är gjort i dockans egna verktyg (editorn, studion, Blender).
 - Jakob har sett bordsvyn och pekat på felen (nedan). Han vill ha två spår: katterna vid bordet arbetas vidare här, och
   rörelserna förs över till dockorna av den som äger dem.
 
@@ -17,11 +19,13 @@ fyra steg står i `README.md` och upprepas inte här. Skriven 2026-11-26; stryk 
 
 Steg 1 i `README.md`, "Vägen": standarddockans man gör en utklippt giv (giv 3, till plats 4, 10,7–13,8 s i
 `AS_Blackjack_Dealer_DealCard`) vid bordet i spelets vy, så att Jakob kan se den bredvid dockans egen ritade giv och
-döma. Hur det görs väljer den som äger dockan. Två vägar, ingen prövad:
+döma. Hur det görs väljer den som äger dockan. Två vägar:
 
-- **Vinklar:** paketets leder översätts till dockans (tabellen nedan) och rörelsen blir en Action på dockans skelett.
-  Händerna hamnar då på andra ställen än i paketet, eftersom kroppen är kortare, och måste styras till bordet.
-- **Lägen:** paketets leder räknas om till det dockans egen kod redan tar emot (axel, armbåge, handled, handens 21
+- **Vinklar:** paketets leder översätts till dockans (tabellen nedan) och rörelsen blir ett klipp på dockans skelett.
+  Prövad i visaren (`visa/docka.ts`, mätt med `verktyg/mat-docka.ts`): handlederna hamnar 3 cm från paketets figurs,
+  i sidled, och händerna är 5–7 cm för långt isär när kortet byter hand. Händerna måste alltså styras mot varandra och
+  mot bordet för att given ska hålla för hans domar.
+- **Lägen** (inte prövad): paketets leder räknas om till det dockans egen kod redan tar emot (axel, armbåge, handled, handens 21
   punkter, blick; `../blackjack-dealer/dealer3d/src/figure-model.ts`, `pose`), skalade till dockans kropp. Då ställer
   dockans kod kroppen, och hans domar om händer på filten och armar över kanten kan prövas som för en ritad giv.
 
@@ -44,7 +48,9 @@ döma. Hur det görs väljer den som äger dockan. Två vägar, ingen prövad:
 ## Leden: paketet mot dockan
 
 Paketets skelett är Unreals standardskelett, dockans har Mixamo-namn (`../avatar-auto-pipeline/new_docka.md`, avsnitt
-7). Ett förslag, inte prövat; `_l` och `_r` är figurens egen vänster och höger.
+7). Paren är prövade i `visa/docka.ts`, där tabellen `PAR` är den som gäller: ryggen följer `spine_02`, `spine_04` och
+`spine_05`, nacken `neck_01`, och underarmens vridning läggs på dockans vridben. `_l` och `_r` är figurens egen vänster
+och höger.
 
 | Paketet | Dockan | Att tänka på |
 | --- | --- | --- |
