@@ -115,8 +115,8 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   ligger under den (mätt per finger i `vy_matt.json`). Armbågarna hänger 9 cm bakom kanten, armarna går över brickan
   och kanten med minst 4 mm luft, och blicken är mot kameran. Stolen är 6 cm lägre och flyttad 7 cm fram under honom,
   så att han sitter på sitsen (5 cm till ryggstödet); fötterna hänger strax framför fotringen. Ingen del av honom går
-  igenom bordet eller stolen, utom att låren trycker ned dynan 5 mm. Bilden `vy_lag` är en lägre kamera från
-  spelarens håll (10 grader ned i stället för 25) att jämföra med spelets.
+  igenom bordet eller stolen, utom att låren trycker ned dynan 5 mm. Bilden `vy_lag` är spelets vy (den lägre
+  kameran, 12 grader ned), `vy_film` den gamla kameran (25 grader ned) att jämföra med.
 - Studions dockvy i `blackjack-dealer` (Bordets Inspelning och `/dealer3d/docka`) ritar sedan 2026-11-26
   standarddockans kropp i den vita figurens ställe: kvinnan som förval, mannen med `?figur=man`, den vita figuren med
   `?figur=vit` eller där modellen inte är byggd (`dealer3d/page/docka.ts`, `dealer3d/src/figure-model.ts`). Rummet,
@@ -131,7 +131,7 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   (6,9 s, 209 rutor) vid det närmare bordet. Blicken går mot den valda kameran i vilan, följer kortet under given och
   går tillbaka; kortet följer handen som håller det; underarmarna hålls minst 1 cm över bordets kant av en automatisk
   regel (utan den gick höger underarm genom kanten i 116 av 209 rutor). Händer, armbågar och blick går att dra i, och
-  ändringarna sparas i `rorelser/`. Den öppnar i Lägre kamera (10 grader ned), som Jakob gillar och vill fila på senare.
+  ändringarna sparas i `rorelser/`. Den öppnar i spelets vy.
 - Editorn har också givarna till alla sju platserna, kamerorna från de sju platserna, återställning och inspelning
   (Jakob 2026-11-26). Kontrollerat i en egen webbläsare: alla sju givar laddar utan fel och underarmarna hålls över
   kanten i varje ruta; givarna till plats 1, 2, 6 och 7 är inte granskade med ögat ruta för ruta, och i given till
@@ -212,8 +212,9 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 
    Kamerans höjd är avgjord (Jakob 2026-11-26): den lägre kameran är spelets vy och standarden för de här filmerna
    (`AGENTS.md`, provet `spelets-vy-20261126`). Den följs av editorn, de sju platsernas kameror och Blenders standard
-   (`../avatar-auto-pipeline/scen/standard.yaml`, som `scen/vy.py` läser sin lägre vy ur). Det som inte har följt med
-   än: bilderna i `vy/` är från före bytet (skriptet körs om när skon är ombyggd), och spelet självt ritar sina kort
+   (`../avatar-auto-pipeline/scen/standard.yaml`, som `scen/vy.py` läser sin lägre vy ur). Bilderna `vy_film`, `vy_lag`,
+   `vy_hel` och `vy_nara` i `vy/` är gjorda om med spelets vy och skons frontplatta; de övriga där är från före
+   bytet. Det som inte har följt med än: spelet självt ritar sina kort
    och sitt bord genom den gamla kameran tills de nya filmerna tas in där; då räknas kortplatsernas bildpunkter ur
    samma punkter på bordet genom spelets vy (`see(filmEye(PLAY_LENS), punkt)`). En film går inte att luta om i
    efterhand, så bordet spelet ritar måste gå genom exakt den här kameran.
