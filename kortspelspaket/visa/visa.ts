@@ -11,6 +11,7 @@ import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {clone} from 'three/addons/utils/SkeletonUtils.js';
 import type {Bord, Sits, Vy} from './bord.ts';
+import type {Docka} from './docka.ts';
 
 type Vec = [number, number, number];
 type Demo = {
@@ -224,6 +225,13 @@ let cut: {fran: number; till: number} | null = null;
 let paused = false, dragging = false;
 /** De sparade bitarna, per rörelse (kortspelspaket/sekvenser.json). */
 let saved: Record<string, Cut[]> = {};
+/**
+ * Figuren vid bordet: paketets egen (katten), eller en docka ur avatar-pipelinen (?figur=man|kvinna, docka.ts) som då
+ * spelar paketets rörelser omräknade till sitt skelett. Valet görs när sidan läses; ett byte läser om sidan.
+ */
+const figureKind = (kind => kind === 'man' || kind === 'kvinna' ? kind : null)(new URLSearchParams(location.search).get('figur'));
+let doll: Docka | null = null;
+const dollClips = new Map<string, THREE.AnimationClip>();
 /** Bordet, när det har byggts, dess klocka (alla vid bordet följer den) och kameran. */
 let table: Bord | null = null, building: Promise<Bord> | null = null, tableTime = 0, tableView: Vy = 'runt';
 for (let i = 0; i < 4; i++) worker();
@@ -302,7 +310,9 @@ async function seat(s: Sits, namn: string, show = false) {
   s.namn = namn; playing();
   const {clip} = await clipOf(namn).catch(() => ({clip: null}));
   if (!clip || s.namn !== namn) return; // en annan rörelse valdes medan den här lästes
-  s.mixer.stopAllAction(); s.action = s.mixer.clipAction(clip).play(); s.length = clip.duration;
+  // En docka spelar rörelsen omräknad till sitt skelett; omräkningen görs en gång per rörelse.
+  if (doll && !dollClips.has(namn)) dollClips.set(namn, doll.rorelse(clip));
+  s.mixer.stopAllAction(); s.action = s.mixer.clipAction(doll ? dollClips.get(namn)! : clip).play(); s.length = clip.duration;
 }
 /** Pricken i listan på de rörelser som spelas vid bordet. */
 function playing() { for (const row of rows.values()) row.button.classList.toggle('spelas', !!table?.sitsar.some(s => s.namn === row.namn)); }
@@ -322,6 +332,15 @@ function tableHeight() {
 }
 heightSlider.oninput = tableHeight;
 heightSlider.ondblclick = () => { heightSlider.value = '0'; tableHeight(); };
+// Figuren: ett byte läser om sidan i bordsvyn med den figuren.
+const figureSelect = el<HTMLSelectElement>('figur');
+figureSelect.value = figureKind ?? 'katt';
+figureSelect.onchange = () => {
+  const to = new URL(location.href);
+  to.searchParams.set('vy', 'bord');
+  if (figureSelect.value === 'katt') to.searchParams.delete('figur'); else to.searchParams.set('figur', figureSelect.value);
+  location.href = to.href;
+};
 // Bordet: spelets, eller ett annat som bordsvyn har (bord.ts). Valet visas när det finns fler än ett.
 const kindSelect = el<HTMLSelectElement>('bordslag');
 let askedKind: string | null = null;
@@ -360,7 +379,8 @@ async function setMode(to: typeof mode) {
   building ??= (async () => {
     say('bord', 'Bygger bordet …');
     const {byggBord} = await import('./bord.ts');
-    const made = await byggBord(renderer, () => clone(template), SCALE, text => say('bord', text));
+    if (figureKind) { say('bord', 'Läser dockan …'); doll = await (await import('./docka.ts')).laddaDocka(figureKind, {figur: template}); }
+    const made = await byggBord(renderer, () => doll ? doll.figur() : clone(template), SCALE, text => say('bord', text));
     made.klart.then(text => say('bord', text));
     return made;
   })();

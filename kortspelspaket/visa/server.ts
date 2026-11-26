@@ -28,9 +28,10 @@ const THREE = path.join(ROOT, 'blackjack-dealer/node_modules/three');
 const THREE_VERSION = JSON.parse(await readFile(path.join(ROOT, 'blackjack-dealer/package.json'), 'utf8')).dependencies.three as string;
 const SCENE = 'CardGamesAnimationPack/Scenes/Demo_CardGames.unity', FIGURE = 'TheMightyCat/Characters/MightyCat_Queen.fbx';
 const TYPES: Record<string, string> = {'.html': 'text/html; charset=utf-8', '.ts': 'text/javascript; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.fbx': 'application/octet-stream', '.png': 'image/png', '.glb': 'model/gltf-binary'};
-/** Bordsvyns lån: spelets kortplan, och de byggda modellerna av standarddockans bord och dealerns pall. */
+/** Bordsvyns lån: spelets kortplan, och de byggda modellerna av standarddockans bord, dealerns pall och de två standarddockorna. */
 const PLAN = 'blackjack-dealer/placements/default.json';
-const MODELS = ['avatar-auto-pipeline/assets/bord/standardbord_nara23.glb', 'avatar-auto-pipeline/assets/stol/dealerstol.glb'];
+const MODELS = ['avatar-auto-pipeline/assets/bord/standardbord_nara23.glb', 'avatar-auto-pipeline/assets/stol/dealerstol.glb',
+  'avatar-auto-pipeline/assets/docka/standarddocka_man.glb', 'avatar-auto-pipeline/assets/docka/standarddocka_kvinna.glb'];
 
 // ---- Unity-scenen --------------------------------------------------------------------------------------------------
 type Vec = [number, number, number];
