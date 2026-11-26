@@ -146,8 +146,8 @@ export type TurnReceipt = {id: TurnId; laid: boolean; why?: string; leftOff?: nu
   edge?: 'long' | 'short'; standsOn?: 'long' | 'short' | 'corner'; toward?: number; yaw?: number; pitch?: number; slide?: number; held?: number; heldInAll?: number; picked?: number; thumbGapMm?: number; liftMm?: number;
   wrist?: Wrist; wristBefore?: Wrist; rolled?: number; apartMm?: number; nearerMm?: number; shortMm?: number};
 
-/** The thumb of shape `S` (wrist at nought, the hand's own axes) round an edge: its middle joint brought to `mid`, its tip then turned about that joint toward `tip` (never bent there more than `most` degrees); bones at their lengths. */
-function thumbRound(S: Vec3[], mid: Vec3, tip: Vec3, most = 95): Vec3[] {
+/** The thumb of shape `S` (wrist at nought, the hand's own axes) round an edge: its middle joint brought to `mid`, its tip then turned about that joint toward `tip` (never bent there more than `most` degrees); bones at their lengths. (Also the clean deal's thumb under the card, ren-giv.ts.) */
+export function thumbRound(S: Vec3[], mid: Vec3, tip: Vec3, most = 95): Vec3[] {
   let p = S.map(q => [...q] as Vec3); const c = FINGERS[0], swing = (q: Vec3[], pivot: number, from: Vec3, to: Vec3, share: number, joints: number[]) => { const axis = cross(from, to), sn = length(axis); if (sn < 1e-9) return q;
     const by = Math.atan2(sn, dot(from, to)) * share, o = q[pivot]; return q.map((v, k) => joints.includes(k) ? add(o, turned(sub(v, o), unit(axis), by)) : v); };
   for (let pass = 0; pass < 60; pass++) for (const j of [1, 0]) p = swing(p, c[j], unit(sub(p[c[2]], p[c[j]])), unit(sub(mid, p[c[j]])), j === 0 ? 0.6 : 0.3, c.slice(j + 1));

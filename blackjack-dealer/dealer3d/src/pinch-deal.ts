@@ -90,8 +90,8 @@ export function reachFrom(start: Anchor21, doll: Doll, wrists: Vec3[], toward: V
   return {lean, twist: way * MOST.twist * lean / MOST.lean, shortMm: Math.max(0, Math.round((far(lean) - reach) * 10000) / 10)};
 }
 
-/** The card leaving the shoe as two-hand.ts takes it out: at `a` metres along its way, sliding down the plate, then its lower end out along the felt. */
-function leavingShoe(lens: Lens, kind: Shoe = SHOE) {
+/** The card leaving the shoe as two-hand.ts takes it out: at `a` metres along its way, sliding down the plate, then its lower end out along the felt (also the clean deal's way out, ren-giv.ts). */
+export function leavingShoe(lens: Lens, kind: Shoe = SHOE) {
   const shoe = shoePose(lens, kind), inShoe = shoeCard(shoe, kind), outward = mul(shoe.back, -1), mouth = add(shoe.front, mul(shoe.far, kind.width / 2)), lean0 = Math.cos(kind.plateLean);
   const H = CARD.height, lying = CARD.thickness / 2, first = kind.windowLift / Math.sin(kind.plateLean);
   const faceIn = (long: Vec3): Vec3 => { const n = unit(cross(shoe.far, long)); return n[1] > 0 ? mul(n, -1) : n; };
