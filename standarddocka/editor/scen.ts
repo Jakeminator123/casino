@@ -65,14 +65,19 @@ export function kameraVy(k: Exclude<Kamera, 'fri'>, plan: Plan): {pos: V3; mot: 
 }
 
 /**
- * Utseendet. 'vanligt' är Blenders bord som det är. 'nyckel' är för film där dealern ska skiljas ut i efterhand (Jakob
- * 2026-11-26: "bakgrunden blir en färg och bordet en annan"): bakgrunden i en ren färg och utan golv, bordet och
- * markerbrickan i en annan och utan tryck, kasseringslådan borta, och korten i spårfärger (framsidan vit innanför en
- * ram med ett märke i ett hörn; ryggen gul med ram, ett märke i mitten och ett vid ena kortsidan), så att sidan och
- * hörnen går att känna igen. Färgerna ligger långt från hud, från varandra och från skons svarta.
+ * Utseendet. 'vanligt' är Blenders bord som det är. 'nyckel' är för film där dealern ska skiljas ut i efterhand och
+ * läggas på vårt eget bord: bakgrunden i en ren grön färg och utan golv, bordet och markerbrickan gröna och utan tryck,
+ * kasseringslådan borta, och korten i spårfärger (framsidan vit innanför en ram med ett märke i ett hörn; ryggen gul
+ * med ram, ett märke i mitten och ett vid ena kortsidan), så att sidan och hörnen går att känna igen. Allt omkring
+ * dealern är grönt (Jakob 2026-11-26: "Ska inte också typ bordet och allt omkring bli grönt … Så gör väl 'dealer'"),
+ * som i blackjack-dealers filmer, där spelets urklippning bara mäter grönt; bakgrunden var först blå, men blått ligger
+ * för nära en blå skjorta. Bordet blir ljusare än bakgrunden i bilden, eftersom det är belyst. Färgerna ligger långt
+ * från hud och från skons svarta.
  */
 export type Utseende = 'vanligt' | 'nyckel';
-export const NYCKEL = {bakgrund: 0x0047bb, bord: 0x00b140, kortrygg: 0xffd400, ram: 0x00c8ff, marke: 0xff2fd0};
+/** Det som går att dölja i bilden: bordet, stolen och kortplatsernas markeringar från panelen, och dockan, kortet och skon från ett verktyg. */
+export type Synligt = 'bord' | 'stol' | 'platser' | 'docka' | 'kort' | 'sko';
+export const NYCKEL = {bakgrund: 0x00b140, bord: 0x00b140, kortrygg: 0xffd400, ram: 0x00c8ff, marke: 0xff2fd0};
 
 export type Scen = {
   renderer: T.WebGLRenderer; scene: T.Scene; camera: T.PerspectiveCamera; figure: Figure; card: T.Object3D;
@@ -81,7 +86,7 @@ export type Scen = {
   /** Hans hud (den riggade kroppen), för mätningar på honom. */
   hud: T.SkinnedMesh;
   /** Visar eller döljer bordet (med skon och brickan), stolen eller bordets tryckta kortplatser. */
-  synlig(vad: 'bord' | 'stol' | 'platser', pa: boolean): void;
+  synlig(vad: Synligt, pa: boolean): void;
   /** Hur stolen ställdes: sänkt, flyttad, sitsens överkant i modellen och nu (över golvet), luften från hans rygg till ryggstödet och från sitsens framkant till vaderna, och hans höftled i vilan. */
   stol: {sank: number; flytt: V3; sitsUppe: number; sitsNu: number; ryggstod: number; knaveck: number; hoft: V3};
   /** Ställer mannen i en ruta. `motKameran` läses inte längre (se pose nedan). */
@@ -166,7 +171,9 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
     bordRot = b.root; markeringar.push(...b.marks);
     return {platser: b.places, maxMm: b.maxMm, kortP4Mm: b.cardP4Mm, kantZ: b.edgeZ, skivaY: b.topY};
   });
-  const synlig = (vad: 'bord' | 'stol' | 'platser', pa: boolean) => { if (vad === 'stol') stolen.visible = pa; else if (vad === 'bord') { if (bordRot) bordRot.visible = pa; } else markeringar.forEach(o => { o.visible = pa; }); };
+  // Dockan, kortet och skon döljs bara av ett verktyg (titta.ts --utan): bilden av bordet ensamt, som en utskuren dealer läggs på.
+  const synlig = (vad: Synligt, pa: boolean) => { if (vad === 'stol') stolen.visible = pa; else if (vad === 'bord') { if (bordRot) bordRot.visible = pa; } else if (vad === 'docka') figure.root.visible = pa; else if (vad === 'kort') card.visible = pa;
+    else if (vad === 'sko') bordRot?.traverse(o => { if (/^sko/.test(o.name)) o.visible = pa; }); else markeringar.forEach(o => { o.visible = pa; }); };
 
   const ram = () => { const W = canvas.clientWidth, H = canvas.clientHeight, a = FILM.width / FILM.height;
     return W / H >= a ? {width: H * a, height: H, left: (W - H * a) / 2, top: 0} : {width: W, height: W / a, left: 0, top: (H - W / a) / 2}; };

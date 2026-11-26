@@ -14,7 +14,7 @@
 //        första och sista rutan, rutan där kortet ligger och rutan där handen är tillbaka; skarvarna och stillheten mätta).
 //        --runda visar rundan i stället för en plats också för stillbilder, --kor och --spela-in <första>-<sista>: i ett
 //        svep, utan stillheten vid skon, som editorn visar den; --stillhet lägger in stillheten, som i tagningen ovan.
-//   Gemensamt: [--fart 0:1.5,1:1.2]  farten för en del, utan att spara     [--utan platser,stol,bord]  dölj det
+//   Gemensamt: [--fart 0:1.5,1:1.2]  farten för en del, utan att spara     [--utan platser,stol,bord,docka,kort,sko]  dölj det
 //              [--spara]  som knappen Spara: skriver om rorelser/<namn>.json och dess .rutor.json ur det som står i
 //                         filen (efter att ändringar har skrivits in i den för hand), innan --fart, --liv och --andring
 //                         läggs på; stannar med ett fel om lagret har fel eller hör till en äldre rörelse

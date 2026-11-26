@@ -592,7 +592,8 @@ Object.assign(api, {
   // Som Spara; frågar sidan något (filen har ändrats, det sparade används inte) stannar det med frågan som fel, så att ett
   // verktyg aldrig skriver över i tysthet. save(true) skriver över.
   save: async (skrivOver = false) => { const r = await sparaFiler(skrivOver); document.querySelector('#fraga')?.remove(); if (!r.sparat) throw Error(r.varfor); return r.svar; },
-  visa: (vad: Visa, på: boolean) => { visaDel(vad, på); ritaNu(); },
+  // Dockan, kortet och skon har ingen ruta i panelen: de döljs bara av ett verktyg, för bilden av bordet ensamt.
+  visa: (vad: Visa | 'docka' | 'kort' | 'sko', på: boolean) => { if (vad === 'docka' || vad === 'kort' || vad === 'sko') scen.synlig(vad, på); else visaDel(vad, på); ritaNu(); },
   tillSparat: () => { tillSparat(); ritaNu(); },
   tillGrund: () => { tillGrund(); ritaNu(); },
   fart: (del: number, ganger: number) => { sattFart(del, ganger); ritaNu(); },
