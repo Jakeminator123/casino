@@ -188,11 +188,19 @@ async function showPose(pose: Pose) {
 }
 const show = (keepTime = false) => state.shown.kind === 'deal' ? showDeal(keepTime) : showPose(state.shown.pose);
 
+// The body that is drawn (Jakob 2026-11-26: "Se till att vi använder denna nya standarddocka för allt som syns i också
+// 'blackjack-dealer'"): the standard doll's model, the woman unless the address says ?figur=man, posed from the same joints
+// as the white figure and made as large as the figure's arms are. ?figur=vit, or a computer where the model is not built
+// (it is local media of avatar-auto-pipeline), keeps the white figure. The doll chosen on the page is still whose measures
+// the motion is laid for; the model is only what is seen.
+const FIGURE = asked.get('figur') === 'vit' ? null : asked.get('figur') === 'man' ? 'man' : 'kvinna';
+const figureNow = async () => FIGURE ? (await import('../src/figure-model.ts')).loadFigure(`/dealer3d/figur/${FIGURE}.glb`).catch(() => null) : null;
 /** A stage for the chosen doll on a canvas of its own (a stage's doll is fixed when it is made). */
 async function setDoll(name: string) {
   state.doll = name; state.touched = false; notice = null; state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT;
-  const first = posedOn(await stored<Motion>('till-ankare-2-3-c'), dollNamed(name)).motion, old = $('stage'), canvas = document.createElement('canvas'); canvas.id = 'stage';
-  stage?.dispose(); old.replaceWith(canvas); size(canvas); stage = createLabStage(canvas, plan, dollNamed(name), first); stage.setJoints(state.joints); stage.setGrips(gripsShown()); stage.setTarget(state.place); stage.view(state.view);
+  const [film, figure] = await Promise.all([stored<Motion>('till-ankare-2-3-c'), figureNow()]);
+  const first = posedOn(film, dollNamed(name)).motion, old = $('stage'), canvas = document.createElement('canvas'); canvas.id = 'stage';
+  stage?.dispose(); old.replaceWith(canvas); size(canvas); stage = createLabStage(canvas, plan, dollNamed(name), first, figure); stage.setJoints(state.joints); stage.setGrips(gripsShown()); stage.setTarget(state.place); stage.view(state.view);
   await show();
 }
 function size(canvas = $<HTMLCanvasElement>('stage')) { const box = $('frame').getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1), w = Math.max(2, Math.round(box.width * dpr)), h = Math.max(2, Math.round(box.height * dpr));

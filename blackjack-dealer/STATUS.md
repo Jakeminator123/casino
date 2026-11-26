@@ -63,7 +63,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   antagna, och varje grundrörelse läggs på standarddockan och förs över till den valda dockan. Sedan 2026-11-26 har
   den vita dockan bäcken, lår, underben och en pall (gissade mått, lika för alla dockor; de syns bara i vyerna runt
   henne, filmens kamera ser henne som förut), och en riggad kropp med fingerben kan stå på den vita dockans plats och
-  följa samma leder med fingrarna böjda som dockans (`dealer3d/src/figure-model.ts`, sidans `?model=1`). Markerbrickan
+  följa samma leder med fingrarna böjda som dockans (`dealer3d/src/figure-model.ts`). Dockvyn (Bordets Inspelning och
+  `/dealer3d/docka`) ritar så standarddockans kropp, kvinnan som förval (Jakob 2026-11-26: standarddockan "för allt som
+  syns"; `?figur=man` mannen, `?figur=vit` eller en dator utan modellen den vita figuren); referensfilmernas inspelning
+  ritar den vita figuren som förut (`?model=1` där). Vägen till att den äldre dockan tas bort står i
+  `../standarddocka/README.md`, "Plockas in". Markerbrickan
   är i rummets utseende en riktig försänkt bricka med mässingsram och marker på standardens plats; referensfilmens
   utseenden ritar ingen bricka, som förut. I Naturlig tar
   högerhanden emot kortet med handryggen upp, pekfingret på kortet och tummen under kanten (2026-11-25: "handrygg syns

@@ -21,6 +21,7 @@ import {standing} from '../src/body.ts';
 import {FINGERS} from '../src/capture.ts';
 import {touching, type Touch} from '../src/natural.ts';
 import type {Doll} from '../src/doll.ts';
+import type {Figure} from '../src/figure-model.ts';
 
 export type ViewName = 'film' | 'side' | 'above' | 'player' | 'card';
 type Frame = Read['frames'][number];
@@ -92,14 +93,15 @@ function grips() {
 /**
  * The stage for `doll`, showing `first` until another motion is set. One canvas has one stage: for another doll make a
  * new canvas and a new stage, and dispose of this one. The canvas keeps the film's shape (1764 : 1174), so that the
- * film's view is the film's picture.
+ * film's view is the film's picture. `figure`: a rigged model drawn in the white figure's place and posed from the same
+ * joints (dealer3d/src/figure-model.ts; docka.ts loads the standard doll's); a figure belongs to one stage.
  */
-export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll, first: Read) {
+export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll, first: Read, figure: Figure | null = null) {
   // The stage, with its scene taken as it is filled, and a read that is exchanged in place.
   const read: Read = {...first, laid: [], frameCount: 1e9}; let found: T.Scene | null = null;
   Object.defineProperty(T.Scene.prototype, 'add', {configurable: true, writable: true, value(this: T.Scene, ...objects: T.Object3D[]) { found = this; return T.Object3D.prototype.add.apply(this, objects); }});
   let stage: ReturnType<typeof createStage>;
-  try { stage = createStage(canvas, plan, {look: 'room', target: 'P4.C1', read, doll}); } finally { delete (T.Scene.prototype as unknown as {add?: unknown}).add; }
+  try { stage = createStage(canvas, plan, {look: 'room', target: 'P4.C1', read, doll, figure}); } finally { delete (T.Scene.prototype as unknown as {add?: unknown}).add; }
   const scene = found as T.Scene | null; if (!scene) throw Error('The stage made no scene.');
   let taken: T.WebGLRenderer | null = null; const before = scene.onBeforeRender; scene.onBeforeRender = r => { taken = r; }; stage.render(['film']); scene.onBeforeRender = before;
   const renderer = taken as T.WebGLRenderer | null; if (!renderer) throw Error('The stage drew with no renderer.');

@@ -7,6 +7,9 @@
 //                                          modules name their neighbours with .ts, as Node needs them)
 //   GET /dealer3d/data/<name>.json         a motion of dealer3d/data/
 //   GET /dealer3d/plan                     Jakob's card plan (placements/default.json), read only
+//   GET /dealer3d/figur/<kvinna|man>.glb   the standard doll's model as avatar-auto-pipeline builds it
+//                                          (../avatar-auto-pipeline/assets/docka/, local media: 404 where it is not built,
+//                                          and the page then draws the white figure)
 //   GET /dealer3d/standard                 the saved standards: name, doll, entry, place and when each was saved (`lab.savedAt`,
 //                                          the file's time where it has none); the one before each (`forra`) and what has
 //                                          been laid aside (`undanlagda`: the folders, each with its names)
@@ -173,7 +176,7 @@ export function dollLabRoutes(options: {root: string; origin: string}) {
 
   /** Answers true when the request was the doll lab's. */
   return async function handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
-    const at = url.pathname, lab = at === '/dealer3d/docka' || at === '/dealer3d/plan' || at === '/src/table-lens.ts' || /^\/dealer3d\/(page|src|data|standard)(\/|$)/.test(at);
+    const at = url.pathname, lab = at === '/dealer3d/docka' || at === '/dealer3d/plan' || at === '/src/table-lens.ts' || /^\/dealer3d\/(page|src|data|standard|figur)(\/|$)/.test(at);
     if (!lab) return false;
     try {
       const standard = /^\/dealer3d\/standard\/([^/]+)\.json$/.exec(at), change = /^\/dealer3d\/standard\/(aterstall|tillbaka)$/.exec(at);
@@ -190,8 +193,10 @@ export function dollLabRoutes(options: {root: string; origin: string}) {
         json(res, 200, {...done, ...await list()}); return true;
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') { req.resume(); res.writeHead(405, {Allow: change ? 'POST' : standard ? 'GET, PUT' : 'GET'}).end(); return true; }
-      const script = /^\/dealer3d\/(page|src)\/([\w-]+)\.ts$/.exec(at), data = /^\/dealer3d\/data\/([\w-]+)\.json$/.exec(at);
+      const script = /^\/dealer3d\/(page|src)\/([\w-]+)\.ts$/.exec(at), data = /^\/dealer3d\/data\/([\w-]+)\.json$/.exec(at), figure = /^\/dealer3d\/figur\/(kvinna|man)\.glb$/.exec(at);
       if (at === '/dealer3d/docka') await file(res, 'dealer3d/page/docka.html', 'text/html; charset=utf-8');
+      else if (figure) { const bytes = await readFile(path.join(root, '..', 'avatar-auto-pipeline', 'assets', 'docka', `standarddocka_${figure[1]}.glb`)).catch(() => null);
+        if (bytes) send(res, 200, 'model/gltf-binary', bytes); else send(res, 404, 'text/plain; charset=utf-8', 'Finns inte.'); }
       else if (script) await file(res, `dealer3d/${script[1]}/${script[2]}.ts`, 'text/javascript; charset=utf-8', stripTypeScriptTypes);
       else if (at === '/src/table-lens.ts') await file(res, 'src/table-lens.ts', 'text/javascript; charset=utf-8', stripTypeScriptTypes);
       else if (data) await file(res, `dealer3d/data/${data[1]}.json`, 'application/json; charset=utf-8');

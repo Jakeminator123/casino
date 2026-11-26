@@ -1575,8 +1575,39 @@
       "proof": "spelets-vy-20261126",
       "file": "2-kortet-laggs-fran-plats-4.png",
       "choice": null,
-      "text": "ser okej ut tror jag, men altså detta ska ju kuna variaeras antar ajg, atså fler fingarar på kortet i slutet kanske eller andra saker? men visst. Fårgan är bara om denan ska nvändas som en ankarbild, elelr bara bevis på att kortet hanar rätt elelr så??",
-      "at": "2026-11-26T06:59:31.902Z"
+      "text": "ser okej ut tror jag, men altså detta ska ju kuna variaeras antar ajg, atså fler fingarar på kortet i slutet kanske eller andra saker? men visst. Fårgan är bara om denan ska nvändas som en ankarbild, elelr bara bevis på att kortet hanar rätt elelr så?? Kolla dock till skons kort. ka den va som syns? Lär aknke ite vara dåligt, men vaför är kortet som syns där efter inte av samam format?",
+      "at": "2026-11-26T07:01:18.133Z",
+      "answer": {
+        "text": "Bilden är bara ett bevis på att kortet hamnar rätt genom den nya kameran, ingen ankarbild (ankarna är vilan A1 och handen vid skon A2.3). Variation kommer: givarnas regler har redan fem sätt att lägga kortet (långfingret, pekfingret, båda, alla fingertoppar, platta fingrar), och de blir varianter när de nya rena givarna är inne. Skons kort var ett fel: det som syntes var buntens vita kant. Skon har nu en frontplatta med en rundad öppning, och nästa kort visar ryggen i samma format som kortet som delas.",
+        "at": "2026-11-26T07:25:44.733Z"
+      },
+      "read": "2026-11-26T07:25:44.733Z"
+    },
+    {
+      "id": 163,
+      "proof": "spelets-vy-20261126",
+      "file": "3-kortet-laggs-fran-plats-1.png",
+      "choice": null,
+      "text": "Ser ut som det ska i föhållande til lde två andra - mkt bra. Men sådu vet sak vi ju ha 7 kameror antar jag för lika många platser, så 4 till altså?",
+      "at": "2026-11-26T07:00:26.868Z",
+      "answer": {
+        "text": "Ja, sju kameror, och alla sju finns redan: i editorn under 'Spelets vy, sedd från plats 1–7' och i Blenders standard. Provet visade bara tre av dem. Spela in 'från alla sju platserna' gör sju filmer av samma rörelse i ett svep.",
+        "at": "2026-11-26T07:25:45.138Z"
+      },
+      "read": "2026-11-26T07:25:45.138Z"
+    },
+    {
+      "id": 164,
+      "proof": "spelets-vy-20261126",
+      "file": "4-kortet-laggs-fran-plats-7.png",
+      "choice": null,
+      "text": "Atså jag vet inte om du skriver rätt. Dett är altså att P4 (player 4) får ett kort från dealern (D) från kameravinkel (Seat, vilekt r kameran/seat-platsen?)",
+      "at": "2026-11-26T07:02:34.374Z",
+      "answer": {
+        "text": "Du läser rätt: kortet läggs till plats 4 (P4, kort 1), och bilden är tagen genom kameran för plats 7, alltså det spelaren på plats 7 ser. Namnet var otydligt; i fortsättningen skriver jag 'giv till P4, kamera plats 7'.",
+        "at": "2026-11-26T07:25:44.355Z"
+      },
+      "read": "2026-11-26T07:25:44.355Z"
     }
   ]
 }
