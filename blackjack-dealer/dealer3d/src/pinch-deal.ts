@@ -14,7 +14,9 @@
 // - Lägg: the card's far edge set on the felt ON the place, the card lowered about it; her thumb slides out from under its
 //   near end and her forefinger holds it down until it lies flat.
 // - Then a fifth of a second with the forefinger on the card, the hand lifted off it, and back to A2.1.
-// Her trunk leans and turns toward the place as far as her arm needs (reachFrom), up to MOST; her right hand stays.
+// Her trunk leans and turns toward the place as far as her arm needs (reachFrom), up to MOST; her right hand stays. To
+// seats 1 and 2 (Jakob 2026-11-26: "plats ett ska få nyp") her left arm goes across her body over her right hand, as in her
+// films from A2.1 (paow-giv-2-1-p1-06-01, -p2-03-01): the same deal, 10 mm and more off her right arm at seat 1.
 import {CARD, add, cross, dot, length, mul, sub, unit, type Lens, type Vec3} from './camera.ts';
 import {arm, turned} from './body.ts';
 import {ELBOW_POLES, type Doll} from './doll.ts';
@@ -235,12 +237,23 @@ export function pinchDeal(input: PinchInput) {
   // P6.C2; to seat 7, beside the shoe, the straight way took the card 3 cm in under the plate. Where the way at its height
   // would take any of the card in under the plate, through the cards that stand on it, the card is moved out along the
   // plate's normal until it is CLEAR.shoe off it, under one smooth hill per frame's need, and nowhere else: a deal that
-  // keeps clear of the shoe is laid as before to the last digit)
+  // keeps clear of the shoe is laid as before to the last digit). Then between two frames, the card as the stage draws it
+  // there (dealer3d/src/stage.ts: its middle the frames' mixed, its sides turned as far; a film at 24 a second shows the
+  // quarters): to seat 7 the card swings fast round the shoe's front corner, and between two frames clear of the plate
+  // the straight chord took a corner 2.6 mm into the shoe (P7.C2, 2026-11-26). Where it goes in there, both frames are
+  // moved out until it is CLEAR.shoe off; nearer than that and not in, it is left as it was.
   const pushes = new Array(count).fill(0) as number[];
   function pushAt(t: number) { return pushes[t] ?? 0; }
-  const intoShoe = (x: ReturnType<typeof carryAt>) => underPlate(x.card) + CLEAR.shoe;
+  const intoShoe = (card: CardAt) => underPlate(card) + CLEAR.shoe;
+  const between = (a: CardAt, b: CardAt, k: number): CardAt => { const bl = dot(a.l, b.l) < 0 ? mul(b.l, -1) : b.l, l = unit(lerp(a.l, bl, k)), n0 = lerp(a.n, b.n, k);
+    return {c: lerp(a.c, b.c, k), l, n: unit(sub(n0, mul(l, dot(n0, l))))}; };
   const sideways = (d: number) => { const w = d < 0 ? 4 : 7; return Math.abs(d) >= w ? 0 : Math.cos(Math.PI * d / (2 * w)) ** 2; };
-  for (let pass = 0; pass < 30; pass++) { let worst = 0; const want = pushes.map((h, t) => t > t2 && t < tT ? h + Math.max(0, intoShoe(carryAt(t, liftAt(t), h))) : 0);
+  for (const alsoBetween of [false, true]) for (let pass = 0; pass < 30; pass++) { let worst = 0; const cards = pushes.map((h, t) => t === t2 ? drawn : t > t2 && t <= tT ? carryAt(t, liftAt(t), h).card : null);
+    // (how far the card between frames t and t + 1 must be moved out, as a need of each of them: more where the other may not move)
+    const gap = (t: number) => { const a = cards[t], b = cards[t + 1]; if (!alsoBetween || !a || !b) return 0; let most = 0;
+      for (const k of [0.25, 0.5, 0.75]) { const deep = underPlate(between(a, b, k)); if (deep > 0) most = Math.max(most, (deep + CLEAR.shoe) / (t === t2 ? k : t + 1 === tT ? 1 - k : 1)); }
+      return most; };
+    const want = pushes.map((h, t) => t > t2 && t < tT ? h + Math.max(0, intoShoe(cards[t]!), gap(t - 1), gap(t)) : 0);
     for (let t = t2 + 1; t < tT; t++) worst = Math.max(worst, want[t] - pushes[t]);
     if (worst < 2e-4) break;
     for (let t = t2 + 1; t < tT; t++) { let h = 0; for (let u = t2 + 1; u < tT; u++) h = Math.max(h, want[u] * sideways(t - u)); if (h > 0) pushes[t] = Math.max(pushes[t], h + 0.0003); } }

@@ -75,8 +75,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    rakt ut vid A2.3 (knogen 33° åt sidan och 24° bakåt, utanför handregeln), vilket syns från A1 till A2.3 och i varje
    givs första ruta. Dockan från A2.1 görs om, enklare, med kortbanan ur dockan (2026-11-24), och härmar de bästa
    A2.1-klippen, som han själv vill välja (2026-11-23); en giv tar 2 s som förval; händerna fria i givarna;
-   handleden i vändningen; P7.C1:s vändning (förvalet 17 rutor, hans undanlagda standard 11); plats 1 från nypet
-   (Jakob 2026-11-26: "plats ett ska få nyp"; beställningen vägrar den i dag, `tools/doll-order.ts`); en kropp som lutar sig mot plats 1–2; SAM-dockan ("Ja bygg den riktiga SAM-dockan", 2026-11-23).
+   handleden i vändningen; P7.C1:s vändning (förvalet 17 rutor, hans undanlagda standard 11); ställningen A2.1, där
+   lång-, ring- och lillfingret ligger upp till 34 mm inne i skons kropp redan i första rutan
+   (`dealer3d/data/ankare-2-1-paow.json`; lillfingrets topp syns som en vit prick i P7.C1, ruta 16–17); ett stängt nyp
+   (dockan lägger inget stängt kort från A2.1, fast hon gör det i `paow-giv-2-1-d-01-01`); en kropp som lutar sig mot
+   plats 1–2; SAM-dockan ("Ja bygg den riktiga SAM-dockan", 2026-11-23).
 3. **Karta:** bryggorna för nypet (A2.1 → A1, A2.1 ↔ A2.3); kameran som en dimension (2026-11-23); kort 3–7
    återbrukar bara kort 2.
 4. **Spelet:** bara trädet när filmerna finns (lånen stryks), och en hel giv får hans ja i spelstorlek. För talet är
@@ -156,7 +159,8 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - Handbytet: bilderna före och efter i `../slask/blackjack-dealer/granska/handled/` väntar på hans ögon. Paows 15 sparade
   standarder är undanlagda på hans ord (2026-11-26, `dealer3d/standard/undanlagda/2026-11-26-011850/`): förvalet
   gäller på varje plats, och den förra tas tillbaka med Ta tillbaka den förra på dockans sida. Provet
-  `nyp-leken-20261126` visar att kortet inte längre går in i leken i skon.
+  `nyp-leken-20261126` visar att kortet inte längre går in i leken i skon, och provet `nyp-plats-1-2-20261126` nypet
+  till plats 1 och 2 bredvid hennes filmer (2026-11-26; dockan vänder kortet i luften, hon vid platsen).
 - Hans ögon på spelvyn och linsen i Scen (2026-11-26): gruppen Spelvy (Visa Inspelningen, Dator eller Mobil; Spara
   som spelvy) och Lins under Bord. Spelet utan valt utseende och grundutseendena följer nu spelvyns Dator (9,7°
   lutning i stället för 8°); Jakob-1 och Profilval 1 har kvar sin egen inramning på dator. På mobil gäller alltid

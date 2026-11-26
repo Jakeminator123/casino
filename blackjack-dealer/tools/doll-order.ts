@@ -1,7 +1,7 @@
 // The order from Bordet's Inspelning, step 3 (Jakob 2026-11-23: "hur beställer jag nu härifrån då?"): the doll's
 // movement to one player's card, or one of her own (D.C1 to D.C3, 2026-11-24), becomes its film and a draft in Kön, in one
 // go. The anchor is the step's own: A2.3, the method that holds (Jakob 2026-11-23), unless A2.1 is asked for (--fran a2-1,
-// the pinch), which is refused where the doll cannot make it (her left arm over her right hand, or a card laid closed:
+// the pinch, seats 1 and 2 too since 2026-11-26), which is refused where the doll cannot make it (a card laid closed:
 // dealer3d/src/doll-choices.ts handChange). The plan's "Handbyte" does not choose it: a deal ordered from A2.3 is made
 // from A2.3 (Jakob 2026-11-25, after the guide's step and the plan's switch could say different things). Four steps,
 // each the tool that already does it:
@@ -34,7 +34,7 @@ import { newCommand, stepOfNotation } from './order-new.ts';
 import { STEPS, edgeOf } from '../src/order-model.ts';
 import { LANDINGS, LANDING_DEFAULT } from '../dealer3d/src/landing.ts';
 import { TURNS, TURN_DEFAULT, type TurnId } from '../dealer3d/src/turn-in-hand.ts';
-import { handChange, type PlanChoices } from '../dealer3d/src/doll-choices.ts';
+import { handChange, type PlanSides } from '../dealer3d/src/doll-choices.ts';
 
 const run = promisify(execFile);
 
@@ -53,8 +53,8 @@ export function dollOrderPlan(root: string, ask: DollOrderAsk): DollOrderPlan {
   if (!m) throw new StoreError(400, `${ask.place}: välj en spelares kort (P1.C1 till P7.C2) eller dealerns (D.C1 till D.C3).`);
   if (!/^[a-z0-9]+$/.test(ask.dealer)) throw new StoreError(400, 'Okänd dealer.');
   const seat = m[3] ? 'D' : `P${m[1]}`, card = m[3] ?? m[2];
-  const plan = JSON.parse(readFileSync(path.join(root, 'placements', 'default.json'), 'utf8')) as PlanChoices, place = `${seat}.C${card}`, doll = ask.dealer;
-  const entry: DollEntry = ask.entry ?? 'A2.3', side = seat === 'D' ? (plan.targets[place]?.intent.endSide ?? null) : null, from = entry.slice(1).replace('.', '-');
+  const plan = JSON.parse(readFileSync(path.join(root, 'placements', 'default.json'), 'utf8')) as PlanSides, place = `${seat}.C${card}`, doll = ask.dealer;
+  const entry: DollEntry = ask.entry ?? 'A2.3', side = seat === 'D' ? (plan.targets[place]?.intent?.endSide ?? null) : null, from = entry.slice(1).replace('.', '-');
   if (entry !== 'A2.1' && entry !== 'A2.3') throw new StoreError(400, 'Given beställs från A2.1 eller A2.3.');
   // From A2.1 the doll cannot make every deal: said here, before anything is made, rather than made from another pose.
   const must = entry === 'A2.1' && plan.targets[place] ? handChange(plan, place) : null;

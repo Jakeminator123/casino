@@ -260,8 +260,10 @@ Dockan i `dealer3d/` är en vit docka i bordets verkliga geometri vars filmer st
 (2026-11-21, 2026-11-23; `dealer3d/src/doll.ts`).
 
 - En giv beställs från stegets ingång: A2.3 som förval, A2.1 bara när det begärs (`tools/doll-order.ts --fran a2-1`,
-  `tools/doll-order.test.ts`). `dealer3d/src/doll-choices.ts` säger var dockan inte kan ge från A2.1 (vänster arm över
-  höger hand, eller ett kort som läggs stängt); där vägrar verktyget i stället för att byta ställning.
+  `tools/doll-order.test.ts`). Från A2.1 ger dockan till varje plats, plats 1 och 2 också (Jakob 2026-11-26: "plats
+  ett ska få nyp"): vänster arm går över högerhanden som vilar på filten, som i hennes filmer. Ett kort som planen
+  lägger stängt vägras från A2.1, eftersom nypet alltid vänder kortet upp (`dealer3d/src/doll-choices.ts`);
+  beställningen, dockans sida (`dealer3d/page/lay.ts` placeFrom) och `docka-cykel.ts` vägrar samma kort.
 - Sidan ett av dealerns kort ligger med är planens (`intent.endSide`), också i dockans egen sida: en sparad standard
   läggs med planens sida.
 - Standarddockan är grunden: varje grundrörelse (`dealer3d/data/`) läggs på standarddockan och förs över till den valda
@@ -275,7 +277,8 @@ Dockan i `dealer3d/` är en vit docka i bordets verkliga geometri vars filmer st
   `dealer3d/page/server.ts` och flyttar eller kopierar, raderar aldrig (`dealer3d/tests/standard-undan.test.ts`).
 - Skons nästa kort står 0,6 mm bakom kortet som dras ut (`dealer3d/src/stage.ts`). Kortets övre ände håller sin
   millimeter över det när kortet glider ut (`two-hand.ts`), och nypets kort bärs aldrig in under plåten
-  (`pinch-deal.ts`, `CLEAR.shoe`).
+  (`pinch-deal.ts`, `CLEAR.shoe`). Kortet hålls ute ur skon också mellan två rutor, så som sidan ritar det där
+  (kvartsrutorna i en film med 24 rutor/s).
 - Rutor räknas från 0, ark och filnamn från 1. En dockfilm förs in i `data/rendered-references.json` av huvudagenten,
   med nytt id varje gång. Mappen läser `placements/default.json` men skriver den aldrig.
 

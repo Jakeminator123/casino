@@ -41,7 +41,7 @@ import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {filmLens, spots} from '../src/world.ts';
 import {pinchDeal, type Anchor21} from '../src/pinch-deal.ts';
-import {OVER_HAND, overHand} from '../src/doll-choices.ts';
+import {handChange} from '../src/doll-choices.ts';
 import {dollNamed} from '../src/doll.ts';
 import {DEALER_CARD, NO_STEER, cardTempoMost, cardTempoOf, layDeal, placeFrom, recipeOf, sideOf, sideOfPlan, standardName, type Entry, type Recipe, type Steer, type Stored} from '../page/lay.ts';
 import {NO_KNOBS, gripYawsOf, layNatural, withReturn, type AsBefore, type Knobs, type Way} from '../page/natural-lab.ts';
@@ -143,7 +143,7 @@ async function fromPinch() {
   if (!existsSync(file(anchorPath))) fail(`Ställningen A2.1 finns bara för de dockor som har den (${anchorPath} saknas).`);
   const bytes = await bytesOf(anchorPath), anchor = json(bytes) as Anchor21; used[anchorPath] = sha(bytes);
   const spot = spots(plan, lens).find(s => s.id === place); if (!spot) fail(`${place} är ingen plats i kortplanen.`);
-  if (overHand(plan, place!, lens)) fail(`${place}: ${OVER_HAND} (dealer3d/src/doll-choices.ts)`);
+  const must = handChange(plan, place!); if (must.must) fail(`${place} går inte från A2.1. ${must.why} (dealer3d/src/doll-choices.ts)`);
   const fast = number(values['kortets-fart'], '--kortets-fart'); if (fast !== undefined && fast < 100) fail('--kortets-fart ska vara minst 100 (procent).');
   const asked = ['way', 'no-standard', 'flat-hand', 'sam-hand', 'recipe-grip-yaw', 'fingrar-som-forut', 'en-vinkel', 'landning', 'vandning', 'hold', 'ready', 'duration', 'lift'].filter(k => values[k as keyof typeof values] !== undefined);
   const deal = pinchDeal({start: {hip: anchor.hip, frame: anchor.frame}, place: place!, at: spot.at as [number, number, number], doll, lens, steer: fast && fast !== 100 ? {cardTempo: fast / 100} : {}});

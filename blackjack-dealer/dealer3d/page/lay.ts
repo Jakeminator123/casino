@@ -16,7 +16,7 @@ import {sideSeen} from '../src/deal.ts';
 import {REAL_DEAL, type RealCard} from '../src/real-deal.ts';
 import {TWO_HAND, contactGripFits, shoeHolds, startOnAnchor, twoHandDeal, type Limb, type Pace, type Still} from '../src/two-hand.ts';
 import {naturalPace} from '../src/natural.ts';
-import {overHand, type PlanPlaces} from '../src/doll-choices.ts';
+import {handChange, type PlanSides} from '../src/doll-choices.ts';
 
 export const FPS = 30;
 const BEATS = ['b', 'c', 'd', 'e', 'l', 'f', 'g', 'h'] as const;
@@ -214,23 +214,24 @@ export function recipeFor(target: string): PlaceRecipe | null {
 /**
  * The pose a deal begins in and, with its return, ends in (Jakob 2026-11-23: "A2.1, A2.2 och A2.3 är olika in- och
  * utgångar", a saved deal per player and per entry). A2.3: every deal laid above. A2.1, the pinch at the shoe: her
- * one-hand deal to any place her left arm reaches without going over her right hand (dealer3d/src/doll-choices.ts),
- * built on the doll's bones (dealer3d/src/pinch-deal.ts) from her pose A2.1 (POSE_21), one way. A2.2 is archived: no deal begins in it.
+ * one-hand deal to every place but a card laid closed (dealer3d/src/doll-choices.ts), built on the doll's bones
+ * (dealer3d/src/pinch-deal.ts) from her pose A2.1 (POSE_21), one way. A2.2 is archived: no deal begins in it.
  */
 export type Entry = 'A2.1' | 'A2.3';
 /** A saved standard's name (dealer3d/standard/<name>.json): <doll>-<place> from A2.3, as every standard saved before the entries were, and <doll>-a2-1-<place> from A2.1. */
 export const standardName = (doll: string, entry: Entry, place: string) => `${doll}-${entry === 'A2.3' ? '' : `${entry.toLowerCase().replace('.', '-')}-`}${place.toLowerCase().replace('.', '')}`;
 /** The pose A2.1 per doll that has it (dealer3d/data/<name>.json: the first frame of the deal the lab showed as A2.1, and her hip), which pinch-deal.ts builds the deal from. */
 export const POSE_21: Record<string, string> = {paow: 'ankare-2-1-paow'};
-export type EntryPlace = PlaceRecipe | {pinch: string} | {none: 'unposed' | 'over'};
+export type EntryPlace = PlaceRecipe | {pinch: string} | {none: 'unposed' | 'closed'};
 /**
  * Where a deal from `entry` to a place of the plan comes from, or why there is none; null for a place the lab does not know.
- * From A2.1 the doll's pose A2.1 (POSE_21), which the deal is built from, except where her left arm would go over her right
- * hand (`over`: the card changes hands there and goes from A2.3; doll-choices.ts overHand, with `plan`).
+ * From A2.1 the doll's pose A2.1 (POSE_21), which the deal is built from, seats 1 and 2 too (Jakob 2026-11-26: "plats ett
+ * ska få nyp"), except a card the plan lays closed (`closed`, with `plan`: the pinch turns every card face up, so the
+ * card goes from A2.3; doll-choices.ts handChange, the rule tools/doll-order.ts orders by).
  */
-export function placeFrom(entry: Entry, target: string, doll?: string | null, plan?: PlanPlaces): EntryPlace | null {
+export function placeFrom(entry: Entry, target: string, doll?: string | null, plan?: PlanSides): EntryPlace | null {
   const known = recipeFor(target); if (!known || entry === 'A2.3') return known;
   if (!doll || !Object.hasOwn(POSE_21, doll)) return {none: 'unposed'};
-  return plan && overHand(plan, target) ? {none: 'over'} : {pinch: POSE_21[doll]};
+  return plan && handChange(plan, target).must ? {none: 'closed'} : {pinch: POSE_21[doll]};
 }
 
