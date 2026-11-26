@@ -145,10 +145,14 @@ Mappen lånar det som redan finns i stället för att kopiera det:
       gjorda med), och det andra klippet med Gemini Omni 1.2 som billig jämförelse.
    4. Vinnaren från plats 1 och 7, med egna ankare för de kamerorna.
 
-   Första omgången (hans "kör igång" 2026-11-26) ligger i `../slask/standarddocka/granska/docka-till-person-1/`, en
-   mapp per sätt med anropet och resultatet: given till plats 4 (4 s) genom spelets kamera, omgjord med Aleph 2 och bara
-   en text, Aleph 2 och en styrbild, Kling 4 som redigerare med hans tre bilder, och Gemini Omni 1.2 med hans tre
-   bilder. De två sista prövar hans fråga om en modell kan klä dockan direkt ur bilderna, utan styrbild.
+   Första omgången är körd (hans "kör igång" 2026-11-26, 345 krediter) och väntar på hans dom i studion, provet
+   `docka-till-person-20261126`. Underlaget ligger i `../slask/standarddocka/granska/docka-till-person-1/`, en mapp per
+   sätt med anropet och resultatet, och `OVERSIKT.md`: given till plats 4 (4 s) genom spelets kamera, omgjord med Aleph 2
+   och en styrbild, Aleph 2 och bara en text, Kling 4 som redigerare med hans tre bilder, och Gemini Omni 1.2 med hans
+   tre bilder (stoppad av Runways innehållsgranskning). Agentens läsning: Aleph 2 med styrbild följer dockan nästan ruta
+   för ruta och behåller bordet; Kling 4 kan klä dockan direkt ur bilderna (hans fråga), men tar då bakgrunden ur dem
+   och lägger kortet med baksidan upp. Lärdomarna står i skillen `runway`. Nästa omgång, efter hans dom: vilan till skon
+   som ett eget klipp, så att skarven i ankaret syns, och sedan plats 1 och 7.
 
    En tagning per sätt (hans regel i `bestalla-film`). Skattat ur prislistan 2026-11-26: cirka 800 krediter för allt
    (ankarna 100–250, Aleph 195, jämförelsen 205, plats 1 och 7 cirka 220). Anropen läggs som prov genom

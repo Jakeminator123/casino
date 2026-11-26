@@ -98,7 +98,8 @@ en riktig person. Sätten som finns i dag, i den ordning de är värda att pröv
 2. **Kling 4 med första och sista bild och dockans film som referensfilm.** Det sätt givarna till Paow är gjorda med
    (`bestalla-film`).
 3. **Kling 4 som redigerare** (`/v1/video_to_video`) med dockans film som källa och personens ankare som första bild.
-4. **Gemini Omni 1.2 Flash, `edit`:** under hälften av Alephs pris, oprövad hos oss.
+4. **Gemini Omni 1.2 Flash, `edit`:** under hälften av Alephs pris, men stoppad av innehållsgranskningen när foton av
+   en person följde med (2026-11-26).
 5. **Seedance 2.5, `edit`:** dyrast (drygt tre gånger Aleph i 1080p); en reserv om de andra tappar utseendet.
 
 Vad som måste finnas före en körning, vilket sätt det än är:
@@ -118,8 +119,22 @@ Vad som måste finnas före en körning, vilket sätt det än är:
 - Aleph som rättare av en färdig film föll; det är en annan sak än att göra om en dockfilm.
 - Kling 4 kopierar referensfilmens väg och takt nästan bildpunkt för bildpunkt, och som redigerare från en annan stol
   fick den Jakobs "Bra" (2026-11-18, 2026-11-24). Resten står i `bestalla-film`, "Modellerna".
-- Inte prövat hos oss: styrbilder i Aleph 2 genom API:t, Gemini Omni 1.2, Seedance 2.5 som redigerare, Act-Two med
-  dockan som den som spelar, och flera kameror bredvid varandra i en och samma film.
+- Första provet genom API:t, 2026-11-26: dockans giv till plats 4 (4 s, 1764 x 1174, 30 bilder/s, spelets kamera)
+  omgjord till en provperson, en tagning per sätt. Det här är agentens läsning; Jakobs dom står i provet
+  `docka-till-person-20261126`, och underlaget i `slask/standarddocka/granska/docka-till-person-1/`.
+  - **Aleph 2 med en styrbild vid sekund 0** (första rutan omgjord till personen): följer dockan nästan ruta för ruta,
+    och personen, bordet och bakgrunden är styrbildens hela filmen. Ut kom infilmens mått och bildtakt. 112 krediter.
+  - **Aleph 2 med bara text:** en annan man i ett annat rum, föremålen ändrade och ett kort för mycket. Duger inte för en
+    bestämd person.
+  - **Kling 4 som redigerare med personens tre foton**, utan första bild: det blir han, och rörelsen följer dockan, men
+    bakgrunden kommer ur fotona, kortet läggs med baksidan upp och filmen får 24 bilder/s. 91 krediter.
+  - **Gemini Omni 1.2, `edit`, med foton av en person:** stoppad av innehållsgranskningen; inget levererat och inget
+    draget. Görs inte om med ansiktsfoton.
+  - **Styrbilden:** GPT Image 2.6 (`1920:1280`, rutan och tre foton som referens, 10 krediter) höll ställningen, blicken
+    och scenen; Nano Banana Pro (`2528:1696`, 20 krediter) lät personen titta in i kameran och bytte bakgrund.
+- Inte prövat hos oss: en annan kamera än spelets, skarven mellan två klipp som möts i samma ankare, flera styrbilder i
+  samma film, Kling 4 med styrbilden som första bild, Seedance 2.5 som redigerare, Act-Two med dockan som den som
+  spelar, och flera kameror bredvid varandra i en och samma film.
 
 ## Kopplingar för kodagenter
 
