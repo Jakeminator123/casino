@@ -20,7 +20,8 @@ if not exist "paket\unity\Assets" (
         exit /b 1
     )
 )
-node visa\server.ts --oppna
+rem (utan Nodes varning om att lasa TypeScript ar pa forsok: den ser ut som ett fel men ar inget)
+node --disable-warning=ExperimentalWarning visa\server.ts --oppna
 if errorlevel 1 (
     echo.
     echo Visaren stannade med ett fel. Fonstret stangs nar du trycker pa en tangent.
