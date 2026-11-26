@@ -23,7 +23,7 @@ import {bendsOf, fingerFrom, handFaults} from '../src/hand-rule.ts';
 import {FINGERS} from '../src/capture.ts';
 import {arm, turned} from '../src/body.ts';
 import {armbageOverKanten, underarmLuft, type Kant} from '../src/ren-giv.ts';
-import {STANDARDBORD, bordet, franLadan, handHud, kantFor, kroppen} from './hud.ts';
+import {SKON_FLYTT, STANDARDBORD, bordet, franLadan, handHud, kantFor, kroppen} from './hud.ts';
 import {spots, type Plan} from '../src/world.ts';
 
 const arg = (name: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
@@ -65,8 +65,10 @@ function bojdSom(hans: Vec3[], hennes: Vec3[]): Vec3[] {
 }
 const axlarAv = (at: HandPlace): Axes => ({forward: unit(at.forward), palm: unit(at.palm), across: cross(unit(at.palm), unit(at.forward))});
 /** Hans hand där hennes håller kortet i skon: samma axlar, handleden flyttad så att pek-, lång- och ringfingrets toppar i medel är där hennes är. */
-// (och lyft ut ur kortet längs dess yta, en halv millimeter i taget, tills inget av pek-, lång- och ringfingret är i det)
-const skonsKort = (JSON.parse(readFileSync(path.join(ROOT, 'blackjack-dealer/dealer3d/data/ankare-2-3-paow.json'), 'utf8')) as {frame: {card: {c: Vec3; l: Vec3; n: Vec3}}}).frame.card;
+// (och lyft ut ur kortet längs dess yta, en halv millimeter i taget, tills inget av pek-, lång- och ringfingret är i det;
+// vid standarddockornas sko, hud.ts SKON: kortet i Paows ankare och hennes hand där flyttade lika långt som skon)
+const paowsKort = (JSON.parse(readFileSync(path.join(ROOT, 'blackjack-dealer/dealer3d/data/ankare-2-3-paow.json'), 'utf8')) as {frame: {card: {c: Vec3; l: Vec3; n: Vec3}}}).frame.card;
+const skonsKort = {...paowsKort, c: add(paowsKort.c, SKON_FLYTT)}, vidSkon = (at: HandPlace): HandPlace => ({...at, wrist: add(at.wrist, SKON_FLYTT)});
 const paKortet = (S: Vec3[], hennes: Vec3[], at: HandPlace): HandPlace => { const a = axlarAv(at), toppar = (p: Vec3[]) => mul(add(add(p[8], p[12]), p[16]), 1 / 3);
   let w = add(at.wrist, sub(toppar(placed(hennes, a, at.wrist)), toppar(placed(S, a, at.wrist)))); const ut = mul(skonsKort.n, Math.sign(dot(sub(toppar(placed(S, a, w)), skonsKort.c), skonsKort.n)) || 1);
   for (let k = 0; k < 20 && handFaults(placed(S, a, w), -1, null, skonsKort).some(x => x.kind === 'kortet' && x.fingers.some(g => g >= 1 && g <= 3)); k++) w = add(w, mul(ut, 0.0005));
@@ -75,11 +77,11 @@ const P = PAOW.hand!, [hoger, vanster] = egen;
 const hand: DollHand = {anchor: P.anchor, right: bojdSom(hoger, P.right), left: bojdSom(vanster, P.left), at: {right: P.at.right, left: P.at.left},
   // (topparnas tjocklek på huden: pek- och långfingrets, och tummens, med 0,3 mm till godo)
   topp: {finger: Math.round((Math.max(H[0].toppar[1].radie, H[0].toppar[2].radie, H[1].toppar[1].radie, H[1].toppar[2].radie) + 0.0003) * 10000) / 10000, thumb: Math.round((Math.max(H[0].toppar[0].radie, H[1].toppar[0].radie) + 0.0003) * 10000) / 10000}};
-hand.at = {right: P.at.right, left: paKortet(hand.left, P.left, P.at.left)}; // (högerhanden läggs på filten nedan)
+hand.at = {right: P.at.right, left: paKortet(hand.left, P.left, vidSkon(P.at.left))}; // (högerhanden läggs på filten nedan)
 hand.grip = {right: bojdSom(hoger, P.grip!.right), left: bojdSom(vanster, P.grip!.left)};
 const restR = bojdSom(hoger, P.rest!.right), restL = bojdSom(vanster, P.rest!.left);
 hand.rest = {right: restR, left: restL, at: P.rest!.at}; // (lägena läggs i vilan nedan)
-const natL = bojdSom(vanster, P.natural!.left); hand.natural = {left: natL, at: {left: paKortet(natL, P.natural!.left, P.natural!.at.left)}};
+const natL = bojdSom(vanster, P.natural!.left); hand.natural = {left: natL, at: {left: paKortet(natL, P.natural!.left, vidSkon(P.natural!.at.left))}};
 
 // ---- platsen -------------------------------------------------------------------------------------------------------
 // Var standarddockan sitter, samma för mannen och kvinnan (Jakob 2026-11-26: "så man inte behöver jobba dubbelt för
@@ -91,6 +93,8 @@ const natL = bojdSom(vanster, P.natural!.left); hand.natural = {left: natL, at: 
 // ("okej" i spelets vy, Bra från sidan; 0,35 klipper huvudet). --hojd, --bakom och --kant-bak prövar andra tal utan att
 // skriva dockan. Bordets modell kan vara byggd med en annan kant (bygg_bord.py --kant-bak): kanten, brickan och
 // sargen räknas då dit SITS.kantBak säger.
+/** Hur långt standarddockan lutar framåt och vrider sig när armen inte räcker, radianer (doll.ts mostLean, mostTwist). */
+const BAL = {luta: 25 * Math.PI / 180, vrida: 20 * Math.PI / 180};
 const SITS = {bakom: Number(arg('--bakom') ?? 0.38), hojd: Number(arg('--hojd') ?? 0.31), kantBak: Number(arg('--kant-bak') ?? STANDARDBORD.kantBak)};
 if (PAOW.place.kind !== 'joints') throw Error('Paows plats är inte lederna.');
 const lens = TABLE_LENS, paowMitt = (() => { const f = dollFrame(lens, PAOW); return mul(add(f.shoulders[0], f.shoulders[1]), 0.5); })();
@@ -101,7 +105,7 @@ const place: Extract<DollPlace, {kind: 'seat'}> = {kind: 'seat', behindEdge: SIT
   neck: r4(sub(led('neck'), mid)), head: r4(sub(huvudMitt, mid)), headRadius: Math.round((hjassa - haka) / 2 * 10000) / 10000};
 const upperArm = Math.round(medel(overarm) * 1000) / 1000, forearm = Math.round(medel(underarm) * 1000) / 1000;
 const HANS = NAMN === 'man' ? 'hans' : 'hennes';
-const dollUtanVila: Doll = {name: NAMN, upperArm, forearm, reach: Math.round((upperArm + forearm) * 0.972 * 1000) / 1000, mostLean: PAOW.mostLean, mostTwist: PAOW.mostTwist,
+const dollUtanVila: Doll = {name: NAMN, upperArm, forearm, reach: Math.round((upperArm + forearm) * 0.972 * 1000) / 1000, mostLean: BAL.luta, mostTwist: BAL.vrida,
   hipBelowFelt: Math.round((place.trunk - place.shoulderHeight) * 10000) / 10000, elbowPoles: PAOW.elbowPoles, elbowAtRest: PAOW.elbowAtRest, hand, place, shape: PAOW.shape, about: {}};
 const fram = dollFrame(lens, dollUtanVila);
 
@@ -210,7 +214,7 @@ const doll: Doll = {...dollUtanVila, hand,
     forearm: `mätt: armbågs- till handled ${underarm.map(mm).join(' och ')} mm`,
     hipBelowFelt: 'följer av platsen: bålen (place.trunk) minus axlarnas höjd',
     reach: 'gissat som Paows: armarnas summa gånger 0,972',
-    mostLean: 'övertaget från paow', mostTwist: 'övertaget från paow', elbowPoles: 'övertaget från paow', elbowAtRest: 'övertaget från paow',
+    mostLean: `gissat: ${Math.round(BAL.luta * 180 / Math.PI)} grader framåt i höften, när armen nästan är utsträckt; en sittande dealer som når långt fram böjer sig mest framåt (Paows 12 grader var för lite för en docka som sitter högre)`, mostTwist: `gissat: ${Math.round(BAL.vrida * 180 / Math.PI)} grader, lutningen gör det mesta (Paows 36 grader såg ut som att hela överkroppen vreds mot platsen)`, elbowPoles: 'övertaget från paow', elbowAtRest: 'övertaget från paow',
     shape: `övertaget från paow (den vita figuren som ritas i ${HANS} ställe; ${HANS} kropp är modellens)`,
     hand: `mätt: handleden (RightHand, LeftHand), tummens rot, mellanled och ytterled (Thumb1-3), varje fingers knoge, mellanled och ytterled (Index1-3 … Pinky1-3) i vilopose; knogarna ${knogar(hoger)} mm från handleden till höger, pekfingrets ben ${ben(hoger, 1)} mm. Topparna mätta på huden: mitt i fingertoppens rundning, en fingerradie innanför fingrets slut (radien vid toppen ${toppText(0)} mm till höger). Formerna (right, left, grip, rest, natural) är Paows former med ${HANS} egna ben: varje fingerled böjd lika mycket som Paows (hand-rule.ts bendsOf), tummens ben pekande som hennes i handens axlar; knogarna och benlängderna är ${HANS}. topp: pek- och långfingrets och tummens topp på huden (radien), 0,3 mm till godo: så långt från kortet och filten lägger givarna topparnas punkter`,
     handAt: `ankaret 2.3 (at): högerhanden där Paows ligger (handens mitt på hennes, flyttad så lite som håller den ${VILA.kortLuft * 1000} mm från dealerns kortplatser: ${ankR.kort.map(x => Math.round(x * 1000)).join('/')} mm), lagd på ${HANS} hud som vilan (docka-standard.ts lagg): pekande som underarmen, lutad ${ankR.lutad} grader, handflatan och fingrarna 1-2 mm över filten, underarmen ${Math.round(ankR.luft * 1000)} mm över filten, armbågen ${Math.round(ankR.ut * 10) / 10} cm ut; vänsterhanden vid skon med Paows axlar och handleden flyttad så att pek-, lång- och ringfingrets toppar i medel ligger där hennes gör på kortet`,

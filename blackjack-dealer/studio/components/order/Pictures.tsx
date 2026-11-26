@@ -142,7 +142,7 @@ export function PictureCard({ picture, owner, dealer, planned, className }: { pi
           </Badge>
         ) : null}
       </figcaption>
-      <div className="relative aspect-[1764/1174] overflow-hidden rounded-lg border border-line bg-well">
+      <div className="relative aspect-1764/1174 overflow-hidden rounded-lg border border-line bg-well">
         {src ? (
           <button type="button" onClick={() => setOpen(true)} className="block size-full cursor-zoom-in" aria-label={`Visa ${pictureName(picture)} stort`}>
             {/* eslint-disable-next-line @next/next/no-img-element -- a lab file; next/image cannot optimise in a static export */}

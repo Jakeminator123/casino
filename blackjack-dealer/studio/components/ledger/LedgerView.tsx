@@ -81,7 +81,7 @@ export function LedgerView() {
           <Skeleton className="h-40 w-full" />
           <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
             {Array.from({ length: 6 }, (_, i) => (
-              <Skeleton key={i} className="aspect-[3/4]" />
+              <Skeleton key={i} className="aspect-3/4" />
             ))}
           </div>
         </div>

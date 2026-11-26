@@ -34,7 +34,7 @@ function ProofCard({ proof, waiting, said }: { proof: Proof; waiting: number; sa
       className="group flex h-full flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-inset transition-[border-color,background-color] duration-150 hover:border-line-strong hover:bg-raised/50 focus-visible:outline-offset-2"
     >
       <div className="relative">
-        <ProofStill cover={cover} fps={proof.fps} className="aspect-[16/10] transition-[filter] duration-200 group-hover:brightness-110" />
+        <ProofStill cover={cover} fps={proof.fps} className="aspect-16/10 transition-[filter] duration-200 group-hover:brightness-110" />
         {waiting ? (
           <span className="pointer-events-none absolute left-2 top-2 rounded-xs bg-black/70 px-1.5 py-0.5 text-2xs font-medium text-brass-hi backdrop-blur-sm">
             {waiting === 1 ? "1 tagning väntar" : `${waiting} tagningar väntar`}

@@ -126,7 +126,7 @@ function RowFrame({ role, step, status, count, missing, last = false, children }
 }
 
 function Strip({ children }: { children: ReactNode }) {
-  return <ul className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:thin]">{children}</ul>;
+  return <ul className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">{children}</ul>;
 }
 
 /** An empty role: the frame of a missing picture and what its absence means. */
@@ -238,7 +238,7 @@ function SeatEndTile({ row, bank, onOpen }: { row: SeatEndRow<EntryAnswer>; bank
   const title = !end ? `${row.label}: ingen landningsbild gäller, och banken har ingen egen film dit med en retur du har godkänt rakt.` : end.kind === "LANDNING" ? `${row.label}: ${end.entry.name}` : `${row.label}: ruta ${end.cut.frame} ur ${end.cut.clip}, där returen börjar`;
   const inner = (
     <>
-      {cover ? <ProofStill cover={cover} fps={fps} className="aspect-[3/2] w-full rounded-xs" /> : <span className="grid aspect-[3/2] w-full place-items-center rounded-xs border border-dashed border-underkand/40 text-lg text-[#ef8b8b]">✕</span>}
+      {cover ? <ProofStill cover={cover} fps={fps} className="aspect-3/2 w-full rounded-xs" /> : <span className="grid aspect-3/2 w-full place-items-center rounded-xs border border-dashed border-underkand/40 text-lg text-[#ef8b8b]">✕</span>}
       <span className="flex items-baseline justify-between gap-2">
         <span className="text-md font-semibold text-ink">{row.label}</span>
         <span className={cn("text-xs", END_TONE[word])}>{word}</span>

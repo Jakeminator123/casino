@@ -18,7 +18,7 @@ export function QueueFrame({ menu, status, actions, bar, children }: { menu: Rea
             </>
           ) : null}
         </div>
-        <div data-queue className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+        <div data-queue className="min-h-0 flex-1 overflow-y-auto scrollbar-gutter-stable">
           <div className="mx-auto w-full max-w-[1680px] px-6 pb-10 pt-5">{children}</div>
         </div>
       </div>

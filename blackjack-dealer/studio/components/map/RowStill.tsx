@@ -30,7 +30,7 @@ export function RowStill({ take, onOpen, className }: { take: Take; onOpen: () =
   return (
     <div className={cn("group/still relative w-[132px] shrink-0", className)}>
       {playing ? (
-        <div className="aspect-[3/2] w-full">
+        <div className="aspect-3/2 w-full">
           <FilmPlayer
             ref={player}
             src={take.media.video ?? null}

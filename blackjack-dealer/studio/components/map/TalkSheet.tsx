@@ -97,7 +97,7 @@ export function TalkSheet({
               </figcaption>
             </figure>
           ) : (
-            <div className="grid aspect-[3/2] w-full place-items-center rounded-md border border-dashed border-line-strong px-6 text-center">
+            <div className="grid aspect-3/2 w-full place-items-center rounded-md border border-dashed border-line-strong px-6 text-center">
               <span className="flex flex-col gap-1.5">
                 {line ? <span className="text-sm text-dim">”{line.text}”</span> : null}
                 <span className="text-xs text-faint">

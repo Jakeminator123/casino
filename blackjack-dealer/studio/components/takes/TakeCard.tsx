@@ -128,7 +128,7 @@ export function TakeCard({
         </div>
       ) : (play || onExpand) && film && !row ? (
         // Over the still, outside the card's own button: a button may not sit inside another.
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex aspect-[3/2] items-center justify-center">
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex aspect-3/2 items-center justify-center">
           {play ? (
             <button
               type="button"

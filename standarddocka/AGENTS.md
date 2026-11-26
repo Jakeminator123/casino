@@ -107,6 +107,20 @@ rörelse prövas mot innan den visas för honom.
   och kort." Om rutan där kortet läggs på plats 4 (handen knuten kring kortet, kortet på högkant): "vad gör dealern
   ens? Förstår skripten att vi faktiskt byter hand?" Det ska synas vad varje hand gör: vänsterhanden drar kortet ur
   skon, högerhanden tar det i ett öppet grepp, vänder det och lägger det, utan knuten hand och utan kort på högkant.
+- **Kortets vändning (2026-11-26).** Två gånger om givar han fick se: "kortet vänds åt fel håll". Hans beskrivning:
+  "Dealerns vänstra hand trycker ut kortet. Dealerns högra hand (vänster från kamera) tar emot det med sin tumme ned
+  och vänder över kortet cirka 100 grader i nyckelvridningsrotation medan armen förs mot P4C1 typ. Du kan också,
+  vilket vi kan prova, att skapa en annan version när kortet på smart/enkelt vis vänds över när kortet är väldigt
+  nära där det ska landa också som alternativ." Om var händerna möts: "Låt alla möten mellan handen som drar fram
+  kort och det som tar emot mötas mer i mitten av bordet kanske?" Så läses det, mätt på två lärofilmer av dealrar som
+  ger ur en sko: vänsterhanden drar ut kortet plant och reser det på högkant med framsidan mot dealern; högerhanden
+  kommer med handryggen upp och nyper kortets övre kant ovanifrån, fingertopparna på ryggen och tummen pekande nedåt
+  längs framsidan ("tumme ned" är alltså inte tummen under ett plant kort); den rullar kortet framåt, bort från
+  dealern, med en utåtvridning av underarmen på cirka 90–100 grader, så att framsidan är uppe före halva vägen;
+  sedan bärs kortet plant och lågt, sätts ned plant, skjuts någon centimeter på plats och släpps. Vänsterhanden
+  stannar vid skon. "Utan kort på högkant" ovan gäller ett kort som ställs eller blir stående vid platsen, inte
+  resningen i bytet. Alternativet: samma grepp, men rullningen sker först strax före platsen. Riktiga dealrar byter
+  hand vid skons mynning och ger på cirka en halv sekund; mötet mer mot mitten och takten är hans val.
 - **Standardkortet är editorns (2026-11-26).** "Våra kort som används i 'standarddocka'-mappens editor är det som ska
   användas som standard, och finns låsningar och standarder som säger annat, stryk/radera/ändra det." Kortet är
   bordets eget (Blenders kort, 63 x 88 mm), i editorn och i studions dockvy.
@@ -124,6 +138,12 @@ rörelse prövas mot innan den visas för honom.
   Inte bra ("okej vi fimpar dena då") och halvmånen Bra: bordet är 0,95 m djupt (en halvcirkel) och skon står 8,5 cm
   längre ut åt dealerns vänster. Om samma bilder: "kortet från skon finns nu på 2 ställen": rörelsens kort ligger där
   skon står, aldrig på skons förra plats. Talen står i `DOLL_TABLE` i `../blackjack-dealer/src/table-lens.ts`.
+- **Kortplatserna vända mot varje spelare (2026-11-26, en fråga, inte en dom än).** "Dessa markörer för korten, de ska
+  väl vridas så att respektive spelare, givet att man inte sitter just mittemot, ska kunna få korten mot sig? Osäker
+  på om detta förändrar någonting". På dockornas bord prövas platserna vridna mot sin spelare (plats 4 rakt, de yttre
+  mest), i bild uppifrån och från plats 1, innan givarna till de sex andra platserna ritas; given till plats 4 berörs
+  inte. Hans kortplan (`../blackjack-dealer/placements/default.json`) har vinkeln 0 på alla platser i filmernas ruta
+  och 21 grader på de yttre i mobilens; filmernas plan ändras inte av det här.
 - **Inte trångt framför dealern (2026-11-26).** "Tänk på att du med fördel kan skjuta fram både sko/kort och dess
   placeringar om du skjuter fram dealern. Annars kanske det liksom blir för trångt?" När dockan och bordet kommer
   närmare varandra ska händerna i vilan, brickan, dealerns egna kort och skon fortfarande ha plats: ingen hand vilar

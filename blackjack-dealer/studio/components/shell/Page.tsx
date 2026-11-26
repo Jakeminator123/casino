@@ -33,7 +33,7 @@ export function Page({
         ) : null}
         {actions ? <div className="ml-auto flex shrink-0 items-center gap-2">{actions}</div> : null}
       </header>
-      <main className={cn("relative min-h-0 flex-1", full ? "overflow-hidden" : "overflow-y-auto [scrollbar-gutter:stable]", className)}>
+      <main className={cn("relative min-h-0 flex-1", full ? "overflow-hidden" : "overflow-y-auto scrollbar-gutter-stable", className)}>
         {full ? children : <div className="mx-auto w-full max-w-[1680px] px-6 pb-10 pt-6">{children}</div>}
       </main>
     </div>

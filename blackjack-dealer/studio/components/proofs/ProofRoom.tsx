@@ -111,7 +111,7 @@ export function ProofRoom({ proof, file, named, notes, onFile }: { proof: Proof;
               <div className="flex h-10 shrink-0 items-center gap-2 border-b border-line px-3.5 text-sm font-semibold text-ink">
                 <Film className="size-4 text-dim" /> {films.length} filmer
               </div>
-              <ol className="min-h-0 flex-1 overflow-y-auto p-1.5 [scrollbar-gutter:stable]">
+              <ol className="min-h-0 flex-1 overflow-y-auto p-1.5 scrollbar-gutter-stable">
                 {films.map((f, i) => {
                   const on = f === film;
                   return (
@@ -124,7 +124,7 @@ export function ProofRoom({ proof, file, named, notes, onFile }: { proof: Proof;
                       >
                         {on ? <span aria-hidden className="absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-brass" /> : null}
                         <span className="w-5 shrink-0 text-center text-2xs text-faint tabular-nums">{i + 1}</span>
-                        <ProofStill cover={{ kind: "video", path: f.file.path, frame: Math.round(proof.fps || 30) }} fps={proof.fps} className="aspect-[3/2] w-[84px] shrink-0 rounded-sm" />
+                        <ProofStill cover={{ kind: "video", path: f.file.path, frame: Math.round(proof.fps || 30) }} fps={proof.fps} className="aspect-3/2 w-[84px] shrink-0 rounded-sm" />
                         <span className="flex min-w-0 flex-1 flex-col gap-1">
                           <span className={cn("line-clamp-2 text-sm leading-[18px]", on ? "text-ink" : "text-ink/85")} title={f.label}>
                             {f.name}
@@ -157,7 +157,7 @@ export function ProofRoom({ proof, file, named, notes, onFile }: { proof: Proof;
                     title={`${p.name}: visa stor`}
                     className="group relative overflow-hidden rounded-lg border border-line bg-well transition-[border-color] duration-150 hover:border-line-strong focus-visible:outline-offset-2"
                   >
-                    <ProofStill cover={{ kind: "image", path: p.file.path }} fit="contain" className="aspect-[16/10] transition-transform duration-300 group-hover:scale-[1.015]" />
+                    <ProofStill cover={{ kind: "image", path: p.file.path }} fit="contain" className="aspect-16/10 transition-transform duration-300 group-hover:scale-[1.015]" />
                   </button>
                   <figcaption className="flex flex-col gap-1.5 px-0.5">
                     <FileName entry={p} />

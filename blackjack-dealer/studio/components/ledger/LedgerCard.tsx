@@ -46,7 +46,7 @@ function Still({ row }: { row: LedgerRow }) {
   }
   const src = see.picture ?? see.stand;
   return (
-    <div className="relative aspect-[3/2] overflow-hidden rounded-md border border-line bg-well">
+    <div className="relative aspect-3/2 overflow-hidden rounded-md border border-line bg-well">
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element -- a lab file; a static export cannot optimise
         <img src={labUrl(src)} alt={row.title} loading="lazy" className={cn("size-full object-cover", !see.picture && "opacity-35 grayscale")} />

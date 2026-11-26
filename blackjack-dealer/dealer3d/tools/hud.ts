@@ -8,7 +8,7 @@ import {turned} from '../src/body.ts';
 import {lasDelar, lasDocka} from './modell.ts';
 import {larRiktning} from '../src/sitter.ts';
 import {fingertopp} from '../src/fingertopp.ts';
-import {dealerEdge} from '../src/world.ts';
+import {SHOE, dealerEdge, dollShoe, shoeCard, shoePose} from '../src/world.ts';
 import {TABLE_BASE, TABLE_LENS} from '../../src/table-lens.ts';
 
 /**
@@ -17,6 +17,13 @@ import {TABLE_BASE, TABLE_LENS} from '../../src/table-lens.ts';
  * eller skon). Modellen kan vara byggd med en annan kant; bordet() räknar då kanten dit kantBak säger.
  */
 export const STANDARDBORD = {fil: 'avatar-auto-pipeline/assets/bord/standardbord_nara23.glb', kantBak: 0.23};
+/**
+ * Skon vid standarddockornas bord (Jakob 2026-11-26: halvmånen, skon längre ut och lite mot spelarna; table-lens.ts
+ * DOLL_TABLE och dollShoe), och hur långt kortet i dess fönster ligger från kortet i filmernas sko (SHOE): skon flyttas
+ * utan att vridas, så kortet i skon och vänsterhanden där flyttas lika långt.
+ */
+export const SKON = dollShoe(TABLE_LENS);
+export const SKON_FLYTT: Vec3 = sub(shoeCard(shoePose(TABLE_LENS, SKON), SKON).centre, shoeCard(shoePose(TABLE_LENS, SHOE), SHOE).centre);
 /** Underarmarnas luft över bordets kant (dealer3d/src/ren-giv.ts Kant) för dockan `d` vid bordet `bord`: editorn i standarddocka vill ha 1 cm (armar.ts), här 12 mm. */
 export const kantFor = (d: Docka, bord: ReturnType<typeof bordet>) => { const r = underarmRadie(d, 'Right'), l = underarmRadie(d, 'Left');
   return {z: bord.kantZ, y: bord.skivaY, radie: r.map((x, k) => Math.max(x, l[k])), luft: 0.012, handen: 0.2}; };
@@ -66,6 +73,8 @@ function kortast(a: Vec3, b: Vec3): R3 { const ax = cross(a, b), s = length(ax),
 const mellanAxlar = (fran: R3, till: R3): R3 => { const M = (v: Vec3) => add(add(mul(till[0], dot(fran[0], v)), mul(till[1], dot(fran[1], v))), mul(till[2], dot(fran[2], v))); return [M([1, 0, 0]), M([0, 1, 0]), M([0, 0, 1])]; };
 const flatt = (n: Vec3, axel: Vec3) => unit(sub(n, mul(axel, dot(n, axel))));
 const FINGRAR = [['Thumb', 1], ['Index', 5], ['Middle', 9], ['Ring', 13], ['Pinky', 17]] as const, WRIST = 50 * Math.PI / 180;
+/** Underarmens vridning som figure-model.ts FOREARM: hela upp till `full`, mjukt mot högst `most` (radianer). */
+const FOREARM = {full: 70 * Math.PI / 180, most: 95 * Math.PI / 180};
 const tung = (d: Docka) => d.hud.pa.map(p => d.hud.leder[p.reduce((a, b) => b.vikt > a.vikt ? b : a).led]);
 
 /**
@@ -88,20 +97,51 @@ export function handHud(d: Docka, sida: 'Right' | 'Left') {
   d.hud.horn.forEach((_, i) => { const dm = dom[i]; if (!namnTill.has(dm) || dm === `${sida}ForeArm`) return; const pa = d.hud.pa[i], tot = pa.reduce((s, x) => s + (namnTill.has(d.hud.leder[x.led]) ? x.vikt : 0), 0);
     if (tot < 0.99) return; horn.push(i); const k = namnTill.get(dm)!; finger.push(k === 0 ? -1 : Math.floor((k - 1) / 3)); });
   const huvudVila = [W0, ...huvud0.flat(), F0];
-  function stall(p: Vec3[], armbage: Vec3) {
+  // Underarmen som figure-model.ts ställer den: överarmen riktad mot armbågen och vriden så att armbågens gångjärn (som
+  // modellen är gjord, i överarmens egna axlar) står vinkelrätt mot det plan armen böjs i, underarmen riktad mot
+  // handleden i det planet, och sedan vriden kring sin längd så långt handen ber om, helt upp till FOREARM.full och
+  // mjukt mot högst FOREARM.most (resten tar handleden).
+  const S0 = led(`${sida}Arm`), u0 = unit(sub(F0, S0)), f0 = unit(sub(W0, F0)), g0 = (() => { const n = cross(u0, f0); return length(n) < 0.1 ? unit(cross(u0, [0, 0, 1])) : unit(n); })();
+  const omkring = (ax: Vec3, x: number): R3 => I.map(e => turned(e, ax, x)) as R3;
+  const tumme = (palm: Vec3, fwd: Vec3) => sign > 0 ? cross(fwd, palm) : cross(palm, fwd);
+  /**
+   * Underarmens vridning för handens punkter `p`, armbågen `armbage` och axeln `axel` (radianer; `forre`: förra rutans,
+   * så att en hand som vänds förbi ett halvt varv tas den väg som ligger närmast): hela vridningen handen ber om
+   * (`vrid`), den del underarmen tar (`underarm`), och den i grader med tecknet som figure-model.ts measure (`grader`,
+   * positivt åt det håll en högerhands handflata vänds upp).
+   */
+  function vridning(p: Vec3[], armbage: Vec3, axel: Vec3, forre: number | null = null) {
+    const u = unit(sub(armbage, axel)), fore = unit(sub(p[0], armbage)), bojn = cross(u, fore);
+    const n = length(bojn) > 0.02 ? unit(bojn) : g0, Du = mellanAxlar([u0, g0, cross(u0, g0)], [u, n, cross(u, n)]), fu = rot(Du, f0);
+    const Df = efter(omkring(n, Math.atan2(dot(cross(fu, fore), n), dot(fu, fore))), Du);
+    const fram = unit(sub(p[9], p[0])), palmVag = mul(cross(sub(p[5], p[0]), sub(p[17], p[0])), sign), vilaFram = rot(Df, A0[0]), vilaPalm = rot(Df, A0[1]);
+    const tvars = (v: Vec3) => length(sub(v, mul(fore, dot(v, fore))));
+    let har = tumme(vilaPalm, vilaFram), vill = tumme(flatt(palmVag, fram), fram); if (tvars(har) < 0.3 || tvars(vill) < 0.3) { har = vilaPalm; vill = palmVag; }
+    har = flatt(har, fore); vill = flatt(vill, fore);
+    let vrid = Math.atan2(dot(cross(har, vill), fore), dot(har, vill));
+    if (forre !== null && Math.abs(vrid - forre) > Math.PI) { const annan = vrid - Math.sign(vrid - forre) * 2 * Math.PI; if (Math.abs(annan - forre) < 1) vrid = annan; }
+    const m = Math.abs(vrid), underarm = Math.sign(vrid) * (m <= FOREARM.full ? m : FOREARM.full + (FOREARM.most - FOREARM.full) * Math.tanh((m - FOREARM.full) / (FOREARM.most - FOREARM.full)));
+    return {vrid, underarm, grader: Math.round(underarm * sign * 1800 / Math.PI) / 10, Df};
+  }
+  /**
+   * Huden ställd efter rörelsens punkter `p`, armbågen `armbage` och (för underarmens vridning) axeln `axel`: en hand som
+   * står mer än 50 grader från underarmen vrids tillbaka hel kring handleden, fingrarna med, som figure-model.ts gör.
+   */
+  function stall(p: Vec3[], armbage: Vec3, axel?: Vec3, forre: number | null = null) {
     const fore = unit(sub(p[0], armbage)); let fram = unit(sub(p[9], p[0])); const fraga = Math.acos(Math.max(-1, Math.min(1, dot(fore, fram))));
-    if (fraga > WRIST) { const ax = unit(cross(fore, fram)); fram = turned(fore, ax, WRIST); }
+    const v = axel ? vridning(p, armbage, axel, forre) : null;
+    if (fraga > WRIST) { const ax = unit(cross(fore, fram)), till = turned(fore, ax, WRIST), Q = kortast(fram, till); p = p.map(q => add(p[0], rot(Q, sub(q, p[0])))); fram = till; }
     const palm = flatt(mul(cross(sub(p[5], p[0]), sub(p[17], p[0])), sign), fram), A: R3 = [fram, palm, cross(palm, fram)], Rh = mellanAxlar(A0, A);
     const Rs: R3[] = [Rh], H: Vec3[] = [p[0]];
     FINGRAR.forEach(([, start], k) => { let Rp = Rh, hp0 = W0, hp = p[0];
       for (let n = 0; n < 3; n++) { const h0 = huvud0[k][n], h = add(hp, rot(Rp, sub(h0, hp0))), till = sub(p[start + n + 1], p[start + n]);
         const R = length(till) > 1e-6 ? efter(kortast(rot(Rp, vag0[k][n]), unit(till)), Rp) : Rp; Rs.push(R); H.push(h); Rp = R; hp0 = h0; hp = h; } });
-    const Rf = kortast(unit(sub(W0, F0)), fore); Rs.push(Rf); H.push(armbage);
+    const Rf = v ? efter(omkring(fore, v.underarm), v.Df) : kortast(unit(sub(W0, F0)), fore); Rs.push(Rf); H.push(armbage);
     return horn.map(i => { const v0 = d.hud.horn[i]; let o: Vec3 = [0, 0, 0];
       for (const x of d.hud.pa[i]) { const k = namnTill.get(d.hud.leder[x.led]); if (k === undefined) continue; o = add(o, mul(add(H[k], rot(Rs[k], sub(v0, huvudVila[k]))), x.vikt)); }
       return o; });
   }
-  return {stall, finger, antal: horn.length};
+  return {stall, vridning, finger, antal: horn.length};
 }
 
 /** Underarmens radie på huden i tio delar från armbågen till handleden (meter), som standarddocka/editor/armar.ts mäter den. */

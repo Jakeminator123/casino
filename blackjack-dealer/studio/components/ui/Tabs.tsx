@@ -54,7 +54,7 @@ export function Tabs<T extends string>({
               "relative -mb-px inline-flex items-center gap-2 whitespace-nowrap rounded-t-sm border-b-2 font-medium transition-colors duration-150 [&_svg]:size-4 [&_svg]:shrink-0",
               size === "sm" ? "h-8 px-2.5 text-xs" : "h-10 px-3 text-sm",
               on ? "border-brass text-ink" : "border-transparent text-dim enabled:hover:text-ink disabled:cursor-not-allowed disabled:opacity-45",
-              "focus-visible:outline-offset-[-2px]",
+              "focus-visible:-outline-offset-2",
             )}
           >
             {item.icon}

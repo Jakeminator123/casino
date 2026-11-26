@@ -258,7 +258,7 @@ export function TreeNet({ answer, set }: { answer: TreeAnswer; set: Set }) {
                   return (
                     <div key={c.key} className={cn("flex flex-col gap-1.5 rounded-t-md border-x border-t px-2 pb-2 pt-2", on ? "border-brass/70 bg-brass/5" : "border-line bg-surface")}>
                       <span className="relative">
-                        <Picture entry={c.picture ? media.get(c.picture) : undefined} code={nodeCode(c.hub)} className="aspect-[3/2] w-full" />
+                        <Picture entry={c.picture ? media.get(c.picture) : undefined} code={nodeCode(c.hub)} className="aspect-3/2 w-full" />
                         {!c.helper ? (
                           <input
                             type="checkbox"

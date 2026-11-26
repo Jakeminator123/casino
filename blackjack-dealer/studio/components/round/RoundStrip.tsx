@@ -80,7 +80,7 @@ export function RoundStrip({
     <div
       ref={scroller}
       aria-label="Rundans steg"
-      className={cn("relative flex shrink-0 gap-2 overflow-x-auto px-3 py-2 [scrollbar-width:thin]", className)}
+      className={cn("relative flex shrink-0 gap-2 overflow-x-auto px-3 py-2 scrollbar-thin", className)}
     >
       {segments.map((seg, i) => <StepBox key={i} index={i} seg={seg} part={parts[i]} active={i === current} clock={clock} load={near.has(i)} onCue={onCue} />)}
     </div>
@@ -154,7 +154,7 @@ const StepBox = memo(function StepBox({
       <span className="flex min-w-0 flex-1 flex-col justify-center gap-px pr-1">
         {/* The step's name has the whole width and the take's name two lines; Obs or Skarv sits by the verdict chip. */}
         <span className="min-w-0 truncate text-sm font-semibold text-ink">{edge}</span>
-        <span className="line-clamp-2 break-words text-xs text-dim">{takeName(take, siblings)}</span>
+        <span className="line-clamp-2 wrap-break-word text-xs text-dim">{takeName(take, siblings)}</span>
         <span className="flex min-w-0 items-center gap-1.5">
           <TakeChip take={take} size="sm" />
           {notes.length ? (

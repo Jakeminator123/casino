@@ -22,7 +22,7 @@ import { QueueFrame } from "./QueueFrame";
 function Thumb({ picture }: { picture: Picture }) {
   const src = picture.path ? labUrl(picture.path) : null;
   return (
-    <div className="relative aspect-[1764/1174] min-w-0 flex-1 overflow-hidden rounded-md border border-line bg-well">
+    <div className="relative aspect-1764/1174 min-w-0 flex-1 overflow-hidden rounded-md border border-line bg-well">
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element -- a lab file; a static export cannot optimise
         <img src={src} alt={pictureName(picture)} className="size-full object-cover" loading="lazy" />

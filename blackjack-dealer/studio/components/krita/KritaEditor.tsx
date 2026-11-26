@@ -347,7 +347,7 @@ export function KritaEditor({
                       }
                     }}
                     onBlur={() => finishText(true, writing.id)}
-                    className="absolute min-w-24 resize-none overflow-hidden whitespace-pre rounded-xs border border-dashed border-white/50 bg-black/25 px-1 font-semibold leading-[1.25] outline-none [field-sizing:content] placeholder:text-white/40"
+                    className="absolute min-w-24 resize-none overflow-hidden whitespace-pre rounded-xs border border-dashed border-white/50 bg-black/25 px-1 font-semibold leading-tight outline-none field-sizing-content placeholder:text-white/40"
                     style={{ left: writing.at.x * scale - 5, top: writing.at.y * scale - fontPx * 0.66, fontSize: fontPx, color: COLOURS[colour].hex }}
                   />
                 ) : null}

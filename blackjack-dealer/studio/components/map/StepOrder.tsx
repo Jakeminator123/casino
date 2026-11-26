@@ -27,7 +27,7 @@ const STATE_LINE = { prov: "Prov: väntar på dom", saknas: "Saknas", finns: "Fi
 /** One of the step's two pictures; a click opens it large. */
 function Still({ entry, code, onOpen }: { entry: EntryAnswer | null; code: string; onOpen?: (entry: EntryAnswer) => void }) {
   const cover = entry ? coverOfEntry(entry) : null;
-  const box = cn("relative block aspect-[4/3] w-full overflow-hidden rounded-md", cover ? "border border-line-strong bg-well" : "border border-dashed border-line-strong");
+  const box = cn("relative block aspect-4/3 w-full overflow-hidden rounded-md", cover ? "border border-line-strong bg-well" : "border border-dashed border-line-strong");
   return (
     <figure className="flex min-w-0 flex-1 flex-col gap-1">
       {cover && entry && onOpen ? (
@@ -51,7 +51,7 @@ function Row({ label, need }: { label: string; need: Need }) {
         {need.ok ? <Check className="size-3" /> : <X className="size-3" />}
       </span>
       <span className="w-[92px] shrink-0 text-dim">{label}</span>
-      <span className="min-w-0 break-words text-ink">{need.what}</span>
+      <span className="min-w-0 wrap-break-word text-ink">{need.what}</span>
     </li>
   );
 }
@@ -148,7 +148,7 @@ export function StepOrder({ view, step, media, camera = null, onClose, onOpen }:
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs text-dim">Ett utkast av steget görs med</span>
                 <div className="flex items-stretch gap-2">
-                  <code className="min-w-0 flex-1 select-all break-words rounded-md border border-line bg-well px-2.5 py-2 font-mono text-[12.5px] leading-5 text-ink">
+                  <code className="min-w-0 flex-1 select-all wrap-break-word rounded-md border border-line bg-well px-2.5 py-2 font-mono text-[12.5px] leading-5 text-ink">
                     <Command text={order.command} />
                   </code>
                   <Button variant="secondary" size="md" icon={copied === order.command ? <Check /> : <Copy />} onClick={() => void copy(order.command)} className="h-auto">

@@ -36,7 +36,7 @@ const Tag = ({ side }: { side: MeetingSide }) => (
   </span>
 );
 
-const stage = "relative aspect-[3/2] w-full overflow-hidden rounded-md border border-line-strong bg-well";
+const stage = "relative aspect-3/2 w-full overflow-hidden rounded-md border border-line-strong bg-well";
 
 export function BridgeViewer({ meeting, bridges, media, onClose }: { meeting: Meeting | null; bridges: readonly BridgeDef[] | undefined; media: Media; onClose: () => void }) {
   const ab = meeting ? linkOf(bridges, meeting.a.entry, meeting.b.entry) : null;

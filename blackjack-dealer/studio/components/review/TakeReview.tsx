@@ -68,7 +68,7 @@ export function TakeReview({
   const provisional = provisionalOf(take.motion?.review);
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto px-5 pb-4 pt-4 [scrollbar-gutter:stable]">
+    <div className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto px-5 pb-4 pt-4 scrollbar-gutter-stable">
       <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
         <div className="flex min-w-0 flex-col gap-0.5">
           <div className="flex min-w-0 items-center gap-2.5">

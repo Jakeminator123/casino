@@ -185,7 +185,7 @@ export function Rail() {
       </Link>
       <DealerSwitch />
       <Rule />
-      <ul className="flex min-h-0 flex-col gap-0.5 overflow-y-auto [scrollbar-width:none]">
+      <ul className="flex min-h-0 flex-col gap-0.5 overflow-y-auto scrollbar-none">
         {SHOWN.map((view) => (
           <li key={view.href}>
             <ViewRow
@@ -222,7 +222,7 @@ export function Rail() {
         {isSnapshot ? null : (
           <>
             <Rule />
-            <span className="hidden px-6 pb-1 text-2xs font-semibold uppercase tracking-[0.1em] text-faint rail:block">Sidor bredvid</span>
+            <span className="hidden px-6 pb-1 text-2xs font-semibold uppercase tracking-widest text-faint rail:block">Sidor bredvid</span>
             {PAGE_LINKS.map(({ href, label, icon }) => (
               <a key={href} href={href} className={row(false, true)}>
                 <RowBody icon={icon} label={label} />

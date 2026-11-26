@@ -31,7 +31,7 @@ function Picture({ label, picture, fps }: { label: string; picture: OriginPictur
   return (
     <figure className="flex min-w-0 flex-col gap-1.5">
       <figcaption className="text-2xs font-semibold uppercase tracking-[0.08em] text-faint">{label}</figcaption>
-      <div className="grid aspect-[3/2] w-full place-items-center overflow-hidden rounded-md border border-line bg-well">
+      <div className="grid aspect-3/2 w-full place-items-center overflow-hidden rounded-md border border-line bg-well">
         {url && !failed ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt={`${label}: ${picture.words}`} loading="lazy" onError={() => setFailed(true)} className="size-full object-cover" />

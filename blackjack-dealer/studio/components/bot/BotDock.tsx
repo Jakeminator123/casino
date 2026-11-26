@@ -107,9 +107,9 @@ function ResizeHandle() {
         if (e.key === "ArrowLeft") bot.setWidth(bot.width + 16);
         if (e.key === "ArrowRight") bot.setWidth(bot.width - 16);
       }}
-      className="group absolute inset-y-0 -left-[5px] z-20 w-[9px] cursor-col-resize touch-none focus-visible:outline-none"
+      className="group absolute inset-y-0 left-[-5px] z-20 w-[9px] cursor-col-resize touch-none focus-visible:outline-none"
     >
-      <span className="absolute inset-y-0 left-1 w-px transition-colors group-hover:bg-line-strong group-focus-visible:bg-brass group-data-[drag]:bg-brass/70" />
+      <span className="absolute inset-y-0 left-1 w-px transition-colors group-hover:bg-line-strong group-focus-visible:bg-brass group-data-drag:bg-brass/70" />
     </div>
   );
 }
@@ -157,7 +157,7 @@ function Docked() {
           <IconButton label="Stäng" kbd="Esc" icon={<X />} onClick={() => bot.setOpen(false)} />
         </div>
       </header>
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 [scrollbar-gutter:stable]">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 scrollbar-gutter-stable">
         <PanelBody />
       </div>
       <div className="shrink-0 border-t border-line bg-surface px-4 pb-2.5 pt-3">

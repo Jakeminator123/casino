@@ -418,7 +418,7 @@ export default function Kit() {
                 <Spinner size="lg" className="text-brass" />
               </div>
               <div className="flex max-w-[220px] flex-col gap-2.5">
-                <Skeleton className="aspect-[3/2] w-full rounded-lg" />
+                <Skeleton className="aspect-3/2 w-full rounded-lg" />
                 <Skeleton className="h-3.5 w-2/3" />
                 <Skeleton className="h-3 w-1/2" />
               </div>
@@ -487,7 +487,7 @@ export default function Kit() {
             <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
               {Array.from({ length: 6 }, (_, i) => (
                 <div key={i} className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface pb-3">
-                  <Skeleton className="aspect-[3/2] w-full rounded-b-none rounded-t-[11px]" />
+                  <Skeleton className="aspect-3/2 w-full rounded-b-none rounded-t-[11px]" />
                   <Skeleton className="mx-3 h-3.5 w-2/3" />
                   <Skeleton className="mx-3 h-3 w-1/2" />
                 </div>

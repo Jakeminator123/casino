@@ -15,7 +15,7 @@ function BaseStill({ still }: { still: Still }) {
     <figure className="flex flex-col gap-1.5">
       <Link href={proofHref(still.proof, still.name)} aria-label="Öppna bilden i Prov" className="block overflow-hidden rounded-lg border border-line bg-well">
         {/* The strip is five mouths side by side: on a phone the first two (the rest film and A), from sm the whole. */}
-        <StillView still={still} className="aspect-[8/3] w-full object-cover object-left sm:aspect-[20/3]" />
+        <StillView still={still} className="aspect-8/3 w-full object-cover object-left sm:aspect-20/3" />
       </Link>
       <figcaption className="text-sm text-dim">Längst till vänster: vilofilmen, så som modellen ser den. Bredvid: modellens mun, inlagd i fyra storlekar (A–D).</figcaption>
       <Where>provet {still.proof}</Where>

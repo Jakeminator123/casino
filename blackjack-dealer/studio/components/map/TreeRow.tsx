@@ -97,7 +97,7 @@ function Item({ value, title, children }: { value: string; title?: string; child
     <RS.Item
       value={value}
       title={title}
-      className="relative flex cursor-pointer select-none items-center rounded-sm py-1.5 pl-7 pr-3 outline-none data-[highlighted]:bg-overlay"
+      className="relative flex cursor-pointer select-none items-center rounded-sm py-1.5 pl-7 pr-3 outline-none data-highlighted:bg-overlay"
     >
       <RS.ItemIndicator className="absolute left-2 inline-flex">
         <Check className="size-3.5 text-brass" />
@@ -163,7 +163,7 @@ export function TreeRow({
           </RS.Icon>
         </RS.Trigger>
         <RS.Portal>
-          <RS.Content position="popper" sideOffset={6} collisionPadding={12} className="z-50 max-h-[min(var(--radix-select-content-available-height),520px)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg border border-line-strong bg-raised shadow-pop data-[state=open]:animate-pop-in">
+          <RS.Content position="popper" sideOffset={6} collisionPadding={12} className="z-50 max-h-[min(var(--radix-select-content-available-height),520px)] min-w-(--radix-select-trigger-width) overflow-hidden rounded-lg border border-line-strong bg-raised shadow-pop data-[state=open]:animate-pop-in">
             <RS.Viewport className="p-1">
               <Item value={ALL_TREES} title="Alla träd i ett nät: A1, grenarna till A2.1, A2.2 och A2.3 och stegen under dem">
                 <Line pic={<span className="grid h-6 w-9 shrink-0 place-items-center rounded-[3px] border border-line-strong text-dim"><Network className="size-3.5" /></span>} name="Alla träd" word="nätet" />

@@ -20,7 +20,8 @@ insatsringarna, benen och kamerorna står kvar där standard.yaml har dem, och o
 Valet rättar också kanten och brickan: brickan sitter nedsänkt ända ute i dealerkanten och dess bakvägg är bordets
 kant där dealern sitter, i linje med kanten på båda sidor och med mässingslisten obruten längs hela kanten, i stället
 för ett hack som är öppet bakåt; sargen är hel under brickan och når filten; rullen följer sidorna och slutar rundad
-vid dealerkanten; brickan har rundade rännor där markerna ligger (rullarna stack annars ut genom brickans botten).
+vid dealerkanten; brickan har rundade rännor där markerna ligger (rullarna stack annars ut genom brickans botten); och
+där dealern sitter är sargen urtagen underifrån, så att bordet bara tar 5 cm under filten och låren går fria (KNAN).
 Det skriver assets/bord/standardbord_nara.blend/.glb för 0.15 (bordet de äldre rörelserna visas vid) och
 standardbord_nara<cm>.blend/.glb för ett annat avstånd (0.23 är standarddockans, där dockan sitter kvar på kortplanens
 plats och kanten kommer till den, Jakob 2026-11-26: bygg det med --docka, så får det också sin form och sin sko);
@@ -452,6 +453,16 @@ SKO_FRONT = dict(
 )
 
 
+# ---------------------------------------------------------------- plats för dealerns lår (--kant-bak, --docka)
+# Sargen är en massiv valnötskloss 16 cm under filten. Där dealern sitter (axellederna 0,38 m bakom spelets kant och
+# 0,30-0,31 m över filten, blackjack-dealer/dealer3d/src/doll.ts) ligger låren på en kropp med människans mått cirka 6 cm
+# under filten och gick 9 cm in i den. Där är bordet därför bara skivan, under_filt djup (brickan, 4,4 cm, och 6 mm trä
+# under den), halv_bredd åt var sida om dockans mitt (mannens lår når 0,25 m åt sidorna: 10 cm luft) från dealerkanten
+# fram till Y = fram_y (hans knän når Y = -0,10: 6 cm luft); utanför är sargen som förut. Uppifrån är bordet och brickan
+# desamma.
+KNAN = dict(x_mitt=-0.0159, halv_bredd=0.33, fram_y=-0.16, under_filt=0.05)
+
+
 def sko_front(P, lean, hf, wd, wt, col):
     """Skons frontplatta som objektet sko_front: plattan med U-öppningen, och lister bakom den (vid väggarna och ovanför
     korten) som sluter glipan mellan plattan och skons kropp."""
@@ -534,7 +545,13 @@ def main():
         # sargen hel under brickan (brickan i en ficka, inte i en öppen skåra genom hela sargen) och upp mot filten,
         # så att ingen springa syns under mässingslisten längs dealerkanten
         ficka = FZ - bricka_nara(tr, c_bricka, m_tray, m_brass) - 0.001
-        prism('bord_sarg', outline()[0], FZ + sg['underkant'], ficka, c_bord, m_wood)
+        # plats för låren (KNAN): sargen urtagen underifrån där dealern sitter, och där bara en skiva under brickan
+        kx0, kx1 = KNAN['x_mitt'] - KNAN['halv_bredd'], KNAN['x_mitt'] + KNAN['halv_bredd']
+        if FZ - KNAN['under_filt'] > ficka - 0.004:
+            raise SystemExit('KNAN under_filt rymmer inte brickan (%.3f m under filten)' % (FZ - ficka))
+        prism('bord_sarg', outline(notch={'x0': kx0, 'x1': kx1, 's1': -KNAN['fram_y']})[0], FZ + sg['underkant'], ficka, c_bord, m_wood)
+        prism('bord_sarg_knan', [(kx0, KANT_BAK), (kx1, KANT_BAK), (kx1, KNAN['fram_y']), (kx0, KNAN['fram_y'])],
+              FZ - KNAN['under_filt'], ficka, c_bord, m_wood)
         prism('bord_sarg_ficka', pts, ficka, FZ - 0.001, c_bord, m_wood)
     else:
         prism('bord_sarg', pts, FZ + sg['underkant'], FZ + sg['underlagg'], c_bord, m_wood)

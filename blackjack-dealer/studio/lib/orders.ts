@@ -335,8 +335,8 @@ export function styleWords(order: Pick<Order, "prompt">): string {
 /** The marks of the text: a quiet underline per choice, and its word in the legend. */
 export const CHOICE_MARK: Record<Choice, { word: string; className: string; swatch: string }> = {
   hand: { word: "hand", className: "underline decoration-[#c9a2f2]/55 decoration-1 underline-offset-[5px]", swatch: "bg-[#c9a2f2]" },
-  side: { word: "stängt / öppet", className: "underline decoration-[#e8cb85]/70 decoration-1 underline-offset-[5px]", swatch: "bg-[#e8cb85]" },
-  turn: { word: "vändning", className: "underline decoration-[#e8cb85]/70 decoration-dotted decoration-2 underline-offset-[5px]", swatch: "bg-[#e8cb85]/60" },
+  side: { word: "stängt / öppet", className: "underline decoration-brass-hi/70 decoration-1 underline-offset-[5px]", swatch: "bg-brass-hi" },
+  turn: { word: "vändning", className: "underline decoration-brass-hi/70 decoration-dotted decoration-2 underline-offset-[5px]", swatch: "bg-brass-hi/60" },
   place: { word: "plats", className: "", swatch: "" },
   shape: { word: "bara dit", className: "underline decoration-[#7fd1b9]/60 decoration-1 underline-offset-[5px]", swatch: "bg-[#7fd1b9]" },
   reference: { word: "referensfilm", className: "underline decoration-[#9ec5ff]/70 decoration-wavy decoration-1 underline-offset-[5px]", swatch: "bg-[#9ec5ff]" },
