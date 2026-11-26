@@ -7,7 +7,7 @@ import json, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _bpy_hjalp import *  # noqa
-from gemensamt.sokvagar import BYGGRAPPORTER, slask
+from gemensamt.sokvagar import slask
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.context.preferences.filepaths.save_version = 0
@@ -54,7 +54,7 @@ ob['kalla'] = 'Meshy text-to-3D meshy-7.1 (preview+refine, 30 krediter), skalad 
 rap = {'ra_storlek_m': [round(x, 3) for x in size], 'sits_ra_z': round(seat_raw, 4), 'skala': round(s, 4),
        'storlek_efter_m': [round(x * s, 3) for x in size], 'sits_z': st['sits_z'], 'placering': list(ob.location)}
 out = ROOT / 'assets' / 'stol'; out.mkdir(parents=True, exist_ok=True)
-(slask('bygge', BYGGRAPPORTER) / 'stol-rapport.json').write_text(json.dumps(rap, indent=1), encoding='utf-8')
+(slask('bygge') / 'stol-rapport.json').write_text(json.dumps(rap, indent=1), encoding='utf-8')
 c = coll('dealerstol'); bpy.context.scene.collection.objects.unlink(ob) if ob.name in bpy.context.scene.collection.objects else None
 for uc in list(ob.users_collection):
     uc.objects.unlink(ob)

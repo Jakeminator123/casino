@@ -119,6 +119,7 @@ test('carrying out: moved to the trash after both SHA-256 agree, RADERAD.txt wri
     assert.match(result.skipped[2].reason, /spelet har/);
     assert.match(result.skipped[3].reason, /ändrats/);
     assert.match(result.skipped[4].reason, /utanför assets/);
+    assert.ok(receipt, 'a run that removed files leaves a receipt');
     const saved = JSON.parse(readFileSync(receipt, 'utf8'));
     assert.equal(saved.done.length, 2); assert.equal(saved.error, null);
     // The film is gone, so its posts left the register with it; his verdict is kept as one row, and the kept film's post stands.

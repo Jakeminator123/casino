@@ -37,7 +37,7 @@
 // Moving: copied to .runtime/papperskorg/<date>/<path> (on the same disk as assets/, so that two names of one file stay one file
 // there too), both SHA-256 compared, only then removed; a hard link is made under
 // a temporary name and renamed over the copy after both SHA-256 agree. Every step goes into a receipt in .runtime/cleanup/ as it
-// happens. Bytes are honest: a file with several hard links frees its bytes only when its last name goes.
+// happens; a run that removes nothing writes none. Bytes are honest: a file with several hard links frees its bytes only when its last name goes.
 import {copyFileSync, existsSync, linkSync, lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, rmdirSync, statSync, unlinkSync, writeFileSync, constants} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -489,18 +489,16 @@ export type Done = {at: string; path: string; action: string; bytes: number; sha
 export type Receipt = {tool: string; started: string; plan: string; groups: string[]; trash: string; done: Done[]; skipped: {unit: string; reason: string}[]; markers: string[]; posts: string[]; error: string | null};
 /** Carries out named groups of a plan: every file is checked again (size, time, the guard, SHA-256) before it is touched; a unit
  *  with one file that does not hold is left whole. fresh: the units the plan made just now still has, by group. */
-export async function carryOut(p: Plan, groups: string[], o: {repo: string; trash: string; shield: Shield; fresh?: Map<string, Set<string>>; receiptDir: string; now?: number}): Promise<{receipt: string; result: Receipt}> {
+export async function carryOut(p: Plan, groups: string[], o: {repo: string; trash: string; shield: Shield; fresh?: Map<string, Set<string>>; receiptDir: string; now?: number}): Promise<{receipt: string | null; result: Receipt}> {
   const chosen = groups.map(n => p.groups.find(g => g.name === n));
   if (chosen.some(g => !g)) throw new Error(`Okänd grupp: ${groups.filter((n, i) => !chosen[i]).join(', ')}`);
   if (chosen.some(g => g!.level === 'blob')) throw new Error('Blob-nivån görs inte här.');
   const moves = (chosen as GroupPlan[]).some(g => g.units.some(u => u.files.some(f => f.action === 'flytta')));
   if (moves && !existsSync(path.dirname(path.resolve(o.trash)))) throw new Error(`Korgen saknas: ${path.dirname(o.trash)} finns inte. Inget flyttas.`);
   const now = o.now ?? Date.now(), day = new Date(now).toISOString().slice(0, 10), bin = path.join(o.trash, day);
-  mkdirSync(o.receiptDir, {recursive: true});
   const receipt = path.join(o.receiptDir, `${new Date(now).toISOString().replace(/[:.]/g, '-')}-gallra-${groups.join('+')}.json`);
   const result: Receipt = {tool: 'tools/media-thin.ts', started: new Date(now).toISOString(), plan: p.made, groups, trash: bin, done: [], skipped: [], markers: [], posts: [], error: null};
-  const save = () => writeFileSync(receipt, JSON.stringify(result, null, 2) + '\n');
-  save();
+  const save = () => saveReceipt(receipt, result);
   try {
     for (const g of chosen as GroupPlan[]) for (const u of g.units) {
       if (o.fresh && !o.fresh.get(g.name)?.has(u.id)) { result.skipped.push({unit: u.id, reason: 'inte längre med i en ny plan'}); save(); continue; }
@@ -556,8 +554,15 @@ export async function carryOut(p: Plan, groups: string[], o: {repo: string; tras
       if (u.removeEmpty) { const dir = path.join(o.repo, u.removeEmpty); const prune = (d: string) => { for (const e of readdirSync(d, {withFileTypes: true})) if (e.isDirectory()) prune(path.join(d, e.name)); if (!readdirSync(d).length) rmdirSync(d); }; if (existsSync(dir)) prune(dir); }
     }
   } catch (error) { result.error = String(error); save(); throw error; }
-  save();
-  return {receipt, result};
+  return {receipt: save(), result};
+}
+/** Writes a receipt once something has gone (a file, a link, a post) and returns its path; a run that removes nothing leaves no
+ *  receipt and gets null. */
+function saveReceipt(file: string, result: {done: Done[]; posts: string[]}): string | null {
+  if (!result.done.length && !result.posts.length) return null;
+  mkdirSync(path.dirname(file), {recursive: true});
+  writeFileSync(file, JSON.stringify(result, null, 2) + '\n');
+  return file;
 }
 
 // ── On his word ─────────────────────────────────────────────────────────────
@@ -588,7 +593,7 @@ export function archivePath(file: string, unit: string, alone: boolean): string 
  * Refused even on his word: noir, V6, originals and references and anything outside assets/ (KEPT_ON_WORD), and a unit that a
  * register still names (WORD_POINTERS, a draft order): the pointer goes first, so that nothing points at a file that is gone.
  */
-export async function removeOnWord(targets: readonly string[], o: {repo: string; why: string; trash: string; receiptDir: string; archive?: string; now?: number}): Promise<{receipt: string; result: WordReceipt}> {
+export async function removeOnWord(targets: readonly string[], o: {repo: string; why: string; trash: string; receiptDir: string; archive?: string; now?: number}): Promise<{receipt: string | null; result: WordReceipt}> {
   if (!o.why?.trim()) throw new Error('Säg vems ord och varför (--varfor "<text>").');
   const {pathsIn, idsNamed} = await import('./media-audit.ts');
   const now = o.now ?? Date.now(), day = new Date(now).toISOString().slice(0, 10), to = o.archive ? path.resolve(o.archive) : path.join(o.trash, day);
@@ -623,17 +628,15 @@ export async function removeOnWord(targets: readonly string[], o: {repo: string;
     const where = kept(unit) ?? filesOf(unit).map(kept).find(Boolean); if (where) return `skyddad också på hans ord: ${where}`;
     const pointer = named(unit, ids); return pointer ? `${pointer} pekar fortfarande på den: ta bort pekaren först` : null;
   };
-  mkdirSync(o.receiptDir, {recursive: true});
   const receipt = path.join(o.receiptDir, `${new Date(now).toISOString().replace(/[:.]/g, '-')}-pa-hans-ord.json`);
   const result: WordReceipt = {tool: 'tools/media-thin.ts --ta-bort', started: new Date(now).toISOString(), why: o.why.trim(), to: to.replace(/\\/g, '/'), archive: !!o.archive, units: [], posts: [], verdicts: 0, jobs: 0, done: [], refused: [], error: null};
-  const save = () => writeFileSync(receipt, JSON.stringify(result, null, 2) + '\n');
+  const save = () => saveReceipt(receipt, result);
   const going: string[] = [];
   for (const [film, f] of films) {
     const no = f.units.map(u => [u, refusal(u, u.startsWith('assets/motions/') ? [film, ...f.posts] : [u.split('/').at(-1)!])] as const).find(([, r]) => r);
     if (no) result.refused.push({unit: film, reason: `${no[0]}: ${no[1]}`}); else going.push(...f.units);
   }
   for (const u of single) { const r = refusal(u, [u.split('/').at(-1)!]); if (r) result.refused.push({unit: u, reason: r}); else going.push(u); }
-  save();
   try {
     // The pointers of the register first: the posts of the films that go.
     const gone = [...films.keys()].filter(f => !result.refused.some(r => r.unit === f));
@@ -657,8 +660,7 @@ export async function removeOnWord(targets: readonly string[], o: {repo: string;
       prune(path.join(o.repo, unit));
     }
   } catch (error) { result.error = String(error); save(); throw error; }
-  save();
-  return {receipt, result};
+  return {receipt: save(), result};
 }
 
 /** Deletes the trash's day folders older than TRASH_DAYS. */
@@ -671,6 +673,8 @@ export function emptyTrash(trash: string, now = Date.now()): {removed: string[];
   }
   return out;
 }
+
+const receiptLine = (receipt: string | null) => receipt ? `Kvitto: ${path.relative(ROOT, receipt).replace(/\\/g, '/')}` : 'Inget raderades, inget kvitto.';
 
 async function main(argv: string[]): Promise<void> {
   // The lab server runs this once per start, so that what is not used goes by itself (Jakob 2026-11-25): the plan, its safe
@@ -685,7 +689,7 @@ async function main(argv: string[]): Promise<void> {
     if (!ids.length || !why) throw new Error('Använd: node tools/media-thin.ts --ta-bort <id>[,<id>…] [--fran <fil med ett id per rad>] --varfor "<vems ord och varför>" [--arkiv <mapp utanför repot>]');
     const trash = path.join(ROOT, TRASH); if (!archive) mkdirSync(trash, {recursive: true});
     const {receipt, result} = await removeOnWord(ids, {repo: ROOT, why, trash, archive, receiptDir: path.join(ROOT, '.runtime/cleanup')});
-    console.log(`${result.posts.length} poster ur registret (${result.verdicts} domar står kvar som rader i data/motions-removed.jsonl, ${result.jobs} rader ur data/clip-jobs.json); ${result.done.length} filer, ${mb(result.done.reduce((n, d) => n + d.bytes, 0))} MB, ${archive ? 'kopierade till arkivet och borttagna här' : 'i papperskorgen'}: ${result.to}. ${result.refused.length} vägrade. Kvitto: ${path.relative(ROOT, receipt).replace(/\\/g, '/')}`);
+    console.log(`${result.posts.length} poster ur registret (${result.verdicts} domar står kvar som rader i data/motions-removed.jsonl, ${result.jobs} rader ur data/clip-jobs.json); ${result.done.length} filer, ${mb(result.done.reduce((n, d) => n + d.bytes, 0))} MB, ${archive ? 'kopierade till arkivet och borttagna här' : 'i papperskorgen'}: ${result.to}. ${result.refused.length} vägrade. ${receiptLine(receipt)}`);
     for (const r of result.refused) console.log(`  vägrad: ${r.unit}: ${r.reason}`);
     return;
   }
@@ -695,8 +699,8 @@ async function main(argv: string[]): Promise<void> {
   const out = path.join(ROOT, '.runtime/gallring'), planFile = path.join(out, 'plan.json'), receipts = path.join(ROOT, '.runtime/cleanup'), trash = path.join(ROOT, TRASH);
   if (empty || kor) mkdirSync(trash, {recursive: true});
   if (empty) {
-    const r = emptyTrash(trash); mkdirSync(receipts, {recursive: true});
-    writeFileSync(path.join(receipts, `${new Date().toISOString().replace(/[:.]/g, '-')}-tom-korgen.json`), JSON.stringify({tool: 'tools/media-thin.ts --tom-korgen', trash: TRASH, ...r}, null, 2) + '\n');
+    const r = emptyTrash(trash);
+    if (r.removed.length) { mkdirSync(receipts, {recursive: true}); writeFileSync(path.join(receipts, `${new Date().toISOString().replace(/[:.]/g, '-')}-tom-korgen.json`), JSON.stringify({tool: 'tools/media-thin.ts --tom-korgen', trash: TRASH, ...r}, null, 2) + '\n'); }
     console.log(`Korgen: ${r.removed.length} dagar raderade (${r.removed.join(', ') || 'inga'}), ${r.kept.length} kvar.`); return;
   }
   if (kor) {
@@ -707,7 +711,7 @@ async function main(argv: string[]): Promise<void> {
     const fresh = await makePlan(ROOT);
     const units = new Map(fresh.plan.groups.map(g => [g.name, new Set(g.units.map(u => u.id))]));
     const {receipt, result} = await carryOut(p, groups, {repo: ROOT, trash, shield: fresh.shield, fresh: units, receiptDir: receipts});
-    console.log(`${result.done.length} filer (${mb(result.done.reduce((n, d) => n + d.bytes, 0))} MB på namnen), ${result.skipped.length} enheter hoppade över. Kvitto: ${path.relative(ROOT, receipt).replace(/\\/g, '/')}`); return;
+    console.log(`${result.done.length} filer (${mb(result.done.reduce((n, d) => n + d.bytes, 0))} MB på namnen), ${result.skipped.length} enheter hoppade över. ${receiptLine(receipt)}`); return;
   }
   const {plan} = await makePlan(ROOT);
   mkdirSync(out, {recursive: true});

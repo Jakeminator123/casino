@@ -537,7 +537,7 @@ export function soundFrames(frames: Frame[]): {bridged: number[]; dropped: numbe
 }
 
 // ---- the measured card (lab trial "kortprov": src/scene3d-deal.ts TRIAL) ----
-// The colour rules above count a pixel as card or not. A second measurement of the same frame (tools/python/kort-dataset/label.py:
+// The colour rules above count a pixel as card or not. A second measurement of the same frame (the card dataset's labels:
 // how far each pixel lies from the table's colour toward the card's, so the card's outline is where it is half card) gives, for
 // each card in a frame, its place, its length and width, its line and how wide its edge is smeared. refineFrames lays a track and
 // that measurement together by what a card is: stiff. Through the turn it keeps its length and only its width goes (seen

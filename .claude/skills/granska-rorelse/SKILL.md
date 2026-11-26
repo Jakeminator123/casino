@@ -50,7 +50,7 @@ fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt g�
    **Mät också kroppen:** `node standarddocka/verktyg/kropp.ts --plats <n> [--docka kvinna]` (eller `--alla`, `--runda`)
    stegar editorn 60 gånger per sekund och säger om modellens axlar, armbågar eller handleder hoppar från rörelsens
    punkter: det `mat.ts` inte ser, och det Jakob ser som att det "hackar till". Tar det delade låset.
-2. **Titta:** lägg en lapp på din mapp (`node slask/slask.ts lapp standarddocka/granska-p<n> <ditt namn> "<vad>"`) och kör
+2. **Titta:** kör
    `node standarddocka/verktyg/titta.ts --ut slask/standarddocka/granska-p<n> --plats <n> --kamera lag,sida,topp,plats<n> --tider <tiderna>`.
    Läs bilderna. `lage.json` bär editorns mått vid varje tid, bland annat armarnas luft över bordskanten (`armar`) och
    hur långt kroppens leder ligger från rörelsens punkter (`fingrarFranPunkternaMm`, `armbageFranPunktenMm`). Fingrarna

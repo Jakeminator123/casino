@@ -8,8 +8,6 @@
 // A page inside a frame (the studio's Casino view plays game.html in an iframe) is part of the page around it, which holds
 // the tab's stream: it too only sends the old sign of life, whatever ?robot says, for as the newest page it would be the
 // one a page is shown in, inside the frame instead of in the tab.
-import {startInteractionDiagnostics} from './interaction-diagnostics.ts';
-startInteractionDiagnostics();
 const here=()=>location.pathname+location.search+location.hash;
 const asked=new URLSearchParams(location.search).get('robot');
 const robot=asked==='1'||(asked!=='0'&&(navigator.webdriver||/HeadlessChrome/.test(navigator.userAgent)));

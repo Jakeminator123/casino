@@ -16,7 +16,7 @@ import {fileURLToPath} from 'node:url';
 import {SLASK} from './slask.ts';
 
 export const LAB = 'http://127.0.0.1:4319';
-// The lock lies in the slask; tools/python/kort-dataset/train.py computes the same path.
+// The lock lies in the slask.
 export const LOCK = path.join(SLASK, 'gpu-och-headless.lock');
 export const STALE_MS = 20 * 60 * 1000; // a lock older than 20 minutes was left by a run that died (as tools of the lanes read it)
 export const PROFILES = path.join(SLASK, 'labbtitt');

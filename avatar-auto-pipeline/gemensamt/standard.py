@@ -90,7 +90,7 @@ def spelets_dump(nytt: bool = False) -> dict:
     from gemensamt.sokvagar import slask
 
     rot = Path(__file__).resolve().parent.parent
-    fil = slask("matt", "Spelets mått som JSON, lästa ur blackjack-dealers kod av scen/las_spelet.ts.", rot) / "spelet.json"
+    fil = slask("matt", rot) / "spelet.json"
     if nytt or not fil.exists():
         subprocess.run(["node", str(rot / "scen" / "las_spelet.ts"), str(fil)], check=True, stdin=subprocess.DEVNULL)
     return json.loads(fil.read_text(encoding="utf-8"))

@@ -86,6 +86,12 @@ next-env.d.ts
 /blackjack-dealer/studio/.next-build.lock/
 /blackjack-dealer/**/ONSKEMAL.md
 
+# live-bj: the downloaded film of a real dealer and the frames cut from it (a person's face, and someone else's film:
+# measured only, never in Git), whatever the files are called, and the measures per frame that live-bj/verktyg/mat.py
+# writes (tens of MB, remade with the tool). What Git keeps of the measuring is the small files in live-bj/data/.
+/live-bj/video/
+/live-bj/rutor/
+/live-bj/matt/
 # kortspelspaket: the bought pack unpacked (about 1 GB, licensed). A file there is read by its path, README.md says what
 # is there, and `node kortspelspaket/packa-upp.ts` remakes it.
 /kortspelspaket/**/paket/

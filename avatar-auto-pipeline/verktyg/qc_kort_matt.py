@@ -7,8 +7,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from gemensamt.sokvagar import BYGGRAPPORTER, slask  # noqa: E402
-RAPPORT = slask('bygge', BYGGRAPPORTER) / 'kort-matt-rapport.json'
+from gemensamt.sokvagar import slask  # noqa: E402
+RAPPORT = slask('bygge') / 'kort-matt-rapport.json'
 
 if 'bpy' in sys.modules or any(a.endswith('blender.exe') or 'blender' in Path(a).name.lower() for a in sys.argv[:1]):
     import bpy

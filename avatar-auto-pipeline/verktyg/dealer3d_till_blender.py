@@ -276,7 +276,7 @@ if body:
         if m.type == 'ARMATURE':
             m.show_viewport = True
 from gemensamt.sokvagar import slask  # noqa: E402
-ut = Path(a.spara) if a.spara else slask('rorelser', 'Rörelser från dealer3d lagda på standarddockan av verktyg/dealer3d_till_blender.py: prov, görs om med samma kommando.') / f'{namn}.blend'
+ut = Path(a.spara) if a.spara else slask('rorelser') / f'{namn}.blend'
 ut.parent.mkdir(parents=True, exist_ok=True)
 bpy.context.preferences.filepaths.save_version = 0
 bpy.ops.wm.save_as_mainfile(filepath=str(ut), copy=False)

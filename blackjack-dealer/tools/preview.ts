@@ -1,6 +1,6 @@
 import http from 'node:http';
 import {readFile,mkdir,writeFile,stat,unlink,realpath,readdir} from 'node:fs/promises';
-import {closeSync,existsSync,openSync} from 'node:fs';
+import {existsSync} from 'node:fs';
 import {spawn,spawnSync} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import path from 'node:path';
@@ -22,7 +22,6 @@ import {handleOrders} from './order-routes.ts';
 import {handleDollLab} from '../dealer3d/page/server.ts';
 import {UPLOAD_LIMIT} from '../studio/lib/media.ts';
 import {dealersOf} from '../src/clip-graph.ts';
-import {diagnosticsStore,receiveDiagnostics} from './interaction-diagnostics.ts';
 import {SLASK} from './slask.ts';
 const port=4319,origin=`http://127.0.0.1:${port}`,state='.runtime/preview.json';
 const args=process.argv.slice(2),has=(flag:string)=>args.includes(flag);
@@ -167,7 +166,7 @@ if(has('--restart')){
  const games=new Map<string,Session>(),tableName=(url:URL)=>{const name=url.searchParams.get('table')??'main';return /^[a-z0-9-]{1,40}$/.test(name)?name:null;};
  const tableOf=(name:string)=>{let game=games.get(name);if(!game){if(games.size>=24)games.delete(games.keys().next().value!);game=createSession();games.set(name,game);}return game;};
  // The lab's pages: one tab at a time (tools/tab-registry.ts). A page with a stream keeps the server up for as long as it is open.
- const token=randomUUID(),tabs=tabRegistry(),interactionDiagnostics=diagnosticsStore(process.cwd());
+ const token=randomUUID(),tabs=tabRegistry();
  const types:Record<string,string>={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.mp4':'video/mp4','.png':'image/png','.jpg':'image/jpeg','.json':'application/json','.glb':'model/gltf-binary','.webp':'image/webp','.wav':'audio/wav'};
  // Streams and films in flight would hold the server open: the lab tab is told first, and what is still connected after half a second is cut.
  const stop=(reason:Reason='stop')=>{tabs.retire(reason);server.close();setTimeout(()=>server.closeAllConnections(),500).unref();};
@@ -176,7 +175,6 @@ if(has('--restart')){
    res.setHeader('Cache-Control','no-store');
    if(req.headers.host!==`127.0.0.1:${port}`){res.writeHead(403).end();return;}
    const url=new URL(req.url??'/',origin);
-   if(url.pathname==='/api/interaction-diagnostics'){await receiveDiagnostics(req,res,origin,interactionDiagnostics);return;}
    if(url.pathname==='/health'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify({name:'dealer',root:process.cwd(),pid:process.pid,port,tabs:tabs.status()}));return;}
    if(url.pathname==='/stop'&&req.method==='POST'&&req.headers['x-dealer-token']===token){res.end('Stopped dealer preview');stop(url.searchParams.get('restart')==='1'?'restart':'stop');return;}
    if(url.pathname==='/heartbeat'&&req.method==='POST'&&req.headers.origin===origin){tabs.touch();res.end('ok');return;}
@@ -408,10 +406,10 @@ if(has('--restart')){
  server.listen(port,'127.0.0.1',async()=>{await mkdir('.runtime',{recursive:true});await writeFile(state,JSON.stringify({root:process.cwd(),port,pid:process.pid,parent:process.ppid,executable:process.execPath,script:'tools/preview.ts',startedAt:new Date().toISOString(),token})); // Empty the slask of what has not been used for three hours (Jakob 2026-11-26: "Slasken ska raderas var 3 timme om
  // arbete inte används"), at start and every third hour while the server is up: every project's part of the casino
  // slask (../slask/slask.ts stada), or this project's own where DEALER_SLASK points elsewhere. granska/ is never touched.
- if(existsSync(SLASK)){const whole=!process.env.DEALER_SLASK&&existsSync('../slask/slask.ts'),clean=()=>{const log=openSync('.runtime/stada.log','a');spawn(process.execPath,whole?['../slask/slask.ts','stada']:['tools/scratch-clean.ts'],{cwd:process.cwd(),stdio:['ignore',log,log],windowsHide:true}).on('error',()=>{}).on('exit',()=>closeSync(log));};
+ if(existsSync(SLASK)){const whole=!process.env.DEALER_SLASK&&existsSync('../slask/slask.ts'),clean=()=>{spawn(process.execPath,whole?['../slask/slask.ts','stada']:['tools/scratch-clean.ts'],{cwd:process.cwd(),stdio:'ignore',windowsHide:true}).on('error',()=>{});};
   clean();setInterval(clean,3*36e5).unref();}
  // And thin assets/ by the rule: what is not used and does not wait for Jakob goes to the trash (tools/media-thin.ts --auto).
- if(existsSync('assets')){const log=openSync('.runtime/gallring.log','a');spawn(process.execPath,['tools/media-thin.ts','--auto'],{cwd:process.cwd(),stdio:['ignore',log,log],windowsHide:true}).on('error',()=>{});}
+ if(existsSync('assets'))spawn(process.execPath,['tools/media-thin.ts','--auto'],{cwd:process.cwd(),stdio:'ignore',windowsHide:true}).on('error',()=>{});
  console.log(origin);});
  process.on('SIGINT',()=>stop());process.on('SIGTERM',()=>stop());
 }

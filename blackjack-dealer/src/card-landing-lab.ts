@@ -3,8 +3,7 @@
 //
 // 1. The graphics on the films ("grafiken", the drawn back and front): every film that has a card track plays with the drawn
 //    card laid on the film's card by the game's own rules, unchanged (src/card-overlay.ts, src/card-overlay-view.ts), from
-//    today's track (assets/tracking/) or from the card model's (assets/proofs/kortmodell-v2-20261123/spar/, made by
-//    tools/python/kort-dataset/spar_modell.ts), or both beside each other, close on the card. The model's index beside the
+//    today's track (assets/tracking/) or from the card model's (assets/proofs/kortmodell-v2-20261123/spar/), or both beside each other, close on the card. The model's index beside the
 //    tracks says where the two differ, and "Alla filmer" lists every film with its measures.
 // 2. The landing ("en provisorisk testyta … se över lite hur korten ser ut på bordet vid och när de just är släppta"): the
 //    trial of src/card-settle.ts, where the card sets itself as it lands and comes back to its place as her hand leaves. The
@@ -87,7 +86,7 @@ const active = () => look.track !== 'idag' && model ? model : today;
 type Seen = {side?: string; quad?: number[][] | null; edge?: number[][] | null; note?: string};
 const seen = (track: CardTrack | null, frame: number) => (track?.frames[frame] ?? null) as Seen | null;
 const points = (q: number[][]): Pt[] => q.map(p => ({x: p[0], y: p[1]}));
-// The stiff card (tools/python/kort-dataset/styvt_kort.ts) is a real card in every frame, so "Kortens storlek" sizes it in her hand as it sizes the lying card.
+// The stiff card (one size for the whole film) is a real card in every frame, so "Kortens storlek" sizes it in her hand as it sizes the lying card.
 const stiff = (note?: string) => !!note && note.startsWith('stiff card');
 let sized: {of: CardTrack; by: number; track: CardTrack} | null = null;
 function sizedTrack(track: CardTrack): CardTrack {

@@ -15,6 +15,7 @@ en modells API läser ingenting själv: skicka med den här filen och projektets
 | `standarddocka/` | Editorn där standarddockans rörelser spelas, justeras och filmas, och verktygen som mäter dem. | `README.md`, `DOMAR.md` |
 | `avatar-auto-pipeline/` | Blender-skripten som bygger standarddockan, bordet och stolen, och vägen från foton till en riggad dealer. Python. | `README-SV.md` |
 | `kortspelspaket/` | Ett köpt animationspaket och en visare för det. Prövas som grund för rörelserna. | `README.md`, `OVERLAMNING.md` |
+| `live-bj/` | Mätning av en riktig dealers rörelser, blick och kameravinklar ur en blackjackfilm. Filmen och rutorna ur den går aldrig in i Git eller i ett prov; bara de små måttfilerna i `data/` och verktygen. Mäter med Python-miljön i `blackjack-dealer/tools/python/`. | mappens README |
 | `slask/` | Tillfälligt arbete. Git har bara verktyget `slask.ts`. | nedan |
 | `inbox/` | Korta lappar mellan chattar som arbetar samtidigt. Git har bara verktyget `inbox.ts`. | nedan |
 | `.claude/skills/` | Ett arbetsmoment per mapp (beställa film, granska en rörelse, avsluta ett arbete). Läs den som gäller innan du börjar. | `SKILL.md` |

@@ -21,7 +21,7 @@ from _bpy_hjalp import *  # noqa
 import addon_utils
 import numpy as np
 from gemensamt.riggverktyg import sikta_ben, tvaled_ik, SIDOR, KRAVDA_BEN, satt_rotation_varld, hand_axlar
-from gemensamt.sokvagar import BYGGRAPPORTER, slask
+from gemensamt.sokvagar import slask
 
 OUT = ROOT / 'assets' / 'docka'
 D = STD['docka']; FZ = STD['filt_z']
@@ -716,7 +716,7 @@ def bygg_en(kon: str, suffix: str = ''):
         'gangjarn': {k: {'lokal_axel': 'XZ'[0 if v[0] == 0 else 1], 'tecken': v[1]} for k, v in gransinfo.items()},
         'aktioner': [a.name for a in bpy.data.actions],
     }
-    (slask('bygge', BYGGRAPPORTER) / f'docka-rapport-{namn}.json').write_text(json.dumps(rapport, indent=1, ensure_ascii=False), encoding='utf-8')
+    (slask('bygge') / f'docka-rapport-{namn}.json').write_text(json.dumps(rapport, indent=1, ensure_ascii=False), encoding='utf-8')
     print(f'RAPPORT ({namn})', json.dumps({k: rapport[k] for k in ('kon', 'langd_staende_m', 'over_arm_m', 'underarm_m', 'axelbredd_led_m', 'hoft_till_axel_m', 'ben', 'deformerande', 'kravda_ben_saknas', 'aktioner')}, ensure_ascii=False))
 
     bpy.ops.object.mode_set(mode='OBJECT')

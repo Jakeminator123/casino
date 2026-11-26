@@ -39,39 +39,6 @@ tools/python/.venv/Scripts/python.exe -I tools/python/hands-from-anchor.py asset
 node tools/register-derived.ts .runtime/<uppgift>/<ut>.mp4 --id <nytt klipp-id> --source <källklipp> --anchor <ankarets post i Material> --script tools/python/hands-from-anchor.py --operation "<vad som är gjort>"
 ```
 
-## Kortdatasetet (`kort-dataset/`)
-
-Verktygen som gjorde datasetet över kortets rygg och framsida ruta för ruta, mätte dagens kortspår mot det
-och bygger provet `kortprov` (Scen öppnad med `?kortprov=1`; delarna och regeln står vid `TRIAL` i
-`src/card-overlay.ts`). Skripten läser och skriver datasetet
-i slasken, `kort-dataset/` (etiketter i `labels/`, `manifest.jsonl`, `rutor.csv`), och läser repots `assets/`. Den
-tränade modellen skrivs inte dit, eftersom slasken töms på det som inte har ändrats på tre timmar: `train.py` lägger den i `tools/python/models/`
-(`kortmodell-v<n>.pt`, eller där `DEALER_MODELS` pekar), och `eval.py` och `spar_modell.py` läser den därifrån; `inventory.py` tar sina rötter som argument. Referensfilmen från YouTube mäts men kopieras
-aldrig; ur den sparas inga utsnitt. Skripten behöver bara `numpy` och `cv2`: etiketteringen kördes i repots `.venv`
-(OpenCV 5.0), mätningarna och provets skript med systemets Python 3.13 (OpenCV 4.13). `train.py` och `eval.py`
-behöver också `torch` (en egen miljö med torch 2.6) och kör på grafikkortet under det delade låset. Användning står
-överst i varje skript.
-
-| Vad | Skript |
-| --- | --- |
-| Datasetet, i ordning | `inventory.py` (alla filmer), `probe.py` (snabbprov), `valj.py` (kortfilmerna), `dela.py` (listor för två etiketterare), `label.py` (kortets kontur per ruta), `export.py` (manifest och tabell). `sheet.py` ritar etiketten på filmrutor för ögat. |
-| Mätningar mot dagens spår | `storlek.py`, `spar_noter.py`, `spar_storlek.py`, `vandning.py`, `ljus_check.py` |
-| Modellen (v1 och v2; `--version 2` ritar märke, tryck och fingrar som störning) | `train.py`, `eval.py` (`--modell`, `--ut`) |
-| Modellens spår på alla filmer (Prov `kortmodell-v2-20261123`, sidan `/kortlandning.html`) | `spar_modell.py` (modellens hörn och sida per ruta, på grafikkortet under låset), `spar_modell.ts` (spåret per film och `index.json` med måtten mot dagens spår; regeln står överst i skriptet; `--utan-styvt` ger modellens rutor som de är) |
-| Det styva kortet (Prov `styvt-kort-20261123`): ett kort med en storlek, med plats, riktning, höjd och lutning för hela filmen på en gång | `styvt_kort.ts` (anropas av `spar_modell.ts` för givar där kortet lägger sig; måtten och regeln står överst) |
-| Provet `kortprov` | `spar_b.ts` (provets spår ur etiketterna, regeln `refineFrames` i `src/card-track.ts`), `spela_in.ts` (spelar in Scen ruta för ruta, headless under låset), `ljus_serie.py` (ljusets steg ur en inspelning), `titta_val.py` (spåren ritade på filmrutor), `prov_bygg.py` (provets filmer och stillbilder) |
-
-```
-tools/python/.venv/Scripts/python.exe -I tools/python/kort-dataset/label.py <slasken>/kort-dataset/lista-a.jsonl --workers 2
-tools/python/.venv/Scripts/python.exe -I tools/python/kort-dataset/export.py
-node tools/python/kort-dataset/spar_b.ts --alla
-<torch-miljön>/Scripts/python.exe -I tools/python/kort-dataset/spar_modell.py
-node tools/python/kort-dataset/spar_modell.ts
-node tools/python/kort-dataset/spela_in.ts <bankklipp> 10 80 <utmapp> fore=mat@1764x1174/640 efter=1@1764x1174/640
-```
-
-TypeScript-skripten ligger här för att verktygen ska hålla ihop.
-
 ## Miljön
 
 Python 3.13 (miljön skripten kördes i hade 3.13.11). En gång per checkout:
@@ -88,9 +55,7 @@ skripten själva importerar bara `numpy`, `cv2` (OpenCV 5.0) och `mediapipe`. Sa
 ## Modellerna
 
 Modellfilerna är för stora för Git (upp till 37 MB). Lägg dem i `tools/python/models/`, eller peka miljövariabeln
-`DEALER_MODELS` på en mapp som har dem. SHA-256 är de filer som användes; kontrollera en nedladdad fil mot dem. Där
-ligger också kortmodellen som `kort-dataset/train.py` tränar (`kortmodell-v<n>.pt`); den finns bara på datorn som
-tränade den.
+`DEALER_MODELS` på en mapp som har dem. SHA-256 är de filer som användes; kontrollera en nedladdad fil mot dem.
 
 | Fil | Källa | SHA-256 |
 | --- | --- | --- |

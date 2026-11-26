@@ -547,7 +547,7 @@ export const cardInFront = (overrides: Override[], frame: number) => overrides.s
 // ?kortprov=mat changes nothing and only writes what each frame read (document.documentElement.dataset.kortprov), to measure the
 // page as it is.
 // The stiff card (Prov styvt-kort-20261123, Jakob 2026-11-23: a card has one size; his yes in Beslut the same day, card
-// styvt-kort-i-handen): in Scen the card's track is the stiff card's (tools/python/kort-dataset/styvt_kort.ts), read from TRIAL.stiff
+// styvt-kort-i-handen): in Scen the card's track is the stiff card's, read from TRIAL.stiff
 // by the clip's name, with no word (trackFolder below). A film without a stiff card keeps its stored track; ?kortprov=idag gives the
 // stored track for every film, and spar still reads its own. Scen is the lab's 3D page and the studio's views, which mount the
 // same scene (SCEN below). The game's page (game.html, also where the studio's Casino shows it) reads the stored track under its
