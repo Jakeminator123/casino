@@ -202,6 +202,14 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     hand (dockans kort ur dockans film, eller ett omgjort kort ur en bildmodells version av samma bild genom en mask),
     inte genom att låta bildmodellen göra en ny bild av hela scenen.
   - Samma gröna väg som i femte provet efteråt: `lagg-pa-bord.ts` lägger honom på vårt bord.
+  - **Det som rättade vändningen och skon** (Jakobs förslag, ett försök till samma dag, `auto_480p`, 3 s, 15 krediter
+    per film): sista bilden är landningen, med fingrarna kvar på det just lagda kortet, i stället för händerna
+    tillbaka vid skon; skon i bilderna är en riktig sko där kanten av en hel kortbunt syns, med en mönstrad röd rygg
+    med vit kant; och texten säger att kortet har två olika sidor som aldrig tonar över i varandra, att det vänds med
+    en vridning av handleden strax före landningen, och att nästa kort i skon redan ligger där med ryggen ut. Då
+    vändes kortet över kanten, och skon visade en rygg hela filmen. Given blir två klipp: ut till landningen, och
+    tillbaka. En landningsbild görs som en ändring av startbilden (bara armen flyttas, med dockans ruta som förlaga
+    för ställningen): som en ny bild ur dockans ruta flyttade bildmodellen skon 70 bildpunkter.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: en hel film från en annan kamera än spelets (styrbilderna för plats 1 finns), Kling 4 med styrbilden som första bild och filmen som lös förlaga
