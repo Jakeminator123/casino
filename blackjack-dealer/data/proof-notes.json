@@ -1493,7 +1493,12 @@
       "file": "7-styrbilden-med-nyckelfarger.png",
       "choice": null,
       "text": "Oklart, men kanske bra. Jag oroar mig för att skuggan kanske inte ska finnas, ller om den ska det? Ljuset kan ju ändras utifrån bakgrunden. Hur markeras tex vart kort ska landa osv här?",
-      "at": "2026-11-26T06:19:16.607Z"
+      "at": "2026-11-26T06:19:16.607Z",
+      "answer": {
+        "text": "Skuggan ska finnas: det är den som får händerna och skon att stå på bordet. I film 6 följer den med när bordet byts, och ändras ljuset mycket kan den dämpas eller tas bort för sig, eftersom den ligger i det gröna. Var kortet ska landa behöver inte markeras i filmen: dockan lägger kortet på planens punkt (mätt till 0 mm fel), spelet känner samma punkt, och rutorna på filten ritar spelets eget bord.",
+        "at": "2026-11-26T06:59:39.511Z"
+      },
+      "read": "2026-11-26T06:59:39.511Z"
     },
     {
       "id": 156,
@@ -1555,6 +1560,23 @@
         "at": "2026-11-26T06:57:35.251Z"
       },
       "read": "2026-11-26T06:57:35.251Z"
+    },
+    {
+      "id": 161,
+      "proof": "spelets-vy-20261126",
+      "file": "1-vilan-fran-plats-4-blicken-i-kameran.png",
+      "choice": null,
+      "text": "ser okej ut tror jag",
+      "at": "2026-11-26T06:58:32.251Z",
+      "read": "2026-11-26T06:59:39.912Z"
+    },
+    {
+      "id": 162,
+      "proof": "spelets-vy-20261126",
+      "file": "2-kortet-laggs-fran-plats-4.png",
+      "choice": null,
+      "text": "ser okej ut tror jag, men altså detta ska ju kuna variaeras antar ajg, atså fler fingarar på kortet i slutet kanske eller andra saker? men visst. Fårgan är bara om denan ska nvändas som en ankarbild, elelr bara bevis på att kortet hanar rätt elelr så??",
+      "at": "2026-11-26T06:59:31.902Z"
     }
   ]
 }
