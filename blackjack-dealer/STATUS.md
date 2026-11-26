@@ -115,10 +115,12 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    och bära standarden för bordet, korten, skon och kortplatserna, för nästa dealer; Paows docka får vara som den är;
    och bordet ska komma närmare dealern ("skjuta bak bordet litegranna"), med kortplatserna, skon och kameran kvar.
    Det provas med `tableBack` i `dealer3d/src/stage.ts` (sidans `?bordbak=`): 15 cm räcker för att bordet ska nå
-   magen och skon stå helt på bordet, och markerbrickan följer då med till dealerns kant. Kvar: bordet självt, som
-   ännu är en halvcirkel med radie 1,02 m och golv på −0,90 i stället för standardens halva ellips 1,90 × 1,15 m med
-   golv på −0,95 (måtten `TABLE`, `REAL_TABLE` och `BASE` står i `src/scene3d-table.ts`, som dockans sida inte kan
-   ladda: de behöver stå i `src/table-lens.ts`); markernas storlek och färger av samma skäl; rörelser gjorda för
+   magen och skon stå helt på bordet, och markerbrickan följer då med till dealerns kant. Dockans bord är sedan
+   samma natt standardens (halv ellips 1,90 × 1,15 m, sarg, rulle, två ben och golv 0,95 m under filten, måtten ur
+   `src/table-lens.ts`); miljön med mannen visas i provet `standarddocka-miljo-20261126`. Hans tankar samma natt, inte
+   prövade: kameran ser dealern för mycket uppifrån, och bordet kunde lutas mot kameran i stället (då kan kameran
+   sänkas lika många grader med korten, skon och platserna kvar på samma ställen i bilden). Kvar: markernas storlek
+   och färger (spelets står i moduler dockans sida inte laddar, och han har inte bett om dem); rörelser gjorda för
    standarddockans mått och det närmare bordet (underarmen går i dag genom den flyttade kanten); standarddockorna som
    dockor i `doll.ts`; kroppen som ett val i Inspelning (modellen behöver en plats i `assets/` med en roll); och att
    en ny docka ärver standarddockans sparade justeringar tills hon har egna. För Paows filmer kan kanten bara flyttas

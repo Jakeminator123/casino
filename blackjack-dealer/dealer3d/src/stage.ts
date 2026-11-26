@@ -7,7 +7,7 @@
 // (dealer3d/src/doll.ts): options.doll, else the one a read motion names, else the standard.
 import * as T from 'three';
 import {CARD, FILM, filmEye, fovYDeg, orbit, type Eye, type Vec3} from './camera.ts';
-import {SHOE, TRAY, dealerEdge, filmLens, realCardAt, seatEye, shoeCard, shoePose, spots, type Plan} from './world.ts';
+import {SHOE, TABLE_BASE, TABLE_RAIL, TABLE_TOP, TRAY, dealerEdge, filmLens, realCardAt, seatEye, shoeCard, shoePose, spots, type Plan} from './world.ts';
 import {HAND, MOMENTS, planDeal, type CardPose} from './deal.ts';
 import {restingHand, solveBody, standing, type Body} from './body.ts';
 import {dollNamed, type Doll} from './doll.ts';
@@ -102,26 +102,37 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.002; sun.shadow.radius = 5; Object.assign(sun.shadow.camera, {left: -1.5, right: 1.5, top: 1.5, bottom: -1.5, near: 0.5, far: 6}); scene.add(sun, sun.target);
   const matte = (colour: number, roughness = 0.9) => new T.MeshStandardMaterial({color: colour, roughness, metalness: 0});
 
-  // The table: a straight dealer's edge and a half circle toward the players, the felt at y = 0; a rail round the players' side.
-  // Not yet the standard's table (a half ellipse with a padded rail, an apron, two legs and the floor under it: TABLE,
-  // REAL_TABLE and BASE in src/scene3d-table.ts), for the doll's page loads nothing of src/ but src/table-lens.ts.
+  // The table, the standard's (src/table-lens.ts TABLE_TOP, TABLE_BASE and TABLE_RAIL; Jakob 2026-11-26: "markerbrickan
+  // och bordet i sin helhet måste fixas"): a straight dealer's edge and half an ellipse toward the players, the felt at
+  // y = 0, a padded roll round the players' side, the board and apron under the felt, two legs with a stretcher, and the
+  // floor. Until then it was a half circle of 1.02 m with the floor 0.90 m under the felt. How thick a leg is the
+  // standard does not say: that is this drawing's own.
   // options.tableBack (metres) draws the dealer's edge that much nearer her than the film's edge row: a trial of a table
   // that comes to the dealer (Jakob 2026-11-26: "skjuta bak bordet litegranna så det kommer närmre dealern"), for a doll
   // whose films are not yet made. The chip tray goes back with the edge, for a tray belongs at the dealer's edge with her
   // hands on the felt in front of it; the card places and the shoe stay where the standard has them. Without it the edge
   // is the film's, as always. The felt and the board under it are cut out where the tray is sunk in: a notch from the
   // dealer's edge to the tray's players' side (TRAY.s0 is 0: the tray begins at the edge), as the scene cuts its felt.
-  const radius = 1.02, rail = 0.12, back = Math.max(0, options.tableBack ?? 0);
+  const back = Math.max(0, options.tableBack ?? 0);
   const trayAt = {x0: TRAY.x0, x1: TRAY.x1, s0: TRAY.s0 - back, s1: TRAY.s1 - back}; // the tray in the shape's x-y: x across, y toward the players from the film's edge
-  const half = (r: number, cut = false) => { const s = new T.Shape(); s.moveTo(-r, 0); s.absarc(0, 0, r, Math.PI, 0, true); if (back) s.lineTo(r, -back);
+  /** The table's outline `grow` metres outside the felt's: half an ellipse from the dealer's edge, the edge drawn `back` nearer her, and with `cut` the notch the tray is sunk in. */
+  const half = (grow: number, cut = false) => { const r = TABLE_TOP.halfWidth + grow, s = new T.Shape(); s.moveTo(-r, 0); s.absellipse(0, 0, r, TABLE_TOP.depth + grow, Math.PI, 0, true, 0); if (back) s.lineTo(r, -back);
     if (cut) { s.lineTo(trayAt.x1, -back); s.lineTo(trayAt.x1, trayAt.s1); s.lineTo(trayAt.x0, trayAt.s1); s.lineTo(trayAt.x0, -back); }
     if (back) s.lineTo(-r, -back); s.lineTo(-r, 0); return s; };
   const lay = (g: T.BufferGeometry) => g.rotateX(Math.PI / 2).translate(edge[0], 0, edge[2]); // the shape lies in x-y with its arc toward +y; turned so that +y is world +z, toward the players, and its depth goes down
   // The tray is drawn in the look 'room' only, as it always was: 'plain' and 'bare' are what a reference film is made of,
   // and a tray with chips there would be a tray for the film model to draw. There the felt and the board are whole.
   const withTray = look === 'room';
-  const felt = new T.Mesh(lay(new T.ShapeGeometry(half(radius, withTray), 64)), new T.MeshStandardMaterial({color: C.felt, roughness: 0.95, side: T.DoubleSide})); felt.receiveShadow = true; scene.add(felt);
-  const slab = new T.Mesh(lay(new T.ExtrudeGeometry(half(radius + rail, withTray), {depth: 0.06, bevelEnabled: false, curveSegments: 64})), new T.MeshStandardMaterial({color: C.wood, roughness: 0.8, side: T.DoubleSide})); slab.position.y = -0.0005; slab.receiveShadow = true; scene.add(slab);
+  const felt = new T.Mesh(lay(new T.ShapeGeometry(half(0, withTray), 64)), new T.MeshStandardMaterial({color: C.felt, roughness: 0.95, side: T.DoubleSide})); felt.receiveShadow = true; scene.add(felt);
+  // The board and the apron: out to the roll's outer side and down to the standard's underside. Under the tray's well the
+  // notch is filled again, so that the apron is whole seen from her side.
+  const timber = new T.MeshStandardMaterial({color: C.wood, roughness: 0.8, side: T.DoubleSide}), apron = -TABLE_BASE.under;
+  const slab = new T.Mesh(lay(new T.ExtrudeGeometry(half(TABLE_TOP.rail, withTray), {depth: apron, bevelEnabled: false, curveSegments: 64})), timber); slab.position.y = -0.0005; slab.receiveShadow = true; scene.add(slab);
+  if (withTray) { const fill = new T.Mesh(new T.BoxGeometry(trayAt.x1 - trayAt.x0, apron - TRAY.depth, trayAt.s1 + back), timber); fill.position.set(edge[0] + (trayAt.x0 + trayAt.x1) / 2, -TRAY.depth - (apron - TRAY.depth) / 2 - 0.001, edge[2] + (trayAt.s1 - back) / 2); scene.add(fill); }
+  // Two legs, oval in plan, and the stretcher between them; left out of 'bare', where only the figure is drawn.
+  if (look !== 'bare') { const tall = TABLE_BASE.under - TABLE_BASE.floor;
+    for (const side of [-1, 1]) { const leg = new T.Mesh(new T.CylinderGeometry(0.085, 0.11, tall, 32).scale(1, 1, 1.8), timber); leg.position.set(edge[0] + side * TABLE_BASE.legX, TABLE_BASE.floor + tall / 2, edge[2] + TABLE_BASE.legZ); leg.castShadow = true; scene.add(leg); }
+    const stretcher = new T.Mesh(new T.BoxGeometry(2 * TABLE_BASE.legX, 0.07, 0.05), timber); stretcher.position.set(edge[0], TABLE_BASE.floor + 0.3, edge[2] + TABLE_BASE.legZ); scene.add(stretcher); }
   // The chip tray, the standard's (src/table-lens.ts TRAY; Jakob 2026-11-25: the doll's table, the scene's and the films' are
   // one table of fixed measures), sunk into the table at her edge as deep as the standard says: a dark well, a brass rim
   // flush with the felt round the three sides the felt meets (the dealer's side is the table's edge), and rows of chips
@@ -146,15 +157,17 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
     }
   }
   if (withTray) scene.add(tray);
-  if (look === 'room') { const ring = half(radius + rail); ring.holes.push(new T.Path(half(radius).getPoints(64)));
-    const r = new T.Mesh(lay(new T.ExtrudeGeometry(ring, {depth: 0.03, bevelEnabled: false, curveSegments: 64})).translate(0, 0.03, 0), new T.MeshStandardMaterial({color: C.rail, roughness: 0.55, side: T.DoubleSide})); r.castShadow = true; r.receiveShadow = true; scene.add(r);
+  // The padded roll, in the look 'room': the standard's section as a band, its middle TABLE_RAIL.centre outside the felt's
+  // edge and TABLE_RAIL.lift over the felt.
+  if (look === 'room') { const ring = half(TABLE_RAIL.centre + TABLE_RAIL.halfWidth); ring.holes.push(new T.Path(half(TABLE_RAIL.centre - TABLE_RAIL.halfWidth).getPoints(64)));
+    const r = new T.Mesh(lay(new T.ExtrudeGeometry(ring, {depth: TABLE_RAIL.above + TABLE_RAIL.below, bevelEnabled: false, curveSegments: 64})).translate(0, TABLE_RAIL.lift + TABLE_RAIL.above, 0), new T.MeshStandardMaterial({color: C.rail, roughness: 0.55, side: T.DoubleSide})); r.castShadow = true; r.receiveShadow = true; scene.add(r);
     // The plan's places as thin outlines of a real card, so that one sees where each card is to lie.
     for (const s of all) { const w = CARD.width / 2 + 0.003, h = CARD.height / 2 + 0.003, pts = [[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, z]) => new T.Vector3(s.at[0] + x, 0.0006, s.at[2] + z));
       scene.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({color: C.mark, transparent: true, opacity: s.id === target ? 0.95 : 0.4}))); } }
-  const floor = new T.Mesh(new T.PlaneGeometry(40, 40).rotateX(-Math.PI / 2), matte(C.ground, 1)); floor.position.y = -0.9; scene.add(floor);
+  const floor = new T.Mesh(new T.PlaneGeometry(40, 40).rotateX(-Math.PI / 2), matte(C.ground, 1)); floor.position.y = TABLE_BASE.floor; scene.add(floor);
   // The room's floor in half-metre squares. Every seat's eye is as high over the felt and looks as steeply down as the
   // bank's camera; without a floor to read that from, a view along the dealer's edge looks raised and one across it level.
-  if (look === 'room') { const tiles = new T.GridHelper(40, 80, 0x4a525a, 0x343a40); tiles.position.set(edge[0], -0.898, edge[2]); scene.add(tiles); }
+  if (look === 'room') { const tiles = new T.GridHelper(40, 80, 0x4a525a, 0x343a40); tiles.position.set(edge[0], TABLE_BASE.floor + 0.002, edge[2]); scene.add(tiles); }
 
   // The shoe: a wedge on the felt, its front plate leaning back; the next card shows on the plate, 0.6 mm in behind the card
   // that is drawn out (deal.card(0)'s normal looks into the shoe). Until 2026-11-26 it stood 0.6 mm in front of it, and the
@@ -174,7 +187,7 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
     const hidden = new T.MeshBasicMaterial({colorWrite: false});
     for (const o of [felt, slab, tray, shoe, next, card, ...lying.map(l => l.mesh)]) o.traverse(m => { if (m instanceof T.Mesh) { m.material = hidden; m.renderOrder = -1; m.castShadow = false; } });
     floor.visible = false;
-    const shade = new T.Mesh(lay(new T.ShapeGeometry(half(radius), 64)), new T.ShadowMaterial({opacity: 0.3})); shade.position.y = 0.0004; shade.receiveShadow = true; scene.add(shade);
+    const shade = new T.Mesh(lay(new T.ShapeGeometry(half(0), 64)), new T.ShadowMaterial({opacity: 0.3})); shade.position.y = 0.0004; shade.receiveShadow = true; scene.add(shade);
   }
 
   // The figure.
