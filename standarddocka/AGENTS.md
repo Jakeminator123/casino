@@ -59,9 +59,13 @@ rörelse prövas mot innan den visas för honom.
   skulle spela i casinot. Dock om vi kan vinkla ned vyn till när man ska spela så går detta å andra sidan": vyn
   spelaren får ska vara mer framifrån än inspelningens, och blicken mot kameran.
 - **Takten (2026-11-26).** "En ny standard som jag skulle vilja ha för rörelserna med nya standarddockan. A1 - A2.3 ska
-  ta 1 sekund ungefär. Sedan ska respektive giv, såsom A2.3 till P4C1 ta 1 sekund ungefär", och "återvändandet till
-  A2.3 ska ta ca 0.5 sekunder": från vilan till skon 1 s, kortet ut 1 s, handen tillbaka 0,5 s, alltså 11,5 s från
-  vilan genom ett kort till var och en av sju spelare. Det är rörelsens tid; stillastående i ett ankare räknas inte in.
+  ta 1 sekund ungefär. Sedan ska respektive giv, såsom A2.3 till P4C1 ta 1 sekund ungefär", och senare samma dag:
+  "respektive utgivning är max 1 sekund och tillbakagången till A1 och/eller A2.3 eller så ska göras på ca 0,6
+  sekunder". Alltså: från vilan till skon cirka 1 s, kortet ut högst 1 s, och handen tillbaka (till skon eller till
+  vilan) cirka 0,6 s. Det är rörelsens tid; stillastående i ett ankare räknas inte in.
+- **Handen vid skon vilar medan den andra ger (2026-11-26).** "Dealerns hand som för ut kortet ur skon liksom lyfts upp
+  och spänns medan den andra [handen] faktiskt delar ut kortet", i alla givarna: handen som tog kortet ur skon ska
+  ligga avspänd, inte hänga spänd i luften, medan den andra handen lägger kortet.
 - **Allt börjar i A1.** "Rörelserna måste kunna läggas in i hela det system med A1 som allt börjar på": varje rörelse
   går mellan två ankare (A1 vilan, A2.3 handen vid skon) och börjar och slutar stilla i dem, så att klippen kan läggas
   efter varandra i spelets träd.
@@ -80,6 +84,12 @@ rörelse prövas mot innan den visas för honom.
   läggs det till där som ett val som inte ändrar det som redan byggs, och skrivs upp under "Plockas in" i README.
 - `../blackjack-dealer/` ändras inte härifrån. Det som ska dit skrivs upp under "Plockas in" och förs in när Jakob
   säger att han är nöjd.
+- Undantaget är dockans rörelser (Jakob 2026-11-26, efter granskningen som fann felen i grundrörelserna: "Detta ska
+  verkligen få ändras om något annat sägs så är det jag som bestämmer", "du har fulla privilegier för ändringar av
+  allt"): koden som ritar givarna (`../blackjack-dealer/dealer3d/src/` och `dealer3d/tools/`) får ändras, och nya
+  grundrörelser får skrivas i `../blackjack-dealer/dealer3d/data/`. Det som redan används skrivs inte över: en ny regel
+  är ett nytt val bredvid det gamla, och en ny rörelse en ny fil, så att Paows sparade standarder och de grundrörelser
+  hennes filmer är gjorda av är som de var. Vad som ändrades i en rörelse sägs kort till Jakob.
 
 ## Köra
 

@@ -2,7 +2,9 @@
 // standarddocka/rorelser/ (ändringarna och farten), prövade mot vad en hand och ett kort kan göra. För den som granskar
 // en rörelse: talen säger var det är värt att titta (verktyg/titta.ts), de dömer inte rörelsen.
 //
-//   node standarddocka/verktyg/mat.ts --plats 7 [--json]
+//   node standarddocka/verktyg/mat.ts --plats 7 [--json] [--giv <namn>] [--vilan <namn>]
+//   --giv, --vilan: en grundrörelse på prov (en fil i blackjack-dealer/dealer3d/data, utan .json) i stället för platsens
+//   giv eller vilan till skon; då mäts den utan det sparade lagret.
 //
 // Vad som mäts (filten är y = 0, meter; tider är filmens sekunder):
 // - handen: en led bortom vad ett finger kan, fingrar i varandra, ett finger genom kortet eller i filten (handFaults i
@@ -24,8 +26,10 @@ import {GIVAR, TILL_SKON, rutaVid, medAndringar, sattIhop, takt, type Motion, ty
 const arg = (name: string, fallback?: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : fallback; };
 const plats = Number(arg('--plats', '4')); if (!GIVAR[plats]) throw Error('--plats tar 1–7.');
 const ROOT = fileURLToPath(new URL('../../', import.meta.url)), las = async <X>(fil: string) => JSON.parse(await readFile(path.join(ROOT, fil), 'utf8')) as X;
-const [forsta, andra, plan] = await Promise.all([las<Motion>(`blackjack-dealer/dealer3d/data/${TILL_SKON}.json`), las<Motion>(`blackjack-dealer/dealer3d/data/${GIVAR[plats]}.json`), las<Plan>('blackjack-dealer/placements/default.json')]);
-const sparad = await las<Sparad>(`standarddocka/rorelser/a1-a23-p${plats}c1.json`).catch(() => null);
+// --giv och --vilan: en grundrörelse på prov i stället för platsens, mätt utan det sparade lagret.
+const provgiv = arg('--giv'), provvila = arg('--vilan'); if (![provgiv, provvila].every(n => n === undefined || /^[a-z0-9][a-z0-9-]*$/.test(n))) throw Error('--giv och --vilan tar ett filnamn ur blackjack-dealer/dealer3d/data, utan .json.');
+const [forsta, andra, plan] = await Promise.all([las<Motion>(`blackjack-dealer/dealer3d/data/${provvila ?? TILL_SKON}.json`), las<Motion>(`blackjack-dealer/dealer3d/data/${provgiv ?? GIVAR[plats]}.json`), las<Plan>('blackjack-dealer/placements/default.json')]);
+const sparad = provgiv || provvila ? null : await las<Sparad>(`standarddocka/rorelser/a1-a23-p${plats}c1.json`).catch(() => null);
 const f = sattIhop(forsta, andra, plats), T = takt(f, sparad?.fart), fps = f.fps, antal = Math.round(T.langd * fps) + 1;
 
 const sub = (a: number[], b: number[]): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dot = (a: number[], b: number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -75,7 +79,7 @@ let fall: {fran: number; hojdMm: number; tar: number; tyngdkraftenGer: number} |
 { let i = ligger; while (i > lamnar && utanStod.includes(i - 1)) i--; if (i < ligger) { const h = rutor[i].x.card.c[1] - sist.c[1]; fall = {fran: r2(i / fps), hojdMm: mm(h), tar: r2((ligger - i) / fps), tyngdkraftenGer: r2(Math.sqrt(2 * Math.max(0, h) / 9.81))}; } }
 
 const tider = [...new Set([...fynd.map(x => x.vid), landning.vid, r2(lamnar / fps), ...fart.kortet.haftigast.map(x => x.vid)])].sort((a, b) => a - b);
-const ut = {rorelse: `a1-a23-p${plats}c1`, plats, langd: r2(T.langd), fart: T.fart, andringar: sparad?.andringar.length ?? 0, delar: T.delar.map(d => `${d.namn} ${r2(d.fran)}–${r2(d.till)} s`), kortetLamnarSkon: r2(lamnar / fps), fynd, landning, fall, farten: fart, tiderAttTittaPa: tider};
+const ut = {rorelse: provgiv || provvila ? `prov: ${provvila ?? TILL_SKON} och ${provgiv ?? GIVAR[plats]}` : `a1-a23-p${plats}c1`, plats, langd: r2(T.langd), fart: T.fart, andringar: sparad?.andringar.length ?? 0, delar: T.delar.map(d => `${d.namn} ${r2(d.fran)}–${r2(d.till)} s`), kortetLamnarSkon: r2(lamnar / fps), fynd, landning, fall, farten: fart, tiderAttTittaPa: tider};
 if (process.argv.includes('--json')) console.log(JSON.stringify(ut, null, 1));
 else {
   console.log(`${ut.rorelse}: ${ut.langd} s (${ut.delar.join(' · ')}), ${ut.andringar} ändringar, farten ${T.fart.join(' / ')}`);

@@ -4,6 +4,7 @@
 // (grundrörelserna ändras aldrig), klippen i standarddocka/klipp/.
 //   ?plats=<1–7>&t=<sekunder>&kamera=<lag|film|plats1…plats7|sida|topp|fri>[&kulor=0][&utseende=nyckel]   öppnar ett läge
 //   direkt (förval: given till plats 4, lägre kamera, Blenders bord som det är)
+//   ?giv=<namn>[&vilan=<namn>]   en grundrörelse på prov i stället för platsens (se PROV nedan)
 // window.editor (för kontrollen och verktyget ../verktyg/titta.ts): ready, setTime(t), setKamera(k), state(), addChange({...}),
 // removeChange(id), undo(), save(), kula(led), visa(vad, på), tillSparat(), tillGrund(), fart(del, gånger),
 // spelaIn(kameror, förstaDel, sistaDel).
@@ -18,8 +19,12 @@ import {ARMAR, lyftArmar} from './armar.ts';
 const query = new URLSearchParams(location.search);
 /** Platsen kortet ges till (varje plats har sin egen rörelse och sina egna sparade ändringar). */
 const PLATS = GIVAR[Number(query.get('plats'))] ? Number(query.get('plats')) : 4;
-const NAMN = `a1-a23-p${PLATS}c1`, SPARAS = `/standarddocka/rorelser/${NAMN}.json`, RUTOR = `/standarddocka/rorelser/${NAMN}.rutor.json`;
-const GRUND = [TILL_SKON, GIVAR[PLATS]];
+// En grundrörelse på prov (?giv=<namn> och ?vilan=<namn>, filer i blackjack-dealer/dealer3d/data): spelas i stället för
+// platsens giv eller vilan till skon, utan det sparade lagret, och går inte att spara. För den som gör om en grundrörelse.
+const prov = (namn: string | null) => namn && /^[a-z0-9][a-z0-9-]*$/.test(namn) ? namn : null;
+const PROVGIV = prov(query.get('giv')), PROVVILA = prov(query.get('vilan')), PROV = !!(PROVGIV || PROVVILA);
+const NAMN = PROV ? `prov-p${PLATS}` : `a1-a23-p${PLATS}c1`, SPARAS = `/standarddocka/rorelser/${NAMN}.json`, RUTOR = `/standarddocka/rorelser/${NAMN}.rutor.json`;
+const GRUND = [PROVVILA ?? TILL_SKON, PROVGIV ?? GIVAR[PLATS]];
 const FORVAL: Sparad = {namn: `Vilan, skon och given till plats ${PLATS} kort 1`, om: `A1 till A2.3 (${GRUND[0]}) och sedan Paows giv från A2.3 till plats ${PLATS} kort 1 och tillbaka. Ändringarna läggs ovanpå grundrörelserna.`, grund: GRUND, andringar: []};
 const PLATSER = [1, 2, 3, 4, 5, 6, 7];
 const KAMEROR: Kamera[] = ['lag', 'sida', 'topp', 'fri', ...PLATSER.map(platskamera)];
@@ -47,7 +52,7 @@ const [plan, forsta, andra, sparadFil] = await Promise.all([
   hämta<Plan>('/blackjack-dealer/placements/default.json'),
   hämta<Motion>(`/blackjack-dealer/dealer3d/data/${GRUND[0]}.json`),
   hämta<Motion>(`/blackjack-dealer/dealer3d/data/${GRUND[1]}.json`),
-  fetch(SPARAS, {cache: 'no-store'}).then(r => r.status === 200 ? r.json() as Promise<Sparad> : null), // 204: inget sparat ännu
+  PROV ? null : fetch(SPARAS, {cache: 'no-store'}).then(r => r.status === 200 ? r.json() as Promise<Sparad> : null), // 204: inget sparat ännu
 ]);
 const sparad: Sparad = sparadFil ? {...FORVAL, ...sparadFil, grund: GRUND} : structuredClone(FORVAL);
 const foljd: Foljd = sattIhop(forsta, andra, PLATS), RUTA = 1 / foljd.fps;
@@ -240,7 +245,8 @@ function visaLista() {
   const linje = $('#tidslinje'); linje.querySelectorAll('.prick').forEach(p => p.remove());
   for (const a of alla) { const p = document.createElement('div'), t = tak.ut(a.tid); p.className = 'prick'; p.style.left = `${t / DUR * 100}%`; p.title = `${LEDNAMN[a.led]}, ${sek(t)}`; linje.append(p); }
 }
-function visaStatus() { const s = $('#status'); s.className = osparat ? 'osparat' : sparadKl ? 'bra' : ''; s.textContent = osparat ? 'Ändrat – inte sparat ännu.' : sparadKl ? `Sparat kl. ${sparadKl}.` : sparadFil ? 'Allt är sparat.' : 'Inget sparat ännu.';
+function visaStatus() { const s = $('#status'); s.className = osparat ? 'osparat' : sparadKl ? 'bra' : ''; s.textContent = PROV ? `På prov: ${GRUND.join(' och ')}. Sparas inte.` : osparat ? 'Ändrat – inte sparat ännu.' : sparadKl ? `Sparat kl. ${sparadKl}.` : sparadFil ? 'Allt är sparat.' : 'Inget sparat ännu.';
+  $<HTMLButtonElement>('#spara').disabled = PROV;
   $<HTMLButtonElement>('#till-sparat').disabled = !osparat; $<HTMLButtonElement>('#till-grund').disabled = ärGrund(); }
 
 /** Vad som kan spelas in: hela rörelsen, en del, eller given (kortet ut och handen tillbaka i samma film). Värdet är första och sista delen. */
@@ -311,6 +317,7 @@ function visaDel(vad: Visa, på: boolean) { synligt[vad] = på; scen.synlig(vad,
 
 // ---- spara -------------------------------------------------------------------------------------------------------
 async function sparaFiler() {
+  if (PROV) throw Error('En grundrörelse på prov sparas inte: öppna editorn utan giv och vilan i adressen.');
   const fil: Sparad = {namn: sparad.namn, om: sparad.om, grund: GRUND, blickMot: blickMot(), fart: tak.fart, andringar: [...sparad.andringar].sort((a, b) => a.tid - b.tid), sparad: new Date().toISOString()};
   const put = async (url: string, data: unknown) => { const r = await fetch(url, {method: 'PUT', headers: {'content-type': 'application/json'}, body: JSON.stringify(data, null, 1)}); if (!r.ok) throw Error(`Kunde inte spara (${r.status}).`); return r.json(); };
   $('#status').textContent = 'Sparar …';
