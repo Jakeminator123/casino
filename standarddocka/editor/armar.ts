@@ -23,22 +23,28 @@ function tyngstaBen(m: T.SkinnedMesh): Int32Array {
   for (let i = 0; i < idx.count; i++) { let bv = 0; for (let j = 0; j < 4; j++) { const w = vikt.getComponent(i, j); if (w > bv) { bv = w; ut[i] = idx.getComponent(i, j); } } }
   return ut;
 }
-/** Ett bens tjocklek (radie i meter) i tio fack längs det, från leden `E` (0) till leden `W` (1), mätt på huden som den sitter nu. */
-function fack(k: Kropp, namn: string, E: T.Vector3, W: T.Vector3): number[] {
-  const m = k.hud, ben = m.skeleton.bones.findIndex(b => b.name === namn), d = W.clone().sub(E), L = d.length();
+/**
+ * Ett bens tjocklek (radie i meter) i tio fack längs det, från leden `E` (0) till leden `W` (1), mätt på huden som den
+ * sitter nu: den hud vars tyngsta ben är ett av `namn` (underarmen är ForeArm och, i dockor som har dem, vridbenen
+ * ForeArmTwist1 och 2, som bär det mesta av dess hud).
+ */
+function fack(k: Kropp, namn: readonly string[], E: T.Vector3, W: T.Vector3): number[] {
+  const m = k.hud, ben = new Set(namn.map(n => m.skeleton.bones.findIndex(b => b.name === n)).filter(i => i >= 0)), d = W.clone().sub(E), L = d.length();
   d.normalize(); m.skeleton.update();
   const tyngst = tyngstaBen(m), fack = new Array<number>(10).fill(0), p = new T.Vector3();
   for (let i = 0; i < tyngst.length; i++) {
-    if (tyngst[i] !== ben) continue;
+    if (!ben.has(tyngst[i])) continue;
     m.getVertexPosition(i, p).applyMatrix4(m.matrixWorld); const r = p.clone().sub(E), along = r.dot(d), s = along / L; if (s < 0 || s > 1) continue;
     const f = Math.min(9, Math.floor(s * 10)); fack[f] = Math.max(fack[f], r.sub(d.clone().multiplyScalar(along)).length());
   }
   const störst = Math.max(...fack); for (let f = 0; f < 10; f++) if (!fack[f]) fack[f] = störst; // tomma fack (ingen hud räknad dit): den tjockaste delen
   return fack;
 }
+/** Underarmens ben: ForeArm och vridbenen, där dockan har dem. */
+const UNDERARM = (sida: 'Right' | 'Left') => [`${sida}ForeArm`, `${sida}ForeArmTwist1`, `${sida}ForeArmTwist2`];
 /** Underarmens tjocklek (radie i meter) längs den, från armbågen (0) till handleden (1), mätt på huden som den sitter nu. */
 function tjocklek(k: Kropp, sida: 'Right' | 'Left'): (s: number) => number {
-  const f = fack(k, `${sida}ForeArm`, k.bone(`${sida}ForeArm`), k.bone(`${sida}Hand`));
+  const f = fack(k, UNDERARM(sida), k.bone(`${sida}ForeArm`), k.bone(`${sida}Hand`));
   return s => f[Math.min(9, Math.max(0, Math.floor(s * 10)))];
 }
 
@@ -87,7 +93,7 @@ export function matKropp(k: Kropp, f: Frame, hip: number[]): Kroppsmatt {
   let lo: V3 = [Infinity, Infinity, Infinity], hi: V3 = [-Infinity, -Infinity, -Infinity];
   for (const q of huvud) { lo = lo.map((v, i) => Math.min(v, q[i])) as V3; hi = hi.map((v, i) => Math.max(v, q[i])) as V3; }
   const armar = Object.fromEntries(SIDOR.map(([s, namn]) => { const S = k.bone(`${namn}Arm`), E = k.bone(`${namn}ForeArm`), W = k.bone(`${namn}Hand`);
-    return [s, {axel: iBalensAxlar(a, [S.x, S.y, S.z]), over: S.distanceTo(E), under: E.distanceTo(W), tjockOver: fack(k, `${namn}Arm`, S, E), tjockUnder: fack(k, `${namn}ForeArm`, E, W)} as Arm]; })) as Record<'R' | 'L', Arm>;
+    return [s, {axel: iBalensAxlar(a, [S.x, S.y, S.z]), over: S.distanceTo(E), under: E.distanceTo(W), tjockOver: fack(k, [`${namn}Arm`], S, E), tjockUnder: fack(k, UNDERARM(namn), E, W)} as Arm]; })) as Record<'R' | 'L', Arm>;
   // Hur mycket varje skiva följer axlarna: skivans hud i provet mot där den stod (med höften, som står still) och där den
   // vore om den följde axlarna. En skiva utan hud eller där de två ligger för nära varandra får grannarnas.
   const vilaVarld = (i: number) => m.getVertexPosition(i, new T.Vector3()).applyMatrix4(m.matrixWorld), medel = (h: number[], las: (i: number) => T.Vector3) => h.reduce((s, i) => s.add(las(i)), new T.Vector3()).multiplyScalar(1 / h.length);

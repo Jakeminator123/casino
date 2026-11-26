@@ -73,9 +73,13 @@ function kortast(a: Vec3, b: Vec3): R3 { const ax = cross(a, b), s = length(ax),
 const mellanAxlar = (fran: R3, till: R3): R3 => { const M = (v: Vec3) => add(add(mul(till[0], dot(fran[0], v)), mul(till[1], dot(fran[1], v))), mul(till[2], dot(fran[2], v))); return [M([1, 0, 0]), M([0, 1, 0]), M([0, 0, 1])]; };
 const flatt = (n: Vec3, axel: Vec3) => unit(sub(n, mul(axel, dot(n, axel))));
 const FINGRAR = [['Thumb', 1], ['Index', 5], ['Middle', 9], ['Ring', 13], ['Pinky', 17]] as const, WRIST = 50 * Math.PI / 180;
-/** Underarmens vridning som figure-model.ts FOREARM: hela upp till `full`, mjukt mot högst `most` (radianer). */
-const FOREARM = {full: 70 * Math.PI / 180, most: 95 * Math.PI / 180};
+/** Underarmens vridning som figure-model.ts FOREARM: hela upp till `full`, mjukt mot högst `most` (radianer); den delas på vridbenen (VRIDBEN). */
+const FOREARM = {full: 100 * Math.PI / 180, most: 120 * Math.PI / 180};
+/** Hur stor del av underarmens vridning varje ben tar (figure-model.ts): underarmen själv ingen, vridbenen en och två tredjedelar; en modell utan vridben vrider underarmen hel. */
+const VRIDBEN = [0, 1 / 3, 2 / 3];
 const tung = (d: Docka) => d.hud.pa.map(p => d.hud.leder[p.reduce((a, b) => b.vikt > a.vikt ? b : a).led]);
+/** Underarmens ben: underarmen och de två vridben dockan har (huden hänger på alla tre; modeller utan vridben har bara det första). */
+const underarmBen = (sida: string) => [`${sida}ForeArm`, `${sida}ForeArmTwist1`, `${sida}ForeArmTwist2`];
 
 /**
  * Handens hud på sidan `sida` ('Right' hans högra, 'Left' den vänstra). `stall(p, armbage)` ger hudens hörn på handen och
@@ -92,11 +96,12 @@ export function handHud(d: Docka, sida: 'Right' | 'Left') {
   const vag0 = huvud0.map((h, k) => [0, 1, 2].map(n => { const t = n === 2 ? fingertopp(h[1], h[2], d.pa(ben[k][2])) : null; return unit(t ? sub(t.punkt, h[2]) : sub(h[Math.min(n, 1) + 1], h[Math.min(n, 1)])); }));
   const axlar = (w: Vec3, i: Vec3, m: Vec3, l: Vec3): R3 => { const f = unit(sub(m, w)), p = flatt(mul(cross(sub(i, w), sub(l, w)), sign), f); return [f, p, cross(p, f)]; };
   const A0 = axlar(W0, huvud0[1][0], huvud0[2][0], huvud0[4][0]);
-  const namnTill = new Map<string, number>(); namnTill.set(`${sida}Hand`, 0); ben.forEach((f, k) => f.forEach((n, j) => namnTill.set(n, 1 + k * 3 + j))); namnTill.set(`${sida}ForeArm`, 16);
+  // (underarmens hud hänger på underarmen och dess vridben; tills figure-model.ts vrider dem var för sig följer de underarmen)
+  const namnTill = new Map<string, number>(); namnTill.set(`${sida}Hand`, 0); ben.forEach((f, k) => f.forEach((n, j) => namnTill.set(n, 1 + k * 3 + j))); const ulBen = underarmBen(sida).filter(u => d.hud.leder.includes(u) || u === `${sida}ForeArm`), ulVila = ulBen.map(u => led(u)); ulBen.forEach((u, i) => namnTill.set(u, 16 + i));
   const dom = tung(d), horn: number[] = [], finger: number[] = [];
-  d.hud.horn.forEach((_, i) => { const dm = dom[i]; if (!namnTill.has(dm) || dm === `${sida}ForeArm`) return; const pa = d.hud.pa[i], tot = pa.reduce((s, x) => s + (namnTill.has(d.hud.leder[x.led]) ? x.vikt : 0), 0);
+  d.hud.horn.forEach((_, i) => { const dm = dom[i]; if (!namnTill.has(dm) || underarmBen(sida).includes(dm)) return; const pa = d.hud.pa[i], tot = pa.reduce((s, x) => s + (namnTill.has(d.hud.leder[x.led]) ? x.vikt : 0), 0);
     if (tot < 0.99) return; horn.push(i); const k = namnTill.get(dm)!; finger.push(k === 0 ? -1 : Math.floor((k - 1) / 3)); });
-  const huvudVila = [W0, ...huvud0.flat(), F0];
+  const huvudVila = [W0, ...huvud0.flat(), ...ulVila];
   // Underarmen som figure-model.ts ställer den: överarmen riktad mot armbågen och vriden så att armbågens gångjärn (som
   // modellen är gjord, i överarmens egna axlar) står vinkelrätt mot det plan armen böjs i, underarmen riktad mot
   // handleden i det planet, och sedan vriden kring sin längd så långt handen ber om, helt upp till FOREARM.full och
@@ -136,7 +141,9 @@ export function handHud(d: Docka, sida: 'Right' | 'Left') {
     FINGRAR.forEach(([, start], k) => { let Rp = Rh, hp0 = W0, hp = p[0];
       for (let n = 0; n < 3; n++) { const h0 = huvud0[k][n], h = add(hp, rot(Rp, sub(h0, hp0))), till = sub(p[start + n + 1], p[start + n]);
         const R = length(till) > 1e-6 ? efter(kortast(rot(Rp, vag0[k][n]), unit(till)), Rp) : Rp; Rs.push(R); H.push(h); Rp = R; hp0 = h0; hp = h; } });
-    const Rf = v ? efter(omkring(fore, v.underarm), v.Df) : kortast(unit(sub(W0, F0)), fore); Rs.push(Rf); H.push(armbage);
+    // (underarmen och dess vridben: riktade som underarmen, och vridna var sin del av vridningen kring den)
+    const D = v ? v.Df : kortast(unit(sub(W0, F0)), fore), vrid = v ? v.underarm : 0;
+    ulBen.forEach((_, i) => { Rs.push(efter(omkring(fore, vrid * (ulBen.length > 1 ? VRIDBEN[i] : 1)), D)); H.push(add(armbage, rot(D, sub(ulVila[i], F0)))); });
     return horn.map(i => { const v0 = d.hud.horn[i]; let o: Vec3 = [0, 0, 0];
       for (const x of d.hud.pa[i]) { const k = namnTill.get(d.hud.leder[x.led]); if (k === undefined) continue; o = add(o, mul(add(H[k], rot(Rs[k], sub(v0, huvudVila[k]))), x.vikt)); }
       return o; });
@@ -147,7 +154,7 @@ export function handHud(d: Docka, sida: 'Right' | 'Left') {
 /** Underarmens radie på huden i tio delar från armbågen till handleden (meter), som standarddocka/editor/armar.ts mäter den. */
 export function underarmRadie(d: Docka, sida: 'Right' | 'Left'): number[] {
   const E = d.led(`${sida}ForeArm`), W = d.led(`${sida}Hand`), r = unit(sub(W, E)), L = length(sub(W, E)), fack = new Array<number>(10).fill(0), dom = tung(d);
-  d.hud.horn.forEach((p, i) => { if (dom[i] !== `${sida}ForeArm`) return; const q = sub(p, E), a = dot(q, r), s = a / L; if (s < 0 || s > 1) return; const f = Math.min(9, Math.floor(s * 10)); fack[f] = Math.max(fack[f], length(sub(q, mul(r, a)))); });
+  d.hud.horn.forEach((p, i) => { if (!underarmBen(sida).includes(dom[i])) return; const q = sub(p, E), a = dot(q, r), s = a / L; if (s < 0 || s > 1) return; const f = Math.min(9, Math.floor(s * 10)); fack[f] = Math.max(fack[f], length(sub(q, mul(r, a)))); });
   const storst = Math.max(...fack); return fack.map(x => x || storst);
 }
 

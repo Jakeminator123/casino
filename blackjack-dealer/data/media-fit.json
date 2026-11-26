@@ -83,14 +83,6 @@
         "card": "P6.C1"
       }
     },
-    "paow-film-fri-giv-p4-01-t1": {
-      "verdict": "går inte att mäta",
-      "words": "Filmen har inget kortspår med ett liggande kort."
-    },
-    "paow-film-fri-giv-p4-luften-01-t1": {
-      "verdict": "går inte att mäta",
-      "words": "Filmen har inget kortspår med ett liggande kort."
-    },
     "paow-film-fri-giv-p7-01-t1": {
       "verdict": "stämmer",
       "words": "Kortet ligger 1 px från platsen P7.C1 och är 1 % mindre än kortet dagens plan ritar (planCardQuad).",
@@ -99,10 +91,6 @@
         "size": 0.993,
         "card": "P7.C1"
       }
-    },
-    "paow-film-giv-2-3-p4-03-t1": {
-      "verdict": "går inte att mäta",
-      "words": "Filmen har inget kortspår med ett liggande kort."
     },
     "paow-film-giv-2-3-d-c2-02-t1": {
       "verdict": "stämmer",
@@ -151,44 +139,12 @@
       "verdict": "går inte att mäta",
       "words": "Filmen har inget kortspår med ett liggande kort."
     },
-    "paow-film-giv-2-3-p4-c2-stol-1-03-t1": {
-      "verdict": "går inte att mäta",
-      "words": "Filmen har inget kortspår med ett liggande kort."
-    },
     "paow-film-intro-noir-3-startruta": {
       "verdict": "går inte att mäta",
       "words": "Övrigt: inget att mäta mot planen.",
       "usedBy": [
         "spelet laddar den"
       ]
-    },
-    "paow-ankare-2-2-blick-a": {
-      "verdict": "går inte att mäta",
-      "words": "Filen finns inte här."
-    },
-    "docka-2-3-p4c1-h24": {
-      "verdict": "går inte att mäta",
-      "words": "Filen finns inte här.",
-      "for": null,
-      "usedBy": []
-    },
-    "docka-2-3-p4c1-h24-cykel": {
-      "verdict": "går inte att mäta",
-      "words": "Filen finns inte här.",
-      "for": null,
-      "usedBy": []
-    },
-    "docka-2-3-p4c2-h24-cykel": {
-      "verdict": "går inte att mäta",
-      "words": "Filen finns inte här.",
-      "for": null,
-      "usedBy": []
-    },
-    "docka-2-3-p4c2-h24-omgrepp": {
-      "verdict": "går inte att mäta",
-      "words": "Filen finns inte här.",
-      "for": null,
-      "usedBy": []
     },
     "kortets-textur": {
       "verdict": "går inte att mäta",
@@ -285,18 +241,6 @@
       "approved": false,
       "played": true
     },
-    "paow-fri-giv-p4-01-01": {
-      "verdict": "går inte att mäta",
-      "words": "Filmen har inget kortspår med ett liggande kort.",
-      "approved": false,
-      "played": false
-    },
-    "paow-fri-giv-p4-luften-01-01": {
-      "verdict": "går inte att mäta",
-      "words": "Filmen har inget kortspår med ett liggande kort.",
-      "approved": false,
-      "played": false
-    },
     "paow-fri-giv-p7-01-01": {
       "verdict": "stämmer",
       "words": "Kortet ligger 1 px från platsen P7.C1 och är 1 % mindre än kortet dagens plan ritar (planCardQuad).",
@@ -307,12 +251,6 @@
       },
       "approved": false,
       "played": true
-    },
-    "paow-giv-2-3-p4-03-01": {
-      "verdict": "går inte att mäta",
-      "words": "Filmen har inget kortspår med ett liggande kort.",
-      "approved": false,
-      "played": false
     },
     "paow-giv-2-3-d-c2-02-01": {
       "verdict": "stämmer",
@@ -376,12 +314,6 @@
       "words": "Filmen har inget kortspår med ett liggande kort.",
       "approved": true,
       "played": true
-    },
-    "paow-giv-2-3-p4-c2-stol-1-03-01": {
-      "verdict": "går inte att mäta",
-      "words": "Filmen har inget kortspår med ett liggande kort.",
-      "approved": false,
-      "played": false
     }
   }
 }

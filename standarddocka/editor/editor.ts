@@ -6,7 +6,7 @@
 //   öppnar ett läge direkt (förval: given till plats 4, spelets vy, mannen, Blenders bord som det är)
 //   ?giv=<namn>[&vilan=<namn>]   en grundrörelse på prov i stället för platsens (se PROV nedan)
 // window.editor (för kontrollen och verktyget ../verktyg/titta.ts): ready, setTime(t), setKamera(k), nara(vad, från), state(), addChange({...}),
-// removeChange(id), undo(), save(skrivÖver), kula(led), visa(vad, på), tillSparat(), tillGrund(), fart(del, gånger),
+// slapp(id), removeChange(id), undo(), save(skrivÖver), kula(led), visa(vad, på), tillSparat(), tillGrund(), fart(del, gånger),
 // spelaIn(kameror, förstaDel, sistaDel), granskaGrund().
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -45,7 +45,7 @@ const sek = (t: number) => t.toFixed(2).replace('.', ',') + ' s';
 
 type Visa = 'bord' | 'stol' | 'platser';
 type Klipp = {fil: string; rutor: number; bytes: number};
-type Api = {ready: boolean; setTime(t: number): void; setKamera(k: Kamera): void; nara(vad: 'hogerHand' | 'vansterHand' | 'kort', fran?: V3): void; state(): unknown; addChange(a: Partial<Andring> & {led: Led}): string; removeChange(id: string): void; undo(): void; save(skrivOver?: boolean): Promise<unknown>; visa(vad: Visa, på: boolean): void; kula(led: Led): {x: number; y: number};
+type Api = {ready: boolean; setTime(t: number): void; setKamera(k: Kamera): void; nara(vad: 'hogerHand' | 'vansterHand' | 'kort', fran?: V3): void; state(): unknown; addChange(a: Partial<Andring> & {led: Led}): string; slapp(id: string): Andring | null; removeChange(id: string): void; undo(): void; save(skrivOver?: boolean): Promise<unknown>; visa(vad: Visa, på: boolean): void; kula(led: Led): {x: number; y: number};
   tillSparat(): void; tillGrund(): void; fart(del: number, ganger: number): void; liv(delar: Livsdel[], fro?: number): void; spelaIn(kameror: Kamera[], fran: number, till: number): Promise<Klipp[]>; granskaGrund(): unknown};
 declare global { interface Window { editor: Api } }
 const api: Api = {ready: false} as Api; window.editor = api;
@@ -152,7 +152,7 @@ function handtagTill() {
   // Blickens kula står mellan honom och kameran och skymmer bordet: den syns bara när Blicken är vald.
   for (const led of LEDER) { const m = handtag[led]; m.position.copy(plats[led]); m.visible = !inspelning && (led === 'blick' ? vald === 'blick' : visaKulor() || vald === led);
     m.material.opacity = vald === led ? 1 : 0.8; }
-  if (vald && !drag) dragpunkt.position.copy(handtag[vald].position);
+  if (vald && !drag) { dragpunkt.position.copy(handtag[vald].position); dragpunkt.quaternion.copy(ringen(vald)); }
   blicklinje.geometry.setFromPoints([huvud, handtag.blick.position]); blicklinje.computeLineDistances(); blicklinje.visible = !inspelning && vald === 'blick';
   flytta.getHelper().visible = !inspelning && vald !== null;
 }
@@ -185,7 +185,7 @@ function spela(på: boolean) { spelar = på; stillaKvar = 0; omstart = false; $(
 // ---- kamerorna ---------------------------------------------------------------------------------------------------
 function setKamera(k: Kamera) {
   kamera = k;
-  if (k !== 'fri') { scen.setKamera(k); const dir = new T.Vector3(); camera.getWorldDirection(dir); orbit.target.copy(camera.position).addScaledVector(dir, k === 'topp' ? 2.1 : k === 'sida' ? 2.4 : 1.95); orbit.update(); }
+  if (k !== 'fri') { scen.setKamera(k); const dir = new T.Vector3(); camera.getWorldDirection(dir); orbit.target.copy(camera.position).addScaledVector(dir, k === 'topp' ? 2.1 : k === 'sida' ? camera.position.distanceTo(new T.Vector3(...kameraVy('sida', plan).mot)) : 1.95); orbit.update(); }
   document.querySelectorAll<HTMLButtonElement>('#kameror button').forEach(b => b.classList.toggle('vald', b.dataset.kamera === k)); ram(); rita();
 }
 /** Spelets bild som en ram i fönstret, när kameran är en plats vid bordet (plats 4 är spelets egen). */
@@ -250,7 +250,7 @@ flytta.addEventListener('dragging-changed', e => { orbit.enabled = !e.value; });
 flytta.addEventListener('mouseDown', () => {
   if (!vald) return; spela(false); spara(); let a = härNu(vald), ny = false; // ett drag görs i den ruta som syns
   if (!a) { a = {id: nyId(), tid: tak.grund(tid), led: vald, flytt: [0, 0, 0], vrid: null, varar}; sparad.andringar.push(a); ny = true; }
-  const m = dragpunkt; if (lage === 'vrida') m.quaternion.identity();
+  const m = dragpunkt; if (lage === 'vrida') m.quaternion.copy(ringen(vald));
   const skala = (vald === 'blick' ? Math.hypot(nu.g[0] - nu.h[0], nu.g[1] - nu.h[1], nu.g[2] - nu.h[2]) / BLICK : 1) / Math.max(0.2, vikt(a, tak.grund(tid), tak.ut));
   drag = {led: vald, a, start: m.position.clone(), startQ: m.quaternion.clone(), flytt0: [...a.flytt] as V3, vrid0: a.vrid ? [...a.vrid] as Q : null, ny, skala};
 });
@@ -263,22 +263,44 @@ flytta.addEventListener('objectChange', () => {
 flytta.addEventListener('mouseUp', () => {
   if (!drag) return; const a = drag.a, rörd = Math.hypot(...a.flytt.map((n, i) => n - drag!.flytt0[i])) > 1e-5 || JSON.stringify(a.vrid) !== JSON.stringify(drag.vrid0);
   if (!rörd) { if (drag.ny) sparad.andringar = sparad.andringar.filter(x => x !== a); angraLista.pop(); drag = null; handtagTill(); rita(); return; }
-  // Höll spärren emot blir ändringen det som faktiskt blev (en armbåge alltid: den läggs på sin cirkel), så att nästa drag
-  // börjar där armen står.
-  const blev = granser ? somDenBlev(foljd, a, sparad.andringar, blickKamera(), sparad.liv, granser, tak) : null; if (blev) { a.flytt = blev.flytt; a.vrid = blev.vrid; }
-  if (Math.hypot(...a.flytt) < 1e-6 && (!a.vrid || Math.abs(a.vrid[3]) > 0.999999)) sparad.andringar = sparad.andringar.filter(x => x !== a); // tillbaka där den var: ingen ändring
-  drag = null; dragpunkt.quaternion.identity(); ändrat();
+  slapp(a); drag = null; ändrat();
 });
+/**
+ * Som när han släpper musen: ändringen blir det som faktiskt blev (där spärren höll emot, och en armbåge alltid: den
+ * läggs på sin cirkel), så att nästa drag börjar där armen står, och en ändring som inte syns tas bort: en armbåge som
+ * flyttar sig mindre än 1 mm (dragen längs armen, som kroppen inte läser), eller en ändring tillbaka där den började.
+ * Sant om ändringen står kvar.
+ */
+function slapp(a: Andring): boolean {
+  const blev = granser ? somDenBlev(foljd, a, sparad.andringar, blickKamera(), sparad.liv, granser, tak) : null; if (blev) { a.flytt = blev.flytt; a.vrid = blev.vrid; }
+  const armbage = a.led === 'hogerArmbage' || a.led === 'vansterArmbage', vriden = !!a.vrid && Math.abs(a.vrid[3]) <= 0.999999;
+  const syns = vriden || Math.hypot(...a.flytt) >= (armbage && blev ? 0.001 : 1e-6);
+  if (!syns) sparad.andringar = sparad.andringar.filter(x => x !== a);
+  return syns;
+}
+/**
+ * Ringarna som vrider en hand (läget Vrida): x längs underarmen som kroppen står (från armbågen till handleden), y ut ur
+ * handflatan, z tvärs handen, så att den ena ringen vrider handen kring underarmen och de andra kring handleden. (Förut
+ * stod ringarna efter rummets axlar.) I läget Flytta, och för armbågarna och blicken, rummets axlar.
+ */
+function ringen(led: Led): T.Quaternion {
+  if (lage !== 'vrida' || (led !== 'hogerHand' && led !== 'vansterHand')) return new T.Quaternion();
+  const s = led === 'hogerHand' ? 'R' : 'L', ben = s === 'R' ? 'Right' : 'Left', p = nu[s].p, v = (q: number[]) => new T.Vector3(q[0], q[1], q[2]);
+  const x = scen.bone(`${ben}Hand`).sub(scen.bone(`${ben}ForeArm`)).normalize();
+  const palm = new T.Vector3().crossVectors(v(p[5]).sub(v(p[0])), v(p[17]).sub(v(p[0]))).multiplyScalar(s === 'R' ? 1 : -1), y = palm.sub(x.clone().multiplyScalar(palm.dot(x)));
+  if (y.lengthSq() < 1e-10) return new T.Quaternion();
+  y.normalize(); return new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(x, y, new T.Vector3().crossVectors(x, y)));
+}
 
 function välj(led: Led | null) {
   if (led) spela(false); // en kula väljs i den ruta som syns: bilden står still medan han drar
   vald = led; if (led !== 'hogerHand' && led !== 'vansterHand' && lage === 'vrida') sättLäge('flytta');
-  if (led) { dragpunkt.position.copy(handtag[led].position); dragpunkt.quaternion.identity(); flytta.attach(dragpunkt); flytta.setMode(lage === 'vrida' ? 'rotate' : 'translate'); } else flytta.detach();
+  if (led) { dragpunkt.position.copy(handtag[led].position); dragpunkt.quaternion.copy(ringen(led)); flytta.attach(dragpunkt); flytta.setMode(lage === 'vrida' ? 'rotate' : 'translate'); } else flytta.detach();
   document.querySelectorAll<HTMLButtonElement>('#leder button').forEach(b => b.classList.toggle('vald', b.dataset.led === led));
   $<HTMLButtonElement>('[data-lage=vrida]').disabled = !(led === 'hogerHand' || led === 'vansterHand');
   handtagTill(); visaVarar(); visaLista(); rita();
 }
-function sättLäge(l: 'flytta' | 'vrida') { lage = l; flytta.setMode(l === 'vrida' ? 'rotate' : 'translate'); flytta.setSpace(l === 'vrida' ? 'local' : 'world'); dragpunkt.quaternion.identity();
+function sättLäge(l: 'flytta' | 'vrida') { lage = l; flytta.setMode(l === 'vrida' ? 'rotate' : 'translate'); flytta.setSpace(l === 'vrida' ? 'local' : 'world'); dragpunkt.quaternion.copy(vald ? ringen(vald) : new T.Quaternion());
   document.querySelectorAll<HTMLButtonElement>('#lagen button').forEach(b => b.classList.toggle('vald', b.dataset.lage === l)); rita(); }
 
 // Klick i bilden: en kula väljs (och dras sedan i pilarna); ett klick på tomma ytan släpper den valda.
@@ -518,6 +540,8 @@ Object.assign(api, {
   setKamera: (k: Kamera) => { setKamera(somKamera(k) ?? 'spel'); ritaNu(); },
   nara: (vad: Nara, fran?: V3) => { nara(vad, fran); ritaNu(); },
   addChange: (a: Partial<Andring> & {led: Led}) => { const id = läggTill(a); ritaNu(); return id; },
+  // Som när han släpper musen efter ett drag (slapp ovan): ändringen som den blev, eller null om den inte syns och togs bort.
+  slapp: (id: string) => { const a = sparad.andringar.find(x => x.id === id); if (!a) return null; spara(); const kvar = slapp(a); ändrat(); ritaNu(); return kvar ? a : null; },
   removeChange: (id: string) => { taBort(id); ritaNu(); },
   undo: () => { ångra(); ritaNu(); },
   // Som Spara; frågar sidan något (filen har ändrats, det sparade används inte) stannar det med frågan som fel, så att ett
@@ -545,9 +569,12 @@ Object.assign(api, {
     const axel = {R: Math.round(scen.bone('RightArm').distanceTo(new T.Vector3(...(nu.R.s as V3))) * 1000), L: Math.round(scen.bone('LeftArm').distanceTo(new T.Vector3(...(nu.L.s as V3))) * 1000)};
     // Handleden som kroppen ritade den (figure-model.ts measure, grader, höger sedan vänster): hur långt handen står från
     // underarmen (wrist) och hur långt rutans hand bad om (wristAsked); lika när den ritade handen är rutans.
-    const {wrist, wristAsked} = scen.figure.measure();
-    return {namn: NAMN, handledGrader: {ritad: wrist, begard: wristAsked}, fingrarFranPunkternaMm: fingrar, handledFranPunktenMm: handled, armbageFranPunktenMm: armbage, axelFranPunktenMm: axel, plats: PLATS, grund: GRUND, tid, grundtid, langd: DUR, fart: tak.fart, forvaldTakt: tak.forval, kamera, kameraLage: p(camera.position), spelar, vald, osparat, andringar: sparad.andringar, delar: tak.delar, grunddelar: foljd.delar, skarv: foljd.skarv, platser: bord, stol: scen.stol, armar, synligt, fel,
-      dockansEgna: EGEN.egen, sparasSom: NAMN, lagretsFel: lagretFel, bildvinkel: Math.round(camera.fov * 100) / 100, sparar,
+    // Underarmens vridning (grader, höger sedan vänster) och det som blev kvar åt handleden, och om dockan har vridben i underarmarna.
+    const {wrist, wristAsked, twist, wristTwist} = scen.figure.measure();
+    return {namn: NAMN, handledGrader: {ritad: wrist, begard: wristAsked}, vridning: {underarm: twist, handled: wristTwist, vridben: scen.figure.about.forearmTwistBones}, fingrarFranPunkternaMm: fingrar, handledFranPunktenMm: handled, armbageFranPunktenMm: armbage, axelFranPunktenMm: axel, plats: PLATS, grund: GRUND, tid, grundtid, langd: DUR, fart: tak.fart, forvaldTakt: tak.forval, kamera, kameraLage: p(camera.position), spelar, vald, osparat, andringar: sparad.andringar, delar: tak.delar, grunddelar: foljd.delar, skarv: foljd.skarv, platser: bord, stol: scen.stol, armar, synligt, fel,
+      dockansEgna: EGEN.egen, sparasSom: NAMN, lagretsFel: lagretFel, bildvinkel: Math.round(camera.fov * 100) / 100, sparar, kortetsUtseende: scen.kortet(),
+      // I läget Vrida: åt vilket håll ringarnas x (den som vrider handen kring underarmen) pekar i världen.
+      lage, ringensX: lage === 'vrida' && vald ? p(new T.Vector3(1, 0, 0).applyQuaternion(dragpunkt.quaternion)) : null, axelLeder: {hoger: p(scen.bone('RightArm')), vanster: p(scen.bone('LeftArm'))},
       blick: {mot: blickMot(), foljerKortet: Math.round(foljerKortet(foljd.blick, grundtid, tak.spelad) * 100) / 100, tider: foljd.blick, punkt: nu.g},
       hoft: {rorelsen: foljd.hip, mannen: p(hips), skillnadMm: Math.round(hips.distanceTo(new T.Vector3(...foljd.hip)) * 1000)},
       leder: {hogerHand: p(scen.bone('RightHand')), vansterHand: p(scen.bone('LeftHand')), hogerArmbage: p(scen.bone('RightForeArm')), vansterArmbage: p(scen.bone('LeftForeArm')), huvud: p(scen.bone('Head')), hogerLar: p(scen.bone('RightUpLeg')), hogerKna: p(scen.bone('RightLeg')), hogerFot: p(scen.bone('RightFoot'))},

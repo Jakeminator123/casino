@@ -1,4 +1,4 @@
-// Skyddar: hans domar och val – städningen tar bara slask äldre än sju dygn, aldrig granska/ och aldrig något utanför.
+// Skyddar: hans domar och val – städningen tar bara slask som inte ändrats på tre timmar, aldrig granska/ och aldrig något utanför.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, symlinkSync, utimesSync, writeFileSync} from 'node:fs';
@@ -21,7 +21,7 @@ function world() {
   return {base, slask, repo, put, go, done: () => rmSync(base, {recursive: true, force: true})};
 }
 
-test('what has not changed for a week goes and the rest stays; --torr only lists', () => {
+test('what has not changed for three hours goes and the rest stays; --torr only lists', () => {
   const w = world();
   try {
     w.put('gammal/a/b.png'); w.put('lös.tmp'); w.put('granska/väntar-på-dom/film.mp4'); // what waits for Jakob's verdict stays
@@ -30,14 +30,14 @@ test('what has not changed for a week goes and the rest stays; --torr only lists
     assert.equal(dry.code, 0, dry.text);
     assert.match(dry.text, /raderas .* gammal\n.*lös\.tmp\n.*skulle radera 2 st/);
     assert.doesNotMatch(dry.text, /raderas .*(pågår|granska)/);
-    assert.equal(w.go(['--dygn', '60']).code, 0);
+    assert.equal(w.go(['--timmar', '2000']).code, 0);
     assert.deepEqual(readdirSync(w.slask).sort(), ['gammal', 'granska', 'lös.tmp', 'pågår']);
     const run = w.go([]);
     assert.equal(run.code, 0, run.text);
     assert.match(run.text, /raderat 2 st .* 2 st behålls\.$/);
     assert.deepEqual(readdirSync(w.slask).sort(), ['granska', 'pågår']);
     assert.ok(existsSync(fresh));
-    for (const bad of [['--dygn', '0'], ['--dygn', 'x'], ['--dygn'], ['--kor']]) assert.equal(w.go(bad).code, 1, bad.join(' '));
+    for (const bad of [['--timmar', '0'], ['--timmar', 'x'], ['--timmar'], ['--kor']]) assert.equal(w.go(bad).code, 1, bad.join(' '));
   } finally { w.done(); }
 });
 
@@ -75,7 +75,7 @@ test('the whole slask (node ../slask/slask.ts stada): every project by the same 
     put('slask.ts'); put('lös.txt'); put('a/gammal/x.ts'); put('a/granska/väntar/film.mp4'); put('b/gammal/lapp.json'); put('b/granska/y.png');
     const fresh = put('b/pågår/ny.ts'); utimesSync(fresh, LATER / 1000, LATER / 1000);
     const lines: string[] = [], go = (argv: string[]) => stadaAll(argv, {root, casino: base, now: LATER, out: l => lines.push(l), err: l => lines.push(l)});
-    assert.equal(go(['--dygn', 'x']), 1);
+    assert.equal(go(['--timmar', 'x']), 1);
     assert.equal(go(['--torr']), 0, lines.join('\n'));
     assert.deepEqual(readdirSync(path.join(root, 'a')).sort(), ['gammal', 'granska']);
     assert.equal(go([]), 0, lines.join('\n'));

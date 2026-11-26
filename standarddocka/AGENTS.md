@@ -143,7 +143,13 @@ rörelse prövas mot innan den visas för honom.
   på om detta förändrar någonting". På dockornas bord prövas platserna vridna mot sin spelare (plats 4 rakt, de yttre
   mest), i bild uppifrån och från plats 1, innan givarna till de sex andra platserna ritas; given till plats 4 berörs
   inte. Hans kortplan (`../blackjack-dealer/placements/default.json`) har vinkeln 0 på alla platser i filmernas ruta
-  och 21 grader på de yttre i mobilens; filmernas plan ändras inte av det här.
+  och 21 grader på de yttre i mobilens; filmernas plan ändras inte av det här. Senare samma dag: "Om given skulle
+  göras så att kortet läggs i fyrkanter som pekar mot respektive stol. Skulle det då kanske göra att vissa givar
+  hamnar mer rätt?" Troligen ja för de yttre platserna: kortet ligger då längs handen som kommer snett in, och
+  handleden behöver inte vridas (på plats 6 och 7 spärrade handleden på 60 och 69 grader).
+- **Ansiktet (2026-11-26, en önskan).** "Dock undrar jag om vi kanske ska lägga på det som kanske kan göra lite
+  uttryck ... som blinkningar och ansiktsgester": dockorna har ansiktsformerna och ögonens leder, men inget styr dem
+  än (README, Nästa steg, Ansiktet).
 - **Inte trångt framför dealern (2026-11-26).** "Tänk på att du med fördel kan skjuta fram både sko/kort och dess
   placeringar om du skjuter fram dealern. Annars kanske det liksom blir för trångt?" När dockan och bordet kommer
   närmare varandra ska händerna i vilan, brickan, dealerns egna kort och skon fortfarande ha plats: ingen hand vilar

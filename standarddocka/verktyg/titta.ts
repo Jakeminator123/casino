@@ -14,6 +14,7 @@
 //              [--kulor]  visa handtagen     [--panel]  hela fönstret med panelen     [--storlek 1600x1000]     [--port 4321]
 //              [--utseende nyckel]  rena färger på bakgrund, bord och kort (editor/scen.ts), för film där dealern ska skiljas ut
 //              [--docka kvinna]  kvinnan i stället för mannen (samma rörelse och samma sparade lager)
+//              [--utan-vridben]  underarmens vridning läggs på ForeArm som i en docka utan vridben (för att jämföra)
 //              [--bord <namn>] [--modell <namn>]  en modell på prov: standardbord_<namn>.glb eller standarddocka_<namn>.glb
 //                         ur avatar-auto-pipeline/assets, för den som bygger om bordet eller dockan
 //              [--liv andning,huvud,blick,hand,kropp] [--fro 1]  de små egna rörelserna på, med slumpens frö (utan att spara)
@@ -52,7 +53,7 @@ const kor = arg('--kor'), naraFran = arg('--nara-fran')?.split(',').map(Number),
 if (!spelaIn && !ut && !kor) throw Error('Säg vart bilderna ska: --ut <mapp>, eller --spela-in hela|given|<första>-<sista>, eller --kor "<uttryck>".');
 if (naraFran && (naraFran.length !== 3 || !naraFran.every(Number.isFinite))) throw Error('--nara-fran tar tre tal: x,y,z i meter.');
 if (![PORT, plats, W, H, ...tider].every(Number.isFinite) || plats < 1 || plats > 7) throw Error('--plats tar 1–7, och --tider, --storlek och --port tar tal.');
-for (const namn of ['--giv', '--vilan']) { const v = arg(namn); if (v !== undefined && !/^[a-z0-9][a-z0-9-]*$/.test(v)) throw Error(`${namn} tar ett filnamn ur blackjack-dealer/dealer3d/data, utan .json (fick ${v}).`); }
+for (const namn of ['--giv', '--vilan', '--bord', '--modell']) { const v = arg(namn); if (v !== undefined && !/^[a-z0-9][a-z0-9_-]*$/.test(v)) throw Error(`${namn} tar ett namn (små bokstäver, siffror, - och _, utan filändelse), fick ${v}.`); }
 if (spelaIn && kameror.some(k => NARA[k])) throw Error('Närbilderna (narahoger, naravanster, narakort) är stillbilder: de spelas inte in. Välj en vanlig kamera för --spela-in.');
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -73,7 +74,7 @@ try {
   const cdp = (method: string, params: object = {}) => new Promise<any>((ok, fel) => { const id = ++nr; väntar.set(id, {ok, fel}); ws!.send(JSON.stringify({id, method, params})); });
   const kör = async (kod: string) => { const r = await cdp('Runtime.evaluate', {expression: kod, awaitPromise: true, returnByValue: true}); if (r.exceptionDetails) throw Error(`${kod.slice(0, 90)}: ${r.exceptionDetails.exception?.description ?? r.exceptionDetails.text}`); return r.result.value; };
   await cdp('Page.enable'); await cdp('Runtime.enable');
-  await cdp('Page.navigate', {url: `http://127.0.0.1:${PORT}/standarddocka/editor/?plats=${plats}&kamera=${kameror[0]}${flag('--kulor') ? '' : '&kulor=0'}${arg('--utseende') === 'nyckel' ? '&utseende=nyckel' : ''}${arg('--docka') === 'kvinna' ? '&docka=kvinna' : ''}${arg('--giv') ? `&giv=${arg('--giv')}` : ''}${arg('--vilan') ? `&vilan=${arg('--vilan')}` : ''}${arg('--bord') ? `&bord=${arg('--bord')}` : ''}${arg('--modell') ? `&modell=${arg('--modell')}` : ''}`});
+  await cdp('Page.navigate', {url: `http://127.0.0.1:${PORT}/standarddocka/editor/?plats=${plats}&kamera=${kameror[0]}${flag('--kulor') ? '' : '&kulor=0'}${arg('--utseende') === 'nyckel' ? '&utseende=nyckel' : ''}${arg('--docka') === 'kvinna' ? '&docka=kvinna' : ''}${arg('--giv') ? `&giv=${arg('--giv')}` : ''}${arg('--vilan') ? `&vilan=${arg('--vilan')}` : ''}${arg('--bord') ? `&bord=${arg('--bord')}` : ''}${arg('--modell') ? `&modell=${arg('--modell')}` : ''}${flag('--utan-vridben') ? '&vridben=0' : ''}`});
   for (let i = 0; ; i++) { await sleep(500); if (await kör('!!(window.editor && window.editor.ready)').catch(() => false)) break; if (i > 240) throw Error(`Editorn blev inte klar: ${await kör('document.querySelector("#fel").textContent').catch(() => '?')}`); }
   // Spara först, ur filen som den står: farten, de små rörelserna och ändringarna nedan sparas aldrig.
   if (flag('--spara')) console.log(`Sparat: ${JSON.stringify(await kör('window.editor.save()'))}`);

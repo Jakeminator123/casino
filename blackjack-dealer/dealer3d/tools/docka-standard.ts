@@ -90,12 +90,16 @@ const natL = bojdSom(vanster, P.natural!.left); hand.natural = {left: natL, at: 
 // räknar med (som Paow, 0,38 m), och det är bordets kant och markerbrickan som kommer närmare honom (Jakob 2026-11-26:
 // dockorna "aningen till mot bordet", men "annars kanske det blir för trångt" för korten och skon): kanten 0,23 m bakom
 // spelets kant ger magen några centimeter luft. Höjden valde han 2026-11-26 ur fyra prov (0,23, 0,27, 0,31, 0,35): 0,31 m
-// ("okej" i spelets vy, Bra från sidan; 0,35 klipper huvudet). --hojd, --bakom och --kant-bak prövar andra tal utan att
-// skriva dockan. Bordets modell kan vara byggd med en annan kant (bygg_bord.py --kant-bak): kanten, brickan och
-// sargen räknas då dit SITS.kantBak säger.
+// ("okej" i spelets vy, Bra från sidan; 0,35 klipper huvudet). Regeln är så högt som spelets bild rymmer hjässan, högst
+// hans 0,31: med människans mått (huvudagenten 2026-11-26) sitter mannen, vars hjässa står högre över axlarna, på 0,29
+// (hjässan på rad 9 i spelets vy; på 0,31 klipptes den) och kvinnan också på 0,29: på 0,31 når hennes kortare armar inte ankarets högerhand inom handledens gräns. --hojd, --bakom och --kant-bak
+// prövar andra tal utan att skriva dockan. Bordets modell kan vara byggd med en annan kant (bygg_bord.py --kant-bak):
+// kanten, brickan och sargen räknas då dit SITS.kantBak säger.
 /** Hur långt standarddockan lutar framåt och vrider sig när armen inte räcker, radianer (doll.ts mostLean, mostTwist). */
 const BAL = {luta: 25 * Math.PI / 180, vrida: 20 * Math.PI / 180};
-const SITS = {bakom: Number(arg('--bakom') ?? 0.38), hojd: Number(arg('--hojd') ?? 0.31), kantBak: Number(arg('--kant-bak') ?? STANDARDBORD.kantBak)};
+/** Axelledernas höjd över filten per docka (meter): så högt som spelets bild rymmer hjässan, högst Jakobs 0,31. */
+const HOJD: Record<string, number> = {man: 0.29, kvinna: 0.29};
+const SITS = {bakom: Number(arg('--bakom') ?? 0.38), hojd: Number(arg('--hojd') ?? HOJD[NAMN]), kantBak: Number(arg('--kant-bak') ?? STANDARDBORD.kantBak)};
 if (PAOW.place.kind !== 'joints') throw Error('Paows plats är inte lederna.');
 const lens = TABLE_LENS, paowMitt = (() => { const f = dollFrame(lens, PAOW); return mul(add(f.shoulders[0], f.shoulders[1]), 0.5); })();
 const mid = mul(add(led('RightArm'), led('LeftArm')), 0.5), domin = modell.hud.pa.map(p => modell.hud.leder[p.reduce((a, b) => b.vikt > a.vikt ? b : a).led]);
@@ -114,13 +118,14 @@ const fram = dollFrame(lens, dollUtanVila);
 // vilan ser avslappnad ut, och i vilan pekar handen som underarmen (Jakob 2026-11-26 om vilan vid 0,31 m: "så ska väl
 // händerna mer vara i samma riktning som underarmarna"). En hand läggs därför på hans hud: handflatan och fingrarna 1–2 mm
 // över filten, handen vriden kring lodlinjen så att den pekar som underarmen och lutad så att handleden är rak (högst
-// VILA.handled), underarmen minst VILA.luft över filten där den är över bordet (standarddocka/editor/armar.ts vill ha
+// VILA.handled; 20 grader sedan dockan fick en människas tjockare underarm 2026-11-26, som går brantare över kanten),
+// underarmen minst VILA.luft över filten där den är över bordet (standarddocka/editor/armar.ts vill ha
 // 1 cm), och armbågen så nära kroppen som det då går: hängande som `pol` säger, vriden ut bara så mycket som luften kräver.
 // I vilan ligger händerna strax framför markerbrickan (huden inte över den), inte på dealerns kortplatser (D.C1-D.C3, ett
 // kort 63 x 88 mm, minst VILA.kortLuft ifrån) och inte vid skon (VILA.skoLuft), fingrarna Paows vila lätt böjd (ring- och
 // lillfingret lite mer) och lite isär; av hur långt från mitten och hur långt framför brickan de ligger och hur böjda
 // fingrarna är väljs det som ger armbågen närmast kroppen.
-const VILA = {luft: 0.012, overBrickan: 0.004, overFilten: 0.0015, ligger: 0.0025, handled: 16, kortLuft: 0.01, skoLuft: 0.02, pol: unit([0, -1, -0.25] as Vec3),
+const VILA = {luft: 0.012, overBrickan: 0.004, overFilten: 0.0015, ligger: 0.0025, handled: 20, kortLuft: 0.01, skoLuft: 0.02, pol: unit([0, -1, -0.25] as Vec3),
   isar: [0.15, 0.17, 0.19, 0.21], fram: [0, 0.02, 0.04], krok: [0.5, 1],
   /** En krok: grader till i knogen, mellanleden och ytterleden, pekfingret till lillfingret gånger `fingrar`; isär: grader ut i knogen från långfingret. */
   enKrok: [8, 12, 6] as const, fingrar: [0.8, 1, 1.15, 1.3], isarGrader: [-4, 0, 4, 8]};

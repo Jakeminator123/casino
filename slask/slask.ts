@@ -7,25 +7,27 @@
 // so it cannot go stale; --json gives a tool the same list. (A database would add nothing for a few dozen folders.)
 //
 //   node slask/slask.ts                            the register: per project and folder its size, files, last change,
-//                                                  note, and when the week rule takes it
+//                                                  note, and when the three-hour rule takes it
 //   node slask/slask.ts --json                     the same, for a tool
 //   node slask/slask.ts lapp <project>/<folder> <owner> "<what>" ["<when it may go>"]
 //                                                  writes the folder's note and makes the folder; <folder> may be
 //                                                  granska/<name>, and the owner is a chat's name in inbox/ or a tool
-//   node slask/slask.ts stada [--torr] [--dygn N]  the week rule in every project; --torr lists and deletes nothing
+//   node slask/slask.ts stada [--torr] [--timmar N]  the three-hour rule in every project; --torr lists and deletes nothing
 //
-// The week rule: an entry at the top of a project's folder whose newest file is older than N days (7) is deleted, whole;
+// The three-hour rule (Jakob 2026-11-26: "Slasken ska raderas var 3 timme om arbete inte används"): an entry at the top of
+// a project's folder whose newest file is older than N hours (3) is deleted, whole;
 // granska/ never, however old, and nothing that lies beside this file. A file counts from the later of its last write and
 // its last change, so one copied or moved in with an old write time counts from when it arrived. Links and junctions are
 // never followed: one is judged by its own date and removed as a link, whatever it points at. blackjack-dealer's
-// npm run stada (tools/scratch-clean.ts, which its server runs at start) is this rule on its own part of the slask, or on
-// the folder DEALER_SLASK names; the register sees only this folder. Tested in blackjack-dealer/tools/scratch-clean.test.ts.
+// npm run stada (tools/scratch-clean.ts) is this rule on its own part of the slask, or on
+// the folder DEALER_SLASK names; its server runs the rule at start and every third hour while it is up (tools/preview.ts:
+// on every project, or on that folder). The register sees only this folder. Tested in blackjack-dealer/tools/scratch-clean.test.ts.
 import {existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmdirSync, unlinkSync, writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const SELF = fileURLToPath(import.meta.url), HERE = path.dirname(SELF), CASINO = path.resolve(HERE, '..');
-const DAY = 864e5, WEEK = 7, WAITING = 'granska', NOTE = 'lapp.json';
+const HOUR = 36e5, UNUSED = 3, WAITING = 'granska', NOTE = 'lapp.json';
 const NAME = /^[\p{L}\p{N}][\p{L}\p{N}._-]*$/u;
 
 const inside = (child: string, parent: string) => { const r = path.relative(parent, child); return r !== '' && !r.startsWith('..') && !path.isAbsolute(r); };
@@ -34,7 +36,7 @@ const stamp = (ms: number) => new Date(ms).toLocaleString('sv-SE', {dateStyle: '
 const day = (ms: number) => new Date(ms).toLocaleDateString('sv-SE');
 const oneLine = (text: unknown, max: number) => String(text ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
 
-// ── The week rule ───────────────────────────────────────────────────────────
+// ── The three-hour rule ───────────────────────────────────────────────────────────
 
 export type Measure = {newest: number; bytes: number; files: number; types: Record<string, number>};
 
@@ -58,19 +60,19 @@ function remove(p: string): void {
   else unlinkSync(p);
 }
 
-function options(argv: string[]): {days: number; dry: boolean} | string {
-  const run = {days: WEEK, dry: false};
+function options(argv: string[]): {hours: number; dry: boolean} | string {
+  const run = {hours: UNUSED, dry: false};
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--torr') run.dry = true;
-    else if (argv[i] === '--dygn' && /^[1-9]\d*$/.test(argv[i + 1] ?? '')) run.days = Number(argv[++i]);
-    else return `[stada] Okänt eller ogiltigt: ${argv[i]}. Använd: --torr (listar bara) och --dygn N (N minst 1).`;
+    else if (argv[i] === '--timmar' && /^[1-9]\d*$/.test(argv[i + 1] ?? '')) run.hours = Number(argv[++i]);
+    else return `[stada] Okänt eller ogiltigt: ${argv[i]}. Använd: --torr (listar bara) och --timmar N (N minst 1).`;
   }
   return run;
 }
 
 export type Options = {slask?: string; repo?: string; now?: number; out?: (line: string) => void; err?: (line: string) => void};
 
-/** The week rule on one project's part of the slask (o.slask), which may never be a drive, the project (o.repo), a folder
+/** The three-hour rule on one project's part of the slask (o.slask), which may never be a drive, the project (o.repo), a folder
  *  around it or one inside it. */
 export function stada(argv: string[], o: Options = {}): number {
   const out = o.out ?? (line => console.log(line)), err = o.err ?? (line => console.error(line));
@@ -85,7 +87,7 @@ export function stada(argv: string[], o: Options = {}): number {
   if (!top) { out(`Slasken ${slask} finns inte; inget att städa.`); return 0; }
   if (top.isSymbolicLink() || !top.isDirectory()) { err(`[stada] Vägrar: slasken ${slask} är en länk eller ingen mapp.`); return 1; }
 
-  const limit = now - run.days * DAY, gone: string[] = [], left: string[] = [];
+  const limit = now - run.hours * HOUR, gone: string[] = [], left: string[] = [];
   let kept = 0, bytes = 0;
   for (const name of readdirSync(slask).sort()) {
     if (name === WAITING) { kept++; continue; }
@@ -97,11 +99,11 @@ export function stada(argv: string[], o: Options = {}): number {
       gone.push(name); bytes += m.bytes;
     } catch { left.push(name); }
   }
-  out(`stada ${stamp(now)}${run.dry ? ', torrkörning (inget raderat)' : ''}: ${run.dry ? 'skulle radera' : 'raderat'} ${gone.length} st (${size(bytes)}) i ${slask} som inte ändrats på ${run.days} dygn; ${kept} st behålls${left.length ? `; ${left.length} st gick inte att läsa eller radera: ${left.join(', ')}` : ''}.`);
+  out(`stada ${stamp(now)}${run.dry ? ', torrkörning (inget raderat)' : ''}: ${run.dry ? 'skulle radera' : 'raderat'} ${gone.length} st (${size(bytes)}) i ${slask} som inte ändrats på ${run.hours} timmar; ${kept} st behålls${left.length ? `; ${left.length} st gick inte att läsa eller radera: ${left.join(', ')}` : ''}.`);
   return left.length ? 1 : 0;
 }
 
-/** The week rule on every project's part of the slask: each folder beside this file, which is the project of the same
+/** The three-hour rule on every project's part of the slask: each folder beside this file, which is the project of the same
  *  name in the repo. What lies loose beside this file (this file among it) is never touched. */
 export function stadaAll(argv: string[], o: Omit<Options, 'slask' | 'repo'> & {root?: string; casino?: string} = {}): number {
   const run = options(argv);
@@ -127,11 +129,11 @@ export function readNote(dir: string): Note | 'oläslig' | null {
 
 export type Item = {project: string; folder: string; kind: 'mapp' | 'fil' | 'länk'; waiting: boolean; bytes: number; files: number;
   types: Record<string, number>; changed: string; goes: string | null; due: boolean; note: Note | 'oläslig' | null; unreadable?: true};
-export type Register = {at: string; days: number; projects: {name: string; known: boolean}[]; items: Item[]; loose: string[]};
+export type Register = {at: string; hours: number; projects: {name: string; known: boolean}[]; items: Item[]; loose: string[]};
 
 /** The register, counted from the folders and their notes. A project is known when the repo has a folder of the same name
  *  with its own AGENTS.md. */
-export function register(root = HERE, now = Date.now(), days = WEEK, casino = CASINO): Register {
+export function register(root = HERE, now = Date.now(), hours = UNUSED, casino = CASINO): Register {
   const items: Item[] = [], loose: string[] = [], projects: Register['projects'] = [];
   const add = (project: string, folder: string, waiting: boolean) => {
     const full = path.join(root, project, folder), st = lstatSync(full, {throwIfNoEntry: false});
@@ -139,7 +141,7 @@ export function register(root = HERE, now = Date.now(), days = WEEK, casino = CA
     const kind = st.isSymbolicLink() ? 'länk' : st.isDirectory() ? 'mapp' : 'fil';
     let m: Measure = {newest: Math.max(st.mtimeMs, st.ctimeMs), bytes: 0, files: 0, types: {}}, unreadable = false;
     try { m = measure(full); } catch { unreadable = true; }
-    const goes = waiting ? null : m.newest + days * DAY;
+    const goes = waiting ? null : m.newest + hours * HOUR;
     items.push({project, folder, kind, waiting, bytes: m.bytes, files: m.files, types: m.types, changed: new Date(m.newest).toISOString(),
       goes: goes === null ? null : new Date(goes).toISOString(), due: goes !== null && goes < now, note: kind === 'mapp' ? readNote(full) : null,
       ...(unreadable ? {unreadable: true as const} : {})});
@@ -153,7 +155,7 @@ export function register(root = HERE, now = Date.now(), days = WEEK, casino = CA
       add(name, folder, folder === WAITING);
     }
   }
-  return {at: new Date(now).toISOString(), days, projects, items, loose};
+  return {at: new Date(now).toISOString(), hours, projects, items, loose};
 }
 
 const sum = (items: Item[]) => items.reduce((s, i) => s + i.bytes, 0);
@@ -178,21 +180,21 @@ export function show(r: Register): string {
   const next = r.items.filter(i => i.goes && !i.due).map(i => Date.parse(i.goes!)).sort((a, b) => a - b)[0];
   const lines = [
     `Slasken: ${size(sum(r.items))} i ${folders.length} mappar under ${r.projects.length} projekt; ${waiting.length} väntar på Jakobs dom, ${missing.length} saknar lapp.`,
-    `Sjudygnsregeln (det som inte ändrats på ${r.days} dygn går, aldrig granska/) tar ` +
+    `Tretimmarsregeln (det som inte ändrats på ${r.hours} timmar går, aldrig granska/) tar ` +
       (due.length ? `${due.length} nu (${size(sum(due))}): ${due.map(i => `${i.project}/${i.folder}`).join(', ')}` : 'inget nu') +
-      (next ? `; nästa går ${day(next)}.` : '.'),
+      (next ? `; nästa går ${stamp(next)}.` : '.'),
   ];
   for (const p of r.projects) {
     const mine = r.items.filter(i => i.project === p.name), width = Math.max(0, ...mine.map(i => i.folder.length));
     lines.push('', `${p.name}, ${size(sum(mine))}${p.known ? '' : ' (inget projekt med det namnet i repot)'}`);
     for (const i of mine) {
       const files = i.files ? `${i.files} ${i.files === 1 ? 'fil' : 'filer'} (${kinds(i.types)})` : 'tom';
-      const state = i.waiting ? 'väntar på Jakobs dom' : i.due ? 'GÅR NU' : `går ${day(Date.parse(i.goes!))}`;
+      const state = i.waiting ? 'väntar på Jakobs dom' : i.due ? 'GÅR NU' : `går ${stamp(Date.parse(i.goes!))}`;
       lines.push(`  ${i.folder.padEnd(width)} ${size(i.bytes).padStart(9)}  ${files}, ändrad ${stamp(Date.parse(i.changed))}, ${state}`);
       lines.push(`    ${noteLine(i)}${i.unreadable ? ' (gick inte att läsa helt)' : ''}`);
     }
   }
-  if (r.loose.length) lines.push('', `Lösa filer bredvid verktyget (sjudygnsregeln rör dem inte): ${r.loose.join(', ')}`);
+  if (r.loose.length) lines.push('', `Lösa filer bredvid verktyget (regeln rör dem inte): ${r.loose.join(', ')}`);
   if (missing.length) lines.push('', 'Lapp saknas: node slask/slask.ts lapp <projekt>/<mapp> <ägare> "<vad>" ["<när den får gå>"]');
   return lines.join('\n');
 }
@@ -226,7 +228,7 @@ function main(argv: string[]): number {
     return 0;
   }
   console.error('Okänt. Använd: node slask/slask.ts [--json], node slask/slask.ts lapp <projekt>/<mapp> <ägare> "<vad>" ["<när den får gå>"] ' +
-    'eller node slask/slask.ts stada [--torr] [--dygn N].');
+    'eller node slask/slask.ts stada [--torr] [--timmar N].');
   return 1;
 }
 

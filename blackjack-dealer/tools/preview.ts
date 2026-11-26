@@ -1,6 +1,6 @@
 import http from 'node:http';
 import {readFile,mkdir,writeFile,stat,unlink,realpath,readdir} from 'node:fs/promises';
-import {existsSync,openSync} from 'node:fs';
+import {closeSync,existsSync,openSync} from 'node:fs';
 import {spawn,spawnSync} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import path from 'node:path';
@@ -405,8 +405,11 @@ if(has('--restart')){
  server.on('error',async(error:NodeJS.ErrnoException)=>{const mine=error.code==='EADDRINUSE'?await health():null;
   if(mine?.name==='dealer'&&sameRoot(mine.root,process.cwd()))console.log(`Servern går redan: ${origin}`);else{console.error(error.message);process.exitCode=1;}});
  server.on('close',()=>{void unlink(state).catch(()=>{});});
- server.listen(port,'127.0.0.1',async()=>{await mkdir('.runtime',{recursive:true});await writeFile(state,JSON.stringify({root:process.cwd(),port,pid:process.pid,parent:process.ppid,executable:process.execPath,script:'tools/preview.ts',startedAt:new Date().toISOString(),token})); // Empty the slask of what is older than a week, once per server start.
- if(existsSync(SLASK)){const log=openSync('.runtime/stada.log','a');spawn(process.execPath,['tools/scratch-clean.ts'],{cwd:process.cwd(),stdio:['ignore',log,log],windowsHide:true}).on('error',()=>{});}
+ server.listen(port,'127.0.0.1',async()=>{await mkdir('.runtime',{recursive:true});await writeFile(state,JSON.stringify({root:process.cwd(),port,pid:process.pid,parent:process.ppid,executable:process.execPath,script:'tools/preview.ts',startedAt:new Date().toISOString(),token})); // Empty the slask of what has not been used for three hours (Jakob 2026-11-26: "Slasken ska raderas var 3 timme om
+ // arbete inte används"), at start and every third hour while the server is up: every project's part of the casino
+ // slask (../slask/slask.ts stada), or this project's own where DEALER_SLASK points elsewhere. granska/ is never touched.
+ if(existsSync(SLASK)){const whole=!process.env.DEALER_SLASK&&existsSync('../slask/slask.ts'),clean=()=>{const log=openSync('.runtime/stada.log','a');spawn(process.execPath,whole?['../slask/slask.ts','stada']:['tools/scratch-clean.ts'],{cwd:process.cwd(),stdio:['ignore',log,log],windowsHide:true}).on('error',()=>{}).on('exit',()=>closeSync(log));};
+  clean();setInterval(clean,3*36e5).unref();}
  // And thin assets/ by the rule: what is not used and does not wait for Jakob goes to the trash (tools/media-thin.ts --auto).
  if(existsSync('assets')){const log=openSync('.runtime/gallring.log','a');spawn(process.execPath,['tools/media-thin.ts','--auto'],{cwd:process.cwd(),stdio:['ignore',log,log],windowsHide:true}).on('error',()=>{});}
  console.log(origin);});

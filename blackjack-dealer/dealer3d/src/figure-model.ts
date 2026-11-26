@@ -36,6 +36,8 @@ const WRIST = 50 * Math.PI / 180;
  * wrist (radians). On a person the turn is in the forearm, not the wrist.
  */
 const FOREARM = {full: 70 * Math.PI / 180, most: 95 * Math.PI / 180};
+/** The same for a forearm with twist bones (ForeArmTwist1 and 2): its skin stays smooth to at least 100 degrees, and 120 is the bones' limit. */
+const FOREARM_TWISTED = {full: 100 * Math.PI / 180, most: 120 * Math.PI / 180};
 /**
  * Her spine from the hip up (each bone by its Mixamo name, or the name Meshy's rig gives it), with how stiff it is
  * against turning about the world's three axes (x: bowing forward and back, y: turning about the spine, z: leaning
@@ -101,7 +103,8 @@ function bendSpine(joints: Vec3[], shoulders: Vec3[], want: Vec3[], stiff: reado
   return Array.from({length: n}, (_, k) => qexp(x[3 * k], x[3 * k + 1], x[3 * k + 2]));
 }
 
-export async function loadFigure(url: string): Promise<Figure> {
+/** `twistBones: false` poses a doll as if it had no twist bones in its forearms (for comparing the two ways). */
+export async function loadFigure(url: string, {twistBones = true}: {twistBones?: boolean} = {}): Promise<Figure> {
   const gltf = await new GLTFLoader().loadAsync(url), root = new T.Group(); root.add(gltf.scene); root.updateMatrixWorld(true);
   const bone = (name: string) => { const b = gltf.scene.getObjectByName(name); if (!b) throw Error(`The model has no bone ${name}.`); return b; };
   let skinned: T.SkinnedMesh | null = null, triangles = 0;
@@ -109,6 +112,11 @@ export async function loadFigure(url: string): Promise<Figure> {
   if (!skinned) throw Error('The model has no skinned mesh.'); const mesh = skinned as T.SkinnedMesh;
   const at = (o: T.Object3D) => o.getWorldPosition(new T.Vector3()), worldQ0 = (o: T.Object3D) => o.getWorldQuaternion(new T.Quaternion());
   const arms = SIDES.map(s => ({upper: bone(`${s}Arm`), fore: bone(`${s}ForeArm`), hand: bone(`${s}Hand`), thigh: bone(`${s}UpLeg`), shin: bone(`${s}Leg`), foot: bone(`${s}Foot`)}));
+  // Twist bones in the forearm, where a doll has both (the standard dolls since 2026-11-26: <Side>ForeArmTwist1 and 2,
+  // children of ForeArm lying along it, from a third to two thirds of it and from two thirds to the wrist, the skin weighed
+  // linearly along it). The forearm's turn is then laid on them, a third and two thirds, and ForeArm itself only bends, so
+  // that the skin turns along the forearm instead of all at the elbow. A doll without them is posed as before.
+  const twists = SIDES.map(s => { const b = [1, 2].map(n => gltf.scene.getObjectByName(`${s}ForeArmTwist${n}`)); return twistBones && b.every(Boolean) ? b as T.Object3D[] : null; });
   // Her spine: the bones of SPINE she has that lie between her hip and her shoulders, from the hip up.
   const above = (o: T.Object3D, b: T.Object3D) => { for (let x: T.Object3D | null = o; x; x = x.parent) if (x === b) return true; return false; };
   const spine = SPINE.flatMap(([names, stiff]) => { const b = names.map(n => gltf.scene.getObjectByName(n)).find(Boolean); return b && arms.every(a => above(a.upper, b)) ? [{bone: b, stiff}] : []; });
@@ -133,7 +141,7 @@ export async function loadFigure(url: string): Promise<Figure> {
   // eyes' line starts between her eyes ('eye.L' and 'eye.R', which three.js names eyeL and eyeR).
   const neck = bone('neck'), head = bone('Head'), eyes = ['eyeL', 'eyeR'].map(n => gltf.scene.getObjectByName(n)).filter((e): e is T.Object3D => !!e);
   const headRest = worldQ0(head), headForward = new T.Vector3(0, 0, 1).applyQuaternion(headRest.clone().invert()), eyeForward = eyes.map(e => new T.Vector3(0, 0, 1).applyQuaternion(worldQ0(e).invert()));
-  const posed = [...spine.map(s => s.bone), ...arms.flatMap(a => [a.upper, a.fore, a.hand, a.thigh, a.shin]), neck, head, ...eyes, ...fingers.flatMap(side => side ? side.flatMap(f => f.bones) : [])], bind = new Map(posed.map(b => [b, b.quaternion.clone()]));
+  const posed = [...spine.map(s => s.bone), ...arms.flatMap(a => [a.upper, a.fore, a.hand, a.thigh, a.shin]), ...twists.flatMap(t => t ?? []), neck, head, ...eyes, ...fingers.flatMap(side => side ? side.flatMap(f => f.bones) : [])], bind = new Map(posed.map(b => [b, b.quaternion.clone()]));
   // As she was modelled: the lengths of her arm bones, and each hand's own forward and palm directions, read off the
   // vertices that hang on the hand bone (their long axis and their flat one), kept in the hand bone's own frame. Which way
   // along the flat axis the palm is, the thumb tells: it is the side the hand's width leans to (the long tail of the
@@ -169,7 +177,7 @@ export async function loadFigure(url: string): Promise<Figure> {
     if (n.length() < 0.1 * upper.length() * fore.length()) n.crossVectors(upper, new T.Vector3(0, 0, 1));
     return n.normalize().applyQuaternion(a.upper.getWorldQuaternion(new T.Quaternion()).invert()); });
   const last = {roll: [0, 0], elbow: [0, 0], wrist: [0, 0], wristAsked: [0, 0], twist: [0, 0], wristTwist: [0, 0], gazeShort: 0}, degrees = (n: number) => Math.round(n * 1800 / Math.PI) / 10;
-  root.scale.setScalar(scale); root.updateMatrixWorld(true); about.arm = lengths.map(l => l.map(n => Math.round(n * 1000) / 1000)); about.shouldersApart = Math.round(at(arms[0].upper).distanceTo(at(arms[1].upper)) * 1000) / 1000;
+  root.scale.setScalar(scale); root.updateMatrixWorld(true); about.arm = lengths.map(l => l.map(n => Math.round(n * 1000) / 1000)); about.shouldersApart = Math.round(at(arms[0].upper).distanceTo(at(arms[1].upper)) * 1000) / 1000; about.forearmTwistBones = twists.map(t => !!t);
   // From her hip joint to her shoulders' middle, as modelled (her size).
   const trunk = at(arms[0].upper).add(at(arms[1].upper)).multiplyScalar(0.5).distanceTo(at(spine[0].bone));
   /** Each forearm's turn in the last pose, for the next: it is chosen near the last where a hand turns past half a turn. */
@@ -183,8 +191,8 @@ export async function loadFigure(url: string): Promise<Figure> {
   const aimAt = (b: T.Object3D, tip: T.Object3D, target: T.Vector3) => swing(b, at(tip).sub(at(b)), target.clone().sub(at(b)));
   const flatten = (n: T.Vector3, axis: T.Vector3) => n.clone().sub(axis.clone().multiplyScalar(n.dot(axis))).normalize();
   const arr = (p: T.Vector3): Vec3 => [p.x, p.y, p.z];
-  /** A softly bounded turn: the whole of `a` up to FOREARM.full, then less and less, never past FOREARM.most. */
-  const forearmShare = (a: number) => { const m = Math.abs(a), {full, most} = FOREARM; return Math.sign(a) * (m <= full ? m : full + (most - full) * Math.tanh((m - full) / (most - full))); };
+  /** A softly bounded turn: the whole of `a` up to `full`, then less and less, never past `most` (FOREARM, or FOREARM_TWISTED for a forearm with twist bones). */
+  const forearmShare = (a: number, {full, most} = FOREARM) => { const m = Math.abs(a); return Math.sign(a) * (m <= full ? m : full + (most - full) * Math.tanh((m - full) / (most - full))); };
   function pose(p: FigurePose) {
     for (const [b, q] of bind) b.quaternion.copy(q);
     // Her trunk. Her hip sits on the figure's hip, still on the stool and upright, facing the table; her spine bends so
@@ -241,7 +249,11 @@ export async function loadFigure(url: string): Promise<Figure> {
       has = flatten(has, axis); wants = flatten(wants, axis);
       let twist = Math.atan2(new T.Vector3().crossVectors(has, wants).dot(axis), has.dot(wants)); const before = lastTwist[i];
       if (before !== null && Math.abs(twist - before) > Math.PI) { const other = twist - Math.sign(twist - before) * 2 * Math.PI; if (Math.abs(other - before) < 1) twist = other; }
-      lastTwist[i] = twist; const forearm = forearmShare(twist); turned(a.fore, turn.setFromAxisAngle(axis, forearm)); last.twist[i] = degrees(forearm * (i ? -1 : 1)); last.wristTwist[i] = degrees((twist - forearm) * (i ? -1 : 1));
+      // With twist bones the turn goes a third to Twist1 and two thirds to Twist2, about the forearm's length; the hand,
+      // a child of ForeArm, is laid as it is wanted below either way.
+      const tw = twists[i]; lastTwist[i] = twist; const forearm = forearmShare(twist, tw ? FOREARM_TWISTED : FOREARM);
+      if (tw) { turned(tw[0], turn.setFromAxisAngle(axis, forearm / 3)); turned(tw[1], turn.setFromAxisAngle(axis, forearm * 2 / 3)); } else turned(a.fore, turn.setFromAxisAngle(axis, forearm));
+      last.twist[i] = degrees(forearm * (i ? -1 : 1)); last.wristTwist[i] = degrees((twist - forearm) * (i ? -1 : 1));
       // Her forearm is not the figure's (her shoulders are broader and her bones her own), so the figure's hand can stand
       // farther off her forearm's line than a wrist bends: the whole hand is turned back about the wrist to WRIST off it,
       // its fingers with it, so that it stays one hand. (Until 2026-11-26 only its direction was turned back and the

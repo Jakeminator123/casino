@@ -70,7 +70,7 @@
         "where": "Beslut 2026-11-17 kl. 21.38; versionerad profil och lokal hälsokontroll 2026-11-18"
       },
       "lines": {
-        "value": "den neutrala munnen: rendererns mun utan ritad underläpp (recipeOf i tools/speech.ts, Jakob 2026-11-21, anteckning 43 i Prov); spelet säger alla 25 repliker så (hans dömda blackjack -04 med den gamla munnen låg i trädet Casino, borttaget 2026-11-26); vilket recept en tagning lades med står i dess kvitto",
+        "value": "den neutrala munnen: rendererns mun utan ritad underläpp (recipeOf i tools/speech.ts, Jakob 2026-11-21, anteckning 43 i Prov); så görs hennes repliker, men inga talfilmer finns här (de 25 tatuerade finns bara på den stationära och togs ur registren 2026-11-26; hans dömda blackjack -04 med den gamla munnen låg i trädet Casino, borttaget då); vilket recept en tagning lades med står i dess kvitto",
         "where": "tools/speech.ts (NEUTRAL_MOUTH, recipeOf)"
       },
       "runner": [
@@ -85,13 +85,13 @@
         {
           "what": "Bank för Scoutgamings renderer",
           "answer": "nej",
-          "note": "paow-v2 byggdes 2026-11-13 av Casinos vila paow-vila-01-01, som togs bort med trädet Casino 2026-11-26; nästa bank byggs av Tatuerads vila paow-vila-tat-01-01 med node tools/speech.ts bank --dealer paow",
+          "note": "paow-v2 byggdes 2026-11-13 av Casinos vila paow-vila-01-01, som togs bort med trädet Casino 2026-11-26; nästa bank byggs av en tatuerad vila som finns här med node tools/speech.ts bank --dealer paow (vilan i data/speech.json, paow-vila-tat-01-01, finns bara på den stationära)",
           "where": "data/speech.json (rest); Grundbilder nedan"
         },
         {
           "what": "Repliker i spelet",
-          "answer": "ja",
-          "note": "de tio en runda behöver och femton chattsvar i hennes egen röst; inga munlappar (de fyra låg på Casinos filmer och togs bort med trädet 2026-11-26)",
+          "answer": "nej",
+          "note": "inga talfilmer här: de 25 tatuerade (de tio en runda behöver och femton chattsvar i hennes egen röst) finns bara på den stationära och togs ur registren 2026-11-26; inga munlappar (de fyra låg på Casinos filmer och togs bort med trädet 2026-11-26)",
           "where": "data/speech-patches.json; docs/SYSTEM.md, Tal och munlappar"
         },
         {
@@ -190,7 +190,7 @@
     {
       "dealer": "paow",
       "bank": "paow-v2",
-      "use": "Alla repliker i vila som finns (Tatuerads talfilmer är lagda tillbaka på paow-vila-tat-01-01); filmen togs bort med trädet Casino 2026-11-26",
+      "use": "Repliker i vila; ingen finns kvar här (Tatuerads talfilmer, lagda tillbaka på paow-vila-tat-01-01, finns bara på den stationära), och filmen togs bort med trädet Casino 2026-11-26",
       "film": "paow-vila-01-01",
       "frames": "ruta 3–114 (112 rutor)",
       "size": "1764 × 1174",

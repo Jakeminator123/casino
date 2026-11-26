@@ -3,47 +3,39 @@
   "about": "What waits for Jakob: one entry per question (kind beslut) or per thing only he can do (kind gora), shown as one card each in the studio's view Beslut (/studio/beslut/, lab only). The list's order is the order of urgency, the most urgent first. An entry: id, kind, question (at most 14 words), leads (one sentence: what his answer leads to), optionally proof (a folder under assets/proofs/) with file, page (an address in the lab, e.g. game.html?table=casino), link (an address outside, shown as text to open on his phone) and cost (free text), chips (two to four {value, label} for beslut, one to four for gora), asked (date), from (the lane that asks) and answer. An agent adds an entry with answer null, changes only its own entries, reads the file right before editing it and keeps the form JSON.stringify gives with two spaces; it closes an entry by taking it out once his answer is carried out, and the commit says what he answered. Only the page writes answer ({value, note, at}, tools/decision-store.ts); no agent sets, changes or clears an answer he has given. The strict reader is tools/decision-register.ts. The repo is public: no secret, personal detail or path of this machine.",
   "decisions": [
     {
-      "id": "tatuerad-vilor-ur-casinot",
+      "id": "mannens-giv-vandningen",
       "kind": "beslut",
-      "question": "Tatuerads vilor: duger Casinots vilor med de tatuerade händerna inlagda?",
-      "leads": "Ja betyder att de tio vilorna spelas i Tatuerad med Casinots vikter, och Casinots egna filmer ändras inte.",
-      "proof": "tatuerad-vilor-ur-casinot-20261123",
-      "file": "1-tio-vilor-i-foljd-spelets-storlek.mp4",
-      "cost": "Ingen kostnad: gjort lokalt.",
+      "question": "Mannens nya giv till plats 4: vilken vändning ska gälla?",
+      "leads": "Den du väljer ritas till alla sju platser och för kvinnan; säger du ingen ritas given om efter din anteckning.",
+      "proof": "giv-man-20261126",
       "chips": [
         {
-          "value": "ja",
-          "label": "Ja, lägg in dem"
+          "value": "a",
+          "label": "A: vänds på vägen"
         },
         {
-          "value": "nagra",
-          "label": "Några av dem"
+          "value": "b",
+          "label": "B: vänds vid platsen"
         },
         {
-          "value": "nej",
-          "label": "Nej"
+          "value": "ingen",
+          "label": "Ingen av dem"
         }
       ],
-      "asked": "2026-11-23",
-      "from": "Filmbanan",
-      "answer": {
-        "value": "ja",
-        "note": "",
-        "at": "2026-11-23T22:01:51.371Z"
-      }
+      "asked": "2026-11-26",
+      "from": "standarddocka",
+      "answer": null
     },
     {
-      "id": "tatuerat-a21-kandidat",
+      "id": "docka-till-person-omgang-2",
       "kind": "beslut",
-      "question": "Tatuerat A2.1: duger den här bilden som ankare vid skon?",
-      "leads": "Ja betyder att bilden blir Tatuerads A2.1, att filmen blir trädets väg från vila till skon, och att de bästa givarna från A2.1 görs om från den genom dockan.",
-      "proof": "tatuerat-a21-kandidat-20261123",
-      "file": "3-handerna-gamla-a2-1-och-kandidaten.png",
-      "cost": "Fyra prov, 301 krediter. En giv med återgång från den kostar 91.",
+      "question": "Dockans film till en person, omgång 2: möts de två klippen utan skarv?",
+      "leads": "Ja: givarna filmas som korta klipp som fogas i ankarna; nej: de filmas i en följd och styckas.",
+      "proof": "docka-till-person-2-20261126",
       "chips": [
         {
           "value": "ja",
-          "label": "Ja, den blir A2.1"
+          "label": "Ja, skarven håller"
         },
         {
           "value": "nastan",
@@ -54,323 +46,33 @@
           "label": "Nej"
         }
       ],
-      "asked": "2026-11-23",
-      "from": "Filmbanan",
-      "answer": {
-        "value": "ja",
-        "note": "",
-        "at": "2026-11-23T21:46:39.648Z"
-      }
+      "asked": "2026-11-26",
+      "from": "standarddocka",
+      "answer": null
     },
     {
-      "id": "styvt-kort-vit-kant",
+      "id": "docka-till-person-omgang-3",
       "kind": "beslut",
-      "question": "Kortet: ska den vita kanten kring kortet tas bort så här?",
-      "leads": "Ja betyder att kanten tas bort som förval i Scen i de fem filmer som har den, medan spelet inte rörs; del 33–40 i provet visar med och utan.",
-      "proof": "styvt-kort-20261123",
-      "file": "35-plats-3-vit-kant-i-scen-spelets-storlek.mp4",
-      "cost": "Ingen kostnad.",
+      "question": "Omgång 3: ska dealern filmas i nyckelfärger, så att spelet ritar bordet?",
+      "leads": "Ja: nästa omgång filmas med blå bakgrund och grönt bord, och spelet ritar bordet genom samma kamera.",
+      "proof": "docka-till-person-3-20261126",
       "chips": [
         {
           "value": "ja",
-          "label": "Ja, ta bort kanten"
+          "label": "Ja, nyckelfärger"
         },
         {
           "value": "nej",
-          "label": "Nej, låt den vara"
+          "label": "Nej, bordet i filmen"
         },
         {
-          "value": "vanta",
-          "label": "Vänta"
+          "value": "prova",
+          "label": "Pröva mer först"
         }
       ],
-      "asked": "2026-11-23",
-      "from": "Kortbanan",
-      "answer": {
-        "value": "ja",
-        "note": "",
-        "at": "2026-11-23T20:51:05.637Z"
-      }
-    },
-    {
-      "id": "styvt-kort-i-handen",
-      "kind": "beslut",
-      "question": "Det styva kortet i handen: ska det ersätta dagens ritade kort?",
-      "leads": "Plats 4 i Scen i spelets storlek, dagens kort till vänster och det styva med en storlek hela vägen till höger, först hel fart och sedan halv; ja gör det styva till förval.",
-      "proof": "styvt-kort-20261123",
-      "file": "24-plats-4-i-scen-spelets-storlek.mp4",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja, byt till det styva"
-        },
-        {
-          "value": "nej",
-          "label": "Nej, behåll dagens"
-        },
-        {
-          "value": "inget",
-          "label": "Inget av dem duger"
-        }
-      ],
-      "asked": "2026-11-23",
-      "from": "Kortbanan (dealer-e7)",
-      "answer": {
-        "value": "ja",
-        "note": "",
-        "at": "2026-11-23T19:35:14.846Z"
-      }
-    },
-    {
-      "id": "tatuering-casinots-filmer",
-      "kind": "beslut",
-      "question": "Tatueringarna: ska Casinots filmer få tatuerade händer på det här sättet?",
-      "leads": "Ja betyder att de 22 stegen från A2.1 görs om så, med kortet, landningen, ansiktet och halsen orörda, efter en oberoende granskning av piloten.",
-      "proof": "tatuering-a21-pilot-20261123",
-      "file": "1-given-till-plats-4-fore-och-efter-spelets-storlek.mp4",
-      "cost": "Skattat 1 600–1 900 krediter för hela trädet; vilan utan kostnad. Piloten kostade 209.",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja, gör hela trädet"
-        },
-        {
-          "value": "nej",
-          "label": "Nej, låt dem vara"
-        },
-        {
-          "value": "vanta",
-          "label": "Vänta"
-        }
-      ],
-      "asked": "2026-11-23",
-      "from": "Filmbanan",
-      "answer": {
-        "value": "nej",
-        "note": "",
-        "at": "2026-11-23T19:25:39.685Z"
-      }
-    },
-    {
-      "id": "paow-fran-stol-1",
-      "kind": "beslut",
-      "question": "Håller given till plats 4 sedd från stol 1?",
-      "leads": "Ja: kastet och en stol till görs på samma sätt, ur 3D-scenens bild från stolen.",
-      "proof": "fran-stol-1-20261123",
-      "file": "5-dockans-ruta-och-bilden-av-paow.png",
-      "page": "studio/granska/?prov=fran-stol-1-20261123&fil=3-framifran-och-fran-stol-1.mp4",
-      "cost": "En giv från en ny stol: 103 krediter",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja"
-        },
-        {
-          "value": "nastan",
-          "label": "Nästan, skriv vad"
-        },
-        {
-          "value": "nej",
-          "label": "Nej"
-        }
-      ],
-      "asked": "2026-11-23",
-      "from": "film",
-      "answer": {
-        "value": "nastan",
-        "note": "",
-        "at": "2026-11-23T16:41:18.914Z"
-      }
-    },
-    {
-      "id": "paow-fria-givar",
-      "kind": "beslut",
-      "question": "Vilka av de fria givarna duger som varianter?",
-      "leads": "De som duger läggs i banken som varianter bredvid dockans givar; plats 7 kan få sin giv den vägen.",
-      "proof": "fria-givar-20261123",
-      "file": "8-de-tre-givarna-i-rutor.png",
-      "page": "studio/granska/?prov=fria-givar-20261123&fil=1-kortet-i-luften-spelets-storlek.mp4",
-      "cost": "En fri giv: 76 krediter för 4 s, 95 för 5 s",
-      "chips": [
-        {
-          "value": "alla",
-          "label": "Alla tre"
-        },
-        {
-          "value": "nagra",
-          "label": "Några, skriv vilka"
-        },
-        {
-          "value": "ingen",
-          "label": "Ingen"
-        }
-      ],
-      "asked": "2026-11-23",
-      "from": "film",
-      "answer": {
-        "value": "nagra",
-        "note": "alla är kommentertade separat",
-        "at": "2026-11-23T16:41:49.650Z"
-      }
-    },
-    {
-      "id": "paow-fri-giv-p4",
-      "kind": "beslut",
-      "question": "Duger den fria given till plats 4 som variant?",
-      "leads": "Ja lägger den i banken som variant bredvid dockans giv, och samma sätt prövas för plats 7.",
-      "proof": "fri-giv-p4-20261123",
-      "file": "4-vandningen-i-sexton-rutor.png",
-      "page": "studio/granska/?prov=fri-giv-p4-20261123&fil=2-dockans-giv-och-den-fria-bredvid-varandra.mp4",
-      "cost": "En fri giv: 76 krediter per tagning",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja, som variant"
-        },
-        {
-          "value": "nastan",
-          "label": "Nästan, skriv vad"
-        },
-        {
-          "value": "nej",
-          "label": "Nej"
-        }
-      ],
-      "asked": "2026-11-23",
-      "from": "film",
-      "answer": {
-        "value": "ja",
-        "note": "",
-        "at": "2026-11-23T16:03:43.016Z"
-      }
-    },
-    {
-      "id": "paow-givar-plats-6-7",
-      "kind": "beslut",
-      "question": "Håller givarna till plats 6 och 7?",
-      "leads": "Ja gör dem till underlag: returen från kortet direkt till vila beställs då också för plats 6 och 7.",
-      "proof": "givar-plats-6-7-20261123",
-      "file": "4-plats-6-och-7-i-rutor.png",
-      "page": "studio/granska/?prov=givar-plats-6-7-20261123&fil=1-plats-6-och-7-spelets-storlek.mp4",
-      "cost": "Returerna till vila: cirka 57 krediter per plats",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja, båda håller"
-        },
-        {
-          "value": "nastan",
-          "label": "Nästan, skriv vad"
-        },
-        {
-          "value": "nej",
-          "label": "Nej"
-        }
-      ],
-      "asked": "2026-11-23",
-      "from": "film",
-      "answer": {
-        "value": "nastan",
-        "note": "Du: Det här är intressant. Dockan är så bra så att videon följer den nitiskt. Det är bra såklart, en just i dessa klipp blir inte kortets övergång från baksida till framsida bra i och med att dockan inte exakt med handrörelsen får kortet fysistkt avv vända sig kordinerat mellan hennes händer. hur kortet vänds måste dockan ha mycket bra fog för tillsammans med att lite mer frihet för filmmodellen att faktist se till att kortet vänds av hennes händer och inte bara osynligt stoff",
-        "at": "2026-11-23T15:01:03.174Z"
-      }
-    },
-    {
-      "id": "docka-paow-vandning",
-      "kind": "beslut",
-      "question": "Ser dockans vändning av kortet naturligare ut nu, längre ut från kroppen?",
-      "leads": "Ja låter den nya vändningen gälla alla platser och styra nästa givar; kortet vänds nu längre ut med rakare handled, men fortare, och det kan se ryckigt ut.",
-      "proof": "docka-paow-vandning-20261123",
-      "file": "3-vandningen-fore-och-efter.png",
-      "page": "studio/granska/?prov=docka-paow-vandning-20261123&fil=1-plats-3-fore-och-efter.mp4",
-      "cost": "Inga krediter",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja, så ska hon vända"
-        },
-        {
-          "value": "nastan",
-          "label": "Bättre, men inte än"
-        },
-        {
-          "value": "nej",
-          "label": "Nej, ser fel ut"
-        }
-      ],
-      "asked": "2026-11-23",
-      "from": "3d",
-      "answer": {
-        "value": "nastan",
-        "note": "Nja, ser inte exakt hur hennes fingrar beter sig vfid kortvändningen, men kanske. Dock är det som att henens framförallt vänsterarm inte är naturlig i förhållande till sko och kort(en), det är återigen som ngt fel i djupoet och aknske i distansen till skon och dess kort, det syns på hennes handled och armboge",
-        "at": "2026-11-23T08:48:55.841Z"
-      }
-    },
-    {
-      "id": "paow-giv-2-3-p4c2",
-      "kind": "beslut",
-      "question": "Håller given från A2.3 till plats 4, kort 2?",
-      "leads": "Ja låter den stå i banken och returen göras från den; granskarna ger 3/5, skons fönster blir svart och vändningen görs delvis med fingrarna.",
-      "proof": "paow-giv-2-3-p4c2-20261121",
-      "file": "2-landningen-plats-4-kort-2.png",
-      "page": "studio/granska/?prov=paow-giv-2-3-p4c2-20261121&fil=1-given-till-plats-4-kort-2.mp4",
-      "cost": "Tagningen kostade 68 krediter; en ny kostar lika mycket",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja, den håller"
-        },
-        {
-          "value": "fonster",
-          "label": "Nej, fönstret ska visa nästa kort"
-        },
-        {
-          "value": "vandning",
-          "label": "Nej, vändningen ser fel ut"
-        },
-        {
-          "value": "nej",
-          "label": "Nej, något annat"
-        }
-      ],
-      "asked": "2026-11-21",
-      "from": "film",
-      "answer": {
-        "value": "vandning",
-        "note": "Vad är det som gör att det blir en vit kantlinje på kortet? Det sk inte finnas. men vändningen ser inte helt naturlig ut heller, kortet blir lixom för långt från fingrarna.",
-        "at": "2026-11-23T06:13:41.512Z"
-      }
-    },
-    {
-      "id": "kortet-i-handen-provet-i-spelet",
-      "kind": "beslut",
-      "question": "Ska kortets nya vändning och stadiga ljus slås på i spelet?",
-      "leads": "Ja slår på provet (kortet smalnar i vändningen, papperet håller sitt ljus) i Scen och i spelet; skärpan mot handen byggs därefter.",
-      "proof": "kort-fram-bak-20261120",
-      "file": "2-stillbild-vandningen.png",
-      "page": "studio/granska/?prov=kort-fram-bak-20261120&fil=1-given-spelets-storlek.mp4",
-      "cost": "Inga krediter",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja, slå på"
-        },
-        {
-          "value": "ljus",
-          "label": "Bara ljuset"
-        },
-        {
-          "value": "nej",
-          "label": "Nej, arbeta vidare"
-        }
-      ],
-      "asked": "2026-11-20",
-      "from": "kortets undersökning",
-      "answer": {
-        "value": "nej",
-        "note": "Jag vet faktist inte och vad som påverkas.. men jag ser att framförallt att kortets handrygg fortfarande darrar och så vidare.. Har inte vi jobbat och gjort om saker som skulle lösa sånt?",
-        "at": "2026-11-21T14:59:18.527Z"
-      }
+      "asked": "2026-11-26",
+      "from": "standarddocka",
+      "answer": null
     },
     {
       "id": "giv-utan-vandning-i-handen",
@@ -395,79 +97,6 @@
         "at": "2026-11-19T12:33:41.855Z"
       },
       "cost": "en film, cirka 64 krediter"
-    },
-    {
-      "id": "repliker-som-munlappar",
-      "kind": "beslut",
-      "question": "Pröva de 25 replikerna som munlappar över en vilofilm?",
-      "leads": "Pröva gör bara munnen ny över en film där hon vilar, i stället för 25 hela talfilmer.",
-      "chips": [
-        {
-          "value": "prova",
-          "label": "Pröva"
-        },
-        {
-          "value": "nej",
-          "label": "Nej"
-        }
-      ],
-      "asked": "2026-11-17",
-      "from": "talbanan",
-      "answer": {
-        "value": "prova",
-        "note": "",
-        "at": "2026-11-17T16:58:48.987Z"
-      }
-    },
-    {
-      "id": "forgrena-kortgeometrin",
-      "kind": "gora",
-      "question": "Förgrena geometrin efter jämförelsen",
-      "leads": "Jämför tre namngivna geometriförval i samma projekt och välj sedan gemensam regel för Kortplan, spel och nya filmer.",
-      "proof": "paow-kortgeometri-20261119",
-      "file": "3-hela-kortplanen.png",
-      "chips": [
-        {
-          "value": "klart",
-          "label": "Genomgånget"
-        }
-      ],
-      "asked": "2026-11-19",
-      "from": "Jakob via Codex",
-      "answer": {
-        "value": "klart",
-        "note": "",
-        "at": "2026-11-20T09:05:56.809Z"
-      }
-    },
-    {
-      "id": "3d-avlast-giv-kladd-figur",
-      "kind": "beslut",
-      "question": "3D-provet: ska den avlästa given gå vidare till en klädd figur?",
-      "leads": "Filmen avläst med SAM ser ut som en människa som ger från båda stolarna (4/5 och 3/5) och det köpta klippet inte (2/5 och 1/5); nästa steg är att lederna styr en klädd figur.",
-      "proof": "3d-prov-en-giv-tva-stolar-20261120",
-      "file": "3-sam-stol-4.png",
-      "chips": [
-        {
-          "value": "ja",
-          "label": "Ja, gå vidare"
-        },
-        {
-          "value": "nej",
-          "label": "Nej, lägg ner spåret"
-        },
-        {
-          "value": "vanta",
-          "label": "Vänta"
-        }
-      ],
-      "asked": "2026-11-20",
-      "from": "3D-provet",
-      "answer": {
-        "value": "ja",
-        "note": "",
-        "at": "2026-11-20T11:07:16.474Z"
-      }
     }
   ]
 }

@@ -118,7 +118,8 @@ en agents på hans ord, tas också en film som spelet spelar eller som han dömt
 till papperskorgen eller med `--arkiv <mapp>` till ett arkiv utanför repot. Det ett register fortfarande pekar på (en roll
 i Material, en munlapp, ett träd, en komposition, Beslut, utgåvan, ett orderutkast) tas bort först; noir-samlingen, V6,
 original och referenser rörs aldrig. `npm run media:status` skriver en översikt över lagringen och raderar inget.
-`npm run stada` raderar det i slasken som är äldre än sju dygn men lämnar `granska/` orörd.
+`npm run stada` raderar det i slasken som inte har ändrats på tre timmar men lämnar `granska/` orörd; servern gör det
+själv när den startar och var tredje timme (Jakob 2026-11-26).
 
 ## Slasken och `.runtime/`
 

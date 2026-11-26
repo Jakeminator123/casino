@@ -44,7 +44,7 @@ Alla `npm`- och `node`-kommandon körs från den här mappen. Node 24.22.3 (Volt
 | `npm test` | kärnans tester, offline och utan media |
 | `npm run hooks:install`, `npm run check` | installerar kontrollen före push för hela casino-repot; kör den på de commits som ska ut |
 | `npm run verify` | jämför registrerade filer med sin hash i `data/manifest.json` (kräver media) |
-| `npm run stada` | raderar projektets del av slasken som är äldre än sju dygn, utom `granska/` (`-- --torr` listar bara); `node ../slask/slask.ts` visar hela slasken |
+| `npm run stada` | raderar projektets del av slasken som inte har ändrats på tre timmar, utom `granska/` (`-- --torr` listar bara); `node ../slask/slask.ts` visar hela slasken |
 | `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (servern utför den säkra nivån själv när den startar); översikt över lagringen. På Jakobs ord: `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>" [--arkiv <mapp>]` |
 
 Serverns adresser står i `tools/lab-routes.ts`; utan media på datorn visar studion och spelet inga filmer.

@@ -1784,6 +1784,28 @@
       "text": "okej vi fimpar dena då",
       "at": "2026-11-26T09:57:03.805Z",
       "read": "2026-11-26T10:06:10.537Z"
+    },
+    {
+      "id": 181,
+      "proof": "bordsform-20261126",
+      "file": "5-halvmane-spelets-vy.png",
+      "choice": null,
+      "text": "Vi testar denna då. Men nu r altså skons kort inte vid skon för första kotet",
+      "at": "2026-11-26T10:13:44.661Z",
+      "answer": {
+        "text": "Rättat: skons plats är nu inskriven i rörelsen, så det första kortet ligger i skon och ingen annanstans. Bordet du valde att pröva är dockornas bord nu.",
+        "at": "2026-11-26T10:39:00.049Z"
+      },
+      "read": "2026-11-26T10:39:00.049Z"
+    },
+    {
+      "id": 182,
+      "proof": "bordsform-20261126",
+      "file": "6-halvmane-handen-vid-skon.png",
+      "choice": null,
+      "text": "Samam här med skons kort",
+      "at": "2026-11-26T10:13:53.805Z",
+      "read": "2026-11-26T10:39:00.420Z"
     }
   ]
 }

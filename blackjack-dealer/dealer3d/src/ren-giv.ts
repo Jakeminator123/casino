@@ -317,10 +317,10 @@ export function granska(m: {frames: {card: Kort; L: Limb; R: Limb}[]; leavesShoe
       const a = sub(f[s].w, f[s].e), b = sub(f[s].p[9], f[s].p[0]); if (Math.acos(Math.max(-1, Math.min(1, dot(a, b) / (length(a) * length(b) || 1)))) > rad(70)) { bojdRutor++; vad.add(`${s} handled`); } }
     const hornen = horn(f.card), lagst = Math.min(...hornen.map(q => q[1]));
     if (i >= m.leavesShoe && lagst < -0.002) { spar.add(i); vad.add('hörn'); }
-    // (vändningen, Jakob 2026-11-26 "Fel håll av kortvändningen": i luften vänds kortet kring sin långsida, framsidan från
-    // nedåt mot hans vänster (+x: nyckelvridningen, tummen upp; Jakob: "nyckelvridningsrotation") och vidare upp när det
-    // läggs; den pekar aldrig mot spelarna eller dealern)
-    if (i > m.leavesShoe && i < m.rests && lagst > 0.002) { const nn = unit(f.card.n); if (Math.abs(nn[2]) > 0.35 || (Math.abs(nn[1]) < 0.5 && nn[0] < 0)) { spar.add(i); vad.add('kortet vänds fel'); } }
+    // (vändningen, Jakob 2026-11-26 "Fel håll av kortvändningen" och "nyckelvridningsrotation", läst på två lärofilmer
+    // av riktiga dealrar (koreo-giv.ts): framsidan går från nedåt till dealern (kortet rest på högkant) och rullas fram och
+    // upp; i luften vetter den aldrig mot spelarna)
+    if (i > m.leavesShoe && i < m.rests && lagst > 0.002) { const nn = unit(f.card.n); if (nn[2] > 0.35) { spar.add(i); vad.add("kortet vänds fel"); } }
     if (i > m.leavesShoe && i < m.rests) { const sidor = [...FING.map(k => mot(f.card, f.R.p[k])), ...FING.map(k => mot(f.card, f.L.p[k]))].filter(w => w !== null) as number[];
       if (!(sidor.some(w => w > 0) && sidor.some(w => w < 0)) && !(lagst < 0.004 && sidor.length > 0) && !hornen.every(q => q[1] < 0.004)) { spar.add(i); vad.add('utan stöd'); } } });
   // (ryck: hastighetens ändring som vektor mellan två rutor, i alla rutor; utan `strang` det äldre hopptestet)
@@ -342,8 +342,9 @@ export function granska(m: {frames: {card: Kort; L: Limb; R: Limb}[]; leavesShoe
  *   kortplatser (`dealerKort`, kortens mitt; ett kort 63 x 88 mm med långsidan mot spelarna).
  * 2 Öppen hand från bytet till hemma: fingertopparna minst 75 % av fingrets längd från handleden, ring- och lillfingret
  *   aldrig mer böjda än långfingret.
- * 3 Kortet lutar aldrig mer än 30 grader från filten utan tummen och ett finger på var sin sida (högst RORA); högst 2
- *   rutor inom 12 grader från lodrätt, och då i handen och i rörelse; fingrarna på kortet cirka 0,2 s efter att det ligger.
+ * 3 Kortet står aldrig på högkant eller lutar utan att en hand rör det (högst RORA): inget kort som står på filten och
+ *   faller av sig självt (huvudagenten 2026-11-26 efter två lärofilmer: kortet reses på högkant av vänstern och nyps av
+ *   högern, så rutorna nära lodrätt räknas men spärrar inte); fingrarna på kortet en stund efter att det ligger.
  * 4 Kortet längs handen medan det hålls: vinkeln mellan kortets långsida och handens framåt; handleden mot underarmen.
  * 5 Kroppen: bålens lutning fram och vridning (grader, från ankaret), armbågarnas minsta böjning, och högerhandens
  *   acceleration och dess ändring på hemvägen (m/s²).
@@ -353,8 +354,8 @@ export const RORA = 0.003;
 type GivRuta = {card: Kort; L: Limb; R: Limb};
 export function givRegler(m: {frames: GivRuta[]; leavesShoe: number; rests: number; fps: number; hip: Vec3}, doll: Doll, val: {dealerKort?: Vec3[]; topp?: {finger: number; thumb: number}} = {}) {
   const F = m.frames, n = F.length, fps = m.fps, tp = {finger: Math.max(REN.topp, doll.hand?.topp?.finger ?? 0), thumb: Math.max(REN.tumme, doll.hand?.topp?.thumb ?? 0), ...val.topp};
-  const TOPPAR = [4, 8, 12, 16, 20], g = (r: number) => Math.round(r * 1800 / Math.PI) / 10, ang = (a: Vec3, b: Vec3) => Math.acos(Math.max(-1, Math.min(1, dot(unit(a), unit(b)))));
-  /** Vilka sidor av kortet handens toppar rör (högst RORA från ytan, inom kortet): +1 framsidan, -1 ryggen, och tummens sida. */
+  const TOPPAR = [4, 6, 7, 8, 10, 11, 12, 16, 20], g = (r: number) => Math.round(r * 1800 / Math.PI) / 10, ang = (a: Vec3, b: Vec3) => Math.acos(Math.max(-1, Math.min(1, dot(unit(a), unit(b)))));
+  /** Vilka sidor av kortet handens toppar, pek- och långfingrets leder rör (högst RORA från ytan, inom kortet): +1 framsidan, -1 ryggen, och tummens sida. */
   const ror = (l: Limb, k: Kort) => { const a = cross(k.n, k.l), sidor = new Set<number>(); let tumme = 0;
     for (const j of TOPPAR) { const d = sub(l.p[j], k.c); if (Math.abs(dot(d, k.l)) > HK / 2 + RORA || Math.abs(dot(d, a)) > WK / 2 + RORA) continue; const w = dot(d, k.n), glapp = Math.abs(w) - T / 2 - (j === 4 ? tp.thumb : tp.finger);
       if (glapp <= RORA) { sidor.add(Math.sign(w)); if (j === 4) tumme = Math.sign(w); } }
@@ -378,7 +379,7 @@ export function givRegler(m: {frames: GivRuta[]; leavesShoe: number; rests: numb
   const minstUt = Math.round(Math.min(...ut.flat()) * 100) / 100, merBojda = F.slice(fran).filter(f => { const b = bojning(f.R.p); return b[2] > b[1] + 5 || b[3] > b[1] + 5; }).length;
   // 3 kortet i handen
   const lagt = F.slice(Math.max(0, greppat), m.rests);
-  const utanGrepp = lagt.map((f, j) => ({i: Math.max(0, greppat) + j, f})).filter(({f}) => lutning(f.card) > 30 && !hall(f.R, f.card) && !hall(f.L, f.card)).map(x => x.i);
+  const utanHand = F.slice(m.leavesShoe, m.rests).map((f, j) => ({i: m.leavesShoe + j, f})).filter(({i, f}) => lutning(f.card) > 10 && !R[i].ror && !L[i].ror).map(x => x.i);
   const lodratt = F.slice(m.leavesShoe, m.rests).map((f, j) => ({i: m.leavesShoe + j, f})).filter(({f}) => lutning(f.card) > 78);
   const lodrattIHanden = lodratt.filter(({i, f}) => hall(f.R, f.card) && i > 0 && (length(sub(f.card.c, F[i - 1].card.c)) > 0.001 || ang(f.card.n, F[i - 1].card.n) > 0.02)).length;
   let efter = 0; for (let i = m.rests; i < n && R[i].ror; i++) efter++;
@@ -398,7 +399,7 @@ export function givRegler(m: {frames: GivRuta[]; leavesShoe: number; rests: numb
   const tal = {
     bytet: {badaRorRutor: langst, ensamtRutor: ensamt, greppetSlutetRuta: greppat, vansternSlapperRuta: slappt, rutorEmellan: slappt - greppat, moteFranAxlarnasMittMm: [Math.round((moteC[0] - axelMitt[0]) * 1000), Math.round((moteC[2] - axelMitt[2]) * 1000)], franDealernsKortMm: kortplatser},
     oppenHand: {minstAndelUt: minstUt, ringEllerLillMerBojdaRutor: merBojda},
-    kortetIHanden: {over30UtanGreppRutor: utanGrepp, lodrattRutor: lodratt.length, lodrattIHandenOchRorelse: lodrattIHanden, fingrarnaKvarSekunder: Math.round(efter / fps * 100) / 100, mestLutadILuften: Math.max(0, ...lagt.map(f => lutning(f.card)))},
+    kortetIHanden: {lutarUtanHandRutor: utanHand, lodrattRutor: lodratt.length, lodrattIHandenOchRorelse: lodrattIHanden, fingrarnaKvarSekunder: Math.round(efter / fps * 100) / 100, mestLutadILuften: Math.max(0, ...lagt.map(f => lutning(f.card)))},
     langsHanden: {kortetMotHandenGrader: langsHanden, handledenGrader: handled},
     kroppen: {lutningGrader: Math.max(...lut), vridningGrader: Math.max(...vrid.map(Math.abs)), armbagenMinstBojdGrader: Math.min(...F.slice(1, -1).flatMap(f => [armbage(f.R), armbage(f.L)])), hemvagenAcceleration: hemAcc, hemvagenAccelerationensAndring: hemRyck},
     vridningen: {rulleGrader: [Math.min(...rulle), Math.max(...rulle)]},
@@ -407,8 +408,8 @@ export function givRegler(m: {frames: GivRuta[]; leavesShoe: number; rests: numb
   if (langst < 3) bryter.push(`1: båda händerna rör kortet bara ${langst} rutor i följd`); if (ensamt !== 0) bryter.push(`1: kortet ensamt ${ensamt} rutor`);
   if (Math.abs(slappt - greppat - 1) > 1) bryter.push(`1: vänstern släpper ${slappt - greppat} rutor efter greppet`); if (kortplatser.some(x => x < 0)) bryter.push('1: mötet på dealerns kortplats');
   if (minstUt < 0.75) bryter.push(`2: fingertopparna bara ${minstUt} av fingret ut`); if (merBojda) bryter.push(`2: ring- eller lillfingret mer böjt än långfingret i ${merBojda} rutor`);
-  if (utanGrepp.length) bryter.push(`3: kortet lutar över 30° utan grepp i rutorna ${utanGrepp.join(',')}`); if (lodratt.length > 2 || lodrattIHanden < lodratt.length) bryter.push(`3: ${lodratt.length} rutor nära lodrätt, ${lodrattIHanden} i handen och i rörelse`);
-  if (efter < 4) bryter.push(`3: fingrarna på kortet bara ${(efter / fps).toFixed(2)} s efter att det ligger`);
+  if (utanHand.length) bryter.push(`3: kortet lutar utan att en hand rör det i rutorna ${utanHand.join(',')}`);
+  if (efter < 3) bryter.push(`3: fingrarna på kortet bara ${(efter / fps).toFixed(2)} s efter att det ligger`);
   if (tal.kroppen.armbagenMinstBojdGrader < 30) bryter.push(`5: armbågen bara ${tal.kroppen.armbagenMinstBojdGrader}° böjd`);
   return {tal, bryter};
 }
