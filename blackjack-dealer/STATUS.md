@@ -178,10 +178,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Väntar på Jakob
 
-- Standarddockan (2026-11-26): inget väntar på honom just nu. Bordet är dömt (halvmånen, 0,95 m djupt, skon 8,5 cm
-  längre ut) och byggt, och sitthöjden är dömd (axlarna 31 cm över filten). Nästa han får se är mannens nya giv som film
-  i Granska. Arbetet med bordet, blicken och rörelserna sker i `../standarddocka/` och visas för honom som prov härifrån;
-  hans ord står som krav i `../standarddocka/AGENTS.md`.
+- Standarddockan (2026-11-26): mannens nya giv, provet `giv-man-20261126` (Granska, Prov) med kortet
+  `mannens-giv-vandningen` i Beslut: version A (kortet vänds direkt efter handbytet) eller B (vänds vid platsen), till
+  plats 4, och A till plats 5, med den nya kroppen vid halvmånen i spelets vy. Hans svar avgör vilken vändning som
+  ritas till alla sju platser och för kvinnan. Arbetet sker i `../standarddocka/` (läget och nästa steg i dess README)
+  och visas för honom som prov härifrån; hans ord står som krav i `../standarddocka/AGENTS.md`.
 - Om det som Material behåller utan fil ska kopieras hit från den stationära: hans två bilder av henne, hennes två
   keystones och kortets textur (`assets/cards/kortets-textur.png`), som en ny beställning ritar kortet med. Allt annat
   som bara fanns där är borta ur registren sedan 2026-11-26. Talets nästa replik behöver en bank av en tatuerad vila som
@@ -224,6 +225,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - Kön läggs bara när en huvudagentchatt är öppen (`tools/order-watch.ts`); fullmaktens dagstak räknar bara den här
   utcheckningens liggare; `tools/speech.ts` tar inte GPU-låset självt.
 - Ingen granskare kan höra: ljud bedöms av Jakob. Kopian är inte prövad på en fysisk telefon.
+- Beställ visar 35 levererade beställningar som "Godkänd, i kön" med trasiga bilder: deras filmer finns här, men
+  in-bilderna och kvittona bara på den stationära. Rättas i koden: en beställning med post i filmregistret visas som
+  levererad, och en saknad bild som "finns inte här".
+- I Bordet med Standarddockan visar platsknapparna inte vilka platser som har en ritad giv: en plats utan giv visar
+  plats 4 med en rad om det.
 
 Önskemål, inget beställt (2026-11-11, 2026-11-13): ett tredje och fjärde dealerkort, mer rörelse i kropp, huvud och
 högerarm när hon delar ut, kaffe ur en mugg i bilden, en animation på bordet, marker som dealern tar och betalar,

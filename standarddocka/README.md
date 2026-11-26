@@ -180,120 +180,80 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 
 ## Läget (2026-11-26)
 
-- Mannen och kvinnan finns som riggade modeller med fingrar och ansikte (`../avatar-auto-pipeline/assets/docka/`).
-- Bordet, skon, korten, markerbrickan och stolen finns som Blender-modeller byggda ur måtten.
-- Arbetsvyn finns (`scen/vy.py`). Bordets dealerkant ligger 15 cm närmare, och markerbrickan sitter nedsänkt ända
-  ute i den: brickans bakvägg är bordets kant där han sitter, i linje med kanten på båda sidor. Mannen sitter i vilan
-  (A1): höften 0,278 m under filten (Paows), axlarna 0,38 m bakom spelets kant, båda händerna på filten framför
-  brickan, 30 cm isär, med fingrarna lätt böjda. Handflatan och varje finger vilar 1–2 mm över filten och ingenting
-  ligger under den (mätt per finger i `vy_matt.json`). Armbågarna hänger 9 cm bakom kanten, armarna går över brickan
-  och kanten med minst 4 mm luft, och blicken är mot kameran. Stolen är 6 cm lägre och flyttad 7 cm fram under honom,
-  så att han sitter på sitsen (5 cm till ryggstödet); fötterna hänger strax framför fotringen. Ingen del av honom går
-  igenom bordet eller stolen, utom att låren trycker ned dynan 5 mm. Bilden `vy_lag` är spelets vy (den lägre
-  kameran, 12 grader ned), `vy_film` den gamla kameran (25 grader ned) att jämföra med.
-- Studions dockvy i `blackjack-dealer` (Bordets Inspelning och `/dealer3d/docka`) ritar sedan 2026-11-26
-  standarddockans kropp i den vita figurens ställe: kvinnan som förval, mannen med `?figur=man`, den vita figuren med
-  `?figur=vit` eller där modellen inte är byggd (`dealer3d/page/docka.ts`, `dealer3d/src/figure-model.ts`). Den ritar
-  också standardrummet runt henne och öppnar i spelets vy: bordet med kanten närmare, skon med frontplattan, brickan,
-  stolen och ljuset är en och samma kod för editorn här och för studion
-  (`../blackjack-dealer/dealer3d/src/standard-room.ts`; `editor/scen.ts` ritar sitt rum ur den). `?scen=gammal` ger den
-  äldre scenen. Kvar i studions dockvy: blicken mot kameran, regeln som håller underarmarna över kanten
-  (`editor/armar.ts`), och kortet i skons öppning, som där ritas framför frontplattan.
-- Dockan sitter för lågt och för långt från bordet (mätt 2026-11-26 på mannen vid det närmare bordet). Axlarna står
-  0,23 m över filten (Paows mått), och överarmen är 0,29 m: armbågen får inte plats under axeln när underarmen ska
-  gå över bordet, utan måste cirka 16 cm ut åt sidan. Det är de utvinklade armbågarna i vilan. En riktig sittande
-  dealer har axlarna 0,31–0,35 m över bordet. Jakob dömde provet `sitthojd-20261126` (fyra höjder) 2026-11-26:
-  23 och 27 cm Inte bra, 31 cm "okej" i spelets vy och Bra från sidan, 35 cm Bra från sidan men Inte bra i spelets
-  vy, där huvudet klipps. Dockan sitter därför med axlarna 0,31 m över filten. Vid den höjden går låren 11 mm emot
-  bordets sarg med dagens fasta lårriktning (`figure-model.ts`): låren ska luta mer nedåt.
-- Mannens första egna rörelser finns (2026-11-26; dockan `man` i `../blackjack-dealer/dealer3d/src/doll.ts`, mätt på
-  modellen): vilan A1 till skon (`till-ankare-2-3-man`), ankaret (`ankare-2-3-man`) och given till plats 4
-  (`giv-fran-2-3-p4c1-ren-a-man`), byggda av `dealer3d/tools/ren-givar.ts`. Varje led ligger på rörelsens punkter i
-  varje ruta, benens längd håller, takten är Jakobs och given börjar och slutar i exakt ankaret. Editorn spelar dem
-  på plats 4 med mannen (förvalet). Alla tre är ritade vid halvmånens sko (`DOLL_TABLE`, `dollShoe`). Given är
-  Jakobs version A, "nyckelvridningen" (`dealer3d/src/koreo-giv.ts`, 2026-11-26): vänstern skjuter kortet till
-  mötet framför bröstet och upp på högerns tumme, högern tar det med tummen under och två fingrar på ryggen,
-  underarmen vrids som en nyckel på vägen, kortets nedre långsida möter filten och kortet läggs på rygg, och två
-  fingrar vilar på det. Version B (vänd där det landar) står på prov som `giv-fran-2-3-p4c1-prov-b-man`. Givens
-  regler (bytet, öppen hand, kortet i handen, kroppen, vridningen) mäts av `givRegler` i `ren-giv.ts` och står i
-  filens `made.checked`. Kvar: Jakobs dom över A och B med ögat, de sex andra platserna och kvinnan.
-- Närmare bordet, utan att det blir trångt. Magen har 12 cm luft till kanten (Jakob 2026-11-26: "skjuta in dockorna
-  aningen till mot bordet"); 8 cm närmare ger 4 cm. Flyttas dockan fram blir det trångt framför honom, som han såg
-  ("du kan med fördel skjuta fram både sko/kort och dess placeringar om du skjuter fram dealern"): fingertopparna i
-  vilan når då 20 cm förbi spelets kant, dealerns egna kortplatser börjar 11–12 cm förbi den, och vänsterhanden
-  ligger på D.C3. Därför sitter dockan kvar där kortplanen räknar med (axlarna 0,38 m bakom spelets kant), och det är
-  bordets dealerkant och brickan som kommer 8 cm närmare honom: kanten 23 cm bakom spelets kant i stället för 15.
-  Kortplanen och avstånden från dealern till korten är då som de var. Det bordet är byggt som en egen modell,
-  `standardbord_nara23` (`--docka` i `../avatar-auto-pipeline/scen/bygg_bord.py`), och editorn visar det för en
-  rörelse som är ritad för dockan `man` eller `kvinna` (`bordFor` i `editor/scen.ts`); de äldre rörelserna visas vid
-  bordet med kanten 15 cm närmare (`standardbord_nara`) tills de är utbytta, och då tas det bordet och spelets
-  ursprungliga (`standardbord`) bort.
-- Bordets form är dömd (Jakob 2026-11-26: "mindre äggformat ... mer som en halvmåne"; av tre bord i bild valde han
-  halvmånen): dockornas bord är 1,90 m brett och 0,95 m djupt från spelets kant, en halvcirkel, och skon står 8,5 cm
-  längre ut åt dealerns vänster, så att armen vid skon är mindre ihopklämd (armbågen 90 grader i stället för 81). De
-  fyra talen står på ett ställe, `DOLL_TABLE` i `../blackjack-dealer/src/table-lens.ts`; bordets modell byggs av dem
-  och rörelserna tar skons plats ur `dollShoe` där. Filmernas bord (`TABLE_TOP`, 1,15 m djupt) och sko gäller de
-  filmer som finns. Känt: skon står 2,6 cm från läderrullen, och i spelets vy ligger dess bakre halva utanför bilden
-  (kasseringslådan till hälften, på andra sidan); med bara 3 cm mot spelarna i stället står den 9,9 cm från rullen
-  och nästan hel i bild, med armbågen 88 grader. Det är ett byte av två tal om han vill det.
-- Skon har en frontplatta med en rundad öppning (`sko_front`, måtten i `SKO_FRONT` i
-  `../avatar-auto-pipeline/scen/bygg_bord.py`): kortets rygg syns i öppningen, kortet dras nedåt och ut genom springan
-  under plattan, och nästa kort visar ryggen när ett har gått. Springan är hög (59 mm över filten) eftersom givarna
-  lutar ut kortet tidigt; den blir lägre först när kortet glider längre platt.
-- Jakob om den första arbetsvyn: "Ser ganska bra ut nu"; brickan ut i kanten, händerna och stolen är rättade efter
-  hans anteckningar och väntar på hans dom.
-- Editorn finns (`editor/`): mannen eller kvinnan gör A1 → A2.3 → kort 1 på en plats → tillbaka vid det närmare
-  bordet, med dockans egna rörelser där de finns och annars Paows. Blicken går mot spelets kamera i vilan, följer
-  kortet under given och går tillbaka; kortet följer handen som håller det; underarmarna hålls minst 1 cm över bordets
-  kant av en automatisk regel (i Paows given till plats 4 gick höger underarm annars genom kanten i 116 av 209 rutor).
-  Händer, armbågar och blick går att dra i, och ändringarna sparas i `rorelser/`. Den öppnar i spelets vy.
-- Editorn har också givarna till alla sju platserna, kamerorna från de sju platserna, återställning och inspelning
-  (Jakob 2026-11-26). Kontrollerat i en egen webbläsare: alla sju givar laddar utan fel och underarmarna hålls över
-  kanten i varje ruta; givarna till plats 1, 2, 6 och 7 är inte granskade med ögat ruta för ruta, och i given till
-  plats 7 går armen tätt över eller genom skon. Från plats 1 och 7 syns att scenen saknar rum bakom bordet (bara golv).
-- Tre första klipp ligger i `klipp/`: vilan till skon (A1 → A2.3, 3,0 s) från plats 4, 1 och 7, och given till plats 4
-  (4,0 s) genom spelets kamera.
-- Rörelserna granskas en per agent med skillen `granska-rorelse` (Jakob 2026-11-26: en svärm av agenter får granska
-  småsakerna, som att fingrarna kommer rätt med kortet och att kortet rör sig trovärdigt). `verktyg/mat.ts`
-  2026-11-26, inte granskat med ögat: Paows givar är röda på alla sju platser (ett finger genom kortet, kortet utan
-  stöd, en fingerled bortom sitt läge redan i vilans första ruta, handflatan i filten, hopp i fingertopparna, och på
-  plats 6 och 7 hopp och ryck i handlederna), och mannens giv till plats 4 på tre hack: vänster armbåge rycker när
-  given börjar, vänster handled rycker strax efter, och höger armbåge hoppar 17 mm på vägen tillbaka. Rörelserna är
-  ritade med regler, inte simulerade, och det behålls: det som skärps är reglerna för grepp, vändning och släpp i
-  `../blackjack-dealer/dealer3d/src/`, på det granskningen visar.
-- Granskningen av de sju givarna (2026-11-26, sju agenter) fann inget som editorns lager kan rätta: felen sitter i
-  reglerna som ritar givarna (`../blackjack-dealer/dealer3d/src/`), framför allt greppet när högerhanden tar emot
-  kortet, vändningen och släppet. På Jakobs ord görs de om där, som nya val och nya grundrörelser, med hans takt
-  (kortet ut högst 1 s, handen tillbaka cirka 0,6 s) och med handen vid skon redo: varken lyft och spänd eller slapp.
-  Den nya generatorn är `dealer3d/src/ren-giv.ts`. De första sju givarna den gjorde, för dockan paow, underkändes
-  och är raderade (2026-11-26): en utomstående granskning fann, och en egen mätning bekräftade, att höger underarm i
-  fem av dem blev upp till 363 mm mot dockans 275 kring landningen. Generatorn tog armbågen ur armens räkning
-  (`arm()` i `dealer3d/src/body.ts`) men sparade handleden den bad om, också utom räckhåll, och ingen mätning prövade
-  benens längd. Det är rättat: bålen lutar så långt räckvidden kräver, och benens längd är en spärr i både `granska`
-  och `mat.ts`. För de platser där dockans egna givar inte finns spelar editorn fortfarande de äldre givarna i en
-  snabbare takt, och där är spärren röd (finger genom kortet och kortet utan stöd): inget av dem ska filmas för en
-  betald film.
-- Kroppen följer inte rörelsens punkter (mätt 2026-11-26 på mannen i given till plats 4; måtten står i editorns
-  `state()`: `axelFranPunktenMm`, `armbageFranPunktenMm`, `handledFranPunktenMm`, `fingrarFranPunkternaMm`). Axlar och
-  handleder ligger rätt, men armbågarna hamnar 15–25 mm och fingrarnas leder 12–26 mm från rörelsens punkter: givarna
-  är ritade för Paows mått, och mannens knogar sitter cirka 2 cm längre ut från handleden med kortare fingerben. Ett
-  grepp som stämmer i rörelsen stämmer alltså inte på kroppen. Därför ska givarna ritas för standarddockans egen
-  kropp ("Plockas in", steg 2).
-- Känt i editorn, för de äldre rörelserna: i vilan står armbågarna utvinklade, eftersom rörelserna är gjorda för Paows
-  kropp och ett bord vars kant låg 15 cm längre bort; bålen lutar som Paows, 16 cm i given; vilan i den första delen
-  är den äldre vita dockans, inte den `scen/vy.py` lägger mannen i. Filten är mörkare än i Blenders bilder. Smalbenen
-  lutar 4,6 grader framåt i editorn och studions dockvy men 11 grader bakåt i Blender (`figure-model.ts`); att luta dem
-  bakåt kräver först att stolens regel (`seatStool` i `../blackjack-dealer/dealer3d/src/standard-room.ts`) mäter
-  lårens undersida bara på låren, annars tar den fötterna och sänker stolen till golvet. Editorn och `scen/vy.py` ställer upp scenen var för sig
-  (stolen, vilan, kamerorna): de ska läsa samma tal ur en fil.
-- Provat och bedömt av Jakob: bordet 15 cm närmare dealern räcker för att det ska nå magen och skon stå helt på
-  bordet. Att luta bordet mot kameran är struket.
+- **Dockorna:** mannen (1,75 m) och kvinnan (1,65 m) har en människas mått, passade mot mätningar av människor av samma
+  kön och längd (ANSUR II): längder, armarnas tjocklek, händer och fötter. Underarmarna har två vridben var, så att
+  huden inte nyps när handen vrids; skelettet har 81 ben och de äldre benens namn är oförändrade. De byggs av
+  `../avatar-auto-pipeline/scen/bygg_docka.py` (talen i `MATT`; skelettet står i `new_docka.md`). Känt: knogarna sitter
+  1–2 cm för långt ut från handleden, som i MPFB:s eget skelett.
+- **Bordet:** dockornas bord är en halvmåne (Jakob 2026-11-26), 1,90 m brett och 0,95 m djupt, med dealerkanten och
+  markerbrickan 23 cm bakom spelets kant, skon 8,5 cm längre ut åt dealerns vänster och ett urtag för låren under
+  sargen. De fyra talen står på ett ställe, `DOLL_TABLE` i `../blackjack-dealer/src/table-lens.ts`: modellen
+  `standardbord_nara23` byggs av dem (`bygg_bord.py --docka`) och rörelserna tar skons plats ur `dollShoe`. Editorn
+  och studions dockvy visar det bordet för en rörelse ritad för `man` eller `kvinna` (`bordFor` i `editor/scen.ts`);
+  de äldre rörelserna (Paows docka) visas vid `standardbord_nara` tills de är utbytta, och då tas det bordet och
+  `standardbord` bort. Känt: skon står 2,6 cm från läderrullen och dess bakre halva ligger utanför spelets bild; med
+  bara 3 cm mot spelarna i stället (två tal i `DOLL_TABLE`) står den nästan hel i bild, med nästan lika fri arm.
+- **Skon** har en frontplatta med en rundad öppning (`sko_front`, måtten i `SKO_FRONT` i `bygg_bord.py`): kortets rygg
+  syns i öppningen, kortet dras nedåt och ut genom springan under plattan, och nästa kort visar ryggen.
+- **Så sitter de:** axlarna 0,38 m bakom spelets kant; mannen 0,29 m över filten och kvinnan 0,31 (`HOJD` i
+  `../blackjack-dealer/dealer3d/tools/docka-standard.ts`: så högt som spelets bild rymmer, högst de 0,31 Jakob dömde;
+  den nya mannens hals och huvud är 3 cm högre än den kropp han dömde). Blenders egen vila (`SITT` i `bygg_docka.py`)
+  står kvar på 0,31 med den äldre höften och ska följa mannens `place` i `doll.ts`.
+- **Så ställs kroppen efter rörelsens punkter** (`../blackjack-dealer/dealer3d/src/figure-model.ts`): höften står
+  stilla och ryggen böjs, armbågen böjs i modellens eget gångjärn, underarmens vridning läggs på vridbenen (fullt upp
+  till 100 grader), huvudet riktar linjen mellan ögonen mot blickpunkten, och en hand som slår i handledens gräns
+  (50 grader) vrids tillbaka hel med fingrarna.
+- **Mannens egna rörelser** (dockan `man` i `../blackjack-dealer/dealer3d/src/doll.ts`, mätt på modellen av
+  `dealer3d/tools/docka-standard.ts`): ankaret vid skon (`ankare-2-3-man`), vilan till skon (`till-ankare-2-3-man`)
+  och första kortet till plats 4 och 5 (`giv-fran-2-3-p4c1-ren-a-man`, `-p5c1-`), ritade av
+  `dealer3d/tools/ren-givar.ts` med koreografin i `dealer3d/src/koreo-giv.ts`. Given är Jakobs beskrivning, läst mot
+  två lärofilmer av riktiga dealrar (`AGENTS.md`, Kortets vändning): vänstern drar kortet plant till mötet mitt
+  framför honom och reser det på högkant med framsidan mot dealern, högern nyper dess övre kant ovanifrån med tummen
+  ned längs framsidan och rullar det framåt, bär det och lägger det. Version A vänder direkt efter bytet; version B
+  (`giv-fran-2-3-p4c1-prov-b-man`) bär kortet på högkant och vänder vid platsen. Takten är hans: kortet ligger efter
+  1,0 s och handen är hemma 0,6 s senare. `givRegler` i `ren-giv.ts` mäter bytet, den öppna handen, kortet i handen,
+  kroppen och vridningen och sparar talen i filen (`made.checked`); en giv med röd spärr skrivs bara under provnamn.
+  Känt i version A: kortet läggs ned kring sin ena långsida i stället för att sättas ned plant, och det vrids 46
+  grader i sitt plan på en ruta när det lämnar skon.
+- **Editorn** (`editor/`): mannen eller kvinnan gör vilan → skon → kort 1 på en plats → tillbaka, med dockans egna
+  rörelser där de finns (tabellen `EGNA` i `editor/rorelse.ts`, en rad per docka och plats) och annars de äldre,
+  ritade för Paows docka. De äldre givarna är röda i `verktyg/mat.ts` på alla sju platser (finger genom kortet, kort
+  utan stöd, hopp) och ska inte filmas. Kvinnan spelar mannens rörelser tills hon har egna.
+- **Studion** (`../blackjack-dealer`): Standarddockan är en ingång i Bordet, i spelets vy med samma rum som editorn
+  (`dealer3d/src/standard-room.ts`), och dockvyn hittar mannens givar på filnamnet. För en plats utan ritad giv visar
+  den plats 4 med en rad om det.
+- **Känt i editorn:** smalbenen lutar 4,6 grader framåt i editorn och studion men 11 grader bakåt i Blender; att rätta
+  det kräver att stolens regel (`seatStool` i `standard-room.ts`) mäter lårens undersida bara på låren, annars tar den
+  fötterna och sänker stolen till golvet. Kortet som ritas är editorns enkla (röd rygg, vit framsida): bordets
+  exempelkort är en grupp med två delar och `loadTable` tar bara en mesh. Editorn och `scen/vy.py` ställer upp scenen
+  var för sig (stolen, vilan, kamerorna); sidokamerans tal står därför två gånger.
 
 ## Nästa steg
 
-1. Vyn: Jakob dömer arbetsvyn (bordets kant och bricka, vilan, kamerans vinkel), och den rättas tills han är nöjd.
-2. Jakob dömer den första följden i editorn. En egen vila för det närmare bordet, så att armbågarna inte står ut.
-3. Provet "dockans film görs om till en person" (Jakob 2026-11-26), med en provperson: en man, vars tre bilder
+1. Jakobs dom över mannens giv: provet `giv-man-20261126` i studions Granska (filmerna genom spelets vy, A och B till
+   plats 4 och A till plats 5) med kortet `mannens-giv-vandningen` i Beslut. Det han väljer och det han säger ser fel ut
+   ändras i `koreo-giv.ts` och gäller då alla platser.
+2. Alla sju platser: `node dealer3d/tools/ren-givar.ts --docka man --alla --koreo a` från `../blackjack-dealer/` ritar
+   första kortet till varje plats; en grön giv skrivs under mannens namn och en röd bara på prov. Plats 4 och 5 är
+   gröna. Det som spärrade 2026-11-26: plats 1 och 2 högerhanden hoppar i två rutor och underarmen går 13–15 mm under
+   bordets kant; plats 3 kortet hoppar i en ruta; plats 6 bålen vid sitt tak (25 grader lutning, 20 vridning) och
+   handleden 60 grader; plats 7 armen räcker inte. Riktiga dealrar ger de två platserna närmast skon med
+   vänsterhanden ensam. Varje ny grön giv får en rad i `EGNA` i `editor/rorelse.ts`; studion hittar filen själv.
+3. Kvinnan: hon har en egen kropp men spelar mannens rörelser. Först i `doll.ts`: `--skriv` lägger blocket KVINNA
+   före `DOLLS`, och `DOLLS` ska få `kvinna: KVINNA`. Sedan, från `../blackjack-dealer/`:
+   `node dealer3d/tools/docka-standard.ts --docka kvinna --skriv`,
+   `node dealer3d/tools/ren-givar.ts --docka kvinna --ankare --vila` och
+   `node dealer3d/tools/ren-givar.ts --docka kvinna --plats 4 --koreo a`, och en rad i `EGNA` per giv.
+4. Det som saknas för en hel runda: andra kortet till en plats, dealerns egna kort, och en återgång från kortplatsen
+   direkt till vilan (Jakob 2026-11-23: sista given går direkt till A1). I studions Bordet ska platsknapparna visa
+   vilka platser som har en ritad giv, och Jakob har bett om att slippa be en agent: en knapp som ritar en giv till
+   alla platser är ett förslag, inte byggt.
+5. Kortplatserna vända mot varje spelare (`AGENTS.md`, hans fråga 2026-11-26): pröva i bild uppifrån och från plats 1
+   innan givarna till de yttre platserna görs färdiga.
+6. Blenders vila (`SITT` i `bygg_docka.py`) efter mannens nya plats (axlarna 0,29 m, höften 0,1426 m under filten,
+   handlederna i vilan 0,034 och 0,033 m över filten), och smalbenen (ovan).
+
+7. Provet "dockans film görs om till en person" (Jakob 2026-11-26), med en provperson: en man, vars tre bilder
    (porträtt, helfigur, halvfigur) ligger hos Jakob utanför repot och aldrig går in i Git. Dockan är förlagan för
    rörelsen och bilderna för utseendet; personen behöver aldrig bli en 3D-modell för det här. Modellerna, fälten och
    priserna står i skillen `runway` (`../.claude/skills/runway/SKILL.md`). Jakob gjorde samma sak för hand i Runways
@@ -351,15 +311,13 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    `../blackjack-dealer/tools/runway-api.ts place`, som bokför dem. Tre kameror bredvid varandra i en och samma film
    är ett senare försök: inget belägger att det ger samma ansikte i alla tre. Hela målet, 40 rörelser från 7 kameror à
    4 s, är med Alephs pris cirka 31 000 krediter per omgång och dealer; därför görs plats 4 färdig först.
-4. Rörelserna en i taget, tills var och en är riktigt bra, och sättet att föra över dem till en annan kropp. Den
+8. Rörelserna en i taget, tills var och en är riktigt bra, och sättet att föra över dem till en annan kropp. Den
    första hela följden ska sluta i vilan: i dag slutar den vid skon (A2.3), och en återgång från kortplatsen direkt
    till A1 (Jakob 2026-11-23: sista given går direkt till A1) finns inte som dockrörelse.
-5. Kvinnan: hon finns som val i editorn och gör samma rörelser. Kvar är att se henne ruta för ruta (smalare axlar och
-   kortare armar ger andra vinklar i armbågen) och en egen vila för hennes kropp.
-6. Ansiktet: båda modellerna har 30 ansiktsformer (blinkning, ögonbryn, mun, käke, efter ARKits namn) och leder för
+9. Ansiktet: båda modellerna har 30 ansiktsformer (blinkning, ögonbryn, mun, käke, efter ARKits namn) och leder för
    ögon och käke, men inget styr dem än och en rörelses rutor har inget fält för ansiktet. Nästa steg är en blinkning
    och ögon som följer blicken som en av de små egna rörelserna; minspel därutöver gör filmmodellen ur personens bilder.
-7. Ordningen i mapparna (Jakob 2026-11-26): det som bygger standarden (måttfilen, bordet, dockorna, stolen och
+10. Ordningen i mapparna (Jakob 2026-11-26): det som bygger standarden (måttfilen, bordet, dockorna, stolen och
    deras byggskript i `../avatar-auto-pipeline/scen/`, `verktyg/`, `rorelser/` och `assets/`) flyttar hit, så att
    `../avatar-auto-pipeline/` bara gör en dealer från foton på den här standarden. Väntar på svaret från den
    utomstående granskare Jakob har gett hela upplägget till (rörelser till en annan kropp, film eller realtid, sju

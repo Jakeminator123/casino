@@ -57,6 +57,7 @@ export type Standarddocka = 'man' | 'kvinna';
  */
 export const EGNA: {docka: Standarddocka; plats: number; vila: string; giv: string}[] = [
   {docka: 'man', plats: 4, vila: 'till-ankare-2-3-man', giv: 'giv-fran-2-3-p4c1-ren-a-man'},
+  {docka: 'man', plats: 5, vila: 'till-ankare-2-3-man', giv: 'giv-fran-2-3-p5c1-ren-a-man'},
 ];
 /**
  * Grundrörelserna som spelas för en docka och en plats: dockans egna där de finns, annars de äldre. `namn` är det sparade
