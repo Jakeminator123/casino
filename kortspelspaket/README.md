@@ -21,7 +21,9 @@ Visaren har två lägen, valda med knapparna överst:
   vad som spelas just nu. Kamerorna är Spelets vy (bara dealern, som i spelet), Hela bordet, Från sidan och Uppifrån,
   och bilden går att vrida med musen. "Spelare" visar alla sju, tre (plats 2, 4 och 6) eller inga. Reglaget "Bordet"
   flyttar bordet upp eller ner i den här vyn, för att pröva vilken höjd som passar rörelserna; ett dubbelklick ställer
-  det på spelets höjd. Det ändrar inga mått i spelet.
+  det på spelets höjd. Det ändrar inga mått i spelet. "Kort" visar korten i blackjackdealerns giv: ett kort per giv
+  kommer ur skon, följer vänsterhanden in, byter till högerhanden och blir liggande där handen släpper det. Paketet har
+  inga kort; de läggs till av visaren (`visa/kort.ts`), efter händernas egna rörelser.
 
 Listan till vänster har rörelserna i grupper med sin längd, och reglaget nertill stegar genom den valda rörelsen.
 Rörelserna laddas fyra i taget (cirka en halv minut för alla); bordet och det som spelas vid det kommer först.
@@ -47,13 +49,16 @@ Det här är mätt ur rörelserna och syns i bordsvyn:
   mot dem, och sitter ändå axel mot axel. Bordet är 1,9 m brett; ett riktigt bord för sju är drygt två meter.
 - Spelarnas armar går genom bordets vadderade kant, som ligger 3,4 cm över filten: paketets bord är plant. Sänks bordet
   med reglaget kommer armarna över kanten, men då svävar händerna över filten. Det går inte att få båda med en höjd.
-- Blackjackdealerns giv (24,7 s) är fem givar på cirka tre sekunder, med en och en halv sekunds vila emellan. Vänster
-  hand håller leken och lyfter den, höger hand tar kortet och lägger det: paketet delar ur handen, inte ur en sko. De
-  fem korten hamnar i en båge som följer spelets kortplatser: på plats 4, cirka 10 cm bortom korten på plats 2 och 6
-  (vid insatsringen), och 10–15 cm innanför plats 1 och 7 (talen står i `OVERLAMNING.md`).
+- Blackjackdealerns giv (24,7 s) är fem givar på cirka tre sekunder, med en och en halv sekunds vila emellan. Det är en
+  giv ur en sko vid dealerns vänstra sida, sett i bild 2026-11-26: vänster hand sträcker sig ut till skon och drar
+  kortet, för det in mot mitten, höger hand tar det där och lägger det. Det är samma ordning som Jakobs dom om given
+  (`../standarddocka/AGENTS.md`: "vänsterhanden drar kortet ur skon, högerhanden tar det"). Paketets sko har stått där
+  spelets står: vänsterhandens fingrar når fram till skons mynning på några centimeter när. De fem korten hamnar i en
+  båge som följer spelets kortplatser: på plats 4, cirka 10 cm bortom korten på plats 2 och 6 (vid insatsringen), och
+  10–15 cm innanför plats 1 och 7 (talen står i `OVERLAMNING.md`).
 - Figuren (och Unreals docka, som rörelserna är gjorda för) är 186 cm lång, längre än standarddockan, så huvudet når
   högre i spelets vy.
-- Rörelserna har inga kort, marker eller andra saker: bara kroppen.
+- Rörelserna har inga kort, marker eller andra saker: bara kroppen. Korten i blackjackgiven lägger visaren till.
 
 ## Vägen
 
@@ -66,10 +71,10 @@ rörelserna förs över till dockorna av den som äger dem, med `OVERLAMNING.md`
 1. **En människa i stället för katten.** Standarddockans man får paketets skelett och sitter vid bordet i spelets vy
    och gör en utklippt giv (giv 3, till plats 4). Det visar om en inspelad giv ser bättre ut på vår docka än den
    ritade, och hur fingrarna håller. Lånas: dockans kropp ur `../avatar-auto-pipeline/`.
-2. **Given som spelet behöver den.** Paketets giv delar ur handen, tar tre sekunder och når fem platser; spelets ska gå
-   ur skon till var och en av de sju platserna, med ett kort i handen, högst en sekund ut och 0,6 tillbaka, och börja
-   och sluta i vilan (A1) eller vid skon (A2.3). Den byggs av utklippta bitar som snabbas upp och styrs till platsen.
-   Det här steget avgör om vägen håller.
+2. **Given som spelet behöver den.** Paketets giv går ur skon som spelets, men tar tre sekunder och når fem platser;
+   spelets ska gå till var och en av de sju platserna, högst en sekund ut och 0,6 tillbaka, och börja och sluta i vilan
+   (A1) eller vid skon (A2.3). Den byggs av utklippta bitar som snabbas upp och styrs till platsen. Det här steget
+   avgör om vägen håller.
 3. **En ny dealer på samma skelett.** Avatar-pipelinen bygger nästa dealer på paketets skelett, så att hon kan alla
    rörelser utan att något görs om. Då lyfts pipelinen in.
 4. **Studion och filmerna.** Dockans film blir film av en person, och klippen läggs i spelets träd. Då lyfts det som
@@ -107,6 +112,7 @@ Håller inte steg 1 eller 2 för hans domar är paketet ändå en förebild att 
 | `visa/server.ts` | Visarens server: läser Unity-scenen, lämnar ut figuren, rörelserna, sidan och det bordsvyn lånar, och sparar bitarna |
 | `visa/index.html`, `visa/visa.ts` | Visarens sida (three.js): listan, de två lägena, reglaget och bitarna |
 | `visa/bord.ts` | Bordsvyn: figurerna på sina platser vid spelets bord, pallarna, kamerorna och bordets höjd |
+| `visa/kort.ts` | Korten i blackjackdealerns giv: när kortet dras ur skon, byter hand och släpps räknas ur rörelsen, och kortet följer händerna |
 | `verktyg/titta.ts` | Tar bilder av visaren utan fönster, för en agent som ska se vad en ändring gjorde: `node kortspelspaket/verktyg/titta.ts slask/kortspelspaket/<uppgift> topp=vy=bord,kamera=topp,t=12.7` (visaren ska vara igång; sidans fel skrivs ut) |
 | `sekvenser.json` | De utklippta bitarna: per rörelse ett namn och två tider i sekunder |
 | `OVERLAMNING.md` | Underlaget för den agent som för över paketets rörelser till standarddockan: hur en rörelse läses, leden mot dockans, givens tal och det som skiljer mot Jakobs domar |

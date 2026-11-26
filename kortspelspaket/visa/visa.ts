@@ -5,13 +5,15 @@
 // I båda går en rörelse att stega igenom, och en bit av den att märka ut, spela om och om igen och spara med ett namn
 // (kortspelspaket/sekvenser.json).
 // Adressen kan välja läget: ?vy=bord, &kamera=spel|runt|sida|topp, &spelare=7|3|nej, &bord=<cm upp eller ner>,
-// &rorelse=<AS_namn> och &t=<sekunder> (står då stilla där).
+// &bordslag=<bord>, &figur=man|kvinna, &kort=nej, &rorelse=<AS_namn>, &t=<sekunder> (står då stilla där) och
+// &kam=x_y_z_x_y_z_vinkel (en egen kamera).
 import * as THREE from 'three';
 import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {clone} from 'three/addons/utils/SkeletonUtils.js';
 import type {Bord, Sits, Vy} from './bord.ts';
 import type {Docka} from './docka.ts';
+import type {Kort} from './kort.ts';
 
 type Vec = [number, number, number];
 type Demo = {
@@ -232,6 +234,8 @@ let saved: Record<string, Cut[]> = {};
 const figureKind = (kind => kind === 'man' || kind === 'kvinna' ? kind : null)(new URLSearchParams(location.search).get('figur'));
 let doll: Docka | null = null;
 const dollClips = new Map<string, THREE.AnimationClip>();
+/** Leken och korten i dealerns händer (kort.ts). De följer paketets egna led, så de finns bara med paketets figur. */
+let cards: Kort | null = null;
 /** Bordet, när det har byggts, dess klocka (alla vid bordet följer den) och kameran. */
 let table: Bord | null = null, building: Promise<Bord> | null = null, tableTime = 0, tableView: Vy = 'runt';
 for (let i = 0; i < 4; i++) worker();
@@ -313,6 +317,7 @@ async function seat(s: Sits, namn: string, show = false) {
   // En docka spelar rörelsen omräknad till sitt skelett; omräkningen görs en gång per rörelse.
   if (doll && !dollClips.has(namn)) dollClips.set(namn, doll.rorelse(clip));
   s.mixer.stopAllAction(); s.action = s.mixer.clipAction(doll ? dollClips.get(namn)! : clip).play(); s.length = clip.duration;
+  if (!s.nr) cards?.rorelse(namn);
 }
 /** Pricken i listan på de rörelser som spelas vid bordet. */
 function playing() { for (const row of rows.values()) row.button.classList.toggle('spelas', !!table?.sitsar.some(s => s.namn === row.namn)); }
@@ -328,8 +333,10 @@ const heightSlider = el<HTMLInputElement>('bordhojd'), heightText = el('bordhojd
 function tableHeight() {
   const cm = Number(heightSlider.value);
   heightText.textContent = cm === 0 ? 'spelets höjd' : `${cm > 0 ? '+' : '−'}${String(Math.abs(cm)).replace('.', ',')} cm`;
-  table?.hojd(cm / 100);
+  table?.hojd(cm / 100); cards?.hojd(cm / 100);
 }
+const cardBox = el<HTMLInputElement>('kort');
+cardBox.onchange = () => cards?.visa(cardBox.checked);
 heightSlider.oninput = tableHeight;
 heightSlider.ondblclick = () => { heightSlider.value = '0'; tableHeight(); };
 // Figuren: ett byte läser om sidan i bordsvyn med den figuren.
@@ -381,6 +388,7 @@ async function setMode(to: typeof mode) {
     const {byggBord} = await import('./bord.ts');
     if (figureKind) { say('bord', 'Läser dockan …'); doll = await (await import('./docka.ts')).laddaDocka(figureKind, {figur: template}); }
     const made = await byggBord(renderer, () => doll ? doll.figur() : clone(template), SCALE, text => say('bord', text));
+    if (!doll) { cards = (await import('./kort.ts')).byggKort(made.scene, made.sitsar[0]); cards.visa(cardBox.checked); }
     made.klart.then(text => say('bord', text));
     return made;
   })();
@@ -482,6 +490,7 @@ renderer.setAnimationLoop(() => {
       if (cut && (now() >= cut.till || now() < cut.fran)) tableTime = cut.fran;
     }
     for (const s of table.sitsar) if (s.action && s.length) { s.action.time = tableTime % s.length; s.mixer.update(0); }
+    if (table.sitsar[0].length) cards?.stall(tableTime % table.sitsar[0].length);
   } else if (!paused) {
     for (const f of figures.values()) {
       const own = f.namn === selected;
@@ -509,10 +518,18 @@ const askedPlayers = asked.get('spelare') === 'nej' ? '0' : asked.get('spelare')
 if (askedPlayers && ['0', '3', '7'].includes(askedPlayers)) players.value = askedPlayers;
 if (asked.get('bord') && Number.isFinite(askedHeight)) heightSlider.value = String(askedHeight);
 askedKind = asked.get('bordslag');
+if (asked.get('kort') === 'nej') cardBox.checked = false;
 await setMode(asked.get('vy') === 'bord' ? 'bord' : 'utstallning');
 if (askedClip && rows.has(askedClip)) select(askedClip);
 if (askedTime !== null && Number.isFinite(Number(askedTime))) {
   pause(true);
   if (selected) await clipOf(selected).catch(() => null);
   setTime(Number(askedTime));
+}
+// En egen kamera för en närbild: &kam=x_y_z_x_y_z_vinkel (läget, punkten den ser mot och bildvinkeln, i bordets meter).
+const ownCamera = asked.get('kam')?.split('_').map(Number);
+if (ownCamera?.length === 7 && ownCamera.every(Number.isFinite)) {
+  flight = null; lens = {fov: ownCamera[6]};
+  camera.position.set(ownCamera[0], ownCamera[1], ownCamera[2]); controls.target.set(ownCamera[3], ownCamera[4], ownCamera[5]);
+  camera.fov = fovFor(lens); camera.updateProjectionMatrix();
 }

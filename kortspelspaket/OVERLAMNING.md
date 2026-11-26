@@ -77,14 +77,17 @@ pekfingerled när handen är längst ut, i dockans linsvärld (meter; x åt deal
 | Giv 4 | 15,40–18,40 s | 17,13 s | 0,32, −1,45 | P6.C1 0,33, −1,55: 10 cm bortom, vid insatsringen |
 | Giv 5 | 19,97–23,00 s | 21,93 s | 0,49, −1,73 | P7.C1 0,50, −1,61: 12 cm innanför |
 
-Varje giv börjar med att vänster hand lyfter leken, och höger tar kortet ur den; mellan givarna ligger båda händerna
+Varje giv börjar med att vänster hand sträcker sig ut till en sko vid dealerns vänstra sida (längst ut cirka 0,4 s in
+i biten) och för kortet in mot mitten, där höger hand tar det (cirka 1,4 s in) och lägger det; i `visa/kort.ts` räknas
+de tiderna ur rörelsen och ett kort följer händerna. Mellan givarna ligger båda händerna
 stilla i vilan i cirka 1,6 s. Vilan: handlederna 30 cm framför höften, 22–27 cm åt var sida.
 
 ## Det som skiljer mot Jakobs domar
 
 Hans domar står i `../standarddocka/AGENTS.md`. Mot dem:
 
-- Paketet delar ur handen, inte ur skon, och har inget kort, ingen lek och ingen sko i rörelsen.
+- Given går ur en sko vid dealerns vänstra sida, med vänster hand som drar och höger som lägger, som hans dom säger
+  (sett i bild 2026-11-26). Rörelsen har inget kort och ingen sko: de finns bara i visaren.
 - En giv tar cirka tre sekunder; hans takt är högst en sekund ut och 0,6 tillbaka.
 - Fem platser i en båge, inte sju, och bara plats 4 träffas på korten.
 - I bordsvyn sjönk kattens händer ner i filten, och spelarnas armar går genom den vadderade kanten och låren in i
