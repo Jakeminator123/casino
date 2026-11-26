@@ -9,8 +9,8 @@ import * as T from 'three';
 import {CARD, FILM, filmEye, fovYDeg, orbit, type Eye, type Vec3} from './camera.ts';
 import {SHOE, TABLE_BASE, TABLE_RAIL, TABLE_TOP, TRAY, dealerEdge, filmLens, realCardAt, seatEye, shoeCard, shoePose, spots, type Plan} from './world.ts';
 import {HAND, MOMENTS, planDeal, type CardPose} from './deal.ts';
-import {arm, restingHand, solveBody, standing, type Body} from './body.ts';
-import {dollNamed, elbowPolesAt, type Doll} from './doll.ts';
+import {restingHand, solveBody, standing, type Body} from './body.ts';
+import {dollNamed, type Doll} from './doll.ts';
 import {CARD_MARKS} from './card-marks.ts';
 import {FINGERS} from './capture.ts';
 import type {Figure} from './figure-model.ts';
@@ -90,7 +90,7 @@ function pointHand(material: T.Material) {
     [0, 5, 9, 13, 17, 1].forEach((k, i) => palmAt.setXYZ(i, p[k][0], p[k][1], p[k][2])); palmAt.needsUpdate = true; palm.computeVertexNormals(); }};
 }
 
-export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {look?: Look; target?: string; read?: Read | null; figure?: Figure | null; doll?: Doll; tableBack?: number; tableTilt?: number} = {}) {
+export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {look?: Look; target?: string; read?: Read | null; figure?: Figure | null; doll?: Doll; tableBack?: number} = {}) {
   const look = options.look ?? 'room', target = options.target ?? 'P4.C1', C = COLOUR[look === 'bare' ? 'plain' : look], lens = filmLens(), edge = dealerEdge(lens), all = spots(plan, lens);
   const four = all.find(s => s.id === 'P4.C1')!, to = all.find(s => s.id === target); if (!to) throw Error(`The plan has no place ${target}.`);
   const pose = shoePose(lens), inShoe = shoeCard(pose), deal = planDeal({lens, target, place: to.at, placeOfSeat4: four.at, shoe: inShoe}), doll = options.doll ?? dollNamed(options.read?.doll), frame = standing(lens, doll), rest = restingHand(lens), S = doll.shape;
@@ -101,18 +101,6 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   const sun = new T.DirectionalLight(0xfff4e6, look === 'room' ? 2.4 : 1.9); sun.position.set(edge[0] - 0.9, 2.6, edge[2] + 1.9); sun.target.position.set(edge[0], 0, edge[2] + 0.2); sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.002; sun.shadow.radius = 5; Object.assign(sun.shadow.camera, {left: -1.5, right: 1.5, top: 1.5, bottom: -1.5, near: 0.5, far: 6}); scene.add(sun, sun.target);
   const matte = (colour: number, roughness = 0.9) => new T.MeshStandardMaterial({color: colour, roughness, metalness: 0});
-  // options.tableTilt (degrees): a trial of a table that slopes down toward the players (Jakob 2026-11-26: she is filmed
-  // "för mycket ovanifrån"; "luta standardbordet så att bordet sluttar nedåt"). The table and all that lies on it (felt,
-  // board, tray, roll, card places, shoe, cards) are turned about the level line along x through the dealer's edge
-  // (`edge`), and the bank's camera and the seats' eyes with them, so that the table stays where it was in their pictures
-  // and only she, upright as before, is seen less from above. Her hands go with the table, her shoulders stay. The legs
-  // are left out of a tilted table; the floor, the stool and she stand as they did. The views round her keep their camera,
-  // so that one sees the table slope. Without it (0) nothing is turned and the table is drawn straight into the scene.
-  const tilt = (options.tableTilt ?? 0) * Math.PI / 180, tc = Math.cos(tilt), ts = Math.sin(tilt);
-  const tiltWay = (d: Vec3): Vec3 => [d[0], d[1] * tc - d[2] * ts, d[1] * ts + d[2] * tc]; // a direction turned with the table
-  const tiltPoint = (p: Vec3): Vec3 => { const d = tiltWay([p[0] - edge[0], p[1] - edge[1], p[2] - edge[2]]); return [edge[0] + d[0], edge[1] + d[1], edge[2] + d[2]]; }; // a point turned with the table
-  const board: T.Object3D = tilt ? new T.Group() : scene; // what the table's parts are added to
-  if (tilt) { board.matrixAutoUpdate = false; board.matrix.makeTranslation(edge[0], edge[1], edge[2]).multiply(new T.Matrix4().makeRotationX(tilt)).multiply(new T.Matrix4().makeTranslation(-edge[0], -edge[1], -edge[2])); board.matrixWorldNeedsUpdate = true; scene.add(board); }
 
   // The table, the standard's (src/table-lens.ts TABLE_TOP, TABLE_BASE and TABLE_RAIL; Jakob 2026-11-26: "markerbrickan
   // och bordet i sin helhet måste fixas"): a straight dealer's edge and half an ellipse toward the players, the felt at
@@ -135,14 +123,14 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   // The tray is drawn in the look 'room' only, as it always was: 'plain' and 'bare' are what a reference film is made of,
   // and a tray with chips there would be a tray for the film model to draw. There the felt and the board are whole.
   const withTray = look === 'room';
-  const felt = new T.Mesh(lay(new T.ShapeGeometry(half(0, withTray), 64)), new T.MeshStandardMaterial({color: C.felt, roughness: 0.95, side: T.DoubleSide})); felt.receiveShadow = true; board.add(felt);
+  const felt = new T.Mesh(lay(new T.ShapeGeometry(half(0, withTray), 64)), new T.MeshStandardMaterial({color: C.felt, roughness: 0.95, side: T.DoubleSide})); felt.receiveShadow = true; scene.add(felt);
   // The board and the apron: out to the roll's outer side and down to the standard's underside. Under the tray's well the
   // notch is filled again, so that the apron is whole seen from her side.
   const timber = new T.MeshStandardMaterial({color: C.wood, roughness: 0.8, side: T.DoubleSide}), apron = -TABLE_BASE.under;
-  const slab = new T.Mesh(lay(new T.ExtrudeGeometry(half(TABLE_TOP.rail, withTray), {depth: apron, bevelEnabled: false, curveSegments: 64})), timber); slab.position.y = -0.0005; slab.receiveShadow = true; board.add(slab);
-  if (withTray) { const fill = new T.Mesh(new T.BoxGeometry(trayAt.x1 - trayAt.x0, apron - TRAY.depth, trayAt.s1 + back), timber); fill.position.set(edge[0] + (trayAt.x0 + trayAt.x1) / 2, -TRAY.depth - (apron - TRAY.depth) / 2 - 0.001, edge[2] + (trayAt.s1 - back) / 2); board.add(fill); }
-  // Two legs, oval in plan, and the stretcher between them; left out of 'bare', where only the figure is drawn, and of a tilted table, which they do not fit.
-  if (look !== 'bare' && !tilt) { const tall = TABLE_BASE.under - TABLE_BASE.floor;
+  const slab = new T.Mesh(lay(new T.ExtrudeGeometry(half(TABLE_TOP.rail, withTray), {depth: apron, bevelEnabled: false, curveSegments: 64})), timber); slab.position.y = -0.0005; slab.receiveShadow = true; scene.add(slab);
+  if (withTray) { const fill = new T.Mesh(new T.BoxGeometry(trayAt.x1 - trayAt.x0, apron - TRAY.depth, trayAt.s1 + back), timber); fill.position.set(edge[0] + (trayAt.x0 + trayAt.x1) / 2, -TRAY.depth - (apron - TRAY.depth) / 2 - 0.001, edge[2] + (trayAt.s1 - back) / 2); scene.add(fill); }
+  // Two legs, oval in plan, and the stretcher between them; left out of 'bare', where only the figure is drawn.
+  if (look !== 'bare') { const tall = TABLE_BASE.under - TABLE_BASE.floor;
     for (const side of [-1, 1]) { const leg = new T.Mesh(new T.CylinderGeometry(0.085, 0.11, tall, 32).scale(1, 1, 1.8), timber); leg.position.set(edge[0] + side * TABLE_BASE.legX, TABLE_BASE.floor + tall / 2, edge[2] + TABLE_BASE.legZ); leg.castShadow = true; scene.add(leg); }
     const stretcher = new T.Mesh(new T.BoxGeometry(2 * TABLE_BASE.legX, 0.07, 0.05), timber); stretcher.position.set(edge[0], TABLE_BASE.floor + 0.3, edge[2] + TABLE_BASE.legZ); scene.add(stretcher); }
   // The chip tray, the standard's (src/table-lens.ts TRAY; Jakob 2026-11-25: the doll's table, the scene's and the films' are
@@ -168,14 +156,14 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
       if (i) box(0.0016, r + 0.006, length - 2 * wall, dark, [edge[0] + x0 + wall + pitch * i, -depth + (r + 0.006) / 2, mid]); // a divider between two rows
     }
   }
-  if (withTray) board.add(tray);
+  if (withTray) scene.add(tray);
   // The padded roll, in the look 'room': the standard's section as a band, its middle TABLE_RAIL.centre outside the felt's
   // edge and TABLE_RAIL.lift over the felt.
   if (look === 'room') { const ring = half(TABLE_RAIL.centre + TABLE_RAIL.halfWidth); ring.holes.push(new T.Path(half(TABLE_RAIL.centre - TABLE_RAIL.halfWidth).getPoints(64)));
-    const r = new T.Mesh(lay(new T.ExtrudeGeometry(ring, {depth: TABLE_RAIL.above + TABLE_RAIL.below, bevelEnabled: false, curveSegments: 64})).translate(0, TABLE_RAIL.lift + TABLE_RAIL.above, 0), new T.MeshStandardMaterial({color: C.rail, roughness: 0.55, side: T.DoubleSide})); r.castShadow = true; r.receiveShadow = true; board.add(r);
+    const r = new T.Mesh(lay(new T.ExtrudeGeometry(ring, {depth: TABLE_RAIL.above + TABLE_RAIL.below, bevelEnabled: false, curveSegments: 64})).translate(0, TABLE_RAIL.lift + TABLE_RAIL.above, 0), new T.MeshStandardMaterial({color: C.rail, roughness: 0.55, side: T.DoubleSide})); r.castShadow = true; r.receiveShadow = true; scene.add(r);
     // The plan's places as thin outlines of a real card, so that one sees where each card is to lie.
     for (const s of all) { const w = CARD.width / 2 + 0.003, h = CARD.height / 2 + 0.003, pts = [[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, z]) => new T.Vector3(s.at[0] + x, 0.0006, s.at[2] + z));
-      board.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({color: C.mark, transparent: true, opacity: s.id === target ? 0.95 : 0.4}))); } }
+      scene.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({color: C.mark, transparent: true, opacity: s.id === target ? 0.95 : 0.4}))); } }
   const floor = new T.Mesh(new T.PlaneGeometry(40, 40).rotateX(-Math.PI / 2), matte(C.ground, 1)); floor.position.y = TABLE_BASE.floor; scene.add(floor);
   // The room's floor in half-metre squares. Every seat's eye is as high over the felt and looks as steeply down as the
   // bank's camera; without a floor to read that from, a view along the dealer's edge looks raised and one across it level.
@@ -187,11 +175,11 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   const profile = new T.Shape(), set = SHOE.frontHeight / Math.tan(SHOE.plateLean); profile.moveTo(0, 0); profile.lineTo(SHOE.length, 0); profile.lineTo(SHOE.length, SHOE.backHeight); profile.lineTo(set, SHOE.frontHeight); profile.lineTo(0, 0);
   const shoe = new T.Mesh(new T.ExtrudeGeometry(profile, {depth: SHOE.width, bevelEnabled: false}), new T.MeshStandardMaterial({color: C.shoe, roughness: 0.5, side: T.DoubleSide})); shoe.castShadow = true; shoe.receiveShadow = true; shoe.matrixAutoUpdate = false;
   const sideways: Vec3 = [-pose.back[2], 0, pose.back[0]], sameWay = sideways[0] * pose.far[0] + sideways[2] * pose.far[2] > 0; // back x up is one of the two ways across; the wedge is extruded along it
-  place(shoe, pose.back, [0, 1, 0], sideways, sameWay ? pose.front : [pose.front[0] + pose.far[0] * SHOE.width, 0, pose.front[2] + pose.far[2] * SHOE.width]); board.add(shoe);
-  const next = cardMesh(), start = deal.card(0); placeCard(next, {...start, centre: [start.centre[0] + start.normal[0] * 0.0006, start.centre[1] + start.normal[1] * 0.0006, start.centre[2] + start.normal[2] * 0.0006]}); board.add(next);
-  const card = cardMesh(); board.add(card);
+  place(shoe, pose.back, [0, 1, 0], sideways, sameWay ? pose.front : [pose.front[0] + pose.far[0] * SHOE.width, 0, pose.front[2] + pose.far[2] * SHOE.width]); scene.add(shoe);
+  const next = cardMesh(), start = deal.card(0); placeCard(next, {...start, centre: [start.centre[0] + start.normal[0] * 0.0006, start.centre[1] + start.normal[1] * 0.0006, start.centre[2] + start.normal[2] * 0.0006]}); scene.add(next);
+  const card = cardMesh(); scene.add(card);
   // The cards a film of several has laid: each lies where the film says from its frame on.
-  const lying = (options.read?.laid ?? []).map(l => { const m = cardMesh(), long = l.l as Vec3, normal = l.n as Vec3; placeCard(m, {centre: l.c as Vec3, long, normal, across: [normal[1] * long[2] - normal[2] * long[1], normal[2] * long[0] - normal[0] * long[2], normal[0] * long[1] - normal[1] * long[0]]}); m.visible = false; board.add(m); return {from: l.from, mesh: m}; });
+  const lying = (options.read?.laid ?? []).map(l => { const m = cardMesh(), long = l.l as Vec3, normal = l.n as Vec3; placeCard(m, {centre: l.c as Vec3, long, normal, across: [normal[1] * long[2] - normal[2] * long[1], normal[2] * long[0] - normal[0] * long[2], normal[0] * long[1] - normal[1] * long[0]]}); m.visible = false; scene.add(m); return {from: l.from, mesh: m}; });
 
   // 'bare': the table, the shoe and the cards write depth only (drawn first, so that what lies behind them is not drawn
   // either), the floor is gone, and a sheet just over the felt shows only the shadows the figure casts on it.
@@ -199,7 +187,7 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
     const hidden = new T.MeshBasicMaterial({colorWrite: false});
     for (const o of [felt, slab, tray, shoe, next, card, ...lying.map(l => l.mesh)]) o.traverse(m => { if (m instanceof T.Mesh) { m.material = hidden; m.renderOrder = -1; m.castShadow = false; } });
     floor.visible = false;
-    const shade = new T.Mesh(lay(new T.ShapeGeometry(half(0), 64)), new T.ShadowMaterial({opacity: 0.3})); shade.position.y = 0.0004; shade.receiveShadow = true; board.add(shade);
+    const shade = new T.Mesh(lay(new T.ShapeGeometry(half(0), 64)), new T.ShadowMaterial({opacity: 0.3})); shade.position.y = 0.0004; shade.receiveShadow = true; scene.add(shade);
   }
 
   // The figure.
@@ -244,7 +232,7 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
     return [b.m[0] + b.x[0] * dx + b.y[0] * dy + b.z[0] * dz, b.m[1] + b.x[1] * dx + b.y[1] * dy + b.z[1] * dz, b.m[2] + b.x[2] * dx + b.y[2] * dy + b.z[2] * dz]; };
   let now = 0, shown: {card: CardPose} | null = null;
   function setTime(t: number) {
-    now = Math.max(0, Math.min(duration, t)); let c: CardPose, points: Vec3[][] = [], body: Pick<Body, 'hip' | 'shoulders' | 'neck' | 'head'> & {arms: {shoulder: Vec3; elbow: Vec3; wrist: Vec3}[]};
+    now = Math.max(0, Math.min(duration, t)); let c: CardPose, body: Pick<Body, 'hip' | 'shoulders' | 'neck' | 'head'> & {arms: {shoulder: Vec3; elbow: Vec3; wrist: Vec3}[]};
     if (read) { const at = Math.min(read.frameCount - 1, now * read.fps), i = Math.min(read.frameCount - 2, Math.floor(at)), k = at - i; let a = read.frames[i], b = read.frames[i + 1];
       for (const l of lying) l.mesh.visible = at >= l.from - 0.5;
       if (a.card.id !== b.card.id) { const whole = k < 0.5 ? a : b; a = {...a, card: whole.card}; b = {...b, card: whole.card}; } // between two frames of two different cards there is no card half way
@@ -253,19 +241,12 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
       const long = norm(mix(a.card.l, bl, k)), toward = mix(a.card.n, b.card.n, k), d =toward[0] * long[0] + toward[1] * long[1] + toward[2] * long[2], normal = norm([toward[0] - long[0] * d, toward[1] - long[1] * d, toward[2] - long[2] * d]);
       c = {centre: mix(a.card.c, b.card.c, k), long, normal, across: cross(normal, long)};
       const limbOf = (side: 'L' | 'R') => ({shoulder: mix(a[side].s, b[side].s, k), elbow: mix(a[side].e, b[side].e, k), wrist: mix(a[side].w, b[side].w, k)}), R = limbOf('R'), L = limbOf('L');
-      const pointsOf = (side: 'L' | 'R') => a[side].p.map((p, j) => mix(p, b[side].p[j], k)); points = [pointsOf('R'), pointsOf('L')];
-      // A tilted table (tableTilt): her hands go down with it, each wrist and hand point turned as the table is; her
-      // shoulders stay, and each elbow is bent again toward the doll's poles over the new reach.
-      if (tilt) { points = [points[0].map(tiltPoint), points[1].map(tiltPoint)]; R.wrist = tiltPoint(R.wrist); L.wrist = tiltPoint(L.wrist);
-        const poles = elbowPolesAt(doll, [R.shoulder, L.shoulder], [R.wrist, L.wrist]); R.elbow = arm(R.shoulder, R.wrist, poles[0], doll).elbow; L.elbow = arm(L.shoulder, L.wrist, poles[1], doll).elbow; }
-      jointed[0].set(points[0]); jointed[1].set(points[1]);
+      jointed[0].set(a.R.p.map((p, j) => mix(p, b.R.p[j], k))); jointed[1].set(a.L.p.map((p, j) => mix(p, b.L.p[j], k)));
       // The neck: the standard's 3 cm straight up over the shoulders' middle, as it has always been drawn; a doll placed by its joints carries its own neck with the trunk.
       const shoulders: [Vec3, Vec3] = [R.shoulder, L.shoulder], neckAt = doll.place.kind === 'film' ? [(R.shoulder[0] + L.shoulder[0]) / 2, (R.shoulder[1] + L.shoulder[1]) / 2 + 0.03, (R.shoulder[2] + L.shoulder[2]) / 2] as Vec3 : carried(frame.neck, read.hip as Vec3, shoulders);
       body = {hip: read.hip as Vec3, shoulders, neck: neckAt, head: mix(a.h, b.h, k), arms: [R, L]};
     } else { const h = deal.hand(now), solved = solveBody(frame, h.wrist, rest.wrist, doll); c = deal.card(now); body = solved; place(stiff[1], cross(h.palm, h.forward), h.palm, h.forward, solved.arms[1].wrist); }
-    // The card is drawn on the table (turned with it, if it is tilted); what is told of it, and where her eyes go, is where it is in the room.
-    const seen: CardPose = tilt ? {centre: tiltPoint(c.centre), long: tiltWay(c.long), normal: tiltWay(c.normal), across: tiltWay(c.across)} : c;
-    shown = {card: seen}; placeCard(card, c);
+    shown = {card: c}; placeCard(card, c);
     body.arms.forEach((a, i) => { arms[i].upper.set(a.shoulder, a.elbow); arms[i].fore.set(a.elbow, a.wrist); arms[i].shoulder.position.copy(v3(a.shoulder)); arms[i].elbow.position.copy(v3(a.elbow)); arms[i].wrist.position.copy(v3(a.wrist)); });
     neck.set(body.neck, [body.head[0], body.head[1] - frame.headRadius * S.neck.intoHead, body.head[2]]);
     // The trunk: from the hip to the shoulders, as wide as they are, leaning and turning with them.
@@ -280,8 +261,8 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
     // Her eyes are on the card from the shoe until it lies, all through the turn (Jakob 2026-11-18: "Hon ska följa korten
     // oftast, och alltid när det vänds över"); when it lies she looks up toward the players, over two thirds of a second.
     const lies = read ? moments.lands : MOMENTS.lands, up = Math.max(0, Math.min(1, (now - lies) / 0.65)), eased = up * up * (3 - 2 * up);
-    head.position.copy(v3(body.head)); let gaze = v3(seen.centre).lerp(new T.Vector3(body.head[0], body.head[1] - 0.25, body.head[2] + 1.2), 0.75 * eased);
-    if (read?.frames[0].g) { const at = Math.min(read.frameCount - 1, now * read.fps), i = Math.min(read.frameCount - 2, Math.floor(at)), g = mix(read.frames[i].g!, read.frames[i + 1].g!, at - i); gaze = v3(tilt ? tiltPoint(g) : g); } // a film that says where she looks (on the table, so turned with it)
+    head.position.copy(v3(body.head)); let gaze = v3(c.centre).lerp(new T.Vector3(body.head[0], body.head[1] - 0.25, body.head[2] + 1.2), 0.75 * eased);
+    if (read?.frames[0].g) { const at = Math.min(read.frameCount - 1, now * read.fps), i = Math.min(read.frameCount - 2, Math.floor(at)); gaze = v3(mix(read.frames[i].g!, read.frames[i + 1].g!, at - i)); } // a film that says where she looks
     head.lookAt(gaze);
     if (figure) {
       // Each hand as a whole, for a model with no fingers to move: from the wrist toward the middle of the middle finger
@@ -289,20 +270,17 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
       // palm's way from the wrist and the two outer knuckles. And the hand's 21 points, for a model that has finger bones.
       const sub = (p: number[], q: number[]): Vec3 => [p[0] - q[0], p[1] - q[1], p[2] - q[2]], whole = (p: number[][], side: 1 | -1) => { const n = cross(sub(p[5], p[0]), sub(p[17], p[0])); return {forward: sub(mix(p[9], p[12], 0.5), p[0]), palm: [n[0] * side, n[1] * side, n[2] * side] as Vec3, points: p as Vec3[]}; };
       let hands: {forward: Vec3; palm: Vec3; points?: Vec3[]}[];
-      if (read) hands = [whole(points[0], 1), whole(points[1], -1)];
+      if (read) { const at = Math.min(read.frameCount - 1, now * read.fps), i = Math.min(read.frameCount - 2, Math.floor(at)), k = at - i, a = read.frames[i], b = read.frames[i + 1], points = (s: 'L' | 'R') => a[s].p.map((p, j) => mix(p, b[s].p[j], k)); hands = [whole(points('R'), 1), whole(points('L'), -1)]; }
       else { const h = deal.hand(now); hands = [{forward: rest.forward, palm: [0, -1, 0]}, {forward: h.forward, palm: h.palm}]; }
       const looks = new T.Vector3(0, 0, 1).applyQuaternion(head.quaternion);
       figure.pose({hip: body.hip, shoulders: body.shoulders, arms: body.arms, hands, looks: [looks.x, looks.y, looks.z]});
     }
   }
-  const cameraOf = (eye: Eye & {up?: Vec3}) => { const cam = new T.PerspectiveCamera(fovYDeg(eye.focalPx), FILM.width / FILM.height, 0.2, 30); cam.position.copy(v3(eye.position)); if (eye.up) cam.up.copy(v3(eye.up)); cam.lookAt(v3(eye.position).add(v3(eye.forward))); cam.updateMatrixWorld(); return cam; };
+  const cameraOf = (eye: Eye) => { const cam = new T.PerspectiveCamera(fovYDeg(eye.focalPx), FILM.width / FILM.height, 0.2, 30); cam.position.copy(v3(eye.position)); cam.lookAt(v3(eye.position).add(v3(eye.forward))); cam.updateMatrixWorld(); return cam; };
   // A seat's eye aims at the seat's own card, so the dealer stands off the picture's middle and a little farther away. The bank's camera carried round the
   // dealer herself (about the plumb line through her middle) keeps its height, its steepness and its distance to her: she is drawn where the bank has her and
   // as large, only seen from the side (Jakob 2026-11-18: "kameran i mitten flyttad åt sidan"). Negative degrees: toward seat 1's side.
-  // On a tilted table (tableTilt) the bank's camera and the seats' eyes are turned with the table, whole: their up turns
-  // too, so that a seat's eye that looks aslant keeps the table where it had it (and leans the room); the views round her do not turn.
-  const eyeOf = (view: View): Eye & {up?: Vec3} => { if (typeof view === 'object') return orbit(filmEye(lens), [frame.hip[0], 0, frame.hip[2]], view.round * Math.PI / 180);
-    const e = view === 'film' ? filmEye(lens) : seatEye(view, plan, lens); return tilt ? {position: tiltPoint(e.position), forward: tiltWay(e.forward), focalPx: e.focalPx, up: tiltWay([0, 1, 0])} : e; };
+  const eyeOf = (view: View): Eye => view === 'film' ? filmEye(lens) : typeof view === 'number' ? seatEye(view, plan, lens) : orbit(filmEye(lens), [frame.hip[0], 0, frame.hip[2]], view.round * Math.PI / 180);
   /** Draws the present moment once per view, side by side from the left; each view keeps the bank's shape (1764 : 1174) inside its share of the canvas. */
   function render(views: View[]): {left: number; top: number; width: number; height: number}[] {
     const W = canvas.width, H = canvas.height, share = W / views.length, boxes: {left: number; top: number; width: number; height: number}[] = [];

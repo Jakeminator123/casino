@@ -117,18 +117,15 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    Det provas med `tableBack` i `dealer3d/src/stage.ts` (sidans `?bordbak=`): 15 cm räcker för att bordet ska nå
    magen och skon stå helt på bordet, och markerbrickan följer då med till dealerns kant. Dockans bord är sedan
    samma natt standardens (halv ellips 1,90 × 1,15 m, sarg, rulle, två ben och golv 0,95 m under filten, måtten ur
-   `src/table-lens.ts`); miljön med mannen visas i provet `standarddocka-miljo-20261126`. Hans tanke samma natt:
-   kameran ser dealern för mycket uppifrån, och bordet kunde lutas mot kameran i stället. Det provas med `tableTilt`
-   (sidans `?bordlut=`): bordet och bankens kamera vrids lika många grader kring dealerkantens linje, så att korten,
-   skon och platserna ligger kvar på samma ställen i bilden och dealern syns mer framifrån; händerna följer bordet
-   (provet `bordet-lutat-20261126`, 0, 10 och 15 grader). Varken `tableBack` eller `tableTilt` är standard: de är prov
-   tills han har valt. Kvar: markernas storlek
-   och färger (spelets står i moduler dockans sida inte laddar, och han har inte bett om dem); rörelser gjorda för
-   standarddockans mått och det närmare bordet (underarmen går i dag genom den flyttade kanten); standarddockorna som
-   dockor i `doll.ts`; kroppen som ett val i Inspelning (modellen behöver en plats i `assets/` med en roll); och att
-   en ny docka ärver standarddockans sparade justeringar tills hon har egna. För Paows filmer kan kanten bara flyttas
-   på sidorna om henne: kroppen är avklippt där den gamla kanten gick. SAM-uppsättningen och Paows avläsningar finns
-   inte på den här datorn.
+   `src/table-lens.ts`); miljön med mannen visas i provet `standarddocka-miljo-20261126`. `tableBack` är ett
+   prov, ingen standard. Att luta bordet mot kameran provades samma natt och ströks på hans ord ("Vi skiter i lutning
+   av bordet"); koden för det är borta. **Arbetet med standarddockan sker från 2026-11-26 i en egen mapp,
+   `../standarddocka/`** (hans ord: en tredje mapp där han och dockans chatt arbetar, "sedan när vi är nöjda kan delar
+   plockas in" hit och i `../avatar-auto-pipeline`): där görs vyn han vill ha (Blenders, som han tycker är mycket
+   bättre än dockans scen här), bordet med kant och bricka, dockans blick mot kameran och rörelserna. Här ändras
+   inget mer för standarddockans skull tills det plockas in; det som då ska in står i den mappens README. För Paows
+   filmer kan bordskanten bara flyttas på sidorna om henne: kroppen är avklippt där den gamla kanten gick.
+   SAM-uppsättningen och Paows avläsningar finns inte på den här datorn.
 9. **Bred lins räknad ur standarden** (Jakob 2026-11-25 och 2026-11-26: Bred lins "som bara kan göras utifrån en
    standard"). Byggt 2026-11-26: linsen är nyckeln `lins` i utseendet, spelvyn är en egen sparad standard, Scens
    knappar är Prova i Casino → Använd i Casino → Publicera, och ett utseende har ingen egen skala eller kamera längre
@@ -158,11 +155,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Väntar på Jakob
 
-- Standarddockan och bordet (2026-11-26): han gav Inte bra på alla sex bilderna i `docka-kropp-20261126` och sa
-  "markerbrickan och bordet i sin helhet måste fixas". Provet `standarddocka-man-bord-20261126` svarar på det: bordet
-  15 cm närmare dealern med standarddockans man, filmen där han ger till plats 4, och markerbrickan som en riktig
-  bricka. Hans val: om bordet ska stå 15 cm närmare för standarddockan och nästa dealer, om kroppen då får skymmas
-  av bordet högre upp i bilden, och om kroppen ska kunna väljas i Inspelning.
+- Standarddockan (2026-11-26): inget väntar på honom här. Han gav Inte bra på alla sex bilderna i
+  `docka-kropp-20261126` och sa "markerbrickan och bordet i sin helhet måste fixas", "karmen och andra saker måste
+  rättas på bordet", och att han vill ha Blenders vy. Det arbetet, med bordet, blicken och rörelserna, sker i
+  `../standarddocka/` och visas för honom som prov härifrån.
 - Det som bara finns på den stationära, och som registren behåller tills han har bestämt om det kopieras hit eller görs
   nytt: 82 bra tagningar utan film (Tatuerad 54, varav alla 25 talfilmer, vilan `paow-vila-tat-09-01` och fem delade
   vilor; Casinos talfilmer (24 av 25); 3 utanför träden), ankarnas originalfiler, keystones och hans egna
