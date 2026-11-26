@@ -1,0 +1,6 @@
+*.pem
+private/
+# 3D-binärer som ingen agent kan läsa
+*.glb
+*.fbx
+*.blend

@@ -25,8 +25,9 @@ standarddocka/
     rorelse.ts  rörelsen: grundrörelser efter varandra, skarven utjämnad, ändringarna ovanpå, vem som håller kortet
     armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp)
   verktyg/      för agenter, utan fönster (hur de används: skillen granska-rorelse, ../.claude/skills/granska-rorelse/)
-    titta.ts    stillbilder ur valda kameror vid valda tider, med editorns mått, eller en inspelning; kör editorn i
-                ett headless Chrome under det delade låset
+    titta.ts    stillbilder ur valda kameror vid valda tider, med editorns mått, eller en inspelning; närbilder av en
+                hand eller kortet (kamerorna narahoger, naravanster, narakort); `--kor` räknar ett uttryck i sidan
+                och skriver svaret; kör editorn i ett headless Chrome under det delade låset
     mat.ts      mäter en rörelse ruta för ruta mot vad en hand och ett kort kan göra: fingrar i kortet eller filten,
                 kortet utan stöd, plötsliga vändningar, ryck, hopp på en ruta, landningen; ingen webbläsare. `--alla`
                 är spärren före en inspelning: alla sju platser, en rad var, och rött om någon har ett finger genom
@@ -144,13 +145,21 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   utan stöd i 32 rutor; i given till plats 7 ligger lillfingret 1 cm i filten kring 4,2 s och vänster handled är böjd
   77 grader. Rörelserna är ritade med regler, inte simulerade, och det behålls: det som skärps är reglerna för grepp,
   vändning och släpp i `../blackjack-dealer/dealer3d/src/`, på det granskningen visar.
-- Granskningen av de sju givarna (2026-11-26, sju agenter, rapporterna i `../slask/standarddocka/granska-p1` …
-  `granska-p7`) fann inget som editorns lager kan rätta: felen sitter i reglerna som ritar givarna
-  (`../blackjack-dealer/dealer3d/src/`), framför allt greppet när högerhanden tar emot kortet, vändningen och släppet.
-  På Jakobs ord görs de om där, som nya val och nya grundrörelser (`giv-fran-2-3-p<n>c1-ren-a-paow`), med hans takt
+- Granskningen av de sju givarna (2026-11-26, sju agenter) fann inget som editorns lager kan rätta: felen sitter i
+  reglerna som ritar givarna (`../blackjack-dealer/dealer3d/src/`), framför allt greppet när högerhanden tar emot
+  kortet, vändningen och släppet. På Jakobs ord görs de om där, som nya val och nya grundrörelser, med hans takt
   (kortet ut högst 1 s, handen tillbaka cirka 0,6 s) och med handen vid skon redo: varken lyft och spänd eller slapp.
-  Tills de är inne är givarna editorn spelar de gamla i en snabbare takt, och spärren `verktyg/mat.ts --alla` är röd
-  på alla sju platserna (finger genom kortet och kortet utan stöd): inget av dem ska filmas för en betald film.
+  Den nya generatorn är `dealer3d/src/ren-giv.ts`. De första nya givarna (`giv-fran-2-3-p<n>c1-ren-a-paow`, ritade
+  för dockan paow) klarar spärren på alla sju platserna
+  (`verktyg/mat.ts --alla --giv-monster giv-fran-2-3-p#c1-ren-a-paow`); bara plats 4 är sedd med ögat. Editorn spelar
+  fortfarande de gamla givarna i en snabbare takt, och där är spärren röd på alla sju (finger genom kortet och kortet
+  utan stöd): inget av dem ska filmas för en betald film.
+- Kroppen följer inte rörelsens punkter (mätt 2026-11-26 på mannen i given till plats 4; måtten står i editorns
+  `state()`: `axelFranPunktenMm`, `armbageFranPunktenMm`, `handledFranPunktenMm`, `fingrarFranPunkternaMm`). Axlar och
+  handleder ligger rätt, men armbågarna hamnar 15–25 mm och fingrarnas leder 12–26 mm från rörelsens punkter: givarna
+  är ritade för Paows mått, och mannens knogar sitter cirka 2 cm längre ut från handleden med kortare fingerben. Ett
+  grepp som stämmer i rörelsen stämmer alltså inte på kroppen. Därför ska givarna ritas för standarddockans egen
+  kropp ("Plockas in", steg 2).
 - Känt i editorn: i vilan står armbågarna utvinklade, eftersom rörelserna är gjorda för Paows kropp och ett bord vars
   kant låg 15 cm längre bort (en egen vila för det närmare bordet behövs); bålen lutar som Paows, 16 cm i given;
   filten är mörkare än i Blenders bilder; vilan i den första delen är den
@@ -252,15 +261,19 @@ ska.
   allt som syns i också 'blackjack-dealer'", och att den gamla Paow-dockan ersätts "på bäst lämpade sätt"). Vägen är
   att ersätta, inte att ha två dockor bredvid varandra, i den här ordningen:
   1. Gjort: studions dockvy ritar standarddockans kropp (ovan).
-  2. De nya givarna (`…-ren-a-paow`) blir de som editorn och studion spelar, när spärren är grön på alla sju.
-  3. Standarddockans egna mått in i `../blackjack-dealer/dealer3d/src/doll.ts` (i dag antagna mått för `standard` och
-     Paows från SAM 3D Body), och givarna ritade om för dem. Först då kan dockan `paow`, hennes sparade standarder
-     (`dealer3d/standard/`) och de äldre grundrörelserna tas bort: tills dess är alla givar ritade för hennes kropp,
-     och hennes godkända filmer är gjorda av dem.
-  4. Studions dockvy får det närmare bordet, skon med frontplattan och spelets vy, och det editorn här har som studion
-     saknar (takten per del, de små egna rörelserna, inspelningen från sju platser). Då är editorn en vy i studion och
-     den här mappen bara arbetsbänken.
-  5. En dealer från foton (till exempel provpersonen) blir en post i studion vars filmer görs av dockans klipp och
+  2. Standarddockans egna mått in i `../blackjack-dealer/dealer3d/src/doll.ts` (i dag antagna mått för `standard` och
+     Paows från SAM 3D Body), som dockorna `man` och `kvinna` mätta på modellerna, och givarna ritade för dem med
+     `dealer3d/src/ren-giv.ts`. Mannen och kvinnan delar ankare, regler och val, så att en grundställning görs en
+     gång (Jakob 2026-11-26: "så man inte behöver jobba dubbelt för grundposer"); bara måtten skiljer. De givarna blir
+     de som editorn och studion spelar, när spärren är grön och varje plats är sedd med ögat. Först då kan dockan
+     `paow`, hennes sparade standarder (`dealer3d/standard/`) och de äldre grundrörelserna tas bort: tills dess är
+     givarna ritade för hennes kropp, och hennes godkända filmer är gjorda av dem.
+  3. Studions dockvy (Bordets Inspelning) får editorns scen: spelets vy, det närmare bordet, skon med frontplattan,
+     brickan, stolen och ljuset, och det editorn här har som studion saknar (takten per del, de små egna rörelserna,
+     inspelningen från sju platser). Jakob 2026-11-26 om studions dockvy: "Vi ska ha in vy/vinkel och allt det andra
+     från 'standarddockan'-mappens mini-blender", och att det gäller allt som har med hur klippen ska göras framöver.
+     Då är editorn en vy i studion och den här mappen bara arbetsbänken.
+  4. En dealer från foton (till exempel provpersonen) blir en post i studion vars filmer görs av dockans klipp och
      personens egna styrbilder; personen behöver ingen egen 3D-modell för det. Pipelinen i `../avatar-auto-pipeline/`
      som gör en 3D-dealer från foton riggar i dag med Meshys skelett; ska en sådan dealer göra dockans rörelser som
      3D-figur måste den riggas om till standardskelettet (samma lednamn), och det är inte byggt.

@@ -87,6 +87,21 @@ rörelse prövas mot innan den visas för honom.
 - **Allt börjar i A1.** "Rörelserna måste kunna läggas in i hela det system med A1 som allt börjar på": varje rörelse
   går mellan två ankare (A1 vilan, A2.3 handen vid skon) och börjar och slutar stilla i dem, så att klippen kan läggas
   efter varandra i spelets träd.
+- **Det en kropp inte kan ska inte gå (2026-11-26).** Om en armbåge dragen in i bålen i editorn: "Sånna här rörelser
+  ska ju bara inte gå", de "borde vara blockerade". Det han drar i hålls inom vad en kropp kan: ingen arm genom bålen
+  eller bordet, ingen led bortom sitt läge.
+- **Studions dockvy ska vara editorns (2026-11-26).** Om standarddockan i studions dockvy med det äldre bordet och den
+  äldre kameran: "Vi ska ha in vy/vinkel och allt det andra från 'standarddockan'-mappens mini-blender". Inte bara
+  kroppen ska in i studion, utan "rätt vy" och "allting som har med hur vi i framtiden ska försöka att skapa såna här
+  klipp".
+- **Mannen och kvinnan delar grund (2026-11-26).** "Kanske kan mannen och kvinnliga dockan i alla fall ha en någorlunda
+  grund så man inte behöver jobba dubbelt för grundposer": en ställning eller en rörelse görs en gång och gäller båda.
+  Om vilan: "mannen och kvinnan har aningen för utsträckta armbågar kanske".
+- **Handen som bär kortet får inte se spänd ut (2026-11-26).** Om kvinnan i given till plats 4: "hennes högerhand ser
+  spänd och stiff ut i mitten av videon".
+- **Skons frontplatta (2026-11-26).** "Bra, men inte helt. Jag vill att frontplattan ska ha en liten mynning längst
+  upp. Samt kanske inte området som omgärdar kanten på kortets rygg ska vara vitt. Kan misstas för kortets tunna sida,
+  eller ännu värre att det misstas för att det vita är något annat, såsom kanske karmen på skon."
 - **Dockans fel syns i filmen.** Om första filmen av dockan omgjord till en person: "det [är] mycket viktigt att dockan
   vi använder är väldigt bra med sina givar, så ett litet typ hack som sker omkring ruta 50/51 faktiskt syns i denna
   film". Filmmodellen följer dockan ruta för ruta och rättar ingenting: en rörelse filmas först när den är ren.

@@ -5,7 +5,7 @@
 //   ?plats=<1–7>&t=<sekunder>&kamera=<spel|film|plats1…plats7|sida|topp|fri>[&kulor=0][&utseende=nyckel][&docka=kvinna]
 //   öppnar ett läge direkt (förval: given till plats 4, spelets vy, mannen, Blenders bord som det är)
 //   ?giv=<namn>[&vilan=<namn>]   en grundrörelse på prov i stället för platsens (se PROV nedan)
-// window.editor (för kontrollen och verktyget ../verktyg/titta.ts): ready, setTime(t), setKamera(k), state(), addChange({...}),
+// window.editor (för kontrollen och verktyget ../verktyg/titta.ts): ready, setTime(t), setKamera(k), nara(vad, från), state(), addChange({...}),
 // removeChange(id), undo(), save(), kula(led), visa(vad, på), tillSparat(), tillGrund(), fart(del, gånger),
 // spelaIn(kameror, förstaDel, sistaDel).
 import * as T from 'three';
@@ -38,7 +38,7 @@ const sek = (t: number) => t.toFixed(2).replace('.', ',') + ' s';
 
 type Visa = 'bord' | 'stol' | 'platser';
 type Klipp = {fil: string; rutor: number; bytes: number};
-type Api = {ready: boolean; setTime(t: number): void; setKamera(k: Kamera): void; state(): unknown; addChange(a: Partial<Andring> & {led: Led}): string; removeChange(id: string): void; undo(): void; save(): Promise<unknown>; visa(vad: Visa, på: boolean): void; kula(led: Led): {x: number; y: number};
+type Api = {ready: boolean; setTime(t: number): void; setKamera(k: Kamera): void; nara(vad: 'hogerHand' | 'vansterHand' | 'kort', fran?: V3): void; state(): unknown; addChange(a: Partial<Andring> & {led: Led}): string; removeChange(id: string): void; undo(): void; save(): Promise<unknown>; visa(vad: Visa, på: boolean): void; kula(led: Led): {x: number; y: number};
   tillSparat(): void; tillGrund(): void; fart(del: number, ganger: number): void; liv(delar: Livsdel[], fro?: number): void; spelaIn(kameror: Kamera[], fran: number, till: number): Promise<Klipp[]>};
 declare global { interface Window { editor: Api } }
 const api: Api = {ready: false} as Api; window.editor = api;
@@ -149,6 +149,16 @@ function setKamera(k: Kamera) {
 /** Spelets bild som en ram i fönstret, när kameran är en plats vid bordet (plats 4 är spelets egen). */
 function ram() { const r = scen.filmRam(), box = $('#ram'), plats = kameransPlats(kamera); box.style.display = plats && !inspelning ? 'block' : 'none'; Object.assign(box.style, {left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px'});
   if (plats) box.firstElementChild!.textContent = plats === 4 ? 'Spelets bild (plats 4)' : `Bilden från plats ${plats}`; }
+/**
+ * Kameran nära en hand eller kortet som de står nu, för den som granskar fingrarna: den fria kameran `fran` meter från
+ * handens mitt (förvalet snett uppifrån spelarnas sida), riktad mot den.
+ */
+type Nara = 'hogerHand' | 'vansterHand' | 'kort';
+function nara(vad: Nara, fran: V3 = [0, 0.2, 0.36]) {
+  const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]), hand = vad === 'kort' ? null : nu[vad === 'hogerHand' ? 'R' : 'L'], mal = hand ? v(hand.w).add(v(hand.p[9])).multiplyScalar(0.5) : v(nu.card.c);
+  kamera = 'fri'; camera.position.copy(mal).add(v(fran)); camera.up.set(0, 1, 0); camera.lookAt(mal); orbit.target.copy(mal); orbit.update(); scen.storlek();
+  document.querySelectorAll<HTMLButtonElement>('#kameror button').forEach(b => b.classList.toggle('vald', b.dataset.kamera === 'fri')); ram(); rita();
+}
 orbit.addEventListener('start', () => { if (kamera !== 'fri') { kamera = 'fri'; document.querySelectorAll<HTMLButtonElement>('#kameror button').forEach(b => b.classList.toggle('vald', b.dataset.kamera === 'fri')); ram(); } });
 orbit.addEventListener('change', rita);
 
@@ -404,6 +414,7 @@ console.log('Armarna över bordskanten, före och efter (minsta luft i mm):', JS
 Object.assign(api, {
   setTime: (t: number) => { spela(false); setTime(t); ritaNu(); },
   setKamera: (k: Kamera) => { setKamera(somKamera(k) ?? 'spel'); ritaNu(); },
+  nara: (vad: Nara, fran?: V3) => { nara(vad, fran); ritaNu(); },
   addChange: (a: Partial<Andring> & {led: Led}) => { const id = läggTill(a); ritaNu(); return id; },
   removeChange: (id: string) => { taBort(id); ritaNu(); },
   undo: () => { ångra(); ritaNu(); },
@@ -419,7 +430,14 @@ Object.assign(api, {
   state: () => {
     const p = (v: T.Vector3) => [v.x, v.y, v.z].map(n => Math.round(n * 10000) / 10000), hips = scen.bone('Hips');
     const grundtid = tak.grund(tid);
-    return {namn: NAMN, plats: PLATS, grund: GRUND, tid, grundtid, langd: DUR, fart: tak.fart, forvaldTakt: tak.forval, kamera, kameraLage: p(camera.position), spelar, vald, osparat, andringar: sparad.andringar, delar: tak.delar, grunddelar: foljd.delar, skarv: foljd.skarv, platser: bord, stol: scen.stol, armar, synligt, fel,
+    // Hur långt modellens fingerleder ligger från rörelsens handpunkter (mm): knoge, mellanled och ytterled per finger,
+    // tummen först. Punkterna är rörelsens (Paows hand); lederna är dockans egna, så skillnaden är vad kroppen inte följer.
+    const FINGRAR = [['Thumb', 1], ['Index', 5], ['Middle', 9], ['Ring', 13], ['Pinky', 17]] as const;
+    const fingrar = Object.fromEntries((['R', 'L'] as const).map(s => [s, FINGRAR.map(([namn, start]) => [1, 2, 3].map(n => Math.round(scen.bone(`${s === 'R' ? 'Right' : 'Left'}Hand${namn}${n}`).distanceTo(new T.Vector3(...(nu[s].p[start + n - 1] as V3))) * 1000)))]));
+    const handled = {R: Math.round(scen.bone('RightHand').distanceTo(new T.Vector3(...(nu.R.w as V3))) * 1000), L: Math.round(scen.bone('LeftHand').distanceTo(new T.Vector3(...(nu.L.w as V3))) * 1000)};
+    const armbage = {R: Math.round(scen.bone('RightForeArm').distanceTo(new T.Vector3(...(nu.R.e as V3))) * 1000), L: Math.round(scen.bone('LeftForeArm').distanceTo(new T.Vector3(...(nu.L.e as V3))) * 1000)};
+    const axel = {R: Math.round(scen.bone('RightArm').distanceTo(new T.Vector3(...(nu.R.s as V3))) * 1000), L: Math.round(scen.bone('LeftArm').distanceTo(new T.Vector3(...(nu.L.s as V3))) * 1000)};
+    return {namn: NAMN, fingrarFranPunkternaMm: fingrar, handledFranPunktenMm: handled, armbageFranPunktenMm: armbage, axelFranPunktenMm: axel, plats: PLATS, grund: GRUND, tid, grundtid, langd: DUR, fart: tak.fart, forvaldTakt: tak.forval, kamera, kameraLage: p(camera.position), spelar, vald, osparat, andringar: sparad.andringar, delar: tak.delar, grunddelar: foljd.delar, skarv: foljd.skarv, platser: bord, stol: scen.stol, armar, synligt, fel,
       blick: {mot: blickMot(), foljerKortet: Math.round(foljerKortet(foljd.blick, grundtid) * 100) / 100, tider: foljd.blick, punkt: nu.g},
       hoft: {rorelsen: foljd.hip, mannen: p(hips), skillnadMm: Math.round(hips.distanceTo(new T.Vector3(...foljd.hip)) * 1000)},
       leder: {hogerHand: p(scen.bone('RightHand')), vansterHand: p(scen.bone('LeftHand')), hogerArmbage: p(scen.bone('RightForeArm')), vansterArmbage: p(scen.bone('LeftForeArm')), huvud: p(scen.bone('Head')), hogerLar: p(scen.bone('RightUpLeg')), hogerKna: p(scen.bone('RightLeg')), hogerFot: p(scen.bone('RightFoot'))},

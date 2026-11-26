@@ -40,7 +40,10 @@ fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt g�
    och med `--giv-monster giv-fran-2-3-p#c1-<namn>` prövas nya grundrörelser i stället för platsernas.
 2. **Titta:** lägg en lapp på din mapp (`node slask/slask.ts lapp standarddocka/granska-p<n> <ditt namn> "<vad>"`) och kör
    `node standarddocka/verktyg/titta.ts --ut slask/standarddocka/granska-p<n> --plats <n> --kamera lag,sida,topp,plats<n> --tider <tiderna>`.
-   Läs bilderna. `lage.json` bär editorns mått vid varje tid, bland annat armarnas luft över bordskanten (`armar`).
+   Läs bilderna. `lage.json` bär editorns mått vid varje tid, bland annat armarnas luft över bordskanten (`armar`) och
+   hur långt kroppens leder ligger från rörelsens punkter (`fingrarFranPunkternaMm`, `armbageFranPunktenMm`). Fingrarna
+   och greppet syns bara i närbild: kamerorna `narahoger`, `naravanster` och `narakort` står nära handen eller kortet i
+   varje bild (`--nara-fran x,y,z` flyttar dem, till exempel `-0.3,0.1,0` från hans högra sida).
    Högst ett dussin bilder per körning: verktyget väntar på det delade låset, och andra väntar på dig.
 3. **Döm** varje märkt sak och det ögat ser mot listan nedan. Ett tal är ingen dom: ett finger 3 mm "i kortet" kan vara
    ett grepp som ser rätt ut, och en rörelse utan märkningar kan se stel ut.
