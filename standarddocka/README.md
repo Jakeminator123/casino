@@ -53,6 +53,10 @@ plats har sina egna sparade ändringar.
   eller långsammare (en fjärdedel till fyra gånger grundrörelsens fart), jämnt genom delen. Farten sparas med rörelsen,
   följer med i inspelningen och i rutorna, och återställs med de andra ändringarna. Ändringarna sitter kvar i samma
   ögonblick av rörelsen när farten ändras.
+- **Nyckelfärger:** med `?utseende=nyckel` i adressen (eller `--utseende nyckel` i `verktyg/titta.ts`) ritas scenen för
+  film där dealern ska skiljas ut i efterhand: bakgrunden blå och utan golv, bordet och markerbrickan gröna utan
+  tryck, kasseringslådan borta, och korten i spårfärger. Färgerna står i `NYCKEL` i `editor/scen.ts`. Inspelade klipp
+  får då `-nyckel` sist i namnet.
 - **Spela in:** hela rörelsen, en del av den eller given (kortet ut och handen tillbaka i samma film), från den valda
   kameran eller från alla sju platserna i ett svep, utan kulor och pilar. Blicken står fast under inspelningen, så att det är samma rörelse från varje kamera. Filmerna hamnar i
   `klipp/`. Kräver FFmpeg på datorn (`ffmpeg` i sökvägen, eller miljövariabeln `FFMPEG`).
@@ -167,11 +171,20 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    med stillheten i ankaret efter sig och klipps där; och blicken görs till rörelsens egen, så att två klipp som möts
    har samma huvud (klippen i första och andra omgången spelades in med blicken mot olika kameror).
 
-   Kortet och bakgrunden (Jakobs frågor 2026-11-26, förslag som väntar på hans ord): dockans kort i editorn är bordets
-   röda och vita och inte spelets spårkort (gult och blått med kryss och prick, `../blackjack-dealer/dealer3d/src/
-   card-marks.ts`). Förslaget är ett prov med två kort genom Aleph 2: spårkortet som det är, och ett mellanting med vit
-   framsida innanför en smal blå ram med hörnmärke och en enfärgad gul rygg, samt bakgrunden bakom dealern i en
-   nyckelfärg och filten utan tryck, för att se om filmmodellen behåller rena färger och om dealern går att skilja ut.
+   Tredje omgången är körd (213 krediter) och väntar på hans dom, provet `docka-till-person-3-20261126`, med underlaget
+   i `../slask/standarddocka/granska/docka-till-person-3/`. Kling 4 med hans ord "gör dealerns rörelser mindre stela"
+   gav nästan samma rörelse och gjorde om korten till riktiga spelkort. Nyckelfärgerna håller: dockans giv inspelad
+   med editorns utseende `nyckel` (blå bakgrund, grönt bord utan tryck, spårkort med gul rygg och vit framsida innanför
+   en ljusblå ram med en rosa prick) kom tillbaka från Aleph 2 med färgerna rena, och dealern, korten och skon går att
+   skilja ut och bordet att byta med skuggorna kvar. Det är alltså en möjlig väg att filma dealern utan bord och låta
+   spelet rita bordet; då måste spelets bord ritas genom exakt samma kamera som filmen. Spårkortets färger här är ett
+   första förslag och inte spelets spårkort (`../blackjack-dealer/dealer3d/src/card-marks.ts`, gult och blått med kryss
+   och prick): vilket som blir standard är Jakobs val.
+
+   Kamerans höjd (hans fråga 2026-11-26): en film går inte att luta om i efterhand, så den höjd och lutning som väljs
+   för inspelningen är också spelets. Lägre kamera (10 grader) visar mer av dealern men trycker ihop kortplatserna; ett
+   mellanläge är inte prövat. Varje plats kamera har samma höjd, lutning och lins som plats 4:s och är bara flyttad
+   runt bordet.
 
    En tagning per sätt (hans regel i `bestalla-film`). Skattat ur prislistan 2026-11-26: cirka 800 krediter för allt
    (ankarna 100–250, Aleph 195, jämförelsen 205, plats 1 och 7 cirka 220). Anropen läggs som prov genom

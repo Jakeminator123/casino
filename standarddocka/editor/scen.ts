@@ -53,6 +53,16 @@ export function kameraVy(k: Exclude<Kamera, 'fri'>, plan: Plan): {pos: V3; mot: 
   return {pos: [0.06, 2.15, z + 0.32], mot: [0.06, 0, z + 0.1], fov: 42}; // uppifrån, han överst i bilden
 }
 
+/**
+ * Utseendet. 'vanligt' är Blenders bord som det är. 'nyckel' är för film där dealern ska skiljas ut i efterhand (Jakob
+ * 2026-11-26: "bakgrunden blir en färg och bordet en annan"): bakgrunden i en ren färg och utan golv, bordet och
+ * markerbrickan i en annan och utan tryck, kasseringslådan borta, och korten i spårfärger (framsidan vit innanför en
+ * ram med ett märke i ett hörn; ryggen gul med ram, ett märke i mitten och ett vid ena kortsidan), så att sidan och
+ * hörnen går att känna igen. Färgerna ligger långt från hud, från varandra och från skons svarta.
+ */
+export type Utseende = 'vanligt' | 'nyckel';
+export const NYCKEL = {bakgrund: 0x0047bb, bord: 0x00b140, kortrygg: 0xffd400, ram: 0x00c8ff, marke: 0xff2fd0};
+
 export type Scen = {
   renderer: T.WebGLRenderer; scene: T.Scene; camera: T.PerspectiveCamera; figure: Figure; card: T.Object3D;
   /** Laddas för sig (35 MB); löst när bordet ligger på plats. */
@@ -77,22 +87,24 @@ export type Scen = {
 
 const loadGltf = (url: string, progress?: (share: number) => void) => new GLTFLoader().loadAsync(url, e => { if (progress && e.total) progress(e.loaded / e.total); });
 
-export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: number[], vila: Frame, laddar: (text: string) => void): Promise<Scen> {
+export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: number[], vila: Frame, laddar: (text: string) => void, utseende: Utseende = 'vanligt'): Promise<Scen> {
+  const nyckel = utseende === 'nyckel';
   const renderer = new T.WebGLRenderer({canvas, antialias: true});
-  renderer.outputColorSpace = T.SRGBColorSpace; renderer.toneMapping = T.AgXToneMapping; renderer.toneMappingExposure = 1.0;
+  // Den vanliga bilden har en mjuk tonkurva som liknar Blenders; nyckelfärgerna ska vara rena, och den kurvan bleker dem.
+  renderer.outputColorSpace = T.SRGBColorSpace; renderer.toneMapping = nyckel ? T.LinearToneMapping : T.AgXToneMapping; renderer.toneMappingExposure = nyckel ? 0.7 : 1.0;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap; renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   const lin = (r: number, g: number, b: number) => new T.Color().setRGB(r, g, b, T.LinearSRGBColorSpace);
   // Ljuset efter scen/vy.py: en mörk värld, ett golv 8 x 8 m kring dealerkanten, och fyra mjuka ljus (i Blender ytljus):
   // taket över bordet (det som ger skuggorna), ett mot ansiktet snett framifrån höger, en fyllning från vänster och ett
   // bakifrån. Lägena är Blenders, omräknade till linsvärlden (x, z - 0,95, kanten - y); styrkorna är satta för ögat.
-  const scene = new T.Scene(); scene.background = lin(0.05, 0.05, 0.055);
+  const scene = new T.Scene(); scene.background = nyckel ? new T.Color(NYCKEL.bakgrund) : lin(0.05, 0.05, 0.055);
   const pmrem = new T.PMREMGenerator(renderer); scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.3;
   scene.add(new T.HemisphereLight(0xffffff, 0x3a3836, 0.5));
   const z = KANT[2], ljus = (styrka: number, från: V3, mot: V3) => { const l = new T.DirectionalLight(0xffffff, styrka); l.position.set(...från); l.target.position.set(...mot); scene.add(l, l.target); return l; };
   const tak = new T.SpotLight(0xffffff, 11, 0, 1.15, 1, 2); tak.position.set(0, 1.75, z + 0.2); tak.target.position.set(0, 0, z + 0.1); tak.castShadow = true; scene.add(tak, tak.target);
   tak.shadow.mapSize.set(4096, 4096); tak.shadow.bias = -0.00015; tak.shadow.normalBias = 0.01; tak.shadow.radius = 5; tak.shadow.camera.near = 0.3; tak.shadow.camera.far = 6;
   ljus(1.1, [0.7, 1.0, z + 1.6], [0, 0.4, z - 0.3]); ljus(0.55, [-0.9, 0.65, z + 1.9], [0, 0.05, z - 0.1]); ljus(0.9, [-0.4, 1.25, z - 1.9], [0, 0.35, z - 0.35]);
-  const golv = new T.Mesh(new T.PlaneGeometry(8, 8).rotateX(-Math.PI / 2), new T.MeshStandardMaterial({color: lin(0.18, 0.17, 0.16), roughness: 0.8})); golv.position.set(0, TABLE_BASE.floor, z); golv.receiveShadow = true; scene.add(golv);
+  const golv = new T.Mesh(new T.PlaneGeometry(8, 8).rotateX(-Math.PI / 2), new T.MeshStandardMaterial({color: lin(0.18, 0.17, 0.16), roughness: 0.8})); golv.position.set(0, TABLE_BASE.floor, z); golv.receiveShadow = true; golv.visible = !nyckel; scene.add(golv);
   const camera = new T.PerspectiveCamera(30, 1.5, 0.05, 40);
   const skuggor = (o: T.Object3D) => o.traverse(m => { if ((m as T.Mesh).isMesh) { m.castShadow = true; m.receiveShadow = true; } });
 
@@ -141,7 +153,15 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
     pos.needsUpdate = true; m.geometry.computeBoundingBox(); m.geometry.computeBoundingSphere(); });
   stolen.position.set(BLENDER_TILL_LINS[0] + flytt[0], BLENDER_TILL_LINS[1], BLENDER_TILL_LINS[2] + flytt[2]); skuggor(stolen); scene.add(stolen);
 
-  const enkelt = new T.Mesh(new T.BoxGeometry(0.063, 0.0003, 0.088), [0, 0, new T.MeshStandardMaterial({color: 0xf4f2ec}), new T.MeshStandardMaterial({color: 0xb8333b}), 0, 0].map(m => m || new T.MeshStandardMaterial({color: 0xe8e4dc})) as T.Material[]);
+  // Spårkortets två sidor (utseendet 'nyckel'), ritade: ram, fält och märken.
+  const hex = (n: number) => '#' + n.toString(16).padStart(6, '0');
+  const sparsida = (rygg: boolean) => { const c = document.createElement('canvas'); c.width = 252; c.height = 352; const g = c.getContext('2d')!;
+    g.fillStyle = hex(NYCKEL.ram); g.fillRect(0, 0, 252, 352); g.fillStyle = rygg ? hex(NYCKEL.kortrygg) : '#ffffff'; g.fillRect(20, 20, 212, 312);
+    g.fillStyle = hex(NYCKEL.marke); const prick = (x: number, y: number, r: number) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); };
+    if (rygg) { prick(126, 176, 34); prick(126, 70, 16); } else prick(54, 54, 20);
+    const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 8; return new T.MeshStandardMaterial({map: t, roughness: 0.9}); };
+  const fram = nyckel ? sparsida(false) : new T.MeshStandardMaterial({color: 0xf4f2ec}), rygg = nyckel ? sparsida(true) : new T.MeshStandardMaterial({color: 0xb8333b});
+  const enkelt = new T.Mesh(new T.BoxGeometry(0.063, 0.0003, 0.088), [0, 0, fram, rygg, 0, 0].map(m => m || new T.MeshStandardMaterial({color: nyckel ? NYCKEL.ram : 0xe8e4dc})) as T.Material[]);
   enkelt.castShadow = true; card.add(enkelt);
 
   // Bordet, för sig: det tar en stund.
@@ -151,11 +171,16 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
     // Kortet ur bordets exempelkort på plats 4 kort 1, med framsidan uppåt: dess geometri läggs med mitten i origo.
     // (three.js stryker punkten i nodnamnen: giv_P4.C1 och markering_P4.C1 i Blender heter giv_P4C1 och markering_P4C1 här.)
     const exempel = root.getObjectByName('giv_P4C1') as T.Mesh | undefined;
-    if (exempel?.isMesh) { const g = exempel.geometry.clone().applyMatrix4(exempel.matrixWorld); g.computeBoundingBox(); const b = g.boundingBox!, c = b.getCenter(new T.Vector3()), s = b.getSize(new T.Vector3()); g.translate(-c.x, -c.y, -c.z);
+    if (exempel?.isMesh && !nyckel) { const g = exempel.geometry.clone().applyMatrix4(exempel.matrixWorld); g.computeBoundingBox(); const b = g.boundingBox!, c = b.getCenter(new T.Vector3()), s = b.getSize(new T.Vector3()); g.translate(-c.x, -c.y, -c.z);
       if (s.x > s.z) g.rotateY(Math.PI / 2);
       const m = new T.Mesh(g, Array.isArray(exempel.material) ? exempel.material.map(x => x.clone()) : exempel.material.clone()); m.castShadow = true; m.receiveShadow = true; card.remove(enkelt); card.add(m); }
     // Bordets exempelkort (en giv på platserna och en kortlek bredvid) döljs: bara rörelsens kort ska synas. Skon och dess kort står kvar.
     root.traverse(o => { if (/^(giv_|kort_)/.test(o.name)) o.visible = false; });
+    // Utseendet 'nyckel': bordet och brickan i en färg utan tryck, lådan borta, skons kort med spårkortets rygg.
+    if (nyckel) { const gront = new T.MeshStandardMaterial({color: NYCKEL.bord, roughness: 1, metalness: 0}), gult = new T.MeshStandardMaterial({color: NYCKEL.kortrygg, roughness: 0.9});
+      const hor = (o: T.Object3D, till: RegExp) => till.test(o.name) || till.test(o.parent?.name ?? '');
+      root.traverse(o => { if (/^(kassering_|markering_)/.test(o.name)) o.visible = false; const m = o as T.Mesh; if (!m.isMesh) return;
+        if (hor(o, /^(bord_|bricka_)/)) m.material = gront; else if (hor(o, /^sko_kort/)) m.material = gult; }); }
     root.position.set(...BLENDER_TILL_LINS); skuggor(root); scene.add(root); root.updateMatrixWorld(true);
     // Kontrollen: planens kortplatser mot bordets tryckta (deras mitt på filten), i millimeter.
     const platser = spots(plan, TABLE_LENS).flatMap(s => { const o = root.getObjectByName(`markering_${s.id.replace('.', '')}`); if (!o) return [];
@@ -163,7 +188,7 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
     const p4 = spots(plan, TABLE_LENS).find(s => s.id === 'P4.C1')!, ex = exempel ? new T.Box3().setFromObject(exempel).getCenter(new T.Vector3()) : null;
     // Bordets kant mot dealern och skivans överkant: filtens närmaste kant och dess höjd (filten slutar vid brickans bakvägg, som är kanten).
     const filt = root.getObjectByName('bord_filt'), fb = filt ? new T.Box3().setFromObject(filt) : null;
-    bordRot = root; root.traverse(o => { if (o.name.startsWith('markering_')) markeringar.push(o); });
+    bordRot = root; if (!nyckel) root.traverse(o => { if (o.name.startsWith('markering_')) markeringar.push(o); });
     return {platser, maxMm: Math.max(...platser.map(p => p.mm)), kortP4Mm: ex ? Math.round(Math.hypot(ex.x - p4.at[0], ex.z - p4.at[2]) * 10000) / 10 : NaN,
       kantZ: fb ? fb.min.z : KANT[2], skivaY: fb ? fb.max.y : 0};
   });

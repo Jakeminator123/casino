@@ -144,10 +144,21 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     mer naturlig och utan ryck kom tillbaka med rörelsen oförändrad ruta för ruta (likhet 0,99), hacket kvar, och kortet
     med fel sida upp. Aleph behåller infilmens rörelse; rörelsen rättas i dockan. Samma sak som när Aleph föll som
     rättare.
-- Inte prövat hos oss: en annan kamera än spelets, Kling 4 med styrbilden som första bild och dockans film som lös
-  förlaga (det sätt som kan ge en naturligare rörelse än dockans), Seedance 2.5 som redigerare, Act-Two med dockan som
-  den som spelar, spårkort och nyckelfärgad bakgrund genom Aleph, och flera kameror bredvid varandra i en och samma
-  film.
+- Tredje provet, 2026-11-26 (agentens läsning; domen står i provet `docka-till-person-3-20261126`, underlaget i
+  `slask/standarddocka/granska/docka-till-person-3/`):
+  - **Nyckelfärger håller genom Aleph 2.** Dockans film inspelad med blå bakgrund, grönt bord utan tryck och spårkort
+    (editorns `?utseende=nyckel`), en styrbild gjord av första rutan, och en text som säger att färgerna ska vara rena
+    och kortet inte ett tryckt spelkort: färgerna och kortets märken höll hela filmen. Dealern, korten och skon går
+    sedan att skilja ut med FFmpeg (`chromakey` för blått och för grönt var för sig, ihoplagda), och bordet går att
+    byta med skuggorna kvar (den nya färgen gånger filmens ljushet i det gröna). Receptet står i provets `OVERSIKT.md`.
+  - **Kling 4 som redigerare med orden "gör dealerns rörelser mindre stela":** rörelsen nästan densamma, men korten
+    gjordes om till riktiga spelkort med valör, också kortet i skon, och filmen fick 24 bilder/s. Utan styrbilder
+    förskönar Kling korten.
+- Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
+  på äldre led, Kling 3.0 Pro och Kling O3 Pro.
+- Inte prövat hos oss: en annan kamera än spelets, Kling 4 med styrbilden som första bild och filmen som lös förlaga
+  (det sätt som kan ge en naturligare rörelse än dockans; anropet ligger färdigt i tredje provets mapp), Seedance 2.5
+  som redigerare, Act-Two med dockan som den som spelar, och flera kameror bredvid varandra i en och samma film.
 - **Korta klipp:** Aleph 2 tar ingen film under 2 s och Kling 4 ingen under 3 s. En rörelse på 1 s filmas därför
   tillsammans med stillheten i ankaret efter den, eller med nästa rörelse, och klipps i ankaret.
 

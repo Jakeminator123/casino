@@ -2,8 +2,8 @@
 // tillbaka, en tidslinje att spela och dra i, kameror (också från de sju platserna), handtag att dra i som blir ändringar
 // ovanpå grundrörelserna, och inspelning av ett klipp. Ändringarna sparas genom editorns server i standarddocka/rorelser/
 // (grundrörelserna ändras aldrig), klippen i standarddocka/klipp/.
-//   ?plats=<1–7>&t=<sekunder>&kamera=<lag|film|plats1…plats7|sida|topp|fri>[&kulor=0]   öppnar ett läge direkt (förval:
-//   given till plats 4, lägre kamera)
+//   ?plats=<1–7>&t=<sekunder>&kamera=<lag|film|plats1…plats7|sida|topp|fri>[&kulor=0][&utseende=nyckel]   öppnar ett läge
+//   direkt (förval: given till plats 4, lägre kamera, Blenders bord som det är)
 // window.editor (för kontrollen och verktyget ../verktyg/titta.ts): ready, setTime(t), setKamera(k), state(), addChange({...}),
 // removeChange(id), undo(), save(), kula(led), visa(vad, på), tillSparat(), tillGrund(), fart(del, gånger),
 // spelaIn(kameror, förstaDel, sistaDel).
@@ -12,7 +12,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import type {Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
 import {FART, GIVAR, LEDER, LEDNAMN, TILL_SKON, VARAR, foljerKortet, rutor, sattIhop, stallning, takt, vikt, type Andring, type Foljd, type Frame, type Led, type Motion, type Q, type Sparad, type V3} from './rorelse.ts';
-import {byggScen, kameraVy, kameransPlats, platskamera, type Kamera, type Scen} from './scen.ts';
+import {byggScen, kameraVy, kameransPlats, platskamera, type Kamera, type Scen, type Utseende} from './scen.ts';
 import {ARMAR, lyftArmar} from './armar.ts';
 
 const query = new URLSearchParams(location.search);
@@ -62,7 +62,9 @@ console.log('Skarven, före och efter att bålen lades om (m):', foljd.skarv);
 
 // ---- scenen ----------------------------------------------------------------------------------------------------
 const canvas = $<HTMLCanvasElement>('#bild');
-const scen: Scen = await byggScen(canvas, plan, foljd.hip, stallning(foljd, 0, []), laddarText);
+/** Utseendet 'nyckel' (?utseende=nyckel): rena färger på bakgrund, bord och kort, för film där dealern ska skiljas ut (scen.ts). */
+const UTSEENDE: Utseende = query.get('utseende') === 'nyckel' ? 'nyckel' : 'vanligt';
+const scen: Scen = await byggScen(canvas, plan, foljd.hip, stallning(foljd, 0, []), laddarText, UTSEENDE);
 const {camera, scene, renderer} = scen;
 
 // Handtagen: små kulor som syns genom kroppen och bordet, lika stora i bilden var de än är (radien i bildpunkter).
@@ -337,7 +339,7 @@ async function spelaIn(kameror: Kamera[], forst: number, sist: number): Promise<
     scen.filmstorlek(true);
     for (const k of kameror) {
       if (k !== 'fri') scen.setKamera(k);
-      id = (await post<{id: string}>('/inspelning/start', JSON.stringify({namn: `${NAMN}-${delnamn}-${KAMERANAMN(k)}`, fps: foljd.fps}))).id;
+      id = (await post<{id: string}>('/inspelning/start', JSON.stringify({namn: `${NAMN}-${delnamn}-${KAMERANAMN(k)}${UTSEENDE === 'nyckel' ? '-nyckel' : ''}`, fps: foljd.fps}))).id;
       for (let i = fran; i <= till; i++) {
         if (inspelning.avbryt) break;
         tid = i / foljd.fps; stall(); await post(`/inspelning/${id}/ruta`, await scen.bild()); gjorda++;
