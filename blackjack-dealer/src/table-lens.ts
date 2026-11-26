@@ -241,8 +241,13 @@ export const TABLE_RAIL = {centre: 0.057, lift: 0.012, halfWidth: 0.05, above: 0
  * askew, so the two together move it 8.5 cm straight toward the dealer's left and no nearer the players. The one place these
  * four numbers stand: avatar-auto-pipeline builds the table from them (scen/standard.yaml dockans_bord, bygg_bord.py
  * --docka) and the doll's motions take the shoe from dollShoe. TABLE_TOP and SHOE are the films' table and shoe.
+ * `cardsFrom`: the players' card places are turned to face their seat (Jakob 2026-11-26: the marks "ska väl vridas så att
+ * respektive spelare ... ska kunna få korten mot sig?", and "fyrkanter som pekar mot respektive stol"; tried on the dolls'
+ * table, his verdict pending): a player's card lies with its long side along the line from the dealer, who sits that far
+ * behind the game's edge, through the place, the line its player sits on. The dealer's own cards lie straight, and the
+ * films' plan (placements/default.json) is not changed by it. dealer3d/src/doll.ts dollCardYaw gives the angle.
  */
-export const DOLL_TABLE = {depth: 0.95, edgeBack: 0.23, shoeOut: 0.08, shoeForward: 0.03};
+export const DOLL_TABLE = {depth: 0.95, edgeBack: 0.23, shoeOut: 0.08, shoeForward: 0.03, cardsFrom: 0.38};
 /** The shoe at the standard doll's table: `shoe` moved as DOLL_TABLE says, its foot read back into the film's pixels. */
 export function dollShoe(lens: Lens = TABLE_LENS, shoe: Shoe = SHOE): Shoe {
   const eye = filmEye(lens), pose = shoePose(lens, shoe), f = pose.front, o = DOLL_TABLE.shoeOut, w = DOLL_TABLE.shoeForward;

@@ -5,7 +5,10 @@
 // regler, bara måtten skiljer.
 //   node dealer3d/tools/ren-givar.ts --docka paow|man|kvinna [--ankare] [--vila] [--plats <1-7> | --alla] [--prov]
 // --koreo [a|b]: standarddockans giv som koreografi (dealer3d/src/koreo-giv.ts), version A (nyckelvridningen, förval)
-//   eller B (vänd där det landar; med --prov som giv-fran-2-3-p<n>c1-prov-b-<docka>); annars den rena given (ren-giv.ts).
+//   eller B (vänd där det landar: giv-fran-2-3-p<n>c1-ren-b-<docka>, med --prov …-prov-b-<docka>); annars den rena given
+//   (ren-giv.ts). Jakob 2026-11-26 om A och B: "5/5 för båda", "gärna A och B": båda ritas till alla platser. Kortet läggs
+//   vänt mot sin spelare (doll.ts dollCardYaw), och platserna närmast skon ges med vänsterhanden ensam (koreo-giv.ts
+//   vilkenHand; --hand R|L tvingar): där finns en giv, skriven som A.
 // --ankare: dealer3d/data/ankare-2-3-<docka>.json.
 //   paow        första rutan av hennes giv till plats 4 (giv-fran-2-3-p4c1-naturlig-cykel-a-paow), med vänsterhanden vid
 //               skon som Naturlig har den (ren-giv.ts rentAnkare);
@@ -27,11 +30,11 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {PLAY_LENS, add, cross, dot, filmEye, sub, unit, type Vec3} from '../src/camera.ts';
 import {arm, turned} from '../src/body.ts';
-import {dollFrame, dollNamed, naturalDoll, type Doll, type HandPlace} from '../src/doll.ts';
+import {dollCardYaw, dollFrame, dollNamed, naturalDoll, type Doll, type HandPlace} from '../src/doll.ts';
 import {placed} from '../src/hand-pose.ts';
 import {handFaults} from '../src/hand-rule.ts';
 import {REN, armbageOverKanten, givRegler, granska, renGiv, renVila, rentAnkare, underarmLuft, type Ankare23, type Kant} from '../src/ren-giv.ts';
-import {koreoGiv} from '../src/koreo-giv.ts';
+import {koreoGiv, vilkenHand} from '../src/koreo-giv.ts';
 import {spots, type Plan} from '../src/world.ts';
 import {TABLE_LENS} from '../../src/table-lens.ts';
 import {lasDocka} from './modell.ts';
@@ -125,9 +128,13 @@ if (platser.length) {
   let rott = 0;
   for (const plats of platser) {
     const id = `P${plats}.C1`, at = alla.find(s => s.id === id)!.at, t0 = Date.now(), skon = STANDARD ? SKON : undefined, version = STANDARD ? KOREO_VAL : null;
-    const r = version ? koreoGiv({start, place: id, at, doll: giv, lens: TABLE_LENS, shoe: skon, kant, version}) : renGiv({start, place: id, at, doll: giv, lens: TABLE_LENS, shoe: skon, kant});
-    const namn = `giv-fran-2-3-p${plats}c1-${PROV ? (version === 'b' ? `prov-b-${NAMN}` : TAGG) : `ren-a-${NAMN}`}`, t = r.times, m = matt(r.motion);
-    const regler = givRegler(r.motion, giv, {dealerKort: alla.filter(s => /^D\.C[123]$/.test(s.id)).map(s => s.at)}), strang = granska(r.motion, doll, {strang: true});
+    // (standarddockornas bord har platserna vända mot sin spelare, och platserna närmast skon ges med vänstern ensam)
+    const yaw = dollCardYaw(id, at, TABLE_LENS), hand = arg('--hand') === 'R' || arg('--hand') === 'L' ? arg('--hand') as 'R' | 'L' : vilkenHand(start, at);
+    // (A och B skiljer sig i handbytet; där vänstern ger ensam finns en giv, den som skrivs som A)
+    if (version === 'b' && hand === 'L') { console.log(`plats ${plats}: ges med vänsterhanden ensam (giv-fran-2-3-p${plats}c1-ren-a-${NAMN}); version B gäller handbytet och ritas inte här.`); continue; }
+    const r = version ? koreoGiv({start, place: id, at, doll: giv, lens: TABLE_LENS, shoe: skon, kant, version, yaw, hand}) : renGiv({start, place: id, at, doll: giv, lens: TABLE_LENS, shoe: skon, kant});
+    const namn = `giv-fran-2-3-p${plats}c1-${PROV ? (version === 'b' ? `prov-b-${NAMN}` : TAGG) : `ren-${version === 'b' ? 'b' : 'a'}-${NAMN}`}`, t = r.times, m = matt(r.motion);
+    const regler = givRegler(r.motion, giv, {dealerKort: alla.filter(s => /^D\.C[123]$/.test(s.id)).map(s => s.at), hand: version ? hand : undefined}), strang = granska(r.motion, doll, {strang: true});
     const vem = NAMN === 'paow' ? 'Paow' : `Standarddockans ${NAMN === 'man' ? 'man' : 'kvinna'}`;
     const satt = version === 'a' ? `given som koreografi, version A "nyckelvridningen" (dealer3d/src/koreo-giv.ts, läst på Jakobs ord och två lärofilmer): vänsterhanden drar kortet plant ur skon till mötespunkten ute över bordet och reser det på högkant med framsidan mot dealern, högern nyper dess övre kant ovanifrån (tummen ned på framsidan, pekfingret på ryggen) och rullar det framåt med underarmen som en nyckel, bär det plant och lågt, sätter ned det och skjuter det på plats med fingertopparna`
       : version === 'b' ? `given som koreografi, version B (dealer3d/src/koreo-giv.ts): som A, men kortet bärs hängande på högkant i nypet och rullas fram först nära platsen`

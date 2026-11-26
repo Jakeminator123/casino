@@ -145,8 +145,14 @@ rörelse prövas mot innan den visas för honom.
   inte. Hans kortplan (`../blackjack-dealer/placements/default.json`) har vinkeln 0 på alla platser i filmernas ruta
   och 21 grader på de yttre i mobilens; filmernas plan ändras inte av det här. Senare samma dag: "Om given skulle
   göras så att kortet läggs i fyrkanter som pekar mot respektive stol. Skulle det då kanske göra att vissa givar
-  hamnar mer rätt?" Troligen ja för de yttre platserna: kortet ligger då längs handen som kommer snett in, och
-  handleden behöver inte vridas (på plats 6 och 7 spärrade handleden på 60 och 69 grader).
+  hamnar mer rätt?" Ja: prövat samma dag är dockornas bord byggt med spelarnas ramar vända mot sin spelare (långsidan
+  längs linjen från dealern genom platsen; plats 4 rakt, de yttersta 40 grader, dealerns egna rakt), och givarna
+  lägger kortet så. Handleden står då högst 36 grader från underarmen på varje plats (förut 60 och 69 på plats 6 och
+  7). Det väntar på hans dom i provet `givar-sju-platser-20261126`; hur det tas bort igen står i README, Nästa steg.
+- **A och B (2026-11-26).** Om mannens giv till plats 4, version A (vänds på vägen) och B (vänds vid platsen):
+  "Superbra, 5/5 för båda faktiskt! Kanon skulle ju vara att ha båda uppsättningarna, men så de skulle kunna dela
+  till alla spelare och upp till 7 kort för respektive spelare/seat så att säga på ett eller annat sätt. Så gärna A
+  och B." Båda ritas till alla platser; fler kort per plats är nästa steg (README).
 - **Ansiktet (2026-11-26, en önskan).** "Dock undrar jag om vi kanske ska lägga på det som kanske kan göra lite
   uttryck ... som blinkningar och ansiktsgester": dockorna har ansiktsformerna och ögonens leder, men inget styr dem
   än (README, Nästa steg, Ansiktet).

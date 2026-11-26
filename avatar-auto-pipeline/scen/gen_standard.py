@@ -228,6 +228,10 @@ w(f'  djup: {dt["depth"]}  # filtens djup från spelets kant; lika med halva bre
 w(f'  kant_bak: {dt["edgeBack"]}  # dealerkanten och markerbrickan så långt bakom spelets kant, där dockan sitter')
 w(f'  sko_ut: {dt["shoeOut"]}  # skon så långt utåt längs sin längd från sko.fot_fram (bort från dealerns mitt); kasseringslådan speglad')
 w(f'  sko_fram: {dt["shoeForward"]}  # och så långt vinkelrätt mot sin längd, mot spelarna')
+if dt.get('cardsFrom') is not None:
+    if abs(dt['cardsFrom'] - hip[1]) > 1e-9:
+        raise SystemExit(f'DOLL_TABLE.cardsFrom ({dt["cardsFrom"]}) ska vara dealerns plats bakom spelets kant ({hip[1]}): platser.<id>.riktning_mot_dealer räknas därifrån')
+    w('  kort_mot_spelaren: true  # spelarnas kortplatser vända mot sin spelare (Jakob 2026-11-26, på prov; DOLL_TABLE.cardsFrom): ramen och kortet ligger längs platser.<id>.riktning_mot_dealer, dealerns egna rakt')
 w('')
 # ---------------- KASSERING
 w('kassering:  # finns inte i spelet – speglad mot skon på dealerns höger')

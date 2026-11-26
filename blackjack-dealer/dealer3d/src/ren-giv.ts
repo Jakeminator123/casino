@@ -305,6 +305,7 @@ export function granska(m: {frames: {card: Kort; L: Limb; R: Limb}[]; leavesShoe
   const F = m.frames, utom = (k: string) => k !== 'ordning' && k !== 'grannen', FING = [2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20];
   const mot = (c: Kort, p: Vec3) => { const d = sub(p, c.c), u = dot(d, c.l), v = dot(d, cross(c.n, c.l)), w = dot(d, c.n); return Math.abs(u) < HK / 2 + 0.01 && Math.abs(v) < WK / 2 + 0.01 && Math.abs(w) < 0.016 ? w : null; };
   const spar = new Set<number>(); let bojdRutor = 0, varandra = 0; const vad = new Set<string>(), ben0 = {R: boneLengths(F[0].R.p), L: boneLengths(F[0].L.p)};
+  const motSpelaren = (() => { const l = F[F.length - 1].card.l, p = flat(l); return p[2] >= 0 ? p : mul(p, -1); })();
   F.forEach((f, i) => {
     if (doll) for (const s of ['R', 'L'] as const) { const l = f[s], fel = Math.max(Math.abs(length(sub(l.e, l.s)) - doll.upperArm), Math.abs(length(sub(l.w, l.e)) - doll.forearm), ...boneLengths(l.p).map((x, k) => Math.abs(x - ben0[s][k])));
       if (fel > 0.0005) { spar.add(i); vad.add(`${s} ben`); }
@@ -320,7 +321,9 @@ export function granska(m: {frames: {card: Kort; L: Limb; R: Limb}[]; leavesShoe
     // (vändningen, Jakob 2026-11-26 "Fel håll av kortvändningen" och "nyckelvridningsrotation", läst på två lärofilmer
     // av riktiga dealrar (koreo-giv.ts): framsidan går från nedåt till dealern (kortet rest på högkant) och rullas fram och
     // upp; i luften vetter den aldrig mot spelarna)
-    if (i > m.leavesShoe && i < m.rests && lagst > 0.002) { const nn = unit(f.card.n); if (nn[2] > 0.35) { spar.add(i); vad.add("kortet vänds fel"); } }
+    // (mot spelarna: åt det håll kortet till sist pekar på sin plats, från dealern mot platsens spelare; rakt mot spelarna
+    // där platsen ligger rakt, och för standarddockornas vända platser mot kortets egen spelare)
+    if (i > m.leavesShoe && i < m.rests && lagst > 0.002) { const nn = unit(f.card.n); if (dot(nn, motSpelaren) > 0.35) { spar.add(i); vad.add("kortet vänds fel"); } }
     if (i > m.leavesShoe && i < m.rests) { const sidor = [...FING.map(k => mot(f.card, f.R.p[k])), ...FING.map(k => mot(f.card, f.L.p[k]))].filter(w => w !== null) as number[];
       if (!(sidor.some(w => w > 0) && sidor.some(w => w < 0)) && !(lagst < 0.004 && sidor.length > 0) && !hornen.every(q => q[1] < 0.004)) { spar.add(i); vad.add('utan stöd'); } } });
   // (ryck: hastighetens ändring som vektor mellan två rutor, i alla rutor; utan `strang` det äldre hopptestet)
@@ -352,7 +355,7 @@ export function granska(m: {frames: {card: Kort; L: Limb; R: Limb}[]; leavesShoe
  */
 export const RORA = 0.003;
 type GivRuta = {card: Kort; L: Limb; R: Limb};
-export function givRegler(m: {frames: GivRuta[]; leavesShoe: number; rests: number; fps: number; hip: Vec3}, doll: Doll, val: {dealerKort?: Vec3[]; topp?: {finger: number; thumb: number}} = {}) {
+export function givRegler(m: {frames: GivRuta[]; leavesShoe: number; rests: number; fps: number; hip: Vec3}, doll: Doll, val: {dealerKort?: Vec3[]; topp?: {finger: number; thumb: number}; hand?: 'R' | 'L'} = {}) {
   const F = m.frames, n = F.length, fps = m.fps, tp = {finger: Math.max(REN.topp, doll.hand?.topp?.finger ?? 0), thumb: Math.max(REN.tumme, doll.hand?.topp?.thumb ?? 0), ...val.topp};
   const TOPPAR = [4, 6, 7, 8, 10, 11, 12, 16, 20], g = (r: number) => Math.round(r * 1800 / Math.PI) / 10, ang = (a: Vec3, b: Vec3) => Math.acos(Math.max(-1, Math.min(1, dot(unit(a), unit(b)))));
   /** Vilka sidor av kortet handens toppar, pek- och långfingrets leder rör (högst RORA från ytan, inom kortet): +1 framsidan, -1 ryggen, och tummens sida. */
@@ -382,7 +385,7 @@ export function givRegler(m: {frames: GivRuta[]; leavesShoe: number; rests: numb
   const utanHand = F.slice(m.leavesShoe, m.rests).map((f, j) => ({i: m.leavesShoe + j, f})).filter(({i, f}) => lutning(f.card) > 10 && !R[i].ror && !L[i].ror).map(x => x.i);
   const lodratt = F.slice(m.leavesShoe, m.rests).map((f, j) => ({i: m.leavesShoe + j, f})).filter(({f}) => lutning(f.card) > 78);
   const lodrattIHanden = lodratt.filter(({i, f}) => hall(f.R, f.card) && i > 0 && (length(sub(f.card.c, F[i - 1].card.c)) > 0.001 || ang(f.card.n, F[i - 1].card.n) > 0.02)).length;
-  let efter = 0; for (let i = m.rests; i < n && R[i].ror; i++) efter++;
+  let efter = 0; for (let i = m.rests; i < n && (val.hand === 'L' ? L : R)[i].ror; i++) efter++;
   // 4 längs handen
   const halls = F.map((f, i) => ({i, f})).filter(({f}) => hall(f.R, f.card));
   const langsHanden = Math.max(0, ...halls.map(({f}) => { const fram = unit(sub(f.R.p[9], f.R.p[0])), l = unit(f.card.l); return g(Math.acos(Math.min(1, Math.abs(dot(fram, l))))); }));
@@ -405,8 +408,8 @@ export function givRegler(m: {frames: GivRuta[]; leavesShoe: number; rests: numb
     vridningen: {rulleGrader: [Math.min(...rulle), Math.max(...rulle)]},
     takten: {liggerSekunder: Math.round(m.rests / fps * 100) / 100, hemmaEfterSekunder: Math.round((n - 1 - m.rests) / fps * 100) / 100}};
   const bryter: string[] = [];
-  if (langst < 3) bryter.push(`1: båda händerna rör kortet bara ${langst} rutor i följd`); if (ensamt !== 0) bryter.push(`1: kortet ensamt ${ensamt} rutor`);
-  if (Math.abs(slappt - greppat - 1) > 1) bryter.push(`1: vänstern släpper ${slappt - greppat} rutor efter greppet`); if (kortplatser.some(x => x < 0)) bryter.push('1: mötet på dealerns kortplats');
+  if (val.hand !== 'L') { if (langst < 3) bryter.push(`1: båda händerna rör kortet bara ${langst} rutor i följd`); if (ensamt !== 0) bryter.push(`1: kortet ensamt ${ensamt} rutor`);
+  if (Math.abs(slappt - greppat - 1) > 1) bryter.push(`1: vänstern släpper ${slappt - greppat} rutor efter greppet`); if (kortplatser.some(x => x < 0)) bryter.push('1: mötet på dealerns kortplats'); }
   if (minstUt < 0.75) bryter.push(`2: fingertopparna bara ${minstUt} av fingret ut`); if (merBojda) bryter.push(`2: ring- eller lillfingret mer böjt än långfingret i ${merBojda} rutor`);
   if (utanHand.length) bryter.push(`3: kortet lutar utan att en hand rör det i rutorna ${utanHand.join(',')}`);
   if (efter < 3) bryter.push(`3: fingrarna på kortet bara ${(efter / fps).toFixed(2)} s efter att det ligger`);

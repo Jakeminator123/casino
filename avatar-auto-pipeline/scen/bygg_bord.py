@@ -584,13 +584,19 @@ def main():
         m = pbr(f'chip_{v}', chipcol[v], rough=0.4)
         cylinder(f'bricka_rad_{i+1:02d}_{v}', (x, -(s_end - L / 2), FZ - 0.002 - cr), cr, cr, L, c_bricka, m, seg=32, axis='Y')
 
-    # ---- markeringar: guldram runt varje kortplats (spelet lägger korten rakt: yaw 0)
+    # ---- markeringar: guldram runt varje kortplats. Spelet lägger korten rakt (yaw 0). På standarddockans bord
+    # (--docka, standard.yaml dockans_bord.kort_mot_spelaren; Jakob 2026-11-26: "fyrkanter som pekar mot respektive
+    # stol", på prov) ligger spelarnas platser vända mot sin spelare: ramen och exempelkortet vrids kring platsens mitt
+    # så att långsidan följer riktning_mot_dealer, linjen från dealern genom platsen; dealerns egna ligger rakt.
     K = STD['kort']; mg, lw = K['markering']['marginal'], K['markering']['linjebredd']
+    vanda = DOCKA and STD['dockans_bord'].get('kort_mot_spelaren')
+    vridning = lambda pid: math.radians(STD['platser'][pid]['riktning_mot_dealer'] - 90.0) if vanda and pid.startswith('P') else 0.0
     for pid, p in STD['platser'].items():
-        cx, cy = p['pos'][0], p['pos'][1]; hw, hl = K['bredd']/2 + mg, K['langd']/2 + mg
+        cx, cy = p['pos'][0], p['pos'][1]; hw, hl = K['bredd']/2 + mg, K['langd']/2 + mg; vr = vridning(pid)
+        vrid = lambda q: (cx + (q[0]-cx)*math.cos(vr) - (q[1]-cy)*math.sin(vr), cy + (q[0]-cx)*math.sin(vr) + (q[1]-cy)*math.cos(vr))
         bm = bmesh.new()
-        outer = [(cx-hw, cy-hl), (cx+hw, cy-hl), (cx+hw, cy+hl), (cx-hw, cy+hl)]
-        inner = [(cx-hw+lw, cy-hl+lw), (cx+hw-lw, cy-hl+lw), (cx+hw-lw, cy+hl-lw), (cx-hw+lw, cy+hl-lw)]
+        outer = [vrid(q) for q in [(cx-hw, cy-hl), (cx+hw, cy-hl), (cx+hw, cy+hl), (cx-hw, cy+hl)]]
+        inner = [vrid(q) for q in [(cx-hw+lw, cy-hl+lw), (cx+hw-lw, cy-hl+lw), (cx+hw-lw, cy+hl-lw), (cx-hw+lw, cy+hl-lw)]]
         vo = [bm.verts.new((x, y, FZ + 0.0002)) for x, y in outer]; vi = [bm.verts.new((x, y, FZ + 0.0002)) for x, y in inner]
         for k in range(4):
             bm.faces.new((vo[k], vo[(k+1) % 4], vi[(k+1) % 4], vi[k]))
@@ -693,7 +699,7 @@ def main():
     demo = {'P1.C1': 'HA', 'P2.C1': 'S10', 'P3.C1': 'D7', 'P4.C1': 'CK', 'P5.C1': 'H5', 'P6.C1': 'SQ', 'P7.C1': 'D9', 'D.C1': 'C8'}
     for pid, card in demo.items():
         p = STD['platser'][pid]; ob = bpy.data.objects.new('giv_' + pid, meshes[card]); c_giv.objects.link(ob)
-        ob.location = (p['pos'][0], p['pos'][1], FZ + 0.0002); ob['plats'] = pid
+        ob.location = (p['pos'][0], p['pos'][1], FZ + 0.0002); ob['plats'] = pid; ob.rotation_euler = (0, 0, vridning(pid))
     ob = bpy.data.objects.new('giv_D.C2', meb); c_giv.objects.link(ob)
     p = STD['platser']['D.C2']; ob.location = (p['pos'][0], p['pos'][1], FZ + 0.0002 + K['tjocklek']); ob.rotation_euler = (0, math.pi, 0)
 

@@ -178,11 +178,13 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Väntar på Jakob
 
-- Standarddockan (2026-11-26): mannens nya giv, provet `giv-man-20261126` (Granska, Prov) med kortet
-  `mannens-giv-vandningen` i Beslut: version A (kortet vänds direkt efter handbytet) eller B (vänds vid platsen), till
-  plats 4, och A till plats 5, med den nya kroppen vid halvmånen i spelets vy. Hans svar avgör vilken vändning som
-  ritas till alla sju platser och för kvinnan. Arbetet sker i `../standarddocka/` (läget och nästa steg i dess README)
-  och visas för honom som prov härifrån; hans ord står som krav i `../standarddocka/AGENTS.md`.
+- Standarddockan (2026-11-26): givarna till alla sju platser, provet `givar-sju-platser-20261126` (Granska, Prov) med
+  kortet `givar-sju-platser` i Beslut. Om A och B till plats 4 (provet `giv-man-20261126`) svarade han "Superbra, 5/5
+  för båda" och "gärna A och B", så båda är ritade till alla platser, för mannen och kvinnan; plats 6 och 7 ges med
+  vänsterhanden ensam, och kortplatserna på dockornas bord är vända mot sin spelare. Det han ska säga: om givarna
+  till de yttre platserna duger, om vänsterhandsgiven är rätt sätt, och om de vända kortplatserna ska bli standard.
+  Arbetet sker i `../standarddocka/` (läget och nästa steg i dess README) och visas för honom som prov härifrån; hans
+  ord står som krav i `../standarddocka/AGENTS.md`.
 - Dockans film omgjord till en person (betalda prov, 776 krediter): proven `docka-till-person-20261126` (dömt "Mycket
   bra"), `docka-till-person-2-20261126` och `docka-till-person-3-20261126`; de två sista har var sitt kort i Beslut
   (håller skarven mellan två klipp, och ska dealern filmas i nyckelfärger). Vad som prövades står i
@@ -232,8 +234,8 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - Beställ visar 35 levererade beställningar som "Godkänd, i kön" med trasiga bilder: deras filmer finns här, men
   in-bilderna och kvittona bara på den stationära. Rättas i koden: en beställning med post i filmregistret visas som
   levererad, och en saknad bild som "finns inte här".
-- I Bordet med Standarddockan visar platsknapparna inte vilka platser som har en ritad giv: en plats utan giv visar
-  plats 4 med en rad om det.
+- I Bordet med Standarddockan spelas version A på varje plats (dockvyn hittar `…-ren-a-<docka>` på filnamnet); version
+  B (`…-ren-b-<docka>`, plats 1–5) går ännu inte att välja där eller i editorn.
 
 Önskemål, inget beställt (2026-11-11, 2026-11-13): ett tredje och fjärde dealerkort, mer rörelse i kropp, huvud och
 högerarm när hon delar ut, kaffe ur en mugg i bilden, en animation på bordet, marker som dealern tar och betalar,

@@ -13,7 +13,7 @@
 // A doll from SAM with all its joints (fingers, face) is a doll whose `skeleton` is filled: the names, parents and rest
 // places of the joints, read as dealer3d/tools/docka-sam.py reads them; see DollSkeleton.
 import {add, filmEye, length, mul, onUpright, sub, unit, type Lens, type Pixel, type Vec3} from './camera.ts';
-import {ASSUMED, MEASURED, dealerEdge} from './world.ts';
+import {ASSUMED, DOLL_TABLE, MEASURED, dealerEdge} from './world.ts';
 
 export type Frame = {hip: Vec3; shoulders: [Vec3, Vec3]; neck: Vec3; head: Vec3; headRadius: number}; // shoulders: her right (image left), her left (image right)
 /**
@@ -187,6 +187,17 @@ export function dollFrame(lens: Lens, doll: Doll = STANDARD): Frame {
   const ahead = (q: Pixel, by: number): Vec3 => onUpright(eye, q.x, q.y, z + by)!;
   const a = ahead(p.shoulders[0], p.ahead.shoulders[0]), b = ahead(p.shoulders[1], p.ahead.shoulders[1]), mid = mul(add(a, b), 0.5);
   return {hip: [mid[0], -doll.hipBelowFelt, z], shoulders: [a, b], neck: ahead(p.neck, p.ahead.neck), head: ahead(p.head, p.ahead.head), headRadius: p.headRadius};
+}
+
+/**
+ * How a card lies on a place of the standard doll's table (src/table-lens.ts DOLL_TABLE.cardsFrom): the angle of its long
+ * side about the upright, radians, 0 toward the players (+z) and positive toward the dealer's left (+x). A player's card
+ * points along the line from the dealer (the standard figure's middle, `cardsFrom` behind the game's edge) through the
+ * place, the line its player sits on; the same angle as avatar-auto-pipeline's scen/standard.yaml has as
+ * riktning_mot_dealer, which the doll table's marks are turned by. The dealer's own cards (D.…) lie straight.
+ */
+export function dollCardYaw(id: string, at: Vec3, lens: Lens): number {
+  return /^P\d/.test(id) ? Math.atan2(at[0] - dollFrame(lens, STANDARD).hip[0], at[2] - (dealerEdge(lens)[2] - DOLL_TABLE.cardsFrom)) : 0;
 }
 
 /** The doll as the doll lab's "Naturlig" has her: her left hand at the anchor as `hand.natural` has it, where she has one; else the doll as she is. Same name. */

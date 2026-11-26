@@ -24,7 +24,11 @@
       ],
       "asked": "2026-11-26",
       "from": "standarddocka",
-      "answer": null
+      "answer": {
+        "value": "a",
+        "note": "Superbra, 5/5 för båda faktist! Kanon skulle ju var att ha båda uppsöttningarna, men så de skulle kunan dela till alala spealre och upp till 7 kort för respekive spelare/seat så att säga på ett eelr aant sätt.. SÅ gärn A och B",
+        "at": "2026-11-26T11:54:40.085Z"
+      }
     },
     {
       "id": "docka-till-person-omgang-2",
@@ -48,7 +52,11 @@
       ],
       "asked": "2026-11-26",
       "from": "standarddocka",
-      "answer": null
+      "answer": {
+        "value": "nastan",
+        "note": "Är inte denan filmad med en annan kameravinkle?",
+        "at": "2026-11-26T11:55:12.925Z"
+      }
     },
     {
       "id": "docka-till-person-omgang-3",
@@ -72,7 +80,11 @@
       ],
       "asked": "2026-11-26",
       "from": "standarddocka",
-      "answer": null
+      "answer": {
+        "value": "prova",
+        "note": "Deaa är gammal elelr? om inte så får du avgöra faktist",
+        "at": "2026-11-26T11:56:06.713Z"
+      }
     },
     {
       "id": "giv-utan-vandning-i-handen",
@@ -97,6 +109,30 @@
         "at": "2026-11-19T12:33:41.855Z"
       },
       "cost": "en film, cirka 64 krediter"
+    },
+    {
+      "id": "givar-sju-platser",
+      "kind": "beslut",
+      "question": "Standarddockans giv till alla sju platser: duger den?",
+      "leads": "Ja: fler kort per plats (upp till sju) och valet mellan A och B är nästa steg. Annars ritas givarna om efter din anteckning; säg också om plats 6 och 7 ska ges med vänsterhanden ensam och om kortplatserna ska vara vända mot spelarna.",
+      "proof": "givar-sju-platser-20261126",
+      "chips": [
+        {
+          "value": "ja",
+          "label": "Ja, den duger"
+        },
+        {
+          "value": "nastan",
+          "label": "Nästan: se anteckningen"
+        },
+        {
+          "value": "nej",
+          "label": "Nej"
+        }
+      ],
+      "asked": "2026-11-26",
+      "from": "standarddocka",
+      "answer": null
     }
   ]
 }

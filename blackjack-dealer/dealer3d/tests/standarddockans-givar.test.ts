@@ -38,7 +38,7 @@ for (const docka of ['man', 'kvinna']) {
     const g = granska({frames: F, leavesShoe: F.length, rests: F.length}, doll); assert.equal(g.sparrRutor, 0, `spärr: ${g.vad.join(', ')}`);
   });
 
-  const givar = readdirSync(DATA).filter(f => new RegExp(`^giv-fran-2-3-p\\dc1-ren-a-${docka}\\.json$`).test(f)).map(f => f.replace(/\.json$/, ''));
+  const givar = readdirSync(DATA).filter(f => new RegExp(`^giv-fran-2-3-p\\dc1-ren-[ab]-${docka}\\.json$`).test(f)).map(f => f.replace(/\.json$/, ''));
   for (const namn of givar) test(`${docka}: ${namn} i Jakobs takt, landar plant på platsen och stilla, utan spärr, från och till ankaret`, () => {
     const m = read(namn) as Motion, F = m.frames, plats = platser.find(s => s.id === `P${namn.match(/-p(\d)c1-/)![1]}.C1`)!;
     assert.equal(m.doll, docka);

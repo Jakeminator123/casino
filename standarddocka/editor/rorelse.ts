@@ -52,13 +52,12 @@ export const GIVAR: Record<number, string> = {1: 'giv-fran-2-3-p1c1-naturlig-cyk
 export type Standarddocka = 'man' | 'kvinna';
 /**
  * Dockans egna grundrörelser, ritade för hennes eller hans kropp och i Jakobs takt: en rad per docka och plats (vilan till
- * skon och given dit). Där en rad saknas spelar platsen de äldre (TILL_SKON och GIVAR ovan), ritade för en annan kropp.
- * Nästa giv är en rad till.
+ * skon och given dit). Sedan 2026-11-26 har mannen och kvinnan en egen giv till var och en av de sju platserna
+ * (blackjack-dealer/dealer3d/tools/ren-givar.ts --docka <docka> --alla --koreo a). Där en rad saknas spelar platsen de
+ * äldre (TILL_SKON och GIVAR ovan), ritade för en annan kropp.
  */
-export const EGNA: {docka: Standarddocka; plats: number; vila: string; giv: string}[] = [
-  {docka: 'man', plats: 4, vila: 'till-ankare-2-3-man', giv: 'giv-fran-2-3-p4c1-ren-a-man'},
-  {docka: 'man', plats: 5, vila: 'till-ankare-2-3-man', giv: 'giv-fran-2-3-p5c1-ren-a-man'},
-];
+export const EGNA: {docka: Standarddocka; plats: number; vila: string; giv: string}[] = (['man', 'kvinna'] as const).flatMap(docka =>
+  [1, 2, 3, 4, 5, 6, 7].map(plats => ({docka, plats, vila: `till-ankare-2-3-${docka}`, giv: `giv-fran-2-3-p${plats}c1-ren-a-${docka}`})));
 /**
  * Grundrörelserna som spelas för en docka och en plats: dockans egna där de finns, annars de äldre. `namn` är det sparade
  * lagrets namn (rorelser/<namn>.json): dockans egna rörelser har ett eget, så att ett lager till dem och ett till de äldre
