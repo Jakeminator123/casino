@@ -78,7 +78,7 @@ Läst den dagen ur sidorna ovan. Priserna är krediter per sekund färdig film o
 | Seedance 2.5 | `seedance2_5` | `/v1/video_to_video` med `mode`: `reference` (ny film styrd av infilmen), `edit` (ändrar infilmen på plats; kräver text och `duration: "auto"`, tar ingen `ratio`) eller `extend`. Upp till 30 bilder och 9 filmer som referens | 4–30 s, 480p till 4K; infilm minst 480p. `draft: true` ger en billig 480p-förhandsvisning som kan höjas till 1080p inom sju dygn | 1080p: 68 ut plus 34 per s infilm. 720p: 30 + 15. 480p: 20 + 10. Minst 80 |
 | Seedance 2.5 Flash | `seedance2_5_flash` | Samma lägen, bara 480p och 720p | 4–30 s | 720p: 20 + 10; minst 52 |
 | Gemini Omni 1.2 Flash | `gemini_omni_flash_1.2` | Text, första och sista bild, eller `/v1/video_to_video` med `mode` `reference`, `edit` eller `extend`; högst 5 bilder som referens | 3–15 s, 360p till 4K | 1080p: 10, plus 1 per bild och 1 per s infilm. 720p: 7 |
-| WAN 3.0 | `wan3` | Första och sista bild, eller referenser (inte båda) | 2–30 s, 480p till 1080p | 1080p 20, 720p 10, 480p 5 |
+| WAN 3.0 | `wan3` | `/v1/image_to_video`: första och sista bild, eller referenser (inte båda): upp till 10 bilder (`promptImage` utan `position`) och upp till 5 referensfilmer för rörelsen (`referenceVideos`) | 2–30 s, 480p till 1080p (`832:480` är 480p i bred bild). Referensfilmer tillsammans högst 15 s och minst 854 x 480 | 1080p 20, 720p 10, 480p 5; referenserna kostar inget extra |
 | Act-Two (Runway) | `act_two` | `/v1/character_performance`: en bild eller film av en figur styrs av en film av en person som spelar (ansiktet, och kroppen med `bodyControl`) | 3–30 s; ansiktet måste synas hela tiden | 5 |
 | GPT Image 2.6 | `gpt_image_2_6_sunburst`, `gpt_image_2_6_flare` | Bild ur text och upp till 16 bilder som referens (redigering); för ankare och styrbilder | 1K till 4K, 30 mått | 2K i 3:2, hög kvalitet: 8 per bild |
 | Nano Banana Pro | `gemini_image3_pro` | Bild och redigering; den vi har gjort keystone och ankare med | upp till 4K | från 20 per bild |
@@ -101,6 +101,9 @@ en riktig person. Sätten som finns i dag, i den ordning de är värda att pröv
 4. **Gemini Omni 1.2 Flash, `edit`:** under hälften av Alephs pris, men stoppad av innehållsgranskningen när foton av
    en person följde med (2026-11-26).
 5. **Seedance 2.5, `edit`:** dyrast (drygt tre gånger Aleph i 1080p); en reserv om de andra tappar utseendet.
+6. **WAN 3.0 med figurens film som referensfilm och en bild av personen vid bordet som referensbild:** billigast (5 per
+   sekund i 480p), och i det enda provet följde personen figuren (fjärde provet nedan). För sållning och snabba prov;
+   inte prövat i högre upplösning eller mot en skarv mellan två klipp.
 
 Vad som måste finnas före en körning, vilket sätt det än är:
 
@@ -156,6 +159,13 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     förskönar Kling korten. Jakobs dom: "Inte bra", "Ingen video gjorde rörelsen mer naturlig". En redigerande modell
     (Aleph 2, Kling 4 på `/v1/video_to_video`) behåller alltså infilmens rörelse; ska rörelsen bli bättre görs det i
     dockan.
+- Fjärde provet, 2026-11-26, i `kortspelspaket` (agentens läsning; Jakobs dom väntar, filmerna och anropet ligger i
+  `slask/kortspelspaket/granska/katt-till-person-1/`): **WAN 3.0 med en referensfilm och en referensbild**, i 480p.
+  In: en 3D-figurs giv som film (paketets robotkatt vid spelets bord med kort, 4 s, 854 x 480, 30 bilder/s) och
+  styrbilden av provpersonen vid bordet ur första provet. Ut: personen gör figurens rörelse i samma takt och samma
+  bildutsnitt, vid samma bord, och korten följer med (ur skon, från hand till hand, ner på platsen). 20 krediter: en
+  femtedel av Aleph 2 för samma längd. Referensfilmen i 832 x 480 föll i kontrollen före anropet, utan kostnad: den ska
+  vara minst 854 x 480.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: en annan kamera än spelets, Kling 4 med styrbilden som första bild och filmen som lös förlaga

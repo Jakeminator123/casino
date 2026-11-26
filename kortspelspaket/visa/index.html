@@ -34,6 +34,9 @@
   #rad button.pa, #info button.pa { background: #3a3220; border-color: #c9a55c; color: #ffd98a; }
   #rad .skilje { width: 1px; align-self: stretch; background: #3a3d42; margin: 0 4px; }
   body.bord .utstallning, body:not(.bord) .bordet { display: none !important; }
+  /* En ren bild (&ren=1): bara scenen, över hela fönstret. */
+  body.ren #lista, body.ren #rad, body.ren #info, body.ren #laddar { display: none !important; }
+  body.ren #vy { inset: 0; }
   #info { position: absolute; bottom: 14px; left: 304px; right: 14px; background: #15171ae6; padding: 8px 12px; border-radius: 6px; }
   #info[hidden] { display: none; }
   #info .rad { display: flex; gap: 10px; align-items: center; }

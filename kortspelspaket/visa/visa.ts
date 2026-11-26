@@ -41,6 +41,8 @@ const CUTS = '/kortspelspaket/sekvenser.json';
 const demo: Demo = await (await fetch('/demo.json')).json();
 const el = <E extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as E;
 const view = el('vy'), info = el('info'), loading = el('laddar');
+// En ren bild utan listan och knapparna (&ren=1), för filmer och bilder som bara ska visa scenen.
+if (new URLSearchParams(location.search).has('ren')) document.body.classList.add('ren');
 const sek = (n: number) => n.toFixed(1).replace('.', ',');
 
 // ---- scenen ------------------------------------------------------------------------------------------------------

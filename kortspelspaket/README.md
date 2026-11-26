@@ -91,6 +91,16 @@ Det här är mätt ur rörelserna och syns i bordsvyn:
 - Kort läggs också i `To_Players_01` och `_02` (ur leken i vänster hand), `Reveal_Cards_01` och `_FromMachine_01`
   (floppen och två kort till) och `RevealHouseCard_01` och `_02` (husets kort vänds); tiderna står som bitar i listan.
 
+## Från figur till person (prov)
+
+Jakobs idé 2026-11-26: skicka figurens rörelse som film till en filmmodell hos Runway tillsammans med en bild av en
+person, och få tillbaka personen som gör rörelsen. Första provet (WAN 3.0 i 480p, 20 krediter): kattens giv 3 i spelets
+vy med kort (4 s, filmad med `verktyg/titta.ts --film`) och bilden av provpersonen vid bordet. Personen följer kattens
+rörelse i samma takt och bildutsnitt, och kortet går ur skon, från hand till hand och ner på platsen. Filmerna, bilden
+och anropet ligger i `../slask/kortspelspaket/granska/katt-till-person-1/` och väntar på hans dom. Hur det görs, vad
+det kostar och vad de andra sätten ger står i skillen `runway` (`../.claude/skills/runway/SKILL.md`); ett betalt anrop
+läggs med `node tools/runway-api.ts place` från `../blackjack-dealer/`, och bara på hans ord.
+
 ## Vägen
 
 Riktningen (Jakob 2026-11-26, `AGENTS.md`): bygga utifrån paketets rörelser och lyfta in det som behövs hit. Varje steg
@@ -146,7 +156,7 @@ Håller inte steg 1 eller 2 för hans domar är paketet ändå en förebild att 
 | `visa/paketbord.ts` | De egna borden för paketets figurer: formen, platserna, kortplatserna, brickan och skon |
 | `visa/kort.ts` | Korten i blackjackdealerns giv: när kortet dras ur skon, byter hand och släpps räknas ur rörelsen, och kortet följer händerna |
 | `verktyg/mat.ts` | Mäter en rörelse utan webbläsare: `node kortspelspaket/verktyg/mat.ts <AS_namn>` ger föreslagna bitar, händernas hållpunkter med grepp och en tidslinje; `--alla` alla 66 med en rad per bit; `--sparade` mäter bitarna i `sekvenser.json`; `--bilder <mapp>` ritar varje bit som streckgubbar, utan grafikkort och lås |
-| `verktyg/titta.ts` | Tar bilder av visaren utan fönster, för en agent som ska se vad en ändring gjorde: `node kortspelspaket/verktyg/titta.ts slask/kortspelspaket/<uppgift> topp=vy=bord,kamera=topp,t=12.7` (visaren ska vara igång; sidans fel skrivs ut) |
+| `verktyg/titta.ts` | Tar bilder av visaren utan fönster, för en agent som ska se vad en ändring gjorde: `node kortspelspaket/verktyg/titta.ts slask/kortspelspaket/<uppgift> topp=vy=bord,kamera=topp,t=12.7` (visaren ska vara igång; sidans fel skrivs ut). Med `--film --fran <s> --till <s>` blir det en film (MP4) av rörelsen mellan de tiderna, utan listan och knapparna; `--bredd` och `--hojd` ger måtten |
 | `sekvenser.json` | De utklippta bitarna: per rörelse ett namn och två tider i sekunder |
 | `OVERLAMNING.md` | Underlaget för den agent som för över paketets rörelser till standarddockan: hur en rörelse läses, leden mot dockans, givens tal och det som skiljer mot Jakobs domar |
 | `STARTA visaren.cmd` | Packar upp vid behov och startar visaren |
@@ -158,8 +168,9 @@ inte är byggda säger sidan det och visar figurerna utan bord).
 
 Adressen kan välja vad som visas, för den som vill peka på en viss bild:
 `?vy=bord&kamera=spel|runt|sida|topp&bordslag=spel|paket|stort&spelare=7|3|nej&kort=nej&bord=<cm>&rorelse=<AS_namn>&t=<sekunder>`
-(med `t` står rörelsen stilla där; `bord` är reglagets värde, minus är ner), och `&kam=x_y_z_x_y_z_vinkel` ställer en
-egen kamera för en närbild (läget, punkten den ser mot och bildvinkeln).
+(med `t` står rörelsen stilla där; `bord` är reglagets värde, minus är ner), `&kam=x_y_z_x_y_z_vinkel` ställer en
+egen kamera för en närbild (läget, punkten den ser mot och bildvinkeln), och `&ren=1` visar bara scenen, utan listan
+och knapparna.
 
 `paket/` går aldrig in i Git (`AGENTS.md`). På en annan dator: lägg de tre filerna i Hämtade filer och dubbelklicka
 `STARTA visaren.cmd`, eller kör `node kortspelspaket/packa-upp.ts --fran <mapp>` med mappen där de ligger.
