@@ -87,6 +87,9 @@ function solve(A: number[][], b: number[]): number[] {
  * is, each bone weighed by how stiff it is (`stiff`, per world axis). `joints` are the spine's joints and `shoulders`
  * the shoulder joints as they lie unbent; `want` where the shoulders are to be. Found by Gauss-Newton steps from no
  * turn at all, with the shoulders' miss weighed far above the turning, so that the same pose always bends the same way.
+ * A step is taken only as far as it lowers what is being made small (the miss and the turning together), halved until it
+ * does: in a deep lean the turns are far from small, a whole step overshot, and the steps never settled, so that for a few
+ * frames the chest came out turned half round (the standard woman's deal to seat 5, 2026-11-26, as the card was laid).
  */
 function bendSpine(joints: Vec3[], shoulders: Vec3[], want: Vec3[], stiff: readonly (readonly number[])[]): Q4[] {
   const n = joints.length, steps = joints.slice(1).map((j, k) => sub3(j, joints[k])), ends = shoulders.map(s => sub3(s, joints[n - 1]));
@@ -94,11 +97,15 @@ function bendSpine(joints: Vec3[], shoulders: Vec3[], want: Vec3[], stiff: reado
     for (let k = 0; k < n; k++) { R = qmul(qexp(x[3 * k], x[3 * k + 1], x[3 * k + 2]), R); if (k < n - 1) P = add3(P, qrot(R, steps[k])); }
     return ends.flatMap((e, s) => sub3(add3(P, qrot(R, e)), want[s])); };
   const m = 3 * n, x = new Array<number>(m).fill(0), w = stiff.flatMap(s => [...s]), MISS = 1e6, H = 1e-6;
-  for (let step = 0; step < 12; step++) {
+  const cost = (y: number[], r: number[]) => MISS * r.reduce((s, q) => s + q * q, 0) + y.reduce((s, q, i) => s + w[i] * q * q, 0);
+  for (let step = 0; step < 40; step++) {
     const r = miss(x), J = Array.from({length: m}, (_, c) => { const y = x.slice(); y[c] += H; return miss(y).map((q, i) => (q - r[i]) / H); });
     const A = J.map((a, i) => J.map((b, j) => MISS * a.reduce((s, q, k) => s + q * b[k], 0) + (i === j ? w[i] : 0))), g = J.map((a, i) => -(MISS * a.reduce((s, q, k) => s + q * r[k], 0) + w[i] * x[i]));
-    const d = solve(A, g); for (let i = 0; i < m; i++) x[i] += d[i];
-    if (Math.hypot(...d) < 1e-9) break;
+    const d = solve(A, g), now = cost(x, r); let part = 1, y = x;
+    for (; part > 1e-4; part /= 2) { y = x.map((q, i) => q + part * d[i]); if (cost(y, miss(y)) < now) break; }
+    if (part <= 1e-4) break;
+    for (let i = 0; i < m; i++) x[i] = y[i];
+    if (Math.hypot(...d) * part < 1e-9) break;
   }
   return Array.from({length: n}, (_, k) => qexp(x[3 * k], x[3 * k + 1], x[3 * k + 2]));
 }
