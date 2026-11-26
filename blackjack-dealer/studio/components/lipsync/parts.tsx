@@ -34,7 +34,7 @@ export function Where({ children, className }: { children: ReactNode; className?
     <p className={cn("flex min-w-0 items-start gap-1 text-2xs text-faint", className)}>
       <FileSearch aria-hidden className="mt-px size-3 shrink-0 opacity-80" />
       <span className="sr-only">Var det står: </span>
-      <span className="min-w-0 [overflow-wrap:anywhere]">{children}</span>
+      <span className="min-w-0 wrap-anywhere">{children}</span>
     </p>
   );
 }

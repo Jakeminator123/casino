@@ -42,7 +42,7 @@ export function LipsyncView() {
 
   return (
     <Page title="Lipsync" status={answer ? <span>Uppdaterad {dayWord(answer.updated)}</span> : null}>
-      <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-10">
+      <div className="mx-auto flex w-full max-w-295 flex-col gap-10">
         {!answer && status === "error" ? <ErrorState title="Fakta om läppsynken kunde inte läsas" error={error} onRetry={() => void refreshLipsync()} /> : null}
         {!answer && status !== "error" ? (
           <div aria-busy className="flex flex-col gap-4">

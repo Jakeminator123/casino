@@ -428,7 +428,7 @@ function SummaryLine({ primar, s }: { primar: { set: number; total: number }; s:
       </Stat>
       {s.missing ? (
         <Stat tone="" title="Steg där spelet inte har någon film att spela">
-          <span className="rounded-full border border-dashed border-underkand/70 px-1.5 text-xs leading-[18px] text-[#ef8b8b]">{s.missing} saknas</span>
+          <span className="rounded-full border border-dashed border-underkand/70 px-1.5 text-xs leading-4.5 text-[#ef8b8b]">{s.missing} saknas</span>
         </Stat>
       ) : null}
     </span>

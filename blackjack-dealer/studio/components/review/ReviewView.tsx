@@ -253,7 +253,7 @@ export function ReviewView() {
             <span className="text-sm font-semibold text-ink">Kön</span>
             <span className="text-xs text-faint tabular-nums">{queue.waiting ? `${queue.waiting} väntar` : "tom"}</span>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+          <div className="min-h-0 flex-1 overflow-y-auto scrollbar-gutter-stable">
             {queue.items.length ? (
               <QueueList items={queue.items} current={current} onOpen={open} />
             ) : (

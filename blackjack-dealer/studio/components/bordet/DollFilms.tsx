@@ -22,7 +22,7 @@ function Cell({ src, stand, doll = false, children }: { src: string; stand?: str
   const [failed, setFailed] = useState(false);
   return (
     <figure className="flex min-w-0 flex-col gap-1.5">
-      <div className={cn("relative aspect-[1764/1174] overflow-hidden rounded-md border bg-well", doll ? "border-brass/45" : "border-line")}>
+      <div className={cn("relative aspect-1764/1174 overflow-hidden rounded-md border bg-well", doll ? "border-brass/45" : "border-line")}>
         {failed ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element -- a lab file; a static export cannot optimise */}

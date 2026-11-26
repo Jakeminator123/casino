@@ -109,11 +109,11 @@ export function MaterialView() {
     return (
       <Page title="Material">
         <div className="flex flex-col gap-6 pt-2">
-          <Skeleton className="h-9 w-[720px] max-w-full rounded-md" />
+          <Skeleton className="h-9 w-180 max-w-full rounded-md" />
           {Array.from({ length: 4 }, (_, i) => (
             <div key={i} className="grid grid-cols-[230px_minmax(0,1fr)] gap-6">
               <Skeleton className="h-24 rounded-md" />
-              <Skeleton className="h-[150px] rounded-md" />
+              <Skeleton className="h-37.5 rounded-md" />
             </div>
           ))}
         </div>

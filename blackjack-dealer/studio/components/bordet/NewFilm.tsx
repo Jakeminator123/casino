@@ -240,7 +240,7 @@ function Tile({ item, entry, active, onPick }: { item: GuideItem; entry: EntryAn
   const cover = entry ? coverOfEntry(entry) : null;
   return (
     <button type="button" data-step={item.id} onClick={onPick} aria-pressed={active} title={item.name} className="flex min-w-0 flex-col gap-1 rounded-md text-left focus-visible:outline-offset-2">
-      <span className={cn("relative block aspect-[3/2] w-full overflow-hidden rounded-md border", cover ? "border-line-strong bg-well" : "border-dashed border-line-strong", active && "ring-2 ring-brass/70")}>
+      <span className={cn("relative block aspect-3/2 w-full overflow-hidden rounded-md border", cover ? "border-line-strong bg-well" : "border-dashed border-line-strong", active && "ring-2 ring-brass/70")}>
         {cover && entry ? <ProofStill cover={cover} fps={entry.fps ?? 30} className="absolute inset-0" /> : <span className="absolute inset-0 grid place-items-center text-2xs text-faint">ingen bild</span>}
       </span>
       <span className="truncate font-mono text-2xs text-ink">{item.name}</span>
@@ -275,7 +275,7 @@ function TreeStills({ item, pictureOf }: { item: GuideItem; pictureOf: (node: st
     const cover = entry ? coverOfEntry(entry) : null;
     return (
       <figure className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className={cn("relative block aspect-[3/2] w-full overflow-hidden rounded-md border", cover ? "border-line-strong bg-well" : "border-dashed border-line-strong")}>
+        <span className={cn("relative block aspect-3/2 w-full overflow-hidden rounded-md border", cover ? "border-line-strong bg-well" : "border-dashed border-line-strong")}>
           {cover && entry ? <ProofStill cover={cover} fps={entry.fps ?? 30} className="absolute inset-0" /> : <span className="absolute inset-0 grid place-items-center text-2xs text-faint">ingen bild</span>}
         </span>
         <figcaption className="text-xs text-dim">{word}</figcaption>
@@ -333,7 +333,7 @@ function Command({ text }: { text: string }) {
   };
   return (
     <div className="flex items-stretch gap-2">
-      <code className="min-w-0 flex-1 select-all break-words rounded-md border border-line bg-well px-2.5 py-2 font-mono text-[12.5px] leading-5 text-ink">{text}</code>
+      <code className="min-w-0 flex-1 select-all wrap-break-word rounded-md border border-line bg-well px-2.5 py-2 font-mono text-[12.5px] leading-5 text-ink">{text}</code>
       <Button variant="secondary" size="sm" icon={<Copy />} onClick={() => void copy()} className="h-auto">
         Kopiera
       </Button>

@@ -213,17 +213,14 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   reglerna som ritar givarna (`../blackjack-dealer/dealer3d/src/`), framför allt greppet när högerhanden tar emot
   kortet, vändningen och släppet. På Jakobs ord görs de om där, som nya val och nya grundrörelser, med hans takt
   (kortet ut högst 1 s, handen tillbaka cirka 0,6 s) och med handen vid skon redo: varken lyft och spänd eller slapp.
-  Den nya generatorn är `dealer3d/src/ren-giv.ts`. De första nya givarna (`giv-fran-2-3-p<n>c1-ren-a-paow`, ritade
-  för dockan paow) klarar spärren på alla sju platserna
-  (`verktyg/mat.ts --alla --giv-monster giv-fran-2-3-p#c1-ren-a-paow`); bara plats 4 är sedd med ögat. De är ändå
-  inte godkända: en utomstående granskning 2026-11-26 fann, och en egen mätning bekräftade, att höger underarm i fem
-  av de sju blir längre än dockans 275 mm kring landningen (plats 3: 299 mm, plats 4: 355, plats 5: 349, plats 6: 293,
-  plats 7: 363). Generatorn tar armbågen ur armens räkning (`arm()` i `dealer3d/src/body.ts`) men sparar handleden den
-  bad om, också när den ligger utom räckhåll, och varken `granska` eller `mat.ts` prövar benens längd. Kroppen kan
-  alltså inte följa, och kortet hamnar bortom den ritade handen. De ersätts av givarna för standarddockans egen
-  kropp, där bålen lutar så långt räckvidden kräver och benens längd är en spärr. Editorn spelar fortfarande de gamla
-  givarna i en snabbare takt, och där är spärren röd på alla sju (finger genom kortet och kortet utan stöd): inget av
-  dem ska filmas för en betald film.
+  Den nya generatorn är `dealer3d/src/ren-giv.ts`. De första sju givarna den gjorde, för dockan paow, underkändes
+  och är raderade (2026-11-26): en utomstående granskning fann, och en egen mätning bekräftade, att höger underarm i
+  fem av dem blev upp till 363 mm mot dockans 275 kring landningen. Generatorn tog armbågen ur armens räkning
+  (`arm()` i `dealer3d/src/body.ts`) men sparade handleden den bad om, också utom räckhåll, och ingen mätning prövade
+  benens längd. Det är rättat: bålen lutar så långt räckvidden kräver, och benens längd är en spärr i både `granska`
+  och `mat.ts`. För de platser där dockans egna givar inte finns spelar editorn fortfarande de äldre givarna i en
+  snabbare takt, och där är spärren röd (finger genom kortet och kortet utan stöd): inget av dem ska filmas för en
+  betald film.
 - Kroppen följer inte rörelsens punkter (mätt 2026-11-26 på mannen i given till plats 4; måtten står i editorns
   `state()`: `axelFranPunktenMm`, `armbageFranPunktenMm`, `handledFranPunktenMm`, `fingrarFranPunkternaMm`). Axlar och
   handleder ligger rätt, men armbågarna hamnar 15–25 mm och fingrarnas leder 12–26 mm från rörelsens punkter: givarna

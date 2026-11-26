@@ -412,8 +412,8 @@ export function BordetView() {
           <ErrorState title="Kortplanen kunde inte läsas" error={draft.error ?? "Okänt fel"} onRetry={() => void draftActions.load()} />
         ) : !d || !plan ? (
           <div className="flex h-full flex-col gap-4 p-5 lg:flex-row">
-            <Skeleton className="aspect-[3/2] shrink-0 rounded-md lg:aspect-auto lg:h-full lg:flex-1" />
-            <Skeleton className="h-36 shrink-0 rounded-md lg:h-full lg:w-[400px]" />
+            <Skeleton className="aspect-3/2 shrink-0 rounded-md lg:aspect-auto lg:h-full lg:flex-1" />
+            <Skeleton className="h-36 shrink-0 rounded-md lg:h-full lg:w-100" />
           </div>
         ) : (
           <TableBody
@@ -523,7 +523,7 @@ function TableBody({
 
   // The scrollbar's room is kept in one column, so that the column's width, and with it the picture's height, never follows the scrollbar.
   return (
-    <div className="grid h-full min-h-0 grid-cols-1 content-start overflow-y-auto [scrollbar-gutter:stable] lg:landscape:grid-cols-[minmax(0,1fr)_400px] lg:landscape:content-stretch lg:landscape:overflow-hidden lg:landscape:[scrollbar-gutter:auto]">
+    <div className="grid h-full min-h-0 grid-cols-1 content-start overflow-y-auto scrollbar-gutter-stable lg:landscape:grid-cols-[minmax(0,1fr)_400px] lg:landscape:content-stretch lg:landscape:overflow-hidden lg:landscape:scrollbar-gutter-auto">
       <section ref={stageArea} className="@container relative flex min-w-0 flex-col lg:landscape:min-h-0">
         <div className="flex min-h-11 shrink-0 flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-line px-3 py-1.5">
           {menu}
@@ -548,7 +548,7 @@ function TableBody({
         </div>
         {draft.conflict ? <p className="shrink-0 border-b border-underkand/30 bg-underkand/8 px-4 py-1.5 text-xs text-[#ef8b8b]">Planen har ändrats på annat håll sedan den lästes.</p> : null}
         {/* the doll's picture: in one column the film's shape and the lab's transport row under it, at most most of the window; side by side all the height there is */}
-        <div className="relative h-[calc(100cqw*1174/1764_+_72px)] max-h-[85vh] shrink-0 lg:landscape:h-auto lg:landscape:max-h-none lg:landscape:min-h-0 lg:landscape:flex-1">
+        <div className="relative h-[calc(100cqw*1174/1764+72px)] max-h-[85vh] shrink-0 lg:landscape:h-auto lg:landscape:max-h-none lg:landscape:min-h-0 lg:landscape:flex-1">
           <DollStage
             place={place}
             entry={entry}
@@ -577,7 +577,7 @@ function TableBody({
           </div>
           <SlotPicker plan={plan} selected={place} changed={changed} onSelect={setPlace} />
         </div>
-        <div className="lg:landscape:min-h-0 lg:landscape:flex-1 lg:landscape:overflow-y-auto lg:landscape:[scrollbar-gutter:stable]">
+        <div className="lg:landscape:min-h-0 lg:landscape:flex-1 lg:landscape:overflow-y-auto lg:landscape:scrollbar-gutter-stable">
           {steps.map((s, i) => (
             <Step key={s.id} n={i + 1} title={s.title} summary={s.summary} open={step === s.id} onToggle={() => toggle(s.id)} keep={s.keep}>
               {s.body}

@@ -343,7 +343,7 @@ Tillräckligt för blink, bryn, leende, trut och käke i ett dealerkort. Inte en
 
 ## 8. Bryggan dealer3d ↔ Blender
 
-dealer3d sparar rörelser som JSON (till exempel `dealer3d/data/giv-fran-2-3-p5c1-naturlig-cykel-paow.json`), i **linsvärlden**.
+dealer3d sparar rörelser som JSON (till exempel `dealer3d/data/giv-fran-2-3-p4c1-ren-a-man.json`), i **linsvärlden**.
 
 | Fält | Innehåll |
 | --- | --- |

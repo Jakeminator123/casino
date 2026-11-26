@@ -27,7 +27,7 @@ function Fact({ label, children, mono = false }: { label: string; children: Reac
   return (
     <>
       <dt className="text-faint">{label}</dt>
-      <dd className={mono ? "min-w-0 font-mono text-ink [overflow-wrap:anywhere]" : "min-w-0 text-ink"}>{children}</dd>
+      <dd className={mono ? "min-w-0 font-mono text-ink wrap-anywhere" : "min-w-0 text-ink"}>{children}</dd>
     </>
   );
 }
@@ -51,7 +51,7 @@ function BaseCard({ image }: { image: BaseImage }) {
             {image.bank}
           </Fact>
           <dt className="text-faint">sha256</dt>
-          <dd className="min-w-0 font-mono text-2xs text-faint [overflow-wrap:anywhere]">{image.sha256}</dd>
+          <dd className="min-w-0 font-mono text-2xs text-faint wrap-anywhere">{image.sha256}</dd>
         </dl>
         <Where className="mt-auto pt-1">{image.where}</Where>
       </Card>

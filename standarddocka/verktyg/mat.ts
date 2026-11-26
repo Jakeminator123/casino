@@ -3,7 +3,7 @@
 // en rörelse: talen säger var det är värt att titta (verktyg/titta.ts), de dömer inte rörelsen.
 //
 //   node standarddocka/verktyg/mat.ts --plats 7 [--json] [--giv <namn>] [--vilan <namn>] [--docka man|kvinna]
-//   node standarddocka/verktyg/mat.ts --alla [--giv-monster giv-fran-2-3-p#c1-ren-a-paow] [--docka man|kvinna]
+//   node standarddocka/verktyg/mat.ts --alla [--giv-monster giv-fran-2-3-p#c1-<namn>] [--docka man|kvinna]
 //   --docka: grundrörelserna editorn spelar för den dockan (rorelse.ts EGNA: dockans egna där de finns, annars de äldre),
 //   med det lagret; förvalet är mannen, som i editorn.
 //   --giv, --vilan: en grundrörelse på prov (en fil i blackjack-dealer/dealer3d/data, utan .json) i stället för platsens

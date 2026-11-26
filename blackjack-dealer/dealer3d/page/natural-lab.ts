@@ -16,7 +16,6 @@
 // In "Naturlig" her right hand ends at the laid card as `landing` says (dealer3d/src/landing.ts); without one, or with the
 // default, as it did before landings were made, to the last digit. Last, her free fingers keep to what a hand can do
 // (dealer3d/src/hand-rule.ts `humaneMotion`, Jakob 2026-11-23: "inget finger kan försvinna på ett konstigt sätt").
-// (dealer3d/tools/hand-check.ts still lays the deal alone, with layNatural and moveNatural.)
 import {NO_STEER, cardTempoOf, layDeal, sideOf, type LaidDeal, type PoseFilm, type Recipe, type Steer} from './lay.ts';
 import {poseOnDoll, type PoseOptions} from './pose-on-doll.ts';
 import {natural} from '../src/natural.ts';

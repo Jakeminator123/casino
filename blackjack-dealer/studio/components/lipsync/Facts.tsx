@@ -14,7 +14,7 @@ function SettingRow({ setting }: { setting: Setting }) {
     <li className="grid gap-x-4 gap-y-1 px-4 py-3 sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_auto] sm:items-start">
       <span className="text-sm text-dim">{setting.name}</span>
       <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-md font-medium text-ink [overflow-wrap:anywhere]">{setting.value}</span>
+        <span className="text-md font-medium text-ink wrap-anywhere">{setting.value}</span>
         <Where>{setting.where}</Where>
       </div>
       <span className="mt-1 flex flex-wrap items-center gap-1.5 sm:mt-0 sm:justify-end">
@@ -65,7 +65,7 @@ function ProofRow({ n, proof, still }: { n: number; proof: ProofFact; still: Sti
           <p className="flex flex-wrap items-center gap-x-2 text-2xs text-faint">
             <span className="font-semibold tabular-nums text-dim">{n}</span>
             <span>{dayWord(proof.date)}</span>
-            <span className="min-w-0 font-mono [overflow-wrap:anywhere]">{proof.id}</span>
+            <span className="min-w-0 font-mono wrap-anywhere">{proof.id}</span>
           </p>
           <p className="text-sm text-ink">{proof.what}</p>
           {proof.ownerSaid ? (

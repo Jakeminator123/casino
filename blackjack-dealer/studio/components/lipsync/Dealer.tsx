@@ -17,7 +17,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
     <>
       <dt className="text-xs text-faint">{label}</dt>
-      <dd className="min-w-0 text-sm text-ink [overflow-wrap:anywhere]">{children}</dd>
+      <dd className="min-w-0 text-sm text-ink wrap-anywhere">{children}</dd>
     </>
   );
 }
@@ -68,7 +68,7 @@ function SetFor({ facts, dealer, mine }: { facts: LipsyncAnswer; dealer: string;
                 <Badge tone="ok" size="md">
                   Ditt {mine.mouth.ownerSaid || "svar"} {dayWord(mine.mouth.date)}
                 </Badge>
-                <code className="min-w-0 font-mono text-2xs text-faint [overflow-wrap:anywhere]">{mine.mouth.recipe}</code>
+                <code className="min-w-0 font-mono text-2xs text-faint wrap-anywhere">{mine.mouth.recipe}</code>
               </span>
             </span>
           ) : (

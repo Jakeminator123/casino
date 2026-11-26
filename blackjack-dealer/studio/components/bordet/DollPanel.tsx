@@ -291,7 +291,7 @@ export function DollStage({
     <div className="relative size-full">
       {lab ? <iframe key={lab.doll} ref={frame} src={lab.src} title="Dockan vid bordet" data-doll-lab className={cn("absolute inset-0 size-full border-0", films && "invisible")} /> : null}
       {films ? (
-        <div className="absolute inset-0 flex flex-col overflow-y-auto bg-canvas [scrollbar-gutter:stable]">
+        <div className="absolute inset-0 flex flex-col overflow-y-auto bg-canvas scrollbar-gutter-stable">
           {groups.length ? (
             <div className="shrink-0 overflow-x-auto border-b border-line px-3 py-1.5">
               <SegmentedControl

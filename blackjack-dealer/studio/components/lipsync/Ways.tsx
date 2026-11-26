@@ -25,7 +25,7 @@ function Step({ text }: { text: string }) {
     <>
       {codeParts(text).map((part, i) =>
         part.code ? (
-          <code key={i} className="rounded bg-well px-1 py-px font-mono text-xs text-ink [overflow-wrap:anywhere]">
+          <code key={i} className="rounded bg-well px-1 py-px font-mono text-xs text-ink wrap-anywhere">
             {part.text}
           </code>
         ) : (
@@ -144,7 +144,7 @@ export function Licences({ licences }: { licences: readonly Licence[] | undefine
           <li key={l.what} className="grid gap-x-4 gap-y-1 px-4 py-3 sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_auto] sm:items-start">
             <span className="text-sm font-medium text-ink">{l.what}</span>
             <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-sm text-ink [overflow-wrap:anywhere]">{l.licence}</span>
+              <span className="text-sm text-ink wrap-anywhere">{l.licence}</span>
               <Where>{l.where}</Where>
             </div>
             <Badge tone={commercialTone(l.commercial)} size="md" className="h-auto min-h-[22px] max-w-full whitespace-normal py-0.5 sm:justify-self-end">

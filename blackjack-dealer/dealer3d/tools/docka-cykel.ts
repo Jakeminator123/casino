@@ -131,7 +131,6 @@ console.log(`sista rutan mot första: höger hand och arm ${closes[0].toFixed(2)
 if (values['flat-hand']) console.log(`högerhanden vriden på kortet (grader, var femte ruta från ${cycle.rests - 25}):`, flatDeg.map((x, i) => [i, x] as const).filter(([i]) => i >= cycle.rests - 25 && i % 5 === 0).map(([i, x]) => `${i}:${x}`).join(' '));
 const name = path.basename(out, '.json'), seconds = cycle.frameCount / cycle.fps;
 console.log(`rendera: node dealer3d/tools/render-reference.ts --motion ${rel(out)} --out ${renderOut(name)} --seconds ${seconds} --fps 24`);
-console.log(`ruta för ruta: node dealer3d/tools/deal-check.ts ${rel(out)} 0 ${cycle.frameCount - 1}`);
 
 /** The deal from A2.1, the one way from there: built on the doll's bones from her pose A2.1 (pinch-deal.ts), its return in the same motion. */
 async function fromPinch() {
@@ -162,5 +161,4 @@ async function fromPinch() {
   console.log(`sista rutan mot första: höger hand och arm ${closes[0].toFixed(2)} mm, vänster ${closes[1].toFixed(2)} mm${Math.max(...closes) > 1 ? '  OBS: cykeln sluter inte' : ''}`);
   const name = path.basename(out!, '.json');
   console.log(`rendera: node dealer3d/tools/render-reference.ts --motion ${rel(out!)} --out ${renderOut(name)} --seconds ${seconds} --fps 24`);
-  console.log(`ruta för ruta: node dealer3d/tools/deal-check.ts ${rel(out!)} 0 ${m.frameCount - 1}`);
 }

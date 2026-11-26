@@ -78,7 +78,7 @@ function Format({ label, value }: { label: string; value: string }) {
   return (
     <span className={cn("inline-flex min-w-0 max-w-full items-baseline gap-1.5 rounded-sm border bg-well px-2 py-1", estimated ? "border-dashed border-anmarkning/55" : "border-line-strong")}>
       <span className="shrink-0 text-2xs font-semibold uppercase tracking-[0.06em] text-faint">{label}</span>
-      <span className="min-w-0 text-ink [overflow-wrap:anywhere]">{value}</span>
+      <span className="min-w-0 text-ink wrap-anywhere">{value}</span>
       {estimated ? <span className="shrink-0 text-2xs text-[#f0b07a]">skattat</span> : null}
     </span>
   );
