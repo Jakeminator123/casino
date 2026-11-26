@@ -110,14 +110,13 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    filmens höjd; Scen visar dockan i samma bild som filmen, rummet och bordet, så att Inspelning och Scen blir ett läge.
 8. **Standarddockan** (Jakob 2026-11-25, 2026-11-26): byggd i `../avatar-auto-pipeline` som en kvinna och en man med
    samma skelett, som Blender öppnar, med måtten skrivna ur spelets kod (`scen/gen_standard.py`, `scen/bygg_docka.py`);
-   kropparna följer dockans rörelser här, med fingrar (mannen ger till plats 4 i provet
-   `standarddocka-man-bord-20261126`). Hans riktning 2026-11-26: standarddockan ska kunna rörelser som är riktigt bra
+   kropparna följer dockans rörelser här, med fingrar (provat med mannen i given till plats 4). Hans riktning 2026-11-26: standarddockan ska kunna rörelser som är riktigt bra
    och bära standarden för bordet, korten, skon och kortplatserna, för nästa dealer; Paows docka får vara som den är;
    och bordet ska komma närmare dealern ("skjuta bak bordet litegranna"), med kortplatserna, skon och kameran kvar.
    Det provas med `tableBack` i `dealer3d/src/stage.ts` (sidans `?bordbak=`): 15 cm räcker för att bordet ska nå
    magen och skon stå helt på bordet, och markerbrickan följer då med till dealerns kant. Dockans bord är sedan
    samma natt standardens (halv ellips 1,90 × 1,15 m, sarg, rulle, två ben och golv 0,95 m under filten, måtten ur
-   `src/table-lens.ts`); miljön med mannen visas i provet `standarddocka-miljo-20261126`. `tableBack` är ett
+   `src/table-lens.ts`). `tableBack` är ett
    prov, ingen standard. Att luta bordet mot kameran provades samma natt och ströks på hans ord ("Vi skiter i lutning
    av bordet"); koden för det är borta. **Arbetet med standarddockan sker från 2026-11-26 i en egen mapp,
    `../standarddocka/`** (hans ord: en tredje mapp där han och dockans chatt arbetar, "sedan när vi är nöjda kan delar
@@ -155,10 +154,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Väntar på Jakob
 
-- Standarddockan (2026-11-26): inget väntar på honom här. Han gav Inte bra på alla sex bilderna i
-  `docka-kropp-20261126` och sa "markerbrickan och bordet i sin helhet måste fixas", "karmen och andra saker måste
-  rättas på bordet", och att han vill ha Blenders vy. Det arbetet, med bordet, blicken och rörelserna, sker i
-  `../standarddocka/` och visas för honom som prov härifrån.
+- Standarddockan (2026-11-26): inget väntar på honom här. Han dömde de tre första proven (Inte bra på de första sex
+  bilderna, "markerbrickan och bordet i sin helhet måste fixas", "karmen och andra saker måste rättas på bordet") och
+  vill ha Blenders vy; proven är raderade och hans ord står som krav i `../standarddocka/AGENTS.md`. Arbetet med
+  bordet, blicken och rörelserna sker i `../standarddocka/` och visas för honom som prov härifrån.
 - Det som bara finns på den stationära, och som registren behåller tills han har bestämt om det kopieras hit eller görs
   nytt: 82 bra tagningar utan film (Tatuerad 54, varav alla 25 talfilmer, vilan `paow-vila-tat-09-01` och fem delade
   vilor; Casinos talfilmer (24 av 25); 3 utanför träden), ankarnas originalfiler, keystones och hans egna

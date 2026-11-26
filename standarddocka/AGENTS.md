@@ -19,6 +19,32 @@ Läget, nästa steg och det som ska plockas in står i `README.md`.
 
 Struket: att luta bordet mot kameran (hans ord 2026-11-26: "Vi skiter i lutning av bordet").
 
+## Jakobs domar som gäller här
+
+Hans egna ord om de första bilderna och filmen (anteckningarna i Prov, 2026-11-26). De är måttet en bild eller en
+rörelse prövas mot innan den visas för honom.
+
+- **Startläget är vilan (A1).** "Sitter inte i 'vila/A1' som jag trodde alla startpositioner skulle": varje bild och
+  varje rörelse börjar med båda händerna i vila på filten, inte med händerna i luften.
+- **Blenders bord gillar han, men det ska vara helt mot dealern.** "Bordet här gillar jag, men är i grunden fel som
+  standardbord då det har som ett bortfall runt magen, vilket kanske beror på att markerbrickan ska vara där, som då i
+  så fall nu skulle vara instoppat i bordet": ingen urgröpning mot magen, och markerbrickan nedsänkt inne i bordet.
+- **Markerbrickan följer bordet.** "Markerhållaren har inte förskjutits bak", "markerbrädan har inte gått bak som
+  bordet": när bordet kommer närmare dealern ligger brickan vid dealerns kant.
+- **Armarna går aldrig genom bordets kant.** "En 'karm' finns som gör att armen från dealern går igenom karmen ungefär
+  vid armbågen av framför allt dealerns egna högerarm och vänsterarm": underarmarna går över kanten.
+- **Högerhanden tar emot kortet med tummen, utan att handleden vrids i maxläge.** "Dealerns egna högerarm [är] för
+  vriden, med andra ord så ska standarden vara att dennes högerarm ska med hjälp av tummen ta emot kortet som sedan
+  skjuts och vänds över än att hela handleden ska vridas i maxläge som är onaturligt" (han såg det kring ruta 27 i
+  given till plats 4).
+- **Inga hack i rörelsen.** "Är som ett litet hack i filmen på 50/120, som försöker kompensera för att fingrarna inte
+  är på rätt sida": fingrarna ska vara på rätt sida av kortet från början, så att inget rättas till mitt i.
+- **En dockas arm får inte se konstig ut i en bild han ska döma** ("Paows arm är helt konstig" om en stillbild tagen
+  med den äldre, handritade given): visa dockan i vilan eller i den rörelse som faktiskt används.
+- **Kamerans vinkel.** Inspelningens kamera ser dealern uppifrån, och "vinkeln [är] inte naturlig utifrån att man
+  skulle spela i casinot. Dock om vi kan vinkla ned vyn till när man ska spela så går detta å andra sidan": vyn
+  spelaren får ska vara mer framifrån än inspelningens, och blicken mot kameran.
+
 ## Vad mappen lånar och vad den äger
 
 - Den lånar utan att kopiera: måtten (spelets kod i `../blackjack-dealer/src/table-lens.ts`, som
