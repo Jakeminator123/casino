@@ -219,7 +219,9 @@ IDLE>READY | READY>P1.C1 | P1.C1>READY | READY>D.C1 | D.C1>READY | READY>P1.C2 |
   id, namn och läge, som spelet (`?trad=<id>`), kompositionerna och Bordet tar som ett träd. En film på en grens ankare
   vid skon är grenens; en film bara på A1 (vila, tal, hålkort) är trädets och varje grens. Ett ankare med `markOf` är
   samma bild med bara kortets märke ändrat: samma nod. Karta läser ett stegs filmer över trädets eget urval
-  (`cutBank`), så att Spelas nu, Primär och Gör primär är trädets egna. `GET /api/trees` ger varje gren som en egen vy
+  (`cutBank`), så att Spelas nu, Primär och Gör primär är trädets egna. Gör primär i Granska sänker också bara det
+  samma träd spelar bredvid tagningen (`primaryMates`), aldrig ett annat träds Primär, och Material räknar ett ankare
+  med `markOf` som samma nod (`sameNode`). `GET /api/trees` ger varje gren som en egen vy
   (`wayOf`) och trädets vy listan `ways`; `waysOf` och `dealsTo` i `src/dealer-trees.ts` svarar på vilka givar som
   finns till ett kort, från vilken gren. Omkring tre namngivna träd per dealer, löst material för sig (2026-11-21). En komposition (`data/dealer-compositions.json`,
   `src/composition.ts`) lägger ihop träd med andelar, lån av steg och `tempo` 1–2 (Jakob 2026-11-23); ett klipp har sin

@@ -151,7 +151,7 @@ export const stepWords = (kind: StepKind, card: string | null): string => {
   return `${STEP_WORD[kind]} ${seat === 'D' ? 'dealern' : seat} kort ${n.slice(1)}`;
 };
 
-/** The trees a composition plays: each named tree's home (Ingången plays the Casino's films), once, in the order given. */
+/** The trees a composition plays: each named tree (or way of a tree) as the tree whose films it plays (TreeView.home), once, in the order given. */
 function homes(def: CompositionDef, views: readonly TreeView[]): {view: TreeView; share: number; tempo: number | null}[] {
   const out: {view: TreeView; share: number; tempo: number | null}[] = [];
   for (const t of def.trees) {

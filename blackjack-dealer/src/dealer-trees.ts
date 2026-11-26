@@ -56,6 +56,14 @@ export const treeList = (trees: readonly TreeDef[]): TreeDef[] => trees.flatMap(
 export const allAnchors = (tree: Pick<TreeDef, 'anchors' | 'ways'>): TreeAnchor[] => [...tree.anchors, ...(tree.ways ?? []).flatMap((w) => w.anchors)];
 /** The pairs of the same picture, the one with the card's mark first: [mark, the anchor it is]. */
 export const markPairs = (tree: Pick<TreeDef, 'anchors' | 'ways'>): [string, string][] => allAnchors(tree).flatMap((a) => (a.markOf ? [[a.entry, a.markOf] as [string, string]] : []));
+/**
+ * Are two pictures the same node in any of the trees (markPairs): only the card's mark differs, so a film or a picture built on
+ * the one is never "older" where the other holds (studio/lib/lineage.ts olderOf, fromOlderChip; Karta and Material).
+ */
+export function sameNode(trees: readonly Pick<TreeDef, 'anchors' | 'ways'>[]): (a: string, b: string) => boolean {
+  const pairs = trees.flatMap(markPairs);
+  return (a, b) => pairs.some(([mark, base]) => (mark === a && base === b) || (mark === b && base === a));
+}
 /** A word no tree or way may have as its id: Karta's address for all the trees at once (?trad=alla). */
 export const ALL_TREES = 'alla';
 /** A picture of Material (data/media-roles.json) as far as a tree needs it. */
@@ -459,6 +467,21 @@ export function cutBank<B extends CutBank>(bank: B, cut: Pick<TreeCut, 'hub' | '
   };
   const keep = <T extends CutTake>(list: T[] | undefined): T[] | undefined => (Array.isArray(list) ? list.filter((t) => !drop.has(String(t?.id))).map(atShoe) : list);
   return { ...bank, jobs: keep(bank.jobs), derived: keep(bank.derived), edits: keep(bank.edits) };
+}
+
+/**
+ * Whose Primär a Primär of `take` lowers on its step (studio/lib/decide.ts), by the trees' cuts (TreeView.cut, GET /api/trees):
+ * the films every tree or way the take is one of plays beside it, its own and the films of no tree, as Karta's "Gör primär"
+ * lowers them over the tree's cut (cutBank). Another tree's or way's Primär is never touched (Jakob 2026-11-26). A film of no
+ * tree, or seen from another seat, lowers only films placed as it is; without trees every film is one bank, as before.
+ */
+export function primaryMates(views: readonly Pick<TreeView, 'tree' | 'cut'>[], take: string): (other: string) => boolean {
+  const cuts = views.flatMap((v) => (v.cut ? [{ id: v.tree.id, own: new Set(v.cut.own), drop: new Set(v.cut.drop) }] : []));
+  const owners = cuts.filter((c) => c.own.has(take));
+  if (owners.length) return (other) => owners.every((c) => !c.drop.has(other));
+  const placed = (id: string) => cuts.filter((c) => c.own.has(id) || c.drop.has(id)).map((c) => c.id).join(' ');
+  const where = placed(take);
+  return (other) => placed(other) === where;
 }
 
 /** The lab's reply to GET /api/trees?dealer=<id>&trad=<id>: its status and its JSON (answer null: none). Null: no reply at all. */

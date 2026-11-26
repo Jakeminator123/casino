@@ -7,8 +7,10 @@
 // not listed here: a proof is registered by its own proof.json and shown in Granska's Prov.
 import { ArrowRight, ChevronRight, CircleAlert, FolderOpen } from "lucide-react";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { Graph } from "../../../src/clip-graph.ts";
+import { sameNode } from "../../../src/dealer-trees.ts";
+import { useOptionalBank } from "../../lib/bank.ts";
 import { BUCKET_SIGN, BUCKET_WORD, BUCKETS } from "../../lib/edge-stats.ts";
 import { CHAIN, ROLE_ABOUT, ROLE_LABEL, roleStatus, sizeWords, type DealerAnswer, type EntryAnswer, type Measure, type Role, type RoleStatus } from "../../lib/media.ts";
 import { ProofStill } from "../proofs";
@@ -18,9 +20,19 @@ import { seatGroups, takeCount } from "./films.ts";
 import { endWord, seatEnds, seatEndsCount, seatEndsStatus, type SeatEndRow, type SeatEndsState } from "./landings.ts";
 import { StateChip, Tile, coverOfEntry, filmLine, type TileMark } from "./Tile";
 import { dayWords } from "./day-words.ts";
-import { fromOlderChip, olderOf, type Lineage } from "../../lib/lineage.ts";
+import { fromOlderChip, olderOf, type Lineage, type Same } from "../../lib/lineage.ts";
+import { useTrees } from "../map/useTrees";
 
 const rowId = (role: Role) => `roll-${role.replace(".", "-")}`;
+
+/**
+ * The pictures the dealer's trees call the same node (markOf: only the card's mark differs, src/dealer-trees.ts sameNode, as
+ * Karta reads them), so that neither is "äldre" for the other. The rail's read of the trees, no extra request; none on the copy.
+ */
+function useSameNode(dealer: string): Same {
+  const trees = useTrees(dealer, useOptionalBank()?.readAt ?? null).answer?.trees;
+  return useMemo(() => sameNode((trees ?? []).map((v) => v.tree)), [trees]);
+}
 const scrollTo = (role: Role) => document.getElementById(rowId(role))?.scrollIntoView({ behavior: "smooth", block: "start" });
 
 const SIGN_TONE: Record<SeatEndsState, string> = {
@@ -172,6 +184,7 @@ export function RoleRow({
   open: string | null;
   onOpen: (entry: EntryAnswer) => void;
 }) {
+  const same = useSameNode(dealer.id);
   const list = dealer.entries.filter((e) => e.role === role);
   const status = step !== null ? roleStatus(dealer, role) : null;
   const missing = dealer.missing?.[role];
@@ -183,7 +196,7 @@ export function RoleRow({
       {list.length ? (
         <Strip>
           {list.map((e) => (
-            <Tile key={e.id} entry={e} onOpen={onOpen} selected={open === e.id} line={lineOf(role, e, !!dealer.films?.from)} quiet={fromOlderChip(e, all)} />
+            <Tile key={e.id} entry={e} onOpen={onOpen} selected={open === e.id} line={lineOf(role, e, !!dealer.films?.from)} quiet={fromOlderChip(e, all, same)} />
           ))}
         </Strip>
       ) : (
@@ -199,6 +212,7 @@ export function RoleRow({
  * Under the seats, the landing pictures of the register themselves (one that is set aside can be made to hold again).
  */
 export function LandingsRow({ dealer, all = dealer.entries, bank, step, open, onOpen }: { dealer: DealerAnswer; all?: readonly EntryAnswer[]; bank: BankFacts | null; step: number; open: string | null; onOpen: (entry: EntryAnswer) => void }) {
+  const same = useSameNode(dealer.id);
   const rows = seatEnds(dealer.entries, bank, dealer.id);
   const state = seatEndsStatus(rows);
   const list = dealer.entries.filter((e) => e.role === "landning");
@@ -215,7 +229,7 @@ export function LandingsRow({ dealer, all = dealer.entries, bank, step, open, on
         {list.length ? (
           <Strip>
             {list.map((e) => (
-              <Tile key={e.id} entry={e} onOpen={onOpen} selected={open === e.id} quiet={fromOlderChip(e, all)} />
+              <Tile key={e.id} entry={e} onOpen={onOpen} selected={open === e.id} quiet={fromOlderChip(e, all, same)} />
             ))}
           </Strip>
         ) : null}
@@ -262,6 +276,7 @@ function SeatEndTile({ row, bank, onOpen }: { row: SeatEndRow<EntryAnswer>; bank
  */
 export function FilmsRow({ dealer, graph, step, open, onOpen, lineage = {} }: { dealer: DealerAnswer; graph: Graph | null; step: number; open: string | null; onOpen: (entry: EntryAnswer) => void; lineage?: Lineage }) {
   const [shown, setShown] = useState(false);
+  const same = useSameNode(dealer.id);
   const inBank = dealer.films?.from && graph ? takeCount(graph) : 0;
   const status: RoleStatus = inBank ? "finns" : "saknas";
   const outside = dealer.outside;
@@ -355,7 +370,7 @@ export function FilmsRow({ dealer, graph, step, open, onOpen, lineage = {} }: { 
             </span>
             <Strip>
               {loose.map((e) => {
-                const marks = marksOfFilm(e, dealer.entries, lineage, onOpen);
+                const marks = marksOfFilm(e, dealer.entries, lineage, onOpen, same);
                 return <Tile key={e.id} entry={e} onOpen={onOpen} selected={open === e.id} line={filmLine(e) ?? ""} marks={marks} dim={marks.length > 0} />;
               })}
             </Strip>
@@ -368,13 +383,14 @@ export function FilmsRow({ dealer, graph, step, open, onOpen, lineage = {} }: { 
 
 /**
  * A film of the register (role film, assets/motions/<clip>/source.mp4) built on a picture that no longer holds: one chip per
- * mark ("äldre A1", studio/lib/lineage.ts olderOf), a click opening the picture it was built on.
+ * mark ("äldre A1", studio/lib/lineage.ts olderOf), a click opening the picture it was built on. same: the trees' same node
+ * (markOf), never older for each other (useSameNode).
  */
-export function marksOfFilm(entry: EntryAnswer, entries: readonly EntryAnswer[], lineage: Lineage, onOpen: (entry: EntryAnswer) => void): TileMark[] {
+export function marksOfFilm(entry: EntryAnswer, entries: readonly EntryAnswer[], lineage: Lineage, onOpen: (entry: EntryAnswer) => void, same?: Same): TileMark[] {
   const clip = /^assets\/motions\/([^/]+)\//.exec(entry.path ?? "")?.[1];
   if (!clip) return [];
   const byId = new Map(entries.map((e) => [e.id, e]));
-  return olderOf(lineage[clip], entries).map((o) => {
+  return olderOf(lineage[clip], entries, same).map((o) => {
     const built = byId.get(o.built), holds = byId.get(o.holds);
     return { chip: o.chip, title: `Byggd på ${built?.name ?? o.built}; ${holds?.name ?? o.holds} gäller nu. Klicka för bilden den byggdes på.`, onClick: built ? () => onOpen(built) : undefined };
   });

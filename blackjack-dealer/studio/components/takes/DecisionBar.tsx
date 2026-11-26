@@ -2,7 +2,7 @@
 
 // <DecisionBar take={take} />: Jakob's decision on one take: Primär, Godkänn, Variant, Underkänn, a note, Återställ, and
 // under the buttons one quiet line on what each choice does to what is played (decision-help.ts).
-// Nothing is written without his click. Primär lowers an earlier Primär on the same edge to plain accepted (its note kept);
+// Nothing is written without his click. Primär lowers an earlier Primär on the same step of its tree to plain accepted (its note kept);
 // a 409 says the record changed, reads the bank again and asks him to choose again. demo: shows and answers, never writes.
 // In the online copy (lib/mode.ts) there are no buttons at all: the bar shows his verdict and note and says where judging
 // happens and why ("Här kan ingen döma. Jakob dömer i studion på sin dator."), and putDecision refuses there too. The write itself, with the Primär rule, is lib/decide.ts (one copy).
@@ -16,6 +16,7 @@ import { useOptionalBank } from "../../lib/bank.ts";
 import { decide as write } from "../../lib/decide.ts";
 import { isSnapshot } from "../../lib/mode.ts";
 import { chosenDecision, provisionalOf, reviewStamp, storedNote } from "../../lib/verdict.ts";
+import { useTrees } from "../map/useTrees";
 import { Badge } from "../ui/Badge";
 import { cn } from "../ui/cn";
 import { Spinner } from "../ui/Spinner";
@@ -135,6 +136,8 @@ function JakobJudges({ take, help, className, ref }: { take: Take; help: boolean
 
 function DecisionButtons({ take, demo = false, compact = false, help = true, onSaved, className, ref }: BarProps) {
   const bank = useOptionalBank();
+  // The dealer's trees (the rail's read, no extra request), so that Primär lowers only its own tree's Primär (lib/decide.ts).
+  const trees = useTrees(demo ? null : take.dealer, bank?.readAt ?? null).answer?.trees ?? null;
   const toast = useToast();
   const stored = storedNote(take.motion?.review);
   const [note, setNote] = useState(stored);
@@ -191,8 +194,8 @@ function DecisionButtons({ take, demo = false, compact = false, help = true, onS
     setSaving(decision);
     setLine(null);
     try {
-      // One Primär per edge: an earlier one becomes a plain approval, with Jakob's own note kept (lib/decide.ts).
-      const { lowered, failed } = await write(take, decision, note, bank?.graph ?? null, putDecision);
+      // One Primär per step of a tree: an earlier one becomes a plain approval, with Jakob's own note kept (lib/decide.ts).
+      const { lowered, failed } = await write(take, decision, note, bank?.graph ?? null, putDecision, trees);
       setDirty(false);
       if (failed.length) toast({ tone: "bad", title: `${DONE_TEXT[decision]} sparat, men ${failed.join(", ")} är också kvar som Primär`, detail: "Läs om och sätt den andra till Godkänn." });
       else toast({ tone: "ok", title: `${DONE_TEXT[decision]} · sparat`, detail: lowered.length ? `${lowered.join(", ")} är nu godkänd i stället för Primär.` : undefined });

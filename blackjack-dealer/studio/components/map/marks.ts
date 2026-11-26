@@ -13,7 +13,7 @@ export function marksFrom(answer: AnswerLike | null, takeId: string, same?: (a: 
   if (!answer?.lineage) return [];
   const entries = answer.dealers.flatMap((d) => d.entries.map((e) => ({ ...e, dealer: d.id })));
   const byId = new Map(entries.map((e) => [e.id, e]));
-  return olderOf(answer.lineage[takeId], entries).filter((o) => !same?.(o.built, o.holds)).map((o) => {
+  return olderOf(answer.lineage[takeId], entries, same).map((o) => {
     const built = byId.get(o.built), holds = byId.get(o.holds);
     const query = new URLSearchParams({ bild: o.built, ...(built ? { [DEALER_PARAM]: built.dealer } : {}) });
     return { ...o, href: `/material/?${query.toString()}`, title: `Byggd på ${built?.name ?? o.built}; ${holds?.name ?? o.holds} gäller nu. Spelas som förut tills du väljer annat.` };

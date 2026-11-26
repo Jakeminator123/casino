@@ -1,10 +1,11 @@
-// Skyddar: hans domar och val – hans Primär visas som hans, och Gör primär sänker den förra med hans ord kvar.
+// Skyddar: hans domar och val – hans Primär visas som hans, Gör primär sänker den förra med hans ord kvar, och en Primär i ett träd rörs aldrig av ett val i ett annat.
 // Karta's films per step (studio/lib/primaries.ts): Primär and its secondary films, what the game plays instead of a Primär,
-// and the one write. Run: node --test "studio/tests/primaries.test.ts"
+// and the one write (studio/lib/decide.ts, also Granska's). Run: node --test "studio/tests/primaries.test.ts"
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { DEALER, buildGraph, type BankData, type BankJob, type ImageRef, type MotionRecord } from "../../src/clip-graph.ts";
 import type { Decision } from "../lib/api.ts";
+import { decide, type Trees } from "../lib/decide.ts";
 import { gameGraph, makePrimary, stepFilms, withPrimary } from "../lib/primaries.ts";
 
 // ── A small bank: no media files, only the records the graph reads ──
@@ -108,4 +109,36 @@ test("Gör primär: one write for the take, then an earlier Primär on the edge 
     return { id, review: {}, revision };
   });
   assert.deepEqual(once, ["paow-p5-c1-plan-return-ready-01"]);
+});
+
+test("Primär in Granska lowers only its own tree's Primär on the step: another tree's is never touched (Jakob 2026-11-26)", async () => {
+  // Every anchor at the shoe is a take of A2.1's edge, so the Casino's A2.1 deal and Tatuerad's A2.3 deals share READY>P4.C1.
+  const trees = bank([
+    ["paow-giv-p4-casino", "READY", "P4.C1", "DEAL", jakob({ acceptedAs: "MAIN" }), {}, file("C4")],
+    ["paow-giv-2-3-p4-01", "READY-C", "P4.C1", "DEAL", jakob({ acceptedAs: "MAIN" }), {}, file("T4")],
+    ["paow-giv-2-3-p4-02", "READY-C", "P4.C1", "DEAL", jakob(), {}, file("T4b")],
+    ["paow-giv-p4-borta", "READY", "P4.C1", "DEAL", jakob({ acceptedAs: "MAIN" }), {}, file("B4")],
+  ]);
+  const whole = buildGraph(trees);
+  const views: Trees = [
+    { tree: { id: "casino", name: "Casino", state: "vilar", root: "a1", anchors: [] }, cut: { own: ["paow-giv-p4-casino"], drop: ["paow-giv-2-3-p4-01", "paow-giv-2-3-p4-02"] } },
+    { tree: { id: "tatuerad", name: "Tatuerad", state: "spelas", root: "a1t", anchors: [] }, cut: { own: ["paow-giv-2-3-p4-01", "paow-giv-2-3-p4-02"], drop: ["paow-giv-p4-casino"] } },
+  ];
+  const written = async (id: string, given: Trees | null | undefined) => {
+    const calls: [string, Decision][] = [];
+    await decide(whole.takes[id], "MAIN", "", whole, async (to, decision, _note, revision) => (calls.push([to, decision]), { id: to, review: {}, revision }), given);
+    return calls;
+  };
+  // Tatuerad's new Primär lowers Tatuerad's earlier one (and the film of no tree it plays beside), never the Casino's.
+  assert.deepEqual(await written("paow-giv-2-3-p4-02", views), [
+    ["paow-giv-2-3-p4-02", "MAIN"],
+    ["paow-giv-2-3-p4-01", "ACCEPTED"],
+    ["paow-giv-p4-borta", "ACCEPTED"],
+  ]);
+  // A film of no tree lowers only films of no tree; the trees' Primär stay.
+  assert.deepEqual(await written("paow-giv-p4-borta", views), [["paow-giv-p4-borta", "MAIN"]]);
+  // The trees not read yet: nothing is lowered rather than another tree's.
+  assert.deepEqual(await written("paow-giv-2-3-p4-02", null), [["paow-giv-2-3-p4-02", "MAIN"]]);
+  // A dealer without trees is one bank, as before.
+  assert.equal((await written("paow-giv-2-3-p4-02", [])).length, 4);
 });

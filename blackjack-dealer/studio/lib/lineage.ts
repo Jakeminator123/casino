@@ -76,14 +76,20 @@ export const olderChip = (entry: Pick<Entry, "role">): string =>
   `äldre ${entry.role.startsWith("ankare-") ? `A${entry.role.slice("ankare-".length)}` : ROLE_LABEL[entry.role].toLowerCase().replace(/^landningar$/, "landning")}`;
 
 export type Older = { side: "first" | "last"; built: string; holds: string; chip: string };
-/** Why a take is marked: each of its two pictures whose place another picture holds now. Empty when it is built on what holds (or cannot be traced). */
-export function olderOf<T extends StateLike>(trace: Trace | undefined, entries: readonly T[]): Older[] {
+/** Two pictures that are the same node (src/dealer-trees.ts sameNode, a tree's markOf: only the card's mark differs). */
+export type Same = (a: string, b: string) => boolean;
+/**
+ * Why a take is marked: each of its two pictures whose place another picture holds now. Empty when it is built on what holds (or
+ * cannot be traced). same: a picture held by the same node with the card's mark is not older (A2.3's films on paow-ankare-2-3-d
+ * while paow-ankare-2-3-marke holds); one held by another pose is (paow-ankare-2-3-c, the eyes to the side).
+ */
+export function olderOf<T extends StateLike>(trace: Trace | undefined, entries: readonly T[], same?: Same): Older[] {
   if (!trace) return [];
   const byId = new Map(entries.map((e) => [e.id, e]));
   const out: Older[] = [];
   for (const side of ["first", "last"] as const) {
     const built = trace[side] ? byId.get(trace[side]!) : undefined, holds = built ? holderInstead(entries, built) : null;
-    if (built && holds) out.push({ side, built: built.id, holds: holds.id, chip: olderChip(built) });
+    if (built && holds && !same?.(built.id, holds.id)) out.push({ side, built: built.id, holds: holds.id, chip: olderChip(built) });
   }
   return out;
 }
@@ -104,9 +110,15 @@ export function consequenceOfHolding<T extends StateLike>(entries: readonly T[],
   return { takes, line };
 }
 
-/** The chip on an anchor made from a picture (a keystone) that no longer holds: "från äldre keystone"; null otherwise. */
-export function fromOlderChip<T extends StateLike & { builtOn?: readonly string[] }>(entry: T, entries: readonly T[]): string | null {
+/**
+ * The chip on an anchor made from a picture (a keystone) that no longer holds: "från äldre keystone"; null otherwise. same: as
+ * olderOf's (paow-ankare-2-3-marke, made from paow-ankare-2-3-d, is that picture with the card's mark, not from an older one).
+ */
+export function fromOlderChip<T extends StateLike & { builtOn?: readonly string[] }>(entry: T, entries: readonly T[], same?: Same): string | null {
   const byId = new Map(entries.map((e) => [e.id, e]));
-  const older = (entry.builtOn ?? []).map((id) => byId.get(id)).find((e) => e && holderInstead(entries, e));
+  const older = (entry.builtOn ?? []).map((id) => byId.get(id)).find((e) => {
+    const holds = e ? holderInstead(entries, e) : null;
+    return !!holds && !same?.(e!.id, holds.id);
+  });
   return older ? `från äldre ${roleWords(older.role)}` : null;
 }
