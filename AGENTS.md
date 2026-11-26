@@ -74,7 +74,8 @@ timmar.
 - I andra verktyg: kör `node inbox/inbox.ts` när en omgång börjar och före en commit, och välj ett kort eget namn.
 - Säg vad du gör och vilka filer du tar med `node inbox/inbox.ts skriv <chatt> "<text>"`, ett meddelande till de andra
   med `till`, och ta bort lappen med `klar` när arbetet är pushat. En fil som en annan chatt har tagit rör du inte;
-  en chatt i taget kör kontrollen och pushar.
+  en chatt i taget kör kontrollen och pushar. Lappen rymmer 400 tecken; en längre plan står i en fil i slasken som
+  lappen pekar på.
 
 ## Dokumentation nerifrån och upp
 

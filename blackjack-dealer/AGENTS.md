@@ -132,6 +132,9 @@ inget. `npm run stada` raderar det i slasken som är äldre än sju dygn men lä
   en ändring där gäller efter `node tools/preview.ts --restart` (huvudagenten).
 - Headless Chrome och grafikkortet under det delade låset `gpu-och-headless.lock` i slasken: skapa det exklusivt, skriv
   vem du är, ta bara bort ditt eget. En körning i taget; den som startar ett fönster stänger det.
+- En omstart av servern och ett bygge av studion stör de andra chattarna (2026-11-26): starta bara om när låset är
+  fritt, kontrollerat i samma kommando som omstarten, och bygg bara när `git status` visar att ingen annan har osparat
+  i `studio/`; säg det i inkorgen före.
 
 ## Git och samarbete
 
