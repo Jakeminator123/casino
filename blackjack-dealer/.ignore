@@ -43,3 +43,6 @@
 package-lock.json
 /dealer3d/data/
 /dealer3d/standard/
+
+*.mp4
+studio/package-lock.json

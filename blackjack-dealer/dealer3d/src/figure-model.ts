@@ -4,8 +4,11 @@
 // A model with finger bones (<Side>Hand<Finger>1-3, as the standard doll has) bends each finger as the doll's hand does;
 // one without them (Meshy's) has its hands aimed and turned as a whole, its fingers stay as they were modelled and it
 // never holds the card. Loaded only when the page asks for it (?model=1). It is made as large as its arm needs to be to
-// equal the figure's (BODY.upperArm + BODY.forearm), so that its wrists come to the figure's wrists: Jakob's first model
-// becomes 1.10 of its own size.
+// equal the arm the motion was drawn for, so that its wrists come to the motion's wrists: by default the figure's
+// (BODY.upperArm + BODY.forearm; Jakob's first model becomes 1.10 of its own size), or `arm` where the caller knows
+// better. A standard doll playing its own motions is given its own arm, and so keeps its own size: its motions, its
+// hand's points and its fingertips were measured on the model as it is, and a model made larger than that puts its
+// fingers past the card (the woman was 1.074 of her size until 2026-11-26, her fingertips 12 mm too far out).
 import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import type {Vec3} from './camera.ts';
@@ -113,8 +116,12 @@ function bendSpine(joints: Vec3[], shoulders: Vec3[], want: Vec3[], stiff: reado
   return Array.from({length: n}, (_, k) => qexp(x[3 * k], x[3 * k + 1], x[3 * k + 2]));
 }
 
-/** `twistBones: false` poses a doll as if it had no twist bones in its forearms (for comparing the two ways). */
-export async function loadFigure(url: string, {twistBones = true}: {twistBones?: boolean} = {}): Promise<Figure> {
+/**
+ * `twistBones: false` poses a doll as if it had no twist bones in its forearms (for comparing the two ways). `arm`: the
+ * length of the arm the motion was drawn for (upper arm and forearm, metres), which the model is scaled to; the figure's
+ * when it is not given.
+ */
+export async function loadFigure(url: string, {twistBones = true, arm = BODY.upperArm + BODY.forearm}: {twistBones?: boolean; arm?: number} = {}): Promise<Figure> {
   const gltf = await new GLTFLoader().loadAsync(url), root = new T.Group(); root.add(gltf.scene); root.updateMatrixWorld(true);
   const bone = (name: string) => { const b = gltf.scene.getObjectByName(name); if (!b) throw Error(`The model has no bone ${name}.`); return b; };
   let skinned: T.SkinnedMesh | null = null, triangles = 0;
@@ -161,7 +168,7 @@ export async function loadFigure(url: string, {twistBones = true}: {twistBones?:
   // fingertips curl to, and which side faces the body, were tried first: each gave one palm turned up on Jakob's model,
   // whose two hands are not modelled as each other's mirror.)
   const lengths = arms.map(a => [at(a.upper).distanceTo(at(a.fore)), at(a.fore).distanceTo(at(a.hand))]);
-  const scale = (BODY.upperArm + BODY.forearm) / (lengths[1][0] + lengths[1][1]), position = mesh.geometry.attributes.position, index = mesh.geometry.attributes.skinIndex, weight = mesh.geometry.attributes.skinWeight, about: Record<string, unknown> = {};
+  const scale = arm / (lengths[1][0] + lengths[1][1]), position = mesh.geometry.attributes.position, index = mesh.geometry.attributes.skinIndex, weight = mesh.geometry.attributes.skinWeight, about: Record<string, unknown> = {};
   const handAxes = arms.map((a, side) => {
     // A hand with finger bones says it itself, as the doll's hand does: forward from the wrist to the middle finger's
     // knuckle, the palm's way from the wrist and the two outer knuckles.

@@ -23,9 +23,10 @@
 //   (ankaret ur fälten made.from och made.to; utan dem givens första mot dess sista ruta);
 // - benen: överarmen, underarmen och varje fingerben ska ha samma längd i varje ruta av en grundrörelse (högst 1 mm från
 //   dess första ruta); dockan ritas med sina egna ben och följer inte en rörelse vars ben växer;
-// - armen: handleden inom armens räckvidd (BODY i blackjack-dealer/dealer3d/src/body.ts, armen som dockan skalas till,
-//   räknat från rörelsens axel), och handen högst GRANS.handled (50) grader från underarmen, den vinkel kroppen ritar
-//   (figure-model.ts; underarmen som dockan ställer den, med BODY:s ben och armbågen åt rörelsens håll);
+// - armen: handleden inom armens räckvidd (armen dockan visas med: dockans egen i dess egna rörelser, annars BODY i
+//   blackjack-dealer/dealer3d/src/body.ts, som en docka skalas till när rörelsen är ritad för en annan kropp; räknat
+//   från rörelsens axel), och handen högst GRANS.handled (50) grader från underarmen, den vinkel kroppen ritar
+//   (figure-model.ts; underarmen som dockan ställer den, med samma ben och armbågen åt rörelsens håll);
 // - handen: en led bortom vad ett finger kan (Jakobs dom: ingen led bortom sitt läge), fingrar i varandra, ett finger i
 //   filten, ett finger genom kortet också medan det står i skon (handFaults i blackjack-dealer/dealer3d/src/hand-rule.ts,
 //   dockans egen regel), och handflatan (handleden och knogarna) i filten;
@@ -44,6 +45,7 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {BODY} from '../../blackjack-dealer/dealer3d/src/body.ts';
+import {DOLLS} from '../../blackjack-dealer/dealer3d/src/doll.ts';
 import {handFaults} from '../../blackjack-dealer/dealer3d/src/hand-rule.ts';
 import {spots, type Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
 import {CARD, PLAY_LENS, TABLE_LENS, filmEye, type Vec3} from '../../blackjack-dealer/src/table-lens.ts';
@@ -71,8 +73,11 @@ const FINGERBEN = ([['tummens', 1], ['pekfingrets', 5], ['långfingrets', 9], ['
 /** Handflatan mot filten: handleden (2 cm tjock, som spärren i editor/kropp.ts räknar den) och linjerna mellan den och knogarna, med knogarnas tjocklek (hand-rule.ts DRAWN). En hand får gå 2 mm in i filten, som hand-rule.ts räknar. */
 const HANDFLATA: [number, number, number][] = [[0, 0, 0.02], [0, 1, 0.012], [0, 5, 0.0078], [0, 9, 0.0078], [0, 13, 0.0078], [0, 17, 0.0078], [5, 9, 0.0078], [9, 13, 0.0078], [13, 17, 0.0078]];
 const FINGERTOPPAR = [[4, 'tummen'], [8, 'pekfingret'], [12, 'långfingret'], [16, 'ringfingret'], [20, 'lillfingret']] as const;
-/** Armens längd när den är rak: dockan skalas så att armen blir BODY:s (figure-model.ts), och når 2 mm kortare än så. */
-const RACKVIDD = BODY.upperArm + BODY.forearm - 0.002;
+/** Armens ben som dockan visas med (editor/scen.ts): dockans egna när rörelsen är ritad för den, annars standardfigurens, som den då skalas till. */
+type Armben = {upperArm: number; forearm: number};
+const armbenFor = (docka: string, rorelsensDocka: string | undefined): Armben => rorelsensDocka === docka ? DOLLS[docka] : BODY;
+/** Armens längd när den är rak: den når 2 mm kortare än benen tillsammans (figure-model.ts). */
+const rackvidd = (ben: Armben) => ben.upperArm + ben.forearm - 0.002;
 /** Blicken som editorn visar den: mot spelets kamera (editor.ts blickKamera), utom när han följer kortet. */
 const KAMERA = filmEye(PLAY_LENS).position as number[];
 /** Gränserna för ett hack: steget (meter) och fartens ändring per ruta (meter), mer än i rutorna bredvid; blicken i grader. */
@@ -80,8 +85,8 @@ const HACK = {steg: 0.015, ryck: 0.025, huvudSteg: 0.005, huvudRyck: 0.015, blic
 /** Det mätningen inte ser: säg det, så att ingen tar en grön rad för mer än den är. */
 export const SER_INTE = 'dockans egen kropp (huden, axlarnas bredd: räckvidden och handleden räknas från rörelsens axel, editorns granskaGrund() mäter på dockan), armarna mot bordets kant och brickan (editorns state().armar), låren och stolen, vridningen kring underarmen, hur fingrarna ritas på dockan, huvudets vridning mot kameran, och hur det ser ut (titta.ts)';
 /** Underarmen som dockan ställer den: från axeln med BODY:s ben, armbågen åt det håll rörelsens armbåge står från linjen axel–handled (figure-model.ts pose). */
-function underarmen(l: Limb): Vec3 {
-  const d = sub(l.w, l.s), avst = len(d), dir = d.map(n => n / (avst || 1)), a = BODY.upperArm, b = BODY.forearm;
+function underarmen(l: Limb, ben: Armben): Vec3 {
+  const d = sub(l.w, l.s), avst = len(d), dir = d.map(n => n / (avst || 1)), a = ben.upperArm, b = ben.forearm;
   const far = Math.min(a + b - 0.002, Math.max(Math.abs(a - b) + 0.002, avst)), langs = (a * a - b * b + far * far) / (2 * far);
   const r = sub(l.e, l.s), ut = sub(r, dir.map(n => n * dot(r, dir))), u = len(ut) > 1e-6 ? ut.map(n => n / len(ut)) : [0, -1, 0], h = Math.sqrt(Math.max(0, a * a - langs * langs));
   return sub(l.w, [0, 1, 2].map(k => l.s[k] + dir[k] * langs + u[k] * h));
@@ -97,7 +102,7 @@ async function mat(plats: number, provgiv?: string, provvila?: string, docka: St
   const [andra, plan] = await Promise.all([las<Motion & Made>(`blackjack-dealer/dealer3d/data/${giv}.json`), las<Plan>('blackjack-dealer/placements/default.json')]);
   // En giv på prov utan --vilan börjar i vilan för den docka den är ritad för (som i editorn).
   const namn = {vila: provvila ?? (provgiv ? vilanFor(andra.doll) : egen.vila), giv}, forsta = await las<Motion & Made>(`blackjack-dealer/dealer3d/data/${namn.vila}.json`);
-  const f = sattIhop(forsta, andra, plats);
+  const f = sattIhop(forsta, andra, plats), armben = armbenFor(docka, andra.doll);
   // Det sparade lagret gäller bara de grundrörelser det sparades på (som i editorn), och bara om det är rätt skrivet;
   // kroppens mått för spärren står i .rutor.json från samma Spara.
   let trasig = false;
@@ -138,9 +143,9 @@ async function mat(plats: number, provgiv?: string, provvila?: string, docka: St
       for (const fel of handFaults(x[sida].p as Vec3[], tecken, null, kort)) if (fel.kind !== 'ordning' && fel.kind !== 'grannen') not(`${namn}: ${fel.kind === 'led' ? 'en led bortom vad ett finger kan' : fel.kind === 'i varandra' ? 'fingrar i varandra' : fel.kind === 'kortet' ? 'ett finger i eller genom kortet' : fel.kind === 'filten' ? 'ett finger i filten' : fel.kind}`, fel.by, fel.what, t);
       const flata = Math.max(...HANDFLATA.map(([a, b, r]) => -0.002 - (Math.min(x[sida].p[a][1], x[sida].p[b][1]) - r)));
       if (flata > 0) not(`${namn}: handflatan i filten`, flata, `${mm1(flata + 0.002)} mm i filten`, t);
-      const arm = sida === 'R' ? 'höger arm' : 'vänster arm', bort = len(sub(x[sida].w, x[sida].s)) - RACKVIDD;
+      const arm = sida === 'R' ? 'höger arm' : 'vänster arm', bort = len(sub(x[sida].w, x[sida].s)) - rackvidd(armben);
       if (bort > 0.001) not(`${arm}: handleden bortom armens räckvidd`, bort, `${mm(bort)} mm bortom`, t);
-      const led = grader(dot(underarmen(x[sida]), sub(x[sida].p[9], x[sida].p[0])) / (len(underarmen(x[sida])) * len(sub(x[sida].p[9], x[sida].p[0])) || 1));
+      const fore = underarmen(x[sida], armben), led = grader(dot(fore, sub(x[sida].p[9], x[sida].p[0])) / (len(fore) * len(sub(x[sida].p[9], x[sida].p[0])) || 1));
       if (led > GRANS.handled + GRANS.tolGrader) not(`${namn}: mer än ${GRANS.handled} grader från underarmen (den ritade handen följer inte)`, led, `${Math.round(led)}°`, t);
     }
     const lagst = Math.min(...horn(kort).map(p => p[1])); if (i >= lamnar && lagst < -0.002) not('kortet: ett hörn under filten', -lagst, `${mm(-lagst)} mm under`, t);

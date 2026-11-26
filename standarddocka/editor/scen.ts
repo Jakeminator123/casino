@@ -3,6 +3,7 @@
 // (blackjack-dealer/dealer3d/src/figure-model.ts), en ruta som dealer3d/src/stage.ts gör det.
 import * as T from 'three';
 import {loadFigure, type Figure} from '../../blackjack-dealer/dealer3d/src/figure-model.ts';
+import {DOLLS} from '../../blackjack-dealer/dealer3d/src/doll.ts';
 import {ROOM_EDGE, loadTable, roomLight, seatStool} from '../../blackjack-dealer/dealer3d/src/standard-room.ts';
 import {spots, type Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
 import {FILM, PLAY_LENS, TABLE_LENS, filmEye, fovYDeg, seatView} from '../../blackjack-dealer/src/table-lens.ts';
@@ -124,7 +125,11 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
   // ur avatar-auto-pipeline/assets), för den som bygger om dockan eller bordet och vill se det innan det byts in.
   const prov = (nyckel: string) => { const n = new URLSearchParams(location.search).get(nyckel); return n && /^[a-z0-9_]+$/.test(n) ? n : null; };
   // ?vridben=0: underarmens vridning läggs på ForeArm som i en docka utan vridben (för att jämföra; figure-model.ts).
-  const figure = await loadFigure(prov('modell') ? `/avatar-auto-pipeline/assets/docka/standarddocka_${prov('modell')}.glb` : MODELLER[docka], {twistBones: prov('vridben') !== '0'}); scene.add(figure.root);
+  // Dockans storlek: spelar den sina egna rörelser (rorelse.ts EGNA) visas den i sin egen storlek, den som rörelserna,
+  // handens punkter och fingertopparna är mätta på. Spelar den en rörelse ritad för en annan kropp (de äldre, eller en
+  // modell på prov) görs den som förut så stor att armen blir standardfigurens, så att handlederna når.
+  const egen = !prov('modell') && rorelsensDocka === docka ? DOLLS[docka] : null;
+  const figure = await loadFigure(prov('modell') ? `/avatar-auto-pipeline/assets/docka/standarddocka_${prov('modell')}.glb` : MODELLER[docka], {twistBones: prov('vridben') !== '0', ...(egen ? {arm: egen.upperArm + egen.forearm} : {})}); scene.add(figure.root);
   const bone = (name: string) => { const b = figure.root.getObjectByName(name); if (!b) throw Error(`Dockan saknar leden ${name}.`); return b.getWorldPosition(new T.Vector3()); };
   const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]);
   /** En ruta på mannen, som dealer3d/src/stage.ts gör det: bålen ur axlarna och höften, armarna ur lederna, händerna ur sina 21 punkter, huvudet mot blicken. */

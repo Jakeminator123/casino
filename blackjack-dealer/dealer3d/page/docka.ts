@@ -286,7 +286,9 @@ const show = (keepTime = false) => state.shown.kind === 'deal' ? showDeal(keepTi
 // local media of avatar-auto-pipeline), keeps the white figure. The doll chosen is whose measures the motion is for; the
 // model is only what is seen.
 const figureOf = (doll: string) => asked.get('figur') === 'vit' ? null : isSeat(doll) ? doll : asked.get('figur') === 'man' ? 'man' : 'kvinna';
-const figureNow = async (doll: string) => { const f = figureOf(doll); return f ? (await import('../src/figure-model.ts')).loadFigure(`/dealer3d/figur/${f}.glb`).catch(() => null) : null; };
+// A standard doll's model plays its own motions and is shown in its own size (its arm); a model standing in for a
+// dealer's doll is made as large as the figure's arm, as before (figure-model.ts).
+const figureNow = async (doll: string) => { const f = figureOf(doll), own = f === doll ? ALL_DOLLS[doll] : null; return f ? (await import('../src/figure-model.ts')).loadFigure(`/dealer3d/figur/${f}.glb`, own ? {arm: own.upperArm + own.forearm} : {}).catch(() => null) : null; };
 // The room she is drawn in (Jakob 2026-11-26: "Vi ska ha in vy/vinkel och allt det andra från 'standarddockan'-mappens
 // mini-blender"): the standard room of dealer3d/src/standard-room.ts, the same table, shoe, stool and light as the
 // editor of standarddocka/ draws, seen first through the game's view. Its models are local media of
