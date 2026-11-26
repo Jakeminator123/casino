@@ -7,11 +7,16 @@
 // prövat i bild: i vilan ligger fingrarnas leder 80–81 cm över golvet, och med skivan vid 80 sjunker figurens fingrar
 // ner i filten, vid 78 ligger de på den. Figuren ställs så att den skivan är spelets filt och höften hamnar på sin
 // plats vid spelets bord.
+//
+// Bredvid spelets bord finns egna bord för paketets figurer (paketbord.ts), valda med valjBord: spelets bord döljs,
+// spelarna flyttas till det bordets platser, och kamerorna utom spelets ryms med hela det bordet. Dealern, filtens
+// höjd och spelets kamera är desamma vid alla bord.
 import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {ROOM_EDGE, STOOL, loadTable, roomLight} from '../../blackjack-dealer/dealer3d/src/standard-room.ts';
 import {spots, type Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
 import {DOLL_TABLE, FILM, PLAY_LENS, TABLE_BASE, TABLE_LENS, filmEye, fovYDeg} from '../../blackjack-dealer/src/table-lens.ts';
+import {KROPP, egnaBord, type Plats} from './paketbord.ts';
 
 /** Paketets bord i rörelsernas egen ram, i centimeter: skivans höjd, höftens avstånd från ramens mitt och dess höjd. */
 const PACK = {top: 78, hipLine: 115, hip: 55};
@@ -79,11 +84,31 @@ export async function byggBord(renderer: T.WebGLRenderer, figur: () => T.Object3
     sitsar.push(seat(plats, `spelaren på plats ${plats}`, plats, x, z, Math.atan2(card.at[0] - x, card.at[2] - z)));
   }
 
+  // Borden: spelets (modellen nedan) och de egna, som är dolda tills ett av dem väljs. Var spelarna sitter vid spelets
+  // bord sparas, så att de kan flyttas tillbaka.
+  const spel: (Plats | null)[] = sitsar.map(s => s.nr ? {x: s.holder.position.x, z: s.holder.position.z, turn: s.holder.rotation.y} : null);
+  const egna = egnaBord({edgeZ, hipZ: edgeZ - DEALER_BEHIND, places});
+  for (const b of egna) scene.add(b.root);
+  const bordslag = [{id: 'spel', namn: 'spelets'}, ...egna.map(b => ({id: b.id, namn: b.namn}))]; let valt = 'spel';
+  const eget = () => egna.find(b => b.id === valt);
+
   // Bordet (35 MB) och pallarna kommer efter hand; figurerna visas under tiden.
   let board: T.Object3D | null = null, boardY = 0, lift = 0;
-  const hojd = (meter: number) => { lift = meter; if (board) board.position.y = boardY + lift; };
+  const hojd = (meter: number) => { lift = meter; if (board) board.position.y = boardY + lift; for (const b of egna) b.root.position.y = lift; };
   const table = loadTable(MODELS.bord, scene, plan, {progress: share => laddar(`Laddar bordet: ${Math.round(share * 100)} %`)})
-    .then(t => { board = t.root; boardY = t.root.position.y; hojd(lift); return ''; }, () => 'Spelets bord är inte byggt på den här datorn (avatar-auto-pipeline/assets/bord/standardbord_nara23.glb).');
+    .then(t => { board = t.root; boardY = t.root.position.y; t.root.visible = !eget(); hojd(lift); return ''; }, () => 'Spelets bord är inte byggt på den här datorn (avatar-auto-pipeline/assets/bord/standardbord_nara23.glb).');
+  /** Byter bord: det valda visas, och spelarna flyttas och vrids till dess platser. En plats bordet inte har blir ledig och står kvar där den stod. */
+  const valjBord = (id: string) => {
+    if (!bordslag.some(b => b.id === id)) return;
+    valt = id; const own = eget();
+    if (board) board.visible = !own;
+    for (const b of egna) b.root.visible = b === own;
+    for (const s of sitsar) {
+      if (!s.nr) continue; // dealern sitter där han sitter
+      const p = (own ? own.platser : spel)[s.nr]; s.ledig = !p;
+      if (p) { s.holder.position.set(p.x, 0, p.z); s.holder.rotation.y = p.turn; }
+    }
+  };
   // En pall under var och en: dealerns pall, med sitsen under figurens höft. Var sitsen är i modellen hittas med en
   // stråle rakt ner genom sitsens mitt (STOOL.seatMid); pallen trycks ihop i höjd så att sitsen kommer rätt.
   const stools = new GLTFLoader().loadAsync(MODELS.stol).then(g => {
@@ -103,13 +128,28 @@ export async function byggBord(renderer: T.WebGLRenderer, figur: () => T.Object3
   const klart = Promise.all([table, stools]).then(said => said.filter(Boolean).join(' '));
 
   const v = (x: number, y: number, z: number) => new T.Vector3(x, y, z), z = ROOM_EDGE[2];
-  function kamera(vy: Vy): Kamera {
+  /** Kamerorna vid spelets bord. */
+  function spelKamera(vy: Vy): Kamera {
     if (vy === 'sida') return {pos: v(-2.8, 0.5, z + 0.35), mot: v(0, -0.05, z + 0.35), fov: 38}; // från dealerns högra sida
     if (vy === 'topp') return {pos: v(0, 3.1, z + 0.46), mot: v(0, 0, z + 0.4), fov: 42};
     if (vy === 'runt') return {pos: v(1.9, 2.0, z + 3.1), mot: v(0, -0.1, z + 0.35), fov: 38}; // snett uppifrån, över spelarnas huvuden
     const e = filmEye(PLAY_LENS), p = v(...e.position);
     return {pos: p, mot: p.clone().addScaledVector(v(...e.forward), 1.6), fov: fovYDeg(e.focalPx), kvot: FILM.width / FILM.height};
   }
-  const bordslag = [{id: 'spel', namn: 'spelets'}]; let valt = 'spel';
-  return {scene, sitsar, kamera, klart, hojd, bordslag, valtBord: () => valt, valjBord: id => { if (bordslag.some(b => b.id === id)) valt = id; }};
+  /**
+   * Kamerorna. Spelets vy är densamma vid alla bord. Vid ett eget bord är de andra spelets kameror flyttade så att
+   * hela det bordet och de som sitter vid det ryms: längre bort i samma riktning så mycket som bordet är bredare, och
+   * riktade mot mitten mellan dealerns rygg och den bortersta spelarens.
+   */
+  function kamera(vy: Vy): Kamera {
+    const k = spelKamera(vy), own = eget();
+    if (!own || vy === 'spel') return k;
+    const far = Math.max(1, (own.halvBredd + KROPP) / (Math.max(...spel.map(p => Math.abs(p?.x ?? 0))) + KROPP));
+    const near = own.djup[0] - KROPP, deep = own.djup[1] + KROPP - near, mid = edgeZ + near + deep / 2, half = Math.tan(k.fov * Math.PI / 360);
+    if (vy === 'sida') { const away = -k.pos.x * far; return {pos: v(-away, k.pos.y, mid), mot: v(0, k.mot.y, mid), fov: k.fov, kvot: deep / (2 * away * half)}; }
+    // Uppifrån med luft runt om: sidans knappar och tidslinje ligger över bildens över- och underkant.
+    if (vy === 'topp') { const high = Math.max(k.pos.y, 1.25 * deep / 2 / half); return {pos: v(0, high, mid + k.pos.z - k.mot.z), mot: v(0, 0, mid), fov: k.fov, kvot: 1.1 * (own.halvBredd + KROPP) / (high * half)}; }
+    return {pos: k.mot.clone().addScaledVector(k.pos.clone().sub(k.mot), far), mot: k.mot, fov: k.fov};
+  }
+  return {scene, sitsar, kamera, klart, hojd, bordslag, valtBord: () => valt, valjBord};
 }

@@ -25,6 +25,20 @@ Visaren har två lägen, valda med knapparna överst:
   kommer ur skon, följer vänsterhanden in, byter till högerhanden och blir liggande där handen släpper det. Paketet har
   inga kort; de läggs till av visaren (`visa/kort.ts`), efter händernas egna rörelser.
 
+Väljaren "Bord" i bordsvyn har tre bord (`visa/paketbord.ts` bygger de två egna i kod; adressen
+`&bordslag=spel|paket|stort`):
+
+- **spelets**: standarddockans bord, som i editorn.
+- **paketets, fem platser**: bordet paketet kom med, efter måtten i Unreal-filen: en plan halvmåne 189 x 102,5 cm på
+  smala ben. Kortplatserna ligger där de fem givarna landar och spelarna sitter mitt för dem (plats 3 och 5 finns inte),
+  55–71 cm isär. Giv 5 landar vid skons nos.
+- **större, sju platser**: en plan halv ellips 2,6 x 1,0 m med sju platser 58 cm isär. Given träffar plats 3, 4 och 5,
+  landar cirka 30 cm för kort för plats 2 och 6, och plats 1 och 7 får ingen: paketets giv når bara fem ställen.
+
+Dealern, filtens höjd, brickan, skon och spelets vy är desamma vid alla tre; de andra kamerorna flyttas så att hela det
+valda bordet ryms, och reglaget "Bordet" flyttar det valda bordet. De egna borden är plana, utan vadderad kant och
+sarg, så armarna vilar på skivan och låren går fria.
+
 Listan till vänster har rörelserna i grupper med sin längd, och reglaget nertill stegar genom den valda rörelsen.
 Rörelserna laddas fyra i taget (cirka en halv minut för alla); bordet och det som spelas vid det kommer först.
 
@@ -44,6 +58,11 @@ Det här är mätt ur rörelserna och syns i bordsvyn:
   bordets mitt. Ställs den skivan på spelets filt och dealerns höft där standarddockans är (15 cm bakom bordets kant),
   vilar dealerns händer på filten strax framför brickan, som standarddockans. (Fingrarnas leder ligger 80–81 cm över
   golvet i vilan; med skivan vid 80 sjönk fingrarna ner i filten, prövat i bild.)
+- Bordet paketet kom med (`SM_GamblingTable` i Unreal-delen) är en halvmåne 189 x 102,5 cm med grön filt, smala svarta
+  ben och en kortmaskin mitt på den raka kanten, och stolen är 40 x 40 x 92 cm. Måtten är modellens gränslåda, som står
+  okomprimerad i filen, och formen syns i filens inbäddade miniatyrbild; hörnpunkterna är komprimerade och gick inte att
+  läsa, så benens platser och skivans tjocklek är antagna. I paketets demobana sitter figuren 22–30 cm utanför den raka
+  kanten.
 - Sju spelare av figurens storlek får knappt plats vid spelets bord. Kortplatserna ligger 16 grader isär sedda från
   dealerns kant, vilket ger 32 cm mellan stolarna; spelarna sitter därför glesare än sina kort (24 grader, 48 cm), vända
   mot dem, och sitter ändå axel mot axel. Bordet är 1,9 m brett; ett riktigt bord för sju är drygt två meter.
@@ -112,6 +131,7 @@ Håller inte steg 1 eller 2 för hans domar är paketet ändå en förebild att 
 | `visa/server.ts` | Visarens server: läser Unity-scenen, lämnar ut figuren, rörelserna, sidan och det bordsvyn lånar, och sparar bitarna |
 | `visa/index.html`, `visa/visa.ts` | Visarens sida (three.js): listan, de två lägena, reglaget och bitarna |
 | `visa/bord.ts` | Bordsvyn: figurerna på sina platser vid spelets bord, pallarna, kamerorna och bordets höjd |
+| `visa/paketbord.ts` | De egna borden för paketets figurer: formen, platserna, kortplatserna, brickan och skon |
 | `visa/kort.ts` | Korten i blackjackdealerns giv: när kortet dras ur skon, byter hand och släpps räknas ur rörelsen, och kortet följer händerna |
 | `verktyg/titta.ts` | Tar bilder av visaren utan fönster, för en agent som ska se vad en ändring gjorde: `node kortspelspaket/verktyg/titta.ts slask/kortspelspaket/<uppgift> topp=vy=bord,kamera=topp,t=12.7` (visaren ska vara igång; sidans fel skrivs ut) |
 | `sekvenser.json` | De utklippta bitarna: per rörelse ett namn och två tider i sekunder |
@@ -124,8 +144,9 @@ de byggda modellerna av bordet och pallen (`../avatar-auto-pipeline/assets/`, so
 inte är byggda säger sidan det och visar figurerna utan bord).
 
 Adressen kan välja vad som visas, för den som vill peka på en viss bild:
-`?vy=bord&kamera=spel|runt|sida|topp&spelare=7|3|nej&bord=<cm>&rorelse=<AS_namn>&t=<sekunder>` (med `t` står rörelsen
-stilla där; `bord` är reglagets värde, minus är ner).
+`?vy=bord&kamera=spel|runt|sida|topp&bordslag=spel|paket|stort&spelare=7|3|nej&kort=nej&bord=<cm>&rorelse=<AS_namn>&t=<sekunder>`
+(med `t` står rörelsen stilla där; `bord` är reglagets värde, minus är ner), och `&kam=x_y_z_x_y_z_vinkel` ställer en
+egen kamera för en närbild (läget, punkten den ser mot och bildvinkeln).
 
 `paket/` går aldrig in i Git (`AGENTS.md`). På en annan dator: lägg de tre filerna i Hämtade filer och dubbelklicka
 `STARTA visaren.cmd`, eller kör `node kortspelspaket/packa-upp.ts --fran <mapp>` med mappen där de ligger.
