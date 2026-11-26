@@ -33,7 +33,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   (2026-11-26); filmen före spelet står kvar för sig, utan träd. En lista överst väljer ett träd, nätet (Alla träd) eller
   en komposition; `tatuerad-skjut-nyp` bestämmer hur ofta varje gren spelas.
 - **Kort:** ett kort per sida med märkena överallt; kortplanen i verkligt perspektiv genom filmens lins (Standard), som spelet och
-  scenen följer. Det styva kortet utan vit kant har hans ja i Scen (2026-11-23).
+  scenen följer.
 - **Studion:** ramen har neutral grafit och en meny med ett namn per rad (2026-11-25), väntar på hans ord om
   utseendet; flera flikar får vara öppna. Bordet är vyn av bordet. Inspelning (förut Kortplan) har en bild sedan 2026-11-25 ("ett och
   samma läge", "allt i 3d"): dockans 3D-bord med planens kort på filten, och en högerspalt där dockans reglage står

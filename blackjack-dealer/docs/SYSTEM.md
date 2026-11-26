@@ -172,8 +172,8 @@ Ingen vit kant (Jakob 2026-11-17, 2026-11-23). Kortet är rent tills efterarbete
   bland annat `createLayout`, `cameraFromContract` och `viewUnder`.
 - **En linje för korten** (Jakob 2026-11-13): ritade kort hela vägen, en storlek (`cardScale` 1,2 = ett verkligt kort,
   storlek 1,00 i Efterarbete), en brytare i spelet. Kortmattan är ett val i studion, inte spelets. Överlägg i handen
-  (`cardInHand`) är av i grunden; hans val i Scen följer med Använd i Casino (2026-11-19, 2026-11-24). Det styva kortet
-  ritas med en storlek från hand till bord (2026-11-23). Storleken ändras bara i Efterarbete, aldrig i Inspelning.
+  (`cardInHand`) är av i grunden; hans val i Scen följer med Använd i Casino (2026-11-19, 2026-11-24). Storleken ändras
+  bara i Efterarbete, aldrig i Inspelning.
 
 ## Kortplanen
 

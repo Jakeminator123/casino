@@ -8,7 +8,6 @@ import {readFileSync} from 'node:fs';
 import {DEFAULTS} from '../src/scene3d-view.ts';
 import {lookState, presetFrom, readLook} from '../src/game-look.ts';
 import {cardsChoice} from '../src/game-film.ts';
-import {trackFolder} from '../src/card-overlay.ts';
 import {gameSrc, readCasino} from '../studio/lib/casino.ts';
 import {BASE, CASINO_PRESET, validatePreset} from '../studio/lib/scene-presets.ts';
 import {findLeaks, readRelease, scrub} from './studio-freeze.ts';
@@ -43,7 +42,7 @@ test('the saved lens goes up with the copy: validated, scrubbed and still there,
   }
 });
 
-test('the hand overlay set in Scen goes with Använd i Casino: the game draws the card in her hand, on the track Scen draws it on', () => {
+test('the hand overlay set in Scen goes with Använd i Casino: the game draws the card in her hand', () => {
   // Använd i Casino saves what differs from DEFAULTS (useSceneEditor saveAs); the plain Casino's frame names no key, so the game takes the preset's
   const {preset, errors} = validatePreset({schemaVersion: 1, name: CASINO_PRESET, label: 'Casino', about: 'Casinos sparade visning.', state: {...basgrund.state, cardInHand: true}}, CASINO_PRESET);
   assert.deepEqual(errors, []);
@@ -51,7 +50,4 @@ test('the hand overlay set in Scen goes with Använd i Casino: the game draws th
   const carryOf = (state: Record<string, unknown>) => cardsChoice({preset: state.cards as boolean, inHand: lookState(DEFAULTS, state, keys, () => 11).cardInHand}).carry;
   assert.equal(carryOf(presetFrom({preset: {...preset!, revision: null}})!.state), 'object');
   assert.equal(carryOf(presetFrom({preset: {state: basgrund.state}})!.state), 'film', 'without the choice the game keeps its own line');
-  // the card in her hand is then the one Scen showed (the stiff card's track); the game's own line reads the stored track as before
-  assert.equal(trackFolder(frame.pathname, frame.search, true), trackFolder('/studio/bordet/', '?lage=scen'));
-  assert.equal(trackFolder(frame.pathname, frame.search, false), null);
 });

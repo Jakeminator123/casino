@@ -231,7 +231,7 @@ export function useSceneEditor(firstLook: () => LookAsk) {
   };
   // Scen's one choice for the cards (Jakob 2026-11-24: the overlay as one choice he sets before the Casino, "det är för mycket
   // val"): the drawn card also in her hand. Turning it on turns the drawn cards on too, which it needs; "Använd i Casino" saves
-  // it with the look, and the Casino then draws the card as Scen does (src/card-overlay.ts trackFolder).
+  // it with the look, and the Casino then draws the card in her hand as Scen does.
   const overlay = (on: boolean) => {
     const patch: Partial<SceneState> = on && !current?.cards ? { cards: true, cardInHand: true } : { cardInHand: on };
     setCurrent((was) => (was ? { ...was, ...patch } : was));

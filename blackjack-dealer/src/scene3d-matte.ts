@@ -3,10 +3,9 @@
 // the film), and fingers stay in front because they are not card-coloured: no hand mask, no margin, no easing to the plan's size
 // while the card is in the film. The back (yellow) is the film's card recoloured to the back print's colour with the film's own
 // shading; the face (blue) is the face print laid by the track's quad for that frame, shaded the same way, and whatever of the
-// blue lies outside the quad takes the face's border colour. Shown on film frames by dealer-bf's trial (kortprov.py, Prov
-// kort-matt-ur-filmen) before it was a shader. Here are the parts that need no GPU: the colour rules, the passes as shader text,
-// where they run and which quad lays the print. The
-// passes run in src/scene3d-deal.ts, which owns the targets; the replacement itself is in the film's shader (src/scene3d-film.ts).
+// blue lies outside the quad takes the face's border colour. Here are the parts that need no GPU: the colour rules, the passes as
+// shader text, where they run and which quad lays the print. The passes run in src/scene3d-deal.ts, which owns the targets; the
+// replacement itself is in the film's shader (src/scene3d-film.ts).
 import {clockwise, grown, signedArea, type Pt} from './card-track.ts';
 import {turnOf, type CardTrack} from './card-overlay.ts';
 import {FILM, squareToQuad} from './scene3d-geometry.ts';

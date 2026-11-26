@@ -10,9 +10,7 @@ import type {PlacementPlan} from './placement-model.ts';
 // film: where the film's own card is in the frame, when the track draws the card somewhere else than the film has it (a track that
 // carries an even card in the grip): what is covered and keyed is then this quad, and quad is only where the card is drawn.
 // held: 1 while the card hangs in the hand, 0 once it lies (measured contact); absent, the scene goes by the frames before restFrom.
-// blur: the width of the film card's smeared edge in this frame, film pixels over the same card standing still (0: sharp); only in
-// the tracks of the lab trial "kortprov" (TRIAL below), absent where it was not measured.
-export type TrackFrame = {frame: number; side: Side; quad: number[][] | null; edge: number[][] | null; confidence?: number; shoeShare?: number; film?: number[][] | null; held?: number; blur?: number; whole?: number[][] | null};
+export type TrackFrame = {frame: number; side: Side; quad: number[][] | null; edge: number[][] | null; confidence?: number; shoeShare?: number; film?: number[][] | null; held?: number};
 // hand: false when the track does not hold the card in the hand well enough to draw it there (tools/track-card.ts --no-hand): no
 // card object is drawn while it is carried; it comes in over the last EASE frames before it lies, settling from the film's own card
 // onto its place (the 3D scene shows the film's card recoloured until then: src/scene3d-deal.ts, carry). drawnFrom: the first frame
@@ -224,7 +222,6 @@ export type Pose = {
   quad: Pt[] | null;      // where the rendered card is drawn, in texture order
   edge: [Pt, Pt] | null;  // edge-on frames: the line the thin edge is drawn along
   film: Pt[] | null;      // the film's own card in this frame, rim included: what must be covered
-  whole?: Pt[] | null;    // a film card with a white rim round its colour (the stiff card's track knows it, WHITE_RIM): the card with that rim
   resting: number;        // 0 in the hand, 1 lying still; in between while the size settles
   turned: boolean;
   at?: [Pt, Pt] | null;   // edge-on frames of a shifted card: where the film's own edge is, which is what must be covered
@@ -330,7 +327,7 @@ function rawPose(track: CardTrack, scene: Scene | null, at: number, scale: numbe
     return none;
   }
   if ((f.side !== 'BACK' && f.side !== 'FRONT') || f.quad?.length !== 4) return none;
-  const film = grown(pts(f.film?.length === 4 ? f.film : f.quad), RIM), whole = f.whole?.length === 4 ? pts(f.whole) : null;
+  const film = grown(pts(f.film?.length === 4 ? f.film : f.quad), RIM);
   // A quad in the hand that is no card (crossed, folded, empty, larger than any card a film holds, a sliver or a wedge: plausible)
   // is not drawn: one bad quad must never smear the card across the picture.
   // The size only starts to settle once the card shows the side it will lie on.
@@ -345,10 +342,10 @@ function rawPose(track: CardTrack, scene: Scene | null, at: number, scale: numbe
     const shape = pts(track.frames[j].quad!), c = centre(shape), here = centre(source); source = shape.map(p => ({x: p.x + here.x - c.x, y: p.y + here.y - c.y})); }
   // In the hand the rendered card is the film's card and a margin more, so the film's card and its rim never show beside it.
   const held = about(source, MARGIN);
-  if (!still) return {...none, quad: held.map(move), film, whole};
+  if (!still) return {...none, quad: held.map(move), film};
   const t = at < start ? 0 : smooth((at - start + 1) / (from - start + 1)), shape = smooth((at - (from - 4)) / 4);
   const order = still.turned ? [held[1], held[2], held[3], held[0]] : held, settled = about(order, 1 + (size(still.quad) / (size(order) || 1) - 1) * t).map(move);
-  return {...none, quad: mix(settled, still.quad, shape), film, whole, resting: t, turned: still.turned};
+  return {...none, quad: mix(settled, still.quad, shape), film, resting: t, turned: still.turned};
 }
 // The plan's quad, begun at the corner that lies nearest the film card's first corner and running the same way round: the
 // rendered card ends in the plan's direction without spinning on its way there.
@@ -434,7 +431,7 @@ export function projectionOf(h: number[], width: number, height: number): number
 export type Box = {x: number; y: number; width: number; height: number};
 /** The whole-pixel region of the film that a pose touches, with room for blur and fingers around it. */
 export function regionOf(pose: Pose, width: number, height: number, margin = 26): Box | null {
-  const points = [...(pose.quad ?? []), ...(pose.film ?? []), ...(pose.whole ?? []), ...(pose.edge ?? []), ...(pose.at ?? [])];
+  const points = [...(pose.quad ?? []), ...(pose.film ?? []), ...(pose.edge ?? []), ...(pose.at ?? [])];
   if (!points.length) return null;
   const x0 = Math.max(0, Math.floor(Math.min(...points.map(p => p.x)) - margin)), y0 = Math.max(0, Math.floor(Math.min(...points.map(p => p.y)) - margin));
   const x1 = Math.min(width, Math.ceil(Math.max(...points.map(p => p.x)) + margin)), y1 = Math.min(height, Math.ceil(Math.max(...points.map(p => p.y)) + margin));
@@ -453,18 +450,15 @@ export type Matte = {width: number; height: number; hand: Uint8Array; firm: Uint
  * card held in front of the jacket leaves jacket behind. ground is the mean table colour of the region.
  * `own` says which pixels lie on the film's own card: there only skin is hand, since a dark pixel on the
  * card is its face in finger shadow, not the sleeve. Dark green is table in a finger's shadow and is
- * never hand: kept in front it would lie as a green strip on a white card. `whole` says which pixels lie on a film card
- * with a white rim round its colour, that rim included (Pose.whole): there whatever is light and not warm is the rim, and the
- * pink of the film's mark is the card's too (WHITE_RIM).
+ * never hand: kept in front it would lie as a green strip on a white card.
  */
-export function readMatte(rgba: ArrayLike<number>, width: number, height: number, own?: (x: number, y: number) => boolean, cell = 4, whole?: (x: number, y: number) => boolean): Matte {
+export function readMatte(rgba: ArrayLike<number>, width: number, height: number, own?: (x: number, y: number) => boolean, cell = 4): Matte {
   const n = width * height, rgb = new Uint8Array(n * 3);
   for (let i = 0; i < n; i++) { rgb[i * 3] = rgba[i * 4]; rgb[i * 3 + 1] = rgba[i * 4 + 1]; rgb[i * 3 + 2] = rgba[i * 4 + 2]; }
   const cls = classify(rgb, n), raw = new Uint8Array(n), film = new Uint8Array(n), sum = [0, 0, 0]; let table = 0;
   for (let i = 0; i < n; i++) { const c = cls[i], r = rgb[i * 3], g = rgb[i * 3 + 1], b = rgb[i * 3 + 2];
     // Blue mixed into its surroundings, or a blue face in finger shadow, is still card: it is tested before the dark rule.
     if (c === YELLOW || c === BLUE || c === SHADE || c === TINT || (b > r + 40 && b > 0.6 * g)) film[i] = 1;
-    else if (whole && (r + g + b > WHITE_RIM.light && r < b + WHITE_RIM.warm || g + WHITE_RIM.mark < Math.min(r, b)) && whole(i % width, (i - i % width) / width)) film[i] = 1;
     else if (c === SKIN) raw[i] = 1;
     else if (c === DARK) { if (g > r + 15 && g > b + 15) continue; // table in deep shadow beside a finger: background, not sleeve
       if (own?.(i % width, (i - i % width) / width)) film[i] = 1; else raw[i] = 1; }
@@ -489,8 +483,8 @@ export function readMatte(rgba: ArrayLike<number>, width: number, height: number
 }
 /** Whether an image point lies where the film's own card can show in this frame: its quad or its edge line, with room for motion blur. */
 export function filmZone(pose: Pose, margin?: number): (x: number, y: number) => boolean {
-  if (pose.film) { const q = clockwise(pose.film), reach = grown(q, margin ?? 10 + 0.12 * Math.sqrt(Math.abs(signedArea(q)))), all = pose.whole ? grown(clockwise(pose.whole), WHITE_RIM.beyond) : null;
-    return (x, y) => inside(reach, x, y) || (!!all && inside(all, x, y)); }
+  if (pose.film) { const q = clockwise(pose.film), reach = grown(q, margin ?? 10 + 0.12 * Math.sqrt(Math.abs(signedArea(q))));
+    return (x, y) => inside(reach, x, y); }
   if (pose.edge) { const [a, b] = pose.at ?? pose.edge, dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy || 1, reach = margin ?? 16;
     return (x, y) => { const t = Math.max(-0.15, Math.min(1.15, ((x - a.x) * dx + (y - a.y) * dy) / l2)); return Math.hypot(x - a.x - dx * t, y - a.y - dy * t) <= reach; }; }
   return () => false;
@@ -533,102 +527,3 @@ export function overridesOf(value: unknown): Override[] {
     return Number.isInteger(from) && Number.isInteger(to) && from >= 0 && to >= from ? [{from, to, note: typeof item.note === 'string' ? item.note : ''}] : []; });
 }
 export const cardInFront = (overrides: Override[], frame: number) => overrides.some(o => frame >= o.from && frame <= o.to);
-
-// ---- the lab trial "kortprov" (Prov kort-fram-bak-20261120; drawn in src/scene3d-deal.ts) --------------------------------------
-// Off unless Scen (scene3d.html) is opened with ?kortprov=1: the game and every other page are as they were, whatever their address
-// says. Its parts, each also asked for by its own word (?kortprov=spar,ljus):
-//   spar    the card's track with the measured card laid in (src/card-track.ts refineFrames), read from TRIAL.folder by the clip's
-//           name; a film without such a file keeps its stored track;
-//   skarpa  the drawn card smeared as far as the film's own card is in that frame (the frame's measured `blur`: smearOf), where
-//           today it is smeared by how fast the track moves;
-//   ljus    the film's light on the drawn card remembered from frame to frame (lightStep), where today each frame is read alone.
-// (The film's fingers against the drawn card, their edge, are not part of it: Jakob's yes of 2026-11-20 was for the turn and the
-// light, the sharpness against the hand comes after.)
-// ?kortprov=mat changes nothing and only writes what each frame read (document.documentElement.dataset.kortprov), to measure the
-// page as it is.
-// The stiff card (Prov styvt-kort-20261123, Jakob 2026-11-23: a card has one size; his yes in Beslut the same day, card
-// styvt-kort-i-handen): in Scen the card's track is the stiff card's, read from TRIAL.stiff
-// by the clip's name, with no word (trackFolder below). A film without a stiff card keeps its stored track; ?kortprov=idag gives the
-// stored track for every film, and spar still reads its own. Scen is the lab's 3D page and the studio's views, which mount the
-// same scene (SCEN below). The game's page (game.html, also where the studio's Casino shows it) reads the stored track under its
-// own line, and the stiff card's only while the drawn card is in her hand (carry 'object': the look's "Överlägg i handen", or
-// kort=hand), so that the Casino draws the card Scen showed when he set the choice there (Jakob 2026-11-24).
-// The white rim goes with the film's card (his yes in Beslut 2026-11-23, card styvt-kort-vit-kant): in a film whose card has a
-// white rim round its colour the stiff track also carries the card with that rim (`whole`), and what is light and not warm inside
-// it goes with the film's card (WHITE_RIM: readMatte here, the key in src/scene3d-film.ts). ?kortprov=medkant reads the frames
-// without `whole` (trialTrack), as before his yes.
-// slew: how far the card's brightness (against the same card lying flat) may change per frame: the film's own card changes by at
-// most 0.116 per frame through a turn (13 of 255 on the face, paow-giv-2-3-p4-h24-cykel-02-01 frames 34-56), the jumps it removes
-// were about twice that. slope, decay: the same for the light's fall across the card (per film pixel) and for letting go of a fall
-// that is no longer read. smear: the mean, over all directions, of travel over edge band (smearOf).
-export const TRIAL = {word: 'kortprov', folder: 'assets/proofs/kort-fram-bak-20261120/spar', stiff: 'assets/proofs/kortmodell-v2-20261123/spar', parts: ['spar', 'skarpa', 'ljus'] as const, slew: 0.12, slope: 0.0008, decay: 0.0002, smear: Math.PI / 2};
-// WHITE_RIM: a film card's white rim, in film pixels of 0 to 255: light (the three colours' sum over `light`) and not warm (red less
-// than `warm` over blue: white mixed with the screen's green keeps blue at least as high as red, while skin, the only other light
-// thing on a card, has red far over blue also where it is mixed with the green), up to `beyond` pixels outside the card with its rim.
-// mark: the pink mark the film draws on its card's face goes with it there too (green this far under both red and blue; skin has
-// blue under green), since the film's card reaches beyond the drawn one while it is carried.
-export const WHITE_RIM = {light: 440, warm: 12, beyond: 3, mark: 40};
-export type TrialPart = typeof TRIAL.parts[number] | 'mat' | 'styvt' | 'idag' | 'medkant';
-const SCEN = /(^|\/)scene3d\.html$|^\/studio\//, GAME = /(^|\/)game\.html$/;
-/** The trial's parts asked for by a page's address, or null: only Scen, only by its word. */
-export function trialParts(path: string, search: string): Set<TrialPart> | null {
-  if (!SCEN.test(path)) return null;
-  const word = new URLSearchParams(search).get(TRIAL.word); if (!word) return null;
-  if (word === '1') return new Set<TrialPart>(TRIAL.parts);
-  const asked = word.split(',').filter(w => w === 'mat' || w === 'styvt' || w === 'idag' || w === 'medkant' || (TRIAL.parts as readonly string[]).includes(w)) as TrialPart[];
-  return asked.length ? new Set(asked) : null;
-}
-/**
- * The folder a page reads the card's track from by the clip's name, or null for the stored track: in Scen the stiff card's, unless
- * its address says otherwise; on the game's page the stiff card's while the drawn card is in her hand (drawnInHand), else null (see above).
- */
-export function trackFolder(path: string, search: string, drawnInHand = false): string | null {
-  if (!SCEN.test(path)) return drawnInHand && GAME.test(path) ? TRIAL.stiff : null;
-  const words = (new URLSearchParams(search).get(TRIAL.word) ?? '').split(',');
-  return words.includes('idag') ? null : words.includes('styvt') ? TRIAL.stiff : words.includes('1') || words.includes('spar') ? TRIAL.folder : TRIAL.stiff;
-}
-/**
- * The stored track with the trial's frames; the stored track itself when the trial's file is of another film (its clip, its number
- * of frames). rim: whether the frames keep the film card's white rim (`whole`), so that it goes with the film's card.
- */
-export function trialTrack(stored: CardTrack, trial: Pick<CardTrack, 'clip' | 'frames' | 'edgeWindow'> | null, rim = false): CardTrack {
-  if (!trial || !stored.clip || trial.clip !== stored.clip || trial.frames?.length !== stored.frames.length) return stored;
-  return {...stored, frames: rim ? trial.frames : trial.frames.map(f => f.whole ? {...f, whole: null} : f), edgeWindow: trial.edgeWindow ?? null};
-}
-/**
- * How far the film's card travelled while the frame was exposed, in film pixels, from the band measured round it (`band`: the mean
- * width of its soft edge over its outline, less that of the same card standing still). A side is soft over the travel times how
- * far it faces the travel, so the travel is the band over the outline's mean facing: of the quad `q` (film pixels) moving along
- * `dir`; with no quad or no direction, the mean over all directions (TRIAL.smear).
- */
-export function smearOf(band: number, q: number[][] | null, dir: Pt | null): number {
-  if (!(band > 0)) return 0;
-  const l = dir ? Math.hypot(dir.x, dir.y) : 0; if (!q || q.length !== 4 || l < 1e-6) return band * TRIAL.smear;
-  let facing = 0, around = 0;
-  for (let i = 0; i < 4; i++) { const a = q[i], b = q[(i + 1) % 4], ex = b[0] - a[0], ey = b[1] - a[1]; around += Math.hypot(ex, ey); facing += Math.abs(ex * dir!.y - ey * dir!.x) / l; }
-  return around > 1e-6 ? band / Math.max(facing / around, 0.3) : band * TRIAL.smear;
-}
-// The film's light on its card as one frame reads it (src/scene3d-deal.ts): shade, its brightness against the same card lying flat
-// (null: too little of the card's colour to read, or no film card in the pose); slope, how the light falls across it per film pixel
-// against its mean (null: no plane fitted); offset, where that mean lies from the card's middle.
-export type LightRead = {shade: number | null; slope: [number, number] | null; offset?: [number, number]};
-export type Light = {key: string; frame: number; shade: number; slope: [number, number] | null; offset: [number, number]};
-/**
- * The light remembered: the reading of `frame` taken into what the frames before it gave. Following on (the same card and side,
- * `key`, at most two frames from the last), the brightness moves toward the reading by at most TRIAL.slew a frame, and stays
- * where it was when nothing can be read (today the card then takes its reference colour, or goes unlit, for that frame alone);
- * the fall across the card moves by TRIAL.slope a frame, and lets go by TRIAL.decay a frame when no plane is read. The same frame
- * again gives the same light (a paused film). Not following on (a seek, another card, the other side), the reading itself; null
- * when there is neither a reading nor a memory, and the card is lit as before.
- */
-export function lightStep(was: Light | null, key: string, frame: number, read: LightRead): Light | null {
-  const gap = was && was.key === key ? Math.abs(frame - was.frame) : Infinity, follows = gap <= 2;
-  if (follows && gap === 0) return was;
-  const toward = (a: number, b: number, by: number) => a + Math.max(-by * gap, Math.min(by * gap, b - a));
-  const shade = read.shade == null ? (follows ? was!.shade : null) : follows ? toward(was!.shade, read.shade, TRIAL.slew) : read.shade;
-  if (shade == null) return null;
-  const before = follows ? was!.slope : null;
-  const slope: [number, number] | null = read.slope ? (follows ? [toward(before?.[0] ?? 0, read.slope[0], TRIAL.slope), toward(before?.[1] ?? 0, read.slope[1], TRIAL.slope)] : read.slope)
-    : before ? [toward(before[0], 0, TRIAL.decay), toward(before[1], 0, TRIAL.decay)] : null;
-  return {key, frame, shade, slope, offset: read.slope && read.offset ? read.offset : follows ? was!.offset : [0, 0]};
-}
