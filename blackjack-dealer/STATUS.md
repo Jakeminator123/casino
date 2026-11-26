@@ -193,9 +193,6 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   Med hans nej raderas mappen, provet och kortet.
 - Korten under Bred lins (steg 9 D2): ska de ritas som filmens egna (dealerns kort 75 × 57 px i stället för 61 × 35)?
   Han svarar när han har sett en före- och efterbild; den görs på samma sätt som D1:s, efter hans svar där.
-- Kortets form är avgjord (hans ja 2026-11-26): inspelningen har alltid ett riktigt kort, och spelets 87 % är reglaget
-  Kortens form i Scen. Kvar att göra efter det: måtten i `data/media-fit.json` (brickorna i Material) räknas om med
-  `node tools/media-audit.ts --fit --write`, eftersom de mäts mot planens kort, som nu är ett riktigt kort.
 - Två frågor om det som städades 2026-11-25: om
   egna returfilmer, landningsbilderna (A3) och A2.2 ska bort också ur beställningsmodellen (`tools/landing-make.ts` och
   stegen RETUR och 2.2 lever kvar där för de sparade beställningarnas skull); och om 3D-banans äldre verktyg som kräver
