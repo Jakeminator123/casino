@@ -158,7 +158,8 @@ const fixed = query.has('pitch') || query.has('zoom');
 let tall = false, aimed = home.yaw; // aimed: the yaw the view is easing toward, degrees
 function frame() {
   const now = placeConsole(); // and the scene follows the picture box (scene.resize, below)
-  if (now !== tall || !framed) { tall = now; framed = true; if (!fixed) scene.set(tall ? upright : lying); aimed = tall ? playView.mobil.yaw : home.yaw; scene.set({yaw: aimed}); }
+  // Standing is always the play view's Mobil, also where the address pins a pitch or a zoom: those are a lying framing.
+  if (now !== tall || !framed) { tall = now; framed = true; scene.set(tall ? upright : lying); aimed = tall ? playView.mobil.yaw : home.yaw; scene.set({yaw: aimed}); }
   scene.resize();
 }
 let framed = false;
@@ -496,7 +497,7 @@ scene.onFrame(() => {
   if (whole?.layer === 'BEHIND_TABLE' && !comeHome) shot = exitView(scene.players.frame(), scene.status().camera, framing(), whole.rise, whole.behindUntil !== undefined);
   if (shot) for (const key of ['yaw', 'pitch', 'zoom', 'dy', 'dz'] as const) scene.state[key] += (shot[key] - scene.state[key]) * 0.12;
   else { if (!turning && !byHand && Math.abs(scene.state.yaw - aimed) > 0.02) scene.state.yaw += (aimed - scene.state.yaw) * 0.08;
-    if (!fixed) for (const key of ['pitch', 'zoom'] as const) { const left = framing()[key] - scene.state[key]; if (left) scene.state[key] = Math.abs(left) < 0.002 ? framing()[key] : scene.state[key] + left * 0.08; }
+    if (!fixed || tall) for (const key of ['pitch', 'zoom'] as const) { const left = framing()[key] - scene.state[key]; if (left) scene.state[key] = Math.abs(left) < 0.002 ? framing()[key] : scene.state[key] + left * 0.08; }
     for (const key of ['dy', 'dz'] as const) if (scene.state[key] !== home[key]) scene.state[key] = Math.abs(scene.state[key] - home[key]) < 0.002 ? home[key] : home[key] + (scene.state[key] - home[key]) * 0.9; }
   const host = stage.getBoundingClientRect(), box = scene.canvas.getBoundingClientRect();
   overlay.place({left: box.left - host.left, top: box.top - host.top, width: box.width, height: box.height}, anchors());

@@ -10,16 +10,18 @@
 // (A line of light along the felt edge stood here until 2026-11-11; Jakob turned it down as not natural light. Light on the
 // table comes from the room: the table's surface 'photo' and roomLight.)
 import * as T from 'three';
-import {RAIL, TABLE, railPoint, roomReflection, sized, type RailLink, type TableSize} from './scene3d-table.ts';
+import {RAIL, railPoint, roomReflection, sized, type RailLink, type TableSize} from './scene3d-table.ts';
 
 /**
  * Where cup holders sit along the rail: the angle on the players' arc (0 at the +x end, π at the -x end) of one between
  * each pair of neighbouring seats and one outside each end seat, as far out as the seats are apart. `seats` are the bet rings
  * (dealer metres: x across, s from the dealer-side edge). One that would land on the rail's rounded ends is left out. The angles
- * are those of TABLE's own oval; a table of another size (sized) has the same oval larger, so they hold for it too.
+ * are those of the oval the table is built with (`size`, sized): under the standard's lens the table is a real table's depth
+ * (tableUnder in src/scene3d-table.ts), almost twice TABLE's, and angles read against TABLE's own oval put the holders
+ * decimetres from the gaps between the seats.
  */
-export function cupAngles(seats: {x: number; s: number}[]): number[] {
-  const at = seats.map(p => Math.atan2(p.s / TABLE.b, p.x / TABLE.a)).sort((p, q) => p - q); if (at.length < 2) return [];
+export function cupAngles(seats: {x: number; s: number}[], size: TableSize = 1): number[] {
+  const {a, b} = sized(size), at = seats.map(p => Math.atan2(p.s / b, p.x / a)).sort((p, q) => p - q); if (at.length < 2) return [];
   const step = (at[at.length - 1] - at[0]) / (at.length - 1), out = [at[0] - step / 2];
   for (let i = 0; i < at.length - 1; i++) out.push((at[i] + at[i + 1]) / 2);
   out.push(at[at.length - 1] + step / 2);
@@ -165,7 +167,7 @@ export function createRailExtras(lit: <M extends T.Material>(material: M) => M =
   let followed: RailLink | null = null, wanted: {seats: {x: number; s: number}[]; size: TableSize; table: RailLink | null} | null = null;
   function make({seats, size, table}: NonNullable<typeof wanted>) {
     for (const child of [...cups.children]) { cups.remove(child); (child as T.Mesh).geometry.dispose(); }
-    const parts = cupParts(cupAngles(seats), size);
+    const parts = cupParts(cupAngles(seats, size), size);
     const geometry = (p: CupPart, colour: boolean) => { const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(p.position, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(p.normal, 3));
       g.setAttribute('uv', new T.Float32BufferAttribute(p.uv, 2)); g.setAttribute('shade', new T.Float32BufferAttribute(p.shade, 1));
       if (colour) g.setAttribute('color', new T.Float32BufferAttribute(p.shade.flatMap(s => [s, s, s]), 3)); g.setIndex(p.index); return g; };
