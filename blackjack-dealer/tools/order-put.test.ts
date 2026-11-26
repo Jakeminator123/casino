@@ -1,4 +1,4 @@
-// Skyddar: beställningarna – en tagning läggs exakt en gång, och bara för en godkänd och oförändrad beställning.
+// Skyddar: beställningarna – en tagning läggs exakt en gång, och bara för en godkänd och oförändrad beställning; godkännandet hålls av fullmakten, dygnstaket och saldot.
 // The receipt writer (tools/order-put.ts) keeps exactly-once: requestedAt before the call, the task id after, a begun
 // take never begun again, nothing for an order that is not approved or has changed since, files checked against their hash.
 import test from 'node:test';
@@ -392,6 +392,35 @@ test('the standing mandate: a larger order needs Jakob, his yes from the chat is
   await writeFile(path.join(root, '.runtime/runway-api/ledger.json'), JSON.stringify({ orders: [{ name: 'prov', requestedAt: '2026-11-26T09:00:00Z', expectCredits: half }] }));
   const next = await approveCommand(root, ['prov-imorgon', '--mandate', 'pilot för plats 6'], on('2026-11-26'));
   assert.deepEqual([(next.day as { before: number }).before, (next.day as { after: number }).after], [half, half + cost]);
+});
+
+// Two approvals at once (two chats, or a chat and a direct call) each read the agents' day: under the ledger's lock only
+// one of them can take the credits that are left.
+test('two approvals by the main agent at once never both fit in what is left of the agents\' day', async (t) => {
+  const { root, store, setTime, writeMandate } = await approved(t);
+  const { approveCommand } = await import('./order-approve.ts');
+  setTime('2026-11-25T10:00:00Z');
+  const day = { now: () => new Date('2026-11-25T10:00:00Z') };
+  const cost = (await store.create({ dealer: 'paow', step: 'ANKARE-2.1', takes: 2, id: 'prov-a' })).order.cost.worstTotal;
+  await store.create({ dealer: 'paow', step: 'ANKARE-2.1', takes: 2, id: 'prov-b' });
+  await writeMandate({ askAbove: cost, perDayCredits: cost + Math.floor(cost / 2) });
+  const both = await Promise.allSettled(['prov-a', 'prov-b'].map((id) => approveCommand(root, [id, '--mandate', 'pilot för plats 4'], day)));
+  assert.deepEqual(both.map((b) => b.status).sort(), ['fulfilled', 'rejected']);
+  assert.match(String((both.find((b) => b.status === 'rejected') as PromiseRejectedResult).reason), /ryms inte i agenternas/);
+});
+
+// The policy's floor is held against the developer project's balance: the policy's own reading, or a newer one from a take
+// placed through the API key. Runway's MCP app has a pot of its own and never stands in for it.
+test('the balance an approval is held against is the API key\'s pot, never the MCP app\'s', async (t) => {
+  const { r, store, setTime } = await approved(t);
+  const policy = (await store.list()).balance?.credits;
+  setTime('2026-11-27T10:00:00Z');
+  await r.begin('prov-ett', 1);
+  await r.placed('prov-ett', 1, 'b90b9362-7a13-4b80-b498-c324f02c41f8', 17, 'mcp');
+  assert.equal((await store.list()).balance?.credits, policy, 'the MCP app\'s pot is not this balance');
+  await r.begin('prov-ett', 2);
+  await r.placed('prov-ett', 2, 'b90b9362-7a13-4b80-b498-c324f02c41f9', 5000, 'api');
+  assert.equal((await store.list()).balance?.credits, 5000);
 });
 
 test('a lock left by an interrupted process refuses a new start and remains in place', async t => {

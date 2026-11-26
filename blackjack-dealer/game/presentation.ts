@@ -10,7 +10,8 @@
 //   (git blob e2055293255bcb47cdf931573678294fe68c3836); resolver/inventory functions not ported.
 // - filmedDealTarget: packages/presentation/contracts/filmed-profile.mjs (git blob 93a688025460c5c18b8a3c483af0e28b3061cf49).
 // Events here still carry Scout's `box` 0–6; seats.ts converts them to seats 1–7.
-// One lab deviation in the logic: where the reveal is put among a step's events (see presentationEvents).
+// Two lab deviations in the logic: where the reveal is put among a step's events (see presentationEvents), and the
+// insurance as its own bet beside a settled hand's main bet (handOutcome), where Scout counted it into the hand.
 import type { Action, Rank, Suit } from './round.ts';
 
 export type SpeakLine = 'goodluck' | 'insurance' | 'double' | 'placebets' | 'blackjack' | 'dealerblackjack' | 'dealerbust' | 'win' | 'push' | 'lose';
@@ -26,16 +27,18 @@ export interface DealEvent {
 }
 export interface RevealEvent { type: 'reveal'; to: 'dealer'; card: CardFace; shoeDraw: number; family?: string }
 export interface TurnEvent { type: 'turn'; box: number | null; handIndex: number; legalActions: Action[] }
+/** A hand's main bet (stake, what it returned, its outcome) and, when the hand took it, the insurance as its own bet. */
+export interface SettledHand { box: number; stake: number; returned: number; outcome: Outcome; insurance?: { stake: number; returned: number } }
 export interface SettleEvent {
   type: 'settle'; dealerTotal: number; dealerBlackjack: boolean;
-  hands: Array<{ box: number; stake: number; returned: number; outcome: Outcome }>;
+  hands: SettledHand[];
 }
 export interface IdleEvent { type: 'idle'; family?: string }
 export type SignalEvent = SpeakEvent | DealEvent | RevealEvent | TurnEvent | SettleEvent | IdleEvent;
 
 // The view shape the generator reads (core publicView, or an older stored view).
 type ViewCard = { r?: Rank | null; s?: Suit; shoeDraw?: number };
-type ViewHand = { box: number; stake: number; cards?: ViewCard[]; result?: number | null; busted?: boolean; split?: boolean; splitFrom?: number | null };
+type ViewHand = { box: number; stake: number; cards?: ViewCard[]; result?: number | null; busted?: boolean; split?: boolean; splitFrom?: number | null; insured?: number };
 type ViewRound = { hands?: ViewHand[]; dealer?: ViewCard[]; phase?: string; active?: number; holeDraw?: number | null; legalActions?: Action[] };
 export type PresentationView = { round?: ViewRound | null } | null | undefined;
 
@@ -44,9 +47,15 @@ export type PresentationView = { round?: ViewRound | null } | null | undefined;
 // clients. The server owns the game facts; the registered package owns footage.
 const DEAL_ACTION = (box: number | null): DealAction => box == null ? 'deal-dealer' : box <= 1 ? 'deal-left' : box >= 5 ? 'deal-right' : 'deal-centre';
 const handTotal = (cards: ViewCard[] | undefined) => { let t = 0, aces = 0; for (const c of cards ?? []) { if (c.r == null) continue; if (c.r === 'A') { aces++; t += 11; } else t += ['K','Q','J'].includes(c.r) ? 10 : Number(c.r); } while (t > 21 && aces--) t -= 10; return t; };
-// result = total returned (stake included). win: > stake, push: == stake, lose: 0 (or busted). The core's natural: two
+// result = total returned (stake included), with the insurance's 2:1 in it (round.ts settle). The insurance is its own bet:
+// what it returned (three times the insurance against a dealer blackjack, else nothing) is taken out, so that the hand's
+// outcome and return are its main bet's alone. win: > stake, push: == stake, lose: 0 (or busted). The core's natural: two
 // cards, 21, and a hand that never took part in a split (splitFrom null; older views carry `split`).
-const handOutcome = (h: ViewHand): Outcome => h.busted || !((h.result as number) > 0) ? 'lose' : (h.result as number) > h.stake ? (h.cards?.length === 2 && handTotal(h.cards) === 21 && !h.split && (h.splitFrom ?? null) === null ? 'blackjack' : 'win') : 'push';
+const insuranceBack = (h: ViewHand, dealerBJ: boolean) => dealerBJ ? (h.insured ?? 0) * 3 : 0;
+const mainBack = (h: ViewHand, dealerBJ: boolean) => (h.result ?? 0) - insuranceBack(h, dealerBJ);
+const handOutcome = (h: ViewHand, dealerBJ: boolean): Outcome => { const back = mainBack(h, dealerBJ); return h.busted || !(back > 0) ? 'lose' : back > h.stake ? (h.cards?.length === 2 && handTotal(h.cards) === 21 && !h.split && (h.splitFrom ?? null) === null ? 'blackjack' : 'win') : 'push'; };
+const settled = (h: ViewHand, dealerBJ: boolean): SettledHand => ({ box: h.box, stake: h.stake, returned: mainBack(h, dealerBJ), outcome: handOutcome(h, dealerBJ),
+  ...(h.insured ? { insurance: { stake: h.insured, returned: insuranceBack(h, dealerBJ) } } : {}) });
 
 // The settlement line: one line for the whole table, chosen by the server from the settled round, never by a client.
 // A line is never said when it is false for most of the hands it speaks to. Busted hands were lost when their card
@@ -64,7 +73,7 @@ export function settlementLine(round: ViewRound | null | undefined): SpeakLine |
   const busted = (h: ViewHand) => h.busted === true || handTotal(h.cards) > 21;
   const standing = hands.filter(h => !busted(h));
   if (!standing.length) return 'lose';
-  const outs = standing.map(handOutcome), kind = (o: Outcome) => o === 'blackjack' ? 'win' : o;
+  const outs = standing.map(h => handOutcome(h, dealerBJ)), kind = (o: Outcome) => o === 'blackjack' ? 'win' : o;
   if (dealerBJ && !outs.includes('push')) return 'dealerblackjack';
   if (dealerTotal > 21 && standing.length === hands.length && outs.every(o => kind(o) === 'win')) return 'dealerbust';
   const lineFor = (k: 'win' | 'push' | 'lose'): SpeakLine => k === 'win' ? (outs.includes('blackjack') ? 'blackjack' : 'win') : k;
@@ -90,7 +99,7 @@ export function presentationEvents(prevView: PresentationView, view: Presentatio
   if (r?.phase === 'settled' && pr?.phase !== 'settled') {
     const hands = (r.hands ?? []).filter(h => h.stake > 0);
     const dealerTotal = handTotal(r.dealer); const dealerBJ = (r.dealer?.length === 2 && dealerTotal === 21);
-    const outs = hands.map(handOutcome), line = settlementLine(r);
+    const line = settlementLine(r);
     // The reveal follows the card that triggered it (the player's last card, or the initial hidden deal) and comes before any
     // extra dealer card (a draw after her two opening cards), never ahead of the whole instruction list. Lab deviation: the hole
     // card is her first card here (round.ts), so "after the hole" would also name the up-card dealt at the start.
@@ -101,7 +110,7 @@ export function presentationEvents(prevView: PresentationView, view: Presentatio
       const at = extra >= 0 ? extra : ev.reduce((last, e, i) => e.type === 'deal' ? i + 1 : last, 0);
       ev.splice(at, 0, { type: 'reveal', to: 'dealer', card: { r: hole.r as Rank, s: hole.s as Suit }, shoeDraw: hole.shoeDraw as number });
     }
-    ev.push({ type: 'settle', dealerTotal, dealerBlackjack: dealerBJ, hands: hands.map((h, i) => ({ box: h.box, stake: h.stake, returned: h.result ?? 0, outcome: outs[i] })) });
+    ev.push({ type: 'settle', dealerTotal, dealerBlackjack: dealerBJ, hands: hands.map(h => settled(h, dealerBJ)) });
     if (line) ev.push({ type: 'speak', line });
   }
   if (r?.phase === 'decisions') ev.push({ type: 'turn', box: r.hands?.[r.active as number]?.box ?? null, handIndex: r.active as number, legalActions: r.legalActions ?? [] });

@@ -102,9 +102,11 @@ async function materialPicture(root: string, id: string, sha256: string): Promis
 /** Works out the order, the files and the receipt's take, and refuses before anything is written. */
 export async function planImport(root: string, input: ImportInput): Promise<ImportPlan> {
   const ledgerFile = path.resolve(input.ledgerPath), base = path.dirname(ledgerFile), ledgerText = await readFile(ledgerFile, 'utf8');
-  // The ledger as the order names it: from the project's root when it lies inside the project (the repo is public, and an absolute
-  // path carries this machine's folders), as it stands when it lies outside (the slask).
-  const inRoot = path.relative(root, ledgerFile), ledgerSaid = (inRoot.startsWith('..') || path.isAbsolute(inRoot) ? ledgerFile : inRoot).split(path.sep).join('/');
+  // The ledger as the order names it: from the project's root when it lies in the project or in the casino repo's slask
+  // (../slask/), elsewhere by its file name only. The repo is public, and a path to a disk or a folder of this machine is an
+  // error on every other (AGENTS, "Datorerna"); ledgerSha256 says which file it was.
+  const inRoot = path.relative(root, ledgerFile).split(path.sep).join('/');
+  const ledgerSaid = !path.isAbsolute(inRoot) && (!inRoot.startsWith('..') || inRoot.startsWith('../slask/')) ? inRoot : path.basename(ledgerFile);
   const ledger = JSON.parse(ledgerText) as Ledger, raw = ledger.orders?.find((o) => o.name === input.entry) as LedgerEntry | ApiEntry | undefined;
   if (!raw) throw new StoreError(404, `${input.entry} finns inte i ${ledgerFile}.`);
   const entry = 'endpoint' in raw ? fromApiEntry(raw) : raw, api = entry.channel === 'api';

@@ -9,7 +9,7 @@ import {existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync,
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {DAY, MARKER, blocked, carryOut, emptyShield, emptyTrash, factOf, finishedOrder, guardKeys, orderOpen, protect, rejectedGroup, type Action, type GroupPlan, type Plan} from './media-thin.ts';
+import {DAY, MARKER, blocked, carryOut, deliveryGroup, emptyShield, emptyTrash, factOf, finishedOrder, guardKeys, levelOf, orderOpen, protect, rejectedGroup, type Action, type GroupPlan, type Plan} from './media-thin.ts';
 import {unitOf} from './media-audit.ts';
 import {motionRegister} from './register-store.ts';
 
@@ -52,8 +52,17 @@ test('the rule (Jakob 2026-11-25): a film he, or a reviewer on his mandate, reje
   const reviewer = {verdict: 'underkand', byJakob: false, provisional: false, detail: null};
   assert.equal(rejectedGroup([his]), 'underkand');
   assert.equal(rejectedGroup([forHim, his]), 'underkand', 'judged for him on his mandate counts as his');
-  assert.equal(rejectedGroup([his, reviewer]), 'underkand-granskare', 'a reviewer without his mandate: only on his word');
-  assert.equal(rejectedGroup([{...his, detail: 'sekundär'}]), 'underkand-granskare', 'a secondary alternative is not rejected');
+  assert.equal(rejectedGroup([his, reviewer]), 'underkand-granskare', 'a reviewer without his mandate: its own group, by the rule');
+  // His Sekundär (played when nothing better exists) is his choice to keep a take, not a rejection: it never goes by itself
+  // when the server starts (--auto carries out säkert), and neither does Runway's delivery to it.
+  const secondary = {...his, detail: 'sekundär'};
+  for (const judges of [[secondary], [his, secondary], [secondary, reviewer]]) {
+    const g = rejectedGroup(judges);
+    assert.equal(g, 'sekundar');
+    assert.equal(levelOf(g!), 'förslag', 'only on his word');
+    assert.equal(levelOf(deliveryGroup(g!)), 'förslag', 'its delivery stays with it');
+  }
+  for (const g of ['underkand', 'underkand-granskare']) assert.equal(levelOf(g), 'säkert');
   for (const kept of ['godkand', 'primar', 'variant', 'vantar']) assert.equal(rejectedGroup([his, {...his, verdict: kept}]), null, `a take ${kept} keeps the film`);
   assert.equal(rejectedGroup([his, null]), null, 'a take without a verdict waits for him');
   assert.equal(rejectedGroup([]), null);

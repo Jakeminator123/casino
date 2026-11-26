@@ -24,7 +24,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   Tatuerad (spelas) med två grenar från samma A1: A2.3, skjutet (21 av 36 steg, det spelet spelar), och A2.1, nypet
   (`tatuerad-nyp`, byggs, 9 av 36). En lista överst väljer ett träd, nätet (Alla träd) eller en komposition;
   `tatuerad-skjut-nyp` bestämmer hur ofta varje gren spelas.
-- **Kort:** ett kort per sida med märkena överallt; kortplanen i verkligt perspektiv genom B-linsen, som spelet och
+- **Kort:** ett kort per sida med märkena överallt; kortplanen i verkligt perspektiv genom filmens lins (Standard), som spelet och
   scenen följer. Det styva kortet utan vit kant har hans ja i Scen (2026-11-23).
 - **Studion:** ramen har neutral grafit och en meny med ett namn per rad (2026-11-25), väntar på hans ord om
   utseendet; flera flikar får vara öppna. Bordet är vyn av bordet. Inspelning (förut Kortplan) har en bild sedan 2026-11-25 ("ett och
@@ -94,7 +94,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    granskningens sparade text (`studio/lib/verdict.ts`); sidorna bredvid (Ljud, Modeller, Grafik) får
    ramens utseende (ordet "labb" är borta ur dem, 2026-11-26); fler register in i SQLite som filmregistret
    (2026-11-23). Granska: en tagning vars film inte finns på datorn ska inte stå som väntande, och sidan ska säga att
-   filmen saknas här.
+   filmen saknas här. Ur granskningen 2026-11-26 står kvar: sökvägar till en viss disk i `data/` (`media-roles.json`,
+   `dealers.json`, `dealer-standard.json`, `order-methods.json`, `scene-contract.json`, `props.json` och två
+   beställningar), försäkringen som spelets sida inte visar för sig (händelsen bär den nu som `insurance`), och
+   resterna från Scout (loggan i scenen, klippfamiljerna, sidospelen som inte går att lägga, talets läppsynk).
 7. **En standard hela vägen** (Jakob 2026-11-25: "detta ska vara en standard"): planens dolda rörelseval (`intent`:
    grepp, var och hur kortet vänds, hand, handbyte) styr ännu receptets text utan att kunna väljas, och tas bort ur plan
    och recept så att rörelsen bara är dockans, med ordlistans ord för dem (Handleden vänder kortet, Som en nyckel, Vänd

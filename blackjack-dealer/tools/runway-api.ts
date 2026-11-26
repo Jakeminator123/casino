@@ -3,7 +3,8 @@
 // `lagg` and brought in with `hamta`, through the receipt tool as the MCP way does (../.claude/skills/bestalla-film/SKILL.md); a call
 // outside Beställ, for a trial, is placed with `place` and fetched with `collect`.
 //
-// Every paid call stands in ONE ledger (.runtime/runway-api/ledger.json, outside Git) BEFORE it is sent. A call with
+// Every paid call stands in ONE ledger (.runtime/runway-api/ledger.json, outside Git) BEFORE it is sent, written under the
+// ledger's lock (tools/order-mandate.ts withLedgerLock, which an agent's approval in Beställ takes too). A call with
 // requestedAt and no task id is OSÄKER: the call may have gone, and it is never sent again. The caps are
 // data/order-policy.json's: maxPerOrder for one call, and for a call outside Beställ the standing mandate (src/order-model.ts
 // OrderMandate): at most askAbove on the agent's own word, and within the agents' perDayCredits; a larger one only with
@@ -24,7 +25,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { canonical, mandateBudgetOf, mandateRefusal, requestOf, type DirectCall, type Order, type Policy } from '../src/order-model.ts';
-import { API_LEDGER as LEDGER } from './order-mandate.ts';
+import { API_LEDGER as LEDGER, withLedgerLock } from './order-mandate.ts';
 
 const UPLOADS = '.runtime/runway-api/uploads.json';
 const BASE = 'https://api.dev.runwayml.com', VERSION = '2024-11-06';
@@ -41,12 +42,16 @@ const sha = (b: Buffer | string) => createHash('sha256').update(b).digest('hex')
 const now = () => new Date().toISOString();
 const readJson = <T>(file: string, otherwise: T): T => (existsSync(file) ? JSON.parse(readFileSync(file, 'utf8').replace(/^\uFEFF/, '')) : otherwise);
 const save = (file: string, value: unknown) => { mkdirSync(path.dirname(file), { recursive: true }); writeFileSync(file, JSON.stringify(value, null, 2) + '\n'); };
-const ledger = (): Ledger => readJson<Ledger>(LEDGER, {
+const ledger = (root = '.'): Ledger => readJson<Ledger>(path.join(root, LEDGER), {
   about: 'Varje betalt anrop genom API-nyckeln, skrivet före anropet (tools/runway-api.ts). Beloppen rapporteras till huvudagenten.',
   pot: 'Runways utvecklarprojekt (API-nyckeln i .env.local), inte MCP-appens krediter.',
   orders: [],
 });
+/** The ledger read, changed and written under its lock (tools/order-mandate.ts), so that no process drops another's call. */
+const booked = <T>(root: string, change: (book: Ledger) => T): Promise<T> =>
+  withLedgerLock(root, () => { const book = ledger(root), out = change(book); save(path.join(root, LEDGER), book); return out; });
 const fail = (words: string): never => { console.error(`[RÖD] ${words}`); process.exit(1); };
+const orFail = <T>(work: Promise<T>): Promise<T> => work.catch((error: Error) => fail(error.message));
 
 let headers: Record<string, string> | null = null;
 function key() {
@@ -108,7 +113,7 @@ export function capRefusal(policy: Partial<Pick<Policy, 'enabled' | 'maxPerOrder
   return refusal && `${refusal} Med hans ja: place <call.json> --jakob "<hans ord och datum>".`;
 }
 /** Every order in Beställ, for the agents' day (the main agent's approvals count there). */
-const ordersInBestall = (): Order[] => (existsSync('data/orders') ? readdirSync('data/orders').filter((f) => f.endsWith('.json')).map((f) => readJson<Order>(`data/orders/${f}`, null as never)) : []);
+const ordersInBestall = (root = '.'): Order[] => { const dir = path.join(root, 'data/orders'); return existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => readJson<Order>(path.join(dir, f), null as never)) : []; };
 
 /**
  * The developer API's call for take `n` of an approved order: the receipt tool's exact request (requestOf, as begin prints
@@ -157,22 +162,38 @@ export function apiCallOf(order: Order, n: number, root = '.'): { call: Call | n
   return { call: problems.length ? null : { name: `${id}-take-${n}`, what, endpoint: '/v1/image_to_video', body, expectCredits: credits }, problems };
 }
 
-/** Sends one call that the ledger has never seen, within the caps; the ledger has it before the call goes. */
-async function send(call: Call, extra: Partial<Entry> = {}): Promise<Entry> {
-  const book = ledger();
-  if (book.orders.some((c) => c.name === call.name)) fail(`${call.name} står redan i liggaren: ett anrop läggs en gång.`);
-  const refusal = capRefusal(readJson('data/order-policy.json', {}), book.orders, ordersInBestall(), call.expectCredits, !extra.order && !extra.jakob);
-  if (refusal) fail(refusal);
-  const { body, files } = await filled(call.body);
-  const before = await balance();
-  const entry: Entry = { ...call, ...extra, files, requestedAt: now(), balanceBefore: before };
-  book.orders.push(entry); save(LEDGER, book);
-  const res = await api('POST', call.endpoint, body);
-  if (res.ok && res.json.id) { entry.taskId = res.json.id; entry.status = 'LAGD'; }
-  else { entry.error = `${res.status} ${JSON.stringify(res.json).slice(0, 900)}`; entry.status = 'MISSLYCKAD'; }
-  entry.balanceAfter = await balance().catch(() => undefined);
-  save(LEDGER, book);
-  return entry;
+/** What send needs of Runway: the uploads, the balance and the call itself (a test gives its own, and nothing is paid). */
+export type Runway = { filled: typeof filled; balance: () => Promise<number>; post: (endpoint: string, body: unknown) => Promise<{ ok: boolean; status: number; json: any }> };
+const RUNWAY: Runway = { filled, balance, post: (endpoint, body) => api('POST', endpoint, body) };
+
+/** A refusal before the call went: nothing was sent, and nothing was paid. */
+export class NotSent extends Error {}
+
+/**
+ * Sends one call that the ledger has never seen, within the caps; the ledger has it before the call goes. The check and
+ * the entry are one step under the ledger's lock, so two calls at once never both fit in what was left of the agents'
+ * day, and every later write reads the ledger again and changes only its own entry. A refusal before the call is thrown
+ * as NotSent; any other error came after it, and the call may have gone (the entry stays OSÄKER).
+ */
+export async function send(call: Call, extra: Partial<Entry> = {}, root = '.', runway: Runway = RUNWAY): Promise<Entry> {
+  const refusal = (book: Ledger) => book.orders.some((c) => c.name === call.name) ? `${call.name} står redan i liggaren: ett anrop läggs en gång.`
+    : capRefusal(readJson(path.join(root, 'data/order-policy.json'), {}), book.orders, ordersInBestall(root), call.expectCredits, !extra.order && !extra.jakob);
+  const early = refusal(ledger(root));                                                   // before the uploads, which are free but slow
+  if (early) throw new NotSent(early);
+  const { body, files } = await runway.filled(call.body);
+  const before = await runway.balance();
+  // The floor holds for every paid call (data/order-policy.json), against the pot this call draws from, as it stands now.
+  const floor = readJson<{ minBalance?: number }>(path.join(root, 'data/order-policy.json'), {}).minBalance;
+  if (typeof floor === 'number' && before - call.expectCredits < floor) throw new NotSent(`Saldot ${before} minus ${call.expectCredits} går under golvet ${floor} (data/order-policy.json minBalance).`);
+  await booked(root, (book) => {
+    const no = refusal(book);
+    if (no) throw new NotSent(no);
+    book.orders.push({ ...call, ...extra, files, requestedAt: now(), balanceBefore: before });
+  }).catch((error: Error) => { throw error instanceof NotSent ? error : new NotSent(error.message); });
+  const res = await runway.post(call.endpoint, body);
+  const answer: Partial<Entry> = res.ok && res.json.id ? { taskId: res.json.id, status: 'LAGD' } : { error: `${res.status} ${JSON.stringify(res.json).slice(0, 900)}`, status: 'MISSLYCKAD' };
+  const balanceAfter = await runway.balance().catch(() => undefined);
+  return booked(root, (book) => Object.assign(book.orders.find((c) => c.name === call.name)!, answer, { balanceAfter }));
 }
 
 /** Waits for a call's task (25 minutes at most); the task when it has ended, or null. */
@@ -189,13 +210,15 @@ async function ended(name: string) {
 }
 /** Writes what the task cost and how it ended into the ledger. */
 async function settle(name: string, task: any, more: Partial<Entry> = {}) {
-  const book = ledger(), take = book.orders.find((c) => c.name === name)!;
-  Object.assign(take, more, { finishedAt: now(), balanceAfter: await balance() });
-  if (task.status === 'SUCCEEDED') take.status = 'HÄMTAD';
-  else { take.status = 'MISSLYCKAD'; take.failure = `${task.failureCode ?? ''} ${task.failure ?? ''}`.trim(); }
-  take.cost = task.cost?.credits ?? task.estimatedCost?.credits ?? (take.balanceBefore !== undefined && take.balanceAfter !== undefined && task.status === 'SUCCEEDED' ? take.balanceBefore - take.balanceAfter : take.cost);
-  save(LEDGER, book);
-  return take;
+  const balanceAfter = await balance();
+  return orFail(booked('.', (book) => {
+    const take = book.orders.find((c) => c.name === name)!;
+    Object.assign(take, more, { finishedAt: now(), balanceAfter });
+    if (task.status === 'SUCCEEDED') take.status = 'HÄMTAD';
+    else { take.status = 'MISSLYCKAD'; take.failure = `${task.failureCode ?? ''} ${task.failure ?? ''}`.trim(); }
+    take.cost = task.cost?.credits ?? task.estimatedCost?.credits ?? (take.balanceBefore !== undefined && take.balanceAfter !== undefined && task.status === 'SUCCEEDED' ? take.balanceBefore - take.balanceAfter : take.cost);
+    return take;
+  }));
 }
 
 const put = (args: string[]) => execFileSync(process.execPath, ['tools/order-put.ts', ...args], { encoding: 'utf8' });
@@ -221,7 +244,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       put(['failed', id, String(n), 'Inte skickat: begin gav ett annat anrop än ordern (tools/runway-api.ts).']);
       fail(`${id}: begin gav ett annat anrop än ordern; tagningen är märkt som inte skickad.`);
     }
-    const entry = await send(call!, { order: { id, take: n } });
+    const entry = await send(call!, { order: { id, take: n } }).catch((error: Error) => {
+      if (error instanceof NotSent) put(['failed', id, String(n), `Inte skickat: ${error.message}`.slice(0, 280)]);
+      return fail(`${id}: ${error.message} ${error instanceof NotSent ? 'Tagningen är märkt som inte skickad.' : 'Anropet kan ha gått: tagningen står som OSÄKER.'}`);
+    });
     if (entry.taskId) console.log(put(['placed', id, String(n), entry.taskId, String(entry.balanceAfter ?? ''), '--via', 'api'].filter(Boolean)).slice(0, 300));
     else console.log(put(['failed', id, String(n), entry.error ?? 'okänt fel']).slice(0, 300));
     console.log(JSON.stringify({ name: entry.name, status: entry.status, error: entry.error ?? null, balanceBefore: entry.balanceBefore, balanceAfter: entry.balanceAfter ?? null }));
@@ -249,7 +275,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const jakob = flag === '--jakob' ? words?.trim() : undefined;
     if (!file || (flag !== undefined && (!jakob || jakob.length > 300)) || more.length) fail('node tools/runway-api.ts place <call.json> [--jakob "<hans ord och datum>"]');
     const call = readJson<Call | null>(file, null) ?? fail('node tools/runway-api.ts place <call.json> [--jakob "<hans ord och datum>"]');
-    const entry = await send(call!, jakob ? { jakob } : {});
+    const entry = await orFail(send(call!, jakob ? { jakob } : {}));
     console.log(JSON.stringify({ name: entry.name, status: entry.status, taskId: entry.taskId ?? null, error: entry.error ?? null, balanceBefore: entry.balanceBefore, balanceAfter: entry.balanceAfter ?? null }));
   } else if (cmd === 'collect') {
     const [name, outFile] = args;

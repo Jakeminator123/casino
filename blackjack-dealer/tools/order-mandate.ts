@@ -14,7 +14,8 @@ export async function readDirectCalls(root: string): Promise<DirectCall[] | null
   } catch (error) { return (error as NodeJS.ErrnoException).code === 'ENOENT' ? [] : null; }
 }
 
-/** The agents' day against the standing mandate: the main agent's approvals among `orders` and the direct calls of the day of `at`. */
+/** The agents' day against the standing mandate: the main agent's approvals among `orders` and the direct calls of the day of
+ *  `at`. Read it under withLedgerLock when something is committed on it. */
 export async function readMandateBudget(root: string, policy: Pick<Policy, 'mandate' | 'timeZone'>, orders: readonly Order[], at: string): Promise<MandateBudget> {
   return mandateBudgetOf(policy.mandate, orders, await readDirectCalls(root), at, policy.timeZone ?? 'Europe/Stockholm');
 }
@@ -25,6 +26,32 @@ async function dotGitOf(root: string) {
     const entry = await lstat(path.join(dir, '.git')).catch(error => { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null; throw error; });
     if (entry || path.dirname(dir) === dir) return entry;
   }
+}
+
+/** The lock beside the API key's ledger. */
+export const LEDGER_LOCK = '.runtime/runway-api/ledger.lock';
+const busy = (error: unknown) => ['EEXIST', 'EPERM', 'EBUSY'].includes((error as NodeJS.ErrnoException).code ?? '');
+/**
+ * The agents' day is read and committed to under one lock, across processes: an agent's approval in Beställ
+ * (tools/order-store.ts approve) and every write to the API key's ledger (tools/runway-api.ts). Without it two processes
+ * each see the same credits left and both commit, or one ledger write drops another's call. Waits for the other process;
+ * a lock left by a process that was stopped stays, as the start lock does, until someone has looked at the ledger.
+ */
+export async function withLedgerLock<T>(root: string, action: () => Promise<T> | T, waitMs = 30_000): Promise<T> {
+  const lock = path.join(root, LEDGER_LOCK);
+  await mkdir(path.dirname(lock), { recursive: true });
+  const until = Date.now() + waitMs;
+  let handle;
+  for (;;) {
+    try { handle = await open(lock, 'wx'); break; }
+    catch (error) {
+      if (!busy(error)) throw error;
+      if (Date.now() > until) throw new StoreError(409, `Liggaren för krediterna är låst (${LEDGER_LOCK}) sedan mer än ${Math.round(waitMs / 1000)} s. Pågår inget godkännande eller betalt anrop har en avbruten körning lämnat låset: se efter i ${API_LEDGER} att inget anrop står halvskrivet, och ta sedan bort låset.`);
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+  }
+  try { return await action(); }
+  finally { await handle.close(); await rm(lock, { force: true }); }
 }
 
 /** Worktree copies have separate order media. Paid starts use the owning checkout and race for one shared lock there. */

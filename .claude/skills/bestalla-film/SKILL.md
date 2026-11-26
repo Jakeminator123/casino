@@ -27,7 +27,8 @@ och priserna i `blackjack-dealer/data/order-policy.json`. Upprepa dem inte; änd
   återgång i samma film, och sista given går direkt till A1 utan att passera A2. Plats 6 och 7 som 1–5: vänster arm tar
   ut kortet, höger tar emot och vänder upp. Fria givar är varianter med namn ("kan man inte frångå bara lite?"). En
   nästan bra film görs om "bara litegranna" (2026-11-24). Ingen A3-bild behövs (2026-11-24).
-- **B-linsen** är standard för nya filmer; före en massbeställning en godkänd helgiv med rätt hand och tempo (2026-11-19).
+- **Filmens lins (Standard)** gäller för nya filmer, aldrig Bred lins; före en massbeställning en godkänd helgiv med rätt
+  hand och tempo (2026-11-19, då jämförelse B).
 
 ## Vägen
 

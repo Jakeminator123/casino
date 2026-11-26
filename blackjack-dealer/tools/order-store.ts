@@ -41,7 +41,7 @@ import path from 'node:path';
 import { StoreError } from './placement-store.ts';
 import { MOTIONS_TEXT, motionRegister, postOfRemoved } from './register-store.ts';
 import { mediaRoles } from './media-roles.ts';
-import { readMandateBudget } from './order-mandate.ts';
+import { readMandateBudget, withLedgerLock } from './order-mandate.ts';
 import {
   ANCHOR_NODE, ANCHOR_ROLE, CARD_SCALES, EXTRA_LIMIT, MODELS, FILE_NAME, FLIP_AXES, FLIP_LABEL, STYLE_LABEL, ORDER_ID, SEAT_TARGETS, SHORT_TWO_HAND_TURN_HELP, TAKES_MAX, scaleWords, shortTwoHandTurnProblem,
   LANDING_ROLE, bodyLine, canonical, takeStates, checkPolicy, costOf, crossesBody, cutFrameOf, cutFrameWords, cutIntoOf, tidyMotion, defaultFlip, defaultStyle, draftProblems, edgeOf, genitive, giveEndOf, hashInput, landingMissing, landingOf, a3Candidates, a3Name, openEndWords, archivedReferenceIds, isArchived, modelFor, modelsFor, paramsOf, plannedOf, readCutChecks, referenceCandidates, seatList, seatWords, secondsWords, shownOf, stepOf, stylesFor, summaryOf, twoHandDealSideProblem, twoHandDraftProblem, twoHandMotion, validateOrder, waitingOf,
@@ -681,7 +681,8 @@ export function orderStore(root: string, options: StoreOptions = {}) {
       const d = Number(params.duration);
       if (model.durations && !(d >= model.durations[0] && d <= model.durations[1])) throw new StoreError(400, `Längden ska vara ${model.durations[0]}–${model.durations[1]} s för ${model.label}.`);
     }
-    const cost = costOf({ model: model.id, params }, takes, policy.prices);
+    // The reference film is input film too: Runway charges for the greater of input and output (src/order-model.ts priceOf).
+    const cost = costOf({ model: model.id, params }, takes, policy.prices, chosen?.seconds ?? 0);
     if (!cost) throw new StoreError(400, `Inget pris för ${model.label} med de här värdena i data/order-policy.json.`);
     // Where the draft departs from the recipe, said once in its notes (a deliberate exception, never a silent one).
     const exceptions: string[] = [];
@@ -1090,7 +1091,9 @@ export function orderStore(root: string, options: StoreOptions = {}) {
       if (next.reference.status === 'INGEN') next.reference.why = noReferenceWhy(next.generation.model);
       const extra = changes.extra !== undefined ? (changes.extra?.trim() || null) : next.prompt.extra;
       next.prompt = await textOf(next, dealer, extra);
-      const cost = costOf(next.generation, next.takes, policy.prices);
+      // Every second of film sent with the call (the reference film, and a revansch's earlier film) is priced too.
+      const input = (next.reference.status === 'FINNS' ? next.reference.seconds : 0) + (next.revansch?.seconds ?? 0);
+      const cost = costOf(next.generation, next.takes, policy.prices, input);
       if (!cost) throw new StoreError(400, 'Inget pris för de här värdena.');
       next.cost = cost;
       next.limits = { ...next.limits, maxCredits: cost.worstTotal };
@@ -1239,10 +1242,15 @@ export function orderStore(root: string, options: StoreOptions = {}) {
   }
 
   // ── Reading ────────────────────────────────────────────────────────────────
+  /**
+   * The balance the policy's floor is held against: the policy's own reading (the developer project the API key draws
+   * from), or a newer one from a take placed through the API key. Runway's MCP app has a pot of its own, and a receipt
+   * that does not say its channel could be either, so neither is read as this balance.
+   */
   async function balanceNow(policy: Policy | null, receipts: (Receipt | null)[]) {
     let best: { credits: number; at: string; source: string } | null = policy?.balance ?? null;
     for (const r of receipts) for (const t of r?.takes ?? []) {
-      if (typeof t.creditsRemainingAfter !== 'number' || !t.requestedAt) continue;
+      if (t.via !== 'api' || typeof t.creditsRemainingAfter !== 'number' || !t.requestedAt) continue;
       if (!best || t.requestedAt > best.at) best = { credits: t.creditsRemainingAfter, at: t.requestedAt, source: `kvittot för ${r!.order}, tagning ${t.take}` };
     }
     return best;
@@ -1430,7 +1438,10 @@ export function orderStore(root: string, options: StoreOptions = {}) {
    */
   async function approve(id: string, expected: string | undefined, who: { by: 'huvudagent' | 'jakob'; mandate: string } | null = null) {
     if (who && ((who.by !== 'huvudagent' && who.by !== 'jakob') || typeof who.mandate !== 'string' || !who.mandate.trim() || who.mandate.length > 300)) throw new StoreError(400, who.by === 'jakob' ? 'Jakobs ja kräver hans ord och datum (högst 300 tecken).' : 'Huvudagentens godkännande kräver uppdraget (mandate: vems ord och när, högst 300 tecken).');
-    return serial(async () => {
+    // The main agent's approval commits to the agents' day: read and written under the ledger's lock, so that no other
+    // process (another approval, a direct call through the API key) counts the same credits left.
+    const locked = <T>(work: () => Promise<T>) => (who?.by === 'huvudagent' ? withLedgerLock(root, work) : work());
+    return serial(() => locked(async () => {
       const { order, revision } = await load(id);
       guardDraft(order, revision, expected);
       const register = await media.readRegister().then((r) => r.register).catch(() => null);
@@ -1458,7 +1469,7 @@ export function orderStore(root: string, options: StoreOptions = {}) {
       const approval: Order['approval'] = who ? { by: who.by, at, orderSha256: orderHash(order), mandate: who.mandate.trim() } : { by: 'jakob', at, orderSha256: orderHash(order) };
       const next: Order = { ...order, status: 'GODKÄND', approval };
       return { order: next, revision: await write(next), check };
-    });
+    }));
   }
 
   /** Sets a draft aside (AVBRUTEN) with why: never placed, kept as the record of what was prepared. */

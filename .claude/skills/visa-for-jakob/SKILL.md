@@ -1,6 +1,6 @@
 ---
 name: visa-for-jakob
-description: Använd i blackjack-dealer när något ska visas för Jakob eller ett svar skrivas till honom - en sida i studion (127.0.0.1:4319), ett prov, en film han ska döma, en fråga som väntar på hans svar - eller när studion han ser ska byggas om. Gäller länkar till labbet, provmappar i assets/proofs/, kort i Beslut (data/decisions.json), hans anteckningar och hur svaret till honom skrivs.
+description: Använd i blackjack-dealer när något ska visas för Jakob eller ett svar skrivas till honom - en sida i studion (127.0.0.1:4319), ett prov, en film han ska döma, en fråga som väntar på hans svar - eller när studion han ser ska byggas om. Gäller länkar till studion, provmappar i assets/proofs/, kort i Beslut (data/decisions.json), hans anteckningar och hur svaret till honom skrivs.
 ---
 
 # Visa Jakob något

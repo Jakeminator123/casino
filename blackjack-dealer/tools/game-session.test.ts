@@ -81,6 +81,23 @@ test('money: insurance on an ace, taken or declined, against a dealer blackjack 
   assert.deepEqual(r.view.round!.hands.map(h => [h.seat, h.insured]), [[2, 0], [6, 10]]);
 });
 
+// The insurance is its own bet: the settled hand is its main bet (outcome and return), with the insurance beside it, so
+// that a lost hand never reads as a win because its insurance paid.
+test('a settled hand is its main bet; the insurance is its own bet beside it', () => {
+  const settle = (cards: string, take: boolean, then: string[] = []) => {
+    const d = drive(stacked(cards));
+    d.start([{ seat: 4, main: 10 }]);
+    let r = d.insurance({ take });
+    for (const a of then) r = d.act(a);
+    const h = settleOf(r)!.hands[0], said = r.events.filter(e => e.type === 'speak').map(e => (e as { line: string }).line);
+    return [h.outcome, h.returned, h.insurance ?? null, said.at(-1)];
+  };
+  assert.deepEqual(settle('10♠ K♣ 9♥ A♦', true), ['lose', 0, { stake: 5, returned: 15 }, 'dealerblackjack'], 'the main bet is lost, the insurance pays 2:1');
+  assert.deepEqual(settle('A♠ K♣ K♥ A♦', true), ['push', 10, { stake: 5, returned: 15 }, 'push'], 'his blackjack pushes, the insurance pays');
+  assert.deepEqual(settle('10♠ 6♣ 9♥ A♦', true, ['stand']), ['win', 20, { stake: 5, returned: 0 }, 'win'], 'the insurance is lost, 19 beats soft 17');
+  assert.deepEqual(settle('10♠ K♣ 9♥ A♦', false), ['lose', 0, null, 'dealerblackjack']);
+});
+
 test('a ten up-card is peeked: a dealer blackjack settles at the deal without insurance', () => {
   const r = drive(stacked('10♠ A♣ 9♥ K♦')).start([{ seat: 1, main: 10 }]);
   assert.deepEqual([r.view.round!.phase, settleOf(r)!.hands[0].outcome], ['settled', 'lose']);

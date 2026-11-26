@@ -11,7 +11,7 @@
 // Levels:
 //   säkert   what the rule decides alone (Jakob 2026-11-25: what is not used and does not wait for him goes): the films of a
 //            take rejected (Inte bra) by Jakob, for him by the main agent and a reviewer on his mandate, or by a reviewer
-//            without it, and secondary alternatives; loose films (half or not linked to a tree) not judged good and not
+//            without it; loose films (half or not linked to a tree) not judged good and not
 //            waiting for his verdict; older talk films and mouth patches where a newer one is played; order deliveries that
 //            never became a record; proofs without an open card and without a note of his in 14 days; Runway's raw delivery
 //            of every take that goes. Each only when the game does not hold it, no open order (a draft UTKAST among them) or
@@ -20,7 +20,8 @@
 //            one row in data/motions-removed.jsonl, and the folders get RADERAD.txt). Also: what can provably be made again
 //            from a kept file by a command (none today: see the report); byte-identical files under assets/ made one file
 //            with hard links (talets filer, V6, originals and references never share).
-//   förslag  never without his word: after-work copies that a recorded command can make again once proven.
+//   förslag  never without his word: his secondary alternatives (Sekundär: played when nothing better exists, his choice to
+//            keep a take as a fallback, not a rejection), and after-work copies that a recorded command can make again once proven.
 //   blob     prepared, nothing done: the files of the release's list (.runtime/ny-blob/filer.json) that could live only on Blob.
 // The guard (blocked) is a hard stop, checked when the plan is made and again for every file just before it is touched: Primär,
 // Godkänd and Variant (his or given for him); everything the game holds (gameTakes, usesOf); everything with a role in
@@ -130,22 +131,29 @@ const GROUPS: {name: string; level: Level; title: string; rule: string}[] = [
   {name: 'underkand-leverans', level: 'säkert', title: 'Leveransen till en underkänd tagning', rule: 'Runways egen leverans (source.mp4) i beställningsmappen till en tagning vars film går i underkand; kvittona står kvar och mappen får RADERAD.txt.'},
   {name: 'aterskapbart', level: 'säkert', title: 'Går att göra igen ur en bevarad fil', rule: 'Det ett register visar är gjort ur en bevarad fil med ett kommando, och där en körning har visat samma SHA-256.'},
   {name: 'dubbletter', level: 'säkert', title: 'Byteidentiska filer blir en fil', rule: 'Filer under assets/ med samma SHA-256 som inte redan delar fil görs till hårda länkar; båda namnen finns kvar. Talets filer, V6, original, referenser och noir-samlingen delar aldrig fil.'},
-  {name: 'underkand-granskare', level: 'säkert', title: 'Inte bra av en granskare utan hans uppdrag', rule: 'Som underkand, men domen är en granskares utan hans uppdrag, eller tagningen är ett sekundärt alternativ.'},
+  {name: 'underkand-granskare', level: 'säkert', title: 'Inte bra av en granskare utan hans uppdrag', rule: 'Som underkand, men domen är en granskares utan hans uppdrag.'},
   {name: 'tal-aldre', level: 'säkert', title: 'Äldre talfilmer och munlappar', rule: 'En talfilm med ett lägre nummer än den som spelet har för samma replik, och munlappar som är ersatta eller som registret inte längre nämner. Talets mapp går helt (så att numret inte tas upp igen), bankens film får RADERAD.txt.'},
   {name: 'lost', level: 'säkert', title: 'Löst, inte dömt bra', rule: 'Halv- eller okopplade filmer (tools/dealer-tree.ts) som inte är dömda bra, som spelet inte har och som inte väntar på Jakobs dom.'},
   {name: 'original-forkastade', level: 'säkert', title: 'Råleveranser till borttagna tagningar', rule: 'Runways egen leverans (source.mp4) i beställningsmappen till en tagning vars film går i en av grupperna ovan.'},
   {name: 'bestallningar-utan-post', level: 'säkert', title: 'Leveranser som aldrig blev en post', rule: 'En beställd tagning som stannade före INFÖRD och som ingen post i registret har; bilderna och filmerna går, kvittona står kvar.'},
   {name: 'prov-utan-kort', level: 'säkert', title: 'Prov utan kort', rule: 'Prov i assets/proofs/ utan kort i Beslut, utan anteckning från honom de senaste 14 dygnen och som inget dokument eller utgåvan nämner.'},
+  {name: 'sekundar', level: 'förslag', title: 'Hans sekundära alternativ', rule: 'En film där han har satt en tagning som sekundär (spelas bara när inget bättre finns) och resten Inte bra, som spelet inte har nu; med Runways leverans till den. Hans val att ha den som reserv, inte en underkänning: bara på hans ord.'},
   {name: 'efterarbete-kopior', level: 'förslag', title: 'Efterarbetets kopior', rule: 'after.mp4 vars after.json säger hur den gjordes ur leveransen; går att göra igen med kommandot, men ingen körning har ännu visat samma SHA-256.'},
 ];
+/** The level of a group: säkert goes by itself when the server starts, förslag only on his word. */
+export const levelOf = (name: string): Level | null => GROUPS.find(g => g.name === name)?.level ?? null;
 export type JudgeLike = {verdict: string; byJakob: boolean; provisional: boolean; detail?: string | null} | null | undefined;
-/** The group of a film whose judged takes are all Inte bra, or null. Rejected by Jakob, or for him by the main agent and a
- *  reviewer on his mandate (provisional), it goes by the rule; rejected by a reviewer without his mandate, or a secondary
- *  alternative, only on his word. */
-export function rejectedGroup(judges: JudgeLike[]): 'underkand' | 'underkand-granskare' | null {
+/** The group of a film whose judged takes are all Inte bra (the bank shows his Sekundär as Inte bra with the word sekundär),
+ *  or null. Rejected by Jakob, or for him by the main agent and a reviewer on his mandate (provisional), it goes by the rule,
+ *  and so does one rejected by a reviewer without his mandate (AGENTS, "Det som produceras"); a take he set as a secondary
+ *  alternative keeps the film until he says otherwise. */
+export function rejectedGroup(judges: JudgeLike[]): 'underkand' | 'underkand-granskare' | 'sekundar' | null {
   if (!judges.length || !judges.every(j => j?.verdict === 'underkand')) return null;
+  if (judges.some(j => j!.detail === 'sekundär' && j!.byJakob)) return 'sekundar';
   return judges.every(j => (j!.byJakob || j!.provisional) && j!.detail !== 'sekundär') ? 'underkand' : 'underkand-granskare';
 }
+/** The group of Runway's raw delivery to a take whose film went in group `g`: the same level as the film. */
+export const deliveryGroup = (g: string): string => g === 'underkand' ? 'underkand-leverans' : g === 'sekundar' ? 'sekundar' : 'original-forkastade';
 /** An order an agent still works on, which keeps every film and file it names: a draft (UTKAST), an approved order not yet
  *  placed, or one with a take on its way. */
 export const IN_FLIGHT = new Set(['GODKÄND', 'LAGD', 'KLAR', 'HÄMTAD', 'OSÄKER']);
@@ -337,8 +345,8 @@ export async function makePlan(repo = ROOT, now = Date.now()): Promise<{plan: Pl
       if (!newer || !row || heldRow(row) || goodRow(row)) continue;
       const all = [...files.values()].filter(f => f.path.startsWith(`${dir}/`)); if (!all.length) continue;
       // The working folder goes only with its film: while the bank keeps the film, its record still names the folder.
-      const film = videosIn(`assets/motions/${folderOf(name)}`);
-      if (film.some(x => !planned.has(x.path))) { skip('tal-aldre', 'talets mapp går bara med filmen, som står kvar i banken', dir, all.reduce((n, x) => n + x.bytes, 0)); continue; }
+      const film = videosIn(`assets/motions/${folderOf(name)}`), went = forFolder.get(folderOf(name));
+      if (film.some(x => !planned.has(x.path)) || (went && levelOf(went) !== 'säkert')) { skip('tal-aldre', 'talets mapp går bara med filmen, som står kvar i banken', dir, all.reduce((n, x) => n + x.bytes, 0)); continue; }
       const out = foreign(dir, from => from === postOf(name) || from === `data/clip-jobs.json#${name}` || from.startsWith(`assets/motions/${name}/`));
       take('tal-aldre', {id: dir, reason: `talets mapp; ${name} är äldre än ${newer}, som spelet har`, marker: null, removeEmpty: dir, files: all.map(x => ({...x, action: 'flytta'}))}, out);
     }
@@ -361,7 +369,7 @@ export async function makePlan(repo = ROOT, now = Date.now()): Promise<{plan: Pl
     if (post) {
       const g = forFolder.get(folderOf(post)); if (!g) continue;
       const raw = media.filter(f => VIDEO.test(f.path));
-      if (raw.length) take(g === 'underkand' ? 'underkand-leverans' : 'original-forkastade', {id: dir, reason: `leveransen till ${post} (${g})`, marker: dir, files: raw.map(x => ({...x, action: 'flytta'}))});
+      if (raw.length) take(deliveryGroup(g), {id: dir, reason: `leveransen till ${post} (${g})`, marker: dir, files: raw.map(x => ({...x, action: 'flytta'}))});
       continue;
     }
     if (t.status === 'INFÖRD' || inBank.has(`${o.id}/take-${t.take}`)) continue;

@@ -33,8 +33,8 @@ const TRAILER = /trailer|reklamfilm/i;
 const PASSWORD = /lösenord|password|passwd|(?<![\p{L}])l[oö]sen(?![\p{L}])/iu;
 const IDS = [/\b(?:prj|store|team|dpl|icfg|oac|org|ws|proj|env)_[A-Za-z0-9]{6,}/, /\bID\b[^.|\n]{0,12}\d{5,}/, /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i, /workspace[^.|\n]{0,40}\b\d{6,}\b/i];
 const ENV = /process\.env|(?<![\w/])\.env(?:\.local)?\b|\b(?:[A-Z][A-Z0-9]*_)+(?:URL|KEY|TOKEN|SECRET|PASSWORD|ENABLED|ROOT|LOSEN|NYCKEL|KAKNYCKEL)\b|\b(?:VERCEL|BLOB|NEON|RENDER|OPENAI|RUNWAY|DATABASE|AWS|SCOUTGAMING|DEALER|NEXT_PUBLIC|BOT|GITHUB|POSTGRES|PG)_[A-Z0-9_]{2,}\b/;
+// Every address goes, Scout's too: the project is free of Scoutgaming, with no links there (AGENTS, 2026-11-23).
 const URL_ANY = /\bhttps?:\/\/[^\s)`>\]]+|\bgit@[\w.-]+:/g;
-const URL_OK = /^https?:\/\/(?:www\.)?scoutgaming\.tech(?:\/|$)/;
 
 // ── Paths of this machine, in every form the documents write them ──────────
 // The start of a path: a drive (C:/, D:\, c:\\, also after a non-ASCII letter's word boundary), a share or a long path
@@ -68,7 +68,7 @@ export function breaks(text: string, release: Blocked): Rule | null {
   if (PASSWORD.test(text)) return 'lösenord';
   if (IDS.some(re => re.test(text))) return 'id';
   if (ENV.test(text)) return 'miljövariabel';
-  for (const m of text.matchAll(new RegExp(URL_ANY.source, 'g'))) if (!URL_OK.test(m[0])) return 'adress';
+  if (new RegExp(URL_ANY.source).test(text)) return 'adress';
   if (hasLocalPath(text)) return 'lokal sökväg';
   return null;
 }

@@ -56,8 +56,8 @@ const DOC = [
 test('the cleaning keeps the facts and removes costs, blocked names, trailers, passwords, ids, keys, addresses and paths', () => {
   const {sections, removed} = cleanDoc({kalla: 'HANDOFF', id: 'handoff', text: DOC, dropHeadings: /^Före avslut av en session$/, prio: prioFrom(['Läget i banken'], 0)}, release);
   const all = sections.map(s => `${s.titel}\n${s.text}`).join('\n');
-  for (const kept of ['Ada är dealern.', '33 huvudfilmer.', 'Tjugo är godkända rakt av.', 'Svaren är korta.', 'Ada är kvar.', 'Studion visar filmerna.', '| P1 | Godkänd |', 'Scout finns på https://www.scoutgaming.tech/', 'nodkartan (/studio/karta/?kant=READY%3EP4.C1) visar linjerna']) assert.ok(all.includes(kept), `kept: ${kept}`);
-  for (const gone of ['someone', 'dealer-scratch', 'Krediter', 'intecknat', 'saldo', '18 173', '0,2 kr', 'kostar', 'Göran', 'Reklamfilm', 'ordet" står', 'Lösenord', 'prj_', 'store_', '67037521', 'OPENAI_API_KEY', 'vercel.app', '127.0.0.1', 'Kevin', 'credits', 'node tools/secret.ts', 'Astrid', 'spärrad person', 'Rutiner för agenter']) assert.ok(!all.includes(gone), `gone: ${gone}`);
+  for (const kept of ['Ada är dealern.', '33 huvudfilmer.', 'Tjugo är godkända rakt av.', 'Svaren är korta.', 'Ada är kvar.', 'Studion visar filmerna.', '| P1 | Godkänd |', 'nodkartan (/studio/karta/?kant=READY%3EP4.C1) visar linjerna']) assert.ok(all.includes(kept), `kept: ${kept}`);
+  for (const gone of ['someone', 'dealer-scratch', 'Krediter', 'intecknat', 'saldo', '18 173', '0,2 kr', 'kostar', 'Göran', 'Reklamfilm', 'ordet" står', 'Lösenord', 'prj_', 'store_', '67037521', 'OPENAI_API_KEY', 'vercel.app', 'scoutgaming', '127.0.0.1', 'Kevin', 'credits', 'node tools/secret.ts', 'Astrid', 'spärrad person', 'Rutiner för agenter']) assert.ok(!all.includes(gone), `gone: ${gone}`);
   assert.ok(all.includes(`${LOCAL}`), 'a path becomes the local token');
   assert.equal(sections[0].titel, 'HANDOFF › Inledning');
   assert.ok(sections.some(s => s.titel === 'HANDOFF › Läget i banken (räknat 2026-11-12)' && s.prio === 0), 'a heading with a note keeps its core priority');
@@ -87,7 +87,7 @@ test('every form of a path of this machine becomes the token, and the words arou
     if (!given.includes('](')) assert.ok((removed['sökväg ersatt'] ?? 0) > 0, `counted: ${given}`);
   }
   // What only looks like a path stays as it was.
-  const plain = 'Se /studio/karta/ och A/B, kl. 21:40, 1/2 och https://www.scoutgaming.tech/x i Spela.';
+  const plain = 'Se /studio/karta/ och A/B, kl. 21:40 och 1/2 i Spela.';
   assert.equal(cleanLine(plain, release, {}), plain);
   // A heading that names a path keeps its section, with the token in its title.
   const {sections} = cleanDoc({kalla: 'DRIFT', id: 'drift', text: '# D\n\n## Kopian på D:/dealer-archive/V2-backup-studio/\n\nSäkerhetskopian görs före varje flytt av gamla labbets flikar.'}, release);

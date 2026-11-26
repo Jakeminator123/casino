@@ -108,7 +108,7 @@ Det sker av sig självt: servern kör `node tools/media-thin.ts --auto` när den
 papperskorgens dagar äldre än 14 dygn; logg i `.runtime/gallring.log`). Nivån säkert är regeln ovan: det han, en
 granskare på hans uppdrag eller en granskare utan det har underkänt, lösa filmer som inte är dömda bra och inte väntar
 på honom, äldre talfilmer där en nyare spelas, leveranser som aldrig blev en post och prov utan kort, med Runways
-leveranser, och byteidentiska filer som blir en fil. Bara efterarbetets kopior är förslag på hans ord
+leveranser, och byteidentiska filer som blir en fil. Efterarbetets kopior och hans sekundära alternativ är förslag på hans ord
 (`--kor --grupp <namn>`). `npm run gallra` visar planen (`.runtime/gallring/`). Spärren skyddar det spelet har,
 roller, original, referenser, noir-samlingen, filmen före spelet, det Beslut eller en öppen order nämner, det som väntar
 i Granska och allt yngre än tre dygn. `npm run media:status` skriver en översikt över lagringen och raderar

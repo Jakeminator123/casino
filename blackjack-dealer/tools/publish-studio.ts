@@ -58,8 +58,9 @@ const step = (name: string, command: string, list: string[], cwd: string, env: N
 
 /**
  * The start-up module of the worktree's lab server: tools/preview.ts listens on 4319 and answers only Host 127.0.0.1:4319;
- * here it listens on LAB_PORT and a request's Host is read as it expects. Its emptying of the slask at start (tools/scratch-clean.ts)
- * is not started: that belongs to the lab server on 4319. Nothing else of the server is touched.
+ * here it listens on LAB_PORT and a request's Host is read as it expects. Its emptying of the slask and its thinning of assets/ at
+ * start (tools/scratch-clean.ts, tools/media-thin.ts) are not started: they belong to the lab server on 4319, and the worktree's
+ * assets/ is the real media (a junction), judged here by the commit's registers. Nothing else of the server is touched.
  */
 export const LAB_HOOK = `import http from 'node:http'; import cp from 'node:child_process'; import {EventEmitter} from 'node:events'; import {syncBuiltinESMExports} from 'node:module';
 const listen = http.Server.prototype.listen;
@@ -67,7 +68,7 @@ http.Server.prototype.listen = function (port, ...rest) { return listen.call(thi
 const create = http.createServer;
 http.createServer = function (...a) { const i = a.findIndex(x => typeof x === 'function'); if (i >= 0) { const handler = a[i]; a[i] = (req, res) => { if (req.headers.host === '127.0.0.1:${LAB_PORT}') req.headers.host = '127.0.0.1:4319'; return handler(req, res); }; } return create.apply(this, a); };
 const spawnOriginal = cp.spawn;
-cp.spawn = function (command, list, ...rest) { if (Array.isArray(list) && list.includes('tools/scratch-clean.ts')) return new EventEmitter(); return spawnOriginal.call(this, command, list, ...rest); };
+cp.spawn = function (command, list, ...rest) { if (Array.isArray(list) && (list.includes('tools/scratch-clean.ts') || list.includes('tools/media-thin.ts'))) return new EventEmitter(); return spawnOriginal.call(this, command, list, ...rest); };
 syncBuiltinESMExports();`;
 
 // ── What is published ───────────────────────────────────────────────────────

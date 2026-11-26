@@ -15,7 +15,8 @@ Kopian står på `c9d006d` från 2026-11-20; `/meta.json` säger vilken commit d
 ## Vad kopian är
 
 - Studion som låst kopia: allt går att läsa och spela, inget att ändra, inga kostnader syns, samma meny som studion
-  (2026-11-13) utan Lipsync, Beställ och sparning. Den enda sidan på nätet (2026-11-23): `https://dealer-lake.vercel.app`,
+  (2026-11-13) utan Lipsync och sparning; Bordet har där bara Scen, Råfilm och Efterarbete, och Beslut byts mot
+  Önskemål (`studio/components/shell/Rail.tsx`). Den enda sidan på nätet (2026-11-23): `https://dealer-lake.vercel.app`,
   med dörrarna `/casino` (spelet ensamt) och `/trailer` (filmen före spelet, sedan Paows casino). Casinot visar det som
   är sparat med Använd i Casino i studion (2026-11-21).
 - **Vercel:** teamet `jakeminator123s-projects`, projektet `dealer-studio`, utan Git-koppling: varje version läggs upp

@@ -113,7 +113,8 @@ export interface SeatRevealEvent {
 export interface SeatTurnEvent { type: 'turn'; seat: number | null; handIndex: number; legalActions: Action[] }
 export interface SeatSettleEvent {
   type: 'settle'; dealerTotal: number; dealerBlackjack: boolean;
-  hands: Array<{ seat: number; handIndex: number; stake: number; returned: number; outcome: Outcome }>;
+  /** stake, returned and outcome are the hand's main bet; insurance, when the hand took it, is its own bet. */
+  hands: Array<{ seat: number; handIndex: number; stake: number; returned: number; outcome: Outcome; insurance?: { stake: number; returned: number } }>;
 }
 export type SeatSignalEvent = SpeakEvent | SeatDealEvent | SeatRevealEvent | SeatTurnEvent | SeatSettleEvent | IdleEvent;
 
@@ -164,7 +165,7 @@ export function seatEvents(events: readonly SignalEvent[], after: PublicView): S
       // presentationEvents lists the settled hands with a stake in round order; every playable hand has one.
       const staked = hands.filter(h => h.stake > 0);
       return { type: 'settle', dealerTotal: event.dealerTotal, dealerBlackjack: event.dealerBlackjack,
-        hands: event.hands.map((h, i) => ({ seat: seatOf(h.box), handIndex: hands.indexOf(staked[i]), stake: h.stake, returned: h.returned, outcome: h.outcome })) };
+        hands: event.hands.map((h, i) => ({ seat: seatOf(h.box), handIndex: hands.indexOf(staked[i]), stake: h.stake, returned: h.returned, outcome: h.outcome, ...(h.insurance ? { insurance: { ...h.insurance } } : {}) })) };
     }
     return { ...event };
   });
