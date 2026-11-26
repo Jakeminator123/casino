@@ -63,7 +63,7 @@ de två lika och planens platser på sina bildpunkter.
 
 | Vem | Följer | Källa |
 | --- | --- | --- |
-| Dockan | linsen, bordet, kortet, skon och planens platser. Av hennes fem vyer är bara Filmens kamera standarden; Från sidan, Uppifrån, Från spelaren och Nära kortet är till för att titta | `filmLens`, `spots` i `dealer3d/src/world.ts`; `dealer3d/src/stage.ts` |
+| Dockan | linsen, bordet, kortet, skon och planens platser. Av dockans sex vyer är Spelets vy förvalet och standarden (Jakob 2026-11-26); Filmens kamera finns kvar för de filmer som finns; Från sidan, Uppifrån, Från spelaren och Nära kortet är till för att titta | `filmLens`, `spots` i `dealer3d/src/world.ts`; `dealer3d/src/stage.ts` |
 | Dockans referensfilm | Filmens kamera i bildens storlek, vit docka på grått bord för en filmmodell att följa, 24 rutor/s (verktygets förval är 30) | `dealer3d/tools/render-reference.ts` |
 | Beställningens slutbild | kortet där planen säger, genom linsen, ett verkligt kort | `planQuad` i `tools/order-images.ts` |
 | Kortplanen | linsen för platsen och storleken, ett verkligt kort | `planCardQuad` i `src/card-plan.ts` |
@@ -198,7 +198,8 @@ ingen docka och visar därför inte Inspelning.
 
 Filmen över dockan (Jakob 2026-11-25: "så man kan jämföra videos som är skapade med tex dockan"): reglaget Filmen i
 bildens knapprad lägger kortets film över dockan, i samma ruta och genom samma kamera, och dockans tidslinje driver
-filmen. Den syns bara i Filmens kamera i hemläget, eftersom bara den vyn är filmens. Filmen är trädets egen för kortets
+filmen. Den syns bara i Filmens kamera i hemläget, eftersom bara den vyn är filmens; där står då filmernas bord (kanten
+där filmerna har den) i stället för standardrummets, som ligger närmare dockan. Filmen är trädets egen för kortets
 steg, annars den spelet spelar (`cardFilm` i `studio/lib/bordet.ts`); ordet `film` bär adressen, en text och givens
 start, slut och fart i filen. `node tools/media-audit.ts --fit --write` mäter bilder och filmer mot planen
 (`data/media-fit.json`, brickorna i Material) och körs om när plan, lins eller ankare ändras.

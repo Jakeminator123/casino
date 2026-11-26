@@ -35,8 +35,8 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   samma läge", "allt i 3d"): dockans 3D-bord med planens kort på filten, och en högerspalt där dockans reglage står
   under steg 2; den platta planen och dess bakade bakgrundsbilder är borta. Ingången (A2.1 eller A2.3) är trädets,
   det spelade trädet som förval; planens Handbyte väljer ingenting. Reglaget Filmen i bildens knapprad lägger kortets
-  film över dockan genom samma kamera (2026-11-25); av vyerna är bara Filmens kamera standarden, de andra är till för
-  att titta runt. Inspelning rensades 2026-11-26 på hans ord ("Snäpp", "Kontrollerad" "och andra saker"): borta är
+  film över dockan genom Filmens kamera (2026-11-25); av vyerna är Spelets vy förvalet och standarden (2026-11-26),
+  Filmens kamera finns kvar för de filmer som finns, och de andra är till för att titta runt. Inspelning rensades 2026-11-26 på hans ord ("Snäpp", "Kontrollerad" "och andra saker"): borta är
   Snäpp, Startförslag, Kontrollerad, Skons läge, valet Giv eller Giv och återgång och dockans eget val av ingång;
   Kortet ligger väljs bara för dealerns kort. Bordet BORD-02 är ett prov i studion ("skitbra" som alternativ,
   2026-11-20) som spelet inte slår på före hans ja.

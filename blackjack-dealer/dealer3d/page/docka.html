@@ -86,7 +86,11 @@
   .inbaddad body { overflow: hidden; }
   .inbaddad main { height: 100%; padding: 10px 12px; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
   .inbaddad section { min-width: 0; min-height: 0; container-type: size; }
-  .inbaddad .frame, .inbaddad .hint, .inbaddad .transport { width: min(100%, calc((100cqh - 70px) * 1764 / 1174)); }
+  /* The picture's buttons stand in a row of their own over the picture, not on it (the standard doll's head reaches up to
+     them in the game's view): docka.ts moves #views out of the frame and says its height as --views-h. */
+  .inbaddad .views { position: static; width: 100%; margin: 0 0 6px; }
+  .inbaddad .grip { top: 10px; }
+  .inbaddad .frame, .inbaddad .hint, .inbaddad .transport { width: min(100%, calc((100cqh - 70px - var(--views-h, 0px)) * 1764 / 1174)); }
   .inbaddad aside { position: static; align-self: start; max-height: 100%; }
   .inbaddad .head { display: none; } /* (the doll is the dealer chosen in the studio) */
   @media (max-width: 900px) {
@@ -97,7 +101,7 @@
   .inbaddad.styr-ute main { height: 100%; padding: 6px 8px; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
   .inbaddad.styr-ute section { container-type: size; }
   .inbaddad.styr-ute aside, .inbaddad.styr-ute .hint { display: none; }
-  .inbaddad.styr-ute .frame, .inbaddad.styr-ute .transport { width: min(100%, calc((100cqh - 50px) * 1764 / 1174)); }
+  .inbaddad.styr-ute .frame, .inbaddad.styr-ute .transport { width: min(100%, calc((100cqh - 50px - var(--views-h, 0px)) * 1764 / 1174)); }
 </style>
 <script>if (new URLSearchParams(location.search).get('inbaddad') === '1') document.documentElement.classList.add('inbaddad');</script>
 </head>
@@ -110,7 +114,7 @@
       <!-- Only the first view is the films' camera; the others are for looking at her hands from other sides. -->
       <div class="views" id="views" role="group" aria-label="Vy">
         <button data-view="spel" title="Spelets vy: det spelaren på plats 4 ser, den lägre kameran. Standarden för standarddockans filmer.">Spelets vy</button>
-        <button data-view="film" title="Filmernas egen kamera: samma plats, vinkel och lins som varje film som finns. Bara här kan en film läggas över dockan.">Filmens kamera</button>
+        <button data-view="film" title="Filmernas egen kamera, för de filmer som finns: samma plats, vinkel och lins som de. Bara här kan en film läggas över dockan, och då vid filmens eget bord. Spelets vy är standarden.">Filmens kamera</button>
         <label class="filmknob off" id="filmKnob" hidden><span>Filmen</span><input id="filmShare" type="range" min="0" max="100" step="5" value="0" aria-label="Filmen över dockan" disabled><output id="filmShown">0 %</output></label>
         <span class="look">Titta runt:</span>
         <button data-view="side" title="Titta runt: från hennes högra sida, i höjd med armarna. Inte filmernas kamera.">Från sidan</button><button data-view="above" title="Titta runt: rakt ovanifrån bordet. Inte filmernas kamera.">Uppifrån</button><button data-view="player" title="Titta runt: från spelarens stol vid kortet. Inte filmernas kamera.">Från spelaren</button><button data-view="card" title="Titta runt: nära kortet, och följer det. Inte filmernas kamera.">Nära kortet</button>

@@ -15,9 +15,9 @@
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {createStage, type Read} from '../src/stage.ts';
-import {CARD, FILM, PLAY_LENS, filmEye, fovYDeg, type Eye, type Vec3} from '../src/camera.ts';
+import {CARD, FILM, PLAY_LENS, filmEye, fovYDeg, seatView, type Eye, type Vec3} from '../src/camera.ts';
 import {loadTable, roomLight, seatStool} from '../src/standard-room.ts';
-import {dealerEdge, seatEye, spots, type Plan, type Spot} from '../src/world.ts';
+import {dealerEdge, spots, type Plan, type Spot} from '../src/world.ts';
 import {standing} from '../src/body.ts';
 import {FINGERS} from '../src/capture.ts';
 import {touching, type Touch} from '../src/natural.ts';
@@ -26,7 +26,7 @@ import type {Figure} from '../src/figure-model.ts';
 
 export type ViewName = 'film' | 'spel' | 'side' | 'above' | 'player' | 'card';
 /** Where the page's server hands out the standard room's models (dealer3d/src/standard-room.ts). */
-export type Room = {table: string; stool: string};
+export type Room = {table: string; stool: string; filmTable?: string};
 type Frame = Read['frames'][number];
 export type {Touch};
 const v3 = (p: number[]) => new T.Vector3(p[0], p[1], p[2]), UP = new T.Vector3(0, 1, 0);
@@ -55,7 +55,8 @@ function outlineAt(at: number[], heading: number): T.Vector3[] {
 /** The joints as balls with bones between, drawn over everything (no depth test), in metres of the room. */
 function marks() {
   const group = new T.Group(); group.visible = false; group.renderOrder = 10;
-  const paint = (colour: number) => new T.MeshBasicMaterial({color: colour, depthTest: false, depthWrite: false, transparent: true});
+  // (toneMapped false: the standard room's tone curve, AgX, would bleach the marks' own colours; standard-room.ts roomLight)
+  const paint = (colour: number) => new T.MeshBasicMaterial({color: colour, depthTest: false, depthWrite: false, transparent: true, toneMapped: false});
   const dot = (m: T.Material, r: number) => { const b = new T.Mesh(new T.SphereGeometry(r, 14, 10), m); b.renderOrder = 11; group.add(b); return b; };
   const bone = (m: T.Material, r: number) => { const c = new T.Mesh(new T.CylinderGeometry(r, r, 1, 8), m); c.renderOrder = 10; group.add(c);
     return (a: number[], b: number[]) => { const p = v3(a), d = v3(b).sub(p), l = d.length() || 1e-6; c.position.copy(p).addScaledVector(d, 0.5); c.quaternion.setFromUnitVectors(UP, d.multiplyScalar(1 / l)); c.scale.set(1, l, 1); }; };
@@ -77,7 +78,7 @@ function marks() {
  */
 function grips() {
   const group = new T.Group(); group.visible = false; group.renderOrder = 12;
-  const paint = (colour: number, opacity = 1) => new T.MeshBasicMaterial({color: colour, depthTest: false, depthWrite: false, transparent: true, opacity, side: T.DoubleSide});
+  const paint = (colour: number, opacity = 1) => new T.MeshBasicMaterial({color: colour, depthTest: false, depthWrite: false, transparent: true, opacity, side: T.DoubleSide, toneMapped: false});
   const ring = new T.RingGeometry(0.0042, 0.0062, 28), disc = new T.CircleGeometry(0.0022, 18), halo = new T.RingGeometry(0.0085, 0.0105, 28), rod = new T.CylinderGeometry(0.0007, 0.0007, 1, 6);
   const Z = new T.Vector3(0, 0, 1);
   const slots = Array.from({length: 10}, (_, n) => { const colour = n < 5 ? MARK.right.hand : MARK.left.hand, solid = paint(colour), soft = paint(colour, 0.55);
@@ -113,12 +114,26 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
   const renderer = taken as T.WebGLRenderer | null; if (!renderer) throw Error('The stage drew with no renderer.');
   read.frameCount = first.frameCount;
   // The standard room. She sits at rest now (the stage's first frame), which is how the stool is set under her; the
-  // table is 35 MB and comes when it comes. A model that will not load is said, not hidden: the room then lacks it.
-  let roomFault: string | null = null;
-  if (standard) { roomLight(scene, renderer); const failed = (what: string) => (e: unknown) => { roomFault = `${what}: ${e instanceof Error ? e.message : String(e)}`; console.error(roomFault); };
-    void seatStool(standard.stool, scene, figure!.root).then(() => { dirty = true; }, failed('The stool'));
+  // table is 35 MB and comes when it comes. A model that will not load is said, not hidden: the room then lacks it, and
+  // room() says which (`fault`, in his words: the page shows it) and whether the table is still on its way (`tableComing`).
+  let roomFault: string | null = null, tableIn: T.Object3D | null = null, tableFailed = false;
+  if (standard) { roomLight(scene, renderer); const failed = (what: string) => (e: unknown) => { roomFault ??= `${what} kunde inte laddas`; console.error(what, e); dirty = true; };
+    void seatStool(standard.stool, scene, figure!.root).then(() => { dirty = true; }, failed('Stolen'));
     // (the card dealt and the cards laid become the table's own card, the editor's: stage.ts dressCards)
-    void loadTable(standard.table, scene, plan).then(t => { stage.dressCards(t.card); dirty = true; }, failed('The table')); }
+    void loadTable(standard.table, scene, plan).then(t => { tableIn = t.root; t.root.visible = !filmShown; stage.dressCards(t.card); dirty = true; }, e => { tableFailed = true; failed('Bordet')(e); }); }
+  // The film's own table (room.filmTable: the game's first table, its edge where the films have it, 15 cm farther from her
+  // than the standard room's), drawn in the room's table's place only while the page lays a dealer's film over her
+  // (filmTable), so that the film lies over its own table; read the first time it is asked for, and kept.
+  let filmTableIn: T.Object3D | null = null, filmTableState: 'av' | 'laddar' | 'klar' | 'fel' = 'av', filmShown = false;
+  function filmTable(on: boolean): typeof filmTableState {
+    if (!standard?.filmTable) return 'fel';
+    filmShown = on;
+    if (on && filmTableState === 'av') { filmTableState = 'laddar';
+      void loadTable(standard.filmTable, scene!, planNow).then(t => { filmTableIn = t.root; filmTableState = 'klar'; t.root.visible = filmShown; if (tableIn) tableIn.visible = !filmShown; dirty = true; },
+        e => { console.error('Filmens bord', e); filmTableState = 'fel'; dirty = true; }); }
+    if (filmTableIn) { filmTableIn.visible = on; if (tableIn) tableIn.visible = !on; dirty = true; }
+    return filmTableState;
+  }
 
   const lens = stage.lens, edge = dealerEdge(lens), body = standing(lens, doll), film = stage.eyeOf('film');
   let planNow = plan, all: Spot[] = spots(plan, lens);
@@ -154,8 +169,11 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
     else if (name === 'side') through({position: [table[0] - 2.1, 0.5, table[2]], forward: [2.1, -0.38, 0], focalPx: film.focalPx}, table);
     // Straight down on the table, the dealer at the top as in the film (a hair off the plumb line, which has no up).
     else if (name === 'above') through({position: [edge[0], 2.5, edge[2] + 0.16], forward: [0, -2.5, -0.04], focalPx: film.focalPx}, [edge[0], 0, edge[2] + 0.12]);
-    // The eye of the seat the card is laid at (world.ts seatEye); for the dealer's own cards seat 4's.
-    else if (name === 'player') { const eye = seatEye(seatOf(), planNow, lens), at = all.find(s => s.id === target)?.at ?? table; through(eye, at); }
+    // The eye of the seat the card is laid at, through the game's view as the editor of standarddocka/ has it (its
+    // kameraVy): seat 4's is the game's view, every other seat's stands to its first card as the game's view stands to
+    // seat 4's (src/table-lens.ts seatView); for the dealer's own cards seat 4's.
+    else if (name === 'player') { const play = filmEye(PLAY_LENS), own = all.find(s => s.id === `P${seatOf()}.C1`)?.at, four = all.find(s => s.id === 'P4.C1')?.at, at = all.find(s => s.id === target)?.at ?? table;
+      through(own && four && seatOf() !== 4 ? seatView(play, own, four, edge) : play, at); }
     // Close on the card, along the film's line of sight to it; the view then goes with the card (setTime), so the hand that holds it stays in the picture.
     else { const c = cardNow(), f = v3(c).sub(v3(film.position)).normalize(); through({position: v3(c).addScaledVector(f, -0.5).toArray() as Vec3, forward: f.toArray() as Vec3, focalPx: film.focalPx}, c); follow = c; }
   }
@@ -181,7 +199,7 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
    */
   function setPlan(next: Plan, keep?: {id: string; at: Vec3}) {
     planNow = next; all = spots(next, lens);
-    while (outlines.length < all.length) { const o = new T.LineLoop(new T.BufferGeometry(), new T.LineBasicMaterial({color: outlineColour, transparent: true, opacity: 0.3})); scene!.add(o); outlines.push(o); }
+    while (outlines.length < all.length) { const o = new T.LineLoop(new T.BufferGeometry(), new T.LineBasicMaterial({color: outlineColour, transparent: true, opacity: 0.3, toneMapped: false})); scene!.add(o); outlines.push(o); }
     while (outlines.length > all.length) { const o = outlines.pop()!; scene!.remove(o); o.geometry.dispose(); (o.material as T.Material).dispose(); }
     all.forEach((s, i) => { if (keep && s.id === keep.id) s.at = keep.at; redraw(outlines[i], s.at, headingOf(next, s.id)); });
     mark(); dirty = true;
@@ -222,8 +240,10 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
     /** Where a point of the room is in the picture now, in CSS pixels of the canvas; for a test that looks at the picture. */
     seen(p: number[]) { const q = v3(p).project(camera), box = canvas.getBoundingClientRect(); return {x: (q.x + 1) / 2 * box.width, y: (1 - q.y) / 2 * box.height}; },
     camera: () => ({position: camera.position.toArray(), target: controls.target.toArray(), fov: camera.fov}),
-    /** Which room is drawn, and what of the standard room would not load. */
-    room: () => ({standard: !!standard, fault: roomFault}),
+    /** Which room is drawn, what of the standard room would not load (his words), whether its table is still coming, and the film's own table's state (filmTable). */
+    room: () => ({standard: !!standard, fault: roomFault, tableComing: !!standard && !tableIn && !tableFailed, filmTable: filmTableState}),
+    /** The film's own table in the room's table's place (true), or the room's own (false); answers how far the film's table has come. */
+    filmTable,
     dispose() { controls.dispose(); renderer!.dispose(); renderer!.forceContextLoss(); },
   };
 }

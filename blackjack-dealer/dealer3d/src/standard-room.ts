@@ -33,7 +33,18 @@ export const STOOL = {backAir: 0.03, kneeAir: 0.02, sink: 0.005, seatMid: [-0.01
 
 const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]);
 const shadows = (o: T.Object3D) => o.traverse(m => { if ((m as T.Mesh).isMesh) { m.castShadow = true; m.receiveShadow = true; } });
-const load = (url: string, progress?: (share: number) => void) => new GLTFLoader().loadAsync(url, e => { if (progress && e.total) progress(e.loaded / e.total); });
+/**
+ * A model read once per address and kept for the page's life, so that another doll or another scene does not read and
+ * parse the 35 MB table or the stool again; each scene gets a copy of its own (sharing the geometry and the materials,
+ * which seatStool copies before it moves the stool's corners). A read that failed is forgotten, so it is tried again.
+ * `progress` is told only by the read that loads.
+ */
+const read = new Map<string, Promise<GLTF>>();
+async function load(url: string, progress?: (share: number) => void): Promise<T.Object3D> {
+  let p = read.get(url);
+  if (!p) { p = new GLTFLoader().loadAsync(url, e => { if (progress && e.total) progress(e.loaded / e.total); }); read.set(url, p); p.catch(() => read.delete(url)); }
+  return (await p).scene.clone(true);
+}
 
 /**
  * The room's light, background and floor, after standarddocka/scen/vy.py: a dark world, a floor of 8 x 8 m round the
@@ -72,7 +83,7 @@ export type RoomTable = {root: T.Object3D; card: T.Mesh | null; marks: T.Object3
  * and the tray in one colour and no print, the discard box gone, the shoe's cards with the trace card's back.
  */
 export async function loadTable(url: string, scene: T.Scene, plan: Plan, options: {key?: {table: number; cardBack: number}; progress?: (share: number) => void} = {}): Promise<RoomTable> {
-  const gltf: GLTF = await load(url, options.progress), root = gltf.scene, key = options.key; root.updateMatrixWorld(true);
+  const root = await load(url, options.progress), key = options.key; root.updateMatrixWorld(true);
   // (three.js drops the dot in node names: giv_P4.C1 and markering_P4.C1 in Blender are giv_P4C1 and markering_P4C1 here.)
   const example = root.getObjectByName('giv_P4C1') as T.Mesh | undefined; let card: T.Mesh | null = null;
   if (example?.isMesh) { const g = example.geometry.clone().applyMatrix4(example.matrixWorld); g.computeBoundingBox(); const b = g.boundingBox!, c = b.getCenter(new T.Vector3()), s = b.getSize(new T.Vector3()); g.translate(-c.x, -c.y, -c.z);
@@ -107,7 +118,8 @@ export async function seatStool(url: string, scene: T.Scene, figure: T.Object3D)
   if (!skin) throw Error('The model has no skinned body.'); const body: T.Vector3[] = [], m = skin as T.SkinnedMesh; figure.updateMatrixWorld(true); m.skeleton.update();
   for (let i = 0; i < m.geometry.attributes.position.count; i++) body.push(m.getVertexPosition(i, new T.Vector3()).applyMatrix4(m.matrixWorld));
   const hip = bone('Hips'), knee = Math.min(bone('RightLeg').y, bone('LeftLeg').y), kneeZ = Math.min(bone('RightLeg').z, bone('LeftLeg').z);
-  const stool = (await load(url)).scene; stool.updateMatrixWorld(true);
+  // (its corners are moved below: this stool's own geometry, not the copy kept for the next scene)
+  const stool = await load(url); stool.traverse(o => { const part = o as T.Mesh; if (part.isMesh) part.geometry = part.geometry.clone(); }); stool.updateMatrixWorld(true);
   const hit = (from: Vec3, dir: Vec3, what: string) => { const t = new T.Raycaster(v(from), v(dir)).intersectObject(stool, true)[0]; if (!t) throw Error(`The stool's ${what} was not found.`); return t.point; };
   const [sx, sz] = STOOL.seatMid, seatModel = hit([sx, 3, sz], [0, -1, 0], 'seat').y;
   const backrest = hit([sx, seatModel + 0.2, 1], [0, 0, -1], 'backrest').z, front = hit([sx, seatModel - 0.03, 1], [0, 0, -1], 'front edge').z;

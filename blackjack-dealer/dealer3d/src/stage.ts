@@ -174,7 +174,7 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
     const r = new T.Mesh(lay(new T.ExtrudeGeometry(ring, {depth: TABLE_RAIL.above + TABLE_RAIL.below, bevelEnabled: false, curveSegments: 64})).translate(0, TABLE_RAIL.lift + TABLE_RAIL.above, 0), new T.MeshStandardMaterial({color: C.rail, roughness: 0.55, side: T.DoubleSide})); r.castShadow = true; r.receiveShadow = true; scene.add(r);
     // The plan's places as thin outlines of a real card, so that one sees where each card is to lie.
     for (const s of all) { const w = CARD.width / 2 + 0.003, h = CARD.height / 2 + 0.003, pts = [[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, z]) => new T.Vector3(s.at[0] + x, 0.0006, s.at[2] + z));
-      scene.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({color: C.mark, transparent: true, opacity: s.id === target ? 0.95 : 0.4}))); } }
+      scene.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({color: C.mark, transparent: true, opacity: s.id === target ? 0.95 : 0.4, toneMapped: false}))); } }
   const floor = new T.Mesh(new T.PlaneGeometry(40, 40).rotateX(-Math.PI / 2), matte(C.ground, 1)); floor.position.y = TABLE_BASE.floor; scene.add(floor);
   // The room's floor in half-metre squares. Every seat's eye is as high over the felt and looks as steeply down as the
   // bank's camera; without a floor to read that from, a view along the dealer's edge looks raised and one across it level.

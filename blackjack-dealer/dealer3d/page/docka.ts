@@ -293,13 +293,16 @@ const figureNow = async (doll: string) => { const f = figureOf(doll); return f ?
 // avatar-auto-pipeline: where the server has none, or with ?scen=gammal, the stage's own older room is drawn.
 // The table follows the doll, as in the editor (standarddocka/editor/scen.ts bordFor): the standard doll's own motions are
 // drawn at the table whose edge and tray lie 23 cm behind the game's edge (bord23), a dealer's doll (Paow's) at the older
-// one, 15 cm; where the nearer one is not built, the older one.
-const ROOM = asked.get('scen') === 'gammal' ? null : {table: '/dealer3d/figur/bord.glb', near: '/dealer3d/figur/bord23.glb', stool: '/dealer3d/figur/stol.glb'};
+// one, 15 cm; where the nearer one is not built, the older one. The table and the stool must both be there, else the
+// stage's own older room is drawn. A dealer's film laid over her has its own table (filmTable, the game's first: its edge
+// where the films have it), drawn only while the film is (the film over the doll, below).
+const ROOM = asked.get('scen') === 'gammal' ? null : {table: '/dealer3d/figur/bord.glb', near: '/dealer3d/figur/bord23.glb', stool: '/dealer3d/figur/stol.glb', film: '/dealer3d/figur/bordfilm.glb'};
 const built = (url: string) => fetch(url, {method: 'HEAD'}).then(r => r.ok, () => false);
 /** The table drawn now (its address), or null for the stage's own older room. */
 let tableNow: string | null = null;
 const roomNow = async (doll: string) => { if (!ROOM || !figureOf(doll)) return null;
-  const table = isSeat(doll) && await built(ROOM.near) ? ROOM.near : await built(ROOM.table) ? ROOM.table : null; return table ? {table, stool: ROOM.stool} : null; };
+  const [near, older, stool] = await Promise.all([isSeat(doll) ? built(ROOM.near) : false, built(ROOM.table), built(ROOM.stool)]);
+  const table = near ? ROOM.near : older ? ROOM.table : null; return table && stool ? {table, stool: ROOM.stool, filmTable: ROOM.film} : null; };
 /**
  * A stage for the chosen doll on a canvas of its own (a stage's doll is fixed when it is made). The standard doll begins in
  * its own rest (Jakob 2026-11-26: "Startläget är vilan (A1)"), and on the chosen place's deal where it has one of its own;
@@ -311,9 +314,10 @@ async function setDoll(name: string) {
   own = null; const mine = isSeat(name) ? await ownOf(name) : null; if (state.doll !== name) return; own = mine; if (own) state.entry = 'A2.3';
   const [film, figure, room] = await Promise.all([stored<Motion>('till-ankare-2-3-c'), figureNow(name), roomNow(name)]); if (state.doll !== name) return;
   tableNow = figure && room ? room.table : null;
-  const rest = own?.A1 ?? own?.['A2.3'] ?? null, first = rest ? await ownMotion(rest.file, rest.at) : posedOn(film, dollNamed(name)).motion;
+  // (the older way to the shoe had its card where the older shoe had it: laid in the shoe as the deals have it, cardInFilmsShoe, as showPose does)
+  const rest = own?.A1 ?? own?.['A2.3'] ?? null, first = rest ? await ownMotion(rest.file, rest.at) : cardInFilmsShoe(posedOn(film, dollNamed(name)).motion as Motion & {frames: {card: {c: number[]; l: number[]; n: number[]}}[]});
   if (state.doll !== name) return;
-  const old = $('stage'), canvas = document.createElement('canvas'); canvas.id = 'stage';
+  const old = $('stage'), canvas = document.createElement('canvas'); canvas.id = 'stage'; filmTableAsked = false; filmTableSeen = null;
   stage?.dispose(); old.replaceWith(canvas); size(canvas); stage = createLabStage(canvas, plan, dollNamed(name), first, figure, figure ? room : null); stage.setJoints(state.joints); stage.setGrips(gripsShown()); stage.setTarget(state.place); stage.view(state.view);
   // (a place it has no deal of its own to stays asked for, `wanted`, and the page says why; the picture shows one it has)
   if (own) { if (!opens(state.entry, state.place)) { const open = firstOpen(state.entry); if (open) { state.wanted = state.place; state.place = open; } }
@@ -468,6 +472,8 @@ function paint() {
   // A deal that could not be laid is said in the picture too, not only under Styr: the stage then still shows the last motion
   // that could (at first the pose to A2.3), and beside a film that reads as the doll doing something else (Jakob 2026-11-25).
   if (deal && fault) warns.unshift(`given går inte att lägga (${fault}): bilden visar ${now ? 'den senaste som gick' : 'ställningen, inte given'}`);
+  // The standard room's table is 35 MB: while it comes the room has none, and a model that will not load is said.
+  const room = stage?.room(); if (room?.tableComing) notes.push('bordet laddas'); if (room?.fault) warns.push(`${room.fault}: rummet ritas utan det`);
   const note = $('note'); note.replaceChildren(); const strong = document.createElement('b'); strong.textContent = `${dollWords(state.doll)} · ${what}`; note.append(strong);
   if (notes.length) note.append(` · ${notes.join(' · ')}`); if (warns.length) { const w = document.createElement('span'); w.className = 'warn'; w.textContent = ` · ${warns.join(' · ')}`; note.append(w); }
   transport(); grip(true); paintFilm();
@@ -658,6 +664,10 @@ function attach() {
   document.documentElement.classList.toggle('styr-ute', !!host);
 }
 if (embedded) { attach(); addEventListener('pagehide', () => { if (root.ownerDocument !== document) root.remove(); }); }
+// Embedded, the picture's buttons stand in their own row over the picture, not on it (Bordet: the standard doll's head
+// reaches up to them in the game's view); the picture gives up their height (docka.html, --views-h). The camera is not moved.
+if (embedded) { const views = $('views'), frame = $('frame'); frame.before(views);
+  const said = () => document.documentElement.style.setProperty('--views-h', `${views.offsetHeight + 6}px`); new ResizeObserver(said).observe(views); said(); }
 
 // The film over the doll (embedded only; Jakob 2026-11-25: "så man kan jämföra videos som är skapade med tex dockan", the
 // doll, the table and a film in one and the same view): the page around names the dealer's film of the card's deal
@@ -698,11 +708,26 @@ function paintFilm() {
   filmKnob.hidden = !embedded; filmKnob.classList.toggle('off', !film); filmShare.disabled = !film;
   filmKnob.title = film ? 'Dealerns film av given över dockan: 0 % ingen, 100 % bara filmen. Syns bara i Filmens kamera.' : 'Ingen film till kortet på den här datorn: trädet har ingen, eller den finns inte här.';
   $('filmShown').textContent = `${Math.round(share * 100)} %`;
-  const seen = filmSeen(), note = $('filmNote');
+  const seen = filmSeen(), note = $('filmNote'), table = filmTableAsked ? stage?.room().filmTable : null;
+  // (the film's own table: on its way, or not to be had, when the room's table, 15 cm nearer her, is under the film)
+  const tableSaid = !seen || !stage?.room().standard ? '' : table === 'laddar' ? ' · filmens bord laddas' : table === 'fel' ? ' · filmens bord kunde inte laddas: bordet i bilden ligger 15 cm närmare dockan än i filmen' : '';
   const said = share <= 0 ? '' : !film ? 'Ingen film till det här kortet' : filmFault ? `Filmen kunde inte spelas · ${film.label}`
-    : `Filmen · ${film.label} · ${Math.round(share * 100)} %${seen ? '' : state.shown.kind !== 'deal' ? ' · syns under en giv' : ' · syns bara i Filmens kamera'}`;
+    : `Filmen · ${film.label} · ${Math.round(share * 100)} %${seen ? tableSaid : state.shown.kind !== 'deal' ? ' · syns under en giv' : ' · syns bara i Filmens kamera'}`;
   if (said !== filmSaid) { filmSaid = said; note.textContent = said; note.hidden = !said; }
 }
+/**
+ * The film's own table (lab-stage.ts filmTable): the standard room's table has its edge 15 cm nearer her than the films
+ * have it, so while a film is laid over her in "Filmens kamera" (a film named, the slider above 0) the game's first table
+ * stands in its place, and the room's own comes back when it is not. Nothing of the stage is made anew, so what he has
+ * set stays. `filmTableAsked` is what the stage was last told.
+ */
+let filmTableAsked = false;
+function keepFilmTable() {
+  const want = !!film && share > 0 && state.view === 'film' && !!stage?.room().standard;
+  if (want !== filmTableAsked) { filmTableAsked = want; stage?.filmTable(want); paintFilm(); }
+  else if (want) { const s = stage?.room().filmTable; if (s !== filmTableSeen) { filmTableSeen = s ?? null; paintFilm(); } }
+}
+let filmTableSeen: string | null = null;
 filmShare.addEventListener('input', () => { share = Number(filmShare.value) / 100; video.style.opacity = String(share); loadFilm(); paintFilm(); });
 video.addEventListener('error', () => { if (video.getAttribute('src')) { filmFault = true; paintFilm(); } });
 /** Every picture: the film shown or hidden, and its time kept to the lab's. */
@@ -721,13 +746,16 @@ function syncFilm() {
 paintFilm();
 
 // The clock: the time runs while it plays (a breath on the last picture before a loop begins again), and the stage is drawn only when something has changed.
-let last = performance.now();
+let last = performance.now(), roomSaid = '';
 function tick(ms: number) {
   const dt = Math.min(0.1, (ms - last) / 1000); last = ms;
   if (stage) { size();
     if (state.playing) { const length = stage.duration(); state.t += dt * state.speed;
       if (state.t >= length + (state.loop ? 0.5 : 0)) { if (state.loop) state.t = 0; else { state.t = length; state.playing = false; paint(); } }
       stage.setTime(Math.min(state.t, length)); transport(); grip(); }
+    // (the standard room's table on its way or not to be had is said in the picture's line: paint when that changes)
+    const room = stage.room(), roomWord = `${room.tableComing}|${room.fault}`; if (roomWord !== roomSaid) { roomSaid = roomWord; paint(); }
+    if (embedded) keepFilmTable();
     if (stage.needsDraw()) stage.draw();
     if (embedded) syncFilm(); }
   requestAnimationFrame(tick);
@@ -740,7 +768,7 @@ if (asked.get('spela') === '1') void play();
   /** Where a place of the plan lies in the picture now, in this page's client pixels (a test clicks or drags there); null where it is not drawn. */
   at: (id: string) => { const p = spotNow(id), box = $('stage').getBoundingClientRect(), s = p && stage ? stage.seen(p) : null; return s ? {x: box.left + s.x, y: box.top + s.y} : null; },
   facts: () => ({doll: state.doll, way: wayOf(), entry: state.entry, shown: state.shown, place: state.place, steer: state.steer, side: sideOf(state.steer), planSide: planSide(state.place), knobs: state.knobs, playing: state.playing, t: state.t, duration: stage?.duration(), fault, saved: now?.saved ?? false, from: now?.from ?? null, savedAt: now?.savedAt ?? null, wanted: state.wanted, shortMm: now?.shortMm ?? 0,
-  own: own ? {A1: own.A1, 'A2.3': own['A2.3'], deals: Object.fromEntries(own.deals)} : null, figure: figureOf(state.doll), table: tableNow,
+  own: own ? {A1: own.A1, 'A2.3': own['A2.3'], deals: Object.fromEntries(own.deals)} : null, figure: figureOf(state.doll), table: tableNow, room: stage?.room() ?? null,
   frames: now?.motion.frameCount, forced: (now?.deal as LaidDeal | null)?.elbowForced ?? null, throughShoe: now?.deal?.throughShoe ?? null, note: $('note').textContent, status: ctl('status').textContent, grip: $('grip').textContent, standards: standards.map(s => s.name), camera: stage?.camera(), bodyShare: now?.bodyShare ?? null,
   gripYaw: R() ? gripYawsOf(R()!, state.steer, wayOf()) : null, landing: state.landing, landed: now?.landed ?? null, landingNote: ctl('landingNote').textContent, turn: state.turn, turned: now?.turned ?? null, turnNote: ctl('turnNote').textContent,
   // Where the controls stand (this page's own column, or the studio's), whether a place can be moved by hand, and where the chosen place lies on the felt.
