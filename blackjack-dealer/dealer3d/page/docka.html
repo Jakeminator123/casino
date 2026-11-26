@@ -106,7 +106,8 @@
       <video id="film" muted playsinline preload="auto" hidden></video>
       <!-- Only the first view is the films' camera; the others are for looking at her hands from other sides. -->
       <div class="views" id="views" role="group" aria-label="Vy">
-        <button data-view="film" title="Filmernas egen kamera: samma plats, vinkel och lins som varje film. Standardvyn.">Filmens kamera</button>
+        <button data-view="spel" title="Spelets vy: det spelaren på plats 4 ser, den lägre kameran. Standarden för standarddockans filmer.">Spelets vy</button>
+        <button data-view="film" title="Filmernas egen kamera: samma plats, vinkel och lins som varje film som finns. Bara här kan en film läggas över dockan.">Filmens kamera</button>
         <label class="filmknob off" id="filmKnob" hidden><span>Filmen</span><input id="filmShare" type="range" min="0" max="100" step="5" value="0" aria-label="Filmen över dockan" disabled><output id="filmShown">0 %</output></label>
         <span class="look">Titta runt:</span>
         <button data-view="side" title="Titta runt: från hennes högra sida, i höjd med armarna. Inte filmernas kamera.">Från sidan</button><button data-view="above" title="Titta runt: rakt ovanifrån bordet. Inte filmernas kamera.">Uppifrån</button><button data-view="player" title="Titta runt: från spelarens stol vid kortet. Inte filmernas kamera.">Från spelaren</button><button data-view="card" title="Titta runt: nära kortet, och följer det. Inte filmernas kamera.">Nära kortet</button>

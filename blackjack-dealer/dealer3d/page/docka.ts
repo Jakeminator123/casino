@@ -87,7 +87,7 @@ const sided = (steer: Steer, id: string): Steer => { const {side: _side, ...rest
 /** The steering where nothing is moved: the recipe as it is, and the card on the side the plan has it. */
 const baseSteer = (id: string): Steer => sided({...NO_STEER}, id);
 // (`wanted`: a card asked for that no deal goes to from the entry; the picture keeps the card it shows, and says why)
-const state = {doll: 'paow', entry: 'A2.3' as Entry, shown: {kind: 'deal'} as Shown, place: 'P4.C1', wanted: null as string | null, steer: {...NO_STEER} as Steer, knobs: knobsOf(), landing: {id: LANDING_DEFAULT} as Landing, turn: TURN_DEFAULT as TurnId, touched: false, playing: false, speed: 1, loop: false, joints: false, view: 'film' as ViewName, t: 0};
+const state = {doll: 'paow', entry: 'A2.3' as Entry, shown: {kind: 'deal'} as Shown, place: 'P4.C1', wanted: null as string | null, steer: {...NO_STEER} as Steer, knobs: knobsOf(), landing: {id: LANDING_DEFAULT} as Landing, turn: TURN_DEFAULT as TurnId, touched: false, playing: false, speed: 1, loop: false, joints: false, view: (new URLSearchParams(location.search).get('scen') === 'gammal' ? 'film' : 'spel') as ViewName, t: 0};
 /** Whether a deal goes from `entry` to the place `id` (for the chosen doll: from A2.1 one with the pose A2.1). */
 const opens = (entry: Entry, id: string) => { const r = placeFrom(entry, id, state.doll, plan); return !!r && !('none' in r); };
 /** The first place of the plan a deal goes to from `entry`. */
@@ -195,12 +195,18 @@ const show = (keepTime = false) => state.shown.kind === 'deal' ? showDeal(keepTi
 // the motion is laid for; the model is only what is seen.
 const FIGURE = asked.get('figur') === 'vit' ? null : asked.get('figur') === 'man' ? 'man' : 'kvinna';
 const figureNow = async () => FIGURE ? (await import('../src/figure-model.ts')).loadFigure(`/dealer3d/figur/${FIGURE}.glb`).catch(() => null) : null;
+// The room she is drawn in (Jakob 2026-11-26: "Vi ska ha in vy/vinkel och allt det andra från 'standarddockan'-mappens
+// mini-blender"): the standard room of dealer3d/src/standard-room.ts, the same table, shoe, stool and light as the
+// editor of standarddocka/ draws, seen first through the game's view. Its models are local media of
+// avatar-auto-pipeline: where the server has none, or with ?scen=gammal, the stage's own older room is drawn.
+const ROOM = asked.get('scen') === 'gammal' ? null : {table: '/dealer3d/figur/bord.glb', stool: '/dealer3d/figur/stol.glb'};
+const roomNow = async () => ROOM && FIGURE && await fetch(ROOM.table, {method: 'HEAD'}).then(r => r.ok, () => false) ? ROOM : null;
 /** A stage for the chosen doll on a canvas of its own (a stage's doll is fixed when it is made). */
 async function setDoll(name: string) {
   state.doll = name; state.touched = false; notice = null; state.steer = baseSteer(state.place); state.knobs = knobsOf(); state.landing = {id: LANDING_DEFAULT}; state.turn = TURN_DEFAULT;
-  const [film, figure] = await Promise.all([stored<Motion>('till-ankare-2-3-c'), figureNow()]);
+  const [film, figure, room] = await Promise.all([stored<Motion>('till-ankare-2-3-c'), figureNow(), roomNow()]);
   const first = posedOn(film, dollNamed(name)).motion, old = $('stage'), canvas = document.createElement('canvas'); canvas.id = 'stage';
-  stage?.dispose(); old.replaceWith(canvas); size(canvas); stage = createLabStage(canvas, plan, dollNamed(name), first, figure); stage.setJoints(state.joints); stage.setGrips(gripsShown()); stage.setTarget(state.place); stage.view(state.view);
+  stage?.dispose(); old.replaceWith(canvas); size(canvas); stage = createLabStage(canvas, plan, dollNamed(name), first, figure, figure ? room : null); stage.setJoints(state.joints); stage.setGrips(gripsShown()); stage.setTarget(state.place); stage.view(state.view);
   await show();
 }
 function size(canvas = $<HTMLCanvasElement>('stage')) { const box = $('frame').getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1), w = Math.max(2, Math.round(box.width * dpr)), h = Math.max(2, Math.round(box.height * dpr));

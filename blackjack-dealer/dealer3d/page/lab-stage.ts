@@ -15,7 +15,8 @@
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {createStage, type Read} from '../src/stage.ts';
-import {CARD, FILM, fovYDeg, type Eye, type Vec3} from '../src/camera.ts';
+import {CARD, FILM, PLAY_LENS, filmEye, fovYDeg, type Eye, type Vec3} from '../src/camera.ts';
+import {loadTable, roomLight, seatStool} from '../src/standard-room.ts';
 import {dealerEdge, seatEye, spots, type Plan, type Spot} from '../src/world.ts';
 import {standing} from '../src/body.ts';
 import {FINGERS} from '../src/capture.ts';
@@ -23,7 +24,9 @@ import {touching, type Touch} from '../src/natural.ts';
 import type {Doll} from '../src/doll.ts';
 import type {Figure} from '../src/figure-model.ts';
 
-export type ViewName = 'film' | 'side' | 'above' | 'player' | 'card';
+export type ViewName = 'film' | 'spel' | 'side' | 'above' | 'player' | 'card';
+/** Where the page's server hands out the standard room's models (dealer3d/src/standard-room.ts). */
+export type Room = {table: string; stool: string};
 type Frame = Read['frames'][number];
 export type {Touch};
 const v3 = (p: number[]) => new T.Vector3(p[0], p[1], p[2]), UP = new T.Vector3(0, 1, 0);
@@ -94,18 +97,27 @@ function grips() {
  * The stage for `doll`, showing `first` until another motion is set. One canvas has one stage: for another doll make a
  * new canvas and a new stage, and dispose of this one. The canvas keeps the film's shape (1764 : 1174), so that the
  * film's view is the film's picture. `figure`: a rigged model drawn in the white figure's place and posed from the same
- * joints (dealer3d/src/figure-model.ts; docka.ts loads the standard doll's); a figure belongs to one stage.
+ * joints (dealer3d/src/figure-model.ts; docka.ts loads the standard doll's); a figure belongs to one stage. `room`: the
+ * standard room round her in the stage's own room's place (Jakob 2026-11-26: "Vi ska ha in vy/vinkel och allt det andra
+ * från 'standarddockan'-mappens mini-blender"): its light and floor at once, its table and the stool under her as they
+ * arrive. It is set under the rigged model, so it needs a figure; without one the stage's own room is drawn.
  */
-export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll, first: Read, figure: Figure | null = null) {
+export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll, first: Read, figure: Figure | null = null, room: Room | null = null) {
   // The stage, with its scene taken as it is filled, and a read that is exchanged in place.
-  const read: Read = {...first, laid: [], frameCount: 1e9}; let found: T.Scene | null = null;
+  const read: Read = {...first, laid: [], frameCount: 1e9}; let found: T.Scene | null = null; const standard = room && figure ? room : null;
   Object.defineProperty(T.Scene.prototype, 'add', {configurable: true, writable: true, value(this: T.Scene, ...objects: T.Object3D[]) { found = this; return T.Object3D.prototype.add.apply(this, objects); }});
   let stage: ReturnType<typeof createStage>;
-  try { stage = createStage(canvas, plan, {look: 'room', target: 'P4.C1', read, doll, figure}); } finally { delete (T.Scene.prototype as unknown as {add?: unknown}).add; }
+  try { stage = createStage(canvas, plan, {look: standard ? 'standard' : 'room', target: 'P4.C1', read, doll, figure}); } finally { delete (T.Scene.prototype as unknown as {add?: unknown}).add; }
   const scene = found as T.Scene | null; if (!scene) throw Error('The stage made no scene.');
   let taken: T.WebGLRenderer | null = null; const before = scene.onBeforeRender; scene.onBeforeRender = r => { taken = r; }; stage.render(['film']); scene.onBeforeRender = before;
   const renderer = taken as T.WebGLRenderer | null; if (!renderer) throw Error('The stage drew with no renderer.');
   read.frameCount = first.frameCount;
+  // The standard room. She sits at rest now (the stage's first frame), which is how the stool is set under her; the
+  // table is 35 MB and comes when it comes. A model that will not load is said, not hidden: the room then lacks it.
+  let roomFault: string | null = null;
+  if (standard) { roomLight(scene, renderer); const failed = (what: string) => (e: unknown) => { roomFault = `${what}: ${e instanceof Error ? e.message : String(e)}`; console.error(roomFault); };
+    void seatStool(standard.stool, scene, figure!.root).then(() => { dirty = true; }, failed('The stool'));
+    void loadTable(standard.table, scene, plan).then(() => { dirty = true; }, failed('The table')); }
 
   const lens = stage.lens, edge = dealerEdge(lens), body = standing(lens, doll), film = stage.eyeOf('film');
   let planNow = plan, all: Spot[] = spots(plan, lens);
@@ -134,6 +146,9 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
     follow = null; home = null;
     // Filmens kamera: the bank's own (stage.ts cameraOf: its place, its line of sight, its lens, the film's shape).
     if (name === 'film') { through(film, chest); home = {p: camera.position.clone(), t: controls.target.clone(), fov: camera.fov}; }
+    // Spelets vy: what the player at seat 4 sees, the standard for the standard doll's films (src/table-lens.ts PLAY_LENS:
+    // the lower camera, Jakob 2026-11-26). Not the camera the older films were taken with, so no film is laid over it.
+    else if (name === 'spel') through(filmEye(PLAY_LENS), chest);
     // From her right side, where the hand that lays the card is nearest; level with her arms.
     else if (name === 'side') through({position: [table[0] - 2.1, 0.5, table[2]], forward: [2.1, -0.38, 0], focalPx: film.focalPx}, table);
     // Straight down on the table, the dealer at the top as in the film (a hair off the plumb line, which has no up).
@@ -206,6 +221,8 @@ export function createLabStage(canvas: HTMLCanvasElement, plan: Plan, doll: Doll
     /** Where a point of the room is in the picture now, in CSS pixels of the canvas; for a test that looks at the picture. */
     seen(p: number[]) { const q = v3(p).project(camera), box = canvas.getBoundingClientRect(); return {x: (q.x + 1) / 2 * box.width, y: (1 - q.y) / 2 * box.height}; },
     camera: () => ({position: camera.position.toArray(), target: controls.target.toArray(), fov: camera.fov}),
+    /** Which room is drawn, and what of the standard room would not load. */
+    room: () => ({standard: !!standard, fault: roomFault}),
     dispose() { controls.dispose(); renderer!.dispose(); renderer!.forceContextLoss(); },
   };
 }

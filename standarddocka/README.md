@@ -21,7 +21,8 @@ standarddocka/
     server.ts   editorns egen server (bara den här datorn, port 4320); lämnar ut sidan, modellerna och rörelserna,
                 tar emot det som sparas och gör film av inspelningens bilder (FFmpeg)
     editor.ts   sidan: tidslinjen, kamerorna, handtagen, Spara, Återställ, Spela in
-    scen.ts     scenen: bordet, stolen och dockan (mannen eller kvinnan) i spelets mått, ljuset, kortet, kamerorna
+    scen.ts     scenen: dockan (mannen eller kvinnan) i standardrummet (bordet, stolen och ljuset ur
+                ../blackjack-dealer/dealer3d/src/standard-room.ts, samma som studions dockvy ritar), kortet, kamerorna
     rorelse.ts  rörelsen: grundrörelser efter varandra, skarven utjämnad, ändringarna ovanpå, vem som håller kortet
     armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp)
   verktyg/      för agenter, utan fönster (hur de används: skillen granska-rorelse, ../.claude/skills/granska-rorelse/)
@@ -120,8 +121,18 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   kameran, 12 grader ned), `vy_film` den gamla kameran (25 grader ned) att jämföra med.
 - Studions dockvy i `blackjack-dealer` (Bordets Inspelning och `/dealer3d/docka`) ritar sedan 2026-11-26
   standarddockans kropp i den vita figurens ställe: kvinnan som förval, mannen med `?figur=man`, den vita figuren med
-  `?figur=vit` eller där modellen inte är byggd (`dealer3d/page/docka.ts`, `dealer3d/src/figure-model.ts`). Rummet,
-  bordet och kameran där är fortfarande de äldre; se "Plockas in" nedan.
+  `?figur=vit` eller där modellen inte är byggd (`dealer3d/page/docka.ts`, `dealer3d/src/figure-model.ts`). Den ritar
+  också standardrummet runt henne och öppnar i spelets vy: bordet med kanten närmare, skon med frontplattan, brickan,
+  stolen och ljuset är en och samma kod för editorn här och för studion
+  (`../blackjack-dealer/dealer3d/src/standard-room.ts`; `editor/scen.ts` ritar sitt rum ur den). `?scen=gammal` ger den
+  äldre scenen. Kvar i studions dockvy: blicken mot kameran, regeln som håller underarmarna över kanten
+  (`editor/armar.ts`), och kortet i skons öppning, som där ritas framför frontplattan.
+- Dockan sitter för lågt och för långt från bordet (mätt 2026-11-26 på mannen vid det närmare bordet). Axlarna står
+  0,23 m över filten (Paows mått), och överarmen är 0,29 m: armbågen får inte plats under axeln när underarmen ska
+  gå över bordet, utan måste cirka 16 cm ut åt sidan. Det är de utvinklade armbågarna i vilan. En riktig sittande
+  dealer har axlarna 0,31–0,35 m över bordet. Magen har 12 cm luft till kanten; 0,30 m bakom spelets kant i stället
+  för 0,38 ger 4 cm (Jakob 2026-11-26: "skjuta in dockorna aningen till mot bordet"). Hur högt dockan sitter är
+  Jakobs val, eftersom huvudet då kommer närmare överkanten i spelets bild: jämförelsebilder på fyra höjder tas fram.
 - Skon har en frontplatta med en rundad öppning (`sko_front`, måtten i `SKO_FRONT` i
   `../avatar-auto-pipeline/scen/bygg_bord.py`): kortets rygg syns i öppningen, kortet dras nedåt och ut genom springan
   under plattan, och nästa kort visar ryggen när ett har gått. Springan är hög (59 mm över filten) eftersom givarna
@@ -268,8 +279,9 @@ ska.
      de som editorn och studion spelar, när spärren är grön och varje plats är sedd med ögat. Först då kan dockan
      `paow`, hennes sparade standarder (`dealer3d/standard/`) och de äldre grundrörelserna tas bort: tills dess är
      givarna ritade för hennes kropp, och hennes godkända filmer är gjorda av dem.
-  3. Studions dockvy (Bordets Inspelning) får editorns scen: spelets vy, det närmare bordet, skon med frontplattan,
-     brickan, stolen och ljuset, och det editorn här har som studion saknar (takten per del, de små egna rörelserna,
+  3. Studions dockvy (Bordets Inspelning) får editorns scen. Gjort 2026-11-26: spelets vy, det närmare bordet, skon
+     med frontplattan, brickan, stolen och ljuset (standardrummet, ovan). Kvar: blicken mot kameran, armarna över
+     kanten, och det editorn här har som studion saknar (takten per del, de små egna rörelserna,
      inspelningen från sju platser). Jakob 2026-11-26 om studions dockvy: "Vi ska ha in vy/vinkel och allt det andra
      från 'standarddockan'-mappens mini-blender", och att det gäller allt som har med hur klippen ska göras framöver.
      Då är editorn en vy i studion och den här mappen bara arbetsbänken.

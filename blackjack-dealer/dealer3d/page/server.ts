@@ -10,6 +10,9 @@
 //   GET /dealer3d/figur/<kvinna|man>.glb   the standard doll's model as avatar-auto-pipeline builds it
 //                                          (../avatar-auto-pipeline/assets/docka/, local media: 404 where it is not built,
 //                                          and the page then draws the white figure)
+//   GET /dealer3d/figur/<bord|stol>.glb    the standard room's table (its dealer's edge 15 cm nearer her) and stool
+//                                          (assets/bord/standardbord_nara.glb, assets/stol/dealerstol.glb; 404 where they
+//                                          are not built, and the page then draws the stage's own room)
 //   GET /dealer3d/standard                 the saved standards: name, doll, entry, place and when each was saved (`lab.savedAt`,
 //                                          the file's time where it has none); the one before each (`forra`) and what has
 //                                          been laid aside (`undanlagda`: the folders, each with its names)
@@ -40,6 +43,8 @@ import {stripTypeScriptTypes} from 'node:module';
 import path from 'node:path';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 
+/** The models handed out under /dealer3d/figur/, as avatar-auto-pipeline builds them (under its assets/). */
+const MODELS: Record<string, string> = {kvinna: 'docka/standarddocka_kvinna.glb', man: 'docka/standarddocka_man.glb', bord: 'bord/standardbord_nara.glb', stol: 'stol/dealerstol.glb'};
 export const STANDARDS = 'dealer3d/standard';
 /** Under STANDARDS: the one before each standard, and the folders of what has been laid aside. */
 export const BEFORE = 'forra', ASIDE = 'undanlagda';
@@ -193,10 +198,15 @@ export function dollLabRoutes(options: {root: string; origin: string}) {
         json(res, 200, {...done, ...await list()}); return true;
       }
       if (req.method !== 'GET' && req.method !== 'HEAD') { req.resume(); res.writeHead(405, {Allow: change ? 'POST' : standard ? 'GET, PUT' : 'GET'}).end(); return true; }
-      const script = /^\/dealer3d\/(page|src)\/([\w-]+)\.ts$/.exec(at), data = /^\/dealer3d\/data\/([\w-]+)\.json$/.exec(at), figure = /^\/dealer3d\/figur\/(kvinna|man)\.glb$/.exec(at);
+      const script = /^\/dealer3d\/(page|src)\/([\w-]+)\.ts$/.exec(at), data = /^\/dealer3d\/data\/([\w-]+)\.json$/.exec(at), figure = /^\/dealer3d\/figur\/(kvinna|man|bord|stol)\.glb$/.exec(at);
       if (at === '/dealer3d/docka') await file(res, 'dealer3d/page/docka.html', 'text/html; charset=utf-8');
-      else if (figure) { const bytes = await readFile(path.join(root, '..', 'avatar-auto-pipeline', 'assets', 'docka', `standarddocka_${figure[1]}.glb`)).catch(() => null);
-        if (bytes) send(res, 200, 'model/gltf-binary', bytes); else send(res, 404, 'text/plain; charset=utf-8', 'Finns inte.'); }
+      else if (figure) {
+        // The models are large (the table 35 MB): the browser may keep them and asks only whether they have changed.
+        const full = path.join(root, '..', 'avatar-auto-pipeline', 'assets', MODELS[figure[1]]), s = await stat(full).catch(() => null), head = s && {'Content-Type': 'model/gltf-binary', 'Content-Length': s.size, ETag: `"${s.size}-${Math.round(s.mtimeMs)}"`, 'Cache-Control': 'no-cache'};
+        if (!s || !head) send(res, 404, 'text/plain; charset=utf-8', 'Finns inte.');
+        else if (req.headers['if-none-match'] === head.ETag) res.writeHead(304, {ETag: head.ETag}).end();
+        else if (req.method === 'HEAD') res.writeHead(200, head).end();
+        else res.writeHead(200, head).end(await readFile(full)); }
       else if (script) await file(res, `dealer3d/${script[1]}/${script[2]}.ts`, 'text/javascript; charset=utf-8', stripTypeScriptTypes);
       else if (at === '/src/table-lens.ts') await file(res, 'src/table-lens.ts', 'text/javascript; charset=utf-8', stripTypeScriptTypes);
       else if (data) await file(res, `dealer3d/data/${data[1]}.json`, 'application/json; charset=utf-8');

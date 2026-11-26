@@ -66,7 +66,13 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   följa samma leder med fingrarna böjda som dockans (`dealer3d/src/figure-model.ts`). Dockvyn (Bordets Inspelning och
   `/dealer3d/docka`) ritar så standarddockans kropp, kvinnan som förval (Jakob 2026-11-26: standarddockan "för allt som
   syns"; `?figur=man` mannen, `?figur=vit` eller en dator utan modellen den vita figuren); referensfilmernas inspelning
-  ritar den vita figuren som förut (`?model=1` där). Vägen till att den äldre dockan tas bort står i
+  ritar den vita figuren som förut (`?model=1` där). Dockvyn ritar också standardrummet runt henne och öppnar i
+  spelets vy (Jakob 2026-11-26: "Vi ska ha in vy/vinkel och allt det andra från 'standarddockan'-mappens
+  mini-blender"): Blenders bord med kanten 15 cm närmare, skon med frontplattan, brickan, stolen och ljuset, samma
+  som editorn i `../standarddocka/` ritar (`dealer3d/src/standard-room.ts`; `?scen=gammal` eller en dator utan
+  modellerna ger den äldre scenen; "Filmens kamera" finns kvar som vy för de filmer som finns). Kvar där: blicken mot
+  kameran, regeln som håller underarmarna över den närmare kanten, och kortet i skons öppning, som ritas framför
+  frontplattan. Vägen till att den äldre dockan tas bort står i
   `../standarddocka/README.md`, "Plockas in". Markerbrickan
   är i rummets utseende en riktig försänkt bricka med mässingsram och marker på standardens plats; referensfilmens
   utseenden ritar ingen bricka, som förut. I Naturlig tar

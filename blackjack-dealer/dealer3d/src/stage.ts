@@ -3,7 +3,9 @@
 // it shape and light. Two looks: 'room' (a felt table, for looking at the geometry from the seats) and 'plain' (a white
 // figure and a grey table on a flat ground, for a reference film a video model can follow), and 'bare': the plain figure
 // alone on nothing (a transparent picture), the table, the shoe and the cards hiding what is behind them without being
-// drawn and the felt catching the figure's shadow, for a still laid over a picture of the table. The figure is a doll
+// drawn and the felt catching the figure's shadow, for a still laid over a picture of the table. And 'standard': the room
+// is the standard room's (standard-room.ts: Blender's table, the stool and the light, which the page lays into the scene),
+// so this stage's own table, tray, shoe, stool, floor and light are not shown. The figure is a doll
 // (dealer3d/src/doll.ts): options.doll, else the one a read motion names, else the standard.
 import * as T from 'three';
 import {CARD, FILM, filmEye, fovYDeg, orbit, type Eye, type Vec3} from './camera.ts';
@@ -15,7 +17,7 @@ import {CARD_MARKS} from './card-marks.ts';
 import {FINGERS} from './capture.ts';
 import type {Figure} from './figure-model.ts';
 
-export type Look = 'room' | 'plain' | 'bare';
+export type Look = 'room' | 'plain' | 'bare' | 'standard';
 type Limb = {s: number[]; e: number[]; w: number[]; k: number; p: number[][]};
 /** A deal read off a film and laid into the room by dealer3d/tools/lift.ts (dealer3d/data/*.json). */
 export type Read = {film: string; fps: number; frameCount: number; leavesShoe: number; edge: number[]; folds: number; rests: number; hip: number[]; laid?: {from: number; c: number[]; l: number[]; n: number[]}[]; frames: {card: {c: number[]; l: number[]; n: number[]; id?: number}; L: Limb; R: Limb; h: number[]; g?: number[]}[]; doll?: string}; // g: where she looks in that frame, if the film says (dealer3d/tools/pose-film.ts); without it her eyes follow the card. card.id and laid: a film of several cards (dealer3d/tools/deal-film.ts) says which card is in play and which lie, each from its frame
@@ -91,7 +93,7 @@ function pointHand(material: T.Material) {
 }
 
 export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {look?: Look; target?: string; read?: Read | null; figure?: Figure | null; doll?: Doll; tableBack?: number} = {}) {
-  const look = options.look ?? 'room', target = options.target ?? 'P4.C1', C = COLOUR[look === 'bare' ? 'plain' : look], lens = filmLens(), edge = dealerEdge(lens), all = spots(plan, lens);
+  const look = options.look ?? 'room', target = options.target ?? 'P4.C1', C = COLOUR[look === 'bare' ? 'plain' : look === 'standard' ? 'room' : look], lens = filmLens(), edge = dealerEdge(lens), all = spots(plan, lens);
   const four = all.find(s => s.id === 'P4.C1')!, to = all.find(s => s.id === target); if (!to) throw Error(`The plan has no place ${target}.`);
   const pose = shoePose(lens), inShoe = shoeCard(pose), deal = planDeal({lens, target, place: to.at, placeOfSeat4: four.at, shoe: inShoe}), doll = options.doll ?? dollNamed(options.read?.doll), frame = standing(lens, doll), rest = restingHand(lens), S = doll.shape;
 
@@ -159,7 +161,7 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   if (withTray) scene.add(tray);
   // The padded roll, in the look 'room': the standard's section as a band, its middle TABLE_RAIL.centre outside the felt's
   // edge and TABLE_RAIL.lift over the felt.
-  if (look === 'room') { const ring = half(TABLE_RAIL.centre + TABLE_RAIL.halfWidth); ring.holes.push(new T.Path(half(TABLE_RAIL.centre - TABLE_RAIL.halfWidth).getPoints(64)));
+  if (look === 'room' || look === 'standard') { const ring = half(TABLE_RAIL.centre + TABLE_RAIL.halfWidth); ring.holes.push(new T.Path(half(TABLE_RAIL.centre - TABLE_RAIL.halfWidth).getPoints(64)));
     const r = new T.Mesh(lay(new T.ExtrudeGeometry(ring, {depth: TABLE_RAIL.above + TABLE_RAIL.below, bevelEnabled: false, curveSegments: 64})).translate(0, TABLE_RAIL.lift + TABLE_RAIL.above, 0), new T.MeshStandardMaterial({color: C.rail, roughness: 0.55, side: T.DoubleSide})); r.castShadow = true; r.receiveShadow = true; scene.add(r);
     // The plan's places as thin outlines of a real card, so that one sees where each card is to lie.
     for (const s of all) { const w = CARD.width / 2 + 0.003, h = CARD.height / 2 + 0.003, pts = [[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, z]) => new T.Vector3(s.at[0] + x, 0.0006, s.at[2] + z));
@@ -177,6 +179,9 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   const sideways: Vec3 = [-pose.back[2], 0, pose.back[0]], sameWay = sideways[0] * pose.far[0] + sideways[2] * pose.far[2] > 0; // back x up is one of the two ways across; the wedge is extruded along it
   place(shoe, pose.back, [0, 1, 0], sideways, sameWay ? pose.front : [pose.front[0] + pose.far[0] * SHOE.width, 0, pose.front[2] + pose.far[2] * SHOE.width]); scene.add(shoe);
   const next = cardMesh(), start = deal.card(0); placeCard(next, {...start, centre: [start.centre[0] + start.normal[0] * 0.0006, start.centre[1] + start.normal[1] * 0.0006, start.centre[2] + start.normal[2] * 0.0006]}); scene.add(next);
+  // 'standard': all of the room made so far (the light, the table, the tray, the roll, the floor, the shoe and its card)
+  // is left unseen, for the standard room stands in its place; the plan's outlines stay, and the card that is dealt.
+  if (look === 'standard') for (const o of scene.children) if (!(o as T.LineLoop).isLineLoop) o.visible = false;
   const card = cardMesh(); scene.add(card);
   // The cards a film of several has laid: each lies where the film says from its frame on.
   const lying = (options.read?.laid ?? []).map(l => { const m = cardMesh(), long = l.l as Vec3, normal = l.n as Vec3; placeCard(m, {centre: l.c as Vec3, long, normal, across: [normal[1] * long[2] - normal[2] * long[1], normal[2] * long[0] - normal[0] * long[2], normal[0] * long[1] - normal[1] * long[0]]}); m.visible = false; scene.add(m); return {from: l.from, mesh: m}; });
@@ -217,7 +222,7 @@ export function createStage(canvas: HTMLCanvasElement, plan: Plan, options: {loo
   const below = [pelvis, ...legJoints.flatMap(j => { const thigh = limb(skin, 0.078, 0.058), shin = limb(skin, 0.054, 0.038), foot = limb(skin, 0.04, 0.03), kneeBall = ball(skin, 0.058), ankleBall = ball(skin, 0.04);
     thigh.set(j.hipJoint, j.knee); shin.set(j.knee, j.ankle); foot.set(j.ankle, j.toe); kneeBall.position.copy(v3(j.knee)); ankleBall.position.copy(v3(j.ankle)); return [thigh.mesh, shin.mesh, foot.mesh, kneeBall, ankleBall]; })];
   scene.add(...below); if (options.figure) for (const o of below) o.visible = false; // a rigged model has legs of its own
-  if (look !== 'bare') { const steel = matte(look === 'room' ? 0x1c1d20 : 0x8f9499, 0.6), pad = matte(look === 'room' ? 0x3a241c : 0xa3a8ad, 0.8), seatTop = seated[1] - 0.09, post = seatTop - 0.06 - floor.position.y;
+  if (look !== 'bare' && look !== 'standard') { const steel = matte(look === 'room' ? 0x1c1d20 : 0x8f9499, 0.6), pad = matte(look === 'room' ? 0x3a241c : 0xa3a8ad, 0.8), seatTop = seated[1] - 0.09, post = seatTop - 0.06 - floor.position.y;
     const disc = (r: number, height: number, y: number, material: T.Material) => { const m = new T.Mesh(new T.CylinderGeometry(r, r, height, 40), material); m.position.set(seated[0], y, seated[2] - 0.05); m.castShadow = true; m.receiveShadow = true; return m; };
     const ring = new T.Mesh(new T.TorusGeometry(0.25, 0.011, 10, 48).rotateX(Math.PI / 2), steel); ring.position.set(seated[0], legJoints[0].ankle[1] - 0.055, seated[2] - 0.05); ring.castShadow = true;
     scene.add(disc(0.19, 0.06, seatTop - 0.03, pad), disc(0.028, post, floor.position.y + post / 2, steel), disc(0.24, 0.02, floor.position.y + 0.01, steel), ring); }

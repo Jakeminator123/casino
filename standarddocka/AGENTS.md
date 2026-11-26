@@ -94,6 +94,15 @@ rörelse prövas mot innan den visas för honom.
   äldre kameran: "Vi ska ha in vy/vinkel och allt det andra från 'standarddockan'-mappens mini-blender". Inte bara
   kroppen ska in i studion, utan "rätt vy" och "allting som har med hur vi i framtiden ska försöka att skapa såna här
   klipp".
+- **Mannen och kvinnan äger alla rörelser (2026-11-26).** "Jag skulle dock vilja, om det går, att vi har som en
+  grund-3D-mesh-avatar som är en man och en kvinna som i alla fall äger alla rörelser. Jag förstår att det är svårt
+  att anpassa unikt för respektive dealer som 'avatar-auto-pipeline' skapar, men fan, det ska kunna gå." Rörelserna
+  ritas för standarddockornas egna kroppar, och en dealer från pipelinen ska kunna göra dem: den byggs på samma
+  skelett, så att bara kroppens mått skiljer.
+- **Närmare bordet (2026-11-26).** Om dockan i vilan sedd uppifrån: "skulle man inte kunna skjuta in dockorna aningen
+  till mot bordet". Och om att inget känns bättre: rörelserna "känns inte så harmoniska", och "låsningar finns i
+  gamla sparade filer". Det gamla (Paows mått, det äldre bordets kant, lappar ovanpå) är orsaken; det rättas i
+  dockans egna mått och egna rörelser, inte med en lapp till.
 - **Mannen och kvinnan delar grund (2026-11-26).** "Kanske kan mannen och kvinnliga dockan i alla fall ha en någorlunda
   grund så man inte behöver jobba dubbelt för grundposer": en ställning eller en rörelse görs en gång och gäller båda.
   Om vilan: "mannen och kvinnan har aningen för utsträckta armbågar kanske".
