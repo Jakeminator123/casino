@@ -189,6 +189,19 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     bakgrunden är då samma bildpunkter i varje klipp. Spårkortets framsida varierade i utseende mellan givarna.
   - **Styrbilder för en sidokamera** (plats 1) med ett blad av personen ur fem vinklar som extra referens: samma man,
     rätt ställning. Bladet och en helbild i 4K gjordes först ur hans tre foton (GPT Image 2.6, 10–16 krediter var).
+- Sjätte provet, 2026-11-26, Pamelas sätt på nytt (agentens läsning; Jakobs dom står i samma prov,
+  `tomasz-runda-20261126`): Jakob dömde dockans rörelse "stela, känns inte naturliga" och mindes att Pamela rörde sig
+  bra. Arkivet (`Jakeminator123/dealer`, `docs/FILMMODELLER.md`) säger hur hon gjordes: WAN 3 med första och sista bild
+  och en text, utan docka (111 filmer). Det lämnades för att kortet inte landade exakt.
+  - **WAN 3, `/v1/image_to_video`, `promptImage` med `position` `first` och `last`, `ratio: "auto_1080p"`, 4 s, 80
+    krediter:** första bild ankaret vid skon i grönt, sista bild samma bild med spader sju inlagt på platsen. Han drar
+    kortet, vänder det och lägger det i rätt ruta, och sista rutan är ankaret igen (33–37 dB mot ankarbilderna). Ut
+    kom 1762 x 1174 i 30 bilder/s. Rörelsen är modellens egen och ser mänsklig ut.
+  - **Felet:** mitt i klippet visar skon ett kort med framsidan upp; första och sista rutan är rätt.
+  - **Ankarbilderna görs så att personen är samma bildpunkter i start och slut:** kortet läggs in på ankarbilden för
+    hand (dockans kort ur dockans film, eller ett omgjort kort ur en bildmodells version av samma bild genom en mask),
+    inte genom att låta bildmodellen göra en ny bild av hela scenen.
+  - Samma gröna väg som i femte provet efteråt: `lagg-pa-bord.ts` lägger honom på vårt bord.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: en hel film från en annan kamera än spelets (styrbilderna för plats 1 finns), Kling 4 med styrbilden som första bild och filmen som lös förlaga

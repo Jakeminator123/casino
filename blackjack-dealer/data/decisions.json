@@ -5,26 +5,26 @@
     {
       "id": "tomasz-runda-plats-4",
       "kind": "beslut",
-      "question": "Hela kortrundan som Tomasz på vårt bord: är det här vägen?",
-      "leads": "Säger du ja görs de sex andra kamerorna likadant för cirka 440 krediter var, annars rättas det du antecknar först",
+      "question": "Tomasz som dealer: dockans rörelse (film 1) eller Pamelas sätt (film 11)?",
+      "leads": "Det du väljer görs för alla sju platserna, och väljer du ingen rättas det du antecknar först",
       "proof": "tomasz-runda-20261126",
       "chips": [
         {
-          "value": "ja",
-          "label": "Ja, kör alla kameror"
+          "value": "pamela",
+          "label": "Pamelas sätt (film 11)"
         },
         {
-          "value": "nastan",
-          "label": "Nästan: se anteckningen"
+          "value": "dockan",
+          "label": "Dockans rörelse (film 1)"
         },
         {
-          "value": "nej",
-          "label": "Nej"
+          "value": "ingen",
+          "label": "Ingen: se anteckningen"
         }
       ],
       "asked": "2026-11-26",
       "from": "standarddocka",
-      "cost": "cirka 2 650 krediter för sex kameror",
+      "cost": "Pamelas sätt cirka 80 krediter per giv, dockans 420 per sju givar",
       "answer": null
     },
     {

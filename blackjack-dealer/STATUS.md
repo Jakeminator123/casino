@@ -181,8 +181,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - Standarddockan, hela kortrundan som en person (2026-11-26): provet `tomasz-runda-20261126` (Granska, Prov) med kortet
   `tomasz-runda-plats-4` i Beslut. Dockan gör vilan till skon och första kortet till plats 7 till 1 i en tagning, filmad
   med grönt överallt; Aleph 2 gör om den till personen; filmen styckas i åtta klipp utan stillhet, och den utskurna
-  dealern läggs på vårt eget bord. Plats 4 är gjord (1 427 krediter med försöken); de sex andra kamerorna är inspelade
-  med dockan och väntar på hans ja, cirka 440 krediter var. Arbetet sker i `../standarddocka/` (läget och nästa steg i
+  dealern läggs på vårt eget bord. Plats 4 är gjord; hans dom i chatten: rörelserna är stela (dockans rörelser, som
+  Aleph kopierar). Därför också Pamelas sätt i samma prov: WAN 3 med en startbild och en slutbild i grönt och utan
+  docka, given till plats 7 och plats 1, lagda på samma bord. Kortet frågar vilket av de två sätten som ska gälla.
+  Allt i provet har kostat 1 601 krediter; de sex andra kamerorna är inspelade med dockan men inte beställda.
+  Arbetet sker i `../standarddocka/` (läget och nästa steg i
   dess README) och visas för honom som prov härifrån; hans ord står som krav i `../standarddocka/AGENTS.md`.
 - Givarna till alla sju platser (provet `givar-sju-platser-20261126`) dömde han "Nja … I övrigt bra!": blicken vid
   skon är rättad i alla givar. A och B till plats 4 fick "Superbra, 5/5 för båda" och "gärna A och B". Kvar från
