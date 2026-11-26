@@ -151,8 +151,27 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    och en styrbild, Aleph 2 och bara en text, Kling 4 som redigerare med hans tre bilder, och Gemini Omni 1.2 med hans
    tre bilder (stoppad av Runways innehållsgranskning). Agentens läsning: Aleph 2 med styrbild följer dockan nästan ruta
    för ruta och behåller bordet; Kling 4 kan klä dockan direkt ur bilderna (hans fråga), men tar då bakgrunden ur dem
-   och lägger kortet med baksidan upp. Lärdomarna står i skillen `runway`. Nästa omgång, efter hans dom: vilan till skon
-   som ett eget klipp, så att skarven i ankaret syns, och sedan plats 1 och 7.
+   och lägger kortet med baksidan upp. Lärdomarna står i skillen `runway`. Hans dom: "Mycket bra", och att ett hack i
+   dockans giv kring ruta 50–51 syns i filmen (`verktyg/mat.ts` pekar ut samma ögonblick: ryck i höger handled vid
+   4,67 s).
+
+   Andra omgången är körd (218 krediter) och väntar på hans dom, provet `docka-till-person-2-20261126`, med underlaget
+   i `../slask/standarddocka/granska/docka-till-person-2/`: vilan till skon som eget klipp med styrbild först och sist
+   möter given i ankaret nästan utan skarv; och hans udda prov, en färdig film skickad in igen för att bli
+   "mer naturlig", gav samma rörelse tillbaka med hacket kvar. Kvar att pröva: plats 1 och 7, kort med spårfärger och
+   en bakgrund i nyckelfärg (se nedan), och Kling 4 med dockans film som lös förlaga.
+
+   Tre saker inför nästa omgång, som väntar på att granskningen av rörelserna är klar (editorn ändras inte medan den
+   pågår): takten 1 s, 1 s och 0,5 s (`AGENTS.md`) läggs in som editorns förval, med stillheten i ankaret skild från
+   rörelsen; ett klipp till filmmodellen måste vara minst 2 s (Aleph 2) eller 3 s (Kling 4), så en rörelse på 1 s filmas
+   med stillheten i ankaret efter sig och klipps där; och blicken görs till rörelsens egen, så att två klipp som möts
+   har samma huvud (klippen i första och andra omgången spelades in med blicken mot olika kameror).
+
+   Kortet och bakgrunden (Jakobs frågor 2026-11-26, förslag som väntar på hans ord): dockans kort i editorn är bordets
+   röda och vita och inte spelets spårkort (gult och blått med kryss och prick, `../blackjack-dealer/dealer3d/src/
+   card-marks.ts`). Förslaget är ett prov med två kort genom Aleph 2: spårkortet som det är, och ett mellanting med vit
+   framsida innanför en smal blå ram med hörnmärke och en enfärgad gul rygg, samt bakgrunden bakom dealern i en
+   nyckelfärg och filten utan tryck, för att se om filmmodellen behåller rena färger och om dealern går att skilja ut.
 
    En tagning per sätt (hans regel i `bestalla-film`). Skattat ur prislistan 2026-11-26: cirka 800 krediter för allt
    (ankarna 100–250, Aleph 195, jämförelsen 205, plats 1 och 7 cirka 220). Anropen läggs som prov genom

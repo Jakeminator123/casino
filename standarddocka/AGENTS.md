@@ -58,6 +58,16 @@ rörelse prövas mot innan den visas för honom.
 - **Kamerans vinkel.** Inspelningens kamera ser dealern uppifrån, och "vinkeln [är] inte naturlig utifrån att man
   skulle spela i casinot. Dock om vi kan vinkla ned vyn till när man ska spela så går detta å andra sidan": vyn
   spelaren får ska vara mer framifrån än inspelningens, och blicken mot kameran.
+- **Takten (2026-11-26).** "En ny standard som jag skulle vilja ha för rörelserna med nya standarddockan. A1 - A2.3 ska
+  ta 1 sekund ungefär. Sedan ska respektive giv, såsom A2.3 till P4C1 ta 1 sekund ungefär", och "återvändandet till
+  A2.3 ska ta ca 0.5 sekunder": från vilan till skon 1 s, kortet ut 1 s, handen tillbaka 0,5 s, alltså 11,5 s från
+  vilan genom ett kort till var och en av sju spelare. Det är rörelsens tid; stillastående i ett ankare räknas inte in.
+- **Allt börjar i A1.** "Rörelserna måste kunna läggas in i hela det system med A1 som allt börjar på": varje rörelse
+  går mellan två ankare (A1 vilan, A2.3 handen vid skon) och börjar och slutar stilla i dem, så att klippen kan läggas
+  efter varandra i spelets träd.
+- **Dockans fel syns i filmen.** Om första filmen av dockan omgjord till en person: "det [är] mycket viktigt att dockan
+  vi använder är väldigt bra med sina givar, så ett litet typ hack som sker omkring ruta 50/51 faktiskt syns i denna
+  film". Filmmodellen följer dockan ruta för ruta och rättar ingenting: en rörelse filmas först när den är ren.
 
 ## Vad mappen lånar och vad den äger
 

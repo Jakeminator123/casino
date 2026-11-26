@@ -1415,6 +1415,55 @@
         "at": "2026-11-26T03:54:18.349Z"
       },
       "read": "2026-11-26T03:54:18.349Z"
+    },
+    {
+      "id": 148,
+      "proof": "docka-till-person-20261126",
+      "file": null,
+      "choice": "bra",
+      "text": "Mycket bra. DOck så är et mycket viktigt at dockan vi använder är väldigt bra med sina givar, så ett litet typ hack som sker omkring ruta 50/51 faktist syns i denna film. Men denna är på riktigt skritbra",
+      "at": "2026-11-26T05:00:24.644Z",
+      "answer": {
+        "text": "Hacket kring ruta 50-51 finns i dockans giv: matverktyget pekar ut samma ögonblick (ryck i höger handled vid 4,67 s i hela följden). Det ligger i underlaget till granskningen av rörelserna, och ett försök att låta Aleph 2 jämna ut det i efterhand ändrade inte rörelsen (provet docka-till-person-2-20261126).",
+        "at": "2026-11-26T05:36:41.819Z"
+      },
+      "read": "2026-11-26T05:36:41.819Z"
+    },
+    {
+      "id": 149,
+      "proof": "docka-till-person-20261126",
+      "file": "5-kling-4-kortet-laggs.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-26T05:01:12.538Z",
+      "read": "2026-11-26T05:36:42.076Z"
+    },
+    {
+      "id": 150,
+      "proof": "docka-till-person-20261126",
+      "file": "7-aleph-2-bara-text-kortet-laggs.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T05:01:15.109Z",
+      "read": "2026-11-26T05:36:42.312Z"
+    },
+    {
+      "id": 151,
+      "proof": "docka-till-person-20261126",
+      "file": "8-styrbilden-gpt-image-2-6.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-26T05:01:50.100Z",
+      "read": "2026-11-26T05:36:42.568Z"
+    },
+    {
+      "id": 152,
+      "proof": "docka-till-person-20261126",
+      "file": "9-styrbilden-nano-banana-pro.png",
+      "choice": "bra",
+      "text": "",
+      "at": "2026-11-26T05:01:51.278Z",
+      "read": "2026-11-26T05:36:42.956Z"
     }
   ]
 }

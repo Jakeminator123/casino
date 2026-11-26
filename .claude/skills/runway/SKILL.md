@@ -132,9 +132,24 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     draget. Görs inte om med ansiktsfoton.
   - **Styrbilden:** GPT Image 2.6 (`1920:1280`, rutan och tre foton som referens, 10 krediter) höll ställningen, blicken
     och scenen; Nano Banana Pro (`2528:1696`, 20 krediter) lät personen titta in i kameran och bytte bakgrund.
-- Inte prövat hos oss: en annan kamera än spelets, skarven mellan två klipp som möts i samma ankare, flera styrbilder i
-  samma film, Kling 4 med styrbilden som första bild, Seedance 2.5 som redigerare, Act-Two med dockan som den som
-  spelar, och flera kameror bredvid varandra i en och samma film.
+  Jakobs dom på det provet: "Mycket bra", "på riktigt skitbra", och att ett hack i dockans giv syns i filmen.
+- Andra provet, 2026-11-26 (agentens läsning; domen står i provet `docka-till-person-2-20261126`, underlaget i
+  `slask/standarddocka/granska/docka-till-person-2/`):
+  - **Skarven håller.** Vilan till skon som eget klipp hos Aleph 2, med styrbilden för A1 vid sekund 0 och styrbilden
+    för A2.3 sist (`"at": 1`): klippets sista ruta är nästan samma bild som nästa klipps första, som gjordes för sig
+    med samma styrbild. Två styrbilder i samma film fungerar.
+  - **Styrbilder som ska höra ihop** görs med den förra styrbilden som en av referensbilderna, och med bakgrunden
+    utskriven i texten: utan den meningen blev bakgrunden en annan.
+  - **Aleph 2 gör inte en rörelse naturligare.** En färdig film skickad in igen med orden behåll allt, men gör rörelsen
+    mer naturlig och utan ryck kom tillbaka med rörelsen oförändrad ruta för ruta (likhet 0,99), hacket kvar, och kortet
+    med fel sida upp. Aleph behåller infilmens rörelse; rörelsen rättas i dockan. Samma sak som när Aleph föll som
+    rättare.
+- Inte prövat hos oss: en annan kamera än spelets, Kling 4 med styrbilden som första bild och dockans film som lös
+  förlaga (det sätt som kan ge en naturligare rörelse än dockans), Seedance 2.5 som redigerare, Act-Two med dockan som
+  den som spelar, spårkort och nyckelfärgad bakgrund genom Aleph, och flera kameror bredvid varandra i en och samma
+  film.
+- **Korta klipp:** Aleph 2 tar ingen film under 2 s och Kling 4 ingen under 3 s. En rörelse på 1 s filmas därför
+  tillsammans med stillheten i ankaret efter den, eller med nästa rörelse, och klipps i ankaret.
 
 ## Kopplingar för kodagenter
 
