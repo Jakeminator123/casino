@@ -29,7 +29,17 @@ export type Andring = {id: string; tid: number; led: Led; flytt: V3; vrid: Q | n
  * 1,5 en och en halv gång så fort; saknas den är allt 1). Grundrörelserna ändras aldrig. En ändrings `tid` står i
  * grundrörelsens tid, så att den sitter kvar i samma ögonblick av rörelsen när farten ändras.
  */
-export type Sparad = {namn: string; om?: string; grund: string[]; andringar: Andring[]; fart?: number[]; sparad?: string; blickMot?: 'film' | 'lag'};
+export type Sparad = {namn: string; om?: string; grund: string[]; andringar: Andring[]; fart?: number[]; liv?: Liv; sparad?: string; blickMot?: 'film' | 'lag'};
+
+/**
+ * De små egna rörelserna (Jakob 2026-11-26: "5 autonoma mikrorörelser med den andra handen, eller huvudet och/eller små
+ * rörelser med kroppen … som man också kan randomisera"): han andas, huvudet rör sig lätt, blicken går kort mot en
+ * spelare, ett finger på en hand som vilar lyfter, och kroppen väger över. `fro` är slumpens frö (samma frö ger samma
+ * rörelser), `delar` vilka som är på. De tonar ut helt i varje dels början och slut, så att klippen möts i ankaren.
+ */
+export type Livsdel = 'andning' | 'huvud' | 'blick' | 'hand' | 'kropp';
+export const LIVSDELAR: Livsdel[] = ['andning', 'huvud', 'blick', 'hand', 'kropp'];
+export type Liv = {fro: number; delar: Livsdel[]};
 
 /** Grundrörelserna (blackjack-dealer/dealer3d/data): från vilan till skon, och Paows giv från skon (A2.3) till kort 1 på var och en av de sju platserna och tillbaka. */
 export const TILL_SKON = 'till-ankare-2-3-c';
@@ -72,8 +82,8 @@ export type Skarv = {fore: Record<string, number>; efter: Record<string, number>
 export type Del = {namn: string; fran: number; till: number};
 /** När blicken följer kortet (sekunder): börjar vända från kameran vid `fran`, följer helt från `full` tills kortet ligger (`ligger`), och är tillbaka mot kameran `ut` sekunder senare. */
 export type BlickTider = {fran: number; full: number; ligger: number; ut: number};
-/** `plats`: kortplatsen (1–7) som given går till. */
-export type Foljd = {fps: number; frames: Frame[]; hip: V3; delar: Del[]; skarv: Skarv; held: {R: number; L: number}[]; blick: BlickTider; forsta: Motion; andra: Motion; forskjutning: number; plats: number};
+/** `plats`: kortplatsen (1–7) som given går till. `stilla`: hur stilla var hand ligger i varje ruta (1: handleden rör sig inte). */
+export type Foljd = {fps: number; frames: Frame[]; hip: V3; delar: Del[]; skarv: Skarv; held: {R: number; L: number}[]; stilla: {R: number; L: number}[]; blick: BlickTider; forsta: Motion; andra: Motion; forskjutning: number; plats: number};
 
 /** Hur långt varje led hoppar mellan två rutor, i meter (för skarven). */
 function hopp(a: Frame, b: Frame, hipA: number[], hipB: number[]): Record<string, number> {
@@ -118,7 +128,10 @@ export function sattIhop(forsta: Motion, andra: Motion, plats: number): Foljd {
   const held = frames.map((f, i) => { if (i >= ligger) return {R: 0, L: 0}; const near = (l: Limb) => Math.min(...FINGRAR.map(j => dist(l.p[j], f.card.c))), h = (d: number) => smooth((0.08 - d) / 0.025);
     let R = h(near(f.R)), L = h(near(f.L)); const sum = R + L; if (sum > 1) { R /= sum; L /= sum; } return {R, L}; });
   const lamnar = (sista + andra.leavesShoe) / fps;
-  return {fps, frames, hip: [andra.hip[0], andra.hip[1], andra.hip[2]], held, forsta, andra, forskjutning: sista, plats,
+  // Var en hand ligger stilla: handleden rör sig mindre än 1,5 mm per ruta i de sju rutorna omkring.
+  const steg = (i: number, s: 'R' | 'L') => dist(frames[i][s].w, frames[i - 1][s].w);
+  const stilla = frames.map((_, i) => { const lugn = (s: 'R' | 'L') => { let mest = 0; for (let j = Math.max(1, i - 3); j <= Math.min(frames.length - 1, i + 3); j++) mest = Math.max(mest, steg(j, s)); return smooth(1 - mest / 0.0015); }; return {R: lugn('R'), L: lugn('L')}; });
+  return {fps, frames, hip: [andra.hip[0], andra.hip[1], andra.hip[2]], held, stilla, forsta, andra, forskjutning: sista, plats,
     delar: [{namn: 'Vilan till skon', fran: 0, till: skon}, {namn: `Kortet till plats ${plats}`, fran: skon, till: ligger / fps}, {namn: 'Tillbaka', fran: ligger / fps, till: (frames.length - 1) / fps}],
     blick: {fran: lamnar - 0.4, full: lamnar, ligger: ligger / fps, ut: 0.6},
     skarv: {fore, efter, jamnasUt: [fran / fps, till / fps]}};
@@ -146,14 +159,15 @@ export function takt(f: Foljd, fart: readonly number[] = []): Takt {
 }
 
 /** Grundrörelsen vid tiden t, mellan två rutor (som dealer3d/src/stage.ts setTime), och hur mycket var hand håller kortet. */
-export function rutaVid(f: Foljd, t: number): {frame: Frame; held: {R: number; L: number}} {
+export function rutaVid(f: Foljd, t: number): {frame: Frame; held: {R: number; L: number}; stilla: {R: number; L: number}} {
   const at = Math.max(0, Math.min(f.frames.length - 1, t * f.fps)), i = Math.min(f.frames.length - 2, Math.floor(at)), k = at - i, a = f.frames[i], b = f.frames[i + 1];
   const limb = (s: 'R' | 'L'): Limb => ({s: mix(a[s].s, b[s].s, k), e: mix(a[s].e, b[s].e, k), w: mix(a[s].w, b[s].w, k), k: a[s].k, p: a[s].p.map((p, j) => mix(p, b[s].p[j], k))});
   // Ett kort och samma kort med ändarna bytta är ett: långsidan tas åt samma håll i båda rutorna innan de blandas.
   const bl = dot(a.card.l, b.card.l) < 0 ? mul(b.card.l, -1) : b.card.l, long = norm(mix(a.card.l, bl, k)), toward = mix(a.card.n, b.card.n, k), d = dot(toward, long);
   const card: Card = {c: mix(a.card.c, b.card.c, k), l: long, n: norm(sub(toward, mul(long, d)))};
-  const hi = f.held[i], hj = f.held[i + 1];
-  return {frame: {card, R: limb('R'), L: limb('L'), h: mix(a.h, b.h, k), g: mix(a.g, b.g, k)}, held: {R: hi.R + (hj.R - hi.R) * k, L: hi.L + (hj.L - hi.L) * k}};
+  const hi = f.held[i], hj = f.held[i + 1], si = f.stilla[i], sj = f.stilla[i + 1];
+  return {frame: {card, R: limb('R'), L: limb('L'), h: mix(a.h, b.h, k), g: mix(a.g, b.g, k)}, held: {R: hi.R + (hj.R - hi.R) * k, L: hi.L + (hj.L - hi.L) * k},
+    stilla: {R: si.R + (sj.R - si.R) * k, L: si.L + (sj.L - si.L) * k}};
 }
 
 /** Ändringarna lagda på en ruta vid tiden t. Kortet följer en hand som håller det. Rutan ändras på plats och lämnas tillbaka. */
@@ -184,10 +198,50 @@ export function foljerKortet(b: BlickTider, t: number): number {
  * Ställningen vid tiden t: grundrörelsen, blicken mot kameran `kamera` (ett läge i världen) utom när han följer kortet,
  * och ändringarna ovanpå. Utan kamera är blicken rörelsens egen.
  */
-export function stallning(f: Foljd, t: number, andringar: readonly Andring[], kamera: readonly number[] | null = null): Frame {
-  const {frame, held} = rutaVid(f, t);
+export function stallning(f: Foljd, t: number, andringar: readonly Andring[], kamera: readonly number[] | null = null, liv?: Liv): Frame {
+  const {frame, held, stilla} = rutaVid(f, t);
   if (kamera) frame.g = mix(kamera, frame.g, foljerKortet(f.blick, t));
-  return medAndringar(frame, held, t, andringar);
+  return medLiv(medAndringar(frame, held, t, andringar), t, f, liv, held, stilla);
+}
+
+// ---- de små egna rörelserna ------------------------------------------------------------------------------------
+/** Slumptal ur ett frö, samma följd varje gång. */
+const slump = (fro: number) => { let a = (Math.round(fro) >>> 0) || 1; return () => { a = a + 0x6D2B79F5 | 0; let x = Math.imul(a ^ a >>> 15, 1 | a); x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x; return ((x ^ x >>> 14) >>> 0) / 4294967296; }; };
+/** En mjuk vandring kring noll: tre långsamma svängningar med frekvens (Hz) och fas ur fröet, tillsammans högst 1. */
+type Vag = [styrka: number, hz: number, fas: number][];
+const vag = (v: Vag, t: number) => v.reduce((s, [a, hz, fas]) => s + a * Math.sin(2 * Math.PI * hz * t + fas), 0);
+type Livsplan = {fas: number; kroppX: Vag; kroppZ: Vag; huvudX: Vag; huvudY: Vag; blickar: {t: number; dx: number; dy: number}[]; lyft: {t: number; finger: number}[]};
+const planer = new Map<string, Livsplan>();
+/** Vad fröet ger för den här följden: svängningarna, när blicken går åt sidan (meter vid blickpunkten) och när ett finger lyfter. */
+function livsplan(f: Foljd, fro: number): Livsplan {
+  const nyckel = `${fro}:${f.frames.length}`, finns = planer.get(nyckel); if (finns) return finns;
+  const r = slump(fro), T = langd(f), mellan = (a: number, b: number) => a + (b - a) * r();
+  const ny = (lagst: number, hogst: number): Vag => [[0.55, mellan(lagst, hogst), mellan(0, 6.28)], [0.3, mellan(lagst, hogst) * 1.7, mellan(0, 6.28)], [0.15, mellan(lagst, hogst) * 2.9, mellan(0, 6.28)]];
+  const plan: Livsplan = {fas: mellan(0, 6.28), kroppX: ny(0.12, 0.3), kroppZ: ny(0.1, 0.25), huvudX: ny(0.15, 0.4), huvudY: ny(0.15, 0.4),
+    blickar: Array.from({length: 1 + Math.round(r() * Math.max(1, T / 4))}, () => ({t: mellan(0.12, 0.88) * T, dx: (r() < 0.5 ? -1 : 1) * mellan(0.25, 0.5), dy: mellan(-0.05, 0.05)})),
+    lyft: Array.from({length: 2 + Math.round(r() * Math.max(1, T / 3))}, () => ({t: mellan(0.08, 0.92) * T, finger: Math.floor(r() * 2)}))};
+  planer.set(nyckel, plan); return plan;
+}
+/** Handens punkter för ett fingers tre yttre leder (MediaPipes ordning), pekfingret och långfingret, och hur mycket var och en lyfts. */
+const LYFT = {punkter: [[6, 7, 8], [10, 11, 12]], andel: [0.35, 0.7, 1]};
+/**
+ * De små egna rörelserna lagda på en ruta vid tiden t (grundrörelsens tid). Måtten: axlarna 2,5 mm upp och ned när han
+ * andas; bålen högst 6 mm åt sidan; blickpunkten högst 10 cm för huvudets lätta rörelse och 25–50 cm åt sidan för en
+ * kort blick mot en spelare (inte medan han följer kortet); ett finger 7 mm upp på en hand som ligger stilla och inte
+ * håller kortet. Allt gånger en kurva som är noll i delens början och slut.
+ */
+export function medLiv(frame: Frame, t: number, f: Foljd, liv: Liv | undefined, held: {R: number; L: number}, stilla: {R: number; L: number}): Frame {
+  if (!liv?.delar.length) return frame;
+  const d = f.delar.find(x => t < x.till) ?? f.delar[f.delar.length - 1], u = Math.max(0, Math.min(1, (t - d.fran) / Math.max(1e-6, d.till - d.fran))), ton = Math.sin(Math.PI * u) ** 2;
+  if (ton <= 0) return frame;
+  const p = livsplan(f, liv.fro), har = (x: Livsdel) => liv.delar.includes(x), sidor = ['R', 'L'] as const;
+  if (har('andning')) { const upp = 0.0025 * Math.sin(2 * Math.PI * 0.27 * t + p.fas) * ton; for (const s of sidor) frame[s].s = add(frame[s].s, [0, upp, 0]); frame.h = add(frame.h, [0, upp * 0.6, 0]); }
+  if (har('kropp')) { const v: V3 = [0.006 * vag(p.kroppX, t) * ton, 0, 0.003 * vag(p.kroppZ, t) * ton]; for (const s of sidor) { frame[s].s = add(frame[s].s, v); frame[s].e = add(frame[s].e, mul(v, 0.5)); } frame.h = add(frame.h, v); }
+  if (har('huvud')) frame.g = add(frame.g, [0.1 * vag(p.huvudX, t) * ton, 0.06 * vag(p.huvudY, t) * ton, 0]);
+  if (har('blick')) { const fri = 1 - foljerKortet(f.blick, t); for (const b of p.blickar) { const w = smooth(1 - Math.abs(t - b.t) / 0.3) * ton * fri; if (w > 0) frame.g = add(frame.g, [b.dx * w, b.dy * w, 0]); } }
+  if (har('hand')) for (const s of sidor) { const ledig = stilla[s] * (1 - Math.min(1, held[s] * 4)); if (ledig <= 0) continue;
+    for (const l of p.lyft) { const w = smooth(1 - Math.abs(t - l.t) / 0.22) * ton * ledig; if (w > 0) LYFT.punkter[l.finger].forEach((j, n) => { frame[s].p[j] = add(frame[s].p[j], [0, 0.007 * w * LYFT.andel[n], 0]); }); } }
+  return frame;
 }
 
 /**
@@ -198,9 +252,9 @@ export function rutor(f: Foljd, sparad: Sparad, kamera: readonly number[] | null
   const r4 = (a: number[]) => a.map(n => Math.round(n * 10000) / 10000), off = f.forskjutning, b = f.andra, T = takt(f, sparad.fart);
   // Rutorna tas i filmens takt; givens ögonblick (grundrörelsens rutor) räknas om till filmens rutor.
   const antal = Math.round(T.langd * f.fps) + 1, ruta = (grundruta: number) => Math.round(T.ut(grundruta / f.fps) * f.fps);
-  const frames = Array.from({length: antal}, (_, i) => { const x = stallning(f, T.grund(i / f.fps), sparad.andringar, kamera), limb = (l: Limb) => ({s: r4(l.s), e: r4(l.e), w: r4(l.w), k: l.k, p: l.p.map(r4)});
+  const frames = Array.from({length: antal}, (_, i) => { const x = stallning(f, T.grund(i / f.fps), sparad.andringar, kamera, sparad.liv), limb = (l: Limb) => ({s: r4(l.s), e: r4(l.e), w: r4(l.w), k: l.k, p: l.p.map(r4)});
     return {card: {c: r4(x.card.c), l: r4(x.card.l), n: r4(x.card.n)}, L: limb(x.L), R: limb(x.R), h: r4(x.h), g: r4(x.g)}; });
   return {about: `${sparad.namn}: ${sparad.grund.join(' och sedan ')} efter varandra (skarven utjämnad i standarddocka/editor/rorelse.ts), ${rattning}, blicken mot kameran ${kamera ? r4([...kamera]).join(', ') : '(rörelsens egen)'} utom när kortet är på väg, farten per del ${T.fart.join(', ')} gånger grundrörelsens, och ${sparad.andringar.length} ändringar från editorn i standarddocka. Samma fält som dealer3d/data.`,
     film: `a1-a23-p${f.plats}c1`, pose: 'A1', to: `P${f.plats}.C1`, fps: f.fps, frameCount: frames.length, leavesShoe: ruta(off + b.leavesShoe), edge: b.edge.map(n => ruta(off + n)), folds: ruta(off + b.folds), rests: ruta(off + b.rests),
-    hip: r4(f.hip), doll: b.doll, grund: sparad.grund, fart: T.fart, blickMot: sparad.blickMot ?? null, andringar: sparad.andringar.length, made: sparad.sparad, frames};
+    hip: r4(f.hip), doll: b.doll, grund: sparad.grund, fart: T.fart, liv: sparad.liv ?? null, blickMot: sparad.blickMot ?? null, andringar: sparad.andringar.length, made: sparad.sparad, frames};
 }

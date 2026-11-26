@@ -12,6 +12,7 @@
 //                         filen (efter att ändringar har skrivits in i den för hand)
 //              [--kulor]  visa handtagen     [--panel]  hela fönstret med panelen     [--storlek 1600x1000]     [--port 4321]
 //              [--utseende nyckel]  rena färger på bakgrund, bord och kort (editor/scen.ts), för film där dealern ska skiljas ut
+//              [--liv andning,huvud,blick,hand,kropp] [--fro 1]  de små egna rörelserna på, med slumpens frö (utan att spara)
 //              [--giv <namn>] [--vilan <namn>]  en grundrörelse på prov (en fil i blackjack-dealer/dealer3d/data, utan .json)
 //                         i stället för platsens giv eller vilan till skon, utan det sparade lagret
 //   Kameror: lag (lägre), film (spelets, plats 4), plats1 … plats7, sida, topp. Tider är filmens sekunder.
@@ -59,6 +60,7 @@ try {
   for (let i = 0; ; i++) { await sleep(500); if (await kör('!!(window.editor && window.editor.ready)').catch(() => false)) break; if (i > 240) throw Error(`Editorn blev inte klar: ${await kör('document.querySelector("#fel").textContent').catch(() => '?')}`); }
   for (const [del, ganger] of fart) await kör(`window.editor.fart(${del}, ${ganger})`);
   for (const vad of utan) await kör(`window.editor.visa(${JSON.stringify(vad)}, false)`);
+  if (arg('--liv')) await kör(`window.editor.liv(${JSON.stringify(arg('--liv')!.split(',').filter(Boolean))}, ${Number(arg('--fro', '1'))})`);
   if (flag('--spara')) console.log(`Sparat: ${JSON.stringify(await kör('window.editor.save()'))}`);
 
   if (spelaIn) {

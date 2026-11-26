@@ -54,6 +54,18 @@ function mät(f: Foljd, k: Kropp, r: Record<'R' | 'L', (s: number) => number>, b
 }
 
 /**
+ * Mäter armarna i en färdig rörelse (rutor med ändringarna i, som de sparas): minsta luft under underarmarna över bordet
+ * i millimeter (negativ: genom bordet) och hur många rutor en underarm går genom det. Regeln ovan rättar grundrörelsen;
+ * det han själv drar i efteråt kan föra en arm ned igen, så det sparade mäts för sig.
+ */
+export function matArmar(rutor: readonly Frame[], hip: number[], k: Kropp, bord: Bord) {
+  k.pose(rutor[0], hip); const r = {R: tjocklek(k, 'Right'), L: tjocklek(k, 'Left')}, luft: Record<'R' | 'L', number[]> = {R: [], L: []};
+  for (const ruta of rutor) { k.pose(ruta, hip); for (const [s, namn] of SIDOR) { const l = luftUnder(k.bone(`${namn}ForeArm`), k.bone(`${namn}Hand`), r[s], bord); if (Number.isFinite(l)) luft[s].push(l); } }
+  const en = (l: number[]) => ({minstMm: l.length ? Math.round(Math.min(...l) * 1000) : null, genomRutor: l.filter(x => x < 0).length});
+  return {R: en(luft.R), L: en(luft.L)};
+}
+
+/**
  * Rättar följdens grundrutor på plats och säger hur mycket luft det var före och efter (minsta luft i millimeter, negativ:
  * genom bordet, och hur många rutor som gick genom kanten).
  */

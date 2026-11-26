@@ -1464,6 +1464,28 @@
       "text": "",
       "at": "2026-11-26T05:01:51.278Z",
       "read": "2026-11-26T05:36:42.956Z"
+    },
+    {
+      "id": 153,
+      "proof": "docka-till-person-3-20261126",
+      "file": null,
+      "choice": "inte-bra",
+      "text": "Ingen video gjorde rörelsen mer naturlig",
+      "at": "2026-11-26T06:13:36.649Z",
+      "answer": {
+        "text": "Stämmer: varken Aleph 2 eller Kling 4 ändrar rörelsen när de redigerar en färdig film; de behåller den. Rörelsen rättas därför i dockan: reglerna för grepp, vändning och släpp görs om nu, på ditt ord. Nyckelfärgerna i samma prov (film 3 till 6) höll.",
+        "at": "2026-11-26T06:17:13.482Z"
+      },
+      "read": "2026-11-26T06:17:13.482Z"
+    },
+    {
+      "id": 154,
+      "proof": "docka-till-person-3-20261126",
+      "file": "2-kling-4-korten-har-blivit-riktiga-spelkort.png",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-26T06:14:57.906Z",
+      "read": "2026-11-26T06:17:13.698Z"
     }
   ]
 }

@@ -53,6 +53,17 @@ plats har sina egna sparade ändringar.
   eller långsammare (en fjärdedel till fyra gånger grundrörelsens fart), jämnt genom delen. Farten sparas med rörelsen,
   följer med i inspelningen och i rutorna, och återställs med de andra ändringarna. Ändringarna sitter kvar i samma
   ögonblick av rörelsen när farten ändras.
+- **Små egna rörelser:** fem slag som slås på var för sig och läggs ovanpå rörelsen utan att ändra den: han andas,
+  huvudet rör sig lätt, en kort blick mot en spelare, ett finger lyfter på en hand som vilar, och kroppen väger över.
+  "Slumpa om" lägger dem på andra ställen; samma frö ger samma rörelser. De är noll i varje dels början och slut, så
+  att klippen fortfarande möts i ankaren, och sparas med rörelsen (`liv` i filen; `medLiv` i `editor/rorelse.ts`).
+- **Blicken** är rörelsens egen: i vilan ser han rakt fram, mot spelaren på plats 4 i ögonhöjd, vilken kamera som än
+  är vald, så att två klipp som möts har samma huvud.
+- **Spara mäter armarna** på den färdiga rörelsen, med ändringarna i, skriver måtten i rutornas fält `armar` och säger
+  till om en underarm går genom bordets kant.
+- **En grundrörelse på prov:** `?giv=<namn>` och `?vilan=<namn>` (eller `--giv`, `--vilan` i verktygen) spelar och mäter
+  en annan fil ur `../blackjack-dealer/dealer3d/data/` i stället för platsens, utan det sparade lagret och utan att
+  kunna spara. För den som gör om en grundrörelse.
 - **Nyckelfärger:** med `?utseende=nyckel` i adressen (eller `--utseende nyckel` i `verktyg/titta.ts`) ritas scenen för
   film där dealern ska skiljas ut i efterhand: bakgrunden blå och utan golv, bordet och markerbrickan gröna utan
   tryck, kasseringslådan borta, och korten i spårfärger. Färgerna står i `NYCKEL` i `editor/scen.ts`. Inspelade klipp
@@ -117,11 +128,11 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   utan stöd i 32 rutor; i given till plats 7 ligger lillfingret 1 cm i filten kring 4,2 s och vänster handled är böjd
   77 grader. Rörelserna är ritade med regler, inte simulerade, och det behålls: det som skärps är reglerna för grepp,
   vändning och släpp i `../blackjack-dealer/dealer3d/src/`, på det granskningen visar.
-- Två brister en utomstående granskare fann i editorn 2026-11-26, som stämmer och inte är rättade: armarna mäts mot
-  bordskanten en gång, på grundrörelsen, så efter Jakobs egna ändringar kan en underarm gå genom kanten utan att det
-  märks, och den sparade rörelsens text säger ändå att armarna har 1 cm luft; och blickens mål i vilan följer den
-  kamera som är vald när han sparar (spelets eller den lägre), så den sparade rörelsen beror på det. Båda rättas innan
-  en ändrad rörelse filmas för betalning; grundrörelserna, som provet använder, berörs inte.
+- Granskningen av de sju givarna (2026-11-26, sju agenter, rapporterna i `../slask/standarddocka/granska-p1` …
+  `granska-p7`) fann inget som editorns lager kan rätta: felen sitter i reglerna som ritar givarna
+  (`../blackjack-dealer/dealer3d/src/`), framför allt greppet när högerhanden tar emot kortet, vändningen och släppet.
+  På Jakobs ord görs de om där, som nya val och nya grundrörelser (`giv-fran-2-3-p<n>c1-ren-a-paow`), med hans takt
+  (kortet ut högst 1 s, handen tillbaka cirka 0,6 s) och med handen vid skon avspänd.
 - Känt i editorn: i vilan står armbågarna utvinklade, eftersom rörelserna är gjorda för Paows kropp och ett bord vars
   kant låg 15 cm längre bort (en egen vila för det närmare bordet behövs); bålen lutar som Paows, 16 cm i given;
   huvudet vrids högst 40 grader, så blicken ser lite låg ut; skons främsta kort visar sin vita framsida när kortet

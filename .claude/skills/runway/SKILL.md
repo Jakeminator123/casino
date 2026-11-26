@@ -153,7 +153,9 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     byta med skuggorna kvar (den nya färgen gånger filmens ljushet i det gröna). Receptet står i provets `OVERSIKT.md`.
   - **Kling 4 som redigerare med orden "gör dealerns rörelser mindre stela":** rörelsen nästan densamma, men korten
     gjordes om till riktiga spelkort med valör, också kortet i skon, och filmen fick 24 bilder/s. Utan styrbilder
-    förskönar Kling korten.
+    förskönar Kling korten. Jakobs dom: "Inte bra", "Ingen video gjorde rörelsen mer naturlig". En redigerande modell
+    (Aleph 2, Kling 4 på `/v1/video_to_video`) behåller alltså infilmens rörelse; ska rörelsen bli bättre görs det i
+    dockan.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: en annan kamera än spelets, Kling 4 med styrbilden som första bild och filmen som lös förlaga
