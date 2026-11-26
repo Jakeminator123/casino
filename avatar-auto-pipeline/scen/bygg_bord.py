@@ -17,8 +17,11 @@ kant där dealern sitter, i linje med kanten på båda sidor och med mässingsli
 för ett hack som är öppet bakåt; sargen är hel under brickan och når filten; rullen följer sidorna och slutar rundad
 vid dealerkanten; brickan har rundade rännor där markerna ligger (rullarna stack annars ut genom brickans botten).
 Det skriver assets/bord/standardbord_nara.blend/.glb; utan valet byggs allt exakt som förut.
+
+Skon är densamma i alla byggen: kilen ur standard.yaml och framtill en dealerskos frontplatta (sko_front) med en
+U-formad öppning, framför skons kort och med springan under (måtten och varför i SKO_FRONT nedan).
 """
-import bisect, math, sys
+import bisect, math, os, sys, time
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _bpy_hjalp import *  # noqa: F401,F403  (bpy, bmesh, Vector, STD, ...)
@@ -359,6 +362,76 @@ def card_mesh(name, cell, back_cell, cols=13, rows=5):
     return me
 
 
+# ---------------------------------------------------------------- skons frontplatta
+# Jakob 2026-11-26: "se bara till att det blir supertydligt vad som på skon faktiskt är ett kort och inte", "ett litet
+# skydd/hölje, så man måste verkligen dra ut ett kort i taget". Förlagan är en vanlig dealersko: en lutande frontplatta
+# framför korten med en U-formad öppning nedtill i mitten, där det främsta kortets rygg syns och fingret når kortet, och
+# under plattan en springa där kortet dras ut nedåt, ett i taget.
+#
+# Måtten står i plattans eget plan, i mm: s uppför plattan från skons framkant på filten, v tvärs skon från den nära
+# väggen, n ut ur skon vinkelrätt mot plattan. Kortet i skon ligger på n = 1 (spelets shoeCard) med ryggen utåt, så
+# plattan står framför det; den har skons lutning, bredd och höjd fram (toppen kapad vid hojd_fram) och ändrar inget
+# mått i standard.yaml. Talen är mätta mot dockans rörelser som editorn spelar dem (standarddocka/editor/rorelse.ts:
+# vilan till skon och given till plats 1–7, och given 'ren'), med fingrarna som rör (radie 7–8 mm):
+SKO_FRONT = dict(
+    n0=1.6,    # plattans insida, 0,45 mm framför kortets rygg
+    n1=2.9,    # utsidan: plattan är 1,3 mm tjock; fingrarna i redo-ställningen (A2.3) går 0,6 mm från den
+    s0=74.0,   # nederkanten, 59 mm över filten: kortet lutar ut medan det dras ned, och först ovanför 74 mm håller det
+               # sig innanför 1,6 mm. Under den är springan där kortet går ut (från kortets underkant, 22 mm över filten)
+    ub=25.0,   # U-öppningens halva bredd vid nederkanten (50 mm): ringfingret går ned längs dess bortre kant när kortet dras
+    ur=20.0,   # bågens radie upptill (40 mm bred), centrerad över kortet
+    us=114.0,  # öppningens topp, 2 mm under kortets överkant: lång- och ringfingrets toppar ligger på kortet i öppningen
+    rc=8.0,    # de yttre hörnen nedtill rundade: lillfingret går förbi den bortre väggen när kortet dras ut
+    topp_list=117.6,  # bakom plattan ovanför korten (kortets överkant s = 116,1) sluts glipan mot locket
+)
+
+
+def sko_front(P, lean, hf, wd, wt, col):
+    """Skons frontplatta som objektet sko_front: plattan med U-öppningen, och lister bakom den (vid väggarna och ovanför
+    korten) som sluter glipan mellan plattan och skons kropp."""
+    F = SKO_FRONT; cl, sl = math.cos(lean), math.sin(lean); mm = 0.001
+    W = wd / mm; uv = W / 2
+
+    def topp(n):  # plattans topp kapad vågrätt vid hojd_fram: s där höjden når hf vid avståndet n
+        return (hf / mm - n * cl) / sl
+
+    def Q(s, v, n):
+        s = topp(n) if s is None else s
+        return P(mm * (s * cl - n * sl), mm * v, mm * (s * sl + n * cl))
+
+    def bage(cs, cv, r, a0, a1, steg):
+        return [(cs + r * math.cos(math.radians(a0 + (a1 - a0) * i / steg)), cv + r * math.sin(math.radians(a0 + (a1 - a0) * i / steg)))
+                for i in range(steg + 1)]
+
+    # U-öppningen: raka ben från nederkanten som tangerar bågen upptill
+    sc = F['us'] - F['ur']; ds, dv = F['s0'] - sc, -F['ub']
+    tang = math.degrees(math.atan2(dv, ds) + math.acos(F['ur'] / math.hypot(ds, dv)))  # tangeringspunktens vinkel, nära sidan
+    s0, rc = F['s0'], F['rc']
+    platta = ([(None, 0.0)] + bage(s0 + rc, rc, rc, -90, -180, 8)
+              + [(s0, uv - F['ub'])] + bage(sc, uv, F['ur'], tang, -tang, 32) + [(s0, uv + F['ub'])]
+              + bage(s0 + rc, W - rc, rc, 180, 90, 8) + [(None, W)])
+    hornv = math.degrees(math.asin((wt / mm - rc) / rc))  # där det rundade hörnet når väggens insida
+    vagg_n = [(None, 0.0)] + bage(s0 + rc, rc, rc, -90, -180 - hornv, 6) + [(None, wt / mm)]
+    vagg_b = [(None, W - wt / mm)] + bage(s0 + rc, W - rc, rc, 180 + hornv, 90, 6) + [(None, W)]
+    list_t = [(F['topp_list'], wt / mm), (None, wt / mm), (None, W - wt / mm), (F['topp_list'], W - wt / mm)]
+
+    from mathutils.geometry import tessellate_polygon
+    bm = bmesh.new()
+    def skiva(kontur, na, nb):  # konturen som skiva mellan na och nb; trianglarna läggs i (s, v), där U:t är en inbuktning
+        a = [bm.verts.new(Q(s, v, na)) for s, v in kontur]; b = [bm.verts.new(Q(s, v, nb)) for s, v in kontur]
+        for i, j, k in tessellate_polygon([[Vector((topp(nb) if s is None else s, v, 0)) for s, v in kontur]]):
+            bm.faces.new((a[i], a[j], a[k])); bm.faces.new((b[k], b[j], b[i]))
+        for i in range(len(kontur)):
+            j = (i + 1) % len(kontur); bm.faces.new((a[i], a[j], b[j], b[i]))
+    skiva(platta, F['n0'], F['n1'])
+    for kontur in (vagg_n, vagg_b, list_t):
+        skiva(kontur, 0.0, F['n0'])
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-7); bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    ob = obj_from_bm('sko_front', bm, col, pbr('sko_front_svart', (0.015, 0.015, 0.017, 1), rough=0.25))
+    ob['matt_mm'] = str({k: v for k, v in F.items()})
+    return ob
+
+
 def main():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.context.preferences.filepaths.save_version = 0  # inga .blend1-kopior
@@ -471,7 +544,7 @@ def main():
             ob['kort'] = s + r
     meb = card_mesh('kort_baksida', back_cell, back_cell); meb.materials.append(m_card); meb.materials.append(m_edge)
 
-    # ---- sko
+    # ---- sko: kilen ur standard.yaml med en riktig dealerskos frontplatta framför korten (sko_front ovan)
     sk = STD['sko']; front = Vector(sk['fot_fram']); yawb = math.radians(sk['yaw_bakat'])
     ax = Vector((math.cos(yawb), math.sin(yawb), 0)); side = Vector((-ax.y, ax.x, 0))
     lean = math.radians(sk['platta_lutning_grader']); hf, hb, ln, wd = sk['hojd_fram'], sk['hojd_bak'], sk['langd'], sk['bredd']
@@ -487,24 +560,26 @@ def main():
         for vv in (v, v + wt):
             bm.faces.new([bm.verts.new(P(u, vv, h)) for u, h in prof[:4]])
     quad((0, 0, 0), (ln, 0, 0), (ln, wd, 0), (0, wd, 0))                                 # botten
-    quad((0, 0, base_h), (ln, 0, base_h), (ln, wd, base_h), (0, wd, base_h))             # golv i skon
+    un = base_h / math.tan(lean)  # där nosen möter golvet; golvet börjar där, så att kortet glider ut framför nosen
+    quad((un, 0, base_h), (ln, 0, base_h), (ln, wd, base_h), (un, wd, base_h))           # golv i skon
     quad((ln, 0, 0), (ln, wd, 0), (ln, wd, hb), (ln, 0, hb))                             # bakvägg
     quad((uf, 0, hf), (ln, 0, hb), (ln, wd, hb), (uf, wd, hf))                           # lock
-    lip = 0.03  # plattans övre läpp ovanför fönstret (antaget)
-    ul = (hf - lip) / math.tan(lean)
-    quad((ul, 0, hf - lip), (uf, 0, hf), (uf, wd, hf), (ul, wd, hf - lip))               # plattans läpp
-    quad((0, 0, 0), (0, wd, 0), (base_h / math.tan(lean), wd, base_h), (base_h / math.tan(lean), 0, base_h))  # nos
+    quad((0, 0, 0), (0, wd, 0), (un, wd, base_h), (un, 0, base_h))                       # nos
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6); bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     shoe = obj_from_bm('sko_kropp', bm, c_sko, m_shoe)
     sol = shoe.modifiers.new('tjocklek', 'SOLIDIFY'); sol.thickness = 0.003
-    # kort i skon: översta korten som egna objekt (dragbara), resten som en bunt
+    sko_front(P, lean, hf, wd, wt, c_sko)
+    # kort i skon: översta korten som egna objekt (dragbara), resten som en bunt. Egen mesh med ryggen på båda sidor;
+    # den heter inte kort_*, eftersom editorn (standarddocka/editor/scen.ts) döljer bordets lösa kort med det namnet,
+    # och då syntes buntens vita kant i stället för skons rygg.
+    mes = card_mesh('sko_kortrygg', back_cell, back_cell); mes.materials.append(m_card); mes.materials.append(m_edge)
     up = Vector(sk['fonsterkort_upp']).normalized(); ac = Vector(sk['fonsterkort_tvars']).normalized(); nrm = ac.cross(up)
     if nrm.dot(ax) > 0:  # normalen ska peka ut ur skon (framåt), med bevarad högerhandad matris (det=+1)
         ac = -ac; nrm = -nrm
     rot = Matrix((ac, up, nrm)).transposed().to_4x4()
     c0 = Vector(sk['fonsterkort_mitt']); step = ax * (K['tjocklek'] / math.sin(lean))
     for k in range(5):
-        ob = bpy.data.objects.new(f'sko_kort_{k+1}', meb); c_sko.objects.link(ob)
+        ob = bpy.data.objects.new(f'sko_kort_{k+1}', mes); c_sko.objects.link(ob)
         ob.matrix_world = Matrix.Translation(c0 + step * k) @ rot @ Matrix.Rotation(math.pi, 4, 'Y')  # baksidan utåt
         ob['dragbart'] = True
     ndecks = K['lekar_i_skon']; ncards = ndecks * 52 - 5; depth = ncards * step.length
@@ -543,8 +618,17 @@ def main():
     bpy.ops.file.make_paths_relative() if bpy.data.filepath else None
     bpy.ops.wm.save_as_mainfile(filepath=str(ASSETS / (namn + '.blend')), relative_remap=True)
     bpy.ops.file.make_paths_relative(); bpy.ops.wm.save_mainfile()
-    # glb: kortleken bakom bordet följer med; modifierare tillämpas
-    bpy.ops.export_scene.gltf(filepath=str(ASSETS / (namn + '.glb')), export_format='GLB', export_apply=True, export_yup=True)
+    # glb: kortleken bakom bordet följer med; modifierare tillämpas. Den skrivs under ett annat namn och byts in hel, så
+    # att editorn (som läser standardbord_nara.glb) aldrig får en halv fil.
+    ny, glb = ASSETS / (namn + '.ny.glb'), ASSETS / (namn + '.glb')
+    bpy.ops.export_scene.gltf(filepath=str(ny), export_format='GLB', export_apply=True, export_yup=True)
+    for forsok in range(40):
+        try:
+            os.replace(ny, glb); break
+        except PermissionError:  # Windows: någon läser den gamla filen just nu
+            time.sleep(0.25)
+    else:
+        raise SystemExit('kunde inte byta in %s (filen är upptagen); den nya ligger i %s' % (glb, ny))
     print('BYGGT', ASSETS / namn, 'modell', MODELL, *(['kant-bak', KANT_BAK] if NARA else []))
 
 

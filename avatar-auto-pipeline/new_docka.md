@@ -187,7 +187,8 @@ Dealerns sko på bildens högra sida (dealerns vänster). Källa: `table-lens.ts
 | Fot fram / bak / mitt | (0,3382, −0,1086, 0,95) / (0,7390, 0,0630, 0,95) / (0,5386, −0,0228, 0,95) |
 | Yaw bakåt | 23,180° |
 | Fönsterkortets mitt | (0,3625, −0,0536, 1,0071) – där handen tar |
-| Översta 5 korten | egna objekt `sko_kort_1…5` (`dragbart`); resten en bunt (8 lekar) |
+| Översta 5 korten | egna objekt `sko_kort_1…5` (`dragbart`, meshen `sko_kortrygg` med ryggen utåt); resten en bunt (8 lekar) |
+| Frontplatta | `sko_front`: 1,3 mm tunn platta 1,6 mm framför plattans plan (framför kortet), samma lutning, nederkant 59 mm över filten; U-öppning 50 mm bred nedtill, 40 mm i bågen, topp 2 mm under kortets överkant; under den springan där kortet dras ut. Inget mått i `standard.yaml` ändras; talen och varför i `SKO_FRONT` i `scen/bygg_bord.py` |
 
 `v` löper i [0, bredd] från den nära väggen (`fot_fram`). Skokorten har skala (1, 1, 1) – inte speglad. Kortplanens skopunkt `(0,3872, 0,0658, 0,95)` ur `placements/default.json` är en planmarkör, inte skons fot.
 
