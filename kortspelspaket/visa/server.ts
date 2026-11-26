@@ -8,11 +8,10 @@
 // Bordsvyn lånar spelets mått och rum (blackjack-dealer/src/table-lens.ts och dealer3d/src/) och de byggda modellerna
 // av bordet och pallen (avatar-auto-pipeline/assets/), som standarddockans editor gör. Bara GET, utom PUT till
 // kortspelspaket/sekvenser.json, där sidan sparar de bitar Jakob klipper ut ur en rörelse.
-// Det Git inte har (three.js i blackjack-dealer/node_modules och de byggda modellerna) finns bara i en utcheckning där
-// det är installerat och byggt: står servern i ett arbetsträd bredvid (git worktree) lånas det ur huvudmappen. three.js
-// hämtas annars från jsDelivr i samma version.
+// three.js tas ur blackjack-dealer/node_modules om det är installerat, annars från jsDelivr i samma version. De byggda
+// modellerna finns bara på en dator där de är byggda; saknas de svarar servern 404 och sidan säger det.
 import {createServer, type IncomingMessage, type ServerResponse} from 'node:http';
-import {createReadStream, existsSync, readFileSync, statSync} from 'node:fs';
+import {createReadStream, existsSync} from 'node:fs';
 import {mkdir, readdir, readFile, rename, stat, writeFile} from 'node:fs/promises';
 import {stripTypeScriptTypes} from 'node:module';
 import {spawn} from 'node:child_process';
@@ -25,18 +24,7 @@ if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) throw Error('--port tar
 const ROOT = fileURLToPath(new URL('../../', import.meta.url)); // casino-mappen, hittad från serverns egen plats
 const HERE = 'kortspelspaket/visa/', ASSETS = path.join(ROOT, 'kortspelspaket/paket/unity/Assets');
 const CUTS = 'kortspelspaket/sekvenser.json';
-/** Huvudmappen, om den här utcheckningen är ett arbetsträd: dess .git är då en fil som pekar in i huvudmappens .git. */
-const MAIN = (() => {
-  try {
-    const dot = path.join(ROOT, '.git');
-    if (!statSync(dot).isFile()) return null;
-    const m = readFileSync(dot, 'utf8').match(/^gitdir:\s*(.+?)[\\/]\.git[\\/]worktrees[\\/]/m);
-    return m ? path.resolve(ROOT, m[1]) : null;
-  } catch { return null; }
-})();
-/** En fil eller mapp som Git inte har: här om den finns, annars i huvudmappen. */
-const borrowed = (rel: string) => [ROOT, MAIN].flatMap(r => r ? [path.join(r, rel)] : []).find(p => existsSync(p)) ?? path.join(ROOT, rel);
-const THREE = borrowed('blackjack-dealer/node_modules/three');
+const THREE = path.join(ROOT, 'blackjack-dealer/node_modules/three');
 const THREE_VERSION = JSON.parse(await readFile(path.join(ROOT, 'blackjack-dealer/package.json'), 'utf8')).dependencies.three as string;
 const SCENE = 'CardGamesAnimationPack/Scenes/Demo_CardGames.unity', FIGURE = 'TheMightyCat/Characters/MightyCat_Queen.fbx';
 const TYPES: Record<string, string> = {'.html': 'text/html; charset=utf-8', '.ts': 'text/javascript; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.fbx': 'application/octet-stream', '.png': 'image/png', '.glb': 'model/gltf-binary'};
@@ -182,7 +170,7 @@ const server = createServer(async (req, res) => {
     m = url.match(/^\/blackjack-dealer\/(src\/table-lens|dealer3d\/src\/[a-z0-9-]+)\.ts$/);
     if (m) { await typed(res, `blackjack-dealer/${m[1]}.ts`); return; }
     if (url === '/' + PLAN) { res.writeHead(200, {'content-type': TYPES['.json'], 'cache-control': 'no-store'}).end(await readFile(path.join(ROOT, PLAN), 'utf8')); return; }
-    if (MODELS.includes(url.slice(1))) { await sendFile(req, res, borrowed(url.slice(1))); return; }
+    if (MODELS.includes(url.slice(1))) { await sendFile(req, res, path.join(ROOT, url.slice(1))); return; }
     if (url === '/demo.json') {
       if (!existsSync(ASSETS)) { res.writeHead(404, {'content-type': 'text/plain; charset=utf-8'}).end('Paketet är inte uppackat: kör node kortspelspaket/packa-upp.ts'); return; }
       demoCache ??= demo();

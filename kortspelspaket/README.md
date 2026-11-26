@@ -46,8 +46,24 @@ Det här är mätt ur rörelserna och syns i bordsvyn:
   högre i spelets vy.
 - Rörelserna har inga kort, marker eller andra saker: bara kroppen.
 
-Nästa steg, om Jakob vill: föra över en utklippt giv till standarddockan (dess rörelser är händernas, armarnas och
-blickens lägen i rummet, så paketets leder räknas om till dem), och se den bredvid dockans egen giv.
+## Vägen
+
+Riktningen (Jakob 2026-11-26, `AGENTS.md`): bygga utifrån paketets rörelser och lyfta in det som behövs hit. Varje steg
+slutar i något han ser i visaren, och nästa börjar inte förrän han har sagt sitt om det. Inget steg är gjort än.
+
+1. **En människa i stället för katten.** Standarddockans man får paketets skelett och sitter vid bordet i spelets vy
+   och gör en utklippt giv (giv 3, till plats 4). Det visar om en inspelad giv ser bättre ut på vår docka än den
+   ritade, och hur fingrarna håller. Lånas: dockans kropp ur `../avatar-auto-pipeline/`.
+2. **Given som spelet behöver den.** Paketets giv delar ur handen, tar tre sekunder och når fem platser; spelets ska gå
+   ur skon till var och en av de sju platserna, med ett kort i handen, högst en sekund ut och 0,6 tillbaka, och börja
+   och sluta i vilan (A1) eller vid skon (A2.3). Den byggs av utklippta bitar som snabbas upp och styrs till platsen.
+   Det här steget avgör om vägen håller.
+3. **En ny dealer på samma skelett.** Avatar-pipelinen bygger nästa dealer på paketets skelett, så att hon kan alla
+   rörelser utan att något görs om. Då lyfts pipelinen in.
+4. **Studion och filmerna.** Dockans film blir film av en person, och klippen läggs i spelets träd. Då lyfts det som
+   behövs ur `../blackjack-dealer/` in.
+
+Håller inte steg 1 eller 2 för hans domar är paketet ändå en förebild att rita efter: hur en dealer faktiskt rör sig.
 
 ## Vad paketet innehåller
 
