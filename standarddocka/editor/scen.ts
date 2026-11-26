@@ -23,6 +23,8 @@ export const bordFor = (rorelsensDocka: string | null | undefined) => rorelsensD
 /** Spelets kant mot dealern: mitten av dealerns bordskant på filten (dockans linsvärld). */
 export const KANT = ROOM_EDGE as V3;
 
+/** Sidokameran: bildens bredd (meter, som Blenders 'sida') och hur många gånger längre bort än Blenders den står (kameraVy). */
+const SIDA = {bredd: 2.5, langre: 8};
 /** Kameran från en av de sex andra platserna vid bordet; plats 4 är spelets vy, 'spel'. */
 export type Platskamera = 'plats1' | 'plats2' | 'plats3' | 'plats5' | 'plats6' | 'plats7';
 /**
@@ -46,7 +48,13 @@ export const kameransPlats = (k: Kamera): number | null => k === 'spel' ? 4 : k.
  */
 export function kameraVy(k: Exclude<Kamera, 'fri'>, plan: Plan): {pos: V3; mot: V3; fov: number} {
   const z = KANT[2], oga = (e: {position: V3; forward: V3; focalPx: number}) => ({pos: e.position, mot: [e.position[0] + e.forward[0] * 2, e.position[1] + e.forward[1] * 2, e.position[2] + e.forward[2] * 2] as V3, fov: fovYDeg(e.focalPx)});
-  if (k === 'sida') return {pos: [-2.4, 0.32, z - 0.12], mot: [0, -0.06, z - 0.12], fov: 34}; // från hans högra sida, som 'sida' i scen/vy.py
+  // Från hans högra sida: Blenders kamera 'sida' i scen/vy.py, den Jakob har dömt bilder från (ortografisk, bilden 2,5 m
+  // bred, från X -3,0 m, 0,05 m bakom spelets kant och 1,20 m över golvet, mot X 0 och 0,80 m över golvet; golvet ligger
+  // 0,95 m under filten, standard.yaml filt_z). Den här kameran har perspektiv, så den står SIDA.langre gånger längre bort
+  // längs samma siktlinje med en så smal vinkel att bilden blir lika stor: då är perspektivet nästan borta (ungefär 1 %
+  // mellan hans närmaste och bortre axel). Talen står två gånger, här och i vy.py, tills en uppställningsfil delas.
+  if (k === 'sida') { const golv = 0.95, mot: V3 = [0, 0.80 - golv, z - 0.05], fran: V3 = [-3.0, 1.20 - golv, z - 0.05], d = fran.map((n, i) => (n - mot[i]) * SIDA.langre), avst = Math.hypot(...d);
+    return {pos: mot.map((n, i) => n + d[i]) as V3, mot, fov: 2 * Math.atan(SIDA.bredd / (FILM.width / FILM.height) / 2 / avst) * 180 / Math.PI}; }
   if (k === 'topp') return {pos: [0.06, 2.15, z + 0.32], mot: [0.06, 0, z + 0.1], fov: 42}; // uppifrån, han överst i bilden
   if (k === 'film') return oga(filmEye(TABLE_LENS));
   const spel = filmEye(PLAY_LENS), plats = kameransPlats(k);
@@ -87,6 +95,8 @@ export type Scen = {
   /** Ritar bilden som den står nu och lämnar den som PNG (för inspelningen, i filmens storlek). */
   bild(): Promise<Blob>;
   filmRam(): {left: number; top: number; width: number; height: number};
+  /** Vilket kort som delas: bordets eget (Blenders) eller det enkla, och i så fall varför (bordet har inte kommit, saknar sitt exempelkort giv_P4.C1, eller det är ingen enkel mesh). */
+  kortet(): string;
 };
 
 /** Vilken av de två standarddockorna som visas. De har samma skelett, och en rörelse är händernas, armarnas och blickens
@@ -108,7 +118,8 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
   // En modell på prov (?modell=<namn> och ?bord=<namn> i adressen: standarddocka_<namn>.glb och standardbord_<namn>.glb
   // ur avatar-auto-pipeline/assets), för den som bygger om dockan eller bordet och vill se det innan det byts in.
   const prov = (nyckel: string) => { const n = new URLSearchParams(location.search).get(nyckel); return n && /^[a-z0-9_]+$/.test(n) ? n : null; };
-  const figure = await loadFigure(prov('modell') ? `/avatar-auto-pipeline/assets/docka/standarddocka_${prov('modell')}.glb` : MODELLER[docka]); scene.add(figure.root);
+  // ?vridben=0: underarmens vridning läggs på ForeArm som i en docka utan vridben (för att jämföra; figure-model.ts).
+  const figure = await loadFigure(prov('modell') ? `/avatar-auto-pipeline/assets/docka/standarddocka_${prov('modell')}.glb` : MODELLER[docka], {twistBones: prov('vridben') !== '0'}); scene.add(figure.root);
   const bone = (name: string) => { const b = figure.root.getObjectByName(name); if (!b) throw Error(`Dockan saknar leden ${name}.`); return b.getWorldPosition(new T.Vector3()); };
   const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]);
   /** En ruta på mannen, som dealer3d/src/stage.ts gör det: bålen ur axlarna och höften, armarna ur lederna, händerna ur sina 21 punkter, huvudet mot blicken. */
@@ -148,7 +159,10 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
   // (millimeter), bordets kant mot dealern och skivans överkant.
   let bordRot: T.Object3D | null = null; const markeringar: T.Object3D[] = [];
   const bord = loadTable(prov('bord') ? `/avatar-auto-pipeline/assets/bord/standardbord_${prov('bord')}.glb` : bordFor(rorelsensDocka), scene, plan, {key: nyckel ? {table: NYCKEL.bord, cardBack: NYCKEL.kortrygg} : undefined, progress: share => laddar(`bordet ${Math.round(share * 100)} %`)}).then(b => {
-    if (b.card && !nyckel) { card.remove(enkelt); card.add(b.card); }
+    // Bordets kort ligger i modellen med bildens överkant mot dealern (Blenders +Y), alltså åt -z här; vänt ett halvt varv
+    // i sitt plan står överkanten åt kortets långsida (+z, rörelsens `l`), som dealer3d/src/stage.ts ritar sitt kort. Då
+    // ligger kortet som rörelsen lägger det (långsidan mot dealern) som Blenders kort på platsen. (Förut ett halvt varv fel.)
+    if (b.card && !nyckel) { b.card.geometry.rotateY(Math.PI); card.remove(enkelt); card.add(b.card); }
     bordRot = b.root; markeringar.push(...b.marks);
     return {platser: b.places, maxMm: b.maxMm, kortP4Mm: b.cardP4Mm, kantZ: b.edgeZ, skivaY: b.topY};
   });
@@ -166,12 +180,13 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
     camera.updateProjectionMatrix();
   }
   function setKamera(k: Kamera) {
-    if (k === 'fri') return; const vy = kameraVy(k, plan); fovNu = vy.fov; filmlik = k !== 'sida' && k !== 'topp';
+    if (k === 'fri') return; const vy = kameraVy(k, plan); fovNu = vy.fov; filmlik = k !== 'topp'; // sidans bild ryms också hel, 2,5 m bred som Blenders
     camera.position.set(...vy.pos); camera.up.set(0, 1, 0); camera.lookAt(v(vy.mot)); storlek();
   }
   const filmstorlek = (pa: boolean) => { spelasIn = pa; storlek(); };
   // Bilden tas i samma steg som den ritas: efter det får webbläsaren tömma ritytan.
   const bild = () => { renderer.render(scene, camera); return new Promise<Blob>((klar, fel) => canvas.toBlob(b => b ? klar(b) : fel(Error('Bilden kunde inte läsas ur ritytan.')), 'image/png')); };
   return {renderer, scene, camera, figure, card, bord, stol: {sank: satt.lowered, flytt: satt.moved as V3, sitsUppe: satt.seatModel, sitsNu: satt.seatNow, ryggstod: satt.backrest, knaveck: satt.knee, hoft: satt.hip as V3},
-    pose, bone, hud: hud!, synlig, render: () => renderer.render(scene, camera), setKamera, storlek, filmstorlek, bild, filmRam: ram};
+    pose, bone, hud: hud!, synlig, render: () => renderer.render(scene, camera), setKamera, storlek, filmstorlek, bild, filmRam: ram, kortet: () => { if (card.children[0] !== enkelt) return 'bordets'; const ex = bordRot?.getObjectByName('giv_P4C1');
+      return nyckel ? 'enkelt (nyckelfärgerna)' : !bordRot ? 'enkelt (bordet har inte kommit)' : !ex ? 'enkelt (bordet har inget exempelkort giv_P4.C1)' : `enkelt (exempelkortet är en ${ex.type} med ${ex.children.length} delar, inte en mesh)`; }};
 }

@@ -159,8 +159,9 @@ export type BlickTider = {fran: number; full: number; ligger: number; ut: number
 /**
  * `plats`: kortplatsen (1–7) som given går till. `stilla`: hur stilla var hand ligger i varje ruta (1: handleden rör sig
  * inte). `delar` är grundrörelsens delar med stillheten i ankaret; `spann` är den tid i varje del då något rör sig.
+ * `kortTecken`: åt vilket håll kortets långsida räknas i varje ruta (1 eller -1, se sattIhop).
  */
-export type Foljd = {fps: number; frames: Frame[]; hip: V3; delar: Del[]; spann: Del[]; skarv: Skarv; held: {R: number; L: number}[]; stilla: {R: number; L: number}[]; blick: BlickTider; forsta: Motion; andra: Motion; forskjutning: number; plats: number};
+export type Foljd = {fps: number; frames: Frame[]; hip: V3; delar: Del[]; spann: Del[]; skarv: Skarv; held: {R: number; L: number}[]; stilla: {R: number; L: number}[]; blick: BlickTider; forsta: Motion; andra: Motion; forskjutning: number; plats: number; kortTecken: number[]};
 
 /** Hur långt varje led hoppar mellan två rutor, i meter (för skarven). */
 function hopp(a: Frame, b: Frame, hipA: number[], hipB: number[]): Record<string, number> {
@@ -233,7 +234,13 @@ export function sattIhop(forsta: Motion, andra: Motion, plats: number): Foljd {
     let fran = Math.max(a, forst - 1), till = Math.min(b, sist + 1);
     while (fran > a && glid(fran, a) > GLID) fran--; while (till < b && glid(till, b) > GLID) till++;
     return {namn: d.namn, fran: fran / fps, till: till / fps}; });
-  return {fps, frames, hip: [andra.hip[0], andra.hip[1], andra.hip[2]], held, stilla, forsta, andra, forskjutning: sista, plats, delar, spann,
+  // Kortets långsida åt samma håll i varje ruta, räknat bakåt från sista rutan (där kortet ligger med långsidan mot
+  // dealern): ett kort och samma kort med ändarna bytta är ett, och en grundrörelse kan ge långsidan åt vilket håll som
+  // helst. Utan det vändes kortets bild ett halvt varv på en ruta där grundrörelsen byter håll (givarna till plats 6 och 7
+  // gör det vid ruta 21). Bildens överkant ritas åt långsidans håll (scen.ts).
+  const kortTecken = frames.map(() => 1);
+  for (let i = frames.length - 2; i >= 0; i--) kortTecken[i] = kortTecken[i + 1] * (dot(frames[i].card.l, frames[i + 1].card.l) < 0 ? -1 : 1);
+  return {fps, frames, hip: [andra.hip[0], andra.hip[1], andra.hip[2]], held, stilla, forsta, andra, forskjutning: sista, plats, delar, spann, kortTecken,
     blick: {fran: lamnar - 0.4, full: lamnar, ligger: ligger / fps, ut: 0.6},
     skarv: {fore, efter, jamnasUt: [fran / fps, till / fps]}};
 }
@@ -290,7 +297,7 @@ export function rutaVid(f: Foljd, t: number): {frame: Frame; held: {R: number; L
   const at = Math.max(0, Math.min(f.frames.length - 1, t * f.fps)), i = Math.min(f.frames.length - 2, Math.floor(at)), k = at - i, a = f.frames[i], b = f.frames[i + 1];
   const limb = (s: 'R' | 'L'): Limb => ({s: mix(a[s].s, b[s].s, k), e: mix(a[s].e, b[s].e, k), w: mix(a[s].w, b[s].w, k), k: a[s].k, p: a[s].p.map((p, j) => mix(p, b[s].p[j], k))});
   // Ett kort och samma kort med ändarna bytta är ett: långsidan tas åt samma håll i båda rutorna innan de blandas.
-  const bl = dot(a.card.l, b.card.l) < 0 ? mul(b.card.l, -1) : b.card.l, long = norm(mix(a.card.l, bl, k)), toward = mix(a.card.n, b.card.n, k), d = dot(toward, long);
+  const al = f.kortTecken[i] < 0 ? mul(a.card.l, -1) : a.card.l, bl = dot(al, b.card.l) < 0 ? mul(b.card.l, -1) : b.card.l, long = norm(mix(al, bl, k)), toward = mix(a.card.n, b.card.n, k), d = dot(toward, long);
   const card: Card = {c: mix(a.card.c, b.card.c, k), l: long, n: norm(sub(toward, mul(long, d)))};
   const hi = f.held[i], hj = f.held[i + 1], si = f.stilla[i], sj = f.stilla[i + 1];
   return {frame: {card, R: limb('R'), L: limb('L'), h: mix(a.h, b.h, k), g: mix(a.g, b.g, k)}, held: {R: hi.R + (hj.R - hi.R) * k, L: hi.L + (hj.L - hi.L) * k},

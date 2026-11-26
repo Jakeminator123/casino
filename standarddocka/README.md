@@ -78,16 +78,28 @@ egna sparade ändringar.
   räknas ur den med `seatView`. I vilan ser han in i kameran på plats 4: dockans kod riktar linjen mellan hans ögon
   mot blickpunkten (`../blackjack-dealer/dealer3d/src/figure-model.ts`). Höften står stilla på stolen och ryggen tar
   lutningen och vridningen när han når ut över bordet. En plats kamera är spelets egen regel
-  (`seatEye` i `../blackjack-dealer/dealer3d/src/world.ts`); plats 4 är spelets kamera.
+  (`seatEye` i `../blackjack-dealer/dealer3d/src/world.ts`); plats 4 är spelets kamera. Sidokameran är Blenders `sida`
+  i `scen/vy.py` (samma siktlinje och en lika bred bild, 2,5 m): Blenders är ortografisk, och editorns står åtta gånger
+  längre bort med smal vinkel, så att perspektivet nästan är borta (talen står i både `vy.py` och `editor/scen.ts`).
 - **Dockan:** mannen eller kvinnan (knapparna "Dockan", eller `?docka=kvinna`). De har samma skelett, och där de
-  spelar samma grundrörelser delar de det som sparas; en dockas egna rörelser har sitt eget sparade lager.
+  spelar samma grundrörelser delar de det som sparas; en dockas egna rörelser har sitt eget sparade lager. Underarmarna
+  har två vridben var (`ForeArmTwist1` och `2`): underarmens vridning fördelas på dem, en tredjedel och två
+  tredjedelar, upp till 100 grader och mjukt mot 120, så att huden vrids längs underarmen och inte nyps vid armbågen
+  (`../blackjack-dealer/dealer3d/src/figure-model.ts`; `?vridben=0`, eller `--utan-vridben` i `verktyg/titta.ts`,
+  vrider som förut, för att jämföra). Armarnas tjocklek mäts på hela underarmens hud, vridbenens med (`editor/armar.ts`).
 - **Ändringarna:** en hands ändringar läggs ihop och läggs på en gång, så ordningen de gjordes i spelar ingen roll,
   och det han ser är det som sparas, mäts och spelas in. "Hur länge ändringen varar" är filmens sekunder åt varje håll;
   blicken och greppet tonas i spelad tid, så inget hoppar där stillheten mellan två delar klipps bort. Kortet följer
   en ändrad hand bara mellan skon och landningen (greppet tonas in och ut över 0,25 s) och ligger alltid på sin
   plats när det har lagts. Kulorna står där lederna faktiskt är; en armbågsändring läggs på armbågens cirkel när han
-  släpper. Ett drag inom 0,1 s från en ändring av samma led ändrar den i stället för att lägga en ny bredvid. Ctrl+Z
-  mitt i ett drag ångrar inget.
+  släpper, och en som inte syns (en armbåge dragen längs armen, som kroppen inte läser) tas bort. Ringarna som vrider en
+  hand står efter handen: den ena vrider kring underarmen, de andra kring handleden. Ett drag inom 0,1 s från en
+  ändring av samma led ändrar den i stället för att lägga en ny bredvid. Ctrl+Z mitt i ett drag ångrar inget.
+- **Kortet** som delas är bordets eget när bordets modell ger ett, med bildens överkant åt kortets långsida (som
+  studions kort), så att det ligger som Blenders kort på platsen; kortets långsida räknas åt samma håll i varje ruta, så
+  att bilden aldrig vänds ett halvt varv på en ruta. I dag är bordets exempelkort en grupp av två delar, som
+  `loadTable` i `../blackjack-dealer/dealer3d/src/standard-room.ts` inte tar, så editorn ritar sitt enkla kort (vit
+  framsida, röd rygg); `state().kortetsUtseende` säger vilket.
 - **Uppspelningen** stannar när en kula väljs eller ett drag börjar, så att draget görs i rutan som syns. Slingan står
   0,8 s i slutet och 0,4 s i början innan den börjar om, så att steget från skon till vilan syns som en omstart och
   inte som ett ryck.
@@ -139,8 +151,10 @@ egna sparade ändringar.
   eller miljövariabeln `FFMPEG`).
 - **För verktygen:** `window.editor` (uppräkningen överst i `editor/editor.ts`). `state()` har utöver lägena bland
   annat `sparr` (vad spärren höll emot), `handledGrader` (handledens vinkel som kroppen ritade den och som rutan bad
-  om), `lagretsFel`, `aldreSparat`, `dockansEgna`, `sparasSom`, `bildvinkel` och `sparar`. `save()` stannar med
-  sidans fråga som fel, så att ett verktyg aldrig skriver över i tysthet; `save(true)` skriver över.
+  om), `lagretsFel`, `aldreSparat`, `dockansEgna`, `sparasSom`, `bildvinkel`, `sparar`, `kortetsUtseende`, `lage` och
+  `ringensX` (i läget Vrida: ringens axel längs underarmen) och `axelLeder`. `slapp(id)` gör med en ändring det som
+  händer när han släpper musen. `save()` stannar med sidans fråga som fel, så att ett verktyg aldrig skriver över i
+  tysthet; `save(true)` skriver över.
 
 En ändring i `editor/server.ts` gäller först när servern har startats om: stäng fönstret den körs i och starta igen
 (en server som en agent har startat utan fönster stoppas med sitt process-id, efter att `/vem` har svarat
@@ -196,10 +210,13 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   modellen): vilan A1 till skon (`till-ankare-2-3-man`), ankaret (`ankare-2-3-man`) och given till plats 4
   (`giv-fran-2-3-p4c1-ren-a-man`), byggda av `dealer3d/tools/ren-givar.ts`. Varje led ligger på rörelsens punkter i
   varje ruta, benens längd håller, takten är Jakobs och given börjar och slutar i exakt ankaret. Editorn spelar dem
-  på plats 4 med mannen (förvalet). Vilan håller för ögat. Given gör det inte
-  än (Jakob om rutan där kortet läggs: "vad gör dealern ens?"): högerhanden är knuten kring kortet, kortet ställs på
-  högkant, och bålen vrids 36 grader för att nå. Den ritas om med ett öppet grepp och mer lutning än vridning. Kvar:
-  de sex andra platserna och kvinnan.
+  på plats 4 med mannen (förvalet). Alla tre är ritade vid halvmånens sko (`DOLL_TABLE`, `dollShoe`). Given är
+  Jakobs version A, "nyckelvridningen" (`dealer3d/src/koreo-giv.ts`, 2026-11-26): vänstern skjuter kortet till
+  mötet framför bröstet och upp på högerns tumme, högern tar det med tummen under och två fingrar på ryggen,
+  underarmen vrids som en nyckel på vägen, kortets nedre långsida möter filten och kortet läggs på rygg, och två
+  fingrar vilar på det. Version B (vänd där det landar) står på prov som `giv-fran-2-3-p4c1-prov-b-man`. Givens
+  regler (bytet, öppen hand, kortet i handen, kroppen, vridningen) mäts av `givRegler` i `ren-giv.ts` och står i
+  filens `made.checked`. Kvar: Jakobs dom över A och B med ögat, de sex andra platserna och kvinnan.
 - Närmare bordet, utan att det blir trångt. Magen har 12 cm luft till kanten (Jakob 2026-11-26: "skjuta in dockorna
   aningen till mot bordet"); 8 cm närmare ger 4 cm. Flyttas dockan fram blir det trångt framför honom, som han såg
   ("du kan med fördel skjuta fram både sko/kort och dess placeringar om du skjuter fram dealern"): fingertopparna i
@@ -264,7 +281,10 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   kropp ("Plockas in", steg 2).
 - Känt i editorn, för de äldre rörelserna: i vilan står armbågarna utvinklade, eftersom rörelserna är gjorda för Paows
   kropp och ett bord vars kant låg 15 cm längre bort; bålen lutar som Paows, 16 cm i given; vilan i den första delen
-  är den äldre vita dockans, inte den `scen/vy.py` lägger mannen i. Filten är mörkare än i Blenders bilder. Editorn och `scen/vy.py` ställer upp scenen var för sig
+  är den äldre vita dockans, inte den `scen/vy.py` lägger mannen i. Filten är mörkare än i Blenders bilder. Smalbenen
+  lutar 4,6 grader framåt i editorn och studions dockvy men 11 grader bakåt i Blender (`figure-model.ts`); att luta dem
+  bakåt kräver först att stolens regel (`seatStool` i `../blackjack-dealer/dealer3d/src/standard-room.ts`) mäter
+  lårens undersida bara på låren, annars tar den fötterna och sänker stolen till golvet. Editorn och `scen/vy.py` ställer upp scenen var för sig
   (stolen, vilan, kamerorna): de ska läsa samma tal ur en fil.
 - Provat och bedömt av Jakob: bordet 15 cm närmare dealern räcker för att det ska nå magen och skon stå helt på
   bordet. Att luta bordet mot kameran är struket.
