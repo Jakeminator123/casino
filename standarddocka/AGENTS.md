@@ -99,6 +99,10 @@ rörelse prövas mot innan den visas för honom.
   att anpassa unikt för respektive dealer som 'avatar-auto-pipeline' skapar, men fan, det ska kunna gå." Rörelserna
   ritas för standarddockornas egna kroppar, och en dealer från pipelinen ska kunna göra dem: den byggs på samma
   skelett, så att bara kroppens mått skiljer.
+- **Inte trångt framför dealern (2026-11-26).** "Tänk på att du med fördel kan skjuta fram både sko/kort och dess
+  placeringar om du skjuter fram dealern. Annars kanske det liksom blir för trångt?" När dockan och bordet kommer
+  närmare varandra ska händerna i vilan, brickan, dealerns egna kort och skon fortfarande ha plats: ingen hand vilar
+  på en kortplats.
 - **Närmare bordet (2026-11-26).** Om dockan i vilan sedd uppifrån: "skulle man inte kunna skjuta in dockorna aningen
   till mot bordet". Och om att inget känns bättre: rörelserna "känns inte så harmoniska", och "låsningar finns i
   gamla sparade filer". Det gamla (Paows mått, det äldre bordets kant, lappar ovanpå) är orsaken; det rättas i

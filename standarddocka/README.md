@@ -130,9 +130,21 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 - Dockan sitter för lågt och för långt från bordet (mätt 2026-11-26 på mannen vid det närmare bordet). Axlarna står
   0,23 m över filten (Paows mått), och överarmen är 0,29 m: armbågen får inte plats under axeln när underarmen ska
   gå över bordet, utan måste cirka 16 cm ut åt sidan. Det är de utvinklade armbågarna i vilan. En riktig sittande
-  dealer har axlarna 0,31–0,35 m över bordet. Magen har 12 cm luft till kanten; 0,30 m bakom spelets kant i stället
-  för 0,38 ger 4 cm (Jakob 2026-11-26: "skjuta in dockorna aningen till mot bordet"). Hur högt dockan sitter är
-  Jakobs val, eftersom huvudet då kommer närmare överkanten i spelets bild: jämförelsebilder på fyra höjder tas fram.
+  dealer har axlarna 0,31–0,35 m över bordet. Hur högt dockan sitter är Jakobs val, eftersom huvudet då kommer
+  närmare överkanten i spelets bild: provet `sitthojd-20261126` i studion visar fyra höjder, och det väntar på honom.
+- Närmare bordet, utan att det blir trångt. Magen har 12 cm luft till kanten (Jakob 2026-11-26: "skjuta in dockorna
+  aningen till mot bordet"); 8 cm närmare ger 4 cm. Flyttas dockan fram blir det trångt framför honom, som han såg
+  ("du kan med fördel skjuta fram både sko/kort och dess placeringar om du skjuter fram dealern"): fingertopparna i
+  vilan når då 20 cm förbi spelets kant, dealerns egna kortplatser börjar 11–12 cm förbi den, och vänsterhanden
+  ligger på D.C3. Därför sitter dockan kvar där kortplanen räknar med (axlarna 0,38 m bakom spelets kant), och det är
+  bordets dealerkant och brickan som kommer 8 cm närmare honom: kanten 23 cm bakom spelets kant i stället för 15
+  (`--kant-bak 0.23` i `../avatar-auto-pipeline/scen/bygg_bord.py`). Kortplanen, skon och avstånden från dealern till
+  korten är då som de var. Bordet är inte ombyggt än.
+- Bordets form är en öppen fråga (Jakob 2026-11-26: "Är inte det för ovalt mot P4?"). Mätt: filten är 1,90 m bred och
+  1,15 m djup från spelets kant (spelets mått, `TABLE_TOP` i `../blackjack-dealer/src/table-lens.ts`), och allt som
+  ligger på den (dealerns kort 16 cm ut, spelarnas kort 23–40 cm, insatsringarna till cirka 55 cm) ryms på den
+  närmaste halvan: från insatsringen på plats 4 är det 60 cm tom filt till bortre kanten. Ett riktigt bord är cirka
+  2,1 m brett och 1,1 m djupt med insatsen 20–30 cm från kanten. Ett grundare bord prövas i bild innan något ändras.
 - Skon har en frontplatta med en rundad öppning (`sko_front`, måtten i `SKO_FRONT` i
   `../avatar-auto-pipeline/scen/bygg_bord.py`): kortets rygg syns i öppningen, kortet dras nedåt och ut genom springan
   under plattan, och nästa kort visar ryggen när ett har gått. Springan är hög (59 mm över filten) eftersom givarna
