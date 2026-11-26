@@ -53,7 +53,8 @@ dockorna och Node 24 för måtten. Allt körs från den här mappen.
 .\.venv\Scripts\python.exe scen/gen_standard.py                                                     måtten ur spelet
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py                       spelets standardbord
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --modell bord-02   BORD-02
-blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --kant-bak 0.15    standardbordet med dealerkanten 15 cm närmare dealern och brickan nedsänkt i bordet (egna filer, standardbord_nara.*; för ../standarddocka)
+blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --kant-bak 0.15    standardbordet med dealerkanten 15 cm närmare dealern och brickan nedsänkt i bordet (egna filer, standardbord_nara.*; bordet de äldre rörelserna visas vid i ../standarddocka)
+blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --kant-bak 0.23    samma bord med kanten 23 cm närmare (standardbord_nara23.*): bordet för standarddockans egna rörelser
 blender -b --python-exit-code 1 --python scen/bygg_docka.py                                        dockorna (MPFB, därför utan --factory-startup)
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_stol.py                       stolen
 ```

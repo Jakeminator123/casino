@@ -131,16 +131,15 @@ rörelse prövas mot innan den visas för honom.
   `../avatar-auto-pipeline/` (bord, dockor, stol), och rörelsekoden i `../blackjack-dealer/dealer3d/`.
 - Den äger det som är nytt för standarddockan: hur scenen sätts ihop, ställningar, blick och rörelser, och skripten
   som gör bilderna och filmerna av det.
-- Behöver ett byggskript i `../avatar-auto-pipeline/` kunna något nytt (till exempel en bordskant närmare dealern),
-  läggs det till där som ett val som inte ändrar det som redan byggs, och skrivs upp under "Plockas in" i README.
-- `../blackjack-dealer/` ändras inte härifrån. Det som ska dit skrivs upp under "Plockas in" och förs in när Jakob
-  säger att han är nöjd.
-- Undantaget är dockans rörelser (Jakob 2026-11-26, efter granskningen som fann felen i grundrörelserna: "Detta ska
-  verkligen få ändras om något annat sägs så är det jag som bestämmer", "du har fulla privilegier för ändringar av
-  allt"): koden som ritar givarna (`../blackjack-dealer/dealer3d/src/` och `dealer3d/tools/`) får ändras, och nya
-  grundrörelser får skrivas i `../blackjack-dealer/dealer3d/data/`. Det som redan används skrivs inte över: en ny regel
-  är ett nytt val bredvid det gamla, och en ny rörelse en ny fil, så att Paows sparade standarder och de grundrörelser
-  hennes filmer är gjorda av är som de var. Vad som ändrades i en rörelse sägs kort till Jakob.
+- Allt får ändras härifrån, också i `../blackjack-dealer/` och `../avatar-auto-pipeline/` (Jakob 2026-11-26: "DU får
+  ändra ALLT", och om den äldre regeln att inget i blackjack-dealer ändras härifrån: "får du visst!"; samma dag om
+  rörelserna: "du har fulla privilegier för ändringar av allt"). Det gäller koden, måtten, byggskripten och
+  rörelserna. Det som skyddar honom gäller som förut (`../blackjack-dealer/AGENTS.md`, "Det som skyddar Jakob"):
+  betalda anrop, deploy och uppladdning, hans domar, hans kortplan och bilder, original och referenser.
+- Det gamla tas bort när det nya har tagit över, inte tidigare och inte senare: Paows docka, hennes sparade standarder
+  och de äldre grundrörelserna står kvar tills standarddockans egna rörelser spelas i editorn och studion, och raderas
+  då i samma steg (hans riktning: en väg för varje sak). Hennes godkända filmer är filmer och påverkas inte.
+- Vad som ändrades i en rörelse, i måtten eller i ett byggskript sägs kort till Jakob.
 
 ## Köra
 

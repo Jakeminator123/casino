@@ -38,6 +38,7 @@ const FIXED: Record<string, string> = {
   '/avatar-auto-pipeline/assets/docka/standarddocka_man.glb': 'avatar-auto-pipeline/assets/docka/standarddocka_man.glb',
   '/avatar-auto-pipeline/assets/docka/standarddocka_kvinna.glb': 'avatar-auto-pipeline/assets/docka/standarddocka_kvinna.glb',
   '/avatar-auto-pipeline/assets/bord/standardbord_nara.glb': 'avatar-auto-pipeline/assets/bord/standardbord_nara.glb',
+  '/avatar-auto-pipeline/assets/bord/standardbord_nara23.glb': 'avatar-auto-pipeline/assets/bord/standardbord_nara23.glb',
   '/avatar-auto-pipeline/assets/stol/dealerstol.glb': 'avatar-auto-pipeline/assets/stol/dealerstol.glb',
   '/blackjack-dealer/placements/default.json': 'blackjack-dealer/placements/default.json',
   '/blackjack-dealer/src/table-lens.ts': 'blackjack-dealer/src/table-lens.ts',

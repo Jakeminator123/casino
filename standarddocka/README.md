@@ -153,7 +153,10 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   ligger på D.C3. Därför sitter dockan kvar där kortplanen räknar med (axlarna 0,38 m bakom spelets kant), och det är
   bordets dealerkant och brickan som kommer 8 cm närmare honom: kanten 23 cm bakom spelets kant i stället för 15
   (`--kant-bak 0.23` i `../avatar-auto-pipeline/scen/bygg_bord.py`). Kortplanen, skon och avstånden från dealern till
-  korten är då som de var. Bordet är inte ombyggt än.
+  korten är då som de var. Det bordet är byggt som en egen modell, `standardbord_nara23`, och editorn visar det för en
+  rörelse som är ritad för dockan `man` eller `kvinna` (`bordFor` i `editor/scen.ts`); de äldre rörelserna visas vid
+  bordet med kanten 15 cm närmare (`standardbord_nara`) tills de är utbytta, och då tas det bordet och spelets
+  ursprungliga (`standardbord`) bort.
 - Bordets form är en öppen fråga (Jakob 2026-11-26: "Är inte det för ovalt mot P4?"). Mätt: filten är 1,90 m bred och
   1,15 m djup från spelets kant (spelets mått, `TABLE_TOP` i `../blackjack-dealer/src/table-lens.ts`), och allt som
   ligger på den (dealerns kort 16 cm ut, spelarnas kort 23–40 cm, insatsringarna till cirka 55 cm) ryms på den

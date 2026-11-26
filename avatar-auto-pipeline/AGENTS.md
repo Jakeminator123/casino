@@ -60,7 +60,8 @@ Mapparna och alla kommandon står i `README-SV.md`; skelettet, lederna, bryggan 
   `fingerrigg.py`.
 - Ingen kod eller text pekar på en viss dator, användare eller disk: spelet hittas som `../blackjack-dealer`, slasken
   som `../slask/avatar-auto-pipeline`.
-- Jakob kan arbeta i den här mappen samtidigt med en annan chatt eller ett annat verktyg: fråga honom innan du ändrar
-  kod här, och rör aldrig någon annans ocommittade filer.
+- Koden här får ändras utan att fråga (Jakob 2026-11-26, på frågan om byggskripten för bordet, skon och dockans rigg:
+  "DU får ändra ALLT"); säg i svaret vad som ändrades. Jakob kan arbeta i den här mappen samtidigt med en annan chatt
+  eller ett annat verktyg: rör aldrig någon annans ocommittade filer.
 - Projektet har inga automatiska tester; kontrollen före push (`casino/.githooks`) stoppar ändå hemligheter, `.env`,
   media och stora filer.

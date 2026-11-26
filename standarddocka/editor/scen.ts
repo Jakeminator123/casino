@@ -12,7 +12,14 @@ import {cross, type Frame, type V3} from './rorelse.ts';
 // blackjack-dealer/dealer3d/src/standard-room.ts, samma som studions dockvy ritar: där står också regeln för stolen
 // och hur Blenders modeller läggs i linsvärlden. (standard.yaml:s egen regel för stolen, höftleden 9 cm över sitsen,
 // gäller dockans höft; mannens höftled ligger 3–4 cm högre än rörelsens, så sitsen ställs efter hans kropp.)
-const MODELLER = {man: '/avatar-auto-pipeline/assets/docka/standarddocka_man.glb', kvinna: '/avatar-auto-pipeline/assets/docka/standarddocka_kvinna.glb', bord: '/avatar-auto-pipeline/assets/bord/standardbord_nara.glb', stol: '/avatar-auto-pipeline/assets/stol/dealerstol.glb'};
+const MODELLER = {man: '/avatar-auto-pipeline/assets/docka/standarddocka_man.glb', kvinna: '/avatar-auto-pipeline/assets/docka/standarddocka_kvinna.glb', bord: '/avatar-auto-pipeline/assets/bord/standardbord_nara.glb', bord23: '/avatar-auto-pipeline/assets/bord/standardbord_nara23.glb', stol: '/avatar-auto-pipeline/assets/stol/dealerstol.glb'};
+/**
+ * Bordet en rörelse är ritad för, efter vilken docka rörelsen säger att den är gjord för (fältet `doll` i filen).
+ * Standarddockans egna rörelser (dockorna man och kvinna) sitter kvar på kortplanens plats, och bordets kant och
+ * bricka kommer till dem: kanten 23 cm bakom spelets kant (Jakob 2026-11-26: inte trångt framför dealern). De äldre
+ * rörelserna (paow och den vita dockan) visas vid bordet de lagades för, med kanten 15 cm bakom, tills de är utbytta.
+ */
+export const bordFor = (rorelsensDocka: string | null | undefined) => rorelsensDocka === 'man' || rorelsensDocka === 'kvinna' ? MODELLER.bord23 : MODELLER.bord;
 /** Spelets kant mot dealern: mitten av dealerns bordskant på filten (dockans linsvärld). */
 export const KANT = ROOM_EDGE as V3;
 /** Hur många grader huvudets sikte lyfts över blickpunkten när han ser in i kameran (pose nedan). Satt efter bild 2026-11-26: vid 10 och 22 grader såg han under kameran, vid 34 in i den. */
@@ -88,7 +95,7 @@ export type Scen = {
  *  lägen i rummet: kroppen ställs efter dem, så kvinnan gör samma rörelser som mannen utan att något görs om. */
 export type Docka = 'man' | 'kvinna';
 
-export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: number[], vila: Frame, laddar: (text: string) => void, utseende: Utseende = 'vanligt', docka: Docka = 'man'): Promise<Scen> {
+export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: number[], vila: Frame, laddar: (text: string) => void, utseende: Utseende = 'vanligt', docka: Docka = 'man', rorelsensDocka?: string | null): Promise<Scen> {
   const nyckel = utseende === 'nyckel';
   const renderer = new T.WebGLRenderer({canvas, antialias: true}); renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   // Ljuset, bakgrunden, golvet och bildens tonkurva är standardrummets; nyckelfärgerna får en ren bakgrund och inget golv.
@@ -150,7 +157,7 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
   // Blenders), utom med nyckelfärgerna, där spårkortet står kvar. Måtten: planens kortplatser mot bordets tryckta
   // (millimeter), bordets kant mot dealern och skivans överkant.
   let bordRot: T.Object3D | null = null; const markeringar: T.Object3D[] = [];
-  const bord = loadTable(MODELLER.bord, scene, plan, {key: nyckel ? {table: NYCKEL.bord, cardBack: NYCKEL.kortrygg} : undefined, progress: share => laddar(`bordet ${Math.round(share * 100)} %`)}).then(b => {
+  const bord = loadTable(bordFor(rorelsensDocka), scene, plan, {key: nyckel ? {table: NYCKEL.bord, cardBack: NYCKEL.kortrygg} : undefined, progress: share => laddar(`bordet ${Math.round(share * 100)} %`)}).then(b => {
     if (b.card && !nyckel) { card.remove(enkelt); card.add(b.card); }
     bordRot = b.root; markeringar.push(...b.marks);
     return {platser: b.places, maxMm: b.maxMm, kortP4Mm: b.cardP4Mm, kantZ: b.edgeZ, skivaY: b.topY};

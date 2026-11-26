@@ -16,7 +16,10 @@ Valet rättar också kanten och brickan: brickan sitter nedsänkt ända ute i de
 kant där dealern sitter, i linje med kanten på båda sidor och med mässingslisten obruten längs hela kanten, i stället
 för ett hack som är öppet bakåt; sargen är hel under brickan och når filten; rullen följer sidorna och slutar rundad
 vid dealerkanten; brickan har rundade rännor där markerna ligger (rullarna stack annars ut genom brickans botten).
-Det skriver assets/bord/standardbord_nara.blend/.glb; utan valet byggs allt exakt som förut.
+Det skriver assets/bord/standardbord_nara.blend/.glb för 0.15 (bordet de äldre rörelserna visas vid) och
+standardbord_nara<cm>.blend/.glb för ett annat avstånd (--kant-bak 0.23 skriver standardbord_nara23: bordet för
+standarddockans egna rörelser, där dockan sitter kvar på kortplanens plats och kanten kommer till den, Jakob
+2026-11-26); utan valet byggs allt exakt som förut.
 
 Skon är densamma i alla byggen: kilen ur standard.yaml och framtill en dealerskos frontplatta (sko_front) med en
 U-formad öppning, framför skons kort och med springan under (måtten och varför i SKO_FRONT nedan).
@@ -614,7 +617,9 @@ def main():
         em['kant_bak'] = KANT_BAK  # dealerkanten vid Y = +kant_bak; origo ligger kvar under standardbordets kant
 
     ASSETS.mkdir(parents=True, exist_ok=True)
-    namn = 'bord_02' if MODELL == 'bord-02' else ('standardbord_nara' if NARA else 'standardbord')
+    # Ett annat avstånd än 0,15 m får sitt eget namn (standardbord_nara23), så att bordet de äldre rörelserna visas vid står kvar.
+    nara_namn = 'standardbord_nara' if abs(KANT_BAK - 0.15) < 1e-9 else 'standardbord_nara%d' % round(KANT_BAK * 100)
+    namn = 'bord_02' if MODELL == 'bord-02' else (nara_namn if NARA else 'standardbord')
     bpy.ops.file.make_paths_relative() if bpy.data.filepath else None
     bpy.ops.wm.save_as_mainfile(filepath=str(ASSETS / (namn + '.blend')), relative_remap=True)
     bpy.ops.file.make_paths_relative(); bpy.ops.wm.save_mainfile()
