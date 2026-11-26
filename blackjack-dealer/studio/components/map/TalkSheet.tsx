@@ -23,10 +23,10 @@ function LineChip({ line, on, onClick }: { line: TalkLine; on: boolean; onClick:
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      title={`${line.text}${line.clip ? ` · spelas: ${takeWord(line.clip)}` : " · ingen talfilm: spelet visar texten"}${line.takes ? ` · ${line.takes} ${line.takes === 1 ? "film" : "filmer"}` : ""}`}
+      title={`${line.text}${line.clip ? ` · spelas: ${takeWord(line.clip)}${line.noFile ? ", men filmen finns inte på den här datorn" : ""}` : " · ingen talfilm: spelet visar texten"}${line.takes ? ` · ${line.takes} ${line.takes === 1 ? "film" : "filmer"}` : ""}`}
       className={cn(
         "h-7 rounded-full border px-2.5 text-[12px] leading-none transition-colors duration-150",
-        on ? "border-brass/70 bg-brass/10 text-ink" : line.clip ? "border-line-strong text-dim hover:bg-raised hover:text-ink" : "border-dashed border-[#ef8b8b]/60 text-faint hover:text-dim",
+        on ? "border-brass/70 bg-brass/10 text-ink" : line.clip && !line.noFile ? "border-line-strong text-dim hover:bg-raised hover:text-ink" : line.clip ? "border-dashed border-anmarkning/70 text-faint hover:text-dim" : "border-dashed border-[#ef8b8b]/60 text-faint hover:text-dim",
       )}
     >
       {line.name}
@@ -67,7 +67,7 @@ export function TalkSheet({
     <Sheet open={open && !!talk} onOpenChange={(o) => !o && onClose()} title="Tal" subtitle={talk ? `${tree} · ${talkWord(talk)} repliker` : ""} width={TALK_SHEET_W}>
       {talk ? (
         <div className="flex flex-col gap-4">
-          {line?.clip && line.video ? (
+          {line?.clip && line.video && !line.noFile ? (
             <figure className="flex flex-col gap-2">
               <FilmPlayer
                 key={line.clip}
@@ -101,8 +101,8 @@ export function TalkSheet({
               <span className="flex flex-col gap-1.5">
                 {line ? <span className="text-sm text-dim">”{line.text}”</span> : null}
                 <span className="text-xs text-faint">
-                  Ingen talfilm i {tree}
-                  {talk.have === 0 && elsewhere ? `. ${elsewhere}.` : ": spelet visar texten."}
+                  {line?.noFile ? `${takeWord(line.clip!)} är ${tree}s film för repliken, men filen finns inte på den här datorn` : `Ingen talfilm i ${tree}`}
+                  {talk.have === 0 && elsewhere ? `. ${elsewhere}.` : line?.noFile ? "." : ": spelet visar texten."}
                 </span>
               </span>
             </div>

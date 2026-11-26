@@ -20,8 +20,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   (`paow-ankare-2-3-d`), sista bild samma med kortet på platsen, dockans byggda film som referens. Från A2.1
   (`paow-nyp-tatuerad`) underkände han fem av sex givar 2026-11-24 ("MÅSTE FINNAS METODFEL"). A2.2 och
   landningsbilderna (A3) är arkiverade (2026-11-23, 2026-11-24).
-- **Karta:** fyra träd: Tatuerad (spelas, skjuter kortet från A2.3, 21 av 36 steg), Tatuerad nyp (byggs, nyper från
-  A2.1), Casino och Ingången (vilar). Kompositionen `tatuerad-skjut-nyp` binder de två tatuerade (2026-11-24).
+- **Karta:** två träd (2026-11-26): Casino (vilar; filmen före spelet är dess början, förut trädet Ingången) och
+  Tatuerad (spelas) med två grenar från samma A1: A2.3, skjutet (21 av 36 steg, det spelet spelar), och A2.1, nypet
+  (`tatuerad-nyp`, byggs, 9 av 36). En lista överst väljer ett träd, nätet (Alla träd) eller en komposition;
+  `tatuerad-skjut-nyp` bestämmer hur ofta varje gren spelas.
 - **Kort:** ett kort per sida med märkena överallt; kortplanen i verkligt perspektiv genom B-linsen, som spelet och
   scenen följer. Det styva kortet utan vit kant har hans ja i Scen (2026-11-23).
 - **Studion:** ramen har neutral grafit och en meny med ett namn per rad (2026-11-25), väntar på hans ord om
@@ -75,8 +77,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    A2.1-klippen, som han själv vill välja (2026-11-23); en giv tar 2 s som förval; händerna fria i givarna;
    handleden i vändningen; P7.C1 (hans `dealer3d/standard/paow-p7c1.json` ger vändningen 12 rutor, den behöver 20: han
    sparar om den); en kropp som lutar sig mot plats 1–2; SAM-dockan ("Ja bygg den riktiga SAM-dockan", 2026-11-23).
-3. **Karta:** bryggorna för Tatuerad nyp (A2.1 → A1, A2.1 ↔ A2.3); menyn görs om, träden som nivåer man rullar mellan
-   och kameran som en dimension (2026-11-23); kort 3–7 återbrukar bara kort 2.
+3. **Karta:** bryggorna för nypet (A2.1 → A1, A2.1 ↔ A2.3); kameran som en dimension (2026-11-23); kort 3–7
+   återbrukar bara kort 2. Granskas "Gör primär" (`studio/lib/decide.ts`) och Materials "äldre A2.3"
+   (`studio/components/material/Rows.tsx`) läser ännu hela banken och inte trädets eget urval, som Karta nu gör.
 4. **Spelet:** bara trädet när filmerna finns (lånen stryks), och en hel giv får hans ja i spelstorlek. För talet är
    läpparna i realtid på hans RunPod huvudmålet (2026-11-17), och talfilmerna förs in i nodträdet (2026-11-24). Hans
    idé, obyggd: munnen ur hennes egen leendefilm `paow-vila-03-01`. Mungiporna och överläppen är inte lösta i hans ögon.
@@ -138,7 +141,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   nära bordet standarddockan ska sitta (förslag: axlarna 0,25 m bakom kanten).
 - Det som bara finns på den stationära, och som registren behåller tills han har bestämt om det kopieras hit eller görs
   nytt: 82 bra tagningar utan film (Tatuerad 54, varav alla 25 talfilmer, vilan `paow-vila-tat-09-01` och fem delade
-  vilor; Casinos och Ingångens 25 talfilmer; 3 utanför träden), ankarnas originalfiler, keystones och hans egna
+  vilor; Casinos talfilmer (24 av 25); 3 utanför träden), ankarnas originalfiler, keystones och hans egna
   bilder, kortets textur, 43 av dockans referensfilmer och spelets fyra munlappar. En beställning behöver texturen och
   dockans filmer.
 - Återskapat här ur Runways leveranser (2026-11-25; Runway behåller en leverans cirka fem dygn, och den hämtas gratis

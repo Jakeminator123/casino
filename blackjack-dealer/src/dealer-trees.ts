@@ -19,15 +19,45 @@
 //
 // A step's state: finns (a film Primär, Godkänd or Variant, his or given for him), prov (a film delivered and not yet judged,
 // or an order delivered that is not in the bank yet), saknas (nothing, or only films judged Inte bra). Verdicts and Primär
-// are read, never set. The film a step shows among several approved is the one the game plays there in the tree (gameFilm).
+// are read, never set. The film a step shows is the one the game plays there in the tree (gameFilm); another anchor's film
+// counts for the step only where the game plays it there. A film whose file is not on this machine is said so (noFile).
+//
+// Ways (Jakob 2026-11-26: "Tatuerad och Tatuerad nyp ... blir en och samma, för det enda som skiljer är väl bara att A1 kan
+// förgrena sig till A2.1 eller A2.3"): a tree may have more than one way of dealing, each from its own anchor at the shoe on the
+// same A1. The tree's own anchors are its first way (its id, what the game plays when the tree is played); every further way
+// (TreeDef.ways) has an id of its own, which the game (?trad=<id>), the compositions and Bordet take as they take a tree's
+// (treeList draws it as a tree of its own, wayOf naming the tree). A film placed in the tree goes to the way whose anchor at the
+// shoe it stands on; a film on none of them (rest, talk, the hole card) is the tree's and every way's (TreeTake.also).
+// An anchor may be the same picture as another with only the card's mark in the shoe's window changed (markOf, Jakob
+// 2026-11-26): it is the same node, so the films on the one are never "older" for the other, and the node shows the one that
+// holds in Material (TreeNode.films names the one the films stand on).
 import { HOLE_CARD, REVEAL_NODE, buildGraph, dealHub, parseEdge, resolveRound, type BankData, type Graph, type Segment } from './clip-graph.ts';
 import { SEAT_HUB, hubChain, judgedBank } from './game-director.ts';
 
 // ── The register ────────────────────────────────────────────────────────────
 export type TreeState = 'spelas' | 'byggs' | 'vilar';
-export type TreeAnchor = { entry: string; seat?: number };
-export type TreeDef = { id: string; name: string; state: TreeState; root: string; anchors: TreeAnchor[]; shares?: string; opening?: string; note?: string };
+/** markOf: the anchor of the same node this picture is, with only the card's mark in the shoe's window changed. */
+export type TreeAnchor = { entry: string; seat?: number; markOf?: string };
+/** A further way of dealing of a tree: its own anchors at the shoe (one A2.x), on the tree's A1. */
+export type TreeWay = { id: string; name: string; state: TreeState; anchors: TreeAnchor[]; note?: string };
+/** wayOf: set on a way drawn as a tree of its own (treeList), the id of the tree it is a way of; never in the register. */
+export type TreeDef = { id: string; name: string; state: TreeState; root: string; anchors: TreeAnchor[]; ways?: TreeWay[]; shares?: string; opening?: string; note?: string; wayOf?: string };
 export type TreeRegister = { schemaVersion: 1; about: string; dealers: Record<string, { trees: TreeDef[] }> };
+
+// ── Ways ────────────────────────────────────────────────────────────────────
+/** A way of a tree as a tree of its own: the tree's A1 and the way's anchors, its own id, name and state. */
+export function wayTree(tree: TreeDef, way: TreeWay): TreeDef {
+  const root = tree.anchors.filter((a) => a.entry === tree.root);
+  return { id: way.id, name: way.name, state: way.state, root: tree.root, anchors: [...root, ...way.anchors], ...(way.note ? { note: way.note } : {}), wayOf: tree.id };
+}
+/** The register's trees with each further way after its tree, as trees of their own: what the views, the game and Bordet list. */
+export const treeList = (trees: readonly TreeDef[]): TreeDef[] => trees.flatMap((t) => [t, ...(t.ways ?? []).map((w) => wayTree(t, w))]);
+/** Every anchor of a tree, its ways' too: what a film's pictures are placed by. */
+export const allAnchors = (tree: Pick<TreeDef, 'anchors' | 'ways'>): TreeAnchor[] => [...tree.anchors, ...(tree.ways ?? []).flatMap((w) => w.anchors)];
+/** The pairs of the same picture, the one with the card's mark first: [mark, the anchor it is]. */
+export const markPairs = (tree: Pick<TreeDef, 'anchors' | 'ways'>): [string, string][] => allAnchors(tree).flatMap((a) => (a.markOf ? [[a.entry, a.markOf] as [string, string]] : []));
+/** A word no tree or way may have as its id: Karta's address for all the trees at once (?trad=alla). */
+export const ALL_TREES = 'alla';
 /** A picture of Material (data/media-roles.json) as far as a tree needs it. */
 export type TreeEntry = { id: string; role: string; node?: string; card?: string; state?: string; builtOn?: string[]; name?: string };
 
@@ -103,7 +133,7 @@ export function measure(hub: string): MeasureStep[] {
 }
 
 // ── The tree's nodes ────────────────────────────────────────────────────────
-/** The tree whose anchors and films a tree plays: the one it shares (Ingången plays the Casino's), else itself. */
+/** The tree whose anchors and films a tree plays: the one it shares (no tree does since Ingången became the Casino's opening, 2026-11-26), else itself. */
 export const homeOf = (tree: TreeDef, trees: readonly TreeDef[]): TreeDef => (tree.shares ? (trees.find((t) => t.id === tree.shares) ?? tree) : tree);
 
 /** The tree's levels from one camera: each node its anchors seen from there stand for, with the first anchor given for it. */
@@ -128,8 +158,21 @@ export function treeHubs(tree: TreeDef, entries: ReadonlyMap<string, TreeEntry>,
 }
 
 export type NodeRole = 'vila' | 'skon' | 'kort' | 'halkort';
-/** A node of the drawn tree: its picture's entry in Material (null: no picture), and that picture's state there. */
-export type TreeNode = { node: string; code: string; role: NodeRole; entry: string | null; state: string | null };
+/**
+ * A node of the drawn tree: its picture's entry in Material (null: no picture), and that picture's state there. films: the
+ * picture the tree's films stand on, when the node shows the same picture with the card's mark that holds instead (markOf).
+ */
+export type TreeNode = { node: string; code: string; role: NodeRole; entry: string | null; state: string | null; films?: string };
+
+/**
+ * The picture a node shows: its first anchor (the one its films stand on), or the same picture with the card's mark (markOf)
+ * when that is the one that holds in Material and the first does not.
+ */
+function shownPicture(tree: TreeDef, entries: ReadonlyMap<string, TreeEntry>, first: string | null): { entry: string | null; films?: string } {
+  if (!first || entries.get(first)?.state === 'gäller') return { entry: first };
+  const mark = tree.anchors.find((a) => a.markOf === first && entries.get(a.entry)?.state === 'gäller');
+  return mark ? { entry: mark.entry, films: first } : { entry: first };
+}
 
 /**
  * A card's picture in the tree from one camera: the tree's own A3 for the card, else a landing in Material made from the tree's
@@ -152,7 +195,10 @@ function cardPicture(tree: TreeDef, at: Map<string, string>, entries: ReadonlyMa
  */
 export function treeNodes(tree: TreeDef, entries: ReadonlyMap<string, TreeEntry>, camera = STRAIGHT_CAMERA): TreeNode[] {
   const at = levels(tree, entries, camera), { hub, others } = treeHubs(tree, entries, camera);
-  const node = (n: string, role: NodeRole, entry: string | null): TreeNode => ({ node: n, code: nodeCode(n), role, entry, state: entry ? (entries.get(entry)?.state ?? null) : null });
+  const node = (n: string, role: NodeRole, first: string | null): TreeNode => {
+    const { entry, films } = shownPicture(tree, entries, first);
+    return { node: n, code: nodeCode(n), role, entry, state: entry ? (entries.get(entry)?.state ?? null) : null, ...(films ? { films } : {}) };
+  };
   const root = entries.has(tree.root) && cameraOf(tree.anchors.find((a) => a.entry === tree.root)) === camera ? tree.root : null;
   return [
     node('IDLE', 'vila', at.get('IDLE') ?? root),
@@ -169,31 +215,40 @@ export type Verdict = 'primar' | 'godkand' | 'variant' | 'vantar' | 'underkand';
 export const GOOD: readonly Verdict[] = ['primar', 'godkand', 'variant'];
 const RANK: Record<Verdict, number> = { primar: 4, godkand: 3, variant: 2, vantar: 1, underkand: 0 };
 /**
- * A take of the bank: the tree it is placed in (null: none), its two nodes with the anchor variant put back, its verdict.
- * seat: the camera it is seen from when not the straight one (filmCamera).
+ * A take of the bank: the tree (or way) it is placed in (null: none), its two nodes with the anchor variant put back, its
+ * verdict. seat: the camera it is seen from when not the straight one (filmCamera). also: the tree's further ways, for a film
+ * that stands on none of the tree's anchors at the shoe (rest, talk, the hole card): it is theirs too. film: false when its
+ * file is not on this machine (the bank's media names none). talk: a rest film with a line said over it (Karta's Tal).
  */
-export type TreeTake = { id: string; tree: string | null; from: string; to: string; verdict: Verdict; byJakob: boolean; provisional: boolean; archived?: boolean; seat?: number };
+export type TreeTake = { id: string; tree: string | null; from: string; to: string; verdict: Verdict; byJakob: boolean; provisional: boolean; archived?: boolean; seat?: number; also?: string[]; film?: boolean; talk?: boolean };
+/** Is the take one of the tree's (or way's) own: placed in it, or a film of its tree that every way shares. */
+export const isOwn = (home: string, t: Pick<TreeTake, 'tree' | 'also'>): boolean => t.tree === home || !!t.also?.includes(home);
 /** An order delivered that is not in the bank yet: the tree its pictures place it in, its step, and its camera as a take's. */
 export type Delivery = { order: string; tree: string | null; from: string; to: string; title?: string; seat?: number };
 export type StepState = 'finns' | 'prov' | 'saknas';
-export const STEP_STATES: readonly StepState[] = ['finns', 'prov', 'saknas'];
 /**
  * A step of a tree: the film it shows (take, its verdict and whose word), via: the other anchor at the shoe it is
  * given from when not the tree's own, takes: the tree's films on the step (archived left out), ids: those films and its
  * stand-ins' (what Karta's films panel lists), the shown one first, deliveries: orders delivered for it that are not in the bank.
  * The shown film is the one the game plays on the step in the tree (gameFilm), so a return is the one that continues the
  * deal shown for its card; where the game plays none of the step's approved films, its best by verdict, the tree's own
- * before a stand-in's, and with none approved the tree's first film that waits for his verdict.
+ * before a stand-in's, and with none approved the tree's first film that waits for his verdict. With the game's graph a
+ * stand-in counts only where the game plays it (Casino's A2.2 for P6C1); without it, as the verdicts say. noFile: the shown
+ * film's file is not on this machine (the game has a gap there here).
  */
-export type TreeStep = MeasureStep & { name: string; state: StepState; take: string | null; verdict: Verdict | null; byJakob: boolean; provisional: boolean; via: string | null; takes: number; ids: string[]; deliveries: string[] };
+export type TreeStep = MeasureStep & { name: string; state: StepState; take: string | null; verdict: Verdict | null; byJakob: boolean; provisional: boolean; via: string | null; takes: number; ids: string[]; deliveries: string[]; noFile?: boolean };
 
 // ── The film a step shows: the game's own choice ────────────────────────────
 /**
  * The takes of a tree's cut (TreeCut own and drop): those placed in the tree whose films it plays, and those placed in another
  * tree of the dealer. A take seen from another seat is dropped also in its own tree: the game plays the straight camera.
  */
-export function cutTakes(home: string, takes: readonly Pick<TreeTake, 'id' | 'tree' | 'seat'>[]): { own: string[]; drop: string[] } {
-  return { own: takes.filter((t) => t.tree === home && !fromSeat(t)).map((t) => t.id), drop: takes.filter((t) => t.tree !== null && (t.tree !== home || fromSeat(t))).map((t) => t.id) };
+export function cutTakes(home: string, takes: readonly Pick<TreeTake, 'id' | 'tree' | 'seat' | 'also'>[], shared = false): { own: string[]; drop: string[] } {
+  // shared: a way played alone (?trad=<way>, Karta) keeps the films its tree shares on A1 (TreeTake.also). A composition's cut
+  // (tools/dealer-composition.ts) asks without: there the tree itself brings them, and a film in two trees' own would be left
+  // out of both (src/composition.ts treeBank).
+  const mine = (t: Pick<TreeTake, 'tree' | 'seat' | 'also'>) => (shared ? isOwn(home, t) : t.tree === home) && !fromSeat(t);
+  return { own: takes.filter(mine).map((t) => t.id), drop: takes.filter((t) => t.tree !== null && !mine(t)).map((t) => t.id) };
 }
 /** The game's graph of one tree: the bank cut as ?trad=<id> cuts it (cutBank) and judged as the game reads it (judgedBank; src/game-page.ts). */
 export function treeGame(bank: BankData, dealer: string, cut: { hub: string; own: string[]; drop: string[] }): Graph {
@@ -210,6 +265,8 @@ const inGame = (hub: string, node: string): string => (hub === 'READY' ? node : 
  */
 function gameFilm(game: Graph, hub: string, m: MeasureStep, dealt: { take: string; via: string | null } | null = null): string | null {
   const own = (s: Segment | undefined) => (s?.take && s.film === s.edge ? s.take.id : null);
+  // The rest is chance among the rest films that have a file (pickIdle): no one film is the game's, so none is named here.
+  if (m.kind === 'vila') return null;
   if (m.kind !== 'giv' && m.kind !== 'retur') return own(resolveRound(game, [{ from: inGame(hub, m.from), to: inGame(hub, m.to) }])[0]);
   const card = m.card!, seat = dealHub(card, SEAT_HUB[game.dealer]);
   const pose = dealt ? (dealt.via ? inGame(hub, dealt.via) : 'READY') : seat !== 'READY' && hubChain(game, seat, card) ? seat : 'READY';
@@ -229,17 +286,23 @@ export function treeSteps(hub: string, others: readonly string[], takes: readonl
     const stand = m.from === hub || m.to === hub
       ? others.flatMap((o) => live.filter((t) => t.from === (m.from === hub ? o : m.from) && t.to === (m.to === hub ? o : m.to)).map((t) => ({ t, via: o })))
       : [];
-    const ranked = [...own.map((t) => ({ t, via: null as string | null })), ...stand].sort((a, b) => RANK[b.t.verdict] - RANK[a.t.verdict] || Number(!!a.via) - Number(!!b.via));
+    // By verdict, the tree's own before a stand-in, and a film with its file on this machine before one without; the rest is
+    // chance among the rest films that have a file (a talk film is said, not chanced on), so there those come first.
+    const file = (x: { t: TreeTake }) => Number(x.t.film !== false), calm = (x: { t: TreeTake }) => Number(x.t.film !== false && !x.t.talk);
+    const ranked = [...own.map((t) => ({ t, via: null as string | null })), ...stand].sort((a, b) =>
+      (m.kind === 'vila' ? calm(b) - calm(a) : 0) || RANK[b.t.verdict] - RANK[a.t.verdict] || Number(!!a.via) - Number(!!b.via) || file(b) - file(a));
     const approved = ranked.filter((x) => GOOD.includes(x.t.verdict));
-    const played = game && approved.length > 1 ? gameFilm(game, hub, m, m.kind === 'retur' ? dealt.get(m.card!) : null) : null;
-    const good = approved.find((x) => x.t.id === played) ?? approved[0] ?? null;
+    const played = game && approved.length ? gameFilm(game, hub, m, m.kind === 'retur' ? dealt.get(m.card!) : null) : null;
+    // With the game's graph a stand-in counts only where the game plays it: another anchor's film the game never plays on the
+    // step is no film of it (a way of the tree that the tree's game does not deal from).
+    const good = approved.find((x) => x.t.id === played) ?? approved.find((x) => !game || !x.via) ?? null;
     const sent = deliveries.filter((d) => d.from === m.from && d.to === m.to).map((d) => d.order);
     const waiting = own.find((t) => t.verdict === 'vantar') ?? null;
     const shown = good ?? (waiting ? { t: waiting, via: null } : null);
     const state: StepState = good ? 'finns' : waiting || sent.length ? 'prov' : 'saknas';
     if (m.kind === 'giv' && shown) dealt.set(m.card!, { take: shown.t.id, via: shown.via });
     const ids = [...(shown ? [shown.t.id] : []), ...ranked.filter((x) => x.t !== shown?.t).map((x) => x.t.id)];
-    return { ...m, name: stepName(m.from, m.to), state, take: shown?.t.id ?? null, verdict: shown?.t.verdict ?? null, byJakob: !!shown?.t.byJakob, provisional: !!shown?.t.provisional, via: shown?.via ?? null, takes: own.length, ids, deliveries: sent };
+    return { ...m, name: stepName(m.from, m.to), state, take: shown?.t.id ?? null, verdict: shown?.t.verdict ?? null, byJakob: !!shown?.t.byJakob, provisional: !!shown?.t.provisional, via: shown?.via ?? null, takes: own.length, ids, deliveries: sent, ...(shown?.t.film === false ? { noFile: true } : {}) };
   });
 }
 
@@ -284,7 +347,43 @@ export type TreeView = {
   count: TreeCount;
   /** The seats, other than the straight camera's, the tree has an anchor, a film or a delivery from. Left out where it has none. */
   cameras?: CameraView[];
+  /**
+   * The bank as the game plays the tree (?trad=<id>, cutBank with hub): its own takes and those of the dealer's other trees and
+   * ways. Karta reads a step's films over it, so that what plays, Primär and "Gör primär" are the tree's and no other tree's.
+   */
+  cut?: { own: string[]; drop: string[] };
+  /**
+   * Each of its other anchors at the shoe (others) measured on its own, with the tree's films that stand on it: Karta's net
+   * draws them as branches of A1 (the Casino's A2.2 has its entry, exit and two deals). Left out where there are none.
+   */
+  otherSteps?: { hub: string; steps: TreeStep[] }[];
+  /**
+   * On a tree with further ways, its own view lists every way of it, its own first (the one hub names, which the game plays):
+   * each way's id (its view in the answer, ?trad=<id>), anchor at the shoe, name, state and number. Left out where it has none.
+   */
+  ways?: WayRef[];
 };
+/** A way of a tree as its tree's view lists it (TreeView.ways). */
+export type WayRef = { id: string; hub: string; name: string; state: TreeState; count: TreeCount };
+/** The ways of the tree a view is (or is a way of), as the answer has them: the tree's own view first. */
+export function waysOf(views: readonly TreeView[], id: string): TreeView[] {
+  const root = views.find((v) => v.tree.id === id)?.tree.wayOf ?? id;
+  return views.filter((v) => v.tree.id === root || v.tree.wayOf === root);
+}
+/**
+ * A deal to a card in a tree, from one of its anchors at the shoe: way: the way's id (its view, ?trad=); hub: the anchor at the
+ * shoe; helper: an anchor of the tree that only stands in for some steps (otherSteps: the Casino's A2.2); state, take, verdict,
+ * via and noFile as the deal's step says them; back: the film of the return the step shows after it.
+ */
+export type CardDeal = { way: string; hub: string; helper: boolean; state: StepState; take: string | null; verdict: Verdict | null; via: string | null; back: string | null; noFile?: boolean };
+/** Every deal to `card` in the tree `id` (or the tree a way `id` is of), way by way, the game's way first (Inspelning, Karta). */
+export function dealsTo(views: readonly TreeView[], id: string, card: string): CardDeal[] {
+  const of = (way: string, hub: string, helper: boolean, steps: readonly TreeStep[]): CardDeal[] => {
+    const deal = steps.find((s) => s.kind === 'giv' && s.card === card), back = steps.find((s) => s.kind === 'retur' && s.card === card);
+    return deal ? [{ way, hub, helper, state: deal.state, take: deal.take, verdict: deal.verdict, via: deal.via, back: back?.take ?? null, ...(deal.noFile ? { noFile: true } : {}) }] : [];
+  };
+  return waysOf(views, id).flatMap((v) => [...of(v.tree.id, v.hub, false, v.steps), ...(v.otherSteps ?? []).flatMap((o) => of(v.tree.id, o.hub, true, o.steps))]);
+}
 
 /**
  * One tree with its nodes, steps and number, from the films placed in the trees and the orders delivered outside the bank.
@@ -292,9 +391,9 @@ export type TreeView = {
  * Nodes, steps and number are the straight camera's; what is seen from another seat stands in cameras.
  */
 export function treeView(dealer: string, tree: TreeDef, trees: readonly TreeDef[], entries: ReadonlyMap<string, TreeEntry>, takes: readonly TreeTake[], deliveries: readonly Delivery[] = [], bank: BankData | null = null): TreeView {
-  const home = homeOf(tree, trees), { hub, others } = treeHubs(home, entries);
-  const game = bank ? treeGame(bank, dealer, { hub, ...cutTakes(home.id, takes) }) : null;
-  const mine = takes.filter((t) => t.tree === home.id), sent = deliveries.filter((d) => d.tree === home.id);
+  const home = homeOf(tree, trees), { hub, others } = treeHubs(home, entries), cut = cutTakes(home.id, takes, true);
+  const game = bank ? treeGame(bank, dealer, { hub, ...cut }) : null;
+  const mine = takes.filter((t) => isOwn(home.id, t)), sent = deliveries.filter((d) => d.tree === home.id);
   const from = (camera: number) => (x: { seat?: number }) => (x.seat ?? STRAIGHT_CAMERA) === camera;
   const steps = treeSteps(hub, others, mine.filter(from(STRAIGHT_CAMERA)), sent.filter(from(STRAIGHT_CAMERA)), game);
   const seats = [...new Set([...home.anchors.map(cameraOf), ...[...mine, ...sent].map((x) => x.seat ?? STRAIGHT_CAMERA)])].filter((c) => c !== STRAIGHT_CAMERA).sort((a, b) => a - b);
@@ -302,7 +401,8 @@ export function treeView(dealer: string, tree: TreeDef, trees: readonly TreeDef[
     const shoe = treeHubs(home, entries, seat), made = treeSteps(shoe.hub, shoe.others, mine.filter(from(seat)), sent.filter(from(seat)));
     return { seat, others: shoe.others, nodes: treeNodes(home, entries, seat), steps: made, count: treeCount(made) };
   });
-  return { dealer, tree, home: home.id, hub, others, nodes: treeNodes(home, entries), steps, count: treeCount(steps), ...(cameras.length ? { cameras } : {}) };
+  const otherSteps = others.map((o) => ({ hub: o, steps: treeSteps(o, [], mine.filter(from(STRAIGHT_CAMERA))) }));
+  return { dealer, tree, home: home.id, hub, others, nodes: treeNodes(home, entries), steps, count: treeCount(steps), ...(cameras.length ? { cameras } : {}), ...(bank ? { cut } : {}), ...(otherSteps.length ? { otherSteps } : {}) };
 }
 
 /**
@@ -322,9 +422,9 @@ export function cameraMade(view: TreeView, camera: number): { pictures: number; 
   return { pictures: pictures.length, films: v.count.have, waiting: v.steps.filter((s) => s.state === 'prov').length, first: pictures[0] ?? null };
 }
 
-/** The tree a view opens on when none is asked for: the first the game plays (not one that shares another), else the first. */
-export function defaultTree<T extends Pick<TreeDef, 'id' | 'state' | 'shares'>>(trees: readonly T[]): T | null {
-  return trees.find((t) => t.state === 'spelas' && !t.shares) ?? trees[0] ?? null;
+/** The tree a view opens on when none is asked for: the first the game plays (not one that shares another, not a way), else the first. */
+export function defaultTree<T extends Pick<TreeDef, 'id' | 'state' | 'shares' | 'wayOf'>>(trees: readonly T[]): T | null {
+  return trees.find((t) => t.state === 'spelas' && !t.shares && !t.wayOf) ?? trees.find((t) => !t.wayOf) ?? trees[0] ?? null;
 }
 
 /** GET /api/trees?dealer=<id>: every tree of the dealer, drawn. */
@@ -394,15 +494,15 @@ export const playedTrees = (trees: readonly TreeDef[]): Set<string> => new Set(t
  * The takes placed in a tree the game without a tree word does not play, and those of any tree seen from another seat than the
  * straight camera's. A take placed in no tree (Borta, an older attempt) stays.
  */
-export function unplayedTakes(trees: readonly TreeDef[], takes: readonly Pick<TreeTake, 'id' | 'tree' | 'seat'>[]): string[] {
+export function unplayedTakes(trees: readonly TreeDef[], takes: readonly Pick<TreeTake, 'id' | 'tree' | 'seat' | 'also'>[]): string[] {
   const played = playedTrees(trees);
-  return takes.filter((t) => t.tree !== null && (!played.has(t.tree) || fromSeat(t))).map((t) => t.id);
+  return takes.filter((t) => t.tree !== null && ((!played.has(t.tree) && !t.also?.some((w) => played.has(w))) || fromSeat(t))).map((t) => t.id);
 }
 /**
- * The cut the game without a tree word plays (GameCut). Ingången shares the Casino's films, so the two are one played tree.
+ * The cut the game without a tree word plays (GameCut). A tree that shares another's films is one played tree with it.
  * hubOf: a tree's anchor at the shoe (treeHubs, as treeCut gives it for ?trad=).
  */
-export function playedCut(dealer: string, trees: readonly TreeDef[], takes: readonly Pick<TreeTake, 'id' | 'tree' | 'seat'>[], hubOf: (tree: TreeDef) => string): GameCut {
+export function playedCut(dealer: string, trees: readonly TreeDef[], takes: readonly Pick<TreeTake, 'id' | 'tree' | 'seat' | 'also'>[], hubOf: (tree: TreeDef) => string): GameCut {
   const played = [...playedTrees(trees)], one = played.length === 1 ? (trees.find((t) => t.id === played[0]) ?? null) : null;
   return { schemaVersion: 1, dealer, played, hub: one ? hubOf(one) : 'READY', own: one ? cutTakes(one.id, takes).own : [], drop: unplayedTakes(trees, takes) };
 }

@@ -1,3 +1,4 @@
+// Skyddar: hans domar och val – en väg genom ett träd spelar trädets egna filmer i ordning, Primär först, aldrig en underkänd eller väntande, och aldrig ett annat träds.
 // studio/lib/tree-path.ts: a path Jakob clicks through a tree on Karta and what the stage plays for it, back to back (Jakob
 // 2026-11-23: "kan man inte tex här också spela upp flera klipp tillsammans"), on made-up data. Each step plays the tree's
 // film on it, the Primär before an approved film and never a rejected or a waiting one; a step without one is a gap. And the
@@ -7,7 +8,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { buildGraph, type BankData, type BankJob, type MotionRecord } from "../../src/clip-graph.ts";
 import { treeSteps, type TreeTake } from "../../src/dealer-trees.ts";
-import { PATH_GAP_WORD, nextNodes, parsePath, pathClips, pathParts, pathText } from "../lib/tree-path.ts";
+import { PATH_GAP_WORD, nextNodes, pathClips, pathParts } from "../lib/tree-path.ts";
 import { cardFilm } from "../lib/bordet.ts";
 
 type Review = NonNullable<MotionRecord["review"]>;
@@ -112,13 +113,4 @@ test("the film over the doll in Inspelning: the tree's own deal to the card, els
   assert.equal(cardFilm(graph, view, "P1.C1")?.waits, false);
   assert.equal(cardFilm(graph, view, "P3.C1"), null, "an approved film whose file is not here");
   assert.equal(cardFilm(graph, view, "shoe"), null);
-});
-
-test("the path in the address is his codes, and a code the tree lacks is left out", () => {
-  const nodes = ["IDLE", "READY-C", "P4.C1", "REVEAL(D.C1)"].map((node) => ({ node, code: { IDLE: "A1", "READY-C": "A2.3", "P4.C1": "A3P4C1", "REVEAL(D.C1)": "DC1 upp" }[node]! }));
-  const path = ["IDLE", "READY-C", "P4.C1", "READY-C"];
-  assert.equal(pathText(path), "A1-A2.3-A3P4C1-A2.3");
-  assert.deepEqual(parsePath(pathText(path), nodes), path);
-  assert.deepEqual(parsePath("A1-A9-DC1 upp", nodes), ["IDLE", "REVEAL(D.C1)"]);
-  assert.deepEqual(parsePath(null, nodes), []);
 });

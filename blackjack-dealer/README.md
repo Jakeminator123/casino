@@ -69,7 +69,11 @@ Orden står i studions Ordlista (`studio/lib/words.ts`). Vyerna:
   Inspelning har en bild (Jakob 2026-11-25: "ett och samma läge", "allt i 3d"): dockans 3D-bord i en ram
   (`dealer3d/page/docka.html`), med planens kort på filten och utkastet synligt direkt; dockans reglage står i studions högerspalt under steg 2. Spara skriver bara `placements/default.json`;
   dockans rörelse sparas med Spara som standard (`dealer3d/standard/`).
-- **Karta**: dealerns träd, varje stegs Primär och sekundära filmer, kompositionerna och talet.
+- **Karta**: dealerns träd, valda i en lista överst (Alla träd, träden, kompositionerna). Ett träd ritas med sina bilder och
+  36 steg; ett träd med flera sätt att dela ut från samma A1 (Tatuerad: A2.3 och nypet från A2.1) har en grenväljare. Ett steg
+  visar sina filmer som spelet spelar dem i just det trädet (Primär, sekundära, Gör primär), och talet ligger på A1. Alla träd
+  (`?trad=alla`) är nätet: A1, grenarna till A2.1, A2.2 och A2.3 och stegen under dem, med sök, "bara där de skiljer sig" och
+  Sätt ihop till en komposition. Koden: `studio/components/map/`, träden ur `GET /api/trees` (`tools/dealer-tree.ts`).
 - **Granska**: Filmer (Jakobs domar) och Prov (provmapparna under `assets/proofs/`, `?prov=<mapp>`).
 - **Material** (vilka bilder som gäller), **Lipsync** (hur munnen görs, skrivskyddad), **Casino** (spelet med vald look).
 - I foten **Beslut** (det som väntar på Jakobs svar), **Ordlista**, och sidorna Ljud, Modeller och Grafik (prov).

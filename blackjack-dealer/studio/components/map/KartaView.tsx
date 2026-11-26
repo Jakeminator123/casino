@@ -1,15 +1,20 @@
 "use client";
 
-// Karta: the dealer's node trees. A row of trees at the top (TreeRow: a tab per tree with its A1), the chosen tree drawn with its
-// pictures and its 36 steps against his measure (TreeCanvas, from GET /api/trees), a step with a film opening its films
+// Karta: the dealer's node trees. One list at the top (TreeRow: Alla träd, each tree, each composition), the chosen tree drawn
+// with its pictures and its 36 steps against his measure (TreeCanvas, from GET /api/trees), a step with a film opening its films
 // (EdgeSheet: its Primär and secondary films, "Gör primär" on his click) and a step without one opening what an order of it
 // has and lacks (StepOrder). A click on a picture opens it large (StillViewer). Väg: he clicks pictures in order (A1, A2.3,
 // A3P4C1, A2.3; PathBar) and Spela plays the films of those steps back to back (PathPlayer, lib/tree-path.ts). What is chosen
 // lives in the address (?trad=…&steg=…&kant=…&tagning=…&vag=A1-A2.3-…), so a link opens a tree, a step, a take or a path;
-// /primara/ leads here. Several trees put together are a composition (?komposition=<id>, CompositionKarta): the row's
-// button "Kompositioner" lists them, and the open one is a tab beside the trees. Her talk is a group of its own on A1: the
+// /primara/ leads here. Several trees put together are a composition (?komposition=<id>, CompositionKarta), chosen in the
+// same list. Every tree at once is the net (?trad=alla, TreeNet.tsx). Her talk is a group of its own on A1: the
 // Tal chip opens the tree's lines and the talk film the game plays for each (TalkSheet, ?replik=<key>; lib/tree-talk.ts),
 // and the rest's films panel leaves the talk films out.
+// A tree with more than one way of dealing from its A1 (Tatuerad: A2.3 and A2.1, Jakob 2026-11-26) has a switch on the map
+// (WaySwitch): each way is drawn as the tree from its anchor at the shoe (?trad=<the way's id>), with its own number.
+// A step's films are read over the bank as the game plays the tree (TreeView.cut, src/dealer-trees.ts cutBank): what plays
+// there, the Primär and "Gör primär" are the tree's own and never another tree's (Jakob 2026-11-26: a film of the Casino's
+// A2.2 stood as "Spelas nu" in Tatuerad, and "Gör primär" there would have lowered the Casino's Primär).
 // The camera is one more dimension of a tree (Jakob 2026-11-23): Karta opens on seat 4's camera, the straight one, and the
 // strip at the map's left edge (CameraRail: a click, a drag or the wheel over it) changes to camera 1–7 (?kamera=2). The same
 // tree is then drawn with the pictures and films made from that seat (src/dealer-trees.ts cameraView), empty where nothing is.
@@ -17,15 +22,17 @@
 // map instead (BankKarta): every step of the bank with what the game plays on it, one film per seat.
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { ChevronRight, Route, Scan, ZoomIn, ZoomOut } from "lucide-react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { TARGETS, buildGraph } from "../../../src/clip-graph.ts";
-import { CAMERAS, STRAIGHT_CAMERA, cameraFromWord, cameraMade, cameraView, nodeCode, type TreeAnswer, type ViewStep } from "../../../src/dealer-trees.ts";
+import { ALL_TREES, CAMERAS, STRAIGHT_CAMERA, cameraFromWord, cameraMade, cameraView, countWord, cutBank, markPairs, nodeCode, waysOf, type TreeAnswer, type TreeView, type ViewStep } from "../../../src/dealer-trees.ts";
+import type { CompositionView } from "../../../src/composition.ts";
 import { hubDeals, judgedBank } from "../../../src/game-director.ts";
 import { toPixels, type PlacementPlan } from "../../../src/placement-model.ts";
 import { spokenLine, type SpeechTake } from "../../../src/speech-lines.ts";
 import { BankStatus, Page } from "@/components/shell";
-import { Button, ErrorState, IconButton, Skeleton } from "@/components/ui";
+import { Button, ErrorState, IconButton, SegmentedControl, Skeleton, cn } from "@/components/ui";
 import { getPlacements } from "@/lib/api";
 import { useBank } from "@/lib/bank";
 import { bankSummary, edgeInfo, isSecondary, primaryOf, type EdgeInfo, type Summary } from "@/lib/edge-stats";
@@ -49,6 +56,7 @@ import { StillViewer } from "./StillViewer";
 import { TalkSheet } from "./TalkSheet";
 import { TreeCanvas, TreeLegend, type PathMarks } from "./TreeCanvas";
 import { CompositionKarta } from "./CompositionKarta";
+import { TreeNet } from "./TreeNet";
 import { TreeRow } from "./TreeRow";
 import { useCompositions } from "./useCompositions";
 import { useMedia } from "./useOlder";
@@ -116,7 +124,11 @@ function Karta() {
   const trees = useTrees(dealer, readAt);
   const { params, set } = useParams();
   const composition = params.get("komposition");
-  if (trees.answer?.trees.length) return composition ? <CompositionKarta answer={trees.answer} id={composition} set={set} /> : <TreeKarta answer={trees.answer} />;
+  if (trees.answer?.trees.length) {
+    if (composition) return <CompositionKarta answer={trees.answer} id={composition} set={set} />;
+    if (params.get("trad") === ALL_TREES) return <TreeNet answer={trees.answer} set={set} />;
+    return <TreeKarta answer={trees.answer} />;
+  }
   if (trees.state === "loading")
     return (
       <Page title="Karta" full status={<BankStatus />}>
@@ -140,6 +152,8 @@ function TreeKarta({ answer }: { answer: TreeAnswer }) {
   const points = usePlanPoints();
   const [hover, setHover] = useState<string | null>(null);
   const tree = answer.trees.find((v) => v.tree.id === params.get("trad")) ?? firstTree(answer) ?? answer.trees[0];
+  // The tree's ways: its first (the tree itself) and its further ways, each drawn from its own anchor at the shoe.
+  const ways = useMemo(() => waysOf(answer.trees, tree.tree.id), [answer, tree]);
   // The camera the tree is seen from: the straight one unless the address names another. view is the tree from that camera.
   const camera = cameraFromWord(params.get("kamera"));
   const straight = camera === STRAIGHT_CAMERA;
@@ -159,18 +173,25 @@ function TreeKarta({ answer }: { answer: TreeAnswer }) {
   const step = view.steps.find((s) => s.id === stepId && (straight || s.state !== "saknas")) ?? null;
   const layout = useMemo(() => treeLayout({ hub: view.hub, others: view.others, points, railText: `${nodeCode(view.hub)} · ${SHOE_WORD[view.hub] ?? "vid skon"}` }), [view.hub, view.others, points]);
 
-  // A step with a film opens its films on the bank's graph, one film per card, as the game reads the bank (judged takes only).
-  const graph = useMemo(() => (bank ? buildGraph(bank, { mode: "CARD", dealer }) : null), [bank, dealer]);
-  const judged = useMemo(() => (bank ? judgedBank(bank) : null), [bank]);
+  // A step with a film opens its films over the bank as the game plays this tree (its cut: the tree's anchor at the shoe is the
+  // game's shoe, the other trees' films are left out), one film per card, as the game reads it (judged takes only). A lab
+  // server that gives no cut yet (not restarted) leaves the bank whole, as before.
+  const treeBank = useMemo(() => (bank && tree.cut ? cutBank(bank, { hub: tree.hub, ...tree.cut }) : bank), [bank, tree]);
+  const graph = useMemo(() => (treeBank ? buildGraph(treeBank, { mode: "CARD", dealer }) : null), [treeBank, dealer]);
+  const judged = useMemo(() => (treeBank ? judgedBank(treeBank) : null), [treeBank]);
   const game = useMemo(() => (judged ? buildGraph(judged, { dealer }) : null), [judged, dealer]);
   const played = useMemo(() => (judged ? buildGraph(judged, { mode: "CARD", dealer }) : null), [judged, dealer]);
-  const hubs = useMemo(() => (bank ? hubDeals(bank, dealer) : {}), [bank, dealer]);
-  // The films panel lists the tree's own films on the step (its stand-ins' too), not every anchor's films of the bank's edge
-  // (an anchor variant at the shoe is a take of A2.1's edge). The Primär is the bank's, one per edge: when it is another
-  // tree's, the panel says so, since "Gör primär" here replaces it.
+  const hubs = useMemo(() => (treeBank ? hubDeals(treeBank, dealer) : {}), [treeBank, dealer]);
+  // The same picture with the card's mark (markOf) is the same node: a film on the one is not "older" for the other.
+  const same = useMemo(() => {
+    const pairs = markPairs(answer.trees.find((v) => v.tree.id === (tree.tree.wayOf ?? tree.tree.id))?.tree ?? tree.tree);
+    return (a: string, b: string) => pairs.some(([m, base]) => (m === a && base === b) || (m === b && base === a));
+  }, [answer, tree]);
+  // The films panel lists the tree's own films on the step (its stand-ins' too), not the films of no tree that the cut keeps
+  // on the same edge. A Primär on the edge that is none of the tree's films is such a film: said, since "Gör primär" replaces it.
   const filmStep = step && step.edge === edgeId ? step : (view.steps.find((s) => s.edge === edgeId && s.state === "finns") ?? null);
   const films = useMemo(() => {
-    const all = bank && graph && game && edgeId && graph.edge[edgeId] ? stepFilms(bank, graph, game, edgeId, hubs) : null;
+    const all = treeBank && graph && game && edgeId && graph.edge[edgeId] ? stepFilms(treeBank, graph, game, edgeId, hubs) : null;
     if (!all || !filmStep) return all;
     // The rest's panel lists the rest films; the talk films on it are Tal's (TalkSheet).
     const talking = (id: string) => filmStep.kind === "vila" && !!graph?.takes[id] && spokenLine(graph.takes[id] as unknown as SpeechTake) !== null;
@@ -180,9 +201,9 @@ function TreeKarta({ answer }: { answer: TreeAnswer }) {
     const secondaries = all.secondaries.filter(keep);
     const live = all.edge.takes.filter((t) => !t.archived && mine.has(t.id)).length;
     return { ...all, primary, secondaries, proposal: all.proposal && mine.has(all.proposal.id) ? all.proposal : null, elsewhere: Math.max(0, live - secondaries.length - (primary ? 1 : 0)) };
-  }, [bank, graph, game, edgeId, hubs, filmStep]);
+  }, [treeBank, graph, game, edgeId, hubs, filmStep]);
   const bankPrimary = films && !films.primary ? primaryOf(films.edge) : null;
-  const filmNote = bankPrimary ? `Stegets Primär i banken, ${takeName(bankPrimary, films!.edge.takes)}, hör till ett annat träd. Gör primär här ersätter den.` : null;
+  const filmNote = bankPrimary ? `Primär här är ${takeName(bankPrimary, films!.edge.takes)}, en film som inte hör till något träd. Gör primär här ersätter den.` : null;
   const info = edgeId && graph && played && graph.edge[edgeId] ? edgeInfo(played.edge[edgeId] ? played : graph, edgeId, hubs, true) : null;
   // ‹ › in the films' panel walk the tree's steps that have a film, in the measure's order, named in the tree's own words
   // (Tatuerad's "A2.3 → A3P4C2", not the bank's edge "A2.1 → A3P4C2").
@@ -280,7 +301,17 @@ function TreeKarta({ answer }: { answer: TreeAnswer }) {
   );
 
   return (
-    <Page title="Karta" full status={<TreeRow trees={answer.trees} chosen={view.tree.id} onChoose={choose} compositions={compositions} onCompose={(id) => set({ komposition: id })} />} actions={actions}>
+    <Page
+      title="Karta"
+      full
+      status={
+        <>
+          <TreeRow trees={answer.trees} chosen={view.tree.id} onChoose={choose} compositions={compositions} onCompose={(id) => set({ komposition: id, trad: null })} />
+          {ways.length > 1 ? <WaySwitch ways={ways} chosen={tree.tree.id} compositions={compositions ?? []} onChoose={choose} /> : null}
+        </>
+      }
+      actions={actions}
+    >
       <div className="absolute inset-0">
         <TreeCanvas view={view} layout={layout} media={media} active={step?.id ?? null} hover={hover} sheetOpen={sheetOpen} path={marks} onPick={pick} onHover={setHover} onOpen={open} talk={talk} talkOn={talkOpen} onTalk={openTalk} camera={straight ? null : camera} />
       </div>
@@ -319,6 +350,7 @@ function TreeKarta({ answer }: { answer: TreeAnswer }) {
         idle={idle}
         takeId={takeId}
         around={around}
+        samePicture={same}
         onClose={() => set({ kant: null, tagning: null, steg: null })}
         onPickTake={(id) => set({ tagning: id })}
         onPickEdge={(id) => set({ kant: id, tagning: null, steg: view.steps.find((s) => s.edge === id && s.state === "finns")?.id ?? null })}
@@ -327,6 +359,43 @@ function TreeKarta({ answer }: { answer: TreeAnswer }) {
       <StillViewer entries={stills} index={still} onIndex={setStill} />
       <PathPlayer parts={parts} clips={clips} graph={graph} pic={pathPic} onClose={() => setPlaying(false)} />
     </Page>
+  );
+}
+
+// ── A tree's ways ───────────────────────────────────────────────────────────
+/**
+ * The switch between a tree's ways of dealing from its A1 (Jakob 2026-11-26: "A1 kan förgrena sig till A2.1 eller A2.3"): each
+ * way by its anchor at the shoe, its name and its number; the game plays the first, and how often each is played is a
+ * composition's share, linked where one puts the ways together.
+ */
+function WaySwitch({ ways, chosen, compositions, onChoose }: { ways: readonly TreeView[]; chosen: string; compositions: readonly CompositionView[]; onChoose: (id: string) => void }) {
+  const ids = new Set(ways.map((w) => w.tree.id));
+  // The composition that puts only this tree's ways together (Tatuerad: skjut + nyp) says how often each is played.
+  const mixed = compositions.filter((c) => c.trees.length > 1 && c.trees.every((t) => ids.has(t.tree)));
+  const hubOf = (tree: string) => nodeCode(ways.find((w) => w.tree.id === tree)?.hub ?? "");
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <SegmentedControl
+        size="sm"
+        label="Gren"
+        value={chosen}
+        onChange={onChoose}
+        options={ways.map((w, i) => ({
+          value: w.tree.id,
+          label: `${nodeCode(w.hub)} · ${w.tree.name} ${countWord(w.count)}`,
+          title: `${w.tree.name}: från ${nodeCode(w.hub)} (${SHOE_WORD[w.hub] ?? "vid skon"}), ${w.count.have} av ${w.count.total} steg har en film. ${i === 0 ? (w.tree.state === "spelas" ? "Spelet spelar den här grenen." : "Trädets första gren.") : "Spelas bara när du väljer den (Prova i Casino, eller en komposition med andelar)."}`,
+        }))}
+      />
+      {mixed.length ? (
+        <Link
+          href={`?komposition=${encodeURIComponent(mixed[0].def.id)}`}
+          className={cn("shrink-0 truncate text-xs text-brass-hi hover:underline")}
+          title={`Hur ofta varje gren spelas väljer du i kompositionen ${mixed[0].def.name}: ${mixed[0].trees.map((t) => `${t.name} ${Math.round(t.percent)} %`).join(", ")}`}
+        >
+          Andelar: {mixed[0].trees.map((t) => `${hubOf(t.tree)} ${Math.round(t.percent)} %`).join(" · ")}
+        </Link>
+      ) : null}
+    </span>
   );
 }
 

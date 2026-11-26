@@ -8,6 +8,9 @@
 // &spel=1, what the game without a tree word plays (gameCut: one played tree as &trad=, else the others' takes left out, src/dealer-trees.ts gameBank).
 //
 // A tree is a set of anchors from Material (data/media-roles.json): A1, A2.x and, where one is chosen, an A3 per player and card.
+// A tree's further ways (TreeDef.ways: Tatuerad's nyp from A2.1 on the same A1, Jakob 2026-11-26) are placed by the same
+// pictures and then given to the way whose anchor at the shoe they stand on (wayOf); the answer draws each way as a tree of its
+// own (src/dealer-trees.ts treeList) and the tree's own view lists them (TreeView.ways).
 // Names come from the graph's nodes (src/dealer-trees.ts nodeCode, the studio's words): IDLE = A1, READY = A2.1, READY-B = A2.2,
 // READY-C = A2.3, P4.C1 = A3P4C1, D.C1 = A3DC1; an anchor seen from a seat is S2-A2.2.
 //
@@ -33,7 +36,7 @@ import type {IncomingMessage, ServerResponse} from 'node:http';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {HOLE_CARD, REVEAL_NODE, buildGraph, type BankData, type Take} from '../src/clip-graph.ts';
-import {STRAIGHT_CAMERA, TREE_ID, cameraOf, countWord, cutBank, cutTakes, filmCamera, isCard, isTreeHub, levelOf, nodeCode, nodesOf, orderCommand, playedCut, stepName as stepWords, treeHubs, treeView, type Delivery, type GameCut, type MeasureStep, type Need, type OrderFacts, type TreeAnswer, type TreeCut, type TreeDef, type TreeRegister, type TreeState, type TreeStep, type TreeTake, type TreeView, type Verdict as TreeVerdict} from '../src/dealer-trees.ts';
+import {ALL_TREES, STRAIGHT_CAMERA, TREE_ID, allAnchors, cameraOf, countWord, cutBank, cutTakes, filmCamera, isAnchorAtShoe, isCard, isTreeHub, levelOf, nodeCode, nodesOf, orderCommand, playedCut, stepName as stepWords, treeHubs, treeList, treeView, type Delivery, type GameCut, type MeasureStep, type Need, type OrderFacts, type TreeAnswer, type TreeCut, type TreeDef, type TreeRegister, type TreeState, type TreeStep, type TreeTake, type TreeView, type Verdict as TreeVerdict, type WayRef} from '../src/dealer-trees.ts';
 import {judgedBank} from '../src/game-director.ts';
 import {ANCHOR_NODE, costOf, modelFor, paramsOf, stepOf, type Policy, type StepKey} from '../src/order-model.ts';
 import {NO_RECIPE, methodFor, readMethods, recipeFor, referenceAbsent, secondsOf, triedWords, type MethodRegister} from '../src/order-methods.ts';
@@ -56,7 +59,9 @@ const MAX_TREES = 3;
 
 /**
  * The register, checked against Material: every anchor an entry of that dealer, the root among the anchors, at most three trees
- * with films of their own (a tree that shares another's, as Ingången the Casino's, is that tree seen another way and not counted).
+ * with films of their own (a tree that shares another's is that tree seen another way and not counted; a tree's further ways
+ * are the tree's). A way has an id no tree or way has, stands on the tree's A1 and has anchors at the shoe of one node that the
+ * tree's own anchors do not have. markOf names an anchor of the same tree at the same node. No id is "alla" (Karta's word for all).
  */
 export function checkTrees(register: TreeRegister, entries: Map<string, Entry>, dealers: string[]): string[] {
   const out: string[] = [];
@@ -64,20 +69,57 @@ export function checkTrees(register: TreeRegister, entries: Map<string, Entry>, 
   for (const [dealer, d] of Object.entries(register?.dealers ?? {})) {
     if (!dealers.includes(dealer)) out.push(`${dealer} finns inte i data/dealers.json`);
     if ((d.trees ?? []).filter(t => !t.shares).length > MAX_TREES) out.push(`${dealer} har fler än ${MAX_TREES} träd med egna filmer`);
-    const ids = new Set((d.trees ?? []).map(t => t.id));
+    const all = treeList(d.trees ?? []), ids = new Set<string>();
+    for (const t of all) {
+      if (ids.has(t.id)) out.push(`${dealer}: id ${t.id} finns två gånger`);
+      ids.add(t.id);
+      if (!TREE_ID.test(t.id) || t.id === ALL_TREES) out.push(`${dealer}/${t.id}: id ska vara a–z, 0–9 och bindestreck, och inte "${ALL_TREES}"`);
+    }
+    const anchorCheck = (where: string, a: TreeDef['anchors'][number]) => {
+      const e = entries.get(a.entry);
+      if (!e || e.dealer !== dealer) out.push(`${where}: ankaret ${a.entry} är ingen post för ${dealer} i Material`);
+      if (a.seat !== undefined && !(Number.isInteger(a.seat) && a.seat >= 1 && a.seat <= 7)) out.push(`${where}: seat ${a.seat} ska vara 1–7`);
+    };
     for (const t of d.trees ?? []) {
-      if (!STATES.includes(t.state)) out.push(`${dealer}/${t.id}: okänt läge ${t.state}`);
-      if (!t.anchors.some(a => a.entry === t.root)) out.push(`${dealer}/${t.id}: roten ${t.root} står inte bland ankarna`);
-      if (t.shares && !ids.has(t.shares)) out.push(`${dealer}/${t.id}: delar ${t.shares}, som inte finns`);
-      if (t.opening && entries.get(t.opening)?.dealer !== dealer) out.push(`${dealer}/${t.id}: början ${t.opening} är ingen post för ${dealer} i Material`);
-      for (const a of t.anchors) {
-        const e = entries.get(a.entry);
-        if (!e || e.dealer !== dealer) out.push(`${dealer}/${t.id}: ankaret ${a.entry} är ingen post för ${dealer} i Material`);
-        if (a.seat !== undefined && !(Number.isInteger(a.seat) && a.seat >= 1 && a.seat <= 7)) out.push(`${dealer}/${t.id}: seat ${a.seat} ska vara 1–7`);
+      const where = `${dealer}/${t.id}`;
+      if (!STATES.includes(t.state)) out.push(`${where}: okänt läge ${t.state}`);
+      if (!t.anchors.some(a => a.entry === t.root)) out.push(`${where}: roten ${t.root} står inte bland ankarna`);
+      if (t.shares && !ids.has(t.shares)) out.push(`${where}: delar ${t.shares}, som inte finns`);
+      if (t.opening && entries.get(t.opening)?.dealer !== dealer) out.push(`${where}: början ${t.opening} är ingen post för ${dealer} i Material`);
+      for (const a of t.anchors) anchorCheck(where, a);
+      const anchors = allAnchors(t), levelOfAnchor = (id: string) => { const e = entries.get(id); return e ? levelOf(e) : null; };
+      for (const a of anchors) if (a.markOf) {
+        const base = anchors.find(b => b.entry === a.markOf);
+        if (!base || levelOfAnchor(a.markOf) !== levelOfAnchor(a.entry) || cameraOf(base) !== cameraOf(a)) out.push(`${where}: ${a.entry} är märket av ${a.markOf}, som inte är ett ankare på samma nod i trädet`);
+      }
+      const own = new Set(t.anchors.filter(a => cameraOf(a) === STRAIGHT_CAMERA).map(a => levelOfAnchor(a.entry)));
+      for (const w of t.ways ?? []) {
+        const at = `${where}/${w.id}`;
+        if (!STATES.includes(w.state)) out.push(`${at}: okänt läge ${w.state}`);
+        if (!w.name?.trim()) out.push(`${at}: grenen har inget namn`);
+        for (const a of w.anchors) anchorCheck(at, a);
+        const levels = new Set(w.anchors.map(a => levelOfAnchor(a.entry)));
+        if (levels.size !== 1 || ![...levels].every(n => !!n && isAnchorAtShoe(n))) out.push(`${at}: en gren står på ankare vid skon av en och samma nod (A2.1, A2.2 eller A2.3)`);
+        else if (own.has([...levels][0])) out.push(`${at}: trädets egna ankare har redan ${code([...levels][0]!)}`);
       }
     }
   }
   return out;
+}
+
+/**
+ * The way of a tree a film or an order stands on, by its two nodes: the way whose anchor at the shoe is one of them, else the
+ * tree itself; and, for a film that stands only on A1 (rest, talk, the hole card), the tree's further ways, whose film it is
+ * too (TreeTake.also). A return from a card to A1 is the tree's own way's: it follows a deal of that way, and the card's
+ * picture says nothing of which way laid it.
+ */
+const AT_REST = new Set(['IDLE', REVEAL_NODE, 'REVEAL(D.C2)']);
+function wayOf(tree: TreeDef, nodes: readonly string[], entries: Map<string, Entry>): {tree: string; also?: string[]} {
+  const ways = tree.ways ?? [];
+  if (!ways.length) return {tree: tree.id};
+  const at = (anchors: TreeDef['anchors']) => new Set(anchors.map(a => { const e = entries.get(a.entry); return e ? levelOf(e) : null; }).filter((n): n is string => !!n && isAnchorAtShoe(n)));
+  for (const w of ways) { const shoe = at(w.anchors); if (nodes.some(n => shoe.has(n))) return {tree: w.id}; }
+  return nodes.every(n => AT_REST.has(n)) ? {tree: tree.id, also: ways.map(w => w.id)} : {tree: tree.id};
 }
 
 // ── His notation (src/dealer-trees.ts) ──────────────────────────────────────
@@ -193,10 +235,12 @@ async function readWorld(only: string | null, given: TreeRegister | null = null)
   if (problems.length) throw new Error(`data/dealer-trees.json håller inte:\n  ${problems.join('\n  ')}`);
   const trees: Tree[] = [];
   for (const [dealer, d] of Object.entries(register.dealers)) for (const t of d.trees) {
-    // The tree's levels are the straight camera's (src/dealer-trees.ts): an anchor seen from a seat is the tree's (ids), not its node's picture.
-    const map = new Map<string, string>();
-    for (const a of t.anchors) { const e = entries.get(a.entry)!, n = levelOf(e); if (n && !map.has(n) && cameraOf(a) === STRAIGHT_CAMERA) map.set(n, a.entry); }
-    trees.push({...t, dealer, at: map, ids: new Set(t.anchors.map(a => a.entry))});
+    // The tree's levels are the straight camera's (src/dealer-trees.ts): an anchor seen from a seat is the tree's (ids), not its
+    // node's picture. A film is placed by every anchor of the tree, its further ways' too (A2.1 of Tatuerad); placedTakes then
+    // gives it to the way it stands on (wayOf).
+    const map = new Map<string, string>(), anchors = allAnchors(t);
+    for (const a of anchors) { const e = entries.get(a.entry)!, n = levelOf(e); if (n && !map.has(n) && cameraOf(a) === STRAIGHT_CAMERA) map.set(n, a.entry); }
+    trees.push({...t, anchors, dealer, at: map, ids: new Set(anchors.map(a => a.entry))});
   }
   const treeOf = (id: string | null) => trees.find(t => t.id === id) ?? null;
   const owners = (dealer: string) => trees.filter(t => t.dealer === dealer && !t.shares);
@@ -439,7 +483,7 @@ export async function buildReport(only: string | null = null) {
 
   // ── The way in: the film before the game, and what the game plays after it ─
   const ways = trees.filter(t => t.opening).map(t => {
-    const film = entries.get(t.opening!)!, home = treeOf(t.shares ?? null), g = games.get(t.dealer);
+    const film = entries.get(t.opening!)!, home = treeOf(t.shares ?? t.id), g = games.get(t.dealer);
     const rests = (g?.edge['IDLE>IDLE']?.takes ?? []) as Take[], game = plays.get(t.dealer) ?? new Set<string>();
     const calm = rests.filter(r => r.idle?.calm === true && r.idle?.cut !== false && !!r.media.video && game.has(r.id));
     const spoken = spokenFilms(rests as unknown as SpeechTake[], t.dealer, {voice: GAME_VOICE}), first = spoken[PHASE_LINE.BETTING];
@@ -485,13 +529,17 @@ function seatOf(w: World, tree: Tree | null, pictures: Map<string, string>): {se
   return camera === STRAIGHT_CAMERA ? {} : {seat: camera};
 }
 
-/** The dealer's takes of the bank, each placed in the tree its pictures say (null: in none), with the seat it is seen from. */
+/**
+ * The dealer's takes of the bank, each placed in the tree its pictures say (null: in none), and there in the way it stands on
+ * (wayOf), with the seat it is seen from and whether its file is on this machine.
+ */
 function placedTakes(w: World, dealer: string): TreeTake[] {
   const out: TreeTake[] = [];
   for (const [id, {take, dealer: d}] of w.takes) {
     if (d !== dealer) continue;
     const ev = w.evidence(id), p = w.place(dealer, take.edge, take.hub, ev), [from, to] = nodesOf(take.edge, take.hub), tree = p.group === 'kopplad' ? p.tree! : null;
-    out.push({id, tree: tree?.id ?? null, from, to, ...treeVerdict(take), archived: !!take.archived, ...seatOf(w, tree, ev)});
+    out.push({id, ...(tree ? wayOf(tree, [from, to], w.entries) : {tree: null}), from, to, ...treeVerdict(take), archived: !!take.archived, ...seatOf(w, tree, ev),
+      ...(take.media.video ? {} : {film: false}), ...(w.records.get(id)?.speech ? {talk: true} : {})});
   }
   return out;
 }
@@ -512,7 +560,7 @@ function deliveries(w: World, dealer: string): Delivery[] {
     const ev = new Map<string, string>();
     for (const as of ['startFrame', 'endFrame'] as const) { const e = w.picture(o, as); if (e) ev.set(e, `beställningen ${o.id}`); }
     const p = w.place(dealer, edge, null, ev), [from, to] = nodesOf(edge), tree = p.group === 'kopplad' ? p.tree! : null;
-    out.push({order: o.id, tree: tree?.id ?? null, from, to, ...(o.title ? {title: o.title} : {}), ...seatOf(w, tree, ev)});
+    out.push({order: o.id, tree: tree ? wayOf(tree, [from, to], w.entries).tree : null, from, to, ...(o.title ? {title: o.title} : {}), ...seatOf(w, tree, ev)});
   }
   return out;
 }
@@ -586,7 +634,8 @@ function orderFacts(f: Facts, view: Pick<TreeView, 'hub' | 'nodes'>, step: TreeS
  * plays in a tree: among the rest takes of the game's bank (judgedBank) that the tree's cut keeps, its own and those of no tree.
  */
 function talkOf(w: World, dealer: string, takes: readonly TreeTake[]): (home: string) => TreeTalk {
-  const placed = new Map(takes.map(t => [t.id, t.tree] as const)), treeOf = (id: string) => placed.get(id) ?? null;
+  // A talk film is the tree's and every way's of it (TreeTake.also): it stands on the A1 they share.
+  const placed = new Map(takes.map(t => [t.id, t.tree === null ? null : [t.tree, ...(t.also ?? [])]] as const)), treeOf = (id: string) => placed.get(id) ?? null;
   const game = (buildGraph(judgedBank(w.bank), {dealer}).edge['IDLE>IDLE']?.takes ?? []) as unknown as SpeechTake[];
   const all = [...w.takes.values()].filter(x => x.dealer === dealer && x.take.edge === 'IDLE>IDLE').map(x => x.take) as unknown as (SpeechTake & {archived?: boolean})[];
   const register = json<TalkRegister>('data/speech.json');
@@ -595,34 +644,44 @@ function talkOf(w: World, dealer: string, takes: readonly TreeTake[]): (home: st
 
 /** Every tree of a dealer as Karta draws it, from what the placing already read; with its talk, counted on its own (not in the 36). */
 function viewsOf(w: World, dealer: string): (TreeView & {talk: TreeTalk})[] {
-  const defs = w.register.dealers[dealer]?.trees ?? [];
+  // Each tree, and after it each of its further ways as a tree of its own (src/dealer-trees.ts treeList).
+  const defs = treeList(w.register.dealers[dealer]?.trees ?? []);
   if (!defs.length) return [];
   const takes = placedTakes(w, dealer), sent = deliveries(w, dealer), talk = talkOf(w, dealer, takes);
   const facts: Facts = {dealer, takes, entries: w.entries,
     methods: readMethods(json('data/order-methods.json')).register,
     prices: json<Policy>('data/order-policy.json')?.prices ?? [],
     refs: json<{films?: RefFilm[]}>('data/rendered-references.json')?.films ?? []};
-  return defs.map(def => {
+  const views = defs.map(def => {
     // With the bank the game reads, each step shows the film the game plays there in the tree (src/dealer-trees.ts TreeStep).
     const view = treeView(dealer, def, defs, w.entries, takes, sent, w.bank);
     return {...view, steps: view.steps.map(s => s.state === 'finns' ? s : {...s, order: orderFacts(facts, view, s)}), talk: talk(view.home)};
   });
-}
-
-/** GET /api/trees?dealer=<id>: the dealer's trees with their nodes, 36 steps and number. */
-export async function treeAnswer(dealer: string): Promise<TreeAnswer> {
-  return {schemaVersion: 1, dealer, made: new Date().toISOString(), trees: viewsOf(await readWorld(dealer), dealer)};
+  // A tree with further ways lists them on its own view (TreeView.ways), its own first: the one the game plays.
+  return views.map(v => {
+    const ways = views.filter(x => x.tree.wayOf === v.tree.id);
+    return ways.length ? {...v, ways: [v, ...ways].map((x): WayRef => ({id: x.tree.id, hub: x.hub, name: x.tree.name, state: x.tree.state, count: x.count}))} : v;
+  });
 }
 
 /**
- * GET /api/trees?dealer=<id>&trad=<tree>: one tree for the game (src/dealer-trees.ts cutBank). The takes placed in the tree it
- * plays, the takes placed in the dealer's other trees, and its number as Karta counts it. Null: the dealer has no such tree.
+ * GET /api/trees?dealer=<id>: the dealer's trees with their nodes, 36 steps and number. given: the trees as they would stand
+ * (in memory), to try a change of data/dealer-trees.json before it is written; without it the register as it is.
  */
-export async function treeCut(dealer: string, id: string): Promise<TreeCut | null> {
-  const w = await readWorld(dealer), defs = w.register.dealers[dealer]?.trees ?? [], def = defs.find(t => t.id === id);
+export async function treeAnswer(dealer: string, given: TreeRegister | null = null): Promise<TreeAnswer> {
+  return {schemaVersion: 1, dealer, made: new Date().toISOString(), trees: viewsOf(await readWorld(dealer, given), dealer)};
+}
+
+/**
+ * GET /api/trees?dealer=<id>&trad=<tree>: one tree (or way) for the game (src/dealer-trees.ts cutBank). The takes placed in the
+ * tree it plays, the takes placed in the dealer's other trees and ways, and its number as Karta counts it. Null: the dealer has
+ * no such tree. given: as treeAnswer's.
+ */
+export async function treeCut(dealer: string, id: string, given: TreeRegister | null = null): Promise<TreeCut | null> {
+  const w = await readWorld(dealer, given), defs = treeList(w.register.dealers[dealer]?.trees ?? []), def = defs.find(t => t.id === id);
   if (!def) return null;
   const takes = placedTakes(w, dealer), view = treeView(dealer, def, defs, w.entries, takes);
-  return {schemaVersion: 1, dealer, tree: def.id, name: def.name, home: view.home, hub: view.hub, count: view.count, ...cutTakes(view.home, takes)};
+  return {schemaVersion: 1, dealer, tree: def.id, name: def.name, home: view.home, hub: view.hub, count: view.count, ...cutTakes(view.home, takes, true)};
 }
 
 /**
@@ -630,7 +689,7 @@ export async function treeCut(dealer: string, id: string): Promise<TreeCut | nul
  * spelas as ?trad= plays it (its anchor at the shoe and its takes); with several, the takes of the trees it does not play left out.
  */
 export async function gameCut(dealer: string, register?: TreeRegister): Promise<GameCut> {
-  const w = await readWorld(dealer);
+  const w = await readWorld(dealer, register ?? null);
   return playedCutOf(w, dealer, register ?? w.register);
 }
 /**
@@ -638,7 +697,7 @@ export async function gameCut(dealer: string, register?: TreeRegister): Promise<
  * states decide (data/dealer-trees.json; another in memory says what the game would play if the trees stood so).
  */
 function playedCutOf(w: World, dealer: string, register: TreeRegister = w.register): GameCut {
-  const defs = register.dealers[dealer]?.trees ?? [];
+  const defs = treeList(register.dealers[dealer]?.trees ?? []);
   return playedCut(dealer, defs, placedTakes(w, dealer), def => treeHubs(def, w.entries).hub);
 }
 
@@ -690,6 +749,8 @@ export function lasmig(r: Report): string {
       const takes = own.filter(x => x.kind === 'tagning');
       const levels = Object.entries(t.levels).map(([c, e]) => `${c} ${e}${r.entries.get(e)?.state && r.entries.get(e)!.state !== 'gäller' ? ` (${r.entries.get(e)!.state})` : ''}`).join(' · ');
       L.push(`| ${t.name}${t.shares ? ` (delar ${treeName(t.shares)})` : ''} | ${t.state} | ${levels} | ${r.counts[`${dealer}/${t.id}`] ?? '–'}${t.opening ? ' + början' : ''} | ${takes.length} | ${takes.filter(x => x.plays).length} | ${fmt(sum(own))} |`);
+      // A further way of the tree: its own number (its anchor at the shoe, the tree's A1); its films are counted with the tree's.
+      for (const w of t.ways ?? []) L.push(`| ${t.name}, grenen ${w.name} | ${w.state} | ${w.anchors.map(a => a.entry).join(' · ')} | ${r.counts[`${dealer}/${w.id}`] ?? '–'} | – | – | – |`);
     }
     L.push('');
     for (const t of trees.filter(t => !t.shares)) {

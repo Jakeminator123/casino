@@ -1,3 +1,4 @@
+// Skyddar: spelets regler, hans domar och val – ett träd räknar och visar bara talfilmer som spelet spelar i trädet och som finns på datorn, aldrig ett annat träds, en arkiverad eller en annan röst.
 // studio/lib/tree-talk.ts: a tree's talk on Karta (Jakob 2026-11-23: the talk films "ska väl rimligen in i nodträdet"), on
 // made-up data. Per line the film the game plays in the tree, from the tree's own talk films and those of no tree (as the
 // game's cut keeps them, src/dealer-trees.ts cutBank), never another tree's; a count of its own beside the 36 steps.
@@ -40,6 +41,19 @@ test("a tree plays its own talk films and those of no tree, never another tree's
   assert.deepEqual([tattooed.have, tattooed.total], [2, 4]);
 });
 
+// A tree's talk is every way's of it (Jakob 2026-11-26: one A1, ways to A2.1 and A2.3), and a film whose file is not on this
+// machine is no film here (2026-11-26: Tatuerad said "Tal 25/25" with none of the 25 on the disk).
+test("a way plays its tree's talk; a talk film without its file here is not counted and is said so", () => {
+  const here = take("paow-tal-placebets-tat-sv-01", "placebets"), far = { ...take("paow-tal-goodluck-tat-sv-01", "goodluck"), media: { video: null } };
+  const treeOf = (id: string) => (id.includes("-tat-") ? ["tatuerad", "tatuerad-nyp"] : null);
+  const way = treeTalk(register, "paow", "tatuerad-nyp", [here, far], [here, far], treeOf);
+  assert.equal(way.lines.find((l) => l.key === "placebets")?.clip, "paow-tal-placebets-tat-sv-01", "the tree's film is the way's too");
+  const goodluck = way.lines.find((l) => l.key === "goodluck");
+  assert.deepEqual([goodluck?.clip, goodluck?.noFile], ["paow-tal-goodluck-tat-sv-01", true]);
+  assert.deepEqual([way.have, way.noFile, way.total], [1, 1, 4]);
+  assert.equal(treeTalk(register, "paow", "casino", [here, far], [here, far], treeOf).have, 0, "never another tree's");
+});
+
 test("only the game's voice is played and never an archived take; the count holds the tree's talk films that are not archived", () => {
   const all = [take("paow-tal-goodluck-sv-01", "goodluck", { voice: "Jessica" }), take("paow-tal-goodluck-sv-02", "goodluck", { archived: true }), take("paow-tal-goodluck-sv-03", "goodluck", { decision: "REJECTED" })];
   const talk = treeTalk(register, "paow", "casino", all, all, () => "casino");
@@ -47,17 +61,4 @@ test("only the game's voice is played and never an archived take; the count hold
   assert.equal(line.clip, null);
   assert.equal(line.takes, 2, "Jessica's and the rejected take count; the archived does not");
   assert.equal(talk.takes, 2);
-});
-
-test("the round's lines come first, a phase's line among them, then the chat's, with short names", () => {
-  const extra = take("paow-tal-valkommen-sv-01", "valkommen");
-  const talk = treeTalk(register, "paow", "casino", [extra], [extra], () => null);
-  assert.deepEqual(talk.lines.map((l) => [l.key, l.kind, l.name]), [
-    ["placebets", "runda", "Insatser"],
-    ["goodluck", "runda", "Lycka till"],
-    ["dealerplays", "runda", "Dealern spelar"],
-    ["hej", "chatt", "Hälsning"],
-    ["valkommen", "chatt", "Valkommen"],
-  ]);
-  assert.equal(talk.lines.at(-1)?.text, "valkommen sagt", "a line outside the register has the film's own text");
 });

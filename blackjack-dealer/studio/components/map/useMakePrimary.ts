@@ -2,9 +2,11 @@
 
 // "Gör primär" in a step's panel on Karta: one click makes the take Primär and lowers an earlier Primär on its edge (the same
 // two steps as DecisionBar, in lib/primaries.ts makePrimary), then reads the bank again so the panel shows the new state.
-// A 409 (the record changed while he looked) is said in plain Swedish and the bank is read again.
+// A 409 (the record changed while he looked) is said in plain Swedish and the bank is read again. on: the graph the panel reads,
+// whose Primär is lowered: on a tree, the bank as the game plays the tree, so another tree's Primär on the same edge (every
+// anchor at the shoe is a take of A2.1's edge) is never touched (Jakob 2026-11-26); without it the whole bank's.
 import { useCallback, useState } from "react";
-import type { Take } from "../../../src/clip-graph.ts";
+import type { Graph, Take } from "../../../src/clip-graph.ts";
 import { useToast } from "@/components/ui";
 import { ApiError, putDecision } from "@/lib/api";
 import { useBank } from "@/lib/bank";
@@ -13,8 +15,9 @@ import { makePrimary } from "@/lib/primaries";
 
 export type RowLine = { tone: "ok" | "bad"; text: string };
 
-export function useMakePrimary() {
-  const { graph, reload } = useBank();
+export function useMakePrimary(on: Graph | null = null) {
+  const { graph: whole, reload } = useBank();
+  const graph = on ?? whole;
   const toast = useToast();
   const [saving, setSaving] = useState<string | null>(null);
   const [lines, setLines] = useState<Record<string, RowLine>>({});

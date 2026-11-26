@@ -212,9 +212,16 @@ IDLE>READY | READY>P1.C1 | P1.C1>READY | READY>D.C1 | D.C1>READY | READY>P1.C2 |
 - **Preliminär dom** (`node tools/review-put.ts`): aldrig `MAIN`, `userAccepted: false` och blocket `provisional`;
   väntar inte i hans kö, och hans beslut tar bort det.
 - **Arkivera** (Karta): `review.archived {by, at, where}`; spelas aldrig, går inte till kopian, ingen fil flyttas.
-- **Träd och kompositioner:** ett träd är en uppsättning ankare (`data/dealer-trees.json`); `tools/dealer-tree.ts` lägger
-  varje film i trädet vars ankare är dess första och sista bild, mätt mot 36 steg (`src/dealer-trees.ts`). Omkring tre
-  namngivna träd per dealer, löst material för sig (2026-11-21). En komposition (`data/dealer-compositions.json`,
+- **Träd och kompositioner:** ett träd är en uppsättning händer, ankare med en A1 (`data/dealer-trees.json`);
+  `tools/dealer-tree.ts` lägger varje film i trädet vars ankare är dess första och sista bild, mätt mot 36 steg
+  (`src/dealer-trees.ts`). Trädets A1 kan förgrena sig till flera ankare vid skon (Jakob 2026-11-26): trädets egna
+  ankare är dess första gren, den spelet spelar när trädet spelas; `ways` är de övriga grenarna, var och en med eget
+  id, namn och läge, som spelet (`?trad=<id>`), kompositionerna och Bordet tar som ett träd. En film på en grens ankare
+  vid skon är grenens; en film bara på A1 (vila, tal, hålkort) är trädets och varje grens. Ett ankare med `markOf` är
+  samma bild med bara kortets märke ändrat: samma nod. Karta läser ett stegs filmer över trädets eget urval
+  (`cutBank`), så att Spelas nu, Primär och Gör primär är trädets egna. `GET /api/trees` ger varje gren som en egen vy
+  (`wayOf`) och trädets vy listan `ways`; `waysOf` och `dealsTo` i `src/dealer-trees.ts` svarar på vilka givar som
+  finns till ett kort, från vilken gren. Omkring tre namngivna träd per dealer, löst material för sig (2026-11-21). En komposition (`data/dealer-compositions.json`,
   `src/composition.ts`) lägger ihop träd med andelar, lån av steg och `tempo` 1–2 (Jakob 2026-11-23); ett klipp har sin
   egen fart (`tools/clip-speed.ts`). Träd med olika händer får sättas samman; Karta säger det som upplysning, och en sådan
   spelas bara när han väljer den (2026-11-24). Spelet i studion tar `?trad=<id>` eller `?komposition=<id>`.

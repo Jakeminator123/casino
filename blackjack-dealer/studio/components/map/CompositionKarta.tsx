@@ -54,11 +54,11 @@ import { BridgeViewer, type Meeting } from "./BridgeViewer";
 import { LevelRail, LevelStack, useLevels, type Level } from "./LevelRail";
 import { RowStill } from "./RowStill";
 import { NEW_COMPOSITION, TreeRow, compositionHref } from "./TreeRow";
+// One colour per tree, in the order of the dealer's trees: the bars under the steps and the dots beside the names (the net's too).
+import { TREE_COLORS } from "./TreeNet";
 import { removeComposition, saveComposition, useCompositions } from "./useCompositions";
 import { useMedia } from "./useOlder";
 
-/** One colour per tree, in the order of the dealer's trees: the bars under the steps and the dots beside the names. */
-const TREE_COLORS = ["#d9b96a", "#7f9cf5", "#4fb27f", "#e39b5b"];
 
 /** An id from a name: "Casino + Tatuerad" is "casino-tatuerad". */
 const slug = (name: string): string =>
@@ -80,10 +80,10 @@ export function CompositionKarta({ answer, id, set }: { answer: TreeAnswer; id: 
     <TreeRow
       trees={answer.trees}
       chosen=""
-      onChoose={(tree) => set({ komposition: null, niva: null, trad: tree, steg: null, kant: null, tagning: null, vag: null })}
+      onChoose={(tree) => set({ komposition: null, niva: null, med: null, trad: tree, steg: null, kant: null, tagning: null, vag: null })}
       compositions={got?.compositions ?? []}
       composition={id}
-      onCompose={(next) => set(next === id ? { komposition: next } : { komposition: next, niva: null, steg: null })}
+      onCompose={(next) => set(next === id ? { komposition: next } : { komposition: next, niva: null, med: null, steg: null })}
     />
   );
   return (
@@ -102,10 +102,14 @@ export function CompositionKarta({ answer, id, set }: { answer: TreeAnswer; id: 
 }
 
 // ── The editor ──────────────────────────────────────────────────────────────
-/** A new composition: the tree with rest films, and with it the next tree that has the same hands (80 and 20), else that tree alone. */
-function firstDraft(got: CompositionAnswer): CompositionDef {
+/**
+ * A new composition: the trees marked in the net (?med=<ids>, TreeNet's Sätt ihop), in that order; else the tree with rest
+ * films and with it the next tree that has the same hands (80 and 20), else that tree alone.
+ */
+function firstDraft(got: CompositionAnswer, med: readonly string[] = []): CompositionDef {
   const sorted = [...got.trees].sort((a, b) => Number(b.restFilms) - Number(a.restFilms));
-  const picked = sorted.slice(0, 1).concat(sorted.slice(1).filter((t) => handsOf(t) === handsOf(sorted[0])).slice(0, 1));
+  const marked = med.map((id) => got.trees.find((t) => t.tree === id)).filter((t): t is CompositionAnswer["trees"][number] => !!t);
+  const picked = marked.length ? marked : sorted.slice(0, 1).concat(sorted.slice(1).filter((t) => handsOf(t) === handsOf(sorted[0])).slice(0, 1));
   const trees = picked.map((t, i) => ({ tree: t.tree, share: picked.length === 1 ? 100 : i ? 20 : 80 }));
   // A name no saved composition or tree has, so that a new one can be saved as it stands.
   const base = picked.map((t) => t.name).join(" + "), names = new Set([...got.compositions.map((c) => c.def.name), ...got.trees.map((t) => t.name)]);
@@ -119,7 +123,7 @@ function Editor({ trees, got, saved, graph, dealer, set, reload }: { trees: Tree
   const media = useMedia();
   // The bridge films the dealer's saved compositions already use, by the two pictures: what "Brygga" can choose.
   const films = useMemo(() => new Map(got.compositions.flatMap((c) => c.def.bridges ?? []).filter((b) => b.ab || b.ba).map((b) => [pairKey(b.a, b.b), b] as const)), [got]);
-  const [draft, setDraft] = useState<CompositionDef>(() => saved?.def ?? firstDraft(got));
+  const [draft, setDraft] = useState<CompositionDef>(() => saved?.def ?? firstDraft(got, (typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("med"))?.split(",") ?? []));
   const [stepKey, setStepKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [meeting, setMeeting] = useState<Meeting | null>(null);
@@ -273,6 +277,12 @@ function Editor({ trees, got, saved, graph, dealer, set, reload }: { trees: Tree
                     </div>
                     <div className="text-xs tabular-nums text-dim">
                       {t.have}/36{view.home === t.tree ? " · vilar här" : ""}
+                      {/* A way of a tree (Tatuerad nyp on Tatuerad's A1) says whose: the same hands, another anchor at the shoe. */}
+                      {(() => {
+                        const of = trees.trees.find((v) => v.tree.id === t.tree)?.tree.wayOf;
+                        const name = of ? trees.trees.find((v) => v.tree.id === of)?.tree.name : null;
+                        return name ? ` · gren av ${name}, från ${nodeCode(t.hub)}` : "";
+                      })()}
                     </div>
                   </div>
                   <Switch size="sm" checked={!!mine} onChange={(on) => setShare(t.tree, on ? (draft.trees.length ? 20 : 100) : null)} aria-label={`${t.name} med i kompositionen`} />

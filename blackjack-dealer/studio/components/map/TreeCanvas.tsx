@@ -43,7 +43,8 @@ export function stepTitle(s: ViewStep): string {
   const whose = s.byJakob ? "" : s.provisional ? ", dömd åt honom" : s.verdict && s.verdict !== "vantar" ? ", granskarens" : "";
   const said = s.verdict ? ` (${VERDICT_LABEL[s.verdict]}${whose}${s.via ? `, från ${nodeCode(s.via)}` : ""})` : "";
   const sent = s.deliveries.length ? "; levererad, inte i banken än" : "";
-  return `${s.name}: ${STATE_WORD[s.state]}${said}${sent}`;
+  const file = s.noFile ? "; filmen finns inte på den här datorn, så spelet har ett hål här" : "";
+  return `${s.name}: ${STATE_WORD[s.state]}${said}${sent}${file}`;
 }
 
 const PAD = { side: 20 };
@@ -51,7 +52,8 @@ const ARROW: Record<Dir, number> = { down: 90, up: -90, right: 0, left: 180 };
 const ARROW_PATH = "M0,0 L-8,-4.5 L-8,4.5 Z";
 
 // ── Nodes ───────────────────────────────────────────────────────────────────
-type Pic = { node: TreeNode | null; entry: EntryAnswer | null };
+/** films: the picture the tree's films stand on, when the node shows the same picture with the card's mark (TreeNode.films). */
+type Pic = { node: TreeNode | null; entry: EntryAnswer | null; films?: EntryAnswer | null };
 /** One picture on the map as a button: its node, whether a click does anything, its places in the path, faded or not. */
 type Shot = { node: string; pic: Pic; can: boolean; mark: number[] | null; off: boolean };
 /** none: what an empty box says when pointed at ("ingen bild i trädet", "ingen bild från kamera 2"). */
@@ -83,16 +85,20 @@ function Picture({ pic, code, none, small = false, mark = null, stateTop = false
   // Material's name mostly starts with the code ("A2.3: Vänster hand uppifrån …"): said once, never the picture's id.
   const name = pic.entry?.name ?? null;
   const named = name?.startsWith(code) ? name : name ? `${code}: ${name}` : code;
+  // The tree has the picture, but its file is not on this machine: said as that, never as a node the tree lacks.
+  const away = !!pic.node?.entry && !!pic.entry && !pic.entry.exists;
+  const films = pic.films ? ` Filmerna står på ${pic.films.name ?? "samma bild"}, samma bild utan kortets märke.` : "";
   return (
     <div
-      className={cn("relative h-full w-full overflow-hidden rounded-md", cover ? "border border-line-strong bg-well" : "border border-dashed border-line-strong bg-transparent")}
-      title={pic.node?.entry ? `${named}${state ? ` (${state} i Material)` : ""}` : `${code}: ${none}`}
+      className={cn("relative h-full w-full overflow-hidden rounded-md", cover ? "border border-line-strong bg-well" : pic.node?.entry ? "border border-line-strong bg-well/60" : "border border-dashed border-line-strong bg-transparent")}
+      title={pic.node?.entry ? `${named}${state ? ` (${state} i Material)` : ""}${away ? ". Bilden finns inte på den här datorn." : ""}${films}` : `${code}: ${none}`}
     >
       {cover ? (
         <ProofStill cover={cover} fps={pic.entry?.fps ?? 30} className={cn("absolute inset-0", (state === "ersatt" || state === "arkiverad") && "saturate-[0.7]")} />
       ) : pic.node?.entry ? (
-        <span className="absolute inset-0 grid place-items-center text-faint">
-          <ImageOff className="size-4" aria-hidden />
+        <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-2 text-center text-faint">
+          <ImageOff className="size-4 shrink-0" aria-hidden />
+          {away && !small ? <span className="text-[10.5px] leading-tight">bilden finns inte på den här datorn</span> : null}
         </span>
       ) : null}
       <span
@@ -217,6 +223,8 @@ function StepChip({ step, active, dim, onClick, onHover }: { step: ViewStep; act
       className={cn(
         "nodrag nopan pointer-events-auto grid size-[18px] place-items-center rounded-full bg-canvas shadow-[0_1px_5px_rgb(0_0_0/0.55)] transition-[opacity,box-shadow] duration-150",
         active && "shadow-[0_0_0_2px_rgb(217_185_106/0.6)]",
+        // A film whose file is not on this machine: an amber ring round the verdict's dot (the title says it in words).
+        step.noFile && !active && "shadow-[0_0_0_1.5px_rgb(227_155_91/0.9)]",
         dim && "opacity-30",
       )}
     >
@@ -321,15 +329,15 @@ export function TreeCanvas({ view, layout, media, active, hover, sheetOpen, path
   const nodes = useMemo<Node[]>(() => {
     const pic = (node: string): Pic => {
       const n = view.nodes.find((x) => x.node === node) ?? null;
-      return { node: n, entry: n?.entry ? (media.get(n.entry) ?? null) : null };
+      return { node: n, entry: n?.entry ? (media.get(n.entry) ?? null) : null, films: n?.films ? (media.get(n.films) ?? null) : null };
     };
     const act: Act = { picking: !!path, onOpen, none: camera ? `ingen bild från kamera ${camera}` : "ingen bild i trädet" };
     const shot = (node: string): Shot => {
       const p = pic(node), mark = path?.at.get(node) ?? null;
       return path ? { node, pic: p, can: path.next.has(node), mark, off: !mark && !path.next.has(node) } : { node, pic: p, can: !!p.entry, mark: null, off: false };
     };
-    // The other anchors at the shoe say which steps they give (Casino: A2.2 gives A3P6C1).
-    const gives = (node: string) => view.steps.filter((s) => s.via === node).map((s) => nodeCode(s.card ?? s.to));
+    // The other anchors at the shoe say which cards they give (Casino: A2.2 gives A3P6C1), each card once (its deal and return).
+    const gives = (node: string) => [...new Set(view.steps.filter((s) => s.via === node).map((s) => nodeCode(s.card ?? s.to)))];
     // The film the round opens with, by its name in Material (none while Material loads, never its id).
     const opening = view.tree.opening ? (media.get(view.tree.opening)?.name ?? null) : null;
     return layout.boxes.map((b): Node => {

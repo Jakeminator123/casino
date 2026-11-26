@@ -20,11 +20,15 @@ export type TalkRegister = {
 export type TalkKind = "runda" | "chatt";
 /**
  * One line: its key, its short name ("Insatser", "Hälsning"), its text, and the film the game plays for it in the tree
- * (clip null: none, the game shows the text); takes: the line's talk films in the tree, of any verdict.
+ * (clip null: none, the game shows the text); takes: the line's talk films in the tree, of any verdict; noFile: the film's
+ * file is not on this machine.
  */
-export type TalkLine = { key: string; name: string; kind: TalkKind; text: string; clip: string | null; video: string | null; fps: number; frames: number | null; takes: number };
-/** have: lines the game has a film for in the tree, of total; takes: the tree's talk films (archived left out). */
-export type TreeTalk = { have: number; total: number; takes: number; lines: TalkLine[] };
+export type TalkLine = { key: string; name: string; kind: TalkKind; text: string; clip: string | null; video: string | null; fps: number; frames: number | null; takes: number; noFile?: boolean };
+/**
+ * have: lines the game has a film for in the tree, of total, its file on this machine (the game shows the text where it has
+ * none); noFile: lines whose film the game would play but whose file is not here; takes: the tree's talk films (archived left out).
+ */
+export type TreeTalk = { have: number; total: number; takes: number; lines: TalkLine[]; noFile?: number };
 /** A tree as the lab answers it, with its talk (an older lab server gives none). */
 export type TalkView = TreeView & { talk?: TreeTalk };
 
@@ -42,7 +46,8 @@ const shortName = (key: string, names: TalkRegister["names"]): string => {
 /**
  * The tree's talk. rests: the dealer's rest takes (IDLE>IDLE) as the game's bank holds them (judgedBank), each with its
  * record in `motion`; all: every rest take of the bank, judged or not (the count); treeOf: the tree a take is placed in
- * (null: none); home: the tree whose films the tree plays (itself, or the one it shares).
+ * (null: none), or the trees and ways it belongs to (a tree's talk is every way's of it); home: the tree whose films the tree
+ * plays (itself, or the one it shares).
  */
 export function treeTalk(
   register: TalkRegister | null,
@@ -50,11 +55,11 @@ export function treeTalk(
   home: string,
   rests: readonly (SpeechTake & { archived?: boolean })[],
   all: readonly (SpeechTake & { archived?: boolean })[],
-  treeOf: (id: string) => string | null,
+  treeOf: (id: string) => string | readonly string[] | null,
 ): TreeTalk {
   const kept = (id: string) => {
     const tree = treeOf(id);
-    return tree === null || tree === home;
+    return tree === null || tree === home || (Array.isArray(tree) && tree.includes(home));
   };
   // An archived take never plays (judgedBank leaves it out already; said again here).
   const played = spokenFilms(rests.filter((t) => !t.archived && kept(t.id)), dealer, { voice: GAME_VOICE });
@@ -80,5 +85,10 @@ export function treeTalk(
       takes: mine.filter((t) => spokenLine(t) === key).length,
     };
   });
-  return { have: lines.filter((l) => l.clip).length, total: lines.length, takes: mine.length, lines };
+  // A film the game would play whose file is not on this machine (the bank's media names none; the line's video may still
+  // name where the record's source was) is no film here: the game has nothing to show for it.
+  const onDisk = new Set(rests.filter((t) => !!t.media?.video).map((t) => t.id));
+  const said = lines.map((l): TalkLine => (l.clip && !onDisk.has(l.clip) ? { ...l, noFile: true } : l));
+  const noFile = said.filter((l) => l.noFile).length;
+  return { have: said.filter((l) => l.clip && !l.noFile).length, total: said.length, takes: mine.length, lines: said, ...(noFile ? { noFile } : {}) };
 }

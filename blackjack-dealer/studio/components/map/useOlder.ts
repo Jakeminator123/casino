@@ -28,9 +28,10 @@ function useMediaAnswer(): MediaAnswer | null {
   return answer;
 }
 
-export function useOlder(): (takeId: string) => Mark[] {
+/** same: two pictures that are the same node (a tree's markOf): a take built on the one is not older where the other holds. */
+export function useOlder(same?: (a: string, b: string) => boolean): (takeId: string) => Mark[] {
   const answer = useMediaAnswer();
-  return (takeId: string) => marksFrom(answer, takeId);
+  return (takeId: string) => marksFrom(answer, takeId, same);
 }
 
 /** Material's pictures by entry id (every dealer's), for the tree's nodes; empty until read and on the online copy. */

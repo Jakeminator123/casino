@@ -1,12 +1,18 @@
+// Skyddar: spelets regler, kontrakten – ett träd visar och spelar bara sina egna filmer (eller säger var en film lånas ifrån), spelet med ett träd (?trad=) spelar aldrig ett annat träds film, och en bild med bara kortets märke ändrat är samma nod (Jakob 2026-11-26).
 // src/dealer-trees.ts: a tree's 36 steps against his measure (Jakob 2026-11-21: "en giv per kort för respektive spelare"),
-// each step's state (finns, prov, saknas) and the one number per tree, on made-up data: today's register changes every
-// time a film is judged. Also that Karta's tree map (studio/lib/map-layout.ts treeLayout) draws one line per step.
+// each step's state (finns, prov, saknas) and the one number per tree, its ways and its cut, on made-up data: today's register
+// changes every time a film is judged.
 // Run from the repo root: node --test "studio/tests/dealer-trees.test.ts"
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
   MEASURE_SIZE,
   STRAIGHT_CAMERA,
+  cutBank,
+  dealsTo,
+  markPairs,
+  treeList,
+  waysOf,
   cameraFromWord,
   cameraMade,
   cameraOf,
@@ -18,11 +24,11 @@ import {
   homeOf,
   measure,
   nodeCode,
-  orderCommand,
   pictureCamera,
   playedCut,
   treeCount,
   unplayedTakes,
+  treeGame,
   treeNodes,
   treeSteps,
   treeView,
@@ -31,7 +37,6 @@ import {
   type TreeEntry,
   type TreeTake,
 } from "../../src/dealer-trees.ts";
-import { treeLayout } from "../lib/map-layout.ts";
 import { verdictOf } from "../lib/verdict.ts";
 import { buildGraph, resolveRound, returnFits, type BankData } from "../../src/clip-graph.ts";
 import { nodesOf, treePlay } from "../../src/dealer-trees.ts";
@@ -150,26 +155,6 @@ test("the tree's nodes: a picture from Material or an empty box, with his short 
   assert.deepEqual([at("P4.C2")?.code, at("D.C1")?.code], ["A3P4C2", "A3DC1"]); assert.ok(at("REVEAL(D.C1)"), "the hole card's turn is a node of the tree");
   assert.equal(treeNodes({ ...tree, anchors: [{ entry: "a1" }] }, entries)[1].node, "READY", "a tree without an anchor at the shoe is measured from A2.1");
   assert.equal(nodeCode("READY-B", 2), "S2-A2.2");
-});
-
-test("the command for a draft of a missing step is in his names", () => {
-  assert.equal(orderCommand("paow", "READY-C", "P4.C2"), 'node tools/order-new.ts paow "A2.3 - A3P4C2"');
-  assert.equal(orderCommand("ada", "D.C1", "READY"), 'node tools/order-new.ts ada "A3DC1 - A2.1"');
-});
-
-test("the tree map draws one line per step, between boxes it draws", () => {
-  for (const [hub, others] of [["READY", []], ["READY-C", ["READY-B"]]] as const) {
-    const layout = treeLayout({ hub, others, railText: "x" });
-    assert.deepEqual(layout.lines.map((l) => l.id), measure(hub).map((s) => s.id));
-    const ids = new Set(layout.boxes.map((b) => b.id));
-    for (const line of layout.lines) for (const n of line.nodes) assert.ok(ids.has(n), `${line.id}: ${n} is drawn`);
-    const cards = layout.boxes.flatMap((b) => b.cards.map((c) => c.card));
-    assert.equal(cards.length, 16, "every card of the measure is a picture box");
-    const chips = new Set(layout.lines.map((l) => `${l.chip.x},${l.chip.y}`));
-    assert.equal(chips.size, MEASURE_SIZE, "no two chips on the same spot");
-    assert.ok(layout.lines.every((l) => l.chip.x >= 0 && l.chip.x <= layout.width && l.chip.y >= 0 && l.chip.y <= layout.height));
-    assert.equal(layout.boxes.filter((b) => b.kind === "annan").length, others.length);
-  }
 });
 
 // What a step shows (Jakob 2026-11-24 at A3P7C1: no film there "actually deals the card the way the return is"): the views
@@ -336,11 +321,105 @@ test("the camera: a tree is the straight camera's, another seat's pictures and f
   assert.ok(six.nodes.every((n) => n.entry === null) && six.steps.every((s) => s.state === "saknas" && s.take === null));
   assert.deepEqual([six.steps.length, six.count], [MEASURE_SIZE, { have: 0, total: 36 }]);
   assert.deepEqual(cameraMade(view, 6), { pictures: 0, films: 0, waiting: 0, first: null });
-  const layout = treeLayout({ hub: two.hub, others: two.others, railText: "x" });
-  assert.deepEqual(layout.lines.map((l) => l.id), two.steps.map((s) => s.id), "the map draws the camera's steps");
 
   // The game plays the straight camera: a film from a seat is dropped also in its own tree, with or without ?trad=.
   assert.deepEqual(cutTakes("t", takes), { own: ["in", "p4c1"], drop: ["s2-p2c1", "s2-p3c1", "s2-wait"] });
   assert.deepEqual(unplayedTakes([tree], takes), ["s2-p2c1", "s2-p3c1", "s2-wait"]);
   assert.deepEqual(playedCut("paow", [tree], takes, () => "READY-C").own, ["in", "p4c1"]);
+});
+
+// Ways (Jakob 2026-11-26: "det enda som skiljer är väl bara att A1 kan förgrena sig till A2.1 eller A2.3"), on a made-up tree:
+// "t" deals from A2.3 (and its picture with the card's mark, which holds), and its way "n" from A2.1 on the same A1. The rest
+// film stands only on A1, so tools/dealer-tree.ts gives it to both (also).
+test("a tree's ways: each way is played and drawn as a tree of its own; the tree's game never plays the way's films", () => {
+  const t: TreeDef = { id: "t", name: "T", state: "spelas", root: "a1", anchors: [{ entry: "a1" }, { entry: "a23" }, { entry: "a23m", markOf: "a23" }], ways: [{ id: "n", name: "N", state: "byggs", anchors: [{ entry: "a21" }] }] };
+  const entries = new Map<string, TreeEntry>([
+    ["a1", { id: "a1", role: "ankare", node: "IDLE", state: "gäller" }],
+    ["a23", { id: "a23", role: "ankare", node: "READY-C", state: "arkiverad" }],
+    ["a23m", { id: "a23m", role: "ankare", node: "READY-C", state: "gäller" }],
+    ["a21", { id: "a21", role: "ankare", node: "READY", state: "gäller" }],
+  ]);
+  const takes: TreeTake[] = [
+    take("rest", "IDLE", "IDLE", "godkand", { tree: "t", also: ["n"] }),
+    take("t-in", "IDLE", "READY-C", "godkand", { tree: "t" }),
+    take("t-p4", "READY-C", "P4.C1", "godkand", { tree: "t" }),
+    take("n-in", "IDLE", "READY", "godkand", { tree: "n" }),
+    take("n-p4", "READY", "P4.C1", "godkand", { tree: "n" }),
+  ];
+  const trees = treeList([t]);
+  assert.deepEqual(trees.map((x) => [x.id, x.wayOf ?? null, x.anchors.map((a) => a.entry)]), [["t", null, ["a1", "a23", "a23m"]], ["n", "t", ["a1", "a21"]]]);
+  const [main, way] = trees.map((x) => treeView("paow", x, trees, entries, takes));
+  assert.deepEqual([main.hub, main.others, way.hub, way.others], ["READY-C", [], "READY", []], "a way is not an anchor that stands in for the tree");
+  assert.deepEqual([main.count, way.count], [{ have: 3, total: 36 }, { have: 3, total: 36 }], "the rest is both ways' own");
+  assert.equal(byId(main.steps, "READY-C>P4.C1").take, "t-p4");
+  assert.equal(byId(way.steps, "READY>P4.C1").take, "n-p4");
+  assert.equal(defaultTree(trees)?.id, "t", "a way is never the view's first tree");
+  // Inspelning asks the deals to a card, way by way, the game's way first.
+  assert.deepEqual(waysOf([main, way], "n").map((v) => v.tree.id), ["t", "n"]);
+  assert.deepEqual(dealsTo([main, way], "t", "P4.C1").map((d) => [d.way, d.hub, d.state, d.take]), [["t", "READY-C", "finns", "t-p4"], ["n", "READY", "finns", "n-p4"]]);
+
+  // The game: the tree plays its own films and its rest, never the way's; the way alone plays its films and the shared rest.
+  assert.deepEqual(playedCut("paow", trees, takes, (d) => (d.id === "t" ? "READY-C" : "READY")), { schemaVersion: 1, dealer: "paow", played: ["t"], hub: "READY-C", own: ["rest", "t-in", "t-p4"], drop: ["n-in", "n-p4"] });
+  assert.deepEqual(cutTakes("n", takes, true), { own: ["rest", "n-in", "n-p4"], drop: ["t-in", "t-p4"] }, "?trad=n");
+  assert.deepEqual(cutTakes("n", takes), { own: ["n-in", "n-p4"], drop: ["rest", "t-in", "t-p4"] }, "in a composition the tree brings its own rest");
+
+  // The same picture with the card's mark is the same node: the node shows the one that holds, its films stand on the other.
+  assert.deepEqual(markPairs(t), [["a23m", "a23"]]);
+  const shoe = main.nodes.find((x) => x.node === "READY-C");
+  assert.deepEqual([shoe?.entry, shoe?.state, shoe?.films], ["a23m", "gäller", "a23"]);
+  assert.deepEqual(way.nodes.find((x) => x.node === "READY")?.entry, "a21");
+});
+
+// The fault in Jakob's picture (2026-11-26): in Tatuerad, A2.3 → A3P6C1 said "Spelas nu: Giv A2.2 02 01", the Casino's film, and
+// called the tree's own film "Spelas inte". The tree's view is read over the bank as the game plays the tree (TreeView.cut):
+// the Casino's A2.2 chain for seat 6 (SEAT_HUB) is not in it, so the tree's own film is the one that plays, and the panel's
+// Primär is never another tree's. Made-up films: tree "c" deals P6C1 from A2.2 (Primär, with its entry and exit), tree "t" from A2.3.
+test("a tree's step is read over the tree's own bank: another tree's Primär on the same edge neither plays nor shows", () => {
+  type Made = { id: string; from: string; to: string; main?: boolean };
+  const made: Made[] = [
+    { id: "c-in-b", from: "IDLE", to: "READY-B" }, { id: "c-p6-b", from: "READY-B", to: "P6.C1", main: true }, { id: "c-p6-b-back", from: "P6.C1", to: "READY-B" }, { id: "c-out-b", from: "READY-B", to: "IDLE" },
+    { id: "t-in", from: "IDLE", to: "READY-C" }, { id: "t-p6", from: "READY-C", to: "P6.C1" }, { id: "t-p6-back", from: "P6.C1", to: "READY-C" }, { id: "t-out", from: "READY-C", to: "IDLE" },
+  ];
+  const bank = {
+    jobs: [], edits: [], derived: made.map(({ id, from, to }) => ({ id, clip: id, frames: [0, 40], from, to })),
+    motions: Object.fromEntries(made.map((m) => [m.id, { review: { decision: "ACCEPTED", userAccepted: true, ...(m.main ? { acceptedAs: "MAIN" } : {}) } }])),
+    media: Object.fromEntries(made.map((m) => [m.id, { video: `assets/motions/${m.id}/source.mp4` }])),
+  } as unknown as BankData;
+  const all = buildGraph(bank, { dealer: "paow" });
+  const takes: TreeTake[] = Object.values(all.takes).map((x) => { const [from, to] = nodesOf(x.edge, x.hub), v = verdictOf(x); return { id: x.id, tree: x.id.startsWith("c-") ? "c" : "t", from, to, verdict: v.verdict, byJakob: v.byJakob, provisional: v.provisional }; });
+  const c: TreeDef = { id: "c", name: "C", state: "vilar", root: "a1", anchors: [{ entry: "a1" }, { entry: "a22" }] };
+  const t: TreeDef = { id: "t", name: "T", state: "spelas", root: "t1", anchors: [{ entry: "t1" }, { entry: "a23" }] };
+  const entries = new Map<string, TreeEntry>([["a1", { id: "a1", role: "ankare", node: "IDLE" }], ["a22", { id: "a22", role: "ankare", node: "READY-B" }], ["t1", { id: "t1", role: "ankare", node: "IDLE" }], ["a23", { id: "a23", role: "ankare", node: "READY-C" }]]);
+  const view = treeView("paow", t, [c, t], entries, takes, [], bank);
+  assert.ok(view.cut, "the view carries its cut");
+  assert.deepEqual([byId(view.steps, "READY-C>P6.C1").take, byId(view.steps, "READY-C>P6.C1").via], ["t-p6", null]);
+
+  // In the whole bank the Casino's Primär is on the same edge (every anchor at the shoe is a take of A2.1's edge): the fault.
+  assert.ok(all.edge["READY>P6.C1"].takes.some((x) => x.id === "c-p6-b"));
+  // Over the tree's bank: only the tree's film is on the edge, no seat is dealt from A2.2, and it is the one that plays.
+  const mine = cutBank(bank, { hub: view.hub, ...view.cut! });
+  const game = buildGraph(judgedBank(mine), { dealer: "paow" });
+  assert.deepEqual(game.edge["READY>P6.C1"].takes.map((x) => x.id), ["t-p6"]);
+  assert.equal(hubChain(game, "READY-B", "P6.C1"), null, "the Casino's way to seat 6 from A2.2 is not in the tree's game");
+  assert.deepEqual(resolveRound(game, [{ from: "READY", to: "P6.C1" }, { from: "P6.C1", to: "READY" }]).map((s) => s.take?.id), ["t-p6", "t-p6-back"]);
+});
+
+// What the game plays decides a stand-in, and what is on this machine decides what is said (Jakob 2026-11-26: the views are
+// to say the truth). Tree "t" on A2.3 has an A2.1 of its own whose deal to seat 2 is approved; the game never deals from A2.1
+// there, so with the game's graph that film is no film of the step. A film without its file here is said so.
+test("a stand-in counts only where the game plays it, and a film whose file is not here is said so", () => {
+  const steps = (game: boolean) => {
+    const takes: TreeTake[] = [take("in", "IDLE", "READY-C", "godkand"), take("p2-a21", "READY", "P2.C1", "godkand"), take("p3", "READY-C", "P3.C1", "godkand", { film: false }),
+      take("talk", "IDLE", "IDLE", "primar", { talk: true }), take("rest-far", "IDLE", "IDLE", "godkand", { film: false }), take("rest", "IDLE", "IDLE", "godkand")];
+    const derived = takes.map((x) => ({ id: x.id, clip: x.id, frames: [0, 40], from: x.from, to: x.to }));
+    const bank = { jobs: [], edits: [], derived, motions: Object.fromEntries(takes.map((x) => [x.id, { review: { decision: "ACCEPTED", userAccepted: true } }])), media: Object.fromEntries(takes.filter((x) => x.film !== false).map((x) => [x.id, { video: `assets/motions/${x.id}/source.mp4` }])) } as unknown as BankData;
+    const g = game ? treeGame(bank, "paow", { hub: "READY-C", own: takes.map((x) => x.id), drop: [] }) : null;
+    return treeSteps("READY-C", ["READY"], takes, [], g);
+  };
+  const [withGame, verdictsOnly] = [steps(true), steps(false)];
+  assert.deepEqual([byId(verdictsOnly, "READY-C>P2.C1").state, byId(verdictsOnly, "READY-C>P2.C1").via], ["finns", "READY"], "without the game's graph, as the verdicts say");
+  assert.equal(byId(withGame, "READY-C>P2.C1").state, "saknas", "the game never deals seat 2 from A2.1 in this tree");
+  assert.deepEqual([byId(withGame, "READY-C>P3.C1").state, byId(withGame, "READY-C>P3.C1").noFile], ["finns", true], "approved, but its file is not here");
+  assert.equal(byId(withGame, "IDLE>IDLE").take, "rest", "the rest shows a calm film that is here, not a talk film or one that is not here");
+  assert.equal(byId(withGame, "IDLE>IDLE").noFile, undefined);
 });

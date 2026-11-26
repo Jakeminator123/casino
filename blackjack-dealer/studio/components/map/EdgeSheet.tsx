@@ -50,6 +50,7 @@ export function EdgeSheet({
   title,
   note,
   idle = null,
+  samePicture,
 }: {
   graph: Graph | null;
   /** The chosen step's films (KartaView: stepFilms), null when none is chosen. */
@@ -66,15 +67,17 @@ export function EdgeSheet({
   onPickEdge: (id: string) => void;
   /** The step in a tree's own words ("A2.3 → A3P4C1"), in place of the bank's edge name. */
   title?: string;
-  /** A line over the films (Karta's trees: the bank's Primär of the step is another tree's). */
+  /** A line over the films (Karta's trees: the step's Primär is a film of no tree). */
   note?: string | null;
+  /** Two pictures that are the same node (a tree's markOf): a film on the one is not marked older for the other. */
+  samePicture?: (a: string, b: string) => boolean;
 }) {
   const edge = step?.edge ?? null;
   const subtitle = edge ? (edge.experiment ? "Experiment utanför kartan" : describeEdge(edge)) : "";
   return (
     <Sheet open={!!step} onOpenChange={(open) => !open && onClose()} title={edge ? (title ?? edgeName(edge)) : ""} subtitle={subtitle} width={SHEET_W}>
       {step && note ? <p className="mb-3 rounded-md border border-line bg-raised px-3 py-2 text-sm text-dim">{note}</p> : null}
-      {step && info && graph ? <SheetBody key={step.edge.id} graph={graph} step={step} info={info} idle={idle} takeId={takeId} around={around} onPickTake={onPickTake} onPickEdge={onPickEdge} /> : null}
+      {step && info && graph ? <SheetBody key={step.edge.id} graph={graph} step={step} info={info} idle={idle} takeId={takeId} around={around} samePicture={samePicture} onPickTake={onPickTake} onPickEdge={onPickEdge} /> : null}
     </Sheet>
   );
 }
@@ -86,6 +89,7 @@ function SheetBody({
   idle,
   takeId,
   around,
+  samePicture,
   onPickTake,
   onPickEdge,
 }: {
@@ -95,15 +99,17 @@ function SheetBody({
   idle: string | null;
   takeId: string | null;
   around: Around;
+  samePicture?: (a: string, b: string) => boolean;
   onPickTake: (id: string | null) => void;
   onPickEdge: (id: string) => void;
 }) {
   const { edge, primary, secondaries } = step;
-  const { make, saving, lines } = useMakePrimary();
+  // "Gör primär" lowers an earlier Primär on the step in the graph the panel reads (on Karta's trees: the tree's own).
+  const { make, saving, lines } = useMakePrimary(graph);
   // Arkivera beside Gör primär, and the step's archived takes folded at its foot with Ta tillbaka (ArchiveTake.tsx).
   const archive = useArchive();
   // Takes built on a picture that no longer holds (Material decides the pictures; here only marked, with the picture a click away).
-  const older = useOlder();
+  const older = useOlder(samePicture);
   const rest = edge.id === REST_EDGE;
   const name = (t: Take) => (rest ? restWord(t) : undefined);
   const named = takeId ? secondaries.findIndex((f) => f.take.id === takeId) : -1;
@@ -189,7 +195,7 @@ function SheetBody({
           {isSnapshot ? (
             <span className="inline-flex items-start gap-1.5 text-xs text-dim">
               <Lock aria-hidden className="mt-px size-3.5 shrink-0 text-brass" />
-              Primär väljs bara i Jakobs labb.
+              Primär väljs bara i Jakobs studio.
             </span>
           ) : null}
           {shownSecondaries.map(secondary)}
