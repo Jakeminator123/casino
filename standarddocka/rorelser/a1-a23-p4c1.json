@@ -5,12 +5,13 @@
   "till-ankare-2-3-c",
   "giv-fran-2-3-p4c1-naturlig-cykel-a-paow"
  ],
- "blickMot": "lag",
- "fart": [
-  1,
-  1,
-  1
- ],
+ "blickMot": "spel",
+ "liv": {
+  "fro": 418492708,
+  "delar": [
+   "andning"
+  ]
+ },
  "andringar": [
   {
    "id": "1pahvju",
@@ -25,5 +26,5 @@
    "varar": 1.8
   }
  ],
- "sparad": "2026-11-26T04:52:25.311Z"
+ "sparad": "2026-11-26T07:25:20.215Z"
 }

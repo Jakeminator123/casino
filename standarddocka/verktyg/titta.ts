@@ -12,6 +12,7 @@
 //                         filen (efter att ändringar har skrivits in i den för hand)
 //              [--kulor]  visa handtagen     [--panel]  hela fönstret med panelen     [--storlek 1600x1000]     [--port 4321]
 //              [--utseende nyckel]  rena färger på bakgrund, bord och kort (editor/scen.ts), för film där dealern ska skiljas ut
+//              [--docka kvinna]  kvinnan i stället för mannen (samma rörelse och samma sparade lager)
 //              [--liv andning,huvud,blick,hand,kropp] [--fro 1]  de små egna rörelserna på, med slumpens frö (utan att spara)
 //              [--giv <namn>] [--vilan <namn>]  en grundrörelse på prov (en fil i blackjack-dealer/dealer3d/data, utan .json)
 //                         i stället för platsens giv eller vilan till skon, utan det sparade lagret
@@ -57,7 +58,7 @@ try {
   const cdp = (method: string, params: object = {}) => new Promise<any>((ok, fel) => { const id = ++nr; väntar.set(id, {ok, fel}); ws!.send(JSON.stringify({id, method, params})); });
   const kör = async (kod: string) => { const r = await cdp('Runtime.evaluate', {expression: kod, awaitPromise: true, returnByValue: true}); if (r.exceptionDetails) throw Error(`${kod.slice(0, 90)}: ${r.exceptionDetails.exception?.description ?? r.exceptionDetails.text}`); return r.result.value; };
   await cdp('Page.enable'); await cdp('Runtime.enable');
-  await cdp('Page.navigate', {url: `http://127.0.0.1:${PORT}/standarddocka/editor/?plats=${plats}&kamera=${kameror[0]}${flag('--kulor') ? '' : '&kulor=0'}${arg('--utseende') === 'nyckel' ? '&utseende=nyckel' : ''}${arg('--giv') ? `&giv=${arg('--giv')}` : ''}${arg('--vilan') ? `&vilan=${arg('--vilan')}` : ''}`});
+  await cdp('Page.navigate', {url: `http://127.0.0.1:${PORT}/standarddocka/editor/?plats=${plats}&kamera=${kameror[0]}${flag('--kulor') ? '' : '&kulor=0'}${arg('--utseende') === 'nyckel' ? '&utseende=nyckel' : ''}${arg('--docka') === 'kvinna' ? '&docka=kvinna' : ''}${arg('--giv') ? `&giv=${arg('--giv')}` : ''}${arg('--vilan') ? `&vilan=${arg('--vilan')}` : ''}`});
   for (let i = 0; ; i++) { await sleep(500); if (await kör('!!(window.editor && window.editor.ready)').catch(() => false)) break; if (i > 240) throw Error(`Editorn blev inte klar: ${await kör('document.querySelector("#fel").textContent').catch(() => '?')}`); }
   for (const [del, ganger] of fart) await kör(`window.editor.fart(${del}, ${ganger})`);
   for (const vad of utan) await kör(`window.editor.visa(${JSON.stringify(vad)}, false)`);

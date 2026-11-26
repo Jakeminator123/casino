@@ -21,14 +21,16 @@ standarddocka/
     server.ts   editorns egen server (bara den här datorn, port 4320); lämnar ut sidan, modellerna och rörelserna,
                 tar emot det som sparas och gör film av inspelningens bilder (FFmpeg)
     editor.ts   sidan: tidslinjen, kamerorna, handtagen, Spara, Återställ, Spela in
-    scen.ts     scenen: bordet, stolen och mannen i spelets mått, ljuset, kortet, kamerorna
+    scen.ts     scenen: bordet, stolen och dockan (mannen eller kvinnan) i spelets mått, ljuset, kortet, kamerorna
     rorelse.ts  rörelsen: grundrörelser efter varandra, skarven utjämnad, ändringarna ovanpå, vem som håller kortet
     armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp)
   verktyg/      för agenter, utan fönster (hur de används: skillen granska-rorelse, ../.claude/skills/granska-rorelse/)
     titta.ts    stillbilder ur valda kameror vid valda tider, med editorns mått, eller en inspelning; kör editorn i
                 ett headless Chrome under det delade låset
     mat.ts      mäter en rörelse ruta för ruta mot vad en hand och ett kort kan göra: fingrar i kortet eller filten,
-                kortet utan stöd, plötsliga vändningar, ryck, landningen; ingen webbläsare
+                kortet utan stöd, plötsliga vändningar, ryck, hopp på en ruta, landningen; ingen webbläsare. `--alla`
+                är spärren före en inspelning: alla sju platser, en rad var, och rött om någon har ett finger genom
+                kortet eller i filten, kortet utan stöd, ett hörn under filten, ett hopp eller en sned landning
   rorelser/     det editorn sparar, en rörelse per kortplats: a1-a23-p<plats>c1.json (vilka grundrörelser, blicken,
                 farten per del, ändringarna) och a1-a23-p<plats>c1.rutor.json (hela rörelsen ruta för ruta i dockans
                 format, skriven vid Spara)
@@ -50,6 +52,8 @@ plats har sina egna sparade ändringar.
   räknas ur den med `seatView`. I vilan ser han in i kameran på plats 4: ansiktet vrids ända fram mot den, med ett lyft
   som är satt efter bild (`BLICK_LYFT` i `editor/scen.ts`). En plats kamera är spelets egen regel
   (`seatEye` i `../blackjack-dealer/dealer3d/src/world.ts`); plats 4 är spelets kamera.
+- **Dockan:** mannen eller kvinnan (knapparna "Dockan", eller `?docka=kvinna`). De har samma skelett och en rörelse är
+  händernas, armarnas och blickens lägen i rummet, så båda gör samma rörelser och delar det som sparas.
 - **Återställ:** "Tillbaka till det sparade" kastar det som inte är sparat, "Återställ till grundrörelsen" tar bort alla
   ändringar. Båda går att ångra (Ctrl+Z), och inget skrivs förrän Spara. Det sparade ligger i Git, så en äldre sparad
   version går alltid att hämta tillbaka.
@@ -113,8 +117,14 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   så att han sitter på sitsen (5 cm till ryggstödet); fötterna hänger strax framför fotringen. Ingen del av honom går
   igenom bordet eller stolen, utom att låren trycker ned dynan 5 mm. Bilden `vy_lag` är en lägre kamera från
   spelarens håll (10 grader ned i stället för 25) att jämföra med spelets.
-- Dockans kropp kan redan följa en sparad giv med fingrarna i `blackjack-dealer`s scen
-  (`dealer3d/src/figure-model.ts`), men den vyn är inte den Jakob vill arbeta i.
+- Studions dockvy i `blackjack-dealer` (Bordets Inspelning och `/dealer3d/docka`) ritar sedan 2026-11-26
+  standarddockans kropp i den vita figurens ställe: kvinnan som förval, mannen med `?figur=man`, den vita figuren med
+  `?figur=vit` eller där modellen inte är byggd (`dealer3d/page/docka.ts`, `dealer3d/src/figure-model.ts`). Rummet,
+  bordet och kameran där är fortfarande de äldre; se "Plockas in" nedan.
+- Skon har en frontplatta med en rundad öppning (`sko_front`, måtten i `SKO_FRONT` i
+  `../avatar-auto-pipeline/scen/bygg_bord.py`): kortets rygg syns i öppningen, kortet dras nedåt och ut genom springan
+  under plattan, och nästa kort visar ryggen när ett har gått. Springan är hög (59 mm över filten) eftersom givarna
+  lutar ut kortet tidigt; den blir lägre först när kortet glider längre platt.
 - Jakob om den första arbetsvyn: "Ser ganska bra ut nu"; brickan ut i kanten, händerna och stolen är rättade efter
   hans anteckningar och väntar på hans dom.
 - Editorn finns (`editor/`) med den första följden: mannen gör Paows rörelser A1 → A2.3 → plats 4 kort 1 → tillbaka
@@ -138,11 +148,12 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   `granska-p7`) fann inget som editorns lager kan rätta: felen sitter i reglerna som ritar givarna
   (`../blackjack-dealer/dealer3d/src/`), framför allt greppet när högerhanden tar emot kortet, vändningen och släppet.
   På Jakobs ord görs de om där, som nya val och nya grundrörelser (`giv-fran-2-3-p<n>c1-ren-a-paow`), med hans takt
-  (kortet ut högst 1 s, handen tillbaka cirka 0,6 s) och med handen vid skon avspänd.
+  (kortet ut högst 1 s, handen tillbaka cirka 0,6 s) och med handen vid skon redo: varken lyft och spänd eller slapp.
+  Tills de är inne är givarna editorn spelar de gamla i en snabbare takt, och spärren `verktyg/mat.ts --alla` är röd
+  på alla sju platserna (finger genom kortet och kortet utan stöd): inget av dem ska filmas för en betald film.
 - Känt i editorn: i vilan står armbågarna utvinklade, eftersom rörelserna är gjorda för Paows kropp och ett bord vars
   kant låg 15 cm längre bort (en egen vila för det närmare bordet behövs); bålen lutar som Paows, 16 cm i given;
-  huvudet vrids högst 40 grader, så blicken ser lite låg ut; skons främsta kort visar sin vita framsida när kortet
-  har lämnat skon (Blender visar baksidan); filten är mörkare än i Blenders bilder; vilan i den första delen är den
+  filten är mörkare än i Blenders bilder; vilan i den första delen är den
   äldre vita dockans, inte den `scen/vy.py` lägger mannen i. Editorn och `scen/vy.py` ställer upp scenen var för sig
   (stolen, vilan, kamerorna): de ska läsa samma tal ur en fil.
 - Provat och bedömt av Jakob: bordet 15 cm närmare dealern räcker för att det ska nå magen och skon stå helt på
@@ -215,15 +226,19 @@ Mappen lånar det som redan finns i stället för att kopiera det:
 4. Rörelserna en i taget, tills var och en är riktigt bra, och sättet att föra över dem till en annan kropp. Den
    första hela följden ska sluta i vilan: i dag slutar den vid skon (A2.3), och en återgång från kortplatsen direkt
    till A1 (Jakob 2026-11-23: sista given går direkt till A1) finns inte som dockrörelse.
-5. Kvinnan, på samma skelett och med samma rörelser.
-6. Ordningen i mapparna (Jakob 2026-11-26): det som bygger standarden (måttfilen, bordet, dockorna, stolen och
+5. Kvinnan: hon finns som val i editorn och gör samma rörelser. Kvar är att se henne ruta för ruta (smalare axlar och
+   kortare armar ger andra vinklar i armbågen) och en egen vila för hennes kropp.
+6. Ansiktet: båda modellerna har 30 ansiktsformer (blinkning, ögonbryn, mun, käke, efter ARKits namn) och leder för
+   ögon och käke, men inget styr dem än och en rörelses rutor har inget fält för ansiktet. Nästa steg är en blinkning
+   och ögon som följer blicken som en av de små egna rörelserna; minspel därutöver gör filmmodellen ur personens bilder.
+7. Ordningen i mapparna (Jakob 2026-11-26): det som bygger standarden (måttfilen, bordet, dockorna, stolen och
    deras byggskript i `../avatar-auto-pipeline/scen/`, `verktyg/`, `rorelser/` och `assets/`) flyttar hit, så att
    `../avatar-auto-pipeline/` bara gör en dealer från foton på den här standarden. Väntar på svaret från den
    utomstående granskare Jakob har gett hela upplägget till (rörelser till en annan kropp, film eller realtid, sju
    platser, kameran, editorn eller Blender, mappordningen).
 
 Lovat Jakob, inte gjort (2026-11-26): kvinnan bredvid mannen i Blenders vy; en gemensam uppställningsfil som både
-`scen/vy.py` och `editor/scen.ts` läser; skon genomskinlig som ett val, så att den blir tydligare som förlaga; filtens
+`scen/vy.py` och `editor/scen.ts` läser; filtens
 färg som ett val i `../avatar-auto-pipeline/scen/bygg_bord.py`; och en mätning i bild av hans iakttagelse att uppvända
 kort på bordet ser bredare ut än kortet i skon (båda byggs 63 x 88 mm).
 
@@ -231,6 +246,23 @@ kort på bordet ser bredare ut än kortet i skon (båda byggs 63 x 88 mm).
 
 Här skrivs varje sak som ska in i `../blackjack-dealer/` eller `../avatar-auto-pipeline/`, med vad den är och vart den
 ska.
+
+- Standarddockan i stället för den äldre dockan (Jakob 2026-11-26: "Se till att vi använder denna nya standarddocka för
+  allt som syns i också 'blackjack-dealer'", och att den gamla Paow-dockan ersätts "på bäst lämpade sätt"). Vägen är
+  att ersätta, inte att ha två dockor bredvid varandra, i den här ordningen:
+  1. Gjort: studions dockvy ritar standarddockans kropp (ovan).
+  2. De nya givarna (`…-ren-a-paow`) blir de som editorn och studion spelar, när spärren är grön på alla sju.
+  3. Standarddockans egna mått in i `../blackjack-dealer/dealer3d/src/doll.ts` (i dag antagna mått för `standard` och
+     Paows från SAM 3D Body), och givarna ritade om för dem. Först då kan dockan `paow`, hennes sparade standarder
+     (`dealer3d/standard/`) och de äldre grundrörelserna tas bort: tills dess är alla givar ritade för hennes kropp,
+     och hennes godkända filmer är gjorda av dem.
+  4. Studions dockvy får det närmare bordet, skon med frontplattan och spelets vy, och det editorn här har som studion
+     saknar (takten per del, de små egna rörelserna, inspelningen från sju platser). Då är editorn en vy i studion och
+     den här mappen bara arbetsbänken.
+  5. En dealer från foton (till exempel provpersonen) blir en post i studion vars filmer görs av dockans klipp och
+     personens egna styrbilder; personen behöver ingen egen 3D-modell för det. Pipelinen i `../avatar-auto-pipeline/`
+     som gör en 3D-dealer från foton riggar i dag med Meshys skelett; ska en sådan dealer göra dockans rörelser som
+     3D-figur måste den riggas om till standardskelettet (samma lednamn), och det är inte byggt.
 
 - Bordet: valet `--kant-bak D` i `../avatar-auto-pipeline/scen/bygg_bord.py` (finns redan där och skriver
   `assets/bord/standardbord_nara.*`; det vanliga bygget är oförändrat). När Jakob är nöjd: kanten närmare in i

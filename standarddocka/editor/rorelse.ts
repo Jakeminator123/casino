@@ -135,9 +135,13 @@ export function sattIhop(forsta: Motion, andra: Motion, plats: number): Foljd {
   const steg = (i: number, s: 'R' | 'L') => dist(frames[i][s].w, frames[i - 1][s].w);
   const stilla = frames.map((_, i) => { const lugn = (s: 'R' | 'L') => { let mest = 0; for (let j = Math.max(1, i - 3); j <= Math.min(frames.length - 1, i + 3); j++) mest = Math.max(mest, steg(j, s)); return smooth(1 - mest / 0.0015); }; return {R: lugn('R'), L: lugn('L')}; });
   const delar: Del[] = [{namn: 'Vilan till skon', fran: 0, till: skon}, {namn: `Kortet till plats ${plats}`, fran: skon, till: ligger / fps}, {namn: 'Tillbaka', fran: ligger / fps, till: (frames.length - 1) / fps}];
-  // Var i varje del något rör sig: från första till sista rutan där en handled eller kortet flyttar sig mer än 1 mm, med
-  // en rutas marginal. Det som står stilla före och efter hör till ankaret och räknas inte in i delens tid.
-  const flyttar = (i: number) => Math.max(steg(i, 'R'), steg(i, 'L'), dist(frames[i].card.c, frames[i - 1].card.c)) > 0.001;
+  // Var i varje del något rör sig: från första till sista rutan där en handled, en fingertopp eller kortet flyttar sig
+  // mer än 1 mm, med en rutas marginal. Det som står stilla före och efter hör till ankaret och räknas inte in i delens
+  // tid. (Fingertopparna räknas med, så att ett finger som lyfter från kortet efter att handleden har stannat inte
+  // klipps bort.)
+  const TOPPAR = [4, 8, 12, 16, 20];
+  const flyttar = (i: number) => Math.max(steg(i, 'R'), steg(i, 'L'), dist(frames[i].card.c, frames[i - 1].card.c),
+    ...TOPPAR.flatMap(j => [dist(frames[i].R.p[j], frames[i - 1].R.p[j]), dist(frames[i].L.p[j], frames[i - 1].L.p[j])])) > 0.001;
   const spann = delar.map(d => { const a = Math.round(d.fran * fps), b = Math.round(d.till * fps); let forst = -1, sist = -1;
     for (let i = a + 1; i <= b; i++) if (flyttar(i)) { if (forst < 0) forst = i - 1; sist = i; }
     return forst < 0 ? {...d} : {namn: d.namn, fran: Math.max(a, forst - 1) / fps, till: Math.min(b, sist + 1) / fps}; });
@@ -177,12 +181,12 @@ export function takt(f: Foljd, fart: readonly number[] = [], spann: readonly Del
     ut: x => { const i = del(spann, x); return mellan(delar[i].fran + (x - spann[i].fran) / k[i], delar[i]); }};
 }
 /**
- * Takten som gäller för en följd. Har han valt en fart själv (en sparad fart som inte är 1 överallt) gäller den. Annars
+ * Takten som gäller för en följd. Står en fart sparad är den hans eget val och gäller, vilka tal den än har. Annars
  * förvalet: bara tiden då något rör sig, i Jakobs takt. En grundrörelse på prov spelas som den är, med stillheten kvar,
  * så att den som gör om den ser och mäter just den.
  */
 export function taktFor(f: Foljd, sparadFart: readonly number[] | undefined, prov = false): Takt {
-  const eget = !!sparadFart?.some(k => k !== 1);
+  const eget = !!sparadFart?.length;
   if (prov) return takt(f, eget ? sparadFart : [], f.delar, !eget);
   if (eget) return takt(f, sparadFart, f.spann);
   return takt(f, f.spann.map((d, i) => STANDARDTAKT[i] ? inom((d.till - d.fran) / STANDARDTAKT[i]) : 1), f.spann, true);

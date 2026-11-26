@@ -34,7 +34,10 @@ fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt g�
 ## Gången
 
 1. **Mät:** `node standarddocka/verktyg/mat.ts --plats <n>`. Den prövar varje ruta mot vad en hand och ett kort kan
-   göra, och slutar med tiderna som är värda att titta på. Ingen webbläsare, inget lås.
+   göra, och slutar med tiderna som är värda att titta på. Ingen webbläsare, inget lås. Raden SPÄRR säger det som inte
+   får finnas i en rörelse som filmas (ett finger genom kortet eller i filten, kortet utan stöd, ett hörn under filten,
+   ett hopp på en ruta, en sned landning); `--alla` prövar alla sju platserna och slutar rött om någon har en spärr,
+   och med `--giv-monster giv-fran-2-3-p#c1-<namn>` prövas nya grundrörelser i stället för platsernas.
 2. **Titta:** lägg en lapp på din mapp (`node slask/slask.ts lapp standarddocka/granska-p<n> <ditt namn> "<vad>"`) och kör
    `node standarddocka/verktyg/titta.ts --ut slask/standarddocka/granska-p<n> --plats <n> --kamera lag,sida,topp,plats<n> --tider <tiderna>`.
    Läs bilderna. `lage.json` bär editorns mått vid varje tid, bland annat armarnas luft över bordskanten (`armar`).

@@ -2,8 +2,8 @@
 // tillbaka, en tidslinje att spela och dra i, kameror (också från de sju platserna), handtag att dra i som blir ändringar
 // ovanpå grundrörelserna, och inspelning av ett klipp. Ändringarna sparas genom editorns server i standarddocka/rorelser/
 // (grundrörelserna ändras aldrig), klippen i standarddocka/klipp/.
-//   ?plats=<1–7>&t=<sekunder>&kamera=<lag|film|plats1…plats7|sida|topp|fri>[&kulor=0][&utseende=nyckel]   öppnar ett läge
-//   direkt (förval: given till plats 4, lägre kamera, Blenders bord som det är)
+//   ?plats=<1–7>&t=<sekunder>&kamera=<spel|film|plats1…plats7|sida|topp|fri>[&kulor=0][&utseende=nyckel][&docka=kvinna]
+//   öppnar ett läge direkt (förval: given till plats 4, spelets vy, mannen, Blenders bord som det är)
 //   ?giv=<namn>[&vilan=<namn>]   en grundrörelse på prov i stället för platsens (se PROV nedan)
 // window.editor (för kontrollen och verktyget ../verktyg/titta.ts): ready, setTime(t), setKamera(k), state(), addChange({...}),
 // removeChange(id), undo(), save(), kula(led), visa(vad, på), tillSparat(), tillGrund(), fart(del, gånger),
@@ -13,7 +13,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import type {Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
 import {FART, GIVAR, LEDER, LEDNAMN, LIVSDELAR, TILL_SKON, VARAR, foljerKortet, rutor, sattIhop, stallning, taktFor, vikt, type Andring, type Foljd, type Frame, type Led, type Liv, type Livsdel, type Motion, type Q, type Sparad, type V3} from './rorelse.ts';
-import {byggScen, kameraVy, kameransPlats, platskamera, somKamera, type Kamera, type Scen, type Utseende} from './scen.ts';
+import {byggScen, kameraVy, kameransPlats, platskamera, somKamera, type Docka, type Kamera, type Scen, type Utseende} from './scen.ts';
 import {ARMAR, lyftArmar, matArmar} from './armar.ts';
 
 const query = new URLSearchParams(location.search);
@@ -70,7 +70,11 @@ console.log('Skarven, före och efter att bålen lades om (m):', foljd.skarv);
 const canvas = $<HTMLCanvasElement>('#bild');
 /** Utseendet 'nyckel' (?utseende=nyckel): rena färger på bakgrund, bord och kort, för film där dealern ska skiljas ut (scen.ts). */
 const UTSEENDE: Utseende = query.get('utseende') === 'nyckel' ? 'nyckel' : 'vanligt';
-const scen: Scen = await byggScen(canvas, plan, foljd.hip, stallning(foljd, 0, []), laddarText, UTSEENDE);
+/** Dockan som visas (?docka=kvinna): rörelsen och det sparade lagret är desamma för båda. */
+const DOCKA: Docka = query.get('docka') === 'kvinna' ? 'kvinna' : 'man';
+/** Sidans adress med ett annat val, och de val som ska följa med när den laddas om. */
+const medVal = (val: Record<string, string>) => { const q = new URLSearchParams({plats: String(PLATS), kamera, ...(DOCKA === 'kvinna' ? {docka: DOCKA} : {}), ...(UTSEENDE === 'nyckel' ? {utseende: UTSEENDE} : {}), ...val}); if (q.get('docka') === 'man') q.delete('docka'); return q.toString(); };
+const scen: Scen = await byggScen(canvas, plan, foljd.hip, stallning(foljd, 0, []), laddarText, UTSEENDE, DOCKA);
 const {camera, scene, renderer} = scen;
 
 // Handtagen: små kulor som syns genom kroppen och bordet, lika stora i bilden var de än är (radien i bildpunkter).
@@ -307,7 +311,10 @@ document.querySelectorAll<HTMLInputElement>('#liv input').forEach(c => { c.oncha
 $('#liv-slumpa').onclick = () => sattLiv(sparad.liv?.delar ?? [], Math.floor(Math.random() * 1e9));
 // Vilken plats kortet ges till: varje plats är en egen rörelse med egna sparade ändringar, så sidan laddas om med den.
 document.querySelectorAll<HTMLButtonElement>('#malplatser button').forEach(b => { const plats = Number(b.dataset.plats); b.classList.toggle('vald', plats === PLATS);
-  b.onclick = () => { if (plats === PLATS) return; const q = new URLSearchParams({plats: String(plats), kamera}); location.search = q.toString(); }; });
+  b.onclick = () => { if (plats !== PLATS) location.search = medVal({plats: String(plats)}); }; });
+// Vilken docka som visas: samma rörelse och samma sparade ändringar, på den andra kroppen.
+document.querySelectorAll<HTMLButtonElement>('#dockor button').forEach(b => { const docka = b.dataset.docka as Docka; b.classList.toggle('vald', docka === DOCKA);
+  b.onclick = () => { if (docka !== DOCKA) location.search = medVal({docka}); }; });
 { const valt = (): [number, number] => { const [a, b] = $<HTMLSelectElement>('#inspela-del').value.split('-').map(Number); return [a, b]; }, fel = (e: unknown) => visaFel(String((e as Error).message ?? e));
   $('#inspela-en').onclick = () => { void spelaIn([kamera], ...valt()).catch(fel); };
   $('#inspela-alla').onclick = () => { void spelaIn(PLATSER.map(platskamera), ...valt()).catch(fel); }; }

@@ -9,7 +9,7 @@ import {dealerEdge, spots, type Plan} from '../../blackjack-dealer/dealer3d/src/
 import {FILM, PLAY_LENS, TABLE_BASE, TABLE_LENS, filmEye, fovYDeg, seatView} from '../../blackjack-dealer/src/table-lens.ts';
 import {cross, type Frame, type V3} from './rorelse.ts';
 
-const MODELLER = {man: '/avatar-auto-pipeline/assets/docka/standarddocka_man.glb', bord: '/avatar-auto-pipeline/assets/bord/standardbord_nara.glb', stol: '/avatar-auto-pipeline/assets/stol/dealerstol.glb'};
+const MODELLER = {man: '/avatar-auto-pipeline/assets/docka/standarddocka_man.glb', kvinna: '/avatar-auto-pipeline/assets/docka/standarddocka_kvinna.glb', bord: '/avatar-auto-pipeline/assets/bord/standardbord_nara.glb', stol: '/avatar-auto-pipeline/assets/stol/dealerstol.glb'};
 /** Spelets kant mot dealern: mitten av dealerns bordskant på filten (dockans linsvärld). */
 export const KANT = dealerEdge(TABLE_LENS) as V3;
 /**
@@ -102,7 +102,11 @@ export type Scen = {
 
 const loadGltf = (url: string, progress?: (share: number) => void) => new GLTFLoader().loadAsync(url, e => { if (progress && e.total) progress(e.loaded / e.total); });
 
-export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: number[], vila: Frame, laddar: (text: string) => void, utseende: Utseende = 'vanligt'): Promise<Scen> {
+/** Vilken av de två standarddockorna som visas. De har samma skelett, och en rörelse är händernas, armarnas och blickens
+ *  lägen i rummet: kroppen ställs efter dem, så kvinnan gör samma rörelser som mannen utan att något görs om. */
+export type Docka = 'man' | 'kvinna';
+
+export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: number[], vila: Frame, laddar: (text: string) => void, utseende: Utseende = 'vanligt', docka: Docka = 'man'): Promise<Scen> {
   const nyckel = utseende === 'nyckel';
   const renderer = new T.WebGLRenderer({canvas, antialias: true});
   // Den vanliga bilden har en mjuk tonkurva som liknar Blenders; nyckelfärgerna ska vara rena, och den kurvan bleker dem.
@@ -126,10 +130,10 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
   // Kortet som delas: ett av bordets egna kort (samma utseende som Blenders); tills bordet har kommit ett enkelt kort.
   const card = new T.Group(); card.matrixAutoUpdate = false; scene.add(card);
 
-  // Mannen.
-  laddar('mannen');
-  const figure = await loadFigure(MODELLER.man); scene.add(figure.root);
-  const bone = (name: string) => { const b = figure.root.getObjectByName(name); if (!b) throw Error(`Mannen saknar leden ${name}.`); return b.getWorldPosition(new T.Vector3()); };
+  // Dockan: mannen eller kvinnan.
+  laddar(docka === 'kvinna' ? 'kvinnan' : 'mannen');
+  const figure = await loadFigure(MODELLER[docka]); scene.add(figure.root);
+  const bone = (name: string) => { const b = figure.root.getObjectByName(name); if (!b) throw Error(`Dockan saknar leden ${name}.`); return b.getWorldPosition(new T.Vector3()); };
   const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]);
   /** En ruta på mannen, som dealer3d/src/stage.ts gör det: bålen ur axlarna och höften, armarna ur lederna, händerna ur sina 21 punkter, huvudet mot blicken. */
   // `motKameran` (0–1): hur mycket av vägen ansiktet vrids ända fram mot blickpunkten. Dockans kod vrider huvudet två

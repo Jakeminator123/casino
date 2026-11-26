@@ -36,6 +36,7 @@ const FIXED: Record<string, string> = {
   '/vendor/addons/controls/TransformControls.js': THREE + 'examples/jsm/controls/TransformControls.js',
   '/vendor/addons/environments/RoomEnvironment.js': THREE + 'examples/jsm/environments/RoomEnvironment.js',
   '/avatar-auto-pipeline/assets/docka/standarddocka_man.glb': 'avatar-auto-pipeline/assets/docka/standarddocka_man.glb',
+  '/avatar-auto-pipeline/assets/docka/standarddocka_kvinna.glb': 'avatar-auto-pipeline/assets/docka/standarddocka_kvinna.glb',
   '/avatar-auto-pipeline/assets/bord/standardbord_nara.glb': 'avatar-auto-pipeline/assets/bord/standardbord_nara.glb',
   '/avatar-auto-pipeline/assets/stol/dealerstol.glb': 'avatar-auto-pipeline/assets/stol/dealerstol.glb',
   '/blackjack-dealer/placements/default.json': 'blackjack-dealer/placements/default.json',
