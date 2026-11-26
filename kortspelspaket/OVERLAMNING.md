@@ -23,8 +23,10 @@ döma. Hur det görs väljer den som äger dockan. Två vägar:
 
 - **Vinklar:** paketets leder översätts till dockans (tabellen nedan) och rörelsen blir ett klipp på dockans skelett.
   Prövad i visaren (`visa/docka.ts`, mätt med `verktyg/mat-docka.ts`): handlederna hamnar 3 cm från paketets figurs,
-  i sidled, och händerna är 5–7 cm för långt isär när kortet byter hand. Händerna måste alltså styras mot varandra och
-  mot bordet för att given ska hålla för hans domar.
+  i sidled, och handlederna är 3–5 cm längre isär än kattens när kortet byter hand. Händerna måste alltså styras mot
+  varandra och mot bordet för att given ska hålla för hans domar. Kortets byte av hand (`visa/kort.ts`) är inte heller
+  ett grepp: kortet glider 5–8 cm och vrids 64–84 grader på 0,16 s mellan två uträknade lägen, lika hos katten. Det
+  ska i stället byta hand först när högerns tumme och pekfinger är framme, och stå stilla i bytet.
 - **Lägen** (inte prövad): paketets leder räknas om till det dockans egen kod redan tar emot (axel, armbåge, handled, handens 21
   punkter, blick; `../blackjack-dealer/dealer3d/src/figure-model.ts`, `pose`), skalade till dockans kropp. Då ställer
   dockans kod kroppen, och hans domar om händer på filten och armar över kanten kan prövas som för en ritad giv.
@@ -90,7 +92,7 @@ stilla i vilan i cirka 1,6 s. Vilan: handlederna 30 cm framför höften, 22–27
 
 ## Det som skiljer mot Jakobs domar
 
-Hans domar står i `../standarddocka/AGENTS.md`. Mot dem:
+Hans domar står i `../standarddocka/DOMAR.md`. Mot dem:
 
 - Given går ur en sko vid dealerns vänstra sida, med vänster hand som drar och höger som lägger, som hans dom säger
   (sett i bild 2026-11-26). Rörelsen har inget kort och ingen sko: de finns bara i visaren.

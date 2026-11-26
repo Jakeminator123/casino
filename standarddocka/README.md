@@ -2,13 +2,14 @@
 
 Arbetsbänken där standarddockan görs färdig: en man och en kvinna med samma skelett, vid spelets bord, i Blenders vy
 genom spelets kamera, med rörelser som är riktigt bra. När Jakob är nöjd plockas delarna in i `../blackjack-dealer/`
-och `../avatar-auto-pipeline/`. Reglerna står i `AGENTS.md`.
+och `../avatar-auto-pipeline/`. Reglerna står i `AGENTS.md`, Jakobs domar i `DOMAR.md`.
 
 ## Mappar
 
 ```
 standarddocka/
   AGENTS.md     regler
+  DOMAR.md      Jakobs domar om dockan, bordet, vyn, takten och rörelserna: måttet allt prövas mot
   README.md     den här filen: läget, nästa steg och det som ska plockas in
   scen/         skripten som sätter ihop vyn i Blender
     vy.py       arbetsvyn: bordet med kanten närmare, mannen i vilan (A1) på stolen, händerna på filten och blicken
@@ -106,7 +107,11 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   i `scen/vy.py` (samma siktlinje och en lika bred bild, 2,5 m): Blenders är ortografisk, och editorns står åtta gånger
   längre bort med smal vinkel, så att perspektivet nästan är borta (talen står i både `vy.py` och `editor/scen.ts`).
 - **Dockan:** mannen eller kvinnan (knapparna "Dockan", eller `?docka=kvinna`). De har samma skelett, och där de
-  spelar samma grundrörelser delar de det som sparas; en dockas egna rörelser har sitt eget sparade lager. Underarmarna
+  spelar samma grundrörelser delar de det som sparas; en dockas egna rörelser har sitt eget sparade lager. En docka som
+  spelar sina egna rörelser visas i sin egen storlek, den som rörelserna, handens punkter och fingertopparna är mätta
+  på (`editor/scen.ts`); spelar den en rörelse ritad för en annan kropp görs den så stor att armen blir
+  standardfigurens 55 cm. (Till 2026-11-26 gjordes kvinnan alltid 7,4 % större än sina mått: fingrarna hamnade upp
+  till 14 mm från rörelsens punkter och armbågen 53 mm; nu 3 mm och 2 mm, som mannen.) Underarmarna
   har två vridben var (`ForeArmTwist1` och `2`): underarmens vridning fördelas på dem, en tredjedel och två
   tredjedelar, upp till 100 grader och mjukt mot 120, så att huden vrids längs underarmen och inte nyps vid armbågen
   (`../blackjack-dealer/dealer3d/src/figure-model.ts`; `?vridben=0`, eller `--utan-vridben` i `verktyg/titta.ts`,
@@ -140,7 +145,7 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
 - **Återställ:** "Tillbaka till det sparade" kastar det som inte är sparat, "Återställ till grundrörelsen" tar bort alla
   ändringar. Båda går att ångra (Ctrl+Z), och inget skrivs förrän Spara. Det sparade ligger i Git, så en äldre sparad
   version går alltid att hämta tillbaka.
-- **Takt:** förvalet är Jakobs takt (`AGENTS.md`): vilan till skon 1 s, kortet ut 1 s, handen tillbaka 0,6 s, räknat
+- **Takt:** förvalet är Jakobs takt (`DOMAR.md`): vilan till skon 1 s, kortet ut 1 s, handen tillbaka 0,6 s, räknat
   på tiden då något rör sig; stillheten i ankaret klipps bort (`STANDARDTAKT` och `taktFor` i `editor/rorelse.ts`).
   Varje del i listan "Rörelsen består av" visar sina sekunder; ett nytt tal gör delen fortare eller långsammare (en
   fjärdedel till fyra gånger grundrörelsens fart), jämnt genom delen. Ett tomt fält eller 0 ändrar inget, och ett tal
@@ -154,7 +159,7 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   att klippen fortfarande möts i ankaren, och sparas med rörelsen (`liv` i filen; `medLiv` i `editor/rorelse.ts`).
 - **Blicken** är rörelsens egen: i vilan (A1) ser han rakt fram, mot spelaren på plats 4 i ögonhöjd, vilken kamera som
   än är vald; vid skon (A2.3) ser han på kortet i skons mynning, under en giv på kortet, och tillbaka på skon när
-  handen är där (Jakob 2026-11-26, `AGENTS.md`). Ankarets blick står i `ankare-2-3-<docka>` (skriven av
+  handen är där (Jakob 2026-11-26, `DOMAR.md`). Ankarets blick står i `ankare-2-3-<docka>` (skriven av
   `dealer3d/tools/ren-givar.ts --ankare`), och editorn lägger bara kameran över den i vilan (`foljerKortet`), så att
   två klipp som möts har samma huvud.
 - **Spara** ser först efter om filen har ändrats sedan sidan laddades (i en annan flik eller av en agent), och om det
@@ -269,7 +274,7 @@ Mappen lånar det som redan finns i stället för att kopiera det:
   modellerna av `dealer3d/tools/docka-standard.ts`): för var och en ankaret vid skon (`ankare-2-3-<docka>`), vilan
   till skon (`till-ankare-2-3-<docka>`) och första kortet till alla sju platserna, ritade av
   `dealer3d/tools/ren-givar.ts` med koreografin i `dealer3d/src/koreo-giv.ts`. Samma kod för båda; bara måtten skiljer.
-  - **Handbytet (plats 1–5)** är Jakobs beskrivning, läst mot två lärofilmer av riktiga dealrar (`AGENTS.md`, Kortets
+  - **Handbytet (plats 1–5)** är Jakobs beskrivning, läst mot två lärofilmer av riktiga dealrar (`DOMAR.md`, Kortets
     vändning): vänstern drar kortet plant till mötet mitt framför dealern och reser det på högkant med framsidan mot
     dealern, högern nyper dess övre kant ovanifrån med tummen ned längs framsidan, bär det och lägger det. Version A
     (`giv-fran-2-3-p<n>c1-ren-a-<docka>`) vänder direkt efter bytet; version B (`…-ren-b-<docka>`) bär kortet på
@@ -280,7 +285,7 @@ Mappen lånar det som redan finns i stället för att kopiera det:
     ur skon, skjuter det fram till strax hitom platsen, reser det kring dess bortre kortsida med framsidan mot
     dealern och fäller det framåt på platsen; högerhanden ligger kvar. En giv per plats (skriven som A). Regeln står
     i `vilkenHand` (platsen mer än 10 cm närmare vänster axel än höger).
-  - **Kortet läggs vänt mot sin spelare** (Jakobs fråga, `AGENTS.md`): långsidan längs linjen från dealern genom
+  - **Kortet läggs vänt mot sin spelare** (Jakobs fråga, `DOMAR.md`): långsidan längs linjen från dealern genom
     platsen (`dollCardYaw` i `doll.ts`, `DOLL_TABLE.cardsFrom` i `src/table-lens.ts`), och dockornas bord har
     ramarna vridna likadant (`bygg_bord.py --docka`, `dockans_bord.kort_mot_spelaren` i `standard.yaml`). Handen kommer
     då längs kortet på varje plats som på plats 4: handleden står högst 36 grader från underarmen (förut 60–69 på de
@@ -335,7 +340,7 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    - Följden: första kortet till alla sju (version A) spelas och spelas in i ett svep i dag (Hela rundan, ovan). Kvar
      är en lista (plats, kort, variant) i stället för den fasta, med sista given direkt till
      vilan (A1). Här avgörs också vem som väljer variant: A eller B, och hur kortet sätts ned, efter vem som ska få
-     kortet visat för sig (`AGENTS.md`, Vänsterhandsgiven och märkningen).
+     kortet visat för sig (`DOMAR.md`, Vänsterhandsgiven och märkningen).
    - En snabbare runda senare: vänstern kan dra nästa kort medan högern går hem (i dag väntar den i ankaret).
 2. Givarna till alla sju platser är dömda (provet `givar-sju-platser-20261126`, Jakob 2026-11-26: "Nja … I övrigt
    bra!"): det han fällde var blicken vid skon, som nu är rättad i ankaret (Blicken, ovan) och i alla givar. I chatten
@@ -346,7 +351,7 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    `bygg_bord.py --docka`, och rita om; de yttre platserna får då tillbaka handledens vridning.
 3. Val mellan A och B i editorn och i studions Bordet (i dag spelas A), märket synligt i Bordet, en giv som sätter
    ned kortet plant (`satts: plant`; kräver ett annat grepp än nyckelgreppet, där hela handen står under kortets
-   plan), och hans önskan om cirka fem varianter per plats (`AGENTS.md`, Varianter).
+   plan), och hans önskan om cirka fem varianter per plats (`DOMAR.md`, Varianter).
 4. Det som saknas för en hel runda: dealerns egna kort, och en återgång från kortplatsen direkt till vilan (Jakob
    2026-11-23: sista given går direkt till A1). Jakob har bett om att slippa be en agent: en knapp som ritar en giv
    till alla platser är ett förslag, inte byggt.
@@ -402,7 +407,7 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    och prick): vilket som blir standard är Jakobs val.
 
    Kamerans höjd är avgjord (Jakob 2026-11-26): den lägre kameran är spelets vy och standarden för de här filmerna
-   (`AGENTS.md`, provet `spelets-vy-20261126`). Den följs av editorn, de sju platsernas kameror och Blenders standard
+   (`DOMAR.md`, provet `spelets-vy-20261126`). Den följs av editorn, de sju platsernas kameror och Blenders standard
    (`../avatar-auto-pipeline/scen/standard.yaml`, som `scen/vy.py` läser sin lägre vy ur). Bilderna `vy_film`, `vy_lag`,
    `vy_hel` och `vy_nara` i `vy/` är gjorda om med spelets vy och skons frontplatta; de övriga där är från före
    bytet. Det som inte har följt med än: spelet självt ritar sina kort

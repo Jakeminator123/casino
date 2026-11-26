@@ -11,7 +11,7 @@ och priserna i `blackjack-dealer/data/order-policy.json`. Upprepa dem inte; änd
 
 ## Jakobs ramar
 
-- Betalt bara inom fullmakten (AGENTS.md, "Det som skyddar Jakob"); läs saldot före en omgång.
+- Betalt bara inom fullmakten (`blackjack-dealer/AGENTS.md`, "Det som skyddar Jakob här"); läs saldot före en omgång.
 - **Bara sätt som håller, och en pilot först** (2026-11-24): `node tools/verdicts-per-method.ts paow` räknar sätten ur
   hans domar, inte granskarens poäng. Godkännandet släpper EN pilot av ett oprövat sätt och inget som föll.
 - **En ändring och en tagning per metodprov, två tagningar per klipp** när metoden är vald, en tredje bara om båda
@@ -61,7 +61,7 @@ det vi beställer med och vad proven har visat.
 
 | Modell | Till | Kostar (krediter) |
 | --- | --- | --- |
-| Kling 4 (`kling-4`) | givar med dockans film som referens, returer, helfigur (16:9, två delar), redigering från en annan stol | cirka 21 per s i 1080p; referensfilm 11,28 per s till 2026-11-30, sedan 14,1 |
+| Kling 4 (`kling-4`, i API:t `kling_4`) | givar med dockans film som referens, returer, helfigur (16:9, två delar), redigering från en annan stol | 1080p med en referensfilm lika lång som filmen: 22,56 per s till 2026-11-30, sedan 28,2 (11,28, sedan 14,1, per s ut plus lika mycket per s av det längre av infilm och utfilm); utan referensfilm 18,8, sedan 23,5. Liggarna b19 och b20 mätte 21,3 |
 | WAN 3 (`wan3`) | ingång A1 → A2.1, vila, utgång, hålkortets vändning | 20 per s; 5 per s i 480p för billig sållning |
 | Nano Banana Pro | keystone och ankare, som redigering av dealerns egen bild (`@anchor`) | 40 per 4K-bild |
 
@@ -75,7 +75,11 @@ det vi beställer med och vad proven har visat.
 - **Färgerna** skiljer (Kling 4 BT.709-märkt, WAN 3 omärkt); scenens `filmEven` jämnar ut skarven efter postens
   `source.model`, så modellen i posten måste stämma.
 - **Texten:** bilderna säger vem och var, texten bara rörelsen; en handling per film, positivt formulerad, utan
-  bildpunkter eller tider; vändningen i en mening.
+  bildpunkter eller tider; vändningen i en mening. Så har våra givar gjorts. Klings egen guide för Kling 4 (2026-11-04)
+  säger annat om tider: rörelsen beskrivs med en tidsangivelse per moment ("0–2 s: …"), varje bilds och films roll sägs
+  ut ("Use @Image1 as the first frame"), och en redigering skrivs "Edit @Video1 …, keep everything else unchanged".
+  Runway varnar för att tiderna är anvisningar till modellen, inte klipp som träffar exakt på rutan. Oprövat hos oss,
+  och okänt om @-namnen når fram genom Runway.
 - **Andra stolar** (2026-11-18, 2026-11-24): kameran på samma höjd och lutning, bara flyttad. Kling 4 som redigerare
   (`/v1/video_to_video`) med dockans film från stolens öga och stolens ankare som första bild fick hans "Bra".
 - **Vila:** WAN 3, 4 s, A1 först och sist och en liten handling i tillägget. En ny uppsättning får vilor lokalt ur den

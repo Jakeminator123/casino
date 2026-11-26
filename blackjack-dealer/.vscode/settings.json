@@ -8,6 +8,7 @@
     "studio/tsconfig.tsbuildinfo": true,
     "studio/next-env.d.ts": true
   },
+  "search.useParentIgnoreFiles": true,
   "search.exclude": {
     "node_modules": true,
     ".runtime": true,

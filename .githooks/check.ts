@@ -33,7 +33,7 @@ const lines = (out: Buffer) => out.toString('utf8').split('\n').map(s => s.trim(
 const revList = (root: string, args: string[]) => lines(git(root, ['rev-list', ...args]));
 
 // ── What stops ──────────────────────────────────────────────────────────────
-// The media and binary types of casino/.gitignore and blackjack-dealer/.gitignore, and the other media and models the
+// The media and binary types of the repo's .gitignore, and the other media and models the
 // projects make (Meshy's and Blender's 3D files, MediaPipe's and Python's model files, the portable Blender's programs).
 const MEDIA = /\.(?:mp4|m4v|mov|webm|mkv|avi|wav|mp3|m4a|aac|flac|ogg|png|jpe?g|webp|avif|gif|bmp|tiff?|ico|heic|psd|glb|gltf|fbx|obj|stl|3mf|usdz|blend1?|hdr|exr|pdf|pt|pth|ckpt|onnx|safetensors|tflite|task|npy|npz|zip|7z|rar|gz|tgz|tar|bz2|xz|exe|dll|msi)$/i;
 // Next.js reads a site's icons as files from its app folder (studio/app/), so a small one may go in.

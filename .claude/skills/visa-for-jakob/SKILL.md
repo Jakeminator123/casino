@@ -39,6 +39,6 @@ Kommandon körs från `blackjack-dealer/`; sökvägar räknas från casino-roten
 
 ## Svaret
 
-Formen står i `blackjack-dealer/AGENTS.md`, "Svar till Jakob": svenska, slutsatsen först, aningen kortare än vanligt, punktform, procent och poäng,
-det verifierade skilt från det skattade, och antalet aktiva underagenter sist. Han talar helst med huvudagenten: en
+Formen: svenska, slutsatsen först, i vanliga ord och aningen kortare än vanligt,
+och det verifierade skilt från det skattade. Han talar helst med huvudagenten: en
 annan chatt som han inte själv skriver i lämnar sitt svar dit.

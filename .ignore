@@ -1,32 +1,47 @@
-# ripgrep (the search in Cursor, Claude Code and Codex) reads this file on top of .gitignore. These lines hide from
-# search what Git may keep but no search should wade through, in every project; a project's own .ignore adds to this
-# (blackjack-dealer/.ignore). Hidden from search is not missing: a file is still read by its path.
+# ripgrep (the search in Cursor, Claude Code and Codex, and their search panel) reads this file on top of .gitignore, so
+# what Git holds back is hidden from search too; these lines hide what Git may keep but no search should wade through.
+# Paths are written from the repo root. Hidden from search is not missing: a file is still read by its path.
 
-# The slask: temporary work of every project, emptied of what has stood untouched for three hours (AGENTS.md, "Slasken"). Its tool slask/slask.ts is
-# code and searchable; what lies in the project folders is not. `node slask/slask.ts` lists it, and a file there is read
-# by its path.
-/slask/*
-!/slask/slask.ts
-
-# avatar-auto-pipeline's photos, results and portable Blender (about 1.7 GB, read by path)
-/avatar-auto-pipeline/input/
-/avatar-auto-pipeline/output/
-/avatar-auto-pipeline/tools/
-
-# Secrets
+# Secrets, also the example files Git may keep
 .env*
-private/
-*.pem
 
-# Environments, caches and build output
-node_modules/
-.venv/
-venv/
-__pycache__/
-.next/
+# Caches
 .pytest_cache/
-*.pyc
-*.log
 
-# Media and models (*.mp4, *.png, *.glb and the rest) need no line here: .gitignore already holds them back, and the
-# search reads that file too.
+# Models, binaries and lock files, wherever they land (Jakob 2026-11-18: "glb-modeller och andra stora filer ignoreras
+# för att spara pengar")
+*.bin
+*.ply
+*.ktx2
+*.onnx
+*.task
+*.safetensors
+*.wasm
+package-lock.json
+
+# avatar-auto-pipeline: the source lists of the cards and textures, machine-written addresses read by path
+# (assets/bord/kort/kallor.json, assets/bord/texturer/kallor.json)
+/avatar-auto-pipeline/assets/**/kallor.json
+
+# blackjack-dealer: Git holds back assets/, but its small text (receipts, proof descriptions, generation records, prompts)
+# should be searchable and its media not. So: bring the folder back, hide all in it, bring back only text.
+!/blackjack-dealer/assets/
+/blackjack-dealer/assets/**
+!/blackjack-dealer/assets/**/
+!/blackjack-dealer/assets/**/*.json
+!/blackjack-dealer/assets/**/*.txt
+!/blackjack-dealer/assets/**/*.md
+# Machine data read by path by the tools that own it: the card tracks per frame, the speech lane's receipts per line,
+# and the 3D dummy's motion data (numbers per frame)
+/blackjack-dealer/assets/tracking/
+/blackjack-dealer/assets/speech/
+/blackjack-dealer/dealer3d/data/
+/blackjack-dealer/dealer3d/standard/
+# The register of films and takes, one post per line (the working copy is a database under .runtime/). Read one post
+# with `node tools/register.ts get <id>`, find posts with `node tools/register.ts list <text>`.
+/blackjack-dealer/data/motions.jsonl
+/blackjack-dealer/data/motions-removed.jsonl
+
+# standarddocka: the motions' frames (numbers per frame, about 0.6 MB each), kept in Git and read by path, for example
+# standarddocka/rorelser/a1-a23-p4c1.rutor.json
+/standarddocka/rorelser/*.rutor.json

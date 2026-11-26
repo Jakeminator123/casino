@@ -5,7 +5,7 @@ description: Använd i blackjack-dealer när ett arbete är färdigt och ska in 
 
 # Avsluta ett arbete
 
-Kommandon körs från `blackjack-dealer/`. Git-reglerna i stort står i `AGENTS.md` (casino-roten), "Spara och Git";
+Kommandon körs från `blackjack-dealer/`. Git-reglerna i stort står i `AGENTS.md` (casino-roten), "Arbetssätt";
 här är ordningen.
 
 ## En underagent eller en annan chatt
@@ -19,8 +19,8 @@ här är ordningen.
 ## Huvudagenten
 
 1. Vänta in eller stoppa egna underagenter. Bevara Jakobs plan, domar och orderutkast.
-2. **Kontrollera:** kör de berörda testfilerna (`node --test <fil>`, högst fyra arbetare). Rött stoppar, och granskas innan det
-   följs (`blackjack-dealer/AGENTS.md`, "Tester"): skyddar testet något som ska bestå rättas orsaken och skyddet sänks
+2. **Kontrollera:** kör de berörda testfilerna (`node --test <fil>`). Rött stoppar, och granskas innan det
+   följs (rotens `AGENTS.md`, "Arbetssätt"): skyddar testet något som ska bestå rättas orsaken och skyddet sänks
    aldrig; annars är det ett gammalt test som tas bort i samma ändring och nämns i svaret.
 3. **Städa:** ta bort det ändringen gjorde överflödigt (kod som inget anropar, ersatta filer, döda sökvägar) och egna
    mappar i slasken. Efter mediearbete: `npm run gallra` och `npm run media:status`.

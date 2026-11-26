@@ -391,7 +391,7 @@ export const FART = {minst: 0.25, mest: 4};
  */
 export type Takt = {fart: number[]; delar: Del[]; spann: Del[]; langd: number; forval: boolean; grund(t: number): number; ut(grundtid: number): number; spelad: Spelad};
 /**
- * Jakobs takt (standarddocka/AGENTS.md, 2026-11-26): från vilan till skon cirka 1 s, kortet ut högst 1 s, handen
+ * Jakobs takt (standarddocka/DOMAR.md, 2026-11-26): från vilan till skon cirka 1 s, kortet ut högst 1 s, handen
  * tillbaka cirka 0,6 s. Sekunder per del, för rörelsen själv: stillheten i ankaret räknas inte in.
  */
 export const STANDARDTAKT = [1.0, 1.0, 0.6];

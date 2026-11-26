@@ -5,7 +5,7 @@ description: Använd i standarddocka när en av dockans rörelser ska granskas e
 
 # Granska en av dockans rörelser
 
-Sökvägar räknas från casino-roten. Läs först `standarddocka/AGENTS.md`: "Jakobs domar som gäller här" är måttet. Jakob
+Sökvägar räknas från casino-roten. Läs först `standarddocka/DOMAR.md`: Jakobs domar är måttet. Jakob
 2026-11-26: agenterna granskar "småsaker", till exempel att "giv till plats 7 ska få rätt vändningar av kort så att
 fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt görs så det är trovärdigt".
 

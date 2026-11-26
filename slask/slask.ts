@@ -1,4 +1,4 @@
-// The slask: every project's temporary work (AGENTS.md, "Slasken"), with its register and its cleaner. Of this folder Git
+// The slask: every project's temporary work (AGENTS.md, "Tillfälligt och producerat"), with its register and its cleaner. Of this folder Git
 // keeps only this file (.gitignore), and search sees only this file (.ignore).
 //
 // The register is built bottom up each time it is asked for. Each task folder, slask/<project>/<task>/, and each folder

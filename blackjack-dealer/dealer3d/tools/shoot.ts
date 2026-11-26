@@ -10,7 +10,7 @@
 //        [--table-back 0.15]        a trial: the table's dealer edge drawn that many metres nearer her (the page's ?bordbak)
 //        [--motion-file <file.json>] [--plan <file.json>]   serve these frozen inputs for the named motion and plan
 //        [--prefix ruta] [--profile <new folder>] [--port 0] [--serve 0]   0 chooses a free port
-// Run it under the shared lock for the graphics card and headless Chrome (AGENTS.md, "Servern"): one run at a time, short.
+// Run it under the shared lock for the graphics card and headless Chrome (the root AGENTS.md: one render or headless run at a time): one run at a time, short.
 import {createServer} from 'node:http';
 import {spawn, execFileSync} from 'node:child_process';
 import {mkdir, mkdtemp, readFile, realpath, rm, writeFile} from 'node:fs/promises';

@@ -1,5 +1,5 @@
 // Skyddar: Jakobs domar – standarddockans grundrörelser (vilan till skon och givarna från A2.3, skrivna av dealer3d/tools/ren-givar.ts): takten (vilan till skon cirka 1 s, kortet ut högst 1 s, handen tillbaka cirka 0,6 s), landningen plan på platsen och stilla, inget som spärrar, och att varje rörelse börjar och slutar i exakt ankaret.
-// Jakobs domar (standarddocka/AGENTS.md, 2026-11-26): "A1 - A2.3 ska ta 1 sekund ungefär", "respektive utgivning är max 1
+// Jakobs domar (standarddocka/DOMAR.md, 2026-11-26): "A1 - A2.3 ska ta 1 sekund ungefär", "respektive utgivning är max 1
 // sekund och tillbakagången till A1 och/eller A2.3 eller så ska göras på ca 0,6 sekunder"; kortet ligger sedan plant på
 // planens plats och flyttas inte; "Allt börjar i A1": varje rörelse börjar och slutar stilla i sitt ankare, så att klippen
 // läggs efter varandra utan skarv; och det som spärrar en rörelse från att filmas (dealer3d/src/ren-giv.ts granska med

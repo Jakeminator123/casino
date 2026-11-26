@@ -114,7 +114,7 @@ const dollUtanVila: Doll = {name: NAMN, upperArm, forearm, reach: Math.round((up
 const fram = dollFrame(lens, dollUtanVila);
 
 // ---- händerna på filten: vilan (A1) och högerhanden i ankaret (A2.3) ---------------------------------------------------
-// Jakobs domar (standarddocka/AGENTS.md): händerna vilar på filten, inte i den; armarna går aldrig genom bordets kant;
+// Jakobs domar (standarddocka/DOMAR.md): händerna vilar på filten, inte i den; armarna går aldrig genom bordets kant;
 // vilan ser avslappnad ut, och i vilan pekar handen som underarmen (Jakob 2026-11-26 om vilan vid 0,31 m: "så ska väl
 // händerna mer vara i samma riktning som underarmarna"). En hand läggs därför på hans hud: handflatan och fingrarna 1–2 mm
 // över filten, handen vriden kring lodlinjen så att den pekar som underarmen och lutad så att handleden är rak (högst

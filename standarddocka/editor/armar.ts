@@ -1,6 +1,6 @@
 // Armarna över bordets kant: en automatisk rättning av grundrörelsen. Rörelserna är gjorda för ett bord vars kant låg 15 cm
 // längre bort, och där hängde armbågarna under filtens nivå; vid det närmare bordet går underarmen då genom kanten och
-// markerbrickans bakvägg. Jakobs regel (standarddocka/AGENTS.md): armarna går aldrig genom bordets kant. Därför vrids
+// markerbrickans bakvägg. Jakobs regel (standarddocka/DOMAR.md): armarna går aldrig genom bordets kant. Därför vrids
 // armbågen ut och upp kring linjen axel–handled (handen ligger kvar där den låg), ruta för ruta precis så mycket att
 // underarmen ligger minst ARMAR.luft över skivan där den är över bordet, och vridningen tonas in och ut över tiden.
 // Mätt på mannen själv: hans leder som dockans kod ställer dem och hans underarms tjocklek på huden. Här mäts också

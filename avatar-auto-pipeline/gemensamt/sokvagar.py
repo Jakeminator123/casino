@@ -41,7 +41,7 @@ BYGGRAPPORTER = "Byggrapporter från scen/bygg_docka.py, bygg_stol.py och verkty
 
 
 def slask(uppgift: str, vad: str, root=None) -> Path:
-    """Arbetsmappen för en uppgift: <casino>/slask/avatar-auto-pipeline/<uppgift>/ (casino/AGENTS.md, Slasken).
+    """Arbetsmappen för en uppgift: <casino>/slask/avatar-auto-pipeline/<uppgift>/ (casino/AGENTS.md, "Tillfälligt och producerat").
 
     Skapar mappen och dess lapp (lapp.json, som `node slask/slask.ts` läser) när de saknas. Det som ligger där är
     tillfälligt: slaskens regel tar det som inte har ändrats på tre timmar, och verktyget som skrev det gör om det.

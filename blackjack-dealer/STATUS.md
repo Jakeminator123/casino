@@ -186,7 +186,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   docka, given till plats 7 och plats 1, lagda på samma bord. Kortet frågar vilket av de två sätten som ska gälla.
   Ett sista försök samma dag, efter hans förslag (landningsbild, sko med kortbunt, mönstrad kortrygg), rättade vändningen och skon. En kedja av fyra bilder (hans idé om en mellanbild mitt i vändningen) är också prövad för plats 1. Kedjan är också gjord i slow motion med vänsterhanden kvar på skon, efter hans ord. Allt i provet har kostat 1 758 krediter; de sex andra kamerorna är inspelade med dockan men inte beställda.
   Arbetet sker i `../standarddocka/` (läget och nästa steg i
-  dess README) och visas för honom som prov härifrån; hans ord står som krav i `../standarddocka/AGENTS.md`.
+  dess README) och visas för honom som prov härifrån; hans ord står som krav i `../standarddocka/DOMAR.md`.
 - Givarna till alla sju platser (provet `givar-sju-platser-20261126`) dömde han "Nja … I övrigt bra!": blicken vid
   skon är rättad i alla givar. A och B till plats 4 fick "Superbra, 5/5 för båda" och "gärna A och B". Kvar från
   honom där: sju kort per plats (nästa steg, överst i `../standarddocka/README.md`); de vända kortplatserna nämnde han

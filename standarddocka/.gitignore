@@ -1,5 +1,0 @@
-# Arbetsbänkens aktuella vy: scenen (vy.blend), bilderna och mätningen som scen/vy.py skriver. En körning skriver
-# över den förra; inget av det går in i Git. Byggs om med kommandot i README.md.
-vy/
-# Klippen som editorns Spela in gör (film, 1764 x 1174): en ny inspelning skriver över den förra. Görs om i editorn.
-klipp/

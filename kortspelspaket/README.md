@@ -76,7 +76,7 @@ Det här är mätt ur rörelserna och syns i bordsvyn:
 - Blackjackdealerns giv (24,7 s) är fem givar på cirka tre sekunder, med en och en halv sekunds vila emellan. Det är en
   giv ur en sko vid dealerns vänstra sida, sett i bild 2026-11-26: vänster hand sträcker sig ut till skon och drar
   kortet, för det in mot mitten, höger hand tar det där och lägger det. Det är samma ordning som Jakobs dom om given
-  (`../standarddocka/AGENTS.md`: "vänsterhanden drar kortet ur skon, högerhanden tar det"). Paketets sko har stått där
+  (`../standarddocka/DOMAR.md`: "vänsterhanden drar kortet ur skon, högerhanden tar det"). Paketets sko har stått där
   spelets står: vänsterhandens fingrar når fram till skons mynning på några centimeter när. De fem korten hamnar i en
   båge som följer spelets kortplatser: på plats 4, cirka 10 cm bortom korten på plats 2 och 6 (vid insatsringen), och
   10–15 cm innanför plats 1 och 7 (talen står i `OVERLAMNING.md`).
@@ -104,7 +104,9 @@ dealer avatar-pipelinen bygger, så det som går över till dem går över till 
   figurens är (med höften där sjönk händerna 3 cm ner i filten).
 - Mätt över alla 66 (`verktyg/mat-docka.ts`): handlederna hamnar 3 cm från figurens (kvinnan 2,4), nästan allt i
   sidled, eftersom dockans axlar är 4–5 cm bredare. Händerna ligger på filten och når kortplatsen. Fingrarna kröks och
-  spretar som figurens, men ingen hand styrs: när kortet byter hand är händerna 5–7 cm längre isär än kattens.
+  spretar som figurens, men ingen hand styrs: när kortet byter hand är handlederna 3–5 cm längre isär än kattens
+  (mätt om 2026-11-26 på de fem blackjackgivarna). Själva bytet är inte ett grepp hos någon av dem: `visa/kort.ts`
+  flyttar kortet mellan de två händernas uträknade lägen på 0,16 s, 5–8 cm och 64–84 grader, också hos katten.
 - Korten följer dockans händer som kattens. Sett i bild: blackjackgiven, blandningen, två spelarrörelser och kvinnan i
   en ruta; bara stillbilder, ingen rörelse sedd i fart.
 

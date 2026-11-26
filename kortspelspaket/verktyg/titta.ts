@@ -11,7 +11,7 @@
 // Frågans delar skiljs med komma i stället för & (Windows kommandotolk klyver en rad vid &). Visaren ska vara igång
 // (STARTA visaren.cmd). Varje bild väntar tills bordet och den valda rörelsen har kommit, och sidans fel skrivs ut.
 // Chrome och grafikkortet delas med de andra projekten: körningen tar det gemensamma låset
-// (../slask/blackjack-dealer/gpu-och-headless.lock, blackjack-dealer/AGENTS.md "Servern") och lämnar det efter sig.
+// (../slask/blackjack-dealer/gpu-och-headless.lock, rotens AGENTS.md) och lämnar det efter sig.
 // Filmen görs av FFmpeg (H.264, som de flesta program läser). Bilderna och filmerna är arbete: lägg dem i slasken.
 import {spawn, spawnSync} from 'node:child_process';
 import {mkdir, mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';

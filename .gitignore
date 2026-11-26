@@ -1,26 +1,18 @@
-# The casino repo is public. This file holds back what no project may push; each project's own .gitignore adds to it.
+# The casino repo is public. This one file holds back for every project what may not go into Git; paths are written
+# from the repo root. .githooks/check.ts stops secrets, media and large files at push as well.
 
-# The slask: every project's temporary work and the notes on it (AGENTS.md, "Slasken"); slask/slask.ts, which shows and
-# cleans it, is the only file there that Git keeps. A slask/ folder anywhere else is held back too.
-/slask/*
-!/slask/slask.ts
-*/**/slask/
-
-# The inbox: one short note per chat that is working, with the first words of what Jakob asked it (inbox/inbox.ts,
-# which is the only file there that Git keeps)
-/inbox/*
-!/inbox/inbox.ts
-
-# Secrets, wherever they are (the example file with empty values may go in)
+# Secrets, wherever they are (an example file with empty values may go in)
 .env*
 !.env.example
 *.pem
 private/
+.vercel
 
-# Backup copies an editor or an agent leaves beside a file
+# Backup copies and leftovers an editor, an agent or the system leaves beside a file
 *.bak
 *.bak-*
 *.orig
+.DS_Store
 
 # Environments, caches and build output
 node_modules/
@@ -29,28 +21,76 @@ venv/
 __pycache__/
 *.pyc
 .next/
+next-env.d.ts
+*.tsbuildinfo
 *.log
 
-# Media and models never go into Git: they are large, and people's faces and voices are private
+# Media and models: large, and people's faces and voices are private
 *.mp4
 *.mov
 *.webm
 *.mkv
+*.avi
 *.wav
 *.mp3
 *.png
 *.jpg
 *.jpeg
 *.webp
+*.avif
 *.gif
+*.hdr
+*.exr
+*.pdf
 *.glb
 *.gltf
 *.fbx
+*.obj
+*.mtl
+*.usdz
+*.stl
+*.3mf
 *.blend
+*.blend[0-9]*
 *.pt
 *.zip
+*.7z
+*.rar
+*.gz
 
-# avatar-auto-pipeline: the photos it is given, everything it makes, and the portable Blender it runs (about 1 GB)
-avatar-auto-pipeline/input/
-avatar-auto-pipeline/output/
-avatar-auto-pipeline/tools/
+# Temporary: the slask (every project's work in progress, AGENTS.md "Tillfälligt och producerat"; `node slask/slask.ts` lists it) and the
+# inbox (one note per working chat). Their tools are the only files Git keeps; a slask/ folder anywhere else is held back.
+/slask/*
+!/slask/slask.ts
+*/**/slask/
+/inbox/*
+!/inbox/inbox.ts
+
+# avatar-auto-pipeline: the photos it is given, what it makes (output/, and qc/ with the check images and inspection
+# dumps, read by path: qc/inspektion/<modell>.json), the portable Blender (tools/) and agents' note files (_*.txt)
+/avatar-auto-pipeline/input/
+/avatar-auto-pipeline/output/
+/avatar-auto-pipeline/tools/
+/avatar-auto-pipeline/**/qc/
+/avatar-auto-pipeline/**/_*.txt
+
+# blackjack-dealer: media (its role is in data/media-roles.json), renders, run data, the models of tools/python/ (its
+# README says how to make them), the studio's build, and the online copy's requests that tools/onskemal.ts fetches
+/blackjack-dealer/**/assets/
+/blackjack-dealer/**/output/
+/blackjack-dealer/**/.runtime/
+/blackjack-dealer/tools/python/models/
+/blackjack-dealer/studio/out/
+/blackjack-dealer/studio/build
+/blackjack-dealer/studio/coverage
+/blackjack-dealer/studio/.next-build.lock/
+/blackjack-dealer/**/ONSKEMAL.md
+
+# kortspelspaket: the bought pack unpacked (about 1 GB, licensed). A file there is read by its path, README.md says what
+# is there, and `node kortspelspaket/packa-upp.ts` remakes it.
+/kortspelspaket/**/paket/
+
+# standarddocka: the current view that scen/vy.py writes (read the measurement by its path, standarddocka/vy/vy_matt.json)
+# and the editor's recordings; the next run overwrites them
+/standarddocka/**/vy/
+/standarddocka/**/klipp/
