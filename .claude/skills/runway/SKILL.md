@@ -217,6 +217,10 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     vändningen låg rätt. Rörelsen bromsar in och står nästan stilla kring varje bild, cirka en sekund mitt i
     vändningen; FFmpegs `mpdecimate` tar bort de nästan lika rutorna. Mellanbilden gjordes som en ändring av
     startbilden med dockans ruta mitt i vändningen som förlaga för ställningen.
+  - **Texten "smooth slow motion ... one steady slow speed, without stopping, hovering or waiting"** kortade stoppet
+    mitt i vändningen från cirka 1 s till 0,7 s men tog inte bort det. **"Arms low over the table, never raised in
+    the air"** och en mellanbild där handen som drog kortet redan vilar på skon höll den handen stilla på skon hela
+    vägen; samma ord fick honom att skjuta kortet längs filten med ryggen upp i stället för att bära det i luften.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: en hel film från en annan kamera än spelets (styrbilderna för plats 1 finns), Kling 4 med styrbilden som första bild och filmen som lös förlaga
