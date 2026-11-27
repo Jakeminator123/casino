@@ -12,6 +12,10 @@
 //                         ur den (i ett kort klipp ligger skuggan kvar på samma ställe och räknas annars som rent grönt)
 //        [--hall 46,52]   de rutorna (räknat från 0) ersätts av rutan före: en ruta som filmmodellen har ritat fel, som när
 //                         Kling ritade mannen större på en enda ruta (ruta 46, 2026-11-27)
+//        [--egen-sko <bordet med vår sko.png>]   skon och kortleken är våra: där den plattan skiljer sig från --platta (skon,
+//                         med en marginal) tas ur filmen bara handen och ärmen (hud och skjorta); filmens sko, kortlek och
+//                         glaskanter byts mot plattans (domaren 2026-11-27: Klings kortlek blev trappstegig och prickig). Ett
+//                         kort som har lämnat skons mynning kommer ur filmen som förut.
 //
 // Plattan: node standarddocka/verktyg/titta.ts --runda --spela-in 0-0 --utan docka,kort,sko,stol --kamera plats4, och
 // första rutan ur det klippet. Två knep är lånade ur blackjack-dealer (src/scene3d-film.ts, src/film-after.ts):
@@ -29,8 +33,8 @@ import path from 'node:path';
 
 const arg = (name: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
 const forstaVal = process.argv.findIndex((x, i) => i >= 2 && x.startsWith('--')), filmer = process.argv.slice(2, forstaVal < 0 ? undefined : forstaVal), film = filmer[0];
-const platta = arg('--platta'), ut = arg('--ut'), utMapp = arg('--ut-mapp'), kortfarger = process.argv.includes('--kortfarger'), skugga = Number(arg('--skugga') ?? '1'), falt = arg('--falt') ?? film, hall = new Set((arg('--hall') ?? '').split(',').filter(Boolean).map(Number));
-if (!film || !platta || !(filmer.length === 1 ? ut || utMapp : utMapp) || !(skugga >= 0 && skugga <= 1)) throw Error('node standarddocka/verktyg/lagg-pa-bord.ts <grön film.mp4> [<fler filmer> …] --platta <bordet ensamt.png> (--ut <film.mp4> | --ut-mapp <mapp>) [--kortfarger] [--skugga 1] [--falt <hela tagningen.mp4>] [--hall <ruta,ruta>]');
+const platta = arg('--platta'), ut = arg('--ut'), utMapp = arg('--ut-mapp'), kortfarger = process.argv.includes('--kortfarger'), skugga = Number(arg('--skugga') ?? '1'), falt = arg('--falt') ?? film, egenSko = arg('--egen-sko'), hall = new Set((arg('--hall') ?? '').split(',').filter(Boolean).map(Number));
+if (!film || !platta || !(filmer.length === 1 ? ut || utMapp : utMapp) || !(skugga >= 0 && skugga <= 1)) throw Error('node standarddocka/verktyg/lagg-pa-bord.ts <grön film.mp4> [<fler filmer> …] --platta <bordet ensamt.png> (--ut <film.mp4> | --ut-mapp <mapp>) [--kortfarger] [--skugga 1] [--falt <hela tagningen.mp4>] [--hall <ruta,ruta>] [--egen-sko <bordet med vår sko.png>]');
 const FFMPEG = process.env.FFMPEG || 'ffmpeg', FFPROBE = process.env.FFPROBE || 'ffprobe';
 const [W, H, takt] = spawnSync(FFPROBE, ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height,r_frame_rate', '-of', 'csv=p=0', film], {encoding: 'utf8'}).stdout.trim().split(',').map((x, i) => i < 2 ? Number(x) : x) as [number, number, string];
 if (!(W > 0 && H > 0)) throw Error(`${film} gick inte att läsa.`);
@@ -85,6 +89,11 @@ const rentVid = (x: number, y: number) => { const fx = x / C - 0.5, fy = y / C -
 const lada = (v: Float32Array, R: number) => { const n = 2 * R + 1;
   for (let y = 0; y < H; y++) { const r0 = y * W; let s = 0; for (let x = -R; x <= R; x++) s += v[r0 + Math.min(W - 1, Math.max(0, x))]; for (let x = 0; x < W; x++) { T[r0 + x] = s / n; s += v[r0 + Math.min(W - 1, x + R + 1)] - v[r0 + Math.max(0, x - R)]; } }
   for (let x = 0; x < W; x++) { let s = 0; for (let y = -R; y <= R; y++) s += T[Math.min(H - 1, Math.max(0, y)) * W + x]; for (let y = 0; y < H; y++) { v[y * W + x] = s / n; s += T[Math.min(H - 1, y + R + 1) * W + x] - T[Math.max(0, y - R) * W + x]; } } };
+// Vår egen sko (--egen-sko): plattan med skon, och skons område där den skiljer sig från plattan utan sko, med marginal.
+const P2 = egenSko ? (await rutor(egenSko, true).next()).value as Buffer : null, SKO = new Float32Array(WH), M = new Float32Array(WH), M2 = new Float32Array(WH);
+if (egenSko && !P2) throw Error(`${egenSko} gick inte att läsa.`);
+if (P2) { for (let q = 0; q < WH; q++) { const o = q * 3; SKO[q] = Math.abs(P2[o] - P[o]) + Math.abs(P2[o + 1] - P[o + 1]) + Math.abs(P2[o + 2] - P[o + 2]) > 24 ? 1 : 0; }
+  lada(SKO, 6); for (let q = 0; q < WH; q++) SKO[q] = SKO[q] > 0.02 ? 1 : 0; }
 let forra: Buffer | null = null, nr = 0;
 for await (const f0 of rutor(en)) {
   // (en ruta som filmmodellen har ritat fel, --hall: den förra i dess ställe)
@@ -132,11 +141,21 @@ for await (const f0 of rutor(en)) {
       if (n >= 8) { RW[q] = 1; RL[q] = 0.95; } }
     lada(RW, 1); }
   if (skugga > 0) lada(S, 4);
+  // (i skons område: bara handen och ärmen ur filmen, hud (varm, inte gul och inte kortets vita) och skjorta (kall, inte
+  // turkos); hål i handen
+  // fylls och lösa prickar tas bort i rutan 5 x 5, och kanten mjukas en bildpunkt)
+  if (P2) {
+    for (let q = 0; q < WH; q++) { if (!SKO[q]) { M[q] = 0; continue; } const o = q * 3, r = D[o], g = D[o + 1], b = D[o + 2];
+      M[q] = A[q] < 1 && ((r > 80 && r > g + 20 && r - b > 25 && b > 0.68 * g && g > 0.6 * r && (Math.min(r, g) < 190 || b > 0.75 * g) && Math.min(r, g, b) < 225) || (b > r + 10 && b > 110 && g < b + 5 && r > 0.5 * g)) ? 1 : 0; }
+    M2.set(M); lada(M2, 4); for (let q = 0; q < WH; q++) if (SKO[q] && M2[q] < 0.3) M[q] = 0;
+    M2.set(M); lada(M2, 2); for (let q = 0; q < WH; q++) if (SKO[q] && M2[q] > 0.8) M[q] = 1;
+    lada(M, 1); }
   for (let q = 0; q < WH; q++) { const o = q * 3, k = A[q], s = S[q], pr = P[o] * s, pg = P[o + 1] * s, pb = P[o + 2] * s;
-    if (k >= 1) { bild[o] = pr; bild[o + 1] = pg; bild[o + 2] = pb; continue; }
     let r = D[o], g = D[o + 1], b = D[o + 2];
     if (VIT[q]) { r = 244; g = 242; b = 236; }
     else if (RW[q] > 0) { const w = RW[q], l = RL[q] || 0.9; r += (Math.min(255, 184 * l) - r) * w; g += (Math.min(255, 51 * l) - g) * w; b += (Math.min(255, 59 * l) - b) * w; }
+    if (P2 && SKO[q]) { const m = M[q] * (1 - k); bild[o] = r * m + P2[o] * (1 - m); bild[o + 1] = g * m + P2[o + 1] * (1 - m); bild[o + 2] = b * m + P2[o + 2] * (1 - m); continue; }
+    if (k >= 1) { bild[o] = pr; bild[o + 1] = pg; bild[o + 2] = pb; continue; }
     bild[o] = r * (1 - k) + pr * k; bild[o + 1] = g * (1 - k) + pg * k; bild[o + 2] = b * (1 - k) + pb * k; }
   antal++; if (!kod.stdin.write(bild)) await once(kod.stdin, 'drain');
 }
