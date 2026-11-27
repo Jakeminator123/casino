@@ -280,6 +280,12 @@ Mappen lånar det som redan finns i stället för att kopiera det:
     (`giv-fran-2-3-p<n>c1-ren-a-<docka>`) vänder direkt efter bytet; version B (`…-ren-b-<docka>`) bär kortet på
     högkant och vänder vid platsen. Jakob 2026-11-26 om A och B till plats 4: "Superbra, 5/5 för båda", "gärna A och
     B": båda finns till alla fem platserna.
+  - **Provet N "naturlig" (2026-11-27, väntar på Jakob)**: `giv-fran-2-3-p4c1-ren-n-<docka>`, bara plats 4, ritat
+    med `--koreo n` (`KOREO_N` och `NATUR` i `koreo-giv.ts`). A:s lägen, grepp och kort i nyckelrutorna; kroppen rör
+    sig annorlunda mellan dem (högerhanden i tre tag i stället för sju stopp, blicken i lugna svep, bålen i en våg med
+    handen, greppet lever, den fria handen landar mjukare), efter mätningar mot paketets inspelade giv och två riktiga
+    dealrar i film (`../live-bj/`). Provet är `../blackjack-dealer/assets/proofs/naturlig-giv-20261127/`. A och B är
+    standarden tills han har sagt sitt; de andra platserna ritas först då.
   - **Vänsterhanden ensam (plats 6 och 7)**: platserna närmast skon ligger 35–43 cm bortom högerarmen men lika nära
     vänster axel som plats 1 och 2 ligger höger, och riktiga dealrar ger dem med vänstern. Fingertopparna drar kortet
     ur skon, skjuter det fram till strax hitom platsen, reser det kring dess bortre kortsida med framsidan mot
@@ -309,8 +315,8 @@ Mappen lånar det som redan finns i stället för att kopiera det:
     grader på fem rutor, 0,17 s) för att gå fri från kortet.
 - **Editorn** (`editor/`): mannen eller kvinnan gör vilan → skon → kort 1 på en plats → tillbaka med sina egna
   rörelser på alla sju platser (tabellen `EGNA` i `editor/rorelse.ts`), version A, och hela rundan (kort 1 till alla
-  sju) i en tagning. Version B spelas på prov
-  (`?giv=giv-fran-2-3-p4c1-ren-b-man`); ett val mellan A och B i panelen finns inte än. De äldre givarna, ritade för
+  sju) i en tagning. Version B och provet N spelas på prov
+  (`?giv=giv-fran-2-3-p4c1-ren-b-man`, `?giv=giv-fran-2-3-p4c1-ren-n-man`); ett val mellan dem i panelen finns inte än. De äldre givarna, ritade för
   Paows docka, spelas inte längre av någon av dockorna.
 - **Studion** (`../blackjack-dealer`): Standarddockan är en ingång i Bordet, i spelets vy med samma rum som editorn
   (`dealer3d/src/standard-room.ts`), och dockvyn hittar dockans givar (version A) på filnamnet.

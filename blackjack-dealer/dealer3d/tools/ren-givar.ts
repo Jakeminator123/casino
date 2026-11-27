@@ -4,8 +4,9 @@
 // samma sak, och mannen och kvinnan delar grund ("så man inte behöver jobba dubbelt för grundposer"): samma verktyg och
 // regler, bara måtten skiljer.
 //   node dealer3d/tools/ren-givar.ts --docka paow|man|kvinna [--ankare] [--vila] [--plats <1-7> | --alla] [--prov]
-// --koreo [a|b]: standarddockans giv som koreografi (dealer3d/src/koreo-giv.ts), version A (nyckelvridningen, förval)
-//   eller B (vänd där det landar: giv-fran-2-3-p<n>c1-ren-b-<docka>, med --prov …-prov-b-<docka>); annars den rena given
+// --koreo [a|b|n]: standarddockans giv som koreografi (dealer3d/src/koreo-giv.ts), version A (nyckelvridningen, förval)
+//   eller B (vänd där det landar: giv-fran-2-3-p<n>c1-ren-b-<docka>, med --prov …-prov-b-<docka>), eller N (provet
+//   "naturlig" bredvid A, 2026-11-27: A:s lägen med kroppen rörd annorlunda mellan dem, …-ren-n-<docka>); annars den rena given
 //   (ren-giv.ts). Jakob 2026-11-26 om A och B: "5/5 för båda", "gärna A och B": båda ritas till alla platser. Kortet läggs
 //   vänt mot sin spelare (doll.ts dollCardYaw), och platserna närmast skon ges med vänsterhanden ensam (koreo-giv.ts
 //   vilkenHand; --hand R|L tvingar): där finns en giv, skriven som A.
@@ -75,7 +76,7 @@ function matt(m: {frames: Frame[]; leavesShoe: number; rests: number}) {
 // ---- ankaret -----------------------------------------------------------------------------------------------------------
 // (--prov: allt under provnamn, ankare-2-3-prov-<docka>, till-ankare-2-3-prov-<docka> och giv-fran-2-3-p<n>c1-prov-<docka>,
 // så att det som spelas och testas inte skrivs över medan en giv prövas; given läser provankaret om det finns)
-const PROV = process.argv.includes('--prov'), TAGG = PROV ? `prov-${NAMN}` : NAMN, KOREO_VAL = process.argv.includes('--koreo') ? (arg('--koreo') === 'b' ? 'b' : 'a') as 'a' | 'b' : null;
+const PROV = process.argv.includes('--prov'), TAGG = PROV ? `prov-${NAMN}` : NAMN, KOREO_VAL = process.argv.includes('--koreo') ? (arg('--koreo') === 'b' ? 'b' : arg('--koreo') === 'n' ? 'n' : 'a') as 'a' | 'b' | 'n' : null;
 const ANKARE = PROV && (process.argv.includes('--ankare') || existsSync(path.join(ROOT, `${DATA}ankare-2-3-${TAGG}.json`))) ? `${DATA}ankare-2-3-${TAGG}.json` : `${DATA}ankare-2-3-${NAMN}.json`;
 if (process.argv.includes('--ankare')) {
   let ut: {about: string; doll: string; from: string; hip: Vec3; frame: Frame};
@@ -132,19 +133,21 @@ if (platser.length) {
     // (standarddockornas bord har platserna vända mot sin spelare, och platserna närmast skon ges med vänstern ensam)
     const yaw = dollCardYaw(id, at, TABLE_LENS), hand = arg('--hand') === 'R' || arg('--hand') === 'L' ? arg('--hand') as 'R' | 'L' : vilkenHand(start, at);
     // (A och B skiljer sig i handbytet; där vänstern ger ensam finns en giv, den som skrivs som A)
-    if (version === 'b' && hand === 'L') { console.log(`plats ${plats}: ges med vänsterhanden ensam (giv-fran-2-3-p${plats}c1-ren-a-${NAMN}); version B gäller handbytet och ritas inte här.`); continue; }
+    if ((version === 'b' || version === 'n') && hand === 'L') { console.log(`plats ${plats}: ges med vänsterhanden ensam (giv-fran-2-3-p${plats}c1-ren-a-${NAMN}); version ${version.toUpperCase()} gäller handbytet och ritas inte här.`); continue; }
     const r = version ? koreoGiv({start, place: id, at, doll: giv, lens: TABLE_LENS, shoe: skon, kant, version, yaw, hand}) : renGiv({start, place: id, at, doll: giv, lens: TABLE_LENS, shoe: skon, kant});
-    const namn = `giv-fran-2-3-p${plats}c1-${PROV ? (version === 'b' ? `prov-b-${NAMN}` : TAGG) : `ren-${version === 'b' ? 'b' : 'a'}-${NAMN}`}`, t = r.times, m = matt(r.motion);
+    const vtagg = version === 'b' || version === 'n' ? `${version}-` : '';
+    const namn = `giv-fran-2-3-p${plats}c1-${PROV ? `prov-${vtagg}${NAMN}` : `ren-${vtagg || 'a-'}${NAMN}`}`, t = r.times, m = matt(r.motion);
     const regler = givRegler(r.motion, giv, {dealerKort: alla.filter(s => /^D\.C[123]$/.test(s.id)).map(s => s.at), hand: version ? hand : undefined}), strang = granska(r.motion, doll, {strang: true});
     const vem = NAMN === 'paow' ? 'Paow' : `Standarddockans ${NAMN === 'man' ? 'man' : 'kvinna'}`;
     const satt = version && hand === 'L' ? `given som koreografi med vänsterhanden ensam (dealer3d/src/koreo-giv.ts koreoEnsam; platserna närmast skon, dit högerarmen inte når): fingertopparna drar kortet plant ur skon och skjuter det fram till strax hitom platsen, vänt mot spelaren, tar under dess närmre ände, reser det kring den bortre kortsidan med framsidan mot dealern och fäller det framåt på platsen, där de vilar på det; högerhanden ligger kvar i ankaret`
       : version === 'a' ? `given som koreografi, version A "nyckelvridningen" (dealer3d/src/koreo-giv.ts, läst på Jakobs ord och två lärofilmer): vänsterhanden drar kortet plant ur skon till mötespunkten ute över bordet och reser det på högkant med framsidan mot dealern, högern nyper dess övre kant ovanifrån (tummen ned på framsidan, pekfingret på ryggen) och rullar det framåt med underarmen som en nyckel, bär det plant och lågt, sätter ned det och skjuter det på plats med fingertopparna`
       : version === 'b' ? `given som koreografi, version B (dealer3d/src/koreo-giv.ts): som A, men kortet bärs hängande på högkant i nypet och rullas fram först nära platsen`
+      : version === 'n' ? `given som koreografi, version N "naturlig", ett prov bredvid A (dealer3d/src/koreo-giv.ts KOREO_N och NATUR): A:s lägen, grepp och kort i nyckelrutorna, men kroppen rör sig annorlunda mellan dem: den fria vänsterhanden lyfts lägre och landar mjukare vid skon, fingrarna är hemma före handleden, blicken går före kortet och huvudet följer den, och högerhanden går i tre tag i stället för att stanna sju gånger`
       : `den rena given (dealer3d/src/ren-giv.ts): vänsterhanden drar kortet ur skon och skjuter det till högern, högerns tumme tar det under kanten och pek- och långfingret på baksidan, underarmen vänder det en gång, det släpps på kanten och faller plant, två fingertoppar vilar på det och handen går hem`;
-    const about = `${vem}, A2.3 till plats ${plats} kort 1 och tillbaka till A2.3 i samma rörelse, ${satt}, på dockans egna ben från ankaret ${ANKARE}${skon ? ' vid standarddockornas sko (dealer3d/tools/hud.ts SKON)' : ''}. Bålen lutar bara så mycket som räckvidden kräver${kant ? ', och underarmarna går över bordets kant' : ''}. Kortet ligger i ruta ${t.ligger} (${(t.ligger / r.motion.fps).toFixed(2)} s), handen åter i A2.3 i ruta ${t.slut} (${((t.slut - t.ligger) / r.motion.fps).toFixed(2)} s därefter). Skriven av dealer3d/tools/ren-givar.ts --docka ${NAMN} --plats ${plats}${version ? ` --koreo ${version}` : ''}.`;
+    const about = `${vem}, A2.3 till plats ${plats} kort 1 och tillbaka till A2.3 i samma rörelse, ${satt}, på dockans egna ben från ankaret ${ANKARE}${skon ? ' vid standarddockornas sko (dealer3d/tools/hud.ts SKON)' : ''}. ${version === 'n' ? 'Bålen går i en våg med handen (koreo-giv.ts NATUR.bal), aldrig mindre än räckvidden kräver' : 'Bålen lutar bara så mycket som räckvidden kräver'}${kant ? ', och underarmarna går över bordets kant' : ''}. Kortet ligger i ruta ${t.ligger} (${(t.ligger / r.motion.fps).toFixed(2)} s), handen åter i A2.3 i ruta ${t.slut} (${((t.slut - t.ligger) / r.motion.fps).toFixed(2)} s därefter). Skriven av dealer3d/tools/ren-givar.ts --docka ${NAMN} --plats ${plats}${version ? ` --koreo ${version}` : ''}.`;
     const made = {tool: 'dealer3d/tools/ren-givar.ts', place: id, doll: NAMN, from: ANKARE, sources: {[ANKARE]: sha(aBytes), 'placements/default.json': sha(planBytes)}, times: t, chosen: r.kvitto, checked: {...m.g, strang, regler: regler.tal, bryter: regler.bryter, underarmGrader: m.underarm}, at: new Date().toISOString()};
     // (en giv med röd spärr ersätter aldrig en fil som står: den skrivs då bara under provnamn)
-    const rod = m.g.sparrRutor > 0, fil = rod && !PROV ? `giv-fran-2-3-p${plats}c1-prov-${version === 'b' ? 'b-' : ''}${NAMN}` : namn;
+    const rod = m.g.sparrRutor > 0, fil = rod && !PROV ? `giv-fran-2-3-p${plats}c1-prov-${vtagg}${NAMN}` : namn;
     writeFileSync(path.join(ROOT, `${DATA}${fil}.json`), JSON.stringify({...r.motion, about, made}) + '\n');
     if (rod) { rott++; if (fil !== namn) console.log(`SPÄRR: ${namn} skrevs inte; given står i stället som ${fil}.`); }
     console.log(`${fil}: ${r.motion.frames.length} rutor, ${Date.now() - t0} ms; kortet ute ${t.ute}, taget ${t.tar}, släppt ${t.slapper}, ligger ${t.ligger} (${(t.ligger / 30).toFixed(2)} s), hemma ${t.slut} (${((t.slut - t.ligger) / 30).toFixed(2)} s efter); bålen lutar ${r.kvitto.lutGrader}° och vrids ${r.kvitto.vridGrader}°, armbågen ut över kanten ${r.kvitto.armbagenUtGrader.R}/${r.kvitto.armbagenUtGrader.L}°; ${m.text}`);

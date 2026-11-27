@@ -95,6 +95,32 @@ export const KOREO = {
 /** Version B: kortet hängande i nypet tills rullningen börjar (rullFran) nära platsen, och lägre. */
 const KOREO_B = {lyft: 0.075};
 /**
+ * Version N, "naturlig": ett prov bredvid A (2026-11-27), inte standarden. A och B står kvar tills Jakob har sett det.
+ * Mätt mot paketets inspelade giv (kortspelspaket/) och två riktiga dealrar i film (live-bj/data/stil-*.json): dockans
+ * högerhand hade samma medelfart som deras men nästan stannade sex gånger på vägen, huvudet satt fast på kortet, bålen
+ * rörde sig bara när armen inte nådde och handen som inte ger stod som en staty. N har A:s lägen i nyckelrutorna (nypet 16,
+ * kortet ligger 36, hemma 60), A:s grepp, A:s kort och A:s nedsättning (rutorna 28–32); det som skiljer är hur kroppen
+ * rör sig mellan dem:
+ * - KOREO_N: vänsterhanden lyfts i en lägre båge på väg hem (vansterBage), lyfter fingrarna från kortet på 4 rutor i
+ *   stället för 5 (vansterUppRutor) så att högern inte behöver vänta på den (vantaMest 0);
+ * - NATUR.drift: vid skon glider vänsterhanden några millimeter i kortets plan, noll i sista rutan;
+ * - NATUR.oppnad, fingrarHem, hemBage: högerns fingrar är öppna innan handen är framme över kortet, och på väg hem är
+ *   fingrarna och handens vinkel i vilans före handleden, som bärs lägre (ingen klo som hänger från handleden);
+ * - NATUR.blick: blicken i tre svep som går in i varandra (skon till mötet, mötet till platsen, platsen till skon), och
+ *   huvudet, som dockans kod riktar mot blickpunkten, följer dem lugnt i stället för kortets ryck;
+ * - NATUR.genomNypet: högerhanden i tre tag i stället för sju stopp (till nypet; från nypet till nedsättningen, som
+ *   spelas som i A, och skjutet på plats; hem; omtid), med en bred, mjuk inbromsning i bytet till genomNypet av tagets
+ *   medelfart, som riktiga dealrar, i stället för stopp med vila; NATUR.kantluft håller pekfingrets led fri från kortets
+ *   kant i den nya takten (se bygg). Kvar: en liten dal i nedsättningen, som är A:s (handen vrids kring fingertopparna
+ *   medan kortet läggs och skjuter det sedan); att lägga den i ett tag med resten gav ett finger genom kortet;
+ * - NATUR.greppVila: greppet lever medan kortet bärs (lång-, ring- och lillfingret);
+ * - NATUR.bal: bålen i en våg som börjar med handen (ruta b0), är framme före kortet (b1), står medan det läggs (b2) och
+ *   är tillbaka med handen (b3), lika långt som A:s som mest och aldrig mindre än räckvidden kräver.
+ */
+const KOREO_N = {vansterBage: 0.015, vansterUppRutor: 4, vantaMest: 0};
+export const NATUR = {drift: 0.002, oppnad: 0.65, fingrarHem: 0.8, hemBage: [0.025, 0.01], blick: [[0, 13], [11, 27], [40, 60]], genomNypet: 0.2, kantluft: 0.0004,
+  greppVila: [6, 12, 5] as [number, number, number], bal: [2, 30, 40, 60]};
+/**
  * Hur många grader vänsterhanden och högerhanden (medan den bär kortet) högst står från underarmen (figure-model.ts
  * ställer handen högst 50 grader från den).
  */
@@ -236,14 +262,21 @@ function rakVanster(L: Hand[], f0: Ankare23['frame'], doll: Doll) {
  * hålls högst RAK_H grader från underarmen (R och C rättas då på plats). Handen som inte ger (`ger` 'L': högern, som
  * ligger kvar i ankaret) har armbågen där dess pol har den. Ger rutorna i dockans format, och kvittots tal om kroppen.
  */
-function figur(a: {start: Ankare23; doll: Doll; kant?: Kant; R: Hand[]; L: Hand[]; C: Kort[]; mal: Vec3; ger: 'R' | 'L'; bar?: [number, number]; vansterHemma: number; ligger: number}) {
+function figur(a: {start: Ankare23; doll: Doll; kant?: Kant; R: Hand[]; L: Hand[]; C: Kort[]; mal: Vec3; ger: 'R' | 'L'; bar?: [number, number]; vansterHemma: number; ligger: number; natur?: boolean}) {
   const {start, doll, kant, R, L, C, mal} = a, f0 = start.frame, hip = start.hip, n = R.length, hogern = a.ger === 'R';
   const need = rackvidd(hip, hogern ? f0.R.s : f0.L.s, (hogern ? R : L).map(h => h.w), mal, doll, REN.naturlig), torso = bal(hip, mal, need.lean, need.twist);
   const nar = doll.upperArm + doll.forearm - REN.naturlig, nas = (k: number, t: number) => length(sub(R[t].w, torso(f0.R.s, k))) <= nar && length(sub(L[t].w, torso(f0.L.s, k))) <= nar;
   const kravs = R.map((_, t) => { if (nas(0, t)) return 0; if (!nas(1, t)) return 1; let lo = 0, hi = 1; for (let i = 0; i < 20; i++) { const m = (lo + hi) / 2; if (nas(m, t)) hi = m; else lo = m; } return hi; });
   const TONA = 10, fonster = (t: number) => smooth(t / 4) * smooth((n - 1 - t) / 4), tonad = (v: number[]) => v.map((_, t) => Math.max(v[t], fonster(t) * Math.max(0, ...v.map((x, j) => x * smooth(1 - Math.abs(t - j) / (TONA + 1))))));
   // (andelen jämnad över rutorna intill, men aldrig under det räckvidden kräver, så att huvudet inte rycker)
-  const andel = (() => { const v = tonad(kravs); return v.map((x, t) => Math.max(kravs[t], (v[Math.max(0, t - 2)] + v[Math.max(0, t - 1)] + x + v[Math.min(n - 1, t + 1)] + v[Math.min(n - 1, t + 2)]) / 5 * fonster(t))); })(), sR = (t: number) => torso(f0.R.s, andel[t]), sL = (t: number) => torso(f0.L.s, andel[t]);
+  const andelA = (() => { const v = tonad(kravs); return v.map((x, t) => Math.max(kravs[t], (v[Math.max(0, t - 2)] + v[Math.max(0, t - 1)] + x + v[Math.min(n - 1, t + 1)] + v[Math.min(n - 1, t + 2)]) / 5 * fonster(t))); })();
+  // (N: bålen i en enda våg i stället för att luta bara när armen inte når: den börjar med handen, är framme strax före
+  // kortet (NATUR.bal), står medan kortet läggs och går tillbaka med handen, lika långt som A:s som mest och aldrig mindre
+  // än räckvidden kräver. Riktiga dealrar (live-bj/data/stil-*.json trunk): bålen börjar samtidigt med handen och går med i
+  // nästan varje giv.)
+  const andel = !a.natur ? andelA : (() => { const mest = Math.max(...andelA), [b0, b1, b2, b3] = NATUR.bal;
+    return andelA.map((_, t) => t === 0 || t === n - 1 ? 0 : Math.max(kravs[t], mest * (t <= b1 ? smooth((t - b0) / (b1 - b0)) : t <= b2 ? 1 : smooth((b3 - t) / (b3 - b2))))); })();
+  const sR = (t: number) => torso(f0.R.s, andel[t]), sL = (t: number) => torso(f0.L.s, andel[t]);
   const polR = unit(sub(f0.R.e, f0.R.s)), polL = unit(sub(f0.L.e, f0.L.s));
   const vridR = R.map((h, t) => armbage(sR(t), h.w, polR, h.a, doll).vrid), vridL = L.map((h, t) => armbage(sL(t), h.w, polL, h.a, doll).vrid);
   // (armbågarnas vridning jämnad över rutorna intill och tonad till noll i första och sista rutan, där de är ankarets)
@@ -271,6 +304,17 @@ function figur(a: {start: Ankare23; doll: Doll; kant?: Kant; R: Hand[]; L: Hand[
       R: {s: r4(s1), e: r4(e1), w: r4(ände ? f0.R.w : R[t].w), k: f0.R.k, p: (ände ? f0.R.p : punkter(R[t])).map(r4)},
       L: {s: r4(s2), e: r4(e2), w: r4(ände ? f0.L.w : L[t].w), k: f0.L.k, p: (ände ? f0.L.p : punkter(L[t])).map(r4)},
       h: r4(torso(f0.h, andel[t] * 0.85)), g: r4(blick)});
+  }
+  // (N: blicken i tre svep som går in i varandra i stället för att sitta fast på kortet: från kortet i skon till
+  // mötespunkten (NATUR.blick[0]), därifrån till platsen, framme före kortet (blick[1]), och från platsen tillbaka till
+  // skon, med början strax efter att handen har gått hem (blick[2]); var och ett en mjuk ramp, så att huvudet, som dockans
+  // kod riktar mot blickpunkten, vrids lugnt. Målen är domarnas: kortet i skon i ankaret, händerna vid bytet, platsen dit
+  // kortet läggs, skon igen när handen är där. Första och sista rutan är ankarets. Riktiga dealrar, mätta i film
+  // (live-bj/): huvudet börjar strax före handen på väg ut och strax efter den på väg tillbaka, vida vridningar på
+  // 0,7–0,9 s, toppfart cirka 60 grader/s.)
+  if (a.natur) {
+    const [s1, s2, s3] = NATUR.blick, lig = a.ligger, M = C[KOREO.framme].c, P = C[lig].c, ramp = (t: number, [x, y]: number[]) => smooth((t - x) / (y - x));
+    frames.forEach((f, t) => { if (t > 0 && t < n - 1) f.g = r4(add(add(add(g0, mul(sub(M, g0), ramp(t, s1))), mul(sub(P, M), ramp(t, s2))), mul(sub(g0, P), ramp(t, s3)))); });
   }
   const mest = Math.max(...andel);
   return {frames, kvitto: {lutGrader: grad(need.lean * mest), vridGrader: grad(Math.abs(need.twist) * mest), lutPerRuta: andel.map(x => grad(need.lean * x)), vridPerRuta: andel.map(x => grad(Math.abs(need.twist) * x)),
@@ -372,7 +416,7 @@ function koreoEnsam(input: KoreoInput) {
  * vänster (+x). Standarddockornas bord har platserna vända mot sin spelare (world.ts dollCardYaw). `hand`: 'L' är
  * vänsterhanden ensam (koreoEnsam nedan), för platserna närmast skon; annars handbytet till högern.
  */
-export type KoreoInput = {start: Ankare23; place: string; at: Vec3; doll: Doll; lens: Lens; shoe?: Shoe; kant?: Kant; version?: 'a' | 'b'; yaw?: number; hand?: 'R' | 'L'};
+export type KoreoInput = {start: Ankare23; place: string; at: Vec3; doll: Doll; lens: Lens; shoe?: Shoe; kant?: Kant; version?: 'a' | 'b' | 'n'; yaw?: number; hand?: 'R' | 'L'};
 /**
  * Vilken hand som lägger kortet på platsen `at`: vänstern ensam där platsen ligger mer än ENSAM_NARMARE meter närmare
  * vänster axel än höger (platserna närmast skon), annars högern efter handbytet.
@@ -386,12 +430,13 @@ export const ENSAM_NARMARE = 0.1;
  * - hander: 'tva' handbytet (vänstern drar, högern lägger), 'vanster' vänsterhanden ensam.
  * - vands: 'pa-vagen' (version A), 'vid-platsen' (version B), 'ande-over-ande' (vänsterhanden ensam).
  * - satts: kanten kortet läggs ned kring: 'langsida', 'kortsida', eller 'plant' (ingen giv gör det än).
+ * - prov: 'naturlig' för version N, provet bredvid A (KOREO_N); finns inte på standardens givar.
  */
-export type GivMarke = {hander: 'tva' | 'vanster'; vands: 'pa-vagen' | 'vid-platsen' | 'ande-over-ande'; satts: 'langsida' | 'kortsida' | 'plant'};
+export type GivMarke = {hander: 'tva' | 'vanster'; vands: 'pa-vagen' | 'vid-platsen' | 'ande-over-ande'; satts: 'langsida' | 'kortsida' | 'plant'; prov?: 'naturlig'};
 export const vilkenHand = (start: Ankare23, at: Vec3): 'R' | 'L' => length(sub(at, start.frame.R.s)) - length(sub(at, start.frame.L.s)) > ENSAM_NARMARE ? 'L' : 'R';
 export function koreoGiv(input: KoreoInput) {
   if (input.hand === 'L') return koreoEnsam(input);
-  const {start, doll, lens, kant} = input, f0 = start.frame, hip = start.hip, B = input.version === 'b', K = B ? {...KOREO, ...KOREO_B} : KOREO, n = K.hemma + 1;
+  const {start, doll, lens, kant} = input, f0 = start.frame, hip = start.hip, B = input.version === 'b', N = input.version === 'n', K = B ? {...KOREO, ...KOREO_B} : N ? {...KOREO, ...KOREO_N} : KOREO, n = K.hemma + 1;
   const HR0 = axesOf(f0.R.p, 1), SR0 = local(f0.R.p, HR0), HL0 = axesOf(f0.L.p, -1), SL0 = local(f0.L.p, HL0);
   const topp = {finger: Math.max(REN.topp, doll.hand?.topp?.finger ?? 0), thumb: Math.max(REN.tumme, doll.hand?.topp?.thumb ?? 0)};
   const grepp = nyckelgrepp(SR0, topp); if (!grepp) throw Error(`koreo-giv: ${input.place}: tummen når inte kortet i nyckelgreppet.`);
@@ -440,7 +485,11 @@ export function koreoGiv(input: KoreoInput) {
   const axlarS = (sg: number): Axes => !B ? rulla(between(A0, svangd, mjuk(i01(sg, K.svang, 1))), rad(90) * smooth(i01(sg, K.rull[0], K.rull[1])) - rad(satt) * smooth(i01(sg, K.rull[1], 1)))
     : rulla(between(A0, svangd, mjuk(i01(sg, K.svang, 1))), rad(90 - satt) * smooth(i01(sg, K.rullB, 1)));
   const vagS = (sg: number): Vec3 => bezier(hNyp.w, add(hNyp.w, [0, K.lyft * 1.5, 0]), add(hNere.w, [0, K.lyft * 0.8, 0]), hNere.w, sg);
-  const barS = (sg: number): Hand => ({a: axlarS(sg), w: vagS(sg), S: SK});
+  // (N: greppet lever medan kortet bärs: lång-, ring- och lillfingret slappnar av mot NATUR.greppVila och tillbaka, en
+  // båge över vägen; tummen och pekfingret, som håller kortet, står som i A. Riktiga dealrar: greppet ändras under nästan
+  // varje bärande, live-bj/data/stil-*.json grip)
+  const SKr = medLeder(SK, [grepp.pek, NATUR.greppVila, NATUR.greppVila, NATUR.greppVila]);
+  const barS = (sg: number): Hand => ({a: axlarS(sg), w: vagS(sg), S: N ? formMellan(SK, SKr, Math.sin(Math.PI * clamp01(sg))) : SK});
   // (takten: kortets egen väg, dess mitt och dess vridning (en radian som VRIDEN_BAR meter), med farten som en klocka över
   // hela vägen (klocka), så att varken kortet eller handen rycker där svängen och rullningen möts)
   const NB = 240, tabB: number[] = [0]; { let f = kortI(barS(0), refK); for (let i = 1; i <= NB; i++) { const k = kortI(barS(i / NB), refK); tabB.push(tabB[i - 1] + length(sub(k.c, f.c)) + VRIDEN_BAR * (vinkel(k.n, f.n) + vinkel(k.l, f.l))); f = k; } }
@@ -474,7 +523,7 @@ export function koreoGiv(input: KoreoInput) {
   /** Hur nära kortet (meter från dess yta) närmaste fingertopp eller tummen är, där den är över kortet. */
   const nara = (h: Hand, k: Kort) => { const p = punkter(h), a = cross(k.n, k.l);
     return Math.min(...[4, 8, 12, 16, 20].map(j => { const d = sub(p[j], k.c); return Math.abs(dot(d, k.l)) < HK / 2 + 0.005 && Math.abs(dot(d, a)) < WK / 2 + 0.005 ? Math.abs(dot(d, k.n)) - T / 2 - (j === 4 ? topp.thumb : topp.finger) : Infinity; })); };
-  const formLagg = (u: number) => formMellan(SK, SV, smooth(u / 0.7));
+  const formLagg = (u: number) => formMellan(SK, SV, smooth(N ? u : u / 0.7));
   let laggR: Hand[] = [];
   const laggRakna = (): Hand[] => { const ut: Hand[] = [hNereK], spar: {P: Vec3; rho: number}[] = [{P: urV(toppMitt(handBar(K.nere - 1.2))), rho: rho0}, {P: T0, rho: rho0}];
     for (let t = K.nere + 1; t < K.plant; t++) { const u = (t - K.nere) / (K.plant - K.nere), k = kortLutat(lutVid(t)), S = formLagg(u), nom = nominell(u);
@@ -485,7 +534,8 @@ export function koreoGiv(input: KoreoInput) {
         if (!bast || c < bast.c) bast = {h, P, rho, c}; }
       ut.push(bast!.h); spar.push({P: bast!.P, rho: bast!.rho}); }
     ut.push(hTryck); return ut; };
-  const formH = (t: number) => { const oppen = formMellan(SR0, grepp.Soppen, smooth(clamp01((t - K.hogerFran) / (K.nyp - K.sluta - K.hogerFran)))), k = smooth(clamp01((t - (K.nyp - K.sluta)) / K.sluta));
+  // (N: fingrarna är öppna när handen är framme över kortet, NATUR.oppnad av vägen dit, eftersom handen inte stannar där)
+  const formH = (t: number) => { const oppen = formMellan(SR0, grepp.Soppen, smooth(clamp01((t - K.hogerFran) / ((N ? NATUR.oppnad : 1) * (K.nyp - K.sluta - K.hogerFran))))), k = smooth(clamp01((t - (K.nyp - K.sluta)) / K.sluta));
     return k > 0 ? formMellan(oppen, SK, k) : oppen; };
   const hogerVid = (t: number): Hand => {
     if (t <= K.hogerFran) return ankare;
@@ -499,8 +549,11 @@ export function koreoGiv(input: KoreoInput) {
     // (fingertopparna skjuter kortet på plats)
     if (t <= K.ligger) { const s = mjuk((t - K.plant) / (K.ligger - K.plant)); return iV.h({...hTryck, w: add(hTryck.w, [0, 0, K.skjut * s])}); }
     if (t <= K.vilar) return iV.h(vilande((t - K.ligger) / (K.vilar - K.ligger)));
-    const fran = iV.h(vilande(1)), s = mjuk((t - K.vilar) / (K.hemma - K.vilar)), p1 = add(lerp(fran.w, f0.R.w, 0.35), [0, 0.04, 0]), p2 = add(lerp(fran.w, f0.R.w, 0.75), [0, 0.015, 0]);
-    return {a: between(fran.a, HR0, s), w: bezier(fran.w, p1, p2, f0.R.w, s), S: formMellan(SV, SR0, s)};
+    // (N: handen bärs hem lägre (NATUR.hemBage), och fingrarna och handens vinkel är tillbaka i vilans före handleden,
+    // så att den inte hänger från handleden som en klo på vägen)
+    const fran = iV.h(vilande(1)), x = (t - K.vilar) / (K.hemma - K.vilar), s = mjuk(x), [b1, b2] = N ? NATUR.hemBage : [0.04, 0.015], p1 = add(lerp(fran.w, f0.R.w, 0.35), [0, b1, 0]), p2 = add(lerp(fran.w, f0.R.w, 0.75), [0, b2, 0]);
+    const fore = N ? smooth(Math.min(1, x / NATUR.fingrarHem)) : s;
+    return {a: between(fran.a, HR0, fore), w: bezier(fran.w, p1, p2, f0.R.w, s), S: formMellan(SV, SR0, fore)};
   };
 
   // ---- kortet ruta för ruta ----
@@ -517,19 +570,65 @@ export function koreoGiv(input: KoreoInput) {
   // (K7: vänstern släpper genom att lyfta fingrarna från kortets rygg, handleden sträcks KOREO.vansterOppna grader på
   // vansterUppRutor rutor, medan handen går lite upp och bakåt längs sig själv, ur vägen för kortet som högern lyfter
   // och bär förbi; i samma rörelse hem till skon i en båge över filten. `fran`: handen som den står vid bytet)
+  // (N: vid skon glider handen NATUR.drift meter i kortets plan, bakåt mot axeln och tillbaka, så att den inte står som en
+  // staty; noll i sista rutan, där den är ankarets)
+  const glid = unit((() => { const d = sub(f0.L.s, f0.L.w), k = unit(f0.card.n); return sub(d, mul(k, dot(d, k))); })());
+  const puckel = (x: number, a: number, b: number, c: number) => x <= a || x >= c ? 0 : x < b ? mjuk((x - a) / (b - a)) : mjuk((c - x) / (c - b));
   const vansterHem = (fran: Hand, t: number): Hand => {
-    if (t >= K.vansterHemma) return {a: HL0, w: f0.L.w, S: SL0};
+    if (t >= K.vansterHemma) return {a: HL0, w: N ? add(f0.L.w, mul(glid, NATUR.drift * puckel(t, K.vansterHemma, (K.vansterHemma + n - 1) / 2, n - 3))) : f0.L.w, S: SL0};
     const j = t - K.vansterSlapper, e = mjuk((j - 1) / (K.vansterHemma - K.vansterSlapper - 1)), slag = smooth(j / K.vansterUppRutor), ur = slag * (1 - e), bakat = flat(mul(fran.a.forward, -1));
     const uppat = turned(fran.a.forward, fran.a.across, 0.1)[1] > fran.a.forward[1] ? 1 : -1, oppnad = vridAxlar(fran.a, fran.a.across, uppat * rad(K.vansterOppna) * slag);
     return {a: between(oppnad, HL0, smooth(e * 1.4)), w: add(add(lerp(fran.w, f0.L.w, e), [0, K.vansterUpp * ur + K.vansterBage * 4 * e * (1 - e), 0]), mul(bakat, K.vansterBak * ur)), S: formMellan(fran.S, SL0, e)};
   };
 
   // ---- rutorna: händer och kort, och kroppen kring dem (figur ovan) ----
+  // ---- N: högerhanden i tre tag ----
+  // (A:s rörelse som den är ritad, men spelad i en annan takt: varje tag en mjuk klocka över handledens väg (bärandet:
+  // handledens och kortets hörns), i stället för A:s sju delar som var och en börjar och slutar stilla. Lägena, greppet och
+  // kortet är A:s i varje ögonblick; bara när de nås ändras. Nyckelrutorna står kvar: nypet 16, nedsättningen 28–32 som i
+  // A, kortet ligger 36, hemma 60. I bytet bromsar handen in mjukt och brett till NATUR.genomNypet av tagets medelfart,
+  // utan att stanna och utan vila före eller efter, som riktiga dealrar (live-bj/data/stil-*.json handover: dalen 5–12 %
+  // av toppen och bred, cirka 0,2 s under en fjärdedel av den).)
+  /** En väg 0 till 1 med farten v0 i början och v1 i slutet (i tagets medelfart) och ingen acceleration i ändarna. */
+  const h5 = (x: number, v0: number, v1: number) => { const x3 = x * x * x, x4 = x3 * x, x5 = x4 * x; return v0 * (x - 6 * x3 + 8 * x4 - 3 * x5) + v1 * (-4 * x3 + 7 * x4 - 3 * x5) + 10 * x3 - 15 * x4 + 6 * x5; };
+  const hornen = (k: Kort) => { const a = cross(k.n, k.l); return [[1, 1], [1, -1], [-1, -1], [-1, 1]].map(([u, v]) => add(add(k.c, mul(k.l, u * HK / 2)), mul(a, v * WK / 2))); };
+  /**
+   * Hur långt handleden flyttar sig mellan A:s tider x och y, och hur mycket handen ändras kring den (punkterna mot
+   * handleden, i medel: fingrarna och handens vridning, så att de inte byter ställning på en ruta där handleden står
+   * nästan still), och med `medKort` kortet (dess hörn, i medel).
+   */
+  const steg = (x: number, y: number, medKort: boolean) => { const hx = hogerVid(x), hy = hogerVid(y), p = punkter(hx), q = punkter(hy);
+    let s = length(sub(hy.w, hx.w)) + p.reduce((m, v, i) => m + length(sub(sub(q[i], hy.w), sub(v, hx.w))), 0) / p.length;
+    if (medKort) { const A = hornen(kortVidT(x)), B = hornen(kortVidT(y)); s += A.reduce((m, v, i) => m + length(sub(v, B[i])), 0) / 4; } return s; };
+  /** A:s tid för varje ruta: ett tag från a till b följer klockan h5 över vägen, med farten fart0 och fart1 (meter per ruta) i ändarna. */
+  const omtid = (): number[] => {
+    const tau = Array.from({length: n}, (_, t) => t);
+    const tag = (a: number, b: number, medKort: boolean, fart0: number, fart1: number) => {
+      const M = 40 * (b - a), tab = [0]; for (let i = 1; i <= M; i++) tab.push(tab[i - 1] + steg(a + (b - a) * (i - 1) / M, a + (b - a) * i / M, medKort));
+      const S = tab[M] || 1e-9, v0 = fart0 * (b - a) / S, v1 = fart1 * (b - a) / S;
+      for (let t = a + 1; t < b; t++) { const mal = S * h5((t - a) / (b - a), v0, v1); let i = 1; while (i < M && tab[i] < mal) i++; tau[t] = a + (b - a) * (i - 1 + clamp01((mal - tab[i - 1]) / Math.max(1e-12, tab[i] - tab[i - 1]))) / M; }
+      return S / (b - a);
+    };
+    // (till nypet med farten NATUR.genomNypet av tagets medelfart i slutet; därifrån bär handen kortet, med farten i början
+    // dubbelt räknad eftersom kortets hörn går med handleden, in i nedsättningen med den fart dess första ruta har.
+    // Nedsättningen (K.nere till K.plant) spelas som i A, ruta för ruta: den är sökt ruta för ruta, och prövad i en annan
+    // takt gick ett finger genom kortet (2026-11-27). Skjutet på plats följer med den fart nedsättningen slutar med.)
+    const genom = NATUR.genomNypet * tag(K.hogerFran, K.nyp, false, 0, 0);
+    tag(K.hogerFran, K.nyp, false, 0, genom);
+    tag(K.nyp, K.nere, true, 2 * genom, steg(K.nere, K.nere + 1, true));
+    tag(K.plant, K.ligger, true, steg(K.plant - 1, K.plant, true), 0);
+    tag(K.ligger, K.hemma, false, 0, 0);
+    return tau;
+  };
   const bygg = () => {
     laggR = laggRakna();
     const L: Hand[] = Array.from({length: n}, (_, t) => vansterVid(Math.min(t, K.vansterSlapper))); rakVanster(L, f0, doll);
-    const R: Hand[] = [], C: Kort[] = [];
-    for (let t = 0; t < n; t++) { R.push(hogerVid(t)); C.push(kortVidT(t)); }
+    const R: Hand[] = [], C: Kort[] = [], tau = N ? omtid() : null;
+    for (let t = 0; t < n; t++) { const x = tau ? tau[t] : t; R.push(hogerVid(x)); C.push(kortVidT(t <= K.nyp ? t : x)); }
+    // (N: pekfingrets mellanled ligger i A:s grepp en tiondels millimeter innanför gränsen för kortets kant (hand-rule.ts
+    // inCard), så att avrundningen till tiondels millimeter fäller en ruta här och där i en annan takt: kortet flyttas
+    // NATUR.kantluft meter i sitt plan bort från leden medan det bärs, vilket inte syns)
+    if (N) for (let t = K.nyp + 1; t <= K.nere; t++) { const k = C[t], tv = unit(cross(k.n, k.l)), d = dot(sub(punkter(R[t])[7], k.c), tv); C[t] = {...k, c: sub(k.c, mul(tv, Math.sign(d) * NATUR.kantluft))}; }
     // (och vänsterns pek- och långfinger på ryggen till bytet: handen flyttad längs kortets normal tills den lägsta av
     // topparna ligger an)
     for (let t = 1; t <= K.vansterSlapper; t++) { const k = C[t], p = punkter(L[t]), sida = (q: Vec3) => dot(sub(q, k.c), k.n), s = Math.sign(sida(p[8]) + sida(p[12])) || -1;
@@ -543,7 +642,7 @@ export function koreoGiv(input: KoreoInput) {
     for (let t = K.nyp + 1; t < K.nere; t++) if (lyft[t] > 0) { const upp: Vec3 = [0, lyft[t], 0]; R[t] = {...R[t], w: add(R[t].w, upp)}; C[t] = {...C[t], c: add(C[t].c, upp)}; }
     // (kortets långsida åt samma håll i alla rutor: ett kort och samma kort vänt ett halvt varv kring framsidans normal är ett)
     for (let t = 1; t < n; t++) if (dot(C[t].l, C[t - 1].l) < 0) C[t] = {...C[t], l: mul(C[t].l, -1)};
-    return figur({start, doll, kant, R, L, C, mal: F.c, ger: 'R', bar: [K.nyp, K.nere], vansterHemma: K.vansterHemma, ligger: K.ligger});
+    return figur({start, doll, kant, R, L, C, mal: F.c, ger: 'R', bar: [K.nyp, K.nere], vansterHemma: K.vansterHemma, ligger: K.ligger, natur: N});
   };
   // (högern väntar med att bära kortet tills vänstern är ur vägen: det minsta antalet rutor, högst KOREO.vantaMest, där
   // inget av vänsterns fingrar går i kortet på dess väg hem i den färdiga rörelsen; platserna på hans högra sida behöver
@@ -552,9 +651,10 @@ export function koreoGiv(input: KoreoInput) {
   let fig = bygg(); while (vanta < K.vantaMest && krockar(fig.frames)) { vanta++; fig = bygg(); }
   const times = {ute: dra, framme: K.framme, rest: K.restat, greppat: K.nyp, tar: K.nyp, vansterLyfter: K.vansterSlapper, nere: K.nere, slapper: K.plant, ligger: K.ligger, slut: K.hemma};
   const kvitto = {hand: 'R', grepp: {pek: grepp.pek, mitt: grepp.mitt}, mote: r4(M), sattGrader: satt, yawGrader: grad(psi), vantarRutor: vanta, ...fig.kvitto};
-  const metod = B ? 'version B (turned near the place): drawn out of the shoe flat by the left hand to the meeting point out over the table, stood on its far long side facing the dealer, nipped from above by the right (thumb down on the face, forefinger on the back), carried hanging on its edge low over the felt and rolled forward by the forearm only in the last centimetres, set down flat, pushed onto the place by the fingertips and released.'
+  const metod = N ? 'version N, "natural" (a proof beside A: the same key positions, grip and card as A; the body moves differently between them, koreo-giv.ts KOREO_N and NATUR): the free left hand lifted less and set down softer at the shoe, the fingers home before the wrist, the gaze ahead of the card and back to the shoe before the hand, and the right hand in three strokes (to the nip, from the nip until the card lies, home) instead of seven stops.'
+    : B ? 'version B (turned near the place): drawn out of the shoe flat by the left hand to the meeting point out over the table, stood on its far long side facing the dealer, nipped from above by the right (thumb down on the face, forefinger on the back), carried hanging on its edge low over the felt and rolled forward by the forearm only in the last centimetres, set down flat, pushed onto the place by the fingertips and released.'
     : 'version A (the key turn, read from Jakob\'s words and two training films): drawn out of the shoe flat by the left hand to the meeting point out over the table, stood on its far long side facing the dealer, nipped from above by the right (thumb down on the face, forefinger on the back), rolled forward away from the dealer by the forearm turning outward like a key (back of the hand up to a handshake), carried flat and low, set down flat, pushed onto the place by the fingertips and released.';
-  const motion = {fps: 30, frameCount: n, leavesShoe: dra, edge: [K.nere, K.nere], folds: K.nere, rests: K.ligger, hip, doll: doll.name, to: [input.place], marke: {hander: 'tva', vands: B ? 'vid-platsen' : 'pa-vagen', satts: 'langsida'} as GivMarke, frames: fig.frames,
+  const motion = {fps: 30, frameCount: n, leavesShoe: dra, edge: [K.nere, K.nere], folds: K.nere, rests: K.ligger, hip, doll: doll.name, to: [input.place], marke: {hander: 'tva', vands: B ? 'vid-platsen' : 'pa-vagen', satts: 'langsida', ...(N ? {prov: 'naturlig'} : {})} as GivMarke, frames: fig.frames,
     cycle: {holdThrough: K.vilar, liftStarts: K.vilar, liftEnds: K.vilar + 2, readyFrom: n - 1, durationSeconds: n / 30, liftMeters: 0.02, method: `Choreographed from A2.3 by dealer3d/src/koreo-giv.ts, ${metod}`}};
   return {motion, times, kvitto};
 }
