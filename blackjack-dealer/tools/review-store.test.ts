@@ -91,9 +91,17 @@ test('nothing is written without the revision that was read, for an unknown clip
   assert.equal(await readFile(file, 'utf8'), '[]\n');
 });
 
-test('a real tracked record survives a round of decisions with everything outside review untouched', async t => {
-  const root = await temp(t), name = 'paow-fri-giv-p7-01-01-deal', original = motionRegister(process.cwd()).get(name) as Record<string, any>;
-  assert.ok(original, `${name} står i registret`);
+// A record as tools/register-order.ts writes one for a delivered take (made up, every field the register carries): source,
+// motion, a review with its basis and a provisional verdict, the order it came from.
+const TRACKED = {schemaVersion: 1, id: 'vera-giv-p7-01-01-deal', dealer: 'vera',
+  source: {path: 'assets/motions/vera-giv-p7-01-01/source.mp4', sha256: 'a'.repeat(64), bytes: 4433279, width: 1728, height: 972, fps: 24, frames: 97, provider: 'Runway developer API', model: 'kling-4'},
+  motion: {kind: 'DEAL', from: 'READY-C', to: 'P7.C1', takeHand: 'LH', releaseHand: 'RH', pass: true, basis: 'SOURCE_FRAME_REVIEW', segment: {clip: 'vera-giv-p7-01-01', frames: [0, 70]}},
+  review: {decision: 'ACCEPTED', basis: 'Förd in från beställningen vera-giv-p7-01, tagning 1.', limitations: 'I inkorgen.', agentFirstVerdict: 'bra', colorDoesNotProvePhysicalSide: true, userAccepted: false, productionReady: false, acceptedAs: 'VARIANT',
+    provisional: {by: 'huvudagenten', at: '2026-11-23T17:37:38.590Z', mandate: 'Jakob 2026-11-23', note: 'Delad för hand vid ruta 71.'}},
+  order: {id: 'vera-giv-p7-01', take: 1, path: 'data/orders/vera-giv-p7-01.json', orderSha256: 'b'.repeat(64)}};
+
+test('a tracked record survives a round of decisions with everything outside review untouched', async t => {
+  const root = await temp(t), name = TRACKED.id, original = structuredClone(TRACKED) as Record<string, any>;
   motionRegister(root).put(name, original);
   const store = reviewStore(root, () => '2026-11-11');
   let revision = (await store.load(name)).revision;

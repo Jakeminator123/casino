@@ -28,6 +28,8 @@ import { dealAnchor, orderingState } from "../lib/orders.ts";
 const repo = path.resolve(import.meta.dirname, "../..");
 const base = os.tmpdir();
 const sha = (b: Buffer) => createHash("sha256").update(b).digest("hex");
+// A made-up dealer: the test never reads the repo's own register of dealers.
+const DEALERS = { schemaVersion: 1, dealers: [{ id: "vera", name: "Vera", look: "a made-up dealer for the test", films: { prefix: "vera-" }, shoe: "2.1", paused: null }] };
 
 // The dummy's films A2.3 → A3P4C2 as data/rendered-references.json lists them (in that order, laid with the right hand):
 // the two earlier ones and svep24d, made again after them.
@@ -36,7 +38,7 @@ const film = (id: string, edge: string, seconds: number, more: Partial<RenderedR
 
 test("the reference rule: the film made again comes first, and a deal bara dit never takes a round trip", () => {
   const step = stepOf("GIV-2.3")!, model = modelFor(step, "kling-4");
-  const want = { dealer: "paow", step, target: "P4.C2", model, lays: "RH" as const };
+  const want = { dealer: "vera", step, target: "P4.C2", model, lays: "RH" as const };
   const chosen = (films: RenderedReference[], shape: "ONE_WAY" | "ROUND_TRIP" = "ONE_WAY") => referenceByRule({ rendered: films }, "renderad", { ...want, shape })?.take ?? null;
   const listed = P4C2_FILMS.map(([id, s]) => film(id, "READY-C>P4.C2", s));
   // svep24d is listed after h24-cykel: it comes first.
@@ -66,14 +68,14 @@ test("step 2 and the card's films: from the anchor of the guide's tree, never fr
   assert.equal(stepTwoSummary("P4.C1", "2.1", "BACK"), `A2.1 · ${LANDS_LABEL.BACK}`);
   assert.equal(stepTwoSummary("shoe", "2.3", null), "Välj ett kort");
   // What is sent: only the exceptions the form shows for the row's shape and reference film (review of PR 1, 2026-11-21).
-  const hidden = { duration: 5, cardScale: 1.1, end: "paow-a3-p4-x" };
-  const oneWay = orderBody("paow", { step: "GIV-2.1", target: "P4.C1" }, hidden, { shape: "ONE_WAY", reference: true })!;
-  assert.deepEqual([oneWay.duration, oneWay.cardScale, oneWay.end], [undefined, undefined, "paow-a3-p4-x"], "bara dit with a reference film: the end picture only");
-  const trip = orderBody("paow", { step: "GIV-2.1", target: "P4.C1" }, hidden, { shape: "ROUND_TRIP", reference: false })!;
+  const hidden = { duration: 5, cardScale: 1.1, end: "vera-a3-p4-x" };
+  const oneWay = orderBody("vera", { step: "GIV-2.1", target: "P4.C1" }, hidden, { shape: "ONE_WAY", reference: true })!;
+  assert.deepEqual([oneWay.duration, oneWay.cardScale, oneWay.end], [undefined, undefined, "vera-a3-p4-x"], "bara dit with a reference film: the end picture only");
+  const trip = orderBody("vera", { step: "GIV-2.1", target: "P4.C1" }, hidden, { shape: "ROUND_TRIP", reference: false })!;
   assert.deepEqual([trip.duration, trip.cardScale, trip.end], [5, 1.1, undefined], "a round trip without a reference film: the length and the card's size");
   // The round stays the game's until the bank has the A2.3 films both ways.
-  assert.equal(roundFor("P4.C2", "paow"), "A2.1 - A3P4C2 - A2.1");
-  assert.equal(roundFor("P4.C2", "paow", "2.3"), "A2.3 - A3P4C2 - A2.3");
+  assert.equal(roundFor("P4.C2", "vera"), "A2.1 - A3P4C2 - A2.1");
+  assert.equal(roundFor("P4.C2", "vera", "2.3"), "A2.3 - A3P4C2 - A2.3");
   const take = (decision: string) => ({ takes: [{ hub: "READY-C", decision }] });
   const graph = (back: string) => ({ edge: { "READY>P4.C2": take("ACCEPTED"), "P4.C2>READY": take(back) }, experiments: [] }) as never;
   assert.equal(hasRound(graph("ACCEPTED"), "P4.C2", "2.3"), true);
@@ -100,8 +102,9 @@ test("the ordering block's state in one line", () => {
 test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's preview freezes", async (t) => {
   const root = await mkdtemp(path.join(base, "bordet-line-"));
   t.after(() => rm(root, { recursive: true, force: true }));
-  for (const dir of ["data", "placements", "assets/anchors/paow-bild"]) await mkdir(path.join(root, dir), { recursive: true });
-  for (const file of ["data/order-policy.json", "data/dealers.json", "data/order-methods.json"]) await copyFile(path.join(repo, file), path.join(root, file));
+  for (const dir of ["data", "placements", "assets/anchors/vera-bild"]) await mkdir(path.join(root, dir), { recursive: true });
+  for (const file of ["data/order-policy.json", "data/order-methods.json"]) await copyFile(path.join(repo, file), path.join(root, file));
+  await writeFile(path.join(root, "data/dealers.json"), JSON.stringify(DEALERS));
   // The recipe of the deal from A2.3 as this test follows it, fixed here: bara dit, 3 s, template 14, ending on the seat's
   // own end picture. The recipe in force (giv och återgång in one film since 2026-11-24) is compared row against store for
   // every card in studio/tests/line-same.test.ts, so a change of it does not change what this test compares.
@@ -113,16 +116,16 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
   const plan = JSON.parse(await readFile(path.join(repo, "placements/default.json"), "utf8"));
   for (const [card, target] of Object.entries(plan.targets as Record<string, { intent: object }>)) target.intent = { takeHand: "LH", startSide: "BACK", endSide: card === "D.C2" ? "BACK" : "FRONT", pass: card === "P4.C2", turn: card !== "D.C2", grip: "PINCH", turnAt: "AIR", flipAxis: "FREE" };
   await writeFile(path.join(root, "placements/default.json"), JSON.stringify(plan, null, 2) + "\n");
-  // Material: Paow's four anchors, seat 4's first card's landing picture for the left hand, and A3P4C2 for the right hand
+  // Material: Vera's four anchors, seat 4's first card's landing picture for the left hand, and A3P4C2 for the right hand
   // (the hand that lays the card after the handbyte). One small picture serves them all.
-  const still = "assets/anchors/paow-bild/anchor.png";
+  const still = "assets/anchors/vera-bild/anchor.png";
   await writeFile(path.join(root, still), await sharp({ create: { width: 1764, height: 1174, channels: 3, background: { r: 0, g: 236, b: 45 } } }).png().toBuffer());
   const entries = [
-    ...([["ankare-1", "IDLE"], ["ankare-2.1", "READY"], ["ankare-2.2", "READY-B"], ["ankare-2.3", "READY-C"]] as const).map(([role, node]) => ({ id: `paow-${role}`, role, name: role, path: still, node, state: "gäller" })),
-    { id: "paow-landning-p4-c1", role: "landning", name: "A3P4C1", path: still, node: "LAND(P4.C1)", card: "P4.C1", state: "gäller" },
-    { id: "paow-a3-p4c2-rh", role: "landning", name: "A3P4C2", path: still, node: "LAND(P4.C2)", card: "P4.C2", hand: "RH", state: "gäller" },
+    ...([["ankare-1", "IDLE"], ["ankare-2.1", "READY"], ["ankare-2.2", "READY-B"], ["ankare-2.3", "READY-C"]] as const).map(([role, node]) => ({ id: `vera-${role}`, role, name: role, path: still, node, state: "gäller" })),
+    { id: "vera-landning-p4-c1", role: "landning", name: "A3P4C1", path: still, node: "LAND(P4.C1)", card: "P4.C1", state: "gäller" },
+    { id: "vera-a3-p4c2-rh", role: "landning", name: "A3P4C2", path: still, node: "LAND(P4.C2)", card: "P4.C2", hand: "RH", state: "gäller" },
   ];
-  await writeFile(path.join(root, "data/media-roles.json"), JSON.stringify({ schemaVersion: 1, dealers: { paow: { name: "Paow", entries } }, measures: [] }, null, 2) + "\n");
+  await writeFile(path.join(root, "data/media-roles.json"), JSON.stringify({ schemaVersion: 1, dealers: { vera: { name: "Vera", entries } }, measures: [] }, null, 2) + "\n");
   await writeFile(path.join(root, "data/clip-jobs.json"), JSON.stringify({ jobs: [], derived: [] }));
   await writeFile(path.join(root, "data/cut-frames.json"), JSON.stringify({ frames: [] }));
   // The dummy's films: the three to A3P4C2 from A2.3 as the register lists them, and the pinch to seat 4 from A2.1.
@@ -156,7 +159,7 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
   const all = (await call("GET", "/api/orders")).json as OrdersAnswer;
   const bank: BankFacts = { jobs: [], derived: [], motions: {}, rendered: all.rendered, cutChecks: readCutChecks({ frames: [] }) };
   const shown = entries.map((e) => ({ ...e, served: e.path }));
-  const rowOf = (wish: FilmWish, choice?: RowChoice) => filmRow("paow", wish, all.methods!, all.policy, { bank, entries: shown, plan: all.plan ?? null, dealers: all.dealers, marks: all.marks, choice });
+  const rowOf = (wish: FilmWish, choice?: RowChoice) => filmRow("vera", wish, all.methods!, all.policy, { bank, entries: shown, plan: all.plan ?? null, dealers: all.dealers, marks: all.marks, choice });
   const words = (row: ReturnType<typeof rowOf>) => Object.fromEntries(row.marks.map((m) => [m.name, `${m.ready ? "" : "✗ "}${m.words}`]));
   const previewOf = (row: ReturnType<typeof rowOf>) => call("POST", "/api/orders/preview", row.body);
 
@@ -176,7 +179,7 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
     const picture = (goesAs: string) => o.pictures.find((p: { goesAs: string }) => p.goesAs === goesAs)?.from?.entry ?? null;
     assert.equal(o.step.key, deal.wish.step, `${deal.key}: the step`);
     assert.equal(o.step.shape, deal.resolved.shape, `${deal.key}: bara dit`);
-    assert.equal(picture("startFrame"), `paow-ankare-${from}`, `${deal.key}: the first picture is the anchor the films go from`);
+    assert.equal(picture("startFrame"), `vera-ankare-${from}`, `${deal.key}: the first picture is the anchor the films go from`);
     assert.equal(picture("endFrame"), deal.resolved.end?.kind === "LANDNING" ? deal.resolved.end.entry.id : null, `${deal.key}: the last picture`);
     assert.deepEqual(o.reference.clips, [deal.reference!.take], `${deal.key}: the reference film`);
     assert.equal(o.generation.model, deal.resolved.model!.id, `${deal.key}: the model`);
@@ -203,7 +206,7 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
         continue;
       }
       assert.ok(!r.orderable && r.body === null && r.cost === null && r.why, `${r.key}: listed, something is missing`);
-      assert.equal((await call("POST", "/api/orders/preview", { dealer: "paow", step: r.wish.step, target: card })).status, 400, `${r.key}: the store asks for the same`);
+      assert.equal((await call("POST", "/api/orders/preview", { dealer: "vera", step: r.wish.step, target: card })).status, 400, `${r.key}: the store asks for the same`);
       if (r.wish.step === "RETUR-2.3") {
         // The return to A2.3 continues an approved deal on its frozen last picture, which the command finds (StepDef.off).
         assert.equal(r.why, NOT_FROM_HERE);
@@ -254,7 +257,7 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
       assert.match(deal.text!, /Video 1 shows only the movement, as a rough guide/);
       // New in round two (2026-11-21): "Utan slutbild", what the command's --no-end makes, is a choice of the row where the
       // seat has an end picture, with the command's note; the row says the text and the price the store freezes for it.
-      const open = filmRow("paow", deal.wish, all.methods!, all.policy, { bank, entries: shown, plan: all.plan ?? null, dealers: all.dealers, marks: all.marks, choice: { end: null } });
+      const open = filmRow("vera", deal.wish, all.methods!, all.policy, { bank, entries: shown, plan: all.plan ?? null, dealers: all.dealers, marks: all.marks, choice: { end: null } });
       assert.ok(open.orderable, `${open.key}: ${open.why}`);
       assert.ok(open.resolved.ownEnd && open.resolved.open, "the seat has its end picture, and he chose none");
       assert.equal(words(open).Slutbild, "ingen, A3P4C2 görs efteråt");
@@ -269,16 +272,16 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
       assert.ok(shownOpen.notes.join(" ").includes(openEndWords("P4.C2")), "the command's note");
       assert.equal(shownOpen.cost.total, open.cost);
       // A paused dealer gets nothing new (data/dealers.json, his word): the same deal cannot be ordered for her, and says why.
-      const pausedDealers = all.dealers?.map((d) => (d.id === "paow" ? { ...d, paused: "Jakob: inget nytt beställs" } : d));
-      const paused = filmRow("paow", deal.wish, all.methods!, all.policy, { bank, entries: shown, plan: all.plan ?? null, dealers: pausedDealers, marks: all.marks });
+      const pausedDealers = all.dealers?.map((d) => (d.id === "vera" ? { ...d, paused: "Jakob: inget nytt beställs" } : d));
+      const paused = filmRow("vera", deal.wish, all.methods!, all.policy, { bank, entries: shown, plan: all.plan ?? null, dealers: pausedDealers, marks: all.marks });
       assert.ok(!paused.orderable && paused.body === null && paused.cost === null, `${paused.key}: not orderable while paused`);
-      assert.match(paused.why ?? "", /^Paow är pausad: inget nytt beställs/);
+      assert.match(paused.why ?? "", /^Vera är pausad: inget nytt beställs/);
       // What the text says of the doll's film, for the choice in sight: a rough guide with template 14's short text.
       assert.equal(referenceRole(deal.resolved), "grov vägledning, naturlig rörelse går före");
       assert.equal(referenceRole({ ...deal.resolved, style: "MINIMAL" }), "rörelsen följer filmen");
     } else {
       // From A2.1, the anchor the game deals the card from too, laid by the left hand.
-      assert.equal(dealAnchor("paow", card), "2.1");
+      assert.equal(dealAnchor("vera", card), "2.1");
       assert.deepEqual(rows.map((r) => r.line), ["A2.1 → A3P4C1", "A3P4C1 → A2.1", "A3P4C1 → A1"]);
       assert.deepEqual({ ...words(deal), Text: "", Pris: "" }, { "Första bild": "A2.1", Slutbild: "A3P4C1", Referensfilm: "dockan", Text: "", Pris: "" });
       assert.equal(deal.reference!.take, "docka-giv-p4-4");
@@ -293,7 +296,7 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
   const far = rowOf({ step: "GIV-2.3", target: "P6.C1" });
   assert.ok(far.orderable && far.why === null && !far.chosen, `${far.key}: ${far.why}`);
   assert.ok(far.resolved.open && !far.resolved.ownEnd, "open because the seat has no end picture, not by a choice");
-  assert.deepEqual(far.body, { dealer: "paow", step: "GIV-2.3", target: "P6.C1" }, "the line and nothing else: no choice is sent");
+  assert.deepEqual(far.body, { dealer: "vera", step: "GIV-2.3", target: "P6.C1" }, "the line and nothing else: no choice is sent");
   assert.deepEqual([words(far).Slutbild, words(far).Referensfilm], ["ingen, A3P6C1 görs efteråt", "går utan"]);
   assert.match(far.recipe, /· bara given, utan slutbild ·/);
   assert.doesNotMatch(far.recipe, /slutar på/, "the recipe line names no picture that is not sent");
@@ -315,13 +318,13 @@ test("Bordet's rows for a card from A2.3 and one from A2.1 say what the store's 
   assert.ok(!farBack.orderable && farBack.body === null && farBack.waits, `${farBack.key}: waits for its deal`);
   assert.equal(farBack.why, "väntar på A3P6C1: returen börjar i sista rutan av given dit, och A3P6C1 görs ur den");
   assert.deepEqual(farBack.marks.filter((m) => m.waits).map((m) => [m.name, m.words]), [["Första bild", "väntar på A3P6C1"], ["Text", "väntar på bilderna"]]);
-  assert.match((await call("POST", "/api/orders/preview", { dealer: "paow", step: "RETUR-1", target: "P6.C1" })).json.error, /Ingen landningsbild gäller/);
+  assert.match((await call("POST", "/api/orders/preview", { dealer: "vera", step: "RETUR-1", target: "P6.C1" })).json.error, /Ingen landningsbild gäller/);
   // A missing anchor is a true stop: nothing can be sent without the first picture, and that is a fault, not a wait.
-  const noAnchor = filmRow("paow", { step: "GIV-2.3", target: "P4.C2" }, all.methods!, all.policy, { bank, entries: shown.filter((e) => e.role !== "ankare-2.3"), plan: all.plan ?? null, dealers: all.dealers, marks: all.marks });
+  const noAnchor = filmRow("vera", { step: "GIV-2.3", target: "P4.C2" }, all.methods!, all.policy, { bank, entries: shown.filter((e) => e.role !== "ankare-2.3"), plan: all.plan ?? null, dealers: all.dealers, marks: all.marks });
   assert.ok(!noAnchor.orderable && !noAnchor.waits);
   assert.equal(noAnchor.why, "ingen bild gäller för A2.3: gör en gällande i Material");
   // And a price outside the frame: no price, no order.
-  const noPrice = filmRow("paow", { step: "GIV-2.3", target: "P4.C2" }, all.methods!, { ...all.policy, prices: [] }, { bank, entries: shown, plan: all.plan ?? null, dealers: all.dealers, marks: all.marks });
+  const noPrice = filmRow("vera", { step: "GIV-2.3", target: "P4.C2" }, all.methods!, { ...all.policy, prices: [] }, { bank, entries: shown, plan: all.plan ?? null, dealers: all.dealers, marks: all.marks });
   assert.ok(!noPrice.orderable && !noPrice.waits);
   assert.match(noPrice.why ?? "", /^ramen \(data\/order-policy\.json\) har inget pris/);
 });

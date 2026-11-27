@@ -34,11 +34,11 @@ const register = () => ({
     ada: { name: 'Ada', entries: [
       { id: 'ada-vila', role: 'ankare-1', name: 'Vila', path: 'assets/anchors/ada-vila/anchor.png', node: 'IDLE', state: 'gäller' },
     ] },
-    paow: { name: 'Paow', entries: [
-      { id: 'paow-vila-ung-2', role: 'ankare-1', name: 'Vila, kandidat 2', path: 'assets/anchors/paow-vila-ung-2/anchor.png', node: 'IDLE', state: 'kandidat' },
-      { id: 'paow-vila-ung-1', role: 'ankare-1', name: 'Vila, kandidat 1', path: 'assets/anchors/paow-vila-ung-1/anchor.png', node: 'IDLE', state: 'kandidat' },
-      { id: 'paow-vila-kort', role: 'ankare-1', name: 'Vila med kort', path: 'assets/anchors/paow-vila-ung-1/anchor.png', node: 'IDLE', card: 'P4.C1', state: 'kandidat' },
-      { id: 'paow-nyp-ny', role: 'ankare-2.1', name: 'Nyp, ny', path: 'assets/anchors/paow-nyp-ny/anchor.png', node: 'READY', state: 'kandidat' },
+    vera: { name: 'Vera', entries: [
+      { id: 'vera-vila-ung-2', role: 'ankare-1', name: 'Vila, kandidat 2', path: 'assets/anchors/vera-vila-ung-2/anchor.png', node: 'IDLE', state: 'kandidat' },
+      { id: 'vera-vila-ung-1', role: 'ankare-1', name: 'Vila, kandidat 1', path: 'assets/anchors/vera-vila-ung-1/anchor.png', node: 'IDLE', state: 'kandidat' },
+      { id: 'vera-vila-kort', role: 'ankare-1', name: 'Vila med kort', path: 'assets/anchors/vera-vila-ung-1/anchor.png', node: 'IDLE', card: 'P4.C1', state: 'kandidat' },
+      { id: 'vera-nyp-ny', role: 'ankare-2.1', name: 'Nyp, ny', path: 'assets/anchors/vera-nyp-ny/anchor.png', node: 'READY', state: 'kandidat' },
     ] },
   },
   measures: [],
@@ -50,20 +50,19 @@ async function lab(t: { after(fn: () => Promise<void> | void): void }, transport
   const root = await mkdtemp(path.join(base, 'order-routes-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   for (const dir of ['data', 'placements']) await mkdir(path.join(root, dir), { recursive: true });
-  for (const file of ['data/order-policy.json', 'data/dealers.json', 'data/order-methods.json']) await copyFile(file, path.join(root, file));
-  // Every dealer of the lab can be ordered for, and a second, made-up dealer (Ada) beside the real ones, so that two
-  // dealers' orders and pictures can be told apart; the pause has a test of its own.
-  const dealersFile = path.join(root, 'data/dealers.json');
-  const dealerList = JSON.parse(await readFile(dealersFile, 'utf8'));
-  dealerList.dealers.unshift({ id: 'ada', name: 'Ada', look: 'a made-up test dealer', films: { prefix: 'ada-' }, shoe: '2.1', paused: null });
-  for (const d of dealerList.dealers) d.paused = null;
-  await writeFile(dealersFile, JSON.stringify(dealerList));
+  for (const file of ['data/order-policy.json', 'data/order-methods.json']) await copyFile(file, path.join(root, file));
+  // Two made-up dealers (Ada and Vera), so that two dealers' orders and pictures can be told apart; the pause has a test of its
+  // own. The repo's own register of dealers is never read.
+  await writeFile(path.join(root, 'data/dealers.json'), JSON.stringify({ schemaVersion: 1, dealers: [
+    { id: 'ada', name: 'Ada', look: 'a made-up test dealer', films: { prefix: 'ada-' }, shoe: '2.1', paused: null },
+    { id: 'vera', name: 'Vera', look: 'a made-up test dealer', films: { prefix: 'vera-' }, shoe: '2.1', paused: null },
+  ] }));
   // A declared fixture, independent of Jakob's saved or newly committed hand choices.
   await writeFile(path.join(root, 'placements/default.json'), JSON.stringify(defaultPlan()));
   await writeFile(path.join(root, 'data/media-roles.json'), JSON.stringify(register(), null, 2) + '\n');
   await writeFile(path.join(root, 'data/clip-jobs.json'), '{"jobs": []}');
   const files: Record<string, Buffer> = {};
-  for (const [name, colour] of [['ada-vila', [0, 237, 44]], ['paow-vila-ung-2', [0, 236, 45]], ['paow-vila-ung-1', [1, 235, 46]], ['paow-nyp-ny', [2, 234, 47]]] as const) {
+  for (const [name, colour] of [['ada-vila', [0, 237, 44]], ['vera-vila-ung-2', [0, 236, 45]], ['vera-vila-ung-1', [1, 235, 46]], ['vera-nyp-ny', [2, 234, 47]]] as const) {
     await mkdir(path.join(root, 'assets/anchors', name), { recursive: true });
     files[name] = await picture(...colour);
     await writeFile(path.join(root, 'assets/anchors', name, 'anchor.png'), files[name]);
@@ -116,10 +115,10 @@ async function lab(t: { after(fn: () => Promise<void> | void): void }, transport
 
 test('a stale studio or preview cannot write anything, and the current preview is stored byte for byte', async (t) => {
   const { root, request } = await lab(t);
-  const input = [{ dealer: 'paow', step: 'INGANG-2.1' }, { dealer: 'paow', step: 'VILA' }];
+  const input = [{ dealer: 'vera', step: 'INGANG-2.1' }, { dealer: 'vera', step: 'VILA' }];
   const reg = register();
-  reg.dealers.paow.entries[0].state = 'gäller';
-  reg.dealers.paow.entries[3].state = 'gäller';
+  reg.dealers.vera.entries[0].state = 'gäller';
+  reg.dealers.vera.entries[3].state = 'gäller';
   await writeFile(path.join(root, 'data/media-roles.json'), JSON.stringify(reg));
   const prepared = await request('POST', '/api/orders/preview', { body: input });
   assert.equal(prepared.status, 200);
@@ -132,7 +131,7 @@ test('a stale studio or preview cannot write anything, and the current preview i
   await writeFile(file, JSON.stringify(methods));
   assert.equal((await request('POST', '/api/orders', { body: input, match: prepared.json.revision })).status, 409);
   const current = await request('POST', '/api/orders/preview', { body: input });
-  await writeFile(path.join(root, 'assets/anchors/paow-nyp-ny/anchor.png'), await picture(0, 232, 42));
+  await writeFile(path.join(root, 'assets/anchors/vera-nyp-ny/anchor.png'), await picture(0, 232, 42));
   assert.equal((await request('POST', '/api/orders', { body: input, match: current.json.revision })).status, 409);
   assert.equal(existsSync(path.join(root, 'data/orders')), false);
 
@@ -208,7 +207,7 @@ test('after a saved draft loses its HTTP response the studio retries the same sa
 
 test('drafts, changes and approval go through the routes with their guards', async (t) => {
   const { root, call, files } = await lab(t);
-  const still = { dealer: 'paow', step: 'ANKARE-2.1', base: 'paow-vila-ung-2', takes: 2 };
+  const still = { dealer: 'vera', step: 'ANKARE-2.1', base: 'vera-vila-ung-2', takes: 2 };
   assert.equal((await call('POST', '/api/orders', { body: still, from: 'http://evil.example' })).status, 403);
   assert.equal((await call('POST', '/api/orders', { body: { ...still, id: 'mine' } })).status, 400, 'the page cannot name the id');
   assert.equal((await call('POST', '/api/orders', { body: { ...still, pose: { path: 'C:/x.png' } } })).status, 400, 'nor hand in a picture of its own');
@@ -216,7 +215,7 @@ test('drafts, changes and approval go through the routes with their guards', asy
   assert.equal(made.status, 201);
   const a = made.json, id = a.order.id;
   const anchor = a.order.pictures.find((p: { name: string }) => p.name === 'anchor.png');
-  assert.equal(anchor.sha256, sha(files['paow-vila-ung-2']), 'the picture is copied byte for byte');
+  assert.equal(anchor.sha256, sha(files['vera-vila-ung-2']), 'the picture is copied byte for byte');
   assert.equal(a.order.cost.total, 80);
 
   // Files: only pictures and films directly in the order's folder.
@@ -253,7 +252,7 @@ test('drafts, changes and approval go through the routes with their guards', asy
 
   // A film that waits for its anchors cannot be approved.
   await writeFile(path.join(root, 'data/order-policy.json'), JSON.stringify(policy));
-  const film = (await call('POST', '/api/orders', { body: { dealer: 'paow', step: 'INGANG-2.1' } })).json;
+  const film = (await call('POST', '/api/orders', { body: { dealer: 'vera', step: 'INGANG-2.1' } })).json;
   assert.equal(film.shown, 'VÄNTAR');
   const waiting = await call('POST', `/api/orders/${film.order.id}/approve`, { match: film.revision });
   assert.equal(waiting.status, 409);
@@ -274,42 +273,42 @@ test('nothing new is drafted for a paused dealer: neither a preview nor a draft,
     assert.match(refused.json.error, /pausad/);
   }
   assert.deepEqual(await readdir(path.join(root, 'data/orders')), [`${made.json.order.id}.json`], 'her draft stays as it was, and nothing new is written');
-  assert.equal((await request('POST', '/api/orders/preview', { body: { dealer: 'paow', step: 'ANKARE-2.1', base: 'paow-vila-ung-2' } })).status, 200, 'another dealer is not paused');
+  assert.equal((await request('POST', '/api/orders/preview', { body: { dealer: 'vera', step: 'ANKARE-2.1', base: 'vera-vila-ung-2' } })).status, 200, 'another dealer is not paused');
 });
 
 test("Material: Jakob's verdict goes only from the lab's own origin against the revision, is stamped his, and sets aside only the others of its place", async (t) => {
   const { root, call } = await lab(t);
   const revision = async () => (await mediaRoles(root).answer()).revision!;
   const put = async (id: string, state: string, match?: string, from?: string) => (await call('PUT', `/api/media/${id}/state`, { body: { state }, match, from })).status;
-  assert.equal(await put('paow-vila-ung-2', 'gäller'), 428);
-  assert.equal(await put('paow-vila-ung-2', 'gäller', await revision(), 'http://evil.example'), 403);
-  assert.equal(await put('paow-vila-ung-2', 'okänd', await revision()), 400);
+  assert.equal(await put('vera-vila-ung-2', 'gäller'), 428);
+  assert.equal(await put('vera-vila-ung-2', 'gäller', await revision(), 'http://evil.example'), 403);
+  assert.equal(await put('vera-vila-ung-2', 'okänd', await revision()), 400);
   assert.equal(await put('nobody', 'ersatt', await revision()), 404);
-  const ok = await call('PUT', '/api/media/paow-vila-ung-2/state', { body: { state: 'gäller' }, match: await revision() });
+  const ok = await call('PUT', '/api/media/vera-vila-ung-2/state', { body: { state: 'gäller' }, match: await revision() });
   assert.equal(ok.status, 200);
-  assert.deepEqual(ok.json.replaced.map((e: { id: string }) => e.id), ['paow-vila-ung-1'], 'the candidate with a card on the table is another picture');
-  const after = JSON.parse(await readFile(path.join(root, 'data/media-roles.json'), 'utf8')).dealers.paow.entries;
+  assert.deepEqual(ok.json.replaced.map((e: { id: string }) => e.id), ['vera-vila-ung-1'], 'the candidate with a card on the table is another picture');
+  const after = JSON.parse(await readFile(path.join(root, 'data/media-roles.json'), 'utf8')).dealers.vera.entries;
   const by = (id: string) => after.find((e: { id: string }) => e.id === id);
-  assert.equal(by('paow-vila-ung-2').state, 'gäller');
-  assert.match(by('paow-vila-ung-2').stateBy, /^Jakob \d{4}-\d\d-\d\d \d\d:\d\d: kandidat → gäller \(Material\)$/);
-  assert.equal(by('paow-vila-ung-1').state, 'ersatt');
-  assert.equal(by('paow-vila-kort').state, 'kandidat');
-  assert.equal(await put('paow-vila-kort', 'ersatt', '"old"'), 409, 'a stale revision changes nothing');
+  assert.equal(by('vera-vila-ung-2').state, 'gäller');
+  assert.match(by('vera-vila-ung-2').stateBy, /^Jakob \d{4}-\d\d-\d\d \d\d:\d\d: kandidat → gäller \(Material\)$/);
+  assert.equal(by('vera-vila-ung-1').state, 'ersatt');
+  assert.equal(by('vera-vila-kort').state, 'kandidat');
+  assert.equal(await put('vera-vila-kort', 'ersatt', '"old"'), 409, 'a stale revision changes nothing');
   // One picture holds per place: a keystone gives way only to one of its own posture, an anchor seen from a seat only to one from the same seat.
-  const keystones = [{ id: 'paow-staende', role: 'keystone', name: 'Stående A', state: 'gäller' }, { id: 'paow-sittande', role: 'keystone', name: 'Sittande A', state: 'gäller' }, { id: 'paow-staende-tatuerad', role: 'keystone', name: 'Stående, tatuerade händer', state: 'kandidat' }, { id: 'paow-sittande-tatuerad', role: 'keystone', name: 'Sittande, tatuerade händer', state: 'kandidat' }] as const;
-  assert.equal(replacedBy(keystones, keystones[3]).map((e) => e.id).join(), 'paow-sittande');
-  assert.equal(replacedBy(keystones, keystones[2]).map((e) => e.id).join(), 'paow-staende');
+  const keystones = [{ id: 'vera-staende', role: 'keystone', name: 'Stående A', state: 'gäller' }, { id: 'vera-sittande', role: 'keystone', name: 'Sittande A', state: 'gäller' }, { id: 'vera-staende-tatuerad', role: 'keystone', name: 'Stående, tatuerade händer', state: 'kandidat' }, { id: 'vera-sittande-tatuerad', role: 'keystone', name: 'Sittande, tatuerade händer', state: 'kandidat' }] as const;
+  assert.equal(replacedBy(keystones, keystones[3]).map((e) => e.id).join(), 'vera-sittande');
+  assert.equal(replacedBy(keystones, keystones[2]).map((e) => e.id).join(), 'vera-staende');
   const cameras = [{ id: 'rak', role: 'ankare-2.3', node: 'READY-C', state: 'gäller' }, { id: 'stol-1', role: 'ankare-2.3', node: 'READY-C', state: 'kandidat', seat: 1 }, { id: 'stol-1-b', role: 'ankare-2.3', node: 'READY-C', state: 'gäller', seat: 1 }] as const;
   assert.equal(replacedBy(cameras, cameras[1]).map((e) => e.id).join(), 'stol-1-b');
 });
 
 test('an archived source is never approved, through a corrected copy either, and an unreadable archive status stops the approval', async (t) => {
   const { root, call, request } = await lab(t);
-  const media = register(), landing = {id: 'paow-landning-p4', role: 'landning', name: 'Landning 4', path: 'assets/anchors/paow-nyp-ny/anchor.png', node: 'LAND(P4.C1)', card: 'P4.C1', state: 'gäller'};
-  media.dealers.paow.entries[3].state = 'gäller';
-  media.dealers.paow.entries.push(landing);
+  const media = register(), landing = {id: 'vera-landning-p4', role: 'landning', name: 'Landning 4', path: 'assets/anchors/vera-nyp-ny/anchor.png', node: 'LAND(P4.C1)', card: 'P4.C1', state: 'gäller'};
+  media.dealers.vera.entries[3].state = 'gäller';
+  media.dealers.vera.entries.push(landing);
   await writeFile(path.join(root, 'data/media-roles.json'), JSON.stringify(media));
-  const parent = 'paow-original', fixed = `${parent}-fix-1`;
+  const parent = 'vera-original', fixed = `${parent}-fix-1`;
   const film = Buffer.from('a four-second round trip');
   const derived = [parent, fixed].flatMap(clip => [
     {id: `${clip}-deal`, clip, from: 'READY', to: 'P4.C1', frames: [0, 79], ...(clip === fixed ? {editOf: `${parent}-deal`} : {})},
@@ -324,7 +323,7 @@ test('an archived source is never approved, through a corrected copy either, and
     post(root, clip, {source: {frames: 120, fps: 30, sha256: sha(film)}});
   }
   const posts = postsFile(root), bare = await readFile(posts); // the register with the two films and no verdict
-  const input = (reference: string) => ({dealer: 'paow', step: 'GIV-2.1', target: 'P4.C1', reference});
+  const input = (reference: string) => ({dealer: 'vera', step: 'GIV-2.1', target: 'P4.C1', reference});
   const pending = await call('POST', '/api/orders', {body: input(`${fixed}-deal`)});
   assert.equal(pending.status, 201, pending.json.error);
   const approve = () => call('POST', `/api/orders/${pending.json.order.id}/approve`, {match: pending.json.revision});
@@ -357,15 +356,15 @@ test('an archived source is never approved, through a corrected copy either, and
 test('a bank film that changed since it was measured is not copied, and a cut frame from an archived take is never approved', async (t) => {
   const { root, call, frames } = await lab(t);
   const media = register();
-  media.dealers.paow.entries[3].state = 'gäller'; // anchor 2.1, the deal's first picture; seat 4 has no landing picture
+  media.dealers.vera.entries[3].state = 'gäller'; // anchor 2.1, the deal's first picture; seat 4 has no landing picture
   await writeFile(path.join(root, 'data/media-roles.json'), JSON.stringify(media));
-  // A reference film of a few bytes with the hash the bank measured, and Paow's round trip to seat 4 whose return Jakob approved.
+  // A reference film of a few bytes with the hash the bank measured, and Vera's round trip to seat 4 whose return Jakob approved.
   const ref = 'ada-p4-c1-plan-deal-02', film = Buffer.from('a film of four seconds'), filmFile = path.join(root, `assets/motions/${ref}/source.mp4`);
   await mkdir(path.dirname(filmFile), { recursive: true });
   await writeFile(filmFile, film);
-  const clip = 'paow-giv-2-1-p4-04-01', straight = { decision: 'ACCEPTED', userAccepted: true, userReview: 'Jakob 2026-11-13: Bra retur.' };
+  const clip = 'vera-giv-2-1-p4-04-01', straight = { decision: 'ACCEPTED', userAccepted: true, userReview: 'Jakob 2026-11-13: Bra retur.' };
   await writeFile(path.join(root, 'data/clip-jobs.json'), JSON.stringify({ jobs: [{ id: ref, from: 'READY', to: 'RELEASE(P4.C1)', duration: 4, dealer: 'ada' }], derived: [
-    { id: `${clip}-deal`, from: 'READY', to: 'P4.C1', clip, frames: [0, 108], dealer: 'paow' }, { id: `${clip}-return`, from: 'P4.C1', to: 'READY', clip, frames: [109, 168], dealer: 'paow' }] }));
+    { id: `${clip}-deal`, from: 'READY', to: 'P4.C1', clip, frames: [0, 108], dealer: 'vera' }, { id: `${clip}-return`, from: 'P4.C1', to: 'READY', clip, frames: [109, 168], dealer: 'vera' }] }));
   post(root, ref, { source: { frames: 120, fps: 30, sha256: sha(film) }, review: straight });
   post(root, clip, { source: { frames: 169, fps: 24 } });
   post(root, `${clip}-return`, { review: straight, motion: { releaseHand: 'LH' } });
@@ -375,7 +374,7 @@ test('a bank film that changed since it was measured is not copied, and a cut fr
   const frame = await sharp({ create: { width: 1764, height: 1174, channels: 3, background: { r: 0, g: 236, b: 45 } } }).composite([{ input: { create: { width: x1 - x0 + 1, height: y1 - y0 + 1, channels: 3, background: { r: 20, g: 60, b: 200 } } }, left: x0, top: y0 }]).png().toBuffer();
   frames.of = async () => frame;
 
-  const body = { dealer: 'paow', step: 'GIV-2.1', target: 'P4.C1', reference: ref };
+  const body = { dealer: 'vera', step: 'GIV-2.1', target: 'P4.C1', reference: ref };
   await writeFile(filmFile, 'another film');
   const changed = await call('POST', '/api/orders', { body });
   assert.equal(changed.status, 409, changed.json.error);
@@ -399,21 +398,21 @@ test('a bank film that changed since it was measured is not copied, and a cut fr
 test("a return to 2.3 starts only on the deal's frozen last picture: one changed on disk, or a candidate that no longer matches it, is refused", async (t) => {
   const { root, call, request, files } = await lab(t);
   const media = register();
-  const a3 = { id: 'paow-a3-p4', role: 'landning', name: 'A3P4C1', path: 'assets/anchors/paow-nyp-ny/anchor.png', node: 'LAND(P4.C1)', card: 'P4.C1', hand: 'RH', state: 'kandidat' };
-  media.dealers.paow.entries.push({ id: 'paow-ankare-2-3', role: 'ankare-2.3', name: 'Ankare 2.3', path: 'assets/anchors/paow-vila-ung-2/anchor.png', node: 'READY-C', state: 'gäller' }, a3);
+  const a3 = { id: 'vera-a3-p4', role: 'landning', name: 'A3P4C1', path: 'assets/anchors/vera-nyp-ny/anchor.png', node: 'LAND(P4.C1)', card: 'P4.C1', hand: 'RH', state: 'kandidat' };
+  media.dealers.vera.entries.push({ id: 'vera-ankare-2-3', role: 'ankare-2.3', name: 'Ankare 2.3', path: 'assets/anchors/vera-vila-ung-2/anchor.png', node: 'READY-C', state: 'gäller' }, a3);
   await writeFile(path.join(root, 'data/media-roles.json'), JSON.stringify(media));
-  const deal = await call('POST', '/api/orders', { body: { dealer: 'paow', step: 'GIV-2.3', target: 'P4.C1', shape: 'ONE_WAY', end: a3.id, side: 'FRONT', reference: null } });
+  const deal = await call('POST', '/api/orders', { body: { dealer: 'vera', step: 'GIV-2.3', target: 'P4.C1', shape: 'ONE_WAY', end: a3.id, side: 'FRONT', reference: null } });
   assert.equal(deal.status, 201, deal.json.error);
   const approved = await call('POST', `/api/orders/${deal.json.order.id}/approve`, { match: deal.json.revision });
   assert.equal(approved.status, 200, approved.json.error);
   const last = path.join(root, approved.json.order.pictures[1].path);
-  const preview = () => request('POST', '/api/orders/preview', { body: { dealer: 'paow', step: 'RETUR-2.3', target: 'P4.C1', base: a3.id, continues: deal.json.order.id } });
-  await writeFile(last, files['paow-vila-ung-1']);
+  const preview = () => request('POST', '/api/orders/preview', { body: { dealer: 'vera', step: 'RETUR-2.3', target: 'P4.C1', base: a3.id, continues: deal.json.order.id } });
+  await writeFile(last, files['vera-vila-ung-1']);
   const changed = await preview();
   assert.equal(changed.status, 409);
   assert.match(changed.json.error, /frysta slutbild.*SHA256/);
-  await writeFile(last, files['paow-nyp-ny']);
-  await writeFile(path.join(root, a3.path), files['paow-vila-ung-1']);
+  await writeFile(last, files['vera-nyp-ny']);
+  await writeFile(path.join(root, a3.path), files['vera-vila-ung-1']);
   const candidate = await preview();
   assert.equal(candidate.status, 409);
   assert.match(candidate.json.error, /A3-kandidatens bild stämmer inte/);
@@ -421,16 +420,16 @@ test("a return to 2.3 starts only on the deal's frozen last picture: one changed
 
 test("another dealer's picture in an order is named as a problem and cannot be approved", async (t) => {
   const { call } = await lab(t);
-  const own = (await call('POST', '/api/orders', { body: { dealer: 'paow', step: 'ANKARE-2.1', base: 'paow-vila-ung-2' } })).json;
-  assert.deepEqual([own.owners['anchor.png'].dealer, own.problems], ['paow', []]);
-  const mixed = (await call('POST', '/api/orders', { body: { dealer: 'paow', step: 'ANKARE-2.1', base: 'ada-vila' } })).json;
-  assert.match(mixed.problems.join(' '), /bilden är Adas, inte Paows/);
+  const own = (await call('POST', '/api/orders', { body: { dealer: 'vera', step: 'ANKARE-2.1', base: 'vera-vila-ung-2' } })).json;
+  assert.deepEqual([own.owners['anchor.png'].dealer, own.problems], ['vera', []]);
+  const mixed = (await call('POST', '/api/orders', { body: { dealer: 'vera', step: 'ANKARE-2.1', base: 'ada-vila' } })).json;
+  assert.match(mixed.problems.join(' '), /bilden är Adas, inte Veras/);
   assert.equal((await call('POST', `/api/orders/${mixed.order.id}/approve`, { match: mixed.revision })).status, 409, 'a mix-up cannot be approved');
 });
 
 test('Jakob\'s click through the route is always his: a body saying otherwise is not read', async (t) => {
   const { call } = await lab(t);
-  const made = (await call('POST', '/api/orders', { body: { dealer: 'paow', step: 'ANKARE-2.1', base: 'paow-vila-ung-2' } })).json;
+  const made = (await call('POST', '/api/orders', { body: { dealer: 'vera', step: 'ANKARE-2.1', base: 'vera-vila-ung-2' } })).json;
   const approved = await call('POST', `/api/orders/${made.order.id}/approve`, { match: made.revision, body: { by: 'huvudagent', mandate: 'x' } });
   assert.equal(approved.status, 200);
   assert.deepEqual([approved.json.order.approval.by, approved.json.order.approval.mandate], ['jakob', undefined]);

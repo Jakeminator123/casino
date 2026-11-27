@@ -22,7 +22,9 @@ async function approved(t: { after(fn: () => Promise<void>): void }) {
   const root = await mkdtemp(path.join(base, 'order-put-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   for (const dir of ['data', 'placements', 'assets/anchors/a']) await mkdir(path.join(root, dir), { recursive: true });
-  for (const file of ['data/order-policy.json', 'data/dealers.json', 'data/order-methods.json']) await copyFile(file, path.join(root, file));
+  for (const file of ['data/order-policy.json', 'data/order-methods.json']) await copyFile(file, path.join(root, file));
+  // A made-up dealer: the repo's own register of dealers is never read.
+  await writeFile(path.join(root, 'data/dealers.json'), JSON.stringify({ schemaVersion: 1, dealers: [{ id: 'vera', name: 'Vera', look: 'a made-up test dealer', films: { prefix: 'vera-' }, shoe: '2.1', paused: null }] }));
   const policyFile = path.join(root, 'data/order-policy.json');
   const policy = JSON.parse(await readFile(policyFile, 'utf8'));
   const writeMandate = (mandate: Record<string, unknown>) => writeFile(policyFile, JSON.stringify({...policy, mandate: {id: 'test-staende', ...mandate}}));
@@ -34,10 +36,10 @@ async function approved(t: { after(fn: () => Promise<void>): void }) {
   await writeFile(path.join(root, 'assets/anchors/a/anchor.png'), png);
   await writeFile(path.join(root, 'data/clip-jobs.json'), '{"jobs": []}');
   await writeFile(path.join(root, 'data/media-roles.json'), JSON.stringify({ schemaVersion: 1, measures: [], dealers: {
-    paow: { name: 'Paow', entries: [{ id: 'paow-vila', role: 'ankare-1', name: 'Vila', path: 'assets/anchors/a/anchor.png', node: 'IDLE', state: 'gäller' }] },
+    vera: { name: 'Vera', entries: [{ id: 'vera-vila', role: 'ankare-1', name: 'Vila', path: 'assets/anchors/a/anchor.png', node: 'IDLE', state: 'gäller' }] },
   } }));
   const store = orderStore(root, { now });
-  const draft = await store.create({ dealer: 'paow', step: 'ANKARE-2.1', takes: 2, id: 'prov-ett' });
+  const draft = await store.create({ dealer: 'vera', step: 'ANKARE-2.1', takes: 2, id: 'prov-ett' });
   const r = receipts(root, { now });
   await assert.rejects(r.begin('prov-ett', 1), /inte godkänd/);
   await store.approve('prov-ett', draft.revision);
@@ -335,7 +337,7 @@ test('nothing is placed for an order that changed after approval or whose pictur
 test('the main agent approves on Jakob\'s mandate with the same checks; check takes it only with the mandate; a draft can be set aside', async (t) => {
   const { root, store } = await approved(t);
   const { approveCommand } = await import('./order-approve.ts');
-  const draft = await store.create({ dealer: 'paow', step: 'ANKARE-2.1', takes: 2, id: 'prov-tva' });
+  const draft = await store.create({ dealer: 'vera', step: 'ANKARE-2.1', takes: 2, id: 'prov-tva' });
   await assert.rejects(approveCommand(root, ['prov-tva', '--mandate', ' ']), /Använd/);
   const out = await approveCommand(root, ['prov-tva', '--mandate', 'Jakob 2026-11-13: beställ lämpliga filmer automatiskt utan mitt godkännande'], { now: () => new Date('2026-11-12T22:00:00Z') });
   const approval = out.approval as { by: string; mandate: string; orderSha256: string };
@@ -354,7 +356,7 @@ test('the main agent approves on Jakob\'s mandate with the same checks; check ta
   await assert.rejects(r.check('prov-tva'), /uppdrag/);
   await assert.rejects(r.begin('prov-tva', 1), /uppdrag/);
   // Set aside with why: AVBRUTEN, the reason kept; an approved order cannot be set aside.
-  await store.create({ dealer: 'paow', step: 'ANKARE-2.1', takes: 2, id: 'prov-tre' });
+  await store.create({ dealer: 'vera', step: 'ANKARE-2.1', takes: 2, id: 'prov-tre' });
   const aside = await approveCommand(root, ['prov-tre', '--set-aside', 'Långa textens metodprov körs inte (huvudagenten 2026-11-13).']);
   assert.equal(aside.status, 'AVBRUTEN');
   assert.match(String((aside.setAside as { why: string }).why), /körs inte/);
@@ -367,7 +369,7 @@ test('the standing mandate: a larger order needs Jakob, his yes from the chat is
   const { root, store, setTime, writeMandate } = await approved(t);
   const { approveCommand } = await import('./order-approve.ts');
   const on = (day: string) => { setTime(`${day}T10:00:00Z`); return { now: () => new Date(`${day}T10:00:00Z`) }; };
-  const draft = (id: string) => store.create({ dealer: 'paow', step: 'ANKARE-2.1', takes: 2, id });
+  const draft = (id: string) => store.create({ dealer: 'vera', step: 'ANKARE-2.1', takes: 2, id });
   const cost = (await draft('prov-stor')).order.cost.worstTotal, half = Math.floor(cost / 2);
   await writeMandate({ askAbove: cost - 1, perDayCredits: cost * 10 });
   await assert.rejects(approveCommand(root, ['prov-stor', '--mandate', 'pilot för plats 4'], on('2026-11-25')), /Jakob avgör\. Han klickar i Beställ, eller så förs hans ja från chatten in med node tools\/order-approve\.ts prov-stor --jakob/);
@@ -401,8 +403,8 @@ test('two approvals by the main agent at once never both fit in what is left of 
   const { approveCommand } = await import('./order-approve.ts');
   setTime('2026-11-25T10:00:00Z');
   const day = { now: () => new Date('2026-11-25T10:00:00Z') };
-  const cost = (await store.create({ dealer: 'paow', step: 'ANKARE-2.1', takes: 2, id: 'prov-a' })).order.cost.worstTotal;
-  await store.create({ dealer: 'paow', step: 'ANKARE-2.1', takes: 2, id: 'prov-b' });
+  const cost = (await store.create({ dealer: 'vera', step: 'ANKARE-2.1', takes: 2, id: 'prov-a' })).order.cost.worstTotal;
+  await store.create({ dealer: 'vera', step: 'ANKARE-2.1', takes: 2, id: 'prov-b' });
   await writeMandate({ askAbove: cost, perDayCredits: cost + Math.floor(cost / 2) });
   const both = await Promise.allSettled(['prov-a', 'prov-b'].map((id) => approveCommand(root, [id, '--mandate', 'pilot för plats 4'], day)));
   assert.deepEqual(both.map((b) => b.status).sort(), ['fulfilled', 'rejected']);

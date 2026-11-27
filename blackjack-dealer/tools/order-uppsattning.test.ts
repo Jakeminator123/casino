@@ -1,5 +1,5 @@
-// Skyddar: beställningarna och fullmakten under valet av uppsättning – det som finns hör till den förra standarden och är
-// orört, en beställning vid livebordet får livebordets mått, kamera och pris, och ett prov för en person går inte in i en bank.
+// Skyddar: beställningarna och fullmakten under valet av uppsättning – det som saknar fält hör till den förra standarden, en
+// beställning vid livebordet får livebordets mått, kamera och pris, och ett prov för en person går inte in i en bank.
 // The set-up's field on an order, a doll's film and a film's post (src/order-model.ts uppsattningOf), the measures taken from
 // the set-up (src/uppsattning.ts) in the order's pictures, the after-work and the place words, Aleph 2 as the model that makes
 // a person's film over the doll's (price, mandate, call), a person's trial made by the store in a temporary copy, and the bank
@@ -25,7 +25,6 @@ import { PERSON_TEXT_LIMIT, personPrompt, placeWords, whereShort } from '../src/
 import { orderStore } from './order-store.ts';
 import { planRegistration } from './register-order.ts';
 import { fromApiEntry } from './order-import.ts';
-import { committedFiles, committedText } from './committed.ts';
 import { defaultPlan } from '../src/placement-model.ts';
 
 const sha = (b: Buffer | string) => createHash('sha256').update(b).digest('hex');
@@ -34,24 +33,10 @@ const policy = async () => JSON.parse(await readFile('data/order-policy.json', '
 const TENTH = 'Replace the white mannequin with the real man shown in the guidance image, with the same face, hair and light blue shirt throughout the whole video. Photorealistic face, skin and hands. Keep his movement, the direction of his head and eyes, the position of both hands and every finger, the timing, the table, the clear plastic box, the card shoe, the chair, the background, the camera and the framing exactly as in the input video. Keep the playing card exactly as in the input video: how it is drawn from the shoe, passed between his hands, carried, turned and laid down. The card has a red back and a plain white face with no print: it leaves the shoe with the red back up, is turned over in his hand and lies on the felt with the plain white face up, where the input video lays it. Do not add any card.';
 const LOOK = 'the real man shown in the guidance image, with the same face, hair and light blue shirt';
 
-test('what has no field was made at the former standard: every committed order and post, and a doll film without it', async () => {
+test('what has no field was made at the former standard, and the field is written only for the live table', () => {
   assert.equal(DATATS_FORVAL, 'forra');
   assert.equal(uppsattningOf(undefined), 'forra'); assert.equal(uppsattningOf({}), 'forra'); assert.equal(uppsattningOf({ uppsattning: 'live' }), 'live');
-  // the field is written only where it is not the former standard, so that what is made there is what it was before
   assert.deepEqual(uppsattningField('forra'), {}); assert.deepEqual(uppsattningField('live'), { uppsattning: 'live' });
-  for (const file of committedFiles('data/orders').filter((f) => f.endsWith('.json'))) {
-    const order = JSON.parse(committedText(file)) as Order;
-    if (order.created < '2026-11-27') { assert.equal(order.uppsattning, undefined, order.id); assert.equal(uppsattningOf(order), 'forra', order.id); }
-  }
-  for (const line of committedText('data/motions.jsonl').split('\n').filter((l) => l.trim())) {
-    const post = JSON.parse(line) as { id?: string; post?: { uppsattning?: unknown }; uppsattning?: unknown };
-    assert.equal(uppsattningOf(post.post ?? post), 'forra', String(post.id));
-  }
-  // a stored order that writes the former standard, or another word, is refused: one way to say it
-  const order = JSON.parse(committedText(committedFiles('data/orders').find((f) => f.endsWith('.json'))!)) as Order;
-  assert.deepEqual(validateOrder(order).errors, []);
-  assert.ok(validateOrder({ ...order, uppsattning: 'forra' }).errors.some((e) => /uppsattning/.test(e)));
-  assert.ok(validateOrder({ ...order, uppsattning: 'standard' }).errors.some((e) => /uppsattning/.test(e)));
 });
 
 test('the measures come from the set-up: the former standard\'s are the numbers they were, the live table\'s its own', async () => {
@@ -95,9 +80,11 @@ async function liveLab(t: { after(fn: () => Promise<void> | void): void }) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'order-uppsattning-'));
   t.after(() => rm(root, { recursive: true, force: true }));
   for (const dir of ['data/orders', 'placements', 'assets/references/docka/docka-danilo-p4']) await mkdir(path.join(root, dir), { recursive: true });
-  for (const file of ['data/order-policy.json', 'data/dealers.json', 'data/order-methods.json']) await copyFile(file, path.join(root, file));
+  for (const file of ['data/order-policy.json', 'data/order-methods.json']) await copyFile(file, path.join(root, file));
+  // A made-up dealer: the repo's own register of dealers is never read.
+  await writeFile(path.join(root, 'data/dealers.json'), JSON.stringify({ schemaVersion: 1, dealers: [{ id: 'vera', name: 'Vera', look: 'a made-up test dealer', films: { prefix: 'vera-' }, shoe: '2.1', paused: null }] }));
   await writeFile(path.join(root, 'placements/default.json'), JSON.stringify(defaultPlan()));
-  await writeFile(path.join(root, 'data/media-roles.json'), JSON.stringify({ schemaVersion: 1, dealers: { paow: { name: 'Paow', entries: [] } }, measures: [] }, null, 2) + '\n');
+  await writeFile(path.join(root, 'data/media-roles.json'), JSON.stringify({ schemaVersion: 1, dealers: { vera: { name: 'Vera', entries: [] } }, measures: [] }, null, 2) + '\n');
   await writeFile(path.join(root, 'data/clip-jobs.json'), '{"jobs": []}');
   const film = Buffer.from('not a film: the store only hashes it'), picture = await sharp({ create: { width: 1728, height: 972, channels: 3, background: { r: 120, g: 110, b: 100 } } }).png().toBuffer();
   await writeFile(path.join(root, 'assets/references/docka/docka-danilo-p4/source.mp4'), film);
@@ -119,7 +106,11 @@ test('a person\'s trial at the live table: no dealer, the doll\'s film and his g
   assert.equal(order.reference.status === 'FINNS' && order.reference.doll, 'danilo');
   assert.equal(order.prompt.text, TENTH); assert.ok(order.prompt.text.length <= PERSON_TEXT_LIMIT);
   assert.deepEqual([order.generation.tool, order.generation.model, order.generation.params, order.cost.total, order.cost.worstTotal], ['video_to_video', 'aleph-2', {}, 112, 112]);
-  assert.deepEqual(validateOrder(JSON.parse(await readFile(path.join(root, 'data/orders', `${order.id}.json`), 'utf8'))).errors, []);
+  const stored = JSON.parse(await readFile(path.join(root, 'data/orders', `${order.id}.json`), 'utf8')) as Order;
+  assert.deepEqual(validateOrder(stored).errors, []);
+  // a stored order that writes the former standard, or another word, is refused: one way to say it
+  assert.ok(validateOrder({ ...stored, uppsattning: 'forra' }).errors.some((e) => /uppsattning/.test(e)));
+  assert.ok(validateOrder({ ...stored, uppsattning: 'standard' }).errors.some((e) => /uppsattning/.test(e)));
   // exactly the film, the guidance picture at second 0 and the text go out; take 2 confirms the repeat
   assert.deepEqual(requestOf(order, 1), { tool: 'video_to_video', args: { model: 'aleph-2', promptText: TENTH, videoUri: '$file:reference.mp4', keyframes: [{ uri: '$file:keyframe.png', seconds: 0 }] } });
   assert.equal(requestOf(order, 2).args.confirmRepeat, true);
@@ -127,8 +118,8 @@ test('a person\'s trial at the live table: no dealer, the doll\'s film and his g
   await assert.rejects(store.create({ dealer: '', person: 'tomasz', step: 'GIV-2.3', target: 'P4.C1', reference: entry.id, uppsattning: 'forra' }), /filmad vid livestandarden/);
   await assert.rejects(store.create({ dealer: '', person: 'tomasz', step: 'GIV-2.3', target: 'P4.C1', reference: entry.id, hand: 'LH' }), /hand väljs inte/);
   await assert.rejects(store.create({ dealer: '', person: 'ada', step: 'GIV-2.3', target: 'P4.C1', reference: entry.id }), /ingen styrbild för ada/);
-  await assert.rejects(store.create({ dealer: 'paow', step: 'GIV-2.3', target: 'P4.C1', uppsattning: 'live' }), /inte vid livestandarden/);
-  await assert.rejects(store.create({ dealer: 'paow', step: 'GIV-2.3', target: 'P4.C1', model: 'aleph-2' }), /prov för personen/);
+  await assert.rejects(store.create({ dealer: 'vera', step: 'GIV-2.3', target: 'P4.C1', uppsattning: 'live' }), /inte vid livestandarden/);
+  await assert.rejects(store.create({ dealer: 'vera', step: 'GIV-2.3', target: 'P4.C1', model: 'aleph-2' }), /prov för personen/);
   // only its name and takes change, and the price follows the takes
   const revision = `"${sha(await readFile(path.join(root, 'data/orders', `${order.id}.json`), 'utf8'))}"`;
   const changed = await store.change(order.id, { takes: 2 }, revision);
@@ -143,8 +134,8 @@ test('a person\'s film goes into no bank until he is a dealer, and the live tabl
   await writeFile(path.join(root, 'data/orders/tomasz-prov-01.json'), JSON.stringify(order));
   await assert.rejects(planRegistration(root, 'tomasz-prov-01', 1), /prov för Tomasz, som inte är dealer än/);
   const bank: BankFacts = { rendered: [entry] }, step = stepOf('GIV-2.3')!;
-  assert.deepEqual(referenceCandidates(bank, { dealer: 'paow', step, target: 'P4.C1' }), [], 'a caller that names no set-up gets the former standard\'s films');
-  assert.deepEqual(referenceCandidates(bank, { dealer: 'paow', step, target: 'P4.C1', uppsattning: 'live' }).map((c) => [c.take, c.uppsattning]), [['docka-danilo-p4', 'live']]);
+  assert.deepEqual(referenceCandidates(bank, { dealer: 'vera', step, target: 'P4.C1' }), [], 'a caller that names no set-up gets the former standard\'s films');
+  assert.deepEqual(referenceCandidates(bank, { dealer: 'vera', step, target: 'P4.C1', uppsattning: 'live' }).map((c) => [c.take, c.uppsattning]), [['docka-danilo-p4', 'live']]);
 });
 
 test('a call through the API key to Aleph 2 reads as an order: the film it made over, the guidance picture at its second', () => {

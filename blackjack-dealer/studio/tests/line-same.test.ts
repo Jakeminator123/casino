@@ -33,29 +33,32 @@ import { NO_MODEL, filmRow, type FilmWish, type RowChoice } from "../lib/bordet.
 const repo = path.resolve(import.meta.dirname, "../..");
 const base = os.tmpdir();
 const sha = (b: Buffer) => createHash("sha256").update(b).digest("hex");
+// A made-up dealer: the test never reads the repo's own register of dealers.
+const DEALERS = { schemaVersion: 1, dealers: [{ id: "vera", name: "Vera", look: "a made-up dealer for the test", films: { prefix: "vera-" }, shoe: "2.1", paused: null }] };
 const SEATS = ["P1.C1", "P2.C1", "P3.C1", "P4.C1", "P5.C1", "P6.C1", "P7.C1", "D.C1", "D.C2"];
 
 test("Bordet's row and the store agree for every standard step and card, and the return trial needs its named source", async (t) => {
   const root = await mkdtemp(path.join(base, "line-same-"));
   t.after(() => rm(root, { recursive: true, force: true }));
-  for (const dir of ["data", "placements", "assets/anchors/paow-bild"]) await mkdir(path.join(root, dir), { recursive: true });
-  for (const file of ["data/order-policy.json", "data/dealers.json", "data/order-methods.json"]) await copyFile(path.join(repo, file), path.join(root, file));
+  for (const dir of ["data", "placements", "assets/anchors/vera-bild"]) await mkdir(path.join(root, dir), { recursive: true });
+  for (const file of ["data/order-policy.json", "data/order-methods.json"]) await copyFile(path.join(repo, file), path.join(root, file));
+  await writeFile(path.join(root, "data/dealers.json"), JSON.stringify(DEALERS));
   // The plan's places as they are, its hands and turns fixed here (the pinch, the left hand, no handbyte), so that what Jakob
   // has set for a card in Inspelning does not change what this test compares.
   const plan = JSON.parse(await readFile(path.join(repo, "placements/default.json"), "utf8"));
   for (const [card, target] of Object.entries(plan.targets as Record<string, { intent: object }>)) target.intent = { takeHand: "LH", startSide: "BACK", endSide: card === "D.C2" ? "BACK" : "FRONT", pass: false, turn: card !== "D.C2", grip: "PINCH", turnAt: "AIR" };
   await writeFile(path.join(root, "placements/default.json"), JSON.stringify(plan, null, 2) + "\n");
-  // Material: every anchor of Paow holds (2.3 too), and every seat but the dealer's first card has its own landing picture
+  // Material: every anchor of Vera holds (2.3 too), and every seat but the dealer's first card has its own landing picture
   // for the left hand (one small file serves them all), seat 4 also its A3 for the right hand, which a deal from 2.3 ends on;
-  // the dealer's first card ends on a cut frame of Paow's own film, or on none.
-  const still = "assets/anchors/paow-bild/anchor.png";
+  // the dealer's first card ends on a cut frame of Vera's own film, or on none.
+  const still = "assets/anchors/vera-bild/anchor.png";
   await writeFile(path.join(root, still), await sharp({ create: { width: 1764, height: 1174, channels: 3, background: { r: 0, g: 236, b: 45 } } }).png().toBuffer());
   const entries = [
-    ...([["ankare-1", "IDLE"], ["ankare-2.1", "READY"], ["ankare-2.2", "READY-B"], ["ankare-2.3", "READY-C"]] as const).map(([role, node]) => ({ id: `paow-${role}`, role, name: role, path: still, node, state: "gäller" })),
-    ...SEATS.filter((card) => card !== "D.C1").map((card) => ({ id:`paow-landning-${card.toLowerCase().replace(".", "-")}`, role: "landning", name: `Landning ${card}`, path: still, node: `LAND(${card})`, card, state: "gäller" })),
-    { id: "paow-a3-p4", role: "landning", name: "A3P4C1", path: still, node: "LAND(P4.C1)", card: "P4.C1", hand: "RH", state: "gäller" },
+    ...([["ankare-1", "IDLE"], ["ankare-2.1", "READY"], ["ankare-2.2", "READY-B"], ["ankare-2.3", "READY-C"]] as const).map(([role, node]) => ({ id: `vera-${role}`, role, name: role, path: still, node, state: "gäller" })),
+    ...SEATS.filter((card) => card !== "D.C1").map((card) => ({ id:`vera-landning-${card.toLowerCase().replace(".", "-")}`, role: "landning", name: `Landning ${card}`, path: still, node: `LAND(${card})`, card, state: "gäller" })),
+    { id: "vera-a3-p4", role: "landning", name: "A3P4C1", path: still, node: "LAND(P4.C1)", card: "P4.C1", hand: "RH", state: "gäller" },
   ];
-  await writeFile(path.join(root, "data/media-roles.json"), JSON.stringify({ schemaVersion: 1, dealers: { paow: { name: "Paow", entries } }, measures: [] }, null, 2) + "\n");
+  await writeFile(path.join(root, "data/media-roles.json"), JSON.stringify({ schemaVersion: 1, dealers: { vera: { name: "Vera", entries } }, measures: [] }, null, 2) + "\n");
   // The bank: what a rule must tell apart.
   const straight = { decision: "ACCEPTED", userAccepted: true, userReview: "Jakob 2026-11-13: bra" };
   const films: Record<string, Buffer> = {};
@@ -65,32 +68,32 @@ test("Bordet's row and the store agree for every standard step and card, and the
     await writeFile(path.join(root, "assets/motions", id, "source.mp4"), films[id]);
     motionRegister(root).put(id, { id, source: { frames: seconds * 30, fps: 30, sha256: sha(films[id]) }, review: more.review ?? straight, ...(more.motion ? { motion: more.motion } : {}) });
   };
-  // Another dealer's films (a made-up second dealer, "ada"), which the rule may take as reference films, and Paow's own.
+  // Another dealer's films (a made-up second dealer, "ada"), which the rule may take as reference films, and Vera's own.
   const jobs = [
     { id: "ada-p4-c1-plan-deal-02", from: "READY", to: "LAND(P4.C1)", dealer: "ada" },   // the deal alone, approved straight: the pinch to seat 4
     { id: "ada-p4-c1-drawn-deal-01", from: "DRAWN", to: "LAND(P4.C1)", dealer: "ada" },  // the drag to seat 4, from the drawn-out pose
     { id: "ada-p5-c1-variant", from: "READY", to: "LAND(P5.C1)", dealer: "ada" },        // a variant: not approved straight
     { id: "ada-p3-c1-hoger", from: "READY", to: "LAND(P3.C1)", dealer: "ada" },          // laid with the right hand
     { id: "ada-d-c1-deal", from: "READY", to: "LAND(D.C1)", dealer: "ada" },             // the dealer's first card
-    { id: "paow-giv-2-1-p2-03-01", from: "READY", to: "READY", dealer: "paow" },         // Paow's own round trip to seat 2
-    { id: "paow-giv-2-1-d-01-01", from: "READY", to: "READY", dealer: "paow" },          // Paow's own round trip to the dealer's first card
+    { id: "vera-giv-2-1-p2-03-01", from: "READY", to: "READY", dealer: "vera" },         // Vera's own round trip to seat 2
+    { id: "vera-giv-2-1-d-01-01", from: "READY", to: "READY", dealer: "vera" },          // Vera's own round trip to the dealer's first card
   ];
   await film("ada-p4-c1-plan-deal-02", 4);
   await film("ada-p4-c1-drawn-deal-01", 5);
   await film("ada-p5-c1-variant", 4, { review: { decision: "ACCEPTED", acceptedAs: "VARIANT", userAccepted: true } });
   await film("ada-p3-c1-hoger", 4, { motion: { releaseHand: "RH" } });
   await film("ada-d-c1-deal", 4);
-  await film("paow-giv-2-1-p2-03-01", 7, { review: {} });
-  await film("paow-giv-2-1-d-01-01", 7, { review: {} });
+  await film("vera-giv-2-1-p2-03-01", 7, { review: {} });
+  await film("vera-giv-2-1-d-01-01", 7, { review: {} });
   const derived = [
-    { id: "paow-giv-2-1-p2-03-01-deal", from: "READY", to: "P2.C1", clip: "paow-giv-2-1-p2-03-01", frames: [0, 124], dealer: "paow" }, { id: "paow-giv-2-1-p2-03-01-return", from: "P2.C1", to: "READY", clip: "paow-giv-2-1-p2-03-01", frames: [125, 209], dealer: "paow" },
-    { id: "paow-giv-2-1-d-01-01-deal", from: "READY", to: "D.C1", clip: "paow-giv-2-1-d-01-01", frames: [0, 99], dealer: "paow" }, { id: "paow-giv-2-1-d-01-01-return-ready", from: "D.C1", to: "READY", clip: "paow-giv-2-1-d-01-01", frames: [100, 209], dealer: "paow" },
+    { id: "vera-giv-2-1-p2-03-01-deal", from: "READY", to: "P2.C1", clip: "vera-giv-2-1-p2-03-01", frames: [0, 124], dealer: "vera" }, { id: "vera-giv-2-1-p2-03-01-return", from: "P2.C1", to: "READY", clip: "vera-giv-2-1-p2-03-01", frames: [125, 209], dealer: "vera" },
+    { id: "vera-giv-2-1-d-01-01-deal", from: "READY", to: "D.C1", clip: "vera-giv-2-1-d-01-01", frames: [0, 99], dealer: "vera" }, { id: "vera-giv-2-1-d-01-01-return-ready", from: "D.C1", to: "READY", clip: "vera-giv-2-1-d-01-01", frames: [100, 209], dealer: "vera" },
   ];
   motionRegister(root).putAll(derived.map((d) => ({ id: d.id, review: straight })));
   await writeFile(path.join(root, "data/clip-jobs.json"), JSON.stringify({ jobs, derived }));
   // The cut frame where that film's return begins lies off the plan's card (data/cut-frames.json): it is no end picture, so
   // the dealer's first card has none, for the row, the store and the production list alike.
-  const cutFrames = { frames: [{ clip: "paow-giv-2-1-d-01-01", frame: 99, target: "D.C1", holds: false, problems: ["kortet ligger utanför planens kort"], windowPrinted: false, offFromPlan: 40 }] };
+  const cutFrames = { frames: [{ clip: "vera-giv-2-1-d-01-01", frame: 99, target: "D.C1", holds: false, problems: ["kortet ligger utanför planens kort"], windowPrinted: false, offFromPlan: 40 }] };
   await writeFile(path.join(root, "data/cut-frames.json"), JSON.stringify(cutFrames));
   // The dummy's rendered films: the pinch to seat 1 (a far seat takes nothing else) and to seat 4, the entry to anchor 2.3,
   // and the deal with two hands to seat 4 and back (laid with the right hand; it says ROUND_TRIP, as the doll's built films
@@ -133,18 +136,18 @@ test("Bordet's row and the store agree for every standard step and card, and the
   for (const d of derived) motions[d.id] = { ...motions[d.id], source: motions[d.clip]!.source };
   const bank: BankFacts = { jobs, derived: derived as BankFacts["derived"], motions, rendered: all.rendered, cutChecks: readCutChecks(cutFrames) };
   // The production list (node tools/produce.ts), read from the lab as the command reads a checkout, before any draft exists.
-  const production = productionList((await readProduction(root, "paow")).input);
+  const production = productionList((await readProduction(root, "vera")).input);
   let listed = 0;
   const shown = entries.map((e) => ({ ...e, served: e.path }));
 
   const made: Record<string, string | null> = {}, refused: Record<string, string> = {}, without: Record<string, string> = {};
   let compared = 0, texts = 0, opened = 0, drawnReturns = 0, drawnDeals = 0, undrawn = 0;
   // The dealers' looks and the landing pictures' marks, as the page has them, so that the row writes the text it shows.
-  const rowOf = (wish: FilmWish, choice?: RowChoice) => filmRow("paow", wish, register, all.policy, { bank, entries: shown, plan: all.plan ?? null, dealers: all.dealers, marks: all.marks, choice });
+  const rowOf = (wish: FilmWish, choice?: RowChoice) => filmRow("vera", wish, register, all.policy, { bank, entries: shown, plan: all.plan ?? null, dealers: all.dealers, marks: all.marks, choice });
   // The hole card's turn is left out: its pictures are drawn from a bank film that the temporary lab does not have.
   for (const step of STEPS.filter((s) => s.kind === "FILM" && !s.cards?.length)) for (const target of step.card ? SEATS : [null]) {
     const wish = { step: step.key, target }, key = `${step.key}${target ? ` ${target}` : ""}`;
-    const input = { dealer: "paow", step: step.key, ...(target ? { target } : {}) };
+    const input = { dealer: "vera", step: step.key, ...(target ? { target } : {}) };
     const inList = production.rows.find((r) => r.step === step.key && r.target === target);
     if (step.key === "RETUR-2.3") {
       assert.ok(step.off, `${key}: disabled in Beställ's form`);
@@ -194,7 +197,7 @@ test("Bordet's row and the store agree for every standard step and card, and the
     assert.equal(preview.status, 200, `${key}: no preview: ${JSON.stringify(preview.json).slice(0, 300)}`);
     const answer = await call("POST", "/api/orders", input, preview.json.revision);
     assert.equal(answer.status, 201, `${key}: the row can be sent, and the store refused: ${JSON.stringify(answer.json).slice(0, 300)}`);
-    assert.deepEqual(row.body, { dealer: "paow", step: step.key, ...(target ? { target } : {}) }, `${key}: the row sends the line and nothing else`);
+    assert.deepEqual(row.body, { dealer: "vera", step: step.key, ...(target ? { target } : {}) }, `${key}: the row sends the line and nothing else`);
     const o = answer.json.order;
     const stored = o.reference.status === "FINNS" ? o.reference.clips[0] : null;
     // THE SAME REFERENCE FILM, from the same rule.
@@ -273,7 +276,7 @@ test("Bordet's row and the store agree for every standard step and card, and the
   await t.test("the two-hand deal to seat 4 takes the dummy's film laid with the right hand", { skip: textured ? false : `kortets textur (${TEXTURE.image}) finns inte i den här utcheckningen` }, () => {
     assert.equal(made["GIV-2.3 P4.C1"], "docka-giv-2-3-p4");
   });
-  // And what it did not take: Paow's own round trip to seat 2 (the whole film would go, and it ends at the shoe), the variant
+  // And what it did not take: Vera's own round trip to seat 2 (the whole film would go, and it ends at the shoe), the variant
   // to seat 5, the film laid with the right hand to seat 3. Those orders are made without a reference film (changed
   // 2026-11-23: no longer a stop), and the row and the draft say what was not there.
   for (const seat of ["P2.C1", "P5.C1", "P3.C1"]) {
