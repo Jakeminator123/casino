@@ -51,10 +51,10 @@ Skripten i `steg/` bygger en **specifik dealer från fotografier** via Meshy, in
 | --- | --- | --- |
 | 01 | `steg/01-referenser/` | Gör A-pose-referenser ur inskickade foton (`apose_referenser.py`). |
 | 02 | `steg/02-meshy-delar/` | Meshy image-to-3D för huvud, händer och kropp var för sig (`meshy_enbild.py`, `rendera_vyer.py`). **Betalt – kräver Jakobs ja.** |
-| 03 | `steg/03-montering/` | Montera delarna i A-pose, rensa bröstkorg, förenkla 4K-mesh (`montera_apose.py`, `clean_kropp_chest.py`, `forenkla_4k.py`, …). |
+| 03 | `steg/03-montering/` | Montera delarna i A-pose, rensa bröstkorg, förenkla 4K-mesh (`montera_apose.py`, `clean_kropp_chest.py`, `forenkla_4k.py`, …). Händerna behåller sin egen handled och skarven läggs inne i ärmen (`HANDLED_IN`); förr vidgades handleden till ärmens mått. |
 | 04 | `steg/04-rigg/` | Meshy Auto-Rig (`meshy_rigg.py`). **Betalt – kräver ja.** |
-| 05 | `steg/05-fingrar-handleder/` | Bygg fingerrigg, rätta handleder, rensa vikter. |
-| 06 | `steg/06-dealer-export/` | Exportera dealer-A-pose som GLB som dealer3d kan läsa. |
+| 05 | `steg/05-fingrar-handleder/` | Bygg fingerrigg, rensa vikter och gör handleden ren (`fixa_handleder.py`): handens vidgning från monteringen räknas tillbaka, handleden går in i ärmen, hudremsan vid manschetten och skarven färgas som ärmen. |
+| 06 | `steg/06-dealer-export/` | Exportera dealer-A-pose som GLB som dealer3d kan läsa, med två vridben i varje underarm (`vridben.py`, 7.1b; huden i vila mäts oförändrad). |
 | 07 | `steg/07-qc/` | QC-översikt (helkropp, ansikte, handleder). |
 | 08 | `steg/08-film/` | Animera dealern i en filmscen (`animera_dealer.py`). Ny standardscen ska användas i stället för ad hoc-bord. |
 

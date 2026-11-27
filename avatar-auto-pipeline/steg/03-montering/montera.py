@@ -34,7 +34,8 @@ def centered_loop(mesh, indices):
         indices, x, z = indices[::-1], x[::-1], z[::-1]
     return center, np.roll(indices, -np.argmin(np.abs(np.arctan2(x, z))))
 
-def attach(body, donor, frame, level, slope, tip, gap, body_atlas, donor_atlas, limits=(0.4, 2.5), warp_frac=0.22):
+def attach(body, donor, frame, level, slope, tip, gap, body_atlas, donor_atlas, limits=(0.4, 2.5), warp_frac=0.22,
+           tuck=0.0):
     # The positive local Y axis points out of the body at each joint.
     stump, lower = clip(rotate(body, frame), level, False, slope)
     stump_center, lower = centered_loop(stump, lower)
@@ -52,6 +53,14 @@ def attach(body, donor, frame, level, slope, tip, gap, body_atlas, donor_atlas, 
     extent = np.ptp(part.pos[:, 1]) * warp_frac
     height = part.pos[:, 1] + slope * part.pos[:, 2]
     t = np.clip(height / extent, 0, 1)
+    if tuck > 0:
+        # A hand in a sleeve: keep the donor's own wrist (no widening to the sleeve) and draw its opening `tuck` into
+        # the sleeve, stretching only the first part of the wrist, so the hand stays where it is. The seam becomes a
+        # funnel inside the sleeve, which steg 05 (fixa_handleder.py) colours dark.
+        part.pos[:, 1] -= tuck * (1 - t) ** 2
+        part.pos += stump_center + [0, gap, 0]
+        seam = bridge(stump, lower, part, upper, body_atlas, donor_atlas)
+        return tuple(rotate(m, frame.T) for m in (stump, part, seam))
     weight = 1 - t * t * (3 - 2 * t)
     stretch = 1 + weight[:, None] * (ratio - 1)
     dx, dz = (part.pos[:, [0, 2]] * (stretch - 1)).T

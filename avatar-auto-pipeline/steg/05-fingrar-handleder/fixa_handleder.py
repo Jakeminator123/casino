@@ -1,408 +1,446 @@
-"""Lokal avsmalning av den uppblåsta handledshuden på den riggade A-pose-avataren.
+"""Ren handled på den riggade A-pose-avataren (steg 05, efter fingrarna).
 
-Orsak: montera.attach() skalade donatorhandens handledsöppning till skjortmanschettens
-ytterdiameter. Här smalnas bara Handpar- och Skarvar-hörnen av mot naturlig
-handledstjocklek och tucks in under manschetten. Ben, vikter, UV och 4K-texturer orörda.
+Orsak: montera.attach() i steg 03 vidgade (till 2026-11-27, Tomasz) donatorhandens handledsöppning till
+skjortärmens ytterdiameter (en jämn vidgning över handens första 22 %, warp_frac), och skarven (materialet Skarvar)
+satt utanför ärmens kant, där också en remsa av kroppens egen hud står kvar. Det blev en uppblåst, hopknycklad
+handled. Här rättas det på den riggade modellen, med ben, bennamn, fingrar, UV och texturer orörda:
 
-blender -b --python steg/05-fingrar-handleder/fixa_handleder.py -- avatar-rigg.glb utmapp
+1. Handens vidgning räknas tillbaka med samma form som attach lade på (kvoten ärm/handled mätt per led i steg 03:s
+   egen ram), så att handleden får naturlig tjocklek och en lätt avsmalning mot handen.
+2. Handledens början dras in i ärmen (DJUP_IN innanför ärmens kant), så att skarven blir en tratt inne i ärmen;
+   mest töjs den dolda delen.
+3. Kroppens hudremsa bortom manschetten (Meshys egen handled, kvar efter snittet) får skarvens material, som bara
+   har hörnfärg: manschettens färg i kanten och mörkt inne i ärmen. Ytorna byter material; UV och texturer är orörda.
+4. Hand/underarmsvikterna för de flyttade hörnen sätts efter deras nya läge med steg 05:s egen regel
+   (fingrar_apose: handledsbandet), och det som ligger inne i ärmen som om det låg i ärmens kant, så att tratten
+   och handleden därinne följer manschetten; fingrarnas vikter är orörda. Normalerna räknas om för de flyttade
+   hörnen, skarvens pekar längs armen (jämnt mörk, inga veck i ljuset), alla andra behåller sina exakt.
 
-Generell: mäter skarven och den naturliga handleden per sida på riggens egna ben (Meshy riggar
-alltid till 1,8 m, så millimetergränserna gäller oavsett persons proportioner) och smalnar bara av.
+En montering efter 2026-11-27 vidgar inte handen och lägger skarven inne i ärmen (montera_apose HANDLED_IN); då
+flyttas inget, och bara kanten och skarven färgas (3).
+
+blender -b --python steg/05-fingrar-handleder/fixa_handleder.py -- avatar-rigg.glb utmapp [--utan-bilder]
+Skriver utmapp/avatar-rigg-handledfix.glb, fix.json och före/efter-bilder (fore-/efter-hoger|vanster.png).
 """
-import bpy, sys, json, math
-import numpy as np
-from mathutils import Vector
+import sys
+from pathlib import Path as _Path
+_ROOT = next(
+    c for c in [_Path(__file__).resolve().parent, *_Path(__file__).resolve().parents]
+    if (c / "auto_avatar.py").is_file()
+)
+if str(_ROOT / "gemensamt") not in sys.path:
+    sys.path.insert(0, str(_ROOT / "gemensamt"))
+from sokvagar import add_paths
+ROOT = add_paths(_ROOT)
+
+import json
 from pathlib import Path
 
-a = sys.argv[sys.argv.index("--") + 1:]
-src, out = map(Path, a[:2])
+import bpy
+import numpy as np
+from mathutils import Vector
+
+from fingrar_apose import _rot_y
+from fingerrigg import smoothstep
+
+WARP_FRAC = 0.22      # montera.attach(warp_frac=0.22): hur långt in på handen vidgningen når, andel av handens längd
+AVSMALNING = 0.06     # handleden vid öppningen så mycket bredare än handledens smalaste ställe (underarmen vidgas)
+DJUP_IN = 0.012       # m: handledens öppning så långt innanför ärmens kant
+MORK = 0.10           # ärmens insida vid handleden: andel av manschettens färg
+
+args = sys.argv[sys.argv.index("--") + 1:]
+src, out = Path(args[0]).resolve(), Path(args[1]).resolve()
+bilder = "--utan-bilder" not in args
 out.mkdir(parents=True, exist_ok=True)
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 sc = bpy.context.scene
-sc.render.engine = "CYCLES"
-sc.cycles.device = "CPU"
-prefs = bpy.context.preferences.addons["cycles"].preferences
-try:
-    prefs.compute_device_type = "OPTIX"
-    prefs.get_devices()
-    optix_devs = [d for d in prefs.devices if d.type == "OPTIX"]
-    if optix_devs:
-        for d in prefs.devices:
-            d.use = d in optix_devs
-        sc.cycles.device = "GPU"
-except Exception:
-    sc.cycles.device = "CPU"
-sc.cycles.samples = 32
-sc.cycles.use_denoising = True
-sc.view_settings.view_transform = "AgX"
-w = bpy.data.worlds.new("W")
-sc.world = w
-w.use_nodes = True
-w.node_tree.nodes["Background"].inputs[0].default_value = (0.32, 0.36, 0.38, 1)
-w.node_tree.nodes["Background"].inputs[1].default_value = 0.6
-for name, loc, power, size in (
-    ("Key", (-2.2, -3.0, 2.6), 900, 2.0),
-    ("Fill", (2.6, -2.4, 1.6), 350, 2.5),
-    ("Rim", (0.5, 3.0, 2.8), 500, 1.5),
-):
-    L = bpy.data.lights.new(name, "AREA")
-    L.energy = power
-    L.size = size
-    o = bpy.data.objects.new(name, L)
-    sc.collection.objects.link(o)
-    o.location = loc
-    o.rotation_euler = (Vector((0, 0, 1.2)) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
-
-bpy.ops.import_scene.gltf(filepath=str(src))
+bpy.ops.import_scene.gltf(filepath=str(src), merge_vertices=True)
 arm = next(o for o in sc.objects if o.type == "ARMATURE")
 mesh = next(o for o in sc.objects if o.type == "MESH" and o.find_armature() == arm)
 for o in sc.objects:
     if o.type == "MESH" and o is not mesh:
-        o.hide_render = True
-        o.hide_viewport = True
-
+        o.hide_render = o.hide_viewport = True
+me = mesh.data
 bones = {b.name.split(":")[-1]: b for b in arm.data.bones}
-mw = arm.matrix_world
+mw = np.array(arm.matrix_world)
 mm = np.array(mesh.matrix_world)
-R, t = mm[:3, :3], mm[:3, 3]
 inv = np.linalg.inv(mm)
+co = np.empty((len(me.vertices), 3)); me.vertices.foreach_get("co", co.ravel())
+world = co @ mm[:3, :3].T + mm[:3, 3]
+new = world.copy()
+n_v = len(world)
 
-co = np.empty((len(mesh.data.vertices), 3), dtype=np.float64)
-mesh.data.vertices.foreach_get("co", co.ravel())
-world = co @ R.T + t
-original = world.copy()
-
-nmat = max(len(mesh.data.materials), 1)
-mat_names = [m.name if m else f"slot{i}" for i, m in enumerate(mesh.data.materials)]
-votes = np.zeros((len(world), nmat), dtype=np.int32)
-mesh.data.calc_loop_triangles()
-tris = np.empty((len(mesh.data.loop_triangles), 3), dtype=np.int32)
-mat_idx = np.empty(len(mesh.data.loop_triangles), dtype=np.int32)
-mesh.data.loop_triangles.foreach_get("vertices", tris.ravel())
-mesh.data.loop_triangles.foreach_get("material_index", mat_idx)
-for tri, mi in zip(tris, mat_idx):
-    votes[tri, mi] += 1
-vert_mat = votes.argmax(axis=1)
-vert_mat[votes.sum(axis=1) == 0] = -1
-tri_is_body = np.array([mat_names[i].startswith("Kropp") if i >= 0 else False for i in mat_idx])
-tri_is_seam = np.array([mat_names[i].startswith("Skarvar") if i >= 0 else False for i in mat_idx])
-touches_body = np.zeros(len(world), dtype=bool)
-touches_seam = np.zeros(len(world), dtype=bool)
-if tri_is_body.any():
-    touches_body[tris[tri_is_body]] = True
-if tri_is_seam.any():
-    touches_seam[tris[tri_is_seam]] = True
-is_hand = np.array([mat_names[i].startswith("Handpar") if i >= 0 else False for i in vert_mat])
-is_seam = np.array([mat_names[i].startswith("Skarvar") if i >= 0 else False for i in vert_mat])
-is_body = np.array([mat_names[i].startswith("Kropp") if i >= 0 else False for i in vert_mat])
-# Flytta ALDRIG hörn som delas med Kropp-manschetten (annars rivs sågtandshål i ärmslutet).
-editable = (is_hand | is_seam) & ~touches_body
-
-# UV + basfärg så vi kan hitta det vita manschetffodret (Kropp-textur).
-uvs = np.zeros((len(world), 2), dtype=np.float64)
-uv_count = np.zeros(len(world), dtype=np.int32)
-uv_layer = mesh.data.uv_layers.active
-if uv_layer:
-    for loop in mesh.data.loops:
-        uvs[loop.vertex_index] += uv_layer.data[loop.index].uv
-        uv_count[loop.vertex_index] += 1
-    hit = uv_count > 0
-    uvs[hit] /= uv_count[hit][:, None]
-
-colors = np.full((len(world), 3), np.nan)
-for i, mat in enumerate(mesh.data.materials):
-    if not mat or not mat.node_tree:
-        continue
-    imgs = [n.image for n in mat.node_tree.nodes if n.type == "TEX_IMAGE" and n.image]
-    if not imgs:
-        continue
-    img = next((im for im in imgs if im.name.endswith(" 1") or "Color" in im.name), None)
-    if img is None:
-        img = max(imgs, key=lambda im: im.size[0] * im.size[1])
-    mask = vert_mat == i
-    if not mask.any():
-        continue
-    wimg, himg = img.size
-    px = np.array(img.pixels[:], dtype=np.float32).reshape(himg, wimg, img.channels)
-    u = np.clip(np.mod(uvs[mask, 0], 1.0), 0, 1 - 1e-6)
-    v = np.clip(np.mod(uvs[mask, 1], 1.0), 0, 1 - 1e-6)
-    x = (u * wimg).astype(np.int32)
-    y = (v * himg).astype(np.int32)
-    colors[mask] = px[y, x, :3]
-lum = np.nanmean(colors, axis=1)
-is_white = (
-    np.isfinite(lum)
-    & (lum > 0.48)
-    & (np.abs(colors[:, 0] - colors[:, 2]) < 0.20)
-    & (colors[:, 1] > 0.40)
-    & ~(colors[:, 0] > colors[:, 2] + 0.08)
-)
-print("VITA_HORN", int(np.nansum(is_white)), "KROPP_VITA", int(np.sum(is_body & is_white)))
+# --- Material per hörn, kanter, UV, texturfärg ---
+mats = [m.name if m else "" for m in me.materials]
+slot = {nm: next(i for i, m in enumerate(mats) if m.startswith(nm)) for nm in ("Kropp", "Skarvar", "Handpar")}
+poly_mat = np.empty(len(me.polygons), np.int32); me.polygons.foreach_get("material_index", poly_mat)
+loop_v = np.empty(len(me.loops), np.int32); me.loops.foreach_get("vertex_index", loop_v)
+loop_tot = np.empty(len(me.polygons), np.int32); me.polygons.foreach_get("loop_total", loop_tot)
+loop_poly = np.repeat(np.arange(len(me.polygons)), loop_tot)
+loop_mat = poly_mat[loop_poly]
+touch = {nm: np.zeros(n_v, bool) for nm in slot}
+for nm, k in slot.items():
+    touch[nm][loop_v[loop_mat == k]] = True
+luv = np.empty((len(me.loops), 2)); me.uv_layers.active.data.foreach_get("uv", luv.ravel())
+vuv = np.zeros((n_v, 2)); cnt = np.zeros(n_v)
+kl = loop_mat == slot["Kropp"]
+np.add.at(vuv, loop_v[kl], luv[kl]); np.add.at(cnt, loop_v[kl], 1); vuv /= np.maximum(cnt, 1)[:, None]
 
 
-def bone_head(name):
-    return np.array(mw @ bones[name].head_local, dtype=np.float64)
+def base_image(mat):
+    bsdf = next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+    todo = [l.from_node for l in bsdf.inputs["Base Color"].links]
+    while todo:
+        n = todo.pop()
+        if n.type == "TEX_IMAGE" and n.image:
+            return n.image
+        todo += [l.from_node for s in n.inputs for l in s.links]
 
 
-def smoothstep(x):
-    t = np.clip(x, 0.0, 1.0)
-    return t * t * (3.0 - 2.0 * t)
+img = base_image(me.materials[slot["Kropp"]])
+iw, ih = img.size
+px = np.empty(iw * ih * img.channels, np.float32)
+img.pixels.foreach_get(px)
+px = px.reshape(ih, iw, img.channels)[..., :3]
 
 
-def profile_rows(along, radial, radial_uv, mask, a0, a1, step=0.004):
-    out_rows = []
-    for a in np.arange(a0, a1, step):
-        m = mask & (along >= a) & (along < a + step)
-        if m.sum() < 8:
-            continue
-        uv = radial_uv[m]
-        out_rows.append({
-            "along_mm": round(float((a + step / 2) * 1000), 1),
-            "n": int(m.sum()),
-            "radie_median_mm": round(float(np.median(radial[m]) * 1000), 2),
-            "bredd_mm": round(float(np.ptp(uv[:, 0]) * 1000), 2),
-            "tjocklek_mm": round(float(np.ptp(uv[:, 1]) * 1000), 2),
-        })
-    return out_rows
+def sample(uv):
+    return px[(np.clip(uv[:, 1] % 1, 0, 1 - 1e-6) * ih).astype(int), (np.clip(uv[:, 0] % 1, 0, 1 - 1e-6) * iw).astype(int)]
+
+
+def to_linear(c):
+    # 8-bitarsbilder läses som sRGB-värden; hörnfärgen multipliceras linjärt
+    return c if img.is_float else np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+
+
+kropp_srgb = sample(vuv)
+kropp_farg = to_linear(kropp_srgb)
+
+groups = {g.name.split(":")[-1]: g for g in mesh.vertex_groups}
+
+
+def to_gltf(v):
+    return np.array([v[0], v[2], -v[1]])
+
+
+def to_blender(v):
+    return np.array([v[0], -v[2], v[1]])
+
+
+def rodrigues(a, b):
+    # Som montera_apose.rodrigues: vrider enhetsvektorn a till b.
+    a, b = a / np.linalg.norm(a), b / np.linalg.norm(b)
+    v, c = np.cross(a, b), float(a @ b)
+    k = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+    return np.eye(3) + k + k @ k / (1 + c)
+
+
+def hand_mix(points, side, wrist, d5, hand_length):
+    """Handens andel i handledsbandet, som fingrar_apose.fit_fingers räknar den."""
+    R = _rot_y(side, d5)
+    outward = side * (((points - wrist) @ R + wrist)[:, 0])
+    return smoothstep(0.5 + (outward - side * wrist[0]) / (0.31 * hand_length))
+
+
+def slice_width(lx, lz, h, mask, h0, h1):
+    m = mask & (h >= h0) & (h < h1)
+    if m.sum() < 8:
+        return None
+    return np.array([np.ptp(lx[m]), np.ptp(lz[m])])
 
 
 report = {"kalla": str(src), "sidor": {}}
-new_world = world.copy()
+flyttade = np.zeros(n_v, bool)
+vcol = np.full((n_v, 3), np.nan)                 # hörnfärg (linjär) för skarven och remsan
+remsa_ytor = np.zeros(len(me.loops), bool)       # hörn i kroppens ytor som byter till skarvens material
+tratt_n = np.full((len(me.loops), 3), np.nan)     # skarvens normal: längs armen mot handen (jämnt mörk, inga veck)
 look_at = {}
 
-for side, sign in (("Left", 1), ("Right", -1)):
-    hand = bone_head(side + "Hand")
-    elbow = bone_head(side + "ForeArm")
-    axis = hand - elbow
-    axis = axis / np.linalg.norm(axis)
-    rel = world - hand
-    along = rel @ axis
-    e1 = np.cross(axis, np.array([0.0, 0.0, 1.0]))
-    if np.linalg.norm(e1) < 1e-6:
-        e1 = np.cross(axis, np.array([1.0, 0.0, 0.0]))
-    e1 /= np.linalg.norm(e1)
-    e2 = np.cross(axis, e1)
-    e2 /= np.linalg.norm(e2)
-    # Begränsa till den här armen så inte bålen räknas med.
-    radial_vec = rel - np.outer(along, axis)
-    radial = np.linalg.norm(radial_vec, axis=1)
-    arm_near = (along > -0.12) & (along < 0.22) & (radial < 0.10)
+for side_name, side in (("Left", 1), ("Right", -1)):
+    # Den här armen: nära handens led (skarvmaterialet sitter också vid halsen).
+    wrist = np.array(mw[:3, :3] @ np.array(bones[side_name + "Hand"].head_local) + mw[:3, 3])
+    pa = (side * world[:, 0] > 0.05) & (np.linalg.norm(world - wrist, axis=1) < 0.30)
+    rim = touch["Kropp"] & touch["Skarvar"] & pa
+    ring = touch["Skarvar"] & touch["Handpar"] & pa
+    hand_v = touch["Handpar"] & pa & ~touch["Skarvar"] | ring
+    if rim.sum() < 12 or ring.sum() < 12:
+        report["sidor"][side_name] = {"hoppade_over": f"ingen skarv mellan ärm och hand ({int(rim.sum())}/{int(ring.sum())} hörn)"}
+        continue
+    # Ramen: snittplanets normal är underarmens riktning i steg 03 (montera_apose.underarm).
+    p = world[rim | ring]
+    c0 = p.mean(0)
+    d = np.linalg.svd(p - c0)[2][2]
+    if (world[hand_v].mean(0) - c0) @ d < 0:
+        d = -d
+    d_g = to_gltf(d)
+    frame = rodrigues(np.array([side, 0.0, 0.0]), d_g) @ np.array([[0, side, 0], [0, 0, 1], [side, 0, 0]], float)
+    ax, az = to_blender(frame[:, 0]), to_blender(frame[:, 2])
+    az = az - (az @ d) * d; az /= np.linalg.norm(az)
+    ax = np.cross(d, az) * np.sign(np.cross(d, az) @ ax)
+    # Origo: ärmkantens mitt (montera.centered_loop: mitten av ytterläget i ramen).
+    rel = world[rim] - c0
+    cx, cz = (np.ptp(rel @ ax) / 2 + (rel @ ax).min()), (np.ptp(rel @ az) / 2 + (rel @ az).min())
+    origin = c0 + cx * ax + cz * az + float(np.median(rel @ d)) * d
+    rel = world - origin
+    u = rel @ d
+    lx, lz = rel @ ax, rel @ az
+    rad = np.hypot(lx, lz)
+    u_open = float(np.median(u[ring]))
+    h = u - u_open
+    hand = touch["Handpar"] & pa & (rad < 0.15) & (h > -0.01)
+    L = float(np.percentile(h[hand], 99.8))
+    extent = WARP_FRAC * L
+    W0 = np.array([np.ptp(lx[ring]), np.ptp(lz[ring])])
+    Wn = slice_width(lx, lz, h, hand, extent - 0.003, extent + 0.003)
+    if Wn is None:
+        raise SystemExit(f"{side_name}: hittar ingen handled {extent * 1000:.0f} mm ut på handen")
+    ratio = np.maximum(W0 / (Wn * (1 + AVSMALNING)), 1.0)
 
-    seam_along = along[is_seam & arm_near]
-    hand_along = along[is_hand & arm_near]
-    if len(seam_along) < 20 or len(hand_along) < 50:
-        raise SystemExit(f"{side}: hittar inte skarv/hand ({len(seam_along)} skarv, {len(hand_along)} hand)")
-    seam = float(np.median(seam_along))
-    # Naturlig handled: smalaste Handpar-tvärsnittet 15–50 mm utanför skarven, innan handflatan vidgas.
-    cand = []
-    for a in np.arange(seam + 0.015, seam + 0.055, 0.003):
-        m = is_hand & arm_near & (along >= a) & (along < a + 0.003)
-        if m.sum() < 20:
-            continue
-        uv = np.column_stack((radial_vec[m] @ e1, radial_vec[m] @ e2))
-        cand.append((a + 0.0015, np.ptp(uv[:, 0]), np.ptp(uv[:, 1]), int(m.sum())))
-    if not cand:
-        raise SystemExit(f"{side}: hittar ingen naturlig handledszon")
-    # Välj minsta bredd (inte första slumpträffen).
-    natural, nat_w, nat_t, nat_n = min(cand, key=lambda r: r[1] + 0.35 * r[2])
-    # Lite extra smalt så den går in rent under manschetten, men inte unsunt smal.
-    target_w = nat_w * 0.98
-    target_t = nat_t * 0.98
+    # Manschettens kant: där kroppens textur slutar likna ärmen en bit in (vilken färg skjortan än har), räknat
+    # utåt längs underarmen.
+    sleeve = touch["Kropp"] & ~touch["Skarvar"] & pa & (rad < 0.08) & (u > -0.06) & (u < 0.004)
+    ref = np.median(kropp_srgb[sleeve & (u > -0.040) & (u < -0.015)], axis=0)
 
-    # Hitta manschettkanten där Kropp möter Skarvar så att övergången börjar mjukt från 0 där.
-    cuff_rim = touches_body & touches_seam & arm_near
-    rim_along = float(np.median(along[cuff_rim])) if cuff_rim.any() else seam
-    a_start = rim_along + 0.001
-    a0 = max(seam + 0.005, rim_along + 0.006)
-    a1 = natural
-    ramp_in = smoothstep((along - a_start) / max(a0 - a_start, 1e-4))
-    ramp_out = 1.0 - smoothstep((along - a0) / max(a1 - a0, 1e-4))
-    w_shrink = np.where(along <= a_start, 0.0, np.where(along <= a0, ramp_in, np.where(along < a1, ramp_out, 0.0)))
-    # Dra bara in Handpar milt (2.5 mm) så inget sticker ut genom manschettväggen.
-    w_tuck = np.where(
-        (along > rim_along + 0.003) & (along < seam + 0.026) & ~touches_seam,
-        1.0 - smoothstep((along - (rim_along + 0.003)) / 0.023),
-        0.0,
-    )
+    def hudlik(c):
+        # Hud mot ärmens tyg: varmare (rött mot blått) än ärmen en bit in. Bara ljusare (en knapp) räknas inte.
+        return (c[:, 0] - c[:, 2]) - (ref[0] - ref[2]) > 0.08
 
-    move = editable & arm_near & ((w_shrink > 1e-4) | (w_tuck > 1e-4))
-    # Skala mot skivans eget centrum så axeln inte glider i sidled.
-    uv = np.column_stack((radial_vec @ e1, radial_vec @ e2))
-    # Per-hörn: interpolera aktuell skivbredd från närliggande hand/skarv-hörn.
-    band = editable & arm_near & (along > seam - 0.03) & (along < a1 + 0.01)
-    step = 0.003
-    slices = []
-    for a in np.arange(seam - 0.02, a1 + 0.006, step):
-        m = band & (along >= a) & (along < a + step)
-        if m.sum() < 8:
-            continue
-        slices.append((a + step / 2, uv[m].mean(0), np.ptp(uv[m, 0]), np.ptp(uv[m, 1])))
-    if len(slices) < 3:
-        raise SystemExit(f"{side}: för få skivor att skala ({len(slices)})")
-    sa = np.array([s[0] for s in slices])
-    scn = np.array([s[1] for s in slices])
-    sw = np.array([s[2] for s in slices])
-    st = np.array([s[3] for s in slices])
+    likt = ~hudlik(kropp_srgb)
+    u_c = 0.0
+    for s0 in np.arange(-0.030, 0.003, 0.0015):
+        m = sleeve & (u >= s0) & (u < s0 + 0.0015)
+        if m.sum() >= 5 and likt[m].mean() < 0.6:
+            u_c = s0
+            break
+    cuff_col = np.median(kropp_farg[sleeve & likt & (u > u_c - 0.02) & (u < u_c)], axis=0)
 
-    def lerp_at(x, xp, fp):
-        return np.interp(x, xp, fp)
+    # Är handleden redan smal och öppningen redan inne i ärmen (en montering som inte vidgar handen) flyttas inget,
+    # men kanten och skarven färgas ändå (3).
+    u_rim = float(np.median(u[rim]))
+    behov = not (ratio.max() < 1.06 and u_open < u_rim - 0.004)
 
-    cen = np.column_stack((lerp_at(along, sa, scn[:, 0]), lerp_at(along, sa, scn[:, 1])))
-    cur_w = np.clip(lerp_at(along, sa, sw), 1e-4, None)
-    cur_t = np.clip(lerp_at(along, sa, st), 1e-4, None)
-    sx = 1.0 + w_shrink * (target_w / cur_w - 1.0)
-    sy = 1.0 + w_shrink * (target_t / cur_t - 1.0)
-    # Begränsa så vi aldrig blåser upp, bara smalnar av.
-    sx = np.minimum(sx, 1.0)
-    sy = np.minimum(sy, 1.0)
+    # 1+2. Handen: vidgningen tillbaka, och handledens början in i ärmen (DJUP_IN innanför ärmens kant).
+    D = u_open - (u_rim - DJUP_IN)
+    stub = hand & (h < extent) & behov
+    w = 1.0 - smoothstep(h[stub] / extent)
+    sx, sz = 1.0 + w * (ratio[0] - 1.0), 1.0 + w * (ratio[1] - 1.0)
+    hn = h[stub] - D * (1.0 - np.clip(h[stub] / extent, 0, 1)) ** 2
+    new[stub] = origin + np.outer(u_open + hn, d) + np.outer(lx[stub] / sx, ax) + np.outer(lz[stub] / sz, az)
+    flyttade |= stub
+    # Skarven blir en mörk tratt från ärmens kant (orörd) in till handledens öppning. Skarvhörn som inte sitter ihop
+    # med kroppen eller handen (dubbletter längs kanterna) följer det närmaste hörnet på samma andel mellan dem.
+    seam_only = touch["Skarvar"] & pa & ~touch["Kropp"] & ~touch["Handpar"] & (rad < 0.1) & behov
+    if seam_only.any():
+        rim_i, ring_i = np.flatnonzero(rim), np.flatnonzero(ring)
+        for v in np.flatnonzero(seam_only):
+            a_i = rim_i[np.argmin(np.linalg.norm(world[rim_i] - world[v], axis=1))]
+            b_i = ring_i[np.argmin(np.linalg.norm(world[ring_i] - world[v], axis=1))]
+            s = np.clip((u[v] - u[a_i]) / max(u[b_i] - u[a_i], 1e-5), 0, 1)
+            new[v] = new[a_i] * (1 - s) + new[b_i] * s
+        flyttade |= seam_only
 
-    new_uv = cen + (uv - cen) * np.column_stack((sx, sy))
-    tucked_along = np.maximum(along - 0.0025 * w_tuck, rim_along + 0.001)
-    shifted = (
-        hand
-        + np.outer(tucked_along, axis)
-        + np.outer(new_uv[:, 0], e1)
-        + np.outer(new_uv[:, 1], e2)
-    )
-    new_world[move] = shifted[move]
+    # 3. Kroppens hudremsa bortom manschettens kant (och hud som sticker in i kanten) får skarvens material, som bara
+    # har hörnfärg: manschettens färg i kanten, så att ärmen slutar rent vid snittet; skarven mörk som en ärm inuti.
+    near_end = touch["Kropp"] & pa & (rad < 0.08) & (u > u_c - 0.016) & (u < u_rim + 0.01)
+    remsa = near_end & ((u > u_c - 0.0015) | ~likt)
+    ytor = np.unique(loop_poly[remsa[loop_v] & (loop_mat == slot["Kropp"])])
+    # Också ytor vars hörn är ärm men vars textur inuti har hud (gränsen i texturen går inte längs kanterna):
+    # provet i ytans mitt och halvvägs mot varje hörn.
+    nara = np.unique(loop_poly[near_end[loop_v] & (loop_mat == slot["Kropp"])])
+    li = np.flatnonzero(np.isin(loop_poly, nara))
+    mid = np.zeros((len(me.polygons), 2))
+    np.add.at(mid, loop_poly[li], luv[li])
+    mid[nara] /= loop_tot[nara, None]
+    prov = np.vstack([mid[nara], (luv[li] + mid[loop_poly[li]]) / 2])
+    agare = np.r_[nara, loop_poly[li]]
+    olik = hudlik(sample(prov))
+    ytor = np.union1d(ytor, np.unique(agare[olik]))
+    remsa_ytor |= np.isin(loop_poly, ytor)
+    remsa_v = np.zeros(n_v, bool)
+    remsa_v[loop_v[np.isin(loop_poly, ytor)]] = True
+    # Hörnfärgen: hörn som är ärm behåller sin egen texturfärg (ingen synlig gräns), hud blir manschettens färg;
+    # närmare snittet lite mörkare.
+    tt = np.clip((u - u_c) / max(u_rim - u_c, 1e-4), 0, 1)
+    base = np.where(likt[:, None], kropp_farg, cuff_col[None, :])
+    vcol[remsa_v] = base[remsa_v] * (1 - 0.25 * tt[remsa_v, None])
+    seam_v = touch["Skarvar"] & pa & (rad < 0.1)
+    vcol[seam_v & touch["Kropp"]] = cuff_col * 0.35
+    d_loc = inv[:3, :3] @ d
+    tratt_n[(loop_mat == slot["Skarvar"]) & seam_v[loop_v]] = d_loc / np.linalg.norm(d_loc)
+    vcol[seam_v & ~touch["Kropp"]] = cuff_col * MORK
+    rest = np.zeros(n_v, bool)
+    rest[loop_v[remsa_ytor]] = True
+    rest &= ~np.isfinite(vcol[:, 0])
+    vcol[rest] = cuff_col
 
-    # Vitt manschettfoder vid ärmslutet: tucks in i ärmen så den uppblåsta
-    # vita kanten försvinner under den blå manschetten i stället för att synas som en ring.
-    # Ljust manschettfoder (varmvit/ljus insida) — inte den mörkblå tygytan (lum ~0.18).
-    sat = np.nanmax(colors, axis=1) - np.nanmin(colors, axis=1)
-    lining = is_body & ~touches_seam & arm_near & np.isfinite(lum) & (lum > 0.72) & (sat < 0.12) & (along > seam - 0.045) & (along < seam + 0.020) & (radial < 0.085)
-    w_lin = 1.0 - smoothstep(np.abs(along - seam) / 0.032)
-    w_lin = np.where(lining, np.clip(w_lin, 0, 1), 0.0)
-    lin_move = lining & (w_lin > 1e-4)
-    if lin_move.any():
-        new_along = along - 0.018 * w_lin
-        new_scale = 1.0 - 0.10 * w_lin
-        lining_pos = hand + np.outer(new_along, axis) + radial_vec * new_scale[:, None]
-        new_world[lin_move] = lining_pos[lin_move]
-    n_lin = int(lin_move.sum()) if lin_move.any() else 0
-
-    # Mät efteråt
-    rel2 = new_world - hand
-    along2 = rel2 @ axis
-    rad2_vec = rel2 - np.outer(along2, axis)
-    rad2 = np.linalg.norm(rad2_vec, axis=1)
-    uv2 = np.column_stack((rad2_vec @ e1, rad2_vec @ e2))
-    report["sidor"][side] = {
-        "skarv_mm": round(seam * 1000, 1),
-        "naturlig_handled_mm": round(natural * 1000, 1),
-        "mal_bredd_mm": round(target_w * 1000, 2),
-        "mal_tjocklek_mm": round(target_t * 1000, 2),
-        "naturlig_bredd_mm": round(nat_w * 1000, 2),
-        "naturlig_tjocklek_mm": round(nat_t * 1000, 2),
-        "horn_flyttade": int(move.sum()),
-        "foder_horn_flyttade": n_lin,
-        "max_flytt_mm": round(float(np.linalg.norm(new_world[move] - world[move], axis=1).max()) * 1000, 2),
-        "fore": profile_rows(along, radial, uv, editable & arm_near, seam - 0.02, a1 + 0.02),
-        "efter": profile_rows(along2, rad2, uv2, editable & arm_near, seam - 0.03, a1 + 0.02),
+    # Rapport och kameramål.
+    rel2 = new - origin
+    u2, lx2, lz2 = rel2 @ d, rel2 @ ax, rel2 @ az
+    prof = []
+    for a0 in np.arange(-0.03, 0.06, 0.006):
+        m0 = slice_width(lx, lz, u, hand | (touch["Skarvar"] & pa), a0, a0 + 0.006)
+        m1 = slice_width(lx2, lz2, u2, hand, a0, a0 + 0.006)
+        prof.append({"u_mm": round((a0 + 0.003) * 1000), "fore_mm": None if m0 is None else (m0 * 1000).round(1).tolist(),
+                     "efter_mm": None if m1 is None else (m1 * 1000).round(1).tolist()})
+    report["sidor"][side_name] = {
+        "kvot_vidgning": ratio.round(3).tolist(), "vidgningens_langd_mm": round(extent * 1000, 1),
+        "handled_naturlig_mm": (Wn * 1000).round(1).tolist(), "oppning_fore_mm": (W0 * 1000).round(1).tolist(),
+        "manschettkant_u_mm": round(u_c * 1000, 1), "oppning_u_fore_mm": round(u_open * 1000, 1),
+        "armkant_u_mm": round(u_rim * 1000, 1), "oppning_u_efter_mm": round((u_rim - DJUP_IN) * 1000, 1),
+        "handen_flyttad": behov, "handhorn_flyttade": int(stub.sum()), "ytor_till_skarven": int(len(ytor)),
+        "skarvhorn_utan_kant": int(seam_only.sum()),
+        "max_flytt_mm": round(float(np.linalg.norm(new[pa] - world[pa], axis=1).max()) * 1000, 1),
+        "profil": prof,
     }
-    # Kameramål: manschettkant + handled, lite ut från armens framsida.
-    cuff = hand + axis * seam
-    look_at[side] = {
-        "center": cuff + axis * 0.025,
-        "axis": axis,
-        "e1": e1,
-        "e2": e2,
-        "sign": sign,
-    }
+    look_at[side_name] = (origin + d * 0.02, d, ax, az)
 
-# Skriv tillbaka till meshen
-local = (np.c_[new_world, np.ones(len(new_world))] @ inv.T)[:, :3]
-mesh.data.vertices.foreach_set("co", local.astype(np.float32).ravel())
-mesh.data.update()
-# Uppdatera normaler så normalmapparna fortfarande ligger rätt i belysningen.
-bpy.context.view_layer.objects.active = mesh
-mesh.select_set(True)
-bpy.ops.object.shade_smooth()
-try:
-    mesh.data.calc_normals()
-except Exception:
-    pass
-mesh.data.update()
-
-# --- Kameror och före/efter-bilder ---
-# Före-bilderna renderas från en kopia av originalkoordinaterna via shape? Enklare:
-# vi har redan flyttat meshen. Därför renderade vi inte före först.
-# Lösning: spara efter-koordinater, skriv tillbaka original, rendera före, skriv efter, rendera efter.
-after_local = local.copy()
-before_local = (np.c_[original, np.ones(len(original))] @ inv.T)[:, :3]
-
-cam = bpy.data.objects.new("Cam", bpy.data.cameras.new("Cam"))
-sc.collection.objects.link(cam)
-sc.camera = cam
-cam.data.type = "PERSP"
-cam.data.lens = 85
-tgt = bpy.data.objects.new("T", None)
-sc.collection.objects.link(tgt)
-tc = cam.constraints.new("TRACK_TO")
-tc.target = tgt
-tc.track_axis = "TRACK_NEGATIVE_Z"
-tc.up_axis = "UP_Y"
-sc.render.resolution_x = 1000
-sc.render.resolution_y = 1000
-sc.render.image_settings.file_format = "PNG"
-sc.render.film_transparent = False
+    # 4. Vikterna i handledsbandet efter det nya läget (fingrar_apose: hand/underarm efter läget längs handen).
+    hp = touch["Handpar"] & (side * world[:, 0] > 0)
+    d5 = world[hp].mean(0) - wrist
+    R5 = _rot_y(side, d5)
+    hand_length = float(np.ptp((((world[hp] - wrist) @ R5) + wrist)[:, 0]))
+    g_hand, g_fore = groups[side_name + "Hand"], groups[side_name + "ForeArm"]
+    moved = np.flatnonzero(flyttade & pa)
+    # Det som ligger inne i ärmen räknas som om det låg i ärmens kant, så att tratten och handleden därinne följer
+    # manschetten och inte veckas när handen böjs.
+    u_new = (new[moved] - origin) @ d
+    pos_w = new[moved] + np.outer(np.maximum(u_rim - u_new, 0.0), d)
+    mix_new = hand_mix(pos_w, side, wrist, d5, hand_length)
+    changed = 0
+    for v, m_new in zip(moved, mix_new):
+        ws = {g.group: g.weight for g in me.vertices[v].groups}
+        wh, wf = ws.get(g_hand.index, 0.0), ws.get(g_fore.index, 0.0)
+        tot = wh + wf
+        if tot <= 1e-6:
+            continue
+        nh = tot * float(m_new)
+        if abs(nh - wh) < 1e-4:
+            continue
+        g_hand.add([int(v)], nh, "REPLACE")
+        g_fore.add([int(v)], tot - nh, "REPLACE")
+        changed += 1
+    report["sidor"][side_name]["vikter_andrade"] = changed
+del px
 
 
-def set_coords(arr):
-    mesh.data.vertices.foreach_set("co", arr.astype(np.float32).ravel())
-    mesh.data.update()
-    bpy.context.view_layer.update()
+def render_setup():
+    sc.render.engine = "CYCLES"
+    sc.cycles.device = "CPU"
+    prefs = bpy.context.preferences.addons["cycles"].preferences
+    try:
+        prefs.compute_device_type = "OPTIX"
+        prefs.get_devices()
+        optix = [dv for dv in prefs.devices if dv.type == "OPTIX"]
+        if optix:
+            for dv in prefs.devices:
+                dv.use = dv in optix
+            sc.cycles.device = "GPU"
+    except Exception:
+        sc.cycles.device = "CPU"
+    sc.cycles.samples = 32
+    sc.cycles.use_denoising = True
+    sc.view_settings.view_transform = "AgX"
+    wo = bpy.data.worlds.new("W")
+    sc.world = wo
+    wo.use_nodes = True
+    wo.node_tree.nodes["Background"].inputs[0].default_value = (0.32, 0.36, 0.38, 1)
+    wo.node_tree.nodes["Background"].inputs[1].default_value = 0.6
+    for name, loc, power, size in (("Key", (-2.2, -3.0, 2.6), 900, 2.0), ("Fill", (2.6, -2.4, 1.6), 350, 2.5),
+                                   ("Rim", (0.5, 3.0, 2.8), 500, 1.5)):
+        lt = bpy.data.lights.new(name, "AREA")
+        lt.energy, lt.size = power, size
+        ob = bpy.data.objects.new(name, lt)
+        sc.collection.objects.link(ob)
+        ob.location = loc
+        ob.rotation_euler = (Vector((0, 0, 1.2)) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
+    cam = bpy.data.objects.new("Cam", bpy.data.cameras.new("Cam"))
+    sc.collection.objects.link(cam)
+    sc.camera = cam
+    cam.data.lens = 85
+    tgt = bpy.data.objects.new("T", None)
+    sc.collection.objects.link(tgt)
+    tc = cam.constraints.new("TRACK_TO")
+    tc.target, tc.track_axis, tc.up_axis = tgt, "TRACK_NEGATIVE_Z", "UP_Y"
+    sc.render.resolution_x = sc.render.resolution_y = 1000
+    sc.render.image_settings.file_format = "PNG"
+    return cam, tgt
 
 
-def aim_wrist(side):
-    info = look_at[side]
-    c = Vector(info["center"].tolist())
-    axis = Vector(info["axis"].tolist())
-    # 3/4 bakifrån/utifrån, som den befintliga närbilden: lite från sidan och framför.
-    # e1 pekar ungefär horisontellt i tvärsnittet. Välj en vy mot ryggsidan av handen.
-    side_vec = Vector(info["e1"].tolist()) * (1.0 if side == "Left" else -1.0)
-    up = Vector((0, 0, 1))
-    # Kameran står snett framför handleden, lite utåt och lite ovanför.
-    offset = -axis * 0.08 + side_vec * 0.16 + Vector((0, -0.28, 0.10))
-    # Justera så vi faktiskt tittar på handledens baksida.
-    cam.location = c + offset
-    tgt.location = c
-    bpy.context.view_layer.update()
+def shots(prefix, cam, tgt):
+    for side_name, fn in (("Left", "vanster"), ("Right", "hoger")):
+        if side_name not in look_at:
+            continue
+        # Som QC-bilden i steg 07: snett framifrån och utifrån, mot handleden strax utanför ärmen.
+        c, d, ax, az = look_at[side_name]
+        c = c + d * 0.03
+        out_dir = np.array([1.0 if side_name == "Left" else -1.0, 0, 0])
+        cam.location = Vector((c + np.array([0, -0.42, 0.08]) + out_dir * 0.18 - d * 0.04).tolist())
+        tgt.location = Vector(c.tolist())
+        bpy.context.view_layer.update()
+        sc.render.filepath = str(out / f"{prefix}-{fn}.png")
+        bpy.ops.render.render(write_still=True)
 
 
-def shot(name):
-    sc.render.filepath = str(out / name)
-    bpy.ops.render.render(write_still=True)
+if bilder and look_at:
+    cam, tgt = render_setup()
+    shots("fore", cam, tgt)
 
+if look_at:
+    # Normalerna: de flyttade hörnens räknas om (släta), alla andras står kvar som de var.
+    old_n = np.empty((len(me.loops), 3), np.float32)
+    me.corner_normals.foreach_get("vector", old_n.ravel())
+    cn = me.attributes.get("custom_normal")
+    raw = None
+    if cn is not None and cn.domain == "CORNER":
+        raw = np.empty(len(me.loops) * 2, np.int16)
+        cn.data.foreach_get("value", raw)
+    local = co.copy()
+    local[flyttade] = (np.c_[new[flyttade], np.ones(int(flyttade.sum()))] @ inv.T)[:, :3]
+    me.vertices.foreach_set("co", local.astype(np.float32).ravel())
+    me.update()
+    vn = np.empty((n_v, 3), np.float32)
+    me.vertex_normals.foreach_get("vector", vn.ravel())
+    sel = flyttade[loop_v]
+    old_n[sel] = vn[loop_v[sel]]
+    tratt = np.isfinite(tratt_n[:, 0])
+    old_n[tratt] = tratt_n[tratt]
+    me.normals_split_custom_set(old_n.tolist())
+    if raw is not None:
+        # Ytor utan något flyttat hörn får tillbaka exakt sina gamla normaler (inte omkodade).
+        rorda = np.zeros(len(me.polygons), bool)
+        rorda[loop_poly[sel | tratt]] = True
+        keep = np.repeat(~rorda[loop_poly], 2)
+        cn = me.attributes.get("custom_normal")
+        now = np.empty(len(me.loops) * 2, np.int16)
+        cn.data.foreach_get("value", now)
+        now[keep] = raw[keep]
+        cn.data.foreach_set("value", now)
+    # Remsans ytor till skarvens material, och hörnfärgen i skarven och remsan (skarvens material har bara den).
+    pm = poly_mat.copy()
+    pm[np.unique(loop_poly[remsa_ytor])] = slot["Skarvar"]
+    me.polygons.foreach_set("material_index", pm)
+    colattr = me.color_attributes.get("Color")
+    if colattr is None or colattr.domain != "CORNER":
+        raise SystemExit("Modellen saknar hörnfärgen 'Color' som skarven färgas med.")
+    cols = np.empty((len(me.loops), 4), np.float32)
+    colattr.data.foreach_get("color", cols.ravel())
+    sel = (pm[loop_poly] == slot["Skarvar"]) & np.isfinite(vcol[loop_v, 0])
+    cols[sel, :3] = vcol[loop_v[sel]]
+    colattr.data.foreach_set("color", cols.ravel())
+    me.update()
+    report["ytor_till_skarven"] = int(len(np.unique(loop_poly[remsa_ytor])))
 
-# Före
-set_coords(before_local)
-for side, fn in (("Left", "fore-vanster.png"), ("Right", "fore-hoger.png")):
-    aim_wrist(side)
-    shot(fn)
+if bilder and look_at:
+    shots("efter", cam, tgt)
 
-# Efter
-set_coords(after_local)
-for side, fn in (("Left", "efter-vanster.png"), ("Right", "efter-hoger.png")):
-    aim_wrist(side)
-    shot(fn)
-
-# Exportera fixad rigg (vila, inga animationer) med samma inställningar som dealer-exporten.
 arm.select_set(True)
 mesh.select_set(True)
 bpy.context.view_layer.objects.active = arm
 glb = out / "avatar-rigg-handledfix.glb"
-bpy.ops.export_scene.gltf(
-    filepath=str(glb),
-    export_format="GLB",
-    use_selection=True,
-    export_animations=False,
-    export_image_format="AUTO",
-)
+bpy.ops.export_scene.gltf(filepath=str(glb), export_format="GLB", use_selection=True, export_animations=False,
+                          export_image_format="AUTO")
 report["ut_glb"] = str(glb)
 report["ut_bytes"] = glb.stat().st_size
 (out / "fix.json").write_text(json.dumps(report, indent=1, ensure_ascii=False), encoding="utf-8")
-print("FIX", json.dumps({k: report[k] for k in report if k != "sidor"} | {
-    "sidor": {s: {k: v[k] for k in v if k not in ("fore", "efter")} for s, v in report["sidor"].items()}
-}, ensure_ascii=False))
+print("FIX", json.dumps({s: {k: v for k, v in r.items() if k != "profil"} for s, r in report["sidor"].items()}, ensure_ascii=False))

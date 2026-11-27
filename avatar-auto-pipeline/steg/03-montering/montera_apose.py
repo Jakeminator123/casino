@@ -3,6 +3,7 @@
 Halsen mäts med standardmatt.halssnitt.
 Händerna: handledssnittet läggs vinkelrätt mot underarmens verkliga 3D-riktning, och snittet
 begränsas till en cylinder kring armen (i A-pose skulle ett plant halvrumssnitt annars kapa benen).
+Handen behåller sin egen handled och dess början dras in i ärmen (HANDLED_IN); förr vidgades den till ärmens mått.
 Kragen hittas via hudfärg (skjortan ska vara tydligt icke-hudfärgad, standardklädseln är mörkblå).
 Användning: python -B steg/03-montering/montera_apose.py kropp.glb huvud.glb handpar.glb ut.glb
 """
@@ -34,6 +35,9 @@ from standardmatt import HALS_BREDDKVOT, HANDLANGD, halssnitt, kroppsmatt
 
 MASK = {}
 NECK_BODY_H = 0.0
+# Hur långt in i ärmen handledens början dras, andel av kroppslängden (cirka 14 mm): handen vidgas inte till ärmens
+# mått, utan skarven blir en tratt inne i ärmen (montera.attach tuck), som steg 05 färgar mörk.
+HANDLED_IN = 0.0075
 
 
 def _extract_loops(pos, segments):
@@ -475,7 +479,8 @@ def assemble_apose(body_file, head_file, hands_file, output, skin_ref=None, neck
         local_axis = p0 @ frame
         MASK.update(ax=float(local_axis[0]), az=float(local_axis[2]), r=0.09 * H)
         try:
-            body, fitted, seam = attach(body, hand, frame, cut, 0, tip, H * 0.002, atlas, hand_atlas)
+            # Handen behåller sin egen handled (vidgas inte till ärmens mått) och dess början dras in i ärmen.
+            body, fitted, seam = attach(body, hand, frame, cut, 0, tip, H * 0.002, atlas, hand_atlas, tuck=H * HANDLED_IN)
         finally:
             MASK.clear()
         share = (tip - cut) / H
