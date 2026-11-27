@@ -63,7 +63,8 @@ node tools/extern-domare.ts <provmapp> [--bilder a.png,b.png] [--torr]
 
 - Kommandot skickar högst sex bilder ur underlaget och provet, nedskalade, och checklistan nedan. Svaret kommer i
   domens form (dom, skäl med fil och ruta, det den skulle rätta, säkerhet) och skrivs till `extern-dom.json` i
-  underlaget. `--torr` visar vad som skulle skickas och vad det kostar.
+  underlaget, varifrån domaren för in det i provet innan slaskmappen tas bort. `--torr` visar vad som skulle skickas
+  och vad det kostar.
 - Den externa domaren ser bara de bilder den får. Domaren väljer därför de avgörande bilderna med `--bilder` när
   kommandots eget val missar dem. Tänk på filmen där felet syns, och på `ansiktet-over-tiden.png` för den längsta
   filmen. I kalibreringen fick den inte film 4 av `tomasz-gor-danilos-giv` och såg därför inget personbyte. I
@@ -136,8 +137,9 @@ Domen skrivs i två delar, och varje påstående anger fil och ruta eller sekund
 - **(b) Det jag skulle rätta:** domarens fynd utöver det. Här får strängheten stå kvar utan att sänka domen.
 
 Ett Inte bra går tillbaka till den som gjorde resultatet, med fil och rutor, och svaret till Jakob säger vad domaren
-sa. Underlaget för ett Inte bra flyttas till `slask/blackjack-dealer/granska/domaren/<prov>/` så att den som rättar
-ser rutorna. Resten av domarens slaskmapp tas bort.
+sa. Underlaget sparas inte ("så inte skit lagras"). Domen säger fil och ruta, och den som ska rätta kör
+`node tools/domare-underlag.ts <prov>` själv när den behöver se rutorna. Domaren tar bort sin slaskmapp när domen är
+införd.
 
 ## Föra in domen
 
@@ -145,8 +147,10 @@ ser rutorna. Resten av domarens slaskmapp tas bort.
   samma sätt): `verdicts` får en dom per film eller bild som provet visar som resultat. Bra blir `ok` (Användbar), Nja
   `remarks` (Med anmärkningar) och Inte bra `failed` (Underkänd). Utan en `takes`-lista blir just de filerna provets
   tagningar med en bricka (`studio/lib/verdict.ts`). Fältet `domare` bär orden:
-  `{"av": "...", "dag": "...", "dom": "Inte bra", "skal": [...], "ratta": [...], "sakerhet": "...", "extern": {...} | null, "oenig": false, "obs": "Domarens ord, inte Jakobs; hans dom ersätter den."}`.
-  `extern` är den externa domarens `extern-dom.json`, och `oenig` är sant när de två domarna har fällt olika domar.
+  `{"av": "...", "dag": "...", "dom": "Inte bra", "sakerhet": "...", "skal": [...], "ratta": [...], "extern": {...} | null, "oenig": false, "obs": "Domarens ord, inte Jakobs; hans dom ersätter den."}`.
+  `extern` är den externa domarens dom ur `extern-dom.json` (av, dom, sakerhet, skal med fil och ruta, ratta, filer,
+  kostnad_usd, tid). Där den inte har dömt är `extern` null och `extern_obs` säger varför. `oenig` är sant när de två
+  domarna har fällt olika domar. Fältet pekar inte på något underlag, eftersom underlaget inte sparas.
   Studion visar brickan, men ännu inte orden i `domare`.
   Inget annat i `proof.json` ändras: inte rubrik, text, etiketter, tagningar eller hans anteckningar.
 - **Beställd film:** granskarens dom förs in enligt `granska-film` (Föra in). En preliminär dom med
@@ -173,5 +177,7 @@ Den externa domaren (gpt-6.2-astra) dömde samma tolv prov efteråt, med kommand
 fyra av nio, var strängare i tre och snällare i två. Båda gångerna den var snällare hade den inte fått de avgörande
 bilderna: i `dealerns-handled` fick den inte krået vid bordet, och i `danilo-frasse-i-editorn` fick den streckfigurens
 ansikte i stället för dockans. Den hittade också egna riktiga fel, som handen som står kvar över kortet och greppet där
-ingen klämma syns. Den sammanlagda kostnaden blev ungefär 1,5 USD. Rösten är alltså användbar som ett andra par ögon,
+ingen klämma syns. Den sammanlagda kostnaden blev ungefär 1,5 USD. På de sju prov som dömdes därefter kördes den
+om med de bilder domaren valde i tre prov där de var oense. Domen vände i ett av de tre: `ansikte-ur-framstalld-film`
+gick från Nja till Bra, samma dom som domarens. Rösten är alltså användbar som ett andra par ögon,
 men bara på de bilder domaren väljer åt den. Domen förs in av domaren, och där de är oense tittar Jakob först.

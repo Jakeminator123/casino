@@ -285,9 +285,10 @@ def measure(data, fps):
             spikes.append({'ruta': fno[i], 'i': int(i), 'var': name, 'slag': 'hopp', 'storlek': round(float(jump[i]), 2), 'lugn': False})
     res['skakighet'] = jit
     # Fine trembling: each point against its own mean over five frames (a high-pass). MediaPipe's own noise is about a
-    # pixel, so this says something only against another panel or film of the same size (the doll beside it, or a film
-    # made another way): films from the lifted real dealers trembled about twice as much in the head as films from the
-    # drawn doll (2026-11-27), which Jakob saw as "lite skakig".
+    # pixel, so this says something only against another panel or film (the doll beside it, or a film made another
+    # way). Aleph's films of the lifted deal trembled in the head 0.4-0.5 % of the shoulder width, Kling's of the drawn
+    # doll 0.2-0.3 % (2026-11-27, where Jakob saw "lite skakig"); whether from the motion or the model those proofs
+    # cannot tell. A doll's blank face is measured noisily: compare a doll with a doll, a person with a person.
     def highpass(t, k=5):
         out = []
         for i in range(k // 2, len(t) - k // 2):
