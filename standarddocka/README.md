@@ -11,6 +11,8 @@ standarddocka/
   AGENTS.md     regler
   DOMAR.md      Jakobs domar om dockan, bordet, vyn, takten och rörelserna: måttet allt prövas mot
   README.md     den här filen: läget, nästa steg och det som ska plockas in
+  rorelsekatalog.json  rörelseschemat: ankarena, stadierna och rörelserna, med vilka som finns och vilka som saknas;
+                visas i studion under Karta, Schemat
   scen/         skripten som sätter ihop vyn i Blender
     vy.py       arbetsvyn: bordet med kanten närmare, mannen i vilan (A1) på stolen, händerna på filten och blicken
                 mot kameran; ställningen, stolen och blicken är tal och steg överst i filen

@@ -160,6 +160,12 @@ en verkstad i taget när inget annat arbete pågår i den.
   nå. Högerhanden hoppade 2–3 cm på en enda ruta, där en rättning slogs på. Blicken och fingrarna, mätta ruta för ruta
   i ett ansikte på 135 bildpunkter, är mest brus: den råa blicken byter håll 18 gånger per sekund. Dockan ska följa
   rörelsen, inte mätningens brus, och en filmmodell följer varje sådant hopp.
+- **En spärr ska mäta bilden, inte talen bakom den** (2026-11-27). Två försök av given föll på att huvudet vreds 32°
+  mot skon och knyckte, fast spärren sa att huvudet följde dealerns inom en grad. Spärren läste rörelsens fil; editorn
+  tappade huvudets eget mål när den blandade två rutor, så i bilden följde huvudet blicken. Det syntes först när
+  dockans ritade film mättes med samma ansiktsnät som den riktiga dealern (`live-bj/verktyg/lyft.py dockhuvud`).
+  Blickens mål mot skon och kortplatsen var dessutom vårt eget påhitt: de riktiga dealrarna drar kortet utan att se på
+  skon, som står 63° åt sidan.
 - **Två kameror ger samma man i samma ögonblick,** sett i stillbilder från livebordets kamera och från plats 7. Det
   säger att vägen med flera kameror kan hålla, inte att filmerna är bra.
 - **En hel sekvens i en tagning föll:** ansiktet gled och det kom till kort som inte fanns. En giv i taget håller
