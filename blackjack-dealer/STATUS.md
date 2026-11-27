@@ -33,8 +33,54 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   behövs för en film som görs av stillbilder: där är dockan bara förlaga för ställningen, och utseendet kommer ur
   bilderna av personen.
 - **Spelet** ritar vid livebordet bordet, skon och korten men ingen dealer, eftersom ingen film är godkänd där.
-- **Pengar** (2026-11-27): Runway 146 krediter kvar, Meshy 363. Den externa domaren (OpenAI) har kostat 3,06 USD det
-  senaste dygnet; verktygets tak är 5.
+- **Pengar** (2026-11-27): Runway 146 krediter kvar kl. 14.40 (han fyller på), Meshy 363. Den externa domaren (OpenAI)
+  har kostat 3,06 USD det senaste dygnet; verktygets tak är 5. Hans ord för eftermiddagen 2026-11-27: en budget på 3 000
+  Runway-krediter ("Var resonable, men ja - du får 3000. Men om allt förbrukas inom några timmar så ska det ha kommit
+  igenom granskningarna ... eller du ha bra anledning"), och OpenAI för den externa domaren. Om Meshy och RunPod
+  kryssade han både ja och "inga av dem": de används inte förrän han har sagt vilket.
+
+## Pågår (2026-11-27, eftermiddag)
+
+En ny huvudagent tog över kl. 14 efter den chatt som gjorde arbetet till och med den första filmen. Jakobs ord för
+arbetet: färre spretiga och överlappande projekt, allt mer centralstyrt, gammalt bort "ganska så grovt", och "ett
+generiskt sätt att få en pipeline för en helt och hållet ny dealer" ur bilder (skelett, leder, handens och ansiktets
+punkter med MediaPipe och SAM 3D), riggad med rörelserna ur filmen av livebordet. Hans val samma dag: den förra
+standarden bort helt (också mannen och kvinnan och de ritade givarna), de ersatta proven och figurerna ut ur repot,
+kortspelspaketet ut ur repot till skrivbordet, och en helt ny person som första prov på vägen (Kenji Nakamura, vald av
+agenten: en man som de två dealrarna, och en skjorta som inte krockar med det gröna i inspelningen).
+
+Fem arbeten går samtidigt; det som är klart står under Läget när det har tagits in:
+
+- **Förra standarden bort ur koden**, på grenen `forra-standarden-bort` i ett eget worktree bredvid repot.
+- **Ny dealer ur bilder:** Kenji mäts ur sina tre bilder, får en docka efter måtten, kommer in bland dockorna ur en
+  datafil (inget kodblock per person) och spelar Danilos giv; ett kommando för hela vägen.
+- **Givens rörelse efter hans Nja:** kortet landar där dealern lägger det, given delas vid handbytet, tummen och
+  vänsterhanden.
+- **Filmens efterarbete:** kortet ritas av oss, och takten blir ett verktyg (provet `efter-nja-eget-kort-och-takt-20261127`).
+- **Lagret:** de ersatta proven, figurerna som föll, den förra standardens klipp och kortspelspaketet flyttas till
+  arkiven bredvid repot.
+
+Det den förra chatten visste som inte stod någonstans:
+
+- **Takten i fil 10 och 11** gjordes med ett slaskskript som är raderat: varje stillbild paras med den filmruta som
+  liknar den mest, och filmen läses rakt mellan de paren (dockans ruta 0, 24, 27, 38, 45, 65 låg nära filmruta 0, 13,
+  27, 40, 55, 72). Det blir nu ett verktyg.
+- **Tomasz som docka fördes aldrig in** bland livedockorna. Måtten som var framräknade: axlarna 0,3119 m isär, överarm
+  0,2685, underarm 0,2667, räckvidd 0,5202, handen mannens gånger 1,026, bålen 0,3941, halsen [0, 0,155, 0,0281],
+  huvudet [0, 0,2713, 0,0362] med radie 0,1327, modellen `standarddocka_tomasz_dockhander.glb`, Danilos stil. Med
+  persondockor ur en datafil blir det en fil för honom, inte ett kodblock.
+- **Meshy för handens hud** (10 krediter) är förberett men inte kört; kommandot står i `vagar.json` under
+  dockans händer i armen.
+- **Danilo och Frasse har olika kalibrering av huvudet:** Danilo mot ansiktsnätets kurva, Frasse räknat från vilan.
+- **Förslaget för nästa betalda film** (cirka 190 krediter för en ren jämförelse): A) Kling 4 med första bild, sju
+  mellanbilder och sista bild, mellanbilderna jämnt i dockans tid (var åttonde ruta), 3 s som kortas till dockans 2,2;
+  B) Aleph 2 över dockfilmen i nyckelutseendet med startbilden som styrbild, som går exakt i dockans takt. Vinnaren får
+  de andra platserna och sedan två spelarkameror. Minst 1 000 krediter hålls i reserv för omtag.
+- **Inaktuella dokument** (rättas när den förra standarden är borta): `../standarddocka/README.md`, `README.md` och
+  `docs/SYSTEM.md` här, skillarna `ny-dealer`, `bestalla-film`, `granska-film`, `granska-rorelse` och
+  `publicera-kopian` (den äldre dealerns flöde), och skillen `runway` som listar Aleph 2 först fast han valde stillbilder.
+- **Där den förra chatten gick fel, med egna ord:** den arbetade ur en sammanfattning av en lång chatt, hade hans svar
+  i Beslut fel i timmar, och lagade utskärningen i fyra vändor i stället för att stanna och rätta orsaken.
 
 ## Nästa steg
 
@@ -95,7 +141,11 @@ I den här ordningen om han inte säger annat.
 - **Kortspelspaketet.** Dess visare ritar förra standardens bord, som försvinner med den: visaren pekas om, eller
   paketet arkiveras.
 - **RunPod för mätningen.** Livefilmens rutor mäts på den här datorns processor, eftersom filmen aldrig får lämna
-  datorn. Om de ska få mätas på hans hyrda maskin är hans beslut.
+  datorn. Om de ska få mätas på hans hyrda maskin är hans beslut. Han frågade 2026-11-27: "kan vi inte köra tyngre
+  jobb med GPU-krävande och jättetunga jobb på min runpod? Eller är det för jobbigt att sätta upp?" Det går för vårt
+  eget material (`../live-bj/verktyg/sam_runpod.ts`, några kronor per körning); för livefilmen krävs hans ord.
+- **Meshy och RunPod i eftermiddag.** Han kryssade OpenAI, Meshy, RunPod och "inga av dem" på samma fråga. Vilket
+  gäller för Meshy och RunPod?
 
 ## Kända brister
 
