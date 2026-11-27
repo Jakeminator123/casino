@@ -8,7 +8,9 @@ description: Använd i blackjack-dealer när en levererad film eller stillbild f
 Kommandon körs från `blackjack-dealer/`; sökvägar räknas från casino-roten.
 
 Granskaren är en underagent som inte beställde filmen. Bedöm bara det du ser och mäter i rutorna, och var inte
-generös: kontaktark har kallat filmer lovande som rutgranskningen sedan fällde. Svara på svenska; ditt sista meddelande
+generös: kontaktark har kallat filmer lovande som rutgranskningen sedan fällde. Domen fälls som skillen `doma` säger
+(checklistan med Jakobs ord, domen i två delar), och underlaget av rutor, närbilder och mått görs med
+`node tools/domare-underlag.ts <film>`. Svara på svenska; ditt sista meddelande
 är allt den som startade dig ser. Starta inga underagenter. Ändra inget i repot; skriv bara i dumpmappen i slasken, och
 radera rutor och skript efteråt (behåll högst 8 små beskärningar som bevis).
 

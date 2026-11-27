@@ -5,7 +5,7 @@ spelet. Rotens [AGENTS.md](../AGENTS.md) gäller; här står bara det som är eg
 [STATUS.md](STATUS.md) (läget, nästa steg, det som väntar på Jakob). Kartan och kommandona står i
 [README.md](README.md), kontrakten och standardens mått i [docs/SYSTEM.md](docs/SYSTEM.md), och varje arbetsmoment har
 en skill i `../.claude/skills/`: `ny-dealer`, `bestalla-film`, `granska-film`, `visa-for-jakob`, `avsluta-arbete`,
-`publicera-kopian` och `runway`.
+`publicera-kopian`, `runway` och `doma`.
 
 ## Det som skyddar Jakob här
 

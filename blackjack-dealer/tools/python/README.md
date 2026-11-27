@@ -19,6 +19,7 @@ MediaPipe eller OpenCV:s ansiktsmodeller, som repots TypeScript inte har; resten
 | `identitet.py` | Ansiktslikhet per ruta mot stillbilder av den nya och den gamla dealern, och hur mycket tatueringsbläck handryggarna bär. Kräver `filmmatt.py`:s mått för samma film. | Likhet för en ny dealer (ny-dealer, steg 3) |
 | `landmarks.py` | Läser en film ruta för ruta och skriver allt MediaPipe ser av händerna (21 punkter var, i bankens bildpunkter och som en hand i meter) och kroppen (33 punkter) till en JSON-fil. Talen är MediaPipes egna, ojämnade. | En verklig giv lagd i rummet (`dealer3d/tools/lift.ts`) |
 | `hands-from-anchor.py` | Lägger händerna ur en ankarbild över händerna i en film, ruta för ruta, och låter varje hand följa sin egen lilla rörelse i filmen. Behöver ingen modell, bara OpenCV och `ffmpeg` på sökvägen. | En vila i en annan uppsättning (nedan) |
+| `domare.py` | Domarens underlag för en film eller en stor bild: blad med var tredje ruta, och per figur (också i filmer lagda bredvid varandra) skakighet, ryck, ansiktets form över tiden, blicken och fingrarnas längd, med närbilder av ansiktet och händerna där något händer. Mäter med `live-bj/verktyg/mat.py --ensam`. Körs genom `node tools/domare-underlag.ts`. | Domaren (skillen doma) |
 
 Användning står överst i varje skript. Kör alltid med `-I` (isolerat läge), från projektets mapp:
 
