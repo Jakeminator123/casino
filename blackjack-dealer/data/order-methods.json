@@ -718,20 +718,5 @@
       "setAt": "2026-11-17"
     }
   ],
-  "beslut": [
-    {
-      "card": "paow-givar-2-3-c1",
-      "at": "2026-11-23",
-      "question": "Håller givarna från A2.3 till plats 1–5, kort 1, med återgång?",
-      "words": "Ja, alla håller",
-      "source": "Beslut-kortet paow-givar-2-3-c1 (Prov givar-2-3-c1-20261123), besvarat av Jakob 2026-11-23 och uttaget ur data/decisions.json i commit 1fbb949; hans ord: \"Ja, alla håller\", och om högerhanden att den inte ska vara \"så vriden vid nedsläpp\". Filmerna är provets fem (assets/proofs/givar-2-3-c1-20261123/proof.json); deras domblock i banken är satta åt honom och orörda.",
-      "films": [
-        "paow-giv-2-3-p1-03-01",
-        "paow-giv-2-3-p2-02-01",
-        "paow-giv-2-3-p3-04-01",
-        "paow-giv-2-3-p4-02-01",
-        "paow-giv-2-3-p5-05-01"
-      ]
-    }
-  ]
+  "beslut": []
 }

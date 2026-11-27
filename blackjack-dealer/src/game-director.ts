@@ -46,8 +46,8 @@ export const revealStep = (label: string): Step | null => { const to = revealNod
 // NOT D.C3 (and so not D.C4 and later, which play the D.C3 film): with the first card's film the drawn card would lie 219 px (D.C3)
 // and 243 px (D.C4) right of her hand, measured for Paow 2026-11-13; that is a hand laying a card somewhere else, which Jakob calls
 // cheating with the card. Those cards are laid without a hand until a film of their own exists; D.C3 now has an editable place.
-// Per dealer: Paow's only.
-export const STAND_IN_FILM: Readonly<Record<string, Readonly<Record<string, string>>>> = {paow: {'D.C2': 'D.C1'}};
+// Per dealer: none since the dealer it was made for went to the archive (2026-11-27).
+export const STAND_IN_FILM: Readonly<Record<string, Readonly<Record<string, string>>>> = {};
 
 // The cards a dealer deals from another pose at the shoe than READY (anchor 2.1, the pinch), by the seat's first card: its second
 // card and every later card that plays the seat's film go the same way. No dealer has such a seat now: Paow's seat 6 was dealt

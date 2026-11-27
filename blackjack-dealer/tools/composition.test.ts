@@ -303,10 +303,11 @@ test('spelet spelar kompositionen: trädens filmer med bryggan emellan, vilan i 
   const playing = film.play(dealt.events, {table, records: cardRecords(table, cardFaces(dealt))});
   await new Promise(r => setTimeout(r, 0)); end(); const {gaps} = await playing; await new Promise(r => setTimeout(r, 0));
   const played = parts.flat(), nameOf = (p: Part) => p.path.split('/').at(-2) === 'x' ? p.path.split('/').at(-1)! : p.path.split('/')[2];
-  // Seat 4's two cards are Tatuerad's (the second with the seat's film), the dealer's two are lent by Casino (her second with
-  // the film of her first, the game's stand-in); every change of tree goes over the bridge, and the chain ends in Casino's rest.
+  // Seat 4's two cards are Tatuerad's (the second with the seat's film), the dealer's first is lent by Casino and her second is
+  // laid without a hand (the game has no stand-in film for it, src/game-director.ts STAND_IN_FILM); every change of tree goes over
+  // the bridge, and the chain ends in Casino's rest.
   const tattooed = ['dit.mp4', 't-in', 't-giv', 't-retur', 't-ut', 'hem.mp4'], lent = ['c-in', 'c-dealer', 'c-dealer-hem'];
-  assert.deepEqual(played.filter(p => !p.rest).map(nameOf), [...tattooed, ...lent, ...tattooed, ...lent]);
+  assert.deepEqual(played.filter(p => !p.rest).map(nameOf), [...tattooed, ...lent, ...tattooed]);
   assert.deepEqual(gaps.filter(g => g.startsWith('Skarv') || g.includes('börjar på')), [], 'ingen skarv utan brygga');
   const rest = played.at(-1)!;
   assert.ok(rest.rest && rest.path.includes('c-vila') && rest.rate === undefined, 'efter kedjan vilar hon i hemmaträdets vilofilm, som filmad');
