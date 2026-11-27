@@ -298,6 +298,10 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     rör vid dealerns egna kort i det riktiga klippet: i slutet låg minst åtta kort i stället för tre. En rörelse lyft
     ur en riktig dealer bär grepp om kort som inte finns i vår scen, och Aleph ritar in dem. I femte provet höll
     styrbilder vid stoppen ansiktet, men där försvann korten i varje stopp; här finns inget stopp med tomt bord.
+  - **Vem som spelar förlagan spelar liten roll, också hos Aleph 2:** med Tomasz egen figur på Danilos skelett (mörkblå
+    skjorta, klocka) i stället för den neutrala dockan, samma styrbild och samma text blev det nästan samma film (0,99
+    mellan dem, kortet inom 0,6 bildpunkter). Ansiktet höll sig en aning närmare honom mot slutet, men figurens klocka
+    följde med och det lagda kortet fick ett tryck; skjortan kom ur styrbilden. Den neutrala dockan räcker som förlaga.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: Kling 4 med styrbilden som första bild och filmen som lös förlaga
