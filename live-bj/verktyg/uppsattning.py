@@ -58,7 +58,7 @@ def main():
     result['shoe'] = {'how': 'measured where it stands on the felt (corners read by eye, 1 to 2 cm); its back\'s height and its front plate measured from the picture. A clear box: the front is a plate leaning back from the '
                              'foot\'s two front corners.',
                       'foot': [lens(p) for p in shoe['footMetres']], 'foot_note': 'front corner by the dealer, front corner toward the players, back corner', 'foot_length': shoe['footLength'], 'foot_width': shoe['footWidth'],
-                      'back_height': height_at(shoe['outline'][3], shoe['footMetres'][2][1]),
+                      'back_height': height_at(shoe['outline'][3], shoe['footMetres'][2][1]), 'front_plate_top_if_upright': height_at(shoe['front_plate'][1], shoe['footMetres'][1][1]),
                       'front_plate': {'how': 'measured: each top corner taken to lie straight back and up from its foot corner, on its own line of sight. The two corners should agree; where they differ, that is the reading\'s error.',
                                       'corners': [lens3(p) for p in card], 'corners_note': 'foot corner by the dealer, foot corner toward the players, top toward the players, top by the dealer',
                                       'top_height': [round(h, 3) for _, h in lean], 'top_back_from_foot': [round(a, 3) for a, _ in lean], 'lean_back_degrees': [round(math.degrees(math.atan2(a, h)), 1) for a, h in lean],

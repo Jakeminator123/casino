@@ -450,6 +450,7 @@
   "foot_length": 0.274,
   "foot_width": 0.103,
   "back_height": 0.117,
+  "front_plate_top_if_upright": 0.108,
   "front_plate": {
    "how": "measured: each top corner taken to lie straight back and up from its foot corner, on its own line of sight. The two corners should agree; where they differ, that is the reading's error.",
    "corners": [

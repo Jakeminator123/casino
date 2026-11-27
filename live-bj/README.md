@@ -251,5 +251,5 @@ kedjan körs de senare om.
 - Låta `ram.py` se inzoomningen (smala kontrollrutor intill bildens kant) och köra om `mat.py` för de två partierna.
 
 **Det som kräver filmen:** allt ovan utom lyften och stilarna. Filmen ligger inte i Git; den hämtas med kommandot
-i tabellen, och `matt/` (måtten per ruta, 180 MB) görs om med `mat.py` och `kort.py` på ungefär en timme. Finns
+i tabellen, och `matt/` (måtten per ruta, 160 MB) görs om med `mat.py` och `kort.py` på ungefär en timme. Finns
 `matt/` kvar på datorn behövs filmen bara för att titta (`titta.py`, `streck.py`, `overlagg.py`).
