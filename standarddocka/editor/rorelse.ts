@@ -15,12 +15,15 @@ export type Card = {c: number[]; l: number[]; n: number[]; id?: number};
 /**
  * Ansiktet i en ruta: hur mycket av var ansiktsform som är på, 0–1 efter formens namn (dockorna har 30, med ARKits namn:
  * eyeBlinkLeft, browInnerUp, mouthSmileRight …; avatar-auto-pipeline/new_docka.md 7.7). En form som inte står är i vila.
- * Grundrörelserna har inget ansikte; det läggs på av de små egna rörelserna (medRundliv).
+ * Standardens grundrörelser har inget ansikte; det läggs på av de små egna rörelserna (medRundliv). De lyfta rörelserna
+ * vid livebordet (ensam) bär den riktiga dealerns min.
  */
 export type Ansikte = Record<string, number>;
 export type Frame = {card: Card; L: Limb; R: Limb; h: number[]; g: number[]; a?: Ansikte};
 /** En sparad rörelse som den ligger i dealer3d/data (bara det editorn läser). */
 export type Motion = {fps: number; frameCount: number; hip: number[]; frames: Frame[]; leavesShoe: number; edge: number[]; folds: number; rests: number; doll?: string; film?: string;
+  /** Kortplatsen given går till (P<plats>.C<kort>), i de lyfta rörelserna vid livebordet en lista med en. */
+  to?: string | string[];
   /** Givens märke (blackjack-dealer/dealer3d/src/koreo-giv.ts GivMarke): vilken hand som ger, hur kortet vänds och hur det sätts ned. */
   marke?: {hander: 'tva' | 'vanster'; vands: 'pa-vagen' | 'vid-platsen' | 'ande-over-ande'; satts: 'langsida' | 'kortsida' | 'plant'}};
 /** Givens märke i vanliga ord, för statusraden: tomt för en giv utan märke (de äldre). */
@@ -176,7 +179,13 @@ export type BlickTider = {fran: number; full: number};
  * `runda` finns bara i en hel runda (rundaAv): flera givar efter varandra. Där beskriver `forsta`, `andra`,
  * `forskjutning`, `plats` och `blick` den första given, och blicken följer rundans egen kurva (blickenFoljer).
  */
-export type Foljd = {fps: number; frames: Frame[]; hip: V3; delar: Del[]; spann: Del[]; skarv: Skarv; held: {R: number; L: number}[]; stilla: {R: number; L: number}[]; blick: BlickTider; forsta: Motion; andra: Motion; forskjutning: number; plats: number; kortTecken: number[]; runda?: Runda};
+export type Foljd = {fps: number; frames: Frame[]; hip: V3; delar: Del[]; spann: Del[]; skarv: Skarv; held: {R: number; L: number}[]; stilla: {R: number; L: number}[]; blick: BlickTider; forsta: Motion; andra: Motion; forskjutning: number; plats: number; kortTecken: number[]; runda?: Runda; sekvens?: Sekvens};
+/**
+ * En sekvens av lyfta rörelser vid livebordet (sekvens nedan): `borjar` är rutorna där en ny rörelse tar över (kortet står
+ * i skon igen och glider inte dit mellan två rutor), `lagda` korten som ligger kvar på sin plats från rutan där de lades,
+ * och `skarvar` hur långt dockan hoppar där två rörelser möts (millimeter, bålen, armarna, händerna och huvudet).
+ */
+export type Sekvens = {borjar: number[]; lagda: {ruta: number; kort: Card}[]; skarvar: {fran: string; till: string; mm: number}[]};
 
 /** Hur långt varje led hoppar mellan två rutor, i meter (för skarven). */
 function hopp(a: Frame, b: Frame, hipA: number[], hipB: number[]): Record<string, number> {
@@ -226,14 +235,7 @@ export function sattIhop(forsta: Motion, andra: Motion, plats: number): Foljd {
   }
   const efter = hopp(lagd[sista], b0, andra.hip, andra.hip);
   const frames = [...lagd.slice(0, sista), ...andra.frames.map(kopia)], fps = forsta.fps, skon = sista / fps, ligger = sista + andra.rests;
-  // Vilken hand som håller kortet i varje ruta (vidKortet); delas mellan händerna när båda håller (när det lämnas
-  // över). När kortet har lagts håller ingen det.
-  const held = frames.map((f, i) => { if (i >= ligger) return {R: 0, L: 0};
-    let R = vidKortet(f.R, f.card.c), L = vidKortet(f.L, f.card.c); const sum = R + L; if (sum > 1) { R /= sum; L /= sum; } return {R, L}; });
-  const lamnar = (sista + andra.leavesShoe) / fps;
-  // Var en hand ligger stilla: handleden rör sig mindre än 1,5 mm per ruta i de sju rutorna omkring.
-  const steg = (i: number, s: 'R' | 'L') => dist(frames[i][s].w, frames[i - 1][s].w);
-  const stilla = frames.map((_, i) => { const lugn = (s: 'R' | 'L') => { let mest = 0; for (let j = Math.max(1, i - 3); j <= Math.min(frames.length - 1, i + 3); j++) mest = Math.max(mest, steg(j, s)); return smooth(1 - mest / 0.0015); }; return {R: lugn('R'), L: lugn('L')}; });
+  const held = heldAv(frames, ligger), stilla = stillaAv(frames), steg = (i: number, s: 'R' | 'L') => dist(frames[i][s].w, frames[i - 1][s].w);
   const delar: Del[] = [{namn: 'Vilan till skon', fran: 0, till: skon}, {namn: `Kortet till plats ${plats}`, fran: skon, till: ligger / fps}, {namn: 'Tillbaka', fran: ligger / fps, till: (frames.length - 1) / fps}];
   // Var i varje del något rör sig: från första till sista rutan där en handled, en fingertopp eller kortet flyttar sig
   // mer än 1 mm, med en rutas marginal. Det som står stilla före och efter hör till ankaret och räknas inte in i delens
@@ -253,15 +255,74 @@ export function sattIhop(forsta: Motion, andra: Motion, plats: number): Foljd {
     let fran = Math.max(a, forst - 1), till = Math.min(b, sist + 1);
     while (fran > a && glid(fran, a) > GLID) fran--; while (till < b && glid(till, b) > GLID) till++;
     return {namn: d.namn, fran: fran / fps, till: till / fps}; });
-  // Kortets långsida åt samma håll i varje ruta, räknat bakåt från sista rutan (där kortet ligger med långsidan mot
-  // dealern): ett kort och samma kort med ändarna bytta är ett, och en grundrörelse kan ge långsidan åt vilket håll som
-  // helst. Utan det vändes kortets bild ett halvt varv på en ruta där grundrörelsen byter håll (givarna till plats 6 och 7
-  // gör det vid ruta 21). Bildens överkant ritas åt långsidans håll (scen.ts).
-  const kortTecken = frames.map(() => 1);
-  for (let i = frames.length - 2; i >= 0; i--) kortTecken[i] = kortTecken[i + 1] * (dot(frames[i].card.l, frames[i + 1].card.l) < 0 ? -1 : 1);
-  return {fps, frames, hip: [andra.hip[0], andra.hip[1], andra.hip[2]], held, stilla, forsta, andra, forskjutning: sista, plats, delar, spann, kortTecken,
+  return {fps, frames, hip: [andra.hip[0], andra.hip[1], andra.hip[2]], held, stilla, forsta, andra, forskjutning: sista, plats, delar, spann, kortTecken: kortTeckenAv(frames),
     blick: {fran: 0, full: skon},
     skarv: {fore, efter, jamnasUt: [fran / fps, till / fps]}};
+}
+/**
+ * Vilken hand som håller kortet i varje ruta (vidKortet); delas mellan händerna när båda håller (när det lämnas över).
+ * Från rutan `ligger`, där kortet har lagts, håller ingen det.
+ */
+function heldAv(frames: Frame[], ligger: number): {R: number; L: number}[] {
+  return frames.map((f, i) => { if (i >= ligger) return {R: 0, L: 0};
+    let R = vidKortet(f.R, f.card.c), L = vidKortet(f.L, f.card.c); const sum = R + L; if (sum > 1) { R /= sum; L /= sum; } return {R, L}; });
+}
+/** Var en hand ligger stilla: handleden rör sig mindre än 1,5 mm per ruta i de sju rutorna omkring. */
+function stillaAv(frames: Frame[]): {R: number; L: number}[] {
+  const steg = (i: number, s: 'R' | 'L') => dist(frames[i][s].w, frames[i - 1][s].w);
+  return frames.map((_, i) => { const lugn = (s: 'R' | 'L') => { let mest = 0; for (let j = Math.max(1, i - 3); j <= Math.min(frames.length - 1, i + 3); j++) mest = Math.max(mest, steg(j, s)); return smooth(1 - mest / 0.0015); }; return {R: lugn('R'), L: lugn('L')}; });
+}
+/**
+ * Kortets långsida åt samma håll i varje ruta, räknat bakåt från sista rutan (där kortet ligger med långsidan mot
+ * dealern): ett kort och samma kort med ändarna bytta är ett, och en grundrörelse kan ge långsidan åt vilket håll som
+ * helst. Utan det vändes kortets bild ett halvt varv på en ruta där grundrörelsen byter håll (givarna till plats 6 och 7
+ * gör det vid ruta 21). Bildens överkant ritas åt långsidans håll (scen.ts).
+ */
+function kortTeckenAv(frames: Frame[]): number[] {
+  const kortTecken = frames.map(() => 1);
+  for (let i = frames.length - 2; i >= 0; i--) kortTecken[i] = kortTecken[i + 1] * (dot(frames[i].card.l, frames[i + 1].card.l) < 0 ? -1 : 1);
+  return kortTecken;
+}
+/**
+ * En rörelse ensam, som den är, ruta för ruta: en rörelse lyft ur livebordets film (dealer3d/data/lyft-<docka>-*.json,
+ * dealer3d/tools/lyft-till-docka.ts) går från dockans vila till vilan i en och samma fil, så ingen vila till skon sätts
+ * framför (sattIhop) och ingen skarv jämnas ut. En giv har tre delar: till skon (tills kortet lämnar skon), kortet till
+ * platsen (tills det ligger) och tillbaka till vilan; en väntan, där kortet står kvar i skon, är en enda del. Takten är
+ * rörelsens egen (editorn spelar den som en grundrörelse på prov, utan STANDARDTAKT), och blicken är rörelsens egen hela
+ * tiden: editorn ger då ingen kamera att se mot.
+ */
+export function ensam(m: Motion, plats: number): Foljd {
+  const frames = m.frames.map(kopia), n = frames.length, fps = m.fps, slut = (n - 1) / fps;
+  const giv = Number.isInteger(m.leavesShoe) && Number.isInteger(m.rests) && m.leavesShoe >= 0 && m.rests > m.leavesShoe && m.rests < n;
+  // En väntan har inget kort som lämnar skon: rutorna sätts bortom rörelsen, så att ingen hand håller kortet (greppVid).
+  const lamnar = giv ? m.leavesShoe : n, ligger = giv ? m.rests : n, andra: Motion = {...m, leavesShoe: lamnar, rests: ligger, folds: Number.isInteger(m.folds) ? m.folds : ligger, edge: m.edge ?? []};
+  const delar: Del[] = giv ? [{namn: 'Till skon', fran: 0, till: lamnar / fps}, {namn: `Kortet till plats ${plats}`, fran: lamnar / fps, till: ligger / fps}, {namn: 'Tillbaka till vilan', fran: ligger / fps, till: slut}] : [{namn: 'Väntan', fran: 0, till: slut}];
+  return {fps, frames, hip: [m.hip[0], m.hip[1], m.hip[2]], held: heldAv(frames, giv ? ligger : 0), stilla: stillaAv(frames), forsta: andra, andra, forskjutning: 0, plats, delar, spann: delar.map(d => ({...d})), kortTecken: kortTeckenAv(frames),
+    blick: {fran: 0, full: 0}, skarv: {fore: {}, efter: {}, jamnasUt: [0, 0]}};
+}
+/**
+ * Flera lyfta rörelser efter varandra i en tagning vid livebordet (en väntan, givar till några platser, en väntan). Var och
+ * en går från dockans vila till vilan, så de möts redan i ankaret: nästa rörelses första ruta (samma ankare) tas bort, så
+ * att de går i ett svep utan stopp, som rundaAv utan stillhet. Varje rörelse spelas som den är (ensam), och är en del. Ett
+ * kort som har lagts ligger kvar på sin plats resten av tagningen (`sekvens.lagda`), medan nästa kort står i skon från
+ * nästa rörelses första ruta. Hur väl rörelserna möts står i `sekvens.skarvar`.
+ */
+export function sekvens(rorelser: readonly (Namngiven & {plats: number | null})[]): Foljd {
+  if (!rorelser.length) throw Error('En sekvens har minst en rörelse.');
+  const m0 = rorelser[0].rorelse, fps = m0.fps;
+  for (const x of rorelser) if (x.rorelse.fps !== fps || dist(x.rorelse.hip, m0.hip) > 1e-6) throw Error(`Sekvensens rörelser är inte gjorda för samma docka: ${x.namn} och ${rorelser[0].namn} har olika höft eller antal rutor per sekund.`);
+  const frames: Frame[] = [], held: {R: number; L: number}[] = [], kortTecken: number[] = [], delar: Del[] = [], s: Sekvens = {borjar: [], lagda: [], skarvar: []};
+  const kropp = (f: Frame) => [f.h, f.g, ...(['R', 'L'] as const).flatMap(k => [f[k].s, f[k].e, f[k].w, ...f[k].p])];
+  rorelser.forEach((x, k) => {
+    const e = ensam(x.rorelse, x.plats ?? 0), off = k ? frames.length - 1 : 0, bort = k ? 1 : 0, giv = e.delar.length === 3, vantan = /vantan-(\d+)$/.exec(x.namn)?.[1];
+    if (k) { const a = kropp(frames[off]), b = kropp(e.frames[0]); s.skarvar.push({fran: rorelser[k - 1].namn, till: x.namn, mm: Math.round(Math.max(...a.map((p, i) => dist(p, b[i]))) * 10000) / 10}); s.borjar.push(off + 1); }
+    frames.push(...e.frames.slice(bort)); held.push(...e.held.slice(bort)); kortTecken.push(...e.kortTecken.slice(bort));
+    if (giv) s.lagda.push({ruta: off + x.rorelse.rests, kort: kopia(e.frames[e.frames.length - 1]).card});
+    delar.push({namn: giv ? `Kortet till plats ${x.plats}` : vantan ? `Väntan ${vantan}` : x.namn, fran: off / fps, till: (off + e.frames.length - 1) / fps});
+  });
+  const n = frames.length, andra: Motion = {...m0, frames, frameCount: n, leavesShoe: n, rests: n, folds: n, edge: []}, forstaGiv = rorelser.find(x => x.plats);
+  return {fps, frames, hip: [m0.hip[0], m0.hip[1], m0.hip[2]], held, stilla: stillaAv(frames), forsta: andra, andra, forskjutning: 0, plats: forstaGiv?.plats ?? 0, delar, spann: delar.map(d => ({...d})), kortTecken,
+    blick: {fran: 0, full: 0}, skarv: {fore: {}, efter: {}, jamnasUt: [0, 0]}, sekvens: s};
 }
 export const langd = (f: Foljd) => (f.frames.length - 1) / f.fps;
 
@@ -374,7 +435,7 @@ export function klipplista(f: Foljd, docka: string, liv?: Liv) {
     docka, fps: f.fps, rutor: f.frames.length, sekunder: Math.round(f.frames.length / f.fps * 1000) / 1000, stillhet: {sekunder: f.runda.stillhet, rutor: {vila: Math.round(f.runda.stillhet.vila * f.fps), efter: Math.round(f.runda.stillhet.efter * f.fps), fore: Math.round(f.runda.stillhet.fore * f.fps)}}, klipp: f.runda.klipp, liv: liv?.delar.length ? liv : null, matt: rundansMatt(f, liv)};
 }
 /** Var i rutorna tiden t är. I en runda är en tid som är en hel ruta, sånär som på räkningens avrundning, den rutan: där byter kortet klipp mellan två rutor (rutaVid). */
-const rutplats = (f: Foljd, t: number) => { const at = Math.max(0, Math.min(f.frames.length - 1, t * f.fps)), hel = Math.round(at); return f.runda && Math.abs(at - hel) < 1e-6 ? hel : at; };
+const rutplats = (f: Foljd, t: number) => { const at = Math.max(0, Math.min(f.frames.length - 1, t * f.fps)), hel = Math.round(at); return (f.runda || f.sekvens) && Math.abs(at - hel) < 1e-6 ? hel : at; };
 /** Hur mycket blicken är rörelsens egen vid tiden t (0: mot kameran): i en runda rundans egen kurva, räknad ruta för ruta, annars följdens (foljerKortet). */
 export function blickenFoljer(f: Foljd, t: number, spelad: Spelad = RAK): number {
   if (!f.runda) return foljerKortet(f.blick, t, spelad);
@@ -434,12 +495,15 @@ export function rutaVid(f: Foljd, t: number): {frame: Frame; held: {R: number; L
   const limb = (s: 'R' | 'L'): Limb => ({s: mix(a[s].s, b[s].s, k), e: mix(a[s].e, b[s].e, k), w: mix(a[s].w, b[s].w, k), k: a[s].k, p: a[s].p.map((p, j) => mix(p, b[s].p[j], k))});
   // I en runda glider kortet inte från sin plats tillbaka till skon mellan två klipp: det ligger kvar till nästa klipps
   // första ruta och står då i skon (kk är 0 mellan de två rutorna; annars blandas kortet som resten).
-  const kk = f.runda?.klipp.some(x => x.forsta === i + 1) ? 0 : k;
+  const kk = f.runda?.klipp.some(x => x.forsta === i + 1) || f.sekvens?.borjar.includes(i + 1) ? 0 : k; // (likadant i en sekvens vid livebordet, sekvens ovan)
   // Ett kort och samma kort med ändarna bytta är ett: långsidan tas åt samma håll i båda rutorna innan de blandas.
   const al = f.kortTecken[i] < 0 ? mul(a.card.l, -1) : a.card.l, bl = dot(al, b.card.l) < 0 ? mul(b.card.l, -1) : b.card.l, long = norm(mix(al, bl, kk)), toward = mix(a.card.n, b.card.n, kk), d = dot(toward, long);
   const card: Card = {c: mix(a.card.c, b.card.c, kk), l: long, n: norm(sub(toward, mul(long, d)))};
   const hi = f.held[i], hj = f.held[i + 1], si = f.stilla[i], sj = f.stilla[i + 1];
-  return {frame: {card, R: limb('R'), L: limb('L'), h: mix(a.h, b.h, k), g: mix(a.g, b.g, k)}, held: {R: hi.R + (hj.R - hi.R) * k, L: hi.L + (hj.L - hi.L) * k},
+  // Ansiktet, där rörelsen har ett (de lyfta rörelserna vid livebordet bär dealerns min i fältet a): varje form blandad
+  // mellan de två rutorna. Grundrörelserna utan ansikte får inget, som förut.
+  const ansikte = a.a || b.a ? Object.fromEntries([...new Set([...Object.keys(a.a ?? {}), ...Object.keys(b.a ?? {})])].map(n => [n, (a.a?.[n] ?? 0) + ((b.a?.[n] ?? 0) - (a.a?.[n] ?? 0)) * k])) : null;
+  return {frame: {card, R: limb('R'), L: limb('L'), h: mix(a.h, b.h, k), g: mix(a.g, b.g, k), ...(ansikte ? {a: ansikte} : {})}, held: {R: hi.R + (hj.R - hi.R) * k, L: hi.L + (hj.L - hi.L) * k},
     stilla: {R: si.R + (sj.R - si.R) * k, L: si.L + (sj.L - si.L) * k}};
 }
 

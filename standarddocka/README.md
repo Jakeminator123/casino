@@ -23,7 +23,8 @@ standarddocka/
                 tar emot det som sparas och gör film av inspelningens bilder (FFmpeg)
     editor.ts   sidan: tidslinjen, kamerorna, handtagen, Spara, Återställ, Spela in
     scen.ts     scenen: dockan (mannen eller kvinnan) i standardrummet (bordet, stolen och ljuset ur
-                ../blackjack-dealer/dealer3d/src/standard-room.ts, samma som studions dockvy ritar), kortet, kamerorna
+                ../blackjack-dealer/dealer3d/src/standard-room.ts, samma som studions dockvy ritar), kortet, kamerorna;
+                eller Danilo eller Frasse vid livebordet genom dess kamera (uppsättningen live, Livebordet nedan)
     rorelse.ts  rörelsen: grundrörelser efter varandra (dockans egna där de finns), skarven, takten, ändringarna
                 ovanpå, vem som håller kortet, och kontrollen av ett sparat lager (`lagretsFel`); och hela rundan i
                 en tagning (`rundaAv`) med sin klipplista och sina mått (`klipplista`, `rundansMatt`) och sina små
@@ -82,7 +83,8 @@ standarddocka/
   klipp/        filmerna Spela in gör: <rörelse>-<del>-<kamera>-<docka>[-nyckel].mp4, på prov
                 prov-[<vilan>-]<given>-<del>-<kamera>-<docka>.mp4 (1764 x 1174, 30 bilder i sekunden); hela rundan
                 runda-c1-<kamera>-<docka>[-nyckel][-liv].mp4 (kameran plats-1 … plats-7) med klipplistan
-                runda-c1-<docka>[-liv].json (-liv: med rundans små egna rörelser); en ny inspelning med samma
+                runda-c1-<docka>[-liv].json (-liv: med rundans små egna rörelser); vid livebordet
+                live-<rörelsen>-<del>-<kamera>-<docka>[-nyckel].mp4 (1728 x 972); en ny inspelning med samma
                 namn skriver över den förra; går inte in i Git
   STARTA editorn.cmd   dubbelklicka för att starta editorn och öppna den i webbläsaren
 ```
@@ -185,6 +187,30 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   en annan fil ur `../blackjack-dealer/dealer3d/data/` i stället för platsens, utan det sparade lagret och utan att
   kunna spara. En giv på prov utan vila börjar i vilan för den docka den är ritad för. Ett namn som inte är ett namn
   på en grundrörelse ger ett fel i stället för platsens vanliga rörelse. För den som gör om en grundrörelse.
+- **Livebordet** (`?uppsattning=live`, eller bara `?docka=danilo` / `?docka=frasse`; knapparna "Danilo (livebordet)"
+  och "Frasse (livebordet)"; `--uppsattning live` och `--docka danilo|frasse` i `verktyg/titta.ts`): det klonade
+  livebordet ur filmen av ett riktigt bord (`../blackjack-dealer/src/table-live.ts`) med Danilo eller Frasse, de två
+  dockorna efter de två riktiga dealrarna (`LIVE_DOLLS` i `dealer3d/src/doll.ts`), i sin egen storlek. Bordet är
+  `standardbord_live.glb`, lagt med sin kant på livebordets (z = -1,5375) och filten på y = 0 (`livebordet` i
+  `editor/scen.ts`); kameran `spel` är livebordets egen (ögat 0,6175 m över filten, 18,13 grader ned, rullad som filmen,
+  bilden 1728 x 972, som inspelningen också görs i). En plats kamera är en spelares vy från sin insatsruta
+  (`LIVE.betMarks`), efter standardens regel (`seatView`): livebordets kamera vriden kring lodlinjen genom kantens mitt
+  och flyttad så att den står till sin ruta som livebordets kamera till plats 4:s, 0,907 m bakom rutan, 0,6175 m över
+  filten, 18,13 grader ned, samma lins, utan rullningen. Sidan och uppifrån, liksom rummets ljus, står 49 cm närmare
+  kameran, där dealern sitter (`LIVE_FLYTT`). En lyft rörelse (`lyft-<docka>-p<plats>`, `lyft-<docka>-vantan-<n>`;
+  platsknapparna, "Väntan 1" och "Väntan 2", eller `?giv=`) spelas som den är, från vilan till vilan i sin egen takt
+  (`ensam` i `editor/rorelse.ts`), med dealerns blick och min (fältet `a`) och utan det sparade lagret: inget sparas
+  här. `?sekvens=vantan-1,p2,p4,p7,vantan-2` (knappen "Hela sekvensen", eller `?sekvens=1`: väntan 1, dockans alla lyfta
+  givar och väntan 2; `--sekvens` i `titta.ts`) spelar flera efter varandra i en tagning, i ett svep där de möts i vilan,
+  och korten som har lagts ligger kvar (`sekvens` i `editor/rorelse.ts`). Armregeln och spärren håller sig till
+  livebordets kant och filt. Klippen heter `live-<rörelsen>-<del>-<kamera>-<docka>[-nyckel].mp4` (kameran `kameran`,
+  `sidan`, `uppifran` eller `plats-N`; en sekvens `live-sekvens-<namnen>-hela-…`).
+  - **En annan kropp i dockans ställe:** `?docka=` väljer dockan, och med den rörelserna och måtten (`dollNamed`);
+    `?modell=<namn>` (`--modell <namn>`) lägger `avatar-auto-pipeline/assets/docka/standarddocka_<namn>.glb` i hennes
+    ställe, till exempel `?uppsattning=live&docka=danilo&giv=lyft-danilo-p4&modell=<namn>`. Modellen görs så stor att
+    armen (överarm och underarm, mätt på modellens egna ben) blir rörelsens dockas, 0,551 m för Danilo och Frasse
+    (mannens arm); en modell byggd på Danilos docka har redan den armen och står därför i sin egen storlek (faktorn 1).
+    Klippet får `-modell-<namn>` i namnet.
 - **Nyckelfärger:** med `?utseende=nyckel` i adressen (eller `--utseende nyckel` i `verktyg/titta.ts`) ritas scenen för
   film där dealern ska skiljas ut i efterhand: allt omkring honom grönt (Jakob 2026-11-26, som blackjack-dealers
   filmer), det vill säga bakgrunden grön och utan golv, bordet och markerbrickan gröna utan tryck, kasseringslådan

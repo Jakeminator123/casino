@@ -42,6 +42,8 @@ const FIXED: Record<string, string> = {
   '/avatar-auto-pipeline/assets/stol/dealerstol.glb': 'avatar-auto-pipeline/assets/stol/dealerstol.glb',
   '/blackjack-dealer/placements/default.json': 'blackjack-dealer/placements/default.json',
   '/blackjack-dealer/src/table-lens.ts': 'blackjack-dealer/src/table-lens.ts',
+  // Livebordets uppsättning (dockornas mått i dealer3d/src/doll.ts läser den, och editorns ?uppsattning=live).
+  '/blackjack-dealer/src/table-live.ts': 'blackjack-dealer/src/table-live.ts',
 };
 const NAME = '[a-z0-9][a-z0-9-]*';
 /** Mönstren: sidans egna filer, dockans moduler (blackjack-dealer/dealer3d/src), grundrörelserna (dealer3d/data, bara att läsa) och det som sparats i rorelser/. */

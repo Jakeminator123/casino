@@ -24,6 +24,15 @@
 //              [--kulor]  visa handtagen     [--panel]  hela fönstret med panelen     [--storlek 1600x1000]     [--port 4321]
 //              [--utseende nyckel]  rena färger på bakgrund, bord och kort (editor/scen.ts), för film där dealern ska skiljas ut
 //              [--docka kvinna]  kvinnan i stället för mannen (samma rörelse och samma sparade lager)
+//              [--uppsattning live] [--docka danilo|frasse]  det klonade livebordet genom sin egen kamera (spel är
+//                         livebordets, 1728 x 972, och inspelningen görs i den storleken), med Danilo (förval) eller Frasse;
+//                         --docka danilo eller frasse räcker. Platsen väljer dockans lyfta giv dit (lyft-<docka>-p<plats>),
+//                         --giv lyft-danilo-vantan-1 vilken lyft rörelse som helst; den spelas som den är, från vilan till
+//                         vilan i sin egen takt (editor/editor.ts LIVEBORD). Klippen heter live-<rörelsen>-<del>-<kamera>-<docka>
+//                         (kameran: kameran, sidan, uppifran, plats-N). Inte med --runda eller --vilan.
+//                         --sekvens vantan-1,p2,p4,p7,vantan-2 (namnen efter lyft-<docka>-; 1: väntan 1, alla dockans
+//                         lyfta givar och väntan 2) spelar dem efter varandra i en tagning, med korten kvar på bordet
+//                         (editor/rorelse.ts sekvens); klippet heter då live-sekvens-<namnen>-hela-<kamera>-<docka>.
 //              [--utan-vridben]  underarmens vridning läggs på ForeArm som i en docka utan vridben (för att jämföra)
 //              [--bord <namn>] [--modell <namn>]  en modell på prov: standardbord_<namn>.glb eller standarddocka_<namn>.glb
 //                         ur avatar-auto-pipeline/assets, för den som bygger om bordet eller dockan
@@ -72,6 +81,14 @@ const runda = spelaIn === 'runda' || flag('--runda');
 const rundliv = runda && flag('--liv') ? (/^[a-z,]+$/.test(arg('--liv') ?? '') ? arg('--liv')! : '1') : '';
 if (!spelaIn && !ut && !kor) throw Error('Säg vart bilderna ska: --ut <mapp>, eller --spela-in hela|given|runda|<första>-<sista>, eller --kor "<uttryck>".');
 if (runda && (arg('--giv') || arg('--vilan'))) throw Error('Rundan spelar dockans egna rörelser: den går inte ihop med --giv eller --vilan.');
+/** Dockan och uppsättningen (editorns ?docka= och ?uppsattning=): Danilo och Frasse sitter vid livebordet, som de väljer själva. */
+const docka = arg('--docka', 'man')!, livebord = arg('--uppsattning') === 'live' || docka === 'danilo' || docka === 'frasse';
+if (!['man', 'kvinna', 'danilo', 'frasse'].includes(docka)) throw Error(`--docka tar man, kvinna, danilo eller frasse, fick ${docka}.`);
+if (![undefined, 'standard', 'live'].includes(arg('--uppsattning'))) throw Error(`--uppsattning tar live (eller standard, förvalet), fick ${arg('--uppsattning')}.`);
+if (livebord && (docka === 'man' || docka === 'kvinna') && arg('--docka')) throw Error('Vid livebordet sitter Danilo och Frasse: --docka danilo eller frasse.');
+const sekvens = arg('--sekvens');
+if (sekvens !== undefined && (!livebord || !/^[a-z0-9][a-z0-9,-]*$/.test(sekvens) || arg('--giv'))) throw Error('--sekvens tar en lista av lyfta rörelser (vantan-1,p2,p4 eller 1), vid livebordet och utan --giv.');
+if (livebord && (runda || arg('--vilan'))) throw Error('Vid livebordet spelas en lyft rörelse i taget, från vilan till vilan: inte med --runda, --spela-in runda eller --vilan.');
 if (naraFran && (naraFran.length !== 3 || !naraFran.every(Number.isFinite))) throw Error('--nara-fran tar tre tal: x,y,z i meter.');
 if (![PORT, plats, W, H, ...tider].every(Number.isFinite) || plats < 1 || plats > 7) throw Error('--plats tar 1–7, och --tider, --storlek och --port tar tal.');
 for (const namn of ['--giv', '--vilan', '--bord', '--modell']) { const v = arg(namn); if (v !== undefined && !/^[a-z0-9][a-z0-9_-]*$/.test(v)) throw Error(`${namn} tar ett namn (små bokstäver, siffror, - och _, utan filändelse), fick ${v}.`); }
@@ -102,7 +119,7 @@ try {
   const cdp = (method: string, params: object = {}) => new Promise<any>((ok, fel) => { const id = ++nr; väntar.set(id, {ok, fel}); ws!.send(JSON.stringify({id, method, params})); });
   const kör = async (kod: string) => { const r = await cdp('Runtime.evaluate', {expression: kod, awaitPromise: true, returnByValue: true}); if (r.exceptionDetails) throw Error(`${kod.slice(0, 90)}: ${r.exceptionDetails.exception?.description ?? r.exceptionDetails.text}`); return r.result.value; };
   await cdp('Page.enable'); await cdp('Runtime.enable');
-  await cdp('Page.navigate', {url: `http://127.0.0.1:${PORT}/standarddocka/editor/?plats=${plats}&kamera=${kameror[0]}${flag('--kulor') ? '' : '&kulor=0'}${arg('--utseende') === 'nyckel' ? '&utseende=nyckel' : ''}${arg('--docka') === 'kvinna' ? '&docka=kvinna' : ''}${arg('--giv') ? `&giv=${arg('--giv')}` : ''}${arg('--vilan') ? `&vilan=${arg('--vilan')}` : ''}${arg('--bord') ? `&bord=${arg('--bord')}` : ''}${arg('--modell') ? `&modell=${arg('--modell')}` : ''}${flag('--utan-vridben') ? '&vridben=0' : ''}${runda ? `&runda=1${spelaIn === 'runda' || flag('--stillhet') ? '&stillhet=1' : ''}${rundliv ? `&liv=${rundliv}&fro=${Number(arg('--fro', '1'))}` : ''}` : ''}`});
+  await cdp('Page.navigate', {url: `http://127.0.0.1:${PORT}/standarddocka/editor/?plats=${plats}&kamera=${kameror[0]}${flag('--kulor') ? '' : '&kulor=0'}${arg('--utseende') === 'nyckel' ? '&utseende=nyckel' : ''}${docka !== 'man' ? `&docka=${docka}` : ''}${livebord ? '&uppsattning=live' : ''}${sekvens ? `&sekvens=${sekvens}` : ''}${arg('--giv') ? `&giv=${arg('--giv')}` : ''}${arg('--vilan') ? `&vilan=${arg('--vilan')}` : ''}${arg('--bord') ? `&bord=${arg('--bord')}` : ''}${arg('--modell') ? `&modell=${arg('--modell')}` : ''}${flag('--utan-vridben') ? '&vridben=0' : ''}${runda ? `&runda=1${spelaIn === 'runda' || flag('--stillhet') ? '&stillhet=1' : ''}${rundliv ? `&liv=${rundliv}&fro=${Number(arg('--fro', '1'))}` : ''}` : ''}`});
   for (let i = 0; ; i++) { await sleep(500); if (await kör('!!(window.editor && window.editor.ready)').catch(() => false)) break; if (i > 240) throw Error(`Editorn blev inte klar: ${await kör('document.querySelector("#fel").textContent').catch(() => '?')}`); }
   // Spara först, ur filen som den står: farten, de små rörelserna och ändringarna nedan sparas aldrig.
   if (flag('--spara')) console.log(`Sparat: ${JSON.stringify(await kör('window.editor.save()'))}`);
