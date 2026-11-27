@@ -2,9 +2,8 @@
 // huvuden, och Blenders svans är påhittad), så toppen mäts på huden: de hörn som hänger på det tredje benet, deras
 // längdaxel, fingrets slut längs den och fingrets radie strax innan. Toppens punkt är mitt i fingertoppens rundning, en
 // radie innanför slutet: där rörelsens toppkula (hand-rule.ts DRAWN) har sin mitt, så att kulan och huden rör kortet på
-// samma ställe. Mäts så av dealer3d/tools/docka-standard.ts (dockans hand) och dealer3d/src/figure-model.ts (hur det
-// tredje benet riktas). Rent: ingen I/O och ingen three.js.
-import {add, dot, length, mul, sub, unit, type Vec3} from './camera.ts';
+// samma ställe. Mäts så av dealer3d/src/figure-model.ts (hur det tredje benet riktas). Rent: ingen I/O och ingen three.js.
+import {add, dot, length, mul, sub, unit, type Vec3} from '../../src/space.ts';
 
 const medel = (p: Vec3[]): Vec3 => mul(p.reduce((s, q) => add(s, q), [0, 0, 0] as Vec3), 1 / p.length);
 /** Huvudaxeln i ett moln av punkter (potensmetoden på kovariansen), åt samma håll som `ungefar`. */

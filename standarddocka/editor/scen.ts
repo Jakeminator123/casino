@@ -1,134 +1,71 @@
-// Scenen i editorn: Blenders bord, stol och man (avatar-auto-pipeline/assets) i dockans linsvärld, med ljus som liknar
-// Blenders bilder, kortet som rörelsen delar och kamerorna. Mannen ställs med dockans egen kod
-// (blackjack-dealer/dealer3d/src/figure-model.ts), en ruta som dealer3d/src/stage.ts gör det. Med uppsättningen live
-// (Uppsattning nedan) är det livebordet, dess kamera och Danilo eller Frasse i stället.
+// Scenen i editorn: livebordet (avatar-auto-pipeline/assets/bord/standardbord_live.glb), stolen och Danilo eller Frasse
+// i livebordets linsvärld (blackjack-dealer/src/table-live.ts), med ljus som liknar Blenders bilder, kortet som rörelsen
+// delar och kamerorna. Dockan ställs med dockans egen kod (blackjack-dealer/dealer3d/src/figure-model.ts).
 import * as T from 'three';
 import {loadFigure, type Figure} from '../../blackjack-dealer/dealer3d/src/figure-model.ts';
-import {DOLLS, MAN, dollNamed} from '../../blackjack-dealer/dealer3d/src/doll.ts';
-import {ROOM_EDGE, loadTable, roomLight, seatStool, type RoomTable} from '../../blackjack-dealer/dealer3d/src/standard-room.ts';
-import {spots, type Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
-import {FILM, PLAY_LENS, TABLE_LENS, filmEye, fovYDeg, seatView} from '../../blackjack-dealer/src/table-lens.ts';
+import {dollNamed} from '../../blackjack-dealer/dealer3d/src/doll.ts';
 import {LIVE, LIVE_CAMERA, liveFrame} from '../../blackjack-dealer/src/table-live.ts';
-import {UPPSATTNING, type UppsattningId} from '../../blackjack-dealer/src/uppsattning.ts';
+import {STANDARD} from '../../blackjack-dealer/src/standard.ts';
+import {RUMMETS_Z, loadTable, roomLight, seatStool} from './rum.ts';
 import {cross, type Frame, type V3} from './rorelse.ts';
 
-/**
- * Uppsättningen (blackjack-dealer/src/uppsattning.ts, listan som allt som väljer läser): 'live' är det klonade livebordet
- * (blackjack-dealer/src/table-live.ts LIVE), den nya standarden och förvalet: dess bord (avatar-auto-pipeline/assets/bord/
- * standardbord_live.glb), dess kamera (LIVE_CAMERA: rullad, med en egen bild 1728 x 972), dess kortplatser och dess två
- * dockor, Danilo och Frasse. 'forra' är förra standardens bord, kamera och kortplatser (blackjack-dealer/src/table-lens.ts)
- * med mannen och kvinnan; dess väg är densamma som innan valet fanns.
- */
-export type Uppsattning = UppsattningId;
-/** Dockorna vid livebordet (dealer3d/src/doll.ts LIVE_DOLLS): de hör till uppsättningen live. */
+/** Dockorna vid livebordet (dealer3d/src/doll.ts LIVE_DOLLS). */
 export type Livedocka = 'danilo' | 'frasse';
-export const LIVEDOCKOR = UPPSATTNING.live.dockor as readonly Livedocka[];
+export const LIVEDOCKOR = STANDARD.dockor as readonly Livedocka[];
 export const arLivedocka = (namn: string | null | undefined): namn is Livedocka => (LIVEDOCKOR as readonly string[]).includes(namn ?? '');
-/** Filmens bild för en uppsättning: standardens (FILM) eller livebordets egen (LIVE_CAMERA.film); inspelningen görs i den. */
-export const filmFor = (u: Uppsattning) => UPPSATTNING[u].bild;
-/**
- * Hur mycket närmare kameran (+z, meter) dealern sitter vid livebordet än standarddockan vid standardens: hans axlar
- * (LIVE.edge och LIVE.dealer.behindEdge) mot mannens (spelets kant och MAN.place.behindEdge). Rummets ljus och kamerorna
- * från sidan och uppifrån flyttas så mycket, så att de står till dealern som de står till mannen.
- */
-const MANS_PLATS = MAN.place as {behindEdge: number};
-export const LIVE_FLYTT = (LIVE.edge[2] - LIVE.dealer.behindEdge) - (ROOM_EDGE[2] - MANS_PLATS.behindEdge);
+/** Filmens bild (livebordets egen, 1728 x 972): inspelningen görs i den. */
+export const FILMBILD = LIVE_CAMERA.film;
 
-// Rummet (bordet med skon och brickan, stolen under honom, golvet och ljuset) är standardrummet i
-// blackjack-dealer/dealer3d/src/standard-room.ts, samma som studions dockvy ritar: där står också regeln för stolen
-// och hur Blenders modeller läggs i linsvärlden. (standard.yaml:s egen regel för stolen, höftleden 9 cm över sitsen,
-// gäller dockans höft; mannens höftled ligger 3–4 cm högre än rörelsens, så sitsen ställs efter hans kropp.)
-const MODELLER = {man: '/avatar-auto-pipeline/assets/docka/standarddocka_man.glb', kvinna: '/avatar-auto-pipeline/assets/docka/standarddocka_kvinna.glb', bord: '/avatar-auto-pipeline/assets/bord/standardbord_nara.glb', bord23: '/avatar-auto-pipeline/assets/bord/standardbord_nara23.glb', stol: '/avatar-auto-pipeline/assets/stol/dealerstol.glb',
-  danilo: '/avatar-auto-pipeline/assets/docka/standarddocka_danilo.glb', frasse: '/avatar-auto-pipeline/assets/docka/standarddocka_frasse.glb', bordLive: '/avatar-auto-pipeline/assets/bord/standardbord_live.glb'};
-/**
- * Livebordets modell har sitt origo på golvet under dess egen kant mot dealern (LIVE.edge), filten 0,95 m upp
- * (LIVE.floor.feltOverFloor; avatar-auto-pipeline/scen/bygg_bord.py --live): standardens omräkning (BLENDER_TO_LENS i
- * standard-room.ts, origo under spelets kant) gäller inte för den, så den läggs här i linsvärlden.
- */
-const LIVEBORDET: V3 = [LIVE.edge[0], -LIVE.floor.feltOverFloor, LIVE.edge[2]];
-/**
- * Livebordet lagt i linsvärlden (LIVEBORDET) efter att loadTable har lagt det som standardens, och dess mått räknade om
- * där: kanten mot dealern och skivans överkant ur filten (dem håller armregeln och spärren sig till, armar.ts och
- * kropp.ts), och bordets tryckta kortplatser och exempelkort mot LIVE.cards (millimeter), som standardens mäts mot kortplanen.
- */
-function livebordet(b: RoomTable): RoomTable {
-  b.root.position.set(...LIVEBORDET); b.root.updateMatrixWorld(true);
-  const mitt = (o: T.Object3D) => new T.Box3().setFromObject(o).getCenter(new T.Vector3()), mm = (p: T.Vector3, at: readonly number[]) => Math.round(Math.hypot(p.x - at[0], p.z - at[2]) * 10000) / 10;
-  const places = Object.entries(LIVE.cards).flatMap(([id, c]) => { const o = b.root.getObjectByName(`markering_${id.replace('.', '')}`); return o ? [{id, mm: mm(mitt(o), c.at)}] : []; });
-  const ex = b.root.getObjectByName('giv_P4C1'), felt = b.root.getObjectByName('bord_filt'), fb = felt ? new T.Box3().setFromObject(felt) : null;
-  return {...b, places, maxMm: places.length ? Math.max(...places.map(p => p.mm)) : NaN, cardP4Mm: ex ? mm(mitt(ex), LIVE.cards['P4.C1'].at) : NaN, edgeZ: fb ? fb.min.z : LIVE.edge[2], topY: fb ? fb.max.y : 0};
-}
-/**
- * Bordet en rörelse är ritad för, efter vilken docka rörelsen säger att den är gjord för (fältet `doll` i filen).
- * Standarddockans egna rörelser (dockorna man och kvinna) sitter kvar på kortplanens plats, och bordets kant och
- * bricka kommer till dem: kanten 23 cm bakom spelets kant (Jakob 2026-11-26: inte trångt framför dealern). De äldre
- * rörelserna (paow och den vita dockan) visas vid bordet de lagades för, med kanten 15 cm bakom, tills de är utbytta.
- */
-export const bordFor = (rorelsensDocka: string | null | undefined) => rorelsensDocka === 'man' || rorelsensDocka === 'kvinna' ? MODELLER.bord23 : MODELLER.bord;
-/** Spelets kant mot dealern: mitten av dealerns bordskant på filten (dockans linsvärld). */
-export const KANT = ROOM_EDGE as V3;
+// Rummet (bordet med skon, stolen under honom, golvet och ljuset) står i rum.ts.
+const MODELLER = {danilo: '/avatar-auto-pipeline/assets/docka/standarddocka_danilo.glb', frasse: '/avatar-auto-pipeline/assets/docka/standarddocka_frasse.glb',
+  bord: '/avatar-auto-pipeline/assets/bord/standardbord_live.glb', stol: '/avatar-auto-pipeline/assets/stol/dealerstol.glb'};
 
-/** Sidokameran: bildens bredd (meter, som Blenders 'sida') och hur många gånger längre bort än Blenders den står (kameraVy). */
-const SIDA = {bredd: 2.5, langre: 8};
-/** Kameran från en av de sex andra platserna vid bordet; plats 4 är spelets vy, 'spel'. */
+/** Kameran från en av de sex andra platserna vid bordet; plats 4 är livebordets kamera, 'spel'. */
 export type Platskamera = 'plats1' | 'plats2' | 'plats3' | 'plats5' | 'plats6' | 'plats7';
-/**
- * Kamerorna. 'spel' är spelets vy, standarden för standarddockans filmer (Jakob 2026-11-26, den lägre kameran: "Jag tror
- * jag gillar denna kameravinkel som standard faktiskt!"; talen är PLAY_LENS i blackjack-dealer/src/table-lens.ts): det
- * spelaren på plats 4 ser, och de andra platsernas kameror räknas ur den. 'film' är den gamla inspelningens kamera
- * (TABLE_LENS, 25 grader ned), den Paows filmer är tagna med.
- */
-export type Kamera = 'spel' | 'film' | 'sida' | 'topp' | 'fri' | Platskamera;
-const KAMEROR: readonly string[] = ['spel', 'film', 'sida', 'topp', 'fri', 'plats1', 'plats2', 'plats3', 'plats5', 'plats6', 'plats7'];
-/** En kamera ur ett namn i en adress eller ett verktyg. De äldre namnen 'lag' och 'mellan' och 'plats4' är spelets vy. */
-export const somKamera = (namn: string | null | undefined): Kamera | null => namn === 'lag' || namn === 'mellan' || namn === 'plats4' ? 'spel' : KAMEROR.includes(namn ?? '') ? namn as Kamera : null;
+/** Kamerorna. 'spel' är livebordets kamera (mätt i filmen); de andra platsernas räknas ur den. */
+export type Kamera = 'spel' | 'sida' | 'topp' | 'fri' | Platskamera;
+const KAMEROR: readonly string[] = ['spel', 'sida', 'topp', 'fri', 'plats1', 'plats2', 'plats3', 'plats5', 'plats6', 'plats7'];
+/** En kamera ur ett namn i en adress eller ett verktyg; 'plats4' är livebordets kamera. */
+export const somKamera = (namn: string | null | undefined): Kamera | null => namn === 'plats4' ? 'spel' : KAMEROR.includes(namn ?? '') ? namn as Kamera : null;
 /** Kameran för en plats 1–7 vid bordet. */
 export const platskamera = (plats: number): Kamera => plats === 4 ? 'spel' : `plats${plats}` as Platskamera;
 /** Platsen (1–7) en kamera står på, eller null för de kameror som inte är en spelares. */
 export const kameransPlats = (k: Kamera): number | null => k === 'spel' ? 4 : k.startsWith('plats') ? Number(k.slice(5)) : null;
-/**
- * De fasta kamerorna: läge, punkten de ser mot och lodrät bildvinkel i grader. En plats kamera följer spelets regel
- * (seatView i blackjack-dealer/src/table-lens.ts): den står till platsens första kort som spelets vy står till plats
- * 4:s, lika högt och lika brant, så att spelarens eget kort hamnar på samma ställe i bilden från varje plats.
- */
-export function kameraVy(k: Exclude<Kamera, 'fri'>, plan: Plan, uppsattning: Uppsattning): {pos: V3; mot: V3; fov: number; upp?: V3} {
-  if (uppsattning === 'live') return liveVy(k);
-  const z = KANT[2], oga = (e: {position: V3; forward: V3; focalPx: number}) => ({pos: e.position, mot: [e.position[0] + e.forward[0] * 2, e.position[1] + e.forward[1] * 2, e.position[2] + e.forward[2] * 2] as V3, fov: fovYDeg(e.focalPx)});
-  // Från hans högra sida: Blenders kamera 'sida' i scen/vy.py, den Jakob har dömt bilder från (ortografisk, bilden 2,5 m
-  // bred, från X -3,0 m, 0,05 m bakom spelets kant och 1,20 m över golvet, mot X 0 och 0,80 m över golvet; golvet ligger
-  // 0,95 m under filten, standard.yaml filt_z). Den här kameran har perspektiv, så den står SIDA.langre gånger längre bort
-  // längs samma siktlinje med en så smal vinkel att bilden blir lika stor: då är perspektivet nästan borta (ungefär 1 %
-  // mellan hans närmaste och bortre axel). Talen står två gånger, här och i vy.py, tills en uppställningsfil delas.
-  if (k === 'sida') { const golv = 0.95, mot: V3 = [0, 0.80 - golv, z - 0.05], fran: V3 = [-3.0, 1.20 - golv, z - 0.05], d = fran.map((n, i) => (n - mot[i]) * SIDA.langre), avst = Math.hypot(...d);
-    return {pos: mot.map((n, i) => n + d[i]) as V3, mot, fov: 2 * Math.atan(SIDA.bredd / (FILM.width / FILM.height) / 2 / avst) * 180 / Math.PI}; }
-  if (k === 'topp') return {pos: [0.06, 2.15, z + 0.32], mot: [0.06, 0, z + 0.1], fov: 42}; // uppifrån, han överst i bilden
-  if (k === 'film') return oga(filmEye(TABLE_LENS));
-  const spel = filmEye(PLAY_LENS), plats = kameransPlats(k);
-  if (!plats || plats === 4) return oga(spel);
-  const alla = spots(plan, TABLE_LENS), egen = alla.find(s => s.id === `P${plats}.C1`), fyra = alla.find(s => s.id === 'P4.C1');
-  if (!egen || !fyra) throw Error(`Planen saknar det första kortet för plats ${plats}.`);
-  return oga(seatView(spel, egen.at, fyra.at, KANT));
+/** Sidokameran: bildens bredd (meter, som Blenders 'sida') och hur många gånger längre bort än Blenders den står (kameraVy). */
+const SIDA = {bredd: 2.5, langre: 8};
+type Oga = {position: V3; forward: V3};
+/** Ögat flyttat runt den lodräta linjen genom `pivot`; en positiv vinkel (radianer) för det mot bildens höger. */
+function runt(e: Oga, pivot: V3, vinkel: number): Oga {
+  const c = Math.cos(vinkel), s = Math.sin(vinkel), vrid = (v: V3): V3 => [v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c];
+  const t = vrid([e.position[0] - pivot[0], e.position[1] - pivot[1], e.position[2] - pivot[2]]);
+  return {position: [pivot[0] + t[0], pivot[1] + t[1], pivot[2] + t[2]], forward: vrid(e.forward)};
+}
+/** Ögat för en annan plats: det står till platsens punkt (`egen`) som `vy` står till plats 4:s (`fyra`), vridet runt bordet så mycket som vinkeln mellan de två punkterna sedd från `pivot`. */
+function platsensOga(vy: Oga, egen: V3, fyra: V3, pivot: V3): Oga {
+  const baring = (p: V3) => Math.atan2(p[0] - pivot[0], p[2] - pivot[2]), t = runt(vy, fyra, baring(egen) - baring(fyra));
+  return {...t, position: [t.position[0] + egen[0] - fyra[0], t.position[1], t.position[2] + egen[2] - fyra[2]]};
 }
 /**
- * Kamerorna vid livebordet. 'spel' är livebordets kamera (LIVE_CAMERA, mätt i filmen): ögat 0,6175 m över filten rakt
- * över origo, 18,13 grader ned, rullad som filmen (liveFrame), med bildvinkeln ur brännvidden i sin egen bild (1728 x 972).
- * En plats kamera är en spelares vy från sin insatsruta (LIVE.betMarks; Jakob 2026-11-27: "en vinkel från ...
- * insatsplaceringssymboler"), efter standardens regel (seatView i blackjack-dealer/src/table-lens.ts): livebordets kamera
- * vriden kring lodlinjen genom mitten av livebordets kant så mycket som platsens insatsruta ligger vid sidan av plats
- * 4:s, sett därifrån, och flyttad så att den står till sin ruta som livebordets kamera står till plats 4:s: lika högt,
- * lika långt, lika brant och med samma lins, utan rullningen (-0,16 grader). Från sidan och uppifrån som vid standardens
- * bord, flyttade LIVE_FLYTT mot kameran så att de står till dealern som där. Den gamla kameran ('film') finns inte här:
- * den är livebordets.
+ * De fasta kamerorna: läge, punkten de ser mot och lodrät bildvinkel i grader. 'spel' är livebordets kamera (LIVE_CAMERA,
+ * mätt i filmen): ögat 0,6175 m över filten rakt över origo, 18,13 grader ned, rullad som filmen (liveFrame), med
+ * bildvinkeln ur brännvidden i sin egen bild (1728 x 972). En plats kamera är en spelares vy från sin insatsruta
+ * (LIVE.betMarks; Jakob 2026-11-27: "en vinkel från ... insatsplaceringssymboler"): livebordets kamera vriden kring
+ * lodlinjen genom mitten av livebordets kant så mycket som platsens insatsruta ligger vid sidan av plats 4:s, sett därifrån,
+ * och flyttad så att den står till sin ruta som livebordets kamera står till plats 4:s: lika högt, lika långt, lika brant och
+ * med samma lins, utan rullningen (-0,16 grader). Från sidan och uppifrån räknade från RUMMETS_Z (rum.ts).
  */
-function liveVy(k: Exclude<Kamera, 'fri'>): {pos: V3; mot: V3; fov: number; upp?: V3} {
-  const film = LIVE_CAMERA.film, fov = 2 * Math.atan(film.height / 2 / LIVE_CAMERA.focalPx) * 180 / Math.PI, z = KANT[2] + LIVE_FLYTT, lf = liveFrame();
-  const oga = (e: {position: V3; forward: V3}) => ({pos: e.position, mot: [e.position[0] + e.forward[0] * 2, e.position[1] + e.forward[1] * 2, e.position[2] + e.forward[2] * 2] as V3, fov});
+export function kameraVy(k: Exclude<Kamera, 'fri'>): {pos: V3; mot: V3; fov: number; upp?: V3} {
+  const film = LIVE_CAMERA.film, fov = 2 * Math.atan(film.height / 2 / LIVE_CAMERA.focalPx) * 180 / Math.PI, z = RUMMETS_Z, lf = liveFrame();
+  const oga = (e: Oga) => ({pos: e.position, mot: [e.position[0] + e.forward[0] * 2, e.position[1] + e.forward[1] * 2, e.position[2] + e.forward[2] * 2] as V3, fov});
+  // Från hans högra sida: Blenders kamera 'sida' (ortografisk, bilden 2,5 m bred, från X -3,0 m, 0,05 m bakom
+  // och 1,20 m över golvet, mot X 0 och 0,80 m över golvet). Den här kameran har perspektiv, så den står SIDA.langre gånger
+  // längre bort längs samma siktlinje med en så smal vinkel att bilden blir lika stor.
   if (k === 'sida') { const golv = LIVE.floor.feltOverFloor, mot: V3 = [0, 0.80 - golv, z - 0.05], fran: V3 = [-3.0, 1.20 - golv, z - 0.05], d = fran.map((n, i) => (n - mot[i]) * SIDA.langre), avst = Math.hypot(...d);
     return {pos: mot.map((n, i) => n + d[i]) as V3, mot, fov: 2 * Math.atan(SIDA.bredd / (film.width / film.height) / 2 / avst) * 180 / Math.PI}; }
-  if (k === 'topp') return {pos: [0.06, 2.15, z + 0.32], mot: [0.06, 0, z + 0.1], fov: 42};
+  if (k === 'topp') return {pos: [0.06, 2.15, z + 0.32], mot: [0.06, 0, z + 0.1], fov: 42}; // uppifrån, han överst i bilden
   const plats = kameransPlats(k);
-  if (k === 'film' || !plats || plats === 4) return {...oga(lf), upp: lf.up};
-  return oga(seatView({position: lf.position, forward: lf.forward, focalPx: LIVE_CAMERA.focalPx}, LIVE.betMarks[plats - 1], LIVE.betMarks[3], LIVE.edge));
+  if (!plats || plats === 4) return {...oga(lf), upp: lf.up};
+  return oga(platsensOga({position: lf.position, forward: lf.forward}, LIVE.betMarks[plats - 1] as V3, LIVE.betMarks[3] as V3, LIVE.edge as V3));
 }
 
 /**
@@ -162,7 +99,7 @@ export type Scen = {
   render(): void;
   setKamera(k: Kamera): void;
   storlek(): void;
-  /** Inspelningens läge på eller av: bilden ritas i filmens storlek (filmFor: FILM, eller livebordets 1728 x 972) i stället för fönstrets. */
+  /** Inspelningens läge på eller av: bilden ritas i filmens storlek (FILMBILD, 1728 x 972) i stället för fönstrets. */
   filmstorlek(pa: boolean): void;
   /** Ritar bilden som den står nu och lämnar den som PNG (för inspelningen, i filmens storlek). */
   bild(): Promise<Blob>;
@@ -173,41 +110,35 @@ export type Scen = {
   lagda(kort: readonly Frame['card'][]): void;
 };
 
-/** Vilken docka som visas: en av de två standarddockorna, eller vid livebordet Danilo eller Frasse. Alla har samma skelett,
- *  och en rörelse är händernas, armarnas och blickens lägen i rummet: kroppen ställs efter dem, så kvinnan gör samma
- *  rörelser som mannen utan att något görs om. */
-export type Docka = 'man' | 'kvinna' | Livedocka;
+/** Vilken docka som visas: Danilo eller Frasse. Båda har samma skelett, och en rörelse är händernas, armarnas och blickens
+ *  lägen i rummet: kroppen ställs efter dem. */
+export type Docka = Livedocka;
 
-export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: number[], vila: Frame, laddar: (text: string) => void, utseende: Utseende, docka: Docka, rorelsensDocka: string | null | undefined, uppsattning: Uppsattning): Promise<Scen> {
-  const nyckel = utseende === 'nyckel', live = uppsattning === 'live', film = filmFor(uppsattning);
+export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: Frame, laddar: (text: string) => void, utseende: Utseende, docka: Docka, rorelsensDocka: string | null | undefined): Promise<Scen> {
+  const nyckel = utseende === 'nyckel', film = FILMBILD;
   const renderer = new T.WebGLRenderer({canvas, antialias: true}); renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-  // Ljuset, bakgrunden, golvet och bildens tonkurva är standardrummets; nyckelfärgerna får en ren bakgrund och inget golv.
-  // Vid livebordet står ljuset och golvet LIVE_FLYTT närmare kameran, så att ljuset faller på dealern som på mannen.
-  const scene = new T.Scene(), fore = new Set(scene.children); roomLight(scene, renderer, nyckel ? {background: NYCKEL.bakgrund} : undefined);
-  if (live) for (const o of scene.children) if (!fore.has(o)) o.position.z += LIVE_FLYTT;
+  // Ljuset, bakgrunden, golvet och bildens tonkurva är rummets (rum.ts); nyckelfärgerna får en ren bakgrund och inget golv.
+  const scene = new T.Scene(); roomLight(scene, renderer, nyckel ? {background: NYCKEL.bakgrund} : undefined);
   const camera = new T.PerspectiveCamera(30, 1.5, 0.05, 40);
 
   // Kortet som delas: ett av bordets egna kort (samma utseende som Blenders); tills bordet har kommit ett enkelt kort.
   const card = new T.Group(); card.matrixAutoUpdate = false; scene.add(card);
 
-  // Dockan: mannen eller kvinnan, eller vid livebordet Danilo eller Frasse.
-  laddar(docka === 'kvinna' ? 'kvinnan' : docka === 'man' ? 'mannen' : docka === 'danilo' ? 'Danilo' : 'Frasse');
+  // Dockan: Danilo eller Frasse.
+  laddar(docka === 'danilo' ? 'Danilo' : 'Frasse');
   // En modell på prov (?modell=<namn> och ?bord=<namn> i adressen: standarddocka_<namn>.glb och standardbord_<namn>.glb
   // ur avatar-auto-pipeline/assets), för den som bygger om dockan eller bordet och vill se det innan det byts in.
   const prov = (nyckel: string) => { const n = new URLSearchParams(location.search).get(nyckel); return n && /^[a-z0-9_]+$/.test(n) ? n : null; };
   // ?vridben=0: underarmens vridning läggs på ForeArm som i en docka utan vridben (för att jämföra; figure-model.ts).
-  // Dockans storlek: spelar den sina egna rörelser (rorelse.ts EGNA) visas den i sin egen storlek, den som rörelserna,
-  // handens punkter och fingertopparna är mätta på. Spelar den en rörelse ritad för en annan kropp (de äldre, eller en
-  // modell på prov) görs den som förut så stor att armen blir standardfigurens, så att handlederna når.
-  // Danilo och Frasse spelar alltid sina egna rörelser och har sina mått bland livebordets dockor (dollNamed).
-  const egen = !prov('modell') && rorelsensDocka === docka ? (arLivedocka(docka) ? dollNamed(docka) : DOLLS[docka]) : null;
-  // Vid livebordet görs en annan kropp (en modell på prov, som Tomasz figur) så stor att armen blir den lyfta rörelsens
-  // dockas (Danilos eller Frasses, båda mannens arm), som rörelsens handleder är ritade för.
-  const lyftDocka = live && !egen && arLivedocka(rorelsensDocka) ? dollNamed(rorelsensDocka) : null, arm = egen ?? lyftDocka;
+  // Dockans storlek: spelar den sina egna rörelser visas den i sin egen storlek, den som rörelserna, handens punkter och
+  // fingertopparna är mätta på. En annan kropp (en modell på prov, som Tomasz figur) görs så stor att armen blir den lyfta
+  // rörelsens dockas (Danilos eller Frasses), som rörelsens handleder är ritade för.
+  const egen = !prov('modell') && rorelsensDocka === docka ? dollNamed(docka) : null;
+  const lyftDocka = !egen && arLivedocka(rorelsensDocka) ? dollNamed(rorelsensDocka) : null, arm = egen ?? lyftDocka;
   const figure = await loadFigure(prov('modell') ? `/avatar-auto-pipeline/assets/docka/standarddocka_${prov('modell')}.glb` : MODELLER[docka], {twistBones: prov('vridben') !== '0', ...(arm ? {arm: arm.upperArm + arm.forearm} : {})}); scene.add(figure.root);
   const bone = (name: string) => { const b = figure.root.getObjectByName(name); if (!b) throw Error(`Dockan saknar leden ${name}.`); return b.getWorldPosition(new T.Vector3()); };
   const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]);
-  /** En ruta på mannen, som dealer3d/src/stage.ts gör det: bålen ur axlarna och höften, armarna ur lederna, händerna ur sina 21 punkter, huvudet mot blicken. */
+  /** En ruta på dockan: bålen ur axlarna och höften, armarna ur lederna, händerna ur sina 21 punkter, huvudet mot blicken. */
   // Blicken: dockans kod riktar linjen mellan hans ögon mot rutans blickpunkt, i vågen (figure-model.ts), så i vilan ser
   // han in i spelets kamera (Jakob 2026-11-26: "A1 [ska] alltid ha avataren som tittar mot kameran").
   function pose(f: Frame, h: number[]) {
@@ -220,7 +151,7 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
       ...(f.hv ? {headAt: f.hv as V3} : {}), ...(f.ht ? {headTilt: f.ht} : {})}); // (en lyft rörelse kan ge huvudets eget mål, hv, och dess tippning, ht: då ser ögonen på blickpunkten och huvudet dit)
     kortLage(card, f.card);
   }
-  /** Kortet: lokalt x tvärs, y ut ur framsidan (normalen), z längs långsidan, som dealer3d/src/stage.ts lägger sitt. */
+  /** Kortet: lokalt x tvärs, y ut ur framsidan (normalen), z längs långsidan. */
   function kortLage(o: T.Object3D, k: Frame['card']) {
     const n = v(k.n).normalize(), l = v(k.l).normalize(), x = new T.Vector3().crossVectors(n, l);
     o.matrix.makeBasis(x, n, l).setPosition(v(k.c)); o.matrixWorldNeedsUpdate = true;
@@ -234,7 +165,7 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
     kort.forEach((k, i) => kortLage(g.children[i], k)); g.visible = card.visible;
   }
 
-  // Stolen under honom som han sitter i vilan (rörelsens första ruta), ställd efter standardrummets regel.
+  // Stolen under honom som han sitter i vilan (rörelsens första ruta), ställd efter rummets regel (rum.ts STOOL).
   laddar('stolen');
   pose(vila, hip);
   const {stool: stolen, set: satt} = await seatStool(MODELLER.stol, scene, figure.root);
@@ -252,14 +183,14 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
   enkelt.castShadow = true; card.add(enkelt);
 
   // Bordet, för sig: det tar en stund. Kortet som delas blir ett av bordets egna exempelkort (samma utseende som
-  // Blenders), utom med nyckelfärgerna, där spårkortet står kvar. Måtten: planens kortplatser mot bordets tryckta
+  // Blenders), utom med nyckelfärgerna, där spårkortet står kvar. Måtten: livebordets kortplatser mot bordets tryckta
   // (millimeter), bordets kant mot dealern och skivans överkant.
   let bordRot: T.Object3D | null = null; const markeringar: T.Object3D[] = [];
-  const bordUrl = prov('bord') ? `/avatar-auto-pipeline/assets/bord/standardbord_${prov('bord')}.glb` : live ? MODELLER.bordLive : bordFor(rorelsensDocka);
-  const bord = loadTable(bordUrl, scene, plan, {key: nyckel ? {table: NYCKEL.bord, cardBack: NYCKEL.kortrygg} : undefined, progress: share => laddar(`bordet ${Math.round(share * 100)} %`)}).then(b => live ? livebordet(b) : b).then(b => {
+  const bordUrl = prov('bord') ? `/avatar-auto-pipeline/assets/bord/standardbord_${prov('bord')}.glb` : MODELLER.bord;
+  const bord = loadTable(bordUrl, scene, {key: nyckel ? {table: NYCKEL.bord, cardBack: NYCKEL.kortrygg} : undefined, progress: share => laddar(`bordet ${Math.round(share * 100)} %`)}).then(b => {
     // Bordets kort ligger i modellen med bildens överkant mot dealern (Blenders +Y), alltså åt -z här; vänt ett halvt varv
-    // i sitt plan står överkanten åt kortets långsida (+z, rörelsens `l`), som dealer3d/src/stage.ts ritar sitt kort. Då
-    // ligger kortet som rörelsen lägger det (långsidan mot dealern) som Blenders kort på platsen. (Förut ett halvt varv fel.)
+    // i sitt plan står överkanten åt kortets långsida (+z, rörelsens `l`). Då ligger kortet som rörelsen lägger det
+    // (långsidan mot dealern) som Blenders kort på platsen.
     if (b.card && !nyckel) { b.card.geometry.rotateY(Math.PI); card.remove(enkelt); card.add(b.card); }
     bordRot = b.root; markeringar.push(...b.marks);
     return {platser: b.places, maxMm: b.maxMm, kortP4Mm: b.cardP4Mm, kantZ: b.edgeZ, skivaY: b.topY};
@@ -280,7 +211,7 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
     camera.updateProjectionMatrix();
   }
   function setKamera(k: Kamera) {
-    if (k === 'fri') return; const vy = kameraVy(k, plan, uppsattning); fovNu = vy.fov; filmlik = k !== 'topp'; // sidans bild ryms också hel, 2,5 m bred som Blenders
+    if (k === 'fri') return; const vy = kameraVy(k); fovNu = vy.fov; filmlik = k !== 'topp'; // sidans bild ryms också hel, 2,5 m bred som Blenders
     camera.position.set(...vy.pos); camera.up.set(...(vy.upp ?? [0, 1, 0] as V3)); camera.lookAt(v(vy.mot)); storlek(); // (livebordets kamera är rullad: dess upp)
   }
   const filmstorlek = (pa: boolean) => { spelasIn = pa; storlek(); };

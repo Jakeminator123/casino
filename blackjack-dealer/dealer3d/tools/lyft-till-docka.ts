@@ -38,16 +38,13 @@ import {mkdirSync, readFileSync, readdirSync, writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-import {CARD, add, cross, dot, length, mul, sub, unit, type Vec3} from '../src/camera.ts';
-import {TABLE_LENS} from '../../src/table-lens.ts';
+import {CARD, add, cross, dot, length, mul, sub, unit, type Vec3} from '../../src/space.ts';
 import {LIVE, LIVE_CAMERA, liveSee, liveShoeCard} from '../../src/table-live.ts';
 import {arm, turned} from '../src/body.ts';
 import {LIVE_DOLLS, dollFrame, type Doll} from '../src/doll.ts';
-import {axesOf, between, local, placed, type Axes} from '../src/hand-pose.ts';
-import {FINGERS} from '../src/capture.ts';
+import {FINGERS, axesOf, between, local, placed, type Axes} from '../src/hand-pose.ts';
 import {LIMITS, bendsOf, fingerFrom, handFaults} from '../src/hand-rule.ts';
-import {REN, bal, formMellan, mjuk, rackvidd, smooth, underarmLuft, type Kant} from '../src/ren-giv.ts';
-import {BALL} from '../src/landing.ts';
+import {BALL, REN, bal, formMellan, mjuk, rackvidd, smooth, underarmLuft, type Kant} from '../src/lyft.ts';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url)), CASINO = path.join(ROOT, '..');
 export const DATA = path.join(ROOT, 'dealer3d/data'), LYFT = path.join(CASINO, 'live-bj/data/lyft');
@@ -448,7 +445,7 @@ function vilform(bas: Vec3[]): Vec3[] {
  * lägsta del är 1,5 mm över filten (hur mycket står i about); blicken mot kameran; kortet i skon.
  */
 export function ankaret(doll: Doll, stil: 'kameran' | 'bordet', vantan: Lyft, vantanNamn: string, dir = LYFT) {
-  const fr = dollFrame(TABLE_LENS, doll), H = doll.hand!, kant = kantFor(doll), nar = doll.upperArm + doll.forearm - REN.naturlig;
+  const fr = dollFrame(doll), H = doll.hand!, kant = kantFor(doll), nar = doll.upperArm + doll.forearm - REN.naturlig;
   const limb = (side: Sida) => {
     const sign = side === 'R' ? 1 : -1, s = side === 'R' ? fr.shoulders[0] : fr.shoulders[1], fr2 = vantan.frames.filter(f => f[side].p);
     // (handen ligger plant på filten med handflatan nedåt, i den riktning väntans hand pekar längs filten: lyftets
@@ -577,7 +574,7 @@ function kroppen(b: Bygg, L: Last, medel: ReturnType<typeof stilensMedel>, zHuvu
 
 /** Rörelsen: en giv eller en väntan, ruta för ruta. */
 export function bygg(b: Bygg) {
-  const {doll, lyft} = b, fr = dollFrame(TABLE_LENS, doll), zAxlar = fr.shoulders[0][2], L = last(lyft, zAxlar), n = L.n, kant = kantFor(doll);
+  const {doll, lyft} = b, fr = dollFrame(doll), zAxlar = fr.shoulders[0][2], L = last(lyft, zAxlar), n = L.n, kant = kantFor(doll);
   const zHuvud = fr.head[2], medel = stilensMedel(b.stil, zAxlar, zHuvud, b.dir), F = 10, f0 = b.ank.frame, giv = lyft.leavesShoe !== undefined;
   const ank: Record<Sida, Hand> = {R: {a: axesOf(f0.R.p, 1), w: f0.R.w, S: local(f0.R.p, axesOf(f0.R.p, 1))}, L: {a: axesOf(f0.L.p, -1), w: f0.L.w, S: local(f0.L.p, axesOf(f0.L.p, -1))}};
   const fri = {R: lyftetsHander(lyft, 'R', ank.R.S, L.R.bort), L: lyftetsHander(lyft, 'L', ank.L.S, L.L.bort)};
@@ -1014,7 +1011,7 @@ const stilFor = (lyft: Lyft) => las<Stil>(path.join(CASINO, `live-bj/data/stil-$
  * hem går mellan det och vilan.
  */
 export function ankaretVidSkon(doll: Doll, stil: 'kameran' | 'bordet', a1: Ankare): Ankare {
-  const lyftFil = path.join(lyftDir, MITTEN[stil]), fr = dollFrame(TABLE_LENS, doll), zA = fr.shoulders[0][2], lyft = franSkon(las<Lyft>(lyftFil), zA), stilFil = stilFor(lyft);
+  const lyftFil = path.join(lyftDir, MITTEN[stil]), fr = dollFrame(doll), zA = fr.shoulders[0][2], lyft = franSkon(las<Lyft>(lyftFil), zA), stilFil = stilFor(lyft);
   // (rutan: vänstern vid skon och båda händerna i lyftet, så att kroppen är dealerns hållning och inte vilans)
   const ut0 = bygg({doll, stil, stilFil, lyft, ank: a1, minen: minen(last(lyft, zA), stilFil), dir: lyftDir}), ut = ut0, B0 = ut0.bryggor, ti0 = ut0.tider!;
   const t = Math.min(ti0.pull, Math.max(ti0.arrive, B0.R.t1, B0.L.t1, 10)), f = ut.frames[t], S = ut.kropp[t].S, h = ut.kropp[t].h, kant = kantFor(doll), bal0 = {R: S[0], L: S[1], hip: fr.hip};
@@ -1043,13 +1040,13 @@ export function ankaretFor(dockNamn: string, annan?: Doll) {
 }
 /** Lyftet `lyftFil` på dockan (som körningen nedan gör, utan att skriva något): en giv från ankaret vid skon, en väntan från vilan; `annan` prövar en annan docka i hennes ställe. */
 export function pa(lyftFil: string, dockNamn?: string, annan?: Doll) {
-  const lyft = las<Lyft>(lyftFil), namn = dockNamn ?? lyft.docka, {doll, stil, ank: a1, vidSkon} = ankaretFor(namn, annan), stilFil = stilFor(lyft), L = last(lyft, dollFrame(TABLE_LENS, doll).shoulders[0][2]);
+  const lyft = las<Lyft>(lyftFil), namn = dockNamn ?? lyft.docka, {doll, stil, ank: a1, vidSkon} = ankaretFor(namn, annan), stilFil = stilFor(lyft), L = last(lyft, dollFrame(doll).shoulders[0][2]);
   return bygg({doll, stil, stilFil, lyft, ank: lyft.leavesShoe !== undefined ? vidSkon() : a1, minen: minen(L, stilFil), dir: lyftDir});
 }
 function kor(lyftFil: string, dockNamn?: string) {
-  const lyft0 = las<Lyft>(lyftFil), namn = dockNamn ?? lyft0.docka, {doll, stil, ank: a1, vidSkon, vantanFil} = ankaretFor(namn), lyft = franSkon(lyft0, dollFrame(TABLE_LENS, doll).shoulders[0][2]), ank = lyft.leavesShoe !== undefined ? vidSkon() : a1;
+  const lyft0 = las<Lyft>(lyftFil), namn = dockNamn ?? lyft0.docka, {doll, stil, ank: a1, vidSkon, vantanFil} = ankaretFor(namn), lyft = franSkon(lyft0, dollFrame(doll).shoulders[0][2]), ank = lyft.leavesShoe !== undefined ? vidSkon() : a1;
   if (lyft.style !== stil) console.log(`  (lyftet är stilen ${lyft.style}, dockan ${namn} stilen ${stil})`);
-  const stilFil = las<Stil>(path.join(CASINO, `live-bj/data/stil-${lyft.style}.json`)), L = last(lyft, dollFrame(TABLE_LENS, doll).shoulders[0][2]);
+  const stilFil = las<Stil>(path.join(CASINO, `live-bj/data/stil-${lyft.style}.json`)), L = last(lyft, dollFrame(doll).shoulders[0][2]);
   const ut0 = bygg({doll, stil, stilFil, lyft, ank, minen: minen(L, stilFil), dir: lyftDir});
   const giv = lyft.leavesShoe !== undefined, nr = giv ? /seat (\d)/.exec(lyft.to!)![1] : /vantan-(\d)/.exec(lyftFil)![1];
   const fil = path.join(utDir, giv ? `lyft-${namn}-p${nr}.json` : `lyft-${namn}-vantan-${nr}.json`), ankFil = path.join(utDir, ank.namn === "A2.3" ? `ankare-skon-${namn}.json` : `ankare-vila-${namn}.json`);
@@ -1077,7 +1074,7 @@ function kor(lyftFil: string, dockNamn?: string) {
  * mjuka väg, i stilens fart; armbågarna som i en giv.
  */
 export function overgang(doll: Doll, fran: Ankare, till: Ankare, hem: boolean) {
-  const A = fran.frame, B = till.frame, kant = kantFor(doll), fr = dollFrame(TABLE_LENS, doll);
+  const A = fran.frame, B = till.frame, kant = kantFor(doll), fr = dollFrame(doll);
   const hand = (l: Limb, sign: number): Hand => ({a: axesOf(l.p, sign), w: l.w, S: local(l.p, axesOf(l.p, sign))});
   const T = Math.max(...SIDOR.map(([s]) => bryggTid(length(sub(B[s].w, A[s].w)), 1.0))), start = hem ? 0 : 6, kropp0 = hem ? T + 2 : 0, KT = hem ? KROPP_HEM : Math.max(KROPP_HEM, T + start);
   const N = Math.max(start + T, kropp0 + KT) + 2, frames: Frame[] = [], hv = (f: Frame) => f.hv ?? f.g;

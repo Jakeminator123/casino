@@ -1,6 +1,6 @@
 // Hur en riggad docka sitter under bordet (dealer3d/src/figure-model.ts ställer låren och smalbenen så). Rent: ingen I/O
-// och ingen three.js, så att verktygen som mäter kroppen (dealer3d/tools/hud.ts) ställer låren likadant.
-import type {Vec3} from './camera.ts';
+// och ingen three.js.
+import type {Vec3} from '../../src/space.ts';
 
 /**
  * Låren framåt under bordet, lite utåt och lite nedåt: så har dockan alltid suttit (`fall` 0,08). Sitter höften högre än

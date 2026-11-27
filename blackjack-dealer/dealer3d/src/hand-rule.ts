@@ -4,9 +4,8 @@
 // Bends are measured in the hand's own axes (hand-pose.ts axesOf: along, the way the palm looks, across), each joint
 // about the line across the knuckles made square to the bone before it: toward the palm is +, and "sideways" is how
 // far the next bone leaves the plane square to that line (a finger's middle and end joints are hinges and bend in it).
-import {CARD, add, cross, dot, length, mul, sub, unit, type Vec3} from './camera.ts';
-import {FINGERS} from './capture.ts';
-import {axesOf, local, placed} from './hand-pose.ts';
+import {CARD, add, cross, dot, length, mul, sub, unit, type Vec3} from '../../src/space.ts';
+import {FINGERS, axesOf, local, placed} from './hand-pose.ts';
 
 const deg = (r: number) => r * 180 / Math.PI, rad = (d: number) => d * Math.PI / 180;
 /**

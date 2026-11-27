@@ -8,7 +8,7 @@
 // hämtningar som svarar 404. Det som lämnas ut har sökvägar som speglar
 // casino-mappen (så att sidans relativa importer är desamma i webbläsaren och på disken), och varje namn kontrolleras
 // mot en lista eller ett mönster: ingen sökväg utifrån kan peka ut ur mapparna. TypeScript lämnas ut med typerna
-// strukna (som blackjack-dealer/dealer3d/tools/shoot.ts gör), three.js ur blackjack-dealer/node_modules.
+// strukna, three.js ur blackjack-dealer/node_modules.
 import {createServer, type IncomingMessage, type ServerResponse} from 'node:http';
 import {createReadStream} from 'node:fs';
 import {mkdir, readFile, readdir, rename, rm, stat, writeFile} from 'node:fs/promises';
@@ -28,7 +28,7 @@ const HERE = 'standarddocka/editor/', SAVES = 'standarddocka/rorelser/', CLIPS =
 const FFMPEG = process.env.FFMPEG ?? 'ffmpeg';
 const THREE = 'blackjack-dealer/node_modules/three/';
 
-/** Fasta adresser: three.js och dess tillägg, modellerna och planen. */
+/** Fasta adresser: three.js och dess tillägg, modellerna och livebordets mått. */
 const FIXED: Record<string, string> = {
   '/vendor/three.module.js': THREE + 'build/three.module.js',
   '/vendor/three.core.js': THREE + 'build/three.core.js',
@@ -37,18 +37,14 @@ const FIXED: Record<string, string> = {
   '/vendor/addons/controls/OrbitControls.js': THREE + 'examples/jsm/controls/OrbitControls.js',
   '/vendor/addons/controls/TransformControls.js': THREE + 'examples/jsm/controls/TransformControls.js',
   '/vendor/addons/environments/RoomEnvironment.js': THREE + 'examples/jsm/environments/RoomEnvironment.js',
-  '/avatar-auto-pipeline/assets/docka/standarddocka_man.glb': 'avatar-auto-pipeline/assets/docka/standarddocka_man.glb',
-  '/avatar-auto-pipeline/assets/docka/standarddocka_kvinna.glb': 'avatar-auto-pipeline/assets/docka/standarddocka_kvinna.glb',
-  '/avatar-auto-pipeline/assets/bord/standardbord_nara.glb': 'avatar-auto-pipeline/assets/bord/standardbord_nara.glb',
-  '/avatar-auto-pipeline/assets/bord/standardbord_nara23.glb': 'avatar-auto-pipeline/assets/bord/standardbord_nara23.glb',
+  '/avatar-auto-pipeline/assets/docka/standarddocka_danilo.glb': 'avatar-auto-pipeline/assets/docka/standarddocka_danilo.glb',
+  '/avatar-auto-pipeline/assets/docka/standarddocka_frasse.glb': 'avatar-auto-pipeline/assets/docka/standarddocka_frasse.glb',
+  '/avatar-auto-pipeline/assets/bord/standardbord_live.glb': 'avatar-auto-pipeline/assets/bord/standardbord_live.glb',
   '/avatar-auto-pipeline/assets/stol/dealerstol.glb': 'avatar-auto-pipeline/assets/stol/dealerstol.glb',
-  '/blackjack-dealer/placements/default.json': 'blackjack-dealer/placements/default.json',
-  '/blackjack-dealer/src/table-lens.ts': 'blackjack-dealer/src/table-lens.ts',
-  // Livebordets uppsättning (dockornas mått i dealer3d/src/doll.ts läser den), och listan med de två uppsättningarna som
-  // editorns ?uppsattning= väljer bland (src/uppsattning.ts, med spelvyn den läser).
+  // Livebordets mått (dockornas mått i dealer3d/src/doll.ts läser dem), standarden som läser dem och rummets vektorer.
   '/blackjack-dealer/src/table-live.ts': 'blackjack-dealer/src/table-live.ts',
-  '/blackjack-dealer/src/uppsattning.ts': 'blackjack-dealer/src/uppsattning.ts',
-  '/blackjack-dealer/src/play-view.ts': 'blackjack-dealer/src/play-view.ts',
+  '/blackjack-dealer/src/standard.ts': 'blackjack-dealer/src/standard.ts',
+  '/blackjack-dealer/src/space.ts': 'blackjack-dealer/src/space.ts',
 };
 const NAME = '[a-z0-9][a-z0-9-]*';
 /** Mönstren: sidans egna filer, dockans moduler (blackjack-dealer/dealer3d/src), grundrörelserna (dealer3d/data, bara att läsa) och det som sparats i rorelser/. */
