@@ -171,8 +171,11 @@ def run_mat(film, fps, frames, boxes, out, step):
         d = os.path.join(out, f'del-{k}', 'mat')
         os.makedirs(d, exist_ok=True)
         src = os.path.join(out, f'del-{k}', 'kalla.json')
-        said = json.dumps({'film': os.path.abspath(film), 'steg': step, 'fps': fps, 'crop': {'x': x, 'y': y, 'width': w, 'height': h}, 'runs': [{'from': 0, 'to': round(frames / fps, 3)}]})
-        # the same panel of the same film measured before: its measures are used again (the slow part)
+        st = os.stat(film)
+        said = json.dumps({'film': os.path.abspath(film), 'storlek': st.st_size, 'andrad': int(st.st_mtime), 'steg': step, 'fps': fps,
+                           'crop': {'x': x, 'y': y, 'width': w, 'height': h}, 'runs': [{'from': 0, 'to': round(frames / fps, 3)}]})
+        # the same panel of the same film (same size and time, so a film replaced under the same name is measured anew)
+        # measured before: its measures are used again (the slow part)
         if os.path.exists(src) and open(src, encoding='utf-8').read() == said and any(f.startswith('rorelse-') for f in os.listdir(d)):
             continue
         with open(src, 'w', encoding='utf-8') as f:
