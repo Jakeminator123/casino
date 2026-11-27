@@ -344,6 +344,17 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     vägen.
   - **Takten är modellens:** 4,5 s per klipp mot Frasses 1 s för given och 0,4 s för handen hem, och handen hem tvekar
     över kortet (ruta 24–36). Uppspelningsfarten (1,5 och 3 gånger) tar det mesta.
+  - **Domaren** (en underagent, inte Jakob, utan MediaPipe och utan extern domare) dömde Inte bra med medel säkerhet.
+    Skarvarna håller för kropp, händer och huvud; kvar är ett svagt blink i ljus och skärpa i första rutan efter
+    skarven, som två rutors övertoning tar. Givklippet fäller filmen:
+    - Kortet vänds inte av handen. Det byter från rygg till framsida plant under fingrarna (ruta 43–48).
+    - Vänsterhanden släpper kortet, går tillbaka till det och hänger som en klo innan den når skon (ruta 36–80).
+    - Kortet byter valör mellan de två ankarna med kort.
+  - **Till nästa gång:**
+    - Ankaret med kortet kvar görs genom att klistra in kortets bildpunkter ur A3P4C1, inte genom en ändring, så att
+      kortet blir exakt samma.
+    - Huvudet i A2.3 ska vridas mot skon som Frasses (29°): orden i bilden räckte inte till det.
+    - Ankarna ges i klippets egen storlek.
   - **Kostnaden:** 49 krediter, varav fem bilder 20, två klipp 32 och ihopsättningen 1. Uppdragen ligger bland
     Runways tillgångar: A2.3 `590f63c2-42ca-4c71-956d-e6c743f1e9f0`, A3P4C1
     `e1c973ed-68ed-405b-b432-eb1dbd8351af`, A2.3 med kortet `195733d8-51fd-4ecc-bd63-ba3a60303cb9`, given

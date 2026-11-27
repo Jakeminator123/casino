@@ -29,7 +29,12 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   dockans förlaga och hans foton, och de andra som ändringar av den. Två klipp går mellan bilderna: given och handen
   hem. Klippens första och sista ruta ligger på bilderna, så de går att sätta ihop i schemats ordning. 49 krediter av
   appens. Filmerna finns bara bland Runways tillgångar (inget prov på datorn).
-  Den oberoende domarens dom väntar.
+  Domarens dom (inte Jakobs) föll på Inte bra med medel säkerhet. Skarvarna håller för kropp, händer och huvud;
+  det som återstår är ett svagt blink i ljus och skärpa i första rutan efter skarven. Givklippet fäller filmen.
+  Kortet vänds inte av handen: det byter från rygg till framsida plant under fingrarna (ruta 43–48). Vänsterhanden
+  släpper kortet, går tillbaka till det och hänger som en klo innan den når skon (ruta 36–80). Kortet byter också
+  valör mellan de två ankarna med kort. Domen fälldes utan MediaPipe och utan extern domare, eftersom ingen av dem
+  finns i molnet.
 - **Studion** (`http://127.0.0.1:4319/studio/`): Start, Karta med Schemat (rundan, kortplatserna och rörelseschemat för
   Danilo och Frasse), Granska med Prov, Beslut, Beställ, Dockan (editorn i `../standarddocka/`), Avatarer, Mått och
   Biblioteket. Regeln "Studion visar, den förklarar inte" (`AGENTS.md`) är genomförd på Schemat, Start, Mått, Beställ,
