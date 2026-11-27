@@ -326,7 +326,7 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackja
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Dealer A, ser i kameran | Dealer B, ser på bordet | Slaget i mätningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Vända sitt eget kort (VAND-EGET) | A1 → A1 | en hand | saknas | — | — (inga filer att leta efter) | 36 st (25 rena), 0,85 s (0,4–1,82) | 38 st (35 rena), 0,63 s (0,42–1,39) | `at his own cards` | går inte att skilja ur mätningen förrän kortens spår finns |
+| Vända sitt eget kort (VAND-EGET) | A1 → A1 | en hand | saknas | — | — (inga filer att leta efter) | 36 st (25 rena), 0,85 s (0,4–1,82) | 38 st (35 rena), 0,63 s (0,42–1,39) | `at his own cards` | ligger bland styckena vid de egna korten i mätningen, tillsammans med rättningar av korten; inte urskild i bild än |
 
 #### Mot spelaren (SPELARENS TUR): hemankare A1, när en spelare ska välja
 
@@ -338,8 +338,8 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackja
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Dealer A, ser i kameran | Dealer B, ser på bordet | Slaget i mätningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Betala ut marker till en spelare (MARKER-UT) | A1 → A1 (över plats n) | en hand från brickan till platsen och tillbaka | saknas | — | — (inga filer att leta efter) | 3 st (0 rena), 2,33 s (1,13–2,81) | 8 st (4 rena), 1,58 s (1,01–2,37) | `a reach to a seat and back` | inte urskilt i mätningen än |
-| Ta in marker från en spelare (MARKER-IN) | A1 → A1 (över plats n) | en hand ut till platsen och tillbaka till brickan | saknas | — | — (inga filer att leta efter) | 3 st (0 rena), 2,33 s (1,13–2,81) | 8 st (4 rena), 1,58 s (1,01–2,37) | `a reach to a seat and back` | inte urskilt i mätningen än |
+| Betala ut marker till en spelare (MARKER-UT) | A1 → A1 (över plats n) | en hand från brickan till platsen och tillbaka | saknas | — | — (inga filer att leta efter) | — (inte urskilt i mätningen) | — (inte urskilt i mätningen) | — | inte mätt: livebordet har inga marker (de är spelets grafik), så rörelsen får ritas efter vårt eget bord |
+| Ta in marker från en spelare (MARKER-IN) | A1 → A1 (över plats n) | en hand ut till platsen och tillbaka till brickan | saknas | — | — (inga filer att leta efter) | — (inte urskilt i mätningen) | — (inte urskilt i mätningen) | — | inte mätt: livebordet har inga marker (de är spelets grafik), så rörelsen får ritas efter vårt eget bord |
 | Ta in korten från bordet (KORTEN-IN) | A1 → A1 | högern sveper över platserna och samlar korten | saknas | — | — (inga filer att leta efter) | 1 st (1 rena), 4,6 s (4,6–4,6) | 10 st (9 rena), 3,38 s (2,61–5,51) | `a sweep over several seats` |  |
 | Lägga korten i lådan (I-LADAN) | A1 → A1 | högern lyfts till lådans öppning och tillbaka | saknas | — | — (inga filer att leta efter) | 10 st (6 rena), 2,17 s (0,74–4,06) | 7 st (7 rena), 4,17 s (3,05–5,12) | `cards into the box` | kan ritas ihop med Ta in korten till ett klipp |
 
@@ -352,6 +352,7 @@ Slag som de riktiga dealrarna gör men som katalogen inte har:
 - `card from the shoe, where to not seen`: Dealer A, ser i kameran 18 st (13 rena), 1,03 s (0,73–2,54); Dealer B, ser på bordet 6 st (5 rena), 1,53 s (0,62–2,65)
 - `card from the shoe to himself`: Dealer A, ser i kameran 12 st (11 rena), 2,22 s (1,12–2,93); Dealer B, ser på bordet 16 st (16 rena), 1,95 s (1,6–2,53)
 - `between a seat and his own cards`: Dealer A, ser i kameran 8 st (6 rena), 1,55 s (0,69–5,27); Dealer B, ser på bordet 17 st (13 rena), 1,4 s (0,67–2,66)
+- `a reach to a seat and back`: Dealer A, ser i kameran 3 st (0 rena), 2,33 s (1,13–2,81); Dealer B, ser på bordet 8 st (4 rena), 1,58 s (1,01–2,37)
 - `other`: Dealer A, ser i kameran 2 st (2 rena), 0,73 s (0,65–0,81); Dealer B, ser på bordet — (inget sådant slag)
 - `the right hand out to the box side`: Dealer A, ser i kameran 2 st (0 rena), 1,62 s (1,44–1,79); Dealer B, ser på bordet 7 st (1 rena), 1,4 s (1,02–1,52)
 
