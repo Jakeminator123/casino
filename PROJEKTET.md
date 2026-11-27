@@ -5,10 +5,29 @@ här står i [`AGENTS.md`](AGENTS.md), måtten i [`MATT.md`](MATT.md) och hur ma
 Skrivet 2026-11-27 efter Jakobs egen beskrivning. Det som ännu avgörs av prov står sist, och dokumentet rättas när ett
 prov har gett besked.
 
+## Målet
+
+En blackjackdealer som ser ut som en verklig människa, **sedd från varje spelares plats**: samma kvalitet som en
+framställd 2D-film visar, men från minst sju vinklar runt bordet, så att flera spelare kan sitta bredvid varandra och
+var och en ser dealern från sitt håll (Jakob 2026-11-27: "att kunna se samma kvalitet som i 2D-videorna från olika
+vinklar ... i alla fall 7 vinklar och gärna så andra spelare kan sitta bredvid runt bj-bordet. DET är målet").
+
+En enskild film från en vinkel är i stort löst. Det olösta är att lyfta kvaliteten till flera vinklar: en 2D-film
+visar en enda vy, och 3D-figurerna når inte filmernas kvalitet. Vägarna som har prövats eller ligger nära:
+
+- **Sju filmer av samma rörelse.** Dockan spelar rörelsen en gång och filmas genom sju kameror; filmmodellen gör en
+  film av personen ur var och en. Rörelsen är densamma i alla sju, eftersom den kommer ur samma docka. Den vägen föll
+  tidigare på att dockans rörelser var onaturliga och att filmmodellen kopierade dem exakt. Med rörelser lyfta ur
+  riktiga dealrar blir samma egenskap en styrka: det som kopieras är en människas rörelse.
+- **Bilder i stället för en hel film som förlaga** (Jakobs idé): ge filmmodellen bara några ögonblick ur dockans
+  rörelse, till exempel var åttonde ruta, och låt den göra övergångarna själv. Inte prövat i den formen.
+- **Många kameror runt en figur** (den väg som tidigare kom närmast: 120 kameror runt en docka som hade fått sitt
+  utseende av bilder på en person). Inte i det här repot.
+- **3D-figuren direkt i spelet.** Ger varje vinkel gratis, men kvaliteten räcker inte i dag.
+
 ## Idén
 
-Målet är en blackjackdealer som ser ut som en verklig människa: korta filmklipp av en person som ger kort, väntar och
-gör upp rundan, spelade i ett blackjackspel.
+Korta filmklipp av en person som ger kort, väntar och gör upp rundan, spelade i ett blackjackspel.
 
 Filmerna görs av filmmodeller som arbetar i 2D (hos Runway), eftersom kvaliteten på en framställd film av en person är
 mycket högre än något vi har fått ur en riggad 3D-figur (Jakob 2026-11-27: "kvaliteten från de 2D-genererade klippen på
@@ -83,6 +102,8 @@ av Tomasz görs för Tomasz.
 
 - **Ser de lyfta rörelserna naturliga ut på en kropp,** och i den färdiga filmen? Danilo och Frasse finns som
   streckfigurer vid det klonade bordet; kropparna i editorn och en första film återstår.
+- **Håller sju filmer av samma rörelse ihop?** Samma giv filmad från flera platser och gjord till personen: ser det ut
+  som samma människa som gör samma sak, från varje håll? Det är provet som avgör vägen mot målet.
 - **Hur många inspelningar per person behövs?** Varje person behöver egna filmer, för varje rörelse och varje kamera.
   Sju kameror gånger alla rörelser gånger alla personer blir många betalda filmer; vilka kameror och rörelser som
   verkligen behövs är inte bestämt.
