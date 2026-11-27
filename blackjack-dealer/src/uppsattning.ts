@@ -13,8 +13,10 @@
 // choice that names no set-up was made under, so nothing that exists is rewritten when the choice's default changes.
 //
 // The address word is `uppsattning` (?uppsattning=live|forra). The editor's older word 'standard' is read as forra and never
-// written. What Jakob sees calls the choice "Bord och kamera" (NAMN), with "Livebordet" and "Förra standarden": the word
-// "uppsättning" already means a dealer's set of anchors to him (tools/speech.ts, the skill ny-dealer).
+// written. What Jakob sees (Jakob 2026-11-27, "Namnbyte - ja"): the whole is "Livestandarden" or "Förra standarden" (namn),
+// the menu's heading is "Standard" (NAMN) with the choices "Live" and "Förra" (kort); the table itself, the furniture, is still
+// the live table where a text means it. The word "uppsättning" already means a dealer's set of anchors to him (tools/speech.ts,
+// the skill ny-dealer). Every name Jakob sees comes from here.
 //
 // Pure: imports only src/table-lens.ts, src/table-live.ts and src/play-view.ts, no I/O, so the browser reads it too.
 // World frame of each set-up: its own lens world (metres, x toward the picture's right, the dealer's left, y up with the
@@ -31,8 +33,8 @@ export const VALETS_FORVAL: UppsattningId = 'live';
 export const DATATS_FORVAL: UppsattningId = 'forra';
 /** The word in an address (?uppsattning=live) and the field's name in data. */
 export const ADRESSORD = 'uppsattning';
-/** What the choice is called where Jakob sees it. */
-export const NAMN = 'Bord och kamera';
+/** What the choice is called where Jakob sees it: the menu's heading. */
+export const NAMN = 'Standard';
 
 /** A word as a set-up: live, forra, and the editor's older 'standard' read as forra; anything else is null. */
 export const lasUppsattning = (word: unknown): UppsattningId | null => word === 'live' ? 'live' : word === 'forra' || word === 'standard' ? 'forra' : null;
@@ -54,7 +56,7 @@ export const BET = {radius: 0.027, clear: 0.012};
 
 export type Uppsattning = {
   id: UppsattningId;
-  /** Its name where Jakob sees it, a short word for a narrow menu (the studio's on a phone), and one line on what it is. */
+  /** Its name where Jakob sees it (the whole: Livestandarden), its short word (the menu's choice: Live), and one line on what it is. */
   namn: string; kort: string; om: string;
   /** The picture its films and stills are made in. */
   bild: {width: number; height: number};
@@ -84,7 +86,7 @@ export type Uppsattning = {
 
 // ---- live ------------------------------------------------------------------------------------------------------
 const live: Uppsattning = {
-  id: 'live', namn: 'Livebordet', kort: 'Live', om:'Bordet, kameran, skon, korten och kortplatserna som de är mätta ur filmen av ett riktigt livebord.',
+  id: 'live', namn: 'Livestandarden', kort: 'Live', om:'Bordet, kameran, skon, korten och kortplatserna som de är mätta ur filmen av ett riktigt livebord.',
   bild: LIVE_CAMERA.film,
   kamera: {focalPx: LIVE_CAMERA.focalPx, pitch: LIVE_CAMERA.pitch, roll: LIVE_CAMERA.roll, height: LIVE_CAMERA.height, centre: LIVE_CAMERA.centre},
   see: p => liveSee(p), onFelt: (px, lift = 0) => liveOnFelt(px, lift),

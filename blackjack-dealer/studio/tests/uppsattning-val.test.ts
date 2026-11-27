@@ -23,12 +23,12 @@ test("the choice has the source's default and only the source's two set-ups, wit
 
 test("Scen says in his words why a table shows no dealer, with the source's names, and nothing when every film fits", () => {
   assert.deepEqual(otherTableLine("Paow", "live", ["forra", "forra"]), {
-    text: "Paows filmer är gjorda vid Förra standarden. Välj Förra standarden i menyn för att se dem här.",
+    text: "Paows filmer är gjorda vid Förra standarden. Välj Förra under Standard i menyn för att se dem här.",
     table: "forra",
   });
   assert.equal(otherTableLine("Paow", "forra", ["forra", "forra"]), null);
   assert.equal(otherTableLine("Paow", "live", []), null, "a round without films refuses nothing");
-  assert.equal(otherTableLine("Frasse", "forra", ["live"])?.text, "Frasses film är gjord vid Livebordet. Välj Livebordet i menyn för att se den här.");
+  assert.equal(otherTableLine("Frasse", "forra", ["live"])?.text, "Frasses film är gjord vid Livestandarden. Välj Live under Standard i menyn för att se den här.");
   assert.match(otherTableLine("Paow", "live", ["live", "forra", "live"])!.text, /^En av rundans 3 filmer är gjord vid Förra standarden\./);
 });
 

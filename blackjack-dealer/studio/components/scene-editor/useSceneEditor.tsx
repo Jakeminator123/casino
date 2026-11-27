@@ -105,7 +105,7 @@ export function useSceneEditor(firstLook: () => LookAsk) {
   }, [reloadPresets]);
   const presetOf = useCallback((name: string) => presets.find((p) => p.name === name) ?? null, [presets]);
 
-  // ── the menu's table and camera (Bord och kamera): the scene is built under it, and each has its own play view ──
+  // ── the menu's table and camera (Standard): the scene is built under it, and each has its own play view ──
   const { id: setup } = useSetup();
 
   // ── the play view: one framing for a computer and one for a phone, for every look; the game's own until it is read ──
@@ -406,7 +406,7 @@ export function useSceneEditor(firstLook: () => LookAsk) {
       const { revision, ...saved } = await putPlayView({ dator: visa === "fill" ? framing : view.dator, mobil: visa === "mob" ? framing : view.mobil }, viewRevision, setup);
       setView(saved);
       setViewRevision(revision);
-      toast({ tone: "ok", title: `Spelvyn för ${name} är sparad: ${choiceName(setup)}`, detail: "Den gäller alla utseenden vid det bordet, i Casino och i spelet." });
+      toast({ tone: "ok", title: `Spelvyn för ${name} är sparad: ${choiceName(setup)}`, detail: "Den gäller alla utseenden vid den standarden, i Casino och i spelet." });
     } catch (error) {
       const e = asApiError(error, "Spelvyn");
       if (e.status === 409) {

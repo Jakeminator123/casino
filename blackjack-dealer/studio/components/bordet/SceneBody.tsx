@@ -17,7 +17,7 @@
 // game shows (Jakob 2026-11-17: "Spela i casino bör rimligtvis vara samma som i casino, alltså som det är i runtime"), so
 // "Prova i Casino" opens what the rail's Casino opens until a key is changed. The round plays the chosen dealer's films
 // (lib/bank.ts); a step without a film is a gap, shown as one.
-// The 3D scene stands at the menu's table and camera (Bord och kamera) and shows only films made there (Jakob 2026-11-27: a film
+// The 3D scene stands at the menu's table and camera (Standard: Live or Förra) and shows only films made there (Jakob 2026-11-27: a film
 // is never shown under another table's camera; src/scene3d-view.ts guardFilms). A film is its tree's table (src/dealer-trees.ts
 // filmSetups, as the game reads it). A round with a film made at another table plays nothing in the scene: the table, its shoe and
 // its card places stand there without a dealer, a line over the picture says whose films they are and where to see them, with
@@ -242,11 +242,11 @@ export function SceneBody({ kind, toolbar, roundText: cardRound }: { kind: Scene
               {editor.comparing && !flat ? (
                 <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-full border border-brass/50 bg-black/70 px-4 py-1.5 text-sm font-semibold text-brass-hi shadow-pop backdrop-blur-sm">Basgrund</div>
               ) : otherTable ? (
-                <div className="pointer-events-none absolute inset-x-0 top-3 flex justify-center px-3">
-                  <div role="status" data-other-table className="pointer-events-auto flex max-w-xl flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-xl border border-line-strong bg-surface/95 px-4 py-2.5 text-center text-sm text-ink shadow-pop backdrop-blur-sm">
+                <div className="pointer-events-none absolute inset-x-0 top-2 flex justify-center px-2 lg:top-3 lg:px-3">
+                  <div role="status" data-other-table className="pointer-events-auto flex max-w-xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded-lg border border-line-strong bg-surface/95 px-3 py-1.5 text-center text-xs leading-4 text-ink shadow-pop backdrop-blur-sm lg:gap-y-2 lg:rounded-xl lg:px-4 lg:py-2.5 lg:text-sm lg:leading-5">
                     <span>{otherTable.text}</span>
                     <Button size="sm" variant="secondary" onClick={() => chooseSetup(otherTable.table)}>
-                      Välj {choiceName(otherTable.table)}
+                      Byt till {choiceName(otherTable.table)}
                     </Button>
                   </div>
                 </div>

@@ -94,7 +94,7 @@ export function PlayViewPanel({
           control={<Switch size="sm" checked={own} onChange={onOwn} aria-label="Egen inramning i det här utseendet" />}
         />
       ) : null}
-      <p className="pt-1 text-xs text-dim">Spelvyn gäller {table}: varje bord och kamera i menyn har sin egen, som Casino och spelet visar.</p>
+      <p className="pt-1 text-xs text-dim">Spelvyn gäller {table}: varje standard i menyn har sin egen, som Casino och spelet visar.</p>
       <p className="pb-1 pt-1.5 text-xs text-faint">Vrida och zooma håller filmen exakt. Att flytta kameran (sidled, höjd, djup) ger en ungefärlig bild: dealern är en platt film.</p>
     </div>
   );

@@ -10,6 +10,7 @@
 // DOLL_TABLE.edgeBack behind the game's) through the game's view (PLAY_LENS, the standard doll's films); the clone is
 // LIVE through its own camera.
 /* eslint-disable @typescript-eslint/no-explicit-any -- the modules are read at run time, typed by hand where used */
+import { UPPSATTNING } from "../../src/uppsattning.ts"; // the names Jakob sees, from their one source
 
 export type Pt = [number, number];
 export type Px = { x: number; y: number };
@@ -67,7 +68,7 @@ function oursFrom(L: any, world: any, doll: any, plan: any): Setup {
   const tray: V3[] = [[O[0] + T.x0, 0, O[2] + T.s0], [O[0] + T.x1, 0, O[2] + T.s0], [O[0] + T.x1, 0, O[2] + T.s1], [O[0] + T.x0, 0, O[2] + T.s1]];
   const F = L.FILM;
   return {
-    name: "Förra standarden",
+    name: UPPSATTNING.forra.namn,
     felt: [...outline, outline[0]].map(flat), feltDepth: R, feltWidth: 2 * half, feltRadius: R,
     cards: cards.map((c) => ({ id: c.id, at: flat(c.at), corners: c.corners.map(flat) })),
     shoe: { foot: foot.map(flat), length: S.length, width: S.width, backHeight: S.backHeight, frontHeight: S.frontHeight, plateLeanDeg: S.plateLean * D, angleDeg: angleToEdge(b), mouth: flat(mouth) },
@@ -94,7 +95,7 @@ function liveFrom(L: any, M: any): Setup {
   const C = S.camera;
   const half = S.felt.widthAtEdge / 2;
   return {
-    name: "Livebordet",
+    name: UPPSATTNING.live.namn,
     felt: [...outline, outline[0]].map(flat), feltDepth: S.felt.depth, feltWidth: S.felt.widthAtEdge, feltRadius: radius,
     cards: cards.map((c) => ({ id: c.id, at: flat(c.at), corners: c.corners.map(flat) })),
     shoe: { foot: foot.map(flat), length: sh.length, width: sh.width, backHeight: sh.backHeight, frontHeight: sh.frontHeight, plateLeanDeg: sh.plateLean * D, angleDeg: angleToEdge(pose.back), mouth: flat(mouth) },

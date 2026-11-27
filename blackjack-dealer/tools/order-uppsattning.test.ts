@@ -124,10 +124,10 @@ test('a person\'s trial at the live table: no dealer, the doll\'s film and his g
   assert.deepEqual(requestOf(order, 1), { tool: 'video_to_video', args: { model: 'aleph-2', promptText: TENTH, videoUri: '$file:reference.mp4', keyframes: [{ uri: '$file:keyframe.png', seconds: 0 }] } });
   assert.equal(requestOf(order, 2).args.confirmRepeat, true);
   // what it cannot be: another set-up, a choice of the motion, a film without his picture, a dealer at the live table
-  await assert.rejects(store.create({ dealer: '', person: 'tomasz', step: 'GIV-2.3', target: 'P4.C1', reference: entry.id, uppsattning: 'forra' }), /filmad vid livebordet/);
+  await assert.rejects(store.create({ dealer: '', person: 'tomasz', step: 'GIV-2.3', target: 'P4.C1', reference: entry.id, uppsattning: 'forra' }), /filmad vid livestandarden/);
   await assert.rejects(store.create({ dealer: '', person: 'tomasz', step: 'GIV-2.3', target: 'P4.C1', reference: entry.id, hand: 'LH' }), /hand väljs inte/);
   await assert.rejects(store.create({ dealer: '', person: 'ada', step: 'GIV-2.3', target: 'P4.C1', reference: entry.id }), /ingen styrbild för ada/);
-  await assert.rejects(store.create({ dealer: 'paow', step: 'GIV-2.3', target: 'P4.C1', uppsattning: 'live' }), /inte vid livebordet/);
+  await assert.rejects(store.create({ dealer: 'paow', step: 'GIV-2.3', target: 'P4.C1', uppsattning: 'live' }), /inte vid livestandarden/);
   await assert.rejects(store.create({ dealer: 'paow', step: 'GIV-2.3', target: 'P4.C1', model: 'aleph-2' }), /prov för personen/);
   // only its name and takes change, and the price follows the takes
   const revision = `"${sha(await readFile(path.join(root, 'data/orders', `${order.id}.json`), 'utf8'))}"`;

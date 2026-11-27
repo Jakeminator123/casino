@@ -8,7 +8,8 @@
 // tooltip. A click chooses the dealer for every view (lib/bank.ts setDealer: the address and the memory follow).
 // Above the word Dealer stands the standard doll (lib/dealer.ts STANDARD_DOLL; Jakob 2026-11-26: "en ingång typ som är
 // 'standarddocka: man/kvinna'"), the man and the woman that own every motion, chosen the same way: it is no dealer, so it
-// stands apart from them, and Paow is seen to be a dealer and not the standard.
+// stands apart from them, and Paow is seen to be a dealer and not the standard. Its heading is Docka: the menu's Standard is the
+// choice of table and camera under the dealers (SetupSwitch, Jakob 2026-11-27).
 import { useBank } from "../../lib/bank.ts";
 import { isSnapshot } from "../../lib/mode.ts";
 import { cn } from "../ui/cn";
@@ -34,7 +35,7 @@ export function DealerSwitch() {
     <div role="group" aria-label="Dealer: vems studio" className="mx-2 mt-2.5 flex shrink-0 flex-col gap-1.5 rail:mx-3 rail:flex-row rail:flex-wrap rail:px-2">
       {doll ? (
         <>
-          <span className={LABEL}>Standard</span>
+          <span className={LABEL}>Docka</span>
           <Tooltip content={<span className="flex max-w-64 flex-col gap-0.5"><span>Standarddockan: mannen och kvinnan som alla rörelser görs för.</span><span className="text-dim">Ingen dealer: inga filmer beställs för den. Dockan finns i Dockan och i Filmverkstaden, Inspelning.</span></span>} side="right">
             <button
               type="button"

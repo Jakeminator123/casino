@@ -155,7 +155,7 @@ export function createExtras(scene: Scene, onNote: (note: ExtrasNote) => void) {
       gloss = value;
       chips?.made.setGloss(value);
     },
-    /** The table the scene stands at now (the menu's Bord och kamera): its own shoe and box, and whether it has a tray. */
+    /** The table the scene stands at now (the menu's Standard): its own shoe and box, and whether it has a tray. */
     table: setTable,
     dispose() {
       if (gone) return;

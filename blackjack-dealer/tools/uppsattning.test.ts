@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {ADRESSORD, DATATS_FORVAL, UPPSATTNING, UPPSATTNINGAR, VALETS_FORVAL, datatsUppsattning, dockansUppsattning, filmenPassar, lasUppsattning, uppsattningAv, valdUppsattning} from '../src/uppsattning.ts';
+import {ADRESSORD, DATATS_FORVAL, NAMN, UPPSATTNING, UPPSATTNINGAR, VALETS_FORVAL, datatsUppsattning, dockansUppsattning, filmenPassar, lasUppsattning, uppsattningAv, valdUppsattning} from '../src/uppsattning.ts';
 import {LIVE, LIVE_CAMERA, liveSee} from '../src/table-live.ts';
 import {FILM, TABLE_LENS, cardCorners} from '../src/table-lens.ts';
 import {FRAMING_LIMITS, PLAY_VIEW} from '../src/play-view.ts';
@@ -32,8 +32,9 @@ test('the choice\'s default is the live table, the data\'s the former standard, 
   assert.equal(valdUppsattning(null), 'live'); assert.equal(valdUppsattning(null, 'man'), 'forra'); assert.equal(valdUppsattning(null, 'kvinna'), 'forra');
   assert.equal(valdUppsattning(null, 'danilo'), 'live'); assert.equal(valdUppsattning('forra', 'danilo'), 'forra'); assert.equal(valdUppsattning('standard'), 'forra');
   assert.equal(dockansUppsattning('frasse'), 'live'); assert.equal(dockansUppsattning('paow'), null);
-  // the names Jakob sees, long and short, are the source's and are not changed by the choice
-  assert.deepEqual(UPPSATTNINGAR.map(id => [UPPSATTNING[id].namn, UPPSATTNING[id].kort]).sort(), [['Förra standarden', 'Förra'], ['Livebordet', 'Live']]);
+  // the names Jakob sees (Jakob 2026-11-27, "Namnbyte - ja"): the menu's Standard with Live and Förra, the wholes Livestandarden and Förra standarden
+  assert.equal(NAMN, 'Standard');
+  assert.deepEqual(UPPSATTNINGAR.map(id => [UPPSATTNING[id].namn, UPPSATTNING[id].kort]).sort(), [['Förra standarden', 'Förra'], ['Livestandarden', 'Live']]);
 });
 
 test('a film is shown only under its own set-up, and a film that says none is the former standard\'s', () => {
@@ -49,8 +50,8 @@ test('the scene takes a film only under its own set-up: another chain is refused
   const scene = guardFilms(queue, () => under, s => said.push(s));
   // Paow's films say no set-up (the former standard's): under the live table nothing of them is played or fetched, and why is said
   scene.play([{path: 'deal.mp4'}, {path: 'back.mp4'}], {cut: true, onError: e => errors.push(e.message)});
-  await assert.rejects(scene.load([{path: 'deal.mp4'}]), /gjord vid Förra standarden och visas inte vid Livebordet/);
-  assert.deepEqual(calls, []); assert.deepEqual(said, ['forra', 'forra']); assert.deepEqual(errors, ['Filmen är gjord vid Förra standarden och visas inte vid Livebordet.']);
+  await assert.rejects(scene.load([{path: 'deal.mp4'}]), /gjord vid Förra standarden och visas inte vid Livestandarden/);
+  assert.deepEqual(calls, []); assert.deepEqual(said, ['forra', 'forra']); assert.deepEqual(errors, ['Filmen är gjord vid Förra standarden och visas inte vid Livestandarden.']);
   // one film of another set-up in a chain turns the whole chain away
   scene.play([{path: 'live.mp4', uppsattning: 'live'}, {path: 'deal.mp4'}]); assert.deepEqual(calls, []);
   // a live film under the live table goes through, and under the former standard her films go through untouched, options and all

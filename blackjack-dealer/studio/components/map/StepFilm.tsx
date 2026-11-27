@@ -184,6 +184,7 @@ export function SecondaryFilm({
           <TakeChip take={take} size="sm" />
         </button>
         <UseChip use={use} className="self-start" />
+        <FilmTable take={take} className="self-start" />
         <OlderMarks marks={marks} />
         {seam ? <SeamLine seam={seam} /> : null}
         <ClipSpeed take={take} name={title} />

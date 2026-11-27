@@ -12,7 +12,7 @@ import { buttonClasses, ErrorState, Skeleton } from "../ui";
 import { cn } from "../ui/cn";
 import { COMPARED_CARDS, readSetups, type Pt, type Px, type Setup } from "../../lib/setups.ts";
 import { getProofs } from "../../lib/api.ts";
-import type { UppsattningId } from "../../lib/uppsattning-val.ts";
+import { choiceName, type UppsattningId } from "../../lib/uppsattning-val.ts";
 import { useSetup } from "../shell/SetupProvider";
 
 /** The mark beside the table and camera chosen in the menu. */
@@ -99,9 +99,9 @@ function Numbers({ ours, live, chosen }: { ours: Setup; live: Setup; chosen: Upp
         <thead>
           <tr className="border-b border-line-strong text-xs font-semibold text-dim">
             <th className="sticky left-0 bg-surface px-3 py-2">Mått</th>
-            <th className="px-3 py-2"><span style={{ color: OURS }}>■</span> Förra standarden, spelets vy{chosen === "forra" ? <Chosen /> : null}</th>
-            <th className="px-3 py-2"><span style={{ color: LIVE }}>■</span> Livebordet{chosen === "live" ? <Chosen /> : null}</th>
-            <th className="px-3 py-2">Skillnad, förra − livebordets</th>
+            <th className="px-3 py-2"><span style={{ color: OURS }}>■</span> {choiceName("forra")}, spelets vy{chosen === "forra" ? <Chosen /> : null}</th>
+            <th className="px-3 py-2"><span style={{ color: LIVE }}>■</span> {choiceName("live")}{chosen === "live" ? <Chosen /> : null}</th>
+            <th className="px-3 py-2">Skillnad, förra − live</th>
           </tr>
         </thead>
         <tbody>
@@ -175,8 +175,8 @@ export function SetupCompare() {
   const { id: setup } = useSetup();
   const legend = useMemo(() => (
     <div className="flex flex-wrap items-center gap-4 text-xs text-dim">
-      <span className="flex items-center gap-1.5"><span className="h-0.5 w-6" style={{ background: OURS }} />Förra standarden, genom spelets vy{setup === "forra" ? <Chosen /> : null}</span>
-      <span className="flex items-center gap-1.5"><span className="h-0.5 w-6 border-t-2 border-dashed" style={{ borderColor: LIVE }} />Livebordet: vår klon av det riktiga bordet, den nya standarden{setup === "live" ? <Chosen /> : null}</span>
+      <span className="flex items-center gap-1.5"><span className="h-0.5 w-6" style={{ background: OURS }} />{choiceName("forra")}, genom spelets vy{setup === "forra" ? <Chosen /> : null}</span>
+      <span className="flex items-center gap-1.5"><span className="h-0.5 w-6 border-t-2 border-dashed" style={{ borderColor: LIVE }} />{choiceName("live")}: vår klon av det riktiga bordet, den nya standarden{setup === "live" ? <Chosen /> : null}</span>
     </div>
   ), [setup]);
 
@@ -187,7 +187,7 @@ export function SetupCompare() {
     <div className="flex flex-col gap-8">
       <section className="flex max-w-[110ch] flex-col gap-2">
         <p className="text-sm leading-6 text-soft">
-          Livebordet är den nya standarden: det riktiga bordet i filmen, uppmätt och byggt som ett eget bord. Bredvid står den förra standarden, som finns kvar som ett val och som filmerna i spelet är gjorda för. Allt här är räknat ur koden när sidan öppnas. Inget ur den riktiga filmen visas: bara våra egna bord, dockor och linjer.
+          {choiceName("live")} är den nya standarden: det riktiga bordet i filmen, livebordet, uppmätt och byggt som ett eget bord. Bredvid står {choiceName("forra").toLowerCase()}, som finns kvar som ett val och som filmerna i spelet är gjorda för. Allt här är räknat ur koden när sidan öppnas. Inget ur den riktiga filmen visas: bara våra egna bord, dockor och linjer.
         </p>
         {legend}
       </section>
@@ -206,8 +206,8 @@ export function SetupCompare() {
             <figure className="flex flex-col gap-1.5"><Picture s={live} colour={LIVE} /><figcaption className="text-xs text-dim">{live.name}{setup === "live" ? <Chosen /> : null}</figcaption></figure>
           </div>
           <div className="flex flex-wrap gap-2 pt-1">
-            <Link href="/dockan/?uppsattning=forra" className={buttonClasses({ variant: "secondary", size: "sm" })}>Förra standarden i Dockan</Link>
-            <Link href="/dockan/?uppsattning=live&docka=danilo" className={buttonClasses({ variant: "secondary", size: "sm" })}>Livebordet i Dockan, med Danilo</Link>
+            <Link href="/dockan/?uppsattning=forra" className={buttonClasses({ variant: "secondary", size: "sm" })}>{choiceName("forra")} i Dockan</Link>
+            <Link href="/dockan/?uppsattning=live&docka=danilo" className={buttonClasses({ variant: "secondary", size: "sm" })}>{choiceName("live")} i Dockan, med Danilo</Link>
             <Link href="/dockan/?uppsattning=live&docka=frasse" className={buttonClasses({ variant: "secondary", size: "sm" })}>… med Frasse</Link>
           </div>
         </div>

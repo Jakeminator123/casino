@@ -1,7 +1,8 @@
 "use client";
 
-// <SetupSwitch />: the studio's one choice of table and camera, under the dealer switch at the top of the menu: "Bord och
-// kamera", with Livebordet and Förra standarden (the source's names, src/uppsattning.ts), the chosen one marked. A click
+// <SetupSwitch />: the studio's one choice of table and camera, under the dealer switch at the top of the menu: "Standard", with
+// Live and Förra (Jakob 2026-11-27: the whole is Livestandarden or Förra standarden; every name is the source's,
+// src/uppsattning.ts, the short ones on the buttons and the whole names in the tooltip), the chosen one marked. A click
 // chooses for every view and is remembered (components/shell/SetupProvider.tsx). The views that read it pass its word on:
 // Dockan to the editor, Casino to the game, Mått marks it, Filmverkstaden builds Scen under it with its own play view, plays there
 // only the films made at it (components/bordet/SceneBody.tsx), and sends it with a new order (the store makes the draft there, or
@@ -15,17 +16,14 @@ import { useSetup } from "./SetupProvider";
 const LABEL = "text-center text-[9.5px] font-semibold uppercase leading-3 tracking-[0.12em] text-faint rail:w-full rail:text-left rail:text-2xs rail:leading-4 rail:tracking-widest";
 
 /** Where the choice holds today, said in the tooltip. */
-const SETUP_REACH = "Gäller i Dockan, i Mått, i Casino och i Filmverkstaden: Scen och spelvyn går efter valet, Scen spelar bara filmer som är gjorda vid valt bord, och en ny beställning görs vid valt bord och kamera. Dockan i Inspelning står ännu vid förra standardens bord.";
+const SETUP_REACH = "Gäller i Dockan, i Mått, i Casino och i Filmverkstaden: Scen och spelvyn går efter valet, Scen spelar bara filmer som är gjorda vid vald standard, och en ny beställning görs vid den. Dockan i Inspelning står ännu vid förra standardens bord.";
 
 export function SetupSwitch() {
   const { id, set } = useSetup();
   if (isSnapshot) return null;
   return (
     <div role="group" aria-label={NAMN} className="mx-2 mt-2.5 flex shrink-0 flex-col gap-1.5 rail:mx-3 rail:flex-row rail:flex-wrap rail:px-2">
-      <span className={LABEL}>
-        <span className="rail:hidden">Bord</span>
-        <span className="hidden rail:inline">{NAMN}</span>
-      </span>
+      <span className={LABEL}>{NAMN}</span>
       {CHOICES.map((c) => {
         const on = c.id === id;
         return (
@@ -37,12 +35,11 @@ export function SetupSwitch() {
               onClick={() => set(c.id)}
               className={cn(
                 "relative flex h-7 w-full items-center justify-center rounded-md px-1 text-[11.5px] font-medium leading-4 ring-1 ring-inset transition-colors duration-150 focus-visible:outline-offset-0",
-                "rail:h-8 rail:w-auto rail:px-2.5 rail:text-[13px] rail:leading-5",
+                "rail:h-8 rail:w-auto rail:min-w-16 rail:px-3 rail:text-sm rail:leading-5",
                 on ? "bg-raised text-ink ring-brass/55" : "text-dim ring-line hover:bg-raised/60 hover:text-ink",
               )}
             >
-              <span className="truncate rail:hidden">{c.kort}</span>
-              <span className="hidden truncate rail:inline">{c.namn}</span>
+              <span className="truncate">{c.kort}</span>
             </button>
           </Tooltip>
         );

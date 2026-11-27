@@ -68,12 +68,13 @@ stoppar dem när den själv stoppas. En som redan svarar på sin port (`/vem`) s
   ram). Ljud är en egen HTML-sida i `pages/`, nådd från Start.
 
 Orden står i studions Ordlista (`studio/lib/words.ts`). Menyn följer kedjan: Start, Avatarer, Dockan, Filmverkstaden, Granska,
-Karta, Material, Casino, Mått och Biblioteket. Under dealerväxeln står valet **Bord och kamera** (Livebordet eller Förra standarden,
-ur `src/uppsattning.ts`; `studio/lib/uppsattning-val.ts`, `studio/components/shell/Setup*.tsx`): ett val för hela studion,
-ihågkommet i webbläsaren, förvalt livebordet, och `?uppsattning=` i en adress väljer. Dockan skickar ordet till editorn,
+Karta, Material, Casino, Mått och Biblioteket. Under dealerväxeln (med Standarddockan under rubriken Docka) står valet
+**Standard**: Live eller Förra, alltså Livestandarden eller Förra standarden (namnen ur `src/uppsattning.ts`;
+`studio/lib/uppsattning-val.ts`, `studio/components/shell/Setup*.tsx`): ett val för hela studion, ihågkommet i webbläsaren,
+förvalt Live, och `?uppsattning=` i en adress väljer. Dockan skickar ordet till editorn,
 Casino till spelet (`studio/lib/casino.ts` gameSrc), och Mått märker det valda. Filmverkstaden bygger Scen under valet med
 dess egen spelvy (Spara som spelvy sparar mot det valda, `/api/play-view?uppsattning=`) och spelar där bara filmer som är
-gjorda vid valt bord (annars bordet utan dealer och en rad som säger varför; `docs/SYSTEM.md`), och en ny beställning bär valet
+gjorda vid vald standard (annars bordet utan dealer och en rad som säger varför; `docs/SYSTEM.md`), och en ny beställning bär valet
 (`studio/lib/new-film.ts` draftBody; beställningen görs där, eller säger varför inte). Beställningarnas bilder visas i sin
 egen form (bildens mått, annars orderns uppsättnings, `shapeOf` i `studio/lib/orders.ts`). Dockan i Inspelning står ännu
 vid förra standardens bord. Vyerna:

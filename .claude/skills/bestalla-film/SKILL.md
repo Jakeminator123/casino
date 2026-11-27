@@ -29,9 +29,10 @@ och priserna i `blackjack-dealer/data/order-policy.json`. Upprepa dem inte; änd
   nästan bra film görs om "bara litegranna" (2026-11-24). Ingen A3-bild behövs (2026-11-24).
 - **Filmens lins (Standard)** gäller för nya filmer, aldrig Bred lins; före en massbeställning en godkänd helgiv med rätt
   hand och tempo (2026-11-19, då jämförelse B).
-- **Uppsättningen** (2026-11-27: livebordet är den nya standarden, den förra ett val): en beställning görs vid
-  uppsättningen för det den är gjord av och säger det (`uppsattning`, utan fält den förra). Paows filmer beställs ur hennes
-  ankare vid den förra; vid livebordet görs ett prov för en person över dockans film (nedan). Kontraktet:
+- **Uppsättningen** (2026-11-27: Livestandarden är den nya standarden, Förra standarden ett val; i studions meny Standard
+  med Live och Förra): en beställning görs vid uppsättningen för det den är gjord av och säger det (`uppsattning`, utan fält
+  den förra). Paows filmer beställs ur hennes ankare vid den förra; vid Livestandarden görs ett prov för en person över
+  dockans film (nedan). Kontraktet:
   `blackjack-dealer/docs/SYSTEM.md`, "Beställningen".
 
 ## Vägen

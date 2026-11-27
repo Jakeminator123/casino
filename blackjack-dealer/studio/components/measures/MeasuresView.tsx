@@ -11,13 +11,14 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { Page } from "../shell";
 import { Button, ErrorState, SegmentedControl, Skeleton } from "../ui";
 import { getMeasures, measureSections, type Section } from "../../lib/measures.ts";
+import { choiceName } from "../../lib/uppsattning-val.ts";
 import { MeasureBlock } from "./MeasureText";
 import { SetupCompare } from "./SetupCompare";
 
 type Part = "tal" | "livebordet";
 const PARTS = [
   { value: "tal" as const, label: "Alla mått" },
-  { value: "livebordet" as const, label: "Livebordet och förra standarden" },
+  { value: "livebordet" as const, label: `${choiceName("live")} och ${choiceName("forra").toLowerCase()}` },
 ];
 
 function AllMeasures({ round }: { round: number }) {

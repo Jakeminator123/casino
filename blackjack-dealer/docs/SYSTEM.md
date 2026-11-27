@@ -25,14 +25,16 @@ Originalmätningar och referenshashar bevaras; en adapter konverterar vid en utt
 
 | Uppsättning | Vad | Källa |
 | --- | --- | --- |
-| `live`, Livebordet | egen bild 1728 × 972, kameran 18,13° ned och rullad −0,16°, filten en halvcirkel, en klar sko och en låda, kortplatserna i meter med sin lutning, mätta insatsmärken, ingen markerbricka, Danilo och Frasse | `LIVE`, `LIVE_CAMERA` i `src/table-live.ts` |
-| `forra`, Förra standarden | tabellen nedan: bankens bild, linsen, ovalen, filmens sko, kortplanens platser, mannen och kvinnan | `src/table-lens.ts`, kortplanen |
+| `live`, Livestandarden (Live) | egen bild 1728 × 972, kameran 18,13° ned och rullad −0,16°, filten en halvcirkel, en klar sko och en låda, kortplatserna i meter med sin lutning, mätta insatsmärken, ingen markerbricka, Danilo och Frasse | `LIVE`, `LIVE_CAMERA` i `src/table-live.ts` |
+| `forra`, Förra standarden (Förra) | tabellen nedan: bankens bild, linsen, ovalen, filmens sko, kortplanens platser, mannen och kvinnan | `src/table-lens.ts`, kortplanen |
 
 - **Förvalen hålls isär.** Valets förval är `live` (`VALETS_FORVAL`: editorn, `titta.ts`, beställningarna och det som
   görs nytt); datats förval är `forra` (`DATATS_FORVAL`): ett träd, en film, en beställning eller ett sparat val utan
   fältet `uppsattning` är förra standardens, så inget som finns skrivs om. Adressordet är `uppsattning=live|forra`
-  (editorns äldre `standard` läses som `forra` och skrivs aldrig); i studion heter valet Bord och kamera, eftersom
-  "uppsättning" redan betyder en dealers sats ankare.
+  (editorns äldre `standard` läses som `forra` och skrivs aldrig). Det Jakob ser (Jakob 2026-11-27, "Namnbyte - ja"):
+  helheten heter Livestandarden och Förra standarden (`namn`), valet i menyn heter Standard (`NAMN`) med Live och Förra
+  (`kort`), och bordet som möbel heter fortfarande livebordet; "uppsättning" sägs aldrig, eftersom ordet redan betyder en
+  dealers sats ankare. Alla namn kommer ur `src/uppsattning.ts`.
 - **Träden** bär fältet (`TreeDef.uppsattning` i `src/dealer-trees.ts`); en film har det genom trädet den står i, som
   kameran, och en film i inget träd är den förras (`treeSetup`, `filmSetups`). Spelet visar ordets uppsättning, annars
   filmernas: livebordet när ett träd gjort vid det spelas, annars förra standarden med en rad som säger det (`playedCut`,
