@@ -25,8 +25,8 @@ här mappen. Mapparna och alla kommandon står i `README-SV.md`; skelettet, lede
   Amara, Malik och de andra, tre bilder var): deras bilder får gå till tjänsterna vägen använder. Ett foto av en
   riktig person är privat: det stannar på datorn och delas aldrig, och går in i `input/` bara på hans ord.
 - **Det som görs här:** `output/<namn>/` är körningens arbetsmapp, `assets/` (bord, dockor, stol) och `qc/`
-  (kontrollbilder) byggs av skripten. Inget av det går in i Git. Det Jakob ska döma läggs i
-  `../slask/avatar-auto-pipeline/granska/<namn>/`.
+  (kontrollbilder) byggs av skripten. Inget av det går in i Git. Det Jakob ska döma visas som ett prov
+  (`../blackjack-dealer/assets/proofs/<namn>/`), med originalen i provets mapp `original/`.
 - **Köra:** Python-miljön är `.venv/` här (`requirements.txt`). Blender hittas via `BLENDER_EXE`, PATH eller sin
   vanliga installationsmapp, och dockorna kräver tillägget MPFB 2. Jakob startar en dealer från foton med
   `STARTA avatar.cmd`; en agent kör `.\.venv\Scripts\python.exe auto_avatar.py --name <namn>`.

@@ -107,15 +107,17 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
   du är klar. Det som har stått orört i tre timmar raderas av `node slask/slask.ts stada` (servern i `blackjack-dealer`
   kör den själv), så lägg aldrig något där som ska finnas kvar.
 - Det som produceras (filmer, bilder, modeller, renderingar) raderas som regel (Jakob 2026-11-25). Kvar blir bara det
-  som väntar på hans dom, i projektets granskning eller i `slask/<projekt>/granska/<namn>/`, och det han har godkänt
-  eller som spelet använder, i projektets mediemapp. Underkänt, bortvalt och ersatt raderas genast av den som gjorde
+  som väntar på hans dom, i ett prov (`blackjack-dealer/assets/proofs/<namn>/`, med originalen i provets egen mapp
+  `original/`), och det han har godkänt eller som spelet använder, i projektets mediemapp. Underkänt, bortvalt och ersatt raderas genast av den som gjorde
   det; inget läggs undan för säkerhets skull.
 - Var allt lagras står i kartan `lager.ts` i roten (som `matt.ts` för måtten): varje mapp med media eller producerat,
   dess slag, projekt, register, läsare och om det går att göra om gratis. `node lager.ts` visar storlek per ställe och
   slag och vad registren pekar på som saknas. En ny sådan mapp skrivs in där i samma steg (testet
   `blackjack-dealer/tools/lager.test.ts` håller det mot `.gitignore`). Studions Biblioteket visar kartan, och hans klick
   där och i Prov raderar från disken utan papperskorg (`blackjack-dealer/tools/lager-remove.ts`); det skyddade kräver
-  hans andra klick. En agent raderar med samma verktyg, inte för hand.
+  hans andra klick. En agent raderar med samma verktyg, inte för hand: `node blackjack-dealer/tools/lager-remove.ts <sak>`
+  visar frågan och följden, och `--ja --vem <namn>` raderar, bara på hans ord eller ett uppdrag som säger det. Kvittot
+  säger vem som raderade.
 
 ## Sökningen
 
