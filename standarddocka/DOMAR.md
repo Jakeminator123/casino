@@ -266,6 +266,12 @@ rörelser och filmerna som görs av dem.
   **Hans dom i Prov samma kväll: Inte bra** på hela provet, på filmen (06, halv fart av 05) och på dockfilmen (03,
   den rättade rörelsen, som han först skrev "Kan vara bra.." om). Domaren hade dömt dockans rörelse Bra och filmen
   Nja; hans dom ersätter dem. Filmerna 11 (Aleph 2) och 15 (utan hack) lades i provet efter hans dom.
+  **I Beslut kl. 18.32: Nej.** "Nej men livebordet. Vad är det ens? Fingrarna når inte kortet heller.. Fel
+  kameravinkel mm". Lagd halvt om halvt över en ruta ur filmen ligger Kenji, skon, kortet och bordets kant där
+  dealern, hans sko, hans kort och hans bord ligger, så kameran är filmens. Det han ser som fel vinkel är vårt
+  eget utseende: en slät grå vägg med en linje i axelhöjd bakom dealern, där filmen har ett rum sett uppifrån. Och
+  fingrarna: den riktiga dealern lägger hela handen platt på kortet, medan dockan pekar med ett finger i kortets
+  hörn (vårt eget påhitt i lyftet), och hans vänsterhand ligger på skons kort där dockans svävar som en klo.
 - **Livebordet är det som filmades** (2026-11-27): "Liveboardet i min värld är det som ursprungligen filmades med alla
   vinklar, kort, sko, dealer och allt så som kom från live-bj. Alla mått ska finnas där och är tagna därifrån väl?
   Hur som helst, om jag tittar på vyn ... så verkar det inte se ut såsom på youtubevideon." Måtten är filmens (dockan

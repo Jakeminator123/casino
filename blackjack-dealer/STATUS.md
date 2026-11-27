@@ -103,8 +103,17 @@ I den här ordningen om han inte säger annat.
    - Kenjis fyra ankarbilder finns redan i provets `original/` (betalda): `v2/ut/start.png` (A2.3),
      `v3/ut/mellan-29.png` (A2M), `v3/ut/mellan-44.png` (A3P4C1) och `v3/ut/sista.png` (A2.3 med kortet). Tre klipp
      kostar cirka 200 krediter.
-   - Före beställningen, gratis, eftersom Kling med referensfilm kopierar dockans fel: vänsterhanden platt på skon,
-     och dockans kropp. Lederna är dealerns, men bålens och armarnas volym är kroppsgeneratorns egen, så dockan är
+   - Före beställningen, gratis, eftersom Kling med referensfilm kopierar dockans fel (Jakobs Nej i Beslut
+     2026-11-27: "Fingrarna når inte kortet heller.. Fel kameravinkel mm"):
+     - **Händerna som dealerns.** Den riktiga dealern lägger hela högerhanden platt på kortet; dockan pekar med ett
+       finger i kortets hörn, vilket är vårt eget påhitt i lyftet ("den pekande högerhanden"). Hans vänsterhand
+       ligger platt på skons kort; dockans svävar som en klo. Händerna i ankarna (A2.3, A2M, A3P4C1) ska läsas om ur
+       filmen i större utsnitt än de 40–55 bildpunkter MediaPipe fick.
+     - **Bilden bakom dealern.** Kameran är filmens (Kenji lagd halvt om halvt över en ruta ur filmen ligger på
+       dealern, skon, kortet och bordets kant: `../live-bj/rutor/jamfor/youtube-och-kenji-halvt-om-halvt.png`, bara på
+       datorn), men vår platta har en slät grå vägg med en linje i axelhöjd, som läses som en annan kameravinkel.
+       Plattan ska se ut som ett rum sett uppifrån, och filten kan få filmens ton.
+     - **Dockans kropp.** Lederna är dealerns, men bålens och armarnas volym är kroppsgeneratorns egen, så dockan är
      tjockare än Danilo (Jakob: "den tjocka dockan ... känns riktigt klumpig"); volymen ska komma ur filmen eller
      personens bilder (SAM 3D Body ger kroppsformen).
    - Vårt kort läggs där filmens fingertoppar är, ruta för ruta, i stället för efter dockans kortbana

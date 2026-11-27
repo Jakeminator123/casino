@@ -22,7 +22,11 @@
       "asked": "2026-11-27",
       "from": "blackjack-dealer",
       "cost": "tre omgångar 455 krediter; en ny omgång cirka 130 per giv och kamera",
-      "answer": null
+      "answer": {
+        "value": "nej",
+        "note": "Nej men liveboordet. Vad är det ens? Fingarana når inte kortet heller.. Fel kaeravinkel mm",
+        "at": "2026-11-27T17:32:36.435Z"
+      }
     },
     {
       "id": "sju-bilder-vid-livebordet",
