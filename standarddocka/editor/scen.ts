@@ -11,6 +11,7 @@ import {FILM, PLAY_LENS, TABLE_LENS, filmEye, fovYDeg, seatView} from '../../bla
 import {LIVE, LIVE_CAMERA, liveFrame} from '../../blackjack-dealer/src/table-live.ts';
 import {UPPSATTNING, type UppsattningId} from '../../blackjack-dealer/src/uppsattning.ts';
 import {cross, type Frame, type V3} from './rorelse.ts';
+import {dockorna} from './dockval.ts';
 
 /**
  * Uppsättningen (blackjack-dealer/src/uppsattning.ts, listan som allt som väljer läser): 'live' är det klonade livebordet
@@ -20,9 +21,9 @@ import {cross, type Frame, type V3} from './rorelse.ts';
  * med mannen och kvinnan; dess väg är densamma som innan valet fanns.
  */
 export type Uppsattning = UppsattningId;
-/** Dockorna vid livebordet (dealer3d/src/doll.ts LIVE_DOLLS): de hör till uppsättningen live. */
-export type Livedocka = 'danilo' | 'frasse';
-export const LIVEDOCKOR = UPPSATTNING.live.dockor as readonly Livedocka[];
+/** Dockorna vid livebordet (dealer3d/src/doll.ts LIVE_DOLLS): Danilo, Frasse och en persons docka ur sina bilder (dockval.ts dockorna); de hör till uppsättningen live. */
+export type Livedocka = string;
+export const LIVEDOCKOR: readonly Livedocka[] = dockorna('live');
 export const arLivedocka = (namn: string | null | undefined): namn is Livedocka => (LIVEDOCKOR as readonly string[]).includes(namn ?? '');
 /** Filmens bild för en uppsättning: standardens (FILM) eller livebordets egen (LIVE_CAMERA.film); inspelningen görs i den. */
 export const filmFor = (u: Uppsattning) => UPPSATTNING[u].bild;
@@ -191,7 +192,7 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
   const card = new T.Group(); card.matrixAutoUpdate = false; scene.add(card);
 
   // Dockan: mannen eller kvinnan, eller vid livebordet Danilo eller Frasse.
-  laddar(docka === 'kvinna' ? 'kvinnan' : docka === 'man' ? 'mannen' : docka === 'danilo' ? 'Danilo' : 'Frasse');
+  laddar(docka === 'kvinna' ? 'kvinnan' : docka === 'man' ? 'mannen' : docka.charAt(0).toUpperCase() + docka.slice(1));
   // En modell på prov (?modell=<namn> och ?bord=<namn> i adressen: standarddocka_<namn>.glb och standardbord_<namn>.glb
   // ur avatar-auto-pipeline/assets), för den som bygger om dockan eller bordet och vill se det innan det byts in.
   const prov = (nyckel: string) => { const n = new URLSearchParams(location.search).get(nyckel); return n && /^[a-z0-9_]+$/.test(n) ? n : null; };
@@ -204,7 +205,7 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
   // Vid livebordet görs en annan kropp (en modell på prov, som Tomasz figur) så stor att armen blir den lyfta rörelsens
   // dockas (Danilos eller Frasses, båda mannens arm), som rörelsens handleder är ritade för.
   const lyftDocka = live && !egen && arLivedocka(rorelsensDocka) ? dollNamed(rorelsensDocka) : null, arm = egen ?? lyftDocka;
-  const figure = await loadFigure(prov('modell') ? `/avatar-auto-pipeline/assets/docka/standarddocka_${prov('modell')}.glb` : MODELLER[docka], {twistBones: prov('vridben') !== '0', ...(arm ? {arm: arm.upperArm + arm.forearm} : {})}); scene.add(figure.root);
+  const figure = await loadFigure(prov('modell') ? `/avatar-auto-pipeline/assets/docka/standarddocka_${prov('modell')}.glb` : (MODELLER as Record<string, string>)[docka] ?? `/avatar-auto-pipeline/assets/docka/standarddocka_${docka}.glb`, {twistBones: prov('vridben') !== '0', ...(arm ? {arm: arm.upperArm + arm.forearm} : {})}); scene.add(figure.root);
   const bone = (name: string) => { const b = figure.root.getObjectByName(name); if (!b) throw Error(`Dockan saknar leden ${name}.`); return b.getWorldPosition(new T.Vector3()); };
   const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]);
   /** En ruta på mannen, som dealer3d/src/stage.ts gör det: bålen ur axlarna och höften, armarna ur lederna, händerna ur sina 21 punkter, huvudet mot blicken. */

@@ -5,7 +5,7 @@
 // with the workshops that do each step, the workshops themselves (one tile each: a name, a count, a dot for a workshop's
 // own server), and last what lies beside the work. Names only: what each is for is in the glossary (blackjack-dealer/
 // AGENTS.md, "Studion visar, den förklarar inte").
-import { Archive, ArrowRight, Clapperboard, Images, ListChecks, Music, Package, PersonStanding, Ruler, Scale, ScanEye, Spade, Users, Workflow, type LucideIcon } from "lucide-react";
+import { Archive, ArrowRight, Clapperboard, Images, ListChecks, Music, PersonStanding, Ruler, Scale, ScanEye, Spade, Users, Workflow, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Page } from "../shell";
@@ -23,7 +23,7 @@ import { getProofs } from "../../lib/api.ts";
 import { getProofNotes } from "../../lib/proof-notes.ts";
 import { hisWord } from "../../lib/proof-areas.ts";
 
-const ICONS: Record<Tile["icon"], LucideIcon> = { users: Users, doll: PersonStanding, film: Clapperboard, review: ScanEye, map: Workflow, images: Images, game: Spade, ruler: Ruler, live: Scale, pack: Package, sound: Music, decisions: ListChecks, library: Archive };
+const ICONS: Record<Tile["icon"], LucideIcon> = { users: Users, doll: PersonStanding, film: Clapperboard, review: ScanEye, map: Workflow, images: Images, game: Spade, ruler: Ruler, live: Scale, sound: Music, decisions: ListChecks, library: Archive };
 
 /** A workshop's tile: its icon, its name, a count where something waits, and whether its own server runs. */
 function TileCard({ tile, dealer, count, workshop }: { tile: Tile; dealer: string; count?: number; workshop?: WorkshopState }) {

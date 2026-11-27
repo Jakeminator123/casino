@@ -5,7 +5,7 @@
 // wide window, the active one marked and a count where it helps (the chosen dealer's takes waiting for Jakob beside
 // Granska; beside Karta the number of the tree the game plays, "22/36 steg", from src/dealer-trees.ts countWord, as
 // Karta's row shows it), then Beslut and Ordlista, and last whether the server answers. What lies beside the work
-// (Kortpaketet, Ljud) is reached from the start page. A view's link keeps the chosen dealer in the address.
+// (Ljud) is reached from the start page. A view's link keeps the chosen dealer in the address.
 //
 // One row is drawn in two ways (app/globals.css, --breakpoint-rail): in a window wide enough, an icon and a word on a line
 // with the count at its right end; in a narrow window or on a phone, the icon with a small word under it.
@@ -39,8 +39,8 @@ type View = { href: string; label: string; hint: string; icon: Icon; group?: str
 
 // The menu follows the chain from a picture to a film (the root PROJEKTET.md, the start page's lib/start.ts), Jakob
 // 2026-11-27: the studio is the entry to the whole project. Start first; then the doll that plays the motion, the films
-// made from it and judged, the game, and the measures everything stands on. What lies beside the work (Kortpaketet,
-// Ljud) is on the start page, not here.
+// made from it and judged, the game, and the measures everything stands on. What lies beside the work (Ljud) is on
+// the start page, not here.
 export const VIEWS: readonly View[] = [
   { href: "/", label: "Start", hint: "Kedjan från bild till film och alla verkstäder, och det som väntar på dig", icon: House },
   { href: "/avatarer/", label: "Avatarer", hint: "Från bilder av en person till en docka på vårt skelett: vägarna steg för steg, och föremålen vid bordet", icon: Users, group: "Förlagan" },

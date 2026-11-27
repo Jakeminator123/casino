@@ -226,25 +226,31 @@ export const KVINNA: Doll = {name:'kvinna',upperArm:0.263,forearm:0.249,reach:0.
 // (dealer3d/tools/lyft-till-docka.ts, dealer3d/data/lyft-<doll>-*.json). They stand in LIVE_DOLLS, not in DOLLS: they sit
 // at the live table, not at the standard's, so the pages that offer the standard's dolls do not offer them.
 const MAN_SEAT = MAN.place as Extract<DollPlace, {kind: 'seat'}>;
-/** What the doll's own model measures where it differs from the man's (dealer3d/tools/docka-standard.ts --docka man --fil <its .glb>): the shoulder joints apart, the head's middle from their middle and its radius. */
-type OwnModel = {model: string; shouldersApart: number; head: Vec3; headRadius: number};
+/**
+ * What the doll's own model measures where it differs from the man's (dealer3d/tools/docka-standard.ts --docka man --fil <its .glb>): the shoulder joints apart, the head's middle from their middle and its radius.
+ * A person's doll (src/persondockor.ts) has its own name and may have its own arms, trunk, neck and hand as well; what it leaves out is the man's.
+ */
+type OwnModel = {model: string; shouldersApart: number; head: Vec3; headRadius: number; name?: string; upperArm?: number; forearm?: number; trunk?: number; neck?: Vec3; hand?: DollHand; about?: Record<string, string>};
 function liveDoll(style: 'kameran' | 'bordet', own: OwnModel): Doll {
   const d = LIVE.dealer.styles[style], [x, height] = d.shouldersMiddle, r4 = (n: number) => Math.round(n * 10000) / 10000;
-  return {...MAN, name: d.name, hipBelowFelt: r4(MAN_SEAT.trunk - height),
-    place: {...MAN_SEAT, edge: LIVE.edge[2], behindEdge: LIVE.dealer.behindEdge, shoulderHeight: height, x, shouldersApart: own.shouldersApart, head: own.head, headRadius: own.headRadius},
+  const upperArm = own.upperArm ?? MAN.upperArm, forearm = own.forearm ?? MAN.forearm, trunk = own.trunk ?? MAN_SEAT.trunk;
+  return {...MAN, name: own.name ?? d.name, hipBelowFelt: r4(trunk - height), upperArm, forearm, ...(own.upperArm || own.forearm ? {reach: r4((upperArm + forearm) * 0.972)} : {}), ...(own.hand ? {hand: own.hand} : {}),
+    place: {...MAN_SEAT, edge: LIVE.edge[2], behindEdge: LIVE.dealer.behindEdge, shoulderHeight: height, x, shouldersApart: own.shouldersApart, trunk, neck: own.neck ?? MAN_SEAT.neck, head: own.head, headRadius: own.headRadius},
     about: {
       all: `vid livebordet (src/table-live.ts LIVE), efter den riktiga dealern med stilen ${style} (live-bj/data/stil-${style}.json); kroppen avatar-auto-pipeline/assets/docka/${own.model} (samma skelett som mannen): axelbredden och huvudet mätta på den, allt annat mannens (MAN); var dockan sitter mätt genom livebordets kamera; ansiktet vårt eget`,
       place: `axlarnas mitt ${height} m över filten och ${x} m åt sidan (LIVE.dealer.styles.${style}.shouldersMiddle: mätt i bilden, på ett plan antaget ${LIVE.dealer.behindEdge} m bakom filtens kant, LIVE.dealer.behindEdge; skattat ur rutorna där en hand ligger still: ${d.behindEdgeEstimated} m bakom kanten, ±0,1 m); kanten är livebordets (LIVE.edge). Axellederna ${own.shouldersApart * 1000} mm isär (modellen; dealern i bilden ${d.shoulderWidth} m). Halsen mannens; huvudets mitt och radie modellens. Filmens korta mått av hakan över axlarna (${d.head.chinOverShoulders} m) är hållning och synvinkel och hör till rörelsen, inte kroppen`,
       upperArm: 'mannens (MAN.upperArm), som modellen: dealerns egen arm går inte att mäta med en kamera', forearm: 'mannens (MAN.forearm)',
       hand: 'mannens former, ben och toppar (MAN.hand); lägena i hand.at och hand.rest.at är mannens vid standardens bord och gäller inte här: vid livebordet ligger händerna i vilan där dealer3d/data/ankare-vila-<docka>.json har dem',
-      hipBelowFelt: 'följer av platsen: mannens bål (place.trunk) minus axlarnas höjd', reach: 'mannens', mostLean: 'mannens', mostTwist: 'mannens'},
+      hipBelowFelt: 'följer av platsen: mannens bål (place.trunk) minus axlarnas höjd', reach: 'mannens', mostLean: 'mannens', mostTwist: 'mannens', ...own.about},
   };
 }
 /** Danilo, after the dealer of the style kameran (the first in the film: young and slim, he seeks the camera). */
 export const DANILO: Doll = liveDoll('kameran', {model: 'standarddocka_danilo.glb', shouldersApart: 0.357, head: [0, 0.2324, 0.0856], headRadius: 0.1118});
 /** Frasse, after the dealer of the style bordet (the second: with a beard, his eyes on the table). */
 export const FRASSE: Doll = liveDoll('bordet', {model: 'standarddocka_frasse.glb', shouldersApart: 0.3485, head: [0, 0.2247, 0.084], headRadius: 0.1043});
-export const LIVE_DOLLS: Record<string, Doll> = {danilo: DANILO, frasse: FRASSE};
+/** A person's doll, one per person measured out of their own pictures (src/persondockor.ts, written by avatar-auto-pipeline's steg 15): at the live table, in the style whose motions it plays. */
+import {PERSONDOCKOR} from './persondockor.ts';
+export const LIVE_DOLLS: Record<string, Doll> = {danilo: DANILO, frasse: FRASSE, ...Object.fromEntries(Object.entries(PERSONDOCKOR).map(([name, p]) => [name, liveDoll(p.stil, {...p, name})]))};
 
 export const DOLLS: Record<string, Doll> = {standard: STANDARD, paow: PAOW, man: MAN, kvinna: KVINNA};
 /** The doll of a name, at the standard's table or the live table; an unknown name is an error, not the standard. */

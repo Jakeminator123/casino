@@ -25,7 +25,7 @@
 //              [--utseende nyckel]  rena färger på bakgrund, bord och kort (editor/scen.ts), för film där dealern ska skiljas ut
 //              [--docka man|kvinna]  förra standardens bord med mannen eller kvinnan (samma rörelse och samma sparade
 //                         lager); --uppsattning forra räcker för mannen, och --runda och --vilan väljer det bordet själva
-//              [--uppsattning live] [--docka danilo|frasse]  förvalet utan ord: det klonade livebordet genom sin egen kamera
+//              [--uppsattning live] [--docka danilo|frasse|<en persons docka, dealer3d/src/persondockor.ts>]  förvalet utan ord: det klonade livebordet genom sin egen kamera
 //                         (spel är livebordets, 1728 x 972, och inspelningen görs i den storleken), med Danilo (förval) eller
 //                         Frasse. Platsen väljer dockans lyfta giv dit (lyft-<docka>-p<plats>),
 //                         --giv lyft-danilo-vantan-1 vilken lyft rörelse som helst; den spelas som den är, från vilan till
@@ -67,6 +67,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {chromePath, releaseLock, takeLock} from '../../blackjack-dealer/tools/lab-look.ts';
 import {lasUppsattning, valdUppsattning} from '../../blackjack-dealer/src/uppsattning.ts';
+import {dockorna} from '../editor/dockval.ts';
 
 const arg = (name: string, fallback?: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : fallback; };
 const flag = (name: string) => process.argv.includes(name);
@@ -92,8 +93,9 @@ if (runda && (arg('--giv') || arg('--vilan'))) throw Error('Rundan spelar dockan
 if (arg('--uppsattning') !== undefined && !lasUppsattning(arg('--uppsattning'))) throw Error(`--uppsattning tar live (förvalet) eller forra, fick ${arg('--uppsattning')}.`);
 const uppsattning = valdUppsattning(arg('--uppsattning'), arg('--docka') ?? (runda || arg('--vilan') ? 'man' : null)), livebord = uppsattning === 'live';
 const docka = arg('--docka') ?? (livebord ? 'danilo' : 'man');
-if (!['man', 'kvinna', 'danilo', 'frasse'].includes(docka)) throw Error(`--docka tar man, kvinna, danilo eller frasse, fick ${docka}.`);
-if (livebord !== (docka === 'danilo' || docka === 'frasse')) throw Error(livebord ? 'Vid livebordet sitter Danilo och Frasse: --docka danilo eller frasse.' : 'Vid förra standardens bord sitter mannen och kvinnan: --docka man eller kvinna.');
+const LIVEDOCKOR = dockorna('live'); // Danilo, Frasse och en persons docka ur sina bilder (dealer3d/src/persondockor.ts)
+if (!['man', 'kvinna', ...LIVEDOCKOR].includes(docka)) throw Error(`--docka tar man, kvinna eller ${LIVEDOCKOR.join(', ')}, fick ${docka}.`);
+if (livebord !== LIVEDOCKOR.includes(docka)) throw Error(livebord ? `Vid livebordet sitter ${LIVEDOCKOR.join(', ')}: --docka ${LIVEDOCKOR.join(' eller ')}.` : 'Vid förra standardens bord sitter mannen och kvinnan: --docka man eller kvinna.');
 const sekvens = arg('--sekvens');
 if (sekvens !== undefined && (!livebord || !/^[a-z0-9][a-z0-9,-]*$/.test(sekvens) || arg('--giv'))) throw Error('--sekvens tar en lista av lyfta rörelser (vantan-1,p2,p4 eller 1), vid livebordet och utan --giv.');
 if (livebord && (runda || arg('--vilan'))) throw Error('Vid livebordet spelas en lyft rörelse i taget, från vilan till vilan: inte med --runda, --spela-in runda eller --vilan.');

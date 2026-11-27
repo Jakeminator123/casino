@@ -29,7 +29,6 @@
     "lager.ts",
     "avatar-auto-pipeline/scen/**/*.ts",
     "standarddocka/**/*.ts",
-    "kortspelspaket/**/*.ts",
     "blackjack-dealer/**/*.ts"
   ],
   "exclude": ["**/node_modules", "blackjack-dealer/studio", "blackjack-dealer/.runtime"]

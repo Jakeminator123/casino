@@ -7,7 +7,7 @@ import type { WorkshopId } from "./workshops.ts";
 export type Tile = {
   name: string;
   href: string;
-  icon: "users" | "doll" | "film" | "review" | "map" | "images" | "game" | "ruler" | "live" | "pack" | "sound" | "decisions" | "library";
+  icon: "users" | "doll" | "film" | "review" | "map" | "images" | "game" | "ruler" | "live" | "sound" | "decisions" | "library";
   /** A workshop with a server of its own, started when its page opens. */
   workshop?: WorkshopId;
   /** Not in the online copy (it needs this computer). */
@@ -46,6 +46,5 @@ export const START_TILES: readonly Tile[] = [
 ];
 
 export const START_SIDE: readonly Tile[] = [
-  { name: "Kortpaketet", href: "/kortpaketet/", icon: "pack", workshop: "kortpaketet", localOnly: true },
   { name: "Ljud", href: "/sound.html", icon: "sound", localOnly: true },
 ];

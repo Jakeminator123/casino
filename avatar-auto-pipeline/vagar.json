@@ -29,7 +29,23 @@
  "skelettet": {
   "regel": "Skelettet är alltid vårt. En docka byter kropp, ansikte, hud och kläder, aldrig skelett eller bennamn, så att varje rörelse fungerar på varje docka. Vilken väg dockan än byggs, ska den färdiga modellen ha benen som spelet letar efter.",
   "kalla": "../blackjack-dealer/dealer3d/src/figure-model.ts",
-  "kravs": ["Hips", "neck", "Head", "RightArm", "LeftArm", "RightForeArm", "LeftForeArm", "RightHand", "LeftHand", "RightUpLeg", "LeftUpLeg", "RightLeg", "LeftLeg", "RightFoot", "LeftFoot"],
+  "kravs": [
+   "Hips",
+   "neck",
+   "Head",
+   "RightArm",
+   "LeftArm",
+   "RightForeArm",
+   "LeftForeArm",
+   "RightHand",
+   "LeftHand",
+   "RightUpLeg",
+   "LeftUpLeg",
+   "RightLeg",
+   "LeftLeg",
+   "RightFoot",
+   "LeftFoot"
+  ],
   "anvands_om_de_finns": [
    "vridben: <Sida>ForeArmTwist1 och 2",
    "fingrar: <Sida>Hand<Finger>1–3, för en hel hand",
@@ -37,18 +53,32 @@
    "ansiktsformer: formerna (morph targets) med ARKit-namn"
   ],
   "var_egen_kontroll": "headfront läses inte längre av spelet (sedan 2026-11-26), men bryggan (verktyg/dealer3d_till_blender.py, verktyg/blender_till_dealer3d.py) använder den, och exportens kontroll kräver den (steg 6 och gemensamt/riggverktyg.py KRAVDA_BEN).",
-  "belagt": {"regel": "kod", "kravs": "kod", "anvands_om_de_finns": "kod", "var_egen_kontroll": "kod"}
+  "belagt": {
+   "regel": "kod",
+   "kravs": "kod",
+   "anvands_om_de_finns": "kod",
+   "var_egen_kontroll": "kod"
+  }
  },
  "scenen": {
   "text": "Bordet, stolen och spelets mått hör till scenen, inte till dockan: varje väg använder samma. Måtten skrivs ur spelets kod till scen/standard.yaml.",
-  "skript": ["scen/gen_standard.py", "scen/las_spelet.ts", "scen/bygg_bord.py", "scen/bygg_stol.py", "scen/standard.yaml"]
+  "skript": [
+   "scen/gen_standard.py",
+   "scen/las_spelet.ts",
+   "scen/bygg_bord.py",
+   "scen/bygg_stol.py",
+   "scen/standard.yaml"
+  ]
  },
  "prov": {
   "tomasz-20261126": {
    "namn": "Tomasz genom Version 1",
    "slag": "korning",
    "datum": "2026-11-26",
-   "var": ["output/tomasz/", "../slask/avatar-auto-pipeline/granska/tomasz/"],
+   "var": [
+    "output/tomasz/",
+    "../slask/avatar-auto-pipeline/granska/tomasz/"
+   ],
    "sa": "Steg 1–7 körda för 95 Meshy-krediter (saldo 536 till 441): 56 ben, 30 av dem fingerleder, inga vridben, inga ögonleder, ingen käke och inga ansiktsformer; steg 8 (filmen) kördes inte.",
    "jakobs_ord": null
   },
@@ -56,7 +86,10 @@
    "namn": "Runways 3D-modeller av Tomasz bredvid vår docka",
    "slag": "prov",
    "datum": "2026-11-27",
-   "var": ["../blackjack-dealer/assets/proofs/runway-3d-20261127/", "../blackjack-dealer/assets/proofs/runway-3d-20261127/original/"],
+   "var": [
+    "../blackjack-dealer/assets/proofs/runway-3d-20261127/",
+    "../blackjack-dealer/assets/proofs/runway-3d-20261127/original/"
+   ],
    "sa": "Hunyuan och Trellis gjorde Tomasz ur samma A-posebild (68 Runway-krediter): fristående modeller utan skelett, med fem åtskilda men släta fingrar och suddigt ansikte; Hunyuan-kroppen gick att sätta på Tomasz-dockans skelett i ett gratisprov.",
    "jakobs_ord": "\"meshy/vår docka bäst\" (kroppen och ansiktet); \"Våra händer /mesy sämst (men är det påklistrat i efterhand?)\"; på vårt skelett: \"Oklart, men meshy/vi är nog sämt, men de e frågan om saker klistras på i efterhand elelr inte lixom\""
   },
@@ -64,7 +97,9 @@
    "namn": "Dockans ansikte: ögon, bryn, läppar och mun",
    "slag": "prov",
    "datum": "2026-11-27",
-   "var": ["../blackjack-dealer/assets/proofs/dockans-ansikte-20261127/"],
+   "var": [
+    "../blackjack-dealer/assets/proofs/dockans-ansikte-20261127/"
+   ],
    "sa": "Iris och pupill, ögonbryn, läppar och en mörk mun med tänder på mannen och kvinnan, byggda som provmodeller; blicken, blinkningen, leendet och brynen visade i spelets vy.",
    "jakobs_ord": null
   },
@@ -72,7 +107,9 @@
    "namn": "Ren handled på Meshy-dockan",
    "slag": "prov",
    "datum": "2026-11-27",
-   "var": ["../blackjack-dealer/assets/proofs/dealerns-handled-20261127/"],
+   "var": [
+    "../blackjack-dealer/assets/proofs/dealerns-handled-20261127/"
+   ],
    "sa": "Tomasz handled rättad gratis i steg 5 (tomasz_handled): vidgningen räknas tillbaka och handleden går drygt en centimeter in i ärmen; kvar är en mörk krage vid manschetten när handen böjs mycket, eftersom handledens led sitter inne i ärmen. Underarmarna fick två vridben var.",
    "jakobs_ord": "Inte bra (2026-11-27): \"Men om vi har leder innan i dockan varöfr lägga på ett lager till. Vinkeln här är lite fel på hur armen grå från tröjjann ckså\""
   },
@@ -80,7 +117,9 @@
    "namn": "Tider i texten, och en docka som liknar Tomasz",
    "slag": "prov",
    "datum": "2026-11-27",
-   "var": ["../blackjack-dealer/assets/proofs/kling-tider-20261127/"],
+   "var": [
+    "../blackjack-dealer/assets/proofs/kling-tider-20261127/"
+   ],
    "sa": "Tomasz-dockan spelade standarddockans giv i editorn som förlaga till Kling 4; filmen blev inte annorlunda än med standarddockan.",
    "jakobs_ord": null
   },
@@ -88,7 +127,9 @@
    "namn": "Tomasz som dealer: dockans film omgjord till honom",
    "slag": "prov",
    "datum": "2026-11-26",
-   "var": ["../blackjack-dealer/assets/proofs/tomasz-runda-20261126/"],
+   "var": [
+    "../blackjack-dealer/assets/proofs/tomasz-runda-20261126/"
+   ],
    "sa": "Dockans giv omgjord till Tomasz med Aleph 2 och med WAN 3, lagd på vårt bord; hela provet kostade 1 758 Runway-krediter.",
    "jakobs_ord": "Inte bra (hela provet, 2026-11-26): rörelserna är stela, och Aleph kopierar dockans."
   },
@@ -96,7 +137,7 @@
    "namn": "Händerna i rörelse: Hunyuan-kroppen i ett stycke mot Meshy-dockans påsatta händer",
    "slag": "prov",
    "datum": "2026-11-27",
-   "var": ["../blackjack-dealer/assets/proofs/hander-hunyuan-mot-meshy-20261127/", "assets/docka/standarddocka_tomasz_hunyuan.glb"],
+   "var": [],
    "sa": "Hunyuan-kroppen fick Tomasz Meshy-huvud, Tomasz-dockans skelett och en egen fingerrigg (steg 10, gratis): fingrarna böjer sig nu in mot handflatan. I rörelse vann Hunyuan handleden (ingen skarv, ingen krage) och den knutna handen, och vid bordet i spelets vy, där Meshy-dockans manschetter blir mörka krås; Meshy-dockan vann detaljerna på nära håll (naglar, knogar, ådror) och nypet.",
    "jakobs_ord": null
   },
@@ -104,7 +145,9 @@
    "namn": "Ett ansikte som rör sig på Tomasz Meshy-huvud",
    "slag": "prov",
    "datum": "2026-11-27",
-   "var": ["../blackjack-dealer/assets/proofs/tomasz-ansikte-20261127/", "assets/docka/standarddocka_tomasz_ansikte.glb"],
+   "var": [
+    "assets/docka/standarddocka_tomasz_ansikte.glb"
+   ],
    "sa": "Standarddockans 30 ansiktsformer fördes över till Tomasz Meshy-huvud (steg 09, gratis): han blinkar, sänker locken, flyttar blicken, ler, lyfter och sänker brynen och öppnar munnen, och likheten i vila står kvar. Ögonen är en glob per öga på nya ögonleder med hans egen målade iris, och munnen är uppskuren med en mörk munhåla. Inga tänder, och käkleden rör hakan svagt.",
    "jakobs_ord": null
   },
@@ -112,7 +155,7 @@
    "namn": "Tomasz på Danilos docka: hans yta på Danilos skelett",
    "slag": "prov",
    "datum": "2026-11-27",
-   "var": ["../blackjack-dealer/assets/proofs/tomasz-pa-danilos-grund-20261127/", "assets/docka/standarddocka_tomasz_danilo.glb"],
+   "var": [],
    "sa": "Tomasz med ansiktet (steg 09) sattes på Danilos skelett med steg 11 (gratis): lederna är Danilos (högst 0,001 mm ifrån), axlarna 357 mm isär i stället för 312, armarna och benen Danilos längder, fingrarna Danilos knogar och längder men hans egen krökning i vila. I editorn spelade han Danilos giv till plats 4 med fingrarna, handlederna, armbågarna och axlarna 0 mm från rörelsens punkter, som Danilos egen docka (gårdagens Tomasz, skalad: fingrarna 40 mm, armbågarna 11–25, axlarna 17). Ansiktet och huvudet är oförändrade; handflatan blev bredare (Danilos knogar sitter 69 mm isär, hans 51) och huden på handryggen sträcktes upp till 60 %; ärmens manschett är lika skrynklig som förut. Samma steg på Hunyuan-kroppen (med steg 09 först) sträckte hela handen, eftersom dess hand är 16 cm lång mot Danilos 19: Meshy-Tomasz blev bäst.",
    "jakobs_ord": null
   },
@@ -120,7 +163,11 @@
    "namn": "Danilo och Frasse: två dockor med de mätta måtten, bredvid mannen",
    "slag": "prov",
    "datum": "2026-11-27",
-   "var": ["../blackjack-dealer/assets/proofs/danilo-frasse-kroppar-20261127/", "assets/docka/standarddocka_danilo.glb", "assets/docka/standarddocka_frasse.glb"],
+   "var": [
+    "../blackjack-dealer/assets/proofs/danilo-frasse-kroppar-20261127/",
+    "assets/docka/standarddocka_danilo.glb",
+    "assets/docka/standarddocka_frasse.glb"
+   ],
    "sa": "scen/bygg_docka.py --kon danilo och --kon frasse: mannens kropp med axellederna och huvudets höjd ur mätningen på film, vårt eget ansikte (81 ben, 30 ansiktsformer). Axlarna 2 och 3 cm smalare än mannens, Frasses huvud lite mindre, Danilo lite smalare om midjan och höften; halsen, armarna och händerna är mannens.",
    "jakobs_ord": null
   },
@@ -128,7 +175,7 @@
    "namn": "Meshy-provet: kroppen ur flera vyer, Meshys rigg på den, och Tomasz utseende som ny yta på Danilos docka",
    "slag": "prov",
    "datum": "2026-11-27",
-   "var": ["../blackjack-dealer/assets/proofs/meshy-provet-20261127/", "output/tomasz-flervy/", "assets/docka/standarddocka_danilo_tomasz_yta.glb"],
+   "var": [],
    "sa": "48 Meshy-krediter: vyerna 3, kroppen ur två vyer 30, riggen 5 och den nya ytan 10. Kroppen ur flera vyer duger inte som dealer: de fyra fingrarna är ihopvuxna i båda händerna (steg 05:s prov hittar inte fem fingrar) och ansiktet är utsmetat, med en kal rand över hjässan; kläderna är rena fram och bak. Meshys rigg på den (66 ben, fyra leder per finger) når inte nypet (tummens och pekfingrets toppar 33–47 mm isär, Tomasz-dockans 12) och river upp huden över knogarna i en knuten hand. Den nya ytan på Danilos egen docka behåller hans skelett, fingrar, vridben och 30 ansiktsformer: Tomasz hud, hår och kläder målade på Danilos form. Meshys ansikte blev suddigt med vita ögon; närbilden av ansiktet lagd ovanpå (gratis) gav skarpa drag och blå ögon, och den sparades.",
    "jakobs_ord": null,
    "domarens_ord": "Inte bra (den nya ytan på Danilos docka; domaren, en oberoende granskare, inte Jakob, 2026-11-27): \"en målad docka i en tajt dräkt\", Danilos smala kropp där Tomasz är bred och \"Danilos huvud med hans hud målad på\". Det som gör dockan till honom är i den ordningen huvudets form, kroppens bredd och sist skjortan som egen del."
@@ -137,7 +184,11 @@
    "namn": "Tomasz-dockan på hans egna mått, bredvid Danilos",
    "slag": "prov",
    "datum": "2026-11-27",
-   "var": ["../blackjack-dealer/assets/proofs/tomasz-dockan-pa-hans-matt-20261127/", "assets/docka/standarddocka_tomasz_matt.glb", "assets/docka/standarddocka_tomasz_matt_form.glb"],
+   "var": [
+    "../blackjack-dealer/assets/proofs/tomasz-dockan-pa-hans-matt-20261127/",
+    "assets/docka/standarddocka_tomasz_matt.glb",
+    "assets/docka/standarddocka_tomasz_matt_form.glb"
+   ],
    "sa": "scen/bygg_docka.py --kon tomasz_matt (gratis): mannens kropp med Tomasz mått, mätta på hans Meshy-figur och bilder med verktyg/mat_figur.py bredvid mannen, kläder och hår avdragna. Mot Danilo: axellederna 39 cm isär mot 35,7, bröstet 101 cm mot 91 i omkrets, midjan 86 mot 72 (målet 93 nåddes inte), halsen 40 mot 38, huvudet 24,1 cm högt mot 22,8 och 15,8 brett mot 14,7, käken bredare; armarna, händerna och bålens längd lika (Tomasz mättes inom osäkerheten). Med Danilos lutning når han samma handleder (högst 8 mm skillnad), från samma sits; magen har 5,7 cm till kanten mot Danilos 9,0. Steg 13 (gratis) gav dockans huvud hans ansiktes form med ansiktsformerna kvar: blinkningen sluter ögat och munnen öppnar och stänger som förut; ögonspringan, öronen och håret är dockans.",
    "jakobs_ord": null
   },
@@ -145,7 +196,10 @@
    "namn": "Tomasz figur med dockans händer insatta i ärmen",
    "slag": "prov",
    "datum": "2026-11-27",
-   "var": ["../blackjack-dealer/assets/proofs/tomasz-med-dockans-hander-20261127/", "assets/docka/standarddocka_tomasz_dockhander.glb"],
+   "var": [
+    "../blackjack-dealer/assets/proofs/tomasz-med-dockans-hander-20261127/",
+    "assets/docka/standarddocka_tomasz_dockhander.glb"
+   ],
    "sa": "Steg 14 (gratis): Tomasz figur ur Version 1 fick Danilos händer i manschetten. Den knöt handen som Danilos och höll kortet med topparna 0,4 mm isär; handleden 8 mm utanför manschetten, inga hörn genom ärmen vid böjning och vridning. I Danilos giv hamnar fingrarna högst 11 mm från rörelsens punkter (förut 32–41), armbågarna 5–21 mm och axlarna 16 mm, eftersom det är hans kropp i Danilos rörelse.",
    "jakobs_ord": null
   },
@@ -153,9 +207,23 @@
    "namn": "Standarddockans giv till alla sju platser",
    "slag": "prov",
    "datum": "2026-11-26",
-   "var": ["../blackjack-dealer/assets/proofs/givar-sju-platser-20261126/"],
+   "var": [
+    "../blackjack-dealer/assets/proofs/givar-sju-platser-20261126/"
+   ],
    "sa": "Standarddockans egna givar till plats 1–7, för mannen och kvinnan.",
    "jakobs_ord": "\"Nja … I övrigt bra!\""
+  },
+  "kenji-ny-dealer-ur-bilder-20261127": {
+   "namn": "Kenji, en ny dealer ur tre bilder",
+   "slag": "prov",
+   "datum": "2026-11-27",
+   "var": [
+    "../blackjack-dealer/assets/proofs/kenji-ny-dealer-ur-bilder-20261127/",
+    "../blackjack-dealer/assets/proofs/kenji-ny-dealer-ur-bilder-20261127/original/",
+    "personer/kenji-nakamura.json"
+   ],
+   "sa": "Kenji mätt ur sina tre bilder (SAM 3D Body och MediaPipe): kroppen inom mätningens osäkerhet från Danilos, huvudet större (hakan till hjässan 0,241 m mot 0,228, bredden 0,161 mot 0,153). Dockan byggd på Danilos med hans huvud, Danilos lyfta rörelser lagda på den, och givens dockfilm i nyckelfärgerna med anropen färdiga men inte lagda; inte dömd än.",
+   "jakobs_ord": null
   }
  },
  "priser": [
@@ -165,12 +233,38 @@
    "vad": "bild till 3D med meshy-7.1 och 4K-textur",
    "krediter": 30,
    "galler_nar": [
-    {"modul": "meshy_enbild", "namn": "SETTINGS", "varden": {"ai_model": "meshy-7.1", "should_texture": true, "texture_resolution": "4k"}},
-    {"modul": "auto_avatar", "namn": "BODY_SETTINGS", "varden": {"ai_model": "meshy-7.1", "should_texture": true, "texture_resolution": "4k"}},
-    {"modul": "auto_avatar", "namn": "PART_SETTINGS", "varden": {"ai_model": "meshy-7.1", "should_texture": true, "texture_resolution": "4k"}}
+    {
+     "modul": "meshy_enbild",
+     "namn": "SETTINGS",
+     "varden": {
+      "ai_model": "meshy-7.1",
+      "should_texture": true,
+      "texture_resolution": "4k"
+     }
+    },
+    {
+     "modul": "auto_avatar",
+     "namn": "BODY_SETTINGS",
+     "varden": {
+      "ai_model": "meshy-7.1",
+      "should_texture": true,
+      "texture_resolution": "4k"
+     }
+    },
+    {
+     "modul": "auto_avatar",
+     "namn": "PART_SETTINGS",
+     "varden": {
+      "ai_model": "meshy-7.1",
+      "should_texture": true,
+      "texture_resolution": "4k"
+     }
+    }
    ],
    "kalla": "Tomasz kvitton (consumed_credits 30 per del, output/tomasz/02-meshy-delar/<del>/korning.json); Meshys prislista 2026-10-12: 30 med 2K- eller 4K-textur, 35 med 8K",
-   "belagt": {"krediter": "korning"}
+   "belagt": {
+    "krediter": "korning"
+   }
   },
   {
    "id": "meshy-rigg",
@@ -178,10 +272,20 @@
    "vad": "riggning (Mixamo-mall, med fingrar)",
    "krediter": 5,
    "galler_nar": [
-    {"modul": "meshy_rigg", "namn": "SETTINGS", "varden": {"animation_type": "biped", "skeleton_template": "mixamo", "include_fingers": true}}
+    {
+     "modul": "meshy_rigg",
+     "namn": "SETTINGS",
+     "varden": {
+      "animation_type": "biped",
+      "skeleton_template": "mixamo",
+      "include_fingers": true
+     }
+    }
    ],
    "kalla": "Tomasz kvitto (consumed_credits 5, output/tomasz/04-rigg/riggjobb/riggjobb.json)",
-   "belagt": {"krediter": "korning"}
+   "belagt": {
+    "krediter": "korning"
+   }
   }
  ],
  "delar": [
@@ -194,64 +298,266 @@
      "id": "foton",
      "namn": "Foton av personen, gjorda till tre referensbilder",
      "status": "finns",
-     "kraver": ["1–8 foton av samma person i input/<namn>/"],
-     "ger": ["en bild av huvudet framifrån med hela halsen", "en bild av hela kroppen i A-pose, mätt innan något får beställas hos Meshy", "en bild av en öppen högerhand med åtskilda fingrar", "klädseln (förval mörkblå skjorta och mörka byxor)"],
-     "gors_av": {"steg": [1], "skript": ["steg/01-referenser/apose_referenser.py"], "text": "gpt-image-2 (images/edits) med alla foton i varje anrop"},
-     "kostnad": {"krediter": null, "hos": "OpenAI", "text": "3 bilder i hög kvalitet, 1024 × 1024; A-posebilden görs om högst 2 gånger om armarna eller beskärningen är fel. Priset i dollar sparas inte i kvittot."},
-     "tid": {"sekunder": 343.5, "text": "cirka 6 minuter"},
-     "provet": {"id": "tomasz-20261126", "sa": "Tre foton av Tomasz gav de tre bilderna, A-posebilden på första försöket."},
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "korning", "status": "kod"}
+     "kraver": [
+      "1–8 foton av samma person i input/<namn>/"
+     ],
+     "ger": [
+      "en bild av huvudet framifrån med hela halsen",
+      "en bild av hela kroppen i A-pose, mätt innan något får beställas hos Meshy",
+      "en bild av en öppen högerhand med åtskilda fingrar",
+      "klädseln (förval mörkblå skjorta och mörka byxor)"
+     ],
+     "gors_av": {
+      "steg": [
+       1
+      ],
+      "skript": [
+       "steg/01-referenser/apose_referenser.py"
+      ],
+      "text": "gpt-image-2 (images/edits) med alla foton i varje anrop"
+     },
+     "kostnad": {
+      "krediter": null,
+      "hos": "OpenAI",
+      "text": "3 bilder i hög kvalitet, 1024 × 1024; A-posebilden görs om högst 2 gånger om armarna eller beskärningen är fel. Priset i dollar sparas inte i kvittot."
+     },
+     "tid": {
+      "sekunder": 343.5,
+      "text": "cirka 6 minuter"
+     },
+     "provet": {
+      "id": "tomasz-20261126",
+      "sa": "Tre foton av Tomasz gav de tre bilderna, A-posebilden på första försöket."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "korning",
+      "status": "kod"
+     }
     },
     {
      "id": "standardmatt",
      "namn": "En människas mått för kön och längd",
      "status": "finns",
-     "kraver": ["bara kön: kvinna eller man"],
-     "ger": ["längden (kvinnan 1,65 m, mannen 1,75 m)", "armarnas längd och tjocklek, händerna och fötterna efter ANSUR II", "ingen likhet med en person"],
-     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py"], "text": "MATT högst upp i skriptet"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i dockans bygge"},
+     "kraver": [
+      "bara kön: kvinna eller man"
+     ],
+     "ger": [
+      "längden (kvinnan 1,65 m, mannen 1,75 m)",
+      "armarnas längd och tjocklek, händerna och fötterna efter ANSUR II",
+      "ingen likhet med en person"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/bygg_docka.py"
+      ],
+      "text": "MATT högst upp i skriptet"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i dockans bygge"
+     },
      "provet": null,
-     "matt": {"langd_kvinna": 1.65, "langd_man": 1.75},
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "matt": {
+      "langd_kvinna": 1.65,
+      "langd_man": 1.75
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     },
     {
      "id": "matt-ur-film",
      "namn": "En riktig dealers mått, mätta på film",
      "status": "finns",
-     "kraver": ["en mätning av dealern i live-bj/data/uppsattning.json (dealer.<stil>.body)", "talen avskrivna i MATT i scen/bygg_docka.py (MATT['danilo'], MATT['frasse']); skriptet läser inte mätningen själv"],
-     "ger": ["axellederna isär (Danilo 0,357 m, Frasse 0,348 m)", "huvudets höjd, hakan till hjässan (0,228 och 0,210 m, skattad)", "inte halsen: filmens haka över axlarna är hållning och synvinkel, så halsen är mannens", "inte armarna, händerna, benen, midjan eller höfterna: de syns inte eller bara bakom bordet, så de är mannens (Danilos midja och höft 4 och 3 % smalare)"],
-     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py", "../live-bj/data/uppsattning.json"], "text": "--kon danilo eller --kon frasse: mannens kropp med de mätta axlarna och huvudet"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i dockans bygge"},
-     "provet": {"id": "danilo-frasse-kroppar-20261127", "sa": "Danilo och Frasse bredvid mannen: axlarna 2 och 3 cm smalare, Frasses huvud lite mindre, Danilo lite smalare om midjan."},
-     "matt": {"dockor": {"kameran": "danilo", "bordet": "frasse"}},
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "kraver": [
+      "en mätning av dealern i live-bj/data/uppsattning.json (dealer.<stil>.body)",
+      "talen avskrivna i MATT i scen/bygg_docka.py (MATT['danilo'], MATT['frasse']); skriptet läser inte mätningen själv"
+     ],
+     "ger": [
+      "axellederna isär (Danilo 0,357 m, Frasse 0,348 m)",
+      "huvudets höjd, hakan till hjässan (0,228 och 0,210 m, skattad)",
+      "inte halsen: filmens haka över axlarna är hållning och synvinkel, så halsen är mannens",
+      "inte armarna, händerna, benen, midjan eller höfterna: de syns inte eller bara bakom bordet, så de är mannens (Danilos midja och höft 4 och 3 % smalare)"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/bygg_docka.py",
+       "../live-bj/data/uppsattning.json"
+      ],
+      "text": "--kon danilo eller --kon frasse: mannens kropp med de mätta axlarna och huvudet"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i dockans bygge"
+     },
+     "provet": {
+      "id": "danilo-frasse-kroppar-20261127",
+      "sa": "Danilo och Frasse bredvid mannen: axlarna 2 och 3 cm smalare, Frasses huvud lite mindre, Danilo lite smalare om midjan."
+     },
+     "matt": {
+      "dockor": {
+       "kameran": "danilo",
+       "bordet": "frasse"
+      }
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     },
     {
      "id": "matt-ur-figur",
      "namn": "En persons mått, mätta på hans egen figur och bilder",
      "status": "finns",
-     "kraver": ["en figur av personen med vårt skelett (Version 1 ger en, ur hans bilder hos Meshy) och hans bilder", "mannen mätt på samma sätt bredvid (verktyg/mat_figur.py)", "ett antagande om längden: en framställd bild har inget av känd storlek (Meshy-figuren byggs 1,80 m med skor och hår)", "talen avskrivna i MATT i scen/bygg_docka.py, med kläder och hår avdragna; skriptet läser inte mätningen själv"],
-     "ger": ["axellederna isär, bröstets, midjans, höftens och halsens omkrets, huvudets höjd och bredd och käkens bredd", "inte armarnas, händernas och bålens längd när figuren mäts genom ärmar och Meshys leder (en till två centimeter osäkert): de blir mannens om skillnaden är mindre", "inte armarnas tjocklek under ärmarna: mannens", "ingen likhet i ansiktet: bara huvudets mått"],
-     "gors_av": {"steg": null, "skript": ["verktyg/mat_figur.py", "scen/bygg_docka.py"], "text": "verktyg/mat_figur.py mäter figuren och mannen i snitt genom huden; --kon tomasz_matt bygger dockan med talen"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis (figuren finns redan från Version 1)"},
-     "tid": {"sekunder": null, "text": "mätningen under en minut, dockan några minuter"},
-     "provet": {"id": "tomasz-dockan-pa-hans-matt-20261127", "sa": "Tomasz bredare än Danilo i axlarna, bröstet, midjan, halsen och huvudet; armarna lika långa inom mätningens osäkerhet."},
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "bedomning", "status": "kod"}
+     "kraver": [
+      "en figur av personen med vårt skelett (Version 1 ger en, ur hans bilder hos Meshy) och hans bilder",
+      "mannen mätt på samma sätt bredvid (verktyg/mat_figur.py)",
+      "ett antagande om längden: en framställd bild har inget av känd storlek (Meshy-figuren byggs 1,80 m med skor och hår)",
+      "talen avskrivna i MATT i scen/bygg_docka.py, med kläder och hår avdragna; skriptet läser inte mätningen själv"
+     ],
+     "ger": [
+      "axellederna isär, bröstets, midjans, höftens och halsens omkrets, huvudets höjd och bredd och käkens bredd",
+      "inte armarnas, händernas och bålens längd när figuren mäts genom ärmar och Meshys leder (en till två centimeter osäkert): de blir mannens om skillnaden är mindre",
+      "inte armarnas tjocklek under ärmarna: mannens",
+      "ingen likhet i ansiktet: bara huvudets mått"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "verktyg/mat_figur.py",
+       "scen/bygg_docka.py"
+      ],
+      "text": "verktyg/mat_figur.py mäter figuren och mannen i snitt genom huden; --kon tomasz_matt bygger dockan med talen"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis (figuren finns redan från Version 1)"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "mätningen under en minut, dockan några minuter"
+     },
+     "provet": {
+      "id": "tomasz-dockan-pa-hans-matt-20261127",
+      "sa": "Tomasz bredare än Danilo i axlarna, bröstet, midjan, halsen och huvudet; armarna lika långa inom mätningens osäkerhet."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "bedomning",
+      "status": "kod"
+     }
     },
     {
      "id": "foton-och-matt",
      "namn": "Foton för utseendet och mått för kroppen",
      "status": "tankt",
-     "kraver": ["1–8 foton av personen, minst ett av ansiktet rakt framifrån", "kroppens mått: en människas för kön och längd, eller personens egna"],
-     "ger": ["likheten ur fotona och kroppen ur måtten"],
-     "gors_av": {"steg": null, "skript": [], "text": "inget skript"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis om fotona används som de är; några OpenAI-bilder om en ren närbild av ansiktet görs först"},
-     "tid": {"sekunder": null, "text": "okänd"},
+     "kraver": [
+      "1–8 foton av personen, minst ett av ansiktet rakt framifrån",
+      "kroppens mått: en människas för kön och längd, eller personens egna"
+     ],
+     "ger": [
+      "likheten ur fotona och kroppen ur måtten"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [],
+      "text": "inget skript"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis om fotona används som de är; några OpenAI-bilder om en ren närbild av ansiktet görs först"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "okänd"
+     },
      "provet": null,
      "hinder": "Inget skript tar både foton och mått.",
-     "belagt": {"kraver": "bedomning", "ger": "bedomning", "gors_av": "kod", "kostnad": "bedomning", "tid": "bedomning", "status": "kod", "hinder": "kod"}
+     "belagt": {
+      "kraver": "bedomning",
+      "ger": "bedomning",
+      "gors_av": "kod",
+      "kostnad": "bedomning",
+      "tid": "bedomning",
+      "status": "kod",
+      "hinder": "kod"
+     }
+    },
+    {
+     "id": "matt-ur-bilder",
+     "namn": "En persons mått ur sina egna bilder (SAM 3D Body och MediaPipe)",
+     "status": "provat",
+     "kraver": [
+      "bilder av personen: ett porträtt, en helfigur och en halvfigur (input/<person>/)",
+      "SAM 3D Body uppsatt bredvid repot (../sam-3d-body, som live-bj/README.md säger) och MediaPipe-miljön (../blackjack-dealer/tools/python/.venv)",
+      "ett antagande om skalan: en framställd bild har inget av känd storlek, så metrarna är SAM:s egen kroppsform (och irisen, 11,7 mm, i ansiktet)"
+     ],
+     "ger": [
+      "kroppens leder och längder i meter (axellederna, armarna, bålen, halsen, längden) och huvudets höjd, bredd och djup ur SAM:s yta",
+      "handens 21 punkter per hand (MediaPipe) och SAM:s hand; handen tas inte in i dockan (SAM:s hand är kortare än dockans mätt på samma sätt)",
+      "ansiktets 478 punkter och mått (ögonen, kinderna, käken, hakan) ur porträttet",
+      "per mått hur det är mätt och hur säkert, med felet mot ett facit (Tomasz figur) som undre gräns; bara det som skiljer från grunddockan mer än så tas in",
+      "ingen likhet i ansiktet: bara huvudets mått"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "steg/15-matt-ur-bilder/matt_ur_bilder.py",
+       "steg/15-matt-ur-bilder/sam_bild.py"
+      ],
+      "text": "ny_dealer.py steg 1 (mappen steg/15-matt-ur-bilder): personer/<person>.json, som scen/bygg_docka.py läser själv (--kon <docka>)"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis (allt på den här datorns processor)"
+     },
+     "tid": {
+      "sekunder": 700,
+      "text": "SAM 3D Body 1-4 minuter per bild på processorn, resten under en minut"
+     },
+     "provet": {
+      "id": "kenji-ny-dealer-ur-bilder-20261127",
+      "sa": "Kenji: kroppen inom osäkerheten från Danilos, huvudet större. Mot Tomasz facit: armarna inom 1 cm, huvudet inom 0,5 cm, axlarna 2,2 cm smalare och bålen 2,4 cm längre."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "korning",
+      "status": "kod"
+     }
     }
    ]
   },
@@ -264,74 +570,248 @@
      "id": "meshy-kropp",
      "namn": "Meshy gör kroppen ur A-posebilden",
      "status": "finns",
-     "kraver": ["A-posebilden ur steg 1"],
-     "ger": ["personens byggnad och kläder", "en yta med 4K-textur, utan skelett", "huvudet och händerna i samma yta; Version 1 byter ut dem i steg 3"],
-     "gors_av": {"steg": [2, 3], "skript": ["steg/02-meshy-delar/meshy_enbild.py", "steg/03-montering/clean_kropp_chest.py", "steg/03-montering/montera_apose.py"], "text": "meshy-7.1 bild till 3D i A-pose; sedan plattas brösthåret ut och huvudet och händerna sys på"},
-     "kostnad": {"krediter": 30, "hos": "Meshy", "text": "30 krediter"},
-     "tid": {"sekunder": 120.8, "text": "cirka 2 minuter, samtidigt med huvudet och handen"},
-     "provet": {"id": "tomasz-20261126", "sa": "Kroppen kostade 30 krediter och var 333 434 trianglar innan steg 3 gjorde en lätt kopia."},
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "korning", "tid": "korning", "status": "kod"}
+     "kraver": [
+      "A-posebilden ur steg 1"
+     ],
+     "ger": [
+      "personens byggnad och kläder",
+      "en yta med 4K-textur, utan skelett",
+      "huvudet och händerna i samma yta; Version 1 byter ut dem i steg 3"
+     ],
+     "gors_av": {
+      "steg": [
+       2,
+       3
+      ],
+      "skript": [
+       "steg/02-meshy-delar/meshy_enbild.py",
+       "steg/03-montering/clean_kropp_chest.py",
+       "steg/03-montering/montera_apose.py"
+      ],
+      "text": "meshy-7.1 bild till 3D i A-pose; sedan plattas brösthåret ut och huvudet och händerna sys på"
+     },
+     "kostnad": {
+      "krediter": 30,
+      "hos": "Meshy",
+      "text": "30 krediter"
+     },
+     "tid": {
+      "sekunder": 120.8,
+      "text": "cirka 2 minuter, samtidigt med huvudet och handen"
+     },
+     "provet": {
+      "id": "tomasz-20261126",
+      "sa": "Kroppen kostade 30 krediter och var 333 434 trianglar innan steg 3 gjorde en lätt kopia."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "korning",
+      "tid": "korning",
+      "status": "kod"
+     }
     },
     {
      "id": "mpfb-kropp",
      "namn": "Standarddockans kropp (MPFB 2), byggd efter mått",
      "status": "finns",
-     "kraver": ["måtten", "Blender 5.3 med tillägget MPFB 2"],
-     "ger": ["en naken kropp med en människas proportioner", "skelettet och vikterna i samma bygge", "fri licens (CC0)", "ingen likhet med en person"],
-     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py"], "text": "blender -b --python-exit-code 1 --python scen/bygg_docka.py"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "några minuter per docka (inte mätt)"},
+     "kraver": [
+      "måtten",
+      "Blender 5.3 med tillägget MPFB 2"
+     ],
+     "ger": [
+      "en naken kropp med en människas proportioner",
+      "skelettet och vikterna i samma bygge",
+      "fri licens (CC0)",
+      "ingen likhet med en person"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/bygg_docka.py"
+      ],
+      "text": "blender -b --python-exit-code 1 --python scen/bygg_docka.py"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "några minuter per docka (inte mätt)"
+     },
      "provet": null,
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "bedomning", "status": "kod"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "bedomning",
+      "status": "kod"
+     }
     },
     {
      "id": "runway-hunyuan",
      "namn": "Runway: Hunyuan 3D 3.1 Pro ur A-posebilden",
      "status": "provat",
-     "kraver": ["en A-posebild framifrån (provet tog Tomasz bild ur steg 1)"],
-     "ger": ["hel kropp med kläder, hel också bakifrån", "hand och arm i ett stycke: ingen skarv vid handleden", "fem åtskilda fingrar, släta och utan naglar, handflatan framåt i A-posen", "suddigt ansikte och fel hårfärg (steg 10 kan sätta Meshy-huvudet på i stället)", "en yta utan skelett: cirka 500 000 trianglar och en textur i 4096"],
-     "gors_av": {"steg": null, "skript": [], "text": "inget skript beställer den; provet anropade Runways /v1/image_to_mesh (../.claude/skills/runway/SKILL.md, raden 3D ur bild). Steg 10 (steg/10-kropp-i-ett-stycke/) gör den till en docka gratis"},
-     "kostnad": {"krediter": 38, "hos": "Runway", "text": "38 krediter; 15 till för PBR, för mer än en bild eller för annat antal ytor"},
-     "tid": {"sekunder": null, "text": "några minuter (inte mätt)"},
-     "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Som docka (steg 10) böjde den handleden och knöt handen renare än Meshy-dockan; händerna är släta och utan naglar på nära håll. I provet runway-3d-20261127 var den sämre än vår docka i ansiktet."},
-     "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "prov", "kostnad": "data", "tid": "bedomning", "status": "prov"}
+     "kraver": [
+      "en A-posebild framifrån (provet tog Tomasz bild ur steg 1)"
+     ],
+     "ger": [
+      "hel kropp med kläder, hel också bakifrån",
+      "hand och arm i ett stycke: ingen skarv vid handleden",
+      "fem åtskilda fingrar, släta och utan naglar, handflatan framåt i A-posen",
+      "suddigt ansikte och fel hårfärg (steg 10 kan sätta Meshy-huvudet på i stället)",
+      "en yta utan skelett: cirka 500 000 trianglar och en textur i 4096"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [],
+      "text": "inget skript beställer den; provet anropade Runways /v1/image_to_mesh (../.claude/skills/runway/SKILL.md, raden 3D ur bild). Steg 10 (steg/10-kropp-i-ett-stycke/) gör den till en docka gratis"
+     },
+     "kostnad": {
+      "krediter": 38,
+      "hos": "Runway",
+      "text": "38 krediter; 15 till för PBR, för mer än en bild eller för annat antal ytor"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "några minuter (inte mätt)"
+     },
+     "provet": {
+      "id": "hander-hunyuan-mot-meshy-20261127",
+      "sa": "Som docka (steg 10) böjde den handleden och knöt handen renare än Meshy-dockan; händerna är släta och utan naglar på nära håll. I provet runway-3d-20261127 var den sämre än vår docka i ansiktet."
+     },
+     "belagt": {
+      "kraver": "prov",
+      "ger": "prov",
+      "gors_av": "prov",
+      "kostnad": "data",
+      "tid": "bedomning",
+      "status": "prov"
+     }
     },
     {
      "id": "meshy-flervy-kropp",
      "namn": "Meshy gör kroppen i ett stycke ur flera vyer",
      "status": "provat",
-     "kraver": ["A-posebilden ur steg 1", "2–4 vyer av personen ur den, framifrån först (Meshys bildmodell; vyn från sidan fick armarna åt fel håll och användes inte)"],
-     "ger": ["kropp, kläder och huvud i ett stycke i T-pose, 200 000 trianglar och en textur i 2K", "kläder som är rena fram och bak", "fyra fingrar ihopvuxna i varje hand, bara tummen fri: steg 05:s prov hittar inte fem fingrar", "ett utsmetat ansikte med en kal rand över hjässan"],
-     "gors_av": {"steg": null, "skript": [], "text": "inget skript beställer den; provet beställde Meshys multi-image to 3D (meshy-7.1) för hand, ur output/tomasz-flervy/01-vyer/"},
-     "kostnad": {"krediter": 33, "hos": "Meshy", "text": "30 krediter för kroppen och 3 för vyerna"},
-     "tid": {"sekunder": null, "text": "några minuter (inte mätt)"},
-     "provet": {"id": "meshy-provet-20261127", "sa": "Duger inte som dealer: fingrarna ihopvuxna och ansiktet utsmetat, sämre än både Tomasz-dockan och Hunyuan-kroppen i samma bilder."},
-     "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "prov", "kostnad": "prov", "tid": "bedomning", "status": "prov"}
+     "kraver": [
+      "A-posebilden ur steg 1",
+      "2–4 vyer av personen ur den, framifrån först (Meshys bildmodell; vyn från sidan fick armarna åt fel håll och användes inte)"
+     ],
+     "ger": [
+      "kropp, kläder och huvud i ett stycke i T-pose, 200 000 trianglar och en textur i 2K",
+      "kläder som är rena fram och bak",
+      "fyra fingrar ihopvuxna i varje hand, bara tummen fri: steg 05:s prov hittar inte fem fingrar",
+      "ett utsmetat ansikte med en kal rand över hjässan"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [],
+      "text": "inget skript beställer den; provet beställde Meshys multi-image to 3D (meshy-7.1) för hand, ur output/tomasz-flervy/01-vyer/"
+     },
+     "kostnad": {
+      "krediter": 33,
+      "hos": "Meshy",
+      "text": "30 krediter för kroppen och 3 för vyerna"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "några minuter (inte mätt)"
+     },
+     "provet": {
+      "id": "meshy-provet-20261127",
+      "sa": "Duger inte som dealer: fingrarna ihopvuxna och ansiktet utsmetat, sämre än både Tomasz-dockan och Hunyuan-kroppen i samma bilder."
+     },
+     "belagt": {
+      "kraver": "prov",
+      "ger": "prov",
+      "gors_av": "prov",
+      "kostnad": "prov",
+      "tid": "bedomning",
+      "status": "prov"
+     }
     },
     {
      "id": "runway-trellis",
      "namn": "Runway: Trellis 2 ur A-posebilden",
      "status": "provat",
-     "kraver": ["en A-posebild framifrån"],
-     "ger": ["hel kropp med fem åtskilda men släta fingrar", "ansiktet som en vaxmask med utsmetade ögon", "en brun fläck på bakhuvudet", "en yta utan skelett: cirka 470 000 trianglar och två texturer i 2048"],
-     "gors_av": {"steg": null, "skript": [], "text": "inget skript i projektet; provet anropade Runways /v1/image_to_mesh"},
-     "kostnad": {"krediter": 30, "hos": "Runway", "text": "30 krediter (25–35 efter upplösningen)"},
-     "tid": {"sekunder": null, "text": "några minuter (inte mätt)"},
-     "provet": {"id": "runway-3d-20261127", "sa": "Sämst av de tre i ansiktet och bakifrån."},
-     "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "prov", "kostnad": "data", "tid": "bedomning", "status": "prov"}
+     "kraver": [
+      "en A-posebild framifrån"
+     ],
+     "ger": [
+      "hel kropp med fem åtskilda men släta fingrar",
+      "ansiktet som en vaxmask med utsmetade ögon",
+      "en brun fläck på bakhuvudet",
+      "en yta utan skelett: cirka 470 000 trianglar och två texturer i 2048"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [],
+      "text": "inget skript i projektet; provet anropade Runways /v1/image_to_mesh"
+     },
+     "kostnad": {
+      "krediter": 30,
+      "hos": "Runway",
+      "text": "30 krediter (25–35 efter upplösningen)"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "några minuter (inte mätt)"
+     },
+     "provet": {
+      "id": "runway-3d-20261127",
+      "sa": "Sämst av de tre i ansiktet och bakifrån."
+     },
+     "belagt": {
+      "kraver": "prov",
+      "ger": "prov",
+      "gors_av": "prov",
+      "kostnad": "data",
+      "tid": "bedomning",
+      "status": "prov"
+     }
     },
     {
      "id": "runway-tripo",
      "namn": "Runway: Tripo ur bild",
      "status": "gar_inte",
-     "kraver": ["en till fyra vyer utan lucka (fram, vänster, bak, höger)"],
-     "ger": ["okänt: inte prövat"],
-     "gors_av": {"steg": null, "skript": [], "text": "inget skript"},
-     "kostnad": {"krediter": 30, "hos": "Runway", "text": "30 krediter enligt Runways sidor"},
-     "tid": {"sekunder": null, "text": "okänd"},
-     "provet": {"id": "runway-3d-20261127", "sa": "Gick inte att beställa."},
+     "kraver": [
+      "en till fyra vyer utan lucka (fram, vänster, bak, höger)"
+     ],
+     "ger": [
+      "okänt: inte prövat"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [],
+      "text": "inget skript"
+     },
+     "kostnad": {
+      "krediter": 30,
+      "hos": "Runway",
+      "text": "30 krediter enligt Runways sidor"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "okänd"
+     },
+     "provet": {
+      "id": "runway-3d-20261127",
+      "sa": "Gick inte att beställa."
+     },
      "hinder": "Runway svarar \"Unknown task type\" med vår nyckel (2026-11-27).",
-     "belagt": {"kraver": "data", "ger": "bedomning", "gors_av": "kod", "kostnad": "data", "tid": "bedomning", "status": "prov", "hinder": "data"}
+     "belagt": {
+      "kraver": "data",
+      "ger": "bedomning",
+      "gors_av": "kod",
+      "kostnad": "data",
+      "tid": "bedomning",
+      "status": "prov",
+      "hinder": "data"
+     }
     }
    ]
   },
@@ -344,49 +824,170 @@
      "id": "meshy-huvud",
      "namn": "Meshy gör huvudet ur närbilden av ansiktet",
      "status": "finns",
-     "kraver": ["närbilden av huvudet ur steg 1", "en kropp med skjortkrage att sy fast det på vid halsen: Meshys (steg 3) eller Hunyuans (steg 10)"],
-     "ger": ["bäst likhet av det vi har prövat (Jakobs ord i provet runway-3d-20261127)", "en yta utan rörliga delar: inga ansiktsformer, inga ögonleder, ingen käke"],
-     "gors_av": {"steg": [2, 3], "skript": ["steg/02-meshy-delar/meshy_enbild.py", "steg/03-montering/bygg_modul.py", "steg/03-montering/montera_apose.py"], "text": "halsen hittas på hudbandet ovanför kragen (huvudsnitt i auto_avatar.py) och huvudet sys fast där; steg/10-kropp-i-ett-stycke/montera_huvud.py gör samma sak på en kropp ur Runway"},
-     "kostnad": {"krediter": 30, "hos": "Meshy", "text": "30 krediter"},
-     "tid": {"sekunder": null, "text": "samma 2 minuter som kroppen (samtidigt)"},
-     "provet": {"id": "runway-3d-20261127", "sa": "Bredvid Hunyuan och Trellis var Meshy-huvudet det som liknade Tomasz mest."},
-     "belagt": {"kraver": "kod", "ger": "korning", "gors_av": "kod", "kostnad": "korning", "tid": "korning", "status": "kod"}
+     "kraver": [
+      "närbilden av huvudet ur steg 1",
+      "en kropp med skjortkrage att sy fast det på vid halsen: Meshys (steg 3) eller Hunyuans (steg 10)"
+     ],
+     "ger": [
+      "bäst likhet av det vi har prövat (Jakobs ord i provet runway-3d-20261127)",
+      "en yta utan rörliga delar: inga ansiktsformer, inga ögonleder, ingen käke"
+     ],
+     "gors_av": {
+      "steg": [
+       2,
+       3
+      ],
+      "skript": [
+       "steg/02-meshy-delar/meshy_enbild.py",
+       "steg/03-montering/bygg_modul.py",
+       "steg/03-montering/montera_apose.py"
+      ],
+      "text": "halsen hittas på hudbandet ovanför kragen (huvudsnitt i auto_avatar.py) och huvudet sys fast där; steg/10-kropp-i-ett-stycke/montera_huvud.py gör samma sak på en kropp ur Runway"
+     },
+     "kostnad": {
+      "krediter": 30,
+      "hos": "Meshy",
+      "text": "30 krediter"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "samma 2 minuter som kroppen (samtidigt)"
+     },
+     "provet": {
+      "id": "runway-3d-20261127",
+      "sa": "Bredvid Hunyuan och Trellis var Meshy-huvudet det som liknade Tomasz mest."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "korning",
+      "gors_av": "kod",
+      "kostnad": "korning",
+      "tid": "korning",
+      "status": "kod"
+     }
     },
     {
      "id": "mpfb-huvud",
      "namn": "Standarddockans huvud (MPFB)",
      "status": "finns",
-     "kraver": ["standarddockans kropp: huvudet är en del av samma yta"],
-     "ger": ["ögonleder, käke och ansiktsformer", "iris, ögonbryn, läppar och en mun med tänder", "ingen likhet med en person"],
-     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py"], "text": "ANSIKTSBEN, ARKIT_KARTA och ANSIKTE i skriptet"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i dockans bygge"},
-     "provet": {"id": "dockans-ansikte-20261127", "sa": "Ögon som ser, bryn, läppar och mun på provmodellerna; inte dömt än."},
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "kraver": [
+      "standarddockans kropp: huvudet är en del av samma yta"
+     ],
+     "ger": [
+      "ögonleder, käke och ansiktsformer",
+      "iris, ögonbryn, läppar och en mun med tänder",
+      "ingen likhet med en person"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/bygg_docka.py"
+      ],
+      "text": "ANSIKTSBEN, ARKIT_KARTA och ANSIKTE i skriptet"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i dockans bygge"
+     },
+     "provet": {
+      "id": "dockans-ansikte-20261127",
+      "sa": "Ögon som ser, bryn, läppar och mun på provmodellerna; inte dömt än."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     },
     {
      "id": "kroppens-eget-huvud",
      "namn": "Kroppens eget huvud, ur samma bild som kroppen",
      "status": "provat",
-     "kraver": ["en kropp ur en bild (Meshy eller Runway)"],
-     "ger": ["ingen skarv vid halsen", "sämre likhet än en egen närbild av ansiktet"],
-     "gors_av": {"steg": null, "skript": [], "text": "Version 1 gör det inte; i provet behöll Runways kroppar sina huvuden"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "ingår i kroppen"},
-     "tid": {"sekunder": null, "text": "ingår i kroppen"},
-     "provet": {"id": "runway-3d-20261127", "sa": "Hunyuans ansikte blev suddigt med fel hårfärg, Trellis en vaxmask."},
-     "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "kod", "kostnad": "prov", "tid": "prov", "status": "prov"}
+     "kraver": [
+      "en kropp ur en bild (Meshy eller Runway)"
+     ],
+     "ger": [
+      "ingen skarv vid halsen",
+      "sämre likhet än en egen närbild av ansiktet"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [],
+      "text": "Version 1 gör det inte; i provet behöll Runways kroppar sina huvuden"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "ingår i kroppen"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i kroppen"
+     },
+     "provet": {
+      "id": "runway-3d-20261127",
+      "sa": "Hunyuans ansikte blev suddigt med fel hårfärg, Trellis en vaxmask."
+     },
+     "belagt": {
+      "kraver": "prov",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "prov",
+      "tid": "prov",
+      "status": "prov"
+     }
     },
     {
      "id": "mpfb-format-efter-person",
      "namn": "Standarddockans huvud format efter personens ansikte",
      "status": "provat",
-     "kraver": ["personens figur med huvud ur Version 1 (Meshy-huvudet, det som liknar honom mest)", "standarddockans huvud och skelett, byggt efter hans mått", "MediaPipe-miljön (steg 09): ansiktets punkter i bilder av båda huvudena"],
-     "ger": ["dockans eget huvud i hans ansiktes form: samma hörn, ytkarta, ansiktsformer och leder", "rörligheten kvar: blinkningen sluter ögat och munnen öppnar och stänger som förut", "inte hans ögonspringa, öron eller hår: dockans ögonspringa i hans ögas läge, dockans öron, och håret är en volym dockan saknar", "hans yta ovanpå med steg 12 (Meshys målning och närbilden)"],
-     "gors_av": {"steg": null, "skript": ["steg/13-form-ur-figur/form.py"], "text": "punkterna i tre vyer, en likformig och en mjuk passning, och en försiktig dragning mot hans yta i ansiktet; kommandot står i README-SV.md"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis (figuren finns redan från Version 1)"},
-     "tid": {"sekunder": null, "text": "under en minut"},
-     "provet": {"id": "tomasz-dockan-pa-hans-matt-20261127", "sa": "Tomasz-dockans huvud i hans form, med och utan hans yta, bredvid Danilos huvud med hans yta och förlagan; formen skilde 7 mm i median och 15 mm i den tionde delen som skilde mest."},
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "bedomning", "status": "prov"}
+     "kraver": [
+      "personens figur med huvud ur Version 1 (Meshy-huvudet, det som liknar honom mest)",
+      "standarddockans huvud och skelett, byggt efter hans mått",
+      "MediaPipe-miljön (steg 09): ansiktets punkter i bilder av båda huvudena"
+     ],
+     "ger": [
+      "dockans eget huvud i hans ansiktes form: samma hörn, ytkarta, ansiktsformer och leder",
+      "rörligheten kvar: blinkningen sluter ögat och munnen öppnar och stänger som förut",
+      "inte hans ögonspringa, öron eller hår: dockans ögonspringa i hans ögas läge, dockans öron, och håret är en volym dockan saknar",
+      "hans yta ovanpå med steg 12 (Meshys målning och närbilden)"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "steg/13-form-ur-figur/form.py"
+      ],
+      "text": "punkterna i tre vyer, en likformig och en mjuk passning, och en försiktig dragning mot hans yta i ansiktet; kommandot står i README-SV.md"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis (figuren finns redan från Version 1)"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "under en minut"
+     },
+     "provet": {
+      "id": "tomasz-dockan-pa-hans-matt-20261127",
+      "sa": "Tomasz-dockans huvud i hans form, med och utan hans yta, bredvid Danilos huvud med hans yta och förlagan; formen skilde 7 mm i median och 15 mm i den tionde delen som skilde mest."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "bedomning",
+      "status": "prov"
+     }
     }
    ]
   },
@@ -399,51 +1000,181 @@
      "id": "kroppens-egna",
      "namn": "Kroppens egna händer",
      "status": "provat",
-     "kraver": ["fem åtskilda fingrar i kroppens hand (prövas som i steg 5: fem fingertoppar i handens silhuett)"],
-     "ger": ["ingen skarv vid handleden: handen böjs och vrids utan krage vid manschetten", "fingrarna så som kroppen gjordes: hos Runway släta och utan naglar, knogar eller ådror"],
-     "gors_av": {"steg": null, "skript": ["steg/10-kropp-i-ett-stycke/montera_huvud.py", "steg/10-kropp-i-ett-stycke/fingrar_handflata.py"], "text": "Version 1 gör det inte; steg 10 märker kroppens händer med materialet Handpar och sätter fingrarna med steg 5:s kod i handens egen ram"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "ingår i kroppen"},
-     "tid": {"sekunder": null, "text": "ingår i kroppen"},
-     "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Hunyuans egna händer böjde handleden utan skarv och knöt handen med hälften så mycket töjd hud som Meshy-dockans påsatta; de är släta på nära håll, och tummen står så långt ut att nypet når pekfingrets sida, inte dess topp."},
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "prov", "tid": "prov", "status": "prov"}
+     "kraver": [
+      "fem åtskilda fingrar i kroppens hand (prövas som i steg 5: fem fingertoppar i handens silhuett)"
+     ],
+     "ger": [
+      "ingen skarv vid handleden: handen böjs och vrids utan krage vid manschetten",
+      "fingrarna så som kroppen gjordes: hos Runway släta och utan naglar, knogar eller ådror"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "steg/10-kropp-i-ett-stycke/montera_huvud.py",
+       "steg/10-kropp-i-ett-stycke/fingrar_handflata.py"
+      ],
+      "text": "Version 1 gör det inte; steg 10 märker kroppens händer med materialet Handpar och sätter fingrarna med steg 5:s kod i handens egen ram"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "ingår i kroppen"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i kroppen"
+     },
+     "provet": {
+      "id": "hander-hunyuan-mot-meshy-20261127",
+      "sa": "Hunyuans egna händer böjde handleden utan skarv och knöt handen med hälften så mycket töjd hud som Meshy-dockans påsatta; de är släta på nära håll, och tummen står så långt ut att nypet når pekfingrets sida, inte dess topp."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "prov",
+      "tid": "prov",
+      "status": "prov"
+     }
     },
     {
      "id": "meshy-hand",
      "namn": "En färdig hand från Meshy, satt på vid manschetten",
      "status": "finns",
-     "kraver": ["bilden av en öppen högerhand med åtskilda fingrar ur steg 1", "Meshys kropp, med skjortärmar att sätta handen i"],
-     "ger": ["naglar och ådror", "samma hand speglad till vänster", "en skarv vid handleden som måste lagas (steg 5, fixa_handleder.py)"],
-     "gors_av": {"steg": [2, 3], "skript": ["steg/02-meshy-delar/meshy_enbild.py", "steg/03-montering/bygg_modul.py", "steg/03-montering/montera_apose.py"], "text": "handen skärs vid handleden, speglas till ett par och sätts på vinkelrätt mot underarmen"},
-     "kostnad": {"krediter": 30, "hos": "Meshy", "text": "30 krediter"},
-     "tid": {"sekunder": null, "text": "samma 2 minuter som kroppen (samtidigt)"},
-     "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Naglar, knogar och ådror på nära håll, och nypet går topp mot topp; men handledens led sitter inne i ärmen, så manschetten följer med när handen böjs, och tummen drar ett skinn över handflatan i en knuten hand. I provet runway-3d-20261127 frågade Jakob om handen är påklistrad i efterhand (det är den)."},
+     "kraver": [
+      "bilden av en öppen högerhand med åtskilda fingrar ur steg 1",
+      "Meshys kropp, med skjortärmar att sätta handen i"
+     ],
+     "ger": [
+      "naglar och ådror",
+      "samma hand speglad till vänster",
+      "en skarv vid handleden som måste lagas (steg 5, fixa_handleder.py)"
+     ],
+     "gors_av": {
+      "steg": [
+       2,
+       3
+      ],
+      "skript": [
+       "steg/02-meshy-delar/meshy_enbild.py",
+       "steg/03-montering/bygg_modul.py",
+       "steg/03-montering/montera_apose.py"
+      ],
+      "text": "handen skärs vid handleden, speglas till ett par och sätts på vinkelrätt mot underarmen"
+     },
+     "kostnad": {
+      "krediter": 30,
+      "hos": "Meshy",
+      "text": "30 krediter"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "samma 2 minuter som kroppen (samtidigt)"
+     },
+     "provet": {
+      "id": "hander-hunyuan-mot-meshy-20261127",
+      "sa": "Naglar, knogar och ådror på nära håll, och nypet går topp mot topp; men handledens led sitter inne i ärmen, så manschetten följer med när handen böjs, och tummen drar ett skinn över handflatan i en knuten hand. I provet runway-3d-20261127 frågade Jakob om handen är påklistrad i efterhand (det är den)."
+     },
      "anm": "Sedan 2026-11-27 behåller handen sin egen handled i monteringen och skarven läggs inne i ärmen (HANDLED_IN i montera_apose.py); prövat på Tomasz delar, men ingen dealer är riggad hos Meshy med den än (dealerns-handled-20261127).",
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "korning", "tid": "korning", "status": "kod", "anm": "prov"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "korning",
+      "tid": "korning",
+      "status": "kod",
+      "anm": "prov"
+     }
     },
     {
      "id": "mpfb-hander",
      "namn": "Standarddockans händer (MPFB)",
      "status": "finns",
-     "kraver": ["standarddockans kropp"],
-     "ger": ["händer i samma yta som kroppen, utan skarv", "knogarna sitter för långt ut i handen (new_docka.md, Kända brister)"],
-     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py"], "text": "en del av MPFB-kroppen"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i dockans bygge"},
-     "provet": {"id": "tomasz-med-dockans-hander-20261127", "sa": "Tomasz-figuren med Danilos händer knöt handen som Danilos (2 % av kanterna töjda över 1,5 gånger, mot Tomasz-dockans 5–6 %) och höll kortet med topparna 0,4 mm isär (Tomasz-dockans nådde inte kortet). Handleden böjd 60 grader åt båda håll och vriden 80 grader: inga hörn genom ärmen, manschetten stel vid böjning och töjd 8–9 % vid vridning. I Danilos giv vid livebordet hamnar fingrarna högst 11 mm från rörelsens punkter (Tomasz-dockans 41 mm)."},
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "kraver": [
+      "standarddockans kropp"
+     ],
+     "ger": [
+      "händer i samma yta som kroppen, utan skarv",
+      "knogarna sitter för långt ut i handen (new_docka.md, Kända brister)"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/bygg_docka.py"
+      ],
+      "text": "en del av MPFB-kroppen"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i dockans bygge"
+     },
+     "provet": {
+      "id": "tomasz-med-dockans-hander-20261127",
+      "sa": "Tomasz-figuren med Danilos händer knöt handen som Danilos (2 % av kanterna töjda över 1,5 gånger, mot Tomasz-dockans 5–6 %) och höll kortet med topparna 0,4 mm isär (Tomasz-dockans nådde inte kortet). Handleden böjd 60 grader åt båda håll och vriden 80 grader: inga hörn genom ärmen, manschetten stel vid böjning och töjd 8–9 % vid vridning. I Danilos giv vid livebordet hamnar fingrarna högst 11 mm från rörelsens punkter (Tomasz-dockans 41 mm)."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     },
     {
      "id": "dockans-hander-i-armen",
      "namn": "Dockans händer insatta i personens ärm",
      "status": "provat",
-     "kraver": ["en riggad figur med Mixamo-ben och skjortärmar, med handen som egen del (Version 1: materialet Handpar)", "en grunddocka med samma skelett (standarddocka_man eller _danilo)", "förlagan ur steg 1 (en öppen högerhand bakifrån) och MediaPipe-miljön (som steg 09)"],
-     "ger": ["dockans hand med dess 30 fingerleder och vikter, oförändrade: knyts och håller kortet som dockan", "handleden 8 mm utanför manschetten och skarven 27 mm inne i ärmen: handen böjs och vrids utan att något går genom ärmen", "ärmen kortad 3–4 cm längs underarmen när manschetten räcker förbi handleden; armens leder är personens egna", "huden ur personens egen hand: handryggen ur förlagan med naglar, knogar och ådror, handflatan ur den förra handens bild, inpassade efter handens 21 punkter och jämkade till ansiktets ton", "handflatan bredare efter personens hand (Tomasz 12 %), med lederna kvar", "manschetten stängd mot handleden med en stel ring"],
-     "gors_av": {"steg": null, "skript": ["steg/14-dockans-hander/dockans_hander.py", "steg/14-dockans-hander/hudbilder.py", "steg/14-dockans-hander/handpunkter.py"], "text": "steg 14: handen och skarvarna tas bort, ärmen skärs rakt där tyget slutar, handleden flyttas till ärmens mitt, dockans hand sätts in med en bit underarm, skalad till personens hand, och handens ben byts mot dockans; hudbilder.py mäter handen och gör huden ur förlagan och den förra handens bild"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": 90, "text": "hudbilderna och bygget med bakningen, cirka en och en halv minut"},
-     "provet": {"id": "tomasz-med-dockans-hander-20261127", "sa": "Andra vändan: huden ur hans egen hand (naglar, knogar, ådror, ansiktets ton) och handflatan 12 % bredare; knuten hand med tummen utanpå fingrarna: 2 % av kanterna töjda över 1,5 gånger (Danilo 2 %, Tomasz-dockan 3–4 %), nypet 0,3 mm, kortet hålls mellan topparna; handleden böjd och vriden utan hörn genom ärmen, och manschetten stängd mot handleden. Första vändan dömde domaren Nja: grunden håller, men handen hörde inte till honom."},
+     "kraver": [
+      "en riggad figur med Mixamo-ben och skjortärmar, med handen som egen del (Version 1: materialet Handpar)",
+      "en grunddocka med samma skelett (standarddocka_man eller _danilo)",
+      "förlagan ur steg 1 (en öppen högerhand bakifrån) och MediaPipe-miljön (som steg 09)"
+     ],
+     "ger": [
+      "dockans hand med dess 30 fingerleder och vikter, oförändrade: knyts och håller kortet som dockan",
+      "handleden 8 mm utanför manschetten och skarven 27 mm inne i ärmen: handen böjs och vrids utan att något går genom ärmen",
+      "ärmen kortad 3–4 cm längs underarmen när manschetten räcker förbi handleden; armens leder är personens egna",
+      "huden ur personens egen hand: handryggen ur förlagan med naglar, knogar och ådror, handflatan ur den förra handens bild, inpassade efter handens 21 punkter och jämkade till ansiktets ton",
+      "handflatan bredare efter personens hand (Tomasz 12 %), med lederna kvar",
+      "manschetten stängd mot handleden med en stel ring"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "steg/14-dockans-hander/dockans_hander.py",
+       "steg/14-dockans-hander/hudbilder.py",
+       "steg/14-dockans-hander/handpunkter.py"
+      ],
+      "text": "steg 14: handen och skarvarna tas bort, ärmen skärs rakt där tyget slutar, handleden flyttas till ärmens mitt, dockans hand sätts in med en bit underarm, skalad till personens hand, och handens ben byts mot dockans; hudbilder.py mäter handen och gör huden ur förlagan och den förra handens bild"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": 90,
+      "text": "hudbilderna och bygget med bakningen, cirka en och en halv minut"
+     },
+     "provet": {
+      "id": "tomasz-med-dockans-hander-20261127",
+      "sa": "Andra vändan: huden ur hans egen hand (naglar, knogar, ådror, ansiktets ton) och handflatan 12 % bredare; knuten hand med tummen utanpå fingrarna: 2 % av kanterna töjda över 1,5 gånger (Danilo 2 %, Tomasz-dockan 3–4 %), nypet 0,3 mm, kortet hålls mellan topparna; handleden böjd och vriden utan hörn genom ärmen, och manschetten stängd mot handleden. Första vändan dömde domaren Nja: grunden håller, men handen hörde inte till honom."
+     },
      "anm": "Huden kan också målas hos Meshy (10 krediter): meshy_kopia.py gör en kopia av bara dockans högra hand, steg 12:s meshy_ny_yta.py --kopia målar den, och dockans_hander.py --meshy-bild lägger den på båda händerna. Förberett och torrkört, inte betalt.",
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "korning", "status": "prov", "anm": "kod"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "korning",
+      "status": "prov",
+      "anm": "kod"
+     }
     }
    ]
   },
@@ -456,51 +1187,173 @@
      "id": "meshy-rigg",
      "namn": "Meshy riggar kroppen (Mixamo-skelett)",
      "status": "finns",
-     "kraver": ["en hel kropp i A-pose", "en lätt kopia: högst 380 000 trianglar och 100 MB (steg 3 gör en på 180 000)"],
-     "ger": ["Mixamo-ben med prefixet mixamorig:, för en kropp på 1,8 m", "vikter för hela kroppen", "efter steg 5 och 6: 56 ben, 30 av dem fingerleder"],
-     "gors_av": {"steg": [4], "skript": ["steg/04-rigg/meshy_rigg.py"], "text": "biped, mallen mixamo, med fingrar"},
-     "kostnad": {"krediter": 5, "hos": "Meshy", "text": "5 krediter"},
-     "tid": {"sekunder": 90.8, "text": "cirka 1,5 minuter"},
-     "provet": {"id": "tomasz-20261126", "sa": "Riggen kostade 5 krediter; dealern fick 56 ben men inga vridben, inga ögonleder och ingen käke."},
+     "kraver": [
+      "en hel kropp i A-pose",
+      "en lätt kopia: högst 380 000 trianglar och 100 MB (steg 3 gör en på 180 000)"
+     ],
+     "ger": [
+      "Mixamo-ben med prefixet mixamorig:, för en kropp på 1,8 m",
+      "vikter för hela kroppen",
+      "efter steg 5 och 6: 56 ben, 30 av dem fingerleder"
+     ],
+     "gors_av": {
+      "steg": [
+       4
+      ],
+      "skript": [
+       "steg/04-rigg/meshy_rigg.py"
+      ],
+      "text": "biped, mallen mixamo, med fingrar"
+     },
+     "kostnad": {
+      "krediter": 5,
+      "hos": "Meshy",
+      "text": "5 krediter"
+     },
+     "tid": {
+      "sekunder": 90.8,
+      "text": "cirka 1,5 minuter"
+     },
+     "provet": {
+      "id": "tomasz-20261126",
+      "sa": "Riggen kostade 5 krediter; dealern fick 56 ben men inga vridben, inga ögonleder och ingen käke."
+     },
      "anm": "På kroppen i ett stycke ur flera vyer (meshy-provet-20261127, T-pose, utan steg 3) gav riggen 66 ben med fyra leder per finger, men den når inte nypet (tummens och pekfingrets toppar 33–47 mm isär, Tomasz-dockans 12) och river upp huden över knogarna i en knuten hand, eftersom fingrarna där är ihopvuxna; handleden och armbågen böjde rent.",
-     "matt": {"rig_trianglar": 180000},
-     "belagt": {"kraver": "kod", "ger": "korning", "gors_av": "kod", "kostnad": "korning", "tid": "korning", "status": "kod", "anm": "prov"}
+     "matt": {
+      "rig_trianglar": 180000
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "korning",
+      "gors_av": "kod",
+      "kostnad": "korning",
+      "tid": "korning",
+      "status": "kod",
+      "anm": "prov"
+     }
     },
     {
      "id": "mpfb-rigg",
      "namn": "Standarddockans skelett (MPFB med Mixamo-namn)",
      "status": "finns",
-     "kraver": ["standarddockans kropp"],
-     "ger": ["81 ben, 71 av dem formar huden", "IK-kontroller och ledgränser", "ansiktsben: käken och ögonen"],
-     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py"], "text": "i samma bygge som kroppen"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i dockans bygge"},
+     "kraver": [
+      "standarddockans kropp"
+     ],
+     "ger": [
+      "81 ben, 71 av dem formar huden",
+      "IK-kontroller och ledgränser",
+      "ansiktsben: käken och ögonen"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/bygg_docka.py"
+      ],
+      "text": "i samma bygge som kroppen"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i dockans bygge"
+     },
      "provet": null,
-     "belagt": {"kraver": "kod", "ger": "korning", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "korning",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     },
     {
      "id": "overfor-skelett",
      "namn": "Kroppen sätts på en färdig dockas skelett, och vikterna förs över",
      "status": "provat",
-     "kraver": ["en färdig docka i samma pose och ungefär samma storlek att låna skelett och vikter av (i provet Tomasz-dockan, riggad hos Meshy)"],
-     "ger": ["samma ben som förlagan", "armbågen och handleden flyttade till kroppens egen arm", "inget betalt"],
-     "gors_av": {"steg": null, "skript": ["steg/10-kropp-i-ett-stycke/rigga.py"], "text": "steg 10: kroppen skalas till dockans längd, armbågen och handleden läggs mitt i kroppens arm och vikterna förs över från dockans närmaste yta"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": 18, "text": "cirka 20 sekunder, fingrarna och steg 5:s fingerprov med"},
-     "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Hunyuan-kroppen på Tomasz-dockans skelett: armbågen flyttades 2–3 cm och handleden 3–4 cm till kroppens egen arm, och dockan spelade vilan och given i editorn."},
-     "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "korning", "status": "prov"}
+     "kraver": [
+      "en färdig docka i samma pose och ungefär samma storlek att låna skelett och vikter av (i provet Tomasz-dockan, riggad hos Meshy)"
+     ],
+     "ger": [
+      "samma ben som förlagan",
+      "armbågen och handleden flyttade till kroppens egen arm",
+      "inget betalt"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "steg/10-kropp-i-ett-stycke/rigga.py"
+      ],
+      "text": "steg 10: kroppen skalas till dockans längd, armbågen och handleden läggs mitt i kroppens arm och vikterna förs över från dockans närmaste yta"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": 18,
+      "text": "cirka 20 sekunder, fingrarna och steg 5:s fingerprov med"
+     },
+     "provet": {
+      "id": "hander-hunyuan-mot-meshy-20261127",
+      "sa": "Hunyuan-kroppen på Tomasz-dockans skelett: armbågen flyttades 2–3 cm och handleden 3–4 cm till kroppens egen arm, och dockan spelade vilan och given i editorn."
+     },
+     "belagt": {
+      "kraver": "prov",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "korning",
+      "status": "prov"
+     }
     },
     {
      "id": "pa-dockans-grund",
      "namn": "Personens yta formas om till en grunddockas skelett (Danilo eller Frasse), led för led",
      "status": "provat",
-     "kraver": ["en färdig dealer med vårt skelett och våra bennamn (steg 6, 9 eller 10)", "grunddockan vars rörelser han ska spela: standarddocka_danilo.glb eller _frasse.glb (81 ben)"],
-     "ger": ["grunddockans skelett: samma leder, armar, axlar, ben och fingerlängder, så att dockans lyfta rörelser spelas utan skalning", "hans huvud, hud, kläder, ansiktsformer, ögon och käke, och hans egna vikter", "hans fingrars egen krökning i vila", "hans kropp i dockans proportioner: för Tomasz bredare axlar och höfter, längre ben och en bredare handflata", "inget betalt"],
-     "gors_av": {"steg": null, "skript": ["steg/11-pa-dockans-grund/pa_grund.py"], "text": "steg 11: armarna, benen och fingrarna vrids och sträcks ben för ben till dockans leder, bålen och handflatan formas mjukt genom lederna, huvudet flyttas utan att formas om, och ytan binds till dockans armatur med sina egna vikter"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": 70, "text": "cirka en minut"},
-     "provet": {"id": "tomasz-pa-danilos-grund-20261127", "sa": "Tomasz på Danilos skelett spelade Danilos giv till plats 4 med lederna 0 mm från rörelsens punkter, som Danilos egen docka; handflatan blev bredare och handryggen sträcktes."},
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "korning", "status": "prov"}
+     "kraver": [
+      "en färdig dealer med vårt skelett och våra bennamn (steg 6, 9 eller 10)",
+      "grunddockan vars rörelser han ska spela: standarddocka_danilo.glb eller _frasse.glb (81 ben)"
+     ],
+     "ger": [
+      "grunddockans skelett: samma leder, armar, axlar, ben och fingerlängder, så att dockans lyfta rörelser spelas utan skalning",
+      "hans huvud, hud, kläder, ansiktsformer, ögon och käke, och hans egna vikter",
+      "hans fingrars egen krökning i vila",
+      "hans kropp i dockans proportioner: för Tomasz bredare axlar och höfter, längre ben och en bredare handflata",
+      "inget betalt"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "steg/11-pa-dockans-grund/pa_grund.py"
+      ],
+      "text": "steg 11: armarna, benen och fingrarna vrids och sträcks ben för ben till dockans leder, bålen och handflatan formas mjukt genom lederna, huvudet flyttas utan att formas om, och ytan binds till dockans armatur med sina egna vikter"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": 70,
+      "text": "cirka en minut"
+     },
+     "provet": {
+      "id": "tomasz-pa-danilos-grund-20261127",
+      "sa": "Tomasz på Danilos skelett spelade Danilos giv till plats 4 med lederna 0 mm från rörelsens punkter, som Danilos egen docka; handflatan blev bredare och handryggen sträcktes."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "korning",
+      "status": "prov"
+     }
     }
    ]
   },
@@ -513,37 +1366,126 @@
      "id": "steg5-fingrar",
      "namn": "Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad",
      "status": "finns",
-     "kraver": ["en riggad kropp med Mixamo-ben", "handens yta som en egen del (materialet Handpar)", "fem åtskilda fingertoppar i handens silhuett"],
-     "ger": ["30 fingerleder, tre per finger, med vikter", "halsen och axlarna rensade från felaktiga vikter", "handleden dragen in i ärmen så att skarven döljs"],
-     "gors_av": {"steg": [5], "skript": ["steg/05-fingrar-handleder/bygg_fingrar_apose.py", "steg/05-fingrar-handleder/fixa_handleder.py"], "text": "Meshys egna fingerben byts mot nya, anpassade efter handens silhuett"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": 167.0, "text": "cirka 3 minuter"},
-     "provet": {"id": "dealerns-handled-20261127", "sa": "Tomasz handled blev slät, och fingrarna böjer sig som förut; en mörk krage syns vid manschetten när handen böjs mycket."},
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "korning", "status": "kod"}
+     "kraver": [
+      "en riggad kropp med Mixamo-ben",
+      "handens yta som en egen del (materialet Handpar)",
+      "fem åtskilda fingertoppar i handens silhuett"
+     ],
+     "ger": [
+      "30 fingerleder, tre per finger, med vikter",
+      "halsen och axlarna rensade från felaktiga vikter",
+      "handleden dragen in i ärmen så att skarven döljs"
+     ],
+     "gors_av": {
+      "steg": [
+       5
+      ],
+      "skript": [
+       "steg/05-fingrar-handleder/bygg_fingrar_apose.py",
+       "steg/05-fingrar-handleder/fixa_handleder.py"
+      ],
+      "text": "Meshys egna fingerben byts mot nya, anpassade efter handens silhuett"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": 167.0,
+      "text": "cirka 3 minuter"
+     },
+     "provet": {
+      "id": "dealerns-handled-20261127",
+      "sa": "Tomasz handled blev slät, och fingrarna böjer sig som förut; en mörk krage syns vid manschetten när handen böjs mycket."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "korning",
+      "status": "kod"
+     }
     },
     {
      "id": "handens-egen-ram",
      "namn": "Steg 5:s fingerleder i handens egen ram, för en hand i ett stycke med armen",
      "status": "provat",
-     "kraver": ["en riggad kropp med Mixamo-ben", "handens yta som en egen del (materialet Handpar; steg 10 märker den)", "fem åtskilda fingertoppar i handens silhuett"],
-     "ger": ["30 fingerleder, tre per finger, med vikter, som böjs in mot handflatan också när handflatan pekar framåt i A-posen", "ingen handledsfix: handen sitter i ett stycke med armen"],
-     "gors_av": {"steg": null, "skript": ["steg/10-kropp-i-ett-stycke/fingrar_handflata.py", "steg/10-kropp-i-ett-stycke/rigga.py"], "text": "handen vrids också kring sin egen längd, så att handflatan pekar nedåt i T-läget, och sedan sätts lederna med steg 5:s fit_fingers; steg 5 självt är oförändrat"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "några sekunder, i rigga.py"},
-     "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Lederna böjer nu in mot handflatan: deras uppåt står 5–19 grader från handryggens riktning (Meshy-dockans 12–22). I snabbprovet runway-3d-20261127 stod det 65–80 grader fel, och fingrarna gick åt sidan i handens plan."},
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "bedomning", "status": "prov"}
+     "kraver": [
+      "en riggad kropp med Mixamo-ben",
+      "handens yta som en egen del (materialet Handpar; steg 10 märker den)",
+      "fem åtskilda fingertoppar i handens silhuett"
+     ],
+     "ger": [
+      "30 fingerleder, tre per finger, med vikter, som böjs in mot handflatan också när handflatan pekar framåt i A-posen",
+      "ingen handledsfix: handen sitter i ett stycke med armen"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "steg/10-kropp-i-ett-stycke/fingrar_handflata.py",
+       "steg/10-kropp-i-ett-stycke/rigga.py"
+      ],
+      "text": "handen vrids också kring sin egen längd, så att handflatan pekar nedåt i T-läget, och sedan sätts lederna med steg 5:s fit_fingers; steg 5 självt är oförändrat"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "några sekunder, i rigga.py"
+     },
+     "provet": {
+      "id": "hander-hunyuan-mot-meshy-20261127",
+      "sa": "Lederna böjer nu in mot handflatan: deras uppåt står 5–19 grader från handryggens riktning (Meshy-dockans 12–22). I snabbprovet runway-3d-20261127 stod det 65–80 grader fel, och fingrarna gick åt sidan i handens plan."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "bedomning",
+      "status": "prov"
+     }
     },
     {
      "id": "mpfb-fingrar",
      "namn": "Standarddockans fingerleder (MPFB)",
      "status": "finns",
-     "kraver": ["standarddockans kropp och skelett"],
-     "ger": ["30 fingerleder med ledgränser"],
-     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py"], "text": "i samma bygge som kroppen"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i dockans bygge"},
+     "kraver": [
+      "standarddockans kropp och skelett"
+     ],
+     "ger": [
+      "30 fingerleder med ledgränser"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/bygg_docka.py"
+      ],
+      "text": "i samma bygge som kroppen"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i dockans bygge"
+     },
      "provet": null,
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     }
    ]
   },
@@ -556,38 +1498,123 @@
      "id": "inga-vridben",
      "namn": "Inga vridben",
      "status": "finns",
-     "kraver": ["inget"],
-     "ger": ["underarmen vrids som en stel del: huden nyps vid armbågen när den vrids mer än cirka 60 grader (new_docka.md 7.1b)"],
-     "gors_av": {"steg": [6], "skript": ["steg/06-dealer-export/exportera_dealer.py"], "text": "med --utan-vridben; auto_avatar.py skickar inte den flaggan"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i exporten"},
-     "provet": {"id": "tomasz-20261126", "sa": "Tomasz byggdes innan exporten fick vridben: 56 ben, inga vridben."},
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "kraver": [
+      "inget"
+     ],
+     "ger": [
+      "underarmen vrids som en stel del: huden nyps vid armbågen när den vrids mer än cirka 60 grader (new_docka.md 7.1b)"
+     ],
+     "gors_av": {
+      "steg": [
+       6
+      ],
+      "skript": [
+       "steg/06-dealer-export/exportera_dealer.py"
+      ],
+      "text": "med --utan-vridben; auto_avatar.py skickar inte den flaggan"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i exporten"
+     },
+     "provet": {
+      "id": "tomasz-20261126",
+      "sa": "Tomasz byggdes innan exporten fick vridben: 56 ben, inga vridben."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     },
     {
      "id": "vridben-export",
      "namn": "Två vridben i varje underarm, lagda till i exporten",
      "status": "finns",
-     "kraver": ["en riggad dealer med ForeArm och Hand"],
-     "ger": ["huden vrids längs hela underarmen", "i vila är huden som utan dem (skriptet mäter det)"],
-     "gors_av": {"steg": [6], "skript": ["steg/06-dealer-export/exportera_dealer.py", "steg/06-dealer-export/vridben.py"], "text": "som standarddockans vridben (new_docka.md 7.1b)"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i exporten"},
-     "provet": {"id": "dealerns-handled-20261127", "sa": "Tomasz rättade docka (tomasz_handled) fick två vridben i varje underarm; huden i vila är oförändrad."},
+     "kraver": [
+      "en riggad dealer med ForeArm och Hand"
+     ],
+     "ger": [
+      "huden vrids längs hela underarmen",
+      "i vila är huden som utan dem (skriptet mäter det)"
+     ],
+     "gors_av": {
+      "steg": [
+       6
+      ],
+      "skript": [
+       "steg/06-dealer-export/exportera_dealer.py",
+       "steg/06-dealer-export/vridben.py"
+      ],
+      "text": "som standarddockans vridben (new_docka.md 7.1b)"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i exporten"
+     },
+     "provet": {
+      "id": "dealerns-handled-20261127",
+      "sa": "Tomasz rättade docka (tomasz_handled) fick två vridben i varje underarm; huden i vila är oförändrad."
+     },
      "anm": "Ny 2026-11-27: Tomasz första bygge har inga vridben.",
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod", "anm": "korning"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod",
+      "anm": "korning"
+     }
     },
     {
      "id": "vridben-mpfb",
      "namn": "Standarddockans vridben",
      "status": "finns",
-     "kraver": ["standarddockans kropp och skelett"],
-     "ger": ["två vridben per underarm, med samma delning av huden som exporten"],
-     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py"], "text": "i samma bygge som kroppen"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i dockans bygge"},
+     "kraver": [
+      "standarddockans kropp och skelett"
+     ],
+     "ger": [
+      "två vridben per underarm, med samma delning av huden som exporten"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/bygg_docka.py"
+      ],
+      "text": "i samma bygge som kroppen"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i dockans bygge"
+     },
      "provet": null,
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     }
    ]
   },
@@ -600,38 +1627,129 @@
      "id": "inget-ansikte",
      "namn": "Inga ansiktsrörelser",
      "status": "finns",
-     "kraver": ["inget"],
-     "ger": ["kan inte blinka, le eller lyfta brynen", "blicken följer bara huvudet"],
-     "gors_av": {"steg": null, "skript": [], "text": "det ett framställt huvud ger"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": 0, "text": "ingen"},
-     "provet": {"id": "tomasz-20261126", "sa": "Inga ansiktsformer och inga ögonleder."},
-     "belagt": {"kraver": "kod", "ger": "korning", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "kraver": [
+      "inget"
+     ],
+     "ger": [
+      "kan inte blinka, le eller lyfta brynen",
+      "blicken följer bara huvudet"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [],
+      "text": "det ett framställt huvud ger"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": 0,
+      "text": "ingen"
+     },
+     "provet": {
+      "id": "tomasz-20261126",
+      "sa": "Inga ansiktsformer och inga ögonleder."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "korning",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     },
     {
      "id": "mpfb-ansikte",
      "namn": "Standarddockans ansikte: ansiktsformer, käke och ögonleder",
      "status": "finns",
-     "kraver": ["standarddockans huvud och skelett"],
-     "ger": ["30 ansiktsformer med ARKit-namn: blinkning, bryn, leende, trut och öppen mun", "15 ansiktsben, bland dem käken och båda ögonen", "inte en full ansiktsrigg: 22 av ARKit:s 52 former saknas (new_docka.md 7.7)"],
-     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py"], "text": "ARKIT_KARTA, ANSIKTSBEN och ANSIKTE i skriptet"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i dockans bygge"},
-     "provet": {"id": "dockans-ansikte-20261127", "sa": "Blicken, blinkningen, leendet och brynen syns i spelets vy på provmodellerna; inte dömt än."},
-     "matt": {"ansiktsformer": 30, "ansiktsben": 15},
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "kraver": [
+      "standarddockans huvud och skelett"
+     ],
+     "ger": [
+      "30 ansiktsformer med ARKit-namn: blinkning, bryn, leende, trut och öppen mun",
+      "15 ansiktsben, bland dem käken och båda ögonen",
+      "inte en full ansiktsrigg: 22 av ARKit:s 52 former saknas (new_docka.md 7.7)"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/bygg_docka.py"
+      ],
+      "text": "ARKIT_KARTA, ANSIKTSBEN och ANSIKTE i skriptet"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i dockans bygge"
+     },
+     "provet": {
+      "id": "dockans-ansikte-20261127",
+      "sa": "Blicken, blinkningen, leendet och brynen syns i spelets vy på provmodellerna; inte dömt än."
+     },
+     "matt": {
+      "ansiktsformer": 30,
+      "ansiktsben": 15
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     },
     {
      "id": "former-pa-framstallt-huvud",
      "namn": "Standarddockans former förda över till ett framställt huvud",
      "status": "provat",
-     "kraver": ["en färdig dealer med ett framställt huvud (Meshy), med stängd mun och öppna ögon", "standarddockans huvud med sina 30 former", "ansiktets punkter i båda huvudena (MediaPipe-miljön i ../blackjack-dealer/tools/python/)"],
-     "ger": ["30 ansiktsformer med standarddockans namn på personens eget huvud: blinkning, lock, bryn, leende och öppen mun", "en glob per öga på nya ögonleder (eye.L, eye.R) med personens egen målade iris, och käkleden jaw", "munnen uppskuren med en mörk munhåla bakom; inga tänder och ingen tunga", "likheten i vila står kvar: huvudets form, UV och texturer är personens"],
-     "gors_av": {"steg": null, "skript": ["steg/09-ansikte/ansikte.py", "steg/09-ansikte/punkter.py"], "text": "körs för hand på en färdig dealer-GLB; hur formerna förs över står i skriptets huvud"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "några minuter i Blender"},
-     "provet": {"id": "tomasz-ansikte-20261127", "sa": "Tomasz blinkar, sänker locken, flyttar blicken, ler, lyfter brynen och öppnar munnen, och ser ut som förut i vila; leendet syns i spelets vy. Byggt på dockan utan den rättade handleden."},
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "bedomning", "status": "prov"}
+     "kraver": [
+      "en färdig dealer med ett framställt huvud (Meshy), med stängd mun och öppna ögon",
+      "standarddockans huvud med sina 30 former",
+      "ansiktets punkter i båda huvudena (MediaPipe-miljön i ../blackjack-dealer/tools/python/)"
+     ],
+     "ger": [
+      "30 ansiktsformer med standarddockans namn på personens eget huvud: blinkning, lock, bryn, leende och öppen mun",
+      "en glob per öga på nya ögonleder (eye.L, eye.R) med personens egen målade iris, och käkleden jaw",
+      "munnen uppskuren med en mörk munhåla bakom; inga tänder och ingen tunga",
+      "likheten i vila står kvar: huvudets form, UV och texturer är personens"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "steg/09-ansikte/ansikte.py",
+       "steg/09-ansikte/punkter.py"
+      ],
+      "text": "körs för hand på en färdig dealer-GLB; hur formerna förs över står i skriptets huvud"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "några minuter i Blender"
+     },
+     "provet": {
+      "id": "tomasz-ansikte-20261127",
+      "sa": "Tomasz blinkar, sänker locken, flyttar blicken, ler, lyfter brynen och öppnar munnen, och ser ut som förut i vila; leendet syns i spelets vy. Byggt på dockan utan den rättade handleden."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "bedomning",
+      "status": "prov"
+     }
     }
    ]
   },
@@ -644,63 +1762,206 @@
      "id": "inbakad-yta",
      "namn": "Kläder och hud inbakade i ytan, ur bilden",
      "status": "finns",
-     "kraver": ["en kropp ur en bild (Meshy eller Runway)", "en klädsel där skjortan inte är hudfärgad (förval mörkblå skjorta; --outfit)"],
-     "ger": ["fotolik hud och kläder i 4K", "hudtonen jämnad mellan huvudet, händerna och kroppen (steg 3)", "kläderna går inte att byta utan en ny körning"],
-     "gors_av": {"steg": [1, 2, 3, 5], "skript": ["steg/01-referenser/apose_referenser.py", "steg/02-meshy-delar/meshy_enbild.py", "steg/03-montering/montera_apose.py", "steg/05-fingrar-handleder/bygg_fingrar.py"], "text": "klädseln i bilden, texturen hos Meshy, hudtonen i monteringen och en mattare hud i steg 5"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "ingår i delarna"},
-     "tid": {"sekunder": null, "text": "ingår i delarna"},
+     "kraver": [
+      "en kropp ur en bild (Meshy eller Runway)",
+      "en klädsel där skjortan inte är hudfärgad (förval mörkblå skjorta; --outfit)"
+     ],
+     "ger": [
+      "fotolik hud och kläder i 4K",
+      "hudtonen jämnad mellan huvudet, händerna och kroppen (steg 3)",
+      "kläderna går inte att byta utan en ny körning"
+     ],
+     "gors_av": {
+      "steg": [
+       1,
+       2,
+       3,
+       5
+      ],
+      "skript": [
+       "steg/01-referenser/apose_referenser.py",
+       "steg/02-meshy-delar/meshy_enbild.py",
+       "steg/03-montering/montera_apose.py",
+       "steg/05-fingrar-handleder/bygg_fingrar.py"
+      ],
+      "text": "klädseln i bilden, texturen hos Meshy, hudtonen i monteringen och en mattare hud i steg 5"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "ingår i delarna"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i delarna"
+     },
      "provet": null,
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     },
     {
      "id": "mpfb-gra",
      "namn": "Standarddockans neutrala grå hud, utan kläder",
      "status": "finns",
-     "kraver": ["standarddockans kropp"],
-     "ger": ["en yta med ett material och hörnfärger, så att spelet läser modellen som en del", "inga kläder"],
-     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py"], "text": "färgerna i ANSIKTE"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i dockans bygge"},
+     "kraver": [
+      "standarddockans kropp"
+     ],
+     "ger": [
+      "en yta med ett material och hörnfärger, så att spelet läser modellen som en del",
+      "inga kläder"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/bygg_docka.py"
+      ],
+      "text": "färgerna i ANSIKTE"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i dockans bygge"
+     },
      "provet": null,
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     },
     {
      "id": "separata-klader",
      "namn": "Kläder som egna delar på samma skelett",
      "status": "tankt",
-     "kraver": ["kläder modellerade eller köpta som egna delar", "vikter förda över från kroppen"],
-     "ger": ["kläder som går att byta utan att bygga om dockan"],
-     "gors_av": {"steg": null, "skript": [], "text": "inget skript (new_docka.md 10.3)"},
-     "kostnad": {"krediter": null, "hos": null, "text": "okänd"},
-     "tid": {"sekunder": null, "text": "okänd"},
+     "kraver": [
+      "kläder modellerade eller köpta som egna delar",
+      "vikter förda över från kroppen"
+     ],
+     "ger": [
+      "kläder som går att byta utan att bygga om dockan"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [],
+      "text": "inget skript (new_docka.md 10.3)"
+     },
+     "kostnad": {
+      "krediter": null,
+      "hos": null,
+      "text": "okänd"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "okänd"
+     },
      "provet": null,
      "hinder": "Inga kläder finns.",
-     "belagt": {"kraver": "bedomning", "ger": "bedomning", "gors_av": "kod", "kostnad": "bedomning", "tid": "bedomning", "status": "kod", "hinder": "kod"}
+     "belagt": {
+      "kraver": "bedomning",
+      "ger": "bedomning",
+      "gors_av": "kod",
+      "kostnad": "bedomning",
+      "tid": "bedomning",
+      "status": "kod",
+      "hinder": "kod"
+     }
     },
     {
      "id": "meshy-ny-yta",
      "namn": "Personens utseende som ny yta på vår egen docka (Meshy, och närbilden på ansiktet)",
      "status": "provat",
-     "kraver": ["vår docka ur scen/bygg_docka.py (dess ytkarta och hörnfärger)", "1–4 vyer av personen, framifrån först, i samma ställning (provet: Meshy-vyerna ur A-posebilden)", "närbilden av ansiktet ur steg 1, för ansiktet", "MediaPipe-miljön i ../blackjack-dealer/tools/python/ (ansiktets punkter)"],
-     "ger": ["personens hud, hår och kläder målade på dockans egen karta i 4K", "dockans skelett, fingrar, vridben och 30 ansiktsformer orörda, så att den spelar sina rörelser som förut", "dockans form: kroppen, händerna och ansiktets form är dockans, och kläderna är målade på huden (ingen krage, tighta byxor, svarta fötter)", "ansiktet ur närbilden: skarpa drag och personens ögonfärg; Meshys eget ansikte blev suddigt med vita ögon"],
-     "gors_av": {"steg": null, "skript": ["steg/12-ny-yta/meshy_ny_yta.py", "steg/12-ny-yta/yta.py", "steg/12-ny-yta/narbild.py"], "text": "meshy_ny_yta.py beställer bilden på en kopia av dockans yta (yta.py kopia), narbild.py lägger närbilden på ansiktet och yta.py lagg lägger bilden på dockan; kommandona står i README-SV.md"},
-     "kostnad": {"krediter": 10, "hos": "Meshy", "text": "10 krediter (2K eller 4K); ansiktet ur närbilden gratis"},
-     "tid": {"sekunder": null, "text": "några minuter hos Meshy och några i Blender (inte mätt)"},
-     "provet": {"id": "meshy-provet-20261127", "sa": "Danilos docka fick Tomasz hud, hår, skjorta och byxor och spelade vid livebordet med sina egna händer och sitt skelett; ansiktet är Tomasz färger på Danilos form. Domaren (inte Jakob): Inte bra, en målad docka och inte personen; formen först (huvudet, sedan kroppens bredd), skjortan sist som egen del."},
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "korning", "tid": "bedomning", "status": "prov"}
+     "kraver": [
+      "vår docka ur scen/bygg_docka.py (dess ytkarta och hörnfärger)",
+      "1–4 vyer av personen, framifrån först, i samma ställning (provet: Meshy-vyerna ur A-posebilden)",
+      "närbilden av ansiktet ur steg 1, för ansiktet",
+      "MediaPipe-miljön i ../blackjack-dealer/tools/python/ (ansiktets punkter)"
+     ],
+     "ger": [
+      "personens hud, hår och kläder målade på dockans egen karta i 4K",
+      "dockans skelett, fingrar, vridben och 30 ansiktsformer orörda, så att den spelar sina rörelser som förut",
+      "dockans form: kroppen, händerna och ansiktets form är dockans, och kläderna är målade på huden (ingen krage, tighta byxor, svarta fötter)",
+      "ansiktet ur närbilden: skarpa drag och personens ögonfärg; Meshys eget ansikte blev suddigt med vita ögon"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "steg/12-ny-yta/meshy_ny_yta.py",
+       "steg/12-ny-yta/yta.py",
+       "steg/12-ny-yta/narbild.py"
+      ],
+      "text": "meshy_ny_yta.py beställer bilden på en kopia av dockans yta (yta.py kopia), narbild.py lägger närbilden på ansiktet och yta.py lagg lägger bilden på dockan; kommandona står i README-SV.md"
+     },
+     "kostnad": {
+      "krediter": 10,
+      "hos": "Meshy",
+      "text": "10 krediter (2K eller 4K); ansiktet ur närbilden gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "några minuter hos Meshy och några i Blender (inte mätt)"
+     },
+     "provet": {
+      "id": "meshy-provet-20261127",
+      "sa": "Danilos docka fick Tomasz hud, hår, skjorta och byxor och spelade vid livebordet med sina egna händer och sitt skelett; ansiktet är Tomasz färger på Danilos form. Domaren (inte Jakob): Inte bra, en målad docka och inte personen; formen först (huvudet, sedan kroppens bredd), skjortan sist som egen del."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "korning",
+      "tid": "bedomning",
+      "status": "prov"
+     }
     },
     {
      "id": "foto-pa-docka",
      "namn": "Personens hud och ansikte som textur på standarddockan",
      "status": "tankt",
-     "kraver": ["foton av personen", "standarddockans kropp och dess UV"],
-     "ger": ["personens hudton och ansikte på vår docka"],
-     "gors_av": {"steg": null, "skript": [], "text": "inget skript"},
-     "kostnad": {"krediter": null, "hos": null, "text": "okänd"},
-     "tid": {"sekunder": null, "text": "okänd"},
+     "kraver": [
+      "foton av personen",
+      "standarddockans kropp och dess UV"
+     ],
+     "ger": [
+      "personens hudton och ansikte på vår docka"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [],
+      "text": "inget skript"
+     },
+     "kostnad": {
+      "krediter": null,
+      "hos": null,
+      "text": "okänd"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "okänd"
+     },
      "provet": null,
      "hinder": "Hela kroppen ur foton utan Meshy är inte prövat; ansiktet ur en närbild på dockans karta är prövat i meshy-ny-yta (steg/12-ny-yta/narbild.py).",
-     "belagt": {"kraver": "bedomning", "ger": "bedomning", "gors_av": "kod", "kostnad": "bedomning", "tid": "bedomning", "status": "kod", "hinder": "kod"}
+     "belagt": {
+      "kraver": "bedomning",
+      "ger": "bedomning",
+      "gors_av": "kod",
+      "kostnad": "bedomning",
+      "tid": "bedomning",
+      "status": "kod",
+      "hinder": "kod"
+     }
     }
    ]
   },
@@ -713,25 +1974,81 @@
      "id": "dealer-glb",
      "namn": "Dealer-GLB för spelet (steg 6)",
      "status": "finns",
-     "kraver": ["en riggad modell med Meshys Mixamo-ben"],
-     "ger": ["bennamnen utan mixamorig: och Neck som neck", "en lista över de ben spelet saknar", "output/<namn>/06-dealer-export/<namn>-dealer-apose.glb"],
-     "gors_av": {"steg": [6], "skript": ["steg/06-dealer-export/exportera_dealer.py"], "text": "i Blender"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": 15.5, "text": "cirka 15 sekunder"},
-     "provet": {"id": "tomasz-20261126", "sa": "Inget ben saknades; 175 532 trianglar och 26,7 MB."},
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "korning", "status": "kod"}
+     "kraver": [
+      "en riggad modell med Meshys Mixamo-ben"
+     ],
+     "ger": [
+      "bennamnen utan mixamorig: och Neck som neck",
+      "en lista över de ben spelet saknar",
+      "output/<namn>/06-dealer-export/<namn>-dealer-apose.glb"
+     ],
+     "gors_av": {
+      "steg": [
+       6
+      ],
+      "skript": [
+       "steg/06-dealer-export/exportera_dealer.py"
+      ],
+      "text": "i Blender"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": 15.5,
+      "text": "cirka 15 sekunder"
+     },
+     "provet": {
+      "id": "tomasz-20261126",
+      "sa": "Inget ben saknades; 175 532 trianglar och 26,7 MB."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "korning",
+      "status": "kod"
+     }
     },
     {
      "id": "mpfb-glb",
      "namn": "Standarddockans .blend och .glb",
      "status": "finns",
-     "kraver": ["standarddockans bygge"],
-     "ger": ["assets/docka/standarddocka_<kön>.blend och .glb, eller en provmodell bredvid med --namn", "en byggrapport i slaskens bygge/"],
-     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py"], "text": "sist i bygget"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "ingår i dockans bygge"},
+     "kraver": [
+      "standarddockans bygge"
+     ],
+     "ger": [
+      "assets/docka/standarddocka_<kön>.blend och .glb, eller en provmodell bredvid med --namn",
+      "en byggrapport i slaskens bygge/"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/bygg_docka.py"
+      ],
+      "text": "sist i bygget"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "ingår i dockans bygge"
+     },
      "provet": null,
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     }
    ]
   },
@@ -744,37 +2061,126 @@
      "id": "qc-blad",
      "namn": "Kontrollblad i vila (steg 7)",
      "status": "finns",
-     "kraver": ["dealer-GLB:n ur steg 6", "A-posebilden ur steg 1"],
-     "ger": ["helkroppen framifrån och snett, ansiktet och båda handlederna, bredvid referensbilden"],
-     "gors_av": {"steg": [7], "skript": ["steg/07-qc/qc_oversikt.py"], "text": "Cycles i Blender"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": 148.6, "text": "cirka 2,5 minuter"},
-     "provet": {"id": "tomasz-20261126", "sa": "Kontrollbladet ligger i slaskens granska/tomasz/ och väntar på Jakobs dom."},
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "korning", "status": "kod"}
+     "kraver": [
+      "dealer-GLB:n ur steg 6",
+      "A-posebilden ur steg 1"
+     ],
+     "ger": [
+      "helkroppen framifrån och snett, ansiktet och båda handlederna, bredvid referensbilden"
+     ],
+     "gors_av": {
+      "steg": [
+       7
+      ],
+      "skript": [
+       "steg/07-qc/qc_oversikt.py"
+      ],
+      "text": "Cycles i Blender"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": 148.6,
+      "text": "cirka 2,5 minuter"
+     },
+     "provet": {
+      "id": "tomasz-20261126",
+      "sa": "Kontrollbladet ligger i slaskens granska/tomasz/ och väntar på Jakobs dom."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "korning",
+      "status": "kod"
+     }
     },
     {
      "id": "standardscenens-bilder",
      "namn": "Bilder genom spelets kameror i standardscenen",
      "status": "finns",
-     "kraver": ["dockan som .blend", "bordet byggt (scen/bygg_bord.py)"],
-     "ger": ["dockan vid bordet genom spelets kamera och de fasta kamerorna", "ansiktets uttryck i närbild", "en textdump av ben, mått och rörelser som en agent kan läsa"],
-     "gors_av": {"steg": null, "skript": ["scen/qc_render.py", "verktyg/qc_ansikte.py", "verktyg/inspektera.py"], "text": "kommandona står i README-SV.md (Kontroll)"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "några minuter (inte mätt)"},
+     "kraver": [
+      "dockan som .blend",
+      "bordet byggt (scen/bygg_bord.py)"
+     ],
+     "ger": [
+      "dockan vid bordet genom spelets kamera och de fasta kamerorna",
+      "ansiktets uttryck i närbild",
+      "en textdump av ben, mått och rörelser som en agent kan läsa"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "scen/qc_render.py",
+       "verktyg/qc_ansikte.py",
+       "verktyg/inspektera.py"
+      ],
+      "text": "kommandona står i README-SV.md (Kontroll)"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "några minuter (inte mätt)"
+     },
      "provet": null,
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "bedomning", "status": "kod"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "bedomning",
+      "status": "kod"
+     }
     },
     {
      "id": "i-editorn",
      "namn": "Dockans rörelser i standarddockans editor",
      "status": "finns",
-     "kraver": ["GLB:n som assets/docka/standarddocka_<namn>.glb (bygg_docka.py skriver den där; en figur ur Version 1 kopieras dit för hand)", "vårt skelett"],
-     "ger": ["givarna och vilan på dealern, genom spelets kamera", "vid livebordet: Danilos lyfta rörelser, med modellen så stor att armen blir Danilos"],
-     "gors_av": {"steg": null, "skript": ["../standarddocka/editor/scen.ts", "../standarddocka/verktyg/titta.ts"], "text": "öppnas med ?modell=<namn>; titta.ts --modell <namn> tar stillbilder utan fönster"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "sekunder"},
-     "provet": {"id": "kling-tider-20261127", "sa": "Tomasz-dockan spelade standarddockans giv i editorn; Tomasz-dockan på hans mått spelade Danilos vila och giv till plats 7 (tomasz-dockan-pa-hans-matt-20261127)."},
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "bedomning", "status": "kod"}
+     "kraver": [
+      "GLB:n som assets/docka/standarddocka_<namn>.glb (bygg_docka.py skriver den där; en figur ur Version 1 kopieras dit för hand)",
+      "vårt skelett"
+     ],
+     "ger": [
+      "givarna och vilan på dealern, genom spelets kamera",
+      "vid livebordet: Danilos lyfta rörelser, med modellen så stor att armen blir Danilos"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "../standarddocka/editor/scen.ts",
+       "../standarddocka/verktyg/titta.ts"
+      ],
+      "text": "öppnas med ?modell=<namn>; titta.ts --modell <namn> tar stillbilder utan fönster"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "sekunder"
+     },
+     "provet": {
+      "id": "kling-tider-20261127",
+      "sa": "Tomasz-dockan spelade standarddockans giv i editorn; Tomasz-dockan på hans mått spelade Danilos vila och giv till plats 7 (tomasz-dockan-pa-hans-matt-20261127)."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "bedomning",
+      "status": "kod"
+     }
     }
    ]
   },
@@ -787,63 +2193,197 @@
      "id": "steg8-film",
      "namn": "En sittande rörelse vid ett eget bord (steg 8)",
      "status": "finns",
-     "kraver": ["dealer-GLB:n ur steg 6"],
-     "ger": ["en film i 1280 × 720 och 24 bilder per sekund", "dealern med bakad rörelse, bord, pall och kort som en GLB", "ett eget bord, inte standardscenen"],
-     "gors_av": {"steg": [8], "skript": ["steg/08-film/animera_dealer.py"], "text": "Cycles i Blender"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "inte mätt; laptopen tar 20–30 sekunder per bild i Cycles (new_docka.md 9), så 6 sekunders film kan ta en timme"},
+     "kraver": [
+      "dealer-GLB:n ur steg 6"
+     ],
+     "ger": [
+      "en film i 1280 × 720 och 24 bilder per sekund",
+      "dealern med bakad rörelse, bord, pall och kort som en GLB",
+      "ett eget bord, inte standardscenen"
+     ],
+     "gors_av": {
+      "steg": [
+       8
+      ],
+      "skript": [
+       "steg/08-film/animera_dealer.py"
+      ],
+      "text": "Cycles i Blender"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "inte mätt; laptopen tar 20–30 sekunder per bild i Cycles (new_docka.md 9), så 6 sekunders film kan ta en timme"
+     },
      "provet": null,
      "anm": "Inte körd för Tomasz.",
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "bedomning", "status": "kod", "anm": "korning"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "bedomning",
+      "status": "kod",
+      "anm": "korning"
+     }
     },
     {
      "id": "ingen-film",
      "namn": "Ingen film",
      "status": "finns",
-     "kraver": ["inget"],
-     "ger": ["dockan utan film"],
-     "gors_av": {"steg": null, "skript": [], "text": "auto_avatar.py --no-video"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": 0, "text": "ingen"},
+     "kraver": [
+      "inget"
+     ],
+     "ger": [
+      "dockan utan film"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [],
+      "text": "auto_avatar.py --no-video"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": 0,
+      "text": "ingen"
+     },
      "provet": null,
-     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
+     "belagt": {
+      "kraver": "kod",
+      "ger": "kod",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "kod",
+      "status": "kod"
+     }
     },
     {
      "id": "dockans-rorelser",
      "namn": "Standarddockans egna rörelser",
      "status": "finns",
-     "kraver": ["vårt skelett"],
-     "ger": ["givarna till alla sju platser, vilan och återgången, som Jakob har dömt dem"],
-     "gors_av": {"steg": null, "skript": ["../standarddocka/editor/rorelse.ts", "verktyg/dealer3d_till_blender.py"], "text": "i editorn, och i Blender genom bryggan"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "sekunder i editorn"},
-     "provet": {"id": "givar-sju-platser-20261126", "sa": "Standarddockans givar till alla sju platser, för mannen och kvinnan."},
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "bedomning", "status": "kod"}
+     "kraver": [
+      "vårt skelett"
+     ],
+     "ger": [
+      "givarna till alla sju platser, vilan och återgången, som Jakob har dömt dem"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "../standarddocka/editor/rorelse.ts",
+       "verktyg/dealer3d_till_blender.py"
+      ],
+      "text": "i editorn, och i Blender genom bryggan"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "sekunder i editorn"
+     },
+     "provet": {
+      "id": "givar-sju-platser-20261126",
+      "sa": "Standarddockans givar till alla sju platser, för mannen och kvinnan."
+     },
+     "belagt": {
+      "kraver": "kod",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "kod",
+      "tid": "bedomning",
+      "status": "kod"
+     }
     },
     {
      "id": "rorelser-ur-film",
      "namn": "Rörelser lyfta ur en riktig dealers film",
      "status": "finns",
-     "kraver": ["vårt skelett", "en lyft giv i live-bj/data/lyft/"],
-     "ger": ["givar som de riktiga dealrarna gör dem: tre per stil, i dockans eget rörelseformat", "djupet är en skattning: varje led 4–11 cm fel i median, mest i djupled"],
-     "gors_av": {"steg": null, "skript": ["../live-bj/data/lyft/"], "text": "lyfta med live-bj/verktyg/lyft.py"},
-     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "sekunder"},
+     "kraver": [
+      "vårt skelett",
+      "en lyft giv i live-bj/data/lyft/"
+     ],
+     "ger": [
+      "givar som de riktiga dealrarna gör dem: tre per stil, i dockans eget rörelseformat",
+      "djupet är en skattning: varje led 4–11 cm fel i median, mest i djupled"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "../live-bj/data/lyft/"
+      ],
+      "text": "lyfta med live-bj/verktyg/lyft.py"
+     },
+     "kostnad": {
+      "krediter": 0,
+      "hos": null,
+      "text": "gratis"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "sekunder"
+     },
      "provet": null,
      "anm": "Lyftet är prövat mot dockans egna filmer (live-bj/README.md); inte visat för Jakob på en docka än.",
-     "belagt": {"kraver": "data", "ger": "data", "gors_av": "data", "kostnad": "kod", "tid": "bedomning", "status": "data", "anm": "data"}
+     "belagt": {
+      "kraver": "data",
+      "ger": "data",
+      "gors_av": "data",
+      "kostnad": "kod",
+      "tid": "bedomning",
+      "status": "data",
+      "anm": "data"
+     }
     },
     {
      "id": "runway-person",
      "namn": "Dockans film görs om till personen hos Runway (Aleph 2, Kling 4, WAN 3)",
      "status": "provat",
-     "kraver": ["en film av dockan", "foton eller en bild av personen"],
-     "ger": ["en filmad person som gör dockans rörelser"],
-     "gors_av": {"steg": null, "skript": ["../blackjack-dealer/tools/order-new.ts"], "text": "en beställning i blackjack-dealer (skillen bestalla-film)"},
-     "kostnad": {"krediter": null, "hos": "Runway", "text": "efter filmens längd och modell; hela provet tomasz-runda-20261126 kostade 1 758 krediter"},
-     "tid": {"sekunder": null, "text": "minuter per tagning"},
-     "provet": {"id": "tomasz-runda-20261126", "sa": "Jakob dömde provet Inte bra: rörelserna blir stela, eftersom Aleph kopierar dockans."},
-     "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "kod", "kostnad": "prov", "tid": "bedomning", "status": "prov"}
+     "kraver": [
+      "en film av dockan",
+      "foton eller en bild av personen"
+     ],
+     "ger": [
+      "en filmad person som gör dockans rörelser"
+     ],
+     "gors_av": {
+      "steg": null,
+      "skript": [
+       "../blackjack-dealer/tools/order-new.ts"
+      ],
+      "text": "en beställning i blackjack-dealer (skillen bestalla-film)"
+     },
+     "kostnad": {
+      "krediter": null,
+      "hos": "Runway",
+      "text": "efter filmens längd och modell; hela provet tomasz-runda-20261126 kostade 1 758 krediter"
+     },
+     "tid": {
+      "sekunder": null,
+      "text": "minuter per tagning"
+     },
+     "provet": {
+      "id": "tomasz-runda-20261126",
+      "sa": "Jakob dömde provet Inte bra: rörelserna blir stela, eftersom Aleph kopierar dockans."
+     },
+     "belagt": {
+      "kraver": "prov",
+      "ger": "prov",
+      "gors_av": "kod",
+      "kostnad": "prov",
+      "tid": "bedomning",
+      "status": "prov"
+     }
     }
    ]
   }
@@ -869,14 +2409,53 @@
     "kontroll": "qc-blad",
     "film": "steg8-film"
    },
-   "last": ["underlag", "kropp", "huvud", "hander", "rigg", "fingrar", "ansiktsrigg", "yta", "export", "kontroll"],
-   "far_bytas": {"vridben": ["vridben-export", "inga-vridben"], "film": ["steg8-film", "ingen-film"]},
+   "last": [
+    "underlag",
+    "kropp",
+    "huvud",
+    "hander",
+    "rigg",
+    "fingrar",
+    "ansiktsrigg",
+    "yta",
+    "export",
+    "kontroll"
+   ],
+   "far_bytas": {
+    "vridben": [
+     "vridben-export",
+     "inga-vridben"
+    ],
+    "film": [
+     "steg8-film",
+     "ingen-film"
+    ]
+   },
    "varfor_last": "Stegen är skrivna för varandra: steg 3 syr Meshys huvud och hand på Meshys kropp efter hudfärgen och skjortans kant, steg 4 riggar steg 3:s lätta kopia, steg 5 letar handen på materialet som steg 3 ger den, och steg 6–8 tar Meshys Mixamo-ben. Byts en del ut går kedjan sönder.",
    "anm": "Vridbenen går bara att välja bort genom att köra steg 6 för hand med --utan-vridben; auto_avatar.py har ingen flagga för det. Filmen väljs bort med --no-video.",
-   "kostnad": {"krediter": {"Meshy": 95}, "text": "95 Meshy-krediter (tre delar à 30 och riggen 5) och 3–5 bilder hos OpenAI"},
-   "tid": {"sekunder": 1064.6, "text": "cirka 18 minuter för steg 1–7 på laptopen; filmen i steg 8 till det (inte mätt)"},
-   "provet": {"id": "tomasz-20261126", "sa": "Tomasz: bäst ansiktslikhet av allt vi prövat; 56 ben, 30 fingerleder, inga vridben, inga ögonleder, ingen käke och inga ansiktsformer."},
-   "belagt": {"val": "kod", "last": "kod", "far_bytas": "kod", "varfor_last": "kod", "anm": "kod", "kostnad": "korning", "tid": "korning"},
+   "kostnad": {
+    "krediter": {
+     "Meshy": 95
+    },
+    "text": "95 Meshy-krediter (tre delar à 30 och riggen 5) och 3–5 bilder hos OpenAI"
+   },
+   "tid": {
+    "sekunder": 1064.6,
+    "text": "cirka 18 minuter för steg 1–7 på laptopen; filmen i steg 8 till det (inte mätt)"
+   },
+   "provet": {
+    "id": "tomasz-20261126",
+    "sa": "Tomasz: bäst ansiktslikhet av allt vi prövat; 56 ben, 30 fingerleder, inga vridben, inga ögonleder, ingen käke och inga ansiktsformer."
+   },
+   "belagt": {
+    "val": "kod",
+    "last": "kod",
+    "far_bytas": "kod",
+    "varfor_last": "kod",
+    "anm": "kod",
+    "kostnad": "korning",
+    "tid": "korning"
+   },
    "korning": {
     "program": "auto_avatar.py",
     "kommando": ".\\.venv\\Scripts\\python.exe auto_avatar.py --name <namn>",
@@ -884,114 +2463,328 @@
     "status_fil": "status.json",
     "rapport_fil": "auto-avatar.json",
     "flaggor": [
-     {"flagga": "--name", "gor": "dealerns namn; fotona läses ur input/<namn>/", "i_guiden": true},
-     {"flagga": "--photos", "gor": "1–8 foton i stället för input/<namn>/", "i_guiden": true},
-     {"flagga": "--out", "gor": "en annan utmapp än output/<namn>/", "i_guiden": false},
-     {"flagga": "--outfit", "gor": "klädseln, på engelska; skjortan tydligt icke-hudfärgad", "i_guiden": true},
-     {"flagga": "--no-video", "gor": "hoppar över steg 8 (filmen)", "i_guiden": true},
-     {"flagga": "--seconds", "gor": "filmens längd i sekunder", "forval": 6.0, "i_guiden": true},
-     {"flagga": "--samples", "gor": "bildkvaliteten i Cycles (laptopen: 16–24)", "forval": 48, "i_guiden": true},
-     {"flagga": "--refs-only", "gor": "stannar efter steg 1: bara bilderna, inga Meshy-krediter", "i_guiden": true},
-     {"flagga": "--from-step", "gor": "börjar på steg N; kvittona gör att inget betalas två gånger", "i_guiden": true},
-     {"flagga": "--only-step", "gor": "kör bara steg N", "i_guiden": true},
-     {"flagga": "--dry-run", "gor": "gratis kontroll: foton, nycklar, importer, stegskript, Blender och mappar", "i_guiden": true}
+     {
+      "flagga": "--name",
+      "gor": "dealerns namn; fotona läses ur input/<namn>/",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--photos",
+      "gor": "1–8 foton i stället för input/<namn>/",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--out",
+      "gor": "en annan utmapp än output/<namn>/",
+      "i_guiden": false
+     },
+     {
+      "flagga": "--outfit",
+      "gor": "klädseln, på engelska; skjortan tydligt icke-hudfärgad",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--no-video",
+      "gor": "hoppar över steg 8 (filmen)",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--seconds",
+      "gor": "filmens längd i sekunder",
+      "forval": 6.0,
+      "i_guiden": true
+     },
+     {
+      "flagga": "--samples",
+      "gor": "bildkvaliteten i Cycles (laptopen: 16–24)",
+      "forval": 48,
+      "i_guiden": true
+     },
+     {
+      "flagga": "--refs-only",
+      "gor": "stannar efter steg 1: bara bilderna, inga Meshy-krediter",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--from-step",
+      "gor": "börjar på steg N; kvittona gör att inget betalas två gånger",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--only-step",
+      "gor": "kör bara steg N",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--dry-run",
+      "gor": "gratis kontroll: foton, nycklar, importer, stegskript, Blender och mappar",
+      "i_guiden": true
+     }
     ]
    },
    "steg": [
     {
-     "nr": 1, "mapp": "01-referenser", "nyckel": "1_referenser", "namn": "Referensbilder",
+     "nr": 1,
+     "mapp": "01-referenser",
+     "nyckel": "1_referenser",
+     "namn": "Referensbilder",
      "gor": "gpt-image-2 gör tre bilder ur fotona: huvudet framifrån, hela kroppen i A-pose och en öppen högerhand. A-posebilden mäts och görs om innan något får beställas hos Meshy.",
-     "delar": ["underlag", "yta"],
-     "anrop": ["apose_referenser.generate", "apose_referenser.ref_sheet"],
-     "skript": ["steg/01-referenser/apose_referenser.py"],
+     "delar": [
+      "underlag",
+      "yta"
+     ],
+     "anrop": [
+      "apose_referenser.generate",
+      "apose_referenser.ref_sheet"
+     ],
+     "skript": [
+      "steg/01-referenser/apose_referenser.py"
+     ],
      "hjalp": [],
-     "betalt": {"hos": "OpenAI", "krediter": null, "text": "3 bilder; A-posebilden högst 2 gånger till"},
+     "betalt": {
+      "hos": "OpenAI",
+      "krediter": null,
+      "text": "3 bilder; A-posebilden högst 2 gånger till"
+     },
      "kvitto": "referenser.json",
-     "ut": ["head-ref.png", "apose-ref.png", "hands-ref.png", "ref-3-bilder.png"],
+     "ut": [
+      "head-ref.png",
+      "apose-ref.png",
+      "hands-ref.png",
+      "ref-3-bilder.png"
+     ],
      "tid_s": 343.5
     },
     {
-     "nr": 2, "mapp": "02-meshy-delar", "nyckel": "2_meshy_3x4k", "namn": "Tre delar hos Meshy",
+     "nr": 2,
+     "mapp": "02-meshy-delar",
+     "nyckel": "2_meshy_3x4k",
+     "namn": "Tre delar hos Meshy",
      "gor": "Meshy gör huvudet, kroppen i A-pose och högerhanden, var och en ur sin bild och alla tre samtidigt.",
-     "delar": ["kropp", "huvud", "hander", "yta"],
-     "anrop": ["meshy_enbild.run"],
-     "skript": ["steg/02-meshy-delar/meshy_enbild.py"],
+     "delar": [
+      "kropp",
+      "huvud",
+      "hander",
+      "yta"
+     ],
+     "anrop": [
+      "meshy_enbild.run"
+     ],
+     "skript": [
+      "steg/02-meshy-delar/meshy_enbild.py"
+     ],
      "hjalp": [],
-     "betalt": {"hos": "Meshy", "krediter": 90, "jobb": 3, "pris": "meshy-bild-till-3d", "text": "tre jobb à 30 krediter"},
+     "betalt": {
+      "hos": "Meshy",
+      "krediter": 90,
+      "jobb": 3,
+      "pris": "meshy-bild-till-3d",
+      "text": "tre jobb à 30 krediter"
+     },
      "kvitto": "korning.json",
-     "ut": ["huvud/modell.glb", "kropp/modell.glb", "hand/modell.glb", "meshy-delar-oversikt.png"],
+     "ut": [
+      "huvud/modell.glb",
+      "kropp/modell.glb",
+      "hand/modell.glb",
+      "meshy-delar-oversikt.png"
+     ],
      "tid_s": 120.8
     },
     {
-     "nr": 3, "mapp": "03-montering", "nyckel": "3_montering", "namn": "Montering",
+     "nr": 3,
+     "mapp": "03-montering",
+     "nyckel": "3_montering",
+     "namn": "Montering",
      "gor": "Huvudet skärs vid halsen och handen vid handleden och speglas till ett par; brösthåret plattas ut; delarna sys ihop med samma hudton (handen med sin egen handled, skarven inne i ärmen), och en lätt kopia på 180 000 trianglar görs för riggen.",
-     "delar": ["kropp", "huvud", "hander", "yta"],
-     "anrop": ["bygg_modul.build", "bygg_modul.Asset", "bygg_modul.Mesh", "bygg_modul.clip", "montera_apose.assemble_apose", "blender:clean_kropp_chest.py", "blender:forenkla_4k.py", "blender:forhandsvisning_montering.py"],
-     "skript": ["steg/03-montering/bygg_modul.py", "steg/03-montering/montera_apose.py", "steg/03-montering/clean_kropp_chest.py", "steg/03-montering/forenkla_4k.py", "steg/03-montering/forhandsvisning_montering.py"],
-     "hjalp": ["steg/03-montering/montera.py", "metod/bygg.py", "metod/gltf.py", "gemensamt/standardmatt.py"],
+     "delar": [
+      "kropp",
+      "huvud",
+      "hander",
+      "yta"
+     ],
+     "anrop": [
+      "bygg_modul.build",
+      "bygg_modul.Asset",
+      "bygg_modul.Mesh",
+      "bygg_modul.clip",
+      "montera_apose.assemble_apose",
+      "blender:clean_kropp_chest.py",
+      "blender:forenkla_4k.py",
+      "blender:forhandsvisning_montering.py"
+     ],
+     "skript": [
+      "steg/03-montering/bygg_modul.py",
+      "steg/03-montering/montera_apose.py",
+      "steg/03-montering/clean_kropp_chest.py",
+      "steg/03-montering/forenkla_4k.py",
+      "steg/03-montering/forhandsvisning_montering.py"
+     ],
+     "hjalp": [
+      "steg/03-montering/montera.py",
+      "metod/bygg.py",
+      "metod/gltf.py",
+      "gemensamt/standardmatt.py"
+     ],
      "betalt": null,
      "kvitto": null,
-     "ut": ["<namn>-apose.glb", "latt-4k.glb", "montering.json", "montering-forhandsvisning.png"],
+     "ut": [
+      "<namn>-apose.glb",
+      "latt-4k.glb",
+      "montering.json",
+      "montering-forhandsvisning.png"
+     ],
      "tid_s": 178.4
     },
     {
-     "nr": 4, "mapp": "04-rigg", "nyckel": "4_rigg", "namn": "Riggen hos Meshy",
+     "nr": 4,
+     "mapp": "04-rigg",
+     "nyckel": "4_rigg",
+     "namn": "Riggen hos Meshy",
      "gor": "Meshy sätter ett Mixamo-skelett med fingrar i den lätta kopian.",
-     "delar": ["rigg"],
-     "anrop": ["meshy_rigg.bind"],
-     "skript": ["steg/04-rigg/meshy_rigg.py"],
-     "hjalp": ["steg/02-meshy-delar/meshy_enbild.py"],
-     "betalt": {"hos": "Meshy", "krediter": 5, "jobb": 1, "pris": "meshy-rigg", "text": "ett jobb à 5 krediter"},
+     "delar": [
+      "rigg"
+     ],
+     "anrop": [
+      "meshy_rigg.bind"
+     ],
+     "skript": [
+      "steg/04-rigg/meshy_rigg.py"
+     ],
+     "hjalp": [
+      "steg/02-meshy-delar/meshy_enbild.py"
+     ],
+     "betalt": {
+      "hos": "Meshy",
+      "krediter": 5,
+      "jobb": 1,
+      "pris": "meshy-rigg",
+      "text": "ett jobb à 5 krediter"
+     },
      "kvitto": "riggjobb.json",
-     "ut": ["riggjobb/riggad.glb"],
+     "ut": [
+      "riggjobb/riggad.glb"
+     ],
      "tid_s": 90.8
     },
     {
-     "nr": 5, "mapp": "05-fingrar-handleder", "nyckel": "5_fingrar_handleder", "namn": "Fingrar och handleder",
+     "nr": 5,
+     "mapp": "05-fingrar-handleder",
+     "nyckel": "5_fingrar_handleder",
+     "namn": "Fingrar och handleder",
      "gor": "Nya fingerben efter handens silhuett (tre per finger), halsens och axlarnas vikter rensas, och handleden görs ren: vidgningen räknas tillbaka, handleden går in i ärmen och skarven färgas som ärmen; före- och efterbilder.",
-     "delar": ["fingrar", "hander", "yta"],
-     "anrop": ["blender:bygg_fingrar_apose.py", "blender:fixa_handleder.py"],
-     "skript": ["steg/05-fingrar-handleder/bygg_fingrar_apose.py", "steg/05-fingrar-handleder/fixa_handleder.py"],
-     "hjalp": ["steg/05-fingrar-handleder/bygg_fingrar.py", "steg/05-fingrar-handleder/fingrar_apose.py", "steg/05-fingrar-handleder/fingerrigg.py", "steg/05-fingrar-handleder/viktrensning.py"],
+     "delar": [
+      "fingrar",
+      "hander",
+      "yta"
+     ],
+     "anrop": [
+      "blender:bygg_fingrar_apose.py",
+      "blender:fixa_handleder.py"
+     ],
+     "skript": [
+      "steg/05-fingrar-handleder/bygg_fingrar_apose.py",
+      "steg/05-fingrar-handleder/fixa_handleder.py"
+     ],
+     "hjalp": [
+      "steg/05-fingrar-handleder/bygg_fingrar.py",
+      "steg/05-fingrar-handleder/fingrar_apose.py",
+      "steg/05-fingrar-handleder/fingerrigg.py",
+      "steg/05-fingrar-handleder/viktrensning.py"
+     ],
      "betalt": null,
      "kvitto": null,
-     "ut": ["avatar-rigg.glb", "handled-fix/avatar-rigg-handledfix.glb", "handled-fix/fix.json", "handled-fix-jamforelse.png"],
+     "ut": [
+      "avatar-rigg.glb",
+      "handled-fix/avatar-rigg-handledfix.glb",
+      "handled-fix/fix.json",
+      "handled-fix-jamforelse.png"
+     ],
      "tid_s": 167.0
     },
     {
-     "nr": 6, "mapp": "06-dealer-export", "nyckel": "6_dealer_export", "namn": "Dealer-GLB",
+     "nr": 6,
+     "mapp": "06-dealer-export",
+     "nyckel": "6_dealer_export",
+     "namn": "Dealer-GLB",
      "gor": "Bennamnen blir spelets (utan mixamorig:, Neck som neck), två vridben läggs i varje underarm, och benen som spelet kräver räknas.",
-     "delar": ["export", "vridben"],
-     "anrop": ["blender:exportera_dealer.py", "meshy_enbild.model_info"],
-     "skript": ["steg/06-dealer-export/exportera_dealer.py", "steg/02-meshy-delar/meshy_enbild.py"],
-     "hjalp": ["steg/06-dealer-export/vridben.py"],
+     "delar": [
+      "export",
+      "vridben"
+     ],
+     "anrop": [
+      "blender:exportera_dealer.py",
+      "meshy_enbild.model_info"
+     ],
+     "skript": [
+      "steg/06-dealer-export/exportera_dealer.py",
+      "steg/02-meshy-delar/meshy_enbild.py"
+     ],
+     "hjalp": [
+      "steg/06-dealer-export/vridben.py"
+     ],
      "betalt": null,
      "kvitto": null,
-     "ut": ["<namn>-dealer-apose.glb", "<namn>-dealer-apose.json"],
+     "ut": [
+      "<namn>-dealer-apose.glb",
+      "<namn>-dealer-apose.json"
+     ],
      "tid_s": 15.5
     },
     {
-     "nr": 7, "mapp": "07-qc", "nyckel": "7_qc", "namn": "Kontrollblad",
+     "nr": 7,
+     "mapp": "07-qc",
+     "nyckel": "7_qc",
+     "namn": "Kontrollblad",
      "gor": "Bilder av dealern i vila: helkroppen framifrån och snett, ansiktet och båda handlederna, samlade på ett blad bredvid referensbilden.",
-     "delar": ["kontroll"],
-     "anrop": ["blender:qc_oversikt.py", "meshy_enbild.model_info"],
-     "skript": ["steg/07-qc/qc_oversikt.py", "steg/02-meshy-delar/meshy_enbild.py"],
+     "delar": [
+      "kontroll"
+     ],
+     "anrop": [
+      "blender:qc_oversikt.py",
+      "meshy_enbild.model_info"
+     ],
+     "skript": [
+      "steg/07-qc/qc_oversikt.py",
+      "steg/02-meshy-delar/meshy_enbild.py"
+     ],
      "hjalp": [],
      "betalt": null,
      "kvitto": null,
-     "ut": ["helkropp-fram.png", "helkropp-34.png", "ansikte.png", "handled-hoger.png", "handled-vanster.png", "qc.json", "resultat-oversikt.png"],
+     "ut": [
+      "helkropp-fram.png",
+      "helkropp-34.png",
+      "ansikte.png",
+      "handled-hoger.png",
+      "handled-vanster.png",
+      "qc.json",
+      "resultat-oversikt.png"
+     ],
      "tid_s": 148.6
     },
     {
-     "nr": 8, "mapp": "08-film", "nyckel": "8_film", "namn": "Rörelsefilm",
+     "nr": 8,
+     "mapp": "08-film",
+     "nyckel": "8_film",
+     "namn": "Rörelsefilm",
      "gor": "En sittande dealer-rörelse vid ett eget bord: film, GLB med bakad rörelse och sex rutor ur filmen.",
-     "delar": ["film"],
-     "anrop": ["blender:animera_dealer.py"],
-     "skript": ["steg/08-film/animera_dealer.py"],
+     "delar": [
+      "film"
+     ],
+     "anrop": [
+      "blender:animera_dealer.py"
+     ],
+     "skript": [
+      "steg/08-film/animera_dealer.py"
+     ],
      "hjalp": [],
      "betalt": null,
      "kvitto": null,
-     "ut": ["<namn>-ror-sig.mp4", "<namn>-apose-med-rorelse.glb", "anim.json", "rorelse-strip.png"],
+     "ut": [
+      "<namn>-ror-sig.mp4",
+      "<namn>-apose-med-rorelse.glb",
+      "anim.json",
+      "rorelse-strip.png"
+     ],
      "tid_s": null
     }
    ]
@@ -1016,51 +2809,130 @@
     "kontroll": "standardscenens-bilder",
     "film": "dockans-rorelser"
    },
-   "last": ["underlag", "kropp", "huvud", "hander", "rigg", "fingrar", "vridben", "ansiktsrigg", "yta", "export"],
-   "far_bytas": {"kontroll": ["standardscenens-bilder", "i-editorn"], "film": ["dockans-rorelser", "rorelser-ur-film", "runway-person"]},
+   "last": [
+    "underlag",
+    "kropp",
+    "huvud",
+    "hander",
+    "rigg",
+    "fingrar",
+    "vridben",
+    "ansiktsrigg",
+    "yta",
+    "export"
+   ],
+   "far_bytas": {
+    "kontroll": [
+     "standardscenens-bilder",
+     "i-editorn"
+    ],
+    "film": [
+     "dockans-rorelser",
+     "rorelser-ur-film",
+     "runway-person"
+    ]
+   },
    "varfor_last": "bygg_docka.py bygger kroppen, huvudet, händerna, skelettet, vridbenen och ansiktet i ett bygge ur MPFB; delarna går inte att ta var för sig. Det som väljs är kön, och om bygget ska skriva en provmodell (--namn) i stället för de som används.",
    "anm": null,
-   "kostnad": {"krediter": {}, "text": "gratis"},
-   "tid": {"sekunder": null, "text": "några minuter per docka (inte mätt)"},
-   "provet": {"id": "dockans-ansikte-20261127", "sa": "Mannen och kvinnan med ögon, bryn, läppar och mun; inte dömt än."},
-   "belagt": {"val": "kod", "last": "kod", "far_bytas": "kod", "varfor_last": "kod", "kostnad": "kod", "tid": "bedomning"},
+   "kostnad": {
+    "krediter": {},
+    "text": "gratis"
+   },
+   "tid": {
+    "sekunder": null,
+    "text": "några minuter per docka (inte mätt)"
+   },
+   "provet": {
+    "id": "dockans-ansikte-20261127",
+    "sa": "Mannen och kvinnan med ögon, bryn, läppar och mun; inte dömt än."
+   },
+   "belagt": {
+    "val": "kod",
+    "last": "kod",
+    "far_bytas": "kod",
+    "varfor_last": "kod",
+    "kostnad": "kod",
+    "tid": "bedomning"
+   },
    "korning": {
     "program": "scen/bygg_docka.py",
     "kommando": "blender -b --python-exit-code 1 --python scen/bygg_docka.py",
     "jakob_startar": null,
     "flaggor": [
-     {"flagga": "--kon", "gor": "kvinna, man eller bada (danilo och frasse: vägen Docka efter en mätt dealer)", "forval": "bada", "i_guiden": true},
-     {"flagga": "--namn", "gor": "skriver standarddocka_<kön>_<namn>.* (en provmodell) i stället för de modeller som används", "i_guiden": true}
+     {
+      "flagga": "--kon",
+      "gor": "kvinna, man eller bada (danilo och frasse: vägen Docka efter en mätt dealer)",
+      "forval": "bada",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--namn",
+      "gor": "skriver standarddocka_<kön>_<namn>.* (en provmodell) i stället för de modeller som används",
+      "i_guiden": true
+     }
     ]
    },
    "steg": [
     {
-     "nr": "A", "namn": "Måtten ur spelet",
+     "nr": "A",
+     "namn": "Måtten ur spelet",
      "gor": "Läser spelets kod och skriver scen/standard.yaml, som bygget läser.",
      "delar": [],
      "kommando": ".\\.venv\\Scripts\\python.exe scen/gen_standard.py",
-     "skript": ["scen/gen_standard.py", "scen/las_spelet.ts"],
-     "hjalp": ["gemensamt/standard.py"],
+     "skript": [
+      "scen/gen_standard.py",
+      "scen/las_spelet.ts"
+     ],
+     "hjalp": [
+      "gemensamt/standard.py"
+     ],
      "betalt": null,
      "tid_s": null
     },
     {
-     "nr": "B", "namn": "Dockan",
+     "nr": "B",
+     "namn": "Dockan",
      "gor": "MPFB-kroppen efter måtten, skelettet med spelets bennamn, vridben, fingrar, ansiktsben, 30 ansiktsformer, ögon, bryn och mun, och vilan vid bordet.",
-     "delar": ["underlag", "kropp", "huvud", "hander", "rigg", "fingrar", "vridben", "ansiktsrigg", "yta", "export"],
+     "delar": [
+      "underlag",
+      "kropp",
+      "huvud",
+      "hander",
+      "rigg",
+      "fingrar",
+      "vridben",
+      "ansiktsrigg",
+      "yta",
+      "export"
+     ],
      "kommando": "blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon man",
-     "skript": ["scen/bygg_docka.py"],
-     "hjalp": ["scen/_bpy_hjalp.py", "gemensamt/riggverktyg.py", "gemensamt/standard.py"],
+     "skript": [
+      "scen/bygg_docka.py"
+     ],
+     "hjalp": [
+      "scen/_bpy_hjalp.py",
+      "gemensamt/riggverktyg.py",
+      "gemensamt/standard.py"
+     ],
      "betalt": null,
      "tid_s": null
     },
     {
-     "nr": "C", "namn": "Kontrollbilder",
+     "nr": "C",
+     "namn": "Kontrollbilder",
      "gor": "Dockan vid bordet genom spelets kamera och de fasta kamerorna, och ansiktets uttryck i närbild.",
-     "delar": ["kontroll"],
+     "delar": [
+      "kontroll"
+     ],
      "kommando": "blender -b --factory-startup --python-exit-code 1 --python scen/qc_render.py -- --docka assets/docka/standarddocka_man.blend --kameror film hel --tagg docka_man",
-     "skript": ["scen/qc_render.py", "verktyg/qc_ansikte.py"],
-     "hjalp": ["scen/_bpy_hjalp.py", "gemensamt/standard.py"],
+     "skript": [
+      "scen/qc_render.py",
+      "verktyg/qc_ansikte.py"
+     ],
+     "hjalp": [
+      "scen/_bpy_hjalp.py",
+      "gemensamt/standard.py"
+     ],
      "betalt": null,
      "tid_s": null
     }
@@ -1086,8 +2958,29 @@
     "kontroll": "standardscenens-bilder",
     "film": "dockans-rorelser"
    },
-   "last": ["underlag", "kropp", "huvud", "hander", "rigg", "fingrar", "vridben", "ansiktsrigg", "yta", "export"],
-   "far_bytas": {"kontroll": ["standardscenens-bilder", "i-editorn"], "film": ["dockans-rorelser", "rorelser-ur-film", "runway-person"]},
+   "last": [
+    "underlag",
+    "kropp",
+    "huvud",
+    "hander",
+    "rigg",
+    "fingrar",
+    "vridben",
+    "ansiktsrigg",
+    "yta",
+    "export"
+   ],
+   "far_bytas": {
+    "kontroll": [
+     "standardscenens-bilder",
+     "i-editorn"
+    ],
+    "film": [
+     "dockans-rorelser",
+     "rorelser-ur-film",
+     "runway-person"
+    ]
+   },
    "varfor_last": "Ansiktsformerna och ögonlederna finns bara på standarddockans huvud, så huvudet måste vara hennes och formas om, inte bytas ut; kroppen, skelettet och ansiktet hör ihop i hennes bygge.",
    "anm": null,
    "saknas": [
@@ -1096,10 +2989,24 @@
     "att bygg_docka.py tar emot mått utifrån (personens egna)",
     "kläder"
    ],
-   "kostnad": {"krediter": {}, "text": "gratis, om fotona räcker som de är"},
-   "tid": {"sekunder": null, "text": "okänd"},
+   "kostnad": {
+    "krediter": {},
+    "text": "gratis, om fotona räcker som de är"
+   },
+   "tid": {
+    "sekunder": null,
+    "text": "okänd"
+   },
    "provet": null,
-   "belagt": {"val": "bedomning", "last": "kod", "far_bytas": "bedomning", "varfor_last": "kod", "saknas": "kod", "kostnad": "bedomning", "tid": "bedomning"},
+   "belagt": {
+    "val": "bedomning",
+    "last": "kod",
+    "far_bytas": "bedomning",
+    "varfor_last": "kod",
+    "saknas": "kod",
+    "kostnad": "bedomning",
+    "tid": "bedomning"
+   },
    "steg": []
   },
   {
@@ -1109,8 +3016,16 @@
    "kan_koras": true,
    "beskrivning": "En standarddocka med kroppens mått ur mätningen av en riktig dealer på film, vårt eget ansikte och rörelserna lyfta ur samma film. Inga foton och ingen Meshy.",
    "dockor": [
-    {"namn": "Danilo", "stil": "kameran", "kalla": "../live-bj/data/uppsattning.json dealer.kameran"},
-    {"namn": "Frasse", "stil": "bordet", "kalla": "../live-bj/data/uppsattning.json dealer.bordet"}
+    {
+     "namn": "Danilo",
+     "stil": "kameran",
+     "kalla": "../live-bj/data/uppsattning.json dealer.kameran"
+    },
+    {
+     "namn": "Frasse",
+     "stil": "bordet",
+     "kalla": "../live-bj/data/uppsattning.json dealer.bordet"
+    }
    ],
    "val": {
     "underlag": "matt-ur-film",
@@ -1126,41 +3041,115 @@
     "kontroll": "standardscenens-bilder",
     "film": "rorelser-ur-film"
    },
-   "last": ["underlag", "kropp", "huvud", "hander", "rigg", "fingrar", "vridben", "ansiktsrigg", "export"],
-   "far_bytas": {"yta": ["mpfb-gra", "separata-klader", "meshy-ny-yta"], "kontroll": ["standardscenens-bilder", "i-editorn"], "film": ["rorelser-ur-film", "dockans-rorelser"]},
+   "last": [
+    "underlag",
+    "kropp",
+    "huvud",
+    "hander",
+    "rigg",
+    "fingrar",
+    "vridben",
+    "ansiktsrigg",
+    "export"
+   ],
+   "far_bytas": {
+    "yta": [
+     "mpfb-gra",
+     "separata-klader",
+     "meshy-ny-yta"
+    ],
+    "kontroll": [
+     "standardscenens-bilder",
+     "i-editorn"
+    ],
+    "film": [
+     "rorelser-ur-film",
+     "dockans-rorelser"
+    ]
+   },
    "varfor_last": "Måtten ur filmen kan bara användas av en kropp som byggs efter mått, alltså standarddockans; resten följer med hennes bygge.",
    "anm": "Byggd sedan 2026-11-27 (assets/docka/standarddocka_danilo.* och _frasse.*). Ur filmen tas bara axellederna och huvudets höjd, avskrivna i MATT i bygg_docka.py; halsen, armarna (ANSUR II, filmens var skattade och för korta), händerna, benen och bålen är mannens, och midjan och höften syns inte bakom bordet (Danilos 4 och 3 % smalare). Hur långt bakom kanten dealern sitter är en skattning (give or take 0,1 m).",
-   "kostnad": {"krediter": {}, "text": "gratis"},
-   "tid": {"sekunder": null, "text": "några minuter per docka (inte mätt)"},
-   "provet": {"id": "danilo-frasse-kroppar-20261127", "sa": "Tre män med samma ansikte och några centimeters skillnad i axlar och huvud; domaren Bra, den externa Nja (för lika mannen)."},
-   "belagt": {"val": "kod", "last": "kod", "far_bytas": "bedomning", "varfor_last": "kod", "anm": "kod", "kostnad": "kod", "tid": "bedomning", "dockor": "data"},
+   "kostnad": {
+    "krediter": {},
+    "text": "gratis"
+   },
+   "tid": {
+    "sekunder": null,
+    "text": "några minuter per docka (inte mätt)"
+   },
+   "provet": {
+    "id": "danilo-frasse-kroppar-20261127",
+    "sa": "Tre män med samma ansikte och några centimeters skillnad i axlar och huvud; domaren Bra, den externa Nja (för lika mannen)."
+   },
+   "belagt": {
+    "val": "kod",
+    "last": "kod",
+    "far_bytas": "bedomning",
+    "varfor_last": "kod",
+    "anm": "kod",
+    "kostnad": "kod",
+    "tid": "bedomning",
+    "dockor": "data"
+   },
    "korning": {
     "program": "scen/bygg_docka.py",
     "kommando": "blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon danilo",
     "jakob_startar": null,
     "flaggor": [
-     {"flagga": "--kon", "gor": "danilo eller frasse", "i_guiden": true},
-     {"flagga": "--namn", "gor": "skriver standarddocka_<namn>_<N>.* (en provmodell) i stället för de modeller som används", "i_guiden": true}
+     {
+      "flagga": "--kon",
+      "gor": "danilo eller frasse",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--namn",
+      "gor": "skriver standarddocka_<namn>_<N>.* (en provmodell) i stället för de modeller som används",
+      "i_guiden": true
+     }
     ]
    },
    "steg": [
     {
-     "nr": "A", "namn": "Måtten ur spelet",
+     "nr": "A",
+     "namn": "Måtten ur spelet",
      "gor": "Läser spelets kod och skriver scen/standard.yaml, som bygget läser.",
      "delar": [],
      "kommando": ".\\.venv\\Scripts\\python.exe scen/gen_standard.py",
-     "skript": ["scen/gen_standard.py", "scen/las_spelet.ts"],
-     "hjalp": ["gemensamt/standard.py"],
+     "skript": [
+      "scen/gen_standard.py",
+      "scen/las_spelet.ts"
+     ],
+     "hjalp": [
+      "gemensamt/standard.py"
+     ],
      "betalt": null,
      "tid_s": null
     },
     {
-     "nr": "B", "namn": "Dockan",
+     "nr": "B",
+     "namn": "Dockan",
      "gor": "Mannens MPFB-kropp med dealerns mätta axlar och huvud (MATT danilo eller frasse), samma skelett, vridben, fingrar, ansiktsben, 30 ansiktsformer, ögon, bryn och mun som mannen.",
-     "delar": ["underlag", "kropp", "huvud", "hander", "rigg", "fingrar", "vridben", "ansiktsrigg", "yta", "export"],
+     "delar": [
+      "underlag",
+      "kropp",
+      "huvud",
+      "hander",
+      "rigg",
+      "fingrar",
+      "vridben",
+      "ansiktsrigg",
+      "yta",
+      "export"
+     ],
      "kommando": "blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon danilo",
-     "skript": ["scen/bygg_docka.py"],
-     "hjalp": ["scen/_bpy_hjalp.py", "gemensamt/riggverktyg.py", "gemensamt/standard.py"],
+     "skript": [
+      "scen/bygg_docka.py"
+     ],
+     "hjalp": [
+      "scen/_bpy_hjalp.py",
+      "gemensamt/riggverktyg.py",
+      "gemensamt/standard.py"
+     ],
      "betalt": null,
      "tid_s": null
     }
@@ -1186,41 +3175,331 @@
     "kontroll": "i-editorn",
     "film": "rorelser-ur-film"
    },
-   "last": ["underlag", "kropp", "hander", "rigg", "fingrar", "vridben", "ansiktsrigg", "export"],
-   "far_bytas": {"huvud": ["mpfb-huvud", "mpfb-format-efter-person"], "yta": ["mpfb-gra", "separata-klader", "meshy-ny-yta"], "kontroll": ["standardscenens-bilder", "i-editorn"], "film": ["rorelser-ur-film", "dockans-rorelser"]},
+   "last": [
+    "underlag",
+    "kropp",
+    "hander",
+    "rigg",
+    "fingrar",
+    "vridben",
+    "ansiktsrigg",
+    "export"
+   ],
+   "far_bytas": {
+    "huvud": [
+     "mpfb-huvud",
+     "mpfb-format-efter-person"
+    ],
+    "yta": [
+     "mpfb-gra",
+     "separata-klader",
+     "meshy-ny-yta"
+    ],
+    "kontroll": [
+     "standardscenens-bilder",
+     "i-editorn"
+    ],
+    "film": [
+     "rorelser-ur-film",
+     "dockans-rorelser"
+    ]
+   },
    "varfor_last": "Måtten kan bara användas av en kropp som byggs efter mått, alltså standarddockans; resten följer med hennes bygge.",
    "anm": "Byggd 2026-11-27 (assets/docka/standarddocka_tomasz_matt.*, MATT['tomasz_matt']). Längden är ett antagande (figurens 1,80 m med skor och hår). Huvudet har hans höjd, bredd och käke ur måtten men dockans ansikte; i hans ansiktes form är det steg 13 (assets/docka/standarddocka_tomasz_matt_form.*, på prov). Midjan nådde 86 av 93 cm (MPFB:s midjemål fullt ut); den sitter under bordskanten i filmen.",
-   "kostnad": {"krediter": {}, "text": "gratis"},
-   "tid": {"sekunder": null, "text": "några minuter (inte mätt)"},
-   "provet": {"id": "tomasz-dockan-pa-hans-matt-20261127", "sa": "Tomasz-dockan och Danilos docka bredvid varandra vid livebordet; inte dömd än."},
-   "belagt": {"val": "kod", "last": "kod", "far_bytas": "bedomning", "varfor_last": "kod", "anm": "korning", "kostnad": "kod", "tid": "bedomning"},
+   "kostnad": {
+    "krediter": {},
+    "text": "gratis"
+   },
+   "tid": {
+    "sekunder": null,
+    "text": "några minuter (inte mätt)"
+   },
+   "provet": {
+    "id": "tomasz-dockan-pa-hans-matt-20261127",
+    "sa": "Tomasz-dockan och Danilos docka bredvid varandra vid livebordet; inte dömd än."
+   },
+   "belagt": {
+    "val": "kod",
+    "last": "kod",
+    "far_bytas": "bedomning",
+    "varfor_last": "kod",
+    "anm": "korning",
+    "kostnad": "kod",
+    "tid": "bedomning"
+   },
    "korning": {
     "program": "scen/bygg_docka.py",
     "kommando": "blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon tomasz_matt",
     "jakob_startar": null,
     "flaggor": [
-     {"flagga": "--kon", "gor": "nyckeln i MATT: tomasz_matt", "i_guiden": true},
-     {"flagga": "--namn", "gor": "skriver standarddocka_<namn>_<N>.* (en provmodell) i stället för de modeller som används", "i_guiden": true}
+     {
+      "flagga": "--kon",
+      "gor": "nyckeln i MATT: tomasz_matt",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--namn",
+      "gor": "skriver standarddocka_<namn>_<N>.* (en provmodell) i stället för de modeller som används",
+      "i_guiden": true
+     }
     ]
    },
    "steg": [
     {
-     "nr": "A", "namn": "Måtten",
+     "nr": "A",
+     "namn": "Måtten",
      "gor": "Mäter personens figur och mannen på samma sätt (lederna, huden i snitt, handen och huvudet); talen, med kläder och hår avdragna, skrivs av i MATT i bygg_docka.py.",
-     "delar": ["underlag"],
+     "delar": [
+      "underlag"
+     ],
      "kommando": "blender -b --factory-startup --python verktyg/mat_figur.py -- <ut.json> tomasz=assets/docka/standarddocka_tomasz.glb man=assets/docka/standarddocka_man.glb --ogon tomasz=<höger x,y,z>,<vänster x,y,z>",
-     "skript": ["verktyg/mat_figur.py"],
+     "skript": [
+      "verktyg/mat_figur.py"
+     ],
      "hjalp": [],
      "betalt": null,
      "tid_s": null
     },
     {
-     "nr": "B", "namn": "Dockan",
+     "nr": "B",
+     "namn": "Dockan",
      "gor": "Mannens MPFB-kropp med personens axlar, bröst, midja, höft, hals och huvud (MATT tomasz_matt), samma skelett, vridben, fingrar, ansiktsben, 30 ansiktsformer, ögon, bryn och mun som mannen.",
-     "delar": ["underlag", "kropp", "huvud", "hander", "rigg", "fingrar", "vridben", "ansiktsrigg", "yta", "export"],
+     "delar": [
+      "underlag",
+      "kropp",
+      "huvud",
+      "hander",
+      "rigg",
+      "fingrar",
+      "vridben",
+      "ansiktsrigg",
+      "yta",
+      "export"
+     ],
      "kommando": "blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon tomasz_matt",
-     "skript": ["scen/bygg_docka.py"],
-     "hjalp": ["scen/_bpy_hjalp.py", "gemensamt/riggverktyg.py", "gemensamt/standard.py"],
+     "skript": [
+      "scen/bygg_docka.py"
+     ],
+     "hjalp": [
+      "scen/_bpy_hjalp.py",
+      "gemensamt/riggverktyg.py",
+      "gemensamt/standard.py"
+     ],
+     "betalt": null,
+     "tid_s": null
+    }
+   ]
+  },
+  {
+   "id": "ny-dealer-ur-bilder",
+   "namn": "En ny dealer ur bilder, en rad (Kenji)",
+   "status": "provat",
+   "kan_koras": false,
+   "beskrivning": "En persons mått ur sina egna bilder (SAM 3D Body och MediaPipe), en docka byggd på den docka vars rörelser personen spelar (Danilos eller Frasses) med det som skiljer, dockan in i spelets och editorns dockor ur en datafil, de lyfta rörelserna lagda på den, givens dockfilm genom livebordets kamera och de betalda anropen färdiga. Ett kommando: ny_dealer.py <person>.",
+   "val": {
+    "underlag": "matt-ur-bilder",
+    "kropp": "mpfb-kropp",
+    "huvud": "mpfb-huvud",
+    "hander": "mpfb-hander",
+    "rigg": "mpfb-rigg",
+    "fingrar": "mpfb-fingrar",
+    "vridben": "vridben-mpfb",
+    "ansiktsrigg": "mpfb-ansikte",
+    "yta": "mpfb-gra",
+    "export": "mpfb-glb",
+    "kontroll": "i-editorn",
+    "film": "rorelser-ur-film"
+   },
+   "last": [
+    "underlag",
+    "kropp",
+    "hander",
+    "rigg",
+    "fingrar",
+    "vridben",
+    "ansiktsrigg",
+    "export"
+   ],
+   "far_bytas": {
+    "huvud": [
+     "mpfb-huvud"
+    ],
+    "yta": [
+     "mpfb-gra",
+     "separata-klader",
+     "meshy-ny-yta"
+    ],
+    "kontroll": [
+     "standardscenens-bilder",
+     "i-editorn"
+    ],
+    "film": [
+     "rorelser-ur-film",
+     "dockans-rorelser"
+    ]
+   },
+   "varfor_last": "Måtten kan bara användas av en kropp som byggs efter mått, alltså standarddockans; resten följer med hennes bygge.",
+   "anm": "Körd 2026-11-27 för Kenji (personer/kenji-nakamura.json, assets/docka/standarddocka_kenji.*). Måtten är SAM:s kroppsform; axelbredden är SAM:s minst säkra mått (Kenji och Tomasz nästan lika). Ansiktet är dockans eget; utseendet kommer ur filmens bilder.",
+   "kostnad": {
+    "krediter": {},
+    "text": "gratis"
+   },
+   "tid": {
+    "sekunder": null,
+    "text": "SAM 5-15 minuter, dockan några minuter, rörelserna och filmen några minuter"
+   },
+   "provet": {
+    "id": "kenji-ny-dealer-ur-bilder-20261127",
+    "sa": "Kenjis docka bredvid Danilos, mätningen över hans bilder och givens dockfilm; inte dömd än."
+   },
+   "belagt": {
+    "val": "kod",
+    "last": "kod",
+    "far_bytas": "bedomning",
+    "varfor_last": "kod",
+    "anm": "korning",
+    "kostnad": "kod",
+    "tid": "bedomning"
+   },
+   "korning": {
+    "program": "ny_dealer.py",
+    "kommando": "python ny_dealer.py <person> [--stil kameran|bordet] [--utseende \"<text>\"] [--prov <provmapp>]",
+    "jakob_startar": null,
+    "flaggor": [
+     {
+      "flagga": "--stil",
+      "gor": "vilken dealers rörelser personen spelar: kameran (Danilos, förval) eller bordet (Frasses)",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--namn",
+      "gor": "dockans namn (förval förnamnet ur mappens namn)",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--utseende",
+      "gor": "personens utseende i ord för bildmodellen",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--plats",
+      "gor": "dagens plats för filmens giv (förval 4)",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--prov",
+      "gor": "lägger filmen, rutorna och anropen i ett prov",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--steg",
+      "gor": "ett steg eller ett spann, 1-6",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--lage",
+      "gor": "säger bara vad som finns och vad som saknas",
+      "i_guiden": true
+     }
+    ]
+   },
+   "steg": [
+    {
+     "nr": "1",
+     "namn": "Måtten ur bilderna",
+     "gor": "SAM 3D Body på helfiguren och halvfiguren, MediaPipe på alla tre (kroppen, händerna, ansiktet): personer/<person>.json och en ritning av mätningen.",
+     "delar": [
+      "underlag"
+     ],
+     "kommando": "python ny_dealer.py <person> --steg 1",
+     "skript": [
+      "steg/15-matt-ur-bilder/matt_ur_bilder.py",
+      "steg/15-matt-ur-bilder/sam_bild.py"
+     ],
+     "hjalp": [
+      "steg/15-matt-ur-bilder/personmatt.py"
+     ],
+     "betalt": null,
+     "tid_s": 700
+    },
+    {
+     "nr": "2",
+     "namn": "Dockan",
+     "gor": "Grunddockans kropp (Danilos eller Frasses mått) med det personen skiljer sig i, samma skelett, vridben, fingrar och ansiktsrigg som mannen.",
+     "delar": [
+      "underlag",
+      "kropp",
+      "huvud",
+      "hander",
+      "rigg",
+      "fingrar",
+      "vridben",
+      "ansiktsrigg",
+      "yta",
+      "export"
+     ],
+     "kommando": "blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon <docka>",
+     "skript": [
+      "scen/bygg_docka.py"
+     ],
+     "hjalp": [
+      "scen/_bpy_hjalp.py",
+      "gemensamt/riggverktyg.py",
+      "gemensamt/standard.py"
+     ],
+     "betalt": null,
+     "tid_s": null
+    },
+    {
+     "nr": "3",
+     "namn": "I systemet",
+     "gor": "Dockan mätt på sin modell och skriven i blackjack-dealer/dealer3d/src/persondockor.ts: med i LIVE_DOLLS, editorn och verktygen.",
+     "delar": [
+      "kontroll"
+     ],
+     "kommando": "python ny_dealer.py <person> --steg 3",
+     "skript": [],
+     "hjalp": [],
+     "betalt": null,
+     "tid_s": null
+    },
+    {
+     "nr": "4",
+     "namn": "Rörelserna",
+     "gor": "De lyfta rörelserna i stilen lagda på dockan (lyft-till-docka.ts --docka) och kontrollen (lyft-kolla.ts).",
+     "delar": [
+      "film"
+     ],
+     "kommando": "python ny_dealer.py <person> --steg 4",
+     "skript": [],
+     "hjalp": [],
+     "betalt": null,
+     "tid_s": null
+    },
+    {
+     "nr": "5",
+     "namn": "Dockfilmen",
+     "gor": "Givens dockfilm genom livebordets kamera i nyckelutseendet, och var åttonde ruta och första och sista ur den.",
+     "delar": [
+      "kontroll",
+      "film"
+     ],
+     "kommando": "python ny_dealer.py <person> --steg 5",
+     "skript": [],
+     "hjalp": [],
+     "betalt": null,
+     "tid_s": null
+    },
+    {
+     "nr": "6",
+     "namn": "Anropen",
+     "gor": "Stillbilderna (GPT Image 2.6) och två filmer att jämföra (Kling 4 med bilderna, Aleph 2 över dockfilmen), färdiga men inte lagda, med kostnaden.",
+     "delar": [
+      "film"
+     ],
+     "kommando": "python ny_dealer.py <person> --steg 6",
+     "skript": [],
+     "hjalp": [],
      "betalt": null,
      "tid_s": null
     }
@@ -1246,15 +3525,54 @@
     "kontroll": "i-editorn",
     "film": null
    },
-   "last": ["underlag", "kropp", "huvud", "hander", "rigg", "fingrar", "vridben", "ansiktsrigg", "yta", "export", "kontroll", "film"],
+   "last": [
+    "underlag",
+    "kropp",
+    "huvud",
+    "hander",
+    "rigg",
+    "fingrar",
+    "vridben",
+    "ansiktsrigg",
+    "yta",
+    "export",
+    "kontroll",
+    "film"
+   ],
    "far_bytas": {},
    "varfor_last": "Prövat en gång som en helhet; stegen körs för hand och inget i den har körts i någon annan sammansättning.",
    "anm": "Kroppen beställdes för hand hos Runway, och huvudet och skelettet lånades av Tomasz körning genom Version 1 (steg 1–6). Filmen gjordes inte.",
-   "saknas": ["ett skript som beställer kroppen hos Runway", "ett skelett att låna utan en färdig Meshy-docka: antingen Meshys rigg (5 krediter) på Hunyuans kropp, eller ett skelett som passas in i kroppen gratis (standarddockans, efter kroppens leder)", "ett huvud utan Meshy, om likheten räcker med Hunyuans eget eller standarddockans format efter personen", "en körning i ett svep, som Version 1 (auto_avatar.py)"],
-   "kostnad": {"krediter": {"Runway": 38, "Meshy": 30}, "text": "38 Runway-krediter för kroppen och 30 Meshy-krediter för huvudet, och referensbilderna ur Version 1:s steg 1; skelettet lånas gratis av en färdig docka (Tomasz-dockans rigg kostade 5 Meshy-krediter när den gjordes)"},
-   "tid": {"sekunder": null, "text": "kroppen hos Runway några minuter; steg 10 cirka 2 minuter (huvudet 45 s, förenklingen 30 s, riggen 20 s, exporten 15 s)"},
-   "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Hunyuan-dockan böjde handleden utan skarv och knöt handen renare än Meshy-dockan, som har bättre detaljer på nära håll och ett riktigt nyp; i spelets vy syns skillnaden mest vid handleden."},
-   "belagt": {"val": "prov", "last": "prov", "far_bytas": "prov", "varfor_last": "prov", "anm": "prov", "saknas": "bedomning", "kostnad": "prov", "tid": "korning"},
+   "saknas": [
+    "ett skript som beställer kroppen hos Runway",
+    "ett skelett att låna utan en färdig Meshy-docka: antingen Meshys rigg (5 krediter) på Hunyuans kropp, eller ett skelett som passas in i kroppen gratis (standarddockans, efter kroppens leder)",
+    "ett huvud utan Meshy, om likheten räcker med Hunyuans eget eller standarddockans format efter personen",
+    "en körning i ett svep, som Version 1 (auto_avatar.py)"
+   ],
+   "kostnad": {
+    "krediter": {
+     "Runway": 38,
+     "Meshy": 30
+    },
+    "text": "38 Runway-krediter för kroppen och 30 Meshy-krediter för huvudet, och referensbilderna ur Version 1:s steg 1; skelettet lånas gratis av en färdig docka (Tomasz-dockans rigg kostade 5 Meshy-krediter när den gjordes)"
+   },
+   "tid": {
+    "sekunder": null,
+    "text": "kroppen hos Runway några minuter; steg 10 cirka 2 minuter (huvudet 45 s, förenklingen 30 s, riggen 20 s, exporten 15 s)"
+   },
+   "provet": {
+    "id": "hander-hunyuan-mot-meshy-20261127",
+    "sa": "Hunyuan-dockan böjde handleden utan skarv och knöt handen renare än Meshy-dockan, som har bättre detaljer på nära håll och ett riktigt nyp; i spelets vy syns skillnaden mest vid handleden."
+   },
+   "belagt": {
+    "val": "prov",
+    "last": "prov",
+    "far_bytas": "prov",
+    "varfor_last": "prov",
+    "anm": "prov",
+    "saknas": "bedomning",
+    "kostnad": "prov",
+    "tid": "korning"
+   },
    "steg": []
   }
  ],
@@ -1263,294 +3581,558 @@
    "id": "skelettet-ar-vart",
    "typ": "villkor",
    "princip": true,
-   "om": ["*"],
+   "om": [
+    "*"
+   ],
    "villkor": "Den färdiga dockan har benen som spelet letar efter (Skelettet ovan), vilken väg den än byggs.",
    "prova": "Steg 6 (exportera_dealer.py) och bygg_docka.py räknar upp de ben som saknas; spelet stannar med \"The model has no bone …\" (figure-model.ts).",
    "i_dag": "Version 1 och standarddockan klarar det; Tomasz saknade inget ben.",
    "varfor": "Annars fungerar inga rörelser: varje rörelse är skriven för de bennamnen.",
-   "belagt": {"villkor": "kod", "prova": "kod", "i_dag": "korning", "varfor": "kod"},
+   "belagt": {
+    "villkor": "kod",
+    "prova": "kod",
+    "i_dag": "korning",
+    "varfor": "kod"
+   },
    "kalla": "AGENTS.md (Skelettet är ett); ../blackjack-dealer/dealer3d/src/figure-model.ts"
   },
   {
    "id": "dealern-byggs-pa-dockan-han-ska-spela",
    "typ": "villkor",
    "princip": true,
-   "om": ["*"],
+   "om": [
+    "*"
+   ],
    "villkor": "En dealer byggs på den docka vars rörelser han ska spela: hans yta på dockans skelett (steg 11), inte dockans rörelser skalade till hans egen kropp.",
    "prova": "I editorn (?docka=danilo&modell=<namn>; verktyg/titta.ts skriver lage.json) står hans leder 0 mm från rörelsens punkter: fingrarFranPunkternaMm, handledFranPunktenMm, armbageFranPunktenMm och axelFranPunktenMm.",
    "i_dag": "Version 1 och steg 10 ger dealern sitt eget skelett, och editorn skalar honom efter armens längd: gårdagens Tomasz missade rörelsens punkter med 40 mm i fingrarna, 11–25 mm i armbågarna och 17 mm i axlarna. Steg 11 (prov, körs för hand) satte honom på Danilos skelett: 0 mm.",
    "varfor": "Rörelserna är lyfta ur filmen och lösta för just dockans ben; en annan kropp som skalas efter armen får andra axlar, armbågar och fingrar, och greppet om kortet flyttar sig.",
-   "belagt": {"villkor": "jakob", "prova": "prov", "i_dag": "prov", "varfor": "bedomning"},
+   "belagt": {
+    "villkor": "jakob",
+    "prova": "prov",
+    "i_dag": "prov",
+    "varfor": "bedomning"
+   },
    "kalla": "Jakob 2026-11-27: \"Rörelsemönster och allt ska ju komma från Danilo och Frasse. Men också den docka som är skapad utifrån dem och som vi arbetat med hela tiden är grunden för den docka av Tomasz som ska göras\""
   },
   {
    "id": "hander-behalls-nar-fingrarna-ar-atskilda",
    "typ": "villkor",
    "princip": true,
-   "om": ["hander/kroppens-egna", "hander/meshy-hand"],
+   "om": [
+    "hander/kroppens-egna",
+    "hander/meshy-hand"
+   ],
    "villkor": "Behåll kroppens egna händer när fingrarna är åtskilda; sätt på färdiga händer bara när de inte är det. En del byts aldrig ut när kroppen redan har den i användbart skick.",
    "prova": "Fem åtskilda fingertoppar i silhuetten av kroppens egen hand: samma prov som steg 5 redan gör på den påsatta handen (steg/05-fingrar-handleder/fingerrigg.py, tips_in_silhouette: fem toppar minst 6 grader isär, annars felet \"måste visa fem särade fingrar\"), kört på kroppens hand innan någon hand beställs eller sätts på.",
    "i_dag": "Version 1 sätter alltid på en färdig hand: steg 2 beställer handen och steg 3 sätter på den, utan att pröva kroppens egen. Steg 10, som körs för hand, behåller kroppens egna händer och gör provet när fingrarna sätts (fingrar_handflata.handram).",
    "varfor": "Lederna kommer med riggen, så det är inte därför händer sätts på: en framställd kropps händer är ofta en klump utan åtskilda fingrar, som inte går att rigga finger för finger. En påsatt hand ger en skarv vid handleden som måste lagas (steg 5, fixa_handleder.py). I provet runway-3d-20261127 hade Hunyuan-kroppen fem åtskilda fingrar.",
-   "belagt": {"villkor": "jakob", "prova": "kod", "i_dag": "kod", "varfor": "bedomning"},
+   "belagt": {
+    "villkor": "jakob",
+    "prova": "kod",
+    "i_dag": "kod",
+    "varfor": "bedomning"
+   },
    "kalla": "Jakob 2026-11-27: \"Antar att vi aldrig ska klistra på händer om det redan finns i alla leder\""
   },
   {
    "id": "uttryck-kraver-former",
    "typ": "villkor",
    "princip": true,
-   "om": ["huvud/meshy-huvud", "huvud/kroppens-eget-huvud", "huvud/mpfb-huvud", "huvud/mpfb-format-efter-person"],
+   "om": [
+    "huvud/meshy-huvud",
+    "huvud/kroppens-eget-huvud",
+    "huvud/mpfb-huvud",
+    "huvud/mpfb-format-efter-person"
+   ],
    "villkor": "Samma princip som för händerna, men här finns inget att behålla: ett framställt huvud (Meshy, Runway) är en yta utan rörliga delar. Ansiktsuttryck kräver ansiktsformer eller en ansiktsrigg. Standarddockans huvud har dem från bygget; ett framställt huvud får dem först när standarddockans former förs över (steg 09, prövat på Tomasz 2026-11-27), och då skärs munnen upp och ögonen byts mot globar. Att forma standarddockans huvud efter personens ansikte (MediaPipe ger 478 punkter i ett ansikte) är tänkt och inte prövat.",
    "prova": "Modellen har ansiktsformer (morph targets) och ögonben: spelet läser dem när de finns (figure-model.ts, about.faceShapes).",
    "i_dag": "Version 1 har inga (Tomasz: inga former, inga ögonleder, ingen käke); standarddockan har 30 former, käken och ögonen. Tomasz med steg 09 (på prov, körs för hand) har 30 former, ögonleder och käke.",
    "varfor": "Ett framställt huvud är en enda yta med textur: munnen är stängd i bilden det görs ur (steg 1 ber om en stängd mun) och ögonen är en del av ytan, så det finns inget som öppnas eller blinkar.",
-   "belagt": {"villkor": "jakob", "prova": "kod", "i_dag": "korning", "varfor": "kod"},
+   "belagt": {
+    "villkor": "jakob",
+    "prova": "kod",
+    "i_dag": "korning",
+    "varfor": "kod"
+   },
    "kalla": "Jakob 2026-11-27: \"Men kanske också med ansikte om tillräckligt många datapunkter/leder finns (osäker)\""
   },
   {
    "id": "ansiktsformer-kraver-standarddockans-huvud",
    "typ": "kraver",
-   "om": ["ansiktsrigg/mpfb-ansikte"],
-   "kraver": {"huvud": ["mpfb-huvud", "mpfb-format-efter-person"], "rigg": ["mpfb-rigg"]},
+   "om": [
+    "ansiktsrigg/mpfb-ansikte"
+   ],
+   "kraver": {
+    "huvud": [
+     "mpfb-huvud",
+     "mpfb-format-efter-person"
+    ],
+    "rigg": [
+     "mpfb-rigg"
+    ]
+   },
    "styrka": "maste",
    "varfor": "Formerna är MPFB:s egna, gjorda för MPFB:s huvud (bygg_docka.py läser dem ur MPFB:s targets), och käken och ögonen är ben i standarddockans skelett. Meshys och Runways huvud är en yta utan former.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "scen/bygg_docka.py (ARKIT_KARTA, ANSIKTSBEN)"
   },
   {
    "id": "framstallt-huvud-utesluter-ansiktsformer",
    "typ": "utesluter",
-   "om": ["huvud/meshy-huvud", "huvud/kroppens-eget-huvud"],
-   "utesluter": ["ansiktsrigg/mpfb-ansikte"],
+   "om": [
+    "huvud/meshy-huvud",
+    "huvud/kroppens-eget-huvud"
+   ],
+   "utesluter": [
+    "ansiktsrigg/mpfb-ansikte"
+   ],
    "styrka": "maste",
    "varfor": "MPFB:s former byggs i standarddockans eget bygge och hör till dess huvud. Ett framställt huvud har inga rörliga delar; dit förs formerna över med steg 09 (ansiktsrigg/former-pa-framstallt-huvud).",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "scen/bygg_docka.py; output/tomasz/06-dealer-export/tomasz-dealer-apose.json"
   },
   {
    "id": "standarddockans-delar-hor-ihop",
    "typ": "kraver",
-   "om": ["huvud/mpfb-huvud", "huvud/mpfb-format-efter-person", "hander/mpfb-hander", "rigg/mpfb-rigg", "vridben/vridben-mpfb", "ansiktsrigg/mpfb-ansikte", "yta/mpfb-gra", "yta/foto-pa-docka", "export/mpfb-glb"],
-   "kraver": {"kropp": ["mpfb-kropp"]},
+   "om": [
+    "huvud/mpfb-huvud",
+    "huvud/mpfb-format-efter-person",
+    "hander/mpfb-hander",
+    "rigg/mpfb-rigg",
+    "vridben/vridben-mpfb",
+    "ansiktsrigg/mpfb-ansikte",
+    "yta/mpfb-gra",
+    "yta/foto-pa-docka",
+    "export/mpfb-glb"
+   ],
+   "kraver": {
+    "kropp": [
+     "mpfb-kropp"
+    ]
+   },
    "styrka": "i_dag",
    "varfor": "Huvudet, händerna, skelettet, vridbenen och ansiktet byggs i samma MPFB-yta och samma bygge (bygg_docka.py); inget skript tar ut dem som lösa delar. Fingerlederna följer handen (regeln dockans-fingrar-foljer-dockans-hand).",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "scen/bygg_docka.py (bygg_en)"
   },
   {
    "id": "dockans-fingrar-foljer-dockans-hand",
    "typ": "kraver",
-   "om": ["fingrar/mpfb-fingrar"],
-   "kraver": {"hander": ["mpfb-hander", "dockans-hander-i-armen"]},
+   "om": [
+    "fingrar/mpfb-fingrar"
+   ],
+   "kraver": {
+    "hander": [
+     "mpfb-hander",
+     "dockans-hander-i-armen"
+    ]
+   },
    "styrka": "i_dag",
    "varfor": "Dockans 30 fingerleder sitter i dockans hand: i hennes egen kropp, eller med handen insatt i personens ärm (steg 14, prövat på Tomasz figur).",
-   "belagt": {"varfor": "prov"},
+   "belagt": {
+    "varfor": "prov"
+   },
    "kalla": "scen/bygg_docka.py; steg/14-dockans-hander/dockans_hander.py"
   },
   {
    "id": "dockans-hand-i-armen-kraver-figur-med-arm",
    "typ": "kraver",
-   "om": ["hander/dockans-hander-i-armen"],
-   "kraver": {"kropp": ["meshy-kropp"], "fingrar": ["mpfb-fingrar"]},
+   "om": [
+    "hander/dockans-hander-i-armen"
+   ],
+   "kraver": {
+    "kropp": [
+     "meshy-kropp"
+    ],
+    "fingrar": [
+     "mpfb-fingrar"
+    ]
+   },
    "styrka": "i_dag",
    "varfor": "Steg 14 sätter dockans hand, med dess fingerleder, i en riggad figurs skjortärm där figurens egen hand är en egen del (Version 1:s Handpar); det är prövat på en Meshy-kropp.",
-   "belagt": {"varfor": "prov"},
+   "belagt": {
+    "varfor": "prov"
+   },
    "kalla": "steg/14-dockans-hander/dockans_hander.py"
   },
   {
    "id": "standarddockans-kropp-har-eget-skelett",
    "typ": "utesluter",
-   "om": ["kropp/mpfb-kropp"],
-   "utesluter": ["rigg/meshy-rigg", "rigg/overfor-skelett", "fingrar/steg5-fingrar", "fingrar/handens-egen-ram"],
+   "om": [
+    "kropp/mpfb-kropp"
+   ],
+   "utesluter": [
+    "rigg/meshy-rigg",
+    "rigg/overfor-skelett",
+    "fingrar/steg5-fingrar",
+    "fingrar/handens-egen-ram"
+   ],
    "styrka": "maste",
    "varfor": "Standarddockans kropp byggs med sitt skelett, sina vikter och fingerleder; en rigg hos Meshy eller ett lånat skelett skulle byta bort vridbenen, ansiktsbenen och ledgränserna.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "scen/bygg_docka.py"
   },
   {
    "id": "standarddockans-kropp-kraver-matt",
    "typ": "kraver",
-   "om": ["kropp/mpfb-kropp"],
-   "kraver": {"underlag": ["standardmatt", "matt-ur-film", "matt-ur-figur", "foton-och-matt"]},
+   "om": [
+    "kropp/mpfb-kropp"
+   ],
+   "kraver": {
+    "underlag": [
+     "standardmatt",
+     "matt-ur-film",
+     "matt-ur-figur",
+     "matt-ur-bilder",
+     "foton-och-matt"
+    ]
+   },
    "styrka": "maste",
    "varfor": "Kroppen byggs efter mått (MATT i bygg_docka.py), inte ur en bild.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "scen/bygg_docka.py (MATT, PASS_TGT)"
   },
   {
    "id": "matt-kraver-standarddockans-kropp",
    "typ": "kraver",
-   "om": ["underlag/standardmatt", "underlag/matt-ur-film", "underlag/matt-ur-figur"],
-   "kraver": {"kropp": ["mpfb-kropp"]},
+   "om": [
+    "underlag/standardmatt",
+    "underlag/matt-ur-film",
+    "underlag/matt-ur-figur"
+   ],
+   "kraver": {
+    "kropp": [
+     "mpfb-kropp"
+    ]
+   },
    "styrka": "maste",
    "varfor": "Bara en kropp som byggs efter mått kan använda måtten; Meshy och Runway tar kroppens form ur bilden.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "scen/bygg_docka.py; steg/02-meshy-delar/meshy_enbild.py"
   },
   {
    "id": "kropp-ur-bild-kraver-referenser",
    "typ": "kraver",
-   "om": ["kropp/meshy-kropp", "kropp/runway-hunyuan", "kropp/runway-trellis", "kropp/runway-tripo", "huvud/meshy-huvud", "hander/meshy-hand"],
-   "kraver": {"underlag": ["foton"]},
+   "om": [
+    "kropp/meshy-kropp",
+    "kropp/runway-hunyuan",
+    "kropp/runway-trellis",
+    "kropp/runway-tripo",
+    "huvud/meshy-huvud",
+    "hander/meshy-hand"
+   ],
+   "kraver": {
+    "underlag": [
+     "foton"
+    ]
+   },
    "styrka": "i_dag",
    "varfor": "De görs ur referensbilderna från steg 1: Meshys delar ur var sin bild, Runways kropp i provet ur A-posebilden.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "auto_avatar.py (steg 2); runway-3d-20261127"
   },
   {
    "id": "meshy-hand-kraver-meshys-kropp",
    "typ": "kraver",
-   "om": ["hander/meshy-hand"],
-   "kraver": {"kropp": ["meshy-kropp"]},
+   "om": [
+    "hander/meshy-hand"
+   ],
+   "kraver": {
+    "kropp": [
+     "meshy-kropp"
+    ]
+   },
    "styrka": "i_dag",
    "varfor": "Steg 3 sätter Meshys hand vid skjortärmens manschett på Meshys kropp. Att sätta den på standarddockan (new_docka.md 10.2) är tänkt, inte gjort; en kropp ur Runway har egna händer i ett stycke med armen.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "steg/03-montering/montera_apose.py"
   },
   {
    "id": "meshy-huvud-kraver-kropp-med-krage",
    "typ": "kraver",
-   "om": ["huvud/meshy-huvud"],
-   "kraver": {"kropp": ["meshy-kropp", "runway-hunyuan"]},
+   "om": [
+    "huvud/meshy-huvud"
+   ],
+   "kraver": {
+    "kropp": [
+     "meshy-kropp",
+     "runway-hunyuan"
+    ]
+   },
    "styrka": "i_dag",
    "varfor": "Huvudet sys fast på hudbandet ovanför skjortkragen: på Meshys kropp i steg 3 och på Hunyuans i steg 10 (montera_huvud.py, samma sökning efter halsen). Trellis och standarddockan är inte prövade.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "steg/03-montering/montera_apose.py; steg/10-kropp-i-ett-stycke/montera_huvud.py; hander-hunyuan-mot-meshy-20261127"
   },
   {
    "id": "pasatt-hand-kraver-handledsfix",
    "typ": "kraver",
-   "om": ["hander/meshy-hand"],
-   "kraver": {"fingrar": ["steg5-fingrar"]},
+   "om": [
+    "hander/meshy-hand"
+   ],
+   "kraver": {
+    "fingrar": [
+     "steg5-fingrar"
+    ]
+   },
    "styrka": "maste",
    "varfor": "En påsatt hand ger en skarv vid handleden; steg 5 (fixa_handleder.py) lagar den och sätter fingerlederna i den påsatta handen.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "steg/05-fingrar-handleder/fixa_handleder.py"
   },
   {
    "id": "kroppens-egna-delar-kraver-kropp-ur-bild",
    "typ": "kraver",
-   "om": ["hander/kroppens-egna", "huvud/kroppens-eget-huvud", "yta/inbakad-yta"],
-   "kraver": {"kropp": ["meshy-kropp", "runway-hunyuan", "runway-trellis", "runway-tripo"]},
+   "om": [
+    "hander/kroppens-egna",
+    "huvud/kroppens-eget-huvud",
+    "yta/inbakad-yta"
+   ],
+   "kraver": {
+    "kropp": [
+     "meshy-kropp",
+     "runway-hunyuan",
+     "runway-trellis",
+     "runway-tripo"
+    ]
+   },
    "styrka": "maste",
    "varfor": "Det är delar av en kropp som är gjord ur en bild; standarddockan har sina egna.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "steg/02-meshy-delar/meshy_enbild.py; runway-3d-20261127"
   },
   {
    "id": "meshys-rigg-kraver-meshys-kropp",
    "typ": "kraver",
-   "om": ["rigg/meshy-rigg"],
-   "kraver": {"kropp": ["meshy-kropp", "meshy-flervy-kropp"]},
+   "om": [
+    "rigg/meshy-rigg"
+   ],
+   "kraver": {
+    "kropp": [
+     "meshy-kropp",
+     "meshy-flervy-kropp"
+    ]
+   },
    "styrka": "i_dag",
    "varfor": "Steg 4 riggar den lätta kopian som steg 3 monterar av Meshys delar. Kroppen ur flera vyer riggades direkt i provet meshy-provet-20261127, men nådde inte nypet. En Runway-kropp i A-pose borde också gå att rigga hos Meshy, men det är inte prövat.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "auto_avatar.py (steg 4); steg/04-rigg/meshy_rigg.py"
   },
   {
    "id": "ny-yta-kraver-var-docka",
    "typ": "kraver",
-   "om": ["yta/meshy-ny-yta"],
-   "kraver": {"kropp": ["mpfb-kropp"]},
+   "om": [
+    "yta/meshy-ny-yta"
+   ],
+   "kraver": {
+    "kropp": [
+     "mpfb-kropp"
+    ]
+   },
    "styrka": "i_dag",
    "varfor": "yta.py läser dockans hörnfärger (ANSIKTE i scen/bygg_docka.py) för ögonen, brynen, tänderna och munnen, och MPFB:s ytkarta med den tomma rutan där ögonöarna läggs.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "steg/12-ny-yta/yta.py"
   },
   {
    "id": "meshys-rigg-granser",
    "typ": "villkor",
    "princip": false,
-   "om": ["rigg/meshy-rigg"],
+   "om": [
+    "rigg/meshy-rigg"
+   ],
    "villkor": "En hel kropp i A-pose, som en lätt kopia: högst 380 000 trianglar och en fil under 100 MB.",
    "prova": "meshy_rigg.bind stannar innan något betalas om kopian är för stor; steg 3 gör den på 180 000 trianglar (RIG_TRIANGLES i auto_avatar.py).",
    "i_dag": "Version 1 klarar det; Tomasz lätta kopia var 175 532 trianglar.",
    "varfor": "Meshy tar riggens underlag som en data-URI med de gränserna.",
-   "belagt": {"villkor": "kod", "prova": "kod", "i_dag": "korning", "varfor": "kod"},
+   "belagt": {
+    "villkor": "kod",
+    "prova": "kod",
+    "i_dag": "korning",
+    "varfor": "kod"
+   },
    "kalla": "steg/04-rigg/meshy_rigg.py"
   },
   {
    "id": "fingersteget-kraver-mixamo-rigg",
    "typ": "kraver",
-   "om": ["fingrar/steg5-fingrar", "fingrar/handens-egen-ram"],
-   "kraver": {"rigg": ["meshy-rigg", "overfor-skelett"]},
+   "om": [
+    "fingrar/steg5-fingrar",
+    "fingrar/handens-egen-ram"
+   ],
+   "kraver": {
+    "rigg": [
+     "meshy-rigg",
+     "overfor-skelett"
+    ]
+   },
    "styrka": "i_dag",
    "varfor": "Steg 5 tar en riggad modell med Mixamo-ben (en lånad Version 1-dockas skelett i provet) och byter handens fingerben; standarddockan har sina egna fingerleder.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "steg/05-fingrar-handleder/fingrar_apose.py"
   },
   {
    "id": "fingersteget-hittar-handen-pa-materialet",
    "typ": "villkor",
    "princip": false,
-   "om": ["fingrar/steg5-fingrar", "fingrar/handens-egen-ram"],
+   "om": [
+    "fingrar/steg5-fingrar",
+    "fingrar/handens-egen-ram"
+   ],
    "villkor": "Handens yta är en egen del med materialet Handpar, och den har fem åtskilda fingertoppar.",
    "prova": "fingrar_apose.fit_fingers stannar med \"Den separata handytan saknas\" när färre än 200 hörn har materialet, och fingerrigg.tips_in_silhouette med \"måste visa fem särade fingrar\".",
    "i_dag": "En påsatt hand får materialet i steg 3; kroppens egna händer märks i steg 10 (montera_huvud.py: de hudfärgade hörnen ytterst på armen).",
    "varfor": "Steget sätter fingerbenen efter handens egen form, och letar därför handen på materialet.",
-   "belagt": {"villkor": "kod", "prova": "kod", "i_dag": "kod", "varfor": "kod"},
+   "belagt": {
+    "villkor": "kod",
+    "prova": "kod",
+    "i_dag": "kod",
+    "varfor": "kod"
+   },
    "kalla": "steg/05-fingrar-handleder/fingrar_apose.py, fingerrigg.py"
   },
   {
    "id": "montering-kraver-skjorta",
    "typ": "villkor",
    "princip": false,
-   "om": ["kropp/meshy-kropp"],
+   "om": [
+    "kropp/meshy-kropp"
+   ],
    "villkor": "Skjortan är tydligt icke-hudfärgad.",
    "prova": "Steg 3 hittar kragen och ärmarnas kant på hudfärgen; förvalet är en mörkblå skjorta (--outfit).",
    "i_dag": "Förvalet i steg 1 klarar det.",
    "varfor": "Halsen och handlederna skärs där huden börjar.",
-   "belagt": {"villkor": "kod", "prova": "kod", "i_dag": "kod", "varfor": "kod"},
+   "belagt": {
+    "villkor": "kod",
+    "prova": "kod",
+    "i_dag": "kod",
+    "varfor": "kod"
+   },
    "kalla": "steg/03-montering/montera_apose.py; auto_avatar.py (--outfit)"
   },
   {
    "id": "exporten-kraver-mixamo-ben",
    "typ": "kraver",
-   "om": ["export/dealer-glb", "vridben/vridben-export"],
-   "kraver": {"rigg": ["meshy-rigg", "overfor-skelett"]},
+   "om": [
+    "export/dealer-glb",
+    "vridben/vridben-export"
+   ],
+   "kraver": {
+    "rigg": [
+     "meshy-rigg",
+     "overfor-skelett"
+    ]
+   },
    "styrka": "i_dag",
    "varfor": "Steg 6 döper om Meshys Mixamo-ben (mixamorig:, Neck) och lägger vridbenen i den riggen.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "steg/06-dealer-export/exportera_dealer.py, vridben.py"
   },
   {
    "id": "vridben-i-exporten-kraver-exporten",
    "typ": "kraver",
-   "om": ["vridben/vridben-export"],
-   "kraver": {"export": ["dealer-glb"]},
+   "om": [
+    "vridben/vridben-export"
+   ],
+   "kraver": {
+    "export": [
+     "dealer-glb"
+    ]
+   },
    "styrka": "maste",
    "varfor": "Vridbenen läggs till i steg 6, när dealer-GLB:n skrivs.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "steg/06-dealer-export/exportera_dealer.py"
   },
   {
    "id": "steg-7-och-8-kraver-dealer-glb",
    "typ": "kraver",
-   "om": ["kontroll/qc-blad", "film/steg8-film"],
-   "kraver": {"export": ["dealer-glb"]},
+   "om": [
+    "kontroll/qc-blad",
+    "film/steg8-film"
+   ],
+   "kraver": {
+    "export": [
+     "dealer-glb"
+    ]
+   },
    "styrka": "i_dag",
    "varfor": "Steg 7 och 8 läser den dealer-GLB som steg 6 skriver.",
-   "belagt": {"varfor": "kod"},
+   "belagt": {
+    "varfor": "kod"
+   },
    "kalla": "auto_avatar.py (steg 7 och 8)"
   },
   {
    "id": "former-pa-framstallt-huvud-kraver-framstallt-huvud",
    "typ": "kraver",
-   "om": ["ansiktsrigg/former-pa-framstallt-huvud"],
-   "kraver": {"huvud": ["meshy-huvud", "kroppens-eget-huvud"]},
+   "om": [
+    "ansiktsrigg/former-pa-framstallt-huvud"
+   ],
+   "kraver": {
+    "huvud": [
+     "meshy-huvud",
+     "kroppens-eget-huvud"
+    ]
+   },
    "styrka": "maste",
    "varfor": "Det är just det alternativet: formerna förda till ett huvud som inte är standarddockans.",
-   "belagt": {"varfor": "bedomning"},
+   "belagt": {
+    "varfor": "bedomning"
+   },
    "kalla": "new_docka.md 10.2"
   },
   {
    "id": "personens-yta-pa-dockan-kraver-foton",
    "typ": "kraver",
-   "om": ["yta/foto-pa-docka", "huvud/mpfb-format-efter-person"],
-   "kraver": {"underlag": ["foton-och-matt", "matt-ur-figur"]},
+   "om": [
+    "yta/foto-pa-docka",
+    "huvud/mpfb-format-efter-person"
+   ],
+   "kraver": {
+    "underlag": [
+     "foton-och-matt",
+     "matt-ur-figur"
+    ]
+   },
    "styrka": "maste",
    "varfor": "Personens ansikte och hud kommer ur fotona (direkt, eller genom hans figur ur Version 1), och kroppen ur måtten.",
-   "belagt": {"varfor": "bedomning"},
+   "belagt": {
+    "varfor": "bedomning"
+   },
    "kalla": "bedömning"
   }
  ]

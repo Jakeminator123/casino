@@ -1,7 +1,7 @@
 // Ingången till hela casino-repot: startar studion i blackjack-dealer (servern tools/preview.ts på http://127.0.0.1:4319)
 // och visar dess startsida i webbläsaren, i den flik som redan är öppen om det finns en. Studion är navet: därifrån nås
-// filmerna, dockans editor, avatarerna, måtten och livebordet. Verkstäderna med en egen server (dockans editor,
-// kortpaketets visare) startar studion själv första gången deras sida öppnas, och stoppar dem när den själv stoppas.
+// filmerna, dockans editor, avatarerna, måtten och livebordet. Verkstaden med en egen server (dockans editor) startar
+// studion själv första gången dess sida öppnas, och stoppar den när den själv stoppas.
 //   node start.ts          startar studion om den inte går och visar startsidan (det STARTA studion.cmd gör)
 //   node start.ts stoppa   stoppar studion och de verkstäder den har startat
 //   node start.ts status   säger om studion går
