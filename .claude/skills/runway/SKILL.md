@@ -88,7 +88,7 @@ Läst sent den dagen ur sidorna ovan. Priserna är krediter per sekund färdig f
 | MiniMax H3 Image | `minimax_h3_image` | Bild ur text och upp till 16 referensbilder, som texten pekar på i uppladdningsordning (image 1, image 2); för ankare och styrbilder | 1K till 4K, eller `auto_1k`, `auto_2k`, `auto_4k` | 3–18 per bild |
 | Nano Banana Pro | `gemini_image3_pro` | Bild och redigering; den vi har gjort keystone och ankare med | upp till 4K | 20 per bild i 1K och 2K, 40 i 4K |
 | Enhance Frame Rate | `enhance_frame_rate` | `/v1/video_upscale`: byter bildtakt, till exempel Kling 4:s 24 bilder/s till 30 | In högst 300 s; `targetFramerate` 24, 25, 30, 48, 50, 60 eller 120 (och 23,98, 29,97, 59,94) | 1 per 2 s infilm |
-| 3D ur bild | `trellis_2`, `tripo3d_h3_1`, `hunyuan_3d_3_1_pro` | `/v1/image_to_mesh`: en GLB-modell ur en till åtta bilder. Dokumentationen nämner ingen rigg eller animation | – | Tripo 20 plus tillval, Trellis 25–35, Hunyuan 38 plus 15 per tillval |
+| 3D ur bild | `hunyuan_3d_3_1_pro`, `trellis_2`; `tripo3d_h3_1` står i sidorna men svarar "Unknown task type" med vår nyckel (2026-11-27) | `/v1/image_to_mesh`: en GLB med textur, utan skelett. Fälten står bara i `guides/models.md` och `assets/inputs.md`, inte i `api.md`. Prövat 2026-11-27 ur en A-posebild (provet `runway-3d-20261127`): Hunyuan bäst, med fem åtskilda fingrar men suddigt ansikte, och kroppen gick att sätta på dockans skelett utan kostnad | Hunyuan `referenceImages` 1–8 vyer med var sin `type` (front, back, left, right med flera); Trellis en `imageUri`; Tripo 1–4 vyer utan lucka (front, left, back, right). Ut: Hunyuan 500 000 trianglar och en textur i 4096, Trellis cirka 470 000 och två i 2048 | Hunyuan 38, plus 15 för PBR, för mer än en bild och för annat `faceCount`; Trellis 30 (25–35 efter `resolution`); Tripo ur bild 30 med de texturer som är på i förval |
 
 Fler finns (Veo 3.1, MiniMax H3, Grok Imagine, HappyHorse, äldre Kling och Seedance, bild- och ljudmodeller,
 uppskalning): se `guides/models.md`.
@@ -227,6 +227,25 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     mitt i vändningen från cirka 1 s till 0,7 s men tog inte bort det. **"Arms low over the table, never raised in
     the air"** och en mellanbild där handen som drog kortet redan vilar på skon höll den handen stilla på skon hela
     vägen; samma ord fick honom att skjuta kortet längs filten med ryggen upp i stället för att bära det i luften.
+- Sjunde provet, 2026-11-27, tider i texten och en docka som liknar personen (agentens läsning; Jakobs dom står i provet
+  `kling-tider-20261127`, filmerna i `slask/standarddocka/granska/kling-tider-20261127/`). **Kling 4,
+  `/v1/image_to_video`:** första bild Tomasz vid skon i grönt, sista bild samma bild med dockans kort inlagt på plats 4,
+  och dockans giv till plats 4 i nya takten som referensfilm (61 rutor med 0,5 s frusen stillhet före och efter, 3,0 s);
+  3 s i `auto_1080p`, 68 krediter per film. Ut kom 1764 x 1176 i 24 bilder/s, med ljud.
+  - **Tider i texten gav ingenting.** Samma text utan tider (A) och med en tid per moment ur dockans rutor och varje
+    bilds och films roll utsagd som `@Image1`, `@Image2`, `@Video1` (B) gav i stort sett samma film (36 dB mellan dem).
+    Båda följer referensfilmens takt: kortet ute ur skon cirka 2 rutor (30 per s) efter dockan, handbytet 4–5 rutor
+    sent, kortet nere och handen hemma i takt, mätt med ögat. Referensfilmen bestämmer takten; om `@`-namnen når fram
+    syns inte.
+  - **En docka som liknar personen gav ingenting.** Med dockan av Tomasz (`avatar-auto-pipeline`, marinblå skjorta) som
+    referensfilm och samma text (C) blev det samma film som B (32 dB); ansiktet och skjortan kom ur bilderna. Den
+    neutrala dockan räcker som förlaga.
+  - **Felet i alla tre:** kortet reses med framsidan mot kameran, inte mot dealern som i dockan, på en enda ruta (gult
+    liggande, vitt stående), och nyckelvridningen syns inte. Textens ord om vilken sida som vänds mot honom följdes inte.
+  - **WAN 3.0 Prime, 720p** (D, 42 krediter): referensläget, med bilden av Tomasz som referensbild och dockans film som
+    referensfilm, båda beskurna till 4:3 (`ratio: "1104:832"`, eftersom `auto_*` bara gäller första och sista bild; ut
+    kom 1108 x 832 i 30 bilder/s). Följer dockans väg men 2–5 rutor före och reser kortet åt rätt håll; det gröna blev
+    mörkt och grått, och kortets framsida fick ett tryck mitt på.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: en hel film från en annan kamera än spelets (styrbilderna för plats 1 finns), Kling 4 med styrbilden som första bild och filmen som lös förlaga

@@ -78,8 +78,9 @@ det vi beställer med och vad proven har visat.
   bildpunkter eller tider; vändningen i en mening. Så har våra givar gjorts. Klings egen guide för Kling 4 (2026-11-04)
   säger annat om tider: rörelsen beskrivs med en tidsangivelse per moment ("0–2 s: …"), varje bilds och films roll sägs
   ut ("Use @Image1 as the first frame"), och en redigering skrivs "Edit @Video1 …, keep everything else unchanged".
-  Runway varnar för att tiderna är anvisningar till modellen, inte klipp som träffar exakt på rutan. Oprövat hos oss,
-  och okänt om @-namnen når fram genom Runway.
+  Runway varnar för att tiderna är anvisningar till modellen, inte klipp som träffar exakt på rutan. Prövat 2026-11-27
+  (skillen `runway`, sjunde provet): med dockans film som referens gav tider och utsagda roller samma film som utan,
+  för referensfilmen bestämmer takten. Skriv därför utan tider när en referensfilm finns.
 - **Andra stolar** (2026-11-18, 2026-11-24): kameran på samma höjd och lutning, bara flyttad. Kling 4 som redigerare
   (`/v1/video_to_video`) med dockans film från stolens öga och stolens ankare som första bild fick hans "Bra".
 - **Vila:** WAN 3, 4 s, A1 först och sist och en liten handling i tillägget. En ny uppsättning får vilor lokalt ur den
