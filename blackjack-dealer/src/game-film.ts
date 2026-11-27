@@ -49,6 +49,8 @@ export type FilmPlayers = {
   queues?: boolean;
   /** Lets go of the chain waiting for the part on screen: that part plays to its end, and what is played next follows it. */
   drop?(): void;
+  /** The cards lying on the table while no film is on screen: a set-up whose films are not made yet (the live table, src/uppsattning.ts). */
+  still?(cards: GameCardOptions | null): void;
 };
 export type Placed = {quad: Pt[]; back: boolean; target: string; shoeDraw: number; gloss: number};
 /**
@@ -187,7 +189,8 @@ export function createFilm(players: FilmPlayers, bank: Graph, layout: Layout, re
    */
   function rest(how: {cut?: boolean; hold?: boolean} = {}) {
     const mine = ++token, take = pickRest(); stood = null;
-    if (!take) { resting = null; return; }
+    // No rest film (a set-up without films yet): the cards on the table are laid by the scene without one, where they lie.
+    if (!take) { resting = null; players.still?.(cardOptions({own: null, lying}, table, records, layout, carry, words)); return; }
     resting = take; seen(take); heldRest = how.hold === true ? mine : null;
     restFilm(mine, take, how);
   }

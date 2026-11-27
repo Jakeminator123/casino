@@ -20,7 +20,9 @@ void main(){ vec4 w = modelMatrix * vec4(position, 1.); vWorld = w.xyz; vFilm = 
 // The card lies under the film, so the film's own card must go: near where the track puts it, the film's card is keyed to
 // transparent like the screen, and whatever is darker than the card (finger shadows on it) stays as a shadow on the rendered
 // card. Film pixels, y down. `cardBase` is shared with the card's own shader, which takes its brightness from it.
-export const CARD_GLSL = `const vec2 FILM_PX = vec2(${FILM.width}., ${FILM.height}.);
+// FILM_PX: the film's picture in pixels, the film camera's own (FilmCamera frame in src/scene3d-geometry.ts): a uniform that every
+// material with this chunk gets from the film layers (shared.picture) and the scene sets when it builds under a camera (setPicture).
+export const CARD_GLSL = `uniform vec2 FILM_PX;
 float edgeIn(vec2 p, vec2 a, vec2 b){ vec2 e = b - a; return (e.x * (p.y - a.y) - e.y * (p.x - a.x)) / max(length(e), 1e-4); }
 // distance inside a quad given clockwise on screen: positive inside, negative outside
 float quadIn(vec2 p, vec2 q[4]){ return min(min(edgeIn(p, q[0], q[1]), edgeIn(p, q[1], q[2])), min(edgeIn(p, q[2], q[3]), edgeIn(p, q[3], q[0]))); }
@@ -36,9 +38,11 @@ vec3 cardBase(sampler2D map, vec2 q[4], vec3 ref){
   for (int j = 0; j < 6; j++) for (int i = 0; i < 6; i++) { vec3 s = coreAt(map, q, i, j); if (length(s) > .12 && dot(normalize(s), dir) > .96 && dot(s, w) >= mean) { top += s; m += 1.; } }
   return n >= 6. ? (m >= 3. ? top / m : sum / n) : ref;
 }`;
-// The middle of the dealer-side table edge in the standard film frame (film pixels, y down): the fixed point of a film's own frame.
+// The middle of the dealer-side table edge in the former standard's film frame (film pixels, y down): the fixed point of a film's
+// own frame. In the shader it is a uniform the scene sets from its film camera (the picture's middle column and the edge row:
+// these numbers under the former standard, the live table's own under it; setPicture).
 export const FRAME_FIX = {x: 881.5, y: 831.5};
-const CARD_KEY = `const vec2 FRAME_FIX = vec2(${FRAME_FIX.x}, ${FRAME_FIX.y});
+const CARD_KEY = `uniform vec2 FRAME_FIX;
 uniform float cardOn, cardRim, cardSides, cardTint, cardTrust, cardOverOn, cardHeld, cardStrength, seatOn; uniform vec2 cardZone[4], cardCore[4], cardOver[4], cardDrawn[4], seatZone[4], seatCore[4]; uniform vec3 cardColour; uniform vec4 cardShoe;
 ${CARD_GLSL}
 const float CARD_SHADOW = .4;
@@ -385,6 +389,8 @@ export type BackKey = {zone: number[][] | null; seat: number[][]; shoe: number[]
 export function createFilmLayers(filmVP: T.Matrix4, light: Record<string, {value: unknown}>) {
   // One frame, grade and card key for both layers; the rendered cards (scene3d-deal.ts) read the same frame and grade.
   const map = {value: null as T.Texture | null}, grade = {value: new T.Vector3(1, 1, 1)}, quad = () => [0, 1, 2, 3].map(() => new T.Vector2());
+  // The film's picture and the edge's fixed point in it (setPicture), shared with the rendered cards' shaders (CARD_GLSL).
+  const picture = {FILM_PX: {value: new T.Vector2(FILM.width, FILM.height)}, FRAME_FIX: {value: new T.Vector2(FRAME_FIX.x, FRAME_FIX.y)}};
   const frame = {frameOn: {value: 0}, frameScale: {value: 1}, frameAnchor: {value: new T.Vector2(FRAME_FIX.x, FRAME_FIX.y)}, frameSize: {value: new T.Vector2(FILM.width, FILM.height)}};
   let framed: FilmFrame | null = null, placed = {edgeZ: 0, fold: true, depth: false, scale: 1}; const hide = {value: new T.Vector4(0, 0, -1, -1)};
   const card = {cardOn: {value: 0}, cardRim: {value: 4}, cardSides: {value: 0}, cardTint: {value: 2}, cardTrust: {value: 0}, cardOverOn: {value: 0}, cardHeld: {value: 0}, cardStrength: {value: 1}, cardDrawn: {value: quad()}, cardZone: {value: quad()}, cardCore: {value: quad()}, cardOver: {value: quad()}, cardColour: {value: new T.Vector3(1, 1, 0)}, cardShoe: {value: new T.Vector4(-1, -1, -1, -1)},
@@ -401,7 +407,8 @@ export function createFilmLayers(filmVP: T.Matrix4, light: Record<string, {value
   const mouth = mouthUniforms(); // a spoken line's mouth over the film (src/scene3d-mouth.ts)
   const material = (refUv: T.Vector2) => new T.ShaderMaterial({vertexShader: VERTEX, fragmentShader: FRAGMENT, transparent: true, depthWrite: false, side: T.DoubleSide,
     blending: T.CustomBlending, blendSrc: T.OneFactor, blendDst: T.OneMinusSrcAlphaFactor, blendSrcAlpha: T.OneFactor, blendDstAlpha: T.OneMinusSrcAlphaFactor,
-    uniforms: {...light, ...card, ...matte, ...back, ...mouth, ...frame, ...room, ...side, ...even, ...life, wrap: {value: 0}, hide, map, filmVP: {value: filmVP}, refUv: {value: refUv}, lo: {value: 0.12}, hi: {value: 0.9}, shadow: {value: 1}, above: {value: 1}, erode: {value: 0.6}, edgeClean: {value: 0}, grade, texel: {value: new T.Vector2(1.4 / FILM.width, 1.4 / FILM.height)}}});
+    uniforms: {...light, ...card, ...matte, ...back, ...mouth, ...frame, ...picture, ...room, ...side, ...even, ...life, wrap: {value: 0}, hide, map, filmVP: {value: filmVP}, refUv: {value: refUv}, lo: {value: 0.12}, hi: {value: 0.9}, shadow: {value: 1}, above: {value: 1}, erode: {value: 0.6}, edgeClean: {value: 0}, grade, texel}});
+  const texel = {value: new T.Vector2(1.4 / FILM.width, 1.4 / FILM.height)};
   // The screen reference is read in a corner that stays empty: top left for the backdrop, bottom left for the table.
   const bodyMat = material(new T.Vector2(0.02, 0.97)), tableMat = material(new T.Vector2(0.02, 0.03));
   const body = new T.Mesh(new T.PlaneGeometry(10, 3), bodyMat), table = new T.Mesh(new T.PlaneGeometry(10, 2).rotateX(-Math.PI / 2), tableMat);
@@ -409,8 +416,12 @@ export function createFilmLayers(filmVP: T.Matrix4, light: Record<string, {value
   // drew both layers black over the room and the table, for as long as the first film took to come, or for good if it never came.
   body.renderOrder = 5; table.renderOrder = 6; body.visible = table.visible = false;
   return {
-    body, table, shared: {map, grade},
+    body, table, shared: {map, grade, ...picture},
     setTexture(texture: T.Texture) { map.value = texture; body.visible = true; table.visible = placed.fold && framed?.layer !== 'BEHIND_TABLE'; },
+    /** The film camera's picture (pixels) and the middle of the dealer's edge in it: the scene sets them when it builds under a camera (src/scene3d-view.ts rebuild). */
+    setPicture(size: {width: number; height: number}, fix: {x: number; y: number}) {
+      picture.FILM_PX.value.set(size.width, size.height); picture.FRAME_FIX.value.set(fix.x, fix.y); texel.value.set(1.4 / size.width, 1.4 / size.height);
+      if (!framed) { frame.frameAnchor.value.set(fix.x, fix.y); frame.frameSize.value.set(size.width, size.height); } },
     // Calibration of the film against the room: brightness, and warmth as red up and blue down by the same share. 1 and 0 leave the film as it is.
     setGrade(brightness: number, warmth: number) { calibrated = [brightness * (1 + warmth), brightness, brightness * (1 - warmth)]; putGrade(); },
     // The room's light on her (lightOnDealer): the tint goes over the calibration above, the sides across her body. 1, 1, 1 everywhere is the film as it is.
@@ -478,7 +489,8 @@ export function createFilmLayers(filmVP: T.Matrix4, light: Record<string, {value
      */
     setFrame(next: FilmFrame | null) {
       if (next === framed) return; framed = next;
-      frame.frameOn.value = next ? 1 : 0; frame.frameScale.value = next?.scale ?? 1; frame.frameAnchor.value.set(next?.anchor[0] ?? FRAME_FIX.x, next?.anchor[1] ?? FRAME_FIX.y); frame.frameSize.value.set(next?.size?.[0] ?? FILM.width, next?.size?.[1] ?? FILM.height);
+      const fix = picture.FRAME_FIX.value, size = picture.FILM_PX.value; // without a frame of its own: the camera's picture and fixed point
+      frame.frameOn.value = next ? 1 : 0; frame.frameScale.value = next?.scale ?? 1; frame.frameAnchor.value.set(next?.anchor[0] ?? fix.x, next?.anchor[1] ?? fix.y); frame.frameSize.value.set(next?.size?.[0] ?? size.x, next?.size?.[1] ?? size.y);
       bodyMat.uniforms.shadow.value = next && next.shadow === false ? 0 : 1; // without a table under her a darker green is not a shadow on anything
       this.place(placed.edgeZ, placed.fold, placed.depth, placed.scale);
     },

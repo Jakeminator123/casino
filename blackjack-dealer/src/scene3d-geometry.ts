@@ -6,13 +6,33 @@
 // The pinhole itself is the one in src/scene-geometry.ts (table millimetres, Y away from the camera); this file only changes frame.
 import {applyH, cameraHomography, cameraProject, inv3, type Camera} from './scene-geometry.ts';
 import {CARD, FILM, TABLE_LENS, TRAY, horizonRow, planPixel, type Lens} from './table-lens.ts';
+import {BET, type Uppsattning} from './uppsattning.ts';
 
-/** The bank's frame, the standard's picture: src/table-lens.ts holds it, and the scene's modules read it from here. */
+/** The bank's frame, the former standard's picture: src/table-lens.ts holds it. A film camera carries its own (FilmCamera frame). */
 export {FILM};
-export type FilmCamera = {focalPx: number; horizonRow: number; edgeRow: number; heightM: number; scale: number; source: 'contract' | 'lens'};
+/**
+ * A film camera. `frame`: the picture its films are in, pixels (the bank's 1764 x 1174 for the former standard's cameras, the
+ * live table's own 1728 x 972 for its); the optical axis meets it in its middle. `roll`: how the picture is turned about its middle
+ * (radians, as src/table-live.ts liveFrame has it: the live table's -0.16 degrees lowers the picture's right), 0 but for the live
+ * table. Rows and the edge row are counted in the picture as it would be without the roll (unrolled, below).
+ */
+export type FilmCamera = {focalPx: number; horizonRow: number; edgeRow: number; heightM: number; scale: number; source: 'contract' | 'lens'; frame: {width: number; height: number}; roll: number};
 export type TablePoint = {x: number; z: number};
-export type Spot = {id: string; x: number; s: number}; // dealer metres: x across the table, s from the dealer-side edge toward the players
-const CX = (FILM.width - 1) / 2, CY = (FILM.height - 1) / 2;
+/** dealer metres: x across the table, s from the dealer-side edge toward the players; turn: a card place's lie where it has one (radians, as src/table-lens.ts cardCorners takes a heading: positive turns its far end toward the picture's right). */
+export type Spot = {id: string; x: number; s: number; turn?: number};
+/** The middle of a camera's picture, where its optical axis meets it. */
+const middleOf = (c: Pick<FilmCamera, 'frame'>) => ({x: (c.frame.width - 1) / 2, y: (c.frame.height - 1) / 2});
+/** A pixel of the picture as it would be without the camera's roll (turned back about the middle), and the other way; unchanged at roll 0. */
+function unrolled(c: FilmCamera, px: number, py: number): [number, number] {
+  if (!c.roll) return [px, py];
+  const m = middleOf(c), dx = px - m.x, dy = py - m.y, cr = Math.cos(c.roll), sr = Math.sin(c.roll);
+  return [m.x + dx * cr - dy * sr, m.y + dx * sr + dy * cr];
+}
+function rolled(c: FilmCamera, ux: number, uy: number): {x: number; y: number} {
+  if (!c.roll) return {x: ux, y: uy};
+  const m = middleOf(c), dx = ux - m.x, dy = uy - m.y, cr = Math.cos(c.roll), sr = Math.sin(c.roll);
+  return {x: m.x + dx * cr + dy * sr, y: m.y - dx * sr + dy * cr};
+}
 
 type Figure = {value?: unknown};
 const figure = (group: Record<string, Figure> | undefined, name: string): number => {
@@ -21,7 +41,7 @@ const figure = (group: Record<string, Figure> | undefined, name: string): number
 // The plan's camera. The contract states that the dealer was not drawn with this lens; it is the one that fits the card quads.
 export function cameraFromContract(contract: {keyFigures?: Record<string, Figure>; cardSizeAtTargets?: {scale?: {bodyScale?: {k?: unknown}}}}): FilmCamera {
   const k = contract.keyFigures, focalPx = figure(k, 'focalPx'), tilt = figure(k, 'tiltDownDeg') * Math.PI / 180, body = contract.cardSizeAtTargets?.scale?.bodyScale?.k;
-  return {focalPx, horizonRow: CY - focalPx * Math.tan(tilt), edgeRow: figure(k, 'dealerEdgeImageRow'), heightM: figure(k, 'heightAboveFeltMm') / 1000, scale: typeof body === 'number' && body > 0 ? body : 1, source: 'contract'};
+  return {focalPx, horizonRow: middleOf({frame: FILM}).y - focalPx * Math.tan(tilt), edgeRow: figure(k, 'dealerEdgeImageRow'), heightM: figure(k, 'heightAboveFeltMm') / 1000, scale: typeof body === 'number' && body > 0 ? body : 1, source: 'contract', frame: FILM, roll: 0};
 }
 /**
  * The table's lens (src/table-lens.ts, the card plan's) as the scene's film camera: the same pinhole in the same world frame,
@@ -31,7 +51,16 @@ export function cameraFromContract(contract: {keyFigures?: Record<string, Figure
  * scene's card places, bet rings and table the card plan's own. The scene uses it under the lens 'standard' (Lins in src/card-plan.ts).
  */
 export function lensCamera(lens: Lens, edgeRow: number): FilmCamera {
-  return {focalPx: lens.focalPx, horizonRow: horizonRow(lens), edgeRow, heightM: lens.height, scale: 1, source: 'lens'};
+  return {focalPx: lens.focalPx, horizonRow: horizonRow(lens), edgeRow, heightM: lens.height, scale: 1, source: 'lens', frame: FILM, roll: 0};
+}
+/**
+ * A set-up's own camera (src/uppsattning.ts) as the scene's film camera: the live table's, in real metres like the table's lens
+ * (scale 1, source 'lens'), with its own picture and roll. Its world is the set-up's lens world itself: the camera over the
+ * origin, and the dealer's edge where the set-up has it (the edge row is the row that edge has in the unrolled picture).
+ */
+export function setupCamera(u: Pick<Uppsattning, 'bild' | 'kamera' | 'kant'>): FilmCamera {
+  const k = u.kamera, y = (u.bild.height - 1) / 2, distance = -u.kant()[2];
+  return {focalPx: k.focalPx, horizonRow: y - k.focalPx * Math.tan(k.pitch), edgeRow: y + k.focalPx * Math.tan(Math.atan(k.height / distance) - k.pitch), heightM: k.height, scale: 1, source: 'lens', frame: u.bild, roll: k.roll};
 }
 /** The film row of the dealer's table edge, as the contract has measured it. */
 export const edgeRowOf = (contract: {keyFigures?: Record<string, Figure>}): number => figure(contract.keyFigures, 'dealerEdgeImageRow');
@@ -74,19 +103,20 @@ export function viewUnder(camera: FilmCamera, written: FilmCamera, view: {yaw: n
 }
 // Pitch below the horizontal (radians), ground distance from below the camera to the dealer-side table edge, vertical field of view.
 export function solveCamera(c: FilmCamera) {
-  const pitch = Math.atan((CY - c.horizonRow) / c.focalPx), edgeDistance = c.heightM / Math.tan(pitch + Math.atan((c.edgeRow - CY) / c.focalPx));
-  return {pitch, edgeDistance, fovYDeg: 2 * Math.atan(FILM.height / 2 / c.focalPx) * 180 / Math.PI};
+  const CY = middleOf(c).y, pitch = Math.atan((CY - c.horizonRow) / c.focalPx), edgeDistance = c.heightM / Math.tan(pitch + Math.atan((c.edgeRow - CY) / c.focalPx));
+  return {pitch, edgeDistance, fovYDeg: 2 * Math.atan(c.frame.height / 2 / c.focalPx) * 180 / Math.PI};
 }
-const pinhole = (c: FilmCamera): Camera => ({focalPx: c.focalPx, cx: CX, cy: CY, pitchDeg: solveCamera(c).pitch * 180 / Math.PI, rollDeg: 0, yawDeg: 0, heightMm: c.heightM * 1000, x: 0, y: 0});
+// The pinhole of src/scene-geometry.ts, whose roll turns the picture as the camera's does (rollDeg: the same sign as liveFrame's roll).
+const pinhole = (c: FilmCamera): Camera => { const m = middleOf(c); return {focalPx: c.focalPx, cx: m.x, cy: m.y, pitchDeg: solveCamera(c).pitch * 180 / Math.PI, rollDeg: c.roll * 180 / Math.PI, yawDeg: 0, heightMm: c.heightM * 1000, x: 0, y: 0}; };
 // Film pixel -> point on the felt, or null for a pixel at or above the table's vanishing line.
 export function filmToTable(c: FilmCamera, px: number, py: number): TablePoint | null {
-  if (py <= c.horizonRow + 1e-9) return null;
+  if (unrolled(c, px, py)[1] <= c.horizonRow + 1e-9) return null;
   const p = applyH(inv3(cameraHomography(pinhole(c))), {x: px, y: py}); return {x: p.x / 1000, z: -p.y / 1000};
 }
 export const tableToFilm = (c: FilmCamera, x: number, z: number): {x: number; y: number} => cameraProject(pinhole(c), {x: x * 1000, y: -z * 1000, z: 0});
 // Vertical field of view of a view that shows the whole film frame at zoom 1: fitted by height on wide canvases, by width on tall ones.
 export function viewFovDeg(c: FilmCamera, aspect: number, zoom = 1): number {
-  const half = aspect >= FILM.width / FILM.height ? FILM.height / 2 / c.focalPx : FILM.width / 2 / c.focalPx / aspect;
+  const {width, height} = c.frame, half = aspect >= width / height ? height / 2 / c.focalPx : width / 2 / c.focalPx / aspect;
   return 2 * Math.atan(half / zoom) * 180 / Math.PI;
 }
 // Extra yaw and pitch (radians, three.js sign: yaw turns toward -x) that keep `pivot` where it was when the camera moves from `base` to `moved`.
@@ -106,10 +136,11 @@ export function cardSpots(plan: {targets?: Record<string, {geometry?: {native?: 
 }
 
 // Where a film pixel lies in the scene: on the felt from the dealer edge row downward, on the vertical plane standing on that edge above it.
+// Under a roll the edge row and the upright plane are taken in the unrolled picture.
 export function filmToScene(c: FilmCamera, px: number, py: number): [number, number, number] {
-  const {pitch, edgeDistance} = solveCamera(c), table = py >= c.edgeRow ? filmToTable(c, px, py) : null;
+  const {pitch, edgeDistance} = solveCamera(c), [ux, uy] = unrolled(c, px, py), table = uy >= c.edgeRow ? filmToTable(c, px, py) : null;
   if (table) return [table.x, 0, table.z];
-  const u = px - CX, v = py - CY, forward = c.focalPx * Math.cos(pitch) - v * Math.sin(pitch), t = edgeDistance / forward;
+  const m = middleOf(c), u = ux - m.x, v = uy - m.y, forward = c.focalPx * Math.cos(pitch) - v * Math.sin(pitch), t = edgeDistance / forward;
   return [u * t, c.heightM - (v * Math.cos(pitch) + c.focalPx * Math.sin(pitch)) * t, -edgeDistance];
 }
 export type CardTrack = {leavesShoe?: number | null; restFrom?: number | null; frames?: {frame: number; quad?: number[][] | null; edge?: number[][] | null}[]};
@@ -150,8 +181,8 @@ export function squareToQuad(q: number[][]): number[] {
 }
 /** A scene point seen from the film camera, in film pixels; null behind the camera. */
 export function filmPixel(c: FilmCamera, p: Vec3): {x: number; y: number} | null {
-  const q = solveCamera(c).pitch, cq = Math.cos(q), sq = Math.sin(q), y = p[1] - c.heightM, z = p[2], forward = -y * sq - z * cq;
-  return forward > 1e-9 ? {x: CX + c.focalPx * p[0] / forward, y: CY + c.focalPx * (-y * cq + z * sq) / forward} : null;
+  const q = solveCamera(c).pitch, cq = Math.cos(q), sq = Math.sin(q), y = p[1] - c.heightM, z = p[2], forward = -y * sq - z * cq, m = middleOf(c);
+  return forward > 1e-9 ? rolled(c, m.x + c.focalPx * p[0] / forward, m.y + c.focalPx * (-y * cq + z * sq) / forward) : null;
 }
 /** An edge-on card as a thin quad along its edge line, `half` pixels to each side, in texture order (clockwise on screen). */
 export function edgeQuad(a: number[], b: number[], half: number): number[][] {
@@ -196,14 +227,21 @@ export function cloudLevel(seconds: number, every: number, strength: number): nu
 // this and a game reads the same list, so print and game cannot drift apart. Dealer metres, seats in order.
 // One rule under both lenses: from the card's middle, half the card as it lies there, the ring's radius and 12 mm of felt (`clear`).
 // Under the table's lens the card is a real one, 88 mm deep (0.083 m); under Bred lins it is a real card at that seat laid through
-// the film's pixels onto the wide felt, from its middle to its edge toward the player.
-export const BET = {radius: 0.027, clear: 0.012};
+// the film's pixels onto the wide felt, from its middle to its edge toward the player. The ring's size is the set-ups' (src/uppsattning.ts BET);
+// the live table's rings lie round its measured bet marks instead (setupBets).
+export {BET};
 export function ringOffset(c: FilmCamera, card: {x: number; s: number}): number {
   if (c.source === 'lens') return CARD.height / 2 + BET.radius + BET.clear;
   const at = layFelt(c, standardOf(c), card.x * c.scale, card.s * c.scale).s; // the card's middle on the standard's felt
   return laidDepth(c, at, at + CARD.height / 2) / c.scale + BET.radius + BET.clear;
 }
 export type BetSpot = {id: string; x: number; s: number; radius: number};
+/** A point of a set-up's lens world on the felt as dealer metres under its own camera (setupCamera): x across, s from its edge. */
+const setupSpot = (c: FilmCamera, at: readonly number[]) => ({x: at[0] / c.scale, s: (at[2] + solveCamera(c).edgeDistance) / c.scale});
+/** A set-up's card places (src/uppsattning.ts kortplatser: metres with their lie) as the scene's spots under its own camera. */
+export const setupSpots = (u: Pick<Uppsattning, 'kortplatser'>, c: FilmCamera): Spot[] => u.kortplatser().map(p => ({id: p.id, ...setupSpot(c, p.at), turn: p.heading}));
+/** A set-up's bet marks (src/uppsattning.ts insatser, measured on the live table) as the scene's bet rings, seat 1 at the picture's left. */
+export const setupBets = (u: Pick<Uppsattning, 'insatser'>, c: FilmCamera): BetSpot[] => u.insatser().map(b => ({id: `P${b.seat}`, ...setupSpot(c, b.at), radius: BET.radius}));
 export function betSpots(plan: Parameters<typeof cardSpots>[0], c: FilmCamera): BetSpot[] {
   return cardSpots(plan, c).filter(p => /^P[0-9]+[.]C1$/.test(p.id)).map(p => ({id: p.id.split('.')[0], x: p.x, s: p.s + ringOffset(c, p), radius: BET.radius}))
     .sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)));

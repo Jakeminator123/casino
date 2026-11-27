@@ -8,7 +8,7 @@
 //   plat     the V6 plate fixed to the frame, as V6 does it today
 // Everything here is drawn blurred; nothing in a room may stand in front of the table.
 import * as T from 'three';
-import {FILM, clockAngles, solveCamera, type FilmCamera} from './scene3d-geometry.ts';
+import {clockAngles, solveCamera, type FilmCamera} from './scene3d-geometry.ts';
 
 // The built rooms by name; a panorama room is named by its entry in the register.
 type BuiltRoomId = 'salong' | 'hall' | 'kuliss' | 'plat';
@@ -298,7 +298,7 @@ export function createRooms(scene: T.Scene, urls: {plate: string; panorama: stri
     rooms,
     // Rooms are built in dealer metres around the dealer-side table edge and scaled into the plan-scale world.
     place(camera: FilmCamera) {
-      const {pitch, edgeDistance} = solveCamera(camera), distance = edgeDistance + 3.2 * (k = camera.scale), halfWidth = FILM.width / 2 / camera.focalPx * distance * 1.14;
+      const {pitch, edgeDistance} = solveCamera(camera), distance = edgeDistance + 3.2 * (k = camera.scale), halfWidth = camera.frame.width / 2 / camera.focalPx * distance * 1.14;
       hallBox.position.set(0, 0, -edgeDistance); hallBox.scale.setScalar(k); hallFog();
       salon.position.set(0, 0, -edgeDistance); salon.scale.setScalar(k); rooms.salong.fog!.near = 8 * k; rooms.salong.fog!.far = 30 * k;
       backdrop.scale.set(2 * halfWidth, 2 * halfWidth / 1.5, 1); backdrop.position.set(0, camera.heightM - Math.tan(pitch) * distance, -edgeDistance - 3.2 * k);

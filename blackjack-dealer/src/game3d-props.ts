@@ -7,6 +7,8 @@
 import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {roomReflection} from './scene3d-table.ts';
+import {CARD, type Vec3} from './table-lens.ts';
+import {LIVE, liveBox, liveShoeCard, liveShoePose, type LiveSetup} from './table-live.ts';
 
 // Where the tray lies: centred where the built tray was (x across the table), from the dealer's edge toward the players.
 // The model is as wide as the built tray but twice as deep (0.215 m), which would put it under the dealer's own cards. So
@@ -50,6 +52,41 @@ export function shoeFit(rear: number[], front: number[], far: number[], width: n
   const ax = far[0] - front[0], az = far[1] - front[1], along = ax * ux + az * uz, nx = ax - along * ux, nz = az - along * uz, n = Math.hypot(nx, nz) || 1;
   return {x: (rear[0] + front[0]) / 2 + nx / n * width * scale / 2, z: (rear[1] + front[1]) / 2 + nz / n * width * scale / 2, yaw: Math.atan2(ux, uz), scale};
 }
+/**
+ * The live table's clear shoe and its clear discard box at the dealer's right, drawn from their measures (src/table-live.ts LIVE:
+ * the shoe's foot, its heights and its front leaning back, the cards standing in it with the next one behind the front; the box's
+ * foot and height), for a table with no film over it. Nothing is read from a file. A prop of the scene ({group, build}): the points
+ * are the live table's lens world, laid from its dealer edge, which the scene's edge under its camera is.
+ */
+export function liveProps(scene: Scene, setup: LiveSetup = LIVE) {
+  const group = new T.Group(), s = setup.shoe, pose = liveShoePose(s), up: Vec3 = [0, 1, 0];
+  const glass = scene.lit(new T.MeshStandardMaterial({color: 0xe4ecf0, transparent: true, opacity: 0.14, roughness: 0.06, depthWrite: false, side: T.DoubleSide}));
+  const edge = new T.LineBasicMaterial({color: 0xdce6ea, transparent: true, opacity: 0.6});
+  const backs = scene.lit(new T.MeshStandardMaterial({color: 0x8c2030, roughness: 0.75})); // the cards' backs and edges
+  const at = (p: Vec3, ...steps: [Vec3, number][]) => steps.reduce<Vec3>((q, [d, k]) => [q[0] + d[0] * k, q[1] + d[1] * k, q[2] + d[2] * k], p);
+  /** A clear solid from its corners (bottom four, then top four, in the same order round), with its edges drawn; `open`: no top. */
+  const solid = (c: Vec3[], open = false) => {
+    const faces = [[0, 1, 2, 3], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7], ...(open ? [] : [[4, 5, 6, 7]])];
+    const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(c.flat(), 3)); g.setIndex(faces.flatMap(([a, b, d, e]) => [a, b, d, a, d, e])); g.computeVertexNormals();
+    const mesh = new T.Mesh(g, glass); mesh.renderOrder = 4; return [mesh, new T.LineSegments(new T.EdgesGeometry(g, 20), edge)];
+  };
+  // The shoe: its foot from the front corner toward the players back along the shoe and across to its far wall, the back end
+  // backHeight high, the front plate leaning back from the foot to frontHeight.
+  const lean = s.frontHeight / Math.tan(s.plateLean), f = pose.front, b = pose.back, w = pose.far;
+  const foot = [f, at(f, [w, s.width]), at(f, [w, s.width], [b, s.length]), at(f, [b, s.length])];
+  const shoe = solid([...foot, at(foot[0], [b, lean], [up, s.frontHeight]), at(foot[1], [b, lean], [up, s.frontHeight]), at(foot[2], [up, s.backHeight]), at(foot[3], [up, s.backHeight])]);
+  // the cards standing in it, leaning as the front: the next one behind the front (liveShoeCard) and the rest of the decks behind it
+  const card = liveShoeCard(s), deep = 0.12, stack = new T.Mesh(new T.BoxGeometry(CARD.width, CARD.height, deep), backs);
+  stack.matrixAutoUpdate = false; stack.matrix.makeBasis(new T.Vector3(...card.short), new T.Vector3(...card.long), new T.Vector3(...card.out)).setPosition(...at(card.centre, [card.out, -deep / 2]));
+  // The discard box: open at the top, its foot from three measured corners, turned as they lie.
+  const box = liveBox(setup.box), turn = box.turn, across: Vec3 = [Math.cos(turn), 0, -Math.sin(turn)], depth: Vec3 = [Math.sin(turn), 0, Math.cos(turn)];
+  const corner = at(box.centre, [across, -setup.box.width / 2], [depth, -setup.box.depth / 2]);
+  const boxFoot = [corner, at(corner, [across, setup.box.width]), at(corner, [across, setup.box.width], [depth, setup.box.depth]), at(corner, [depth, setup.box.depth])];
+  const discard = solid([...boxFoot, ...boxFoot.map(p => at(p, [up, setup.box.height]))], true);
+  const inner = new T.Group(); inner.add(stack, ...shoe, ...discard); inner.position.set(0, 0, -setup.edge[2]); group.add(inner);
+  return {group, build(edgeZ: number, scale: number) { group.position.set(0, 0, edgeZ); group.scale.setScalar(scale); }};
+}
+
 /** The shoe as a prop of the scene, standing where the film's shoe stands. `at`: the three corners of the film shoe's foot as scene points on the felt. Rejects when the model is not there (assets/props/shoe.glb is local media). */
 export async function loadShoe(scene: Scene, at: {rear: number[]; front: number[]; far: number[]}, url = 'assets/props/shoe.glb') {
   const {object, size} = await load(url, scene), group = new T.Group(), room = roomReflection();

@@ -20,7 +20,33 @@ Originalmätningar och referenshashar bevaras; en adapter konverterar vid en utt
 
 ## Standarden: en kamera, ett bord, ett kort
 
-Tre lager (Jakob 2026-11-25: "grunden måste vara densamma").
+**Två uppsättningar** (Jakob 2026-11-27: det klonade livebordet är den nya standarden, den förra står kvar som val).
+`src/uppsattning.ts` är listan som allt som väljer läser, och den kopierar inga mått:
+
+| Uppsättning | Vad | Källa |
+| --- | --- | --- |
+| `live`, Livebordet | egen bild 1728 × 972, kameran 18,13° ned och rullad −0,16°, filten en halvcirkel, en klar sko och en låda, kortplatserna i meter med sin lutning, mätta insatsmärken, ingen markerbricka, Danilo och Frasse | `LIVE`, `LIVE_CAMERA` i `src/table-live.ts` |
+| `forra`, Förra standarden | tabellen nedan: bankens bild, linsen, ovalen, filmens sko, kortplanens platser, mannen och kvinnan | `src/table-lens.ts`, kortplanen |
+
+- **Förvalen hålls isär.** Valets förval är `live` (`VALETS_FORVAL`: editorn, `titta.ts`, beställningarna och det som
+  görs nytt); datats förval är `forra` (`DATATS_FORVAL`): ett träd, en film, en beställning eller ett sparat val utan
+  fältet `uppsattning` är förra standardens, så inget som finns skrivs om. Adressordet är `uppsattning=live|forra`
+  (editorns äldre `standard` läses som `forra` och skrivs aldrig); i studion heter valet Bord och kamera, eftersom
+  "uppsättning" redan betyder en dealers sats ankare.
+- **Träden** bär fältet (`TreeDef.uppsattning` i `src/dealer-trees.ts`); en film har det genom ankarena den står på, som
+  kameran. Spelet visar ordets uppsättning, annars filmernas: livebordet när ett träd gjort vid det spelas, annars förra
+  standarden med en rad som säger det (`playedCut`, `GET /api/trees?spel=1&uppsattning=`). En film visas aldrig under en
+  annan uppsättnings kamera: utan egna filmer visas bordet, skon och korten utan dealer (`players.still`).
+- **Scenen** får uppsättningen när den byggs (`SceneData.uppsattning`, `scene.setUppsattning`). Under livebordet gäller
+  dess kamera vad linsen än är (`setupCamera` i `src/scene3d-geometry.ts`: bilden och rullningen bärs i kameran, i
+  shadern och i vyn, så att den i hemläget är filmkameran bildpunkt för bildpunkt), dess bord (`tableUnder` med
+  livebordets halva bredd och djup; halvcirkeln ritas som en halv oval, högst 4 mm från cirkeln), kortplatser och ringar
+  (`setupSpots`, `setupBets`), skon och lådan ritade ur måtten (`liveProps` i `src/game3d-props.ts`) och spelets kort
+  på de mätta platserna genom dess kamera (`liveLayout` i `src/game-table.ts`). `tools/uppsattning.test.ts` håller det.
+- **Spelvyn** har en fil per uppsättning (`spelvyFil`: `data/play-view.json` och `data/play-view-live.json`,
+  `tools/play-view-store.ts`); livebordets utgångsläge är dess egen kamera (`spelvy` i `src/uppsattning.ts`).
+
+Förra standarden har tre lager (Jakob 2026-11-25: "grunden måste vara densamma").
 
 - **Standarden** (inspelningen) är de fasta måtten nedan: kameran, bordet, kortet, planens platser, skon och
   markerlådan. Allt utgår från den: dockan, Inspelning, Scens grund och varje beställd film, så att det som produceras
@@ -111,6 +137,8 @@ under `src/` skrivs först in i `SCRIPTS` i `tools/lab-routes.ts`, sedan omstart
   (`src/game-diagnosis.ts`) skriver webbläsaren, senaste fel och köns läge på bilden.
 - **Filmkameran** är under linsen Standard bordets lins (`TABLE_LENS`, Ritade kort) och under Bred lins kontraktets
   (`data/scene-contract.json`); `scene.set({lins})` bygger om scenen under den andra kameran utan att sidan laddas om.
+  Under livebordet är den livebordets (Standarden ovan). Filmens bildmått och rullning hör till kameran (`FilmCamera`
+  `frame` och `roll`), också i shaderkoden (`FILM_PX`, `FRAME_FIX` och `lensRoll` är uniforms som scenen sätter).
 
 ### Sko och markerbricka som GLB
 

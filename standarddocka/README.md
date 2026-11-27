@@ -35,7 +35,8 @@ standarddocka/
     kropp.ts    spärren: det han drar i hålls inom vad en kropp kan (ingen arm genom bålen, huvudet eller bordet,
                 ingen hand i filten eller bortom armens räckvidd, armbågen och handleden inom sina lägen); ren kod
   verktyg/      för agenter, utan fönster (hur de används: skillen granska-rorelse, ../.claude/skills/granska-rorelse/)
-    titta.ts    stillbilder ur valda kameror vid valda tider, med editorns mått, eller en inspelning (`--spela-in
+    titta.ts    stillbilder ur valda kameror vid valda tider, med editorns mått, eller en inspelning; utan ord vid
+                livebordet med Danilo, med `--docka man|kvinna` vid förra standardens bord (`--spela-in
                 runda` filmar hela rundan och skriver klipplistan; `--runda` visar den för bilder, och med `--liv
                 [--fro 1]` har den sina små egna rörelser och blinkningen); närbilder av en hand, kortet eller
                 ansiktet (kamerorna narahoger, naravanster, narakort, naraansikte; de spelas inte in); `--andring '<json>'`
@@ -90,7 +91,11 @@ standarddocka/
 ```
 
 Editorn startas med dubbelklick på `STARTA editorn.cmd`, eller från casino-mappen med
-`node standarddocka/editor/server.ts --oppna`, och öppnas på `http://127.0.0.1:4320/standarddocka/editor/`. Den visar
+`node standarddocka/editor/server.ts --oppna`, och öppnas på `http://127.0.0.1:4320/standarddocka/editor/`. Utan ord
+visar den livebordet med Danilo (Livebordet nedan): det klonade bordet är standarden sedan 2026-11-27, och uppsättningen
+tas ur `../blackjack-dealer/src/uppsattning.ts` (`valdUppsattning`: `?uppsattning=live|forra`, annars dockans bord,
+annars livebordet). `?docka=man` eller `?docka=kvinna` (eller `?uppsattning=forra`) visar förra standardens bord, och
+`titta.ts` och `kropp.ts` gör samma val (`--docka man`). Där visar den
 följden A1 → A2.3 → kort 1 på en plats → tillbaka, ur `../blackjack-dealer/dealer3d/data/`. Dockans egna rörelser
 spelas där de finns (tabellen `EGNA` i `editor/rorelse.ts`, en rad per docka och plats; sedan 2026-11-26 mannen och
 kvinnan på alla sju platserna, till exempel `till-ankare-2-3-man` och `giv-fran-2-3-p4c1-ren-a-man`). Annars spelas
@@ -109,7 +114,7 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   (`seatEye` i `../blackjack-dealer/dealer3d/src/world.ts`); plats 4 är spelets kamera. Sidokameran är Blenders `sida`
   i `scen/vy.py` (samma siktlinje och en lika bred bild, 2,5 m): Blenders är ortografisk, och editorns står åtta gånger
   längre bort med smal vinkel, så att perspektivet nästan är borta (talen står i både `vy.py` och `editor/scen.ts`).
-- **Dockan:** mannen eller kvinnan (knapparna "Dockan", eller `?docka=kvinna`). De har samma skelett, och där de
+- **Dockan:** mannen eller kvinnan (knapparna "Dockan", eller `?docka=man|kvinna`). De har samma skelett, och där de
   spelar samma grundrörelser delar de det som sparas; en dockas egna rörelser har sitt eget sparade lager. En docka som
   spelar sina egna rörelser visas i sin egen storlek, den som rörelserna, handens punkter och fingertopparna är mätta
   på (`editor/scen.ts`); spelar den en rörelse ritad för en annan kropp görs den så stor att armen blir
@@ -187,8 +192,8 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   en annan fil ur `../blackjack-dealer/dealer3d/data/` i stället för platsens, utan det sparade lagret och utan att
   kunna spara. En giv på prov utan vila börjar i vilan för den docka den är ritad för. Ett namn som inte är ett namn
   på en grundrörelse ger ett fel i stället för platsens vanliga rörelse. För den som gör om en grundrörelse.
-- **Livebordet** (`?uppsattning=live`, eller bara `?docka=danilo` / `?docka=frasse`; knapparna "Danilo (livebordet)"
-  och "Frasse (livebordet)"; `--uppsattning live` och `--docka danilo|frasse` i `verktyg/titta.ts`): det klonade
+- **Livebordet** (förvalet; `?uppsattning=live`, eller `?docka=danilo` / `?docka=frasse`; knapparna "Danilo (livebordet)"
+  och "Frasse (livebordet)"; `verktyg/titta.ts` utan ord, eller `--docka danilo|frasse`): det klonade
   livebordet ur filmen av ett riktigt bord (`../blackjack-dealer/src/table-live.ts`) med Danilo eller Frasse, de två
   dockorna efter de två riktiga dealrarna (`LIVE_DOLLS` i `dealer3d/src/doll.ts`), i sin egen storlek. Bordet är
   `standardbord_live.glb`, lagt med sin kant på livebordets (z = -1,5375) och filten på y = 0 (`livebordet` i

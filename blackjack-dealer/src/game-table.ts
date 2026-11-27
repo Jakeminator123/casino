@@ -11,9 +11,14 @@
 // the same for a place of the plan and for a place made up here), the default since Jakob chose it on 2026-11-19; under 'bred'
 // (Bred lins) the plan's older projective plane (flatQuad), which the game follows where its look says so (Casino's since Jakob
 // 2026-11-21).
+//
+// Under the live table (src/uppsattning.ts, the option uppsattning) a card lies by its measured place instead: a real card at its
+// place in metres with its lie (LIVE.cards in src/table-live.ts), drawn through the live table's camera into its own picture
+// (1728 x 972, rolled), so the scene lays it back on exactly that place (liveLayout below).
 import {DEALER_THIRD_FILM, flatQuad, quad, toPixels, fromPixels, type Geometry, type PlacementPlan} from './placement-model.ts';
 import {CARD_TAPER, LINS, filmToPlan, planCardAt, planToFilm, type Lins} from './card-plan.ts';
-import type {Lens} from './table-lens.ts';
+import {cardCorners, type Lens, type Vec3} from './table-lens.ts';
+import {UPPSATTNING, type Plats, type UppsattningId} from './uppsattning.ts';
 
 export type Pt = {x: number; y: number};
 // owner P: a seat 1–7. owner D: the dealer (seat 0). hand: which of the seat's hands, 0 first, of `hands`. index: the card's
@@ -62,7 +67,8 @@ export function slotFilm(slot: Slot): string {
  * under Standard (CARD_TAPER in src/card-plan.ts); left out, the look's default. lens: another lens than the table's, for the
  * tests that change the camera.
  */
-export function createLayout(plan: PlacementPlan, options: {fan?: number | null; lins?: Lins; taper?: number; lens?: Lens} = {}) {
+export function createLayout(plan: PlacementPlan, options: {fan?: number | null; lins?: Lins; taper?: number; lens?: Lens; uppsattning?: UppsattningId} = {}) {
+  if (options.uppsattning === 'live') return liveLayout(plan, options.fan ?? null);
   const flat = plan.tableProjection?.mode === 'flat', heading = plan.tableProjection?.heading ?? 0, reference = plan.targets['P4.C1'].geometry.native;
   const rule = options.lins ?? LINS, taper = options.taper ?? CARD_TAPER.chosen;
   const shape = (g: Geometry): Pt[] => (rule === 'standard' ? planCardAt(plan, g, 'native', options.lens, taper) : flat ? flatQuad(g, reference, 'native', heading) : quad(g, 'native')).map(planToFilm);
@@ -92,4 +98,44 @@ export function createLayout(plan: PlacementPlan, options: {fan?: number | null;
     material: (slot: Slot) => (slot.owner==='D'&&slot.index>=2&&plan.targets['D.C3'] ? plan.targets['D.C3'] : plan.targets[`${place(slot)}.C${slot.index ? 2 : 1}`]).material,
   };
 }
-export type Layout = ReturnType<typeof createLayout>;
+export type Layout = {quad(slot: Slot): Pt[]; centre(slot: Slot): Pt; material(slot: Slot): PlacementPlan['targets'][string]['material']};
+
+/**
+ * The live table's steps in metres, first values to be judged in motion as FAN and SPLIT are: a third and later card continue
+ * the line from the first card to the second LIVE_FAN apart, and a split hand lies LIVE_SPLIT behind the one before it, toward the
+ * dealer. The measurement's third places are not used: there the third card first lay still on the second (seat 1 within 3 mm,
+ * the dealer's on his first within 4 mm), and on a table that shows every card it would hide one.
+ */
+export const LIVE_FAN = 0.02, LIVE_SPLIT = 0.05;
+/**
+ * The game's cards under the live table (src/uppsattning.ts): each slot's place on the felt (a measured first and second card,
+ * LIVE.cards; a seat whose second card the measurement lacks, seat 3's, takes the mirrored seat's step from its first, mirrored),
+ * the card's four corners there (table-lens.ts cardCorners: far left, far right, near right, near left, the plan's corner order)
+ * through the live table's camera, in its picture. fan: one step in metres for every seat (the page's ?fan= is in pixels of the
+ * former picture and is not read here).
+ */
+export function liveLayout(plan: PlacementPlan, fan: number | null = null): Layout {
+  const u = UPPSATTNING.live, places = new Map(u.kortplatser().map(p => [p.id, p]));
+  const placeOf = (owner: string, seat: number, index: number): Plats => {
+    const id = `${owner}.C${index + 1}`, own = places.get(id); if (own) return own;
+    const first = places.get(`${owner}.C1`)!, mirror = places.get(`P${8 - seat}.C${index + 1}`), mirrorFirst = places.get(`P${8 - seat}.C1`);
+    if (!mirror || !mirrorFirst || owner === 'D') return first;
+    return {id, at: [first.at[0] - (mirror.at[0] - mirrorFirst.at[0]), 0, first.at[2] + (mirror.at[2] - mirrorFirst.at[2])], heading: -mirror.heading};
+  };
+  function at(slot: Slot): Plats {
+    const owner = place(slot), first = placeOf(owner, slot.seat, 0), second = placeOf(owner, slot.seat, 1);
+    if (slot.hands === 1 && slot.index <= 1) return slot.index ? second : first;
+    const dx = second.at[0] - first.at[0], dz = second.at[2] - first.at[2], length = Math.hypot(dx, dz) || 1, along = [dx / length, dz / length];
+    // a split hand steps across the line toward the dealer (-z), whichever way the line points
+    const across = [-along[1], along[0]], away = across[1] <= 0 ? across : [-across[0], -across[1]];
+    const run = slot.index === 0 ? 0 : length + (slot.index - 1) * (fan ?? LIVE_FAN), back = slot.hand * LIVE_SPLIT;
+    return {id: slotLabel(slot), at: [first.at[0] + along[0] * run + away[0] * back, 0, first.at[2] + along[1] * run + away[1] * back] as Vec3, heading: slot.index ? second.heading : first.heading};
+  }
+  const quadOf = (slot: Slot): Pt[] => { const p = at(slot); return cardCorners(p.at, p.heading).map(c => u.see(c)!); };
+  return {
+    quad: quadOf,
+    centre(slot: Slot): Pt { const q = quadOf(slot); return {x: q.reduce((s, p) => s + p.x, 0) / 4, y: q.reduce((s, p) => s + p.y, 0) / 4}; },
+    // the card's look (bend, gloss) is the plan's for that seat, as under the former standard
+    material: (slot: Slot) => (slot.owner === 'D' && slot.index >= 2 && plan.targets['D.C3'] ? plan.targets['D.C3'] : plan.targets[`${place(slot)}.C${slot.index ? 2 : 1}`]).material,
+  };
+}

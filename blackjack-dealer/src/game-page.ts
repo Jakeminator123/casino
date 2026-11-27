@@ -15,10 +15,11 @@
 import {DEALER, buildGraph, effectOf, type Graph} from './clip-graph.ts';
 import {createScene, DEFAULTS, type SceneState} from './scene3d-view.ts';
 import {readRegister} from './scene3d-room.ts';
-import {FILM, cameraFromContract, filmPixel, filmToScene, sceneToSpot, solveCamera, spotToScene, viewUnder, type FilmCamera} from './scene3d-geometry.ts';
+import {cameraFromContract, filmPixel, filmToScene, sceneToSpot, solveCamera, spotToScene, viewUnder, type FilmCamera} from './scene3d-geometry.ts';
 import {createLayout, slotOf} from './game-table.ts';
 import {LINS, type Lins} from './card-plan.ts';
-import {MOBILE_BELOW, PLAY_VIEW, readPlayView, type PlayView} from './play-view.ts';
+import {MOBILE_BELOW, PLAY_VIEW, readFraming, readPlayView, type PlayView} from './play-view.ts';
+import {DATATS_FORVAL, UPPSATTNING, VALETS_FORVAL, lasUppsattning, type UppsattningId} from './uppsattning.ts';
 import {GAME_OWN, OWN_WORDS} from './game-own.ts';
 import {cardRecords, judgedBank, speakMoments, talkOn} from './game-director.ts';
 import {cardsChoice, cardWords, createFilm, type FilmPlayers, type Said} from './game-film.ts';
@@ -85,7 +86,12 @@ const nameOf = (id: string) => DEALERS.find(d => d.id === id)?.label ?? id;
 // A take of no tree stays. The copy on the net has no such list: its frozen bank carries the cut it was built with (gameCuts),
 // and with neither the game plays all her judged films, saying nothing.
 const treeWord = query.get('trad');
-const treeRead = Promise.all([fetch(`api/trees?dealer=${encodeURIComponent(dealer)}&${treeWord === null ? 'spel=1' : `trad=${encodeURIComponent(treeWord)}`}`).then(async res => ({status: res.status, answer: await res.json().catch(() => null)}), () => null),
+// The table and camera (src/uppsattning.ts; ?uppsattning=live|forra, the game's own word, which the Casino passes on): the word's,
+// else the set-up of the films it plays (the tree's with ?trad=; without it the live table when a tree made under it is spelas,
+// else the former standard: GET /api/trees playedCut). A film is never shown under another set-up's camera: a set-up without films
+// of its own shows its table, shoe and cards without a dealer, and the page says so in its line.
+const setupWord = lasUppsattning(query.get('uppsattning'));
+const treeRead = Promise.all([fetch(`api/trees?dealer=${encodeURIComponent(dealer)}&${treeWord === null ? `spel=1${setupWord ? `&uppsattning=${setupWord}` : ''}` : `trad=${encodeURIComponent(treeWord)}`}`).then(async res => ({status: res.status, answer: await res.json().catch(() => null)}), () => null),
   import('./dealer-trees.ts').catch(() => null)]);
 // Several trees put together (?komposition=<id>, Karta's Komposition; Jakob 2026-11-23): each tree plays its own films from its
 // own anchors, a share says how often each is chosen, and where two trees meet a bridge is played (src/composition.ts, from
@@ -96,11 +102,21 @@ const compositionWord = treeWord === null ? query.get('komposition') : null;
 const compositionRead = compositionWord === null ? null : Promise.all([fetch(`api/compositions?dealer=${encodeURIComponent(dealer)}&komposition=${encodeURIComponent(compositionWord)}`).then(async res => ({status: res.status, answer: await res.json().catch(() => null)}), () => null),
   import('./composition.ts').catch(() => null)]);
 
-const [contract, placements, bank, first, register, lookCode, presetAnswer, treeAnswer, compositionAnswer, playViewAnswer] = await Promise.all([read('data/scene-contract.json', 'Scenkontraktet'), read('api/placements', 'Kortplanen'), read('api/clip-bank', 'Klippbanken'), read(`api/game${table}`, 'Spelet'), read('data/scene-rooms.json', 'Rumsregistret'),
+const [contract, placements, bank, first, register, lookCode, presetAnswer, treeAnswer, compositionAnswer, playViewAnswer, livePlayViewAnswer] = await Promise.all([read('data/scene-contract.json', 'Scenkontraktet'), read('api/placements', 'Kortplanen'), read('api/clip-bank', 'Klippbanken'), read(`api/game${table}`, 'Spelet'), read('data/scene-rooms.json', 'Rumsregistret'),
   lookAsked ? import('./game-look.ts').catch(() => null) : null, forval ? fetch(`api/scene-presets/${encodeURIComponent(forval)}`).then(res => res.ok ? res.json() : null, () => null) : null, treeRead, compositionRead,
   // The play view (tools/play-view-store.ts). A page that cannot read it keeps the game's own: the copy on the net until it is published again.
-  fetch('api/play-view').then(res => res.ok ? res.json() : null, () => null)]);
-playView = readPlayView(playViewAnswer);
+  fetch('api/play-view').then(res => res.ok ? res.json() : null, () => null),
+  // The live table's, saved in a file of its own (?uppsattning=live, data/play-view-live.json); an answer that does not say it is
+  // the live table's (a server that has no such file yet) leaves the live table's own framing (src/uppsattning.ts spelvy).
+  fetch('api/play-view?uppsattning=live').then(res => res.ok ? res.json() : null, () => null)]);
+// The set-up (setupWord above): the word's, else the one the films were cut for; and whether its films may play (filmsFit).
+const cutSaid = lasUppsattning((treeAnswer[0]?.answer as {uppsattning?: unknown} | null)?.uppsattning), cutSetups = (treeAnswer[0]?.answer as {setups?: unknown} | null)?.setups;
+const filmedUnder: UppsattningId = cutSaid ?? DATATS_FORVAL, setup: UppsattningId = setupWord ?? filmedUnder;
+const filmsFit = filmedUnder === setup && (setup === DATATS_FORVAL || Array.isArray(cutSetups) && cutSetups.includes(setup) || treeWord !== null);
+const setupLine = !filmsFit ? `Ingen film är godkänd för ${UPPSATTNING[setup].namn.toLowerCase()} än: bordet visas utan dealer.`
+  : setupWord === null && treeWord === null && setup !== VALETS_FORVAL ? `${UPPSATTNING[VALETS_FORVAL].namn} har inga godkända filmer än: spelet visar ${UPPSATTNING[setup].namn.toLowerCase()}.` : null;
+const liveView = UPPSATTNING.live.spelvy, liveSaved = (livePlayViewAnswer as {uppsattning?: unknown; view?: {dator?: unknown; mobil?: unknown}} | null)?.uppsattning === 'live' ? (livePlayViewAnswer as {view?: {dator?: unknown; mobil?: unknown}}).view : null;
+playView = setup === 'live' ? {schemaVersion: 1, dator: readFraming(liveSaved?.dator, liveView.dator), mobil: readFraming(liveSaved?.mobil, liveView.mobil), updatedAt: ''} : readPlayView(playViewAnswer);
 const registered = readRegister(register).rooms, roomIds = lookCode ? [...lookCode.BUILT_ROOMS, ...registered.map(r => r.id)] : [];
 // The look over the game's own settings: with a preset its whole look, else the address's keys; {} when none is asked for.
 // What could not be used is said in one line on the page, and the game plays with its own look in its place.
@@ -125,11 +141,14 @@ const treeCut = treeWord === null ? {bank: treeAnswer[1]?.gameBank(bank, treeAns
 // The composition's cut (compositionRead above, src/composition.ts compositionPlay), or in plain words why the game plays as
 // without it. With one, the bank the page plays from is its home tree's: the tree the hand rests in, with the rest and talk films.
 const compositionCode = compositionAnswer?.[1] ?? null;
-const composition = compositionWord === null ? {cut: null, line: null as string | null}
+// (Compositions are the former standard's: a set-up without films of its own takes none of them.)
+const composition = compositionWord === null || !filmsFit ? {cut: null, line: null as string | null}
   : compositionCode?.compositionPlay(compositionWord, compositionAnswer![0], nameOf(dealer)) ?? {cut: null, line: `Kompositionen "${compositionWord.slice(0, 40)}" kunde inte läsas. Spelet spelar som vanligt, med alla hennes filmer.`};
 const homeTree = composition.cut ? composition.cut.home ?? composition.cut.trees[0]?.tree ?? null : null;
-const playedBank = composition.cut && compositionCode && homeTree ? compositionCode.treeBank(bank, composition.cut, homeTree) : treeCut.bank;
-const plan = placements.plan ?? placements, judged = judgedBank(playedBank), graphs = new Map<string, Graph>(), layout = createLayout(plan, {fan: fanStep, lins, taper: cardTaper});
+// Under a set-up whose films the cut does not have, no film plays: the bank without takes (her talk films and rests among them).
+const playedBank = !filmsFit ? {...bank, jobs: [], derived: [], edits: []} : composition.cut && compositionCode && homeTree ? compositionCode.treeBank(bank, composition.cut, homeTree) : treeCut.bank;
+// The lying cards: under the live table each at its measured place through its own camera (src/game-table.ts liveLayout).
+const plan = placements.plan ?? placements, judged = judgedBank(playedBank), graphs = new Map<string, Graph>(), layout = createLayout(plan, {fan: fanStep, lins, taper: cardTaper, uppsattning: setup});
 const graphOf = (id: string) => { let g = graphs.get(id); if (!g) { g = buildGraph(judged, {dealer: id}); graphs.set(id, g); } return g; };
 const graph = graphOf(dealer);
 // A rest film can ask the scene to show another room for a moment (FilmEffect in src/clip-graph.ts: the champagne film's flash turns
@@ -151,7 +170,7 @@ const spokenOf = (keyOrPhase: string): Spoken | null => talking && lines ? lines
 // ── the picture: the 3D scene, seen a little from above so that all seven bet rings and the bar have room ──
 // The scene fills the picture box (#picture). On a larger screen that is the whole stage and the console lies over its lower edge;
 // on a phone it is the part of the stage the console leaves free (frame, below), so that nothing of the console covers the table.
-const scene = createScene(canvas, picture, {contract, plan, urls: {plate: 'assets/scene/room.png', panorama: 'assets/scene/panorama-vegas.jpg', la: 'assets/scene/panorama-la.jpg', skog: 'assets/scene/panorama-skog.jpg'}, rooms: sceneRooms, onChange: () => {}, onMissingRoom: () => {}});
+const scene = createScene(canvas, picture, {contract, plan, urls: {plate: 'assets/scene/room.png', panorama: 'assets/scene/panorama-vegas.jpg', la: 'assets/scene/panorama-la.jpg', skog: 'assets/scene/panorama-skog.jpg'}, rooms: sceneRooms, onChange: () => {}, onMissingRoom: () => {}, uppsattning: setup});
 // The framings (FRAMING) stand at the top, where the stage is told its shape before the film before the game is laid.
 // The lying framing is the play view's Dator, or the look's own where it names one (lookState lays the play view under the
 // look); yaw, dy and dz are where the view comes to rest. Standing is always the play view's Mobil.
@@ -186,7 +205,7 @@ scene.set({lins, format: GAME_OWN.format, room: room as never, blur: ROOMS.find(
 if (Object.keys(asked).length) { scene.set({...asked, roomShift: 'cut'}); if (asked.roomShift) scene.set({roomShift: asked.roomShift}); room = asked.room ?? room; }
 scene.set({cards: cardsNow.cards}); // over the look: see cardsNow
 // The page's one line: which tree it plays (or why none), and what of the look could not be used.
-const pageNote = [treeCut.line, composition.line, lookNote].filter(Boolean).join(' · ');
+const pageNote = [filmsFit ? treeCut.line : null, composition.line, setupLine, lookNote].filter(Boolean).join(' · ');
 if (pageNote) { const note = Object.assign(document.createElement('p'), {textContent: pageNote}); note.setAttribute('role', 'status');
   note.style.cssText = 'position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:30;margin:0;max-width:min(92%,680px);padding:6px 14px;border:1px solid rgba(226,191,109,.32);border-radius:999px;background:rgba(8,7,6,.84);color:#f6eedc;font-size:13px;pointer-events:none'; stage.append(note); }
 // Under a film before the game the room's own film waits (roomLife off until the lead, roomLifeBack): it was read and played for
@@ -413,7 +432,10 @@ function remember(value: 'on' | 'off') { try { localStorage.setItem('dealer.card
 // A trial, game.html?bricka=hus: the tray holds the house's own chips (src/game3d-tray.ts), a lost bet is carried into it and winnings out of it.
 type HouseTray = {mouth(value: number, taking: boolean): {x: number; y: number; s: number}; add(value: number): boolean; remove(value: number): boolean};
 let houseTray: HouseTray | null = null; const taken = new Set<number>(); // the seats whose chips the house has taken this round
-if (query.get('bricka') === 'hus') void import('./game3d-tray.ts').then(m => { const tray = m.createHouseTray(scene); scene.notch(tray.notch); scene.addProp(tray); houseTray = tray; }).catch(() => {});
+// The live table has no tray (LIVE.tray) and no film whose shoe stands on it: its clear shoe and discard box are drawn from its
+// measures (src/game3d-props.ts liveProps).
+if (!UPPSATTNING[setup].bricka) void import('./game3d-props.ts').then(m => { scene.addProp(m.liveProps(scene)); }).catch(() => {});
+else if (query.get('bricka') === 'hus') void import('./game3d-tray.ts').then(m => { const tray = m.createHouseTray(scene); scene.notch(tray.notch); scene.addProp(tray); houseTray = tray; }).catch(() => {});
 else if (query.get('tray') !== 'built') void import('./game3d-props.ts').then(async m => { const tray = await m.loadTray(scene); scene.notch(tray.notch); scene.addProp(tray); }).catch(() => {});
 // When a round is settled: a seat that got back less than it staked loses its chips to the tray, and what a seat got back
 // beyond its stake is carried out of the tray and set down beside the bet. Only in the trial with the house's tray.
@@ -480,8 +502,9 @@ function aimAt(seat: number | null) {
   // Under the table's lens the view turns about the film camera's own upright (src/scene3d-view.ts updateView), so the angle to the
   // seat is the one its ring has in the film, and the scene reads a yaw as written for the contract's camera (viewUnder), so the
   // turn is given as that camera's: the film then moves as far sideways in the picture as it does today (373 px against 383 at seat 7).
-  if (camera.source === 'lens') { const at = filmPixel(camera, spotToScene(camera, spot.x, spot.s)), real = at ? Math.atan2(-(at.x - (FILM.width - 1) / 2), camera.focalPx) * 180 / Math.PI * FRAMING.turnShare : 0;
-    turn = viewUnder(cameraFromContract(contract), camera, {yaw: real, pitch: 0, dx: 0, dy: 0, dz: 0}).yaw; }
+  // The live table's view is written for its own camera (src/scene3d-view.ts updateView): there the angle is taken as it is.
+  if (camera.source === 'lens') { const at = filmPixel(camera, spotToScene(camera, spot.x, spot.s)), real = at ? Math.atan2(-(at.x - (camera.frame.width - 1) / 2), camera.focalPx) * 180 / Math.PI * FRAMING.turnShare : 0;
+    turn = setup === 'live' ? real : viewUnder(cameraFromContract(contract), camera, {yaw: real, pitch: 0, dx: 0, dy: 0, dz: 0}).yaw; }
   aimed = Math.max(-FRAMING.turnLimit, Math.min(FRAMING.turnLimit, turn));
 }
 // A sideways drag on the picture turns the view by hand (standing: to reach the outer seats; lying: to look around); a double click turns it back.
@@ -522,7 +545,7 @@ if (!introOn) film.calm = false; // it was over before the page was built (skipp
 
 // How the round ended is said by her speech when it has the line (the settle's speak signal); then the status line is not said again.
 function settledSpoken() { return ['blackjack', 'dealerblackjack', 'dealerbust', 'win', 'push', 'lose'].some(key => spoken.has(key)); }
-Object.assign(window, {game: {scene, film, page, state: () => snapshot, dealer: () => dealer, gaps, controls, mouths}}); // for the proof recorder and the console; not an interface
+Object.assign(window, {game: {scene, film, page, state: () => snapshot, dealer: () => dealer, gaps, controls, mouths, uppsattning: setup, layout}}); // for the proof recorder and the console; not an interface
 // ?diagnos=1: what this browser does with the game, as text on the picture (src/game-diagnosis.ts), for a fault that shows on one
 // phone and in no recording. Read only when the address has the word.
 if (query.get('diagnos') === '1') void import('./game-diagnosis.ts').then(m => m.createDiagnosis(stage, canvas, () => { const q = scene.players.diagnosis();

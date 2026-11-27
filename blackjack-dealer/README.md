@@ -101,6 +101,10 @@ efter förra standarden. Vyerna:
 - **Granska**: Filmer (Jakobs domar) och Prov (provmapparna under `assets/proofs/`, `?prov=<mapp>`).
 - **Material** (vilka bilder som gäller), **Casino** (spelet med vald look), och från Start **Lipsync** (hur munnen
   görs, skrivskyddad) och Ljud.
+- **Spelet vid livebordet** (`/game.html?uppsattning=live`; utan ord livebordet när ett träd gjort vid det spelas, annars
+  förra standarden med en rad som säger det, `src/game-page.ts`): livebordets kamera, bord, sko, låda, kortplatser och
+  ringar, och spelets kort på de mätta platserna (`src/game-table.ts` liveLayout, `src/game3d-props.ts` liveProps). Utan
+  godkända filmer vid livebordet visas bordet utan dealer. Uppsättningen och dess regler: `docs/SYSTEM.md`, Standarden.
 - I foten **Beslut** (det som väntar på Jakobs svar) och **Ordlista**.
   **Jämför** nås från en tagning. Det som hör ihop är en knapp, och Casino i menyn är samma spel som spelet (2026-11-17).
 - En vy för alla skärmar: en mobilvy härleds ur samma kort och lins. Paow står först; en pausad dealer visas bara när en

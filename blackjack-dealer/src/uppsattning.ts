@@ -74,6 +74,10 @@ export type Uppsattning = {
   bord: {halfWidth: number; depth: number; rail: number; form: 'halvoval' | 'halvcirkel'};
   /** The game's own framing of it until Jakob saves one (src/play-view.ts Framing: zoom and turns from its own camera's place). */
   spelvy: {dator: Framing; mobil: Framing};
+  /** The file his saved play view of it is kept in (tools/play-view-store.ts, /api/play-view?uppsattning=<id>): one per set-up, so that saving one never touches the other's. */
+  spelvyFil: string;
+  /** The chip tray sunk at the dealer's edge, or none (the live table has none: LIVE.tray). */
+  bricka: boolean;
   /** The dolls that sit at it (dealer3d/src/doll.ts). */
   dockor: readonly string[];
 };
@@ -89,9 +93,11 @@ const live: Uppsattning = {
   insatser: () => LIVE.betMarks.map((at, i) => ({seat: i + 1, at})),
   sko: liveShoePose(LIVE.shoe),
   bord: {halfWidth: LIVE.felt.widthAtEdge / 2, depth: LIVE.felt.depth, rail: LIVE.rail.width, form: 'halvcirkel'},
-  // The film's own frame on a computer (exactly the cloned view); on a phone held upright the middle seats, a little from above.
-  // First values of the game's own, until Jakob saves his in Scen.
-  spelvy: {dator: {zoom: 1, pitch: 0, yaw: 0}, mobil: {zoom: 1.5, pitch: -3, yaw: 0}},
+  // The film's own frame on a computer (exactly the cloned view); on a phone held upright seats 2–6 across the picture's width
+  // (about 14 degrees to each side) with the dealer's head and the cards in it. First values of the game's own, until Jakob saves
+  // his in Scen (data/play-view-live.json).
+  spelvy: {dator: {zoom: 1, pitch: 0, yaw: 0}, mobil: {zoom: 2.3, pitch: -2, yaw: 0}}, spelvyFil: 'data/play-view-live.json',
+  bricka: LIVE.tray !== null,
   dockor: [LIVE.dealer.styles.kameran.name, LIVE.dealer.styles.bordet.name],
 };
 
@@ -111,7 +117,8 @@ const forra: Uppsattning = {
   insatser: u => cards(u).filter(p => /^P[1-7]\.C1$/.test(p.id)).map(p => ({seat: Number(p.id[1]), at: [p.at[0], 0, p.at[2] + CARD.height / 2 + BET.radius + BET.clear] as Vec3})).sort((a, b) => a.seat - b.seat),
   sko: shoePose(TABLE_LENS, SHOE),
   bord: {halfWidth: TABLE_TOP.halfWidth, depth: TABLE_TOP.depth, rail: TABLE_TOP.rail, form: 'halvoval'},
-  spelvy: {dator: PLAY_VIEW.dator, mobil: PLAY_VIEW.mobil},
+  spelvy: {dator: PLAY_VIEW.dator, mobil: PLAY_VIEW.mobil}, spelvyFil: 'data/play-view.json',
+  bricka: true,
   dockor: ['man', 'kvinna'],
 };
 

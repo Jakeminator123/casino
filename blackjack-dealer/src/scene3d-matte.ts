@@ -200,13 +200,13 @@ function vec(v: number[]) { return `vec3(${v.map(x => x.toFixed(4)).join(', ')})
 // ---- where the passes run, and which quad lays the print ----------------------------------------------------------------
 type Frame = {frame: number; side: string; quad?: number[][] | null; edge?: number[][] | null; film?: number[][] | null};
 export type MatteTrack = {frames: Frame[]; shoeWindow?: {box: number[]} | null} | null;
-const clampBox = (b: number[]) => [Math.max(0, Math.floor(b[0])), Math.max(0, Math.floor(b[1])), Math.min(FILM.width - 1, Math.ceil(b[2])), Math.min(FILM.height - 1, Math.ceil(b[3]))];
+const clampBox = (b: number[], picture: {width: number; height: number}) => [Math.max(0, Math.floor(b[0])), Math.max(0, Math.floor(b[1])), Math.min(picture.width - 1, Math.ceil(b[2])), Math.min(picture.height - 1, Math.ceil(b[3]))];
 /**
  * The film pixels the matte is made in for a frame (x0, y0, x1, y1, y down, whole pixels): the shoe window, and the card where the
  * track has it over the frames around this one, grown generously. The box only bounds the work and keeps a yellow speck far off
  * (on a knuckle at the other end of the frame) from being taken for card; the card's outline is the film's, not the track's.
  */
-export function matteBox(track: MatteTrack, frame: number, shoe: number[] = track?.shoeWindow?.box ?? SHOE_BOX): number[] {
+export function matteBox(track: MatteTrack, frame: number, shoe: number[] = track?.shoeWindow?.box ?? SHOE_BOX, picture: {width: number; height: number} = FILM): number[] {
   let [x0, y0, x1, y1] = [shoe[0] - MATTE.shoeRoom, shoe[1] - MATTE.shoeRoom, shoe[2] + MATTE.shoeRoom, shoe[3] + MATTE.shoeRoom];
   for (let d = -MATTE.around; d <= MATTE.around; d++) {
     const f = track?.frames?.[frame + d], p = f?.film?.length === 4 ? f.film : f?.quad?.length === 4 ? f.quad : f?.edge?.length === 2 ? f.edge : null; if (!p) continue;
@@ -214,7 +214,7 @@ export function matteBox(track: MatteTrack, frame: number, shoe: number[] = trac
     const r = Math.max(MATTE.reach, MATTE.spread * Math.max(c - a, e - b));
     x0 = Math.min(x0, a - r); y0 = Math.min(y0, b - r); x1 = Math.max(x1, c + r); y1 = Math.max(y1, e + r);
   }
-  return clampBox([x0, y0, x1, y1]);
+  return clampBox([x0, y0, x1, y1], picture);
 }
 /**
  * Where a washed-out face may be taken for the card in a frame (RULES.pale), or null: only while the track shows the face, and only
