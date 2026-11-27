@@ -20,6 +20,8 @@
 // tree is then drawn with the pictures and films made from that seat (src/dealer-trees.ts cameraView), empty where nothing is.
 // Where the lab has no trees to give (the online copy; an older lab server until it is restarted) Karta draws the bank's own
 // map instead (BankKarta): every step of the bank with what the game plays on it, one film per seat.
+// Beside the trees is Schemat (?vy=schema, components/schemat/SchemaView.tsx): the dolls' motion scheme, anchors and motions
+// with what exists for each doll; SchemaSwitch in the header changes between them, and the standard doll opens there.
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { ChevronRight, Route, Scan, ZoomIn, ZoomOut } from "lucide-react";
 import Link from "next/link";
@@ -57,6 +59,8 @@ import { StillViewer } from "./StillViewer";
 import { TalkSheet } from "./TalkSheet";
 import { TreeCanvas, TreeLegend, type PathMarks } from "./TreeCanvas";
 import { CompositionKarta } from "./CompositionKarta";
+import { SchemaSwitch } from "../schemat/SchemaSwitch";
+import { SchemaView } from "../schemat/SchemaView";
 import { TreeNet } from "./TreeNet";
 import { TreeRow } from "./TreeRow";
 import { useCompositions } from "./useCompositions";
@@ -125,6 +129,9 @@ function Karta() {
   const trees = useTrees(dealer, readAt);
   const { params, set } = useParams();
   const composition = params.get("komposition");
+  // Schemat (?vy=schema, components/schemat/): the dolls' motion scheme; the standard doll, who has no tree, opens there.
+  const vy = params.get("vy");
+  if (vy === "schema" || (vy !== "trad" && isStandardDoll(dealer))) return <SchemaView />;
   if (trees.answer?.trees.length) {
     if (composition) return <CompositionKarta answer={trees.answer} id={composition} set={set} />;
     if (params.get("trad") === ALL_TREES) return <TreeNet answer={trees.answer} set={set} />;
@@ -141,8 +148,8 @@ function Karta() {
   // The standard doll is no dealer and has no films (lib/dealer.ts STANDARD_DOLL): no map of steps it will never have.
   if (isStandardDoll(dealer))
     return (
-      <Page title="Karta">
-        <EmptyState title="Standarddockan har inga filmer i ett träd">Karta visar en dealers filmer, steg för steg. Standarddockans rörelser ses i Dockan och i Filmverkstaden, Inspelning. Välj en dealer i menyn för hennes träd.</EmptyState>
+      <Page title="Karta" actions={<SchemaSwitch value="trad" />}>
+        <EmptyState title="Standarddockan har inga filmer i ett träd">Träden visar en dealers filmer, steg för steg. Standarddockans rörelser ses i Schemat här, i Dockan och i Filmverkstaden, Inspelning. Välj en dealer i menyn för hennes träd.</EmptyState>
       </Page>
     );
   return <BankKarta />;
@@ -298,6 +305,7 @@ function TreeKarta({ answer }: { answer: TreeAnswer }) {
 
   const actions = (
     <>
+      <SchemaSwitch value="trad" />
       <Button variant={picking ? "primary" : "secondary"} icon={<Route />} aria-pressed={picking} onClick={() => (picking ? leave() : setPicking(true))} className="mr-2" title="Klicka bilderna i ordning och spela stegens filmer efter varandra">
         Väg
       </Button>
@@ -494,6 +502,7 @@ function BankKarta() {
 
   const actions = (
     <>
+      <SchemaSwitch value="trad" />
       {around.unchosen ? (
         <Button variant="secondary" size="sm" iconAfter={<ChevronRight />} onClick={() => pick(around.unchosen!)} className="mr-2" title="Öppna nästa steg i trädet som inte har någon Primär">
           Nästa utan Primär
