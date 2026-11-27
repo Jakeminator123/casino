@@ -2,8 +2,9 @@
 
 Två saker i en mapp, med samma skelett i botten:
 
-1. **Standarddockan och standardscenen** i Blender: en kvinna och en man med samma skelett, vid spelets bord, med
-   spelets kamera, kort och sko. Det är grunden som varje dealers docka i `blackjack-dealer` anpassas från.
+1. **Standarddockan och standardscenen** i Blender: dockorna Danilo och Frasse på samma skelett, vid livebordet (bordet,
+   kameran, korten och skon mätta på filmen av ett riktigt livebord). Det är grunden som varje dealers docka i
+   `blackjack-dealer` anpassas från.
 2. **En dealer från foton**: från 1–8 foton av en person till en riggad 3D-dealer i A-pose, med kvalitetsbilder.
 
 Reglerna står i `AGENTS.md`. Skelettet, lederna, bryggan mot `blackjack-dealer` och hur en dealer anpassas står i
@@ -21,7 +22,7 @@ avatar-auto-pipeline/
   scen/                      standardscenen
     standard.yaml            alla mått, skrivna ur spelets kod (ändras aldrig för hand)
     gen_standard.py          skriver standard.yaml; las_spelet.ts läser spelets kod åt den
-    bygg_bord.py             bordet, korten, skon och markerlådan ur måtten
+    bygg_bord.py             livebordet, korten, skon och lådan för använda kort ur måtten
     bygg_docka.py            standarddockorna (kvinna och man) och dockorna med mätta mått (Danilo, Frasse, Tomasz) med MPFB
     bygg_stol.py             stolen, skalad till måtten; meshy_stol.py beställer råfilen (betalt)
     qc_render.py             kontrollbilder genom de fasta kamerorna
@@ -58,11 +59,8 @@ dockorna och Node 24 för måtten. Allt körs från den här mappen.
 
 ```text
 .\.venv\Scripts\python.exe scen/gen_standard.py                                                     måtten ur spelet
-blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py                       spelets standardbord
-blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --modell bord-02   BORD-02
-blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --kant-bak 0.15    standardbordet med dealerkanten 15 cm närmare dealern och brickan nedsänkt i bordet (egna filer, standardbord_nara.*; bordet de äldre rörelserna visas vid i ../standarddocka)
-blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --docka            standarddockans bord (standardbord_nara23.*), det dockornas egna rörelser visas vid: en halvmåne (0,95 m djup), kanten 23 cm närmare dockan och skon 8 cm längre ut och 3 cm längre fram; talen står i spelets kod (DOLL_TABLE i ../blackjack-dealer/src/table-lens.ts) och kommer hit genom standard.yaml (dockans_bord). Spelarnas kortplatser ligger där vända mot sin spelare (dockans_bord.kort_mot_spelaren: ramen och exempelkortet längs platsens riktning_mot_dealer; dealerns egna rakt). Andra former prövas med --djup, --sko-ut, --sko-fram och --namn (står i skriptets huvud). Med --kant-bak och --docka är sargen urtagen underifrån där dealern sitter, så att bordet där bara tar 5 cm under filten och låren går fria (KNAN i skriptet)
-blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --live             vår klon av ett riktigt livebord mätt på film (standardbord_live.*): deras filt (halvcirkel, radie 0,73 m), sko, låda, insatsmärken och kortplatser i vårt utseende, utan markerbricka; talen står i spelets kod (LIVE i ../blackjack-dealer/src/table-live.ts) och kommer hit genom standard.yaml (livebord). -- --live --med-bricka lägger till vår markerbricka vid kanten (standardbord_live_bricka.*)
+blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py                       livebordet (standardbord_live.*): dess filt (halvcirkel, radie 0,73 m), sko, låda, insatsmärken och kortplatser i vårt utseende, utan markerbricka; talen står i spelets kod (LIVE i ../blackjack-dealer/src/table-live.ts) och kommer hit genom standard.yaml
+blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --med-bricka       samma bord med vår markerbricka vid kanten, ett tillägg (standardbord_live_bricka.*)
 blender -b --python-exit-code 1 --python scen/bygg_docka.py                                        dockorna (MPFB, därför utan --factory-startup) med människans mått; -- --kon <nyckel i MATT> bygger en (man, kvinna, danilo, frasse, tomasz_matt), -- --namn N skriver standarddocka_<kön>_N.* i stället för de modeller som används
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_stol.py                       stolen
 ```
@@ -83,12 +81,12 @@ Licenserna står i `assets/bord/LICENSER.md`.
 
 ## Kontroll
 
-Bilder genom de fasta kamerorna (`film` är spelets egen kamera), och en textdump av en modell som en agent kan läsa:
+Bilder genom de fasta kamerorna (`film` är livebordets kamera), och en textdump av en modell som en agent kan läsa:
 
 ```text
-blender -b --factory-startup --python-exit-code 1 --python scen/qc_render.py -- --kameror topp film --ut qc --tagg bord
-blender -b --factory-startup --python-exit-code 1 --python scen/qc_render.py -- --docka assets/docka/standarddocka_kvinna.blend --extra assets/stol/dealerstol.blend --action sitt_vila --bildruta 1 --kameror film hel --tagg docka_kvinna
-blender -b --python-exit-code 1 --python verktyg/inspektera.py -- assets/docka/standarddocka_kvinna.glb
+blender -b --factory-startup --python-exit-code 1 --python scen/qc_render.py -- --bord assets/bord/standardbord_live.blend --kameror topp film --ut qc --tagg bord
+blender -b --factory-startup --python-exit-code 1 --python scen/qc_render.py -- --bord assets/bord/standardbord_live.blend --docka assets/docka/standarddocka_danilo.blend --extra assets/stol/dealerstol.blend --action sitt_vila --bildruta 1 --kameror film hel --tagg docka_danilo
+blender -b --python-exit-code 1 --python verktyg/inspektera.py -- assets/docka/standarddocka_danilo.glb
 ```
 
 Vanlig Python (Pillow och numpy):
