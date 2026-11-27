@@ -3,6 +3,28 @@
   "about": "What waits for Jakob: one entry per question (kind beslut) or per thing only he can do (kind gora), shown as one card each in the studio's view Beslut (/studio/beslut/, lab only). The list's order is the order of urgency, the most urgent first. An entry: id, kind, question (at most 14 words), leads (one sentence: what his answer leads to), optionally proof (a folder under assets/proofs/) with file, page (an address in the lab, e.g. game.html?table=casino), link (an address outside, shown as text to open on his phone) and cost (free text), chips (two to four {value, label} for beslut, one to four for gora), asked (date), from (the lane that asks) and answer. An agent adds an entry with answer null, changes only its own entries, reads the file right before editing it and keeps the form JSON.stringify gives with two spaces; it closes an entry by taking it out once his answer is carried out, and the commit says what he answered. Only the page writes answer ({value, note, at}, tools/decision-store.ts); no agent sets, changes or clears an answer he has given. The strict reader is tools/decision-register.ts. The repo is public: no secret, personal detail or path of this machine.",
   "decisions": [
     {
+      "id": "kenji-ger-ett-kort",
+      "kind": "beslut",
+      "question": "Kenji ger ett kort vid livebordet: ska fler givar och personer göras så?",
+      "leads": "Ja: de andra platserna, spelarnas kameror och nästa person görs på samma sätt; nej: det du antecknar rättas först.",
+      "proof": "kenji-ny-dealer-ur-bilder-20261127",
+      "file": "05-kenji-ger-ett-kort-vid-livebordet.mp4",
+      "chips": [
+        {
+          "value": "ja",
+          "label": "Ja, gör fler så"
+        },
+        {
+          "value": "nej",
+          "label": "Nej, se anteckningen"
+        }
+      ],
+      "asked": "2026-11-27",
+      "from": "blackjack-dealer",
+      "cost": "tre omgångar 455 krediter; en ny omgång cirka 130 per giv och kamera",
+      "answer": null
+    },
+    {
       "id": "sju-bilder-vid-livebordet",
       "kind": "beslut",
       "question": "Tomasz ger ett kort vid livebordet, gjord av sju bilder: ska filmerna göras så?",
