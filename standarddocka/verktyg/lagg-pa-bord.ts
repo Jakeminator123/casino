@@ -195,12 +195,12 @@ const kortFarg = (r: number, g: number, b: number) => (r > 100 && Math.min(r, g)
 if ((P2 || ryggUrFilmen) && !skoBild) throw Error(`--sko-ruta ${skoRuta} finns inte i ${falt}.`);
 // Kortets röda (--rygg-ur-filmen): ryggen på skons nästa kort i skons fönster (liveShoeCard), sex tiondelar av kortet kring
 // dess mitt, i rutan med den stilla skon (--sko-ruta), utan det gröna och det som inte är tydligt rött (glasets kanter).
-let ROD: Ton | null = null, RODMATT = 0;
+let ROD: Ton | null = null, RODMATT = 0, RODLJUS = 0;
 if (ryggUrFilmen && skoBild) { const sc = liveShoeCard(), {ru, rn} = renaGrona(skoBild), s = [0, 0, 0]; let n = 0;
   for (let i = 0; i <= 20; i++) for (let j = 0; j <= 20; j++) { const [x, y] = se(add(sc.centre, add(mul(sc.long, (i / 20 - 0.5) * 0.6 * CARD.height), mul(sc.short, (j / 20 - 0.5) * 0.6 * CARD.width)))), q = Math.round(y) * W + Math.round(x), o = q * 3, r = skoBild[o], g = skoBild[o + 1], b = skoBild[o + 2];
     if (q < 0 || q >= WH || gron(r, g, b, BORD[q] ? rn : ru) > 0 || r < Math.max(g, b) + 30) continue; s[0] += r; s[1] += g; s[2] += b; n++; }
   if (n < 40) throw Error(`--rygg-ur-filmen: hittar inte kortets röda rygg i skons fönster i ruta ${skoRuta} av ${falt}. Är kortets rygg röd i filmen, och står skon orörd i den rutan (--sko-ruta)?`);
-  const f = s.map(v => v / n); ROD = [f[0] - f[1], f[1] - f[2]]; RODMATT = ROD[0] / f[0]; if (visa) console.log(`kortets röda i filmen: ${f.map(Math.round).join(', ')} (${n} punkter i skons fönster)`); }
+  const f = s.map(v => v / n); ROD = [f[0] - f[1], f[1] - f[2]]; RODMATT = ROD[0] / f[0]; RODLJUS = f[0]; if (visa) console.log(`kortets röda i filmen: ${f.map(Math.round).join(', ')} (${n} punkter i skons fönster)`); }
 
 // ---- kortet (--docka) ---------------------------------------------------------------------------------------------------
 type Kort = {c: Vec3; l: Vec3; n: Vec3};
@@ -273,9 +273,12 @@ const graVit = (r: number, g: number, b: number, min: number) => Math.min(r, g, 
  * hur blekt (mot kortets vita kant) eller mörkt det än är. */
 const rodDel = (r: number, g: number, b: number) => { if (!ROD || r < g + 15) return 0; const u = r - g, v = g - b, det = HUD.ton[0] * ROD[1] - ROD[0] * HUD.ton[1]; if (Math.abs(det) < 200) return 0;
   const s = (u * ROD[1] - ROD[0] * v) / det, a = (HUD.ton[0] * v - HUD.ton[1] * u) / det; return a <= 0 ? 0 : s <= 0 ? 1 : a / (s + a); };
-/** Kortets röda rygg: mer än sex tiondelar kortets ton (hellre hud än kort när det är oklart), och minst tre tiondelar så
- * mättat som kortets röda (rött över grönt mot rött): en vit hand eller skjorta med ett rosa skimmer av kortet är inte kortet. */
-const kortRott = (r: number, g: number, b: number) => rodDel(r, g, b) > 0.6 && (r - g) / r >= 0.3 * RODMATT;
+/** Kortets röda rygg: mer än sex tiondelar kortets ton (hellre hud än kort när det är oklart), minst tre tiondelar så
+ * mättat som kortets röda (rött över grönt mot rött): en vit hand eller skjorta med ett rosa skimmer av kortet är inte
+ * kortet; och minst sex tiondelar så ljust som kortets röda i filmen. Stolens rygg har samma ton men är mörk (rött 41–97
+ * mot kortets 150–250 i Kenjis film 2026-11-27): utan ljusgränsen räknades stolen som kort, föll ur dealerns färger och
+ * skars bort när framsidan ritades. */
+const kortRott = (r: number, g: number, b: number) => r >= 0.6 * RODLJUS && rodDel(r, g, b) > 0.6 && (r - g) / r >= 0.3 * RODMATT;
 /** Hud: varm, inte gul, inte kortets vita, inte rosa som märket och inte kortets röda rygg. */
 const hud = (r: number, g: number, b: number) => r > 80 && r > g + 20 && r - b > 25 && b > 0.68 * g && b <= g + 8 && g > 0.6 * r && (Math.min(r, g) < 190 || b > 0.75 * g) && Math.min(r, g, b) < 225 && !kortRott(r, g, b);
 // Dealerns färger (se huvudet): färgerna, utan det gröna som spiller över, i rutor om 16 steg per färg, där minst 3 på 10 000

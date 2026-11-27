@@ -8,7 +8,8 @@ description: Använd i casino när en ny dealer ska göras ur bilder av en perso
 `ny_dealer.py` i `avatar-auto-pipeline/` gör allt som är gratis, från personens bilder till färdiga anrop hos Runway.
 Läs skriptets huvud; mapparna och kommandona står i `avatar-auto-pipeline/README-SV.md`. Sökvägar räknas från
 casino-roten. Kenji Nakamura är den första personen (proven `kenji-ny-dealer-ur-bilder-20261127`, de tre första
-omgångerna, och `kenji-tre-klipp-mellan-ankarbilder-20261127`, den fjärde, gjord med `--ankarklipp`).
+omgångerna; `kenji-tre-klipp-mellan-ankarbilder-20261127`, den fjärde, gjord med `--ankarklipp`; och
+`kenji-rod-rygg-tre-klipp-20261127`, den femte, med `--ankarklipp --rygg rod` efter att dockans handbyte hade rättats).
 
 ## Före
 
@@ -81,6 +82,16 @@ ankarbilderna, och efterarbetet byter den mot vår. Det gick inte rent där hand
 till bytet (Kenjis fjärde omgång, dömd fyra gånger). Med `--rygg rod` är ryggen kortets riktiga röda med vit kant, så
 att filmmodellen ritar ryggen själv, och efterarbetet ritar bara framsidan, som bär valören (`lagg-pa-bord.ts
 --rygg-ur-filmen`). Valet görs i steg 5 och står i omgångens `dockans-rutor.json`; steg 6 och 7 läser det där.
+
+**En ny tagning av ett klipp, `--om-klipp 1`** (med `--steg 6`): när ett levererat klipp inte håller skrivs bara det
+klippets anrop om, som `anrop/klipp-<nr>-t<n>.json` med eget namn i liggaren och egen fil (`ut/klipp-<nr>-t<n>.mp4`).
+Ankarbilderna och de andra klippen rörs inte, och steg 7 tar den senaste tagningen av varje klipp. Se på varje
+levererat klipp innan efterarbetet: steg 7 säger hur lik klippets rörelse är dockans, och ett tal långt under de andra
+(0,73 mot 0,96–0,97) var ett påhittat föremål i bilden.
+
+**Texten säger bara det som syns.** Klippets och ankarbildens text beskriver bara de sidor av kortet som kameran ser
+där (ur omgångens rörelse), och säger att kortet som ges är det enda utanför skon. En beskrivning av framsidan i ett
+klipp där bara ryggen syns fick Kling 4 att rita ett stort vitt kort på filten genom hela klippet.
 
 Utan `--prov` hamnar filmen, rutorna och anropen i `avatar-auto-pipeline/output/<person>/16-dockfilm/`, med
 `--prov <provmapp>` i `blackjack-dealer/assets/proofs/<provmapp>/original/`. `--utseende` är personens utseende i ord för

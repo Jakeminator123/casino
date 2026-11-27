@@ -3422,6 +3422,11 @@
       "i_guiden": false
      },
      {
+      "flagga": "--om-klipp",
+      "gor": "med --ankarklipp --steg 6: bara en ny tagning av de klippen (till exempel 1 eller 1,3), med eget namn i liggaren och egen fil; steg 7 tar den senaste tagningen av varje klipp",
+      "i_guiden": false
+     },
+     {
       "flagga": "--rygg",
       "gor": "med --ankarklipp: kortets rygg i dockans film och i ankarbilderna. rod: kortets riktiga röda med vit kant, som filmmodellen ritar själv, och efterarbetet ritar bara framsidan; spar (förval): spårkortets gula, som efterarbetet byter mot vår rygg",
       "i_guiden": false

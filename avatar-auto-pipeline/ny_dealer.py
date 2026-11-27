@@ -4,7 +4,8 @@ Gratis och här på datorn; inga betalda anrop. De betalda stegen skrivs som fä
 den som får betala (blackjack-dealer/tools/runway-api.ts place).
 
     python ny_dealer.py <person> [--stil kameran|bordet] [--namn <docka>] [--utseende "<text på engelska>"]
-                        [--plats 4] [--prov <provmapp>] [--omgang <v2>] [--aleph] [--ankarklipp [--rygg rod] [--efter-prov]] [--steg 1-7] [--lage]
+                        [--plats 4] [--prov <provmapp>] [--omgang <v2>] [--aleph] [--ankarklipp [--rygg rod] [--om-klipp 1] [--efter-prov]]
+                        [--steg 1-7] [--lage]
 
 <person> är mappen i input/ med bilderna (1-portratt, 2-helfigur, 3-halvfigur). Stegen, i ordning:
   1 matt     personens mått ur bilderna: SAM 3D Body och MediaPipe (steg/15-matt-ur-bilder/matt_ur_bilder.py) ->
@@ -37,6 +38,10 @@ den som får betala (blackjack-dealer/tools/runway-api.ts place).
 filmmodellen ritar ryggen själv, också i farten; efterarbetet ritar då bara framsidan (lagg-pa-bord.ts --rygg-ur-filmen).
 Förvalet spar är spårkortets gula rygg, som efterarbetet byter mot vår: det gick inte rent där hand och kort är utsmetade
 av farten (Kenjis fjärde omgång, dömd fyra gånger 2026-11-27).
+--om-klipp 1 (med --ankarklipp --steg 6) skriver bara en ny tagning av de klippen (klipp-<nr>-t<n>.json, med eget namn i
+liggaren och egen fil), när ett levererat klipp inte håller; ankarbilderna och de andra klippen rörs inte, och steg 7 tar
+den senaste tagningen av varje klipp. Klippens text säger bara det som syns i klippet: en beskrivning av kortets framsida
+i ett klipp där bara ryggen syns fick Kling 4 att rita ett stort vitt kort på filten (Kenjis femte omgång).
 --omgang lägger en ny omgång av filmen, rutorna och anropen i en egen undermapp, bredvid de förra, och tar startbilden
 och sista bilden, var för sig, ur den senaste förra omgången när dockans första eller sista ruta är densamma där (kostnad.json
 säger vad jämförelsen fann). En ruta där kortet i handen står med kanten mot kameran tas inte: den flyttas till den
@@ -76,6 +81,7 @@ ap.add_argument('--aleph', action='store_true', help='förbered också film B, A
 ap.add_argument('--ankarklipp', action='store_true', help='given som tre klipp mellan schemats ankare, med dockans film av varje steg som referensfilm (steg 5-7)')
 ap.add_argument('--rygg', choices=['spar', 'rod'], default='spar', help='med --ankarklipp: kortets rygg i dockans film och i ankarbilderna. spar: spårkortets gula, som efterarbetet byter mot vår rygg. rod: kortets riktiga röda med vit kant, som filmmodellen ritar själv; efterarbetet ritar då bara framsidan')
 ap.add_argument('--efter-prov', action='store_true', help='steg 7 med referensfilmerna i klippens ställe: efterarbetet prövat utan något betalt')
+ap.add_argument('--om-klipp', default=None, help='med --ankarklipp --steg 6: bara en ny tagning av de klippen (till exempel 1 eller 1,3): anropet skrivs som klipp-<nr>-t<n>.json med eget namn i liggaren, och de andra anropen rörs inte; steg 7 tar den senaste tagningen av varje klipp')
 ap.add_argument('--steg', default='1-6')
 ap.add_argument('--lage', action='store_true')
 a = ap.parse_args()
@@ -93,6 +99,8 @@ STIL = a.stil or (person or {}).get('docka', {}).get('stil') or 'kameran'
 MODELL = ROT / 'assets' / 'docka' / f'standarddocka_{NAMN}.glb'
 GIV = f'lyft-{NAMN}-p{a.plats}'
 BAS = (BJ / 'assets' / 'proofs' / a.prov / 'original') if a.prov else (ROT / 'output' / a.person / '16-dockfilm')
+if a.om_klipp and not re.fullmatch(r'\d(,\d)*', a.om_klipp):
+    sys.exit('--om-klipp tar klippens nummer, till exempel 1 eller 1,3')
 if a.omgang and not re.fullmatch(r'[a-z0-9-]+', a.omgang):
     sys.exit('--omgang tar små bokstäver, siffror och bindestreck, till exempel v2')
 UT = BAS / a.omgang if a.omgang else BAS   # (en ny omgång skriver aldrig över en förra: den första ligger i BAS, de andra bredvid)
@@ -444,6 +452,20 @@ def rakna(film):
                                '-of', 'csv=p=0', str(film)], capture_output=True, text=True, check=True).stdout.strip())
 
 
+def kamerans_plats():
+    """Livebordets kamera i linsvärlden (meter), ur måtten (blackjack-dealer/src/table-live.ts): för vilken sida av kortet den ser."""
+    return json.loads(subprocess.run(['node', '--input-type=module', '-e', "import {liveFrame} from './src/table-live.ts'; process.stdout.write(JSON.stringify(liveFrame().position))"],
+                                     cwd=BJ, capture_output=True, text=True, check=True).stdout)
+
+
+def klippets_fil(nr):
+    """Den senaste tagningen av klipp nr i omgångens ut/: klipp-<nr>.mp4 är den första och klipp-<nr>-t<n>.mp4 den n:te
+    (--om-klipp). Finns ingen: den förstas namn."""
+    tagningar = sorted((int(m_.group(1) or 1), f) for f in (UT / 'ut').glob(f'klipp-{nr}*.mp4')
+                       if (m_ := re.fullmatch(rf'klipp-{nr}(?:-t(\d+))?\.mp4', f.name)))
+    return tagningar[-1][1] if tagningar else UT / 'ut' / f'klipp-{nr}.mp4'
+
+
 def filma_given():
     """Givens rörelse filmad med editorn genom livebordets kamera i nyckelutseendet, flyttad till omgångens mapp; och
     kamerans plats i linsvärlden (för vilken sida av kortet den ser)."""
@@ -462,8 +484,7 @@ def filma_given():
     antal = rakna(dockfilm)
     if antal != rorelse['frameCount']:
         print(f'OBS: filmen har {antal} rutor, rörelsen {rorelse["frameCount"]}: rutorna tas ur filmen', flush=True)
-    kamera = json.loads(subprocess.run(['node', '--input-type=module', '-e', "import {liveFrame} from './src/table-live.ts'; process.stdout.write(JSON.stringify(liveFrame().position))"],
-                                       cwd=BJ, capture_output=True, text=True, check=True).stdout)
+    kamera = kamerans_plats()
     for f in UT.glob('docka-ruta-*.png'):   # (en omkörning av samma omgång: inga rutor från förra körningen står kvar)
         f.unlink()
     return rorelse, dockfilm, antal, kamera
@@ -833,10 +854,25 @@ def steg_anrop_ankare():
     rest = ('Everything else stays exactly as in the first image: his face, hair and shirt, the dark red chair back, the clear card shoe at the same place, '
             f'size and angle with the {ryggord} deck in it, the small clear plate in front of the shoe, the flat green background and the plain green table '
             'with no print and no texture; only soft natural shadows of his arms and hands on the table. The same framing and camera; a photograph.')
-    kortets_utseende = (('Its back is plain deep red with a white border all around, like the back of a real playing card but with no pattern, and its face is '
-                         'plain white with a thin cyan border and a small magenta mark in one corner.') if rod else
-                        ('Its back is solid yellow with a thin cyan border and a small magenta mark, and its face is plain white with a thin cyan border '
-                         'and a small magenta mark.'))
+    # Kortets utseende i ord, bara för de sidor kameran ser i bilden eller klippet (ur omgångens rörelse). Kenjis femte
+    # omgång 2026-11-27: första klippets text beskrev också framsidan (vit, turkos ram, rosa märke), som aldrig syns där,
+    # och Kling 4 ritade den som ett stort vitt kort liggande på filten genom hela klippet (rörelsens likhet 0,73 mot 0,97).
+    rorelse = json.loads(((UT / 'rorelse.json') if (UT / 'rorelse.json').exists() else BJ / 'dealer3d' / 'data' / f'{GIV}.json').read_text(encoding='utf-8'))
+    kamera = kamerans_plats()
+    ryggen = ('Its back is plain deep red with a white border all around, like the back of a real playing card but with no pattern' if rod else
+              'Its back is solid yellow with a thin cyan border and a small magenta mark')
+    framsidan = 'ts face is plain white with a thin cyan border and a small magenta mark in one corner'
+
+    def kortets_utseende(r0, r1):
+        """Kortets utseende för dockrutorna r0–r1: de sidor kameran ser där (kortet på kant räknas inte)."""
+        sett = [kanten_mot(rorelse['frames'][k]['card'], kamera) for k in range(r0, r1 + 1)]
+        rygg, fram = any(v <= -KANT for v in sett), any(v >= KANT for v in sett)
+        if rygg and not fram:
+            return f'{ryggen}. Only the back of the card is ever seen here; its face is never shown.'
+        if fram and not rygg:
+            return f'I{framsidan}. Only the face of the card is ever seen here; its back is never shown.'
+        return f'{ryggen}, and i{framsidan}.'
+    ett_kort = 'The card he deals is the only card outside the shoe: no other card, sheet or object ever appears on the table.'
     anrop = {}
     if not gjord[a23['ankare']]:
         anrop['a23'] = {'name': f'{NAMN}-ny-dealer-{OMG}a23', 'what': f'{vad} Ankarbilden A2.3 (redo vid skon): dockans ruta {a23["ruta"]} omgjord till personen ur hans tre bilder.',
@@ -890,12 +926,49 @@ def steg_anrop_ankare():
                                                 'above, ready at the card shoe; no card lies on the table. The second image is a white 3D mannequin at the same table, seen '
                                                 'from exactly the same camera at this very moment; it only shows the pose. Move only his arms, hands and head so that they '
                                                 f'match the mannequin\'s, at the same places in the picture; his eyes are on the card in his hands. {a2m["text"]} The card in his hands is at the place, size and '
-                                                f'angle of the mannequin\'s card. {a2m["kortet"]} {kortets_utseende} Take nothing else from the second image: not its white '
+                                                f'angle of the mannequin\'s card. {a2m["kortet"]} {kortets_utseende(a2m["ruta"], a2m["ruta"])} Take nothing else from the second image: not its white '
                                                 f'skin, its bald head or its face. {rest}'),
                                  'referenceImages': [{'uri': fj(bild(a23)), 'tag': 'edit'}, {'uri': fj(UT / a2m['fil']), 'tag': 'pose'}]}}
     pris = kling_med_ref(KLIPP_S, steg[0]['ref_s']), kling_med_ref(KLIPP_S, steg[0]['ref_s'], rabatt=False)
-    for s in steg:
+
+    def klippanrop(s, tagning=1):
+        """Anropet för klipp s: Kling 4 med stegets två ankarbilder som första och sista bild och dess referensfilm. En tagning
+        över 1 är en ny tagning av samma klipp (--om-klipp), med eget namn i liggaren och egen fil."""
         fran, till = ank[STEGEN[s['nr'] - 1][1]], ank[STEGEN[s['nr'] - 1][2]]
+        t = f'-t{tagning}' if tagning > 1 else ''
+        ut = UT / 'ut' / f'klipp-{s["nr"]}{t}.mp4'
+        return {
+            'name': f'{NAMN}-ny-dealer-{OMG}klipp-{s["nr"]}-{s["namn"]}{t}',
+            'what': (f'{vad} Klipp {s["nr"]}, {s["fran"]} till {s["till"]}: Kling 4, 1080p, {KLIPP_S} s, ankarbilderna som första och sista bild och dockans film '
+                     f'av samma steg som referensfilm ({s["ref"]}: dockrutorna {s["dockrutor"][0]}–{s["dockrutor"][1]}, med {s["stilla_fore"]} och {s["stilla_efter"]} '
+                     f'stilla rutor före och efter till {s["ref_s"]} s).' + (f' Tagning {tagning}.' if tagning > 1 else '')),
+            'endpoint': '/v1/image_to_video', 'expectCredits': pris[0], 'ut': rel(ut),
+            'body': {'model': 'kling_4', 'promptImage': [{'uri': fj(kbild(fran)), 'position': 'first'}, {'uri': fj(kbild(till)), 'position': 'last'}],
+                     'referenceVideos': [{'uri': fj(UT / s['ref'])}],
+                     'promptText': ('Locked camera, one continuous shot. The man in the first frame makes exactly the movement of the reference video, in its '
+                                    'timing, moment by moment, and ends exactly as the last frame shows him. The reference video shows a white mannequin: take '
+                                    'only its movement, its timing and where its hands and the card are from it, never its look; his face, hair, shirt and '
+                                    f'hands come from the first and last frames. {s["gor"]} He holds still at the start and at the end as the reference video '
+                                    'does. His head stays bowed toward the table as in the frames and his eyes follow the card; he does not look up at the camera. The card keeps its size '
+                                    f'all the way; it is never lifted high in the air. {kortets_utseende(*s["dockrutor"])} {ett_kort} A {ryggord} card shows in '
+                                    'the mouth of the shoe all the time. The background and the table are plain, even green with no print. Natural hands with '
+                                    'five fingers. No text, no music, no speech.'),
+                     'duration': KLIPP_S, 'ratio': 'auto_1080p'},
+            'efter': (f'klippet sparas som {rel(ut)}; steg 7 (--ankarklipp --steg 7) klipper ut steget, lägger dealern på vårt bord och sätter ihop klippen')}
+
+    if a.om_klipp:
+        # Bara nya tagningar av de valda klippen: ankarbilderna, de andra klippens anrop och kostnad.json rörs inte.
+        for nr in sorted({int(x) for x in a.om_klipp.split(',')}):
+            s = next((x for x in steg if x['nr'] == nr), None)
+            if not s:
+                sys.exit(f'--om-klipp: klipp {nr} finns inte (klippen är {", ".join(str(x["nr"]) for x in steg)})')
+            forra = max((int(m_.group(1) or 1) for f in A.glob(f'klipp-{nr}*.json') if (m_ := re.fullmatch(rf'klipp-{nr}(?:-t(\d+))?\.json', f.name))), default=0)
+            kropp = klippanrop(s, forra + 1)
+            fil = A / (f'klipp-{nr}-t{forra + 1}.json' if forra else f'klipp-{nr}.json')
+            fil.write_text(json.dumps(kropp, ensure_ascii=False, indent=2), encoding='utf-8')
+            print(f'klipp {nr}, tagning {forra + 1}: {rel(fil)}, {kropp["expectCredits"]} krediter; sparas som {kropp["ut"]}', flush=True)
+        return
+    for s in steg:
         f_ut = 24   # Kling 4 levererar 24 bilder/s (sjunde, åttonde och elfte provet)
         s['levererat'] = {'bilder_per_s': f_ut, 'rutor': KLIPP_S * f_ut,
                           'steget_i_klippet': [math.ceil(s['stilla_fore'] / FPS * f_ut - 1e-9), math.floor((s['stilla_fore'] + s['rutor_i_steget'] - 1) / FPS * f_ut + 1e-9)],
@@ -905,25 +978,7 @@ def steg_anrop_ankare():
                                  f'{math.ceil(s["stilla_fore"] / FPS * f_ut - 1e-9)}–{math.floor((s["stilla_fore"] + s["rutor_i_steget"] - 1) / FPS * f_ut + 1e-9)}. '
                                  f'Klippets ruta k är dockruta {s["dockrutor"][0]} + k x {FPS}/{f_ut} - {s["stilla_fore"]}. Filmmodellen gör rörelsen '
                                  f'något senare än referensfilmen (Kling 4 cirka 0,1 s): steg 7 mäter hur mycket i det levererade klippet och klipper där.')}
-        anrop[f'klipp-{s["nr"]}'] = {
-            'name': f'{NAMN}-ny-dealer-{OMG}klipp-{s["nr"]}-{s["namn"]}',
-            'what': (f'{vad} Klipp {s["nr"]}, {s["fran"]} till {s["till"]}: Kling 4, 1080p, {KLIPP_S} s, ankarbilderna som första och sista bild och dockans film '
-                     f'av samma steg som referensfilm ({s["ref"]}: dockrutorna {s["dockrutor"][0]}–{s["dockrutor"][1]}, med {s["stilla_fore"]} och {s["stilla_efter"]} '
-                     f'stilla rutor före och efter till {s["ref_s"]} s).'),
-            'endpoint': '/v1/image_to_video', 'expectCredits': pris[0], 'ut': rel(UT / 'ut' / f'klipp-{s["nr"]}.mp4'),
-            'body': {'model': 'kling_4', 'promptImage': [{'uri': fj(kbild(fran)), 'position': 'first'}, {'uri': fj(kbild(till)), 'position': 'last'}],
-                     'referenceVideos': [{'uri': fj(UT / s['ref'])}],
-                     'promptText': ('Locked camera, one continuous shot. The man in the first frame makes exactly the movement of the reference video, in its '
-                                    'timing, moment by moment, and ends exactly as the last frame shows him. The reference video shows a white mannequin: take '
-                                    'only its movement, its timing and where its hands and the card are from it, never its look; his face, hair, shirt and '
-                                    f'hands come from the first and last frames. {s["gor"]} He holds still at the start and at the end as the reference video '
-                                    'does. His head stays bowed toward the table as in the frames and his eyes follow the card; he does not look up at the camera. The card keeps its size '
-                                    f'all the way; it is never lifted high in the air. {kortets_utseende} A {ryggord} card shows in the mouth of the shoe all the '
-                                    'time. The background and the table are plain, even green with no print. Natural hands with five fingers. No text, no music, '
-                                    'no speech.'),
-                     'duration': KLIPP_S, 'ratio': 'auto_1080p'},
-            'efter': (f'klippet sparas som {rel(UT / "ut" / f"klipp-{s["nr"]}.mp4")}; steg 7 (--ankarklipp --steg 7) klipper ut steget, lägger dealern på '
-                      f'vårt bord och sätter ihop klippen')}
+        anrop[f'klipp-{s["nr"]}'] = klippanrop(s)
     for f in A.glob('*.json'):
         f.unlink()
     for namn, kropp in anrop.items():
@@ -1007,7 +1062,7 @@ def steg_efter(prov=False):
     E.mkdir(parents=True, exist_ok=True)
     platta, sko = CASINO / 'standarddocka' / 'klipp' / 'platta-bord-ensamt.png', CASINO / 'standarddocka' / 'klipp' / 'platta-bord-med-sko.png'
     steg = R['steg']
-    klippen = [UT / s['ref'] if prov else UT / 'ut' / f'klipp-{s["nr"]}.mp4' for s in steg]
+    klippen = [UT / s['ref'] if prov else klippets_fil(s['nr']) for s in steg]
     saknas = [rel(k) for k in klippen if not k.exists()]
     if saknas:
         print('steg 7: klippen saknas (inget är beställt än?): ' + ', '.join(saknas), flush=True)

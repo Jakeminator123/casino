@@ -122,7 +122,7 @@ export async function spegling(options: Options = {}): Promise<Spegling> {
   const alla = await lyften(casino), givar: Giv[] = [];
   const somLyftet = (a: Lyft, b: Lyft) => a.lift === b.lift && a.fran === b.fran && a.rutor === b.rutor && a.rorelse === b.rorelse;
   // Personernas filmer: prov med dockfilmen av en persons docka i en giv.
-  const personer: {docka: string; rorelse: string; prov: string; filer: string[]}[] = [];
+  const personer: {docka: string; rorelse: string; prov: string; filer: string[]; skapad: number}[] = [];
   const provRot = path.join(casino, KALLOR.prov);
   for (const prov of (await readdir(provRot, {withFileTypes: true}).catch(() => [])).filter(d => d.isDirectory() && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(d.name))) {
     // (dockfilmen ligger i original/, eller i en omgång under den: original/v4/, där ny_dealer.py --omgang lägger den)
@@ -132,8 +132,11 @@ export async function spegling(options: Options = {}): Promise<Spegling> {
     const docka = original.map(n => /^dockfilm-lyft-([a-z0-9]+)-(p[1-7]|vantan-\d)(?:-[a-z0-9-]+)?\.mp4$/.exec(n)).find(Boolean);
     if (!docka) continue;
     const filer = (await readdir(path.join(provRot, prov.name)).catch(() => [] as string[])).filter(n => /^[a-z0-9][a-z0-9._-]*\.mp4$/.test(n) && !n.includes('dockfilm')).sort();
-    personer.push({docka: docka[1], rorelse: docka[2], prov: prov.name, filer});
+    const skapad = Date.parse((await json(path.join(provRot, prov.name, 'proof.json')))?.createdAt ?? '');
+    personer.push({docka: docka[1], rorelse: docka[2], prov: prov.name, filer, skapad: Number.isFinite(skapad) ? skapad : 0});
   }
+  // (proven i den ordning de gjordes, det äldsta först: en persons filmer numreras efter den)
+  personer.sort((a, b) => a.skapad - b.skapad || a.prov.localeCompare(b.prov));
 
   for (const l of alla) {
     const raw = await json(path.join(casino, l.lift));
@@ -147,16 +150,21 @@ export async function spegling(options: Options = {}): Promise<Spegling> {
     const ks = await stat(klippFil).catch(() => null);
     if (ks?.isFile() && ks.mtimeMs >= l.mtimeMs && passar(await probe(klippFil), l.rutor))
       var_.push({id: 'dockan', namn: 'Dockan', url: `/api/spegla/klipp/${klipp}?v=${Math.round(ks.mtimeMs)}`});
+    // En persons filmer heter efter personen och ett löpande nummer över alla prov, i den ordning proven gjordes (Kenji 1 är
+    // den äldsta), och den senaste står först. Förut hette de efter filens nummer i sitt prov, och två prov gav då två
+    // filmer med samma namn (två "Kenji 01", 2026-11-27).
+    const filmer: VarVy[] = [], antal = new Map<string, number>();
     for (const p of personer.filter(p => p.rorelse === l.rorelse)) {
       const hans = alla.find(x => x.docka === p.docka && x.rorelse === p.rorelse);
       if (!hans || !somLyftet(hans, l)) continue;
       for (const fil of p.filer) {
         const abs = path.join(provRot, p.prov, fil);
         if (!passar(await probe(abs), l.rutor)) continue;
-        const nr = /^(\d+)/.exec(fil)?.[1];
-        var_.push({id: `${p.prov}/${fil}`, namn: `${stor(p.docka)}${nr ? ` ${nr}` : ''}`, url: `/assets/proofs/${p.prov}/${fil}`});
+        const nr = (antal.get(p.docka) ?? 0) + 1; antal.set(p.docka, nr);
+        filmer.push({id: `${p.prov}/${fil}`, namn: `${stor(p.docka)} ${nr}`, url: `/assets/proofs/${p.prov}/${fil}`});
       }
     }
+    var_.push(...filmer.reverse());
     if (!var_.length) continue;
     const tm = l.times ?? {}, ruta = (v: unknown) => (Number.isInteger(v) && (v as number) >= 0 && (v as number) < l.rutor ? v as number : undefined);
     const marken = Object.fromEntries(Object.entries({skon: ruta(tm.arrive), bytet: ruta(tm.meet ?? tm.narmast), ligger: ruta(tm.ligger)}).filter(([, v]) => v !== undefined));

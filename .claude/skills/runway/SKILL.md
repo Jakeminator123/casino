@@ -435,8 +435,22 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     - **Spårkortet i farten:** Klings gula kort var blekt av rörelseoskärpa (245, 214, 122 mot det skarpa 250, 215,
       60) och låg en till två rutor efter dockans, 6 cm per ruta. Efterarbetet kände först inte igen det och ritade
       vårt kort bredvid handen.
-    - **Domaren** (domarens ord, inte Jakobs): Inte bra på första versionen, för bytet, för vårt kort över fingrarna
-      och för hacket. Det som höll: samma man, lugnt huvud, vänsterhanden vid skon, och näven med tummen på kortet.
+    - **Domaren** (domarens ord, inte Jakobs): Inte bra i fyra versioner av efterarbetet, för bytet, för vårt kort över
+      fingrarna och för hacket. Det som höll: samma man, lugnt huvud, vänsterhanden vid skon, och näven med tummen på
+      kortet. Det gula spårkortet gick inte att byta ut rent där hand och kort är utsmetade av farten: utskuret blev
+      vårt kort prickigt med hål, omfärgat en laxrosa klump.
+  - **Femte omgången, röd kortrygg** (`ny_dealer.py --ankarklipp --rygg rod`, provet
+    `kenji-rod-rygg-tre-klipp-20261127`, 238 krediter och en omtagning på 68), efter fem vändor på dockans handbyte
+    (kortet ligger i handen hela vägen in i näven och läggs utan hopp).
+    - **Kortets rygg röd med vit kant redan i dockans film och i ankarbilderna:** Kling 4 ritar då ett riktigt kort,
+      också i farten, med handens fingrar över det, och efterarbetet ritar bara framsidan när kortet ligger
+      (`lagg-pa-bord.ts --rygg-ur-filmen`). Framsidan är fortfarande spårkortets (vit, turkos ram, rosa märke).
+    - **Texten ska bara säga det som syns i klippet.** Första klippets text beskrev också kortets framsida, som aldrig
+      syns där, och Kling ritade den som ett stort vitt kort med turkos ram liggande på filten genom hela klippet.
+      Verktygets mått fångade det (rörelsens likhet 0,73 mot 0,96–0,97 i de andra). Med bara ryggen beskriven och
+      meningen "no other card, sheet or object ever appears on the table" höll omtagningen (likhet 0,96).
+    - **Dockans rörelse kopieras, också när den är rätt:** kortet tas av högern mellan händerna, bärs med ryggen upp
+      under handen och kommer fram under tummen, som i dockans film.
 - Fjortonde provet, 2026-11-27, **handbytet som egen ankarbild: A2.3 → A2M → A3P4C1 → A2.3 med kortet**, för hand i
   Runways app med en ny person ur ett foto som Jakob skickade. Fotot gick bara till bildmodellen i Runway, aldrig in i
   Git. Frasses ställning genom livebordets kamera; domarens ord, inte Jakobs.
