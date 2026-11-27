@@ -9,6 +9,8 @@
 //   node dealer3d/tools/docka-standard.ts --docka man|kvinna [--skriv] [--hojd <m>] [--bakom <m>] [--kant-bak <m>]
 //   --skriv: dockan in i dealer3d/src/doll.ts (mellan raderna // <docka namn> och // </docka namn>); utan: bara måtten.
 //   --hojd, --bakom, --kant-bak: pröva andra tal för platsen och bordets kant (utan --skriv).
+//   --fil <glb>: mät en annan modell (sökvägen från casino-roten, till exempel standarddocka_danilo.glb) med --dockas
+//   plats, och skriv dockan i doll.ts form på skärmen; aldrig med --skriv.
 // Topparna mäts på huden (dealer3d/src/fingertopp.ts). Ankaret, vilan till skon och givarna skrivs sedan av
 // dealer3d/tools/ren-givar.ts --docka <namn>.
 import {readFileSync, writeFileSync} from 'node:fs';
@@ -28,7 +30,8 @@ import {spots, type Plan} from '../src/world.ts';
 
 const arg = (name: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
 const NAMN = arg('--docka') ?? 'man'; if (!/^(man|kvinna)$/.test(NAMN)) throw Error('--docka tar man eller kvinna.');
-const ROOT = fileURLToPath(new URL('../../../', import.meta.url)), FIL = `avatar-auto-pipeline/assets/docka/standarddocka_${NAMN}.glb`;
+if (arg('--fil') && process.argv.includes('--skriv')) throw Error('--skriv skriver bara de modeller som används: utan --fil.');
+const ROOT = fileURLToPath(new URL('../../../', import.meta.url)), FIL = arg('--fil') ?? `avatar-auto-pipeline/assets/docka/standarddocka_${NAMN}.glb`;
 const mm = (m: number) => Math.round(m * 10000) / 10, r4 = (v: Vec3): Vec3 => v.map(x => Math.round(x * 10000) / 10000 || 0) as Vec3, grad = (r: number) => Math.round(r * 1800 / Math.PI) / 10, rad = (d: number) => d * Math.PI / 180;
 
 // ---- måtten ---------------------------------------------------------------------------------------------------------
@@ -240,10 +243,11 @@ for (const [vad, S, at, sign] of [['ankaret höger', hand.right, hand.at.right, 
 const rad1 = (t: (typeof tal)[number]) => `${t.isarCm} cm från mitten, ${t.framomCm} cm framför brickan, ${t.inat}° inåt, lutad ${t.lutad}°, ${t.krok} krok, kortplatserna D.C1-3 ${t.kortMm.join('/')} mm, skon ${t.skoMm} mm (negativt: över); armbågen ${t.utCm} cm ut, överarmen ${t.overarm}° från lodrät, böjd ${t.boj}°, handleden ${t.handled}° från underarmen, underarmen ${t.luftMm} mm över filten, handflatan ${t.palmMm} och fingrarna ${t.fingrarMm} mm över filten`;
 console.log(`VILAN vid axlarna ${place.shoulderHeight} m över filten, ${SITS.bakom} m bakom spelets kant, bordets kant ${bord.kantBak} m bakom den: höger ${rad1(tal[0])}; vänster ${rad1(tal[1])}; hjässan på rad ${hjassanRad} av 1174 i spelets bild; magen ${Math.round(mageLuft * 1000)} mm från kanten; låren ${Math.round(larLuft * 1000)} mm under sargen${larLuft < 0 ? ' (GENOM sargen)' : ''}`);
 
+const json = (x: unknown) => JSON.stringify(x).replace(/"([A-Za-z_][A-Za-z0-9_]*)":/g, '$1:').replace(/"/g, "'");
+if (arg('--fil')) console.log(`DOCKAN (${FIL}) i doll.ts form: ${json({...doll, name: path.basename(FIL, '.glb').replace(/^standarddocka_/, '')})}`);
 if (process.argv.includes('--skriv')) {
   if (arg('--hojd')) throw Error('--skriv tar höjden ur SITS (docka-standard.ts), inte ur --hojd: ändra talet där.');
   const FIL_DOLL = path.join(ROOT, 'blackjack-dealer/dealer3d/src/doll.ts'), text = readFileSync(FIL_DOLL, 'utf8'), KONST = NAMN.toUpperCase();
-  const json = (x: unknown) => JSON.stringify(x).replace(/"([A-Za-z_][A-Za-z0-9_]*)":/g, '$1:').replace(/"/g, "'");
   const block = `// <docka ${NAMN}>\n/** Standarddockans ${NAMN === 'man' ? 'man' : 'kvinna'}, mätt på modellen; skriven av dealer3d/tools/docka-standard.ts --docka ${NAMN} --skriv (ändra den inte för hand). */\nexport const ${KONST}: Doll = ${json(doll)};\n// </docka ${NAMN}>\n`;
   const start = text.indexOf(`// <docka ${NAMN}>`), slut = text.indexOf(`// </docka ${NAMN}>`);
   const ny = start >= 0 && slut > start ? text.slice(0, start) + block + text.slice(slut + `// </docka ${NAMN}>\n`.length) : text.replace('\nexport const DOLLS', `\n${block}\nexport const DOLLS`);

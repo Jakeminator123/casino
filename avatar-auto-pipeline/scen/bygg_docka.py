@@ -7,13 +7,16 @@ Bygger två grunddockor med 100 % identiskt skelett/bennamn så alla rörelser k
 kön och längd (MATT nedan: längderna, armarnas tjocklek, händerna och fötterna mot ANSUR II):
   - standarddocka_kvinna.blend / .glb (1,65 m)
   - standarddocka_man.blend / .glb (1,75 m)
-Med --namn N skrivs standarddocka_<kön>_N.blend/.glb och docka-rapport-<kön>_N.json i stället, så att de modeller som
+och på samma sätt två män med mått mätta på dealrar i en film (MATT danilo och frasse: mannens kropp med de mätta
+axlarna, halsen och huvudet), med --kon danilo eller frasse:
+  - standarddocka_danilo.blend / .glb, standarddocka_frasse.blend / .glb
+Med --namn N skrivs standarddocka_<docka>_N.blend/.glb och docka-rapport-<docka>_N.json i stället, så att de modeller som
 används inte skrivs över medan en ny prövas. En docka per körning av bygg_en: allt från den förra (också dess vila
 sitt_vila) tas bort först, så att varje fil bara har sin egen.
 
 Kräver MPFB2 som Blender-tillägg i användarprofilen (bl_ext.user_default.mpfb).
 Kör (utan --factory-startup, annars laddas inte tillägget):
-    blender -b --python-exit-code 1 --python scen/bygg_docka.py [-- --kon kvinna|man|bada] [--namn N]
+    blender -b --python-exit-code 1 --python scen/bygg_docka.py [-- --kon kvinna|man|bada|danilo|frasse] [--namn N]
 """
 import argparse, gzip, json, math, os, re, sys, time
 from pathlib import Path
@@ -105,6 +108,29 @@ MATT = {
                         'akromion-radiale 315,5, radiale-stylion 244,1, biakromial 368,0, hand 182,4, fot 248,8 mm; armarnas '
                         'omkrets avslappnad 255/150/285 mm (underarm/handled/överarm); MPFB:s egen bål, ben och huvud behålls'},
 }
+# Danilo och Frasse (Jakob 2026-11-27): två dealrar ur en film, byggda som mannen med det som gick att mäta på dem genom
+# kameran (live-bj/data/uppsattning.json, dealer.kameran.body och dealer.bordet.body): axellederna isär (sw) och hakan till
+# hjässan (huvud_h, skattad: ansiktets höjd och en fjärdedel för skallen). Bara måtten: ansiktet är dockans eget, och inget
+# av deras utseende byggs in. Halsen är mannens (haka None: hakan lika högt över axellederna som hos honom), inte filmens:
+# hakan över axellinjen mättes på en sittande dealer genom en kamera som ser 18 grader nedåt, med händerna på bordet,
+# axlarna lyfta och huvudet framåt, så den är hållning och synvinkel och hör hemma i rörelsen (dockans huvud och axlar
+# ställs per ruta); byggd ur filmen (6,3 och 8,9 cm mot hans 13,3) såg båda ut att sakna hals. Allt annat är mannens: kroppen
+# börjar som hans (grund: samma makron och samma MPFB-kropp för hans längd), och armarna, händerna, fötterna, benen, bålen
+# och armarnas tjocklek passas till hans mått, så att rörelserna passar. Huvudets bredd är hans i samma förhållande som
+# höjden (huvud_b None; huvud_h tar höjden och djupet lika), så att ansiktet bara blir större eller mindre. Midjan och
+# höften syntes inte (bordet): hans, och Danilos lite smalare (Jakob: "yngre och smalare"): `som_grund` är målet som en
+# andel av måttet på grundens kropp före passningen. Längden (langd None) följer av delarna: höftleden och bålen som
+# mannens, halsen och huvudet som de mättes. Ögonen över axellinjen mättes också (Danilo 0,191, Frasse 0,204 m) men
+# passas inte: de följer av hakan och dockans eget ansikte, och rapporten skriver var de hamnade (ogon).
+_MANNENS = {k: MATT['man']['passa'][k] for k in ('ua', 'fa', 'hand', 'fot', 'fa_omkr', 'handled_omkr', 'ua_omkr', 'hoft_h', 'kna_h', 'ht')}
+MATT['danilo'] = {'grund': 'man', 'langd': None, 'passa': {**_MANNENS, 'sw': 0.357, 'haka': None, 'huvud_h': 0.228, 'huvud_b': None,
+                                                            'midja_omkr': None, 'hoft_omkr': None},
+                  'som_grund': {'midja_omkr': 0.96, 'hoft_omkr': 0.97},
+                  'kalla': 'filmen (live-bj, dealer.kameran.body): axellederna 0,357 m isär, hakan till hjässan 0,228 m (skattad); '
+                           'halsen mannens (filmens är hållning); midja och höft dolda: mannens, 4 och 3 % smalare; resten mannens'}
+MATT['frasse'] = {'grund': 'man', 'langd': None, 'passa': {**_MANNENS, 'sw': 0.348, 'haka': None, 'huvud_h': 0.210, 'huvud_b': None},
+                  'kalla': 'filmen (live-bj, dealer.bordet.body): axellederna 0,348 m isär, hakan till hjässan 0,210 m (skattad); '
+                           'halsen mannens (filmens är hållning); midja och höft dolda: mannens; resten mannens'}
 PASS_TGT = {  # måttet -> MPFB-targets (utan -incr/-decr), höger och vänster med samma vikt
     'hand': ['hands/r-hand-scale', 'hands/l-hand-scale'],
     'fot': ['feet/r-foot-scale-depth', 'feet/l-foot-scale-depth'],
@@ -121,6 +147,12 @@ PASS_TGT = {  # måttet -> MPFB-targets (utan -incr/-decr), höger och vänster 
     'ht': ['torso/measure-napetowaist-dist'],
     'hals': ['neck/measure-neck-height'],
     'huvud_b': ['head/head-scale-horiz'],
+    # Danilo och Frasse: hakan över axellinjen med halsens längd, som mannens hals; huvudets höjd och djup lika (bredden är
+    # huvud_b; höjden skalas kring ögonen, så hakan flyttas också), midjan och höften med MPFB:s måttband
+    'haka': ['neck/measure-neck-height'],
+    'huvud_h': ['head/head-scale-vert', 'head/head-scale-depth'],
+    'midja_omkr': ['torso/measure-waist-circ'],
+    'hoft_omkr': ['torso/measure-hips-circ'],
 }
 # Vridbenen: två per underarm, barn till underarmens ben och liggande längs det, vid en tredjedel och två tredjedelar av
 # dess längd. Underarmens vikt delas mellan ForeArm, ForeArmTwist1 och ForeArmTwist2 efter hörnets läge längs underarmen
@@ -246,6 +278,13 @@ def _omkrets(co, kanter, a, b, t, radie=0.075):
     pts = pts[np.linalg.norm(pts - p, axis=1) < radie]
     u = np.cross(d, [0, 0, 1.0]); u /= np.linalg.norm(u); w = np.cross(d, u)
     return _hull_omkrets(np.c_[(pts - p) @ u, (pts - p) @ w])
+
+
+def _vagrat_omkrets(co, kanter, z, bredd=0.25):
+    """Hudens omkrets i det vågräta planet på höjden z (bålen: inom `bredd` från mittlinjen, armarna utanför)."""
+    sa, sb = co[kanter[:, 0], 2] - z, co[kanter[:, 1], 2] - z; m = sa * sb < 0
+    f = sa[m] / (sa[m] - sb[m]); pts = co[kanter[m, 0]] + f[:, None] * (co[kanter[m, 1]] - co[kanter[m, 0]])
+    return _hull_omkrets(pts[np.abs(pts[:, 0]) < bredd][:, :2])
 
 
 def _vridben_vikter(body, rig):
@@ -468,9 +507,10 @@ def bygg_en(kon: str, suffix: str = ''):
     _rensa()
     sc = bpy.context.scene
     col = coll('standarddocka')
-    is_man = (kon == 'man')
+    grund = MATT[kon].get('grund', kon)  # kroppen dockan börjar som (Danilo och Frasse: mannens)
+    is_man = (grund == 'man')
     namn = f'{kon}_{suffix}' if suffix else kon
-    LANGD = MATT[kon]['langd']
+    LANGD = MATT[kon]['langd']  # None: längden följer av delarna (Danilo och Frasse)
 
     # ---------------------------------------------------------------- 1. kropp + måttpassning + skelett
     macro = TargetService.get_default_macro_info_dict()
@@ -482,7 +522,7 @@ def bygg_en(kon: str, suffix: str = ''):
         'proportions': 0.5,
         'height': 0.5,
     })
-    body, mpfb_height = _naturlig_kropp(macro, LANGD)
+    body, mpfb_height = _naturlig_kropp(macro, MATT[grund]['langd'])
 
     def _koord():
         me = body.data; n = len(me.vertices); base = np.empty(n * 3); me.vertices.foreach_get('co', base); co = base.reshape(n, 3).copy()
@@ -522,6 +562,15 @@ def bygg_en(kon: str, suffix: str = ''):
         m['ua_omkr'] = _omkrets(co, kanter, rs, re_, 0.5)
         eye = (c('joint-r-eye') + c('joint-l-eye')) / 2; huv = kropp[kropp[:, 2] > eye[2] + 0.01]
         m['huvud_b'] = max(float(b[:, 0].max() - b[:, 0].min()) for b in (huv[np.abs(huv[:, 2] - z) < 0.004] for z in np.arange(eye[2] + 0.01, kropp[:, 2].max() - 0.02, 0.004)) if len(b))
+        # hakan: hudens lägsta punkt på mittlinjen under munnen, högst 2 cm bakom ögonens mitt (längre bak går hakans
+        # undersida över i halsen); över axelledernas linje, och till hjässan
+        axl = (rs + ls)[2] / 2
+        mitt = kropp[(np.abs(kropp[:, 0]) < 0.003) & (kropp[:, 1] < eye[1] + 0.02) & (kropp[:, 2] > eye[2] - 0.16) & (kropp[:, 2] < eye[2] - 0.07)]
+        m['haka'] = mitt[:, 2].min() - axl; m['ogon'] = eye[2] - axl; m['huvud_h'] = kropp[:, 2].max() - mitt[:, 2].min()
+        # midjan (där bålen är smalast) och höften (4 cm under höftlederna, över sätet) som ett måttband i vågräta snitt,
+        # armarna utanför (längre ned växer måttbandet kring båda låren, som går isär)
+        m['midja_omkr'] = min(_vagrat_omkrets(co, kanter, z) for z in np.arange(hip[2] + 0.10, hip[2] + 0.255, 0.01))
+        m['hoft_omkr'] = _vagrat_omkrets(co, kanter, hip[2] - 0.04)
         return {k: float(v) for k, v in m.items()}
 
     # Passningen: varje mått har sina targets med en vikt (incr eller decr). Måtten rör varandra (handleden följer
@@ -533,6 +582,14 @@ def bygg_en(kon: str, suffix: str = ''):
     m0 = matt(); eff = {}
     if 'hals' in PASS and PASS['hals'] is None:  # halsen tar det benen och bålen lämnar, så att huvudet behåller sin storlek
         PASS['hals'] = LANGD - PASS['hoft_h'] - PASS['ht'] - m0['huvud'] * LANGD / m0['H']
+    grund_m = {k: v * MATT[grund]['langd'] / m0['H'] for k, v in m0.items()}  # grundens kropp före passningen, i meter
+    for k, andel in MATT[kon].get('som_grund', {}).items():
+        PASS[k] = grund_m[k] * andel
+    if PASS.get('haka', 0) is None:  # mannens haka: där hans hals (hans regel ovan, med hans längd) ställer den
+        L = MATT[grund]['langd']; hals = L - PASS['hoft_h'] - PASS['ht'] - m0['huvud'] * L / m0['H']
+        PASS['haka'] = grund_m['haka'] + hals - grund_m['hals']  # (halsens längd flyttar huvudet helt, hakan med det)
+    if PASS.get('huvud_b', 0) is None:  # grundens huvudbredd i samma förhållande som höjden
+        PASS['huvud_b'] = MATT[grund]['passa']['huvud_b'] * PASS['huvud_h'] / grund_m['huvud_h']
     for k in nycklar:
         for d in ('incr', 'decr'):
             sks = [TargetService.load_target(body, str(tdir / f'{t}-{d}.target.gz'), weight=1.0, name=f'fit-{k}-{i}-{d}')
@@ -540,7 +597,8 @@ def bygg_en(kon: str, suffix: str = ''):
             m = matt(); eff[(k, d)] = {j: m[j] - m0[j] for j in nycklar + ['H']}
             for sk in sks:
                 sk.value = 0.0
-    riktning = {k: 'incr' if (PASS[k] * m0['H'] / LANGD - m0[k]) * eff[(k, 'incr')][k] >= 0 else 'decr' for k in nycklar}
+    # (riktningen ur målet och grundens kropp skalad till grundens längd; den egna längden kommer av passningen)
+    riktning = {k: 'incr' if (PASS[k] - grund_m[k]) * eff[(k, 'incr')][k] >= 0 else 'decr' for k in nycklar}
 
     def satt(w):
         for k in nycklar:
@@ -548,16 +606,28 @@ def bygg_en(kon: str, suffix: str = ''):
                 for d in ('incr', 'decr'):
                     body.data.shape_keys.key_blocks[f'fit-{k}-{i}-{d}'].value = w[k] if d == riktning[k] else 0.0
 
+    # Följer längden av delarna (langd None: höftleden, bålen, hakan och huvudet passas alla, och de är tillsammans hela
+    # höjden) passas måtten i stället i meter med grundens skala s0, F_j = m_j x s0 - mål_j: med längden som villkor
+    # också vore ett av villkoren detsamma som de andra (summan av de fyra delarnas F är alltid 0).
+    fast = MATT[kon]['langd'] is None; s0 = MATT[grund]['langd'] / m0['H']
+
     def jacobi():
+        if fast:
+            return np.array([[s0 * eff[(k, riktning[k])][j] for k in nycklar] for j in nycklar])
         return np.array([[LANGD * eff[(k, riktning[k])][j] - PASS[j] * eff[(k, riktning[k])]['H'] for k in nycklar] for j in nycklar])
 
     w = {k: 0.0 for k in nycklar}; J = jacobi(); fel = None
-    for varv in range(12):
+    for varv in range(12 if not fast else 20):
         satt(w); m1 = matt()
-        F = np.array([m1[j] * LANGD - PASS[j] * m1['H'] for j in nycklar])
-        fel = {j: round(float(F[i] / m1['H']) * 1000, 2) for i, j in enumerate(nycklar)}  # mm efter skalningen
-        if np.abs(F).max() / m1['H'] < 2e-4:
-            break
+        if fast:
+            F = np.array([m1[j] * s0 - PASS[j] for j in nycklar]); fel = {j: round(float(F[i]) * 1000, 2) for i, j in enumerate(nycklar)}
+            if np.abs(F).max() < 2e-4:
+                break
+        else:
+            F = np.array([m1[j] * LANGD - PASS[j] * m1['H'] for j in nycklar])
+            fel = {j: round(float(F[i] / m1['H']) * 1000, 2) for i, j in enumerate(nycklar)}  # mm efter skalningen
+            if np.abs(F).max() / m1['H'] < 2e-4:
+                break
         dw = np.linalg.solve(J, -F); vand = False
         for i, k in enumerate(nycklar):
             nw = w[k] + float(dw[i])
@@ -568,8 +638,8 @@ def bygg_en(kon: str, suffix: str = ''):
             J = jacobi()
     satt(w); m1 = matt()
     vikter = {f'{t}-{riktning[k]}': round(w[k], 3) for k in nycklar for t in PASS_TGT[k]}
-    sk_m = LANGD / float(m1['H'])
-    print(f'MPFB EGEN ({namn})', {k: round(v * LANGD / m0['H'], 4) for k, v in m0.items()},
+    sk_m = s0 if fast else LANGD / float(m1['H'])
+    print(f'MPFB EGEN ({namn})', {k: round(v, 4) for k, v in grund_m.items()},
           '-> PASSAD', {k: round(v * sk_m, 4) for k, v in m1.items()}, 'FEL mm', fel, vikter)
 
     rig = HumanService.add_builtin_rig(body, 'mixamo')
@@ -580,7 +650,7 @@ def bygg_en(kon: str, suffix: str = ''):
         col.objects.link(o)
     body.name = 'docka_kropp'; rig.name = 'docka_rigg'; rig.data.name = 'docka_rigg'
     rig['standarddocka'] = True
-    rig['kon'] = kon
+    rig['kon'] = 'man' if is_man else 'kvinna'
 
     # Spara MakeHuman-vertexindex före MASK så både ansiktsvikter och blendshapes träffar exakt rätt
     mh_attr = body.data.attributes.new('mh_idx', 'INT', 'POINT')
@@ -655,7 +725,7 @@ def bygg_en(kon: str, suffix: str = ''):
     def head_pos(n):
         return rig.matrix_world @ rig.data.bones[n].head_local
 
-    s = LANGD / float(m1['H'])
+    s = sk_m
     bpy.ops.object.select_all(action='DESELECT')
     for o in (rig, body):
         o.select_set(True)
@@ -896,7 +966,7 @@ def bygg_en(kon: str, suffix: str = ''):
                        'lutning_som_behovs_grader': behov}
         rack[nm] = rad
     rapport = {
-        'kon': kon,
+        'kon': kon, 'grund': grund,
         'kalla': 'MPFB 2.0.18 (CC0-tillgångar) + mixamo-skelett + 16 ansiktsben + 4 vridben + ARKit-shapekeys + ansiktet (ANSIKTE), bygg_docka.py',
         'mpfb_height': mpfb_height, 'passat_mot': {k: round(v, 4) for k, v in PASS.items()},'kalla_matten': MATT[kon]['kalla'],
         'passat_blev': {k: round(v * sk_m, 4) for k, v in m1.items()}, 'passning_fel_mm': fel,
@@ -945,8 +1015,9 @@ def bygg_en(kon: str, suffix: str = ''):
 
 
 ap = argparse.ArgumentParser()
-ap.add_argument('--kon', choices=['kvinna', 'man', 'bada'], default='bada')
-ap.add_argument('--namn', default='', help='skriver standarddocka_<kön>_<namn>.blend/.glb (och rapporten med samma namn) i stället '
+ap.add_argument('--kon', choices=['kvinna', 'man', 'bada', 'danilo', 'frasse'], default='bada',
+                help='dockan; bada: kvinnan och mannen (Danilo och Frasse byggs var för sig)')
+ap.add_argument('--namn', default='', help='skriver standarddocka_<docka>_<namn>.blend/.glb (och rapporten med samma namn) i stället '
                                           'för de modeller som används; små bokstäver, siffror och understreck')
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 if args.namn and not re.fullmatch(r'[a-z0-9_]+', args.namn):

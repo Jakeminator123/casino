@@ -243,6 +243,18 @@ Måtten är en människas för kön och längd: MPFB:s egen kropp för könet oc
 
 Passningen sker med MPFB-targets, alla mått tillsammans (de rör varandra, och allt följer skalningen till längden): armarnas längd (`arms/measure-upperarm-length`, `measure-lowerarm-length`), armarnas tjocklek (underarmens tvärsnitt med `arms/*-lowerarm-scale-depth` och `-scale-vert`, handleden med `hands/measure-wrist-circ`, överarmen med `arms/measure-upperarm-circ`; `-scale-horiz` förlänger underarmen och används inte), händerna och fötterna, kvinnans axlar (`torso/measure-shoulder-dist`), och mannens ben (`legs/measure-upperleg-height`, `measure-lowerleg-height`), bål (`torso/measure-napetowaist-dist`), hals (`neck/measure-neck-height`, som tar det benen lämnar så att huvudet behåller sin storlek) och huvudets bredd (`head/head-scale-horiz`). Omkretsen mäts som ett måttband (konvext hölje) i ett snitt genom huden vinkelrätt mot benet.
 
+**Danilo och Frasse** (`standarddocka_danilo` och `standarddocka_frasse`, `--kon danilo|frasse`) är två män med mått mätta
+på dealrar i en film (`live-bj/data/uppsattning.json`, `dealer.kameran.body` och `dealer.bordet.body`), med samma skelett,
+ansiktsformer och ansikte (7.8) som standarddockorna. Bara måtten följer med, inget av personernas utseende. Kroppen börjar
+som mannens och får hans armar, händer, fötter, ben, bål och hals (därför samma rörelser), och det som mättes: axellederna
+isär 0,357 / 0,348 m (`torso/measure-shoulder-dist`) och hakan till hjässan 0,228 / 0,210 m, skattad (`head/head-scale-vert`
+och `-scale-depth` lika, bredden med `head/head-scale-horiz` i samma förhållande, så att ansiktet bara blir mindre). Halsen
+är mannens (hakan 0,133 m över axelledernas linje, `neck/measure-neck-height`), inte filmens 0,063 / 0,089 m: den mättes på
+en sittande dealer genom en kamera som ser 18 grader nedåt, med händerna på bordet, axlarna lyfta och huvudet framåt, så den
+är hållning och synvinkel och hör hemma i rörelsen (dockans huvud och axlar ställs per ruta); byggda så såg båda ut att sakna
+hals. Midjan och höften syntes inte: mannens, Danilos 4 och 3 % smalare (`torso/measure-waist-circ`, `measure-hips-circ`).
+Längden följer av delarna (1,747 / 1,729 m), och måtten passas i meter med mannens skala.
+
 Kläder finns inte på grunddockan (naken mesh för QC). Se avsnitt 10.
 
 ---
