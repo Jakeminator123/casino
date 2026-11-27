@@ -43,8 +43,12 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   kortet försvinner in i näven på en ruta (31→32; dealerns syns lutande i handen till ruta 33), det står som ett blad
   på 100 bildpunkter över handen i vändningen (36–38; dealerns är en strimma på 30), handen öppnar sig på väg hem där
   dealern håller en lös näve till ruta 65, och kortet står rakt upp i bytet där dealerns lutar. Frasses giv till
-  plats 4 har samma fel i ruta 22. Tionde vändan pågår. Dockans huvud är cirka 12 % smalare än dealerns och nickar
-  mindre.
+  plats 4 har samma fel i ruta 22. Tionde och elfte vändan rättade lutningen, den lösa näven hem och vändningen (lågt
+  under handen kring kortets långkant, tummen ned först när kortet ligger plant; tiden stämmer med dealerns). Nionde
+  domen: **Inte bra**, fortfarande inget skäl för en film: kortet ligger bredvid handen i ruta 31–33 och hoppar
+  sedan 145 mm in under näven på en ruta, och vilan i ruta 0 blev en näve där dealerns hand ligger platt. Domaren
+  föreslog en spärr i `lyft-kolla.ts` som prövar att kortet följer den hållande handen från bytet till att det ligger
+  plant. Tolfte vändan pågår. Dockans huvud är cirka 12 % smalare än dealerns och nickar mindre.
 - **Visningsfilmen** (för Jakobs chef): provet `visning-for-chefen-20261127` (67 s, den riktiga dealern syns bara som
   mätt streckfigur), och en version med Youtubefilmen som bara ligger på datorn
   (`../live-bj/rutor/visning/visning-med-youtubefilmen.mp4`). Inte dömd av någon domare.
@@ -110,12 +114,17 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
     - **Domarens första dom: Inte bra** (domarens ord, inte Jakobs), på tre saker: kortet satt inte i en hand genom
       bytet, vårt ritade kort låg över fingrarna med flagor av filmmodellens kort, och takten hackade (klippen i 24
       bilder/s var omlagda till 30 genom att var femte ruta upprepades).
-    - **Rättat i efterarbetet, gratis:** filmen går i klippens egna rutor (24 bilder/s, inga upprepade); vårt kort
-      ritas där filmens kort är också när det är suddigt av farten; ett finger över kortet hör till handen så mycket
-      som bildpunkten är hud; resterna av filmmodellens kort tas bort. Domaren dömer om filmen.
-    - **Kvar, och bara rättbart i rörelsen och med ett nytt klipp:** bytet (dockan låter kortet gå från stående till
-      dolt på två rutor, och Kling ritar då ett kort som står ensamt och flyger in i näven), handen som öppnar sig på
-      en ruta på väg hem, en för hårt knuten näve på det lagda kortet (bildtexten sa "closed fist"), och blicken.
+    - **Rättat i efterarbetet, gratis, och dömt om tre gånger (Inte bra varje gång):** filmen går i klippens egna
+      rutor (24 bilder/s, inga upprepade); vårt kort följer filmens kort på vägen till platsen (dolt i näven, framsidan
+      upp när det läggs); manschetten och ansiktets kanter är hela. Det som inte gick att få rent är kortet i farten,
+      ur skon till bytet: handen och det gula spårkortet är där utsmetade i varandra. Utskuret blev vårt kort prickigt
+      med hål, och omfärgat en laxrosa klump utan mönster. Provet visar den sista versionen, med domarens ord om den.
+    - **Slutsatsen om kortet:** nästa film görs med kortets rygg röd med vit kant redan i dockans film och i
+      ankarbilderna (`ny_dealer.py --ankarklipp --rygg rod`), så att filmmodellen ritar ryggen själv, också i farten,
+      och efterarbetet bara ritar framsidan när kortet ligger (`lagg-pa-bord.ts --rygg-ur-filmen`).
+    - **Kvar, och bara rättbart i rörelsen och med nya klipp:** bytet (Kling ritade ett kort som står ensamt och
+      flyger in i näven, som dockan), handen som öppnar sig på en ruta på väg hem, en hårt knuten näve på det lagda
+      kortet (dockans fingrar var knutna), och blicken som inte går till skon.
 - **Efterarbetet är två verktyg** i `../standarddocka/verktyg/`: `i-dockans-takt.ts` parar varje stillbild med sin
   filmruta och läser filmen i Danilos takt med hela rutor (för filmer gjorda mellan stillbilder utan referensfilm;
   valet `--oskarpa`, som blandar filmrutor, gav dubbla fingrar och en rand runt axlarna och används inte), och
@@ -150,15 +159,16 @@ I den här ordningen om han inte säger annat.
 1. **Bytet i rörelsen, och sedan nya klipp av Kenjis giv.** Sättet är funnet och prövat (Kenjis fjärde omgång, se
    Läget): fyra ankarbilder och tre klipp i Kling 4 med dockans film av varje steg som referensfilm, och efterarbetet i
    `ny_dealer.py --ankarklipp --steg 7`. Kling kopierar dockan till 96–98 %, så det som är kvar rättas i dockan först:
-   - **Bytet (dockans ruta 28–35):** kortet ska synas i en hand eller mellan händerna i varje ruta, taget av högern
-     lågt vid filten som hos dealern, inte gå från stående till dolt på två rutor. Samma arbetssätt som förut: dockan
-     bredvid källfilmen i tre gångers förstoring för varje ruta, regeln bakom det som skiljer rättas i
-     `dealer3d/tools/lyft-till-docka.ts`, och en domare som inte har gjort ändringen mäter i bildpunkter.
-   - **Handen hem** öppnar sig över flera rutor (58–63), och handen på det lagda kortet är löst böjd, inte knuten.
-   - **Bildtexterna:** näven beskrivs som lös ("closed fist" gav en hårt knuten), och blicken läggs på skon i A2.3
-     och på kortet i de andra ankarna.
-   - Sedan, betalt och med skäl: de ankarbilder vars ställning har ändrats (8 krediter styck) och klippen som går
-     till eller från dem (68 styck); hela given igen är 238. Efterarbetet är gratis och gör filmen på minuter.
+   - **Bytet (dockans ruta 28–35):** kortet ska ligga i en hand i varje ruta och följa den in i näven, som hos
+     dealern, inte ligga bredvid och hoppa in under den. Samma arbetssätt som förut: dockan bredvid källfilmen i tre
+     gångers förstoring för varje ruta, regeln bakom det som skiljer rättas i `dealer3d/tools/lyft-till-docka.ts`,
+     och en domare som inte har gjort ändringen mäter i bildpunkter. Domaren avgör när en film har ett skäl (läget
+     efter nionde domen står i Läget).
+   - **Vilan vid skon (ruta 0)** är en platt hand och hemvägen en lös näve; handen på det lagda kortet är löst böjd.
+   - **Bildtexterna** följer dockan: en löst böjd hand heter inte "closed fist", och blicken läggs på skon i A2.3
+     och på kortet i de andra ankarna (gjort i `ny_dealer.py`).
+   - Sedan, betalt och med skäl: en hel ny omgång med röd kortrygg, 238 krediter (fyra ankarbilder 34 och tre klipp
+     204). Efterarbetet är gratis och gör filmen på minuter.
    - **Dockans kropp.** Lederna är dealerns, men bålens och armarnas volym är kroppsgeneratorns egen, så dockan är
      tjockare än Danilo (Jakob: "den tjocka dockan ... känns riktigt klumpig"); volymen ska komma ur filmen eller
      personens bilder (SAM 3D Body ger kroppsformen). Filten kan få filmens ton senare.
@@ -198,9 +208,12 @@ I den här ordningen om han inte säger annat.
 
 ## Väntar på Jakob
 
-- **Kenjis film** (provet `kenji-ny-dealer-ur-bilder-20261127`, kortet `kenji-ger-ett-kort` i Beslut), och provet
-  `efter-nja-eget-kort-och-takt-20261127` (filmen av Tomasz som han dömde, med vårt eget kort och i dockans takt;
-  inte dömt av någon domare).
+- **Kenjis filmer:** provet `kenji-ny-dealer-ur-bilder-20261127` (de tre första omgångerna; hans dom Inte bra, kortet
+  `kenji-ger-ett-kort` i Beslut besvarat nej) och provet `kenji-tre-klipp-mellan-ankarbilder-20261127` (fjärde
+  omgången, det nya sättet). Den nya filmen har domaren fällt och den går tillbaka, så den väntar inte på hans dom;
+  den visar var sättet står, och syns bredvid källfilmen i Spegla som "Kenji 01". Provet
+  `efter-nja-eget-kort-och-takt-20261127` (filmen av Tomasz som han dömde, med vårt eget kort och i dockans takt) är
+  inte dömt av någon domare.
 - **Meshy och RunPod.** På frågan om andra betalda tjänster kryssade han OpenAI, Meshy, RunPod och "inga av dem".
   OpenAI används för den externa domaren; Meshy och RunPod används inte förrän han har sagt vilket som gäller. Han
   frågade samma dag om tunga jobb kan köras på hans RunPod: det går för vårt eget material
