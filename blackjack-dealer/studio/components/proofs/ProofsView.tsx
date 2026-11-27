@@ -18,6 +18,7 @@ import { ProofGrid } from "./ProofGrid";
 import { ProofRoom } from "./ProofRoom";
 import { useProofNotes } from "./NoteBar";
 import { useNamedTakes } from "./ProofTakes";
+import { useDecisions } from "../decisions/useDecisions";
 
 type State = { status: "loading" } | { status: "ready"; proofs: Proof[] } | { status: "error"; error: ApiError };
 
@@ -28,6 +29,7 @@ export function ProofsView() {
   const [state, setState] = useState<State>({ status: "loading" });
   const named = useNamedTakes();
   const notes = useProofNotes();
+  const decisions = useDecisions();
 
   const read = useCallback(async () => {
     try {
@@ -73,7 +75,7 @@ export function ProofsView() {
   if (!id)
     return (
       <GranskaFrame part="prov" status={`${state.proofs.length} prov`}>
-        {state.proofs.length ? <ProofGrid proofs={state.proofs} named={named} notes={notes.notes} /> : <EmptyState title="Inga prov ännu">Prov läggs under assets/proofs/.</EmptyState>}
+        {state.proofs.length ? <ProofGrid proofs={state.proofs} named={named} notes={notes.notes} cards={decisions.answer?.decisions ?? []} onRemoved={() => void read()} /> : <EmptyState title="Inga prov ännu">Prov läggs under assets/proofs/.</EmptyState>}
       </GranskaFrame>
     );
 

@@ -9,21 +9,23 @@ import {ROOM_EDGE, loadTable, roomLight, seatStool, type RoomTable} from '../../
 import {spots, type Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
 import {FILM, PLAY_LENS, TABLE_LENS, filmEye, fovYDeg, seatView} from '../../blackjack-dealer/src/table-lens.ts';
 import {LIVE, LIVE_CAMERA, liveFrame} from '../../blackjack-dealer/src/table-live.ts';
+import {UPPSATTNING, type UppsattningId} from '../../blackjack-dealer/src/uppsattning.ts';
 import {cross, type Frame, type V3} from './rorelse.ts';
 
 /**
- * Uppsättningen: 'standard' är standardens bord, kamera och kortplatser (blackjack-dealer/src/table-lens.ts), 'live' det
- * klonade livebordet (blackjack-dealer/src/table-live.ts LIVE): dess bord (avatar-auto-pipeline/assets/bord/
+ * Uppsättningen (blackjack-dealer/src/uppsattning.ts, listan som allt som väljer läser): 'live' är det klonade livebordet
+ * (blackjack-dealer/src/table-live.ts LIVE), den nya standarden och förvalet: dess bord (avatar-auto-pipeline/assets/bord/
  * standardbord_live.glb), dess kamera (LIVE_CAMERA: rullad, med en egen bild 1728 x 972), dess kortplatser och dess två
- * dockor, Danilo och Frasse. Standardens väg är densamma som innan valet fanns.
+ * dockor, Danilo och Frasse. 'forra' är förra standardens bord, kamera och kortplatser (blackjack-dealer/src/table-lens.ts)
+ * med mannen och kvinnan; dess väg är densamma som innan valet fanns.
  */
-export type Uppsattning = 'standard' | 'live';
+export type Uppsattning = UppsattningId;
 /** Dockorna vid livebordet (dealer3d/src/doll.ts LIVE_DOLLS): de hör till uppsättningen live. */
-export const LIVEDOCKOR = ['danilo', 'frasse'] as const;
-export type Livedocka = typeof LIVEDOCKOR[number];
+export type Livedocka = 'danilo' | 'frasse';
+export const LIVEDOCKOR = UPPSATTNING.live.dockor as readonly Livedocka[];
 export const arLivedocka = (namn: string | null | undefined): namn is Livedocka => (LIVEDOCKOR as readonly string[]).includes(namn ?? '');
 /** Filmens bild för en uppsättning: standardens (FILM) eller livebordets egen (LIVE_CAMERA.film); inspelningen görs i den. */
-export const filmFor = (u: Uppsattning) => u === 'live' ? LIVE_CAMERA.film : FILM;
+export const filmFor = (u: Uppsattning) => UPPSATTNING[u].bild;
 /**
  * Hur mycket närmare kameran (+z, meter) dealern sitter vid livebordet än standarddockan vid standardens: hans axlar
  * (LIVE.edge och LIVE.dealer.behindEdge) mot mannens (spelets kant och MAN.place.behindEdge). Rummets ljus och kamerorna
@@ -89,7 +91,7 @@ export const kameransPlats = (k: Kamera): number | null => k === 'spel' ? 4 : k.
  * (seatView i blackjack-dealer/src/table-lens.ts): den står till platsens första kort som spelets vy står till plats
  * 4:s, lika högt och lika brant, så att spelarens eget kort hamnar på samma ställe i bilden från varje plats.
  */
-export function kameraVy(k: Exclude<Kamera, 'fri'>, plan: Plan, uppsattning: Uppsattning = 'standard'): {pos: V3; mot: V3; fov: number; upp?: V3} {
+export function kameraVy(k: Exclude<Kamera, 'fri'>, plan: Plan, uppsattning: Uppsattning): {pos: V3; mot: V3; fov: number; upp?: V3} {
   if (uppsattning === 'live') return liveVy(k);
   const z = KANT[2], oga = (e: {position: V3; forward: V3; focalPx: number}) => ({pos: e.position, mot: [e.position[0] + e.forward[0] * 2, e.position[1] + e.forward[1] * 2, e.position[2] + e.forward[2] * 2] as V3, fov: fovYDeg(e.focalPx)});
   // Från hans högra sida: Blenders kamera 'sida' i scen/vy.py, den Jakob har dömt bilder från (ortografisk, bilden 2,5 m
@@ -176,7 +178,7 @@ export type Scen = {
  *  rörelser som mannen utan att något görs om. */
 export type Docka = 'man' | 'kvinna' | Livedocka;
 
-export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: number[], vila: Frame, laddar: (text: string) => void, utseende: Utseende = 'vanligt', docka: Docka = 'man', rorelsensDocka?: string | null, uppsattning: Uppsattning = 'standard'): Promise<Scen> {
+export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: number[], vila: Frame, laddar: (text: string) => void, utseende: Utseende, docka: Docka, rorelsensDocka: string | null | undefined, uppsattning: Uppsattning): Promise<Scen> {
   const nyckel = utseende === 'nyckel', live = uppsattning === 'live', film = filmFor(uppsattning);
   const renderer = new T.WebGLRenderer({canvas, antialias: true}); renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   // Ljuset, bakgrunden, golvet och bildens tonkurva är standardrummets; nyckelfärgerna får en ren bakgrund och inget golv.

@@ -9,6 +9,14 @@ Sökvägar räknas från casino-roten. Läs först `standarddocka/DOMAR.md`: Jak
 2026-11-26: agenterna granskar "småsaker", till exempel att "giv till plats 7 ska få rätt vändningar av kort så att
 fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt görs så det är trovärdigt".
 
+## Vilken uppsättning
+
+Utan ord visar editorn och `titta.ts` livebordet med Danilo: den klonade uppsättningen är den nya standarden
+(`blackjack-dealer/src/uppsattning.ts`). Den här skillen beskriver de ritade givarna vid den förra standardens bord:
+ge `--docka man` (eller `kvinna`) till `titta.ts`, så väljs den förra standarden. Danilos och Frasses lyfta rörelser
+har inget lager och sparas inte; de visas med `--docka danilo|frasse` och `--plats`, `--giv` eller `--sekvens`
+(`standarddocka/README.md`), och felen i dem rättas i lyftet (`blackjack-dealer/dealer3d/tools/lyft-till-docka.ts`).
+
 ## Vad en rörelse är
 
 - **Grundrörelsen** ligger i `blackjack-dealer/dealer3d/data/<namn>.json`: lägen i meter, ruta för ruta (axel, armbåge,
@@ -32,12 +40,13 @@ fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt g�
   sekunder av filmen ändringen tonas in och ut åt varje håll. Ett lager med fel (en felstavad led, en vridning som inte
   har längden 1, en tid utanför rörelsen) används inte: `mat.ts` och editorn säger vad som är fel.
 - **Rutorna** (`….rutor.json`) är hela den ändrade rörelsen och skrivs av editorn. Efter en ändring för hand i lagret
-  skrivs de om med `node standarddocka/verktyg/titta.ts --plats <n> --spara --ut <din mapp>`; skriv dem aldrig själv.
+  skrivs de om med `node standarddocka/verktyg/titta.ts --docka man --plats <n> --spara --ut <din mapp>`; skriv dem
+  aldrig själv.
   `--spara` stannar med ett fel om lagret har fel eller hör till en äldre grundrörelse.
 
 ## Gången
 
-1. **Mät:** `node standarddocka/verktyg/mat.ts --plats <n> [--docka man|kvinna]` (förval mannen, som i editorn). Den
+1. **Mät:** `node standarddocka/verktyg/mat.ts --plats <n> [--docka man|kvinna]` (förval mannen). Den
    prövar varje ruta, också den första och den sista, och slutar med tiderna som är värda att titta på: filmens
    sekunder (det `titta.ts --tider` tar) och bredvid dem tiden i lagret (det en ändring skrivs med). Ingen webbläsare,
    inget lås. Raden SPÄRR säger det som inte får finnas i en rörelse som filmas: ett lager med fel, en giv som inte
@@ -51,7 +60,7 @@ fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt g�
    stegar editorn 60 gånger per sekund och säger om modellens axlar, armbågar eller handleder hoppar från rörelsens
    punkter: det `mat.ts` inte ser, och det Jakob ser som att det "hackar till". Tar det delade låset.
 2. **Titta:** kör
-   `node standarddocka/verktyg/titta.ts --ut slask/standarddocka/granska-p<n> --plats <n> --kamera lag,sida,topp,plats<n> --tider <tiderna>`.
+   `node standarddocka/verktyg/titta.ts --docka man --ut slask/standarddocka/granska-p<n> --plats <n> --kamera lag,sida,topp,plats<n> --tider <tiderna>`.
    Läs bilderna. `lage.json` bär editorns mått vid varje tid, bland annat armarnas luft över bordskanten (`armar`) och
    hur långt kroppens leder ligger från rörelsens punkter (`fingrarFranPunkternaMm`, `armbageFranPunktenMm`). Fingrarna
    och greppet syns bara i närbild: kamerorna `narahoger`, `naravanster` och `narakort` står nära handen eller kortet i

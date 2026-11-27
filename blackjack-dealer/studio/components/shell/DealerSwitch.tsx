@@ -35,7 +35,7 @@ export function DealerSwitch() {
       {doll ? (
         <>
           <span className={LABEL}>Standard</span>
-          <Tooltip content={<span className="flex max-w-64 flex-col gap-0.5"><span>Standarddockan: mannen och kvinnan som alla rörelser görs för.</span><span className="text-dim">Ingen dealer: inga filmer beställs för den. Dockans bild finns i Bordet, Inspelning.</span></span>} side="right">
+          <Tooltip content={<span className="flex max-w-64 flex-col gap-0.5"><span>Standarddockan: mannen och kvinnan som alla rörelser görs för.</span><span className="text-dim">Ingen dealer: inga filmer beställs för den. Dockan finns i Dockan och i Filmverkstaden, Inspelning.</span></span>} side="right">
             <button
               type="button"
               aria-pressed={doll.id === dealer}

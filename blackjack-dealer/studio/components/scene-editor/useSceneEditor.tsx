@@ -351,7 +351,7 @@ export function useSceneEditor(firstLook: () => LookAsk) {
     setSavingCasino(true);
     const lens = current.lins === "bred" ? "Bred lins" : "Standard";
     try {
-      await saveAs(CASINO_PRESET, "Casino", "Casinos sparade visning, vald i Bordet.", presetOf(CASINO_PRESET)?.revision ?? null);
+      await saveAs(CASINO_PRESET, "Casino", "Casinos sparade visning, vald i Filmverkstaden.", presetOf(CASINO_PRESET)?.revision ?? null);
       toast({ tone: "ok", title: "Casino använder den här visningen", detail: `Med ${lens}. Sparat för nästa gång du öppnar Casino; Casinot på nätet får det vid nästa publicering.` });
     } catch (error) {
       toast({ tone: "bad", title: "Casino-valet kunde inte sparas", detail: asApiError(error).message });

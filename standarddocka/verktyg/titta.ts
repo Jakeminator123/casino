@@ -23,10 +23,11 @@
 //                         läggs på; stannar med ett fel om lagret har fel eller hör till en äldre rörelse
 //              [--kulor]  visa handtagen     [--panel]  hela fönstret med panelen     [--storlek 1600x1000]     [--port 4321]
 //              [--utseende nyckel]  rena färger på bakgrund, bord och kort (editor/scen.ts), för film där dealern ska skiljas ut
-//              [--docka kvinna]  kvinnan i stället för mannen (samma rörelse och samma sparade lager)
-//              [--uppsattning live] [--docka danilo|frasse]  det klonade livebordet genom sin egen kamera (spel är
-//                         livebordets, 1728 x 972, och inspelningen görs i den storleken), med Danilo (förval) eller Frasse;
-//                         --docka danilo eller frasse räcker. Platsen väljer dockans lyfta giv dit (lyft-<docka>-p<plats>),
+//              [--docka man|kvinna]  förra standardens bord med mannen eller kvinnan (samma rörelse och samma sparade
+//                         lager); --uppsattning forra räcker för mannen, och --runda och --vilan väljer det bordet själva
+//              [--uppsattning live] [--docka danilo|frasse]  förvalet utan ord: det klonade livebordet genom sin egen kamera
+//                         (spel är livebordets, 1728 x 972, och inspelningen görs i den storleken), med Danilo (förval) eller
+//                         Frasse. Platsen väljer dockans lyfta giv dit (lyft-<docka>-p<plats>),
 //                         --giv lyft-danilo-vantan-1 vilken lyft rörelse som helst; den spelas som den är, från vilan till
 //                         vilan i sin egen takt (editor/editor.ts LIVEBORD). Klippen heter live-<rörelsen>-<del>-<kamera>-<docka>
 //                         (kameran: kameran, sidan, uppifran, plats-N). Inte med --runda eller --vilan.
@@ -65,6 +66,7 @@ import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {chromePath, releaseLock, takeLock} from '../../blackjack-dealer/tools/lab-look.ts';
+import {lasUppsattning, valdUppsattning} from '../../blackjack-dealer/src/uppsattning.ts';
 
 const arg = (name: string, fallback?: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : fallback; };
 const flag = (name: string) => process.argv.includes(name);
@@ -81,11 +83,17 @@ const runda = spelaIn === 'runda' || flag('--runda');
 const rundliv = runda && flag('--liv') ? (/^[a-z,]+$/.test(arg('--liv') ?? '') ? arg('--liv')! : '1') : '';
 if (!spelaIn && !ut && !kor) throw Error('Säg vart bilderna ska: --ut <mapp>, eller --spela-in hela|given|runda|<första>-<sista>, eller --kor "<uttryck>".');
 if (runda && (arg('--giv') || arg('--vilan'))) throw Error('Rundan spelar dockans egna rörelser: den går inte ihop med --giv eller --vilan.');
-/** Dockan och uppsättningen (editorns ?docka= och ?uppsattning=): Danilo och Frasse sitter vid livebordet, som de väljer själva. */
-const docka = arg('--docka', 'man')!, livebord = arg('--uppsattning') === 'live' || docka === 'danilo' || docka === 'frasse';
+/**
+ * Dockan och uppsättningen (editorns ?docka= och ?uppsattning=, blackjack-dealer/src/uppsattning.ts valdUppsattning): --uppsattning
+ * live|forra (standard läses som forra), annars dockans bord (man och kvinna förra standardens, danilo och frasse livebordets),
+ * annars livebordet, förvalet. Hela rundan och en vila på prov (--runda, --spela-in runda, --vilan) finns bara vid förra
+ * standardens bord och väljer det själva. Dockan utan --docka: Danilo vid livebordet, mannen vid förra standardens.
+ */
+if (arg('--uppsattning') !== undefined && !lasUppsattning(arg('--uppsattning'))) throw Error(`--uppsattning tar live (förvalet) eller forra, fick ${arg('--uppsattning')}.`);
+const uppsattning = valdUppsattning(arg('--uppsattning'), arg('--docka') ?? (runda || arg('--vilan') ? 'man' : null)), livebord = uppsattning === 'live';
+const docka = arg('--docka') ?? (livebord ? 'danilo' : 'man');
 if (!['man', 'kvinna', 'danilo', 'frasse'].includes(docka)) throw Error(`--docka tar man, kvinna, danilo eller frasse, fick ${docka}.`);
-if (![undefined, 'standard', 'live'].includes(arg('--uppsattning'))) throw Error(`--uppsattning tar live (eller standard, förvalet), fick ${arg('--uppsattning')}.`);
-if (livebord && (docka === 'man' || docka === 'kvinna') && arg('--docka')) throw Error('Vid livebordet sitter Danilo och Frasse: --docka danilo eller frasse.');
+if (livebord !== (docka === 'danilo' || docka === 'frasse')) throw Error(livebord ? 'Vid livebordet sitter Danilo och Frasse: --docka danilo eller frasse.' : 'Vid förra standardens bord sitter mannen och kvinnan: --docka man eller kvinna.');
 const sekvens = arg('--sekvens');
 if (sekvens !== undefined && (!livebord || !/^[a-z0-9][a-z0-9,-]*$/.test(sekvens) || arg('--giv'))) throw Error('--sekvens tar en lista av lyfta rörelser (vantan-1,p2,p4 eller 1), vid livebordet och utan --giv.');
 if (livebord && (runda || arg('--vilan'))) throw Error('Vid livebordet spelas en lyft rörelse i taget, från vilan till vilan: inte med --runda, --spela-in runda eller --vilan.');
@@ -119,7 +127,7 @@ try {
   const cdp = (method: string, params: object = {}) => new Promise<any>((ok, fel) => { const id = ++nr; väntar.set(id, {ok, fel}); ws!.send(JSON.stringify({id, method, params})); });
   const kör = async (kod: string) => { const r = await cdp('Runtime.evaluate', {expression: kod, awaitPromise: true, returnByValue: true}); if (r.exceptionDetails) throw Error(`${kod.slice(0, 90)}: ${r.exceptionDetails.exception?.description ?? r.exceptionDetails.text}`); return r.result.value; };
   await cdp('Page.enable'); await cdp('Runtime.enable');
-  await cdp('Page.navigate', {url: `http://127.0.0.1:${PORT}/standarddocka/editor/?plats=${plats}&kamera=${kameror[0]}${flag('--kulor') ? '' : '&kulor=0'}${arg('--utseende') === 'nyckel' ? '&utseende=nyckel' : ''}${docka !== 'man' ? `&docka=${docka}` : ''}${livebord ? '&uppsattning=live' : ''}${sekvens ? `&sekvens=${sekvens}` : ''}${arg('--giv') ? `&giv=${arg('--giv')}` : ''}${arg('--vilan') ? `&vilan=${arg('--vilan')}` : ''}${arg('--bord') ? `&bord=${arg('--bord')}` : ''}${arg('--modell') ? `&modell=${arg('--modell')}` : ''}${flag('--utan-vridben') ? '&vridben=0' : ''}${runda ? `&runda=1${spelaIn === 'runda' || flag('--stillhet') ? '&stillhet=1' : ''}${rundliv ? `&liv=${rundliv}&fro=${Number(arg('--fro', '1'))}` : ''}` : ''}`});
+  await cdp('Page.navigate', {url: `http://127.0.0.1:${PORT}/standarddocka/editor/?plats=${plats}&kamera=${kameror[0]}${flag('--kulor') ? '' : '&kulor=0'}${arg('--utseende') === 'nyckel' ? '&utseende=nyckel' : ''}&docka=${docka}&uppsattning=${uppsattning}${sekvens ? `&sekvens=${sekvens}` : ''}${arg('--giv') ? `&giv=${arg('--giv')}` : ''}${arg('--vilan') ? `&vilan=${arg('--vilan')}` : ''}${arg('--bord') ? `&bord=${arg('--bord')}` : ''}${arg('--modell') ? `&modell=${arg('--modell')}` : ''}${flag('--utan-vridben') ? '&vridben=0' : ''}${runda ? `&runda=1${spelaIn === 'runda' || flag('--stillhet') ? '&stillhet=1' : ''}${rundliv ? `&liv=${rundliv}&fro=${Number(arg('--fro', '1'))}` : ''}` : ''}`});
   for (let i = 0; ; i++) { await sleep(500); if (await kör('!!(window.editor && window.editor.ready)').catch(() => false)) break; if (i > 240) throw Error(`Editorn blev inte klar: ${await kör('document.querySelector("#fel").textContent').catch(() => '?')}`); }
   // Spara först, ur filen som den står: farten, de små rörelserna och ändringarna nedan sparas aldrig.
   if (flag('--spara')) console.log(`Sparat: ${JSON.stringify(await kör('window.editor.save()'))}`);

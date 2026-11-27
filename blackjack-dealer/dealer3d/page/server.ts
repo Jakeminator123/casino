@@ -3,7 +3,10 @@
 //   GET /dealer3d/docka                    the page
 //   GET /dealer3d/page/<name>.ts           the page's modules, and
 //   GET /dealer3d/src/<name>.ts            the 3D lane's, and
-//   GET /src/table-lens.ts                 the lens they rest on: each with its types taken off, under its own name (the
+//   GET /src/table-lens.ts                 the lens they rest on, and
+//   GET /src/table-live.ts                 the live table's set-up beside it (doll.ts reads its dolls' places there), and
+//   GET /src/uppsattning.ts                the list of the two set-ups (live and the former), with the play view it reads
+//   GET /src/play-view.ts                  (src/play-view.ts): each with its types taken off, under its own name (the
 //                                          modules name their neighbours with .ts, as Node needs them)
 //   GET /dealer3d/data/<name>.json         a motion of dealer3d/data/
 //   GET /dealer3d/data                     the names of those motions ({names}), so that the page finds the standard
@@ -42,7 +45,8 @@ export function dollLabRoutes(options: {root: string}) {
 
   /** Answers true when the request was the doll lab's. */
   return async function handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
-    const at = url.pathname, lab = at === '/dealer3d/docka' || at === '/dealer3d/plan' || at === '/src/table-lens.ts' || /^\/dealer3d\/(page|src|data|figur)(\/|$)/.test(at);
+    const lens = (p: string) => ['/src/table-lens.ts', '/src/table-live.ts', '/src/uppsattning.ts', '/src/play-view.ts'].includes(p);
+    const at = url.pathname, lab = at === '/dealer3d/docka' || at === '/dealer3d/plan' || lens(at) || /^\/dealer3d\/(page|src|data|figur)(\/|$)/.test(at);
     if (!lab) return false;
     try {
       if (req.method !== 'GET' && req.method !== 'HEAD') { req.resume(); res.writeHead(405, {Allow: 'GET'}).end(); return true; }
@@ -59,7 +63,7 @@ export function dollLabRoutes(options: {root: string}) {
         else if (req.method === 'HEAD') res.writeHead(200, head(s.size)).end();
         else { const model = await readFile(full).catch(() => null); if (!model) send(res, 404, 'text/plain; charset=utf-8', 'Finns inte.'); else res.writeHead(200, head(model.length)).end(model); } }
       else if (script) await file(res, `dealer3d/${script[1]}/${script[2]}.ts`, 'text/javascript; charset=utf-8', stripTypeScriptTypes);
-      else if (at === '/src/table-lens.ts') await file(res, 'src/table-lens.ts', 'text/javascript; charset=utf-8', stripTypeScriptTypes);
+      else if (lens(at)) await file(res, at.slice(1), 'text/javascript; charset=utf-8', stripTypeScriptTypes);
       else if (data) await file(res, `dealer3d/data/${data[1]}.json`, 'application/json; charset=utf-8');
       else if (at === '/dealer3d/data') json(res, 200, {names: (await readdir(path.join(root, 'dealer3d', 'data'))).filter(n => /^[\w-]+\.json$/.test(n)).map(n => n.slice(0, -5)).sort()});
       else if (at === '/dealer3d/plan') await file(res, 'placements/default.json', 'application/json; charset=utf-8');

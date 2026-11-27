@@ -315,7 +315,7 @@ export function BordetView() {
     else toast({ tone: "bad", title: result.conflict ? "Planen har ändrats på annat håll" : "Kortplanen sparades inte", detail: result.message });
   };
 
-  const menu = <SegmentedControl size="sm" label="Bordets delar" value={mode} onChange={setMode} options={SHOWN_MODES.map((m) => ({ value: m.value, label: m.label }))} />;
+  const menu = <SegmentedControl size="sm" label="Filmverkstadens delar" value={mode} onChange={setMode} options={SHOWN_MODES.map((m) => ({ value: m.value, label: m.label }))} />;
   // What goes to Runway for the guide's film, before and after its draft is made.
   const names = Object.fromEntries((orders?.dealers ?? []).map((x) => [x.id, x.name]));
   // Förra filmen: the film's last order (the same dealer, step and card, not set aside), with the takes that came of it.
@@ -378,7 +378,7 @@ export function BordetView() {
   if (mode === "ko") return <OrderView menu={menu} />;
   return (
     <Page
-      title="Bordet"
+      title="Filmverkstaden"
       full
       status={
         !table ? null : draft.dirty ? (

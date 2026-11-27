@@ -142,7 +142,7 @@ function Karta() {
   if (isStandardDoll(dealer))
     return (
       <Page title="Karta">
-        <EmptyState title="Standarddockan har inga filmer i ett träd">Karta visar en dealers filmer, steg för steg. Standarddockans rörelser ses i Bordet, Inspelning. Välj en dealer i menyn för hennes träd.</EmptyState>
+        <EmptyState title="Standarddockan har inga filmer i ett träd">Karta visar en dealers filmer, steg för steg. Standarddockans rörelser ses i Dockan och i Filmverkstaden, Inspelning. Välj en dealer i menyn för hennes träd.</EmptyState>
       </Page>
     );
   return <BankKarta />;

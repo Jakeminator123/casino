@@ -6,6 +6,8 @@
 // Inget här mäter något nytt: det som räknas (avstånd, vinklar, farter) räknas ur talen i källorna.
 //   node matt.ts            skriver MATT.md
 //   node matt.ts --kolla    skriver inget; slutar med kod 1 och visar raderna om MATT.md inte stämmer med källorna
+//   node matt.ts --json     skriver inget; samma text som MATT.md, delad i rubriker, stycken, listor och tabeller, på en
+//                           rad JSON (studions sida Mått läser den genom servern: blackjack-dealer/tools/casino-routes.ts)
 import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -13,7 +15,7 @@ import {CARD, DOLL_TABLE, FILM, PLAY_LENS, SHOE, TABLE_BASE, TABLE_LENS, TABLE_R
 import {ASSUMED, dealerEdge, spots, type Spot} from './blackjack-dealer/dealer3d/src/world.ts';
 import {DOLLS, dollCardYaw, dollFrame, type Doll} from './blackjack-dealer/dealer3d/src/doll.ts';
 
-const ROOT = import.meta.dirname, UT = path.join(ROOT, 'MATT.md'), KOLLA = process.argv.includes('--kolla');
+const ROOT = import.meta.dirname, UT = path.join(ROOT, 'MATT.md'), KOLLA = process.argv.includes('--kolla'), SOM_JSON = process.argv.includes('--json');
 const DEG = 180 / Math.PI;
 
 // ---- källorna ---------------------------------------------------------------------------------------------------
@@ -641,7 +643,31 @@ ut.push('Det verktyget läste. "kod" är importerat som programmet självt anvä
   tabell(['Fil', 'Hur', 'Läst'], kallor.map(x => [k(x.fil), x.hur, x.ok ? 'ja' : `nej: ${x.varfor ?? 'gick inte att tolka'}`])));
 
 // ---- skriv eller kolla ------------------------------------------------------------------------------------------
+type Block = {typ: 'rubrik'; niva: number; text: string} | {typ: 'stycke'; text: string} | {typ: 'lista'; rader: string[]} | {typ: 'tabell'; huvud: string[]; rader: string[][]};
+/** MATT.md:s text delad i block (för --json): rubriker, stycken, listor och tabeller, med cellerna utan sina \|. */
+function somBlock(text: string): Block[] {
+  const block: Block[] = [], celler = (r: string) => r.trim().replace(/^\|\s?|\s?\|$/g, '').split(/(?<!\\)\|/).map(c => c.trim().replace(/\\\|/g, '|'));
+  let grupp: string[] = [], slag = '';
+  const klar = () => {
+    if (!grupp.length) return;
+    if (slag === 'h') { const h = /^(#+) (.*)$/.exec(grupp[0])!; block.push({typ: 'rubrik', niva: h[1].length, text: h[2]}); }
+    else if (slag === 't') { const [huvud, , ...rader] = grupp.map(celler); block.push({typ: 'tabell', huvud, rader}); }
+    else if (slag === 'l') block.push({typ: 'lista', rader: grupp.map(r => r.slice(2))});
+    else block.push({typ: 'stycke', text: grupp.join(' ')});
+    grupp = [];
+  };
+  for (const rad of text.split('\n')) {
+    if (!rad.trim()) { klar(); slag = ''; continue; }
+    const s = rad.startsWith('|') ? 't' : rad.startsWith('- ') ? 'l' : /^#{1,6} /.test(rad) ? 'h' : 's';
+    if (s !== slag || s === 'h') { klar(); slag = s; }
+    grupp.push(rad);
+  }
+  klar();
+  return block;
+}
+
 const nytt = ut.join('\n').replace(/\n{3,}/g, '\n\n') + '\n';
+if (SOM_JSON) { console.log(JSON.stringify({block: somBlock(nytt), olasta: kallor.filter(x => !x.ok).length})); process.exit(0); }
 if (KOLLA) {
   const nu = las('MATT.md');
   if (nu === nytt) { console.log('MATT.md stämmer med källorna.'); process.exit(0); }

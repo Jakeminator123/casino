@@ -23,7 +23,7 @@ const KOR = `(() => { const e = window.editor, n = Math.round(e.state().langd * 
 let rott = false;
 for (const plats of platser) {
   const vad = RUNDA ? `hela rundan, ${docka}` : `plats ${plats}, ${docka}`;
-  const r = spawnSync(process.execPath, [path.join(ROOT, 'standarddocka/verktyg/titta.ts'), ...(RUNDA ? ['--runda'] : ['--plats', String(plats)]), ...(docka === 'kvinna' ? ['--docka', 'kvinna'] : []), ...(arg('--port') ? ['--port', arg('--port')!] : []), '--kor', KOR], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64e6});
+  const r = spawnSync(process.execPath, [path.join(ROOT, 'standarddocka/verktyg/titta.ts'), ...(RUNDA ? ['--runda'] : ['--plats', String(plats)]), '--docka', docka, ...(arg('--port') ? ['--port', arg('--port')!] : []), '--kor', KOR], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64e6});
   if (r.status !== 0) { console.log(`${vad}: titta.ts föll: ${r.stderr.slice(-400)}`); rott = true; continue; }
   const {rader} = JSON.parse(r.stdout.slice(r.stdout.indexOf('{'))) as {rader: Record<string, number>[]};
   const fynd = Object.keys(rader[0]).filter(k => k !== 't').flatMap(namn => rader.slice(2).map((rad, i) => { const fore = rader[i + 1][namn] - rader[i][namn], efter = rad[namn] - rader[i + 1][namn]; return {namn, t: rader[i + 1].t, fore, efter, ryck: Math.abs(efter - fore)}; }));

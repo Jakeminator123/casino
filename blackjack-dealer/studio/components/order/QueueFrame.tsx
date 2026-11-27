@@ -7,7 +7,7 @@ import { Page } from "../shell";
 
 export function QueueFrame({ menu, status, actions, bar, children }: { menu: ReactNode; status?: ReactNode; actions?: ReactNode; bar?: ReactNode; children: ReactNode }) {
   return (
-    <Page title="Bordet" full status={status} actions={actions}>
+    <Page title="Filmverkstaden" full status={status} actions={actions}>
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex min-h-11 shrink-0 flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-line px-3 py-1.5">
           {menu}

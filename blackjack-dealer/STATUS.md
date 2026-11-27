@@ -110,10 +110,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    läpparna i realtid på hans RunPod huvudmålet (2026-11-17), och talfilmerna förs in i nodträdet (2026-11-24). Hans
    idé, obyggd: munnen ur hennes egen leendefilm (Tatuerads `paow-vila-tat-03-01`, som bara fanns på den stationära). Mungiporna och överläppen är inte lösta i hans ögon.
 5. **Kort:** kortets efterarbete i förväg per film (2026-11-17); grafiken på kortet prövad mot alla filmer
-   (2026-11-23, `/kortlandning.html`).
+   (2026-11-23); korten ovanpå filmen byggs om efter dockans tal.
 6. **Studion:** färre val, det uppenbart dubbla bort först: Casinos adress `/game/`, och verktygens meddelanden till
    agenter som ännu säger "labbet" (`tools/build-studio-snapshot.ts`, `lab-look.ts`, `media-audit.ts` med flera) liksom
-   granskningens sparade text (`studio/lib/verdict.ts`); sidorna bredvid (Ljud, Modeller, Grafik) får
+   granskningens sparade text (`studio/lib/verdict.ts`); sidan bredvid (Ljud) får
    ramens utseende (ordet "labb" är borta ur dem, 2026-11-26); fler register in i SQLite som filmregistret
    (2026-11-23). Granska: en tagning vars film inte finns på datorn ska inte stå som väntande, och sidan ska säga att
    filmen saknas här. Ur granskningen 2026-11-26 står kvar: sökvägar till en viss disk i `data/` (`media-roles.json`,

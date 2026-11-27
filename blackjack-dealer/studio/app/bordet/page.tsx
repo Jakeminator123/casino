@@ -7,7 +7,7 @@ import { Page } from "@/components/shell";
 
 export default function Bordet() {
   return (
-    <Suspense fallback={<Page title="Bordet" full />}>
+    <Suspense fallback={<Page title="Filmverkstaden" full />}>
       <BordetView />
     </Suspense>
   );

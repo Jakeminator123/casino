@@ -226,7 +226,7 @@ export function audit(repo: string): {items: Item[]; judged: Map<string, string>
   // Every other register that names a path.
   for (const f of readdirSync(path.join(repo, 'data')).filter(f => f.endsWith('.json'))) for (const p of pathsIn(read(`data/${f}`))) claims.push({path: p, use: 'bara registrerad', why: `data/${f}`});
   for (const f of readdirSync(path.join(repo, 'placements')).filter(f => f.endsWith('.json'))) for (const p of pathsIn(read(`placements/${f}`))) claims.push({path: p, use: 'visas', why: `placements/${f}`});
-  // The lab's props and the table's material versions are named by id, not by path (src/props-lab.ts assets/props/${id}.glb;
+  // The table props and the table's material versions are named by id, not by path (src/game3d-props.ts assets/props/<id>.glb;
   // tools/preview.ts serves assets/scene/materials/ by pattern for the versions data/scene-materials.json lists).
   for (const [f, top] of [['data/props.json', 'assets/props/'], ['data/scene-materials.json', 'assets/scene/materials/'], ['data/scene-rooms.json', 'assets/scene/']] as const) {
     const text = read(f);

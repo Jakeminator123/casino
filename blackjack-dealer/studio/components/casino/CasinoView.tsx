@@ -144,7 +144,7 @@ function Casino() {
       actions={
         <>
           <Select size="sm" aria-label="Förval" className="w-40" value={look.forval} options={options} onChange={(forval) => go({ forval, patch: {}, table: look.table, ignored: [] })} />
-          <Link href={scenHref(look)} className={buttonClasses({ variant: "quiet", size: "sm" })} title="Öppna samma look, med samma lins, i Bordets Scen och kalibrera den vidare">
+          <Link href={scenHref(look)} className={buttonClasses({ variant: "quiet", size: "sm" })} title="Öppna samma look, med samma lins, i Filmverkstadens Scen och kalibrera den vidare">
             <SlidersHorizontal /> Kalibrera i Scen
           </Link>
           {!isSnapshot ? (

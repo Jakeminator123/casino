@@ -19,8 +19,11 @@ Kommandon körs från `blackjack-dealer/`; sökvägar räknas från casino-roten
 
 ## Det han ska döma
 
-- **Prov:** en provmapp `assets/proofs/<namn>/` med `proof.json` (`title`, `description`, `takes`), visad i Granska, Prov
-  (`/studio/granska/?prov=<namn>`). Granskarens omdöme är en bricka; hans egen dom är aldrig förifylld.
+- **Prov:** en provmapp `assets/proofs/<namn>/` med `proof.json` (`title`, `description`, `takes`, `area`), visad i
+  Granska, Prov (`/studio/granska/?prov=<namn>`). `area` är provets område, ett av `rorelser`, `ansikte-och-hander`,
+  `filmer`, `bord-och-kamera`, `avatarer`, `studion` (`studio/lib/proof-areas.ts`); Prov grupperar efter det. Granskarens
+  omdöme är en bricka; hans egen dom är aldrig förifylld. Knappen Ta bort provet i Prov är hans ord: mappen och dess mapp
+  i `slask/<projekt>/granska/` går till papperskorgen (`tools/proof-remove.ts`), hans anteckningar stannar.
 - **Beslut:** ett kort i `blackjack-dealer/data/decisions.json` bara för ett prov (film, bild) som väntar på hans dom
   (2026-11-21); teknik och arbetssätt frågas i chatten. Kortet tas ut när svaret är utfört. Bara sidan skriver hans svar.
 - **Det han väntar på** läggs också i `blackjack-dealer/STATUS.md`, under "Väntar på Jakob", tills det är besvarat.

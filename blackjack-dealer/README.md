@@ -16,7 +16,7 @@ och arbetsmomenten som skills i `../.claude/skills/`.
 AGENTS.md STATUS.md README.md   regler, läge, karta (CLAUDE.md importerar AGENTS.md åt Claude Code)
 docs/SYSTEM.md  kontrakten: format, register, scenen, spelet, korten, klippbanken, ordlistan
 studio/         studion: Jakobs arbetsyta i webbläsaren (Next.js), byggd till studio/out/
-pages/          sidorna bredvid studion: 3D-sidan (scene3d.html), Ljud (sound.html), Modeller (props.html) och Grafik (kortlandning.html)
+pages/          sidorna bredvid studion: 3D-sidan (scene3d.html) och Ljud (sound.html)
 game/           spelmotorn (Scouts regler, oförändrade i sak) och spelsidan i game/page/
 src/            den delade motorn: 3D-scen, klippgraf, kort, kortplan, beställningar, tal
 dealer3d/       dockan: bordets verkliga geometri, givar som tal och dockans filmer
@@ -38,7 +38,7 @@ Alla `npm`- och `node`-kommandon körs från den här mappen. Node 24.22.3 (Volt
 
 | Kommando | Gör |
 | --- | --- |
-| `npm start` | startar servern på `http://127.0.0.1:4319` utan fönster och visar studion i en flik; bygger studion om den saknas |
+| `npm start` | startar servern på `http://127.0.0.1:4319` utan fönster och visar studion i en flik; bygger studion om den saknas (rotens `STARTA studion.cmd` och `node start.ts` gör samma sak, från roten) |
 | `npm run status`, `npm run stop` | frågar och stoppar servern; `node tools/preview.ts --open "<sida>"` visar en sida i den nyaste öppna fliken (flera flikar får vara öppna samtidigt), `--restart` byter server |
 | `npm --prefix studio run build` | bygger studion på plats till `studio/out/` |
 | `npm test` | kärnans tester, offline och utan media |
@@ -47,22 +47,42 @@ Alla `npm`- och `node`-kommandon körs från den här mappen. Node 24.22.3 (Volt
 | `npm run stada` | raderar projektets del av slasken som inte har ändrats på tre timmar, utom `granska/` (`-- --torr` listar bara); `node ../slask/slask.ts` visar hela slasken |
 | `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (servern utför den säkra nivån själv när den startar); översikt över lagringen. På Jakobs ord: `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>" [--arkiv <mapp>]` |
 
-Serverns adresser står i `tools/lab-routes.ts`; utan media på datorn visar studion och spelet inga filmer.
+Serverns adresser står i `tools/lab-routes.ts`, och vägarna till resten av casino-repot i `tools/casino-routes.ts`
+(verkstädernas servrar, måtten ur `../matt.ts --json`, avatarernas vägar); utan media på datorn visar studion och
+spelet inga filmer.
 
 ## Studion
 
-[Studion](http://127.0.0.1:4319/studio/) är allt i webbläsaren och öppnar på Bordet. Den har två lager:
+[Studion](http://127.0.0.1:4319/studio/) är allt i webbläsaren och ingången till hela casino-repot (Jakob 2026-11-27): den
+öppnar på Start, med kedjan från bild till film och en ruta per verkstad. Verkstäder med en egen server (dockans editor
+i `../standarddocka/`, kortpaketets visare i `../kortspelspaket/`) visas inne i studion med menyn kvar
+(`studio/components/workshop/`); servern startar deras servrar som sina egna barn första gången vyn öppnas, och
+stoppar dem när den själv stoppas. En som redan svarar på sin port (`/vem`) startas inte igen. Den har två lager:
 
 - **Ramen** (menyn, rubrikraden, panelerna, knapparna) är Next.js, React och Tailwind. Färger och mått står i
   `studio/app/globals.css`, menyn i `studio/components/shell/Rail.tsx` och byggstenarna i `studio/components/ui/`
   (provsida: `/studio/ui/`). En ändring syns efter `npm --prefix studio run build` och en omladdning.
 - **Bildytan** i mitten är annan kod, som ramens stil inte når: filmspelaren (`studio/components/player/`), scenen
   (three.js, `src/scene3d-*.ts`), dockan (`dealer3d/page/docka.html` i en ram) och spelet (`game/page/game.html` i en
-  ram). Sidorna bredvid (Ljud, Modeller, Grafik) är egna HTML-sidor i `pages/`.
+  ram). Ljud är en egen HTML-sida i `pages/`, nådd från Start.
 
-Orden står i studions Ordlista (`studio/lib/words.ts`). Vyerna:
+Orden står i studions Ordlista (`studio/lib/words.ts`). Menyn följer kedjan: Start, Avatarer, Dockan, Filmverkstaden, Granska,
+Karta, Material, Casino och Mått. Vyerna:
 
-- **Bordet** är den enda vyn av bordet (Jakob 2026-11-17, 2026-11-19): **Inspelning**, filmens format (dockan vid bordet
+- **Start** (`/studio/`, `studio/components/start/`, innehållet i `studio/lib/start.ts`): det som väntar på hans dom,
+  kedjan med verkstaden för varje steg, en ruta per verkstad och det som ligger vid sidan (Kortpaketet, Lipsync, Ljud).
+  En gammal Scen-adress (`/?runda=…`) leder fortfarande till Filmverkstadens Scen.
+- **Avatarer** (`/studio/avatarer/`, `studio/components/avatars/`): en guide över `../avatar-auto-pipeline/vagar.json`
+  (`studio/lib/avatars.ts`, genom `GET /api/vagar`). Vägarna med Version 1 för sig och stegen med kostnad och vad som
+  finns i `output/<person>/`; Delarna med alternativen och reglerna; Föremål och material med de färdiga modellerna i
+  3D (`studio/components/avatars/ModelView.tsx`). Startar ingen körning.
+- **Dockan** (`/studio/dockan/`): standarddockans editor i en ram; ord i adressen går vidare till editorn
+  (`/studio/dockan/?uppsattning=live`). **Kortpaketet** (`/studio/kortpaketet/`) på samma sätt.
+- **Mått** (`/studio/matt/`): `../MATT.md`:s text, läst ur koden varje gång (`studio/lib/measures.ts`), utan filnamn och
+  källkolumner; delen Vårt bord och livebordet (`?del=livebordet`, `studio/lib/setups.ts`) räknar standarden och klonen
+  ur `src/table-lens.ts` och `src/table-live.ts` i webbläsaren: uppifrån, genom var sin kamera, i tal, och de lyfta
+  dealrarnas filmer ur provet `danilo-frasse-i-editorn-20261127`.
+- **Filmverkstaden** (hette Bordet till 2026-11-27; adressen är kvar, `/studio/bordet/`) är den enda vyn av bordet (Jakob 2026-11-17, 2026-11-19): **Inspelning**, filmens format (dockan vid bordet
   med kortplanens kort, skon och markerlådan genom filmens kamera), i tre steg (var kortet landar; hur det kommer dit;
   beställ), **Kön** (godkännande och Protokoll), **Scen** (en runda i 3D-scenen), **Råfilm** och **Efterarbete** (korten
   och markerna över filmen). I koden och adressen heter Inspelning `kortplan`, sitt gamla namn (`?lage=kortplan`).
@@ -75,8 +95,9 @@ Orden står i studions Ordlista (`studio/lib/words.ts`). Vyerna:
   (`?trad=alla`) är nätet: A1, grenarna till ankarna vid skon (i dag A2.1 och A2.3) och stegen under dem, med sök, "bara där de skiljer sig" och
   Sätt ihop till en komposition. Koden: `studio/components/map/`, träden ur `GET /api/trees` (`tools/dealer-tree.ts`).
 - **Granska**: Filmer (Jakobs domar) och Prov (provmapparna under `assets/proofs/`, `?prov=<mapp>`).
-- **Material** (vilka bilder som gäller), **Lipsync** (hur munnen görs, skrivskyddad), **Casino** (spelet med vald look).
-- I foten **Beslut** (det som väntar på Jakobs svar), **Ordlista**, och sidorna Ljud, Modeller och Grafik (prov).
+- **Material** (vilka bilder som gäller), **Casino** (spelet med vald look), och från Start **Lipsync** (hur munnen
+  görs, skrivskyddad) och Ljud.
+- I foten **Beslut** (det som väntar på Jakobs svar) och **Ordlista**.
   **Jämför** nås från en tagning. Det som hör ihop är en knapp, och Casino i menyn är samma spel som spelet (2026-11-17).
 - En vy för alla skärmar: en mobilvy härleds ur samma kort och lins. Paow står först; en pausad dealer visas bara när en
   adress nämner den (Jakob 2026-11-18).

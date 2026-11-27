@@ -26,6 +26,8 @@ export type ClipBankResponse = BankData & {
 export type ProofFile = { name: string; path: string; kind: "video" | "image"; bytes: number };
 export type Proof = {
   id: string;
+  /** The part of the work the proof belongs to (lib/proof-areas.ts); null where its proof.json names none. */
+  area?: string | null;
   title: string | null;
   description: string | null;
   labels: Record<string, string> | null;
@@ -104,8 +106,8 @@ async function send(path: string, what: string, init?: RequestInit): Promise<str
   return text;
 }
 
-async function read<T>(path: string, what: string): Promise<T> {
-  const text = await send(path, what);
+async function read<T>(path: string, what: string, init?: RequestInit): Promise<T> {
+  const text = await send(path, what, init);
   try {
     return JSON.parse(text) as T;
   } catch {
@@ -144,6 +146,10 @@ export async function getRooms(): Promise<Rooms> {
 
 /** Every proof under assets/proofs/ (GET /api/proofs). */
 export const getProofs = (): Promise<ProofList> => read<ProofList>("api/proofs", "Proven");
+
+/** "Ta bort provet": his click, the proof to the trash (DELETE /api/proofs/<id>, tools/proof-remove.ts). `refused` says why it stays. */
+export const removeProof = (id: string): Promise<{ removed: string[]; refused: string | null }> =>
+  read(`api/proofs/${encodeURIComponent(id)}`, "Provet", { method: "DELETE" });
 
 // ── The write ───────────────────────────────────────────────────────────────
 /**

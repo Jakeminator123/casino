@@ -13,7 +13,7 @@ en modells API läser ingenting själv: skicka med den här filen och projektets
 
 | Mapp | Vad det är | Läs |
 | --- | --- | --- |
-| `blackjack-dealer/` | Spelet, studion i webbläsaren och 3D-dockans rörelsekod (`dealer3d/`). Här står måtten för kamera, bord, kort och kortplatser som allt annat läser. | `README.md`, `STATUS.md` |
+| `blackjack-dealer/` | Spelet, studion i webbläsaren och 3D-dockans rörelsekod (`dealer3d/`). Studion är ingången till hela repot (`STARTA studion.cmd` eller `node start.ts` i roten) och startar dockans editor och kortpaketets visare själv. Här står måtten för kamera, bord, kort och kortplatser som allt annat läser. | `README.md`, `STATUS.md` |
 | `standarddocka/` | Editorn där standarddockans rörelser spelas, justeras och filmas, och verktygen som mäter dem. | `README.md`, `DOMAR.md` |
 | `avatar-auto-pipeline/` | Blender-skripten som bygger standarddockan, bordet och stolen, och vägen från foton till en riggad dealer. Python. | `README-SV.md` |
 | `kortspelspaket/` | Ett köpt animationspaket och en visare för det. Ligger vid sidan (Jakob 2026-11-27): det är inte grunden för dockans rörelser och inte ett facit att mäta mot. | `README.md`, `OVERLAMNING.md` |

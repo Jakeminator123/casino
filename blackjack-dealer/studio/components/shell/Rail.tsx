@@ -1,19 +1,19 @@
 "use client";
 
 // The menu, the column on the left of every view. From the top: the studio's mark and name, whose studio it is
-// (DealerSwitch, one button per dealer), the views with the active one marked and a count where it helps (the chosen
-// dealer's takes waiting for Jakob beside Granska; beside Karta the number of the tree the game plays, "22/36 steg", from
-// src/dealer-trees.ts countWord, as Karta's row shows it), then Beslut and Ordlista, the pages beside the studio (Ljud,
-// Modeller and the trial of the graphic: plain pages with their own look, opened in the same tab) and last whether the
-// server answers. A view's link keeps the chosen dealer in the address.
+// (DealerSwitch, one button per dealer), the views in the order of the chain with the part of the chain over a group in a
+// wide window, the active one marked and a count where it helps (the chosen dealer's takes waiting for Jakob beside
+// Granska; beside Karta the number of the tree the game plays, "22/36 steg", from src/dealer-trees.ts countWord, as
+// Karta's row shows it), then Beslut and Ordlista, and last whether the server answers. What lies beside the work
+// (Kortpaketet, Lipsync, Ljud) is reached from the start page. A view's link keeps the chosen dealer in the address.
 //
 // One row is drawn in two ways (app/globals.css, --breakpoint-rail): in a window wide enough, an icon and a word on a line
 // with the count at its right end; in a narrow window or on a phone, the icon with a small word under it.
 //
-// In the online copy (lib/mode.ts) the pages beside the studio and Beslut are not there, so they are not drawn; instead
+// In the online copy (lib/mode.ts) the workshops of this computer and Beslut are not there, so they are not drawn; instead
 // the bot is there: the view Önskemål (with the answers from Jakob not yet seen) and "Fråga", which opens and closes the
 // panel (components/bot).
-import { BookOpen, Box, Images, Inbox, LayoutPanelLeft, ListChecks, MessageCircleQuestion, ScanEye, Spade, Speech, Volume2, Workflow } from "lucide-react";
+import { BookOpen, Clapperboard, House, Images, Inbox, ListChecks, MessageCircleQuestion, PersonStanding, Ruler, ScanEye, Spade, Users, Workflow } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState, type ComponentType } from "react";
@@ -33,46 +33,45 @@ import { DealerSwitch } from "./DealerSwitch";
 import { Glossary } from "./Glossary";
 
 type Icon = ComponentType<{ className?: string }>;
-type View = { href: string; label: string; hint: string; icon: Icon };
+/** A view of the menu; `group` is the part of the chain it belongs to, written over its first row in a wide window. */
+type View = { href: string; label: string; hint: string; icon: Icon; group?: string; /** The word in a narrow window, where the label does not fit. */ short?: string };
 
+// The menu follows the chain from a picture to a film (the root PROJEKTET.md, the start page's lib/start.ts), Jakob
+// 2026-11-27: the studio is the entry to the whole project. Start first; then the doll that plays the motion, the films
+// made from it and judged, the game, and the measures everything stands on. What lies beside the work (Kortpaketet,
+// Lipsync, Ljud) is on the start page, not here.
 export const VIEWS: readonly View[] = [
-  // Bordet (2026-11-17): the one view of the table, in the studio and in the copy. Its parts hold what Placering (Inspelning),
-  // Scen (Scen, Råfilm, Efterarbete) and Beställ were; their old addresses lead there (/, /scen/, /bestall/).
-  { href: "/bordet/", label: "Bordet", hint: "Ändra scen, bord, kortplan och utdelning; beställ och efterarbeta filmer", icon: LayoutPanelLeft },
+  { href: "/", label: "Start", hint: "Kedjan från bild till film och alla verkstäder, och det som väntar på dig", icon: House },
+  { href: "/avatarer/", label: "Avatarer", hint: "Från bilder av en person till en docka på vårt skelett: vägarna steg för steg, och föremålen vid bordet", icon: Users, group: "Förlagan" },
+  { href: "/dockan/", label: "Dockan", hint: "Dockans editor: standarddockans rörelser spelas, justeras och filmas", icon: PersonStanding },
+  // Filmverkstaden (Bordet until 2026-11-27; the address is still /bordet/): the one view of the table, in the studio and in the
+  // copy. Its parts hold what Placering (Inspelning), Scen (Scen, Råfilm, Efterarbete) and Beställ were; their old addresses lead there.
+  { href: "/bordet/", label: "Filmverkstaden", short: "Filmer", hint: "Spela in med dockan och kortplanen, beställ filmer, lägg dem i scenen och efterarbeta", icon: Clapperboard, group: "Filmerna" },
+  // Granska holds the proofs too since 2026-11-17 (its part Prov); /prov/ leads there.
+  { href: "/granska/", label: "Granska", hint: "Filmer som väntar på ditt beslut, och proven", icon: ScanEye },
   // Karta holds Primära too since 2026-11-17 (each step with its Primär and secondary films); /primara/ leads there. Since
   // 2026-11-21 it draws the dealer's trees, one at a time, against the 36 steps of his measure.
   { href: "/karta/", label: "Karta", hint: "Nodträden: vilka av de 36 stegen som har film, och vad ett saknat steg behöver", icon: Workflow },
-  // Granska holds the proofs too since 2026-11-17 (its part Prov); /prov/ leads there.
-  { href: "/granska/", label: "Granska", hint: "Filmer som väntar på ditt beslut, och proven", icon: ScanEye },
   { href: "/material/", label: "Material", hint: "Per dealer: ingångsbild, keystone, ankare, filmer och referenser", icon: Images },
-  { href: "/lipsync/", label: "Lipsync", hint: "Läppsynken per dealer: var munnen görs, vad som är inställt och vad som stämmer", icon: Speech },
-  { href: "/game/", label: "Casino", hint: "Spela blackjack som i casinot: spelmotorn, marker och reglage, med valt förval", icon: Spade },
+  { href: "/game/", label: "Casino", hint: "Spela blackjack som i casinot: spelmotorn, marker och reglage, med valt förval", icon: Spade, group: "Spelet" },
+  { href: "/matt/", label: "Mått", hint: "Alla mått ur koden: kameror, bord, kortplatser, dockor och rörelser, bredvid livebordet", icon: Ruler, group: "Grunden" },
 ];
 
 /**
- * The views the menu shows: the same list in the studio and in the online copy, minus what the copy lacks. The copy carries
- * no lip-sync facts, so it has no Lipsync; Bordet is there Scen, Råfilm and Efterarbete only (no Inspelning, no Kön), and Casino plays there too
- * (the game page runs the engine itself).
+ * The views the menu shows: the same list in the studio and in the online copy, minus what the copy lacks: the editor and
+ * the measures need this computer. Filmverkstaden is there Scen, Råfilm and Efterarbete only (no Inspelning, no Kön), and
+ * Casino plays there too (the game page runs the engine itself).
  */
-const LOCAL_ONLY: readonly string[] = ["/lipsync/"];
+const LOCAL_ONLY: readonly string[] = ["/avatarer/", "/dockan/", "/matt/"];
 const SHOWN: readonly View[] = isSnapshot ? VIEWS.filter((view) => !LOCAL_ONLY.includes(view.href)) : VIEWS;
-/** Where the mark at the top leads: the first view of the menu. */
-const HOME = "/bordet/";
+/** Where the mark at the top leads: the start page. */
+const HOME = "/";
 
 /** The view of requests to Jakob: only where the bot is (the online copy). */
 export const REQUESTS_VIEW: View = { href: "/onskemal/", label: "Önskemål", hint: "Önskemål till Jakob, med status och hans svar", icon: Inbox };
 
 /** What waits for Jakob's answer: only in the studio on his computer (the online copy has no Beslut). */
 export const DECISIONS_VIEW: View = { href: "/beslut/", label: "Beslut", hint: "Det som väntar på ditt svar: ett kort per sak", icon: ListChecks };
-
-// The pages beside the studio, reached at their own addresses: the sound and model pages (tools/lab-routes.ts PAGES),
-// which become parts of a later view (Efterarbete), and the provisional trial of how a card comes to rest
-// (pages/kortlandning.html).
-const PAGE_LINKS: readonly { href: string; label: string; icon: Icon }[] = [
-  { href: "/sound.html", label: "Ljud", icon: Volume2 },
-  { href: "/props.html", label: "Modeller", icon: Box },
-  { href: "/kortlandning.html", label: "Grafik (prov)", icon: Spade },
-];
 
 const trim = (path: string) => (path.length > 1 ? path.replace(/\/+$/, "") : path);
 
@@ -92,20 +91,22 @@ function Mark() {
 }
 
 /** A row of the menu, whatever it is (a view's link, a button, a page beside the studio): narrow first, then wide. */
-const row = (on: boolean, quiet = false) =>
+const row = (on: boolean) =>
   cn(
     "group relative mx-2 flex flex-col items-center gap-1 rounded-lg px-1 py-1.5 text-center transition-colors duration-150 focus-visible:outline-offset-0",
     "rail:mx-3 rail:h-9 rail:flex-row rail:gap-3 rail:px-3 rail:py-0 rail:text-left",
-    on ? "bg-raised text-ink shadow-inset" : quiet ? "text-faint hover:bg-raised/60 hover:text-ink" : "text-dim hover:bg-raised/60 hover:text-ink",
+    on ? "bg-raised text-ink shadow-inset" : "text-dim hover:bg-raised/60 hover:text-ink",
   );
 
 /** What a row holds: the brass mark of the active one, the icon, the word, a quiet note (Karta's steps) and a count. */
-function RowBody({ icon: Icon, label, on = false, note, count, tone = "neutral" }: { icon: Icon; label: string; on?: boolean; note?: string | null; count?: string | null; tone?: "brass" | "neutral" }) {
+function RowBody({ icon: Icon, label, short, on = false, note, count, tone = "neutral" }: { icon: Icon; label: string; short?: string; on?: boolean; note?: string | null; count?: string | null; tone?: "brass" | "neutral" }) {
   return (
     <>
       {on ? <span aria-hidden className="absolute -left-2 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brass rail:-left-3" /> : null}
       <Icon className={cn("size-5 shrink-0 transition-colors duration-150 rail:size-[18px]", on ? "text-brass" : "text-faint group-hover:text-ink")} />
-      <span className="max-w-full text-[11px] font-medium leading-[13px] rail:min-w-0 rail:flex-1 rail:truncate rail:text-sm rail:leading-5">{label}</span>
+      <span className="max-w-full text-[11px] font-medium leading-[13px] rail:min-w-0 rail:flex-1 rail:truncate rail:text-sm rail:leading-5">
+        {short ? <><span className="rail:hidden">{short}</span><span className="hidden rail:inline">{label}</span></> : label}
+      </span>
       {note ? <span className="text-[10px] leading-3 text-faint tabular-nums rail:text-xs rail:leading-4">{note}</span> : null}
       {count ? (
         <span
@@ -126,7 +127,7 @@ function ViewRow({ view, href, active, note, count, tone }: { view: View; href?:
   return (
     <Tooltip content={view.hint} side="right">
       <Link href={href ?? view.href} aria-current={active ? "page" : undefined} className={row(active)}>
-        <RowBody icon={view.icon} label={view.label} on={active} note={note} count={count} tone={tone} />
+        <RowBody icon={view.icon} label={view.label} short={view.short} on={active} note={note} count={count} tone={tone} />
       </Link>
     </Tooltip>
   );
@@ -177,7 +178,7 @@ export function Rail() {
     <nav aria-label="Vyer" className="flex h-full min-h-0 w-[72px] flex-col border-r border-line bg-surface rail:w-[208px]">
       <Link
         href={dealerHref(HOME, dealer)}
-        aria-label="Dealer Studio, till Bordet"
+        aria-label="Dealer Studio, till startsidan"
         className="mx-2 mt-2.5 flex shrink-0 items-center justify-center gap-2.5 rounded-lg py-1.5 text-brass transition-colors hover:bg-raised/60 rail:mx-3 rail:justify-start rail:px-2"
       >
         <Mark />
@@ -188,6 +189,12 @@ export function Rail() {
       <ul className="flex min-h-0 flex-col gap-0.5 overflow-y-auto scrollbar-none">
         {SHOWN.map((view) => (
           <li key={view.href}>
+            {view.group ? (
+              <>
+                <div aria-hidden className="mx-4 my-1.5 h-px bg-line rail:hidden" />
+                <span className="hidden px-6 pb-1 pt-3 text-2xs font-semibold uppercase tracking-widest text-faint rail:block">{view.group}</span>
+              </>
+            ) : null}
             <ViewRow
               view={view}
               href={dealerHref(view.href, dealer)}
@@ -219,17 +226,6 @@ export function Rail() {
         </Tooltip>
         <Glossary open={glossary} onOpenChange={setGlossary} />
         <AskButton />
-        {isSnapshot ? null : (
-          <>
-            <Rule />
-            <span className="hidden px-6 pb-1 text-2xs font-semibold uppercase tracking-widest text-faint rail:block">Sidor bredvid</span>
-            {PAGE_LINKS.map(({ href, label, icon }) => (
-              <a key={href} href={href} className={row(false, true)}>
-                <RowBody icon={icon} label={label} />
-              </a>
-            ))}
-          </>
-        )}
         <Rule />
         <Tooltip
           content={

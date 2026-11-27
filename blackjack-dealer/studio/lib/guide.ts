@@ -22,11 +22,11 @@ export const GUIDE: readonly GuideView[] = [
   {
     // Bordet since 2026-11-17: the one view of the table, holding what Placering and Scen were (and, in the lab, Beställ).
     vy: "bordet",
-    namn: "Bordet",
+    namn: "Filmverkstaden",
     adress: "/studio/bordet/",
-    kort: "Bordet och scenen",
+    kort: "Filmverkstaden: bordet och scenen",
     text:
-      "Bordet: en vy med delarna Inspelning, Kön, Scen, Råfilm och Efterarbete (i kopian bara de tre sista). Inspelning är " +
+      "Filmverkstaden (förut Bordet): en vy med delarna Inspelning, Kön, Scen, Råfilm och Efterarbete (i kopian bara de tre sista). Inspelning är " +
       "filmens format: dockan vid bordet med kortplanens kort, skon och markerlådan i 3D genom filmens kamera, var kortet landar och hur det " +
       "kommer dit, med kortbanan som dockan gör den, och där en ny film beställs. Scen spelar en runda i 3D-scenen, Råfilm som filmerna är " +
       "på sin gröna bakgrund, och Efterarbete visar det som läggs över filmen, som korten och markerna. Rundan skrivs som Jakob " +

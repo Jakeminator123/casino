@@ -25,13 +25,13 @@
       "file": "brown_leather-nor_gl.webp",
       "sha256": "5563963829922e802aef387d7e8d5580aaa03066929be0dea74a7a78995b4386",
       "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/brown_leather/brown_leather_nor_gl_1k.jpg",
-      "use": "the leather of the model lab's photographed surfaces (src/props-stage.ts), and with table BORD-02 the rail \"Brunt läder\" (src/scene3d-bord02.ts): relief"
+      "use": "with table BORD-02, the rail \"Brunt läder\" (src/scene3d-bord02.ts): relief"
     },
     {
       "file": "brown_leather-rough.webp",
       "sha256": "00612ec28b54cf8da43dc60085be0511a65112825e8ca863afaadefce556d7e4",
       "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/brown_leather/brown_leather_rough_1k.jpg",
-      "use": "the leather of the model lab's photographed surfaces (src/props-stage.ts), and with table BORD-02 the rail \"Brunt läder\" (src/scene3d-bord02.ts): roughness"
+      "use": "with table BORD-02, the rail \"Brunt läder\" (src/scene3d-bord02.ts): roughness"
     },
     {
       "file": "denim_fabric-nor_gl.webp",
