@@ -24,6 +24,12 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   Kling 4 gör filmen mellan dem, och dealern skärs ut och läggs på vårt bord med vår egen sko
   (`../standarddocka/verktyg/lagg-pa-bord.ts --kortfarger --egen-sko --hall`). 131 krediter. Receptet står i skillen
   `runway` (elfte provet), anropen i provets `original/anrop/`. Jakobs dom: Nja, se Nästa steg.
+- **En giv mellan fasta bilder, för hand i Runways app** (2026-11-27, tolfte provet i skillen `runway`). Tomasz i
+  Frasses ställning vid livebordet, med tre ankarbilder: A2.3, A3P4C1 och A2.3 med kortet kvar. Den första gjordes av
+  dockans förlaga och hans foton, och de andra som ändringar av den. Två klipp går mellan bilderna: given och handen
+  hem. Klippens första och sista ruta ligger på bilderna, så de går att sätta ihop i schemats ordning. 49 krediter av
+  appens. Filmerna finns bara bland Runways tillgångar (inget prov på datorn).
+  Den oberoende domarens dom väntar.
 - **Studion** (`http://127.0.0.1:4319/studio/`): Start, Karta med Schemat (rundan, kortplatserna och rörelseschemat för
   Danilo och Frasse), Granska med Prov, Beslut, Beställ, Dockan (editorn i `../standarddocka/`), Avatarer, Mått och
   Biblioteket. Regeln "Studion visar, den förklarar inte" (`AGENTS.md`) är genomförd på Schemat, Start, Mått, Beställ,
