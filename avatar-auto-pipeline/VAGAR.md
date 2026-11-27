@@ -38,7 +38,7 @@ Bordet, stolen och spelets mått hör till scenen, inte till dockan: varje väg 
 | [Version 1: från foton med Meshy](#version-1-från-foton-med-meshy) | finns | ja | 95 Meshy-krediter (tre delar à 30 och riggen 5) och 3–5 bilder hos OpenAI _(körning)_ | cirka 18 minuter för steg 1–7 på laptopen; filmen i steg 8 till det (inte mätt) _(körning)_ |
 | [Standarddocka efter mått](#standarddocka-efter-mått) | finns | ja | gratis _(kod)_ | några minuter per docka (inte mätt) _(bedömning)_ |
 | [Standarddockans kropp och ansiktsrigg med personens utseende ovanpå](#standarddockans-kropp-och-ansiktsrigg-med-personens-utseende-ovanpå) | tänkt | nej | gratis, om fotona räcker som de är _(bedömning)_ | okänd _(bedömning)_ |
-| [Docka efter en mätt dealer (Danilo, Frasse)](#docka-efter-en-mätt-dealer-danilo-frasse) | tänkt | nej | gratis _(bedömning)_ | okänd _(bedömning)_ |
+| [Docka efter en mätt dealer (Danilo, Frasse)](#docka-efter-en-mätt-dealer-danilo-frasse) | finns | ja | gratis _(kod)_ | några minuter per docka (inte mätt) _(bedömning)_ |
 | [Runways kropp på vår dockas skelett (gratisprov)](#runways-kropp-på-vår-dockas-skelett-gratisprov) | prövat | nej | 38 Runway-krediter för kroppen och 30 Meshy-krediter för huvudet, och referensbilderna ur Version 1:s steg 1; skelettet lånas gratis av en färdig docka (Tomasz-dockans rigg kostade 5 Meshy-krediter när den gjordes) _(prov)_ | kroppen hos Runway några minuter; steg 10 cirka 2 minuter (huvudet 45 s, förenklingen 30 s, riggen 20 s, exporten 15 s) _(körning)_ |
 
 ## Delarna och alternativen
@@ -51,11 +51,11 @@ _Vad utgår dockan från?_
 | --- | --- | --- | --- | --- | --- | --- |
 | **Foton av personen, gjorda till tre referensbilder** (`foton`) | finns _(kod)_ | 1–8 foton av samma person i input/<namn>/ _(kod)_ | en bild av huvudet framifrån med hela halsen; en bild av hela kroppen i A-pose, mätt innan något får beställas hos Meshy; en bild av en öppen högerhand med åtskilda fingrar; klädseln (förval mörkblå skjorta och mörka byxor) _(kod)_ | steg 1; `steg/01-referenser/apose_referenser.py`; gpt-image-2 (images/edits) med alla foton i varje anrop _(kod)_ | 3 bilder i hög kvalitet, 1024 × 1024; A-posebilden görs om högst 2 gånger om armarna eller beskärningen är fel. Priset i dollar sparas inte i kvittot. (OpenAI) _(kod)_ | cirka 6 minuter _(körning)_ |
 | **En människas mått för kön och längd** (`standardmatt`) | finns _(kod)_ | bara kön: kvinna eller man _(kod)_ | längden (kvinnan 1,65 m, mannen 1,75 m); armarnas längd och tjocklek, händerna och fötterna efter ANSUR II; ingen likhet med en person _(kod)_ | `scen/bygg_docka.py`; MATT högst upp i skriptet _(kod)_ | gratis _(kod)_ | ingår i dockans bygge _(kod)_ |
-| **En riktig dealers mått, mätta på film** (`matt-ur-film`) | tänkt _(kod)_ | en mätning av dealern i live-bj/data/uppsattning.json (dealer.<stil>: body, trunk och arm) _(data)_ | axelbredden; huvudets höjd (hakan till hjässan) och halsen (hakan över axellinjen); armarnas längd, uppskattad och troligen för kort (mätningens egen text); inte midjan och höfterna: bordet skymmer dem _(data)_ | `../live-bj/data/uppsattning.json`; mätningen finns för Danilo (stilen kameran) och Frasse (stilen bordet); inget bygge läser den _(data)_ | gratis _(bedömning)_ | okänd _(bedömning)_ |
+| **En riktig dealers mått, mätta på film** (`matt-ur-film`) | finns _(kod)_ | en mätning av dealern i live-bj/data/uppsattning.json (dealer.<stil>.body); talen avskrivna i MATT i scen/bygg_docka.py (MATT['danilo'], MATT['frasse']); skriptet läser inte mätningen själv _(kod)_ | axellederna isär (Danilo 0,357 m, Frasse 0,348 m); huvudets höjd, hakan till hjässan (0,228 och 0,210 m, skattad); inte halsen: filmens haka över axlarna är hållning och synvinkel, så halsen är mannens; inte armarna, händerna, benen, midjan eller höfterna: de syns inte eller bara bakom bordet, så de är mannens (Danilos midja och höft 4 och 3 % smalare) _(kod)_ | `scen/bygg_docka.py`, `../live-bj/data/uppsattning.json`; --kon danilo eller --kon frasse: mannens kropp med de mätta axlarna och huvudet _(kod)_ | gratis _(kod)_ | ingår i dockans bygge _(kod)_ |
 | **Foton för utseendet och mått för kroppen** (`foton-och-matt`) | tänkt _(kod)_ | 1–8 foton av personen, minst ett av ansiktet rakt framifrån; kroppens mått: en människas för kön och längd, eller personens egna _(bedömning)_ | likheten ur fotona och kroppen ur måtten _(bedömning)_ | inget skript _(kod)_ | gratis om fotona används som de är; några OpenAI-bilder om en ren närbild av ansiktet görs först _(bedömning)_ | okänd _(bedömning)_ |
 
 - Foton av personen, gjorda till tre referensbilder: körningen `tomasz-20261126`: Tre foton av Tomasz gav de tre bilderna, A-posebilden på första försöket. _(körning)_
-- En riktig dealers mått, mätta på film: hinder: scen/bygg_docka.py tar bara --kon och --namn; måtten står i MATT i skriptet. Ett bygge efter en mätt dealer behöver att skriptet tar emot måtten utifrån. _(kod)_
+- En riktig dealers mått, mätta på film: provet `danilo-frasse-kroppar-20261127`: Danilo och Frasse bredvid mannen: axlarna 2 och 3 cm smalare, Frasses huvud lite mindre, Danilo lite smalare om midjan. _(prov)_
 - Foton för utseendet och mått för kroppen: hinder: Inget skript tar både foton och mått. _(kod)_
 
 ### 2. Kroppen
@@ -67,11 +67,13 @@ _Vem gör kroppens form?_
 | **Meshy gör kroppen ur A-posebilden** (`meshy-kropp`) | finns _(kod)_ | A-posebilden ur steg 1 _(kod)_ | personens byggnad och kläder; en yta med 4K-textur, utan skelett; huvudet och händerna i samma yta; Version 1 byter ut dem i steg 3 _(kod)_ | steg 2, 3; `steg/02-meshy-delar/meshy_enbild.py`, `steg/03-montering/clean_kropp_chest.py`, `steg/03-montering/montera_apose.py`; meshy-7.1 bild till 3D i A-pose; sedan plattas brösthåret ut och huvudet och händerna sys på _(kod)_ | 30 krediter (Meshy) _(körning)_ | cirka 2 minuter, samtidigt med huvudet och handen _(körning)_ |
 | **Standarddockans kropp (MPFB 2), byggd efter mått** (`mpfb-kropp`) | finns _(kod)_ | måtten; Blender 5.3 med tillägget MPFB 2 _(kod)_ | en naken kropp med en människas proportioner; skelettet och vikterna i samma bygge; fri licens (CC0); ingen likhet med en person _(kod)_ | `scen/bygg_docka.py`; blender -b --python-exit-code 1 --python scen/bygg_docka.py _(kod)_ | gratis _(kod)_ | några minuter per docka (inte mätt) _(bedömning)_ |
 | **Runway: Hunyuan 3D 3.1 Pro ur A-posebilden** (`runway-hunyuan`) | prövat _(prov)_ | en A-posebild framifrån (provet tog Tomasz bild ur steg 1) _(prov)_ | hel kropp med kläder, hel också bakifrån; hand och arm i ett stycke: ingen skarv vid handleden; fem åtskilda fingrar, släta och utan naglar, handflatan framåt i A-posen; suddigt ansikte och fel hårfärg (steg 10 kan sätta Meshy-huvudet på i stället); en yta utan skelett: cirka 500 000 trianglar och en textur i 4096 _(prov)_ | inget skript beställer den; provet anropade Runways /v1/image_to_mesh (../.claude/skills/runway/SKILL.md, raden 3D ur bild). Steg 10 (steg/10-kropp-i-ett-stycke/) gör den till en docka gratis _(prov)_ | 38 krediter; 15 till för PBR, för mer än en bild eller för annat antal ytor (Runway) _(data)_ | några minuter (inte mätt) _(bedömning)_ |
+| **Meshy gör kroppen i ett stycke ur flera vyer** (`meshy-flervy-kropp`) | prövat _(prov)_ | A-posebilden ur steg 1; 2–4 vyer av personen ur den, framifrån först (Meshys bildmodell; vyn från sidan fick armarna åt fel håll och användes inte) _(prov)_ | kropp, kläder och huvud i ett stycke i T-pose, 200 000 trianglar och en textur i 2K; kläder som är rena fram och bak; fyra fingrar ihopvuxna i varje hand, bara tummen fri: steg 05:s prov hittar inte fem fingrar; ett utsmetat ansikte med en kal rand över hjässan _(prov)_ | inget skript beställer den; provet beställde Meshys multi-image to 3D (meshy-7.1) för hand, ur output/tomasz-flervy/01-vyer/ _(prov)_ | 30 krediter för kroppen och 3 för vyerna (Meshy) _(prov)_ | några minuter (inte mätt) _(bedömning)_ |
 | **Runway: Trellis 2 ur A-posebilden** (`runway-trellis`) | prövat _(prov)_ | en A-posebild framifrån _(prov)_ | hel kropp med fem åtskilda men släta fingrar; ansiktet som en vaxmask med utsmetade ögon; en brun fläck på bakhuvudet; en yta utan skelett: cirka 470 000 trianglar och två texturer i 2048 _(prov)_ | inget skript i projektet; provet anropade Runways /v1/image_to_mesh _(prov)_ | 30 krediter (25–35 efter upplösningen) (Runway) _(data)_ | några minuter (inte mätt) _(bedömning)_ |
 | **Runway: Tripo ur bild** (`runway-tripo`) | går inte _(prov)_ | en till fyra vyer utan lucka (fram, vänster, bak, höger) _(data)_ | okänt: inte prövat _(bedömning)_ | inget skript _(kod)_ | 30 krediter enligt Runways sidor _(data)_ | okänd _(bedömning)_ |
 
 - Meshy gör kroppen ur A-posebilden: körningen `tomasz-20261126`: Kroppen kostade 30 krediter och var 333 434 trianglar innan steg 3 gjorde en lätt kopia. _(körning)_
 - Runway: Hunyuan 3D 3.1 Pro ur A-posebilden: provet `hander-hunyuan-mot-meshy-20261127`: Som docka (steg 10) böjde den handleden och knöt handen renare än Meshy-dockan; händerna är släta och utan naglar på nära håll. I provet runway-3d-20261127 var den sämre än vår docka i ansiktet. _(prov)_
+- Meshy gör kroppen i ett stycke ur flera vyer: provet `meshy-provet-20261127`: Duger inte som dealer: fingrarna ihopvuxna och ansiktet utsmetat, sämre än både Tomasz-dockan och Hunyuan-kroppen i samma bilder. _(prov)_
 - Runway: Trellis 2 ur A-posebilden: provet `runway-3d-20261127`: Sämst av de tre i ansiktet och bakifrån. _(prov)_
 - Runway: Tripo ur bild: provet `runway-3d-20261127`: Gick inte att beställa. _(prov)_
 - Runway: Tripo ur bild: hinder: Runway svarar "Unknown task type" med vår nyckel (2026-11-27). _(data)_
@@ -118,6 +120,7 @@ _Vem sätter skelettet och vikterna i kroppen? (Bennamnen är alltid våra, se S
 | **Personens yta formas om till en grunddockas skelett (Danilo eller Frasse), led för led** (`pa-dockans-grund`) | prövat _(prov)_ | en färdig dealer med vårt skelett och våra bennamn (steg 6, 9 eller 10); grunddockan vars rörelser han ska spela: standarddocka_danilo.glb eller _frasse.glb (81 ben) _(kod)_ | grunddockans skelett: samma leder, armar, axlar, ben och fingerlängder, så att dockans lyfta rörelser spelas utan skalning; hans huvud, hud, kläder, ansiktsformer, ögon och käke, och hans egna vikter; hans fingrars egen krökning i vila; hans kropp i dockans proportioner: för Tomasz bredare axlar och höfter, längre ben och en bredare handflata; inget betalt _(prov)_ | `steg/11-pa-dockans-grund/pa_grund.py`; steg 11: armarna, benen och fingrarna vrids och sträcks ben för ben till dockans leder, bålen och handflatan formas mjukt genom lederna, huvudet flyttas utan att formas om, och ytan binds till dockans armatur med sina egna vikter _(kod)_ | gratis _(kod)_ | cirka en minut _(körning)_ |
 
 - Meshy riggar kroppen (Mixamo-skelett): körningen `tomasz-20261126`: Riggen kostade 5 krediter; dealern fick 56 ben men inga vridben, inga ögonleder och ingen käke. _(körning)_
+- Meshy riggar kroppen (Mixamo-skelett): På kroppen i ett stycke ur flera vyer (meshy-provet-20261127, T-pose, utan steg 3) gav riggen 66 ben med fyra leder per finger, men den når inte nypet (tummens och pekfingrets toppar 33–47 mm isär, Tomasz-dockans 12) och river upp huden över knogarna i en knuten hand, eftersom fingrarna där är ihopvuxna; handleden och armbågen böjde rent. _(prov)_
 - Kroppen sätts på en färdig dockas skelett, och vikterna förs över: provet `hander-hunyuan-mot-meshy-20261127`: Hunyuan-kroppen på Tomasz-dockans skelett: armbågen flyttades 2–3 cm och handleden 3–4 cm till kroppens egen arm, och dockan spelade vilan och given i editorn. _(prov)_
 - Personens yta formas om till en grunddockas skelett (Danilo eller Frasse), led för led: provet `tomasz-pa-danilos-grund-20261127`: Tomasz på Danilos skelett spelade Danilos giv till plats 4 med lederna 0 mm från rörelsens punkter, som Danilos egen docka; handflatan blev bredare och handryggen sträcktes. _(prov)_
 
@@ -171,10 +174,12 @@ _Hur får dockan hud och kläder?_
 | **Kläder och hud inbakade i ytan, ur bilden** (`inbakad-yta`) | finns _(kod)_ | en kropp ur en bild (Meshy eller Runway); en klädsel där skjortan inte är hudfärgad (förval mörkblå skjorta; --outfit) _(kod)_ | fotolik hud och kläder i 4K; hudtonen jämnad mellan huvudet, händerna och kroppen (steg 3); kläderna går inte att byta utan en ny körning _(kod)_ | steg 1, 2, 3, 5; `steg/01-referenser/apose_referenser.py`, `steg/02-meshy-delar/meshy_enbild.py`, `steg/03-montering/montera_apose.py`, `steg/05-fingrar-handleder/bygg_fingrar.py`; klädseln i bilden, texturen hos Meshy, hudtonen i monteringen och en mattare hud i steg 5 _(kod)_ | ingår i delarna _(kod)_ | ingår i delarna _(kod)_ |
 | **Standarddockans neutrala grå hud, utan kläder** (`mpfb-gra`) | finns _(kod)_ | standarddockans kropp _(kod)_ | en yta med ett material och hörnfärger, så att spelet läser modellen som en del; inga kläder _(kod)_ | `scen/bygg_docka.py`; färgerna i ANSIKTE _(kod)_ | gratis _(kod)_ | ingår i dockans bygge _(kod)_ |
 | **Kläder som egna delar på samma skelett** (`separata-klader`) | tänkt _(kod)_ | kläder modellerade eller köpta som egna delar; vikter förda över från kroppen _(bedömning)_ | kläder som går att byta utan att bygga om dockan _(bedömning)_ | inget skript (new_docka.md 10.3) _(kod)_ | okänd _(bedömning)_ | okänd _(bedömning)_ |
+| **Personens utseende som ny yta på vår egen docka (Meshy, och närbilden på ansiktet)** (`meshy-ny-yta`) | prövat _(prov)_ | vår docka ur scen/bygg_docka.py (dess ytkarta och hörnfärger); 1–4 vyer av personen, framifrån först, i samma ställning (provet: Meshy-vyerna ur A-posebilden); närbilden av ansiktet ur steg 1, för ansiktet; MediaPipe-miljön i ../blackjack-dealer/tools/python/ (ansiktets punkter) _(kod)_ | personens hud, hår och kläder målade på dockans egen karta i 4K; dockans skelett, fingrar, vridben och 30 ansiktsformer orörda, så att den spelar sina rörelser som förut; dockans form: kroppen, händerna och ansiktets form är dockans, och kläderna är målade på huden (ingen krage, tighta byxor, svarta fötter); ansiktet ur närbilden: skarpa drag och personens ögonfärg; Meshys eget ansikte blev suddigt med vita ögon _(prov)_ | `steg/12-ny-yta/meshy_ny_yta.py`, `steg/12-ny-yta/yta.py`, `steg/12-ny-yta/narbild.py`; meshy_ny_yta.py beställer bilden på en kopia av dockans yta (yta.py kopia), narbild.py lägger närbilden på ansiktet och yta.py lagg lägger bilden på dockan; kommandona står i README-SV.md _(kod)_ | 10 krediter (2K eller 4K); ansiktet ur närbilden gratis (Meshy) _(körning)_ | några minuter hos Meshy och några i Blender (inte mätt) _(bedömning)_ |
 | **Personens hud och ansikte som textur på standarddockan** (`foto-pa-docka`) | tänkt _(kod)_ | foton av personen; standarddockans kropp och dess UV _(bedömning)_ | personens hudton och ansikte på vår docka _(bedömning)_ | inget skript _(kod)_ | okänd _(bedömning)_ | okänd _(bedömning)_ |
 
 - Kläder som egna delar på samma skelett: hinder: Inga kläder finns. _(kod)_
-- Personens hud och ansikte som textur på standarddockan: hinder: Inte prövat. _(kod)_
+- Personens utseende som ny yta på vår egen docka (Meshy, och närbilden på ansiktet): provet `meshy-provet-20261127`: Danilos docka fick Tomasz hud, hår, skjorta och byxor och spelade vid livebordet med sina egna händer och sitt skelett; ansiktet är Tomasz färger på Danilos form. _(prov)_
+- Personens hud och ansikte som textur på standarddockan: hinder: Hela kroppen ur foton utan Meshy är inte prövat; ansiktet ur en närbild på dockans karta är prövat i meshy-ny-yta (steg/12-ny-yta/narbild.py). _(kod)_
 
 ### 10. Exporten
 
@@ -318,7 +323,7 @@ Flaggorna:
 
 | Flagga | Gör | Förval | I guiden |
 | --- | --- | --- | --- |
-| `--kon` | kvinna, man eller bada | bada | ja |
+| `--kon` | kvinna, man eller bada (danilo och frasse: vägen Docka efter en mätt dealer) | bada | ja |
 | `--namn` | skriver standarddocka_<kön>_<namn>.* (en provmodell) i stället för de modeller som används |  | ja |
 
 ### Standarddockans kropp och ansiktsrigg med personens utseende ovanpå
@@ -357,12 +362,13 @@ _(kod)_
 
 ### Docka efter en mätt dealer (Danilo, Frasse)
 
-**Tänkt**.
+**Finns**, körs med `blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon danilo`.
 
 En standarddocka med kroppens mått ur mätningen av en riktig dealer på film, vårt eget ansikte och rörelserna lyfta ur samma film. Inga foton och ingen Meshy.
 
-- Kostnad: gratis _(bedömning)_
-- Tid: okänd _(bedömning)_
+- Kostnad: gratis _(kod)_
+- Tid: några minuter per docka (inte mätt) _(bedömning)_
+- Provet `danilo-frasse-kroppar-20261127`: tre män med samma ansikte och några centimeters skillnad i axlar och huvud; domaren bra, den externa nja (för lika mannen). _(prov)_
 - Danilo: stilen kameran, måtten i `live-bj/data/uppsattning.json dealer.kameran` _(data)_
 - Frasse: stilen bordet, måtten i `live-bj/data/uppsattning.json dealer.bordet` _(data)_
 
@@ -376,20 +382,28 @@ En standarddocka med kroppens mått ur mätningen av en riktig dealer på film, 
 | Fingrarna och handlederna | Standarddockans fingerleder (MPFB) | låst |
 | Vridben i underarmen | Standarddockans vridben | låst |
 | Ansiktets rörelser | Standarddockans ansikte: ansiktsformer, käke och ögonleder | låst |
-| Kläderna och ytan | Standarddockans neutrala grå hud, utan kläder | får bytas: Kläder som egna delar på samma skelett |
+| Kläderna och ytan | Standarddockans neutrala grå hud, utan kläder | får bytas: Kläder som egna delar på samma skelett, Personens utseende som ny yta på vår egen docka (Meshy, och närbilden på ansiktet) |
 | Exporten | Standarddockans .blend och .glb | låst |
 | Kontrollen | Bilder genom spelets kameror i standardscenen | får bytas: Dockans rörelser i standarddockans editor |
 | Rörelserna och filmen | Rörelser lyfta ur en riktig dealers film | får bytas: Standarddockans egna rörelser |
 
 Varför de är låsta: Måtten ur filmen kan bara användas av en kropp som byggs efter mått, alltså standarddockans; resten följer med hennes bygge. _(kod)_
 
-Det som saknas:
+Byggd sedan 2026-11-27 (assets/docka/standarddocka_danilo.* och _frasse.*). Ur filmen tas bara axellederna och huvudets höjd, avskrivna i MATT i bygg_docka.py; halsen, armarna (ANSUR II, filmens var skattade och för korta), händerna, benen och bålen är mannens, och midjan och höften syns inte bakom bordet (Danilos 4 och 3 % smalare). Hur långt bakom kanten dealern sitter är en skattning (give or take 0,1 m). _(kod)_
 
-- bygg_docka.py läser måtten ur MATT i skriptet och behöver ta emot en dealers mått (till exempel ur live-bj/data/uppsattning.json)
-- armarnas längd i mätningen är uppskattad och troligen för kort (mätningens egen text): ta dem ur ANSUR för hans axelbredd, eller mät igen
-- midjan och höfterna är inte mätta, eftersom bordet skymmer dem
-- hur långt bakom kanten dealern sitter är en skattning (give or take 0,1 m)
-_(data)_
+Steg för steg:
+
+| Steg | Vad | Skript | Betalt | Kvitto | Tid |
+| --- | --- | --- | --- | --- | --- |
+| A Måtten ur spelet | Läser spelets kod och skriver scen/standard.yaml, som bygget läser. `.\.venv\Scripts\python.exe scen/gen_standard.py` | `scen/gen_standard.py`, `scen/las_spelet.ts`; med `gemensamt/standard.py` | gratis |  | inte mätt |
+| B Dockan | Mannens MPFB-kropp med dealerns mätta axlar och huvud (MATT danilo eller frasse), samma skelett, vridben, fingrar, ansiktsben, 30 ansiktsformer, ögon, bryn och mun som mannen. `blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon danilo` | `scen/bygg_docka.py`; med `scen/_bpy_hjalp.py`, `gemensamt/riggverktyg.py`, `gemensamt/standard.py` | gratis |  | inte mätt |
+
+Flaggorna:
+
+| Flagga | Gör | Förval | I guiden |
+| --- | --- | --- | --- |
+| `--kon` | danilo eller frasse |  | ja |
+| `--namn` | skriver standarddocka_<namn>_<N>.* (en provmodell) i stället för de modeller som används |  | ja |
 
 ### Runways kropp på vår dockas skelett (gratisprov)
 
@@ -447,7 +461,8 @@ Guiden erbjuder bara det som går ihop med de val som redan är gjorda, och säg
 | Meshy gör huvudet ur närbilden av ansiktet | kräver Kroppen: Meshy gör kroppen ur A-posebilden eller Runway: Hunyuan 3D 3.1 Pro ur A-posebilden | i dag | Huvudet sys fast på hudbandet ovanför skjortkragen: på Meshys kropp i steg 3 och på Hunyuans i steg 10 (montera_huvud.py, samma sökning efter halsen). Trellis och standarddockan är inte prövade. _(kod)_ | `meshy-huvud-kraver-kropp-med-krage` |
 | En färdig hand från Meshy, satt på vid manschetten | kräver Fingrarna och handlederna: Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad | måste | En påsatt hand ger en skarv vid handleden; steg 5 (fixa_handleder.py) lagar den och sätter fingerlederna i den påsatta handen. _(kod)_ | `pasatt-hand-kraver-handledsfix` |
 | Kroppens egna händer eller Kroppens eget huvud, ur samma bild som kroppen eller Kläder och hud inbakade i ytan, ur bilden | kräver Kroppen: Meshy gör kroppen ur A-posebilden eller Runway: Hunyuan 3D 3.1 Pro ur A-posebilden eller Runway: Trellis 2 ur A-posebilden eller Runway: Tripo ur bild | måste | Det är delar av en kropp som är gjord ur en bild; standarddockan har sina egna. _(kod)_ | `kroppens-egna-delar-kraver-kropp-ur-bild` |
-| Meshy riggar kroppen (Mixamo-skelett) | kräver Kroppen: Meshy gör kroppen ur A-posebilden | i dag | Steg 4 riggar den lätta kopian som steg 3 monterar av Meshys delar. En Runway-kropp i A-pose borde också gå att rigga hos Meshy, men det är inte prövat. _(kod)_ | `meshys-rigg-kraver-meshys-kropp` |
+| Meshy riggar kroppen (Mixamo-skelett) | kräver Kroppen: Meshy gör kroppen ur A-posebilden eller Meshy gör kroppen i ett stycke ur flera vyer | i dag | Steg 4 riggar den lätta kopian som steg 3 monterar av Meshys delar. Kroppen ur flera vyer riggades direkt i provet meshy-provet-20261127, men nådde inte nypet. En Runway-kropp i A-pose borde också gå att rigga hos Meshy, men det är inte prövat. _(kod)_ | `meshys-rigg-kraver-meshys-kropp` |
+| Personens utseende som ny yta på vår egen docka (Meshy, och närbilden på ansiktet) | kräver Kroppen: Standarddockans kropp (MPFB 2), byggd efter mått | i dag | yta.py läser dockans hörnfärger (ANSIKTE i scen/bygg_docka.py) för ögonen, brynen, tänderna och munnen, och MPFB:s ytkarta med den tomma rutan där ögonöarna läggs. _(kod)_ | `ny-yta-kraver-var-docka` |
 | Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad eller Steg 5:s fingerleder i handens egen ram, för en hand i ett stycke med armen | kräver Skelettet och riggen: Meshy riggar kroppen (Mixamo-skelett) eller Kroppen sätts på en färdig dockas skelett, och vikterna förs över | i dag | Steg 5 tar en riggad modell med Mixamo-ben (en lånad Version 1-dockas skelett i provet) och byter handens fingerben; standarddockan har sina egna fingerleder. _(kod)_ | `fingersteget-kraver-mixamo-rigg` |
 | Dealer-GLB för spelet (steg 6) eller Två vridben i varje underarm, lagda till i exporten | kräver Skelettet och riggen: Meshy riggar kroppen (Mixamo-skelett) eller Kroppen sätts på en färdig dockas skelett, och vikterna förs över | i dag | Steg 6 döper om Meshys Mixamo-ben (mixamorig:, Neck) och lägger vridbenen i den riggen. _(kod)_ | `exporten-kraver-mixamo-ben` |
 | Två vridben i varje underarm, lagda till i exporten | kräver Exporten: Dealer-GLB för spelet (steg 6) | måste | Vridbenen läggs till i steg 6, när dealer-GLB:n skrivs. _(kod)_ | `vridben-i-exporten-kraver-exporten` |
@@ -521,6 +536,8 @@ De prövas på modellen, inte på valen. En princip är Jakobs regel för hur va
 | `hander-hunyuan-mot-meshy-20261127` Händerna i rörelse: Hunyuan-kroppen i ett stycke mot Meshy-dockans påsatta händer | prov | 2026-11-27 | Hunyuan-kroppen fick Tomasz Meshy-huvud, Tomasz-dockans skelett och en egen fingerrigg (steg 10, gratis): fingrarna böjer sig nu in mot handflatan. I rörelse vann Hunyuan handleden (ingen skarv, ingen krage) och den knutna handen, och vid bordet i spelets vy, där Meshy-dockans manschetter blir mörka krås; Meshy-dockan vann detaljerna på nära håll (naglar, knogar, ådror) och nypet. | inte dömt | `blackjack-dealer/assets/proofs/hander-hunyuan-mot-meshy-20261127/`, `assets/docka/standarddocka_tomasz_hunyuan.glb` |
 | `tomasz-ansikte-20261127` Ett ansikte som rör sig på Tomasz Meshy-huvud | prov | 2026-11-27 | Standarddockans 30 ansiktsformer fördes över till Tomasz Meshy-huvud (steg 09, gratis): han blinkar, sänker locken, flyttar blicken, ler, lyfter och sänker brynen och öppnar munnen, och likheten i vila står kvar. Ögonen är en glob per öga på nya ögonleder med hans egen målade iris, och munnen är uppskuren med en mörk munhåla. Inga tänder, och käkleden rör hakan svagt. | inte dömt | `blackjack-dealer/assets/proofs/tomasz-ansikte-20261127/`, `assets/docka/standarddocka_tomasz_ansikte.glb` |
 | `tomasz-pa-danilos-grund-20261127` Tomasz på Danilos docka: hans yta på Danilos skelett | prov | 2026-11-27 | Tomasz med ansiktet (steg 09) sattes på Danilos skelett med steg 11 (gratis): lederna är Danilos (högst 0,001 mm ifrån), axlarna 357 mm isär i stället för 312, armarna och benen Danilos längder, fingrarna Danilos knogar och längder men hans egen krökning i vila. I editorn spelade han Danilos giv till plats 4 med fingrarna, handlederna, armbågarna och axlarna 0 mm från rörelsens punkter, som Danilos egen docka (gårdagens Tomasz, skalad: fingrarna 40 mm, armbågarna 11–25, axlarna 17). Ansiktet och huvudet är oförändrade; handflatan blev bredare (Danilos knogar sitter 69 mm isär, hans 51) och huden på handryggen sträcktes upp till 60 %; ärmens manschett är lika skrynklig som förut. Samma steg på Hunyuan-kroppen (med steg 09 först) sträckte hela handen, eftersom dess hand är 16 cm lång mot Danilos 19: Meshy-Tomasz blev bäst. | inte dömt | `blackjack-dealer/assets/proofs/tomasz-pa-danilos-grund-20261127/`, `assets/docka/standarddocka_tomasz_danilo.glb` |
+| `danilo-frasse-kroppar-20261127` Danilo och Frasse: två dockor med de mätta måtten, bredvid mannen | prov | 2026-11-27 | scen/bygg_docka.py --kon danilo och --kon frasse: mannens kropp med axellederna och huvudets höjd ur mätningen på film, vårt eget ansikte (81 ben, 30 ansiktsformer). Axlarna 2 och 3 cm smalare än mannens, Frasses huvud lite mindre, Danilo lite smalare om midjan och höften; halsen, armarna och händerna är mannens. | inte dömt | `blackjack-dealer/assets/proofs/danilo-frasse-kroppar-20261127/`, `assets/docka/standarddocka_danilo.glb`, `assets/docka/standarddocka_frasse.glb` |
+| `meshy-provet-20261127` Meshy-provet: kroppen ur flera vyer, Meshys rigg på den, och Tomasz utseende som ny yta på Danilos docka | prov | 2026-11-27 | 48 Meshy-krediter: vyerna 3, kroppen ur två vyer 30, riggen 5 och den nya ytan 10. Kroppen ur flera vyer duger inte som dealer: de fyra fingrarna är ihopvuxna i båda händerna (steg 05:s prov hittar inte fem fingrar) och ansiktet är utsmetat, med en kal rand över hjässan; kläderna är rena fram och bak. Meshys rigg på den (66 ben, fyra leder per finger) når inte nypet (tummens och pekfingrets toppar 33–47 mm isär, Tomasz-dockans 12) och river upp huden över knogarna i en knuten hand. Den nya ytan på Danilos egen docka behåller hans skelett, fingrar, vridben och 30 ansiktsformer: Tomasz hud, hår och kläder målade på Danilos form. Meshys ansikte blev suddigt med vita ögon; närbilden av ansiktet lagd ovanpå (gratis) gav skarpa drag och blå ögon, och den sparades. | inte dömt | `blackjack-dealer/assets/proofs/meshy-provet-20261127/`, `output/tomasz-flervy/`, `assets/docka/standarddocka_danilo_tomasz_yta.glb` |
 | `givar-sju-platser-20261126` Standarddockans giv till alla sju platser | prov | 2026-11-26 | Standarddockans egna givar till plats 1–7, för mannen och kvinnan. | "Nja … I övrigt bra!" | `blackjack-dealer/assets/proofs/givar-sju-platser-20261126/` |
 
 ## Priserna

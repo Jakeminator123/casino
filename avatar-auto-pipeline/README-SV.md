@@ -39,6 +39,7 @@ avatar-auto-pipeline/
   steg/01-referenser … 08-film       ett skript per steg; 09-ansikte ger en färdig dealer ett rörligt ansikte (prov)
   steg/10-kropp-i-ett-stycke/        en kropp ur Runway med egna händer blir en docka, gratis (prov, körs för hand)
   steg/11-pa-dockans-grund/          en färdig dealer sätts på Danilos eller Frasses skelett, led för led (prov)
+  steg/12-ny-yta/                    vår egen docka får en persons utseende som ny yta hos Meshy (prov, betalt)
   metod/                     grundfunktioner för mesh och GLB
   input/<namn>/              dina foton
   output/<namn>/             allt som en körning skapar
@@ -171,5 +172,20 @@ att formas om. Hur det görs står i skriptets huvud; rapporten (`<ut>.json`) s�
 ```text
 blender -b --python-exit-code 1 --python steg/11-pa-dockans-grund/pa_grund.py -- assets/docka/standarddocka_tomasz_ansikte.glb assets/docka/standarddocka_danilo.glb assets/docka/standarddocka_tomasz_danilo.glb
 ```
+
+En ny yta på vår egen docka (steg 12, på prov sedan 2026-11-27, betalt: 10 Meshy-krediter): Meshy målar personens
+utseende ur 1–4 vyer (framifrån först) på en kopia av dockans yta och behåller dockans egen ytkarta; närbilden av
+ansiktet läggs sedan på ansiktsdelen, inpassad efter ansiktets punkter (gratis, MediaPipe-miljön som steg 09), och
+bilden läggs på dockan själv, så att skelettet, fingrarna och ansiktsformerna står orörda. Varför en kopia och inte hela
+dockan står i skriptens huvud; `--dry-run` gör kopian och visar vad som skickas och vad det kostar, utan att anropa Meshy:
+
+```text
+.venv\Scripts\python.exe -I steg/12-ny-yta/meshy_ny_yta.py assets/docka/standarddocka_danilo.glb output/<namn>/12-ny-yta --vy <fram.png> --vy <bak.png> [--dry-run]
+blender -b --factory-startup --python-exit-code 1 --python steg/12-ny-yta/yta.py -- lagg assets/docka/standarddocka_danilo.glb output/<namn>/12-ny-yta/pbr/0-base_color.png <arb>/meshy-ansikte.glb
+blender -b --factory-startup --python-exit-code 1 --python steg/12-ny-yta/narbild.py -- <arb>/meshy-ansikte.glb output/<namn>/12-ny-yta/pbr/0-base_color.png output/<namn>/01-referenser/head-ref.png output/<namn>/12-ny-yta/bas-med-narbild.png
+blender -b --factory-startup --python-exit-code 1 --python steg/12-ny-yta/yta.py -- lagg assets/docka/standarddocka_danilo.glb output/<namn>/12-ny-yta/bas-med-narbild.png assets/docka/standarddocka_danilo_<namn>_yta.glb
+```
+
+Provet med Tomasz på Danilos docka är `assets/docka/standarddocka_danilo_tomasz_yta.glb` (meshy-provet-20261127).
 
 Om något avbryts kan du fortsätta utan att betala om: `--from-step 5` eller `--only-step 7`. Hoppa över filmen med `--no-video`. Betalda jobb sparar ett kvitto i stegmappen: `referenser.json`, `korning.json` och `riggjobb.json`. En omstart använder samma kvitto. Radera dem inte.

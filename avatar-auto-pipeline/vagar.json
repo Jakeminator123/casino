@@ -116,6 +116,22 @@
    "sa": "Tomasz med ansiktet (steg 09) sattes på Danilos skelett med steg 11 (gratis): lederna är Danilos (högst 0,001 mm ifrån), axlarna 357 mm isär i stället för 312, armarna och benen Danilos längder, fingrarna Danilos knogar och längder men hans egen krökning i vila. I editorn spelade han Danilos giv till plats 4 med fingrarna, handlederna, armbågarna och axlarna 0 mm från rörelsens punkter, som Danilos egen docka (gårdagens Tomasz, skalad: fingrarna 40 mm, armbågarna 11–25, axlarna 17). Ansiktet och huvudet är oförändrade; handflatan blev bredare (Danilos knogar sitter 69 mm isär, hans 51) och huden på handryggen sträcktes upp till 60 %; ärmens manschett är lika skrynklig som förut. Samma steg på Hunyuan-kroppen (med steg 09 först) sträckte hela handen, eftersom dess hand är 16 cm lång mot Danilos 19: Meshy-Tomasz blev bäst.",
    "jakobs_ord": null
   },
+  "danilo-frasse-kroppar-20261127": {
+   "namn": "Danilo och Frasse: två dockor med de mätta måtten, bredvid mannen",
+   "slag": "prov",
+   "datum": "2026-11-27",
+   "var": ["../blackjack-dealer/assets/proofs/danilo-frasse-kroppar-20261127/", "assets/docka/standarddocka_danilo.glb", "assets/docka/standarddocka_frasse.glb"],
+   "sa": "scen/bygg_docka.py --kon danilo och --kon frasse: mannens kropp med axellederna och huvudets höjd ur mätningen på film, vårt eget ansikte (81 ben, 30 ansiktsformer). Axlarna 2 och 3 cm smalare än mannens, Frasses huvud lite mindre, Danilo lite smalare om midjan och höften; halsen, armarna och händerna är mannens.",
+   "jakobs_ord": null
+  },
+  "meshy-provet-20261127": {
+   "namn": "Meshy-provet: kroppen ur flera vyer, Meshys rigg på den, och Tomasz utseende som ny yta på Danilos docka",
+   "slag": "prov",
+   "datum": "2026-11-27",
+   "var": ["../blackjack-dealer/assets/proofs/meshy-provet-20261127/", "output/tomasz-flervy/", "assets/docka/standarddocka_danilo_tomasz_yta.glb"],
+   "sa": "48 Meshy-krediter: vyerna 3, kroppen ur två vyer 30, riggen 5 och den nya ytan 10. Kroppen ur flera vyer duger inte som dealer: de fyra fingrarna är ihopvuxna i båda händerna (steg 05:s prov hittar inte fem fingrar) och ansiktet är utsmetat, med en kal rand över hjässan; kläderna är rena fram och bak. Meshys rigg på den (66 ben, fyra leder per finger) når inte nypet (tummens och pekfingrets toppar 33–47 mm isär, Tomasz-dockans 12) och river upp huden över knogarna i en knuten hand. Den nya ytan på Danilos egen docka behåller hans skelett, fingrar, vridben och 30 ansiktsformer: Tomasz hud, hår och kläder målade på Danilos form. Meshys ansikte blev suddigt med vita ögon; närbilden av ansiktet lagd ovanpå (gratis) gav skarpa drag och blå ögon, och den sparades.",
+   "jakobs_ord": null
+  },
   "givar-sju-platser-20261126": {
    "namn": "Standarddockans giv till alla sju platser",
    "slag": "prov",
@@ -185,16 +201,15 @@
     {
      "id": "matt-ur-film",
      "namn": "En riktig dealers mått, mätta på film",
-     "status": "tankt",
-     "kraver": ["en mätning av dealern i live-bj/data/uppsattning.json (dealer.<stil>: body, trunk och arm)"],
-     "ger": ["axelbredden", "huvudets höjd (hakan till hjässan) och halsen (hakan över axellinjen)", "armarnas längd, uppskattad och troligen för kort (mätningens egen text)", "inte midjan och höfterna: bordet skymmer dem"],
-     "gors_av": {"steg": null, "skript": ["../live-bj/data/uppsattning.json"], "text": "mätningen finns för Danilo (stilen kameran) och Frasse (stilen bordet); inget bygge läser den"},
+     "status": "finns",
+     "kraver": ["en mätning av dealern i live-bj/data/uppsattning.json (dealer.<stil>.body)", "talen avskrivna i MATT i scen/bygg_docka.py (MATT['danilo'], MATT['frasse']); skriptet läser inte mätningen själv"],
+     "ger": ["axellederna isär (Danilo 0,357 m, Frasse 0,348 m)", "huvudets höjd, hakan till hjässan (0,228 och 0,210 m, skattad)", "inte halsen: filmens haka över axlarna är hållning och synvinkel, så halsen är mannens", "inte armarna, händerna, benen, midjan eller höfterna: de syns inte eller bara bakom bordet, så de är mannens (Danilos midja och höft 4 och 3 % smalare)"],
+     "gors_av": {"steg": null, "skript": ["scen/bygg_docka.py", "../live-bj/data/uppsattning.json"], "text": "--kon danilo eller --kon frasse: mannens kropp med de mätta axlarna och huvudet"},
      "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "okänd"},
-     "provet": null,
-     "hinder": "scen/bygg_docka.py tar bara --kon och --namn; måtten står i MATT i skriptet. Ett bygge efter en mätt dealer behöver att skriptet tar emot måtten utifrån.",
+     "tid": {"sekunder": null, "text": "ingår i dockans bygge"},
+     "provet": {"id": "danilo-frasse-kroppar-20261127", "sa": "Danilo och Frasse bredvid mannen: axlarna 2 och 3 cm smalare, Frasses huvud lite mindre, Danilo lite smalare om midjan."},
      "matt": {"dockor": {"kameran": "danilo", "bordet": "frasse"}},
-     "belagt": {"kraver": "data", "ger": "data", "gors_av": "data", "kostnad": "bedomning", "tid": "bedomning", "status": "kod", "hinder": "kod"}
+     "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "kod", "status": "kod"}
     },
     {
      "id": "foton-och-matt",
@@ -251,6 +266,18 @@
      "tid": {"sekunder": null, "text": "några minuter (inte mätt)"},
      "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Som docka (steg 10) böjde den handleden och knöt handen renare än Meshy-dockan; händerna är släta och utan naglar på nära håll. I provet runway-3d-20261127 var den sämre än vår docka i ansiktet."},
      "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "prov", "kostnad": "data", "tid": "bedomning", "status": "prov"}
+    },
+    {
+     "id": "meshy-flervy-kropp",
+     "namn": "Meshy gör kroppen i ett stycke ur flera vyer",
+     "status": "provat",
+     "kraver": ["A-posebilden ur steg 1", "2–4 vyer av personen ur den, framifrån först (Meshys bildmodell; vyn från sidan fick armarna åt fel håll och användes inte)"],
+     "ger": ["kropp, kläder och huvud i ett stycke i T-pose, 200 000 trianglar och en textur i 2K", "kläder som är rena fram och bak", "fyra fingrar ihopvuxna i varje hand, bara tummen fri: steg 05:s prov hittar inte fem fingrar", "ett utsmetat ansikte med en kal rand över hjässan"],
+     "gors_av": {"steg": null, "skript": [], "text": "inget skript beställer den; provet beställde Meshys multi-image to 3D (meshy-7.1) för hand, ur output/tomasz-flervy/01-vyer/"},
+     "kostnad": {"krediter": 33, "hos": "Meshy", "text": "30 krediter för kroppen och 3 för vyerna"},
+     "tid": {"sekunder": null, "text": "några minuter (inte mätt)"},
+     "provet": {"id": "meshy-provet-20261127", "sa": "Duger inte som dealer: fingrarna ihopvuxna och ansiktet utsmetat, sämre än både Tomasz-dockan och Hunyuan-kroppen i samma bilder."},
+     "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "prov", "kostnad": "prov", "tid": "bedomning", "status": "prov"}
     },
     {
      "id": "runway-trellis",
@@ -394,8 +421,9 @@
      "kostnad": {"krediter": 5, "hos": "Meshy", "text": "5 krediter"},
      "tid": {"sekunder": 90.8, "text": "cirka 1,5 minuter"},
      "provet": {"id": "tomasz-20261126", "sa": "Riggen kostade 5 krediter; dealern fick 56 ben men inga vridben, inga ögonleder och ingen käke."},
+     "anm": "På kroppen i ett stycke ur flera vyer (meshy-provet-20261127, T-pose, utan steg 3) gav riggen 66 ben med fyra leder per finger, men den når inte nypet (tummens och pekfingrets toppar 33–47 mm isär, Tomasz-dockans 12) och river upp huden över knogarna i en knuten hand, eftersom fingrarna där är ihopvuxna; handleden och armbågen böjde rent.",
      "matt": {"rig_trianglar": 180000},
-     "belagt": {"kraver": "kod", "ger": "korning", "gors_av": "kod", "kostnad": "korning", "tid": "korning", "status": "kod"}
+     "belagt": {"kraver": "kod", "ger": "korning", "gors_av": "kod", "kostnad": "korning", "tid": "korning", "status": "kod", "anm": "prov"}
     },
     {
      "id": "mpfb-rigg",
@@ -609,6 +637,18 @@
      "belagt": {"kraver": "bedomning", "ger": "bedomning", "gors_av": "kod", "kostnad": "bedomning", "tid": "bedomning", "status": "kod", "hinder": "kod"}
     },
     {
+     "id": "meshy-ny-yta",
+     "namn": "Personens utseende som ny yta på vår egen docka (Meshy, och närbilden på ansiktet)",
+     "status": "provat",
+     "kraver": ["vår docka ur scen/bygg_docka.py (dess ytkarta och hörnfärger)", "1–4 vyer av personen, framifrån först, i samma ställning (provet: Meshy-vyerna ur A-posebilden)", "närbilden av ansiktet ur steg 1, för ansiktet", "MediaPipe-miljön i ../blackjack-dealer/tools/python/ (ansiktets punkter)"],
+     "ger": ["personens hud, hår och kläder målade på dockans egen karta i 4K", "dockans skelett, fingrar, vridben och 30 ansiktsformer orörda, så att den spelar sina rörelser som förut", "dockans form: kroppen, händerna och ansiktets form är dockans, och kläderna är målade på huden (ingen krage, tighta byxor, svarta fötter)", "ansiktet ur närbilden: skarpa drag och personens ögonfärg; Meshys eget ansikte blev suddigt med vita ögon"],
+     "gors_av": {"steg": null, "skript": ["steg/12-ny-yta/meshy_ny_yta.py", "steg/12-ny-yta/yta.py", "steg/12-ny-yta/narbild.py"], "text": "meshy_ny_yta.py beställer bilden på en kopia av dockans yta (yta.py kopia), narbild.py lägger närbilden på ansiktet och yta.py lagg lägger bilden på dockan; kommandona står i README-SV.md"},
+     "kostnad": {"krediter": 10, "hos": "Meshy", "text": "10 krediter (2K eller 4K); ansiktet ur närbilden gratis"},
+     "tid": {"sekunder": null, "text": "några minuter hos Meshy och några i Blender (inte mätt)"},
+     "provet": {"id": "meshy-provet-20261127", "sa": "Danilos docka fick Tomasz hud, hår, skjorta och byxor och spelade vid livebordet med sina egna händer och sitt skelett; ansiktet är Tomasz färger på Danilos form."},
+     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "korning", "tid": "bedomning", "status": "prov"}
+    },
+    {
      "id": "foto-pa-docka",
      "namn": "Personens hud och ansikte som textur på standarddockan",
      "status": "tankt",
@@ -618,7 +658,7 @@
      "kostnad": {"krediter": null, "hos": null, "text": "okänd"},
      "tid": {"sekunder": null, "text": "okänd"},
      "provet": null,
-     "hinder": "Inte prövat.",
+     "hinder": "Hela kroppen ur foton utan Meshy är inte prövat; ansiktet ur en närbild på dockans karta är prövat i meshy-ny-yta (steg/12-ny-yta/narbild.py).",
      "belagt": {"kraver": "bedomning", "ger": "bedomning", "gors_av": "kod", "kostnad": "bedomning", "tid": "bedomning", "status": "kod", "hinder": "kod"}
     }
    ]
@@ -948,7 +988,7 @@
     "kommando": "blender -b --python-exit-code 1 --python scen/bygg_docka.py",
     "jakob_startar": null,
     "flaggor": [
-     {"flagga": "--kon", "gor": "kvinna, man eller bada", "forval": "bada", "i_guiden": true},
+     {"flagga": "--kon", "gor": "kvinna, man eller bada (danilo och frasse: vägen Docka efter en mätt dealer)", "forval": "bada", "i_guiden": true},
      {"flagga": "--namn", "gor": "skriver standarddocka_<kön>_<namn>.* (en provmodell) i stället för de modeller som används", "i_guiden": true}
     ]
    },
@@ -1024,8 +1064,8 @@
   {
    "id": "matt-dealer",
    "namn": "Docka efter en mätt dealer (Danilo, Frasse)",
-   "status": "tankt",
-   "kan_koras": false,
+   "status": "finns",
+   "kan_koras": true,
    "beskrivning": "En standarddocka med kroppens mått ur mätningen av en riktig dealer på film, vårt eget ansikte och rörelserna lyfta ur samma film. Inga foton och ingen Meshy.",
    "dockor": [
     {"namn": "Danilo", "stil": "kameran", "kalla": "../live-bj/data/uppsattning.json dealer.kameran"},
@@ -1046,20 +1086,44 @@
     "film": "rorelser-ur-film"
    },
    "last": ["underlag", "kropp", "huvud", "hander", "rigg", "fingrar", "vridben", "ansiktsrigg", "export"],
-   "far_bytas": {"yta": ["mpfb-gra", "separata-klader"], "kontroll": ["standardscenens-bilder", "i-editorn"], "film": ["rorelser-ur-film", "dockans-rorelser"]},
+   "far_bytas": {"yta": ["mpfb-gra", "separata-klader", "meshy-ny-yta"], "kontroll": ["standardscenens-bilder", "i-editorn"], "film": ["rorelser-ur-film", "dockans-rorelser"]},
    "varfor_last": "Måtten ur filmen kan bara användas av en kropp som byggs efter mått, alltså standarddockans; resten följer med hennes bygge.",
-   "anm": null,
-   "saknas": [
-    "bygg_docka.py läser måtten ur MATT i skriptet och behöver ta emot en dealers mått (till exempel ur live-bj/data/uppsattning.json)",
-    "armarnas längd i mätningen är uppskattad och troligen för kort (mätningens egen text): ta dem ur ANSUR för hans axelbredd, eller mät igen",
-    "midjan och höfterna är inte mätta, eftersom bordet skymmer dem",
-    "hur långt bakom kanten dealern sitter är en skattning (give or take 0,1 m)"
-   ],
+   "anm": "Byggd sedan 2026-11-27 (assets/docka/standarddocka_danilo.* och _frasse.*). Ur filmen tas bara axellederna och huvudets höjd, avskrivna i MATT i bygg_docka.py; halsen, armarna (ANSUR II, filmens var skattade och för korta), händerna, benen och bålen är mannens, och midjan och höften syns inte bakom bordet (Danilos 4 och 3 % smalare). Hur långt bakom kanten dealern sitter är en skattning (give or take 0,1 m).",
    "kostnad": {"krediter": {}, "text": "gratis"},
-   "tid": {"sekunder": null, "text": "okänd"},
-   "provet": null,
-   "belagt": {"val": "bedomning", "last": "kod", "far_bytas": "bedomning", "varfor_last": "kod", "saknas": "data", "kostnad": "bedomning", "tid": "bedomning", "dockor": "data"},
-   "steg": []
+   "tid": {"sekunder": null, "text": "några minuter per docka (inte mätt)"},
+   "provet": {"id": "danilo-frasse-kroppar-20261127", "sa": "Tre män med samma ansikte och några centimeters skillnad i axlar och huvud; domaren Bra, den externa Nja (för lika mannen)."},
+   "belagt": {"val": "kod", "last": "kod", "far_bytas": "bedomning", "varfor_last": "kod", "anm": "kod", "kostnad": "kod", "tid": "bedomning", "dockor": "data"},
+   "korning": {
+    "program": "scen/bygg_docka.py",
+    "kommando": "blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon danilo",
+    "jakob_startar": null,
+    "flaggor": [
+     {"flagga": "--kon", "gor": "danilo eller frasse", "i_guiden": true},
+     {"flagga": "--namn", "gor": "skriver standarddocka_<namn>_<N>.* (en provmodell) i stället för de modeller som används", "i_guiden": true}
+    ]
+   },
+   "steg": [
+    {
+     "nr": "A", "namn": "Måtten ur spelet",
+     "gor": "Läser spelets kod och skriver scen/standard.yaml, som bygget läser.",
+     "delar": [],
+     "kommando": ".\\.venv\\Scripts\\python.exe scen/gen_standard.py",
+     "skript": ["scen/gen_standard.py", "scen/las_spelet.ts"],
+     "hjalp": ["gemensamt/standard.py"],
+     "betalt": null,
+     "tid_s": null
+    },
+    {
+     "nr": "B", "namn": "Dockan",
+     "gor": "Mannens MPFB-kropp med dealerns mätta axlar och huvud (MATT danilo eller frasse), samma skelett, vridben, fingrar, ansiktsben, 30 ansiktsformer, ögon, bryn och mun som mannen.",
+     "delar": ["underlag", "kropp", "huvud", "hander", "rigg", "fingrar", "vridben", "ansiktsrigg", "yta", "export"],
+     "kommando": "blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon danilo",
+     "skript": ["scen/bygg_docka.py"],
+     "hjalp": ["scen/_bpy_hjalp.py", "gemensamt/riggverktyg.py", "gemensamt/standard.py"],
+     "betalt": null,
+     "tid_s": null
+    }
+   ]
   },
   {
    "id": "runway-pa-vart-skelett",
@@ -1256,11 +1320,21 @@
    "id": "meshys-rigg-kraver-meshys-kropp",
    "typ": "kraver",
    "om": ["rigg/meshy-rigg"],
-   "kraver": {"kropp": ["meshy-kropp"]},
+   "kraver": {"kropp": ["meshy-kropp", "meshy-flervy-kropp"]},
    "styrka": "i_dag",
-   "varfor": "Steg 4 riggar den lätta kopian som steg 3 monterar av Meshys delar. En Runway-kropp i A-pose borde också gå att rigga hos Meshy, men det är inte prövat.",
+   "varfor": "Steg 4 riggar den lätta kopian som steg 3 monterar av Meshys delar. Kroppen ur flera vyer riggades direkt i provet meshy-provet-20261127, men nådde inte nypet. En Runway-kropp i A-pose borde också gå att rigga hos Meshy, men det är inte prövat.",
    "belagt": {"varfor": "kod"},
    "kalla": "auto_avatar.py (steg 4); steg/04-rigg/meshy_rigg.py"
+  },
+  {
+   "id": "ny-yta-kraver-var-docka",
+   "typ": "kraver",
+   "om": ["yta/meshy-ny-yta"],
+   "kraver": {"kropp": ["mpfb-kropp"]},
+   "styrka": "i_dag",
+   "varfor": "yta.py läser dockans hörnfärger (ANSIKTE i scen/bygg_docka.py) för ögonen, brynen, tänderna och munnen, och MPFB:s ytkarta med den tomma rutan där ögonöarna läggs.",
+   "belagt": {"varfor": "kod"},
+   "kalla": "steg/12-ny-yta/yta.py"
   },
   {
    "id": "meshys-rigg-granser",
