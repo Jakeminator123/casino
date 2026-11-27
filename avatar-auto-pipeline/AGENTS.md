@@ -21,7 +21,9 @@ här mappen. Mapparna och alla kommandon står i `README-SV.md`; skelettet, lede
   utan Jakobs ord; `--dry-run` och steg som körs lokalt är gratis. Betalda jobb sparar kvitton så att en omstart inte
   betalar två gånger: radera aldrig ett kvitto för att börja om.
 - **Nycklar:** `OPENAI_API_KEY` och `MESHY_API_KEY` står i `.env` här (mall: `.env.example`).
-- **Foton av en person är privata:** `input/<namn>/` stannar på datorn och delas aldrig.
+- **Personerna i `input/` är framställda, inte riktiga människor** (Jakob 2026-11-27, om mappen han lade in: Tomasz,
+  Amara, Malik och de andra, tre bilder var): deras bilder får gå till tjänsterna vägen använder. Ett foto av en
+  riktig person är privat: det stannar på datorn och delas aldrig, och går in i `input/` bara på hans ord.
 - **Det som görs här:** `output/<namn>/` är körningens arbetsmapp, `assets/` (bord, dockor, stol) och `qc/`
   (kontrollbilder) byggs av skripten. Inget av det går in i Git. Det Jakob ska döma läggs i
   `../slask/avatar-auto-pipeline/granska/<namn>/`.
