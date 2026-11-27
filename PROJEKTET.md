@@ -20,7 +20,9 @@ visar en enda vy, och 3D-figurerna når inte filmernas kvalitet. Vägarna som ha
   tidigare på att dockans rörelser var onaturliga och att filmmodellen kopierade dem exakt. Med rörelser lyfta ur
   riktiga dealrar blir samma egenskap en styrka: det som kopieras är en människas rörelse.
 - **Bilder i stället för en hel film som förlaga** (Jakobs idé): ge filmmodellen bara några ögonblick ur dockans
-  rörelse, till exempel var åttonde ruta, och låt den göra övergångarna själv. Inte prövat i den formen.
+  rörelse, till exempel var åttonde ruta, omgjorda till personen av en bildmodell, och låt den göra övergångarna
+  själv. Prövat en gång som en kedja av fyra bilder i tre skilda klipp (`tomasz-runda-20261126`): rörelsen blev
+  mänsklig men stannade upp vid varje bild. Alla bilderna i en och samma film prövas i `atta-bilder-20261127`.
 - **Många kameror runt en figur** (den väg som tidigare kom närmast: 120 kameror runt en docka som hade fått sitt
   utseende av bilder på en person). Inte i det här repot.
 - **3D-figuren direkt i spelet.** Ger varje vinkel gratis, men kvaliteten räcker inte i dag.
