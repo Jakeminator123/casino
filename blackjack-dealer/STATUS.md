@@ -146,9 +146,16 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
       nävens fingrar i ruta 34–35, syns inte i 36 och dyker upp under tummen på nävens andra sida i 38. Näven på
       kortet är hårt knuten, och blicken går inte till skon. Fjortonde vändan på rörelsen pågår (kortet bärs vid
       tummen hela vägen, som dealerns).
-    - **Kvar i efterarbetet (gratis, pågår):** hack och en mörk fläck vid tummen på det lagda kortet (tummens
-      skugga på filmens kort behölls som en grå fläck, och vårt kort passades inte in mot tumsidan), skuggkopior av
-      framsidan i rutan där kortet stannar, och prickar i handens kant när handen lyfts.
+    - **Den externa domaren (OpenAI): Inte bra,** så provet är märkt oenigt och Jakob behöver titta själv. Dess
+      tyngsta skäl är samma som domarens: vändningen går inte att läsa som ett grepp (ryggen försvinner under
+      fingrarna och framsidan kommer fram ute vid tummen). Det andra är tumtoppen, som blir gulgrön och utsmetad när
+      handen lyfts (efterarbetets). Det tredje gäller spårkortets turkosa ram i den gröna jämförelsebilden, som inte
+      finns i filmen.
+    - **Rättat i efterarbetet efter domarens första dom (gratis):** hacket och den mörka fläcken vid tummen på det
+      lagda kortet (den rosa tummen togs för kortets rygg, tummens skugga på filmens kort behölls som en grå fläck,
+      och vårt kort passades inte in mot tumsidan), skuggkopiorna av framsidan där kortet stannar, prickarna i handens
+      kant när handen lyfts, och en svart kil i armhålan. Kvar, och på gång: den gulgröna tumtoppen i farten och
+      några småfel vid tummen.
     - **Lärdomen om texten:** första klippets text beskrev också kortets framsida, som aldrig syns där, och Kling
       ritade den som ett stort vitt kort på filten genom hela klippet. Verktyget säger nu bara det som syns i varje
       klipp, och mäter hur lik klippets rörelse är dockans (0,73 mot 0,96 avslöjade det påhittade kortet).

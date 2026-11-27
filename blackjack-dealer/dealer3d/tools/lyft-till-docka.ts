@@ -167,18 +167,20 @@ const HEM_OPPNA = 0.6;
 const TA_IN = 6;
 /** Hur långt under handflatans mitt kortet bärs (meter, längs handflatans normal), dolt i den halvslutna näven. */
 const HANDFLATA_DJUP = 0.05;
-/** Hur många rutor före det plana tummen har kortet, från strax förbi på kant till plant (förlagans ruta 38–40: strimman vid tumtoppen i 38, framsidan snett i 39, plant i 40). */
+/** Var kortet bärs med ryggen upp i näven efter bytet, från handflatans mitt i handens axlar (meter; fram mot fingertopparna, ut från handflatan, tvärs mot tummen): på tumsidan, där dealerns kort syns i förlagans ruta 33–35. */
+const TUMSIDAN: Vec3 = [0.064, -0.03, 0.01];
+/** Hur långt kortet är vänt (andel av ett halvt varv kring långsidan från ryggen upp; 0,5 är på kant) i rutorna före det plana, den sista först: förlagans ruta 39 (framsidan snett), 38 (en strimma framsidan vid tumtoppen), 37 och 36 (strax förbi och på kant, i näven), 35 och 34 (ryggen upp vid tummen, på väg upp). */
+const VANT_FORE_PLANT = [0.88, 0.8, 0.62, 0.48, 0.32, 0.16];
+/** Hur många rutor före det plana tummen har kortet (förlagans ruta 38–39). */
 const TUMMEN = 2;
-/** Hur långt kortet är vänt när tummen tar det (andel av ett halvt varv kring långsidan; 0,5 är på kant). */
-const TUM_VANT = 0.63;
+/** Hur vägen från bytet till tumsidan får fördela sig över rutorna (exponenter på andelen; 1 är jämnt). */
+const VAG_TAKT = [1, 0.6, 0.8, 1.3, 1.6, 2];
+/** Hur stor del av vägen ut från näven till där kortet ligger plant under tummen kortet har gått i de rutor tummen har det, den sista först (förlagans ruta 39 och 38). */
+const UT_UR_NAVEN = [0.7, 0.42];
 /** Hur långt utanför kortets kant tumtoppen högst är när tummen har det, och hur långt från dess yta (meter; lyft-kolla.ts räknar ett finger som rör kortet inom 5 mm från kanten och 12 mm från ytan). */
 const TUM_KANT = 0.003, TUM_YTA = 0.01;
-/** Hur mycket kortet högst är vridet i sitt plan när tummen tar det (radianer; lyft-kolla.ts tål 40 grader på en ruta). */
+/** Hur mycket kortet högst är vridet i sitt plan när tummen har det (radianer; lyft-kolla.ts tål 40 grader på en ruta). */
 const TUM_VRID = 30 * Math.PI / 180;
-/** Hur många rutor kortet går under näven mellan ryggen upp i handen och tummen, och börjar vändas (förlagans ruta 36–37). */
-const DOLD = 2;
-/** Hur långt från handflatans mitt kortet högst är när inget finger rör det (meter): halva diagonalen och 20 mm, som lyft-kolla.ts. */
-const I_HANDEN = Math.hypot(CARD.height, CARD.width) / 2 + 0.02;
 /** Hur mycket den väntande högern vrids från lyftets riktning mot att peka längs relingen (andel), som dealerns med underarmen längs relingen, förlagans ruta 0–29. */
 const LANGS_RELINGEN = 0.6;
 /** Hur mycket kortet lutar bakåt mot dealern från lodrätt i bytet (grader). */
@@ -922,53 +924,66 @@ export function bygg(b: Bygg) {
     const halvt = Math.abs(dv0) > Math.PI / 2, dv = halvt ? dv0 - Math.sign(dv0) * Math.PI : dv0, l0 = halvt ? mul(K1.l, -1) : K1.l;
     const foljer = (x: number): Vec3 => { const d = sub(underVanstern(hander.L[x]), dU); return [K1.c[0] + d[0], T / 2, K1.c[2] + d[2]]; };
     // KORTET I HÖGERN FRÅN BYTET (förlagans ruta 29–40; rörelsedomaren 2026-11-27: kortet ska gå in i handen och följa den,
-    // "kortet sitter inte i en hand", och läggas utan att rycka in på sin plats): kortet bärs i högerns egna axlar (ett grepp),
-    // så att det går med handen i varje ruta. Från bytet går greppet på TA_IN rutor jämnt från där kortet står vid
-    // pekfingertoppen till under handflatan, HANDFLATA_DJUP under dess mitt, fällt bakåt till plant med ryggen upp (dealerns kort
-    // glider in i den halvslutna näven med ryggen upp och syns vid tummen till ruta 35). De DOLD rutorna efter går det under
-    // näven mot tummen och vänds upp på kant (dealerns kort är dolt i ruta 36 och en strimma vid tumtoppen i 37), och de TUMMEN
-    // sista rutorna före det plana har tummen det: tumtoppen ligger lika långt från kortets yta som när det ligger plant, och
-    // kortet vänds vidare kring sin långsida från strax förbi på kant (TUM_VANT, strimman i 38) över framsidan snett (39) till
-    // plant under tummen (40). Kortets avstånd till handflatans mitt växer jämnt från ryggen upp i handen till plant under
-    // tummen, och tummen glider på kortet i stället för att kortet rycker; utan tummen stannar kortet inom I_HANDEN.
+    // "kortet sitter inte i en hand", och läggas utan att rycka in på sin plats; båda domarna efter trettonde vändan: kortet
+    // stannar på tumsidan av näven och byter aldrig sida): kortet bärs i högerns egna axlar (ett grepp), så att det går med
+    // handen i varje ruta. Från bytet går greppet som förut mot under handflatan (fällt bakåt), och sedan runt handflatans
+    // mitt över till tumsidan (TUMSIDAN i handens axlar), dit det når rutan innan det börjar vändas: ryggen upp vid tummen,
+    // dealerns ruta 33–34. I näven vänds det sedan kring sin långsida efter VANT_FORE_PLANT, lika långt från handflatans mitt
+    // och på väg mot där tummen tar det (35–37), och de TUMMEN sista rutorna före det plana har tummen det: tumtoppen mot
+    // kortets framsida lika långt från ytan som när det ligger plant, kortet ut ur näven efter UT_UR_NAVEN (38: en strimma
+    // framsidan vid tumtoppen, 39: framsidan snett) till plant under tummen (40). Tummen glider på kortet i stället för att
+    // kortet rycker; längre ut än handen räcker har tummen det, och det står aldrig högt över tummen (lyft-kolla.ts).
     const flatan = (h: Hand): Vec3 => { const p = punkter(h); return mul(add(add(add(add(p[0], p[5]), p[9]), p[13]), p[17]), 1 / 5); };
     const lyft = (k: Kort): Kort => { const under = 0.0005 - kortLagst(k); return under > 0 ? flyttKort(k, [0, under, 0]) : k; };
     const iHogersGrepp = (x: number): Kort => {
       const h = hander.R[x], hP = hander.R[t.plan], gMeet = iHanden(hander.R[t.meet], K2), KP = underFingret(t.plan), gLand = iHanden(hP, KP);
-      const gIn: Grepp = {c: add(inn(hP, sub(flatan(hP), hP.w)), [0, HANDFLATA_DJUP, 0]), l: gLand.l, n: mul(gLand.n, -1)};
-      const tTum = t.plan - TUMMEN, tRygg = Math.max(t.meet + 2, tTum - DOLD - 1), tIn = Math.min(t.meet + TA_IN, tRygg - 1);
-      if (x <= tIn) return lyft(urHanden(h, mellan(gMeet, gIn, (x - t.meet) / Math.max(1, tIn - t.meet))));
-      if (x <= tRygg) return lyft(urHanden(h, gIn));
-      // (avståndet till handflatans mitt som kortet ska ha i rutan y, jämnt från ryggen upp i handen till plant under tummen,
+      const mittP = inn(hP, sub(flatan(hP), hP.w)), gUnder: Grepp = {c: add(mittP, [0, HANDFLATA_DJUP, 0]), l: gLand.l, n: mul(gLand.n, -1)};
+      const gIn: Grepp = {...gUnder, c: add(mittP, inn(hP, TUMSIDAN))};
+      const tUnder = Math.min(t.meet + TA_IN, t.plan - 6), tVand = t.plan - VANT_FORE_PLANT.length, tTum = t.plan - TUMMEN, tIn = tVand - 1;
+      const vand = (u: number): Vec3 => turned(gIn.n, gLand.l, -Math.PI * u), vant = (y: number) => y < tVand ? 0 : VANT_FORE_PLANT[t.plan - y - 1];
+      const under = (y: number) => mellan(gMeet, gUnder, Math.min(1, (y - t.meet) / Math.max(1, tUnder - t.meet)));
+      // (vägen till tumsidan börjar två rutor efter bytet, högst fyra rutor före vändningen, och tidigare om kortet annars vrids
+      // mer än 30 grader på en ruta i handen)
+      const vrids = (y: number) => Math.acos(Math.max(-1, Math.min(1, Math.abs(dot(unit(under(y).l), unit(gIn.l)))))) / Math.max(1, tIn - y);
+      const tVrid = vrids(Math.max(t.meet + 2, tIn - 4)) > 30 * Math.PI / 180 ? t.meet + 1 : Math.max(t.meet + 2, tIn - 4);
+      if (x <= tVrid) return lyft(urHanden(h, under(x)));
+      const gVrid = under(tVrid);
+      // (vägen till tumsidan: runt handflatans mitt och ut till TUMSIDAN i handen, vriden lika mycket per ruta i världen, så att
+      // handens egen vridning inte lägger sig ovanpå, och fortare eller långsammare i början, det av VAG_TAKT som går jämnast i
+      // världen, utan hopp i farten från bytet till vändningen)
+      // (i näven: kortet vänds kring sin långsida, dolt av fingrarna, och går samtidigt runt handflatans mitt, lika långt från
+      // den, mot där tummen tar det, så att det inte hoppar dit)
+      const iNaven = (y: number): Kort => { const a = sub(gIn.c, mittP), b = sub(iHanden(hander.R[tTum], iHogersGrepp(tTum)).c, mittP), w = (y - tIn) / (tTum - tIn);
+        return lyft(urHanden(hander.R[y], {...gIn, c: add(mittP, mul(unit(lerp(unit(a), unit(b), w)), length(a))), n: vand(vant(y))})); };
+      const tillTumsidan = (y: number, takt: number): Kort => { const f = (y - tVrid) / Math.max(1, tIn - tVrid), a = sub(gVrid.c, mittP), b = sub(gIn.c, mittP), fc = f ** takt;
+        const g = mellan(urHanden(hander.R[tVrid], gVrid), urHanden(hander.R[tIn], gIn), f);
+        return lyft({...g, c: urHanden(hander.R[y], {...gIn, c: add(mittP, mul(unit(lerp(unit(a), unit(b), fc)), length(a) + (length(b) - length(a)) * fc))}).c}); };
+      if (x <= tIn) { const hopp = (takt: number) => { const c = (y: number) => (y <= tVrid ? lyft(urHanden(hander.R[y], under(y))) : y <= tIn ? tillTumsidan(y, takt) : iNaven(y)).c;
+          const s = (y: number) => length(sub(c(y), c(y - 1))); let v = -Infinity; for (let y = tVrid; y <= tIn + 1; y++) v = Math.max(v, s(y) - Math.max(s(y - 1), s(y + 1))); return v; };
+        return tillTumsidan(x, VAG_TAKT.reduce((a, b) => hopp(b) < hopp(a) ? b : a)); }
+      if (x < tTum) return iNaven(x);
+      // (avståndet till handflatans mitt som kortet ska ha i rutan y, jämnt från ryggen upp i näven till plant under tummen,
       // och det kort på vägen kortVid(s), s från 0 till 1, som har det)
-      const P = (y: number) => flatan(hander.R[y]), dA = length(sub(lyft(urHanden(hander.R[tRygg], gIn)).c, P(tRygg))), dP = length(sub(KP.c, P(t.plan)));
-      const malet = (y: number) => { const jamnt = dA + (dP - dA) * (y - tRygg) / (t.plan - tRygg); return y < tTum ? Math.min(jamnt, I_HANDEN - 0.002) : jamnt; };
-      const sok = (y: number, kortVid: (s: number) => Kort): Kort => { const mal = malet(y), d = (s: number) => length(sub(kortVid(s).c, P(y))) - mal, d0 = d(0), d1 = d(1);
+      const P = (y: number) => flatan(hander.R[y]), tRygg = tTum - 1, dA = length(sub(lyft(urHanden(hander.R[tRygg], {...gIn, n: vand(vant(tRygg))})).c, P(tRygg))), dP = length(sub(KP.c, P(t.plan)));
+      const mal = dA + (dP - dA) * UT_UR_NAVEN[t.plan - x - 1];
+      const sok = (kortVid: (s: number) => Kort): Kort => { const d = (s: number) => length(sub(kortVid(s).c, P(x))) - mal, d0 = d(0), d1 = d(1);
         if (Math.sign(d0) === Math.sign(d1)) return kortVid(Math.abs(d0) <= Math.abs(d1) ? 0 : 1);
         let lo = 0, hi = 1; for (let k = 0; k < 30; k++) { const mid = (lo + hi) / 2; if (Math.sign(d(mid)) === Math.sign(d0)) lo = mid; else hi = mid; } return kortVid((lo + hi) / 2); };
       // (tummen på kortet: tumtoppens läge i kortets egna axlar när det ligger plant, längs, tvärs och ut från framsidan; före
-      // det plana glider tummen längs kortet mot den kant som är längst bort från handflatan, så att kortet går in under handen)
-      // (kortets framsida i handens axlar när det är vänt u av ett halvt varv kring långsidan från ryggen upp, åt det håll där
-      // tummen kan ha det med kortet inom handens räckvidd)
-      const vand = (u: number): Vec3 => turned(gIn.n, gLand.l, -Math.PI * u);
+      // det plana glider tummen längs kortet mot den kant som är längst bort från handflatan, så att kortet går in i näven.
+      // Kortets framsida i handens axlar är vänd u av ett halvt varv kring långsidan från ryggen upp, åt det håll där tummen
+      // kan ha det med kortet inom handens räckvidd.)
       const iKortetsAxlar = (k: Kort, p: Vec3): Vec3 => { const d = sub(p, k.c); return [dot(d, k.l), dot(d, cross(k.n, k.l)), dot(d, k.n)]; }, qP = iKortetsAxlar(KP, punkter(hP)[4]);
+      const n = unit(ut(h, vand(VANT_FORE_PLANT[t.plan - x - 1]))), T = punkter(h)[4], v = sub(P(x), T);
       // (når tummen inte kortet så nära handflatan som avståndet säger vrids kortet i sitt plan, så lite som räcker och högst
-      // TUM_VRID, så att dess hörn når närmare; i den plana rutan ligger det som det ska)
-      const underTummen = (y: number): Kort => { const hy = hander.R[y], i = Math.min(1, (y - tTum) / TUMMEN), u = TUM_VANT + (1 - TUM_VANT) * i, n = unit(ut(hy, vand(u))), T = punkter(hy)[4], v = sub(P(y), T);
-        const vagen = (vrid: number) => { const l = unit(turned(unit(ut(hy, gLand.l)), n, vrid)), a = cross(n, l), vl = dot(v, l), va = dot(v, a), vn = dot(v, n);
-          const ql = -Math.sign(vl) * Math.min(Math.abs(vl), HK / 2 + TUM_KANT), qa = -Math.sign(va) * Math.min(Math.abs(va), WK / 2 + TUM_KANT), qn = -Math.sign(vn) * Math.min(Math.abs(vn), TUM_YTA);
-          return (s: number): Kort => lyft({c: sub(T, add(add(mul(l, qP[0] + (ql - qP[0]) * s), mul(a, qP[1] + (qa - qP[1]) * s)), mul(n, qP[2] + (qn - qP[2]) * s))), l, n}); };
-        const narmast = (k: (s: number) => Kort) => length(sub(k(1).c, P(y))), vagar = [0, 1, -1, 2, -2, 3, -3].map(k => vagen(k * TUM_VRID / 3));
-        if (i >= 1) return sok(y, vagar[0]);
-        // (av vridningarna som når står kortet lägst, så att det går jämnt ned mot filten)
-        const nar = vagar.filter(k => narmast(k) <= malet(y)).map(k => sok(y, k));
-        return nar.length ? nar.reduce((a, b) => b.c[1] < a.c[1] ? b : a) : sok(y, vagar.reduce((a, b) => narmast(b) < narmast(a) ? b : a)); };
-      if (x >= tTum) return underTummen(x);
-      // (under näven: kortet går runt handflatans mitt från under den till där tummen tar det, lika många grader per ruta, och
-      // ut från den så långt avståndet säger, och vänds lika mycket per ruta)
-      const mitten = (y: number): Vec3 => inn(hander.R[y], sub(P(y), hander.R[y].w)), hT = hander.R[tTum], gTum = iHanden(hT, underTummen(tTum));
-      const ra = HANDFLATA_DJUP, b = sub(gTum.c, mitten(tTum)), rb = length(b), f = (x - tRygg) / (tTum - tRygg), riktning = unit(lerp([0, 1, 0], unit(b), f)), n = vand(TUM_VANT * f);
-      return sok(x, s => lyft(urHanden(h, {c: add(mitten(x), mul(riktning, ra + (rb - ra) * s)), l: gLand.l, n}))); };
+      // TUM_VRID, så att dess hörn når närmare; av vridningarna som når står kortets högsta hörn lägst)
+      const vagen = (vrid: number) => { const l = unit(turned(unit(ut(h, gLand.l)), n, vrid)), a = cross(n, l), vl = dot(v, l), va = dot(v, a), vn = dot(v, n);
+        const ql = -Math.sign(vl) * Math.min(Math.abs(vl), HK / 2 + TUM_KANT), qa = -Math.sign(va) * Math.min(Math.abs(va), WK / 2 + TUM_KANT), qn = -Math.sign(vn) * Math.min(Math.abs(vn), TUM_YTA);
+        return (s: number): Kort => lyft({c: sub(T, add(add(mul(l, qP[0] + (ql - qP[0]) * s), mul(a, qP[1] + (qa - qP[1]) * s)), mul(n, qP[2] + (qn - qP[2]) * s))), l, n}); };
+      const narmast = (k: (s: number) => Kort) => length(sub(k(1).c, P(x))), vagar = [0, 1, -1, 2, -2, 3, -3].map(k => vagen(k * TUM_VRID / 3));
+      const nar = vagar.filter(k => narmast(k) <= mal).map(sok);
+      const hogst = (k: Kort) => Math.max(...kortHorn(k).map(p => p[1]));
+      return nar.length ? nar.reduce((a, b) => hogst(b) < hogst(a) ? b : a) : sok(vagar.reduce((a, b) => narmast(b) < narmast(a) ? b : a)); };
     const skjuts = (x: number): Kort => { const w = smooth((x - t.leaves) / Math.max(1, t.meet - tag - t.leaves)), rest0 = sub(Kplan.c, foljer(t.meet - tag));
       return {c: add(foljer(x), mul([rest0[0], 0, rest0[2]], w)), l: unit(turned(l0, UP, dv * w)), n: mul(UP, -1)}; };
     kvitto.vandning = {fran: t.vandFran, plant: t.plan, framsidan: t.framsidan, ligger: t.ligger};

@@ -13,7 +13,9 @@
 // ett steg 15 mm längre än rutorna bredvid, farten som byter 25 mm per ruta mer än bredvid; huvudet 5 och 15 mm; blicken
 // 5 grader); första och sista rutan mer än 0,5 mm från ankaret; kortet landat mer än 3 mm eller 2° från sitt mål (där den
 // riktiga dealerns kort låg, made.chosen.landning), inte plant, inte med framsidan upp, eller rörligt efteråt; kortet som
-// vrids eller glider under tummen medan det ligger på filten (läggs till rätta). Fingrar i varandra räknas men spärrar inte (som mat.ts).
+// vrids eller glider under tummen medan det ligger på filten (läggs till rätta); kortet i handen efter bytet längre ut än handen
+// räcker utan ett finger på sig, som glider mer än 20 mm på en ruta i handen, eller som står mer än TUM_OVER över tumtoppen
+// medan tummen vänder det. Fingrar i varandra räknas men spärrar inte (som mat.ts).
 // HANDEN MOT LYFTET (spärr): varje handled ruta för ruta mot lyftets, jämnat som verktyget jämnar det (lyft-till-docka.ts
 // lugna): i de rutor där handen är lyftets (made.hand l) får den inte stå mer än 1 mm därifrån, och där en kontakt har
 // rättat den (k) högst KONTAKT (2 cm). Bryggorna och vilan (b, v) räknas inte, men står i talen. En rörelse utan made.hand
@@ -42,6 +44,8 @@ import {BALEN, DATA, KONTAKT, armIBalenAv, jamna, lugna, type Frame, type Kort, 
 const ROOT = path.join(DATA, '../..'), CASINO = path.join(ROOT, '..');
 /** Hur många rutor efter bytet kortet får vara längre bort än handen medan det går in i den (rörelsedomaren 2026-11-27). */
 const NARMAR_SIG = 4;
+/** Hur högt kortets högsta hörn högst står över tumtoppen medan tummen har kortet och vänder det (meter). */
+const TUM_OVER = 0.035;
 const HACK = {steg: 0.015, ryck: 0.025, huvudSteg: 0.005, huvudRyck: 0.015, blick: 5}, HANDLED = 50.5, ANKARE = 0.0005, FPS = 30;
 const SIDOR = [['R', 1], ['L', -1]] as const;
 const grader = (c: number) => Math.acos(Math.max(-1, Math.min(1, c))) * 180 / Math.PI, mm = (m: number) => Math.round(m * 1000), mm1 = (m: number) => Math.round(m * 10000) / 10;
@@ -147,8 +151,14 @@ export function kolla(fil: string) {
     // bytet, medan det går in i handen (minst 5 mm närmare per ruta), och när tummen har det på väg till platsen.
     const meet = m.ankare?.borjan === 'A2M' ? 0 : ti?.meet;
     if (meet !== undefined && meet !== null) { const nar = Math.hypot(CARD.height, CARD.width) / 2 + 0.02, flata = (x: Frame): Vec3 => [0, 1, 2].map(i => [0, 5, 9, 13, 17].reduce((s, k) => s + x.R.p[k][i], 0) / 5) as Vec3;
-      const rors = (x: Frame) => (['R', 'L'] as const).some(s => [4, 8, 12, 16, 20].some(k => { const d = sub(x[s].p[k], x.card.c), a = cross(x.card.n, x.card.l);
-        return Math.abs(dot(d, x.card.n)) - CARD.thickness / 2 <= 0.012 && Math.abs(dot(d, x.card.l)) < CARD.height / 2 + 0.005 && Math.abs(dot(d, a)) < CARD.width / 2 + 0.005; }));
+      const ror = (x: Frame, s: 'R' | 'L', k: number) => { const d = sub(x[s].p[k], x.card.c), a = cross(x.card.n, x.card.l);
+        return Math.abs(dot(d, x.card.n)) - CARD.thickness / 2 <= 0.012 && Math.abs(dot(d, x.card.l)) < CARD.height / 2 + 0.005 && Math.abs(dot(d, a)) < CARD.width / 2 + 0.005; };
+      const rors = (x: Frame) => (['R', 'L'] as const).some(s => [4, 8, 12, 16, 20].some(k => ror(x, s, k)));
+      // (båda domarna efter trettonde vändan: kortet reste sig som ett stort kort över och framför tummen medan det vändes):
+      // medan tummen har kortet efter att det har gått in i handen och innan det ligger plant står dess högsta hörn högst
+      // TUM_OVER över tumtoppen (i bytet står kortet upprätt mellan händerna).
+      for (let t = meet + NARMAR_SIG + 1; t < t0; t++) { const x = f[t], over = Math.max(...horn(x.card).map(p => p[1])) - x.R.p[4][1];
+        if (Math.abs(x.card.n[1]) < 0.98 && ror(x, 'R', 4) && over > TUM_OVER) not('kortet står högt över tummen', over - TUM_OVER, `${mm(over)} mm över tumtoppen`, t); }
       let forra: number | null = f[meet] ? length(sub(f[meet].card.c, flata(f[meet]))) : null;
       for (let t = meet + 1; t <= t0; t++) { const d = length(sub(f[t].card.c, flata(f[t]))), narmar = t <= meet + NARMAR_SIG && forra !== null && d < forra - 0.005;
         if (t < t0 && d > nar && !((narmar || t > meet + NARMAR_SIG) && rors(f[t]))) not('kortet ligger inte i handen', d - nar, `${mm(d)} mm från handflatan`, t);
