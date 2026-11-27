@@ -92,6 +92,14 @@
    "sa": "Dockans giv omgjord till Tomasz med Aleph 2 och med WAN 3, lagd på vårt bord; hela provet kostade 1 758 Runway-krediter.",
    "jakobs_ord": "Inte bra (hela provet, 2026-11-26): rörelserna är stela, och Aleph kopierar dockans."
   },
+  "hander-hunyuan-mot-meshy-20261127": {
+   "namn": "Händerna i rörelse: Hunyuan-kroppen i ett stycke mot Meshy-dockans påsatta händer",
+   "slag": "prov",
+   "datum": "2026-11-27",
+   "var": ["../blackjack-dealer/assets/proofs/hander-hunyuan-mot-meshy-20261127/", "assets/docka/standarddocka_tomasz_hunyuan.glb"],
+   "sa": "Hunyuan-kroppen fick Tomasz Meshy-huvud, Tomasz-dockans skelett och en egen fingerrigg (steg 10, gratis): fingrarna böjer sig nu in mot handflatan. I rörelse vann Hunyuan handleden (ingen skarv, ingen krage) och den knutna handen; Meshy-dockan vann detaljerna på nära håll (naglar, knogar, ådror) och nypet.",
+   "jakobs_ord": null
+  },
   "givar-sju-platser-20261126": {
    "namn": "Standarddockans giv till alla sju platser",
    "slag": "prov",
@@ -221,11 +229,11 @@
      "namn": "Runway: Hunyuan 3D 3.1 Pro ur A-posebilden",
      "status": "provat",
      "kraver": ["en A-posebild framifrån (provet tog Tomasz bild ur steg 1)"],
-     "ger": ["hel kropp med kläder, hel också bakifrån", "fem åtskilda fingrar, släta och utan naglar", "suddigt ansikte och fel hårfärg", "en yta utan skelett: cirka 500 000 trianglar och en textur i 4096"],
-     "gors_av": {"steg": null, "skript": [], "text": "inget skript i projektet; provet anropade Runways /v1/image_to_mesh (../.claude/skills/runway/SKILL.md, raden 3D ur bild)"},
+     "ger": ["hel kropp med kläder, hel också bakifrån", "hand och arm i ett stycke: ingen skarv vid handleden", "fem åtskilda fingrar, släta och utan naglar, handflatan framåt i A-posen", "suddigt ansikte och fel hårfärg (steg 10 kan sätta Meshy-huvudet på i stället)", "en yta utan skelett: cirka 500 000 trianglar och en textur i 4096"],
+     "gors_av": {"steg": null, "skript": [], "text": "inget skript beställer den; provet anropade Runways /v1/image_to_mesh (../.claude/skills/runway/SKILL.md, raden 3D ur bild). Steg 10 (steg/10-kropp-i-ett-stycke/) gör den till en docka gratis"},
      "kostnad": {"krediter": 38, "hos": "Runway", "text": "38 krediter; 15 till för PBR, för mer än en bild eller för annat antal ytor"},
      "tid": {"sekunder": null, "text": "några minuter (inte mätt)"},
-     "provet": {"id": "runway-3d-20261127", "sa": "Bättre än vår docka på händerna och sämre på ansiktet; kroppen gick att sätta på Tomasz-dockans skelett utan kostnad."},
+     "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Som docka (steg 10) böjde den handleden och knöt handen renare än Meshy-dockan; händerna är släta och utan naglar på nära håll. I provet runway-3d-20261127 var den sämre än vår docka i ansiktet."},
      "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "prov", "kostnad": "data", "tid": "bedomning", "status": "prov"}
     },
     {
@@ -264,9 +272,9 @@
      "id": "meshy-huvud",
      "namn": "Meshy gör huvudet ur närbilden av ansiktet",
      "status": "finns",
-     "kraver": ["närbilden av huvudet ur steg 1", "Meshys kropp att sy fast det på vid halsen"],
+     "kraver": ["närbilden av huvudet ur steg 1", "en kropp med skjortkrage att sy fast det på vid halsen: Meshys (steg 3) eller Hunyuans (steg 10)"],
      "ger": ["bäst likhet av det vi har prövat (Jakobs ord i provet runway-3d-20261127)", "en yta utan rörliga delar: inga ansiktsformer, inga ögonleder, ingen käke"],
-     "gors_av": {"steg": [2, 3], "skript": ["steg/02-meshy-delar/meshy_enbild.py", "steg/03-montering/bygg_modul.py", "steg/03-montering/montera_apose.py"], "text": "halsen hittas på hudbandet ovanför kragen (huvudsnitt i auto_avatar.py) och huvudet sys fast där"},
+     "gors_av": {"steg": [2, 3], "skript": ["steg/02-meshy-delar/meshy_enbild.py", "steg/03-montering/bygg_modul.py", "steg/03-montering/montera_apose.py"], "text": "halsen hittas på hudbandet ovanför kragen (huvudsnitt i auto_avatar.py) och huvudet sys fast där; steg/10-kropp-i-ett-stycke/montera_huvud.py gör samma sak på en kropp ur Runway"},
      "kostnad": {"krediter": 30, "hos": "Meshy", "text": "30 krediter"},
      "tid": {"sekunder": null, "text": "samma 2 minuter som kroppen (samtidigt)"},
      "provet": {"id": "runway-3d-20261127", "sa": "Bredvid Hunyuan och Trellis var Meshy-huvudet det som liknade Tomasz mest."},
@@ -321,12 +329,12 @@
      "namn": "Kroppens egna händer",
      "status": "provat",
      "kraver": ["fem åtskilda fingrar i kroppens hand (prövas som i steg 5: fem fingertoppar i handens silhuett)"],
-     "ger": ["ingen skarv vid handleden", "fingrarna så som kroppen gjordes: hos Runway släta och utan naglar"],
-     "gors_av": {"steg": null, "skript": ["steg/05-fingrar-handleder/fingerrigg.py"], "text": "Version 1 gör det inte; i provet riggades Hunyuan-kroppens egna fingrar med steg 5:s kod"},
+     "ger": ["ingen skarv vid handleden: handen böjs och vrids utan krage vid manschetten", "fingrarna så som kroppen gjordes: hos Runway släta och utan naglar, knogar eller ådror"],
+     "gors_av": {"steg": null, "skript": ["steg/10-kropp-i-ett-stycke/montera_huvud.py", "steg/10-kropp-i-ett-stycke/fingrar_handflata.py"], "text": "Version 1 gör det inte; steg 10 märker kroppens händer med materialet Handpar och sätter fingrarna med steg 5:s kod i handens egen ram"},
      "kostnad": {"krediter": 0, "hos": null, "text": "ingår i kroppen"},
      "tid": {"sekunder": null, "text": "ingår i kroppen"},
-     "provet": {"id": "runway-3d-20261127", "sa": "Hunyuan-kroppen hade fem åtskilda fingrar; på vårt skelett böjde de sig mindre än vår dockas och behöver ett steg till."},
-     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "prov", "kostnad": "prov", "tid": "prov", "status": "prov"}
+     "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Hunyuans egna händer böjde handleden utan skarv och knöt handen med hälften så mycket töjd hud som Meshy-dockans påsatta; de är släta på nära håll, och tummen står så långt ut att nypet når pekfingrets sida, inte dess topp."},
+     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "prov", "tid": "prov", "status": "prov"}
     },
     {
      "id": "meshy-hand",
@@ -337,7 +345,7 @@
      "gors_av": {"steg": [2, 3], "skript": ["steg/02-meshy-delar/meshy_enbild.py", "steg/03-montering/bygg_modul.py", "steg/03-montering/montera_apose.py"], "text": "handen skärs vid handleden, speglas till ett par och sätts på vinkelrätt mot underarmen"},
      "kostnad": {"krediter": 30, "hos": "Meshy", "text": "30 krediter"},
      "tid": {"sekunder": null, "text": "samma 2 minuter som kroppen (samtidigt)"},
-     "provet": {"id": "runway-3d-20261127", "sa": "Vår hand har naglar och ådror men en skrynklig handled vid manschetten; Jakob frågade om den är påklistrad i efterhand (det är den)."},
+     "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Naglar, knogar och ådror på nära håll, och nypet går topp mot topp; men handledens led sitter inne i ärmen, så manschetten följer med när handen böjs, och tummen drar ett skinn över handflatan i en knuten hand. I provet runway-3d-20261127 frågade Jakob om handen är påklistrad i efterhand (det är den)."},
      "anm": "Sedan 2026-11-27 behåller handen sin egen handled i monteringen och skarven läggs inne i ärmen (HANDLED_IN i montera_apose.py); prövat på Tomasz delar, men ingen dealer är riggad hos Meshy med den än (dealerns-handled-20261127).",
      "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "korning", "tid": "korning", "status": "kod", "anm": "prov"}
     },
@@ -389,13 +397,13 @@
      "id": "overfor-skelett",
      "namn": "Kroppen sätts på en färdig dockas skelett, och vikterna förs över",
      "status": "provat",
-     "kraver": ["en färdig docka i samma pose och ungefär samma storlek att låna skelett och vikter av"],
-     "ger": ["samma ben som förlagan", "inget betalt"],
-     "gors_av": {"steg": null, "skript": [], "text": "inget skript i projektet; gjort i ett gratisprov"},
+     "kraver": ["en färdig docka i samma pose och ungefär samma storlek att låna skelett och vikter av (i provet Tomasz-dockan, riggad hos Meshy)"],
+     "ger": ["samma ben som förlagan", "armbågen och handleden flyttade till kroppens egen arm", "inget betalt"],
+     "gors_av": {"steg": null, "skript": ["steg/10-kropp-i-ett-stycke/rigga.py"], "text": "steg 10: kroppen skalas till dockans längd, armbågen och handleden läggs mitt i kroppens arm och vikterna förs över från dockans närmaste yta"},
      "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "okänd"},
-     "provet": {"id": "runway-3d-20261127", "sa": "Hunyuan-kroppen på Tomasz-dockans skelett böjde armen, handleden och huvudet som vår docka."},
-     "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "prov", "kostnad": "prov", "tid": "bedomning", "status": "prov"}
+     "tid": {"sekunder": 18, "text": "cirka 20 sekunder, fingrarna och steg 5:s fingerprov med"},
+     "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Hunyuan-kroppen på Tomasz-dockans skelett: armbågen flyttades 2–3 cm och handleden 3–4 cm till kroppens egen arm, och dockan spelade vilan och given i editorn."},
+     "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "korning", "status": "prov"}
     }
    ]
   },
@@ -415,6 +423,18 @@
      "tid": {"sekunder": 167.0, "text": "cirka 3 minuter"},
      "provet": {"id": "dealerns-handled-20261127", "sa": "Tomasz handled blev slät, och fingrarna böjer sig som förut; en mörk krage syns vid manschetten när handen böjs mycket."},
      "belagt": {"kraver": "kod", "ger": "kod", "gors_av": "kod", "kostnad": "kod", "tid": "korning", "status": "kod"}
+    },
+    {
+     "id": "handens-egen-ram",
+     "namn": "Steg 5:s fingerleder i handens egen ram, för en hand i ett stycke med armen",
+     "status": "provat",
+     "kraver": ["en riggad kropp med Mixamo-ben", "handens yta som en egen del (materialet Handpar; steg 10 märker den)", "fem åtskilda fingertoppar i handens silhuett"],
+     "ger": ["30 fingerleder, tre per finger, med vikter, som böjs in mot handflatan också när handflatan pekar framåt i A-posen", "ingen handledsfix: handen sitter i ett stycke med armen"],
+     "gors_av": {"steg": null, "skript": ["steg/10-kropp-i-ett-stycke/fingrar_handflata.py", "steg/10-kropp-i-ett-stycke/rigga.py"], "text": "handen vrids också kring sin egen längd, så att handflatan pekar nedåt i T-läget, och sedan sätts lederna med steg 5:s fit_fingers; steg 5 självt är oförändrat"},
+     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
+     "tid": {"sekunder": null, "text": "några sekunder, i rigga.py"},
+     "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Lederna böjer nu in mot handflatan: deras uppåt står 5–19 grader från handryggens riktning (Meshy-dockans 12–22). I snabbprovet runway-3d-20261127 stod det 65–80 grader fel, och fingrarna gick åt sidan i handens plan."},
+     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "bedomning", "status": "prov"}
     },
     {
      "id": "mpfb-fingrar",
@@ -1019,30 +1039,30 @@
    "namn": "Runways kropp på vår dockas skelett (gratisprov)",
    "status": "provat",
    "kan_koras": false,
-   "beskrivning": "Hunyuan-kroppen ur Tomasz A-posebild, med egna händer och huvud, satt på Tomasz-dockans skelett med hans vikter, och fingrarna satta med Version 1:s steg 5. Gjort en gång för hand i provet runway-3d-20261127.",
+   "beskrivning": "Hunyuan-kroppen ur Tomasz A-posebild med Tomasz Meshy-huvud, sina egna händer i ett stycke med armen och Tomasz-dockans skelett, gjord gratis med steg 10 (steg/10-kropp-i-ett-stycke/): montera_huvud.py syr på huvudet och märker händerna, steg 3:s forenkla_4k.py gör den lätta kopian, rigga.py lånar skelettet och vikterna och sätter fingrarna i handens egen ram, och steg 6 lägger vridbenen. Resultatet är assets/docka/standarddocka_tomasz_hunyuan.glb (60 ben, 30 fingerleder).",
    "val": {
     "underlag": "foton",
     "kropp": "runway-hunyuan",
-    "huvud": "kroppens-eget-huvud",
+    "huvud": "meshy-huvud",
     "hander": "kroppens-egna",
     "rigg": "overfor-skelett",
-    "fingrar": "steg5-fingrar",
-    "vridben": "inga-vridben",
+    "fingrar": "handens-egen-ram",
+    "vridben": "vridben-export",
     "ansiktsrigg": "inget-ansikte",
     "yta": "inbakad-yta",
-    "export": null,
-    "kontroll": null,
+    "export": "dealer-glb",
+    "kontroll": "i-editorn",
     "film": null
    },
    "last": ["underlag", "kropp", "huvud", "hander", "rigg", "fingrar", "vridben", "ansiktsrigg", "yta", "export", "kontroll", "film"],
    "far_bytas": {},
-   "varfor_last": "Prövat en gång som en helhet, för hand; inget i den har körts i någon annan sammansättning.",
-   "anm": "Exporten, kontrollen och filmen gjordes inte i provet (bilderna gjordes för hand).",
-   "saknas": ["ett skript som beställer kroppen hos Runway", "ett skript som sätter kroppen på en färdig dockas skelett och för över vikterna", "ett steg till för fingrarna, som böjde sig mindre än vår dockas"],
-   "kostnad": {"krediter": {"Runway": 38}, "text": "38 Runway-krediter, och referensbilden ur Version 1:s steg 1"},
-   "tid": {"sekunder": null, "text": "okänd"},
-   "provet": {"id": "runway-3d-20261127", "sa": "Hunyuan-kroppen på vårt skelett böjde armen, handleden och huvudet som vår docka; Jakob: \"Oklart\"."},
-   "belagt": {"val": "prov", "last": "prov", "far_bytas": "prov", "varfor_last": "prov", "anm": "prov", "saknas": "prov", "kostnad": "prov", "tid": "bedomning"},
+   "varfor_last": "Prövat en gång som en helhet; stegen körs för hand och inget i den har körts i någon annan sammansättning.",
+   "anm": "Kroppen beställdes för hand hos Runway, och huvudet och skelettet lånades av Tomasz körning genom Version 1 (steg 1–6). Filmen gjordes inte.",
+   "saknas": ["ett skript som beställer kroppen hos Runway", "ett skelett att låna utan en färdig Meshy-docka: antingen Meshys rigg (5 krediter) på Hunyuans kropp, eller ett skelett som passas in i kroppen gratis (standarddockans, efter kroppens leder)", "ett huvud utan Meshy, om likheten räcker med Hunyuans eget eller standarddockans format efter personen", "en körning i ett svep, som Version 1 (auto_avatar.py)"],
+   "kostnad": {"krediter": {"Runway": 38, "Meshy": 30}, "text": "38 Runway-krediter för kroppen och 30 Meshy-krediter för huvudet, och referensbilderna ur Version 1:s steg 1; skelettet lånas gratis av en färdig docka (Tomasz-dockans rigg kostade 5 Meshy-krediter när den gjordes)"},
+   "tid": {"sekunder": null, "text": "kroppen hos Runway några minuter; steg 10 cirka 2 minuter (huvudet 45 s, förenklingen 30 s, riggen 20 s, exporten 15 s)"},
+   "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Hunyuan-dockan böjde handleden utan skarv och knöt handen renare än Meshy-dockan, som har bättre detaljer på nära håll och ett riktigt nyp; i spelets vy syns skillnaden mest vid handleden."},
+   "belagt": {"val": "prov", "last": "prov", "far_bytas": "prov", "varfor_last": "prov", "anm": "prov", "saknas": "bedomning", "kostnad": "prov", "tid": "korning"},
    "steg": []
   }
  ],
@@ -1066,7 +1086,7 @@
    "om": ["hander/kroppens-egna", "hander/meshy-hand"],
    "villkor": "Behåll kroppens egna händer när fingrarna är åtskilda; sätt på färdiga händer bara när de inte är det. En del byts aldrig ut när kroppen redan har den i användbart skick.",
    "prova": "Fem åtskilda fingertoppar i silhuetten av kroppens egen hand: samma prov som steg 5 redan gör på den påsatta handen (steg/05-fingrar-handleder/fingerrigg.py, tips_in_silhouette: fem toppar minst 6 grader isär, annars felet \"måste visa fem särade fingrar\"), kört på kroppens hand innan någon hand beställs eller sätts på.",
-   "i_dag": "Version 1 sätter alltid på en färdig hand: steg 2 beställer handen och steg 3 sätter på den, utan att pröva kroppens egen. Inget skript gör provet på kroppens hand.",
+   "i_dag": "Version 1 sätter alltid på en färdig hand: steg 2 beställer handen och steg 3 sätter på den, utan att pröva kroppens egen. Steg 10, som körs för hand, behåller kroppens egna händer och gör provet när fingrarna sätts (fingrar_handflata.handram).",
    "varfor": "Lederna kommer med riggen, så det är inte därför händer sätts på: en framställd kropps händer är ofta en klump utan åtskilda fingrar, som inte går att rigga finger för finger. En påsatt hand ger en skarv vid handleden som måste lagas (steg 5, fixa_handleder.py). I provet runway-3d-20261127 hade Hunyuan-kroppen fem åtskilda fingrar.",
    "belagt": {"villkor": "jakob", "prova": "kod", "i_dag": "kod", "varfor": "bedomning"},
    "kalla": "Jakob 2026-11-27: \"Antar att vi aldrig ska klistra på händer om det redan finns i alla leder\""
@@ -1117,7 +1137,7 @@
    "id": "standarddockans-kropp-har-eget-skelett",
    "typ": "utesluter",
    "om": ["kropp/mpfb-kropp"],
-   "utesluter": ["rigg/meshy-rigg", "rigg/overfor-skelett", "fingrar/steg5-fingrar"],
+   "utesluter": ["rigg/meshy-rigg", "rigg/overfor-skelett", "fingrar/steg5-fingrar", "fingrar/handens-egen-ram"],
    "styrka": "maste",
    "varfor": "Standarddockans kropp byggs med sitt skelett, sina vikter och fingerleder; en rigg hos Meshy eller ett lånat skelett skulle byta bort vridbenen, ansiktsbenen och ledgränserna.",
    "belagt": {"varfor": "kod"},
@@ -1154,14 +1174,24 @@
    "kalla": "auto_avatar.py (steg 2); runway-3d-20261127"
   },
   {
-   "id": "meshy-huvud-och-hand-kraver-meshys-kropp",
+   "id": "meshy-hand-kraver-meshys-kropp",
    "typ": "kraver",
-   "om": ["huvud/meshy-huvud", "hander/meshy-hand"],
+   "om": ["hander/meshy-hand"],
    "kraver": {"kropp": ["meshy-kropp"]},
    "styrka": "i_dag",
-   "varfor": "Steg 3 syr Meshys huvud och hand på Meshys kropp: halsen hittas på hudbandet ovanför kragen och handen sätts vid skjortärmens manschett. Att sätta dem på standarddockan (new_docka.md 10.2) är tänkt, inte gjort.",
+   "varfor": "Steg 3 sätter Meshys hand vid skjortärmens manschett på Meshys kropp. Att sätta den på standarddockan (new_docka.md 10.2) är tänkt, inte gjort; en kropp ur Runway har egna händer i ett stycke med armen.",
    "belagt": {"varfor": "kod"},
-   "kalla": "steg/03-montering/montera_apose.py; auto_avatar.py (huvudsnitt)"
+   "kalla": "steg/03-montering/montera_apose.py"
+  },
+  {
+   "id": "meshy-huvud-kraver-kropp-med-krage",
+   "typ": "kraver",
+   "om": ["huvud/meshy-huvud"],
+   "kraver": {"kropp": ["meshy-kropp", "runway-hunyuan"]},
+   "styrka": "i_dag",
+   "varfor": "Huvudet sys fast på hudbandet ovanför skjortkragen: på Meshys kropp i steg 3 och på Hunyuans i steg 10 (montera_huvud.py, samma sökning efter halsen). Trellis och standarddockan är inte prövade.",
+   "belagt": {"varfor": "kod"},
+   "kalla": "steg/03-montering/montera_apose.py; steg/10-kropp-i-ett-stycke/montera_huvud.py; hander-hunyuan-mot-meshy-20261127"
   },
   {
    "id": "pasatt-hand-kraver-handledsfix",
@@ -1208,7 +1238,7 @@
   {
    "id": "fingersteget-kraver-mixamo-rigg",
    "typ": "kraver",
-   "om": ["fingrar/steg5-fingrar"],
+   "om": ["fingrar/steg5-fingrar", "fingrar/handens-egen-ram"],
    "kraver": {"rigg": ["meshy-rigg", "overfor-skelett"]},
    "styrka": "i_dag",
    "varfor": "Steg 5 tar en riggad modell med Mixamo-ben (en lånad Version 1-dockas skelett i provet) och byter handens fingerben; standarddockan har sina egna fingerleder.",
@@ -1219,12 +1249,12 @@
    "id": "fingersteget-hittar-handen-pa-materialet",
    "typ": "villkor",
    "princip": false,
-   "om": ["fingrar/steg5-fingrar"],
+   "om": ["fingrar/steg5-fingrar", "fingrar/handens-egen-ram"],
    "villkor": "Handens yta är en egen del med materialet Handpar, och den har fem åtskilda fingertoppar.",
    "prova": "fingrar_apose.fit_fingers stannar med \"Den separata handytan saknas\" när färre än 200 hörn har materialet, och fingerrigg.tips_in_silhouette med \"måste visa fem särade fingrar\".",
-   "i_dag": "En påsatt hand får materialet i steg 3; kroppens egna händer måste märkas först (gjordes för hand i provet runway-3d-20261127).",
+   "i_dag": "En påsatt hand får materialet i steg 3; kroppens egna händer märks i steg 10 (montera_huvud.py: de hudfärgade hörnen ytterst på armen).",
    "varfor": "Steget sätter fingerbenen efter handens egen form, och letar därför handen på materialet.",
-   "belagt": {"villkor": "kod", "prova": "kod", "i_dag": "prov", "varfor": "kod"},
+   "belagt": {"villkor": "kod", "prova": "kod", "i_dag": "kod", "varfor": "kod"},
    "kalla": "steg/05-fingrar-handleder/fingrar_apose.py, fingerrigg.py"
   },
   {

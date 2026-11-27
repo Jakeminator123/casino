@@ -39,7 +39,7 @@ Bordet, stolen och spelets mått hör till scenen, inte till dockan: varje väg 
 | [Standarddocka efter mått](#standarddocka-efter-mått) | finns | ja | gratis _(kod)_ | några minuter per docka (inte mätt) _(bedömning)_ |
 | [Standarddockans kropp och ansiktsrigg med personens utseende ovanpå](#standarddockans-kropp-och-ansiktsrigg-med-personens-utseende-ovanpå) | tänkt | nej | gratis, om fotona räcker som de är _(bedömning)_ | okänd _(bedömning)_ |
 | [Docka efter en mätt dealer (Danilo, Frasse)](#docka-efter-en-mätt-dealer-danilo-frasse) | tänkt | nej | gratis _(bedömning)_ | okänd _(bedömning)_ |
-| [Runways kropp på vår dockas skelett (gratisprov)](#runways-kropp-på-vår-dockas-skelett-gratisprov) | prövat | nej | 38 Runway-krediter, och referensbilden ur Version 1:s steg 1 _(prov)_ | okänd _(bedömning)_ |
+| [Runways kropp på vår dockas skelett (gratisprov)](#runways-kropp-på-vår-dockas-skelett-gratisprov) | prövat | nej | 38 Runway-krediter för kroppen och 30 Meshy-krediter för huvudet, och referensbilderna ur Version 1:s steg 1; skelettet lånas gratis av en färdig docka (Tomasz-dockans rigg kostade 5 Meshy-krediter när den gjordes) _(prov)_ | kroppen hos Runway några minuter; steg 10 cirka 2 minuter (huvudet 45 s, förenklingen 30 s, riggen 20 s, exporten 15 s) _(körning)_ |
 
 ## Delarna och alternativen
 
@@ -66,12 +66,12 @@ _Vem gör kroppens form?_
 | --- | --- | --- | --- | --- | --- | --- |
 | **Meshy gör kroppen ur A-posebilden** (`meshy-kropp`) | finns _(kod)_ | A-posebilden ur steg 1 _(kod)_ | personens byggnad och kläder; en yta med 4K-textur, utan skelett; huvudet och händerna i samma yta; Version 1 byter ut dem i steg 3 _(kod)_ | steg 2, 3; `steg/02-meshy-delar/meshy_enbild.py`, `steg/03-montering/clean_kropp_chest.py`, `steg/03-montering/montera_apose.py`; meshy-7.1 bild till 3D i A-pose; sedan plattas brösthåret ut och huvudet och händerna sys på _(kod)_ | 30 krediter (Meshy) _(körning)_ | cirka 2 minuter, samtidigt med huvudet och handen _(körning)_ |
 | **Standarddockans kropp (MPFB 2), byggd efter mått** (`mpfb-kropp`) | finns _(kod)_ | måtten; Blender 5.3 med tillägget MPFB 2 _(kod)_ | en naken kropp med en människas proportioner; skelettet och vikterna i samma bygge; fri licens (CC0); ingen likhet med en person _(kod)_ | `scen/bygg_docka.py`; blender -b --python-exit-code 1 --python scen/bygg_docka.py _(kod)_ | gratis _(kod)_ | några minuter per docka (inte mätt) _(bedömning)_ |
-| **Runway: Hunyuan 3D 3.1 Pro ur A-posebilden** (`runway-hunyuan`) | prövat _(prov)_ | en A-posebild framifrån (provet tog Tomasz bild ur steg 1) _(prov)_ | hel kropp med kläder, hel också bakifrån; fem åtskilda fingrar, släta och utan naglar; suddigt ansikte och fel hårfärg; en yta utan skelett: cirka 500 000 trianglar och en textur i 4096 _(prov)_ | inget skript i projektet; provet anropade Runways /v1/image_to_mesh (../.claude/skills/runway/SKILL.md, raden 3D ur bild) _(prov)_ | 38 krediter; 15 till för PBR, för mer än en bild eller för annat antal ytor (Runway) _(data)_ | några minuter (inte mätt) _(bedömning)_ |
+| **Runway: Hunyuan 3D 3.1 Pro ur A-posebilden** (`runway-hunyuan`) | prövat _(prov)_ | en A-posebild framifrån (provet tog Tomasz bild ur steg 1) _(prov)_ | hel kropp med kläder, hel också bakifrån; hand och arm i ett stycke: ingen skarv vid handleden; fem åtskilda fingrar, släta och utan naglar, handflatan framåt i A-posen; suddigt ansikte och fel hårfärg (steg 10 kan sätta Meshy-huvudet på i stället); en yta utan skelett: cirka 500 000 trianglar och en textur i 4096 _(prov)_ | inget skript beställer den; provet anropade Runways /v1/image_to_mesh (../.claude/skills/runway/SKILL.md, raden 3D ur bild). Steg 10 (steg/10-kropp-i-ett-stycke/) gör den till en docka gratis _(prov)_ | 38 krediter; 15 till för PBR, för mer än en bild eller för annat antal ytor (Runway) _(data)_ | några minuter (inte mätt) _(bedömning)_ |
 | **Runway: Trellis 2 ur A-posebilden** (`runway-trellis`) | prövat _(prov)_ | en A-posebild framifrån _(prov)_ | hel kropp med fem åtskilda men släta fingrar; ansiktet som en vaxmask med utsmetade ögon; en brun fläck på bakhuvudet; en yta utan skelett: cirka 470 000 trianglar och två texturer i 2048 _(prov)_ | inget skript i projektet; provet anropade Runways /v1/image_to_mesh _(prov)_ | 30 krediter (25–35 efter upplösningen) (Runway) _(data)_ | några minuter (inte mätt) _(bedömning)_ |
 | **Runway: Tripo ur bild** (`runway-tripo`) | går inte _(prov)_ | en till fyra vyer utan lucka (fram, vänster, bak, höger) _(data)_ | okänt: inte prövat _(bedömning)_ | inget skript _(kod)_ | 30 krediter enligt Runways sidor _(data)_ | okänd _(bedömning)_ |
 
 - Meshy gör kroppen ur A-posebilden: körningen `tomasz-20261126`: Kroppen kostade 30 krediter och var 333 434 trianglar innan steg 3 gjorde en lätt kopia. _(körning)_
-- Runway: Hunyuan 3D 3.1 Pro ur A-posebilden: provet `runway-3d-20261127`: Bättre än vår docka på händerna och sämre på ansiktet; kroppen gick att sätta på Tomasz-dockans skelett utan kostnad. _(prov)_
+- Runway: Hunyuan 3D 3.1 Pro ur A-posebilden: provet `hander-hunyuan-mot-meshy-20261127`: Som docka (steg 10) böjde den handleden och knöt handen renare än Meshy-dockan; händerna är släta och utan naglar på nära håll. I provet runway-3d-20261127 var den sämre än vår docka i ansiktet. _(prov)_
 - Runway: Trellis 2 ur A-posebilden: provet `runway-3d-20261127`: Sämst av de tre i ansiktet och bakifrån. _(prov)_
 - Runway: Tripo ur bild: provet `runway-3d-20261127`: Gick inte att beställa. _(prov)_
 - Runway: Tripo ur bild: hinder: Runway svarar "Unknown task type" med vår nyckel (2026-11-27). _(data)_
@@ -82,7 +82,7 @@ _Var kommer ansiktet ifrån?_
 
 | Alternativ | Status | Kräver | Ger | Görs av | Kostnad | Tid |
 | --- | --- | --- | --- | --- | --- | --- |
-| **Meshy gör huvudet ur närbilden av ansiktet** (`meshy-huvud`) | finns _(kod)_ | närbilden av huvudet ur steg 1; Meshys kropp att sy fast det på vid halsen _(kod)_ | bäst likhet av det vi har prövat (Jakobs ord i provet runway-3d-20261127); en yta utan rörliga delar: inga ansiktsformer, inga ögonleder, ingen käke _(körning)_ | steg 2, 3; `steg/02-meshy-delar/meshy_enbild.py`, `steg/03-montering/bygg_modul.py`, `steg/03-montering/montera_apose.py`; halsen hittas på hudbandet ovanför kragen (huvudsnitt i auto_avatar.py) och huvudet sys fast där _(kod)_ | 30 krediter (Meshy) _(körning)_ | samma 2 minuter som kroppen (samtidigt) _(körning)_ |
+| **Meshy gör huvudet ur närbilden av ansiktet** (`meshy-huvud`) | finns _(kod)_ | närbilden av huvudet ur steg 1; en kropp med skjortkrage att sy fast det på vid halsen: Meshys (steg 3) eller Hunyuans (steg 10) _(kod)_ | bäst likhet av det vi har prövat (Jakobs ord i provet runway-3d-20261127); en yta utan rörliga delar: inga ansiktsformer, inga ögonleder, ingen käke _(körning)_ | steg 2, 3; `steg/02-meshy-delar/meshy_enbild.py`, `steg/03-montering/bygg_modul.py`, `steg/03-montering/montera_apose.py`; halsen hittas på hudbandet ovanför kragen (huvudsnitt i auto_avatar.py) och huvudet sys fast där; steg/10-kropp-i-ett-stycke/montera_huvud.py gör samma sak på en kropp ur Runway _(kod)_ | 30 krediter (Meshy) _(körning)_ | samma 2 minuter som kroppen (samtidigt) _(körning)_ |
 | **Standarddockans huvud (MPFB)** (`mpfb-huvud`) | finns _(kod)_ | standarddockans kropp: huvudet är en del av samma yta _(kod)_ | ögonleder, käke och ansiktsformer; iris, ögonbryn, läppar och en mun med tänder; ingen likhet med en person _(kod)_ | `scen/bygg_docka.py`; ANSIKTSBEN, ARKIT_KARTA och ANSIKTE i skriptet _(kod)_ | gratis _(kod)_ | ingår i dockans bygge _(kod)_ |
 | **Kroppens eget huvud, ur samma bild som kroppen** (`kroppens-eget-huvud`) | prövat _(prov)_ | en kropp ur en bild (Meshy eller Runway) _(prov)_ | ingen skarv vid halsen; sämre likhet än en egen närbild av ansiktet _(prov)_ | Version 1 gör det inte; i provet behöll Runways kroppar sina huvuden _(kod)_ | ingår i kroppen _(prov)_ | ingår i kroppen _(prov)_ |
 | **Standarddockans huvud format efter personens ansikte** (`mpfb-format-efter-person`) | tänkt _(kod)_ | ett foto av ansiktet rakt framifrån; ansiktets punkter ur fotot (MediaPipe ger 478 punkter i ett ansikte); standarddockans huvud och skelett _(bedömning)_ | likheten från personen (förhoppning, oprövad); rörligheten från vår docka: ögonleder, käke och ansiktsformer _(bedömning)_ | inget skript _(kod)_ | gratis, om inget betalt behövs för en ren närbild _(bedömning)_ | okänd _(bedömning)_ |
@@ -98,12 +98,12 @@ _Behålls kroppens egna händer, eller sätts färdiga händer på?_
 
 | Alternativ | Status | Kräver | Ger | Görs av | Kostnad | Tid |
 | --- | --- | --- | --- | --- | --- | --- |
-| **Kroppens egna händer** (`kroppens-egna`) | prövat _(prov)_ | fem åtskilda fingrar i kroppens hand (prövas som i steg 5: fem fingertoppar i handens silhuett) _(kod)_ | ingen skarv vid handleden; fingrarna så som kroppen gjordes: hos Runway släta och utan naglar _(prov)_ | `steg/05-fingrar-handleder/fingerrigg.py`; Version 1 gör det inte; i provet riggades Hunyuan-kroppens egna fingrar med steg 5:s kod _(prov)_ | ingår i kroppen _(prov)_ | ingår i kroppen _(prov)_ |
+| **Kroppens egna händer** (`kroppens-egna`) | prövat _(prov)_ | fem åtskilda fingrar i kroppens hand (prövas som i steg 5: fem fingertoppar i handens silhuett) _(kod)_ | ingen skarv vid handleden: handen böjs och vrids utan krage vid manschetten; fingrarna så som kroppen gjordes: hos Runway släta och utan naglar, knogar eller ådror _(prov)_ | `steg/10-kropp-i-ett-stycke/montera_huvud.py`, `steg/10-kropp-i-ett-stycke/fingrar_handflata.py`; Version 1 gör det inte; steg 10 märker kroppens händer med materialet Handpar och sätter fingrarna med steg 5:s kod i handens egen ram _(kod)_ | ingår i kroppen _(prov)_ | ingår i kroppen _(prov)_ |
 | **En färdig hand från Meshy, satt på vid manschetten** (`meshy-hand`) | finns _(kod)_ | bilden av en öppen högerhand med åtskilda fingrar ur steg 1; Meshys kropp, med skjortärmar att sätta handen i _(kod)_ | naglar och ådror; samma hand speglad till vänster; en skarv vid handleden som måste lagas (steg 5, fixa_handleder.py) _(prov)_ | steg 2, 3; `steg/02-meshy-delar/meshy_enbild.py`, `steg/03-montering/bygg_modul.py`, `steg/03-montering/montera_apose.py`; handen skärs vid handleden, speglas till ett par och sätts på vinkelrätt mot underarmen _(kod)_ | 30 krediter (Meshy) _(körning)_ | samma 2 minuter som kroppen (samtidigt) _(körning)_ |
 | **Standarddockans händer (MPFB)** (`mpfb-hander`) | finns _(kod)_ | standarddockans kropp _(kod)_ | händer i samma yta som kroppen, utan skarv; knogarna sitter för långt ut i handen (new_docka.md, Kända brister) _(kod)_ | `scen/bygg_docka.py`; en del av MPFB-kroppen _(kod)_ | gratis _(kod)_ | ingår i dockans bygge _(kod)_ |
 
-- Kroppens egna händer: provet `runway-3d-20261127`: Hunyuan-kroppen hade fem åtskilda fingrar; på vårt skelett böjde de sig mindre än vår dockas och behöver ett steg till. _(prov)_
-- En färdig hand från Meshy, satt på vid manschetten: provet `runway-3d-20261127`: Vår hand har naglar och ådror men en skrynklig handled vid manschetten; Jakob frågade om den är påklistrad i efterhand (det är den). _(prov)_
+- Kroppens egna händer: provet `hander-hunyuan-mot-meshy-20261127`: Hunyuans egna händer böjde handleden utan skarv och knöt handen med hälften så mycket töjd hud som Meshy-dockans påsatta; de är släta på nära håll, och tummen står så långt ut att nypet når pekfingrets sida, inte dess topp. _(prov)_
+- En färdig hand från Meshy, satt på vid manschetten: provet `hander-hunyuan-mot-meshy-20261127`: Naglar, knogar och ådror på nära håll, och nypet går topp mot topp; men handledens led sitter inne i ärmen, så manschetten följer med när handen böjs, och tummen drar ett skinn över handflatan i en knuten hand. I provet runway-3d-20261127 frågade Jakob om handen är påklistrad i efterhand (det är den). _(prov)_
 - En färdig hand från Meshy, satt på vid manschetten: Sedan 2026-11-27 behåller handen sin egen handled i monteringen och skarven läggs inne i ärmen (HANDLED_IN i montera_apose.py); prövat på Tomasz delar, men ingen dealer är riggad hos Meshy med den än (dealerns-handled-20261127). _(prov)_
 
 ### 5. Skelettet och riggen
@@ -114,10 +114,10 @@ _Vem sätter skelettet och vikterna i kroppen? (Bennamnen är alltid våra, se S
 | --- | --- | --- | --- | --- | --- | --- |
 | **Meshy riggar kroppen (Mixamo-skelett)** (`meshy-rigg`) | finns _(kod)_ | en hel kropp i A-pose; en lätt kopia: högst 380 000 trianglar och 100 MB (steg 3 gör en på 180 000) _(kod)_ | Mixamo-ben med prefixet mixamorig:, för en kropp på 1,8 m; vikter för hela kroppen; efter steg 5 och 6: 56 ben, 30 av dem fingerleder _(körning)_ | steg 4; `steg/04-rigg/meshy_rigg.py`; biped, mallen mixamo, med fingrar _(kod)_ | 5 krediter (Meshy) _(körning)_ | cirka 1,5 minuter _(körning)_ |
 | **Standarddockans skelett (MPFB med Mixamo-namn)** (`mpfb-rigg`) | finns _(kod)_ | standarddockans kropp _(kod)_ | 81 ben, 71 av dem formar huden; IK-kontroller och ledgränser; ansiktsben: käken och ögonen _(körning)_ | `scen/bygg_docka.py`; i samma bygge som kroppen _(kod)_ | gratis _(kod)_ | ingår i dockans bygge _(kod)_ |
-| **Kroppen sätts på en färdig dockas skelett, och vikterna förs över** (`overfor-skelett`) | prövat _(prov)_ | en färdig docka i samma pose och ungefär samma storlek att låna skelett och vikter av _(prov)_ | samma ben som förlagan; inget betalt _(prov)_ | inget skript i projektet; gjort i ett gratisprov _(prov)_ | gratis _(prov)_ | okänd _(bedömning)_ |
+| **Kroppen sätts på en färdig dockas skelett, och vikterna förs över** (`overfor-skelett`) | prövat _(prov)_ | en färdig docka i samma pose och ungefär samma storlek att låna skelett och vikter av (i provet Tomasz-dockan, riggad hos Meshy) _(prov)_ | samma ben som förlagan; armbågen och handleden flyttade till kroppens egen arm; inget betalt _(prov)_ | `steg/10-kropp-i-ett-stycke/rigga.py`; steg 10: kroppen skalas till dockans längd, armbågen och handleden läggs mitt i kroppens arm och vikterna förs över från dockans närmaste yta _(kod)_ | gratis _(kod)_ | cirka 20 sekunder, fingrarna och steg 5:s fingerprov med _(körning)_ |
 
 - Meshy riggar kroppen (Mixamo-skelett): körningen `tomasz-20261126`: Riggen kostade 5 krediter; dealern fick 56 ben men inga vridben, inga ögonleder och ingen käke. _(körning)_
-- Kroppen sätts på en färdig dockas skelett, och vikterna förs över: provet `runway-3d-20261127`: Hunyuan-kroppen på Tomasz-dockans skelett böjde armen, handleden och huvudet som vår docka. _(prov)_
+- Kroppen sätts på en färdig dockas skelett, och vikterna förs över: provet `hander-hunyuan-mot-meshy-20261127`: Hunyuan-kroppen på Tomasz-dockans skelett: armbågen flyttades 2–3 cm och handleden 3–4 cm till kroppens egen arm, och dockan spelade vilan och given i editorn. _(prov)_
 
 ### 6. Fingrarna och handlederna
 
@@ -126,9 +126,11 @@ _Hur får händerna sina fingerleder?_
 | Alternativ | Status | Kräver | Ger | Görs av | Kostnad | Tid |
 | --- | --- | --- | --- | --- | --- | --- |
 | **Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad** (`steg5-fingrar`) | finns _(kod)_ | en riggad kropp med Mixamo-ben; handens yta som en egen del (materialet Handpar); fem åtskilda fingertoppar i handens silhuett _(kod)_ | 30 fingerleder, tre per finger, med vikter; halsen och axlarna rensade från felaktiga vikter; handleden dragen in i ärmen så att skarven döljs _(kod)_ | steg 5; `steg/05-fingrar-handleder/bygg_fingrar_apose.py`, `steg/05-fingrar-handleder/fixa_handleder.py`; Meshys egna fingerben byts mot nya, anpassade efter handens silhuett _(kod)_ | gratis _(kod)_ | cirka 3 minuter _(körning)_ |
+| **Steg 5:s fingerleder i handens egen ram, för en hand i ett stycke med armen** (`handens-egen-ram`) | prövat _(prov)_ | en riggad kropp med Mixamo-ben; handens yta som en egen del (materialet Handpar; steg 10 märker den); fem åtskilda fingertoppar i handens silhuett _(kod)_ | 30 fingerleder, tre per finger, med vikter, som böjs in mot handflatan också när handflatan pekar framåt i A-posen; ingen handledsfix: handen sitter i ett stycke med armen _(prov)_ | `steg/10-kropp-i-ett-stycke/fingrar_handflata.py`, `steg/10-kropp-i-ett-stycke/rigga.py`; handen vrids också kring sin egen längd, så att handflatan pekar nedåt i T-läget, och sedan sätts lederna med steg 5:s fit_fingers; steg 5 självt är oförändrat _(kod)_ | gratis _(kod)_ | några sekunder, i rigga.py _(bedömning)_ |
 | **Standarddockans fingerleder (MPFB)** (`mpfb-fingrar`) | finns _(kod)_ | standarddockans kropp och skelett _(kod)_ | 30 fingerleder med ledgränser _(kod)_ | `scen/bygg_docka.py`; i samma bygge som kroppen _(kod)_ | gratis _(kod)_ | ingår i dockans bygge _(kod)_ |
 
 - Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad: provet `dealerns-handled-20261127`: Tomasz handled blev slät, och fingrarna böjer sig som förut; en mörk krage syns vid manschetten när handen böjs mycket. _(prov)_
+- Steg 5:s fingerleder i handens egen ram, för en hand i ett stycke med armen: provet `hander-hunyuan-mot-meshy-20261127`: Lederna böjer nu in mot handflatan: deras uppåt står 5–19 grader från handryggens riktning (Meshy-dockans 12–22). I snabbprovet runway-3d-20261127 stod det 65–80 grader fel, och fingrarna gick åt sidan i handens plan. _(prov)_
 
 ### 7. Vridben i underarmen
 
@@ -391,37 +393,38 @@ _(data)_
 
 **Prövat**.
 
-Hunyuan-kroppen ur Tomasz A-posebild, med egna händer och huvud, satt på Tomasz-dockans skelett med hans vikter, och fingrarna satta med Version 1:s steg 5. Gjort en gång för hand i provet runway-3d-20261127.
+Hunyuan-kroppen ur Tomasz A-posebild med Tomasz Meshy-huvud, sina egna händer i ett stycke med armen och Tomasz-dockans skelett, gjord gratis med steg 10 (steg/10-kropp-i-ett-stycke/): montera_huvud.py syr på huvudet och märker händerna, steg 3:s forenkla_4k.py gör den lätta kopian, rigga.py lånar skelettet och vikterna och sätter fingrarna i handens egen ram, och steg 6 lägger vridbenen. Resultatet är assets/docka/standarddocka_tomasz_hunyuan.glb (60 ben, 30 fingerleder).
 
-- Kostnad: 38 Runway-krediter, och referensbilden ur Version 1:s steg 1 _(prov)_
-- Tid: okänd _(bedömning)_
-- Provet `runway-3d-20261127`: hunyuan-kroppen på vårt skelett böjde armen, handleden och huvudet som vår docka; jakob: "oklart". _(prov)_
+- Kostnad: 38 Runway-krediter för kroppen och 30 Meshy-krediter för huvudet, och referensbilderna ur Version 1:s steg 1; skelettet lånas gratis av en färdig docka (Tomasz-dockans rigg kostade 5 Meshy-krediter när den gjordes) _(prov)_
+- Tid: kroppen hos Runway några minuter; steg 10 cirka 2 minuter (huvudet 45 s, förenklingen 30 s, riggen 20 s, exporten 15 s) _(körning)_
+- Provet `hander-hunyuan-mot-meshy-20261127`: hunyuan-dockan böjde handleden utan skarv och knöt handen renare än meshy-dockan, som har bättre detaljer på nära håll och ett riktigt nyp; i spelets vy syns skillnaden mest vid handleden. _(prov)_
 
 | Del | Valet | I vägen |
 | --- | --- | --- |
 | Underlaget | Foton av personen, gjorda till tre referensbilder | låst |
 | Kroppen | Runway: Hunyuan 3D 3.1 Pro ur A-posebilden | låst |
-| Huvudet och ansiktet | Kroppens eget huvud, ur samma bild som kroppen | låst |
+| Huvudet och ansiktet | Meshy gör huvudet ur närbilden av ansiktet | låst |
 | Händerna | Kroppens egna händer | låst |
 | Skelettet och riggen | Kroppen sätts på en färdig dockas skelett, och vikterna förs över | låst |
-| Fingrarna och handlederna | Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad | låst |
-| Vridben i underarmen | Inga vridben | låst |
+| Fingrarna och handlederna | Steg 5:s fingerleder i handens egen ram, för en hand i ett stycke med armen | låst |
+| Vridben i underarmen | Två vridben i varje underarm, lagda till i exporten | låst |
 | Ansiktets rörelser | Inga ansiktsrörelser | låst |
 | Kläderna och ytan | Kläder och hud inbakade i ytan, ur bilden | låst |
-| Exporten | inte gjort | låst |
-| Kontrollen | inte gjort | låst |
+| Exporten | Dealer-GLB för spelet (steg 6) | låst |
+| Kontrollen | Dockans rörelser i standarddockans editor | låst |
 | Rörelserna och filmen | inte gjort | låst |
 
-Varför de är låsta: Prövat en gång som en helhet, för hand; inget i den har körts i någon annan sammansättning. _(prov)_
+Varför de är låsta: Prövat en gång som en helhet; stegen körs för hand och inget i den har körts i någon annan sammansättning. _(prov)_
 
-Exporten, kontrollen och filmen gjordes inte i provet (bilderna gjordes för hand). _(prov)_
+Kroppen beställdes för hand hos Runway, och huvudet och skelettet lånades av Tomasz körning genom Version 1 (steg 1–6). Filmen gjordes inte. _(prov)_
 
 Det som saknas:
 
 - ett skript som beställer kroppen hos Runway
-- ett skript som sätter kroppen på en färdig dockas skelett och för över vikterna
-- ett steg till för fingrarna, som böjde sig mindre än vår dockas
-_(prov)_
+- ett skelett att låna utan en färdig Meshy-docka: antingen Meshys rigg (5 krediter) på Hunyuans kropp, eller ett skelett som passas in i kroppen gratis (standarddockans, efter kroppens leder)
+- ett huvud utan Meshy, om likheten räcker med Hunyuans eget eller standarddockans format efter personen
+- en körning i ett svep, som Version 1 (auto_avatar.py)
+_(bedömning)_
 
 ## Reglerna
 
@@ -434,15 +437,16 @@ Guiden erbjuder bara det som går ihop med de val som redan är gjorda, och säg
 | Standarddockans ansikte: ansiktsformer, käke och ögonleder | kräver Huvudet och ansiktet: Standarddockans huvud (MPFB) eller Standarddockans huvud format efter personens ansikte; Skelettet och riggen: Standarddockans skelett (MPFB med Mixamo-namn) | måste | Formerna är MPFB:s egna, gjorda för MPFB:s huvud (bygg_docka.py läser dem ur MPFB:s targets), och käken och ögonen är ben i standarddockans skelett. Meshys och Runways huvud är en yta utan former. _(kod)_ | `ansiktsformer-kraver-standarddockans-huvud` |
 | Meshy gör huvudet ur närbilden av ansiktet eller Kroppens eget huvud, ur samma bild som kroppen | utesluter Ansiktets rörelser: Standarddockans ansikte: ansiktsformer, käke och ögonleder | måste | Ett framställt huvud har inga rörliga delar att sätta formerna på (regeln om uttryck). _(kod)_ | `framstallt-huvud-utesluter-ansiktsformer` |
 | Standarddockans huvud (MPFB) eller Standarddockans huvud format efter personens ansikte eller Standarddockans händer (MPFB) eller Standarddockans skelett (MPFB med Mixamo-namn) eller Standarddockans fingerleder (MPFB) eller Standarddockans vridben eller Standarddockans ansikte: ansiktsformer, käke och ögonleder eller Standarddockans neutrala grå hud, utan kläder eller Personens hud och ansikte som textur på standarddockan eller Standarddockans .blend och .glb | kräver Kroppen: Standarddockans kropp (MPFB 2), byggd efter mått | i dag | Huvudet, händerna, skelettet, fingrarna, vridbenen och ansiktet byggs i samma MPFB-yta och samma bygge (bygg_docka.py); inget skript tar ut dem som lösa delar. _(kod)_ | `standarddockans-delar-hor-ihop` |
-| Standarddockans kropp (MPFB 2), byggd efter mått | utesluter Skelettet och riggen: Meshy riggar kroppen (Mixamo-skelett); Skelettet och riggen: Kroppen sätts på en färdig dockas skelett, och vikterna förs över; Fingrarna och handlederna: Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad | måste | Standarddockans kropp byggs med sitt skelett, sina vikter och fingerleder; en rigg hos Meshy eller ett lånat skelett skulle byta bort vridbenen, ansiktsbenen och ledgränserna. _(kod)_ | `standarddockans-kropp-har-eget-skelett` |
+| Standarddockans kropp (MPFB 2), byggd efter mått | utesluter Skelettet och riggen: Meshy riggar kroppen (Mixamo-skelett); Skelettet och riggen: Kroppen sätts på en färdig dockas skelett, och vikterna förs över; Fingrarna och handlederna: Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad; Fingrarna och handlederna: Steg 5:s fingerleder i handens egen ram, för en hand i ett stycke med armen | måste | Standarddockans kropp byggs med sitt skelett, sina vikter och fingerleder; en rigg hos Meshy eller ett lånat skelett skulle byta bort vridbenen, ansiktsbenen och ledgränserna. _(kod)_ | `standarddockans-kropp-har-eget-skelett` |
 | Standarddockans kropp (MPFB 2), byggd efter mått | kräver Underlaget: En människas mått för kön och längd eller En riktig dealers mått, mätta på film eller Foton för utseendet och mått för kroppen | måste | Kroppen byggs efter mått (MATT i bygg_docka.py), inte ur en bild. _(kod)_ | `standarddockans-kropp-kraver-matt` |
 | En människas mått för kön och längd eller En riktig dealers mått, mätta på film | kräver Kroppen: Standarddockans kropp (MPFB 2), byggd efter mått | måste | Bara en kropp som byggs efter mått kan använda måtten; Meshy och Runway tar kroppens form ur bilden. _(kod)_ | `matt-kraver-standarddockans-kropp` |
 | Meshy gör kroppen ur A-posebilden eller Runway: Hunyuan 3D 3.1 Pro ur A-posebilden eller Runway: Trellis 2 ur A-posebilden eller Runway: Tripo ur bild eller Meshy gör huvudet ur närbilden av ansiktet eller En färdig hand från Meshy, satt på vid manschetten | kräver Underlaget: Foton av personen, gjorda till tre referensbilder | i dag | De görs ur referensbilderna från steg 1: Meshys delar ur var sin bild, Runways kropp i provet ur A-posebilden. _(kod)_ | `kropp-ur-bild-kraver-referenser` |
-| Meshy gör huvudet ur närbilden av ansiktet eller En färdig hand från Meshy, satt på vid manschetten | kräver Kroppen: Meshy gör kroppen ur A-posebilden | i dag | Steg 3 syr Meshys huvud och hand på Meshys kropp: halsen hittas på hudbandet ovanför kragen och handen sätts vid skjortärmens manschett. Att sätta dem på standarddockan (new_docka.md 10.2) är tänkt, inte gjort. _(kod)_ | `meshy-huvud-och-hand-kraver-meshys-kropp` |
+| En färdig hand från Meshy, satt på vid manschetten | kräver Kroppen: Meshy gör kroppen ur A-posebilden | i dag | Steg 3 sätter Meshys hand vid skjortärmens manschett på Meshys kropp. Att sätta den på standarddockan (new_docka.md 10.2) är tänkt, inte gjort; en kropp ur Runway har egna händer i ett stycke med armen. _(kod)_ | `meshy-hand-kraver-meshys-kropp` |
+| Meshy gör huvudet ur närbilden av ansiktet | kräver Kroppen: Meshy gör kroppen ur A-posebilden eller Runway: Hunyuan 3D 3.1 Pro ur A-posebilden | i dag | Huvudet sys fast på hudbandet ovanför skjortkragen: på Meshys kropp i steg 3 och på Hunyuans i steg 10 (montera_huvud.py, samma sökning efter halsen). Trellis och standarddockan är inte prövade. _(kod)_ | `meshy-huvud-kraver-kropp-med-krage` |
 | En färdig hand från Meshy, satt på vid manschetten | kräver Fingrarna och handlederna: Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad | måste | En påsatt hand ger en skarv vid handleden; steg 5 (fixa_handleder.py) lagar den och sätter fingerlederna i den påsatta handen. _(kod)_ | `pasatt-hand-kraver-handledsfix` |
 | Kroppens egna händer eller Kroppens eget huvud, ur samma bild som kroppen eller Kläder och hud inbakade i ytan, ur bilden | kräver Kroppen: Meshy gör kroppen ur A-posebilden eller Runway: Hunyuan 3D 3.1 Pro ur A-posebilden eller Runway: Trellis 2 ur A-posebilden eller Runway: Tripo ur bild | måste | Det är delar av en kropp som är gjord ur en bild; standarddockan har sina egna. _(kod)_ | `kroppens-egna-delar-kraver-kropp-ur-bild` |
 | Meshy riggar kroppen (Mixamo-skelett) | kräver Kroppen: Meshy gör kroppen ur A-posebilden | i dag | Steg 4 riggar den lätta kopian som steg 3 monterar av Meshys delar. En Runway-kropp i A-pose borde också gå att rigga hos Meshy, men det är inte prövat. _(kod)_ | `meshys-rigg-kraver-meshys-kropp` |
-| Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad | kräver Skelettet och riggen: Meshy riggar kroppen (Mixamo-skelett) eller Kroppen sätts på en färdig dockas skelett, och vikterna förs över | i dag | Steg 5 tar en riggad modell med Mixamo-ben (en lånad Version 1-dockas skelett i provet) och byter handens fingerben; standarddockan har sina egna fingerleder. _(kod)_ | `fingersteget-kraver-mixamo-rigg` |
+| Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad eller Steg 5:s fingerleder i handens egen ram, för en hand i ett stycke med armen | kräver Skelettet och riggen: Meshy riggar kroppen (Mixamo-skelett) eller Kroppen sätts på en färdig dockas skelett, och vikterna förs över | i dag | Steg 5 tar en riggad modell med Mixamo-ben (en lånad Version 1-dockas skelett i provet) och byter handens fingerben; standarddockan har sina egna fingerleder. _(kod)_ | `fingersteget-kraver-mixamo-rigg` |
 | Dealer-GLB för spelet (steg 6) eller Två vridben i varje underarm, lagda till i exporten | kräver Skelettet och riggen: Meshy riggar kroppen (Mixamo-skelett) eller Kroppen sätts på en färdig dockas skelett, och vikterna förs över | i dag | Steg 6 döper om Meshys Mixamo-ben (mixamorig:, Neck) och lägger vridbenen i den riggen. _(kod)_ | `exporten-kraver-mixamo-ben` |
 | Två vridben i varje underarm, lagda till i exporten | kräver Exporten: Dealer-GLB för spelet (steg 6) | måste | Vridbenen läggs till i steg 6, när dealer-GLB:n skrivs. _(kod)_ | `vridben-i-exporten-kraver-exporten` |
 | Kontrollblad i vila (steg 7) eller En sittande rörelse vid ett eget bord (steg 8) | kräver Exporten: Dealer-GLB för spelet (steg 6) | i dag | Steg 7 och 8 läser den dealer-GLB som steg 6 skriver. _(kod)_ | `steg-7-och-8-kraver-dealer-glb` |
@@ -463,7 +467,7 @@ De prövas på modellen, inte på valen. En princip är Jakobs regel för hur va
 **Princip: Behåll kroppens egna händer när fingrarna är åtskilda; sätt på färdiga händer bara när de inte är det. En del byts aldrig ut när kroppen redan har den i användbart skick. _(Jakob)_** (`hander-behalls-nar-fingrarna-ar-atskilda`; gäller Kroppens egna händer, En färdig hand från Meshy, satt på vid manschetten)
 
 - Prövas: Fem åtskilda fingertoppar i silhuetten av kroppens egen hand: samma prov som steg 5 redan gör på den påsatta handen (steg/05-fingrar-handleder/fingerrigg.py, tips_in_silhouette: fem toppar minst 6 grader isär, annars felet "måste visa fem särade fingrar"), kört på kroppens hand innan någon hand beställs eller sätts på. _(kod)_
-- I dag: Version 1 sätter alltid på en färdig hand: steg 2 beställer handen och steg 3 sätter på den, utan att pröva kroppens egen. Inget skript gör provet på kroppens hand. _(kod)_
+- I dag: Version 1 sätter alltid på en färdig hand: steg 2 beställer handen och steg 3 sätter på den, utan att pröva kroppens egen. Steg 10, som körs för hand, behåller kroppens egna händer och gör provet när fingrarna sätts (fingrar_handflata.handram). _(kod)_
 - Varför: Lederna kommer med riggen, så det är inte därför händer sätts på: en framställd kropps händer är ofta en klump utan åtskilda fingrar, som inte går att rigga finger för finger. En påsatt hand ger en skarv vid handleden som måste lagas (steg 5, fixa_handleder.py). I provet runway-3d-20261127 hade Hunyuan-kroppen fem åtskilda fingrar. _(bedömning)_
 - Källa: Jakob 2026-11-27: "Antar att vi aldrig ska klistra på händer om det redan finns i alla leder"
 
@@ -481,10 +485,10 @@ De prövas på modellen, inte på valen. En princip är Jakobs regel för hur va
 - Varför: Meshy tar riggens underlag som en data-URI med de gränserna. _(kod)_
 - Källa: steg/04-rigg/meshy_rigg.py
 
-**Handens yta är en egen del med materialet Handpar, och den har fem åtskilda fingertoppar. _(kod)_** (`fingersteget-hittar-handen-pa-materialet`; gäller Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad)
+**Handens yta är en egen del med materialet Handpar, och den har fem åtskilda fingertoppar. _(kod)_** (`fingersteget-hittar-handen-pa-materialet`; gäller Eget fingersteg: 30 fingerleder efter handens form, och handleden lagad, Steg 5:s fingerleder i handens egen ram, för en hand i ett stycke med armen)
 
 - Prövas: fingrar_apose.fit_fingers stannar med "Den separata handytan saknas" när färre än 200 hörn har materialet, och fingerrigg.tips_in_silhouette med "måste visa fem särade fingrar". _(kod)_
-- I dag: En påsatt hand får materialet i steg 3; kroppens egna händer måste märkas först (gjordes för hand i provet runway-3d-20261127). _(prov)_
+- I dag: En påsatt hand får materialet i steg 3; kroppens egna händer märks i steg 10 (montera_huvud.py: de hudfärgade hörnen ytterst på armen). _(kod)_
 - Varför: Steget sätter fingerbenen efter handens egen form, och letar därför handen på materialet. _(kod)_
 - Källa: steg/05-fingrar-handleder/fingrar_apose.py, fingerrigg.py
 
@@ -505,6 +509,7 @@ De prövas på modellen, inte på valen. En princip är Jakobs regel för hur va
 | `dealerns-handled-20261127` Ren handled på Meshy-dockan | prov | 2026-11-27 | Tomasz handled rättad gratis i steg 5 (tomasz_handled): vidgningen räknas tillbaka och handleden går drygt en centimeter in i ärmen; kvar är en mörk krage vid manschetten när handen böjs mycket, eftersom handledens led sitter inne i ärmen. Underarmarna fick två vridben var. | inte dömt | `blackjack-dealer/assets/proofs/dealerns-handled-20261127/` |
 | `kling-tider-20261127` Tider i texten, och en docka som liknar Tomasz | prov | 2026-11-27 | Tomasz-dockan spelade standarddockans giv i editorn som förlaga till Kling 4; filmen blev inte annorlunda än med standarddockan. | inte dömt | `blackjack-dealer/assets/proofs/kling-tider-20261127/` |
 | `tomasz-runda-20261126` Tomasz som dealer: dockans film omgjord till honom | prov | 2026-11-26 | Dockans giv omgjord till Tomasz med Aleph 2 och med WAN 3, lagd på vårt bord; hela provet kostade 1 758 Runway-krediter. | Inte bra (hela provet, 2026-11-26): rörelserna är stela, och Aleph kopierar dockans. | `blackjack-dealer/assets/proofs/tomasz-runda-20261126/` |
+| `hander-hunyuan-mot-meshy-20261127` Händerna i rörelse: Hunyuan-kroppen i ett stycke mot Meshy-dockans påsatta händer | prov | 2026-11-27 | Hunyuan-kroppen fick Tomasz Meshy-huvud, Tomasz-dockans skelett och en egen fingerrigg (steg 10, gratis): fingrarna böjer sig nu in mot handflatan. I rörelse vann Hunyuan handleden (ingen skarv, ingen krage) och den knutna handen; Meshy-dockan vann detaljerna på nära håll (naglar, knogar, ådror) och nypet. | inte dömt | `blackjack-dealer/assets/proofs/hander-hunyuan-mot-meshy-20261127/`, `assets/docka/standarddocka_tomasz_hunyuan.glb` |
 | `givar-sju-platser-20261126` Standarddockans giv till alla sju platser | prov | 2026-11-26 | Standarddockans egna givar till plats 1–7, för mannen och kvinnan. | "Nja … I övrigt bra!" | `blackjack-dealer/assets/proofs/givar-sju-platser-20261126/` |
 
 ## Priserna
