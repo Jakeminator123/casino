@@ -3400,6 +3400,16 @@
       "flagga": "--lage",
       "gor": "säger bara vad som finns och vad som saknas",
       "i_guiden": true
+     },
+     {
+      "flagga": "--omgang",
+      "gor": "en ny omgång av filmen, rutorna och anropen i en egen undermapp bredvid den förra; start- och sista bilden ur den förra när dockans rutor är desamma",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--aleph",
+      "gor": "förbered också film B, Aleph 2 över dockfilmen",
+      "i_guiden": true
      }
     ]
    },

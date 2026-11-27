@@ -509,6 +509,8 @@ Flaggorna:
 | `--prov` | lägger filmen, rutorna och anropen i ett prov |  | ja |
 | `--steg` | ett steg eller ett spann, 1-6 |  | ja |
 | `--lage` | säger bara vad som finns och vad som saknas |  | ja |
+| `--omgang` | en ny omgång av filmen, rutorna och anropen i en egen undermapp bredvid den förra; start- och sista bilden ur den förra när dockans rutor är desamma |  | ja |
+| `--aleph` | förbered också film B, Aleph 2 över dockfilmen |  | ja |
 
 ### Runways kropp på vår dockas skelett (gratisprov)
 

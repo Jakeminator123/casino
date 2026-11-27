@@ -16,16 +16,16 @@
 //
 // DET RÅA LYFTET ÄR SANNINGEN OM VAR HÄNDERNA ÄR (Jakob 2026-11-27, om vänsterhanden i bytet: "en kvarleva från gamla dockan
 // eller förra standarddockans rörelsemönster"). Inget här kommer ur standarddockans koreografi (koreo-giv.ts): inga egna
-// nyckellägen; kortet på kant i bytet och nypet i högern är den riktiga dealerns (filmen ruta 48–52). Den riktiga dealerns, ruta för ruta: handledernas
+// nyckellägen; kortet på högkant med ryggen mot kameran i bytet och nypet i högern är den riktiga dealerns (filmen ruta 48–52). Den riktiga dealerns, ruta för ruta: handledernas
 // väg (lyftets, jämnad lugnt där handen är stilla och lätt där den rör sig, se lugna), händernas vinkel (lyftets, med de
 // rutor där MediaPipe vänder handen bort och jämnad likadant), fingrarnas form (lyftets riktningar på dockans ben, inom
 // hand-rule.ts LIMITS), axlarnas och huvudets rörelse, minen och TIDEN (när vänsterhanden är vid skon, när kortet lämnar
 // skon, bytet, när högerns handled stannar vid platsen). Kortet följer händerna: i skon tills vänstern drar ut det, plant
-// under vänsterns fingertoppar och rest på kant i vänsterns grepp fram till bytet, på kant mellan händerna i bytet, och
-// sedan i HÖGERN (vandKort, nypt): på kant uppe i luften mellan pekfingret och tummen, tippat kring sin övre långsida ned
-// på filten med framsidan upp, och skjutet plant till platsen, där fingret vilar på kortets övre kant tills handen går hem
-// (filmen ruta för ruta, Danilos giv till plats 4: på kant mellan händerna i ruta 48–49, i luften 50–52, framsidan syns
-// under pekfingret i 59).
+// under vänsterns fingertoppar och rest på högkant i vänsterns grepp fram till bytet, på högkant mellan händerna i bytet med
+// ryggen mot kameran, och sedan i HÖGERN (kortIHogern): hängande under pekfingertoppen med tummen mot framsidan, vridet framåt
+// till framsidan upp, och skjutet plant av fingret, som ligger i kortets bortre hörn till höger i bilden tills det lyfter
+// rakt upp (förlagan ruta för ruta, Danilos giv till plats 4: på högkant med ryggen mot kameran i ruta 48–49, under handen
+// 51–55, förbi kanten i 57, framsidan i 58, fingret i hörnet 59–76, lyfter 77–79).
 // VÅRT EGET, och märkt: dockans ben och mått (doll.ts); ankaret (vilan, dealer3d/data/ankare-vila-<docka>.json: handlederna
 // där väntans lyft har dem, händerna plant på filten med lätt böjda, samlade fingrar); bryggorna mellan ankaret och lyftet
 // i början och slutet (en mjuk rörelse i stilens fart, rörelsens made.faser säger var); den pekande högerhanden medan kortet
@@ -145,20 +145,11 @@ const sha = (fil: string) => createHash('sha256').update(readFileSync(fil)).dige
 /** Fingertopparnas trampdynor: mitt emellan pek- och långfingrets toppar, en topps radie ut åt handflatans sida. */
 const dynor = (h: Hand) => add(toppMitt(h), mul(h.a.palm, BALL(8)));
 
-// ---- vändningen under pekfingret ------------------------------------------------------------------------------------
-// Så gör den riktiga dealern (Danilos giv till plats 4, ruta för ruta, live-bj/rutor): vänstern för kortet ur skon och
-// reser det på kant (45–48), kortet står på sin långsida mellan händerna i bytet (48–49), högern tar det på kant och bär
-// det uppe i luften (50–52), för det snabbt ned mot platsen med kortet under handen (53–57), framsidan syns under
-// pekfingret (59), kortet ligger plant med pekfingret ovanpå och skjuts på plats, och fingret vilar på kortets övre kant
-// tills handen går hem. Här: kortet står på kant i bytet med sin övre långsida under högerns pekfingertopp och den andra
-// änden vid vänsterns fingertoppar; högern bär det så, med kortets nedre kant KORT_LYFT över filten och tummen mot dess sida,
-// och tippar det kring den övre långsidan ned på filten med framsidan upp medan handen går ned; på filten skjuts det på plats.
+// ---- den pekande högern -------------------------------------------------------------------------------------------------
+// (kortet i högern från bytet till platsen: kortIHogern nedan)
 /** Hur högt pekfingertoppens mitt är över kortets kant och ovansida (meter): fingret ligger an. */
 const LUFT = 0.0006;
-/** Hur långt in från kortets långsida pekfingret ligger när kortet är plant (meter); i kanten när det står. */
-const KANT = 0.005;
-const kantIn = (fi: number) => KANT * Math.abs(Math.cos(fi));
-/** Var pekfingret ligger på kortet medan det vänds: en dryg centimeter från änden mot dealern, vid långsidan (kortets egna u och v när det är plant med framsidan upp). */
+/** Var pekfingret ligger på kortet när det ligger plant med framsidan upp: 12 mm från den bortre kortsidan (kortets egna u från mitten). */
 const VAND_U = -(CARD.height / 2 - 0.012);
 /** Pekfingertoppens höjd över filten när kortet ligger plant under den med framsidan upp: fingret ligger an. */
 const PEK_PLANT = CARD.thickness + BALL(8) + LUFT;
@@ -218,37 +209,61 @@ function tumUt(S: Vec3[]): Vec3[] {
 }
 /** Hur mycket lägre än pekfingertoppen handens övriga delar går (meter, under noll: ingen), med kulornas radie: handleden som overFilten räknar den. */
 const underToppen = (h: Hand) => { const p = punkter(h), topp = p[8][1] - BALL(8); return Math.max(topp - (h.w[1] - 0.0185), ...p.map((q, k) => k === 8 ? -1 : topp - (q[1] - BALL(k)))); };
-/** Kortets vinkel i rutan x: på kant (pi/2) från bytet till vändningen börjar, framsidan upp (0) från rutan där det är plant, mjukt emellan. */
-const vandVinkel = (ti: {vandFran: number; plan: number}, x: number) => x <= ti.vandFran ? Math.PI / 2 : x >= ti.plan ? 0 : Math.PI / 2 * (1 - smooth((x - ti.vandFran) / (ti.plan - ti.vandFran)));
 /** Hur många rutor före bytet högerns pekfinger tar kortet ur vänsterns grepp (kortet mjukt från det ena greppet till det andra). */
-const TAG = 5;
-/** Hur högt kortets nedre kant är över filten medan högern bär det på kant (meter): uppe i luften, som i filmen ruta 50–52. */
+const TAG = 8;
+/** Hur många rutor före bytet högerns pekfingertopp går mjukt upp till kortets övre kortsida (domaren 2026-11-27: handen hoppade upp i bytet). */
+const UPP_TILL_BYTET = 10;
+/** Hur högt pekfingret lyfter rakt upp från kortet innan handen går hem (meter). */
+const LYFT_FINGER = 0.02;
+/** Hur högt kortets nedre kant är över filten medan högern bär det (meter): uppe i luften, som i filmen ruta 50–52. */
 const KORT_LYFT = 0.02;
 type Vandtid = {meet: number; vandFran: number; plan: number};
-/** Kortets nedre kant över filten i rutan x: på filten i bytet, KORT_LYFT tre rutor senare och medan högern bär det, ned till filten medan det tippas. */
+/** Kortets nedre kant över filten i rutan x: på filten i bytet, KORT_LYFT tre rutor senare och medan högern bär det, ned till filten medan det vrids. */
 const lyftVid = (ti: Vandtid, x: number) => x >= ti.plan ? 0 : KORT_LYFT * smooth((x - ti.meet) / 3) * (1 - smooth((x - ti.vandFran) / (ti.plan - ti.vandFran)));
-/** Hur mycket ett nypt kort på kant står upp över pekfingertoppens mitt till kortets kant räknat från vandKort (meter): kanten 3 mm över toppen. */
-const NYP_UPP = BALL(8) + CARD.thickness / 2 + LUFT + 0.003;
+
+// ---- kortet i högern från bytet till platsen -----------------------------------------------------------------------------
+// Så gör den riktiga dealern (Danilos giv till plats 4, förlagans rutor i live-bj/rutor, sett 2026-11-27; domaren samma dag;
+// Jakobs beskrivning i standarddocka/DOMAR.md "Kortets vändning"): vänstern reser kortet på högkant mellan händerna med den
+// röda ryggen mot kameran och framsidan mot dealern (ruta 48–49: kortet syns som en stående yta, högt och smalt), högern tar
+// det med handen ovanför, bär det under handen med ryggen mot kameran (51–55), vrider det framåt så att det går förbi kanten
+// mot kameran (57) och framsidan kommer upp (58), och lägger det plant med pekfingret i kortets bortre hörn till höger i
+// bilden (59–76), där fingret ligger tills det lyfter rakt upp (77–79). Här: kortet står i bytet på sin kortsida med ryggen
+// mot kameran, med pekfingertoppen på dess övre kortsida tio millimeter från dess högra långsida (sett när det ligger: i
+// bortre hörnet till höger i bilden) och tummen mot framsidan; det hänger under pekfingret medan högern bär det, och vrids
+// sedan kring en enda axel till sitt läge plant på platsen (ramen S), så att samma hörn hamnar under fingret. Det glider inte
+// under fingret: från kanten när det står till 12 mm in på framsidan när det ligger.
+/** Var pekfingret håller kortet i sidled, från kortets mitt mot dess högra långsida (dealerns vänster när kortet ligger): 10 mm in. */
+const VAND_V = CARD.width / 2 - 0.010;
+/** Kortets ram: långsidan l och framsidans normal n. */
+export type Ram = {l: Vec3; n: Vec3};
+const ramMed = (R: Ram) => { const l = unit(R.l), n = unit(R.n); return {l, n, a: unit(cross(n, l))}; };
+/** Vridningen som för ramen A till ramen B: axeln och vinkeln (0 till pi). */
+function vridning(A: Ram, B: Ram): {ax: Vec3; v: number} {
+  const a = ramMed(A), b = ramMed(B), M = [0, 1, 2].map(i => [0, 1, 2].map(j => b.l[i] * a.l[j] + b.n[i] * a.n[j] + b.a[i] * a.a[j]));
+  const v = Math.acos(clamp((M[0][0] + M[1][1] + M[2][2] - 1) / 2, -1, 1));
+  let ax: Vec3 = [M[2][1] - M[1][2], M[0][2] - M[2][0], M[1][0] - M[0][1]];
+  // (ett halvt varv: axeln ur den symmetriska delen, R + I = 2 axel axel)
+  if (length(ax) < 1e-6) { const i = [0, 1, 2].reduce((p, q) => M[q][q] > M[p][p] ? q : p, 0), col: Vec3 = [M[0][i] + (i === 0 ? 1 : 0), M[1][i] + (i === 1 ? 1 : 0), M[2][i] + (i === 2 ? 1 : 0)]; ax = length(col) > 1e-9 ? col : [1, 0, 0]; }
+  return {ax: unit(ax), v};
+}
 /**
- * Kortet i vinkeln `fi` under handen `h`s pekfingertopp (vandKort) nypt mellan pekfingret och tummen, mer ju mer det står
- * (sin fi): flyttat mot tummens sida så att pekfingertoppen ligger an mot kortets andra sida, och upp så att kortets kant är
- * 3 mm över toppens mitt; tummen läggs an mot kortets sida nedan. Så hålls ett kort på kant, och inte på en fingertopp.
+ * Kortet i högern: ramen M (bytet) vriden mot ramen S (plant på platsen) till andelen `s`, den kortaste vägen (`vag` 1) eller
+ * andra hållet om (-1), med pekfingrets ställe på kortet vid pekfingertoppen `tipp`. Hänger kortet på högkant (framsidan vänd
+ * bort från kameran) hänger det mitt under toppen (domaren 2026-11-27: inte i ett hörn), med toppen an mot ryggen strax under
+ * den övre kortsidan, som står 3 mm över
+ * toppens mitt, och tummen mot framsidan (Jakob 2026-11-26: "fingertopparna på ryggen och tummen pekande nedåt längs
+ * framsidan"); ligger det plant ligger toppen på framsidan 12 mm in från den bortre kortsidan (VAND_U) och VAND_V mot den
+ * högra långsidan. Emellan mjukt efter hur mycket framsidan vetter uppåt.
  */
-const nypt = (k: Kort, h: Hand, fi: number): Kort => { const p = punkter(h), s = Math.sign(dot(sub(p[2], p[8]), k.n)) || 1, f = Math.abs(Math.sin(fi));
-  return flyttKort(k, add(mul(k.n, s * (BALL(8) + CARD.thickness / 2) * f), [0, NYP_UPP * f, 0])); };
-/** Hur långt under pekfingertoppens mitt kortets lägsta punkt är i vinkeln `fi`, nypt (meter). */
-const underTopp = (fi: number) => { const f = Math.abs(Math.sin(fi)); return BALL(8) + CARD.thickness / 2 + LUFT - NYP_UPP * f + (CARD.width - kantIn(fi)) * f + CARD.thickness / 2 * Math.abs(Math.cos(fi)); };
-/** Pekfingertoppens höjd över filten som kortet under den kräver i rutan x, från bytet. */
-const hojdKort = (ti: Vandtid, x: number) => { const fi = vandVinkel(ti, x); return underTopp(fi) + LUFT * Math.abs(Math.sin(fi)) + lyftVid(ti, x); };
-/**
- * Kortet under pekfingertoppen `tipp` i vinkeln `fi` kring långsidan `l` (vågrät): kanten fingret ligger på är dess
- * vänstra långsida när det ligger med framsidan upp (u = `u`, v = -bredden/2 + kantIn), toppen LUFT och en fingertopps
- * radie över den; vid `fi` = pi ligger kortet med ryggen upp åt andra hållet, under handen.
- */
-const vandKort = (tipp: Vec3, l: Vec3, fi: number, u = VAND_U, v = -(CARD.width / 2 - kantIn(fi))): Kort => {
-  const n = turned(UP, l, -fi), a = turned(cross(UP, l), l, -fi), E = sub(tipp, [0, BALL(8) + CARD.thickness / 2 + LUFT, 0]);
-  return {c: sub(sub(E, mul(l, u)), mul(a, v)), l, n};
-};
+function kortIHogern(tipp: Vec3, M: Ram, S: Ram, s: number, vag: number): Kort {
+  const {ax, v} = vridning(M, S), vinkel = vag > 0 ? v * s : -(2 * Math.PI - v) * s, m = ramMed(M);
+  const l = unit(turned(m.l, ax, vinkel)), n = unit(turned(m.n, ax, vinkel)), a = cross(n, l), w = Math.max(0, n[1]);
+  const u = -CARD.height / 2 + (CARD.height / 2 + VAND_U) * w, vv = VAND_V * w;
+  const star = add(add(tipp, mul(n, BALL(8) + CARD.thickness / 2 + LUFT)), mul(l, -0.003)), ligger = sub(tipp, [0, BALL(8) + LUFT + CARD.thickness / 2, 0]), E = lerp(star, ligger, w);
+  return {c: sub(sub(E, mul(l, u)), mul(a, vv)), l, n};
+}
+/** Hur långt under pekfingertoppen kortet i högern når (meter) vid andelen `s`. */
+const underHogern = (M: Ram, S: Ram, s: number, vag: number) => -kortLagst(kortIHogern([0, 0, 0], M, S, s, vag));
 
 // ---- jämningen --------------------------------------------------------------------------------------------------------
 /** Butterworth av andra ordningen, `fc` Hz vid 30 rutor/s, framåt och bakåt (nollfas), med udda spegling i ändarna. */
@@ -555,7 +570,7 @@ function tiderna(lyft: Lyft, L: Last) {
   // det plana (53, när handen pekar nedåt med kortet under pekfingret), högst tre rutor efter bytet.
   const plan = Math.max(meet + 10, ligger - 3), vandFran = Math.max(meet + 3, plan - 7);
   // (efter bytet: högern pekar och lägger kortet med ryggen upp på filten på två rutor, ned)
-  return {n, resa, arrive, pull, leaves, narmast, meet, rests, vila, ligger: Math.max(ligger, plan + 1), ned: Math.min(vandFran, meet + 2), vandFran, plan, framsidan: plan - 2, avstandVidBytet: best};
+  return {n, resa, arrive, pull, leaves, narmast, meet, rests, vila, ligger: Math.max(ligger, plan + 1), ned: Math.min(vandFran, meet + 4), vandFran, plan, framsidan: plan - 2, avstandVidBytet: best};
 }
 type Tider = ReturnType<typeof tiderna>;
 /**
@@ -641,6 +656,10 @@ export function bygg(b: Bygg) {
 
   // ---- tiderna, bryggorna och var varje hand är ----------------------------------------------------------------------
   let ti: Tider | null = null, N = n, plats: string | null = null, malKort: Kort | null = null, malKalla: 'lyftet' | 'platsen' = 'platsen';
+  // (kortet i högern från bytet: ramarna, vägen mellan dem, andelen per ruta och pekfingertoppens höjd som kortet kräver; kortIHogern)
+  type Bar = {M: Ram; S: Ram; vag: number; s: (x: number) => number; hojd: (x: number) => number};
+  let bar: Bar | null = null, lagBar: (() => void) | null = null;
+  const barNu = (): Bar => { if (!bar) throw Error('kortet i högern är inte satt'); return bar; };
   const faser: Record<Sida, Fas[]> = {R: [], L: []}, egen: Record<Sida, [number, number] | null> = {R: null, L: null};
   // (bryggorna: från ankaret i rutan t0 till lyftet i t1, och från lyftet i t2 till ankaret i t3)
   const bryggor: Record<Sida, {t0: number; t1: number; t2: number; t3: number}> = {R: {t0: 0, t1: 0, t2: n - 1, t3: n - 1}, L: {t0: 0, t1: 0, t2: n - 1, t3: n - 1}};
@@ -673,6 +692,16 @@ export function bygg(b: Bygg) {
     plats = Object.keys(LIVE.cards).filter(id => id.startsWith(`P${seat}.`)).sort((x, y) => Math.hypot(LIVE.cards[x].at[0] - landat[0], LIVE.cards[x].at[2] - landat[2]) - Math.hypot(LIVE.cards[y].at[0] - landat[0], LIVE.cards[y].at[2] - landat[2]))[0];
     // (kortets mål: där den riktiga dealerns kort låg i den här given, annars kortplatsen; handen för det dit, nedan)
     const iFilmen = kortetIFilmen(lyft); malKort = iFilmen ?? kortPaPlats(plats); malKalla = iFilmen ? 'lyftet' : 'platsen';
+    // (kortet i högern: i bytet hängande på högkant under pekfingertoppen med ryggen mot kameran och den bortre kortsidan uppåt,
+    // den nedre kortsidan svängd mot kameran så mycket att kortet når filten där lyftets pekfinger är, högst 40 grader (ramen M);
+    // plant på platsen (ramen S); vägen mellan dem den av de två som låter kortet hänga lägst under handen halvvägs;
+    // vridningen från att vändningen börjar till att kortet är plant; görs när högerns pekande hand är satt, nedan)
+    const malL = malKort.l;
+    lagBar = () => { const tM = punkter(lyftHand('R', t.meet))[8], bort = flat(sub(tM, [0, LIVE_CAMERA.height, 0])), sida = unit(cross(UP, bort));
+      const beta = Math.acos(clamp((tM[1] - BALL(8) - LUFT) / HK, Math.cos(rad(40)), 1)), M: Ram = {l: turned([0, -1, 0], sida, beta), n: turned(bort, sida, beta)}, S: Ram = {l: malL, n: UP};
+      const vag = [1, -1].map(v => ({v, h: kortIHogern([0, 0, 0], M, S, 0.5, v).c[1]})).sort((p, q) => p.h - q.h)[0].v;
+      const sVid = (x: number) => x <= t.vandFran ? 0 : x >= t.plan ? 1 : smooth((x - t.vandFran) / (t.plan - t.vandFran));
+      bar = {M, S, vag, s: sVid, hojd: (x: number) => underHogern(M, S, sVid(x), vag) + lyftVid(t, x)}; };
     const B = bryggor;
     faser.L = [{fran: 0, till: B.L.t0, vad: 'vilan', kalla: 'ankaret'}, {fran: B.L.t0, till: B.L.t1, vad: nara ? 'ur vilan in i lyftet' : 'ur vilan till skon', kalla: 'brygga'},
       ...(nara ? [{fran: t.resa, till: t.arrive, vad: 'till skon', kalla: 'lyftet' as const}] : []), {fran: t.arrive, till: t.pull, vad: 'vid skon', kalla: 'lyftet'}, {fran: t.pull, till: t.leaves, vad: 'drar kortet ur skon', kalla: 'lyftet'},
@@ -704,9 +733,9 @@ export function bygg(b: Bygg) {
   const sido: Record<Sida, {v: Vec3; w: (t: number) => number}[]> = {R: [], L: []}, andpunkt: {v: Vec3; w: (t: number) => number} = {v: [0, 0, 0], w: () => 0};
   const kontakt: Record<string, {langsMm: number; tvarsMm: number; behovdesMm: number; px: number}> = {};
   const ramp =(t: number, a: number, b: number) => b <= a ? (t >= b ? 1 : 0) : smooth((t - a) / (b - a));
-  if (giv && ti && plats && malKort) {
-    const t = ti, K0 = kortISkon(), KL = malKort;
-    const ryggen = (k: Kort, p: Vec3) => add(paKortet(k, p), mul(k.n, -T / 2));
+  if (giv && ti && plats && malKort && lagBar) {
+    const t = ti, K0 = kortISkon(), KL = malKort, hojdKort = (x: number) => barNu().hojd(x);
+    const ryggen =(k: Kort, p: Vec3) => add(paKortet(k, p), mul(k.n, -T / 2));
     const not = (vad: string, l: number, P: Vec3, mal: Vec3, u: Vec3, lat: Vec3) => { kontakt[vad] = {langsMm: Math.round(l * 1000), tvarsMm: Math.round(length(lat) * 1000), behovdesMm: Math.round(length(tvars(sub(mal, P), u)) * 1000), px: pxAv(P, mal)}; };
     // högern pekar från bytet tills den lämnar kortet (pekande): fingrarna krökta på tre rutor efter bytet; lutningen, från
     // rutan innan vändningen börjar, så liten som håller handens övriga delar ovanför pekfingertoppen (högst 80 grader),
@@ -716,9 +745,10 @@ export function bygg(b: Bygg) {
     // (medan högern tar och bär kortet på kant är pekfingret krökt in mot tummen, så att de nyper kortet mellan sig (tummen
     // läggs an nedan): krökt på elva rutor fram till bytet, rakt igen medan kortet tippas ned, tills det är plant)
     for (let x = 0; x < Math.min(n, t.plan); x++) pek.nyp[x] = PEKKROK * smooth((x - (t.meet - 10)) / 11) * (1 - smooth((x - t.vandFran) / (t.plan - t.vandFran)));
+    lagBar();
     // (medan kortet står på kant är fingret högre än när kortet ligger: så mycket lägre än toppen får handens övriga delar gå)
     // (och medan kortet förs ned mot filten efter bytet: så högt som fingret är över filten)
-    const tillat = (x: number) => x >= t.plan ? 0 : Math.max(0, hojdKort(t, x) - PEK_PLANT - 0.004);
+    const tillat = (x: number) => x >= t.plan ? 0 : Math.max(0, hojdKort(x) - PEK_PLANT - 0.004);
     const lutBehov = Array.from({length: n}, (_, x) => { if (x <= t.meet || x > t.vila) return 0; const h = {a: L.R.vinklar[x], w: L.R.w[x], S: fri.R.S[x]};
       for (let g = 0; g <= 80; g += 2) if (underToppen(pekande(h, pek.krok[x], rad(g), pek.nyp[x])) <= 0.002 + tillat(x)) return rad(g); return rad(80); });
     const lutJ = lutBehov.map((_, x) => Math.max(0, ...lutBehov.map((y, j) => y * smooth(1 - Math.abs(Math.min(x, t.vila) - j) / 4))));
@@ -730,12 +760,11 @@ export function bygg(b: Bygg) {
     // vänstern när kortet är ute: dynorna på kortets rygg, kortet plant på filten
     const uU = syn('L', t.leaves), PU0 = dynor(lyftHand('L', t.leaves)), lU = clamp((T - PU0[1]) / (uU[1] || -1e-6), -0.25, 0.25);
     kontakt['vänstern på kortet när det är ute'] = {langsMm: Math.round(lU * 1000), tvarsMm: 0, behovdesMm: 0, px: 0};
-    // bytet: kortet står på kant på filten mellan händerna (de håller i var sin ände, live-bj/README.md "Handbytet"; filmen
-    // ruta 48–49: kortet syns smalt, dess långsida längs synlinjen): högerns pekfingertopp an mot kortets sida vid den främre
-    // änden, så högt som kortet på kant kräver (djupet längs synlinjen), och vänsterns dynor på dess övre kant vid den bakre,
-    // en kortlängd bakom (vänsterns djup som när kortet kom ut)
+    // bytet: kortet står på sin kortsida på filten mellan händerna med ryggen mot kameran (förlagans ruta 48–49): högerns
+    // pekfingertopp på dess övre kortsida, så högt som kortet kräver (djupet längs synlinjen), och vänstern vid dess andra
+    // långsida (vänsterns djup som när kortet kom ut)
     const pLm = add(dynor(lyftHand('L', t.meet)), mul(syn('L', t.meet), lU)), uM = syn('R', t.meet), gM0 = punkter(lyftHand('R', t.meet))[8];
-    const lM = (hojdKort(t, t.meet) - gM0[1]) / (uM[1] || -1e-6), tM = add(gM0, mul(uM, lM));
+    const lM = (hojdKort(t.meet) - gM0[1]) / (uM[1] || -1e-6), tM = add(gM0, mul(uM, lM));
     kontakt['högern mot kortet i bytet'] = {langsMm: Math.round(lM * 1000), tvarsMm: 0, behovdesMm: Math.round(Math.abs(length(sub(tM, pLm)) - (HK - 0.025)) * 1000), px: 0};
     djupF.L = genom([[Math.max(0, Math.min(t.resa, t.arrive - 6)), 0], [t.arrive, lS], [t.pull, lS], [t.leaves, lU], [t.meet, lU], [t.meet + 12, 0]]);
     sido.L.push({v: latS, w: x => ramp(x, t.arrive - 5, t.arrive) * (1 - ramp(x, t.pull, t.leaves + 3))});
@@ -747,7 +776,7 @@ export function bygg(b: Bygg) {
     // det, kommer dit den riktiga dealerns kort låg (malKort); det står kvar tills handen har gått hem: undantaget från
     // KONTAKT, redovisat som andpunktMm. Vägen behåller filmens form och takt. Längs synlinjen står handen där pekfingret når
     // kortet, nedan. `sikte` är det handens rättningar sedan flyttar fingret, så att kortet landar på målet: siktat.)
-    const malet = add(add(add(add(KL.c, mul(uL, VAND_U)), mul(aL, -(WK / 2 - KANT))), [0, T / 2 + BALL(8) + LUFT, 0]), b.sikte ?? [0, 0, 0]), uR = syn('R', t.ligger), dR = sub(malet, tipp(t.ligger));
+    const malet = add(add(add(add(KL.c, mul(uL, VAND_U)), mul(aL, VAND_V)), [0, T / 2 + BALL(8) + LUFT, 0]), b.sikte ?? [0, 0, 0]), uR = syn('R', t.ligger), dR = sub(malet, tipp(t.ligger));
     andpunkt.v = tvars(dR, uR); andpunkt.w = x => x <= t.meet ? 0 : x >= t.ligger ? 1 : mjuk((x - t.meet) / (t.ligger - t.meet));
     kontakt['högern på kortet när det ligger'] = {langsMm: Math.round(dot(dR, uR) * 1000), tvarsMm: Math.round(length(andpunkt.v) * 1000), behovdesMm: Math.round(length(andpunkt.v) * 1000), px: pxAv(tipp(t.ligger), add(tipp(t.ligger), andpunkt.v))};
     // HÖGERN FRÅN BYTET: pekfingertoppen där kortet kräver den (hojdKort): kortet på kant på filten i bytet, lyft KORT_LYFT
@@ -757,7 +786,7 @@ export function bygg(b: Bygg) {
     // (djupet går till bytets från högst 20 rutor före, men inte förrän sex rutor efter att handen kommit in i lyftet, där
     // bryggan och ankaret vid skon tar den)
     const fran = Math.max(bryggor.R.t1, Math.min(t.meet - 6, Math.max(bryggor.R.t1 + 6, t.meet - 20))), djupR0 = genom([[fran, 0], [t.meet, lM]]);
-    const hojdVid = (x: number) => hojdKort(t, Math.max(t.meet, Math.min(x, t.vila)));
+    const hojdVid = (x: number) => hojdKort(Math.max(t.meet, Math.min(x, t.vila)));
     const toppVid = (x: number, lut: number, djup: number) => { const y = Math.min(x, t.vila), j = Math.min(y, n - 1), h = pekande({a: L.R.vinklar[j], w: L.R.w[j], S: fri.R.S[j]}, pek.krok[j], lut, pek.nyp[j]);
       return add(add(punkter(h)[8], mul(andpunkt.v, andpunkt.w(y))), mul(syn('R', y), djup)); };
     // (handleden ska gå lugnt: djupet är en jämn kurva från där högern kommer in i lyftet till där den lämnar kortet, så
@@ -771,15 +800,15 @@ export function bygg(b: Bygg) {
     for (let varv = 0; varv < 4; varv++) { const over = alla.map((x, i) => x >= t.meet ? Math.max(0, bas[i] - krav[i]) : 0);
       const bula = over.map((_, i) => Math.max(0, ...over.map((y, j) => y * smooth(1 - Math.abs(i - j) / 7)))); bas = lagpass(bas.map((v, i) => v - bula[i] * 1.15), 2); }
     const lutMin = alla.map(x => pek.lut[x]), djupSlut: number[] = [];
-    // (de fem rutorna före bytet går toppen mjukt till höjden i bytet, så att handen inte hoppar dit)
-    alla.forEach((x, i) => { if (x < Math.max(t.meet - 4, fran + 1)) { djupSlut.push(bas[i]); return; } const y0 = (g: number) => toppVid(x, g, bas[i])[1], hojd = x >= t.meet ? hojdVid(x) : y0(lutMin[i]) + (hojdVid(t.meet) - y0(lutMin[i])) * smooth((x - (t.meet - 5)) / 5); let lo = lutMin[i], hi = rad(88);
+    // (de UPP_TILL_BYTET rutorna före bytet går toppen mjukt till höjden i bytet, så att handen inte hoppar dit)
+    alla.forEach((x, i) => { if (x < Math.max(t.meet - UPP_TILL_BYTET + 1, fran + 1)) { djupSlut.push(bas[i]); return; } const y0 = (g: number) => toppVid(x, g, bas[i])[1], hojd = x >= t.meet ? hojdVid(x) : y0(lutMin[i]) + (hojdVid(t.meet) - y0(lutMin[i])) * smooth((x - (t.meet - UPP_TILL_BYTET)) / UPP_TILL_BYTET); let lo = lutMin[i], hi = rad(88);
       if (y0(lo) <= hojd) hi = lo; else if (y0(hi) >= hojd) lo = hi; else for (let k = 0; k < 30; k++) { const m = (lo + hi) / 2; if (y0(m) > hojd) lo = m; else hi = m; }
       pek.lut[x] = (lo + hi) / 2; djupSlut.push(bas[i] + (hojd - y0(pek.lut[x])) / uy(x)); });
     for (let x = t.vila + 1; x < n; x++) pek.lut[x] = pek.lut[t.vila];
     // (medan högern tar och bär kortet i luften är djupet och lutningen jämnade (4 Hz), så att handen inte rycker; toppens
     // höjd får där gå någon millimeter från kravet, som kortets vinkel tar upp, och är kravets igen när kortet är plant)
     { const glattD = lagpass(djupSlut, 4), glattL = lagpass(alla.map(x => pek.lut[x]), 4);
-      alla.forEach((x, i) => { const w = x < t.meet - 4 || x >= t.plan ? 0 : Math.min(smooth((x - (t.meet - 5)) / 3), 1 - smooth((x - (t.plan - 4)) / 4));
+      alla.forEach((x, i) => { const w = x < t.meet - UPP_TILL_BYTET + 1 || x >= t.plan ? 0 : Math.min(smooth((x - (t.meet - UPP_TILL_BYTET)) / 3), 1 - smooth((x - (t.plan - 4)) / 4));
         if (w > 0) { djupSlut[i] += (glattD[i] - djupSlut[i]) * w; pek.lut[x] += (glattL[i] - pek.lut[x]) * w; } }); }
     const djup0 = genom([[Math.max(bryggor.R.t1, fran - 12), 0], [fran, bas[0]]]);
     djupF.R = x => x < fran ? djup0(x) : djupSlut[Math.min(x, t.vila) - fran];
@@ -821,35 +850,33 @@ export function bygg(b: Bygg) {
   const tak = () => { for (const [s] of SIDOR) hander[s] = hander[s].map((h, x) => { const u = syn(s, x), d = tvars(sub(h.w, fore[s][x]), u), l = length(d); if (l <= KONTAKT + 1e-6) return h; kvitto.overGransen[s] = Math.max(kvitto.overGransen[s], Math.round(l * 1000)); return flyttHand(h, mul(d, KONTAKT / l - 1)); }); };
   /** Handen flyttad längs sin synlinje (mot kameran är minus) så lite som håller den ur filten, högst 15 cm; meter. */
   const urFiltenLangs = (s: Sida, h: Hand, x: number) => { if (overFilten(h) >= 0) return 0; const u = syn(s, x); for (let l = -0.002; l >= -0.15; l -= 0.002) if (overFilten(flyttHand(h, mul(u, l))) >= 0) return l; return -0.15; };
-  if (giv && ti && plats && malKort) {
-    const t = ti, K0 = kortISkon(), KL = malKort;
+  if (giv && ti && plats && malKort && lagBar) {
+    const t = ti, K0 = kortISkon(), KL = malKort, B2 = barNu();
     // ute ur skon: kortet plant på filten, ryggen upp, långsidan som i skon, mitt under vänsterns dynor (som djupet har lagt på ryggen)
     const lUt = flat(K0.l), pU = dynor(hander.L[t.leaves]), K1: Kort = {c: [pU[0], T / 2, pU[2]], l: lUt, n: mul(UP, -1)};
     const G1 = iHanden(hander.L[t.leaves], K1);
-    // bytet: kortet på kant mellan händerna (filmen ruta 48–49), dess övre långsida under högerns pekfingertopp och
-    // långsidan vågrät mot vänsterns dynor, som håller i den andra änden på kortets sida (vänsterns djup ovan). Vänstern
-    // reser kortet dit i sitt grepp från att det är ute ur skon (G1 till G2L).
+    // bytet: kortet står på sin kortsida mellan händerna med ryggen mot kameran (förlagans ruta 48–49), högerns pekfingertopp på
+    // dess övre kortsida och vänsterns fingrar vid dess andra långsida (vänsterns djup ovan). Vänstern reser kortet dit i sitt
+    // grepp från att det är ute ur skon (G1 till G2L).
     const pekfingret = (x: number) => punkter(hander.R[x])[8];
-    let fiM = Math.PI / 2; while (fiM > 0 && underTopp(fiM) > pekfingret(t.meet)[1]) fiM -= rad(0.5);
-    const K2 = nypt(vandKort(pekfingret(t.meet), unit(flat(sub(dynor(hander.L[t.meet]), pekfingret(t.meet)))), fiM), hander.R[t.meet], fiM);
+    /** Kortet i högern i rutan x vid andelen s av vridningen (kortIHogern). */
+    const iHogern = (x: number, s: number) => kortIHogern(pekfingret(x), B2.M, B2.S, s, B2.vag);
+    const K2 = iHogern(t.meet, 0);
     const G2L = iHanden(hander.L[t.meet], K2);
+    /** Kortet i vänsterns grepp i rutan x, från ute ur skon (G1) till bytet (G2L). */
+    const vansterns = (x: number) => urHanden(hander.L[x], mellan(G1, G2L, mjuk((x - t.leaves) / (t.meet - t.leaves))));
+    /** Hur många rutor högern tar kortet ur vänsterns grepp: TAG, men inte förrän kortet är ute ur skon. */
+    const tag = Math.max(3, Math.min(TAG, t.meet - t.leaves - 1));
     kvitto.glid['vänstern: från ute ur skon till bytet'] = glid(G1, G2L);
     kvitto.vandning = {fran: t.vandFran, plant: t.plan, framsidan: t.framsidan, ligger: t.ligger};
-    // (i högern, från bytet: kortet på kant under pekfingertoppen (vandKort), uppe i luften (KORT_LYFT), tills vändningen börjar;
-    // tippat kring den övre långsidan till framsidan upp på filten; skjutet plant på filten av fingret, och där handen
-    // stannar ligger det. Kortets långsida vrids mjukt från bytets till den riktiga dealerns (malKort) medan kortet är i
-    // luften, och är där när det når filten; är det mer än ett kvarts varv, åt det håll där kortets fria ände går bort från
-    // tummen (och vänstern), inte genom dem. På filten vrids och glider det inte under fingret: det ligger där handen lägger
-    // det, i den vinkel det kom (Jakob 2026-11-27).)
-    // (kortets vinkel: tidsplanens (vandVinkel), eller mer tippat åt samma håll där fingret är för lågt för att kortets nedre
-    // kant ska gå fri från filten)
-    const vinkelVid = (x: number) => { const h = pekfingret(x)[1]; let fi = vandVinkel(t, x); while (fi > 0 && underTopp(fi) > h) fi -= rad(0.5); return Math.max(0, fi); };
-    const yaw = (v: Vec3) => Math.atan2(v[0], v[2]), yaw0 = yaw(K2.l), dYaw = (() => { let d = yaw(KL.l) - yaw0; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
-      if (Math.abs(d) < Math.PI / 2) return d; const ts = flat(sub(punkter(hander.R[t.meet])[4], pekfingret(t.meet))), alt = d > 0 ? d - 2 * Math.PI : d + 2 * Math.PI, mitten = (dd: number): Vec3 => [Math.sin(yaw0 + dd / 2), 0, Math.cos(yaw0 + dd / 2)];
-      return dot(mitten(d), ts) <= dot(mitten(alt), ts) ? d : alt; })();
-    const langsida = (x: number): Vec3 => { const a = yaw0 + dYaw * jamnTon((x - t.meet) / (t.plan - t.meet)); return [Math.sin(a), 0, Math.cos(a)]; };
+    // (i högern, från bytet: kortet hänger stående under pekfingertoppen med ryggen mot kameran, uppe i luften (KORT_LYFT), tills
+    // vändningen börjar; sedan vrids det framåt till framsidan upp, plant (kortIHogern), skjuts plant på filten av fingret, och
+    // där handen stannar ligger det: där den riktiga dealerns kort låg (malKort), i den vinkel det kom. På filten vrids och glider
+    // det inte under fingret (Jakob 2026-11-27).)
+    // (andelen: tidsplanens (bar.s), eller mer vriden där fingret är för lågt för att kortet ska gå fri från filten)
+    const andelVid = (x: number) => { const h = pekfingret(x)[1]; let s = B2.s(x); while (s < 1 && underHogern(B2.M, B2.S, s, B2.vag) > h - 0.0005) s = Math.min(1, s + 0.02); return s; };
     /** Kortet plant på filten under pekfingret i rutan x: på samma ställe under fingret som när det blev plant. */
-    const underFingret = (x: number): Kort => { const k = vandKort(pekfingret(x), langsida(x), 0); return {...k, c: [k.c[0], T / 2, k.c[2]]}; };
+    const underFingret = (x: number): Kort => { const k = iHogern(x, 1); return {...k, c: [k.c[0], T / 2, k.c[2]]}; };
     const kortet = () => {
       const lagt = underFingret(t.ligger), p0 = LIVE.cards[plats!], fran = (c: Vec3, at: Vec3) => Math.round(Math.hypot(c[0] - at[0], c[2] - at[2]) * 10000) / 10;
       kvitto.landning = {mal: malKalla, malet: {c: r4(KL.c), vinkel: r1(kortVinkel(KL.l))}, lagt: {c: r4(lagt.c), vinkel: r1(kortVinkel(lagt.l))}, franMaletMm: fran(lagt.c, KL.c), vinkelMotMalet: r1(vinkelMellan(kortVinkel(lagt.l), kortVinkel(KL.l))),
@@ -860,18 +887,21 @@ export function bygg(b: Bygg) {
       // (de sista TAG rutorna före bytet tar högerns pekfinger kortet ur vänsterns grepp: kortet går mjukt från vänsterns grepp
       // till nypet under högerns pekfingertopp, som i bytet, så att det inte hoppar i bytets ruta, där skon till bytet och
       // bytet till platsen möts)
-      else if (x < t.meet) { const vL = urHanden(hander.L[x], mellan(G1, G2L, mjuk((x - t.leaves) / (t.meet - t.leaves)))), s = smooth((x - (t.meet - TAG)) / TAG);
-        C[x] = s > 0 ? mellan(vL, nypt(vandKort(pekfingret(x), K2.l, fiM), hander.R[x], fiM), s) : vL; haller.L[x] = true; if (s > 0) haller.R[x] = true; }
+      // (vänstern reser kortet från plant till högkant i sitt grepp; de sista TAG rutorna går det mjukt mot nypet i högern:
+      // läget från vänsterns grepp till högerns, och vinkeln i en jämn vridning i rummet från greppets till bytets (inte i
+      // vänsterns lyfta handvinkel, som vrider sig fort i bytet))
+      else if (x < t.meet) { const vL = vansterns(x), s = smooth((x - (t.meet - tag)) / tag), O = s > 0 ? mellan(vansterns(t.meet - tag), K2, s) : vL;
+        C[x] = s > 0 ? {c: lerp(vL.c, iHogern(x, 0).c, s), l: O.l, n: O.n} : vL; haller.L[x] = true; if (s > 0) haller.R[x] = true; }
       else if (x === t.meet) { C[x] = K2; haller.L[x] = haller.R[x] = true; }
-      else if (x < t.plan) { const fi = vinkelVid(x); C[x] = nypt(vandKort(pekfingret(x), langsida(x), fi), hander.R[x], fi); haller.R[x] = true; }
+      else if (x < t.plan) { C[x] = iHogern(x, andelVid(x)); haller.R[x] = true; }
       else if (x < t.ligger) { C[x] = underFingret(x); haller.R[x] = true; }
       else { C[x] = lagt; if (x <= t.vila) haller.R[x] = true; } } };
     // (händerna ur filten: först längs synlinjen, mot kameran (djupet är det osäkra), mjukt över rutorna intill; det som då
     // återstår vrids bort kring handleden, fingrarna uppåt, högst 25 grader, och höjs till sist, högst KONTAKT tvärs synlinjen.
     // Inte högern medan pekfingret är på kortet: där står den längs synlinjen där kortet kräver den.)
     const paKortetR = (x: number) => x >= t.meet && x <= t.vila;
-    // (högern rörs inte av rättningarna från bytet tills den lämnar kortet, och de tonas in och ut fyra rutor runt omkring)
-    const skyddR = (x: number) => x <= t.meet ? 1 - smooth((x - (t.meet - 2)) / 2) : x <= t.vila ? 0 : smooth((x - t.vila) / 4);
+    // (högern rörs inte av rättningarna från att den tar kortet (TAG rutor före bytet) tills den lämnar det, mjukt in och ut)
+    const skyddR = (x: number) => x <= t.meet ? 1 - smooth((x - (t.meet - tag)) / tag) : x <= t.vila ? 0 : smooth((x - t.vila) / 4);
     for (const [s] of SIDOR) {
       const langsBehov = hander[s].map((h, x) => kalla[s][x] === 'v' || kalla[s][x] === 'b' || (s === 'R' && paKortetR(x)) ? 0 : -urFiltenLangs(s, h, x));
       const langsJ = langsBehov.map((_, x) => Math.max(0, ...langsBehov.map((y, j) => y * smooth(1 - Math.abs(x - j) / 6))));
@@ -889,21 +919,27 @@ export function bygg(b: Bygg) {
       ratta(s, x => [0, hoj[x], 0]);
     }
     // (fingret vilar: från rutan kortet ligger står pekfingertoppen still där på kortet, medan handleden går som i filmen i
-    // bilden; handen står längs synlinjen och vrids kring handleden så att den når toppen. De tre sista rutorna innan handen
-    // lämnar kortet släpps toppen mjukt till där handen har den.)
+    // bilden; handen står längs synlinjen och vrids kring handleden så att den når toppen. Sedan lyfter fingret rakt upp,
+    // LYFT_FINGER på de tre sista rutorna innan handen lämnar kortet (förlagans ruta 77–79; domaren 2026-11-27 såg det glida
+    // 4 cm längs kortets kant), och först därefter, på fem rutor medan handen går hem, tonas handens vridning bort.)
     const vilar = pekfingret(t.ligger);
-    for (let x = t.ligger + 1; x <= t.vila; x++) { const h0 = hander.R[x], fri0 = punkter(h0)[8], vikt = 1 - smooth((x - (t.vila - 3)) / 3), mal = lerp(fri0, vilar, vikt);
+    let sist = {l: 0, ax: [1, 0, 0] as Vec3, v: 0};
+    for (let x = t.ligger + 1; x <= Math.min(N - 2, t.vila + 5); x++) { const h0 = hander.R[x], fri0 = punkter(h0)[8];
+      if (x > t.vila) { const f = 1 - smooth((x - t.vila) / 5), h1 = flyttHand(h0, mul(syn('R', x), sist.l * f)); hander.R[x] = vridHand(h1, h1.w, sist.ax, sist.v * f); continue; }
+      const mal = add(vilar, [0, LYFT_FINGER * smooth((x - (t.vila - 3)) / 3), 0]);
       const u = syn('R', x), r = length(sub(fri0, h0.w)), d = sub(mal, h0.w), bb = dot(u, d), disk = bb * bb - dot(d, d) + r * r;
       const l = disk >= 0 ? [bb - Math.sqrt(disk), bb + Math.sqrt(disk)].sort((p, q) => Math.abs(p) - Math.abs(q))[0] : bb, h1 = flyttHand(h0, mul(u, l));
-      const v1 = sub(punkter(h1)[8], h1.w), v2 = sub(mal, h1.w), ax = cross(v1, v2);
-      hander.R[x] = length(ax) > 1e-9 ? vridHand(h1, h1.w, unit(ax), Math.atan2(length(ax), dot(v1, v2))) : h1; }
+      const v1 = sub(punkter(h1)[8], h1.w), v2 = sub(mal, h1.w), ax = cross(v1, v2), v = Math.atan2(length(ax), dot(v1, v2));
+      sist = {l, ax: length(ax) > 1e-9 ? unit(ax) : [1, 0, 0], v: length(ax) > 1e-9 ? v : 0};
+      hander.R[x] = length(ax) > 1e-9 ? vridHand(h1, h1.w, unit(ax), v) : h1; }
     tak(); kortet();
     // (tummen: högern från strax före bytet tills kortet är plant på filten; vänstern de sista rutorna före bytet, när kortet
     // har lämnat filten. Står kortet (på kant i bytet och medan högern bär det) ligger tummen an mot kortets sida på tummens
     // egen sida, en dryg centimeter in från kanten pekfingret är på: kortet hålls mellan tummen och pekfingret. Ligger det,
     // är tummen mitt emot pekfingret på andra sidan kortet, strax utanför kanten fingret håller i.)
     // (och tonad ut på fyra rutor efter att kortet är plant)
-    const tummar: [Sida, number, number][] = [...Array.from({length: t.plan - t.meet + 6}, (_, i) => { const x = t.meet - 2 + i; return ['R', x, x < t.meet ? smooth((i + 1) / 3) : x < t.plan ? 1 : 1 - smooth((x - t.plan + 1) / 5)] as [Sida, number, number]; }),
+    // (högerns tumme läggs an på sex rutor före bytet, inte i ett slag: domaren 2026-11-27 såg den slå 2–3 cm fram och tillbaka)
+    const tummar: [Sida, number, number][] = [...Array.from({length: t.plan - t.meet + 9}, (_, i) => { const x = t.meet - 5 + i; return ['R', x, x < t.meet ? smooth((i + 1) / 6) : x < t.plan ? 1 : 1 - smooth((x - t.plan + 1) / 5)] as [Sida, number, number]; }),
       ...Array.from({length: 4}, (_, i) => ['L', t.meet - 4 + i, smooth((i + 1) / 2)] as [Sida, number, number])];
     for (const [sd, x, vikt] of tummar) {
       if (sd === 'L' && kortLagst(C[x]) < 0.004) continue;
@@ -911,8 +947,11 @@ export function bygg(b: Bygg) {
       const sida = star ? (Math.sign(dot(sub(p[2], k.c), k.n)) || 1) : -(Math.sign(dot(sub(p[8], k.c), k.n)) || 1);
       const iSidled = Math.abs(dot(d, a)) / (WK / 2) > Math.abs(dot(d, k.l)) / (HK / 2), ut = iSidled ? mul(a, Math.sign(dot(d, a)) || 1) : mul(k.l, Math.sign(dot(d, k.l)) || 1);
       const tillKanten = iSidled ? WK / 2 - Math.abs(dot(d, a)) : HK / 2 - Math.abs(dot(d, k.l));
-      // (står kortet: tummen dit den når, rakt in mot kortets sida från där den är, minst 3 mm innanför kanterna)
-      const mal = star ? add(paKortet(k, p[4], 0.003), mul(k.n, sida * (T / 2 + BALL(4) + LUFT))) : add(add(P, mul(ut, tillKanten + 0.006)), mul(k.n, sida * (T / 2 + BALL(4) + LUFT)));
+      // (står kortet i högern: tummen mot framsidan, 25 mm under den övre kortsidan under pekfingret, så att kortet nyps mellan
+      // pekfingertoppen på ryggen och tummen; i vänstern dit den når, rakt in mot kortets sida från där den är, minst 3 mm
+      // innanför kanterna)
+      const mal = star && sd === 'R' ? add(add(k.c, mul(k.l, -HK / 2 + 0.025)), mul(k.n, T / 2 + BALL(4) + LUFT))
+        : star ? add(paKortet(k, p[4], 0.003), mul(k.n, sida * (T / 2 + BALL(4) + LUFT))) : add(add(P, mul(ut, tillKanten + 0.006)), mul(k.n, sida * (T / 2 + BALL(4) + LUFT)));
       const S = h.S.map(v => [...v] as Vec3), malL = inn(h, sub(mal, h.w)), S0 = S.map(v => [...v] as Vec3);
       for (let varv = 0; varv < 12; varv++) for (const j of [3, 2, 1]) { const fran = sub(S[4], S[j]), till = sub(malL, S[j]), ax = cross(fran, till); if (length(ax) < 1e-12) continue;
         const v = Math.atan2(length(ax), dot(fran, till)), k2 = unit(ax); for (let q = j + 1; q <= 4; q++) S[q] = add(S[j], turned(sub(S[q], S[j]), k2, v)); }
@@ -934,8 +973,8 @@ export function bygg(b: Bygg) {
     // inget finger i det: kortet flyttas längs sin normal i handen, högst 2,4 cm, mjukat över rutorna; en fri hand i kortet
     // flyttas ut, högst KONTAKT. Från bytet ligger kortet under högerns pekfinger, och högern flyttas inte ur det.)
     const sign = (s: Sida) => s === 'R' ? 1 : -1;
-    // (efter bytet hålls flytten liten, så att kortet stannar under högerns pekfinger)
-    const knuffTill = t.ned;
+    // (bara medan vänstern håller kortet: från bytet hänger det i högerns nyp, mellan pekfingret och tummen)
+    const knuffTill = t.meet - 1;
     const knuff = C.map((k, x) => { const h = (['R', 'L'] as Sida[]).filter(s => haller[s][x]); if (!h.length || x > knuffTill) return 0;
       const rakna = h, vikt = x > t.meet ? 600 : 100;
       const kost = (o: number) => { const ko = flyttKort(k, mul(k.n, o)); return (stod(ko, rakna.map(s => hander[s][x])) ? 0 : 100) + rakna.reduce((sum, s) => sum + iKortet(hander[s][x], ko, sign(s)), 0) + Math.abs(o) * vikt + 1e5 * Math.max(0, 0.0005 - kortLagst(ko)); };
