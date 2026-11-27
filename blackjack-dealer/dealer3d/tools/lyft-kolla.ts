@@ -1,0 +1,143 @@
+// Kontrollen av Danilos och Frasses rörelser (dealer3d/data/lyft-<docka>-*.json, skrivna av dealer3d/tools/lyft-till-docka.ts):
+// samma saker som standarddocka/verktyg/mat.ts prövar för standardens rörelser, på livebordet, och mot lyftet de är gjorda av.
+//   node dealer3d/tools/lyft-kolla.ts [--json] [<rörelse.json> ...]      (från blackjack-dealer/; utan filer: alla lyft-*.json)
+// Slutkoden är 1 om någon rörelse har en spärr.
+//
+// Spärrar (som mat.ts): ett ben som ändrar längd (armen mot dockans ben, fingrarna mot ankaret, högst 1 mm); handleden bortom
+// armens räckvidd (benen minus 2 mm); handen mer än 50 grader från underarmen; en led bortom vad ett finger kan, ett finger i
+// filten eller i eller genom kortet (hand-rule.ts handFaults, också medan kortet står i skon); handflatan i filten; ett hörn
+// av kortet under filten; kortet ute ur skon utan stöd (varken hållet mellan fingrar på var sin sida, tryckt mot filten av
+// ett finger, eller liggande); kortet som vänds eller vrids mer än 40 grader på en ruta; ett hopp eller ryck (mat.ts HACK:
+// ett steg 15 mm längre än rutorna bredvid, farten som byter 25 mm per ruta mer än bredvid; huvudet 5 och 15 mm; blicken
+// 5 grader); första och sista rutan mer än 0,5 mm från ankaret; kortet landat mer än 1 mm från sin plats (LIVE.cards),
+// inte plant, inte med framsidan upp, eller rörligt efteråt. Fingrar i varandra räknas men spärrar inte (som mat.ts).
+// Mot lyftet: per led medianen av skillnaden i sidled (x), höjd (y) och djup (z), och i livebordets bild (bildpunkter);
+// handledens fart längs filten i 21 steg för fyra delar, med toppens läge bredvid lyftets och stilfilens; dalen i bytet
+// (handen som har kortet, som andel av den högre toppen) bredvid stilfilens; och styckets längd.
+import {readFileSync, readdirSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import {CARD, cross, dot, length, sub, unit, type Vec3} from '../src/camera.ts';
+import {LIVE, liveSee} from '../../src/table-live.ts';
+import {dollNamed} from '../src/doll.ts';
+import {handFaults, boneLengths} from '../src/hand-rule.ts';
+import {DATA, jamna, type Frame, type Kort, type Lyft} from './lyft-till-docka.ts';
+
+const ROOT = path.join(DATA, '../..'), CASINO = path.join(ROOT, '..');
+const HACK = {steg: 0.015, ryck: 0.025, huvudSteg: 0.005, huvudRyck: 0.015, blick: 5}, HANDLED = 50.5, ANKARE = 0.0005, FPS = 30;
+const SIDOR = [['R', 1], ['L', -1]] as const;
+const grader = (c: number) => Math.acos(Math.max(-1, Math.min(1, c))) * 180 / Math.PI, mm = (m: number) => Math.round(m * 1000), mm1 = (m: number) => Math.round(m * 10000) / 10;
+const median = (v: number[]) => { const s = [...v].sort((a, b) => a - b), m = s.length >> 1; return s.length ? s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2 : NaN; };
+const horn = (c: Kort) => { const s = cross(c.n, c.l); return [[1, 1], [1, -1], [-1, -1], [-1, 1]].map(([a, b]) => [0, 1, 2].map(k => c.c[k] + c.l[k] * a * CARD.height / 2 + s[k] * b * CARD.width / 2) as Vec3); };
+/** Var en punkt är mot kortet, ut ur framsidan; null om den inte rör det (inom 1 cm från kanten och 16 mm från ytan): mat.ts mot. */
+const mot = (c: Kort, p: Vec3) => { const d = sub(p, c.c), u = dot(d, c.l), v = dot(d, cross(c.n, c.l)), w = dot(d, c.n); return Math.abs(u) < CARD.height / 2 + 0.01 && Math.abs(v) < CARD.width / 2 + 0.01 && Math.abs(w) < 0.016 ? w : null; };
+const FINGRAR = [2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20];
+const HANDFLATA: [number, number, number][] = [[0, 0, 0.02], [0, 1, 0.012], [0, 5, 0.0078], [0, 9, 0.0078], [0, 13, 0.0078], [0, 17, 0.0078], [5, 9, 0.0078], [9, 13, 0.0078], [13, 17, 0.0078]];
+const TOPPAR = [4, 8, 12, 16, 20];
+type Motion = {doll: string; fps: number; frameCount: number; leavesShoe?: number; rests?: number; to?: string[]; frames: Frame[]; made: {lift: string; from: string; times?: {arrive: number; pull: number; leaves: number; meet: number; nere: number; rests: number; vila: number} | null}};
+type Stil = {speed: Record<string, {speed_share_of_top: number[]; top_m_s: {best: {median: number}}}>; handover: {dip_share_of_top: {median: number}}};
+
+/** Handledens fart längs filten (x, z), m/s. */
+const fartLangsFilten = (v: Vec3[]) => v.map((p, t) => t ? Math.hypot(p[0] - v[t - 1][0], p[2] - v[t - 1][2]) * FPS : 0);
+/** En del av en fartkurva i 21 steg av sin egen tid, som andel av sin topp; toppens läge (andel av tiden) och toppen (m/s). */
+function kurva(f: number[], a: number, b: number) {
+  const del = f.slice(a, b + 1), top = Math.max(...del), steg = Array.from({length: 21}, (_, i) => { const x = a + (b - a) * i / 20, j = Math.floor(x), r = x - j; return ((f[j] ?? 0) * (1 - r) + (f[Math.min(b, j + 1)] ?? 0) * r) / (top || 1); });
+  return {steg: steg.map(x => Math.round(x * 100) / 100), toppVid: Math.round(del.indexOf(top) / Math.max(1, b - a) * 100) / 100, topp: Math.round(top * 100) / 100};
+}
+/** Där en rörelse börjar före sin topp: bakåt från toppen tills farten är under 15 % av den. */
+const borjan = (f: number[], fran: number, till: number) => { let top = fran; for (let t = fran; t <= till; t++) if (f[t] > f[top]) top = t; let s = top; while (s > fran && f[s - 1] > 0.15 * f[top]) s--; return s; };
+const slutet = (f: number[], fran: number, till: number) => { let top = fran; for (let t = fran; t <= till; t++) if (f[t] > f[top]) top = t; let s = top; while (s < till && f[s + 1] > 0.15 * f[top]) s++; return s; };
+
+export function kolla(fil: string) {
+  const m = JSON.parse(readFileSync(fil, 'utf8')) as Motion, doll = dollNamed(m.doll), f = m.frames, n = f.length;
+  const ank = (JSON.parse(readFileSync(path.join(CASINO, m.made.from), 'utf8')) as {frame: Frame}).frame;
+  const lyft = JSON.parse(readFileSync(path.join(CASINO, m.made.lift), 'utf8')) as Lyft, ti = m.made.times ?? null;
+  // (ett fynd per slag: i hur många rutor, varje ruta en gång, och det värsta)
+  const samla = new Map<string, {rutor: number; varst: number; text: string; vid: number; senast: number}>();
+  const not = (vad: string, by: number, text: string, t: number) => { const s = samla.get(vad) ?? {rutor: 0, varst: -Infinity, text: '', vid: t, senast: NaN}; if (s.senast !== t) { s.rutor++; s.senast = t; } if (by > s.varst) { s.varst = by; s.text = text; s.vid = t; } samla.set(vad, s); };
+  // ankaret
+  // (i sista rutan ligger kortet kvar där det lades: där jämförs bara kroppen, som mat.ts gör)
+  const skillnad = (a: Frame, b: Frame, medKort: boolean) => Math.max(length(sub(a.h, b.h)), medKort ? length(sub(a.card.c, b.card.c)) : 0, ...SIDOR.flatMap(([s]) => [length(sub(a[s].s, b[s].s)), length(sub(a[s].e, b[s].e)), length(sub(a[s].w, b[s].w)), ...a[s].p.map((p, k) => length(sub(p, b[s].p[k])))]));
+  for (const [vad, t] of [['första rutan är inte ankaret', 0], ['sista rutan är inte ankaret', n - 1]] as const) { const d = skillnad(f[t], ank, t === 0); if (d > ANKARE) not(vad, d, `${mm1(d)} mm`, t); }
+  const benAnk = {R: boneLengths(ank.R.p), L: boneLengths(ank.L.p)}, rackvidd = doll.upperArm + doll.forearm - 0.002;
+  const lamnar = m.leavesShoe ?? n, ligger = m.rests ?? n;
+  const utanStod: number[] = [];
+  f.forEach((x, t) => {
+    for (const [s, sign] of SIDOR) { const l = x[s], namn = s === 'R' ? 'höger' : 'vänster';
+      const ua = length(sub(l.e, l.s)) - doll.upperArm, fa = length(sub(l.w, l.e)) - doll.forearm;
+      if (Math.abs(ua) > 0.001) not(`${namn} överarm ändrar längd`, Math.abs(ua), `${mm1(ua)} mm`, t); if (Math.abs(fa) > 0.001) not(`${namn} underarm ändrar längd`, Math.abs(fa), `${mm1(fa)} mm`, t);
+      boneLengths(l.p).forEach((b, k) => { const d = b - benAnk[s][k]; if (Math.abs(d) > 0.001) not(`${namn} hand: ett fingerben ändrar längd`, Math.abs(d), `ben ${k} ${mm1(d)} mm`, t); });
+      const bort = length(sub(l.w, l.s)) - rackvidd; if (bort > 0.001) not(`${namn} handled bortom armens räckvidd`, bort, `${mm(bort)} mm`, t);
+      const led = grader(dot(unit(sub(l.w, l.e)), unit(sub(l.p[9], l.p[0])))); if (led > HANDLED) not(`${namn} hand mer än 50° från underarmen`, led, `${Math.round(led)}°`, t);
+      for (const fel of handFaults(l.p, sign, null, x.card)) if (fel.kind !== 'ordning' && fel.kind !== 'grannen') not(`${namn} hand: ${fel.kind === 'led' ? 'en led bortom vad ett finger kan' : fel.kind === 'i varandra' ? 'fingrar i varandra' : fel.kind === 'kortet' ? 'ett finger i eller genom kortet' : 'ett finger i filten'}`, fel.by, fel.what, t);
+      const flata = Math.max(...HANDFLATA.map(([a, b, r]) => -0.002 - (Math.min(l.p[a][1], l.p[b][1]) - r))); if (flata > 0) not(`${namn} handflata i filten`, flata, `${mm1(flata + 0.002)} mm`, t);
+    }
+    const lagst = Math.min(...horn(x.card).map(p => p[1])); if (t >= lamnar && lagst < -0.002) not('kortet: ett hörn under filten', -lagst, `${mm(-lagst)} mm`, t);
+    if (t > lamnar && t < ligger) { const sidor = [...FINGRAR.map(k => mot(x.card, x.R.p[k])), ...FINGRAR.map(k => mot(x.card, x.L.p[k]))].filter(w => w !== null) as number[];
+      const hallet = sidor.some(w => w > 0) && sidor.some(w => w < 0), motFilten = lagst < 0.004 && sidor.length > 0, liggande = horn(x.card).every(p => p[1] < 0.004);
+      if (!hallet && !motFilten && !liggande) { utanStod.push(t); not('kortet ute ur skon utan stöd', x.card.c[1], `${mm(x.card.c[1])} mm över filten`, t); } }
+    if (t > 0) { const y = f[t - 1].card, v = grader(dot(x.card.n, y.n)), l = grader(Math.abs(dot(x.card.l, y.l)));
+      if (v > 40) not('kortet vänds mer än 40° på en ruta', v, `${Math.round(v)}°`, t); if (l > 40) not('kortet vrids mer än 40° på en ruta', l, `${Math.round(l)}°`, t); }
+  });
+  const hack = (vad: string, punkt: (x: Frame) => Vec3, steg = HACK.steg, ryck = HACK.ryck) => {
+    const v = [[0, 0, 0] as Vec3, ...f.slice(1).map((x, i) => sub(punkt(x), punkt(f[i]))), [0, 0, 0] as Vec3], s = v.map(length), dv = v.map((x, i) => i ? length(sub(x, v[i - 1])) : 0);
+    for (let i = 1; i < n; i++) { const over = s[i] - Math.max(s[i - 1], s[i + 1]); if (over > steg) not(`${vad} hoppar`, over, `${mm(s[i])} mm på en ruta`, i); }
+    for (let i = 1; i <= n; i++) { const over = dv[i] - Math.max(dv[i - 1], dv[i + 1] ?? 0); if (over > ryck) not(`${vad} rycker`, over, `farten ändras ${mm(dv[i])} mm per ruta`, i - 1); }
+  };
+  for (const [s, namn] of [['R', 'höger'], ['L', 'vänster']] as const) { hack(`${namn} handled`, x => x[s].w); hack(`${namn} armbåge`, x => x[s].e); for (const k of TOPPAR) hack(`${namn} fingertopp ${k}`, x => x[s].p[k]); }
+  hack('kortet', x => x.card.c); hack('huvudet', x => x.h, HACK.huvudSteg, HACK.huvudRyck);
+  { const b = f.map((x, i) => { if (!i) return 0; const a = sub(x.g, x.h), c = sub(f[i - 1].g, f[i - 1].h); return grader(dot(unit(a), unit(c))); });
+    for (let i = 1; i < n; i++) { const over = b[i] - Math.max(b[i - 1], b[i + 1] ?? 0); if (over > HACK.blick) not('blicken hoppar', over, `${Math.round(b[i])}° på en ruta`, i); } }
+  // landningen
+  let landning: {franPlatsenMm: number; plant: boolean; framsidanUpp: boolean; rorSigMm: number} | null = null;
+  if (m.rests !== undefined && m.to) { const k = f[m.rests].card, p = LIVE.cards[m.to[0]], d = Math.hypot(k.c[0] - p.at[0], k.c[2] - p.at[2]);
+    landning = {franPlatsenMm: Math.round(d * 10000) / 10, plant: Math.abs(k.n[1]) > Math.cos(1 * Math.PI / 180), framsidanUpp: k.n[1] > 0, rorSigMm: Math.round(Math.max(...f.slice(m.rests, n - 1).map(x => length(sub(x.card.c, k.c)))) * 10000) / 10};
+    if (d > 0.001 || !landning.plant || !landning.framsidanUpp || landning.rorSigMm > 1) not('kortet landar inte rätt', d, `${landning.franPlatsenMm} mm från ${m.to[0]}`, m.rests); }
+
+  // ---- mot lyftet
+  // (två gånger: över hela stycket, och över rörelsen själv, där ankarets början och slut inte räknas: för en giv från att
+  // vänsterhanden är vid skon till att högerns fingrar har vilat på kortet, för en väntan utom de tio första och sista rutorna)
+  const L = lyft.frames, led = (namn: string, a: (x: Frame) => Vec3, b: (y: Lyft['frames'][number]) => Vec3 | null, fran = 0, till = n - 1) => {
+    const d = f.flatMap((x, t) => { const q = t >= fran && t <= till ? b(L[t]) : null; return q ? [[a(x), q]] : []; }), px = d.map(([p, q]) => { const P = liveSee(p), Q = liveSee(q); return P && Q ? Math.hypot(P.x - Q.x, P.y - Q.y) : NaN; });
+    return {led: namn, x: mm(median(d.map(([p, q]) => Math.abs(p[0] - q[0])))), y: mm(median(d.map(([p, q]) => Math.abs(p[1] - q[1])))), z: mm(median(d.map(([p, q]) => Math.abs(p[2] - q[2])))), bild: Math.round(median(px.filter(Number.isFinite)))};
+  };
+  const mid = (a: Vec3, b: Vec3): Vec3 => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
+  const leder = (fran?: number, till?: number) => [
+    led('axlarna', x => mid(x.R.s, x.L.s), y => mid(y.R.s, y.L.s), fran, till), led('höger armbåge', x => x.R.e, y => y.R.e, fran, till), led('vänster armbåge', x => x.L.e, y => y.L.e, fran, till),
+    led('höger handled', x => x.R.w, y => y.R.w, fran, till), led('vänster handled', x => x.L.w, y => y.L.w, fran, till), led('höger fingertoppar', x => mid(x.R.p[8], x.R.p[12]), y => y.R.p ? mid(y.R.p[8], y.R.p[12]) : null, fran, till),
+    led('vänster fingertoppar', x => mid(x.L.p[8], x.L.p[12]), y => y.L.p ? mid(y.L.p[8], y.L.p[12]) : null, fran, till), led('huvudet', x => x.h, y => y.h, fran, till)];
+  const motLyftet = {helaStycket: leder(), rorelsen: ti ? leder(ti.arrive, ti.vila) : leder(10, n - 11), rutor: ti ? [ti.arrive, ti.vila] : [10, n - 11]};
+  // farten
+  const stil = JSON.parse(readFileSync(path.join(CASINO, `live-bj/data/stil-${lyft.style}.json`), 'utf8')) as Stil;
+  const fD = {R: fartLangsFilten(f.map(x => x.R.w)), L: fartLangsFilten(f.map(x => x.L.w))}, fL = {R: fartLangsFilten(jamna(L.map(y => y.R.w))), L: fartLangsFilten(jamna(L.map(y => y.L.w)))};
+  const farten: Record<string, unknown> = {};
+  if (ti) {
+    const delar: [string, 'R' | 'L', number, number][] = [['left_to_shoe', 'L', borjan(fD.L, 1, ti.arrive), ti.arrive], ['left_back_with_card', 'L', ti.pull, ti.meet], ['right_out', 'R', ti.meet, ti.rests], ['right_back', 'R', ti.vila, slutet(fD.R, ti.vila, n - 2)]];
+    for (const [namn, s, a, b] of delar) { if (b - a < 3) continue; const d = kurva(fD[s], a, b), l = kurva(fL[s], a, b), st = stil.speed[namn], stTopp = st.speed_share_of_top.indexOf(Math.max(...st.speed_share_of_top)) / 20;
+      farten[namn] = {rutor: [a, b], sekunder: Math.round((b - a) / FPS * 100) / 100, dockan: d, lyftet: l, stilen: {toppVid: stTopp, topp: st.top_m_s.best.median, steg: st.speed_share_of_top}}; }
+    // dalen i bytet: handen som har kortet (vänstern till bytet, högern efter), från vänsterns topp till högerns
+    const dal = (fv: {R: number[]; L: number[]}) => { let a = ti.pull; for (let t = ti.pull; t <= ti.meet; t++) if (fv.L[t] > fv.L[a]) a = t; let b = ti.meet; for (let t = ti.meet; t <= ti.rests; t++) if (fv.R[t] > fv.R[b]) b = t;
+      const v = Array.from({length: b - a + 1}, (_, i) => a + i <= ti.meet ? fv.L[a + i] : fv.R[a + i]), top = Math.max(fv.L[a], fv.R[b]); return {dal: Math.round(Math.min(...v) / top * 100) / 100, toppTillTopp: Math.round((b - a) / FPS * 100) / 100}; };
+    farten.dalen = {dockan: dal(fD), lyftet: dal(fL), stilen: stil.handover.dip_share_of_top.median};
+  }
+  const fynd = [...samla].map(([vad, s]) => ({vad, rutor: s.rutor, varst: s.text, vid: s.vid}));
+  const sparrar = fynd.filter(x => !/fingrar i varandra/.test(x.vad));
+  return {fil: path.basename(fil), docka: m.doll, rutor: n, sekunder: Math.round(n / FPS * 100) / 100, lyftetsSekunder: Math.round(L.length / FPS * 100) / 100, landning, fynd, sparrar, motLyftet, farten};
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const filer = process.argv.slice(2).filter(a => !a.startsWith('--')), alla = filer.length ? filer.map(f => path.resolve(f)) : readdirSync(DATA).filter(f => /^lyft-.*\.json$/.test(f)).sort().map(f => path.join(DATA, f));
+  const ut = alla.map(kolla);
+  if (process.argv.includes('--json')) console.log(JSON.stringify(ut, null, 1));
+  else for (const r of ut) {
+    console.log(`${r.fil}: ${r.rutor} rutor (${r.sekunder} s; lyftet ${r.lyftetsSekunder} s) ${r.sparrar.length ? `SPÄRR: ${r.sparrar.map(x => `${x.vad} (${x.rutor} rutor, värst ${x.varst} i ruta ${x.vid})`).join('; ')}` : 'grön'}`);
+    const iv = r.fynd.filter(x => /fingrar i varandra/.test(x.vad)); if (iv.length) console.log(`  märkt, ingen spärr: ${iv.map(x => `${x.vad} ${x.rutor} rutor`).join('; ')}`);
+    if (r.landning) console.log(`  landningen: ${r.landning.franPlatsenMm} mm från platsen, ${r.landning.plant ? 'plant' : 'inte plant'}, framsidan ${r.landning.framsidanUpp ? 'upp' : 'NED'}, rör sig ${r.landning.rorSigMm} mm efteråt`);
+    console.log(`  mot lyftet i rörelsen, rutorna ${r.motLyftet.rutor.join('–')} (median mm sidled/höjd/djup, bildpunkter): ${r.motLyftet.rorelsen.map(l => `${l.led} ${l.x}/${l.y}/${l.z} (${l.bild} px)`).join('; ')}`);
+    console.log(`  mot lyftet i hela stycket: ${r.motLyftet.helaStycket.map(l => `${l.led} ${l.x}/${l.y}/${l.z}`).join('; ')}`);
+    for (const [namn, v] of Object.entries(r.farten)) { const x = v as {dockan: {toppVid: number; topp: number; dal?: number}; lyftet: {toppVid: number; topp: number}; stilen: {toppVid: number; topp: number} | number; sekunder?: number};
+      if (namn === 'dalen') { const d = v as {dockan: {dal: number; toppTillTopp: number}; lyftet: {dal: number; toppTillTopp: number}; stilen: number}; console.log(`  dalen i bytet (andel av toppen): dockan ${d.dockan.dal} (topp till topp ${d.dockan.toppTillTopp} s), lyftet ${d.lyftet.dal} (${d.lyftet.toppTillTopp} s), stilen ${d.stilen}`); continue; }
+      const st = x.stilen as {toppVid: number; topp: number}; console.log(`  ${namn} (${x.sekunder} s): toppen vid ${x.dockan.toppVid} (lyftet ${x.lyftet.toppVid}, stilen ${st.toppVid}), ${x.dockan.topp} m/s (lyftet ${x.lyftet.topp}, stilen ${st.topp})`); }
+  }
+  process.exit(ut.some(r => r.sparrar.length) ? 1 : 0);
+}
