@@ -23,7 +23,7 @@
 //                         läggs på; stannar med ett fel om lagret har fel eller hör till en äldre rörelse
 //              [--kulor]  visa handtagen     [--panel]  hela fönstret med panelen     [--storlek 1600x1000]     [--port 4321]
 //              [--utseende nyckel]  rena färger på bakgrund, bord och kort (editor/scen.ts), för film där dealern ska skiljas ut
-//              [--docka danilo|frasse]  livebordet genom sin egen kamera
+//              [--docka danilo|frasse|<en persons docka, dealer3d/src/persondockor.ts>]  livebordet genom sin egen kamera
 //                         (spel är livebordets, 1728 x 972, och inspelningen görs i den storleken), med Danilo (förval) eller
 //                         Frasse. Platsen väljer dockans lyfta giv dit (lyft-<docka>-p<plats>),
 //                         --giv lyft-danilo-vantan-1 vilken lyft rörelse som helst; den spelas som den är, från vilan till
@@ -64,6 +64,7 @@ import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {chromePath, releaseLock, takeLock} from '../../blackjack-dealer/tools/lab-look.ts';
+import {dockorna} from '../editor/dockval.ts';
 
 const arg = (name: string, fallback?: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : fallback; };
 const flag = (name: string) => process.argv.includes(name);
@@ -80,10 +81,10 @@ const runda = spelaIn === 'runda' || flag('--runda');
 const rundliv = runda && flag('--liv') ? (/^[a-z,]+$/.test(arg('--liv') ?? '') ? arg('--liv')! : '1') : '';
 if (!spelaIn && !ut && !kor) throw Error('Säg vart bilderna ska: --ut <mapp>, eller --spela-in hela|given|runda|<första>-<sista>, eller --kor "<uttryck>".');
 if (runda && (arg('--giv') || arg('--vilan'))) throw Error('Rundan spelar dockans egna rörelser: den går inte ihop med --giv eller --vilan.');
-/** Dockan (editorns ?docka=): Danilo eller Frasse vid livebordet, Danilo utan --docka. */
+/** Dockan (editorns ?docka=): Danilo, Frasse eller en persons docka vid livebordet (editor/dockval.ts dockorna), Danilo utan --docka. */
 if (runda || arg('--vilan')) throw Error('Vid livebordet spelas en lyft rörelse i taget, från vilan till vilan: inte med --runda, --spela-in runda eller --vilan.');
-const docka = arg('--docka') ?? 'danilo';
-if (!['danilo', 'frasse'].includes(docka)) throw Error(`--docka tar danilo eller frasse, fick ${docka}.`);
+const docka = arg('--docka') ?? 'danilo', LIVEDOCKOR = dockorna();
+if (!LIVEDOCKOR.includes(docka)) throw Error(`--docka tar ${LIVEDOCKOR.join(', ')}, fick ${docka}.`);
 const sekvens = arg('--sekvens');
 if (sekvens !== undefined && (!/^[a-z0-9][a-z0-9,-]*$/.test(sekvens) || arg('--giv'))) throw Error('--sekvens tar en lista av lyfta rörelser (vantan-1,p2,p4 eller 1), vid livebordet och utan --giv.');
 if (naraFran && (naraFran.length !== 3 || !naraFran.every(Number.isFinite))) throw Error('--nara-fran tar tre tal: x,y,z i meter.');

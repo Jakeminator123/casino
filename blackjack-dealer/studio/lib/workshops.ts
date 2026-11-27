@@ -1,15 +1,14 @@
-// The workshops beside the studio that have servers of their own (tools/casino-routes.ts): dockans editor and
-// kortpaketets visare. The studio shows each inside its own frame, with the menu still there, and starts its server the
-// first time its page is opened; one that already answers is never started twice.
+// The workshops beside the studio that have servers of their own (tools/casino-routes.ts): dockans editor. The studio
+// shows each inside its own frame, with the menu still there, and starts its server the first time its page is opened;
+// one that already answers is never started twice.
 import { labUrl } from "./lab.ts";
 
-export type WorkshopId = "editorn" | "kortpaketet";
+export type WorkshopId = "editorn";
 export type WorkshopState = { id: WorkshopId; name: string; address: string; answers: boolean; ours: boolean; error: string | null };
 
 /** How each workshop is named and said in the studio. */
 export const WORKSHOP_WORDS: Record<WorkshopId, { title: string; starting: string; running: string }> = {
   editorn: { title: "Dockan", starting: "Startar dockans editor …", running: "Dockans editor" },
-  kortpaketet: { title: "Kortpaketet", starting: "Startar kortpaketets visare …", running: "Kortpaketets visare" },
 };
 
 async function answer(response: Response | null, what: string): Promise<WorkshopState> {

@@ -14,7 +14,7 @@ figure's film on a hired machine at RunPod (sam_runpod.ts hires it and sends thi
       leaving the shoe, the hand-over and the card coming to rest; listed the deals first, then the waits, then the
       denser ones), cut out of the film as mat.py reads it and saved as <ut-mapp>/t<milliseconds>.png, with a box
       around the dealer from MediaPipe's body and hands in that frame, and <ut-mapp>/lista.json with the camera.
-      <kamera> is `spelet` (the play lens our figure is filmed through) or a scen.json (the live table's camera).
+      <kamera> is `spelet` (the camera our figure is filmed through: the live table's) or a scen.json (a measured camera).
       --som <scen.json> redraws our figure's frames as that camera's picture (its size, focal length and middle), to
       try SAM at the live picture's scale; only for the trial.
   SAMPY live-bj/verktyg/sam_runpod.py las <ut-mapp> <lista.json> [--tradar 3] [--sort full]
@@ -351,15 +351,15 @@ def spara(answer, out):
 # ── The key frames, here ─────────────────────────────────────────────────────────
 
 def play_camera():
-    """The play lens as docka.py reads it out of blackjack-dealer/src/table-lens.ts."""
+    """The camera our figure is filmed through, as docka.py reads it: the live table's (data/scen.json)."""
     sys.path.insert(0, HERE)
-    from docka import play_lens
-    cam, _ = play_lens()
+    from docka import live_camera
+    cam, _ = live_camera()
     return cam
 
 
 def camera_of(name, size):
-    """focal length and middle of `spelet` (the play lens) or of a scen.json's camera, with the picture's size."""
+    """focal length and middle of `spelet` (our figure's camera, the live table's) or of a scen.json's camera, with the picture's size."""
     if name == 'spelet':
         c = play_camera()
         return {'focalPx': c.f, 'cx': c.cx, 'cy': c.cy, 'width': size[0], 'height': size[1]}

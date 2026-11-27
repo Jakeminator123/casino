@@ -80,19 +80,19 @@ Kortplatserna (`table-live.ts LIVE.cards`), kortets mitt. P är spelarnas platse
 
 Dockornas mått står i `blackjack-dealer/dealer3d/src/doll.ts`: Danilo och Frasse har kroppens mått och stil ur mätningen av de två dealrarna och vårt eget ansikte. De riktiga dealrarna är mätta i bilden, axlarna på ett plan antaget bakom kanten; armarnas längd går inte att mäta (dockans egna används).
 
-| Mått | Danilo | Frasse | Danilo (dealer A, ser i kameran) | Frasse (dealer B, ser på bordet) | Källa |
-| --- | --- | --- | --- | --- | --- |
-| överarm; underarm | 0,279 m; 0,272 m | 0,279 m; 0,272 m | — | — | `doll.ts upperArm, forearm` |
-| räckvidd innan bålen böjer sig | 0,536 m | 0,536 m | — | — | `doll.ts reach` |
-| handens längd, handled till långfingrets topp | 0,189 m | 0,189 m | — | — | `doll.ts hand.right[12]` |
-| axelbredd | 0,357 m | 0,348 m | 0,357 m | 0,348 m | `doll.ts dollFrame`; `table-live.ts LIVE.dealer.styles.*.shoulderWidth` |
-| axlarnas mitt över filten | 0,318 m | 0,31 m | 0,318 m | 0,31 m | `doll.ts place.shoulderHeight`; `table-live.ts LIVE.dealer.styles.*.shouldersMiddle` |
-| ögonen över filten | — (ben i modellen) | — (ben i modellen) | 0,509 m | 0,514 m | `table-live.ts LIVE.dealer.styles.*.eyesOverFelt` |
-| huvudets mitt över filten; radien | 0,55 m; 0,112 m | 0,535 m; 0,104 m | — | — | `doll.ts dollFrame.head, headRadius` |
-| axlarna bakom kanten | 0,2 m | 0,2 m | 0,2 m (antaget; skattat 0,07 m) | 0,2 m (antaget; skattat 0,16 m) | `doll.ts place.behindEdge`; `table-live.ts LIVE.dealer.behindEdge` |
-| höften under filten | 0,115 m | 0,123 m | — | — | `doll.ts hipBelowFelt` |
-| mest lutning framåt; mest vridning | 25°; 20° | 25°; 20° | — | — | `doll.ts mostLean, mostTwist` |
-| vänsterhandens grepp vid skon: höjd över filten | — | — | 4,8 cm | 3,7 cm | `table-live.ts LIVE.dealer.styles.*.leftAtShoe` |
+| Mått | Danilo | Frasse | Kenji | Danilo (dealer A, ser i kameran) | Frasse (dealer B, ser på bordet) | Källa |
+| --- | --- | --- | --- | --- | --- | --- |
+| överarm; underarm | 0,279 m; 0,272 m | 0,279 m; 0,272 m | 0,279 m; 0,272 m | — | — | `doll.ts upperArm, forearm` |
+| räckvidd innan bålen böjer sig | 0,536 m | 0,536 m | 0,536 m | — | — | `doll.ts reach` |
+| handens längd, handled till långfingrets topp | 0,189 m | 0,189 m | 0,189 m | — | — | `doll.ts hand.right[12]` |
+| axelbredd | 0,357 m | 0,348 m | 0,357 m | 0,357 m | 0,348 m | `doll.ts dollFrame`; `table-live.ts LIVE.dealer.styles.*.shoulderWidth` |
+| axlarnas mitt över filten | 0,318 m | 0,31 m | 0,318 m | 0,318 m | 0,31 m | `doll.ts place.shoulderHeight`; `table-live.ts LIVE.dealer.styles.*.shouldersMiddle` |
+| ögonen över filten | — (ben i modellen) | — (ben i modellen) | — (ben i modellen) | 0,509 m | 0,514 m | `table-live.ts LIVE.dealer.styles.*.eyesOverFelt` |
+| huvudets mitt över filten; radien | 0,55 m; 0,112 m | 0,535 m; 0,104 m | 0,556 m; 0,117 m | — | — | `doll.ts dollFrame.head, headRadius` |
+| axlarna bakom kanten | 0,2 m | 0,2 m | 0,2 m | 0,2 m (antaget; skattat 0,07 m) | 0,2 m (antaget; skattat 0,16 m) | `doll.ts place.behindEdge`; `table-live.ts LIVE.dealer.behindEdge` |
+| höften under filten | 0,115 m | 0,123 m | 0,115 m | — | — | `doll.ts hipBelowFelt` |
+| mest lutning framåt; mest vridning | 25°; 20° | 25°; 20° | 25°; 20° | — | — | `doll.ts mostLean, mostTwist` |
+| vänsterhandens grepp vid skon: höjd över filten | — | — | — | 4,8 cm | 3,7 cm | `table-live.ts LIVE.dealer.styles.*.leftAtShoe` |
 
 ## 5. Rörelserna
 
@@ -100,20 +100,33 @@ Dockornas rörelser, lyfta ur livebordets film och lagda på dockans kropp (`bla
 
 | Rörelsen | Till | Hela | Greppet vid skon | Kortet ut | Handen hem |
 | --- | --- | --- | --- | --- | --- |
+| lyft-danilo-bytet-p4 | P4.C1 | 37 rutor = 1,23 s | 0 s | 0,47 s | 0,73 s |
 | lyft-danilo-hem | — | 44 rutor = 1,47 s | — | — | — |
 | lyft-danilo-p2 | P2.C2 | 106 rutor = 3,53 s | 1,13 s | 0,87 s | 1,5 s |
 | lyft-danilo-p4 | P4.C1 | 66 rutor = 2,2 s | 0,73 s | 0,7 s | 0,73 s |
 | lyft-danilo-p7 | P7.C1 | 76 rutor = 2,53 s | 0,8 s | 0,9 s | 0,8 s |
+| lyft-danilo-till-bytet | — | 30 rutor = 1 s | 0,73 s | — | — |
 | lyft-danilo-till-skon | — | 26 rutor = 0,87 s | — | — | — |
 | lyft-danilo-vantan-1 | — | 140 rutor = 4,67 s | — | — | — |
 | lyft-danilo-vantan-2 | — | 123 rutor = 4,1 s | — | — | — |
-| lyft-frasse-hem | — | 46 rutor = 1,53 s | — | — | — |
+| lyft-frasse-bytet-p4 | P4.C1 | 63 rutor = 2,1 s | 0 s | 1,4 s | 0,67 s |
+| lyft-frasse-hem | — | 45 rutor = 1,5 s | — | — | — |
 | lyft-frasse-p1 | P1.C2 | 74 rutor = 2,47 s | 0,37 s | 0,73 s | 1,33 s |
 | lyft-frasse-p4 | P4.C1 | 83 rutor = 2,77 s | 0,5 s | 1,57 s | 0,67 s |
 | lyft-frasse-p7 | P7.C1 | 52 rutor = 1,73 s | 0,4 s | 0,73 s | 0,57 s |
+| lyft-frasse-till-bytet | — | 21 rutor = 0,7 s | 0,5 s | — | — |
 | lyft-frasse-till-skon | — | 26 rutor = 0,87 s | — | — | — |
 | lyft-frasse-vantan-1 | — | 177 rutor = 5,9 s | — | — | — |
 | lyft-frasse-vantan-2 | — | 177 rutor = 5,9 s | — | — | — |
+| lyft-kenji-bytet-p4 | P4.C1 | 37 rutor = 1,23 s | 0 s | 0,47 s | 0,73 s |
+| lyft-kenji-hem | — | 44 rutor = 1,47 s | — | — | — |
+| lyft-kenji-p2 | P2.C2 | 106 rutor = 3,53 s | 1,13 s | 0,87 s | 1,5 s |
+| lyft-kenji-p4 | P4.C1 | 66 rutor = 2,2 s | 0,73 s | 0,7 s | 0,73 s |
+| lyft-kenji-p7 | P7.C1 | 76 rutor = 2,53 s | 0,8 s | 0,9 s | 0,8 s |
+| lyft-kenji-till-bytet | — | 30 rutor = 1 s | 0,73 s | — | — |
+| lyft-kenji-till-skon | — | 26 rutor = 0,87 s | — | — | — |
+| lyft-kenji-vantan-1 | — | 140 rutor = 4,67 s | — | — | — |
+| lyft-kenji-vantan-2 | — | 123 rutor = 4,1 s | — | — | — |
 
 De riktiga dealrarnas takt, medianer (inom parentes det minsta och största där stil-filen har räknat det på mer än en antagen höjd för handen):
 
@@ -148,7 +161,7 @@ Var en hand är när ett klipp börjar och slutar. Bredvid: hur många gånger o
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | H1 | höger | Vila framför | högern vilar på filten framför kroppen, vid eller bredvid de egna korten | A1, A1V, A2.3 | finns | 36 stopp, 114 s | 28 stopp, 144 s |
 | H1S | höger | Vila åt sidan | högern utsträckt åt sidan på filten, mot lådan för använda kort: så vilar båda dealrarna medan insatserna läggs | A1S | saknas | 5 stopp, 40 s | 11 stopp, 74 s |
-| H2M | höger | Vid mötet | högern framme vid kortet i vänsterns hand, mitt framför dealern och en bit åt skon | A2M | förslag | 3 stopp, 13 s | 3 stopp, 1 s |
+| H2M | höger | Vid mötet | högern framme vid kortet i vänsterns hand, mitt framför dealern och en bit åt skon (Danilos och Frasses: högern i handbytets ruta i given till plats 4, pekfingret på kortets övre kant och tummen mot dess sida) | A2M | finns | 3 stopp, 13 s | 3 stopp, 1 s |
 | H3Pn | höger | Vid kortet på plats n | högern kvar vid kortet den just lagt på plats n (1–7) | A3PnCm | finns | 12 stopp, 12 s | 17 stopp, 5 s |
 | H3D | höger | Vid dealerns egna kort | högern vid kortet den just lagt på dealerns egen plats, eller vilar där medan spelarna väljer | A3DCm | saknas | 19 stopp, 26 s | 30 stopp, 31 s |
 | H4 | höger | Vid lådan | högern lyft vid lådan för använda kort, med korten | — | saknas | 3 stopp, 2 s | 2 stopp, 1 s |
@@ -166,7 +179,7 @@ Var en hand är när ett klipp börjar och slutar. Bredvid: hur många gånger o
 | A1S | Vila under insatserna | H1S + V1 | högern utsträckt mot lådan, vänstern framför kroppen (Frasse: mot skon), blicken mot kameran | förslag | filmens vanligaste stillhet mellan rundorna; svepet över bordet börjar här när given börjar |
 | A1V | Väntan medan spelarna väljer | H1 + V1S | högern framför kroppen, vänstern mot skon | förslag | filmens vanligaste stillhet mitt i rundan, hos båda dealrarna |
 | A2.3 | Redo vid skon | H1 + V2.3 | vänstern vid skons mynning, högern redo framför dealern, blicken på skon | finns | Danilos och Frasses är tagna ur filmen: kroppen, vänstern, huvudet och blicken där dealern har dem när vänstern är vid skon i en giv till plats 4 (dealern ser där inte på skon: huvudet böjt mot bordet, vridet några grader mot skon). Givarna börjar och slutar här |
-| A2M | Handbytet | H2M + V1S | båda händerna vid kortet mitt framför dealern, vänstern håller det och högern tar det | förslag | skarven när korten ges i följd: i filmen nästan stannar kortets hand här (6–8 % av toppfarten), och högern går oftast direkt från ett kort till nästa i stället för hem (av de kort hos en spelare som följs av ett nytt kort: Frasse 54 av 56, Danilo 18 av 26). Då behövs två klipp per kort (HEM-TILL-BYTET och GIV-FRAN-BYTET) i stället för ett för varje par av platser |
+| A2M | Handbytet | H2M + V1S | båda händerna vid kortet mitt framför dealern, vänstern håller det och högern tar det | finns | Danilos och Frasses är tagna ur filmen: rutan där kortet byter hand i given till plats 4, oförändrad (kortet på kant mellan händerna, vänstern i dess ena ände och högerns pekfinger på dess övre kant; kroppen, huvudet och blicken som dealerns). Skon till bytet slutar och bytet till platsen börjar här, samma ställning vart kortet än ska (Jakob 2026-11-27: en universell överlämning). Vänstern är här på väg tillbaka mot skon, inte i vila. Skarven när korten ges i följd: i filmen nästan stannar kortets hand här (6–8 % av toppfarten), och högern går oftast direkt från ett kort till nästa i stället för hem (av de kort hos en spelare som följs av ett nytt kort: Frasse 54 av 56, Danilo 18 av 26). Då behövs två klipp per kort (HEM-TILL-BYTET och GIV-FRAN-BYTET) i stället för ett för varje par av platser |
 | A3PnCm | Kortet har landat hos en spelare | H3Pn + V2.3 | plats n (1–7), kort m; handen ligger kvar vid kortet | finns | Danilo och Frasse har ett lyft kort 2 till var sin plats (GIV-KORT-2). I filmen är vänstern oftast redan på väg med nästa kort i detta ögonblick |
 | A3DCm | Kortet har landat hos dealern | H3D + V2.3 | dealerns egna kortplats, kort m | saknas | finns bara för den äldre dockan |
 
@@ -217,7 +230,8 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens lyft i `blackjac
 | Första kortet till en spelare (GIV-KORT-1) | A2.3 → A3PnC1 | vänstern drar, högern lägger (plats 6 och 7: vänstern ensam) | finns | `lyft-danilo-p4`, `lyft-danilo-p7`, `lyft-frasse-p4`, `lyft-frasse-p7` | ja | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | lyft i samma fil som handen hem; rutan där kortet ligger delar dem. I filmen ges också plats 6 och 7 oftast med handbyte |
 | Andra kortet och fler till en spelare (GIV-KORT-2) | A2.3 → A3PnCm | som första kortet | delvis | `lyft-danilo-p2`, `lyft-frasse-p1` | ja | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | Jakobs önskan: upp till sju kort per plats. Danilo har kort 2 till dagens plats 2 och Frasse kort 2 till dagens plats 1, lyfta ur filmen |
 | Kort till dealern själv (GIV-EGET) | A2.3 → A3DCm | vänstern drar, högern lägger på dealerns plats; ibland vänstern ensam | saknas | — | — (inga lyft att leta efter) | höger 14 st, 0,77 s (0,38–0,86); vänster 4 st, 0,67 s (0,61–0,72) | höger 21 st, 0,73 s (0,43–1,47); vänster 4 st, 0,53 s (0,5–0,57) | `GIV-EGET` | i filmen läggs dealerns kort oftast av högern efter ett handbyte, som en spelares; vänstern ensam är det ovanliga |
-| Kortet från handbytet till platsen (GIV-FRAN-BYTET) | A2M → A3PnCm | högern för kortet till platsen; vänstern går tillbaka till skon och tar nästa | förslag | — | — (inga lyft att leta efter) | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | andra halvan av en giv i följd |
+| Kortet ur skon till handbytet (SKON-TILL-BYTET) | A2.3 → A2M | vänstern drar kortet ur skon och för det på kant till mötet; högern går fram och tar det | finns | `lyft-danilo-till-bytet`, `lyft-frasse-till-bytet` | ja | vänster 65 st, 0,67 s (0,35–0,97) | vänster 99 st, 0,83 s (0,4–0,97) | `DRA` | första halvan av en giv, ett klipp för alla platser: givens rutor fram till bytet (lyft-<docka>-p4), oförändrade |
+| Kortet från handbytet till platsen, och handen hem (GIV-FRAN-BYTET) | A2M → A2.3 | högern för kortet till platsen och lägger det, och går hem; vänstern går tillbaka till skon | delvis | `lyft-danilo-bytet-p4`, `lyft-frasse-bytet-p4` | ja | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | andra halvan av en giv, en per plats: givens rutor från bytet (lyft-<docka>-p4), oförändrade, så att skon till bytet och detta efter varandra är hela given ruta för ruta. Finns till plats 4; de andra platserna saknas (de behöver sitt eget lyft, lagt från samma ankare) |
 
 #### Handen hem (TILLBAKA): hemankare A3PnCm, efter att kortet har landat
 
@@ -263,10 +277,6 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens lyft i `blackjac
 | --- | --- | --- | --- | --- |
 | SKON | Sköta skon | båda händerna vid skon: fylla på eller byta kortlek | höger 10 st, 1,02 s (0,26–4,95); vänster 16 st, 0,82 s (0,18–2,18) | — (inte i filmen) |
 | ANNAT | Annat | en rörelse som inte passar någon av rörelserna ovan: handen upp till ansiktet eller kroppen, en hand som går ut från vilan och tillbaka utan att göra något med korten, skärkortet | höger 10 st, 0,9 s (0,52–4,18); vänster 12 st, 0,45 s (0,24–0,79) | höger 5 st, 1,23 s (0,79–5,09); vänster 5 st, 0,5 s (0,38–0,71) |
-
-Kategorier i indelningen som katalogen inte har en rörelse för:
-
-- `DRA`: Danilo (dealer A) vänster 65 st, 0,67 s (0,35–0,97); Frasse (dealer B) vänster 99 st, 0,83 s (0,4–0,97)
 
 ## 7. Det som inte har något mått i kod än
 

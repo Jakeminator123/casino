@@ -8,10 +8,11 @@ import {LIVE, LIVE_CAMERA, liveFrame} from '../../blackjack-dealer/src/table-liv
 import {STANDARD} from '../../blackjack-dealer/src/standard.ts';
 import {RUMMETS_Z, loadTable, roomLight, seatStool} from './rum.ts';
 import {cross, type Frame, type V3} from './rorelse.ts';
+import {dockorna} from './dockval.ts';
 
-/** Dockorna vid livebordet (dealer3d/src/doll.ts LIVE_DOLLS). */
-export type Livedocka = 'danilo' | 'frasse';
-export const LIVEDOCKOR = STANDARD.dockor as readonly Livedocka[];
+/** Dockorna vid livebordet (dealer3d/src/doll.ts LIVE_DOLLS): Danilo, Frasse och en persons docka ur sina bilder (dockval.ts dockorna). */
+export type Livedocka = string;
+export const LIVEDOCKOR: readonly Livedocka[] = dockorna();
 export const arLivedocka = (namn: string | null | undefined): namn is Livedocka => (LIVEDOCKOR as readonly string[]).includes(namn ?? '');
 /** Filmens bild (livebordets egen, 1728 x 972): inspelningen görs i den. */
 export const FILMBILD = LIVE_CAMERA.film;
@@ -124,8 +125,8 @@ export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: F
   // Kortet som delas: ett av bordets egna kort (samma utseende som Blenders); tills bordet har kommit ett enkelt kort.
   const card = new T.Group(); card.matrixAutoUpdate = false; scene.add(card);
 
-  // Dockan: Danilo eller Frasse.
-  laddar(docka === 'danilo' ? 'Danilo' : 'Frasse');
+  // Dockan: Danilo, Frasse eller en persons docka.
+  laddar(docka.charAt(0).toUpperCase() + docka.slice(1));
   // En modell på prov (?modell=<namn> och ?bord=<namn> i adressen: standarddocka_<namn>.glb och standardbord_<namn>.glb
   // ur avatar-auto-pipeline/assets), för den som bygger om dockan eller bordet och vill se det innan det byts in.
   const prov = (nyckel: string) => { const n = new URLSearchParams(location.search).get(nyckel); return n && /^[a-z0-9_]+$/.test(n) ? n : null; };
@@ -135,7 +136,7 @@ export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: F
   // rörelsens dockas (Danilos eller Frasses), som rörelsens handleder är ritade för.
   const egen = !prov('modell') && rorelsensDocka === docka ? dollNamed(docka) : null;
   const lyftDocka = !egen && arLivedocka(rorelsensDocka) ? dollNamed(rorelsensDocka) : null, arm = egen ?? lyftDocka;
-  const figure = await loadFigure(prov('modell') ? `/avatar-auto-pipeline/assets/docka/standarddocka_${prov('modell')}.glb` : MODELLER[docka], {twistBones: prov('vridben') !== '0', ...(arm ? {arm: arm.upperArm + arm.forearm} : {})}); scene.add(figure.root);
+  const figure = await loadFigure(prov('modell') ? `/avatar-auto-pipeline/assets/docka/standarddocka_${prov('modell')}.glb` : (MODELLER as Record<string, string>)[docka] ?? `/avatar-auto-pipeline/assets/docka/standarddocka_${docka}.glb`, {twistBones: prov('vridben') !== '0', ...(arm ? {arm: arm.upperArm + arm.forearm} : {})}); scene.add(figure.root);
   const bone = (name: string) => { const b = figure.root.getObjectByName(name); if (!b) throw Error(`Dockan saknar leden ${name}.`); return b.getWorldPosition(new T.Vector3()); };
   const v = (p: number[]) => new T.Vector3(p[0], p[1], p[2]);
   /** En ruta på dockan: bålen ur axlarna och höften, armarna ur lederna, händerna ur sina 21 punkter, huvudet mot blicken. */

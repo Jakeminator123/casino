@@ -8,7 +8,6 @@
 // and stopped with it (stopWorkshops). One that already answers (started by its own start file, or by another chat) is
 // left alone and never started twice: its server answers /vem with its own name. Nothing here costs money or writes.
 import {spawn, type ChildProcess} from 'node:child_process';
-import {existsSync} from 'node:fs';
 import {readdir, readFile, stat} from 'node:fs/promises';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import path from 'node:path';
@@ -24,14 +23,10 @@ export type Workshop = {
   dir: string; script: string; port: number; page: string;
   /** What the server answers on /vem: how a running server is known to be this one. */
   who: string;
-  /** A file or folder (in dir) the server needs, and the script (in dir) that makes it when it is missing. */
-  needs?: {path: string; make: string; missing: string};
 };
 
 export const WORKSHOPS: readonly Workshop[] = [
   {id: 'editorn', name: 'Dockans editor', dir: 'standarddocka', script: 'editor/server.ts', port: 4320, page: '/standarddocka/editor/', who: 'standarddockans editor'},
-  {id: 'kortpaketet', name: 'Kortpaketets visare', dir: 'kortspelspaket', script: 'visa/server.ts', port: 4330, page: '/kortspelspaket/visa/', who: 'kortspelspaketets visare',
-    needs: {path: 'paket/unity/Assets', make: 'packa-upp.ts', missing: 'Paketet är inte uppackat på den här datorn, och de köpta filerna låg inte i mappen Hämtade filer.'}},
 ];
 
 const started = new Map<string, ChildProcess>();
@@ -50,22 +45,9 @@ async function state(w: Workshop, error: string | null = null): Promise<Workshop
   return {id: w.id, name: w.name, address: address(w), answers: who === w.who, ours: !!child && child.exitCode === null, error: error ?? busy};
 }
 
-/** Runs node on a script in the workshop's folder and waits for it to end: its own error text, or null when it went well. */
-function runOnce(w: Workshop, script: string): Promise<string | null> {
-  return new Promise(done => {
-    const child = spawn(process.execPath, ['--disable-warning=ExperimentalWarning', script], {cwd: path.join(CASINO, w.dir), stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true});
-    let err = ''; child.stderr.on('data', (b: Buffer) => { err += b.toString('utf8'); });
-    child.on('error', e => done(e.message)); child.on('exit', code => done(code === 0 ? null : err.trim().split('\n').pop() || `slutade med kod ${code}`));
-  });
-}
-
 /** Starts the workshop's server unless it answers already, and waits up to 20 seconds for it to answer. */
 async function ensure(w: Workshop): Promise<WorkshopState> {
   if (await whoAnswers(w)) return state(w); // it answers already: this workshop, or something else on its port (state says which)
-  if (w.needs && !existsSync(path.join(CASINO, w.dir, w.needs.path))) {
-    const failed = await runOnce(w, w.needs.make);
-    if (failed || !existsSync(path.join(CASINO, w.dir, w.needs.path))) return state(w, w.needs.missing);
-  }
   const running = started.get(w.id);
   if (!running || running.exitCode !== null) {
     // A child of this server, without a window: it stops with the studio (stopWorkshops) and does not keep it running.

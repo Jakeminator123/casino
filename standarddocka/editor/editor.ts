@@ -15,7 +15,7 @@ import {UTTRYCK, UTTRYCKEN, lagUttryck, medUttryck, uttryckVid, uttrycksserie, t
 import {FART, GIVAR, LEDER, LEDNAMN, LIVSDELAR, RUNDANS_LIV, RUNDANS_PLATSER, STILLHET, VARAR, blickenFoljer, ensam, grundFor, sekvens, klipplista, lagretsFel, langd, markeText, vilanFor, grundensBrott, rundaAv, rundlivet, rutor, sattIhop, somDenBlev, stallning, stallningOchStopp, takt, taktFor, vikt, type Andring, type Ansikte, type Foljd, type Frame, type Led, type Liv, type Livsdel, type Motion, type Q, type Sparad, type Standarddocka, type V3} from './rorelse.ts';
 import {byggScen, kameraVy, kameransPlats, platskamera, somKamera, type Docka, type Kamera, type Scen, type Utseende} from './scen.ts';
 import {STANDARD} from '../../blackjack-dealer/src/standard.ts';
-import {dockord, dockval, helaSekvensen, lyftPlats, rorelsensOrd} from './dockval.ts';
+import {dockord, dockorna, dockval, helaSekvensen, lyftPlats, rorelsensOrd} from './dockval.ts';
 import {ARMAR, lyftArmar, matArmar, matKropp} from './armar.ts';
 import type {Granser, Stopp} from './kropp.ts';
 
@@ -575,10 +575,10 @@ document.querySelectorAll<HTMLButtonElement>('#malplatser button[data-plats]').f
 // Dockorna: livebordets (src/standard.ts dockor). Det han tittar på följer med till den andra dockan när den har det (hela sekvensen, väntan
 // med samma nummer), annars platsen eller den närmaste den har en lyft giv till.
 { const ruta = $('#dockor'), visas = !SEKVENS && PROVGIV ? /^lyft-[a-z0-9]+-vantan-(\d+)$/.exec(PROVGIV)?.[1] : undefined;
-  ruta.title = 'Dockorna efter de två riktiga dealrarna i filmen av livebordet. Deras rörelser är lyfta ur filmen och spelas som de är; här sparas inget.';
+  ruta.title = 'Dockorna efter de två riktiga dealrarna i filmen av livebordet, och en persons docka byggd på en av dem. Deras rörelser är lyfta ur filmen och spelas som de är; här sparas inget.';
   const tillDockan = (docka: string): Record<string, string> => query.get('sekvens') === '1' && SEKVENS ? {sekvens: '1'}
     : visas && FINNS.has(`lyft-${docka}-vantan-${visas}`) ? {giv: `lyft-${docka}-vantan-${visas}`} : {plats: String(lyftPlats(FINNS, docka, PLATS, false)?.plats ?? PLATS)};
-  for (const docka of STANDARD.dockor) { const b = document.createElement('button'); b.className = 'bred'; b.dataset.docka = docka; b.textContent = dockord(docka).namn; b.classList.toggle('vald', docka === DOCKA);
+  for (const docka of dockorna()) { const b = document.createElement('button'); b.className = 'bred'; b.dataset.docka = docka; b.textContent = dockord(docka).namn; b.classList.toggle('vald', docka === DOCKA);
     b.onclick = () => { if (docka !== DOCKA) location.search = medVal({docka, ...tillDockan(docka)}); }; ruta.append(b); } }
 // Rubriken och hjälptexten efter dockan som visas (namnet, och hon eller han), raden om standarden som gäller (inne i studion:
 // att den väljs i menyn), och raderna om ord i adressen som inte passade.

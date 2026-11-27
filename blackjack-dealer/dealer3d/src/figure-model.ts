@@ -149,7 +149,7 @@ export async function loadFigure(url: string, {twistBones = true, arm = DANILO.u
   const fingers = SIDES.map(s => { const all = FINGERS.map(([name, start]) => ({start, bones: [1, 2, 3].map(n => gltf.scene.getObjectByName(`${s}Hand${name}${n}`))}));
     return all.every(f => f.bones.every(Boolean)) ? all.map(f => ({start: f.start, bones: f.bones as T.Object3D[]})) : null; });
   // The last bone has no next bone: it points toward the fingertip measured on the skin (fingertopp.ts), as the doll's hand
-  // has its tip there (dealer3d/tools/docka-standard.ts). (Until 2026-11-26 it pointed as the bone before it; the standard
+  // has its tip there (dealer3d/tools/docka-matt.ts). (Until 2026-11-26 it pointed as the bone before it; the standard
   // doll's thumb tip is bent 19 degrees from that, so the skin's tip missed the hand point's by 7 mm, the forefinger's by 3.)
   const tipOf = (b2: T.Object3D, b3: T.Object3D): T.Vector3 | null => { const which = mesh.skeleton.bones.indexOf(b3 as T.Bone), idx = mesh.geometry.attributes.skinIndex, wt = mesh.geometry.attributes.skinWeight, moln: Vec3[] = [], q = new T.Vector3();
     for (let i = 0; i < idx.count; i++) for (let k = 0; k < 4; k++) if (idx.getComponent(i, k) === which && wt.getComponent(i, k) >= 0.5) { mesh.getVertexPosition(i, q).applyMatrix4(mesh.matrixWorld); moln.push([q.x, q.y, q.z]); }

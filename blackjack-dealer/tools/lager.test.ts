@@ -171,13 +171,13 @@ test('an order whose film has come is not under way; his word counts one way; a 
     // Originals in the slask bearing a proof's name wait only while he has not said his word on that proof.
     t.put(`${bj}/assets/proofs/domt/a.png`, 'a still'); t.put('slask/blackjack-dealer/granska/domt/a.mp4', 'an original');
     t.put('slask/blackjack-dealer/granska/utan/b.mp4', 'another'); t.put(`${bj}/assets/proofs/utan/b.png`, 'a still');
-    t.put('slask/kortspelspaket/granska/inget-prov/c.mp4', 'no proof shows it');
+    t.put('slask/standarddocka/granska/inget-prov/c.mp4', 'no proof shows it');
     t.put(`${bj}/data/decisions.json`, JSON.stringify({decisions: [{id: 'k', proof: 'domt', answer: {choice: 'bra'}}]}));
     const k = await karta(t.root), unit = (id: string) => k.platser.flatMap(p => p.enheter).find(e => e.id === id);
     assert.equal(unit('slask/blackjack-dealer/granska/domt')?.dom, 'domt', 'an answered card is his word');
     assert.equal(unit(`${bj}/assets/proofs/domt`)?.dom, 'domt');
     assert.equal(unit('slask/blackjack-dealer/granska/utan')?.dom, 'utan');
-    assert.equal(unit('slask/kortspelspaket/granska/inget-prov')?.utanProv, true);
+    assert.equal(unit('slask/standarddocka/granska/inget-prov')?.utanProv, true);
     assert.equal(k.totalt.vantar, 3, 'what waits: the proof utan, its originals and the folder no proof shows');
     assert.deepEqual(namnFor(`${bj}/.runtime/papperskorg/2026-11-26`), [], 'a date names nothing');
     t.put(`${bj}/data/manifest.json`, JSON.stringify({files: [{source: 'runs/a/scene-assets/x.png', path: 'assets/finns-inte.png'}]}));

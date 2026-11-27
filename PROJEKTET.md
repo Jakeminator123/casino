@@ -72,7 +72,6 @@ av Tomasz görs för Tomasz.
 | `standarddocka/` | **Verkstaden för rörelser.** Editorn där en rörelse spelas upp, justeras och filmas, verktygen som mäter den, och Jakobs domar om hur dockan, bordet och rörelserna ska vara (`DOMAR.md`). Rörelseschemat står i `rorelsekatalog.json`. |
 | `avatar-auto-pipeline/` | **Figurerna och föremålen.** Skripten som bygger dockornas kroppar, bordet, skon och stolen efter måtten, och vägen från bilder av en person till en 3D-figur på vårt skelett. Vilka vägar som finns och vad som går ihop står i `vagar.json`. |
 | `live-bj/` | **Facit från verkligheten.** Mätning av två riktiga dealrar vid ett livebord ur en film: takt, hållning, blick, hur bordet och kameran är ställda, och rörelser lyfta ruta för ruta. Filmen och bilderna stannar på datorn; bara talen går vidare. Härifrån kommer de två nya dockorna Danilo och Frasse och det klonade bordet. |
-| `kortspelspaket/` | **Vid sidan.** Ett köpt paket med inspelade rörelser. Det prövades som grund och är inte det. |
 | `slask/`, `inbox/` | Tillfälligt arbete, och lappar mellan chattar som arbetar samtidigt. |
 | `MATT.md`, `matt.ts` | Alla mått på ett ställe, utskrivna ur koden bredvid det som är mätt på livebordet. |
 
@@ -113,7 +112,7 @@ ihop eller övertas av andra?"). Den säger riktningen; det som är gjort står 
 | Tre sätt att radera (hans klick, gallringen med papperskorg, slaskens städning) | Ett verktyg, för hans klick och en agents kommando, som säger följden först. |
 | Flera register som pekar på filmer och bilder | Ett filmregister: vilken rörelse, vilken kamera, vilken person, hans dom. |
 | Kartan som ett handskrivet träd per dealer | Schemat (ankare, rörelser, stadier) är kartan; filmerna hängs på schemats rörelser. |
-| Dockan visad av tre program (editorn, Filmverkstadens inspelning, kortpaketets visare) | Editorn visar dockan överallt. |
+| Dockan visad av två program (editorn och Filmverkstadens inspelning) | Editorn visar dockan överallt. |
 | Studion förklarar sig i text på varje sida | Studion visar saken: bild, film, docka, karta. Orden står i Ordlistan. |
 
 **Verkstäderna.** Dockans värld ligger i dag i tre projekt: kroppen byggs i `avatar-auto-pipeline/scen/`, rörelserna
@@ -176,7 +175,7 @@ en verkstad i taget när inget annat arbete pågår i den.
   helt enkelt inte medan de gav kort.
 - **En färdig figur som formas om till en annan dockas skelett får sträckta, trasiga händer** (Jakob: "skitdåligt").
   Skelettet stämde på 0 mm; ögat fällde den ändå.
-- **Ett utseende målat på en annan mans docka blir inte personen** (`meshy-provet-20261127`, domarens dom, inte
+- **Ett utseende målat på en annan mans docka blir inte personen** (provet `meshy-provet-20261127`, nu i arkivet; domarens dom, inte
   Jakobs: Inte bra). Meshy målade Tomasz hud, hår och skjorta på Danilos docka med skelett, fingrar och ansiktsformer
   orörda, men formen är kvar: ett smalt, yngre ansikte med hans färger, och en skjorta som sitter som hud. Likheten
   sitter i formen: först huvudets form, sedan kroppens mått, sist kläderna som egna delar. En kropp i ett stycke ur
@@ -187,7 +186,7 @@ en verkstad i taget när inget annat arbete pågår i den.
 - **Av 3D-figurerna är Meshy-vägen bäst på likhet,** men händerna är dess svaga del: en hand som sätts på i
   efterhand får handledens led inne i ärmen, och rättningen ovanpå det dömde Jakob Inte bra ("om vi har leder innan i
   dockan, varför lägga på ett lager till"). En kropp i ett stycke med egna händer böjs rätt vid handleden men har
-  slätare händer (`hander-hunyuan-mot-meshy-20261127`). Ett ansikte som rör sig prövas.
+  slätare händer (provet `hander-hunyuan-mot-meshy-20261127`, nu i arkivet). Ett ansikte som rör sig prövas.
 
 ## Det som är öppet och avgörs av prov
 

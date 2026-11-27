@@ -57,9 +57,8 @@ spelet inga filmer.
 
 [Studion](http://127.0.0.1:4319/studio/) är allt i webbläsaren och ingången till hela casino-repot (Jakob 2026-11-27): den
 öppnar på Start, med kedjan från bild till film och en ruta per verkstad. Verkstäder med en egen server (dockans editor
-i `../standarddocka/`, kortpaketets visare i `../kortspelspaket/`) visas inne i studion med menyn kvar
-(`studio/components/workshop/`); servern startar deras servrar som sina egna barn första gången vyn öppnas, och
-stoppar dem när den själv stoppas. En som redan svarar på sin port (`/vem`) startas inte igen. Den har två lager:
+i `../standarddocka/`) visas inne i studion med menyn kvar (`studio/components/workshop/`); servern startar deras
+servrar som sina egna barn första gången vyn öppnas, och stoppar dem när den själv stoppas. En som redan svarar på sin port (`/vem`) startas inte igen. Den har två lager:
 
 - **Ramen** (menyn, rubrikraden, panelerna, knapparna) är Next.js, React och Tailwind. Färger och mått står i
   `studio/app/globals.css`, menyn i `studio/components/shell/Rail.tsx` och byggstenarna i `studio/components/ui/`
@@ -81,14 +80,14 @@ egen form (bildens mått, annars orderns uppsättnings, `shapeOf` i `studio/lib/
 vid förra standardens bord. Vyerna:
 
 - **Start** (`/studio/`, `studio/components/start/`, innehållet i `studio/lib/start.ts`): det som väntar på hans dom,
-  kedjan med verkstaden för varje steg, en ruta per verkstad och det som ligger vid sidan (Kortpaketet, Ljud).
+  kedjan med verkstaden för varje steg, en ruta per verkstad och det som ligger vid sidan (Ljud).
   En gammal Scen-adress (`/?runda=…`) leder fortfarande till Filmverkstadens Scen.
 - **Avatarer** (`/studio/avatarer/`, `studio/components/avatars/`): en guide över `../avatar-auto-pipeline/vagar.json`
   (`studio/lib/avatars.ts`, genom `GET /api/vagar`). Vägarna med Version 1 för sig och stegen med kostnad och vad som
   finns i `output/<person>/`; Delarna med alternativen och reglerna; Föremål och material med de färdiga modellerna i
   3D (`studio/components/avatars/ModelView.tsx`). Startar ingen körning.
 - **Dockan** (`/studio/dockan/`): standarddockans editor i en ram; ord i adressen går vidare till editorn
-  (`/studio/dockan/?uppsattning=live`). **Kortpaketet** (`/studio/kortpaketet/`) på samma sätt.
+  (`/studio/dockan/?uppsattning=live`).
 - **Mått** (`/studio/matt/`): `../MATT.md`:s text, läst ur koden varje gång (`studio/lib/measures.ts`), utan filnamn och
   källkolumner; delen Vårt bord och livebordet (`?del=livebordet`, `studio/lib/setups.ts`) räknar standarden och klonen
   ur `src/table-lens.ts` och `src/table-live.ts` i webbläsaren: uppifrån, genom var sin kamera, i tal, och de lyfta

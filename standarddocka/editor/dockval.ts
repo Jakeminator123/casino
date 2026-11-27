@@ -1,7 +1,12 @@
 // Vilken docka editorn visar, ur adressens ord (?docka=), och vad sidan säger när ordet inte passar (ett ord som inte passar
-// ger aldrig ett tekniskt fel). Dockorna är livebordets, Danilo och Frasse (blackjack-dealer/src/standard.ts dockor). Ren kod:
-// läser bara blackjack-dealer/src/standard.ts, så att reglerna prövas utan webbläsare (blackjack-dealer/tools/editor-dockval.test.ts).
+// ger aldrig ett tekniskt fel). Dockorna är livebordets, Danilo och Frasse (blackjack-dealer/src/standard.ts dockor), och en
+// persons docka ur sina bilder (blackjack-dealer/dealer3d/src/persondockor.ts). Ren kod: läser bara de två, så att reglerna
+// prövas utan webbläsare (blackjack-dealer/tools/editor-dockval.test.ts).
 import {STANDARD} from '../../blackjack-dealer/src/standard.ts';
+import {PERSONDOCKOR} from '../../blackjack-dealer/dealer3d/src/persondockor.ts';
+
+/** Dockorna vid livebordet: Danilo och Frasse (standard.ts dockor), och en persons docka ur sina bilder (dealer3d/src/persondockor.ts, avatar-auto-pipeline steg 15). */
+export const dockorna = (): readonly string[] => [...STANDARD.dockor, ...Object.keys(PERSONDOCKOR)];
 
 /** En docka i hans ord: namnet, och han (han, honom, hans). */
 export type Dockord = {namn: string; han: string; honom: string; hans: string};
@@ -14,7 +19,7 @@ const citat = (ord: string) => `”${ord.replace(/\s+/g, ' ').slice(0, 40)}”`;
 export type Dockval = {docka: string; rad: string};
 /** Dockan: ?docka= när den sitter vid livebordet, annars den förvalda (den första i listan, Danilo), med en rad på vanlig svenska om vad som visas i stället ('' när allt passar). */
 export function dockval(dockaSkriven: string | null | undefined): Dockval {
-  const dockaOrd = dockaSkriven?.toLowerCase(), {dockor} = STANDARD, forval = dockor[0];
+  const dockaOrd = dockaSkriven?.toLowerCase(), dockor = dockorna(), forval = dockor[0];
   if (!dockaOrd || dockor.includes(dockaOrd)) return {docka: dockaOrd || forval, rad: ''};
   return {docka: forval, rad: `Det finns ingen docka som heter ${citat(dockaOrd)}. Här visas ${dockord(forval).namn}.`};
 }

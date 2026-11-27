@@ -31,7 +31,6 @@ export const SLAG = {
   prov: {ord: 'Prov'},
   vantar: {ord: 'Väntar på din dom'},
   matdata: {ord: 'Mätdata'},
-  paket: {ord: 'Köpt paket'},
   tillfalligt: {ord: 'Tillfälligt'},
   program: {ord: 'Program och byggen'},
 } as const;
@@ -67,7 +66,7 @@ export type Plats = {
   /** Går att göra om gratis, och hur (ett skript, en körning). */
   gratis: boolean;
   hur?: string;
-  /** Det kostade pengar att göra (Runway, Meshy, ett köpt paket). */
+  /** Det kostade pengar att göra (Runway, Meshy). */
   betald?: boolean;
   delning: Delning;
   /** Filer i samma mapp med samma namn före första punkten är en enhet (en figur med .glb, .blend och .json). */
@@ -86,7 +85,7 @@ export type Plats = {
   listas?: string;
 };
 
-const BJ = 'blackjack-dealer', AP = 'avatar-auto-pipeline', SD = 'standarddocka', LB = 'live-bj', KP = 'kortspelspaket';
+const BJ = 'blackjack-dealer', AP = 'avatar-auto-pipeline', SD = 'standarddocka', LB = 'live-bj';
 const BANK = `/${BJ}/**/assets/`;
 const GIT = 'Git har den: kod och register raderas inte från studion.';
 
@@ -127,8 +126,6 @@ export const PLATSER: readonly Plats[] = [
   {id: 'liverutor', mapp: `${LB}/rutor`, namn: 'Rutorna ur livefilmen', slag: 'matdata', projekt: LB, git: false, ignore: `/${LB}/rutor/`, register: [], lasare: ['verktyg'], gratis: true, hur: 'skärs ur filmen igen', delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Bilder av riktiga dealrar: de sköts i livebordets mätning.'},
   {id: 'livematten', mapp: `${LB}/matt`, namn: 'Måtten per ruta ur livefilmen', slag: 'matdata', projekt: LB, git: false, ignore: `/${LB}/matt/`, register: [], lasare: ['verktyg'], gratis: true, hur: 'mäts om med verktyget', delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Sköts i livebordets mätning.'},
   {id: 'livedata', mapp: `${LB}/data`, namn: 'Livebordets mått: takt, hållning, blick, bord och kamera', slag: 'matdata', projekt: LB, git: true, ignore: null, register: [], lasare: ['spelet', 'dockan', 'studion'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: GIT},
-  // ── kortspelspaket ──
-  {id: 'paketet', mapp: `${KP}/paket`, namn: 'Det köpta animationspaketet, uppackat', slag: 'paket', projekt: KP, git: false, ignore: `/${KP}/**/paket/`, register: [], lasare: ['verktyg'], gratis: false, betald: true, hur: 'packas upp igen ur det köpta paketet, om det ligger kvar i Hämtade filer', delning: 'barn', visas: 'aldrig', radera: 'ja'},
   // ── slasken ──
   {id: 'vantar', mapp: 'slask/*/granska', namn: 'Original och arbetsmappar som väntar på din dom', slag: 'vantar', projekt: 'slask', git: false, ignore: '/slask/*', register: [`${BJ}/assets/proofs/*/proof.json`], lasare: ['studion'], gratis: false, betald: true, delning: 'barn', visas: 'media', radera: 'ja', vantar: true},
   {id: 'arbete', mapp: 'slask/*', namn: 'Pågående arbete (raderas efter tre timmar orört)', slag: 'tillfalligt', projekt: 'slask', git: false, ignore: '/slask/*', register: [], lasare: ['verktyg'], gratis: true, hur: 'det är arbete på väg', delning: 'barn', utom: ['granska'], visas: 'media', radera: 'ja'},
@@ -152,7 +149,6 @@ export const PEKARE: readonly {fil: string; ord: string; en: string; flera: stri
 
   {fil: `${SD}/editor/server.ts`, ord: 'Dockans editor', en: 'Dockans editor laddar den', flera: '', kod: true},
   {fil: `${SD}/editor/scen.ts`, ord: 'Dockans editor', en: 'Dockans editor laddar den', flera: '', kod: true},
-  {fil: `${KP}/visa/server.ts`, ord: 'Kortpaketets visare', en: 'Kortpaketets visare laddar den', flera: '', kod: true},
   {fil: `${AP}/vagar.json`, ord: 'Avatarernas vägar', en: 'Avatarernas vägar pekar på den', flera: ''},
   {fil: `${SD}/rorelsekatalog.json`, ord: 'Rörelseschemat', en: 'Rörelseschemat nämner den', flera: ''},
   {fil: `${BJ}/data/rendered-references.json`, ord: 'Dockans filmer för beställningarna', en: 'Beställningarna tar den som dockans film', flera: ''},
@@ -312,7 +308,7 @@ const avgransad = (namn: string) => new RegExp(`(?<![A-Za-z0-9_-])${namn.replace
 /** Ett namn som är så eget att en träff är en pekare: med bokstäver, och med bindestreck, understreck eller siffra, eller
  *  långt (inte "status", och inte ett datum som papperskorgens "2026-11-26"). */
 const eget = (namn: string) => /[a-zåäö]{2}/i.test(namn) && (/[-_0-9]/.test(namn) ? namn.length >= 5 : namn.length >= 9);
-/** Namnen en enhet nämns med: sitt eget, och en docka också utan "standarddocka_" (editorn öppnar ?modell=tomasz_handled). */
+/** Namnen en enhet nämns med: sitt eget, och en docka också utan "standarddocka_" (editorn öppnar ?modell=tomasz_ansikte). */
 export function namnFor(id: string): string[] {
   const namn = id.split('/').at(-1)!.replace(/\.[a-z0-9]{2,5}$/i, '');
   return [namn, namn.replace(/^standarddocka_/, '')].filter((n, i, a) => a.indexOf(n) === i && eget(n));

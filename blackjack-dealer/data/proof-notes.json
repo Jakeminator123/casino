@@ -153,6 +153,22 @@
       "choice": "bra",
       "text": "",
       "at": "2026-11-27T02:29:05.721Z"
+    },
+    {
+      "id": 231,
+      "proof": "sju-bilder-vid-livebordet-20261127",
+      "file": "08-dockan-och-tomasz-bredvid-varandra.mp4",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-27T14:04:46.028Z"
+    },
+    {
+      "id": 232,
+      "proof": "sju-bilder-vid-livebordet-20261127",
+      "file": "01-tomasz-vid-livebordet.mp4",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-27T14:06:12.487Z"
     }
   ]
 }

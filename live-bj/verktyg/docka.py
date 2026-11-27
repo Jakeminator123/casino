@@ -2,11 +2,12 @@
 # real dealers can be laid number against number: the right hand's speed through the carry and how often it nearly
 # stops, when the trunk and the head set off against the hand, blinks, and what the other hand does.
 #   python -I live-bj/verktyg/docka.py <the film's measures, a folder written by mat.py --ensam> <ut.json> [<the figure's own numbers per frame>]
-# With the figure's own numbers (blackjack-dealer/dealer3d/data/giv-*.json, metres in the game's lens world) it also
-# says how well this folder's way of measuring finds what is known: the wrist's place in the picture, and its speed in
+# With the figure's own numbers (blackjack-dealer/dealer3d/data/lyft-*.json, metres in the live table's lens world) it
+# also says how well this folder's way of measuring finds what is known: the wrist's place in the picture, and its speed in
 # metres laid on a plane over the felt, against the true speed. That is the test of how far the live film's metres hold.
-# The game's camera is read from blackjack-dealer/src/table-lens.ts (PLAY_LENS), not written here.
-import sys, json, os, glob, math, re
+# Our figure is filmed through the live table's camera (blackjack-dealer/src/table-live.ts LIVE_CAMERA, copied from
+# data/scen.json), so the camera is read from data/scen.json, not written here.
+import sys, json, os, glob
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -14,17 +15,13 @@ sys.path.insert(0, HERE)
 from monster import Stretch, smooth, runs   # noqa: E402
 from stil import Camera, onset, WRIST_LOW   # noqa: E402
 
-FILM = (1764, 1174)
 NEAR_STOP = 0.25   # a dip under this share of the carry's top speed, between two rises, is a near stop
 
 
-def play_lens():
-    text = open(os.path.join(HERE, '..', '..', 'blackjack-dealer', 'src', 'table-lens.ts'), encoding='utf-8').read()
-    focal = float(re.search(r'TABLE_LENS: Lens = \{focalPx: ([\d.]+)', text).group(1))
-    pitch, height = re.search(r'PLAY_LENS: Lens = \{focalPx: TABLE_LENS\.focalPx, pitch: ([\d.]+) \* Math\.PI / 180, height: ([\d.]+)\}', text).groups()
-    t, h, cx, cy = math.radians(float(pitch)), float(height), (FILM[0] - 1) / 2, (FILM[1] - 1) / 2
-    to_pixel = [[focal, cx * math.cos(t), cx * h * math.sin(t)], [0.0, cy * math.cos(t) - focal * math.sin(t), focal * h * math.cos(t) + cy * h * math.sin(t)], [0.0, math.cos(t), h * math.sin(t)]]
-    return Camera({'focalPx': focal, 'principalPoint': [cx, cy], 'heightM': h, 'tiltDeg': float(pitch), 'rollDeg': 0.0, 'feltToPixel': to_pixel}), to_pixel
+def live_camera():
+    """The camera our figure is filmed through: the live table's (data/scen.json camera), and its felt-to-pixel mapping."""
+    cam = json.load(open(os.path.join(HERE, '..', 'data', 'scen.json'), encoding='utf-8'))['camera']
+    return Camera(cam), cam['feltToPixel']
 
 
 def near_stops(speed):
@@ -40,7 +37,7 @@ def curve(speed):
 def main():
     folder, out = sys.argv[1], sys.argv[2]
     truth = json.load(open(sys.argv[3], encoding='utf-8')) if len(sys.argv) > 3 else None
-    cam, to_pixel = play_lens()
+    cam, to_pixel = live_camera()
     st = Stretch(json.load(open(sorted(glob.glob(os.path.join(folder, 'rorelse-*.json')))[0], encoding='utf-8')))
     n, fps = len(st.t), st.fps
     wrist = {'L': smooth(st.pose[:, 15], 5), 'R': smooth(st.pose[:, 16], 5)}

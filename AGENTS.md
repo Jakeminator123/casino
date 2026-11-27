@@ -13,10 +13,9 @@ en modells API läser ingenting själv: skicka med den här filen och projektets
 
 | Mapp | Vad det är | Läs |
 | --- | --- | --- |
-| `blackjack-dealer/` | Spelet, studion i webbläsaren och 3D-dockans rörelsekod (`dealer3d/`). Studion är ingången till hela repot (`STARTA studion.cmd` eller `node start.ts` i roten) och startar dockans editor och kortpaketets visare själv. Här står måtten för kamera, bord, kort och kortplatser som allt annat läser. | `README.md`, `STATUS.md` |
+| `blackjack-dealer/` | Spelet, studion i webbläsaren och 3D-dockans rörelsekod (`dealer3d/`). Studion är ingången till hela repot (`STARTA studion.cmd` eller `node start.ts` i roten) och startar dockans editor själv. Här står måtten för kamera, bord, kort och kortplatser som allt annat läser. | `README.md`, `STATUS.md` |
 | `standarddocka/` | Editorn där standarddockans rörelser spelas, justeras och filmas, och verktygen som mäter dem. | `README.md`, `DOMAR.md` |
 | `avatar-auto-pipeline/` | Blender-skripten som bygger standarddockan, bordet och stolen, och vägen från foton till en riggad dealer. Python. | `README-SV.md` |
-| `kortspelspaket/` | Ett köpt animationspaket och en visare för det. Ligger vid sidan (Jakob 2026-11-27): det är inte grunden för dockans rörelser och inte ett facit att mäta mot. | `README.md`, `OVERLAMNING.md` |
 | `live-bj/` | Mätning av en riktig dealers rörelser, blick och kameravinklar ur en blackjackfilm. Filmen och rutorna ur den går aldrig in i Git eller i ett prov; bara de små måttfilerna i `data/` och verktygen. De två mätta dealrarna har arbetsnamn (Jakob 2026-11-27): Danilo (den första, ung och smal; stilen `kameran`) och Frasse (den andra, med skägg; stilen `bordet`). Namnen är också namnen på två nya dockor hos oss, med kroppens mått, stil och rörelser ur mätningen och vårt eget ansikte. Mäter med Python-miljön i `blackjack-dealer/tools/python/`. | mappens README |
 | `slask/` | Tillfälligt arbete. Git har bara verktyget `slask.ts`. | nedan |
 | `inbox/` | Korta lappar mellan chattar som arbetar samtidigt. Git har bara verktyget `inbox.ts`. | nedan |
@@ -35,7 +34,8 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
 2. **Nätet.** Ingen deploy, uppladdning eller radering hos Vercel utan hans ord; ett ja gäller den gången.
 3. **Hemligheter.** Nycklar står bara i en `.env` som Git ignorerar. De skrivs aldrig ut, loggas eller läggs i en annan
    fil.
-4. **Repot är publikt.** Media, 3D-modeller, foton av personer och det köpta paketet går aldrig in i Git.
+4. **Repot är publikt.** Media, 3D-modeller och foton av personer går aldrig in i Git. Det köpta kortspelspaketet
+   ligger utanför repot (mappen `kortspelspaket-arkiv` bredvid det, Jakob 2026-11-27) och läggs aldrig tillbaka i Git.
 5. **Hans domar och hans data.** Det han har dömt, valt eller sparat (domar, kortplanen, hans anteckningar, hans
    sparade klipp) skrivs aldrig över och raderas aldrig utan hans ord.
 6. **Betald och godkänd media** raderas bara på hans ord.

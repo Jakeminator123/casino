@@ -236,3 +236,19 @@ rörelser och filmerna som görs av dem.
     koordinater som kanske måste mätas på nytt."
   - **En överlämning för alla platser.** "Försökte vi att skapa som en universell överlämning med detta parti när
     händerna möts?" Inte prövat; handbytet står som förslag till ankare i rörelseschemat.
+  - **På sidan, samma eftermiddag:** filmen (01) och jämförelsen med dockan (08) märkte han Inte bra, och i Beslut
+    svarade han Ja med orden "Ok, så om du menar att vi skapar större kort och möjligen annat, gör en video till!
+    Sedan kanske vi kan döma efter det!" Kortet upplever han alltså som för litet; nästa film görs med det rättat,
+    och den dömer han.
+- **Standarden är filmens, och bara den (2026-11-27, eftermiddag).** "Vi byter standard till att i princip enbart
+  utgå från vy/vinkel/riktningar/storlekar och annat som fanns i videon (man ska sedan kunna spela vårt
+  casino/blackjack i annan vinkel, men det kan ändras sedan när man väl har allt på plats vad det gäller den nya
+  standarden för det mesta)." Och om dockorna: "Danilo och den andra ... är de dealers som vi försökt att ansamla de
+  riktiga rörelserna ifrån." Den förra standarden, mannen och kvinnan och de ritade givarna tas bort helt på hans ord
+  samma dag.
+- **En ny dealer ur bilder (2026-11-27, eftermiddag).** "Jag vill ha ett sätt där jag kan lägga in bilder och skapa
+  skelett och även datapunkter för hand och ansikte ... leder ... SAM 3D ... På bästa sätt vill jag få fram hela
+  innanmätet av en ny dealer. Och en sån ny dealer ska bli riggad med ett set av väldigt bra rörelser som gör att den
+  nya avataren kan vara en blackjackdealer": ett generiskt sätt, där dealern "till allra största del är ett resultat
+  av alla de rörelsesekvenser som vi nu har tagit in och försökt att anpassa efter vårt mönster", och där filmerna
+  granskas av den externa domaren under arbetet.

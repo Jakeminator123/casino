@@ -13,7 +13,7 @@ vyn, utan bryn och tänder (målningen hamnar på huden under brynen), och med e
 Kartan är i övrigt dockans egen, så bilden passar dockan i vila.
 
   .venv/Scripts/python.exe -I steg/12-ny-yta/meshy_ny_yta.py assets/docka/standarddocka_danilo.glb <mapp> \
-      --vy output/tomasz-flervy/01-vyer/vy-0.png --vy output/tomasz-flervy/01-vyer/vy-1.png [--dry-run] [--task-id ID]
+      --vy output/<namn>/01-vyer/vy-0.png --vy output/<namn>/01-vyer/vy-1.png [--dry-run] [--task-id ID]
 
 --dry-run gör kopian (gratis, Blender utan fönster) och skriver ut vad som skulle skickas, hur stort och vad det kostar,
 utan att läsa nyckeln eller anropa Meshy. --kopia skickar en färdig kopia i stället för hela dockan, till exempel bara

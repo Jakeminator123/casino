@@ -255,7 +255,7 @@ export async function makePlan(repo = ROOT, now = Date.now()): Promise<{plan: Pl
   for (const id of idsNamed(release, [...unitIds.keys()])) for (const p of unitIds.get(id)!) guard(p, 'utgåvan (data/studio-release.json)');
   type OrderRec = {id: string; status?: string};
   type OrderTake = {take: number; status?: string; history?: {status?: string; note?: string}[]};
-  const orders = readdirSync(path.join(repo, 'data/orders')).filter(f => f.endsWith('.json')).map(f => json<OrderRec>(`data/orders/${f}`)).filter((o): o is OrderRec => !!o?.id);
+  const orders = (existsSync(path.join(repo, 'data/orders')) ? readdirSync(path.join(repo, 'data/orders')) : []).filter(f => f.endsWith('.json')).map(f => json<OrderRec>(`data/orders/${f}`)).filter((o): o is OrderRec => !!o?.id);
   const orderTakes = new Map<string, OrderTake[]>(), openOrders = new Set<string>();
   for (const o of orders) {
     const receipt = json<{takes?: OrderTake[]}>(`assets/orders/${o.id}/receipt.json`), takes = receipt?.takes ?? [];
@@ -295,7 +295,7 @@ export async function makePlan(repo = ROOT, now = Date.now()): Promise<{plan: Pl
     const v = json<Record<string, unknown>>(`data/${f}`); if (!v) continue;
     if (perEntry[f]) for (const [id, e] of perEntry[f](v)) scan(e, `data/${f}#${id}`); else scan(v, `data/${f}`);
   }
-  for (const dir of ['data/orders', 'placements']) for (const f of readdirSync(path.join(repo, dir)).filter(f => f.endsWith('.json'))) scan(json(`${dir}/${f}`), `${dir}/${f}`);
+  for (const dir of ['data/orders', 'placements']) for (const f of (existsSync(path.join(repo, dir)) ? readdirSync(path.join(repo, dir)) : []).filter(f => f.endsWith('.json'))) scan(json(`${dir}/${f}`), `${dir}/${f}`);
   for (const f of files.values()) if (f.path.endsWith('.json') && f.bytes < 8e6) scan(json(f.path), f.path);
   const foreign = (folder: string, own: (from: string) => boolean) => [...(refs.get(folder) ?? [])].filter(from => !from.startsWith(`${folder}/`) && !own(from));
 

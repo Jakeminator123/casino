@@ -43,6 +43,9 @@ avatar-auto-pipeline/
   steg/12-ny-yta/                    vår egen docka får en persons utseende som ny yta hos Meshy (prov, betalt)
   steg/13-form-ur-figur/             dockans eget huvud i personens form, ur hans figur, gratis (prov)
   steg/14-dockans-hander/            en färdig dealer får dockans händer insatta i sin ärm, gratis (prov)
+  steg/15-matt-ur-bilder/            en persons mått ur sina bilder: SAM 3D Body och MediaPipe, gratis (ny_dealer.py steg 1)
+  ny_dealer.py               en ny dealer ur bilder, en rad: måtten, dockan, systemet, rörelserna, dockfilmen och de betalda anropen
+  personer/<namn>.json       en persons mått ur bilderna, bara tal (i Git); dockan byggs ur den
   metod/                     grundfunktioner för mesh och GLB
   input/<namn>/              dina foton
   output/<namn>/             allt som en körning skapar
@@ -186,7 +189,24 @@ blender -b --factory-startup --python-exit-code 1 --python steg/12-ny-yta/narbil
 blender -b --factory-startup --python-exit-code 1 --python steg/12-ny-yta/yta.py -- lagg assets/docka/standarddocka_danilo.glb output/<namn>/12-ny-yta/bas-med-narbild.png assets/docka/standarddocka_danilo_<namn>_yta.glb
 ```
 
-Provet med Tomasz på Danilos docka är `assets/docka/standarddocka_danilo_tomasz_yta.glb` (meshy-provet-20261127).
+En ny dealer ur bilder, en rad (2026-11-27, gratis och lokalt; Kenji var den första): personens tre bilder i `input/<person>/`
+blir en docka vid livebordet som spelar de lyfta rörelserna, och de betalda anropen för hans film står färdiga:
+
+```text
+..\blackjack-dealer\tools\python\.venv\Scripts\python.exe -I ny_dealer.py <person> [--stil kameran|bordet] [--utseende "<på engelska>"] [--prov <provmapp>]
+```
+
+Stegen (`--steg 1-6`, `--lage` säger bara vad som finns och vad som saknas): 1 måtten ur bilderna (steg 15: SAM 3D Body på
+hel- och halvfiguren, MediaPipes kropp, händer och ansiktsnät) till `personer/<person>.json`, bara tal, med hur varje tal är
+mätt och hur säkert det är; 2 dockan, byggd på den docka vars rörelser personen spelar (Danilos för `kameran`, Frasses för
+`bordet`) med bara det som skiljer mer än mätningens osäkerhet (`scen/bygg_docka.py --kon <docka>` läser personfilen
+själv); 3 dockan mätt på sin modell och skriven i `../blackjack-dealer/dealer3d/src/persondockor.ts`, så att den är med i
+`LIVE_DOLLS`, i editorns dockor och i verktygen; 4 de lyfta rörelserna i stilen på dockan och kontrollen
+(`lyft-till-docka.ts --docka`, `lyft-kolla.ts`); 5 givens dockfilm genom livebordets kamera i nyckelutseendet och var
+åttonde ruta, första och sista ur den; 6 anropen hos Runway, färdiga men inte lagda, med kostnaden (`anrop/kostnad.json`).
+Skalan är SAM:s egen kroppsform: en framställd bild har inget av känd storlek. Felet mot ett facit (Tomasz bilder mot hans
+mätta figur: armarna inom 1 cm, huvudet inom 0,5, axlarna 2,2 och bålen 2,4) är en undre gräns för osäkerheten
+(`steg/15-matt-ur-bilder/personmatt.py`). Handen tas inte in: SAM:s hand är 5 cm kortare än dockans mätt på samma sätt.
 
 En docka efter en persons mått (2026-11-27, gratis och lokalt): personens figur ur Version 1 och mannen mäts på samma
 sätt (lederna, huden i snitt, handen och huvudet), och det som skiljer dem mer än mätningens osäkerhet skrivs av i `MATT`

@@ -252,7 +252,7 @@ async function readWorld(only: string | null, given: TreeRegister | null = null)
     if (typeof e.frame === 'number') byFrame.set(`${e.path}#${e.frame}`, e.id); else byPath.set(e.path, e.id);
   }
   const orders = new Map<string, Order>();
-  for (const f of readdirSync(at('data/orders')).filter(f => f.endsWith('.json'))) { const o = json<Order>(`data/orders/${f}`); if (o?.id) orders.set(o.id, o); }
+  for (const f of (existsSync(at('data/orders')) ? readdirSync(at('data/orders')) : []).filter(f => f.endsWith('.json'))) { const o = json<Order>(`data/orders/${f}`); if (o?.id) orders.set(o.id, o); }
   const picture = (o: Order | undefined, as: 'startFrame' | 'endFrame') => { const p = o?.pictures?.find(p => p.goesAs === as)?.from; return p?.entry ?? (p?.path ? byPath.get(p.path) ?? null : null); };
   const refEntry = (r: Ref): string | null => {
     const file = r?.file?.path;

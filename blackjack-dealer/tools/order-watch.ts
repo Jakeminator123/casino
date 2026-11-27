@@ -15,7 +15,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 for (;;) {
   try {
-    for (const name of readdirSync('data/orders')) {
+    for (const name of existsSync('data/orders') ? readdirSync('data/orders') : []) {
       if (!name.endsWith('.json')) continue;
       let order: Queued;
       try { order = JSON.parse(readFileSync(`data/orders/${name}`, 'utf8')); } catch { continue; }

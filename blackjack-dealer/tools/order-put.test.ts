@@ -415,8 +415,9 @@ test('two approvals by the main agent at once never both fit in what is left of 
 // placed through the API key. Runway's MCP app has a pot of its own and never stands in for it.
 test('the balance an approval is held against is the API key\'s pot, never the MCP app\'s', async (t) => {
   const { r, store, setTime } = await approved(t);
-  const policy = (await store.list()).balance?.credits;
-  setTime('2026-11-27T10:00:00Z');
+  const read = (await store.list()).balance, policy = read?.credits;
+  // The takes are placed an hour after the policy's own reading, whenever that was: only then is a take's balance the newer.
+  setTime(new Date(Date.parse(read?.at ?? '2026-11-27T10:00:00Z') + 3_600_000).toISOString());
   await r.begin('prov-ett', 1);
   await r.placed('prov-ett', 1, 'b90b9362-7a13-4b80-b498-c324f02c41f8', 17, 'mcp');
   assert.equal((await store.list()).balance?.credits, policy, 'the MCP app\'s pot is not this balance');

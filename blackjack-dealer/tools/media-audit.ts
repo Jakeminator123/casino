@@ -197,7 +197,7 @@ export function audit(repo: string): {items: Item[]; judged: Map<string, string>
   // Material.
   claims.push(...roleClaims(json('data/media-roles.json'), playedClips));
   // Orders: a folder per order record.
-  for (const f of readdirSync(path.join(repo, 'data/orders')).filter(f => f.endsWith('.json'))) claims.push({path: `assets/orders/${f.slice(0, -5)}`, use: 'visas', why: `data/orders/${f}`});
+  for (const f of (existsSync(path.join(repo, 'data/orders')) ? readdirSync(path.join(repo, 'data/orders')) : []).filter(f => f.endsWith('.json'))) claims.push({path: `assets/orders/${f.slice(0, -5)}`, use: 'visas', why: `data/orders/${f}`});
   // The scene: rooms, materials, props.
   for (const f of ['data/scene-rooms.json', 'data/scene-materials.json', 'data/props.json', 'data/scene-contract.json']) for (const p of pathsIn(read(f))) claims.push({path: p, use: 'visas', why: f});
   // Speech working folders: what data/speech.json names.
