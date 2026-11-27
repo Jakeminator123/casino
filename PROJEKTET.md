@@ -98,7 +98,10 @@ av Tomasz görs för Tomasz.
   gånger bättre (prövat på vår egen dockfilm).
 - **Kortet kan ritas ur dockans tal** i stället för att letas upp i bilden: där filmen följer dockan ligger kortet
   1–2 mm rätt och flackar inte. Det går sämre där filmmodellen själv har ritat kortet fel (`kortbyte-20261127`).
-- **Av 3D-figurerna är Meshy-vägen bäst på likhet;** handleden är rättad, och ett ansikte som rör sig prövas.
+- **Av 3D-figurerna är Meshy-vägen bäst på likhet,** men händerna är dess svaga del: en hand som sätts på i
+  efterhand får handledens led inne i ärmen, och rättningen ovanpå det dömde Jakob Inte bra ("om vi har leder innan i
+  dockan, varför lägga på ett lager till"). En kropp i ett stycke med egna händer böjs rätt vid handleden men har
+  slätare händer (`hander-hunyuan-mot-meshy-20261127`). Ett ansikte som rör sig prövas.
 
 ## Det som är öppet och avgörs av prov
 
