@@ -74,11 +74,15 @@ standarddocka/
                 svep (`--marginal` bara några rutor); `--rikta` flyttar varje klipp hela bildpunkter dit det första
                 ankaret ligger, eftersom en filmmodell låter bilden glida under en lång tagning; och
                 `--ordning 4,1,7` lägger givarna efter varandra i en annan ordning, för att se att klippen möts
-    lagg-pa-bord.ts  lägger en dealer filmad i utseendet nyckel på vårt eget bord: klipper ut dealern, stolen, skon
-                och korten ur den gröna filmen och lägger dem på en bild av bordet ensamt genom samma kamera
+    lagg-pa-bord.ts  lägger en dealer filmad i utseendet nyckel på vårt eget bord: klipper ut dealern och stolen
+                ur den gröna filmen och lägger dem på en bild av bordet ensamt genom samma kamera
                 (`titta.ts --runda --spela-in 0-0 --utan docka,kort,sko,stol`, första rutan). Det gröna mäts i varje
                 rutas egna hörn och skuggan läggs som en kvot mot vårt bord (två knep ur blackjack-dealer);
-                `--kortfarger` gör spårkortet till ett vanligt kort
+                `--egen-sko` lägger vår sko, och `--docka` tar bort spårkortet och ritar vårt eget kort där filmens
+                kort ligger, efter dockans tal
+    i-dockans-takt.ts  ger en film som en filmmodell gjort ur dockans stillbilder dockans takt: parar varje
+                stillbild med filmrutan som liknar den mest och läser filmen rakt mellan dem, med val för
+                rörelseoskärpa; ankarna (`--takt`) läser också `lagg-pa-bord.ts`
   rorelser/     det editorn sparar, en rörelse per kortplats: a1-a23-p<plats>c1.json (vilka grundrörelser, blicken,
                 farten per del, ändringarna), för en dockas egna rörelser a1-a23-p<plats>c1-<docka>.json, och
                 <namn>.rutor.json (hela rörelsen ruta för ruta i dockans format, med kroppens mått, skriven vid
