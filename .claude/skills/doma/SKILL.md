@@ -62,9 +62,10 @@ node tools/extern-domare.ts <provmapp> [--bilder a.png,b.png] [--torr]
 ```
 
 - Kommandot skickar högst sex bilder ur underlaget och provet, nedskalade, och checklistan nedan. Svaret kommer i
-  domens form (dom, skäl med fil och ruta, det den skulle rätta, säkerhet) och skrivs till `extern-dom.json` i
-  underlaget, varifrån domaren för in det i provet innan slaskmappen tas bort. `--torr` visar vad som skulle skickas
-  och vad det kostar.
+  domens form (dom, skäl med fil och ruta, det den skulle rätta, säkerhet). Kommandot skriver själv in det i provets
+  `proof.json` (`domare.extern` och `oenig`; en tidigare extern dom står kvar som `extern_forra`), och till
+  `extern-dom.json` i underlaget. Skriv därför inte `proof.json` samtidigt som kommandot körs: den som sparar sist
+  skriver över den andra. `--torr` visar vad som skulle skickas och vad det kostar.
 - Den externa domaren ser bara de bilder den får. Domaren väljer därför de avgörande bilderna med `--bilder` när
   kommandots eget val missar dem. Tänk på filmen där felet syns, och på `ansiktet-over-tiden.png` för den längsta
   filmen. I kalibreringen fick den inte film 4 av `tomasz-gor-danilos-giv` och såg därför inget personbyte. I
@@ -148,9 +149,10 @@ införd.
   `remarks` (Med anmärkningar) och Inte bra `failed` (Underkänd). Utan en `takes`-lista blir just de filerna provets
   tagningar med en bricka (`studio/lib/verdict.ts`). Fältet `domare` bär orden:
   `{"av": "...", "dag": "...", "dom": "Inte bra", "sakerhet": "...", "skal": [...], "ratta": [...], "extern": {...} | null, "oenig": false, "obs": "Domarens ord, inte Jakobs; hans dom ersätter den."}`.
-  `extern` är den externa domarens dom ur `extern-dom.json` (av, dom, sakerhet, skal med fil och ruta, ratta, filer,
-  kostnad_usd, tid). Där den inte har dömt är `extern` null och `extern_obs` säger varför. `oenig` är sant när de två
-  domarna har fällt olika domar. Fältet pekar inte på något underlag, eftersom underlaget inte sparas.
+  `extern` är den externa domarens dom, som `tools/extern-domare.ts` skriver in (av, dom, sakerhet, skal med fil och
+  ruta, ratta, filer, kostnad_usd, tid); `extern_forra` är dess dom från en tidigare vända. Där den inte har dömt är
+  `extern` null och `extern_obs` säger varför. `oenig` är sant när de två domarna har fällt olika domar. Domaren på
+  den här datorn rör inte de fälten när den skriver om sina egna ord. Fältet pekar inte på något underlag, eftersom underlaget inte sparas.
   Studion visar brickan, men ännu inte orden i `domare`.
   Inget annat i `proof.json` ändras: inte rubrik, text, etiketter, tagningar eller hans anteckningar.
 - **Beställd film:** granskarens dom förs in enligt `granska-film` (Föra in). En preliminär dom med

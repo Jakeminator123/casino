@@ -158,6 +158,17 @@ async function main() {
   if (!res.ok || !verdict) { console.error(`Inget svar att läsa (HTTP ${res.status}): ${String(json.error?.message ?? json.status ?? '').slice(0, 300)}. Kostnad ${cost.toFixed(4)} USD.`); process.exit(1); }
   mkdirSync(material, {recursive: true});
   writeFileSync(path.join(material, 'extern-dom.json'), JSON.stringify({modell: json.model ?? MODEL, tid: new Date().toISOString(), kostnad_usd: Math.round(cost * 1e4) / 1e4, filer: images.map((i) => i.name), ...verdict}, null, 1));
+  // The verdict also goes into the proof itself, where the studio shows it: the material in slask is temporary, and a
+  // verdict that lay only there was lost four times in one day (2026-11-27). An earlier round's external verdict is kept
+  // beside the new one, and oenig says whether the two judges differ.
+  const proofFile = path.join(proofDir, 'proof.json');
+  if (existsSync(proofFile)) {
+    const proof = JSON.parse(readFileSync(proofFile, 'utf8')), judge = proof.domare ?? {}, {extern_obs: _obs, ...rest} = judge;
+    const extern = {av: `Extern domare (OpenAI, ${json.model ?? MODEL})`, dom: verdict.dom, sakerhet: verdict.sakerhet, skal: verdict.skal, ratta: verdict.ratta ?? [],
+      filer: images.map((i) => path.basename(i.name)), kostnad_usd: Math.round(cost * 1e4) / 1e4, tid: new Date().toISOString().slice(0, 10)};
+    proof.domare = {...rest, ...(judge.extern?.dom ? {extern_forra: judge.extern} : {}), extern, ...(judge.dom ? {oenig: verdict.dom !== judge.dom} : {})};
+    writeFileSync(proofFile, JSON.stringify(proof, null, 2) + '\n');
+  }
   console.log(`Extern domare (OpenAI, ${json.model ?? MODEL}): ${verdict.dom} (${verdict.sakerhet}); ${cost.toFixed(4)} USD.`);
   for (const s of verdict.skal) console.log(`- ${s.vad} [${s.fil}, ${s.ruta}]`);
   if (verdict.ratta?.length) console.log(`Skulle rätta: ${verdict.ratta.join('; ')}`);
