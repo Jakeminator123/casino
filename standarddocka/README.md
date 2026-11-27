@@ -27,7 +27,8 @@ standarddocka/
     rorelse.ts  rörelsen: grundrörelser efter varandra (dockans egna där de finns), skarven, takten, ändringarna
                 ovanpå, vem som håller kortet, och kontrollen av ett sparat lager (`lagretsFel`); och hela rundan i
                 en tagning (`rundaAv`) med sin klipplista och sina mått (`klipplista`, `rundansMatt`) och sina små
-                egna rörelser, blinkningen med (`medRundliv`, måtten i `RUNDLIV`)
+                egna rörelser, blinkningen med (`medRundliv`, måtten i `RUNDLIV`); och uttrycken i ansiktet
+                (`UTTRYCK`, `medUttryck`)
     armar.ts    regeln att underarmarna går över bordets kant (armbågen vrids ut och upp), och kroppens mått tagna
                 på dockans hud (bålen som skivor, huvudet, axellederna, armens tjocklek) för spärren
     kropp.ts    spärren: det han drar i hålls inom vad en kropp kan (ingen arm genom bålen, huvudet eller bordet,
@@ -38,7 +39,7 @@ standarddocka/
                 [--fro 1]` har den sina små egna rörelser och blinkningen); närbilder av en hand, kortet eller
                 ansiktet (kamerorna narahoger, naravanster, narakort, naraansikte; de spelas inte in); `--andring '<json>'`
                 lägger en ändring före bilderna utan att spara den; `--kor` räknar ett uttryck i sidan och skriver
-                svaret; `--spara` skriver om det sparade ur filen innan farten, de små rörelserna och ändringarna
+                svaret; `--uttryck alla` tar en bild per ansiktsuttryck; `--spara` skriver om det sparade ur filen innan farten, de små rörelserna och ändringarna
                 läggs på, och stannar med ett fel om lagret inte kan användas; ett ogiltigt namn i `--giv` eller
                 `--vilan` ger ett fel. Kör editorn i ett headless Chrome under det delade låset, som
                 `../blackjack-dealer/tools/lab-look.ts` tar det (väntar högst tre minuter; ett lås äldre än 20 minuter
@@ -157,6 +158,18 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   huvudet rör sig lätt, en kort blick mot en spelare, ett finger lyfter på en hand som vilar, och kroppen väger över.
   "Slumpa om" lägger dem på andra ställen; samma frö ger samma rörelser. De är noll i varje dels början och slut, så
   att klippen fortfarande möts i ankaren, och sparas med rörelsen (`liv` i filen; `medLiv` i `editor/rorelse.ts`).
+- **Uttryck i ansiktet** (Jakob 2026-11-27: "huvudrörelser är inte samma sak som ansiktsrörelser såsom att 'rynka
+  pannan'"): neutral, svagt leende, leende, rynkad panna, lyfta ögonbryn, förvånad, skeptisk (ett bryn upp), bekymrad,
+  koncentrerad, blinkning och munnen öppen som i tal, var och en en blandning av dockans ansiktsformer (`UTTRYCK` i
+  `editor/rorelse.ts`). De ändrar bara ansiktet, aldrig huvudet, blicken, kroppen eller händerna, läggs ovanpå vilken
+  rörelse som helst (`medUttryck`) och sparas inte. I panelen ("Uttryck i ansiktet") tonas det valda in och det förra
+  ut, med en styrka och en knapp för kameran nära ansiktet. För verktygen: `window.editor.uttryck('leende', 0.8)` håller
+  ett uttryck i bilden, `uttryck('koncentrerad', 1, {fran: 1.1, till: 2.2})` lägger det i filmens tid (0,25 s in och
+  0,35 s ut som förval, blinkningen en blinknings tider), `uttryck(null)` tar bort alla och `uttrycksserie()` lägger alla
+  ett i taget, 1,5 s vart; `spelaIn(kameror, 0, 0, {stilla: sekunder, skyltar, namn})` filmar dockan stilla medan
+  bara uttrycken går, med uttryckens namn i bild, och `{foljAnsiktet: [0, 0.03, 0.45]}` låter kameran `fri` följa
+  ansiktet under en rörelse. `verktyg/titta.ts --uttryck alla` tar en stillbild per uttryck, och `--kor` lägger ett
+  uttryck vid en tid före en inspelning. Det modellen saknar: kinder som lyfts i ett leende och munformer för tal.
 - **Blicken** är rörelsens egen: i vilan (A1) ser han rakt fram, mot spelaren på plats 4 i ögonhöjd, vilken kamera som
   än är vald; vid skon (A2.3) ser han på kortet i skons mynning, under en giv på kortet, och tillbaka på skon när
   handen är där (Jakob 2026-11-26, `DOMAR.md`). Ankarets blick står i `ankare-2-3-<docka>` (skriven av
@@ -214,7 +227,8 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   annat `sparr` (vad spärren höll emot), `handledGrader` (handledens vinkel som kroppen ritade den och som rutan bad
   om), `lagretsFel`, `aldreSparat`, `dockansEgna`, `sparasSom`, `bildvinkel`, `sparar`, `kortetsUtseende`, `runda`
   (klipplistan i hela rundan, annars null), `rundliv` (vad rundans små rörelser gör i varje klipp), `liv`, `ansikte`
-  (ansiktsformernas vikter i rutan som visas), `ansiktsformer` (de modellen har), `lage` och
+  (ansiktsformernas vikter i rutan som visas, uttrycken med), `ansiktsformer` (de modellen har), `uttryck` (det som
+  visas, de lagda, de hållna och vilka som finns), `lage` och
   `ringensX` (i läget Vrida: ringens axel längs underarmen) och `axelLeder`. `slapp(id)` gör med en ändring det som
   händer när han släpper musen. `save()` stannar med sidans fråga som fel, så att ett verktyg aldrig skriver över i
   tysthet; `save(true)` skriver över. `ansikte({eyeBlinkLeft: 1})` lägger ansiktsformer på prov i bilden (null tar
@@ -433,7 +447,8 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    till A1 (Jakob 2026-11-23: sista given går direkt till A1) finns inte som dockrörelse.
 9. Ansiktet: båda modellerna har 30 ansiktsformer (blinkning, ögonbryn, mun, käke, efter ARKits namn), och de går
    att styra: en ruta har fältet `a`, och i hela rundan driver de små egna rörelserna blinkningen, ett litet leende
-   och ögonbrynen (Hela rundan ovan), av tills Jakob har sett dem. Kvar: ögonen har ingen iris (hela dockan har ett
+   och ögonbrynen (Hela rundan ovan), av tills Jakob har sett dem, och elva namngivna uttryck kan läggas ovanpå
+   vilken rörelse som helst (Uttryck i ansiktet ovan). Kvar: ögonen har ingen iris (hela dockan har ett
    material), så vart ögonen ser syns bara på huvudet; rörelserna på en plats i taget blinkar inte än; och en sparad
    grundrörelse (`dealer3d/data`) har inget ansikte. Minspel därutöver gör filmmodellen ur personens bilder.
 10. Ordningen i mapparna (Jakob 2026-11-26): det som bygger standarden (måttfilen, bordet, dockorna, stolen och

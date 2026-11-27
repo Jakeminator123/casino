@@ -11,11 +11,13 @@
 //   blinkning (se RUNDA nedan; &liv=andning,blinkning slår på bara de delarna)
 // window.editor (för kontrollen och verktyget ../verktyg/titta.ts): ready, setTime(t), setKamera(k), nara(vad, från), state(), addChange({...}),
 // slapp(id), removeChange(id), undo(), save(skrivÖver), kula(led), visa(vad, på), tillSparat(), tillGrund(), fart(del, gånger),
-// liv(delar, frö), ansikte(former), spelaIn(kameror, förstaDel, sistaDel), granskaGrund().
+// liv(delar, frö), ansikte(former), uttryck(namn, styrka, när), uttrycksserie(namn, från, per),
+// spelaIn(kameror, förstaDel, sistaDel, {namn, stilla, skyltar}), granskaGrund().
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import type {Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
+import {UTTRYCK, UTTRYCKEN, lagUttryck, medUttryck, uttryckVid, uttrycksserie, type LagtUttryck, type Uttrycksnamn} from './rorelse.ts';
 import {FART, GIVAR, LEDER, LEDNAMN, LIVSDELAR, RUNDANS_LIV, RUNDANS_PLATSER, STILLHET, VARAR, blickenFoljer, grundFor, klipplista, lagretsFel, langd, markeText, vilanFor, grundensBrott, rundaAv, rundlivet, rutor, sattIhop, somDenBlev, stallning, stallningOchStopp, takt, taktFor, vikt, type Andring, type Ansikte, type Foljd, type Frame, type Led, type Liv, type Livsdel, type Motion, type Q, type Sparad, type V3} from './rorelse.ts';
 import {byggScen, kameraVy, kameransPlats, platskamera, somKamera, type Docka, type Kamera, type Scen, type Utseende} from './scen.ts';
 import {ARMAR, lyftArmar, matArmar, matKropp} from './armar.ts';
@@ -65,7 +67,17 @@ const sek = (t: number) => t.toFixed(2).replace('.', ',') + ' s';
 type Visa = 'bord' | 'stol' | 'platser';
 type Klipp = {fil: string; rutor: number; bytes: number};
 type Api = {ready: boolean; setTime(t: number): void; setKamera(k: Kamera): void; nara(vad: 'hogerHand' | 'vansterHand' | 'kort' | 'ansikte', fran?: V3): void; ansikte(former: Ansikte | null): void; state(): unknown; addChange(a: Partial<Andring> & {led: Led}): string; slapp(id: string): Andring | null; removeChange(id: string): void; undo(): void; save(skrivOver?: boolean): Promise<unknown>; visa(vad: Visa, på: boolean): void; kula(led: Led): {x: number; y: number};
-  tillSparat(): void; tillGrund(): void; fart(del: number, ganger: number): void; liv(delar: Livsdel[], fro?: number): void; spelaIn(kameror: Kamera[], fran: number, till: number): Promise<Klipp[]>; granskaGrund(): unknown};
+  tillSparat(): void; tillGrund(): void; fart(del: number, ganger: number): void; liv(delar: Livsdel[], fro?: number): void; spelaIn(kameror: Kamera[], fran: number, till: number, val?: Inspelningsval): Promise<Klipp[]>; granskaGrund(): unknown;
+  uttryck(namn: Uttrycksnamn | null, styrka?: number, nar?: {fran: number; till?: number; in?: number; ut?: number}): unknown; uttrycksserie(namn?: Uttrycksnamn[], fran?: number, per?: number): {skyltar: Skylt[]; langd: number}};
+/** En text i filmens bild från en tid till en annan (filmens sekunder; i en stilla inspelning från inspelningens början). */
+type Skylt = {fran: number; till: number; text: string};
+/**
+ * Det en inspelning kan ta utöver kamerorna och delarna: `namn` är klippets namn i stället för rörelsens (kameran och
+ * dockan läggs till), `stilla` sekunder spelar in dockan stilla där tidslinjen står medan bara uttrycken går (från 0),
+ * `skyltar` skriver en text i bilden, och `foljAnsiktet` låter den fria kameran följa ansiktet i varje ruta, så många
+ * meter från dess mitt (som nara('ansikte', från)), så att en min syns nära också medan han rör sig.
+ */
+type Inspelningsval = {namn?: string; stilla?: number; skyltar?: Skylt[]; foljAnsiktet?: V3};
 declare global { interface Window { editor: Api } }
 const api: Api = {ready: false} as Api; window.editor = api;
 
@@ -172,7 +184,33 @@ const inteIRundan = (vad: string) => { if (RUNDA) throw Error(`${vad} hör till 
 
 /** Ansiktsformer på prov, från ett verktyg (window.editor.ansikte): läggs över rutans ansikte i bilden tills de tas bort, för den som vill se en form på modellen. */
 let provansikte: Ansikte | null = null;
-function stall() { const grundtid = tak.grund(tid), r = stallningOchStopp(foljd, grundtid, sparad.andringar, blickKamera(), sparad.liv, granser, tak); nu = r.frame; stoppNu = r.stopp; scen.pose(provansikte ? {...nu, a: {...nu.a, ...provansikte}} : nu, foljd.hip); visaStopp(); }
+/**
+ * Uttrycken i ansiktet (rorelse.ts UTTRYCK och medUttryck), ovanpå rörelsen och bara i bilden: de sparas inte och rör
+ * inte rörelsens punkter. `lagda` ligger i filmens tid (window.editor.uttryck med en tid, eller uttrycksserie); `hallna`
+ * är de han har valt i panelen eller ett verktyg har satt utan tid, i klockans sekunder (urTid), så att ett uttryck han
+ * väljer tonas in och det förra ut också när rörelsen står still. Under en stilla inspelning går de lagda på
+ * `uttrycksklocka` i stället för tidslinjen.
+ */
+let lagda: LagtUttryck[] = [], hallna: LagtUttryck[] = [], uttrycksklocka: number | null = null, visatAnsikte: Ansikte | null = null;
+const urTid = () => performance.now() / 1000;
+function medAnsiktet(f: Frame): Frame { const klocka = urTid(); hallna = hallna.filter(u => u.till > klocka);
+  const m = medUttryck(medUttryck(f, lagda, uttrycksklocka ?? tid), hallna, klocka); return provansikte ? {...m, a: {...m.a, ...provansikte}} : m; }
+/** Ett hållet uttryck tonas in eller ut just nu: bilden ritas om i varje ruta tills det står still. */
+const tonas = () => { const klocka = urTid(); return hallna.some(u => klocka < u.fran + u.in || u.till < Infinity); };
+/**
+ * Väljer ett uttryck att hålla (null eller 'neutral': inget). `mjukt` tonar det in och de förra ut, med uttryckets egna
+ * tider (en blinkning blinkar en gång och är sedan borta); annars är det på genast, för ett verktyg som tar en bild.
+ */
+function hall(namn: Uttrycksnamn | null, styrka = 1, mjukt = false) {
+  const klocka = urTid();
+  if (!mjukt) hallna = []; else for (const u of hallna) if (u.till === Infinity) u.till = klocka + u.ut;
+  if (namn && namn !== 'neutral') hallna.push(lagUttryck(namn, styrka, mjukt ? klocka : -Infinity, mjukt && namn === 'blinkning' ? undefined : Infinity));
+  visaUttryck();
+}
+/** Knapparna för uttrycken i panelen: det som hålls är valt. */
+function visaUttryck() { const pa = new Set(hallna.filter(u => u.till === Infinity).map(u => u.namn));
+  document.querySelectorAll<HTMLButtonElement>('#uttryck button').forEach(b => b.classList.toggle('vald', b.dataset.uttryck === 'neutral' ? !pa.size : pa.has(b.dataset.uttryck as Uttrycksnamn))); }
+function stall() { const grundtid = tak.grund(tid), r = stallningOchStopp(foljd, grundtid, sparad.andringar, blickKamera(), sparad.liv, granser, tak); nu = r.frame; stoppNu = r.stopp; const visad = medAnsiktet(nu); visatAnsikte = visad.a ?? null; scen.pose(visad, foljd.hip); visaStopp(); }
 /** En rad i bilden om vad som tog emot, i vanliga ord; borta när inget stoppas och under en inspelning. */
 function visaStopp() { const box = $('#stopp'), text = inspelning ? '' : [...new Set(stoppNu.map(s => s.text))].join(' '); box.textContent = text; box.style.display = text ? 'block' : 'none'; }
 /** Handtagen där mannens leder och blicken är nu (utom det som dras). */
@@ -204,12 +242,13 @@ function setTime(t: number) { tid = Math.max(0, Math.min(DUR, t)); stall(); hand
  * cm och kortet 52 cm). Sekunder på klockan, vilken fart uppspelningen än har.
  */
 const SLINGA = {slut: 0.8, borjan: 0.4};
-let förra = 0, stillaKvar = 0, omstart = false;
+let förra = 0, stillaKvar = 0, omstart = false, antalHallna = 0;
 function steg(now: number) {
   if (spelar) { const dt = Math.min(0.1, (now - förra) / 1000);
     if (stillaKvar > 0) { stillaKvar -= dt; if (stillaKvar <= 0 && omstart) { omstart = false; stillaKvar = SLINGA.borjan; setTime(0); } }
     else { const t = tid + dt * fart; if (t < DUR) setTime(t); else { setTime(DUR); if (slinga) { stillaKvar = SLINGA.slut; omstart = true; } else spela(false); } } }
-  förra = now; requestAnimationFrame(steg);
+  else if (!inspelning && (tonas() || hallna.length !== antalHallna)) { stall(); visa(); } // ett uttryck tonas in eller ut medan rörelsen står still
+  antalHallna = hallna.length; förra = now; requestAnimationFrame(steg);
 }
 function spela(på: boolean) { spelar = på; stillaKvar = 0; omstart = false; $('#spela').textContent = på ? '❚❚ Paus' : '▶ Spela'; if (på && tid >= DUR - 1e-6) tid = 0; }
 
@@ -553,24 +592,37 @@ async function sparaFiler(skrivOver = false): Promise<{sparat: boolean; varfor?:
 }
 
 // ---- spela in ----------------------------------------------------------------------------------------------------
+/** Bilden med en text nere till vänster (vit på en mörk ruta, 6 % av bildens höjd), för en film med namnet i bild: där ligger bordet eller axlarna, inte ansiktet. */
+async function medSkylt(bild: Blob, text: string): Promise<Blob> {
+  const b = await createImageBitmap(bild), yta = new OffscreenCanvas(b.width, b.height), g = yta.getContext('2d')!, h = Math.round(b.height * 0.06), luft = Math.round(h * 0.45), y = b.height - luft - (h + luft);
+  g.drawImage(b, 0, 0); g.font = `600 ${h}px "Segoe UI", system-ui, sans-serif`; g.textBaseline = 'middle';
+  g.fillStyle = 'rgba(12, 14, 18, 0.62)'; g.fillRect(luft, y, g.measureText(text).width + 2 * luft, h + luft); g.fillStyle = '#fff'; g.fillText(text, 2 * luft, y + (h + luft) / 2);
+  return yta.convertToBlob({type: 'image/png'});
+}
 /**
  * Spelar in rörelsen från delen `forst` till och med delen `sist` (0 är den första) som en film per kamera, i filmens
  * storlek, med farten som gäller och utan handtag. Varje ruta ritas för sig och skickas till editorns server, som lägger
  * filmen i standarddocka/klipp/ (en ny inspelning med samma namn skriver över den förra). Blicken står fast som den är när
- * inspelningen börjar, så att det är samma rörelse från varje kamera. Esc avbryter.
+ * inspelningen börjar, så att det är samma rörelse från varje kamera. Med `val` (Inspelningsval) ett eget namn, dockan
+ * stilla medan bara uttrycken i ansiktet går, och text i bilden. Esc avbryter.
  */
-async function spelaIn(kameror: Kamera[], forst: number, sist: number): Promise<Klipp[]> {
+async function spelaIn(kameror: Kamera[], forst: number, sist: number, val: Inspelningsval = {}): Promise<Klipp[]> {
   if (inspelning) return []; spela(false); kameror = kameror.map(k => somKamera(k) ?? 'spel');
-  const a = tak.delar[forst], b = tak.delar[sist]; if (!a || !b || sist < forst) throw Error('Det finns ingen sådan del att spela in.');
+  if (val.namn !== undefined && !/^[a-z0-9][a-z0-9-]*$/.test(val.namn)) throw Error(`Klippets namn ${val.namn} går inte: små bokstäver, siffror och bindestreck.`);
+  // Stilla: dockan står där tidslinjen står, och bara uttrycken går, på sin egen klocka från 0.
+  const stilla = val.stilla && val.stilla > 0 ? Math.round(val.stilla * foljd.fps) : 0;
+  const a = tak.delar[forst], b = tak.delar[sist]; if (!stilla && (!a || !b || sist < forst)) throw Error('Det finns ingen sådan del att spela in.');
   // I rundan är det klippens egna rutor (ett klipp slutar på sin stillhets sista ruta, rutan före nästa klipps första).
-  const [fran, till] = foljd.runda ? [foljd.runda.klipp[forst].forsta, foljd.runda.klipp[sist].sista] : [Math.round(a.fran * foljd.fps), Math.round(b.till * foljd.fps)], antal = (till - fran + 1) * kameror.length;
+  const [fran, till] = stilla ? [0, stilla - 1] : foljd.runda ? [foljd.runda.klipp[forst].forsta, foljd.runda.klipp[sist].sista] : [Math.round(a.fran * foljd.fps), Math.round(b.till * foljd.fps)], antal = (till - fran + 1) * kameror.length;
   const delnamn = OMFANG().find(o => o.varde === `${forst}-${sist}`)?.namn ?? `del-${forst + 1}-${sist + 1}`;
   const före = {tid, kamera, pos: camera.position.clone(), kvat: camera.quaternion.clone(), mot: orbit.target.clone()}, klara: Klipp[] = [], text = $('#laddar'), status = $('#inspela-status');
   const post = async <X>(url: string, body: BodyInit | null): Promise<X> => { const r = await fetch(url, {method: 'POST', body}); if (!r.ok) throw Error(`Inspelningen stannade: ${(await r.text()).slice(0, 300)}`); return r.json() as Promise<X>; };
   // Klippets namn: rörelsen (på prov: grundrörelsernas namn), delen, kameran och dockan, så att mannens och kvinnans
   // klipp inte skriver över varandra. Hela rundan heter runda-c1 och har ingen del i namnet; med rundans små egna
   // rörelser på slutar namnet på -liv, så att tagningen med dem inte skriver över den utan.
-  const rorelse = RUNDA ? (STILLA ? 'runda-c1' : 'runda-c1-flyt') : PROV ? `prov-${PROVVILA ? `${PROVVILA}-` : ''}${GRUND[1]}` : `a1-a23-p${PLATS}c1`, stam = delnamn ? `${rorelse}-${delnamn}` : rorelse, livnamn = RUNDA && sparad.liv ? '-liv' : '';
+  const rorelse = RUNDA ? (STILLA ? 'runda-c1' : 'runda-c1-flyt') : PROV ? `prov-${PROVVILA ? `${PROVVILA}-` : ''}${GRUND[1]}` : `a1-a23-p${PLATS}c1`, livnamn = RUNDA && sparad.liv ? '-liv' : '';
+  const stam = val.namn ?? (stilla ? `${rorelse}-stilla` : delnamn ? `${rorelse}-${delnamn}` : rorelse);
+  const skylt = (t: number) => val.skyltar?.find(s => t >= s.fran && t < s.till)?.text ?? '';
   // Panelen, tidslinjen, kameran och pilarna står still under inspelningen: inget han rör ändrar klippet medan det görs.
   const stang = (pa: boolean) => { for (const s of ['#panel', '#botten']) document.querySelector<HTMLElement>(s)!.inert = pa; orbit.enabled = !pa; flytta.enabled = !pa; };
   const lås = blickKamera(); blickLas = [lås[0], lås[1], lås[2]]; inspelning = {avbryt: false}; välj(null); stang(true); handtagTill(); ram(); text.style.display = 'grid'; status.className = 'tips'; status.textContent = '';
@@ -582,7 +634,8 @@ async function spelaIn(kameror: Kamera[], forst: number, sist: number): Promise<
       id = (await post<{id: string}>('/inspelning/start', JSON.stringify({namn: `${stam}-${KAMERANAMN(k)}-${DOCKA}${UTSEENDE === 'nyckel' ? '-nyckel' : ''}${livnamn}`, fps: foljd.fps}))).id;
       for (let i = fran; i <= till; i++) {
         if (inspelning.avbryt) break;
-        tid = i / foljd.fps; stall(); await post(`/inspelning/${id}/ruta`, await scen.bild()); gjorda++;
+        if (stilla) uttrycksklocka = i / foljd.fps; else tid = i / foljd.fps;
+        stall(); if (val.foljAnsiktet && k === 'fri') nara('ansikte', val.foljAnsiktet); const ord = skylt(i / foljd.fps); await post(`/inspelning/${id}/ruta`, ord ? await medSkylt(await scen.bild(), ord) : await scen.bild()); gjorda++;
         text.firstChild!.textContent = `Spelar in ${kameror.length > 1 ? `kamera ${kameror.indexOf(k) + 1} av ${kameror.length}, ` : ''}bild ${gjorda} av ${antal} … (Esc avbryter)`;
       }
       if (inspelning.avbryt) break;
@@ -590,7 +643,7 @@ async function spelaIn(kameror: Kamera[], forst: number, sist: number): Promise<
     }
   } finally {
     if (id) await fetch(`/inspelning/${id}/avbryt`, {method: 'POST'}).catch(() => {});
-    const avbruten = inspelning.avbryt; inspelning = null; blickLas = null; stang(false); scen.filmstorlek(false); text.style.display = 'none';
+    const avbruten = inspelning.avbryt; inspelning = null; blickLas = null; uttrycksklocka = null; stang(false); scen.filmstorlek(false); text.style.display = 'none';
     if (före.kamera === 'fri') { kamera = 'fri'; camera.position.copy(före.pos); camera.quaternion.copy(före.kvat); orbit.target.copy(före.mot); orbit.update(); scen.storlek(); } else setKamera(före.kamera);
     setTime(före.tid); ritaNu();
     status.className = klara.length && !avbruten ? 'tips bra' : 'tips'; status.textContent = `${avbruten ? 'Avbruten. ' : ''}${klara.length ? `${klara.length === 1 ? 'Klippet ligger' : `${klara.length} klipp ligger`} i mappen standarddocka/klipp: ${klara.map(c => c.fil.split('/').pop()).join(', ')}` : ''}`;
@@ -609,6 +662,14 @@ document.querySelectorAll<HTMLElement>('.bara-runda').forEach(x => { x.style.dis
 // Rundans små egna rörelser och blinkning: ett kryss, och en knapp som lägger dem på andra ställen (ett nytt frö).
 { const ruta = document.querySelector<HTMLInputElement>('#rundliv'), slumpa = document.querySelector<HTMLButtonElement>('#rundliv-slumpa');
   if (ruta) ruta.onchange = () => sattRundliv(ruta.checked ? RUNDANS_LIV : []); if (slumpa) slumpa.onclick = () => sattRundliv(sparad.liv?.delar ?? RUNDANS_LIV, 1 + Math.floor(Math.random() * 9999)); visaRundliv(); }
+// Uttrycken i ansiktet: en knapp per uttryck (tonas in, och det förra ut), styrkan, och kameran nära ansiktet.
+{ const knappar = document.querySelector<HTMLElement>('#uttryck'), styrka = document.querySelector<HTMLInputElement>('#uttryck-styrka'), styrkaText = document.querySelector<HTMLElement>('#uttryck-styrka-text');
+  const visaStyrka = () => { if (styrka && styrkaText) styrkaText.textContent = `${Math.round(Number(styrka.value) * 100)} %`; };
+  if (knappar) for (const n of UTTRYCKEN) { const b = document.createElement('button'); b.dataset.uttryck = n; b.textContent = UTTRYCK[n].text; knappar.append(b);
+    b.onclick = () => { const pa = hallna.some(u => u.namn === n && u.till === Infinity); hall(pa ? null : n, Number(styrka?.value ?? 1), true); }; }
+  if (styrka) styrka.oninput = () => { visaStyrka(); const u = hallna.find(x => x.till === Infinity); if (u) { u.styrka = Number(styrka.value); stall(); rita(); } };
+  const naraKnapp = document.querySelector<HTMLButtonElement>('#nara-ansiktet'); if (naraKnapp) naraKnapp.onclick = () => { nara('ansikte'); ritaNu(); };
+  visaStyrka(); visaUttryck(); }
 if (RUNDA) { document.querySelectorAll<HTMLElement>('.bara-plats').forEach(x => { x.style.display = 'none'; });
   const tips = document.querySelector('#delar-tips'); if (tips) tips.textContent = STILLA ? `Varje del är ett klipp: ${sek(STILLHET.fore)} stilla vid skon med tomt bord, rörelsen, och ${sek(STILLHET.efter)} stilla med kortet kvar på sin plats. Filmen klipps mellan två delar, där kortet försvinner från bordet. Takten är fast här.` : 'Varje del är ett klipp, och de spelas i ett svep. Kortet ligger kvar tills nästa del börjar; i spelet ritar spelet korten som ligger. Takten är fast här.'; }
 const bord = await scen.bord;
@@ -649,6 +710,15 @@ Object.assign(api, {
   liv: (delar: Livsdel[], fro?: number) => { if (RUNDA) sattRundliv(delar, fro); else sattLiv(delar, fro); ritaNu(); },
   // Ansiktsformer på prov ({eyeBlinkLeft: 1, …}; null tar bort dem): bara i bilden, för den som vill se en form på modellen.
   ansikte: (former: Ansikte | null) => { provansikte = former; ritaNu(); },
+  // Ett namngivet uttryck (rorelse.ts UTTRYCK; null tar bort alla): utan tid hålls det i bilden genast, med en tid
+  // ({fran, till?, in?, ut?}, filmens sekunder) läggs det på tidslinjen och tonas in och ut, också i en inspelning.
+  uttryck: (namn: Uttrycksnamn | null, styrka = 1, nar?: {fran: number; till?: number; in?: number; ut?: number}) => {
+    if (namn !== null && !UTTRYCK[namn]) throw Error(`Inget uttryck heter ${namn}. De som finns: ${UTTRYCKEN.join(', ')}.`);
+    if (namn === null) { lagda = []; hall(null); } else if (nar) lagda.push(lagUttryck(namn, styrka, nar.fran, nar.till, nar)); else hall(namn, styrka);
+    ritaNu(); return {hallna: hallna.map(u => ({namn: u.namn, styrka: u.styrka})), lagda};
+  },
+  // Alla uttryck (eller de nämnda) ett i taget på tidslinjen, `per` sekunder vart från `fran`, i stället för de lagda; skyltarna är deras namn.
+  uttrycksserie: (namn?: Uttrycksnamn[], fran = 0, per = 1.5) => { const s = uttrycksserie(namn, fran, per); lagda = s.lagda; ritaNu(); return {skyltar: s.skyltar, langd: s.langd}; },
   spelaIn,
   // Var grundrörelsen själv, utan ändringar, går utanför kroppens gränser (rorelse.ts grundensBrott). Rättar ingenting.
   granskaGrund: () => granser ? grundensBrott(foljd, granser, tak.ut) : null,
@@ -677,7 +747,9 @@ Object.assign(api, {
       // rörelserna när de är på); annars null. `rundliv`: vad de små rörelserna gör i varje klipp, null när de är av.
       runda: rundlistan(), rundliv: rundlivet(foljd, sparad.liv),
       // De små egna rörelserna som är på, ansiktet i rutan som visas (formernas vikter; null i vila) och formerna dockans modell har.
-      liv: sparad.liv ?? null, ansikte: provansikte ? {...nu.a, ...provansikte} : nu.a ?? null, ansiktsformer: scen.figure.about.faceShapes,
+      liv: sparad.liv ?? null, ansikte: visatAnsikte, ansiktsformer: scen.figure.about.faceShapes,
+      // Uttrycken: det som visas nu (det senast lagda som ligger vid tiden, annars det som hålls), de lagda och de hållna.
+      uttryck: {nu: uttryckVid(lagda, uttrycksklocka ?? tid)?.namn ?? hallna.find(u => u.till === Infinity)?.namn ?? null, lagda, hallna: hallna.map(u => ({namn: u.namn, styrka: u.styrka})), finns: UTTRYCKEN},
       hoft: {rorelsen: foljd.hip, mannen: p(hips), skillnadMm: Math.round(hips.distanceTo(new T.Vector3(...foljd.hip)) * 1000)},
       leder: {hogerHand: p(scen.bone('RightHand')), vansterHand: p(scen.bone('LeftHand')), hogerArmbage: p(scen.bone('RightForeArm')), vansterArmbage: p(scen.bone('LeftForeArm')), huvud: p(scen.bone('Head')), hogerLar: p(scen.bone('RightUpLeg')), hogerKna: p(scen.bone('RightLeg')), hogerFot: p(scen.bone('RightFoot'))},
       malHogerHand: nu.R.w, malVansterHand: nu.L.w, kort: nu.card.c, vikter: sparad.andringar.map(a => ({id: a.id, vikt: vikt(a, grundtid, tak.ut)})), aldreSparat: aldreSparat ? aldreSparat.grund ?? [] : null,

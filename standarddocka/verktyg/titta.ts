@@ -35,7 +35,11 @@
 //                         "flytt": [0.28, 0.05, 0.05]}; tid i filmens sekunder), lagd efter --spara och före bilderna, utan
 //                         att sparas; flera gånger för flera ändringar
 //              [--kor "<uttryck>"]  räknar ett uttryck i sidan (window.editor …) efter att allt ovan är ställt, och skriver
-//                         svaret som JSON; går också utan --ut och --spela-in
+//                         svaret som JSON; går också utan --ut och --spela-in. Skriv det på en rad: i Windows klipps
+//                         argumentet vid första radbrytningen. Ett uttryck i ansiktet vid en tid, också i en inspelning:
+//                         --kor "window.editor.uttryck('koncentrerad', 1, {fran: 1.1, till: 2.2})"
+//              [--uttryck leende,rynkad-panna:0.5|alla]  stillbilder av ansiktsuttryck (editor/rorelse.ts UTTRYCK, med
+//                         styrka efter kolon, förval 1): en bild per uttryck, kamera och tid, <kamera>-<sekunder>-<uttryck>.png
 //   Kameror: spel (spelets vy, plats 4: standarden; det äldre namnet lag går också), plats1 … plats7 (samma vy från
 //   de andra platserna), sida, topp, och film (den gamla, brantare kameran). Tider är filmens sekunder.
 //   Nära en hand eller kortet, för fingrarna: narahoger, naravanster, narakort. Kameran står då --nara-fran x,y,z meter
@@ -71,6 +75,10 @@ if (runda && (arg('--giv') || arg('--vilan'))) throw Error('Rundan spelar dockan
 if (naraFran && (naraFran.length !== 3 || !naraFran.every(Number.isFinite))) throw Error('--nara-fran tar tre tal: x,y,z i meter.');
 if (![PORT, plats, W, H, ...tider].every(Number.isFinite) || plats < 1 || plats > 7) throw Error('--plats tar 1–7, och --tider, --storlek och --port tar tal.');
 for (const namn of ['--giv', '--vilan', '--bord', '--modell']) { const v = arg(namn); if (v !== undefined && !/^[a-z0-9][a-z0-9_-]*$/.test(v)) throw Error(`${namn} tar ett namn (små bokstäver, siffror, - och _, utan filändelse), fick ${v}.`); }
+/** Ansiktsuttrycken att ta stillbilder av: [namn, styrka]; 'alla' läses ur sidan. */
+const uttrycksval = (arg('--uttryck', '') ?? '').split(',').filter(Boolean).map(x => { const [namn, s] = x.split(':'); return [namn, s === undefined ? 1 : Number(s)] as [string, number]; });
+if (uttrycksval.some(([n, s]) => !/^[a-z][a-z-]*$/.test(n) || !(s >= 0 && s <= 1))) throw Error('--uttryck tar uttryckens namn med komma emellan (alla för alla), och en styrka 0–1 efter kolon: --uttryck leende,rynkad-panna:0.5.');
+if (uttrycksval.length && !ut) throw Error('--uttryck är för stillbilder (med --ut). Ett uttryck i en inspelning läggs med --kor "window.editor.uttryck(namn, styrka, {fran, till})".');
 if (spelaIn && kameror.some(k => NARA[k])) throw Error('Närbilderna (narahoger, naravanster, narakort, naraansikte) är stillbilder: de spelas inte in. Välj en vanlig kamera för --spela-in.');
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -121,15 +129,18 @@ try {
     }
   } else if (ut) {
     await mkdir(ut, {recursive: true}); const lage: Record<string, unknown> = {};
-    for (const k of kameror) for (const t of tider) {
-      await kör(NARA[k] ? `window.editor.setTime(${t}); window.editor.nara(${JSON.stringify(NARA[k])}${naraFran ? `, ${JSON.stringify(naraFran)}` : ''})` : `window.editor.setKamera(${JSON.stringify(k)}); window.editor.setTime(${t})`); await sleep(120);
+    const uttrycken: [string | null, number][] = uttrycksval.some(([n]) => n === 'alla') ? (await kör('window.editor.state().uttryck.finns') as string[]).map(n => [n, 1]) : uttrycksval.length ? uttrycksval : [[null, 1]];
+    for (const k of kameror) for (const t of tider) for (const [u, styrka] of uttrycken) {
+      await kör(NARA[k] ? `window.editor.setTime(${t}); window.editor.nara(${JSON.stringify(NARA[k])}${naraFran ? `, ${JSON.stringify(naraFran)}` : ''})` : `window.editor.setKamera(${JSON.stringify(k)}); window.editor.setTime(${t})`);
+      if (u) await kör(`window.editor.uttryck(${JSON.stringify(u)}, ${styrka})`); await sleep(120);
       const r = await kör('(() => { const r = document.querySelector("#yta").getBoundingClientRect(); return {x: r.left, y: r.top, width: r.width, height: r.height}; })()');
       const png = await cdp('Page.captureScreenshot', flag('--panel') ? {format: 'png'} : {format: 'png', clip: {...r, scale: 1}});
-      await writeFile(path.join(ut!, `${k}-${t.toFixed(2)}.png`), Buffer.from(png.data, 'base64'));
-      if (k === kameror[0]) lage[t.toFixed(2)] = await kör('(() => { const s = window.editor.state(); delete s.platser; delete s.stol; delete s.skarv; return s; })()');
+      await writeFile(path.join(ut!, `${k}-${t.toFixed(2)}${u ? `-${u}${styrka !== 1 ? `-${styrka}` : ''}` : ''}.png`), Buffer.from(png.data, 'base64'));
+      if (k === kameror[0] && u === uttrycken[0][0]) lage[t.toFixed(2)] = await kör('(() => { const s = window.editor.state(); delete s.platser; delete s.stol; delete s.skarv; return s; })()');
     }
+    if (uttrycksval.length) await kör('window.editor.uttryck(null)');
     await writeFile(path.join(ut!, 'lage.json'), JSON.stringify(lage, null, 1));
-    console.log(`${kameror.length * tider.length} bilder och lage.json i ${ut}`);
+    console.log(`${kameror.length * tider.length * uttrycken.length} bilder och lage.json i ${ut}`);
   }
   await cdp('Browser.close').catch(() => {});
 } finally {

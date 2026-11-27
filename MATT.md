@@ -51,8 +51,8 @@ De sju platsernas kameror är spelets vy flyttad till varje plats: lika hög och
 |  | frontplattans lutning mot filten | 51,6° | — (bara i bildpunkter) | — | `table-lens.ts SHOE.plateLean` |  |
 |  | kortet i fönstret, underkanten över filten | 22 mm | — | — | `table-lens.ts SHOE.windowLift` |  |
 |  | vinkel mot kanten (bakänden vriden mot dealern) | 23,2° | 15,5° | +7,7° (+49 %) | `table-lens.ts shoePose(TABLE_LENS).back`; `scen.json things.sko.footMetres` (den främre och den bakre hörnan mot spelarna) |  |
-|  | mynningens mitt åt sidan | 0,407 m (filmernas sko 0,322 m) | 0,399 m | +0,009 m (+2 %) | `table-lens.ts dollShoe, shoePose`; `scen.json things.sko.mouthMetres` (medel) | "aningen längre bort från dealern" om skon (2026-11-26) |
-|  | mynningens mitt från kanten | 0,297 m från dockans bords kant (filmernas sko 0,071 m från spelets kant) | 0,129 m | +0,168 m (+130 %) | `table-lens.ts dollShoe, DOLL_TABLE.edgeBack`; `scen.json table.dealerEdgeM, things.sko.mouthMetres` |  |
+|  | mynningens mitt åt sidan | 0,407 m (filmernas sko 0,322 m) | 0,455 m | −0,047 m (−10 %) | `table-lens.ts dollShoe, shoePose`; `uppsattning.json shoe.card_when_drawn.middle` (kortet i den klara fronten) | "aningen längre bort från dealern" om skon (2026-11-26) |
+|  | mynningens mitt från kanten | 0,297 m från dockans bords kant (filmernas sko 0,071 m från spelets kant) | 0,099 m | +0,198 m (+199 %) | `table-lens.ts dollShoe, DOLL_TABLE.edgeBack`; `scen.json table.dealerEdgeM`, `uppsattning.json shoe.card_when_drawn.middle` |  |
 |  | flyttad på dockans bord | 8 cm ut längs sin längd och 3 cm mot spelarna: 8,5 cm från filmernas |  |  | `table-lens.ts DOLL_TABLE.shoeOut, shoeForward` | "aningen längre bort från dealern" om skon (2026-11-26) |
 |  | frontplattan i Blender: öppningen för fingret | 50 mm bred nedtill, 40 mm i bågen, upp till 114 mm uppför plattan | — | — | `bygg_bord.py SKO_FRONT.ub, ur, us` (tolkad ur text) |  |
 |  | frontplattan i Blender: nederkant och tjocklek | nederkanten 74 mm uppför plattan (58 mm över filten); plattan 1,3 mm tjock | — | — | `bygg_bord.py SKO_FRONT.s0, n0, n1` (tolkad ur text) |  |
@@ -86,9 +86,10 @@ De sju platsernas kameror är spelets vy flyttad till varje plats: lika hög och
 | Rullen | bredd utanför filten | 10 cm | — (bara i bildpunkter) | — | antaget (vår) | `table-live.ts LIVE.rail` |
 | Skon | fotens längd × bredd | 0,274 m × 0,103 m | 0,274 m × 0,103 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE.shoe` |
 |  | fotens tre hörn: största avstånd |  |  | 0 mm | mätt | `table-live.ts LIVE.shoe.foot` |
-|  | höjd bak; frontens topp | 0,117 m; 0,108 m (skattat: om fronten stod lodrätt) | 0,117 m; 0,108 m om lodrät | ±0 m (±0 %) | mätt; skattat | `table-live.ts LIVE.shoe` |
-|  | frontens lutning; kortets underkant över filten | 51,6°; 22 mm | — (inte mätt) | — | antaget (vårt) | `table-live.ts LIVE.shoe` |
-|  | nästa kort: mitten (klonen) mot mitten av det som syns i mynningen (mätt, lagt på filten) | 0,473 m åt sidan, 0,094 m från kanten, 4,7 cm över filten | 0,399 m åt sidan, 0,129 m från kanten | 0,082 m isär | det som syns mätt; kortets läge antaget | `table-live.ts liveShoeCard, LIVE.shoe.seen` |
+|  | höjd bak; den klara frontens topp | 0,117 m; 0,085 m | 0,117 m; 0,06 m och 0,107 m (de två topphörnen) | ±0 m (±0 %) | mätt; skattat | `table-live.ts LIVE.shoe` |
+|  | frontens lutning bakåt från lodrätt; kortets underkant över filten | 20°; 2 mm | 34° och 11,5° (de två topphörnen); — | — | skattat; antaget | `table-live.ts LIVE.shoe` |
+|  | nästa kort i fronten: mitten | 0,457 m åt sidan, 0,098 m från kanten, 4,2 cm över filten | 0,455 m åt sidan, 0,099 m från kanten, 4,2 cm över filten | 2,7 mm | mätt | `table-live.ts liveShoeCard` |
+|  | den lösa klara biten framför skon: hörnen, största avstånd |  |  | 0 mm | mätt | `table-live.ts LIVE.clearPiece` |
 | Lådan för använda kort | fotens mått; höjden | 0,076 m × 0,093 m; 0,1575 m | 0,076 m × 0,093 m; 0,159 m och 0,156 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE.box` |
 |  | mitten åt sidan; från kanten | −0,611 m; 0,035 m |  | hörnen 0 mm | mätt | `table-live.ts liveBox` |
 | Markerbrickan |  | ingen (vår kan läggas till i Blender som ett tillägg: bygg_bord.py --live --med-bricka) | ingen | — | mätt | `table-live.ts LIVE.tray` |
@@ -96,7 +97,9 @@ De sju platsernas kameror är spelets vy flyttad till varje plats: lika hög och
 | Kortplatserna | 19 st, största avstånd | dealerns kort 1 0,177 m och plats 4 kort 1 0,512 m från kanten | 19 st | 0 mm | mätt | `table-live.ts LIVE.cards` |
 |  | långsidans vridning | 12 mätta, 7 ur den speglade platsen (landningarna var inte eniga) |  |  | mätt; spegelbild | `table-live.ts LIVE.cards[id].turnFrom` |
 | Dealern (sitter) | Dealer A, ser i kameran: axlarnas mitt över filten; axelbredd; ögonen | 0,318 m; 0,357 m; 0,509 m | 0,318 m; 0,357 m; 0,509 m | ±0 m (±0 %) | mätt (på ett plan antaget bakom kanten) | `table-live.ts LIVE.dealer.styles.kameran` |
+|  | Dealer A, ser i kameran: vänsterhandens grepp vid skon, höjd; från kortets mitt | 5 cm; 2,8 cm | 5 cm; 2,8 cm | 0 mm | mätt i bilden; höjden slutledd | `table-live.ts LIVE.dealer.styles.kameran.leftAtShoe` |
 |  | Dealer B, ser på bordet: axlarnas mitt över filten; axelbredd; ögonen | 0,31 m; 0,348 m; 0,514 m | 0,31 m; 0,348 m; 0,514 m | ±0 m (±0 %) | mätt (på ett plan antaget bakom kanten) | `table-live.ts LIVE.dealer.styles.bordet` |
+|  | Dealer B, ser på bordet: vänsterhandens grepp vid skon, höjd; från kortets mitt | 4 cm; 3,7 cm | 4 cm; 3,7 cm | 0 mm | mätt i bilden; höjden slutledd | `table-live.ts LIVE.dealer.styles.bordet.leftAtShoe` |
 |  | bålen bakom kanten | 0,2 m (antaget); skattat 0,065 m och 0,158 m |  |  | antaget | `table-live.ts LIVE.dealer.behindEdge` |
 | Golvet | filten över golvet; sitsen | 0,95 m (±0,1); 0,67 m | 0,95 m; 0,67 m | ±0 m (±0 %) | slutlett | `table-live.ts LIVE.floor` |
 
@@ -361,7 +364,7 @@ Slag som de riktiga dealrarna gör men som katalogen inte har:
 - Skons lutning: skon står plant på filten; bara frontplattan lutar (51,6°, `table-lens.ts SHOE.plateLean`). Korten i skon har ingen egen lutning: de ligger mot plattan och lutar som den.
 - Kortets vändning i handbytet har inget eget tal i koden: koreo-giv.ts säger "cirka 90 grader" i en kommentar, och Jakob sa "cirka 100 grader".
 - Handledens gräns 36 grader i DOMAR.md är ett resultat på de vända platserna, inte ett tal i koden; koden håller handen inom RAK och RAK_H (koreo-giv.ts, ovan).
-- Livebordets sko: frontens lutning är inte mätt (klonen har vår, `table-live.ts LIVE.shoe.plateLean`), och var nästa kort ligger på den är därför antaget. Sargen (rullen) är bara mätt i bildpunkter. Livebordet har ingen markerbricka; platsmärkena är spelets ritade knappar i bilden.
+- Livebordets sko: den klara frontens lutning och topp är skattade, eftersom dess två topphörn lästes olika (34 och 11,5 grader bakåt från lodrätt, 0,060 och 0,107 m höga); klonen har omkring 20 grader och 0,085 m (`table-live.ts LIVE.shoe`). Sargen (rullen) är bara mätt i bildpunkter. Livebordet har ingen markerbricka; platsmärkena är spelets ritade knappar i bilden.
 - Livebordets dealrar: hur långt bakom kanten de sitter är antaget (0,2 m; skattat 0,07–0,16 m), och armarnas längd går inte att mäta (dockans egna används).
 - Livebordet: golvet syns inte i bilden; filtens och sitsens höjd över golvet är slutledda ur dealrarnas ögon när de står, inte mätta.
 - Mannens och kvinnans ögon har ingen höjd i koden: ögonen är ben i modellerna (eyeL, eyeR i .glb-filerna), och närmast i koden är huvudets mitt. Blenders kamera dealer_ogon i standard.yaml är antagen, för den vita dockan.
@@ -392,10 +395,10 @@ Det verktyget läste. "kod" är importerat som programmet självt använder det;
 | `live-bj/data/stil-kameran.json` | data | ja |
 | `live-bj/data/stil-bordet.json` | data | ja |
 | `standarddocka/editor/scen.ts` | text (sidokameran: filen importerar three.js) | ja |
+| `live-bj/data/uppsattning.json` | data | ja |
 | `avatar-auto-pipeline/scen/bygg_bord.py` | text (SKO_FRONT och skons väggar: står bara där) | ja |
 | `blackjack-dealer/src/scene3d-room.ts, scene3d-hall.ts` | text (FLOOR: exporteras inte) | ja |
 | `blackjack-dealer/src/table-live.ts` | kod | ja |
-| `live-bj/data/uppsattning.json` | data | ja |
 | `blackjack-dealer/dealer3d/data/giv-fran-2-3-p4c1-ren-a-man.json` | data | ja |
 | `blackjack-dealer/dealer3d/data/till-ankare-2-3-man.json` | data | ja |
 | `blackjack-dealer/dealer3d/data/giv-fran-2-3-p4c1-ren-a-kvinna.json` | data | ja |

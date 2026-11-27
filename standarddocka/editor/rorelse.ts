@@ -727,6 +727,84 @@ export function rundlivet(f: Foljd, liv: Liv | undefined) {
       min: !har('ansikte') || !k.uttryck ? null : k.uttryck.former === M.motSpelaren ? 'ett litet leende mot spelaren' : k.uttryck.former === M.bryn ? 'ögonbrynen lyfts lätt' : 'läpparna pressas lätt', fingerLyfter: har('hand') && (k.ledig.R[vid] > 0.5 || k.ledig.L[vid] > 0.5)}; });
 }
 
+// ---- uttrycken i ansiktet ----------------------------------------------------------------------------------------
+/**
+ * Namngivna uttryck i ansiktet (Jakob 2026-11-27, om de små egna rörelserna: "huvudrörelser är inte samma sak som
+ * ansiktsrörelser såsom att 'rynka pannan' eller liknande"). Vart och ett är en blandning av dockans ansiktsformer
+ * (avatar-auto-pipeline/new_docka.md 7.7), varje forms vikt som mest. Ett uttryck ändrar bara ansiktet (rutans `a`),
+ * aldrig huvudet, blicken, kroppen, händerna eller kortet, så det läggs ovanpå vilken rörelse som helst (medUttryck) och
+ * rörelsens punkter är desamma med och utan. `text` är namnet han ser, och `tider` (sekunder) ett uttrycks egna tider
+ * in, kvar och ut där de förvalda inte passar: blinkningen tar en blinknings (BLINK). Modellen saknar kinder som lyfts
+ * (cheekSquint) och läppar som sluts, rullas och formar ljud (mouthClose, mouthRoll*, mouthShrug*): leendet lyfter
+ * ögonens nederkant med eyeSquint i stället för kinderna, och talet är en öppen mun, inga ljud.
+ */
+export type Uttrycksnamn = 'neutral' | 'svagt-leende' | 'leende' | 'rynkad-panna' | 'lyfta-bryn' | 'forvanad' | 'skeptisk' | 'bekymrad' | 'koncentrerad' | 'blinkning' | 'tal';
+export type Uttrycket = {text: string; former: Ansikte; tider?: {in: number; kvar: number; ut: number}};
+/** Samma vikt på formens vänstra och högra halva (dockans egna sidor, som ARKit räknar dem). */
+const bada = (form: string, vikt: number): Ansikte => ({[`${form}Left`]: vikt, [`${form}Right`]: vikt});
+export const UTTRYCK: Record<Uttrycksnamn, Uttrycket> = {
+  'neutral': {text: 'Neutral', former: {}},
+  'svagt-leende': {text: 'Svagt leende', former: {...bada('mouthSmile', 0.55), ...bada('eyeSquint', 0.15), ...bada('mouthDimple', 0.1)}},
+  'leende': {text: 'Leende', former: {...bada('mouthSmile', 0.9), ...bada('eyeSquint', 0.4), ...bada('mouthDimple', 0.2), ...bada('mouthUpperUp', 0.25), ...bada('mouthLowerDown', 0.12), jawOpen: 0.05}},
+  'rynkad-panna': {text: 'Rynkad panna', former: {...bada('browDown', 0.9), ...bada('eyeSquint', 0.25), ...bada('noseSneer', 0.2), ...bada('mouthPress', 0.2)}},
+  'lyfta-bryn': {text: 'Lyfta ögonbryn', former: {browInnerUp: 0.75, ...bada('browOuterUp', 0.75)}},
+  'forvanad': {text: 'Förvånad', former: {browInnerUp: 0.9, ...bada('browOuterUp', 0.9), ...bada('eyeWide', 0.75), jawOpen: 0.32, mouthFunnel: 0.15}},
+  'skeptisk': {text: 'Skeptisk (ett bryn upp)', former: {browOuterUpLeft: 1, browInnerUp: 0.1, browDownRight: 0.75, eyeSquintRight: 0.45, mouthSmileLeft: 0.3, mouthDimpleLeft: 0.2, mouthPressRight: 0.3}},
+  'bekymrad': {text: 'Bekymrad', former: {browInnerUp: 1, ...bada('mouthFrown', 0.6), ...bada('mouthStretch', 0.3), ...bada('mouthPress', 0.15), ...bada('eyeWide', 0.1)}},
+  'koncentrerad': {text: 'Koncentrerad', former: {...bada('eyeSquint', 0.5), ...bada('browDown', 0.45), ...bada('mouthPress', 0.55)}},
+  'blinkning': {text: 'Blinkning', former: bada('eyeBlink', 1), tider: {in: BLINK.stang, kvar: BLINK.stangd, ut: BLINK.oppna}},
+  'tal': {text: 'Munnen öppen som i tal', former: {jawOpen: 0.28, ...bada('mouthLowerDown', 0.3), ...bada('mouthUpperUp', 0.1)}},
+};
+export const UTTRYCKEN = Object.keys(UTTRYCK) as Uttrycksnamn[];
+/** Så länge ett uttryck tonas in och ut som förval (sekunder), och står kvar med full styrka när inget slut är givet. */
+export const UTTRYCKSTON = {in: 0.25, kvar: 0.6, ut: 0.35};
+/**
+ * Ett uttryck lagt i tiden (filmens sekunder): det tonas in från `fran` under `in` sekunder, står kvar med `styrka`
+ * (0–1, gånger varje forms vikt) och tonas ut under `ut` sekunder, så att det är borta vid `till`.
+ */
+export type LagtUttryck = {namn: Uttrycksnamn; styrka: number; fran: number; till: number; in: number; ut: number};
+/**
+ * Lägger ett uttryck i tiden. Utan `till` står det kvar uttryckets egen tid (förval UTTRYCKSTON.kvar); är tiden kortare än
+ * in och ut tillsammans krymps båda lika mycket, så att det ändå börjar och slutar mjukt. Med `fran` -Infinity och `till`
+ * Infinity är det på hela tiden (editorns uttryck som hålls).
+ */
+export function lagUttryck(namn: Uttrycksnamn, styrka = 1, fran = 0, till?: number, tider: {in?: number; ut?: number} = {}): LagtUttryck {
+  const u = UTTRYCK[namn]; if (!u) throw Error(`Inget uttryck heter ${namn}. De som finns: ${UTTRYCKEN.join(', ')}.`);
+  if (!Number.isFinite(styrka) || !(fran < Infinity) || (till !== undefined && !(till > fran))) throw Error('Ett uttryck tar en styrka 0–1 och en tid där det börjar före den där det är borta.');
+  const inn = Math.max(0, tider.in ?? u.tider?.in ?? UTTRYCKSTON.in), ut = Math.max(0, tider.ut ?? u.tider?.ut ?? UTTRYCKSTON.ut), slut = till ?? fran + inn + (u.tider?.kvar ?? UTTRYCKSTON.kvar) + ut;
+  const k = Math.min(1, (slut - fran) / Math.max(1e-6, inn + ut));
+  return {namn, styrka: Math.max(0, Math.min(1, styrka)), fran, till: slut, in: inn * k, ut: ut * k};
+}
+/** Hur mycket av ett lagt uttryck som är på vid tiden t, 0 till dess styrka: mjukt in och ut, utan fart i ändarna. */
+export const uttrycketsVikt = (u: LagtUttryck, t: number) => t <= u.fran || t >= u.till ? 0 : Math.min(u.in > 0 ? mjuk((t - u.fran) / u.in) : 1, u.ut > 0 ? mjuk((u.till - t) / u.ut) : 1) * u.styrka;
+/** Det uttryck som ligger vid tiden t (det senast lagda av dem som har börjat och inte är borta), eller null. */
+export const uttryckVid = (lagda: readonly LagtUttryck[], t: number) => [...lagda].reverse().find(u => t > u.fran && t < u.till) ?? null;
+/**
+ * Uttrycken lagda på en ruta vid tiden t: en ny ruta med nytt ansikte, allt annat är rörelsens eget. Varje forms vikt
+ * summeras över uttrycken som är på (två som tonas i varandra), högst 1. Där rutan redan har en form (en blinkning eller
+ * en min ur rundans små rörelser) gäller den större vikten, och en blinkning stänger ögat också i ett uttryck med
+ * vidöppna ögon.
+ */
+export function medUttryck(frame: Frame, lagda: readonly LagtUttryck[], t: number): Frame {
+  const a: Ansikte = {...frame.a}, summa: Ansikte = {}; let nagot = false;
+  for (const u of lagda) { const w = uttrycketsVikt(u, t); if (w <= 0) continue; for (const [namn, mest] of Object.entries(UTTRYCK[u.namn].former)) summa[namn] = Math.min(1, (summa[namn] ?? 0) + mest * w); }
+  for (const [namn, v] of Object.entries(summa)) { if (v > (a[namn] ?? 0)) { a[namn] = v; nagot = true; } }
+  if (!nagot) return frame;
+  for (const sida of ['Left', 'Right']) { const blink = a[`eyeBlink${sida}`] ?? 0; if (blink > 0 && a[`eyeWide${sida}`]) a[`eyeWide${sida}`] *= 1 - blink; }
+  return {...frame, a};
+}
+/**
+ * Uttrycken ett i taget från tiden `fran`, `per` sekunder vart (förval 1,5 s): tonat in och ut med de förvalda tiderna,
+ * blinkningen två gånger i sin tid. `skyltar` är uttryckens namn med deras tider, för en film med namnet i bild.
+ */
+export function uttrycksserie(namn: readonly Uttrycksnamn[] = UTTRYCKEN, fran = 0, per = 1.5) {
+  const lagda: LagtUttryck[] = [], skyltar: {fran: number; till: number; text: string}[] = [];
+  namn.forEach((n, i) => { const a = fran + i * per, b = a + per; skyltar.push({fran: a, till: b, text: UTTRYCK[n].text});
+    if (n === 'blinkning') for (const s of [0.3, 0.9]) lagda.push(lagUttryck(n, 1, a + s * per / 1.5));
+    else if (n !== 'neutral') lagda.push(lagUttryck(n, 1, a + 0.05, b - 0.05)); });
+  return {lagda, skyltar, langd: namn.length * per};
+}
+
 /**
  * Hela den ändrade rörelsen i grundrörelsernas format (dealer3d/data), ruta för ruta, så att den kan läggas in i de
  * andra mapparna. Givens ögonblick (kortet lämnar skon, vänds, ligger) räknas om till följdens rutor.
