@@ -12,7 +12,7 @@ skärminspelning av ett bord med en fast kamera och två dealers efter varandra 
 | Var | Vad | I Git |
 | --- | --- | --- |
 | `verktyg/` | Verktygen nedan. Användningen står överst i varje fil. | ja |
-| `data/` | De små sammanställningarna i tal: `kalla.json` (bordsbildens ruta och de rena partierna), `faser.json` (spelets skyltar genom filmen och rundorna), `monster.json` (varje handrörelse, blinkning och huvudrörelse per dealer; en rad på 230 KB, läs den med sin sökväg), `scen.json` (kameran och bordets fasta saker), `givar.json` (varje kort som landade), `mot-vart-bord.json` (livebordet mot vårt eget i tal), `uppsattning.json` (hela livebordets uppsättning i linsvärldens meter, för att byggas som en andra uppsättning bredvid vår standard), `stil-kameran.json` och `stil-bordet.json` (vardera dealerns sätt att ge, i meter, grader och sekunder: det dockan läser), `rorelser.json` (allt de gör, i stycken och slag). | ja |
+| `data/` | De små sammanställningarna i tal: `kalla.json` (bordsbildens ruta och de rena partierna), `faser.json` (spelets skyltar genom filmen och rundorna), `monster.json` (varje handrörelse, blinkning och huvudrörelse per dealer; en rad på 230 KB, läs den med sin sökväg), `scen.json` (kameran och bordets fasta saker), `givar.json` (varje kort som landade), `mot-vart-bord.json` (livebordet mot vårt eget i tal), `uppsattning.json` (hela livebordets uppsättning i linsvärldens meter, för att byggas som en andra uppsättning bredvid vår standard), `stil-kameran.json` och `stil-bordet.json` (vardera dealerns sätt att ge, i meter, grader och sekunder: det dockan läser), `rorelser.json` (allt de gör, i stycken och slag), `sam-prov/jamforelse.json` (SAM 3D Body mot facit och MediaPipe-lyftet på dockans film, nedan). | ja |
 | `video/` | Filmen, `kalla.mp4`. | nej |
 | `matt/` | Måtten per ruta, en fil per rent parti (`rorelse-<start>.json`). Görs om med `mat.py`. | nej |
 | `rutor/` | Ark och filmer att titta på: `oversikt/` (hela filmen i små rutor), `kontroll/` (måtten ritade över filmen), `streck-*.mp4`. | nej |
@@ -209,6 +209,59 @@ vid hans egna kort.
 - **Spelets gränssnitt ligger över bilden.** När händerna ligger bakom skylten eller knapparna mitt i bilden hittas de
   sämre; det syns som luckor i måtten och ska inte läsas som rörelse.
 
+## Djup ur SAM 3D Body
+
+Prövat 2026-11-27 på dockans egen film, där facit finns: mannen ger ett kort till plats 4
+(`../blackjack-dealer/assets/proofs/takt-12-08-20261127/1-mannen-plats-4.mp4`, 61 rutor; facit
+`../blackjack-dealer/dealer3d/data/giv-fran-2-3-p4c1-ren-a-man.json`). Alla 61 rutor lästes med
+`../blackjack-dealer/dealer3d/tools/docka-sam.py` (bara kroppsmodellen, spelets lins och en ruta kring dockan räknad ur
+facit) på en hyrd maskin, och jämfördes med facit och med MediaPipe-lyftet (`lyft.py prov`) på samma rutor. Talen står
+i `data/sam-prov/jamforelse.json`. Fel i centimeter i djupled (längs kamerans synlinje), median över rutorna, och i
+parentes den sämsta tiondelen:
+
+| Led | SAM som den ger det | SAM med en skala och en flytt för hela filmen | SAM flyttad så att bålen står där den står (det lyftet får veta) | MediaPipe-lyftet |
+| --- | --- | --- | --- | --- |
+| Axlar | 12,9 | 3,7 (6,2) | 4,1 (5,9) | 4,9 (8,3) |
+| Armbågar | 11,4 | 2,6 (5,1) | 2,6 (4,7) | 4,5 (18,4) |
+| Handleder | 15,3 | 2,9 (6,9) | 3,1 (6,8) | 6,1 (19,6) |
+| Huvudet | 12,8 | 1,2 (4,1) | 1,3 (3,8) | 18,1 (26,1) |
+| Fingertopparna | 17,8 | 5,1 (9,4) | 5,1 (9,2) | 14,0 (24,7) |
+
+- **SAM hittar dockan:** dess egna punkter i bilden ligger 16 bildpunkter från dockans leder i median. I sidled och
+  höjd är felet 1–4 cm, som lyftets.
+- **Avståndet är en skattning, formen håller.** SAM lägger hela dockan cirka 10 cm för långt från kameran; med bålens
+  plats given är djupet 1–5 cm fel i stället för lyftets 2–18. Störst skillnad på armen som ger: högra handleden 2,3 cm
+  mot 9,6 (sämsta tiondelen 8,6 mot 21), högra armbågen 3,2 mot 9,2. Det lyftet tar ur MediaPipe som `nearer` (hur
+  mycket närmare kameran handleden är än axeln) blir 1,6 och 6,2 cm fel med SAM, mot 4,0 och 11,9.
+- **Armarna är stadiga:** överarmen 0,26–0,29 m och underarmen 0,24–0,27 m genom filmen (dockans är 0,28 och 0,27;
+  underarmen blir 2 cm för kort), mot 0,20–0,30 och 0,12–0,25 i MediaPipes egen kropp.
+- **Tid och pris:** 1,7 s per ruta på ett RTX 3070 (kroppsmodellen räknas på processorn, som `docka-sam.py` gör) och
+  13 s att ladda. Maskinen (RunPod, RTX 3070, 0,13 USD i timmen) levde 5,7 minuter, varav 2,3 för att starta och sätta
+  upp modellen: 0,01 USD. De cirka 150 nyckelrutor som dealrarnas lyft behöver blir under 10 minuter och 0,02–0,05 USD.
+
+Körs om från repots rot (`PY` som ovan; nycklarna `RUNPOD_API_KEY` och `HF_TOKEN` i `.env.local` i roten, och
+modellen `facebook/sam-3d-body-dinov3` är spärrad hos Hugging Face tills kontot har fått tillgång). Betalt: bara på
+Jakobs ord.
+
+```
+ffmpeg -i <filmen> -fps_mode passthrough -start_number 0 slask/live-bj/sam/rutor/r%03d.png
+PY live-bj/verktyg/sam_runpod.py ruta <facit>                       # rutan kring dockan, x0,y0,x1,y1
+node live-bj/verktyg/sam_runpod.ts kor slask/live-bj/sam/korning slask/live-bj/sam/rutor/r*.png --box <rutan> --facit <facit>
+PY live-bj/verktyg/mat.py <filmen> <källfil> slask/live-bj/sam/matt --steg 1 --ensam
+PY live-bj/verktyg/sam_runpod.py jamfor slask/live-bj/sam/korning/sam.json <facit> slask/live-bj/sam/matt live-bj/data/sam-prov/jamforelse.json
+```
+
+`kor` hyr det billigaste NVIDIA-kortet med minst 8 GB för högst 0,35 USD i timmen, sätter upp modellen där (koden från
+GitHub, paketen, kontrollpunkten med `HF_TOKEN`), skickar rutorna och `docka-sam.py`, hämtar `sam.json` och förstör
+maskinen; en klocka, en vaktprocess bredvid och ett `finally` stänger den, och liggaren `liggare.json` i ut-mappen
+håller alla körningar under 90 minuter och 3 USD sammanlagt. `lista` visar saldot och kontots maskiner; `stang` förstör
+det verktyget har startat. Källfilen till `mat.py` är som `data/kalla.json`: hela filmen som ett parti.
+
+**Före dealrarna:** deras rutor skulle lämna datorn till den hyrda maskinen, vilket [AGENTS.md](AGENTS.md) inte tillåter
+utan Jakobs ord. `docka-sam.py` tar bara spelets bild (1764 × 1174) och lins; livebordets bild och kamera
+(`data/scen.json`) behöver samma läsning med sina egna mått. Svaret går sedan in i `lyft.py` som `nearer`, eller
+ersätter armarnas djup där, med bålen placerad som i dag.
+
 ## Överlämning
 
 Skrivet 2026-11-27 av agenten som byggde mappen, för den som fortsätter.
@@ -228,7 +281,8 @@ kedjan körs de senare om.
 
 **Känt svagt:**
 
-- Djupet. En kamera ger inget. Farter i meter håller på en tredjedel när, ett lyft 4–11 cm per led.
+- Djupet. En kamera ger inget. Farter i meter håller på en tredjedel när, ett lyft 4–11 cm per led (SAM 3D Body gav
+  1–5 cm på dockan, men är inte infört; se ovan).
 - Bålens avstånd bakom kanten är skattat (0,07 och 0,16 m), och bålens lutning framåt syns inte i lyften.
 - Fingrarna. Handen är 40–55 bildpunkter; måtten säger att greppet lever, inte ledernas vinklar.
 - Kortet i handen syns i 23 % av rutorna. Vändningen och kortets fart i handbytet går inte att få.
@@ -244,9 +298,10 @@ kedjan körs de senare om.
 - Fler lyft: kortet till honom själv med vänsterhanden, korten in i lådan, väntan på fler ställen. Urvalet står
   i `lyft.py` (`giv`); ett nytt slag är en ny loop över styckena i `rorelser.json`.
 - Mäta provet `naturlig-giv-20261127` som dockans andra filmer (`mat.py --ensam`, sedan `docka.py`).
-- Djup ur SAM 3D Body, om Jakob låter sätta upp den här: det går in i `lyft.py` som `nearer` (hur mycket närmare
-  kameran armbågen är än axeln, handleden än armbågen och handleden än axeln, i meter längs filten, per ruta), som
-  i dag kommer ur MediaPipes egen kropp i `lift()`. Pröva först med `lyft.py prov` mot dockans facit.
+- Djup ur SAM 3D Body: prövat på dockan och tydligt bättre (se ovan). Kvar är Jakobs ord om dealrarnas rutor, läsningen
+  med livebordets bild och kamera, och att föra in det i `lyft.py` som `nearer` (hur mycket närmare kameran armbågen
+  är än axeln, handleden än armbågen och handleden än axeln, i meter längs filten, per ruta), som i dag kommer ur
+  MediaPipes egen kropp i `lift()`.
 - Skilja ut vändningen av dealerns eget kort ur styckena "at his own cards".
 - Låta `ram.py` se inzoomningen (smala kontrollrutor intill bildens kant) och köra om `mat.py` för de två partierna.
 
