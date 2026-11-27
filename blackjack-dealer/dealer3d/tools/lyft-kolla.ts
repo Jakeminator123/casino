@@ -40,6 +40,8 @@ import {handFaults, boneLengths} from '../src/hand-rule.ts';
 import {BALEN, DATA, KONTAKT, armIBalenAv, jamna, lugna, type Frame, type Kort, type Lyft} from './lyft-till-docka.ts';
 
 const ROOT = path.join(DATA, '../..'), CASINO = path.join(ROOT, '..');
+/** Hur många rutor efter bytet kortet får vara längre bort än handen medan det går in i den (rörelsedomaren 2026-11-27). */
+const NARMAR_SIG = 4;
 const HACK = {steg: 0.015, ryck: 0.025, huvudSteg: 0.005, huvudRyck: 0.015, blick: 5}, HANDLED = 50.5, ANKARE = 0.0005, FPS = 30;
 const SIDOR = [['R', 1], ['L', -1]] as const;
 const grader = (c: number) => Math.acos(Math.max(-1, Math.min(1, c))) * 180 / Math.PI, mm = (m: number) => Math.round(m * 1000), mm1 = (m: number) => Math.round(m * 10000) / 10;
@@ -131,12 +133,26 @@ export function kolla(fil: string) {
       rorSigMm: Math.round(Math.max(...f.slice(m.rests, n - 1).map(x => length(sub(x.card.c, k.c)))) * 10000) / 10, vridsPaFiltenGrader: r1(vrids), glider: r1(glider * 1000)};
     if (dM > 0.003 || landning.vinkelMotMalet > 2 || !landning.plant || !landning.framsidanUpp || landning.rorSigMm > 1) not('kortet landar inte rätt', dM, `${landning.franMaletMm} mm och ${landning.vinkelMotMalet}° från målet`, m.rests);
     if (vrids > 1 || glider > 0.0015) not('kortet läggs till rätta på filten', Math.max(vrids, glider * 1000), `vrids ${landning.vridsPaFiltenGrader}° och glider ${landning.glider} mm under tummen medan det ligger, rutorna ${t0}–${m.rests}`, t0);
-    // (domaren 2026-11-27: kortet föll de sista 30 mm med fingret ovanför och gled sedan bakåt av sig självt): från tre rutor
-    // innan kortet ligger plant till att det ligger rör det sig bara med en fingertopp på sig (tummen), toppens mitt högst 12 mm från
-    // kortets ovansida och inom 5 mm från dess kanter
-    for (let t = Math.max((m.leavesShoe ?? 0) + 1, t0 - 3); t <= m.rests; t++) { const k = f[t].card, steg = length(sub(k.c, f[t - 1].card.c)); if (steg <= 0.001) continue;
+    // (domaren 2026-11-27: kortet föll de sista 30 mm med fingret ovanför och gled sedan bakåt av sig självt): från rutan kortet
+    // ligger plant till att det ligger rör det sig bara med en fingertopp på sig (tummen), toppens mitt högst 12 mm från kortets
+    // ovansida och inom 5 mm från dess kanter. (Före det vänds kortet under näven och tummen tar det på kant, nedan.)
+    for (let t = Math.max((m.leavesShoe ?? 0) + 1, t0); t <= m.rests; t++) { const k = f[t].card, steg = length(sub(k.c, f[t - 1].card.c)); if (steg <= 0.001) continue;
       const nara = TOPPAR_R.map(j => overKortet(f[t], j)).filter(x => x.inom).sort((p, q) => p.over - q.over)[0];
-      if (!nara || nara.over > 0.012) not('kortet rör sig utan fingret', steg, `${mm(steg)} mm på en ruta med närmaste fingertopp ${nara ? `${mm(nara.over)} mm från kortet` : 'utanför det'}`, t); } }
+      if (!nara || nara.over > 0.012) not('kortet rör sig utan fingret', steg, `${mm(steg)} mm på en ruta med närmaste fingertopp ${nara ? `${mm(nara.over)} mm från kortet` : 'utanför det'}`, t); }
+    // (rörelsedomaren 2026-11-27: kortet ska följa en hand, inte ligga bredvid den eller hoppa in under den): från rutan efter
+    // bytet tills kortet ligger plant ligger kortets mitt i den hållande handen (högern), högst kortets halva diagonal plus
+    // 20 mm från handflatans mitt (handleden och knogarnas medel), och det avståndet ändras högst 20 mm på en ruta, till och
+    // med den första rutan kortet ligger plant (glidningen in i den rutan prövas också). Längre bort än så är kortet i handen
+    // bara om en fingertopp på någon hand rör det (högst 12 mm från det, inom dess kanter): de NARMAR_SIG första rutorna efter
+    // bytet, medan det går in i handen (minst 5 mm närmare per ruta), och när tummen har det på väg till platsen.
+    const meet = m.ankare?.borjan === 'A2M' ? 0 : ti?.meet;
+    if (meet !== undefined && meet !== null) { const nar = Math.hypot(CARD.height, CARD.width) / 2 + 0.02, flata = (x: Frame): Vec3 => [0, 1, 2].map(i => [0, 5, 9, 13, 17].reduce((s, k) => s + x.R.p[k][i], 0) / 5) as Vec3;
+      const rors = (x: Frame) => (['R', 'L'] as const).some(s => [4, 8, 12, 16, 20].some(k => { const d = sub(x[s].p[k], x.card.c), a = cross(x.card.n, x.card.l);
+        return Math.abs(dot(d, x.card.n)) - CARD.thickness / 2 <= 0.012 && Math.abs(dot(d, x.card.l)) < CARD.height / 2 + 0.005 && Math.abs(dot(d, a)) < CARD.width / 2 + 0.005; }));
+      let forra: number | null = f[meet] ? length(sub(f[meet].card.c, flata(f[meet]))) : null;
+      for (let t = meet + 1; t <= t0; t++) { const d = length(sub(f[t].card.c, flata(f[t]))), narmar = t <= meet + NARMAR_SIG && forra !== null && d < forra - 0.005;
+        if (t < t0 && d > nar && !((narmar || t > meet + NARMAR_SIG) && rors(f[t]))) not('kortet ligger inte i handen', d - nar, `${mm(d)} mm från handflatan`, t);
+        if (forra !== null && Math.abs(d - forra) > 0.02) not('kortet glider i handen', Math.abs(d - forra), `${mm(Math.abs(d - forra))} mm på en ruta`, t); forra = d; } } }
 
   // ---- mot lyftet
   // (två gånger: över hela stycket, och över rörelsen själv, där ankarets början och slut inte räknas: för en giv från att

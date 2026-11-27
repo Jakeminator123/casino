@@ -48,7 +48,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   domen: **Inte bra**, fortfarande inget skäl för en film: kortet ligger bredvid handen i ruta 31–33 och hoppar
   sedan 145 mm in under näven på en ruta, och vilan i ruta 0 blev en näve där dealerns hand ligger platt. Domaren
   föreslog en spärr i `lyft-kolla.ts` som prövar att kortet följer den hållande handen från bytet till att det ligger
-  plant. Tolfte vändan pågår. Dockans huvud är cirka 12 % smalare än dealerns och nickar mindre.
+  plant. Tolfte vändan byggde spärren (den slog till i alla givar) och lät kortet bäras i högerhandens eget grepp:
+  det går jämnt in i handen över ruta 30–35, och vilan i ruta 0 är en platt hand. Tionde domen: **Nja**, "ett steg
+  kvar": bytet och fällningen kan en kamera nu följa, men kortet hoppar 51 mm när det läggs under tummen (ruta
+  39→40), och kortets vita framsida syns under fingrarna i ruta 34–39 där dealerns är dolt. Trettonde vändan pågår.
+  Dockans huvud är cirka 12 % smalare än dealerns och nickar mindre.
 - **Visningsfilmen** (för Jakobs chef): provet `visning-for-chefen-20261127` (67 s, den riktiga dealern syns bara som
   mätt streckfigur), och en version med Youtubefilmen som bara ligger på datorn
   (`../live-bj/rutor/visning/visning-med-youtubefilmen.mp4`). Inte dömd av någon domare.
