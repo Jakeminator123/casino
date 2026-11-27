@@ -123,16 +123,19 @@ export function kolla(fil: string) {
     led('vänster fingertoppar', x => mid(x.L.p[8], x.L.p[12]), y => y.L.p ? mid(y.L.p[8], y.L.p[12]) : null, fran, till), led('huvudet', x => x.h, y => y.h, fran, till)];
   const motLyftet = {helaStycket: leder(), rorelsen: ti ? leder(ti.arrive, ti.vila) : leder(10, n - 11), rutor: ti ? [ti.arrive, ti.vila] : [10, n - 11]};
   // handen mot lyftet, ruta för ruta: mot lyftet jämnat som verktyget gör det, och mot det råa
-  const handMotLyftet: Record<string, unknown> = {};
+  // (ändpunkten: högerns väg böjd mot vår kortplats från bytet till nedläggningen, made.hand a; lyft-till-docka.ts andpunktMm)
+  const andpunkt = ((m.made as {chosen?: {andpunktMm?: number}}).chosen?.andpunktMm ?? 0) / 1000;
+  const handMotLyftet: Record<string, unknown> = {andpunktFlyttadMm: mm(andpunkt)};
   for (const [s, namn] of [['R', 'höger'], ['L', 'vänster']] as const) {
     // (tvärs synlinjen från livebordets kamera: det filmens bild visar, och spärrar; längs den: djupet, som redovisas; och i bildpunkter)
     const kod = m.made.hand?.[s] ?? 'l'.repeat(n), jamnad = lugna(L.map(y => y[s].w)), per: Record<string, number[]> = {}, ra: Record<string, number[]> = {}, langs: Record<string, number[]> = {}, px: Record<string, number[]> = {};
     for (let t = 0; t < Math.min(n, L.length); t++) { const k = kod[t] ?? 'l', u = unit(sub(jamnad[t], KAMERAN)), dv = sub(f[t][s].w, jamnad[t]), along = dot(dv, u), d = length(sub(dv, [u[0] * along, u[1] * along, u[2] * along]));
       const rv = sub(f[t][s].w, L[t][s].w), ur = unit(sub(L[t][s].w, KAMERAN)), ra0 = dot(rv, ur), r = length(sub(rv, [ur[0] * ra0, ur[1] * ra0, ur[2] * ra0])), P = liveSee(f[t][s].w), Q = liveSee(L[t][s].w);
       (per[k] ??= []).push(d); (ra[k] ??= []).push(r); (langs[k] ??= []).push(Math.abs(along)); if (P && Q) (px[k] ??= []).push(Math.hypot(P.x - Q.x, P.y - Q.y) / 1000);
-      if (k === 'l' && d > 0.0015) not(`${namn} handled ur lyftet`, d, `${mm(d)} mm från lyftet tvärs synlinjen utan kontakt`, t); if (k === 'k' && d > KONTAKT + 0.0005) not(`${namn} handled ur lyftet`, d, `${mm(d)} mm från lyftet tvärs synlinjen i en kontakt`, t); }
+      if (k === 'l' && d > 0.0015) not(`${namn} handled ur lyftet`, d, `${mm(d)} mm från lyftet tvärs synlinjen utan kontakt`, t); if (k === 'k' && d > KONTAKT + 0.0005) not(`${namn} handled ur lyftet`, d, `${mm(d)} mm från lyftet tvärs synlinjen i en kontakt`, t);
+      if (k === 'a' && d > andpunkt + KONTAKT + 0.0005) not(`${namn} handled ur lyftet`, d, `${mm(d)} mm från lyftet tvärs synlinjen, mer än ändpunktens flytt ${mm(andpunkt)} mm och en kontakt`, t); }
     const sam = (v: number[] = []) => { const s2 = [...v].sort((a, b) => a - b); return v.length ? {rutor: v.length, median: mm(s2[s2.length >> 1]), p95: mm(s2[Math.floor(s2.length * 0.95)]), mest: mm(s2[s2.length - 1])} : null; };
-    handMotLyftet[namn] = {lyftet: sam(per.l), kontakt: sam(per.k), brygga: sam(per.b), vilan: sam(per.v), raa: {lyftet: sam(ra.l), kontakt: sam(ra.k)}, langs: {lyftet: sam(langs.l), kontakt: sam(langs.k)}, bildpunkter: {lyftet: sam(px.l), kontakt: sam(px.k)}};
+    handMotLyftet[namn] = {lyftet: sam(per.l), kontakt: sam(per.k), andpunkt: sam(per.a), brygga: sam(per.b), vilan: sam(per.v), raa: {lyftet: sam(ra.l), kontakt: sam(ra.k)}, langs: {lyftet: sam(langs.l), kontakt: sam(langs.k)}, bildpunkter: {lyftet: sam(px.l), kontakt: sam(px.k)}};
   }
   // skakigheten: i stillheten, steget och ändringen i steget (mm), dockans och lyftets; handledernas toppfart (m/s)
   const skak = (v: Vec3[]) => { const sl = jamna(v, 1), still = sl.map((p, t) => t > 0 && t < v.length - 1 && length(sub(sl[t + 1], sl[t - 1])) * FPS / 2 < 0.08), steg: number[] = [], acc: number[] = [];
@@ -182,7 +185,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     if (r.landning) console.log(`  landningen: ${r.landning.franPlatsenMm} mm från platsen, ${r.landning.plant ? 'plant' : 'inte plant'}, framsidan ${r.landning.framsidanUpp ? 'upp' : 'NED'}, rör sig ${r.landning.rorSigMm} mm efteråt`);
     type Sam = {rutor: number; median: number; p95: number; mest: number} | null;
     const sam = (x: Sam) => x ? `${x.rutor} rutor median ${x.median}, 95 % ${x.p95}, mest ${x.mest}` : '–';
-    for (const [namn, v] of Object.entries(r.handMotLyftet) as [string, {lyftet: Sam; kontakt: Sam; brygga: Sam; vilan: Sam; raa: {lyftet: Sam; kontakt: Sam}; langs: {lyftet: Sam; kontakt: Sam}; bildpunkter: {lyftet: Sam; kontakt: Sam}}][])
+    console.log(`  ändpunkten flyttad ${(r.handMotLyftet as {andpunktFlyttadMm: number}).andpunktFlyttadMm} mm tvärs synlinjen (högerns väg böjd mot vår kortplats)`);
+    for (const [namn, v] of Object.entries(r.handMotLyftet).filter(([k]) => k !== 'andpunktFlyttadMm') as [string, {lyftet: Sam; kontakt: Sam; brygga: Sam; vilan: Sam; raa: {lyftet: Sam; kontakt: Sam}; langs: {lyftet: Sam; kontakt: Sam}; bildpunkter: {lyftet: Sam; kontakt: Sam}}][])
       console.log(`  ${namn} handled mot lyftet, tvärs synlinjen (mm): lyftet ${sam(v.lyftet)}; kontakt ${sam(v.kontakt)}; brygga ${sam(v.brygga)}; mot det råa ${sam(v.raa.lyftet)} / ${sam(v.raa.kontakt)}; i bilden (px) ${sam(v.bildpunkter.lyftet)} / ${sam(v.bildpunkter.kontakt)}; längs synlinjen (djupet, mm) ${sam(v.langs.lyftet)} / ${sam(v.langs.kontakt)}`);
     console.log(`  arm in i bålen som mest (mm): höger ${r.armIBalenMest.höger}, vänster ${r.armIBalenMest.vänster}`);
     const sk = r.skakighet as Record<string, {dockan: {steg: number; andra: number; stilla: number}; lyftet: {steg: number; andra: number}}> & {toppfart: Record<string, {dockan: number; lyftet: number}>};

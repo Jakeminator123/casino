@@ -30,7 +30,8 @@ test('i Danilos giv till plats 4 står handlederna där lyftet har dem', () => {
     ut.frames.forEach((f, t) => { if (t >= lyft.frames.length) return; const q = jamnad[t], u0 = [q[0], q[1] - LIVE_CAMERA.height, q[2]], ul = Math.hypot(...u0), u = u0.map(x => x / ul);
       const dv = f[s].w.map((x, k) => x - q[k]), along = dv.reduce((sum, x, k) => sum + x * u[k], 0), d = Math.hypot(...dv.map((x, k) => x - along * u[k]));
       if (kod[t] === 'l') { lyftets++; assert.ok(d <= 0.0015, `${s} handled ${Math.round(d * 1000)} mm från lyftet tvärs synlinjen i ruta ${t}, där handen är lyftets`); }
+      if (kod[t] === 'a') assert.ok(d <= ut.kvitto.andpunktMm / 1000 + KONTAKT + 0.001, `${s} handled ${Math.round(d * 1000)} mm från lyftet tvärs synlinjen i ruta ${t}, mer än ändpunktens flytt och en kontakt`);
       if (kod[t] === 'k') assert.ok(d <= KONTAKT + 0.001, `${s} handled ${Math.round(d * 1000)} mm från lyftet tvärs synlinjen i ruta ${t}, en kontakt får högst ${KONTAKT * 1000} mm`); });
-    assert.ok(lyftets + [...kod].filter(k => k === 'k').length > ut.frames.length / 3, `${s}: handen är lyftets i för få rutor`);
+    assert.ok(lyftets + [...kod].filter(k => k === 'k' || k === 'a').length > ut.frames.length / 3, `${s}: handen är lyftets i för få rutor`);
   }
 });

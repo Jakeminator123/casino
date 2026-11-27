@@ -56,7 +56,7 @@ export type Lyft = {style: 'kameran' | 'bordet'; docka: string; to?: string; kin
 type Stil = {face: {shapes: Record<string, {verdict: string; usual: number}>}; speed: Record<string, {top_m_s?: {best?: {median: number}}}>};
 type Sida = 'R' | 'L';
 /** Vad en hand gör i en ruta, i rörelsens made.hand: v vilan (ankaret), b en brygga mellan ankaret och lyftet, l lyftet, k lyftet med en kontakträttning. */
-export type Kalla = 'v' | 'b' | 'l' | 'k';
+export type Kalla = 'v' | 'b' | 'l' | 'k' | 'a';
 export type Fas = {fran: number; till: number; vad: string; kalla: 'ankaret' | 'brygga' | 'lyftet'};
 
 // ---- småsaker -------------------------------------------------------------------------------------------------------
@@ -303,7 +303,7 @@ export function ankaret(doll: Doll, stil: 'kameran' | 'bordet', vantan: Lyft, va
     const sign = side === 'R' ? 1 : -1, s = side === 'R' ? fr.shoulders[0] : fr.shoulders[1], fr2 = vantan.frames.filter(f => f[side].p);
     const A = (() => { const fw = unit(medianV(fr2.map(f => axesOf(f[side].p!, sign).forward))), pm = medianV(fr2.map(f => axesOf(f[side].p!, sign).palm)), palm = unit(sub(pm, mul(fw, dot(pm, fw)))); return {forward: fw, palm, across: cross(palm, fw)}; })();
     const q = Array.from({length: 21}, (_, k) => medianV(fr2.map(f => local(f[side].p!, axesOf(f[side].p!, sign))[k])));
-    const bas = side === 'R' ? H.rest!.right : H.rest!.left, S0 = paDockan(q, bas), S = iVarandra(S0, sign) ? bas : S0;
+    const bas = side === 'R' ? H.rest!.right : H.rest!.left, S = bas; void q;   // (handen i vilan är dockans egen avslappnade, öppna hand: lyftets median blev en näve, domaren 2026-11-27)
     const W0 = medianV(vantan.frames.map(f => f[side].w));
     let h: Hand = {a: A, w: W0, S}; const hojd = -overFilten(h); h = flyttHand(h, [0, hojd, 0]);
     // (når armen inte dit utan att bålen lutar, flyttas handen längs filten mot axeln så långt som behövs)
@@ -471,7 +471,7 @@ export function bygg(b: Bygg) {
   const genom = (keys: [number, number][]) => (t: number) => { if (!keys.length) return 0; if (t <= keys[0][0]) return keys[0][1]; const k = keys.findIndex(([x]) => x >= t); if (k < 0) return keys.at(-1)![1];
     const [a, va] = keys[k - 1], [b2, vb] = keys[k]; return b2 > a ? va + (vb - va) * mjuk((t - a) / (b2 - a)) : vb; };
   const djupF: Record<Sida, (t: number) => number> = {R: () => 0, L: () => 0};
-  const sido: Record<Sida, {v: Vec3; w: (t: number) => number}[]> = {R: [], L: []};
+  const sido: Record<Sida, {v: Vec3; w: (t: number) => number}[]> = {R: [], L: []}, andpunkt: {v: Vec3; w: (t: number) => number} = {v: [0, 0, 0], w: () => 0};
   const kontakt: Record<string, {langsMm: number; tvarsMm: number; behovdesMm: number; px: number}> = {};
   const ramp = (t: number, a: number, b: number) => b <= a ? (t >= b ? 1 : 0) : smooth((t - a) / (b - a));
   if (giv && ti && plats) {
@@ -494,10 +494,14 @@ export function bygg(b: Bygg) {
     djupF.L = genom([[Math.max(0, Math.min(t.resa, t.arrive - 6)), 0], [t.arrive, lS], [t.pull, lS], [t.leaves, lU], [t.meet, lU], [t.meet + 12, 0]]);
     djupF.R = genom([[Math.max(bryggor.R.t1, t.meet - 12), 0], [t.meet, lM], [t.rests, lR], [t.vila, lR]]);
     sido.L.push({v: latS, w: x => ramp(x, t.arrive - 5, t.arrive) * (1 - ramp(x, t.pull, t.leaves + 3))});
-    sido.R.push({v: latR, w: x => ramp(x, t.rests - 8, t.rests) * (1 - ramp(x, t.vila, t.vila + 4))});
+    // (ändpunkten: den riktiga dealern träffade sin plats på sitt bord, vår docka ska träffa vår. Det som återstår tvärs
+    // synlinjen när kortet läggs böjer högerns väg mjukt mot platsen från bytet (noll) till nedläggningen (helt) och står
+    // kvar tills handen har gått hem: undantaget från KONTAKT, redovisat som andpunktMm. Vägen behåller filmens form och takt.)
+    void latR; andpunkt.v = tvars(sub(ytan(KL, PR), PR), uR); andpunkt.w = x => x <= t.meet ? 0 : x >= t.rests ? 1 : mjuk((x - t.meet) / (t.rests - t.meet));
   }
-  /** Lyftets hand med djupet förankrat (längs synlinjen). */
-  const lyftHandD = (s: Sida, t: number): Hand => flyttHand(lyftHand(s, t), mul(syn(s, t), djupF[s](t)));
+  const andpunktVid = (s: Sida, t: number): Vec3 => s === 'R' ? mul(andpunkt.v, andpunkt.w(t)) : [0, 0, 0];
+  /** Lyftets hand med djupet förankrat (längs synlinjen) och, för högern, ändpunkten på vår plats. */
+  const lyftHandD = (s: Sida, t: number): Hand => flyttHand(lyftHand(s, t), add(mul(syn(s, t), djupF[s](t)), andpunktVid(s, t)));
 
   // ---- händerna: ankaret, bryggorna och lyftet --------------------------------------------------------------------------
   const kalla: Record<Sida, Kalla[]> = {R: [], L: []};
@@ -512,7 +516,7 @@ export function bygg(b: Bygg) {
         hander[s].push({a: between(ank[s].a, h1.a, m), w: brygga(ank[s].w, [0, 0, 0], h1.w, fart(s, B.t1), Tr, t - B.t0), S: formMellan(ank[s].S, h1.S, m)}); kalla[s].push('b'); vikt[s].push(m); continue; }
       if (t > B.t2) { const Tr = B.t3 - B.t2, u = (t - B.t2) / Tr, m = mjuk(u), h2 = lyftHandD(s, B.t2);
         hander[s].push({a: between(h2.a, ank[s].a, m), w: brygga(h2.w, fart(s, B.t2), ank[s].w, [0, 0, 0], Tr, t - B.t2), S: formMellan(h2.S, ank[s].S, m)}); kalla[s].push('b'); vikt[s].push(1 - m); continue; }
-      hander[s].push(lyftHandD(s, t)); kalla[s].push('l'); vikt[s].push(1);
+      hander[s].push(lyftHandD(s, t)); kalla[s].push(length(andpunktVid(s, t)) > 0.001 ? 'a' : 'l'); vikt[s].push(1);
     }
   }
   // (taket och kontrollen räknar tvärs synlinjen från de händer lyftet och bryggorna ger, med djupet förankrat)
@@ -522,7 +526,7 @@ export function bygg(b: Bygg) {
   // ---- kontakterna och kortet -------------------------------------------------------------------------------------------
   const C: Kort[] = Array.from({length: N}, () => kortISkon());
   const haller: Record<Sida, boolean[]> = {R: Array(N).fill(false), L: Array(N).fill(false)};
-  const kvitto = {lutGrader: 0, handledMest: {R: 0, L: 0}, nadde: {R: 0, L: 0}, kontakt, langsSynlinjen: {R: {median: 0, mest: 0}, L: {median: 0, mest: 0}}, ur: {R: 0, L: 0}, urFiltenLangs: {R: 0, L: 0}, vridenUrFilten: {R: 0, L: 0}, kortetPaFilten: 0, overGransen: {R: 0, L: 0}, kortetUr: {R: 0, L: 0}, glid: {} as Record<string, {mm: number; grader: number}>,
+  const kvitto = {lutGrader: 0, handledMest: {R: 0, L: 0}, nadde: {R: 0, L: 0}, kontakt, andpunktMm: 0, langsSynlinjen: {R: {median: 0, mest: 0}, L: {median: 0, mest: 0}}, ur: {R: 0, L: 0}, urFiltenLangs: {R: 0, L: 0}, vridenUrFilten: {R: 0, L: 0}, kortetPaFilten: 0, overGransen: {R: 0, L: 0}, kortetUr: {R: 0, L: 0}, glid: {} as Record<string, {mm: number; grader: number}>,
     vandning: null as null | {fran: number; till: number; handVreds: number; efterHanden: boolean; framsidanSyns: number | null}, landning: null as null | {handenFranKortet: number}};
   /** En rättning lagd på handen `s`: `d(t)` meter i rutan t; rutorna med en rättning tvärs synlinjen över en millimeter är kontakter (k). */
   const ratta = (s: Sida, d: (t: number) => Vec3) => { for (let t = 0; t < N; t++) { const x = d(t); if (length(x) < 1e-9) continue; hander[s][t] = flyttHand(hander[s][t], x); if (length(tvars(x, syn(s, t))) > 0.001 && kalla[s][t] === 'l') kalla[s][t] = 'k'; } };
@@ -547,19 +551,25 @@ export function bygg(b: Bygg) {
     kvitto.landning = {handenFranKortet: Math.round(length(sub(greppet(hander.R[t.rests]), paKortet(KL, greppet(hander.R[t.rests]), 0))) * 1000)};
     vandn = vandningen(L, t, framsidanSyns(lyft, t));
     kvitto.vandning = {fran: vandn.fran, till: vandn.till, handVreds: vandn.handVreds, efterHanden: vandn.efterHanden, framsidanSyns: framsidanSyns(lyft, t)};
-    // (i högern: som den tog kortet i bytet till som den har det när det ligger (greppet glider mjukt däremellan), och vänt
-    // kring dess långa linje genom greppet, mellan tummen och pekfingret, åt det håll som håller det ur filten)
+    // (i högern: kortet går från greppet i bytet till plant och lågt under fingrarna, ryggen upp (den riktiga
+    // dealern har det plant under handen strax efter bytet, åtta rutor); vänds sedan kort och lågt kring sin långa linje genom greppet,
+    // mellan tummen och pekfingret, åt det håll som håller det ur filten, på nio rutor som slutar där filmen först visar
+    // framsidan; och ligger därefter plant under fingrarna som handen lägger det, där handen har det när det ligger på platsen)
     const vandIGreppet = (k: Kort, h: Hand, x: number): Kort => { const l = unit(k.l), g = greppet(h), d = sub(g, k.c), o = add(k.c, sub(d, mul(l, dot(d, l)))); return {c: add(o, turned(sub(k.c, o), l, x)), l, n: turned(k.n, l, x)}; };
-    const mittFlip = Math.round((Math.max(t.meet, vandn.fran) + Math.max(t.meet + 1, vandn.till)) / 2);
-    const hallet = (() => { const h = hander.R[mittFlip], k = urHanden(h, G2R); return kortLagst(vandIGreppet(k, h, Math.PI / 2)) >= kortLagst(vandIGreppet(k, h, -Math.PI / 2)) ? 1 : -1; })();
-    const G3Rned = iHanden(hander.R[t.rests], vandIGreppet(KL, hander.R[t.rests], -hallet * Math.PI));
-    kvitto.glid['högern: från bytet till platsen'] = glid(G2R, G3Rned);
+    const syns = framsidanSyns(lyft, t), tf = Math.max(t.meet + 17, Math.min(t.rests - 2, syns ?? vandn.till)), fs = tf - 9, plant = t.meet + 8;
+    const hallet = (() => { const h = hander.R[t.rests], k = KL; return kortLagst(vandIGreppet(k, h, -Math.PI / 2)) >= kortLagst(vandIGreppet(k, h, Math.PI / 2)) ? 1 : -1; })();
+    const G3R = iHanden(hander.R[t.rests], KL), G3Rned = iHanden(hander.R[t.rests], vandIGreppet(KL, hander.R[t.rests], -hallet * Math.PI));
+    kvitto.glid['högern: från bytet till plant under fingrarna'] = glid(G2R, G3Rned);
+    kvitto.vandning = {...kvitto.vandning!, fran: fs, till: tf};
+    vandn = {...vandn, fran: fs, till: tf};
     const kortet = () => { for (let x = 0; x < N; x++) {
       if (x <= t.pull) C[x] = K0;
       else if (x < t.leaves) { C[x] = mellan(K0, urHanden(hander.L[x], G1), smooth((x - t.pull) / (t.leaves - t.pull))); haller.L[x] = true; }
       else if (x < t.meet) { C[x] = urHanden(hander.L[x], mellan(G1, G2L, mjuk((x - t.leaves) / (t.meet - t.leaves)))); haller.L[x] = true; }
       else if (x === t.meet) { C[x] = K2; haller.L[x] = haller.R[x] = true; }
-      else if (x < t.rests) { C[x] = vandIGreppet(urHanden(hander.R[x], mellan(G2R, G3Rned, mjuk((x - t.meet) / (t.rests - t.meet)))), hander.R[x], hallet * Math.abs(vandn!.theta[Math.min(x, n - 1)])); haller.R[x] = true; }
+      else if (x < fs) { C[x] = urHanden(hander.R[x], mellan(G2R, G3Rned, mjuk((x - t.meet) / (plant - t.meet)))); haller.R[x] = true; }
+      else if (x < tf) { C[x] = vandIGreppet(urHanden(hander.R[x], G3Rned), hander.R[x], hallet * Math.PI * mjuk((x - fs) / (tf - fs))); haller.R[x] = true; }
+      else if (x < t.rests) { C[x] = urHanden(hander.R[x], G3R); haller.R[x] = true; }
       else C[x] = KL; } };
     // (händerna ur filten: först längs synlinjen, mot kameran (djupet är det osäkra), mjukt över rutorna intill; det som då
     // återstår vrids bort kring handleden, fingrarna uppåt, högst 25 grader, och höjs till sist, högst KONTAKT tvärs synlinjen)
@@ -654,7 +664,8 @@ export function bygg(b: Bygg) {
   // (kortets långsida åt samma håll i alla rutor)
   for (let t = 1; t < N; t++) if (dot(frames[t].card.l, frames[t - 1].card.l) < 0) frames[t].card.l = frames[t].card.l.map(x => -x) as Vec3;
   // (hur långt handlederna står från lyftet längs synlinjen, där handen är lyftets: djupet som förankrades)
-  for (const [s] of SIDOR) { const v = frames.flatMap((f, t) => t < n && (kalla[s][t] === 'l' || kalla[s][t] === 'k') ? [Math.abs(dot(sub(f[s].w, L[s].w[t]), syn(s, t)))] : []).sort((a, b) => a - b); if (v.length) kvitto.langsSynlinjen[s] = {median: Math.round(v[v.length >> 1] * 1000), mest: Math.round(v[v.length - 1] * 1000)}; }
+  kvitto.andpunktMm = Math.round(length(andpunkt.v) * 1000);
+  for (const [s] of SIDOR) { const v = frames.flatMap((f, t) => t < n && (kalla[s][t] === 'l' || kalla[s][t] === 'k' || kalla[s][t] === 'a') ? [Math.abs(dot(sub(f[s].w, L[s].w[t]), syn(s, t)))] : []).sort((a, b) => a - b); if (v.length) kvitto.langsSynlinjen[s] = {median: Math.round(v[v.length >> 1] * 1000), mest: Math.round(v[v.length - 1] * 1000)}; }
   const handen = {R: kalla.R.join(''), L: kalla.L.join('')};
   return {frames, tider: ti, plats, kvitto, faser, egen, bryggor, handen, vand: vandn ? {fran: vandn.fran, till: vandn.till} : null, vidSkonHem, hander: {R: {godkand: fri.R.godkand, saknas: fri.R.saknas}, L: {godkand: fri.L.godkand, saknas: fri.L.saknas}}};
 }
