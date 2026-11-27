@@ -61,6 +61,18 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
 - **Ingen viss dator.** Repot ska gå att klona till valfri mapp: ingen kod eller text pekar på en användare eller en
   disk. Media följer inte med Git, så det som bara finns på en dator får inte vara något koden kräver.
 
+## Måtten och rörelseschemat
+
+- Måtten har en källa: koden (kameran, bordet, kortet och kortplatserna i `blackjack-dealer/src/table-lens.ts`,
+  dockornas mått i `blackjack-dealer/dealer3d/src/doll.ts`, takten i `dealer3d/src/koreo-giv.ts`). Ett mått ändras
+  där, aldrig i ett dokument.
+- `MATT.md` i roten är en utskrift av alla mått, vinklar, kortplatser, höjder och takter på ett ställe, bredvid det som
+  är mätt på ett riktigt livebord (`live-bj/data/`). Läs den för att se ett mått. Den ändras aldrig för hand:
+  `node matt.ts` skriver den, och kontrollen före push skriver om den och säger till när den inte stämmer.
+- Rörelseschemat står i `standarddocka/rorelsekatalog.json`: ankarena (en bild som klipp börjar och slutar i: A1,
+  A2.3, A3PnCm), stadierna (vad dealern gör: VILA, REDO, GIV, TILLBAKA …, vart och ett med hemankare, grundklipp och
+  varianter) och rörelserna (klippen), med vilka som finns och vilka som saknas. En ny rörelse skrivs in där.
+
 ## Tillfälligt och producerat
 
 - Arbetsfiler, försök och hjälpskript ligger i `slask/<projekt>/<uppgift>/`, aldrig bland koden. Ta bort din mapp när

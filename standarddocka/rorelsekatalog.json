@@ -1,0 +1,44 @@
+{
+  "om": "Rörelseschemat för standarddockan: ankarena, stadierna och rörelserna, de som finns och de som saknas. Skrivet av en agent 2026-11-27 på Jakobs ord; han lät agenten bestämma systemet och rättar det när han vill. Det som har status 'saknas' finns inte i koden än. MATT.md i roten skriver ut den här filen bredvid det som är mätt på riktiga dealrar (live-bj/data/rorelser.json); 'matt' är slagets namn där.",
+  "begrepp": {
+    "ankare": "En bild, inte en tid: en bestämd ställning där dockan står stilla, och som varje film börjar och slutar exakt i. Det är där två klipp kan sättas ihop, och där spelet kan välja vad som kommer härnäst. A står för ankare. Ett ankare kostar en bild per dealer och kamera, så de ska vara få: ett nytt läggs bara till där spelet måste kunna stanna och välja väg.",
+    "rorelse": "Ett klipp: en rörelse från ett ankare till ett ankare (ofta tillbaka till samma). Heter efter vad dealern gör.",
+    "stadium": "Vad dealern håller på med i spelet just nu: VILA, REDO, GIV, TILLBAKA och så vidare. Ett stadium har ett hemankare och en uppsättning klipp som får spelas medan spelet är där: ett grundklipp och varianter. VILA är till exempel ett grundklipp på ungefär en sekund i A1 och ett antal korta klipp som alla börjar och slutar i A1.",
+    "schemat": "Ankarena är noderna, klippen är strecken mellan dem, och stadiet säger vilka streck som hör ihop. En runda är en väg genom schemat, skriven med streck som förut: A1 - A2.3 - A3P4C1 - A2.3 - A1."
+  },
+  "ankare": [
+    { "id": "A1", "namn": "Vila", "var": "båda händerna vilar på filten framför dealern, blicken mot kameran", "status": "finns" },
+    { "id": "A2.3", "namn": "Redo vid skon", "var": "vänstern vid skons mynning, högern redo framför dealern, blicken på skon", "status": "finns" },
+    { "id": "A3PnCm", "namn": "Kortet har landat hos en spelare", "var": "plats n (1–7), kort m; handen ligger kvar vid kortet", "status": "finns", "anteckning": "standarddockorna har kort 1 till varje plats; kort 2 och uppåt saknas" },
+    { "id": "A3DCm", "namn": "Kortet har landat hos dealern", "var": "dealerns egna kortplats, kort m", "status": "saknas", "anteckning": "finns bara för den äldre dockan" },
+    { "id": "A2.1", "namn": "Nyp i skons fönster", "var": "ena handen nyper kortet i skons fönster", "status": "finns", "anteckning": "den äldre dockans (Paow); tas bort med henne" },
+    { "id": "A2.2", "namn": "Släp", "var": "handen över kortet i skon", "status": "finns", "anteckning": "den äldre dockans (Paow); tas bort med henne" }
+  ],
+  "stadier": [
+    { "id": "VILA", "hem": "A1", "namn": "Vila", "nar": "mellan rundorna och medan spelarna tänker" },
+    { "id": "REDO", "hem": "A2.3", "namn": "Redo vid skon", "nar": "medan korten delas ut, mellan två kort" },
+    { "id": "GIV", "hem": "A2.3", "namn": "Ett kort ut", "nar": "ett kort går från skon till en spelare eller till dealern" },
+    { "id": "TILLBAKA", "hem": "A3PnCm", "namn": "Handen hem", "nar": "efter att kortet har landat" },
+    { "id": "DEALERNS TUR", "hem": "A1", "namn": "Dealerns egna kort", "nar": "när spelarna är klara: hålkortet vänds och dealern drar" },
+    { "id": "SPELARENS TUR", "hem": "A1", "namn": "Mot spelaren", "nar": "när en spelare ska välja" },
+    { "id": "AVSLUT", "hem": "A1", "namn": "Rundan görs upp", "nar": "marker betalas ut och tas in, korten samlas in" }
+  ],
+  "rorelser": [
+    { "id": "VILA-GRUND", "stadium": "VILA", "namn": "Grundklippet i vila", "fran": "A1", "till": "A1", "hander": "stilla, med andning och blinkningar", "status": "delvis", "anteckning": "ställningen finns; andning, små egna rörelser och blinkning finns som ett val som är avstängt", "matt": "waiting" },
+    { "id": "VILA-VARIANT", "stadium": "VILA", "namn": "Korta varianter i vila", "fran": "A1", "till": "A1", "hander": "en liten rörelse och tillbaka: rätta till händerna, en hand mot skon och åter, en blick mot en spelare", "status": "saknas", "anteckning": "de mätta dealrarna väntar ofta med vänstern vid skon och högern vid sina kort; hos oss blir det varianter som återvänder till A1, inte egna ankare", "matt": "a small shift of the hands" },
+    { "id": "TILL-SKON", "stadium": "REDO", "namn": "Från vilan till skon", "fran": "A1", "till": "A2.3", "hander": "båda", "status": "finns", "filer": "till-ankare-2-3-<docka>", "matt": null },
+    { "id": "REDO-GRUND", "stadium": "REDO", "namn": "Grundklippet vid skon", "fran": "A2.3", "till": "A2.3", "hander": "stilla och redo, varken spänd eller slapp", "status": "delvis", "anteckning": "finns som stillhet mellan givarna i rundan, inte som eget klipp", "matt": null },
+    { "id": "TILL-VILAN", "stadium": "REDO", "namn": "Från skon tillbaka till vilan", "fran": "A2.3", "till": "A1", "hander": "båda", "status": "saknas", "anteckning": "takten är bestämd (0,8 s)", "matt": null },
+    { "id": "GIV-KORT-1", "stadium": "GIV", "namn": "Första kortet till en spelare", "fran": "A2.3", "till": "A3PnC1", "hander": "vänstern drar, högern lägger (plats 6 och 7: vänstern ensam)", "status": "finns", "filer": "giv-fran-2-3-p<n>c1-ren-<a|b>-<docka>", "anteckning": "ritad i samma fil som handen hem; rutan där kortet ligger delar dem. Version A finns till alla sju platser, version B till plats 1–5 (plats 6 och 7 ges med vänstern ensam och har bara A)", "matt": "card from the shoe to a seat" },
+    { "id": "GIV-KORT-2", "stadium": "GIV", "namn": "Andra kortet och fler till en spelare", "fran": "A2.3", "till": "A3PnCm", "hander": "som första kortet", "status": "saknas", "anteckning": "Jakobs önskan: upp till sju kort per plats", "matt": "card from the shoe to a seat" },
+    { "id": "GIV-EGET", "stadium": "GIV", "namn": "Kort till dealern själv", "fran": "A2.3", "till": "A3DCm", "hander": "vänstern ensam, direkt ur skon, utan handbyte", "status": "saknas", "anteckning": "så gör båda de mätta dealrarna; dockan har redan en vänsterhandsgiv (plats 6 och 7) att bygga på", "matt": "card from the shoe, left hand alone" },
+    { "id": "HEM-TILL-SKON", "stadium": "TILLBAKA", "namn": "Handen hem till skon", "fran": "A3PnCm", "till": "A2.3", "hander": "handen som lade kortet", "status": "finns", "filer": "giv-fran-2-3-p<n>c1-ren-<a|b>-<docka>", "anteckning": "andra halvan av givens fil", "matt": null },
+    { "id": "HEM-TILL-VILAN", "stadium": "TILLBAKA", "namn": "Handen hem direkt till vilan", "fran": "A3PnCm", "till": "A1", "hander": "båda", "status": "saknas", "matt": null },
+    { "id": "VAND-EGET", "stadium": "DEALERNS TUR", "namn": "Vända sitt eget kort", "fran": "A1", "till": "A1", "hander": "en hand", "status": "saknas", "anteckning": "går inte att skilja ur mätningen förrän kortens spår finns", "matt": "at his own cards" },
+    { "id": "VISA-TUR", "stadium": "SPELARENS TUR", "namn": "Visa att det är spelarens tur", "fran": "A1", "till": "A1", "over": "plats n", "hander": "en öppen hand mot platsen och tillbaka", "status": "saknas", "anteckning": "inte urskilt i mätningen än", "matt": "a small move at a seat" },
+    { "id": "MARKER-UT", "stadium": "AVSLUT", "namn": "Betala ut marker till en spelare", "fran": "A1", "till": "A1", "over": "plats n", "hander": "en hand från brickan till platsen och tillbaka", "status": "saknas", "anteckning": "inte urskilt i mätningen än", "matt": "a reach to a seat and back" },
+    { "id": "MARKER-IN", "stadium": "AVSLUT", "namn": "Ta in marker från en spelare", "fran": "A1", "till": "A1", "over": "plats n", "hander": "en hand ut till platsen och tillbaka till brickan", "status": "saknas", "anteckning": "inte urskilt i mätningen än", "matt": "a reach to a seat and back" },
+    { "id": "KORTEN-IN", "stadium": "AVSLUT", "namn": "Ta in korten från bordet", "fran": "A1", "till": "A1", "hander": "högern sveper över platserna och samlar korten", "status": "saknas", "matt": "a sweep over several seats" },
+    { "id": "I-LADAN", "stadium": "AVSLUT", "namn": "Lägga korten i lådan", "fran": "A1", "till": "A1", "hander": "högern lyfts till lådans öppning och tillbaka", "status": "saknas", "anteckning": "kan ritas ihop med Ta in korten till ett klipp", "matt": "cards into the box" }
+  ]
+}

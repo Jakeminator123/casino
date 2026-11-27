@@ -25,6 +25,7 @@
     ".githooks/**/*.ts",
     "inbox/**/*.ts",
     "slask/slask.ts",
+    "matt.ts",
     "avatar-auto-pipeline/scen/**/*.ts",
     "standarddocka/**/*.ts",
     "kortspelspaket/**/*.ts",

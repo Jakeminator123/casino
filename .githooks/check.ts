@@ -9,7 +9,7 @@
 //   node .githooks/check.ts --install           core.hooksPath = .githooks, so that git push starts the hook
 //   node .githooks/check.ts --pre-push          the hook: Git's lines on stdin (<local ref> <local sha> <remote ref> <remote sha>)
 import {spawnSync} from 'node:child_process';
-import {readFileSync} from 'node:fs';
+import {existsSync, readFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -163,6 +163,13 @@ function main(argv: string[]): number {
   console.log(`Kontrollen: ${commits.length} commits och ${files.length} filer (${what}).`);
   for (const f of findings) console.log(`[${f.level === 'RED' ? 'RÖD' : 'VARNING'}] ${f.path}: ${f.message}`);
   if (findings.some(f => f.level === 'RED')) { console.log('Rött: det här får inte pushas. Ta bort det röda ur commitarna; hoppa inte över kontrollen.'); return 1; }
+  // The measures' printout (MATT.md, written by matt.ts from the measures where they stand in the code) must be the
+  // code's. A stale one is not pushed: it is written anew here, and the push is made again with it committed.
+  if (existsSync(path.join(ROOT, 'matt.ts')) && spawnSync(process.execPath, ['matt.ts', '--kolla'], {cwd: ROOT, env: cleanEnv(), stdio: 'ignore'}).status !== 0) {
+    spawnSync(process.execPath, ['matt.ts'], {cwd: ROOT, env: cleanEnv(), stdio: 'inherit'});
+    console.log('Rött: MATT.md stämde inte med måtten i koden och är nu skriven om (node matt.ts). Committa MATT.md och pusha igen.');
+    return 1;
+  }
   const runs = testRuns(ROOT, files.map(f => f.path));
   for (const run of runs) {
     const open = lines(git(ROOT, ['diff', '--name-only', 'HEAD', '--', run.name]));
