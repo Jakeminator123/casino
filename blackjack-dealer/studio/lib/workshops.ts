@@ -7,8 +7,8 @@ export type WorkshopId = "editorn";
 export type WorkshopState = { id: WorkshopId; name: string; address: string; answers: boolean; ours: boolean; error: string | null };
 
 /** How each workshop is named and said in the studio. */
-export const WORKSHOP_WORDS: Record<WorkshopId, { title: string; starting: string; running: string; readsSetup?: boolean }> = {
-  editorn: { title: "Dockan", starting: "Startar dockans editor …", running: "Dockans editor", readsSetup: true },
+export const WORKSHOP_WORDS: Record<WorkshopId, { title: string; starting: string; running: string }> = {
+  editorn: { title: "Dockan", starting: "Startar dockans editor …", running: "Dockans editor" },
 };
 
 async function answer(response: Response | null, what: string): Promise<WorkshopState> {

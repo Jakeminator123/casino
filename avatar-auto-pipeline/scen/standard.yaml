@@ -1,354 +1,209 @@
-# STANDARD – en enda sanning för bord, platser, sko, kort, docka och kameror.
+# STANDARD – en enda sanning för bord, platser, sko, kort, dockor och kameror: livebordet, mätt på film.
 # Skriven av scen/gen_standard.py ur spelets egen kod (casino/blackjack-dealer, som scen/las_spelet.ts läser).
 # Ändra aldrig för hand: ändra i spelet eller i gen_standard.py och kör python scen/gen_standard.py.
-# Varje värde har "# källa: fil (namn)" eller "# antaget: motivering". Spelet vinner över allt annat.
+# Varje värde har sin källa eller "antaget" med motivering. Spelet vinner över allt annat.
+# mätt = mätt på filmen; skattat = mätt men svagt; slutlett = härlett ur andra mått, inte sett; antaget = vårt, tills det mäts.
 #
 # KOORDINATER (Blender, Z upp, meter, högerhänt):
-#   origo  = golvet rakt under dealerkantens mitt (dealerEdge i dealer3d, s = 0; gäller både standardovalen och BORD-02:s urtag)
-#   +X     = dealerns vänster = bildens höger sett från spelarna/filmkameran (samma x som spelets lins-värld)
+#   origo  = golvet rakt under dealerkantens mitt (LIVE.edge)
+#   +X     = dealerns vänster = bildens höger sett från spelarna/filmkameran (samma x som spelets linsvärld)
 #   +Y     = bakåt, från spelarna mot dealerns rygg (spelarna står på -Y). Blenders "Front"-vy (från -Y) ser alltså dealern framifrån
 #   +Z     = upp; filten ligger på Z = filt_z
-#   Omräkning från spelets lins-värld (three.js, y upp, filmkameran i (0, h, 0) tittar mot -z):
-#     X = x,  Y = -(z - dealerEdge.z) = -(z + 1.843773),  Z = y + filt_z
-#   Bordets egna (x, s) (samma för standardovalen och BORD-02): X = x, Y = -s.  Vinkel "yaw" = grader moturs sett ovanifrån, 0 = längs +X.
+#   Omräkning från livebordets linsvärld (three.js, y upp, kameran i (0, h, 0) tittar mot -z):
+#     X = x,  Y = -(z - dealerkant_lins_z) = -(z + 1.5375),  Z = y + filt_z
+#   Vinkel "yaw" = grader moturs sett ovanifrån, 0 = längs +X.
 
 enhet: m
-format_version: 1
-filt_z: 0.9500  # källa: blackjack-dealer/src/scene3d-table.ts (BASE.floor) – scenens golv ligger 0,95 m under filten (BORD-02-källans 75 cm används inte, se avvikelser)
+format_version: 2
+filt_z: 0.9500  # slutlett, inte mätt (golvet syns aldrig): ur dealrarnas ögon när de står, ±0.1 m; blackjack-dealer/src/table-live.ts LIVE.floor
 
-lins:  # filmkamerans lins; hela spelets värld är räknad ur den
-  focal_px: 2334  # källa: blackjack-dealer/src/table-lens.ts (TABLE_LENS)
-  pitch_rad: 0.4373194932  # källa: blackjack-dealer/src/table-lens.ts (TABLE_LENS) (= 25.057 grader nedåt)
-  hojd_over_filt: 1.1099955533  # källa: blackjack-dealer/src/table-lens.ts (TABLE_LENS)
-  bild_px: [1764, 1174]  # källa: blackjack-dealer/src/table-lens.ts (FILM)
-  dealerkant_lins_z: -1.8437725961  # källa: blackjack-dealer/dealer3d/src/world.ts dealerEdge(TABLE_LENS) – dealerkantens z i spelets lins-värld (för omräkning, se huvudet)
-  sensor_mm: 36.0  # antaget: Blender-standard, sensor_fit HORIZONTAL; brännvidden nedan räknas om så att bilden blir exakt spelets
-  brannvidd_mm: 47.6327  # härlett: focal_px / bild_bredd * sensor_mm
+lins:  # livebordets kamera, mätt ur 29 kort på filten (0,54 bildpunkter per hörn); ärlig osäkerhet 5 % på brännvidden, 2-3 cm på höjden, 0,3 grader på lutningen. källa: blackjack-dealer/src/table-live.ts LIVE.camera, liveFrame()
+  focal_px: 1290.3
+  bild_px: [1728, 972]
+  mitt_px: [863.5, 485.5]  # där den optiska axeln möter bilden (bildens mitt)
+  pitch_rad: 0.3164281934  # = 18.130 grader nedåt
+  rull_rad: -0.0027925268  # = -0.160 grader: en vågrät linje på filten faller åt höger i bilden
+  hojd_over_filt: 0.6175
+  dealerkant_lins_z: -1.5375  # mätt: dealerkantens z i livebordets linsvärld (LIVE.edge), för omräkningen i huvudet
+  sensor_mm: 36.0  # antaget: Blender-standard, sensor_fit HORIZONTAL; brännvidden nedan räknas om så att bilden blir exakt kamerans
+  brannvidd_mm: 26.8812  # härlett: focal_px / bild_bredd * sensor_mm
+  pos: [0.0000, -1.5375, 1.5675]
+  fram: [0.000000, 0.950353, -0.311174]  # kamerans riktning
+  hoger: [0.999996, 0.000869, 0.002654]  # bildens höger (med rullningen)
+  upp: [-0.002793, 0.311173, 0.950349]  # bildens upp (med rullningen)
 
-spelvy:  # spelets vy (Jakob 2026-11-26): kameran standarddockan filmas genom och spelets bord ritas genom för de filmerna; samma lins och plats över bordet som filmkameran, men lägre och flackare
-  focal_px: 2334  # källa: blackjack-dealer/src/table-lens.ts (PLAY_LENS)
-  pitch_rad: 0.2094395102  # källa: blackjack-dealer/src/table-lens.ts (PLAY_LENS) (= 12.000 grader nedåt)
-  hojd_over_filt: 0.5800000000  # källa: blackjack-dealer/src/table-lens.ts (PLAY_LENS)
-
-bord_modell: standard  # källa: blackjack-dealer/src/scene3d-view.ts DEFAULTS.tableModel
-bord:  # spelets standardbord (oval halv-ellips, rak dealerkant). källa: blackjack-dealer/src/scene3d-table.ts (TABLE, REAL_TABLE) under linsen (tableUnder: bredd TABLE.a*2, djup REAL_TABLE.depth)
-  typ: oval_halvellis
-  bredd: 1.9000  # källa: blackjack-dealer/src/scene3d-table.ts (TABLE, REAL_TABLE) TABLE.a * 2
-  djup: 1.1500  # källa: blackjack-dealer/src/scene3d-table.ts (TABLE, REAL_TABLE) REAL_TABLE.depth (TABLE.b = 0,60 m är kontraktets kortare bord; under filmlinsen används 1,15 m)
-  halv_bredd: 0.95  # källa: blackjack-dealer/src/scene3d-table.ts (TABLE, REAL_TABLE) TABLE.a
-  radie: 0.95  # alias för halv_bredd (samma nyckel som QC-överlägget använder)
-  axel_s: 0.0  # rak dealerkant börjar vid s = 0 (inga vingar)
-  fram_s: 1.1500  # spelarkanten mitt fram (Y = -1.1500)
-  bak_s: 0.0  # rak dealerkant vid s = 0 (Y = 0); inga vingar bakåt
-  kontur_bagsteg: 180  # antaget: samma täthet som BORD-02-bågen
-  vadderad_kant:  # läderrulle längs spelarbågen (inte längs dealerkanten)
-    bredd: 0.1  # källa: blackjack-dealer/src/scene3d-table.ts (TABLE, REAL_TABLE) TABLE.rail (~10 cm, RAIL.centre 0,057 + 5 cm halvsektion)
-    mitt_over_filt: 0.012  # källa: blackjack-dealer/src/scene3d-table.ts CORE[1]
-    halv_hojd: 0.034  # källa: blackjack-dealer/src/scene3d-table.ts RAIL.top - CORE[1]
-    som_in: 0.0  # antaget: standardbordets sömmar är en del av rullens sektion, inte ett separat mått
-    som_hojd: 0.0
-    andradie: 0.05  # antaget: rullens ändar vid dealerkanten
-  sarg:  # valnötssarg under rullens överhäng, höjder relativt filten
-    underkant: -0.16  # källa: kommentar i scene3d-table.ts (lackad valnötssarg under rullen); BASE.under = -0.15
-    massingslinje: [-0.002, 0.005]  # källa: scene3d-table.ts BEAD (mässingslist mot filten, ~2 mm över)
-    underlagg: -0.008  # antaget: samma underläggstjocklek som BORD-02, för att filten ska ligga an
-  ben:  # två ben (x = ±x, s mot spelarna). källa: blackjack-dealer/src/scene3d-table.ts (BASE)
-    x: 0.58  # källa: BASE.legX
-    s: 0.25  # källa: BASE.legZ (s mot spelarna, Y = -0.25)
-    radie_topp: 0.07  # antaget: standardbordets ben är fotograferat trä, typisk topp
-    radie_fot: 0.09  # antaget
-    platta_radie: 0.10  # antaget: mässingsfot
-    platta_hojd: 0.015  # antaget
-  hylla_bakom_dealerkant:  # källa: scene3d-table.ts SHELF, avstängd som standard (labb 2026-11-13)
-    djup_bakat: 0.40
-    inre_x: 0.27
-    tjocklek: 0.035
-    pa_som_standard: false
-  filtfarg_srgb: "#134232"  # källa: blackjack-dealer/src/scene3d-table.ts FELTS.green[0]
-  markeringsfarg_srgb: "#d8b665"  # källa: blackjack-dealer/src/scene3d-table.ts (GOLD)
-  texturer_skala_m:
-    filt: [0.40, 0.40]  # antaget: standardfilten (V6/runway-tyger) upprepas på ca 40 cm; BORD-02:s scuba_suede var 0,285 m
-    tra: [1.8, 1.8]  # samma valnötsfaner som BORD-02 (Poly Haven)
-    lader: [0.4, 0.4]  # samma bruna läder som BORD-02
-  dockans_forenklade_bord:  # det Kortplan visar sedan 9e440db. källa: dealer3d/src/stage.ts
-    typ: halvcirkel
-    radie: 1.02  # feltens radie; bredd 2,04 m, djup 1,02 m, rak dealerkant
-    rulle_bredd: 0.12
-    golv_under_filt: 0.90  # stage.ts floor.position.y = -0.9
-
-bord_02:  # labb-/utseende-alternativ (tableModel: "bord-02"), inte spelets default. källa: blackjack-dealer/src/scene3d-bord02.ts (BORD02)
-  typ: njurformat
-  bredd: 1.9200
-  djup: 1.2960
-  radie: 0.96
-  axel_s: 0.07
-  fram_s: 1.056
-  bak_s: -0.24  # vingar bakåt till Y = +0.24
-  dealersida_bezier:
-    vanster_vinge: [[-0.96, 0.07], [-0.96, -0.24], [-0.66, -0.24], [-0.5, -0.24]]
-    vanster_urtag: [[-0.5, -0.24], [-0.31, -0.24], [-0.25, 0.0], [0.0, 0.0]]
-    hoger_urtag: [[0.0, 0.0], [0.25, 0.0], [0.31, -0.24], [0.5, -0.24]]
-    hoger_vinge: [[0.5, -0.24], [0.66, -0.24], [0.96, -0.24], [0.96, 0.07]]
-  vadderad_kant:
-    bredd: 0.062  # källa: blackjack-dealer/src/scene3d-bord02.ts (BORD02) rail.width
-    mitt_over_filt: 0.009
-    halv_hojd: 0.024
-    som_in: 0.052
-    som_hojd: 0.0275
-    andradie: 0.017
-  sarg:
-    underkant: -0.085
-    massingslinje: [-0.0800, -0.0768]
-    underlagg: -0.008
-  ben:
-    x: 0.48
-    s: 0.29
-    radie_topp: 0.101
-    radie_fot: 0.087
-    platta_radie: 0.092
+bord:  # mätt: en halvcirkel med rak kant mot dealern (bågen en cirkel inom 1,8 mm över 1234 punkter); sarg, ben, färger och texturer är vårt utseende. källa: blackjack-dealer/src/table-live.ts LIVE.felt, LIVE.rail
+  typ: halvcirkel
+  mitt: [0.0020, 0.0156]  # bågens mitt, 1.56 cm bakom kanten
+  radie: 0.7295
+  halv_bredd_vid_kanten: 0.7293  # härlett
+  bredd: 1.4587  # härlett: filtens bredd längs dealerkanten
+  djup: 0.714
+  kontur_bagsteg: 180  # antaget: bågens täthet
+  vadderad_kant:  # antaget (vår): läderrullen utanför bågen, så att filten som syns är den mätta. källa: LIVE.rail
+    bredd: 0.1
+    mitt_over_filt: 0.012  # LIVE.rail.section.lift
+    halv_hojd: 0.034  # LIVE.rail.section.above
+  sarg:  # antaget (vår): valnötssarg under rullens överhäng, höjder relativt filten
+    underkant: -0.16
+    massingslinje: [-0.002, 0.005]  # mässingslist mot filten, ~2 mm över
+    underlagg: -0.008  # underläggets tjocklek, så att filten ligger an
+  ben:  # antaget (vårt): två ben (x = ±x, s mot spelarna, Y = -s)
+    x: 0.58
+    s: 0.25
+    radie_topp: 0.07
+    radie_fot: 0.09
+    platta_radie: 0.10  # mässingsfot
     platta_hojd: 0.015
-  filtfarg_srgb: "#215343"  # BORD02_CLOTH.colour
+  filtfarg_srgb: "#134232"  # antaget (vår): spelets gröna filt
+  markeringsfarg_srgb: "#d8b665"  # antaget (vår): kortplatsernas och ringarnas guld
   texturer_skala_m:
-    filt: [0.28522, 0.2789]
-    tra: [1.8, 1.8]
-    lader: [0.4, 0.4]
+    filt: [0.40, 0.40]  # antaget: filten upprepas på ca 40 cm
+    tra: [1.8, 1.8]  # valnötsfaner (Poly Haven)
+    lader: [0.4, 0.4]  # brunt läder
 
 kort:
-  bredd: 0.063  # källa: blackjack-dealer/src/table-lens.ts (CARD)
-  langd: 0.088  # källa: blackjack-dealer/src/table-lens.ts (CARD)
-  tjocklek: 0.0003  # källa: blackjack-dealer/src/table-lens.ts (CARD)
-  hornradie: 0.0035  # källa: blackjack-dealer/src/table-lens.ts (CARD)
-  lekar_i_skon: 8  # antaget: vanlig kasinosko 6–8 lekar; 8 x 52 x 0,3 mm = 0,125 m kortbunt
+  bredd: 0.063  # källa: blackjack-dealer/src/space.ts (CARD)
+  langd: 0.088  # källa: blackjack-dealer/src/space.ts (CARD)
+  tjocklek: 0.0003  # källa: blackjack-dealer/src/space.ts (CARD)
+  hornradie: 0.0035  # källa: blackjack-dealer/src/space.ts (CARD)
+  lekar_i_skon: 8  # antaget: vanlig kasinosko 6–8 lekar
   markering:  # kortplatsernas guldram på filten
     marginal: 0.004  # antaget: 4 mm runt kortet så kortet syns inne i ramen
     linjebredd: 0.003  # antaget: tunn tryckt linje
 
-platser:  # kortens mittpunkter på filten. källa: blackjack-dealer/dealer3d/src/world.ts spots(placements/default.json, TABLE_LENS). yaw_kort = 0 (spelet lägger korten rakt, placements angle 0)
-  # riktning_mot_dealer = yaw från kortet mot dealerns höft (Y = +0,38 m, för givrörelser)
-  P1.C1: {pos: [-0.5321, -0.2365, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 50.02, avstand_hoft_xy: 0.8045}
-  P1.C2: {pos: [-0.5034, -0.2246, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 51.08, avstand_hoft_xy: 0.7771}
-  P2.C1: {pos: [-0.3571, -0.2928, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 63.07, avstand_hoft_xy: 0.7547}
-  P2.C2: {pos: [-0.3253, -0.2805, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 64.85, avstand_hoft_xy: 0.7296}
-  P3.C1: {pos: [-0.1867, -0.3410, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 76.62, avstand_hoft_xy: 0.7412}
-  P3.C2: {pos: [-0.1520, -0.3283, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 79.07, avstand_hoft_xy: 0.7213}
-  P4.C1: {pos: [-0.0190, -0.3970, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 89.72, avstand_hoft_xy: 0.7770}
-  P4.C2: {pos: [0.0191, -0.3838, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 92.58, avstand_hoft_xy: 0.7646}
-  P5.C1: {pos: [0.1510, -0.3410, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 102.99, avstand_hoft_xy: 0.7400}
-  P5.C2: {pos: [0.1879, -0.3283, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 106.01, avstand_hoft_xy: 0.7368}
-  P6.C1: {pos: [0.3258, -0.2928, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 116.88, avstand_hoft_xy: 0.7543}
-  P6.C2: {pos: [0.3592, -0.2805, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 119.55, avstand_hoft_xy: 0.7592}
-  P7.C1: {pos: [0.5007, -0.2365, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 129.92, avstand_hoft_xy: 0.8039}
-  P7.C2: {pos: [0.5350, -0.2246, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 132.30, avstand_hoft_xy: 0.8176}
-  D.C1: {pos: [-0.0265, -0.1626, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 88.81, avstand_hoft_xy: 0.5427}
-  D.C2: {pos: [0.0266, -0.1576, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 94.45, avstand_hoft_xy: 0.5392}
-  D.C3: {pos: [0.1606, -0.1561, 0.9500], yaw_kort: 0.0, riktning_mot_dealer: 108.16, avstand_hoft_xy: 0.5642}
+platser:  # mätt: där korten först låg stilla, kortets mitt; yaw_kort = långsidans vridning i grader moturs uppifrån (0 = rakt mot spelaren). källa: blackjack-dealer/src/table-live.ts LIVE.cards
+  # vinkel: mätt där landningarna är eniga om den, annars spegelbilden av samma kort på den speglade platsen (LIVE.cards[id].turnFrom)
+  # platserna räknas ännu från bildens vänster: P1 längst till vänster i bilden (dealerns höger), P7 närmast skon
+  D.C1: {pos: [-0.0272, -0.1774, 0.9500], yaw_kort: 4.80, landningar: 18, vinkel: "mätt"}
+  D.C2: {pos: [0.0243, -0.1928, 0.9500], yaw_kort: -2.30, landningar: 18, vinkel: "mätt"}
+  D.C3: {pos: [-0.0269, -0.1808, 0.9500], yaw_kort: 3.50, landningar: 11, vinkel: "mätt"}
+  P1.C1: {pos: [-0.4206, -0.3190, 0.9500], yaw_kort: -51.30, landningar: 6, vinkel: "spegel av P7.C1"}
+  P1.C2: {pos: [-0.3732, -0.3218, 0.9500], yaw_kort: -44.00, landningar: 5, vinkel: "mätt"}
+  P1.C3: {pos: [-0.3701, -0.3210, 0.9500], yaw_kort: -55.10, landningar: 3, vinkel: "spegel av P7.C3"}
+  P2.C1: {pos: [-0.2964, -0.4103, 0.9500], yaw_kort: -30.00, landningar: 3, vinkel: "spegel av P6.C1"}
+  P2.C2: {pos: [-0.2987, -0.4204, 0.9500], yaw_kort: -30.10, landningar: 2, vinkel: "spegel av P6.C2"}
+  P3.C1: {pos: [-0.0938, -0.4401, 0.9500], yaw_kort: -13.90, landningar: 3, vinkel: "spegel av P5.C1"}
+  P4.C1: {pos: [0.0155, -0.5124, 0.9500], yaw_kort: -2.30, landningar: 11, vinkel: "mätt"}
+  P4.C2: {pos: [0.0440, -0.4727, 0.9500], yaw_kort: -1.00, landningar: 9, vinkel: "mätt"}
+  P5.C1: {pos: [0.1575, -0.4973, 0.9500], yaw_kort: 13.90, landningar: 6, vinkel: "mätt"}
+  P5.C2: {pos: [0.1804, -0.4536, 0.9500], yaw_kort: 12.40, landningar: 4, vinkel: "mätt"}
+  P6.C1: {pos: [0.2922, -0.4331, 0.9500], yaw_kort: 30.00, landningar: 14, vinkel: "mätt"}
+  P6.C2: {pos: [0.2974, -0.3866, 0.9500], yaw_kort: 30.10, landningar: 11, vinkel: "mätt"}
+  P6.C3: {pos: [0.2949, -0.3773, 0.9500], yaw_kort: 30.00, landningar: 3, vinkel: "som P6.C1"}
+  P7.C1: {pos: [0.4265, -0.3069, 0.9500], yaw_kort: 51.30, landningar: 14, vinkel: "mätt"}
+  P7.C2: {pos: [0.4156, -0.2613, 0.9500], yaw_kort: 44.00, landningar: 11, vinkel: "spegel av P1.C2"}
+  P7.C3: {pos: [0.4612, -0.2636, 0.9500], yaw_kort: 55.10, landningar: 5, vinkel: "mätt"}
 
-bet_ringar:  # insatsringar framför C1 mot spelarna. källa: blackjack-dealer/src/scene3d-geometry.ts (BET)
-  offset_framfor_c1: 0.083  # källa: blackjack-dealer/src/scene3d-geometry.ts (BET) BET.real
-  radie: 0.027  # källa: blackjack-dealer/src/scene3d-geometry.ts (BET) BET.radius
-  linjebredd: 0.003  # antaget: samma tryckbredd som kortmarkering
-  platser:
-    P1: [-0.5321, -0.3195, 0.9500]
-    P2: [-0.3571, -0.3758, 0.9500]
-    P3: [-0.1867, -0.4240, 0.9500]
-    P4: [-0.0190, -0.4800, 0.9500]
-    P5: [0.1510, -0.4240, 0.9500]
-    P6: [0.3258, -0.3758, 0.9500]
-    P7: [0.5007, -0.3195, 0.9500]
+bet_ringar:  # våra insatsringar kring livebordets insatsmärken. källa: blackjack-dealer/src/standard.ts (BET)
+  radie: 0.027
+  linjebredd: 0.003  # antaget: samma tryckbredd som kortmarkeringen
+  platser:  # mätt: mitten av spelets platsknappar, plats 1 till vänster i bilden (dealerns höger). källa: blackjack-dealer/src/table-live.ts LIVE.betMarks
+    P1: [-0.4967, -0.4040, 0.9500]
+    P2: [-0.3347, -0.5397, 0.9500]
+    P3: [-0.1711, -0.6096, 0.9500]
+    P4: [0.0004, -0.6301, 0.9500]
+    P5: [0.1730, -0.6080, 0.9500]
+    P6: [0.3363, -0.5362, 0.9500]
+    P7: [0.4991, -0.3983, 0.9500]
 
-sko:  # dealerns sko på bildens högra sida (dealerns vänster); fot_fram/bak följer skons nära vägg (shoePose.front)
-  fot_fram: [0.3382, -0.1086, 0.9500]  # källa: blackjack-dealer/src/table-lens.ts shoePose(TABLE_LENS) front – nära kanten av fotens framkant (kortfönstret)
-  fot_bak: [0.7390, 0.0630, 0.9500]  # härlett: fot_fram + bakriktning * langd
-  fot_mitt: [0.5386, -0.0228, 0.9500]  # härlett
-  yaw_bakat: 23.180  # härlett ur blackjack-dealer/src/table-lens.ts shoePose(TABLE_LENS) back = [0.9193, 0.3936, 0.0000]; skon pekar med fronten mot yaw+180
-  langd: 0.436  # källa: blackjack-dealer/src/table-lens.ts (SHOE)
-  bredd: 0.082  # källa: blackjack-dealer/src/table-lens.ts (SHOE)
-  hojd_bak: 0.131  # källa: blackjack-dealer/src/table-lens.ts (SHOE)
-  hojd_fram: 0.1  # källa: blackjack-dealer/src/table-lens.ts (SHOE)
-  platta_lutning_grader: 51.60  # källa: blackjack-dealer/src/table-lens.ts (SHOE) plateLean
-  fonster_lyft: 0.022  # källa: blackjack-dealer/src/table-lens.ts (SHOE) windowLift
-  fonsterkort_mitt: [0.3625, -0.0536, 1.0071]  # källa: blackjack-dealer/src/table-lens.ts shoeCard() – översta kortets mitt i fönstret (där handen tar)
-  fonsterkort_upp: [0.5710, 0.2445, 0.7837]  # källa: blackjack-dealer/src/table-lens.ts shoeCard()
-  fonsterkort_tvars: [-0.3936, 0.9193, 0.0000]  # källa: blackjack-dealer/src/table-lens.ts shoeCard()
-  kortplanens_skopunkt: [0.3872, 0.0658, 0.9500]  # källa: placements/default.json shoe.native (u 0.733, v 0.322) på filten; en planmarkör, inte skons fot
+sko:  # en lång genomskinlig låda, öppen upptill: fronten är en klar ram som lutar bakåt från fotens två främre hörn, med ett fönster där nästa kort syns; kortleken ligger på en bädd som stiger bakåt, varje kort lutat som fronten med långsidan tvärs skon. källa: blackjack-dealer/src/table-live.ts LIVE.shoe, liveShoePose(), liveShoeCard()
+  genomskinlig: true
+  fot_fram: [0.4521, -0.1531, 0.9500]  # mätt: fotens främre hörn mot spelarna (hörnen lästa för ögat, 1-2 cm)
+  fot_horn: [[0.4270, -0.0533, 0.9500], [0.4521, -0.1531, 0.9500], [0.7162, -0.0798, 0.9500]]  # mätt: främre vid dealern, främre mot spelarna, bakre mot spelarna
+  yaw_bakat: 15.512  # härlett ur foten: bakänden vriden mot dealern
+  langd: 0.274  # mätt (foten)
+  bredd: 0.103  # mätt (foten)
+  hojd_bak: 0.117  # mätt ur bilden; väggarnas överkant går rakt från frontens topp hit
+  hojd_fram: 0.061  # mätt: frontens topp (de två topphörnen lästa 0,060 och 0,062)
+  platta_lutning_grader: 56.60  # mätt: från filten (topphörnen lästa 34,0 och 32,8 grader bakåt från lodrätt; kortets rygg i fönstret lutar lika)
+  fonster_lyft: 0.003  # mätt: där bädden börjar framtill, kortets underkant över filten
+  badd_lutning_grader: 13.40  # mätt: bädden stiger bakåt, sedd genom den nära väggen
+  lek_langd: 0.18  # skattat: hur långt längs bädden kortleken når (0,14 m vid 62 s, 0,23 m vid 600 s i filmen; 0,18 är åtta lekar)
+  front_horn: [[0.4270, -0.0533, 0.9500], [0.4521, -0.1531, 0.9500], [0.4907, -0.1434, 1.0117], [0.4663, -0.0434, 1.0101]]  # mätt: fot vid dealern, fot mot spelarna, topp mot spelarna, topp vid dealern
+  fonsterkort_mitt: [0.4577, -0.0981, 0.9787]  # nästa kort i frontens fönster, ryggen utåt; inom 2 mm från mätningens mitt
+  fonsterkort_langsida: [-0.2674, 0.9636, 0.0000]  # kortets långsida, tvärs skon (mot den bortre väggen)
+  fonsterkort_kortsida: [0.5304, 0.1472, 0.8348]  # kortets kortsida, uppför fronten
+los_bit: {horn: [[0.3652, -0.0915, 0.9500], [0.4017, -0.0757, 0.9500], [0.4311, -0.1701, 0.9500], [0.3977, -0.1786, 0.9500]], mitt: [0.3989, -0.1290, 0.9500]}  # mätt: en lös klar bit som ligger plant på filten strax framför skon; kortet som dras ut glider över den. källa: LIVE.clearPiece
 
-dockans_bord:  # standarddockans bord (Jakob 2026-11-26: en halvmåne, och skon längre ut). källa: blackjack-dealer/src/table-lens.ts (DOLL_TABLE); byggs med scen/bygg_bord.py --docka
-  djup: 0.95  # filtens djup från spelets kant; lika med halva bredden, så bågen är en halvcirkel (bord.djup är filmernas bord)
-  kant_bak: 0.23  # dealerkanten och markerbrickan så långt bakom spelets kant, där dockan sitter
-  sko_ut: 0.08  # skon så långt utåt längs sin längd från sko.fot_fram (bort från dealerns mitt); kasseringslådan speglad
-  sko_fram: 0.03  # och så långt vinkelrätt mot sin längd, mot spelarna
-  kort_mot_spelaren: true  # spelarnas kortplatser vända mot sin spelare (Jakob 2026-11-26, på prov; DOLL_TABLE.cardsFrom): ramen och kortet ligger längs platser.<id>.riktning_mot_dealer, dealerns egna rakt
-
-kassering:  # finns inte i spelet – speglad mot skon på dealerns höger
-  fot_mitt: [-0.6200, -0.0300, 0.9500]  # antaget: spegling av skons mitt (X -0,54) något längre ut, utanför brickans urtag (X < -0,30)
-  yaw: -23.180  # antaget: spegling av skons yaw
-  yttermatt: [0.080, 0.105, 0.140]  # antaget: akrylhållare för 8 lekar (inre 68 x 93 mm, 125 mm bunt + marginal)
+kassering:  # mätt: en klar låda vid dealerns högra hörn, öppen upptill; de använda korten ligger plant i den, ryggen upp. källa: LIVE.box, liveBox()
+  fot_mitt: [-0.6115, -0.0351, 0.9500]
+  yaw: 2.143
+  yttermatt: [0.076, 0.093, 0.1575]  # foten mätt; höjden mätt ur bilden (0,156-0,159)
   vaggtjocklek: 0.004  # antaget: 4 mm akryl
+  kort_hog: 0.03  # skattat: de använda kortens hög, liggande med ryggen upp (2-5 cm genom filmen)
+skarkort: {mitt: [-0.5737, -0.1333, 0.9500], storlek: [0.0479, 0.0863]}  # mätt, men ligger bara ute ibland: byggs inte
 
-markerbricka:  # nedsänkt i filten vid dealerkanten, chipsens toppar i nivå med filten
-  x0: -0.3  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY)
-  x1: 0.24  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY)
-  s0: 0  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY) (Y = -s)
-  s1: 0.1  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY)
-  djup: 0.03  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY)
+markerbricka:  # mätt: livebordet har ingen (markerna är spelets grafik). Det här är vår, ett tillägg som bara bygg_bord.py --med-bricka lägger in vid dealerkanten
+  x0: -0.3  # antaget (vår): metrar tvärs bordet (X)
+  x1: 0.24
+  s0: 0  # från dealerkanten mot spelarna (Y = -s)
+  s1: 0.1
+  djup: 0.03
   kant_bredd: 0.007  # källa: blackjack-dealer/src/game3d-tray.ts (rim = 0.007 m mässingslist i filtnivå)
-  ror: 12  # källa: blackjack-dealer/src/game3d-tray.ts (TRAY_ROWS har 12 rader; TRAY.tubes = 11 i scene3d-props)
-  urtag: {x0: -0.3, x1: 0.24, s1: 0.1}  # källa: blackjack-dealer/src/scene3d-props.ts (TRAY) – exakt brickans ytterkant (mässingsram täcker skarven)
+  ror: 12  # källa: blackjack-dealer/src/game3d-tray.ts (TRAY_ROWS har 12 rader)
+  urtag: {x0: -0.3, x1: 0.24, s1: 0.1}  # exakt brickans ytterkant (mässingsram täcker skarven)
   chip_radie: 0.0195  # källa: blackjack-dealer/src/game3d-chips.ts (CHIP_RADIUS, CHIP_HEIGHT)
   chip_hojd: 0.003145  # källa: blackjack-dealer/src/game3d-chips.ts (CHIP_RADIUS, CHIP_HEIGHT)
   fyllnad_start: 20  # källa: blackjack-dealer/src/game3d-tray.ts TRAY_FILL.start
   rad_valorer: [5, 5, 25, 25, 100, 100, 500, 1000, 500, 100, 25, 5]  # källa: blackjack-dealer/src/game3d-tray.ts
 
-docka:  # standarddockan bakom dealerkanten. Arm/höjd ur doll.ts STANDARD, men X/Y flyttad till PAOW behindEdge=0,38 m för BORD-02
-  over_arm: 0.29  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD)
-  underarm: 0.26  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD)
-  rackvidd: 0.535  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD) (axel -> handled, något under över_arm+underarm)
-  hoft_under_filt: 0.2  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD) (hög kasinopall, sits 0,66 m)
-  mest_lutning_rad: 0.6  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD)
-  mest_vridning_rad: 0.6  # källa: blackjack-dealer/dealer3d/src/doll.ts (STANDARD)
-  axlar_bakom_kant: 0.38  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW) (0,38 m fri från BORD-02 vingar vid 0,24 m; gamla ASSUMED var 0,18 m)
-  hoft: [-0.0152, 0.3800, 0.7500]  # härlett: X,Z ur blackjack-dealer/dealer3d/src/doll.ts dollFrame(TABLE_LENS, STANDARD), Y = +0,38 m ur blackjack-dealer/dealer3d/src/doll.ts (PAOW)
-  axel_hoger: [-0.1743, 0.3800, 1.2989]  # härlett (flyttad +0,20 m i Y med höften)
-  axel_vanster: [0.1438, 0.3800, 1.2989]  # härlett
-  nacke: [-0.0152, 0.3800, 1.3289]  # härlett
-  huvud_mitt: [-0.0080, 0.3800, 1.4919]  # härlett
-  huvud_radie: 0.1269  # källa: blackjack-dealer/dealer3d/src/doll.ts dollFrame(TABLE_LENS, STANDARD)
-  vilohand_handled: [-0.1671, 0.0540, 0.9720]  # källa: blackjack-dealer/dealer3d/src/body.ts restingHand(TABLE_LENS)
-  vilohand_framat: [0.5319, -0.8468, 0.0000]  # källa: blackjack-dealer/dealer3d/src/body.ts restingHand(TABLE_LENS)
-  # Ben och stol finns inte i spelet (stolen syns aldrig i filmen):
-  larbenslangd: 0.386  # källa: assets/docka/standarddocka_kvinna.blend (MPFB, LeftUpLeg-längd efter passning) – spelet har inga ben
-  underbenslangd: 0.399  # källa: assets/docka/standarddocka_kvinna.blend (MPFB, LeftLeg-längd)
-  fotledshojd: 0.07  # antaget
-  langd_staende: 1.70  # antaget: stämmer med axlarnas 1,30 m och huvudets 1,49 m över golvet sittande
+dealer:  # mätt: han sitter, på en hög stol. Djupet är antaget (0.2 m bakom kanten); armarna går inte att mäta (dockans egna används). källa: LIVE.dealer
+  bakom_kant: 0.2  # antaget
+  kameran: {docka: "danilo", axlar_mitt: [0.0330, 0.2005, 1.2680], axelbredd: 0.357, ogon_over_filt: 0.509, bakom_kant_skattat: 0.065}
+  bordet: {docka: "frasse", axlar_mitt: [0.0460, 0.2005, 1.2600], axelbredd: 0.348, ogon_over_filt: 0.514, bakom_kant_skattat: 0.158}
+
+dockor:  # Danilo och Frasse vid livebordet, efter var sin dealer i filmen. källa: blackjack-dealer/dealer3d/src/doll.ts (DANILO, FRASSE)
+  danilo:  # stilen kameran
+    over_arm: 0.279
+    underarm: 0.272
+    rackvidd: 0.536  # axel -> handled
+    hoft_under_filt: 0.1146
+    mest_lutning_rad: 0.4363323129985824
+    mest_vridning_rad: 0.3490658503988659
+    axlar_bakom_kant: 0.2  # dealer.bakom_kant
+    axlar_over_filt: 0.318
+    hoft: [0.0330, 0.2000, 0.8354]  # härlett: rakt under axlarnas mitt, hoft_under_filt under filten
+  frasse:  # stilen bordet
+    over_arm: 0.279
+    underarm: 0.272
+    rackvidd: 0.536  # axel -> handled
+    hoft_under_filt: 0.1226
+    mest_lutning_rad: 0.4363323129985824
+    mest_vridning_rad: 0.3490658503988659
+    axlar_bakom_kant: 0.2  # dealer.bakom_kant
+    axlar_over_filt: 0.31
+    hoft: [0.0460, 0.2000, 0.8274]  # härlett: rakt under axlarnas mitt, hoft_under_filt under filten
+docka:  # dockan scen/bygg_docka.py ställer vid bordet: danilos plats och mått (dockor.danilo)
+  hoft: [0.0330, 0.2000, 0.8354]
+  mest_lutning_rad: 0.4363323129985824
+  axlar_bakom_kant: 0.2
   benamning:  # exportnamn som dealer3d kräver; källa: blackjack-dealer/dealer3d/src/figure-model.ts
     kravs: ["RightArm", "LeftArm", "RightForeArm", "LeftForeArm", "RightHand", "LeftHand", "RightUpLeg", "LeftUpLeg", "RightLeg", "LeftLeg", "RightFoot", "LeftFoot", "neck", "Head", "headfront"]
     prefix: ""  # inga mixamorig:-prefix
 
-docka_paow:  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW) (uppmätt ur film med SAM 3D Body)
-  over_arm: 0.293  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
-  underarm: 0.275  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
-  rackvidd: 0.552  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
-  hoft_under_filt: 0.278  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
-  axlar_bakom_kant: 0.38  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
-  hoft: [-0.0159, 0.3800, 0.6720]  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
-  axel_hoger: [-0.1989, 0.3800, 1.1796]  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
-  axel_vanster: [0.1672, 0.3800, 1.1796]  # källa: blackjack-dealer/dealer3d/src/doll.ts (PAOW)
-
 stol:  # dealerns stol – syns inte i filmen
-  sits_z: 0.6600  # antaget: höftleden ligger ca 9 cm över sitsen (sittbensknölar + mjukdel)
-  sits_mitt: [-0.0152, 0.4600]  # antaget: höftleden över sitsens främre del, sitsdjup 0,40
+  sits_z: 0.6700  # slutlett, inte mätt: LIVE.floor.seatOverFloor
+  sits_mitt: [0.0330, 0.2800]  # antaget: höftleden över sitsens främre del, sitsdjup 0,40
   sits_bredd: 0.42  # antaget: barstol
   sits_djup: 0.40  # antaget
   ryggstod_hojd_over_sits: 0.35  # antaget
-  fotstod_z: 0.22  # antaget: barstolens fotring; dockan når golvet med fötterna i sitt_vila
+  fotstod_z: 0.22  # antaget: barstolens fotring
+golv: {filt_over_golv: 0.95, plus_minus: 0.1, sits_over_golv: 0.67}  # slutlett, inte mätt
 
-spelarplatser:  # var spelare N sitter: på linjen från dealerns höft genom C1/C2-mitten, 0,30 m utanför bordskanten
-  # antaget: spelet har inga spelarkroppar; linjen och 0,30 m (stolsmitt bakom vadderingen) är våra
-  1: {kant: [-0.8147, -0.5915], stol: [-1.0054, -0.8231], yaw_mot_dealer: 50.54}
-  2: {kant: [-0.6247, -0.8664], stol: [-0.7564, -1.1360], yaw_mot_dealer: 63.94}
-  3: {kant: [-0.3298, -1.0785], stol: [-0.3930, -1.3717], yaw_mot_dealer: 77.83}
-  4: {kant: [0.0152, -1.1499], stol: [0.0212, -1.4498], yaw_mot_dealer: 91.14}
-  5: {kant: [0.3583, -1.0651], stol: [0.4334, -1.3555], yaw_mot_dealer: 104.49}
-  6: {kant: [0.6430, -0.8466], stol: [0.7848, -1.1109], yaw_mot_dealer: 118.22}
-  7: {kant: [0.8213, -0.5781], stol: [1.0186, -0.8041], yaw_mot_dealer: 131.12}
-
-kameror:  # alla perspektivkameror: sensor 36 mm horisontellt, upplösning 1764 x 1174 om inget annat sägs; mål = där optiska axeln möter filten
+kameror:  # sensor 36 mm horisontellt, upplösning lins.bild_px; mål = där optiska axeln möter filten (scen/_bpy_hjalp.py make_cameras siktar utan rullning)
   film:
     typ: perspektiv
-    pos: [0.0000, -1.8438, 2.0600]
-    mal: [0.0000, 0.5305, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/src/table-lens.ts (TABLE_LENS) filmEye – exakt spelets filmkamera = spelare 4 (ersätter halvbild)"
-  spelare_1:
-    typ: perspektiv
-    pos: [-1.8160, -0.9035, 2.0600]
-    mal: [0.3051, 0.1633, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 1 "
-  spelare_2:
-    typ: perspektiv
-    pos: [-1.4179, -1.2767, 2.0600]
-    mal: [0.3439, 0.3148, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 2 "
-  spelare_3:
-    typ: perspektiv
-    pos: [-0.8031, -1.6501, 2.0600]
-    mal: [0.2364, 0.4845, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 3 "
-  spelare_4:
-    typ: perspektiv
-    pos: [0.0000, -1.8438, 2.0600]
-    mal: [0.0000, 0.5305, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 4 "
-  spelare_5:
-    typ: perspektiv
-    pos: [0.8164, -1.6259, 2.0600]
-    mal: [-0.2477, 0.4966, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 5  – ersätter giv-seat-5"
-  spelare_6:
-    typ: perspektiv
-    pos: [1.4587, -1.1927, 2.0600]
-    mal: [-0.3809, 0.3083, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 6 "
-  spelare_7:
-    typ: perspektiv
-    pos: [1.8441, -0.7736, 2.0600]
-    mal: [-0.3487, 0.1367, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/dealer3d/src/world.ts seatEye() seat 7 "
-  spel:
-    typ: perspektiv
-    pos: [0.0000, -1.8438, 1.5300]
-    mal: [0.0000, 0.8849, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/src/table-lens.ts (PLAY_LENS) filmEye – spelets vy från plats 4, standarden för standarddockans filmer (Jakob 2026-11-26)"
-  spel_plats_1:
-    typ: perspektiv
-    pos: [-1.8160, -0.9035, 1.5300]
-    mal: [0.6217, 0.3226, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 1"
-  spel_plats_2:
-    typ: perspektiv
-    pos: [-1.4179, -1.2767, 1.5300]
-    mal: [0.6069, 0.5524, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 2"
-  spel_plats_3:
-    typ: perspektiv
-    pos: [-0.8031, -1.6501, 1.5300]
-    mal: [0.3916, 0.8032, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 3"
-  spel_plats_5:
-    typ: perspektiv
-    pos: [0.8164, -1.6259, 1.5300]
-    mal: [-0.4065, 0.8134, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 5"
-  spel_plats_6:
-    typ: perspektiv
-    pos: [1.4587, -1.1927, 1.5300]
-    mal: [-0.6555, 0.5323, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 6"
-  spel_plats_7:
-    typ: perspektiv
-    pos: [1.8441, -0.7736, 1.5300]
-    mal: [-0.6760, 0.2726, 0.9500]
-    brannvidd_mm: 47.6327
-    kalla: "blackjack-dealer/src/table-lens.ts seatView(filmEye(PLAY_LENS)) plats 7"
+    pos: [0.0000, -1.5375, 1.5675]
+    mal: [0.0000, 0.3484, 0.9500]
+    brannvidd_mm: 26.8812
+    kalla: "blackjack-dealer/src/table-live.ts LIVE_CAMERA, liveFrame(): livebordets kamera; rullningen (-0.16 grader) tas inte med"
   dealer_ogon:
     typ: perspektiv
-    pos: [-0.0080, 0.2900, 1.5219]
-    mal: [0.0000, -0.3000, 0.9500]
+    pos: [0.0330, 0.1105, 1.4590]
+    mal: [0.0155, -0.5124, 0.9500]
     brannvidd_mm: 24.0000
-    kalla: "antaget: dealerns ögon 9 cm framför huvudets mitt, 3 cm upp; tittar på P4-området; 24 mm vidvinkel"
+    kalla: "antaget: danilos ögon 9 cm framför axlarnas plan, i den mätta höjden; tittar på plats 4; 24 mm vidvinkel"
   hander:
     typ: perspektiv
     pos: [0.0000, -1.0500, 1.3500]
@@ -370,90 +225,4 @@ kameror:  # alla perspektivkameror: sensor 36 mm horisontellt, upplösning 1764 
 
 rackviddstest:  # punkter dockans händer ska nå (handled ovanför punkten)
   mal: ["sko.fonsterkort_mitt", "platser.D.C1", "platser.P1.C1", "platser.P7.C1"]
-  handled_over_kort: 0.02  # källa: blackjack-dealer/dealer3d/src/world.ts (ASSUMED) knuckleLift
-
-livebord:  # ett riktigt livebord mätt på film (live-bj, 2026-11-27, preliminärt): en andra uppsättning bredvid standarden, som inget ovan beror på. källa: blackjack-dealer/src/table-live.ts (LIVE); byggs med scen/bygg_bord.py --live
-  # Samma axlar som ovan, men origo är golvet rakt under livebordets dealerkant: X = x, Y = -(z - (-1.5375)), Z = y + filt_z i livebordets linsvärld.
-  # mätt = mätt på filmen; skattat = mätt men svagt; slutlett = härlett ur andra mått, inte sett; antaget = vårt, tills det mäts.
-  filt_z: 0.9500  # slutlett, inte mätt (golvet syns aldrig): ur dealrarnas ögon när de står, ±0.1 m; blackjack-dealer/src/table-live.ts LIVE.floor
-  dealerkant_lins_z: -1.5375  # mätt: dealerkantens z i livebordets linsvärld (LIVE.edge)
-  utseende: bord  # antaget: vårt standardbords filt, sarg, rulle, ben, färger och kortplatsramar (bord, kort och bet_ringar ovan); bara måtten är livebordets
-  kamera:  # mätt ur 29 kort på filten (0,54 bildpunkter per hörn); ärlig osäkerhet 5 % på brännvidden, 2-3 cm på höjden, 0,3 grader på lutningen. källa: LIVE.camera, liveFrame()
-    focal_px: 1290.3
-    bild_px: [1728, 972]
-    mitt_px: [863.5, 485.5]  # där den optiska axeln möter bilden
-    pitch_grader: 18.130  # nedåt
-    rull_grader: -0.160  # en vågrät linje på filten faller åt höger i bilden
-    hojd_over_filt: 0.6175
-    sensor_mm: 36.0  # som lins.sensor_mm, sensor_fit HORIZONTAL
-    brannvidd_mm: 26.8812  # härlett: focal_px / bild_bredd * sensor_mm
-    pos: [0.0000, -1.5375, 1.5675]
-    fram: [0.000000, 0.950353, -0.311174]  # kamerans riktning
-    hoger: [0.999996, 0.000869, 0.002654]  # bildens höger (med rullningen)
-    upp: [-0.002793, 0.311173, 0.950349]  # bildens upp (med rullningen)
-  filt:  # mätt: en halvcirkel med rak kant mot dealern (bågen en cirkel inom 1,8 mm över 1234 punkter). källa: LIVE.felt
-    mitt: [0.0020, 0.0156]  # bågens mitt, 1.56 cm bakom kanten
-    radie: 0.7295
-    halv_bredd_vid_kanten: 0.7293  # härlett
-    djup: 0.714
-    rulle_utanfor: 0.1  # antaget (vår, bord.vadderad_kant.bredd): rullen ligger utanför bågen, så att filten som syns är den mätta
-  sko:  # en lång genomskinlig låda, öppen upptill: fronten är en klar ram som lutar bakåt från fotens två främre hörn, med ett fönster där nästa kort syns; kortleken ligger på en bädd som stiger bakåt, varje kort lutat som fronten med långsidan tvärs skon. källa: LIVE.shoe, liveShoePose(), liveShoeCard()
-    genomskinlig: true
-    fot_fram: [0.4521, -0.1531, 0.9500]  # mätt: fotens främre hörn mot spelarna (hörnen lästa för ögat, 1-2 cm)
-    fot_horn: [[0.4270, -0.0533, 0.9500], [0.4521, -0.1531, 0.9500], [0.7162, -0.0798, 0.9500]]  # mätt: främre vid dealern, främre mot spelarna, bakre mot spelarna
-    yaw_bakat: 15.512  # härlett ur foten: bakänden vriden mot dealern
-    langd: 0.274  # mätt (foten)
-    bredd: 0.103  # mätt (foten)
-    hojd_bak: 0.117  # mätt ur bilden; väggarnas överkant går rakt från frontens topp hit
-    hojd_fram: 0.061  # mätt: frontens topp (de två topphörnen lästa 0,060 och 0,062)
-    platta_lutning_grader: 56.60  # mätt: från filten (topphörnen lästa 34,0 och 32,8 grader bakåt från lodrätt; kortets rygg i fönstret lutar lika)
-    fonster_lyft: 0.003  # mätt: där bädden börjar framtill, kortets underkant över filten
-    badd_lutning_grader: 13.40  # mätt: bädden stiger bakåt, sedd genom den nära väggen
-    lek_langd: 0.18  # skattat: hur långt längs bädden kortleken når (0,14 m vid 62 s, 0,23 m vid 600 s i filmen; 0,18 är åtta lekar)
-    front_horn: [[0.4270, -0.0533, 0.9500], [0.4521, -0.1531, 0.9500], [0.4907, -0.1434, 1.0117], [0.4663, -0.0434, 1.0101]]  # mätt: fot vid dealern, fot mot spelarna, topp mot spelarna, topp vid dealern
-    fonsterkort_mitt: [0.4577, -0.0981, 0.9787]  # nästa kort i frontens fönster, ryggen utåt; inom 2 mm från mätningens mitt
-    fonsterkort_langsida: [-0.2674, 0.9636, 0.0000]  # kortets långsida, tvärs skon (mot den bortre väggen)
-    fonsterkort_kortsida: [0.5304, 0.1472, 0.8348]  # kortets kortsida, uppför fronten
-  los_bit: {horn: [[0.3652, -0.0915, 0.9500], [0.4017, -0.0757, 0.9500], [0.4311, -0.1701, 0.9500], [0.3977, -0.1786, 0.9500]], mitt: [0.3989, -0.1290, 0.9500]}  # mätt: en lös klar bit som ligger plant på filten strax framför skon; kortet som dras ut glider över den. källa: LIVE.clearPiece
-  kassering:  # mätt: en klar låda vid dealerns högra hörn, öppen upptill; de använda korten ligger plant i den, ryggen upp. källa: LIVE.box, liveBox()
-    fot_mitt: [-0.6115, -0.0351, 0.9500]
-    yaw: 2.143
-    yttermatt: [0.076, 0.093, 0.1575]  # foten mätt; höjden mätt ur bilden (0,156-0,159)
-    vaggtjocklek: 0.004  # antaget (vår, kassering.vaggtjocklek)
-    kort_hog: 0.03  # skattat: de använda kortens hög, liggande med ryggen upp (2-5 cm genom filmen)
-  skarkort: {mitt: [-0.5737, -0.1333, 0.9500], storlek: [0.0479, 0.0863]}  # mätt, men ligger bara ute ibland: byggs inte
-  markerbricka: ingen  # mätt: det finns ingen (markerna är spelets grafik); bygg_bord.py --live --med-bricka lägger vår (markerbricka ovan) vid kanten, märkt som vårt tillägg
-  insatsmarken:  # mätt: mitten av spelets platsknappar, plats 1 till vänster i bilden (dealerns höger). källa: LIVE.betMarks
-    P1: [-0.4967, -0.4040, 0.9500]
-    P2: [-0.3347, -0.5397, 0.9500]
-    P3: [-0.1711, -0.6096, 0.9500]
-    P4: [0.0004, -0.6301, 0.9500]
-    P5: [0.1730, -0.6080, 0.9500]
-    P6: [0.3363, -0.5362, 0.9500]
-    P7: [0.4991, -0.3983, 0.9500]
-  platser:  # mätt: där korten först låg stilla, kortets mitt; yaw_kort = långsidans vridning i grader moturs uppifrån (0 = rakt mot spelaren). källa: LIVE.cards
-    # vinkel: mätt där landningarna är eniga om den, annars spegelbilden av samma kort på den speglade platsen (LIVE.cards[id].turnFrom)
-    D.C1: {pos: [-0.0272, -0.1774, 0.9500], yaw_kort: 4.80, landningar: 18, vinkel: "mätt"}
-    D.C2: {pos: [0.0243, -0.1928, 0.9500], yaw_kort: -2.30, landningar: 18, vinkel: "mätt"}
-    D.C3: {pos: [-0.0269, -0.1808, 0.9500], yaw_kort: 3.50, landningar: 11, vinkel: "mätt"}
-    P1.C1: {pos: [-0.4206, -0.3190, 0.9500], yaw_kort: -51.30, landningar: 6, vinkel: "spegel av P7.C1"}
-    P1.C2: {pos: [-0.3732, -0.3218, 0.9500], yaw_kort: -44.00, landningar: 5, vinkel: "mätt"}
-    P1.C3: {pos: [-0.3701, -0.3210, 0.9500], yaw_kort: -55.10, landningar: 3, vinkel: "spegel av P7.C3"}
-    P2.C1: {pos: [-0.2964, -0.4103, 0.9500], yaw_kort: -30.00, landningar: 3, vinkel: "spegel av P6.C1"}
-    P2.C2: {pos: [-0.2987, -0.4204, 0.9500], yaw_kort: -30.10, landningar: 2, vinkel: "spegel av P6.C2"}
-    P3.C1: {pos: [-0.0938, -0.4401, 0.9500], yaw_kort: -13.90, landningar: 3, vinkel: "spegel av P5.C1"}
-    P4.C1: {pos: [0.0155, -0.5124, 0.9500], yaw_kort: -2.30, landningar: 11, vinkel: "mätt"}
-    P4.C2: {pos: [0.0440, -0.4727, 0.9500], yaw_kort: -1.00, landningar: 9, vinkel: "mätt"}
-    P5.C1: {pos: [0.1575, -0.4973, 0.9500], yaw_kort: 13.90, landningar: 6, vinkel: "mätt"}
-    P5.C2: {pos: [0.1804, -0.4536, 0.9500], yaw_kort: 12.40, landningar: 4, vinkel: "mätt"}
-    P6.C1: {pos: [0.2922, -0.4331, 0.9500], yaw_kort: 30.00, landningar: 14, vinkel: "mätt"}
-    P6.C2: {pos: [0.2974, -0.3866, 0.9500], yaw_kort: 30.10, landningar: 11, vinkel: "mätt"}
-    P6.C3: {pos: [0.2949, -0.3773, 0.9500], yaw_kort: 30.00, landningar: 3, vinkel: "som P6.C1"}
-    P7.C1: {pos: [0.4265, -0.3069, 0.9500], yaw_kort: 51.30, landningar: 14, vinkel: "mätt"}
-    P7.C2: {pos: [0.4156, -0.2613, 0.9500], yaw_kort: 44.00, landningar: 11, vinkel: "spegel av P1.C2"}
-    P7.C3: {pos: [0.4612, -0.2636, 0.9500], yaw_kort: 55.10, landningar: 5, vinkel: "mätt"}
-  dealer:  # mätt: han sitter, på en hög stol. Djupet är antaget (0.2 m bakom kanten); armarna går inte att mäta (dockans egna används). källa: LIVE.dealer
-    bakom_kant: 0.2  # antaget
-    kameran: {axlar_mitt: [0.0330, 0.2005, 1.2680], axelbredd: 0.357, ogon_over_filt: 0.509, bakom_kant_skattat: 0.065}
-    bordet: {axlar_mitt: [0.0460, 0.2005, 1.2600], axelbredd: 0.348, ogon_over_filt: 0.514, bakom_kant_skattat: 0.158}
-  golv: {filt_over_golv: 0.95, plus_minus: 0.1, sits_over_golv: 0.67}  # slutlett, inte mätt
+  handled_over_kort: 0.02  # antaget: handleden 2 cm över kortet när handen lägger det

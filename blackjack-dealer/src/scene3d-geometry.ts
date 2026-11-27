@@ -1,24 +1,24 @@
 // Pure geometry for the 3D scene tab: the film camera read from data/scene-contract.json and the mapping
 // between film pixels and the table top. No I/O and no three.js, so Node can test it.
 // World frame, metres: x toward image right, y up, z toward the camera. The felt is y = 0, the film camera
-// stands at (0, heightM, 0) looking along -z, pitched down. Lengths are in the film camera's scene units;
-// `scale` says how many of them a dealer metre is: 1 under the table's lens, under Bred lins computed from it (wideCamera).
+// stands at (0, heightM, 0) looking along -z, pitched down. Lengths are in the film camera's scene units; `scale` says how many
+// of them a dealer metre is: 1 under the live table's camera (setupCamera), the contract's k under the room's (cameraFromContract).
 // The pinhole itself is the one in src/scene-geometry.ts (table millimetres, Y away from the camera); this file only changes frame.
 import {applyH, cameraHomography, cameraProject, inv3, type Camera} from './scene-geometry.ts';
-import {CARD, FILM, TABLE_LENS, TRAY, horizonRow, planPixel, type Lens} from './table-lens.ts';
-import {BET, type Uppsattning} from './uppsattning.ts';
+import {FILM} from './plan-lens.ts';
+import {BET, type Standard} from './standard.ts';
 
-/** The bank's frame, the former standard's picture: src/table-lens.ts holds it. A film camera carries its own (FilmCamera frame). */
+/** The contract's picture (the bank's frame, src/plan-lens.ts), which the room's camera is composed for. A film camera carries its own (FilmCamera frame). */
 export {FILM};
 /**
- * A film camera. `frame`: the picture its films are in, pixels (the bank's 1764 x 1174 for the former standard's cameras, the
- * live table's own 1728 x 972 for its); the optical axis meets it in its middle. `roll`: how the picture is turned about its middle
+ * A film camera. `frame`: the picture its films are in, pixels (the live table's own 1728 x 972; the contract's 1764 x 1174 for the
+ * room's camera); the optical axis meets it in its middle. `roll`: how the picture is turned about its middle
  * (radians, as src/table-live.ts liveFrame has it: the live table's -0.16 degrees lowers the picture's right), 0 but for the live
  * table. Rows and the edge row are counted in the picture as it would be without the roll (unrolled, below).
  */
 export type FilmCamera = {focalPx: number; horizonRow: number; edgeRow: number; heightM: number; scale: number; source: 'contract' | 'lens'; frame: {width: number; height: number}; roll: number};
 export type TablePoint = {x: number; z: number};
-/** dealer metres: x across the table, s from the dealer-side edge toward the players; turn: a card place's lie where it has one (radians, as src/table-lens.ts cardCorners takes a heading: positive turns its far end toward the picture's right). */
+/** dealer metres: x across the table, s from the dealer-side edge toward the players; turn: a card place's lie where it has one (radians, as src/space.ts cardCorners takes a heading: positive turns its far end toward the picture's right). */
 export type Spot = {id: string; x: number; s: number; turn?: number};
 /** The middle of a camera's picture, where its optical axis meets it. */
 const middleOf = (c: Pick<FilmCamera, 'frame'>) => ({x: (c.frame.width - 1) / 2, y: (c.frame.height - 1) / 2});
@@ -38,69 +38,22 @@ type Figure = {value?: unknown};
 const figure = (group: Record<string, Figure> | undefined, name: string): number => {
   const v = group?.[name]?.value; if (typeof v !== 'number' || !Number.isFinite(v)) throw Error(`scene-contract.json saknar keyFigures.${name}.value.`); return v;
 };
-// The plan's camera. The contract states that the dealer was not drawn with this lens; it is the one that fits the card quads.
+// The contract's camera (data/scene-contract.json): the one the room's pictures were composed for (src/scene3d-view.ts written).
 export function cameraFromContract(contract: {keyFigures?: Record<string, Figure>; cardSizeAtTargets?: {scale?: {bodyScale?: {k?: unknown}}}}): FilmCamera {
   const k = contract.keyFigures, focalPx = figure(k, 'focalPx'), tilt = figure(k, 'tiltDownDeg') * Math.PI / 180, body = contract.cardSizeAtTargets?.scale?.bodyScale?.k;
   return {focalPx, horizonRow: middleOf({frame: FILM}).y - focalPx * Math.tan(tilt), edgeRow: figure(k, 'dealerEdgeImageRow'), heightM: figure(k, 'heightAboveFeltMm') / 1000, scale: typeof body === 'number' && body > 0 ? body : 1, source: 'contract', frame: FILM, roll: 0};
 }
 /**
- * The table's lens (src/table-lens.ts, the card plan's) as the scene's film camera: the same pinhole in the same world frame,
- * in real metres, so the scale is 1 and a dealer metre is a scene metre. `edgeRow` is the film row of the dealer's table edge
- * (the contract's dealerEdgeImageRow, measured in the film). Under this camera a pixel's place on the felt is the one
- * pixelToFelt gives (tools/card-plan.test.ts holds filmToTable, filmPixel and cardSpots to it), which is what makes the
- * scene's card places, bet rings and table the card plan's own. The scene uses it under the lens 'standard' (Lins in src/card-plan.ts).
+ * The standard's camera (src/standard.ts) as the scene's film camera: the live table's, in real metres (scale 1, source 'lens'),
+ * with its own picture and roll. Its world is the live table's lens world itself: the camera over the origin, and the dealer's
+ * edge where the live table has it (the edge row is the row that edge has in the unrolled picture).
  */
-export function lensCamera(lens: Lens, edgeRow: number): FilmCamera {
-  return {focalPx: lens.focalPx, horizonRow: horizonRow(lens), edgeRow, heightM: lens.height, scale: 1, source: 'lens', frame: FILM, roll: 0};
-}
-/**
- * A set-up's own camera (src/uppsattning.ts) as the scene's film camera: the live table's, in real metres like the table's lens
- * (scale 1, source 'lens'), with its own picture and roll. Its world is the set-up's lens world itself: the camera over the
- * origin, and the dealer's edge where the set-up has it (the edge row is the row that edge has in the unrolled picture).
- */
-export function setupCamera(u: Pick<Uppsattning, 'bild' | 'kamera' | 'kant'>): FilmCamera {
+export function setupCamera(u: Pick<Standard, 'bild' | 'kamera' | 'kant'>): FilmCamera {
   const k = u.kamera, y = (u.bild.height - 1) / 2, distance = -u.kant()[2];
   return {focalPx: k.focalPx, horizonRow: y - k.focalPx * Math.tan(k.pitch), edgeRow: y + k.focalPx * Math.tan(Math.atan(k.height / distance) - k.pitch), heightM: k.height, scale: 1, source: 'lens', frame: u.bild, roll: k.roll};
 }
 /** The film row of the dealer's table edge, as the contract has measured it. */
 export const edgeRowOf = (contract: {keyFigures?: Record<string, Figure>}): number => figure(contract.keyFigures, 'dealerEdgeImageRow');
-/**
- * A point of one film camera's felt laid onto another's through the film pixel that shows it: x across and s from the dealer's
- * edge, each in its own camera's scene units. Bred lins takes its numbers from the standard this way (Jakob 2026-11-26: Bred lins
- * "som bara kan göras utifrån en standard"): what shows in a pixel on the standard's real felt shows there on the wide felt too.
- */
-export function layFelt(from: FilmCamera, to: FilmCamera, x: number, s: number): {x: number; s: number} {
-  const pixel = tableToFilm(from, x, s - solveCamera(from).edgeDistance), p = filmToTable(to, pixel.x, pixel.y);
-  return p ? {x: p.x, s: p.z + solveCamera(to).edgeDistance} : {x: NaN, s: NaN};
-}
-/** The standard's camera, the table's lens in real metres, at a film camera's edge row. */
-const standardOf = (c: FilmCamera): FilmCamera => lensCamera(TABLE_LENS, c.edgeRow);
-/**
- * Bred lins's camera: the contract's wide camera with its scale computed instead of the contract's guessed k: how many of its
- * units a real metre is across the table at the middle of the dealer's edge (1.897; the laying is linear along a row, so a
- * metre's step is exact). The table's things are built in it; the room, her film and the view keep the contract's k.
- */
-export function wideCamera(contract: Parameters<typeof cameraFromContract>[0]): FilmCamera {
-  const c = cameraFromContract(contract), standard = standardOf(c);
-  return {...c, scale: layFelt(standard, c, 0.5, 0).x - layFelt(standard, c, -0.5, 0).x};
-}
-/** How deep, in a film camera's scene units, the standard's real felt from s0 to s1 metres off the dealer's edge shows in the film. */
-export function laidDepth(c: FilmCamera, s0: number, s1: number): number {
-  if (c.source === 'lens') return s1 - s0;
-  const standard = standardOf(c); return layFelt(standard, c, 0, s1).s - layFelt(standard, c, 0, s0).s;
-}
-/** Scene units per dealer metre of the tray's depth: its own footprint (TRAY, 0.10 m toward the players) laid, while across it takes the scale. */
-export const trayDeep = (c: FilmCamera): number => laidDepth(c, TRAY.s0, TRAY.s1) / (TRAY.s1 - TRAY.s0);
-/**
- * A view setting written for one film camera as the setting that gives the same picture under another: the game's framings and
- * the saved looks (yaw and pitch in degrees, dx, dy and dz in scene units) were made under the contract's camera. A turn keeps
- * how far it moves the film frame in the picture (degrees mean less under a longer lens), and a move keeps its length in dealer
- * metres. Exact for the frame's middle; the picture's keystone under a turn differs a little between two lenses.
- */
-export function viewUnder(camera: FilmCamera, written: FilmCamera, view: {yaw: number; pitch: number; dx: number; dy: number; dz: number}): {yaw: number; pitch: number; dx: number; dy: number; dz: number} {
-  const turn = (degrees: number) => Math.atan(Math.tan(degrees * Math.PI / 180) * written.focalPx / camera.focalPx) * 180 / Math.PI, move = camera.scale / written.scale;
-  return {yaw: turn(view.yaw), pitch: turn(view.pitch), dx: view.dx * move, dy: view.dy * move, dz: view.dz * move};
-}
 // Pitch below the horizontal (radians), ground distance from below the camera to the dealer-side table edge, vertical field of view.
 export function solveCamera(c: FilmCamera) {
   const CY = middleOf(c).y, pitch = Math.atan((CY - c.horizonRow) / c.focalPx), edgeDistance = c.heightM / Math.tan(pitch + Math.atan((c.edgeRow - CY) / c.focalPx));
@@ -124,17 +77,6 @@ export function aimCorrection(base: number[], moved: number[], pivot: number[]):
   const a = pivot.map((v, i) => v - base[i]), b = pivot.map((v, i) => v - moved[i]);
   return {yaw: Math.atan2(-b[0], -b[2]) - Math.atan2(-a[0], -a[2]), pitch: Math.atan2(b[1], Math.hypot(b[0], b[2])) - Math.atan2(a[1], Math.hypot(a[0], a[2]))};
 }
-// Card places of the placement plan (native view, normalised bottom-up) laid back onto the felt. Read only.
-export function cardSpots(plan: {targets?: Record<string, {geometry?: {native?: {u?: number; v?: number}}}>} | null, c: FilmCamera): Spot[] {
-  const edge = -solveCamera(c).edgeDistance, out: Spot[] = [];
-  for (const [id, target] of Object.entries(plan?.targets ?? {})) {
-    const n = target.geometry?.native; if (typeof n?.u !== 'number' || typeof n?.v !== 'number') continue;
-    const pixel = planPixel(n as {u: number; v: number}), p = filmToTable(c, pixel.x, pixel.y); if (!p) continue;
-    const spot = {id, x: p.x / c.scale, s: (p.z - edge) / c.scale}; if (spot.s > -0.05 && spot.s < 1.2) out.push(spot);
-  }
-  return out;
-}
-
 // Where a film pixel lies in the scene: on the felt from the dealer edge row downward, on the vertical plane standing on that edge above it.
 // Under a roll the edge row and the upright plane are taken in the unrolled picture.
 export function filmToScene(c: FilmCamera, px: number, py: number): [number, number, number] {
@@ -223,29 +165,16 @@ export function cloudLevel(seconds: number, every: number, strength: number): nu
   return t < 0 || t > length ? 1 : 1 - Math.min(1, strength) * Math.sin(Math.PI * t / length) ** 2;
 }
 
-// Bet rings: one per player seat, a little past the seat's first card toward the player. The felt prints them from
-// this and a game reads the same list, so print and game cannot drift apart. Dealer metres, seats in order.
-// One rule under both lenses: from the card's middle, half the card as it lies there, the ring's radius and 12 mm of felt (`clear`).
-// Under the table's lens the card is a real one, 88 mm deep (0.083 m); under Bred lins it is a real card at that seat laid through
-// the film's pixels onto the wide felt, from its middle to its edge toward the player. The ring's size is the set-ups' (src/uppsattning.ts BET);
-// the live table's rings lie round its measured bet marks instead (setupBets).
+// Bet rings: one per player seat, round the live table's measured bet marks (setupBets). The felt prints them from this and a
+// game reads the same list, so print and game cannot drift apart. Dealer metres, seats in order. The ring's size: src/standard.ts BET.
 export {BET};
-export function ringOffset(c: FilmCamera, card: {x: number; s: number}): number {
-  if (c.source === 'lens') return CARD.height / 2 + BET.radius + BET.clear;
-  const at = layFelt(c, standardOf(c), card.x * c.scale, card.s * c.scale).s; // the card's middle on the standard's felt
-  return laidDepth(c, at, at + CARD.height / 2) / c.scale + BET.radius + BET.clear;
-}
 export type BetSpot = {id: string; x: number; s: number; radius: number};
-/** A point of a set-up's lens world on the felt as dealer metres under its own camera (setupCamera): x across, s from its edge. */
+/** A point of the live table's lens world on the felt as dealer metres under its camera (setupCamera): x across, s from its edge. */
 const setupSpot = (c: FilmCamera, at: readonly number[]) => ({x: at[0] / c.scale, s: (at[2] + solveCamera(c).edgeDistance) / c.scale});
-/** A set-up's card places (src/uppsattning.ts kortplatser: metres with their lie) as the scene's spots under its own camera. */
-export const setupSpots = (u: Pick<Uppsattning, 'kortplatser'>, c: FilmCamera): Spot[] => u.kortplatser().map(p => ({id: p.id, ...setupSpot(c, p.at), turn: p.heading}));
-/** A set-up's bet marks (src/uppsattning.ts insatser, measured on the live table) as the scene's bet rings, seat 1 at the picture's left. */
-export const setupBets = (u: Pick<Uppsattning, 'insatser'>, c: FilmCamera): BetSpot[] => u.insatser().map(b => ({id: `P${b.seat}`, ...setupSpot(c, b.at), radius: BET.radius}));
-export function betSpots(plan: Parameters<typeof cardSpots>[0], c: FilmCamera): BetSpot[] {
-  return cardSpots(plan, c).filter(p => /^P[0-9]+[.]C1$/.test(p.id)).map(p => ({id: p.id.split('.')[0], x: p.x, s: p.s + ringOffset(c, p), radius: BET.radius}))
-    .sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)));
-}
+/** The standard's card places (src/standard.ts kortplatser: metres with their lie) as the scene's spots under its camera. */
+export const setupSpots = (u: Pick<Standard, 'kortplatser'>, c: FilmCamera): Spot[] => u.kortplatser().map(p => ({id: p.id, ...setupSpot(c, p.at), turn: p.heading}));
+/** The standard's bet marks (src/standard.ts insatser, measured on the live table) as the scene's bet rings, seat 1 at the picture's left. */
+export const setupBets = (u: Pick<Standard, 'insatser'>, c: FilmCamera): BetSpot[] => u.insatser().map(b => ({id: `P${b.seat}`, ...setupSpot(c, b.at), radius: BET.radius}));
 // A point in dealer metres (x across the table, s from the dealer-side edge toward the players, y above the felt) as a
 // scene position, and a scene position on the felt back in dealer metres.
 export function spotToScene(c: FilmCamera, x: number, s: number, y = 0): [number, number, number] { return [x * c.scale, y * c.scale, s * c.scale - solveCamera(c).edgeDistance]; }

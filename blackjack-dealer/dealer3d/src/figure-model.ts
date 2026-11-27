@@ -4,15 +4,14 @@
 // A model with finger bones (<Side>Hand<Finger>1-3, as the standard doll has) bends each finger as the doll's hand does;
 // one without them (Meshy's) has its hands aimed and turned as a whole, its fingers stay as they were modelled and it
 // never holds the card. Loaded only when the page asks for it (?model=1). It is made as large as its arm needs to be to
-// equal the arm the motion was drawn for, so that its wrists come to the motion's wrists: by default the figure's
-// (BODY.upperArm + BODY.forearm; Jakob's first model becomes 1.10 of its own size), or `arm` where the caller knows
-// better. A standard doll playing its own motions is given its own arm, and so keeps its own size: its motions, its
-// hand's points and its fingertips were measured on the model as it is, and a model made larger than that puts its
-// fingers past the card (the woman was 1.074 of her size until 2026-11-26, her fingertips 12 mm too far out).
+// equal the arm the motion was drawn for, so that its wrists come to the motion's wrists: by default Danilo's
+// (dealer3d/src/doll.ts), or `arm` where the caller knows better. A doll playing its own motions is given its own arm,
+// and so keeps its own size: its motions, its hand's points and its fingertips were measured on the model as it is, and
+// a model made larger than that puts its fingers past the card.
 import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import type {Vec3} from './camera.ts';
-import {BODY} from './body.ts';
+import type {Vec3} from '../../src/space.ts';
+import {DANILO} from './doll.ts';
 import {larRiktning} from './sitter.ts';
 import {fingertopp} from './fingertopp.ts';
 
@@ -124,7 +123,7 @@ function bendSpine(joints: Vec3[], shoulders: Vec3[], want: Vec3[], stiff: reado
  * length of the arm the motion was drawn for (upper arm and forearm, metres), which the model is scaled to; the figure's
  * when it is not given.
  */
-export async function loadFigure(url: string, {twistBones = true, arm = BODY.upperArm + BODY.forearm}: {twistBones?: boolean; arm?: number} = {}): Promise<Figure> {
+export async function loadFigure(url: string, {twistBones = true, arm = DANILO.upperArm + DANILO.forearm}: {twistBones?: boolean; arm?: number} = {}): Promise<Figure> {
   const gltf = await new GLTFLoader().loadAsync(url), root = new T.Group(); root.add(gltf.scene); root.updateMatrixWorld(true);
   const bone = (name: string) => { const b = gltf.scene.getObjectByName(name); if (!b) throw Error(`The model has no bone ${name}.`); return b; };
   let skinned: T.SkinnedMesh | null = null, triangles = 0;
@@ -150,7 +149,7 @@ export async function loadFigure(url: string, {twistBones = true, arm = BODY.upp
   const fingers = SIDES.map(s => { const all = FINGERS.map(([name, start]) => ({start, bones: [1, 2, 3].map(n => gltf.scene.getObjectByName(`${s}Hand${name}${n}`))}));
     return all.every(f => f.bones.every(Boolean)) ? all.map(f => ({start: f.start, bones: f.bones as T.Object3D[]})) : null; });
   // The last bone has no next bone: it points toward the fingertip measured on the skin (fingertopp.ts), as the doll's hand
-  // has its tip there (dealer3d/tools/docka-standard.ts). (Until 2026-11-26 it pointed as the bone before it; the standard
+  // has its tip there (dealer3d/tools/docka-matt.ts). (Until 2026-11-26 it pointed as the bone before it; the standard
   // doll's thumb tip is bent 19 degrees from that, so the skin's tip missed the hand point's by 7 mm, the forefinger's by 3.)
   const tipOf = (b2: T.Object3D, b3: T.Object3D): T.Vector3 | null => { const which = mesh.skeleton.bones.indexOf(b3 as T.Bone), idx = mesh.geometry.attributes.skinIndex, wt = mesh.geometry.attributes.skinWeight, moln: Vec3[] = [], q = new T.Vector3();
     for (let i = 0; i < idx.count; i++) for (let k = 0; k < 4; k++) if (idx.getComponent(i, k) === which && wt.getComponent(i, k) >= 0.5) { mesh.getVertexPosition(i, q).applyMatrix4(mesh.matrixWorld); moln.push([q.x, q.y, q.z]); }

@@ -34,7 +34,7 @@
 // slätt och lika stort hela filmen). Filmens spårkort (gul rygg, vit framsida, turkos ram, rosa märke, och det grå och
 // vita som hänger ihop med dem) tas bort helt, också dess kant mot det gröna, och vårt eget kort ritas i dess ställe:
 // ryggen och framsidan ur kortatlasen som bordets kort (avatar-auto-pipeline/assets/bord/kort/kortatlas.png, samma
-// mönstrade röda rygg som korten i vår sko), i kortets riktiga storlek (table-lens.ts CARD) genom livebordets kamera
+// mönstrade röda rygg som korten i vår sko), i kortets riktiga storlek (space.ts CARD) genom livebordets kamera
 // (table-live.ts LIVE_CAMERA), med runda hörn, rätt perspektiv och utan kant.
 //  - Läget är dockans kort (rörelsens frames[].card) i dockrutan som filmrutan svarar mot, men filmens kort avgör: i varje
 //    ruta söks den dockruta (inom 12 rutor) och den förskjutning på filten (högst 12 cm och 40 grader kring lodlinjen) där
@@ -54,7 +54,7 @@ import {spawn, spawnSync} from 'node:child_process';
 import {once} from 'node:events';
 import {mkdirSync, readFileSync} from 'node:fs';
 import path from 'node:path';
-import {CARD, type Vec3} from '../../blackjack-dealer/src/table-lens.ts';
+import {CARD, type Vec3} from '../../blackjack-dealer/src/space.ts';
 import {LIVE, LIVE_CAMERA, liveFrame, liveShoeCard} from '../../blackjack-dealer/src/table-live.ts';
 
 const arg = (name: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };

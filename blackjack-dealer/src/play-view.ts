@@ -1,16 +1,16 @@
 // The play view (spelvyn): how the game frames the picture for the player, on a computer (Dator) and on a phone (Mobil).
-// Jakob 2026-11-25: the recording's format is one standard (the film's frame and camera, src/table-lens.ts) and what the
-// player sees is another, "lite mer utzoomat" and a little more from the front. It is saved once (data/play-view.json,
-// written only by the server on his click in Scen: tools/play-view-store.ts) and holds for every look; a look carries a
-// framing of its own only when he has switched that on for it.
+// The recording's format is the standard's (the live table's picture and camera, src/standard.ts) and what the player sees is a
+// framing of it. It is saved once (STANDARD.spelvyFil, data/play-view-live.json, written only by the server: tools/play-view-store.ts)
+// and holds for every look; a look carries a framing of its own only when he has switched that on for it.
 //
 // A framing is a turn and a zoom from the film camera's own place, so the film stays exact under it. The layers of a look,
 // last wins: the scene's DEFAULTS, the play view's Dator, the look's own keys, the address's keys (lookState in
 // src/game-look.ts, effective in studio/lib/scene-presets.ts). Mobil is always the play view's.
 // Pure: no DOM, no network; tests in tools/play-view.test.ts.
+import {STANDARD, type Framing} from './standard.ts';
 
-/** zoom: 1 is the film frame filling the picture; pitch and yaw: degrees the view is turned up and to the left of the film's own. */
-export type Framing = {zoom: number; pitch: number; yaw: number};
+/** zoom: 1 is the film frame filling the picture; pitch and yaw: degrees the view is turned up and to the left of the film's own (src/standard.ts Framing). */
+export type {Framing};
 export type PlayView = {schemaVersion: 1; dator: Framing; mobil: Framing; updatedAt: string};
 
 /** A stage narrower than this (its width over its height) is a phone held upright: the game shows Mobil. */
@@ -18,10 +18,10 @@ export const MOBILE_BELOW = 0.8;
 /** The same limits as the scene keys zoom, pitch and yaw (KEYS in src/game-look.ts; tools/play-view.test.ts holds them together). */
 export const FRAMING_LIMITS: Readonly<Record<keyof Framing, readonly [number, number]>> = {zoom: [0.45, 2.5], pitch: [-35, 25], yaw: [-60, 60]};
 /**
- * The framings the game had before the file (GAME_OWN and FRAMING in src/game-page.ts until 2026-11-26): what the game shows
- * when the file cannot be read, and until it has been read (the film before the game is laid before anything is fetched).
+ * The game's own framings of the live table (STANDARD.spelvy): what the game shows when the file cannot be read, and until it has
+ * been read (the film before the game is laid before anything is fetched).
  */
-export const PLAY_VIEW: PlayView = {schemaVersion: 1, dator: {zoom: 0.84, pitch: -8, yaw: 0}, mobil: {zoom: 1.55, pitch: -4.4, yaw: 0}, updatedAt: ''};
+export const PLAY_VIEW: PlayView = {schemaVersion: 1, dator: STANDARD.spelvy.dator, mobil: STANDARD.spelvy.mobil, updatedAt: ''};
 
 const FIELDS = ['zoom', 'pitch', 'yaw'] as const;
 const within = (key: keyof Framing, value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value >= FRAMING_LIMITS[key][0] - 1e-9 && value <= FRAMING_LIMITS[key][1] + 1e-9;

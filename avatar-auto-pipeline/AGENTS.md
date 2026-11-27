@@ -1,7 +1,7 @@
 # avatar-auto-pipeline
 
-Blender-skripten bakom standarddockan och standardscenen (en kvinna och en man med samma skelett, bordet, stolen,
-korten och skon), och vägen från 1–8 foton av en person till en riggad 3D-dealer (bilder från gpt-image-2, delar och
+Blender-skripten bakom standarddockan och standardscenen (dockorna Danilo och Frasse på samma skelett, livebordet,
+stolen, korten och skon), och vägen från 1–8 foton av en person till en riggad 3D-dealer (bilder från gpt-image-2, delar och
 riggning hos Meshy, montering och export i Blender). Rotens `AGENTS.md` gäller; här står bara det som är eget för den
 här mappen. Mapparna och alla kommandon står i `README-SV.md`; skelettet, lederna och hur en dealer anpassas i
 `new_docka.md`.
@@ -10,9 +10,10 @@ här mappen. Mapparna och alla kommandon står i `README-SV.md`; skelettet, lede
   färdiga vägarna (Version 1 är det `auto_avatar.py` kör i dag) och vad som går ihop. `VAGAR.md` är en utskrift och
   ändras aldrig för hand: `python -I vagar.py` kontrollerar filen mot koden och skriver den, och kontrollen före push
   gör det när något inte stämmer. Ett nytt steg eller alternativ skrivs in i `vagar.json` i samma ändring.
-- **Måtten har en källa:** spelets kod i `../blackjack-dealer` (kameran, bordet, kortet, skon, kortplatserna och
-  dockornas mått). `scen/standard.yaml` är de talen i Blenders koordinater, skriven av `python scen/gen_standard.py`,
-  och ändras aldrig för hand: ändra i spelet eller i `gen_standard.py` och kör om.
+- **Måtten har en källa:** spelets kod i `../blackjack-dealer`: livebordet i `src/table-live.ts` (kameran, bordet, skon,
+  kortplatserna och insatsmärkena, mätta på film), kortet i `src/space.ts` och dockornas mått i `dealer3d/src/doll.ts`.
+  `scen/standard.yaml` är de talen i Blenders koordinater, skriven av `python scen/gen_standard.py`, och ändras aldrig
+  för hand: ändra i spelet eller i `gen_standard.py` och kör om.
 - **Skelettet är ett.** Bennamnen är de som `../blackjack-dealer/dealer3d/src/figure-model.ts` letar efter. En dealer
   byter kropp, ansikte, hud och kläder, aldrig skelett eller bennamn, så att varje rörelse fungerar på varje docka.
 - **Allt som ändrar scenen eller en docka är ett skript** (`scen/`, `verktyg/`). En ändring gjord för hand i Blender

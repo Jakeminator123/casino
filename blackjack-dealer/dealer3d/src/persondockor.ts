@@ -1,11 +1,11 @@
 // Persondockorna: en docka per person som är mätt ur sina egna bilder (Jakob 2026-11-27: "ett generiskt sätt att få en
 // pipeline för en helt och hållet ny dealer"). Skriven av avatar-auto-pipeline/ny_dealer.py: personens mått ur bilderna
 // (avatar-auto-pipeline/personer/<person>.json, steg 15), dockan byggd på den docka vars rörelser personen spelar
-// (scen/bygg_docka.py --kon <namn>) och mätt på sin egen modell (dealer3d/tools/docka-standard.ts --fil). Ändras aldrig för
+// (scen/bygg_docka.py --kon <namn>) och mätt på sin egen modell (dealer3d/tools/docka-matt.ts --fil). Ändras aldrig för
 // hand: kör om avatar-auto-pipeline/ny_dealer.py <person>. src/doll.ts lägger var och en i LIVE_DOLLS vid livebordet, i
 // stilen den spelar. Ren: bara tal.
 import type {DollHand} from './doll.ts';
-import type {Vec3} from './camera.ts';
+import type {Vec3} from '../../src/space.ts';
 
 /** En persons docka: personen (mappen i avatar-auto-pipeline/input/), stilen den spelar och modellens egna mått (som doll.ts OwnModel). */
 export type PersonDocka = {person: string; stil: 'kameran' | 'bordet'; model: string; shouldersApart: number; head: Vec3; headRadius: number;

@@ -12,7 +12,7 @@ den som får betala (blackjack-dealer/tools/runway-api.ts place).
   2 docka    dockan efter måtten, byggd på den docka vars rörelser personen spelar (Danilos för kameran, Frasses för
              bordet): Blender utan fönster, scen/bygg_docka.py --kon <docka> -> assets/docka/standarddocka_<docka>.glb
              (under låset ../slask/blackjack-dealer/gpu-och-headless.lock)
-  3 system   dockan mätt på sin egen modell (blackjack-dealer/dealer3d/tools/docka-standard.ts --fil) och skriven i
+  3 system   dockan mätt på sin egen modell (blackjack-dealer/dealer3d/tools/docka-matt.ts --fil) och skriven i
              blackjack-dealer/dealer3d/src/persondockor.ts: då är den med i LIVE_DOLLS, i editorn och i verktygen
   4 rorelser de lyfta rörelserna i stilen på dockan (dealer3d/tools/lyft-till-docka.ts --docka <docka>) och kontrollen
              (dealer3d/tools/lyft-kolla.ts)
@@ -177,10 +177,10 @@ def skriv_persondockor(rader):
 
 
 def steg_system():
-    r = kor(['node', 'dealer3d/tools/docka-standard.ts', '--docka', 'man', '--fil', rel(MODELL)], cwd=BJ, fanga=True)
+    r = kor(['node', 'dealer3d/tools/docka-matt.ts', '--fil', rel(MODELL)], cwd=BJ, fanga=True)
     rad = next((x for x in r.stdout.splitlines() if x.startswith('DOCKAN (')), None)
     if r.returncode or not rad:
-        sys.exit('steg 3: docka-standard.ts mätte inte modellen')
+        sys.exit('steg 3: docka-matt.ts mätte inte modellen')
     literal = rad.split(' i doll.ts form: ', 1)[1]
     # (verktyget skriver dockan i doll.ts form, en JavaScript-literal: Node läser den)
     js = subprocess.run(['node', '-e', 'process.stdout.write(JSON.stringify(eval("(" + require("fs").readFileSync(0, "utf8") + ")")))'],
@@ -193,9 +193,9 @@ def steg_system():
             'about': {'all': f'{NAMN.capitalize()}: en persons docka ur sina egna bilder (avatar-auto-pipeline/personer/{a.person}.json, steg 15), byggd på '
                              f'{p["docka"]["grund"].capitalize()}s docka (scen/bygg_docka.py --kon {NAMN}: {p["docka"]["grund"].capitalize()}s mått utom '
                              f'{", ".join(p["docka"]["passa"]) or "inget"} ur mätningen) och mätt på modellen {rel(MODELL)} '
-                             f'(dealer3d/tools/docka-standard.ts --fil); sitter vid livebordet som den riktiga dealern med stilen {STIL}; ansiktet vårt eget',
+                             f'(dealer3d/tools/docka-matt.ts --fil); sitter vid livebordet som den riktiga dealern med stilen {STIL}; ansiktet vårt eget',
                       'upperArm': f'mätt på modellen: {d["upperArm"]} m', 'forearm': f'mätt på modellen: {d["forearm"]} m',
-                      'hand': 'mätt på modellen (som MAN.hand, med dess egna ben); lägena i hand.at är vid standardens bord och gäller inte här',
+                      'hand': 'mätt på modellen: den gemensamma kroppens former (doll.ts KROPP) med modellens egna ben och toppar; lägena i hand.at är den gemensamma kroppens och gäller inte vid bordet',
                       'reach': 'armarnas summa gånger 0,972, som mannens'}}
     rader = las_persondockor()
     rader[NAMN] = json.dumps(post, ensure_ascii=False, separators=(',', ':'))
@@ -259,7 +259,7 @@ def kortets_lage(ruta, kamera):
     handen som håller det, och var pekfingrets topp är på kortet sett i bilden. Rörelsens card: mitten c, långsidan l,
     framsidans normal n; filten är y = 0; händernas 21 punkter p (4 tummens topp, 8 pekfingrets, 0 handleden, 5 och 17
     knogarna); bildens höger är +x och bildens överkant bort från kameran (-z)."""
-    B, H = 0.063, 0.088   # kortet (src/table-lens.ts CARD)
+    B, H = 0.063, 0.088   # kortet (src/space.ts CARD)
     kort = ruta['card']
     c, l, nn = kort['c'], kort['l'], kort['n']
     dot = lambda p, q: sum(x * y for x, y in zip(p, q))
@@ -330,7 +330,7 @@ def fas(t, T, plats, sist=False):
 def steg_film():
     rorelse = json.loads((BJ / 'dealer3d' / 'data' / f'{GIV}.json').read_text(encoding='utf-8'))
     n, T = rorelse['frameCount'], rorelse['made']['times']
-    r = kor(['node', 'standarddocka/verktyg/titta.ts', '--uppsattning', 'live', '--docka', NAMN, '--plats', a.plats, '--spela-in', 'hela',
+    r = kor(['node', 'standarddocka/verktyg/titta.ts', '--docka', NAMN, '--plats', a.plats, '--spela-in', 'hela',
              '--kamera', 'spel', '--utseende', 'nyckel'], fanga=True)
     klipp = re.findall(r'(standarddocka/klipp/[^\s]+?\.mp4)', r.stdout.replace('\\', '/'))
     if r.returncode or not klipp:

@@ -3,7 +3,7 @@
 // The online copy's first visit: once per browser, "Välkommen till dealerstudion", three lines on what this is, and four
 // ways in: Bordet's scene (a round), the map, the proofs (Granska's part Prov), ask or give feedback (opens the panel).
 // Words from lib/guide.ts.
-import { ArrowRight, FlaskConical, MessageCircleQuestion, Play, Workflow } from "lucide-react";
+import { ArrowRight, FlaskConical, MessageCircleQuestion, Workflow } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { FRAGA, WELCOME, guideOf } from "../../lib/guide.ts";
@@ -78,7 +78,7 @@ export function Welcome() {
           ))}
         </div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <Way icon={<Play />} title={way("bordet")} hint={HINT.spela} href="/bordet/?lage=scen" onClick={close} />
+
           <Way icon={<Workflow />} title={way("karta")} hint={HINT.karta} href="/karta/" onClick={close} />
           <Way icon={<FlaskConical />} title={way("prov")} hint={HINT.prov} href="/granska/?vy=prov" onClick={close} />
           <Way

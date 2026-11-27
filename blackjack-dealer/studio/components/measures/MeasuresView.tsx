@@ -1,25 +1,14 @@
 "use client";
 
-// Mått (/matt/): the measures, in two parts chosen at the top (?del=livebordet for the second).
-// - Alla mått: every measure in one place, as the repo's MATT.md has it, read anew from the code each time the view opens
-//   (lib/measures.ts): the cameras, the table and what stands on it, where the cards land, the dolls, the motions and the
-//   motion catalogue, each beside what was measured at the live table. The parts of the text are a row of buttons at the top.
-// - Livebordet: our standard set-up beside the clone of the live table, in pictures and in numbers (SetupCompare).
+// Mått (/matt/): every measure in one place, as the repo's MATT.md has it, read anew from the code each time the view opens
+// (lib/measures.ts): the camera, the table and what stands on it, where the cards land, the dolls, the motions and the
+// motion catalogue, each beside what was measured at the live table. The parts of the text are a row of buttons at the top.
 import { RotateCw } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { Page } from "../shell";
-import { Button, ErrorState, SegmentedControl, Skeleton } from "../ui";
+import { Button, ErrorState, Skeleton } from "../ui";
 import { getMeasures, measureSections, type Section } from "../../lib/measures.ts";
-import { choiceName } from "../../lib/uppsattning-val.ts";
 import { MeasureBlock } from "./MeasureText";
-import { SetupCompare } from "./SetupCompare";
-
-type Part = "tal" | "livebordet";
-const PARTS = [
-  { value: "tal" as const, label: "Alla mått" },
-  { value: "livebordet" as const, label: `${choiceName("live")} och ${choiceName("forra").toLowerCase()}` },
-];
 
 function AllMeasures({ round }: { round: number }) {
   const [sections, setSections] = useState<Section[] | null>(null);
@@ -60,28 +49,22 @@ function AllMeasures({ round }: { round: number }) {
 }
 
 function Measures() {
-  const params = useSearchParams();
-  const router = useRouter();
-  const part: Part = params.get("del") === "livebordet" ? "livebordet" : "tal";
   const [round, setRound] = useState(0);
   const [readAt, setReadAt] = useState(() => new Date());
   const again = useCallback(() => { setRound((n) => n + 1); setReadAt(new Date()); }, []);
-  const choose = (next: Part) => router.replace(next === "tal" ? "/matt/" : `/matt/?del=${next}`);
+
   const time = readAt.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" });
   return (
     <Page
       title="Mått"
       status={<span>läst {time}</span>}
       actions={
-        <>
-          <SegmentedControl size="sm" label="Måttens delar" value={part} onChange={choose} options={PARTS} />
-          <Button size="sm" variant="quiet" icon={<RotateCw />} onClick={again} title="Läs måtten ur koden igen">
-            Läs om
-          </Button>
-        </>
+        <Button size="sm" variant="quiet" icon={<RotateCw />} onClick={again} title="Läs måtten ur koden igen">
+          Läs om
+        </Button>
       }
     >
-      {part === "tal" ? <AllMeasures round={round} /> : <SetupCompare key={round} />}
+      <AllMeasures round={round} />
     </Page>
   );
 }

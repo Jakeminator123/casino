@@ -1,24 +1,23 @@
-// The play view's file (data/play-view.json; src/play-view.ts says what it is): how the game frames the picture on a
-// computer and on a phone, one for every look. One file per set-up (src/uppsattning.ts spelvyFil): the live table's is
-// data/play-view-live.json, its framing from the live table's own camera, so that saving one never touches the other. The lab server (tools/preview.ts, /api/play-view) reads it for its pages and
-// writes it on Jakob's click in Scen ("Spara som spelvy"). Like the preset store: every write is checked, made against the
-// revision the page last read (If-Match), queued, and written to a temporary file that is renamed into place. A file that
-// is missing is the game's framings as they were (PLAY_VIEW; the live table's own, src/uppsattning.ts spelvy), with no
-// revision, and the first save writes it.
+// The play view's file (src/standard.ts spelvyFil, data/play-view-live.json; src/play-view.ts says what it is): how the
+// game frames the picture on a computer and on a phone, from the live table's own camera. The lab server (tools/preview.ts,
+// /api/play-view) reads it for its pages and writes it on Jakob's click. Like the preset store: every write is checked,
+// made against the revision the page last read (If-Match), queued, and written to a temporary file that is renamed into
+// place. A file that is missing is the standard's own framing (src/standard.ts spelvy), with no revision, and the first
+// save writes it.
 import {readFile, writeFile, mkdir, rename} from 'node:fs/promises';
 import {createHash, randomUUID} from 'node:crypto';
 import path from 'node:path';
 import {StoreError} from './placement-store.ts';
-import {PLAY_VIEW, validatePlayView, type PlayView} from '../src/play-view.ts';
-import {DATATS_FORVAL, UPPSATTNING, type UppsattningId} from '../src/uppsattning.ts';
+import {validatePlayView, type PlayView} from '../src/play-view.ts';
+import {STANDARD} from '../src/standard.ts';
 
 /** Bytes of the file the server takes. */
 export const PLAY_VIEW_BYTES = 2048;
 export type StoredPlayView = PlayView & {revision: string | null};
 
-export function playViewStore(root: string, setup: UppsattningId = DATATS_FORVAL) {
-  const file = path.join(root, UPPSATTNING[setup].spelvyFil); let queue = Promise.resolve();
-  const first: PlayView = setup === DATATS_FORVAL ? PLAY_VIEW : {schemaVersion: 1, ...UPPSATTNING[setup].spelvy, updatedAt: ''};
+export function playViewStore(root: string) {
+  const file = path.join(root, STANDARD.spelvyFil); let queue = Promise.resolve();
+  const first: PlayView = {schemaVersion: 1, ...STANDARD.spelvy, updatedAt: ''};
   const revision = (text: string) => '"' + createHash('sha256').update(text).digest('hex') + '"';
   const readText = async () => { try { return await readFile(file, 'utf8'); } catch (e) { if ((e as NodeJS.ErrnoException).code === 'ENOENT') return null; throw e; } };
   // The file as the pages get it. A file that does not hold up is an error of the studio, not of the page.

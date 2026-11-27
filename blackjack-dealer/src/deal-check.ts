@@ -10,7 +10,7 @@
 // card somewhat larger than a real one, a light rim, the card moving a little after the fingers left it (trial 2C: the
 // reviewer 2/5, Jakob "C nyp ser bra ut!"), the hand laid again or hopping in the last frames, a still start.
 //
-// Size is measured against a REAL card through the table's lens (src/table-lens.ts), never against the plan's old drawing:
+// Size is measured against a REAL card through the table's lens (src/plan-lens.ts), never against the plan's old drawing:
 // a real card is longer on screen held up in the hand (seen almost straight on, 88 mm about 100 px) than lying
 // (foreshortened, about 72 px deep), so the card in the hand is compared with a real card seen straight on at the depth
 // where its lowest edge meets the felt, by area (the square root of the blob's pixels over the straight-on card's): a long
@@ -20,7 +20,8 @@
 // Thresholds come from the fifteen takes of the trials of 2026-11-17:
 // see THRESHOLDS. Pure: no files, no frames. The same measures run on a reference film (checkReference) say whether it
 // is a clean deal to copy: one turn through the edge, on edge only in the turn, a card of a real size, plain colours.
-import { CARD, TABLE_LENS, filmEye, length, onPlane, sub, type Lens } from './table-lens.ts';
+import { CARD, length, sub } from './space.ts';
+import { TABLE_LENS, filmEye, onPlane, type Lens } from './plan-lens.ts';
 
 /** One colour blob of the card in a frame: its pixel count, centre, box, extents along its main axes and the share of light pixels in a 6 px ring round it. */
 export type Blob = { n: number; centre: [number, number]; bbox: [number, number, number, number]; long: number; short: number; paleRingPct: number; /** Its mean colour, red, green, blue. */ rgb?: [number, number, number] };

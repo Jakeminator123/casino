@@ -9,11 +9,11 @@ import { labUrl } from "./lab.ts";
 import { isSnapshot } from "./mode.ts";
 import { nodeCode } from "./names.ts";
 import {
-  ANCHOR_NODE, ANCHOR_ROLE, personOf, pictureOf, FLIP_LABEL, HAND_LABEL, mandateWords, LANDS_LABEL, STYLE_LABEL, genitive, MODELS, SEAT_TARGETS, SHOWN_LABEL, credits, cutIntoOf, edgeOf, handChoiceOf, seatList, seatWords, stepOf, styleOf, summaryOf, waitWords,
+  ANCHOR_NODE, ANCHOR_ROLE, personOf, FLIP_LABEL, HAND_LABEL, mandateWords, LANDS_LABEL, STYLE_LABEL, genitive, MODELS, SEAT_TARGETS, SHOWN_LABEL, credits, cutIntoOf, edgeOf, handChoiceOf, seatList, seatWords, stepOf, styleOf, summaryOf, waitWords,
   type Anchor, type FlipAxis, type HandChoice, type Order, type OrderAnswer, type OrdersAnswer, type Owner, type Picture, type PlanAnswer, type Shape, type Shown, type StepDef, type StepKey, type TextStyle,
 } from "../../src/order-model.ts";
 import { orderPrompt, wordCount, type Choice, type Part } from "../../src/order-prompts.ts";
-import type { UppsattningId } from "../../src/uppsattning.ts";
+import { STANDARD } from "../../src/standard.ts";
 import { dealPose } from "../../src/game-director.ts";
 
 export type { Order, OrderAnswer, OrdersAnswer, Picture, Shown, FlipAxis, StepKey, HandChoice, Owner, Part, Choice, Shape, TextStyle };
@@ -74,11 +74,6 @@ export type NewOrderInput = {
   cardScale?: number;
   /** A deal bara dit: an A3 candidate of the seat as its last picture, a named exception, or null for none ("utan slutbild") (tools/order-store.ts NewOrder.end). */
   end?: string | null;
-  /**
-   * The table and camera chosen in the menu (src/uppsattning.ts). The store makes the draft at the set-up of what it is made
-   * of (the dealer's anchors) and refuses another in words, so a film is never ordered at a table other than the one chosen.
-   */
-  uppsattning?: UppsattningId;
 };
 
 /** Whose film an order makes, by name: the person's for a trial of one who is not a dealer yet (order.person), else the dealer's. */
@@ -88,10 +83,10 @@ export function whoseName(order: Pick<Order, "dealer" | "person">, names?: Reado
   const named = names instanceof Map ? names.get(order.dealer) : (names as Record<string, string> | undefined)?.[order.dealer];
   return named ?? order.dealer ?? "okänd";
 }
-/** A picture's shape: its own width and height where the order wrote them, else its table and camera's (src/uppsattning.ts bild, through pictureOf). */
-export function shapeOf(order: { uppsattning?: unknown } | null | undefined, picture?: { width?: number | null; height?: number | null } | null): { width: number; height: number } {
+/** A picture's shape: its own width and height where the order wrote them, else the standard's picture (src/standard.ts bild). */
+export function shapeOf(_order: unknown, picture?: { width?: number | null; height?: number | null } | null): { width: number; height: number } {
   const w = picture?.width, h = picture?.height;
-  return typeof w === "number" && typeof h === "number" && w > 0 && h > 0 ? { width: w, height: h } : pictureOf(order);
+  return typeof w === "number" && typeof h === "number" && w > 0 && h > 0 ? { width: w, height: h } : STANDARD.bild;
 }
 /** The CSS of a box in a picture's shape. */
 export const aspectOf = (s: { width: number; height: number }) => ({ aspectRatio: `${s.width} / ${s.height}` });
@@ -110,12 +105,6 @@ export function orderSaveFailure(cause: unknown): { message: string; retrySave: 
 export type OrderChange = { title?: string; takes?: number; extra?: string | null; duration?: number; hand?: "LH" | "RH"; pass?: boolean; side?: "FRONT" | "BACK" };
 export const changeOrder = (id: string, change: OrderChange, revision: string) => call<OrderAnswer>(`api/orders/${id}`, "Ändringen", send("PUT", change, revision));
 export const approveOrder = (id: string, revision: string) => call<OrderAnswer>(`api/orders/${id}/approve`, "Godkännandet", send("POST", undefined, revision));
-/**
- * The draft made from the doll's deal to a card (POST /api/orders/docka, tools/doll-order.ts): about a minute.
- * `entry` is the pose of the step being ordered, said by the caller: the plan's "Handbyte" never chooses it.
- */
-export type DollOrdered = { id: string; title: string; place: string; entry: "A2.1" | "A2.3"; film: string; cost: { total: number } };
-export const orderDoll = (dealer: string, place: string, entry: "A2.1" | "A2.3") => call<DollOrdered>("api/orders/docka", "Dockans beställning", send("POST", { dealer, place, entry }));
 export const refreshOrder =(id: string, revision: string) => call<OrderAnswer>(`api/orders/${id}/refresh`, "Bilderna", send("POST", undefined, revision));
 
 // ── The production list (tools/produce.ts, GET /api/production) ──

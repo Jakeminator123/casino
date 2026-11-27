@@ -26,7 +26,7 @@ import path from 'node:path';
 import {parseEdge, nodeName, buildGraph, type DerivedTake, type ImageRef} from '../src/clip-graph.ts';
 import {probe, sha256File} from './film-fix.ts';
 import {orderTake, OrderError, ORDER_ID, type OrderLike} from './order-collect.ts';
-import {endsOnOf, personOf, uppsattningField, uppsattningOf} from '../src/order-model.ts';
+import {endsOnOf, personOf} from '../src/order-model.ts';
 import {splitOfFilm, type Found} from './round-trip-split.ts';
 import {motionRegister} from './register-store.ts';
 
@@ -178,14 +178,12 @@ export async function planRegistration(root: string, id: string, take: number, o
   const hands = hand ? {takeHand: hand, releaseHand: order.motion?.pass === true || order.motion?.grip === 'TWO_HANDS' ? other(hand) : hand} : {};
   // An order's pass is an extra choice. The film records the change of hands in the deal, including with TWO_HANDS.
   const switched = !!hands.takeHand && hands.takeHand !== hands.releaseHand;
-  // The post says the set-up the film is made at where it is not the former standard (a post without it is the former's).
-  const setup = uppsattningField(uppsattningOf(order as {uppsattning?: unknown}));
-  const record = (t: Entry, extra: Record<string, unknown> = {}) => ({schemaVersion: 1, id: t.id, dealer: order.dealer, ...setup, source: facts2,
+  const record = (t: Entry, extra: Record<string, unknown> = {}) => ({schemaVersion: 1, id: t.id, dealer: order.dealer, source: facts2,
     motion: {kind: t.kind, from: t.from, to: t.to, ...hands, pass: t.kind === 'DEAL' && switched, basis: 'SOURCE_FRAME_REVIEW', ...(t.id !== target ? {segment: {clip: target, frames: t.frames}} : {}), ...extra},
     review, order: orderRef, ...(fix ? {fix} : {}), postProcessing: fix ? `tools/film-fix.ts, ${fix.receipt}` : 'none', generationRef: `assets/motions/${target}/generation.json`, jobRef: 'data/clip-jobs.json', scoutIntegrated: false, published: false});
   for (const t of takes) records[t.id] = record(t, records[t.id] ?? {});
   // The clip's own record when the film is split: its facts, read by the bank for both halves (tools/preview.ts clipBank).
-  if (trip) records[target] = {schemaVersion: 1, id: target, dealer: order.dealer, ...setup, source: facts2, cutInto: takes.map(t => t.id), order: orderRef, ...(fix ? {fix} : {}), generationRef: `assets/motions/${target}/generation.json`, jobRef: 'data/clip-jobs.json', scoutIntegrated: false, published: false};
+  if (trip) records[target] = {schemaVersion: 1, id: target, dealer: order.dealer, source: facts2, cutInto: takes.map(t => t.id), order: orderRef, ...(fix ? {fix} : {}), generationRef: `assets/motions/${target}/generation.json`, jobRef: 'data/clip-jobs.json', scoutIntegrated: false, published: false};
   const generation = {schemaVersion: 1, id: target, edges, takes: takes.map(t => t.id), dealer: order.dealer, purpose: takes[0].purpose, status: 'SUCCEEDED', provider: facts2.provider,
     endpoint: ref.fix ? 'tools/film-fix.ts' : `${through.endpoint} ${order.generation?.tool ?? 'generate_video'}`, taskId: entry.taskId, model, params: order.generation?.params ?? null, estimatedCredits: 0, appCredits: ref.fix ? 0 : order.cost?.perTake ?? null,
     creditNote: ref.fix ? 'Rättad lokalt ur en levererad film: kostade inga krediter.' : through.creditNote, promptText: order.prompt?.text ?? '', promptSha256: order.prompt?.sha256 ?? null, template: order.prompt?.template ?? null,

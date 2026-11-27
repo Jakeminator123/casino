@@ -9,7 +9,6 @@ import {FILM_CARD_GLSL, MATTE_GLSL} from './scene3d-matte.ts';
 import type {FilmEffect} from './clip-graph.ts';
 import type {CardTrack} from './card-overlay.ts';
 import type {GameCardOptions} from './game-film.ts';
-import type {UppsattningId} from './uppsattning.ts';
 
 const VERTEX = `varying vec4 vFilm; varying vec3 vWorld; uniform mat4 filmVP;
 void main(){ vec4 w = modelMatrix * vec4(position, 1.); vWorld = w.xyz; vFilm = filmVP * w; gl_Position = projectionMatrix * viewMatrix * w; }`;
@@ -500,9 +499,8 @@ export function createFilmLayers(filmVP: T.Matrix4, light: Record<string, {value
 // `frame`: a film with a frame of its own (see FilmFrame). `fps`: the film's own frames per second when it is not 30; start,
 // end and every frame number of the part are counted in the film's own frames. Every film is muted. `model`: the generator that
 // made the film (its record's source.model), for the key filmEven; a part without it is drawn as it is. `rest`: a rest film, which
-// keeps its speed under the key filmTempo. `uppsattning`: the table and camera the film is made under (src/uppsattning.ts; without it the former standard's, as every film
-// made before the choice): the scene shows a part only under its own (src/scene3d-view.ts guardFilms).
-export type Part = {path: string; start?: number; end?: number | null; rate?: number; absoluteRate?: boolean; track?: CardTrack | null; cards?: GameCardOptions | null; frame?: FilmFrame | null; fps?: number; model?: string; rest?: boolean; effect?: PartEffect | null; uppsattning?: UppsattningId};
+// keeps its speed under the key filmTempo.
+export type Part = {path: string; start?: number; end?: number | null; rate?: number; absoluteRate?: boolean; track?: CardTrack | null; cards?: GameCardOptions | null; frame?: FilmFrame | null; fps?: number; model?: string; rest?: boolean; effect?: PartEffect | null};
 // A film's effect on the scene (a record's motion.effect, carried on the part). room-flash, lightning: for `seconds` of the film's
 // own time from `at` the room is another (`room`, an id of the register), and with `mono` the whole picture is black and white,
 // table, cards and dealer too. A white flash takes the picture there and a softer one takes it back (roomFlashAt).

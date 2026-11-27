@@ -1,7 +1,8 @@
-// Karta: the dealer's node trees (components/map). The view reads the address (?trad=…&steg=…&kant=…&tagning=…), so it sits inside Suspense: in a
-// static export the page is built without a query and the view is drawn in the browser.
+// Karta (/karta/): Schemat, the dolls' motion scheme: anchors, stages and motions with what exists for Danilo and Frasse
+// (components/schemat). The view reads the address, so it sits inside Suspense: in a static export the page is built
+// without a query and the view is drawn in the browser.
 import { Suspense } from "react";
-import { KartaView } from "@/components/map/KartaView";
+import { SchemaView } from "@/components/schemat/SchemaView";
 import { Page } from "@/components/shell";
 import { Skeleton } from "@/components/ui";
 import { ViewContext } from "@/lib/context";
@@ -18,7 +19,7 @@ export default function Karta() {
       }
     >
       <ViewContext vy="karta" />
-      <KartaView />
+      <SchemaView />
     </Suspense>
   );
 }

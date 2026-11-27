@@ -29,11 +29,10 @@
 // dealer's own anchor and goes out with it alone (2026-11-23); the words about a pose picture (@pose), which the stills
 // stored before were sent with, stay for those. Tests: tools/order-routes.test.ts.
 import type { FlipAxis, Grip, StepKey, TextStyle } from './order-model.ts';
-import { UPPSATTNING } from './uppsattning.ts';
 
-/** The picture the place words are measured in: the former standard's (1764 × 1174), where the bank's films and the card plan are. */
-const PLACE_FRAME = UPPSATTNING.forra.bild;
-/** A point of another picture in the place words' pixels (the same point where `bild` is the former standard's). */
+/** The picture the place words' limits are written in (1764 × 1174 pixels); a point of any picture is brought there by its share. */
+const PLACE_FRAME = { width: 1764, height: 1174 };
+/** A point of another picture in the place words' pixels (the same point where `bild` is PLACE_FRAME). */
 const inPlaceFrame = (place: { x: number; y: number }, bild: { width: number; height: number }) => ({ x: place.x * (PLACE_FRAME.width / bild.width), y: place.y * (PLACE_FRAME.height / bild.height) });
 
 /**
@@ -157,7 +156,7 @@ export type PromptInput = {
   model: string;
   /** For a deal: the grip, the hand that takes the card and whether it is handed over, the turn, and the side it lands with. */
   motion?: DealMotion | null;
-  /** Where the card lands in the picture, in the pixels of the former standard's picture (PLACE_FRAME, where the plan's cards are). */
+  /** Where the card lands in the picture, in the pixels of PLACE_FRAME (a point of another picture brought there by its share). */
   place?: { x: number; y: number } | null;
   /** Jakob's own addition, put before the bans. */
   extra?: string | null;

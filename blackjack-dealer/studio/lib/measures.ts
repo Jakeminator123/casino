@@ -25,7 +25,7 @@ const SOURCE_COLUMNS = new Set(["Källa", "Fil", "Hur", "Läst"]);
 /** A code span that names a file, a folder or a command (the other code spans are words, shown as words). */
 const FILE_LIKE = /[/\\]|\.(?:ts|json|md|py|yaml|glb|blend)\b|^node\b|--/;
 
-/** A parenthesis that holds a code span: "(`table-lens.ts PLAY_LENS`)" says where a number is written, and goes. */
+/** A parenthesis that holds a code span: "(`table-live.ts LIVE_CAMERA`)" says where a number is written, and goes. */
 const stripSourceParens = (text: string) => text.replace(/\s*\((?:[^()]|\([^()]*\))*`[^`]*`(?:[^()]|\([^()]*\))*\)/g, "");
 
 /**

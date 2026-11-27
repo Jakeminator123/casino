@@ -7,8 +7,7 @@ import { TARGETS, VIEWS, editPlace, type Place, type PlacementPlan, type View } 
 import { cardCode } from "./names.ts";
 
 // ── Places ──────────────────────────────────────────────────────────────────
-// The places are the plan's cards only. The shoe was one until 2026-11-26: its place is the standard's (src/table-lens.ts
-// SHOE), the same for every film, and nothing read the plan's own.
+// The places are the plan's cards only; the shoe is the standard's (src/table-live.ts LIVE.shoe).
 export const SEATS = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "D"] as const;
 /** The place Inspelning opens on: P4C2. */
 export const START_PLACE: Place = "P4.C2";

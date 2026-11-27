@@ -27,7 +27,7 @@ export type Target = { geometry: Record<View, Geometry>; intent: Intent; materia
 // validatePlan still reads a file that has it and leaves it out.
 export type TableProjection = { mode:'flat'|'individual'; heading:number };
 // The plan is the cards' places and how they are dealt. Until 2026-11-26 it also held the shoe's point and a checked mark per
-// card ("Kontrollerad"); nothing read either (the shoe's place is the standard's, src/table-lens.ts SHOE; Jakob 2026-11-24:
+// card ("Kontrollerad"); nothing read either (the shoe's place is the bank's films'; Jakob 2026-11-24:
 // "färre val"), so validatePlan still reads a file that has them and leaves them out, and a save writes neither.
 export type PlacementPlan = { schemaVersion: 1; id: 'kortplan'; space: 'image-normalized-bottom-up'; updatedAt: string | null; targets: Record<string, Target>; tableProjection?:TableProjection };
 // The headings a flat table's plane may be saved with (validatePlan).

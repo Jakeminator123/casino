@@ -10,19 +10,18 @@
 // film for is cut or laid without a hand, never played with another dealer's film. The address's ?dealer= is the rail's word:
 // it is neither a look key nor dropped when the view writes its address. ?trad=<id> (Karta's Prova i Casino) narrows her films
 // to one tree's; the game page says on its own line which tree and how far it has come.
-import { Expand, Globe, Plus, SlidersHorizontal } from "lucide-react";
-import Link from "next/link";
+import { Expand, Globe, Plus } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { asApiError } from "../../lib/api.ts";
 import { useBank } from "../../lib/bank.ts";
-import { ONLINE_CASINO, casinoSearch, freshTable, gameSrc, readCasino, scenHref, type CasinoLook } from "../../lib/casino.ts";
+import { ONLINE_CASINO, casinoSearch, freshTable, gameSrc, readCasino, type CasinoLook } from "../../lib/casino.ts";
 import { useViewContext } from "../../lib/context.ts";
 import { DEALER_PARAM, isStandardDoll, withDealer, withoutDealer } from "../../lib/dealer.ts";
 import { isSnapshot } from "../../lib/mode.ts";
 import { SHIPPED } from "../../lib/scene-presets.ts";
 import { listPresets, type Preset } from "../scene-editor/presetApi.ts";
-import { Page, useSetup } from "../shell";
+import { Page } from "../shell";
 import { Button, Select, Spinner, buttonClasses, useToast } from "../ui";
 
 const shipped = (): Preset[] => SHIPPED.map((p) => ({ ...p, shipped: true, revision: null }));
@@ -90,9 +89,7 @@ function Casino() {
 
   // ── the game in the frame: a new address loads it anew (a new element, so the studio's back button is not the frame's) ──
   // The dealer is the rail's: the game page reads it as its own word (?dealer=), so another dealer is another game in the frame.
-  // The menu's choice of table and camera goes with it (?uppsattning=); the game reads it once it has its own reading of the word.
-  const { id: setup } = useSetup();
-  const src = `${gameSrc({ ...look, trad, komposition }, isSnapshot ? null : setup)}&${new URLSearchParams({ [DEALER_PARAM]: dealer })}`;
+  const src = `${gameSrc({ ...look, trad, komposition })}&${new URLSearchParams({ [DEALER_PARAM]: dealer })}`;
   const frame = useRef<HTMLIFrameElement | null>(null);
   const [loaded, setLoaded] = useState<string | null>(null);
 
@@ -144,9 +141,7 @@ function Casino() {
       actions={
         <>
           <Select size="sm" aria-label="Förval" className="w-40" value={look.forval} options={options} onChange={(forval) => go({ forval, patch: {}, table: look.table, ignored: [] })} />
-          <Link href={scenHref(look)} className={buttonClasses({ variant: "quiet", size: "sm" })} title="Öppna samma look, med samma lins, i Filmverkstadens Scen och kalibrera den vidare">
-            <SlidersHorizontal /> Kalibrera i Scen
-          </Link>
+
           {!isSnapshot ? (
             <a href={ONLINE_CASINO} target="_blank" rel="noopener noreferrer" className={buttonClasses({ variant: "quiet", size: "sm" })} title="Casinot på nätet (dealer-lake.vercel.app/casino) i en ny flik: Casinos sparade visning som den var vid senaste publiceringen">
               <Globe /> På nätet

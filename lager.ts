@@ -106,7 +106,7 @@ export const PLATSER: readonly Plats[] = [
   {id: 'matmodeller', mapp: `${BJ}/tools/python/models`, namn: 'Mätverktygens modeller', slag: 'program', projekt: BJ, git: false, ignore: `/${BJ}/tools/python/models/`, register: [], lasare: ['verktyg'], gratis: true, hur: 'hämtas igen enligt verktygens beskrivning', delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Ett program som verktygen behöver.'},
   {id: 'studion', mapp: `${BJ}/studio/out`, namn: 'Studion, byggd', slag: 'program', projekt: BJ, git: false, ignore: `/${BJ}/studio/out/`, register: [], lasare: ['studion'], gratis: true, hur: 'byggs om', delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Det är studion själv.'},
   {id: 'ditt-foto', mapp: `${BJ}/private`, namn: 'Ditt foto som förlaga', slag: 'personer', projekt: BJ, git: false, ignore: 'private/', register: [], lasare: ['verktyg'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Ditt foto rörs bara av dig.'},
-  {id: 'dockans-rorelser', mapp: `${BJ}/dealer3d/data`, namn: 'Dockans rörelser som tal: lyfta ur filmen och ritade', slag: 'rorelser', projekt: BJ, git: true, ignore: null, register: [`${SD}/rorelsekatalog.json`], lasare: ['dockan', 'studion'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: GIT},
+  {id: 'dockans-rorelser', mapp: `${BJ}/dealer3d/data`, namn: 'Dockans rörelser som tal, lyfta ur filmen', slag: 'rorelser', projekt: BJ, git: true, ignore: null, register: [`${SD}/rorelsekatalog.json`], lasare: ['dockan', 'studion'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: GIT},
   // ── avatar-auto-pipeline: personerna, figurerna och föremålen ──
   {id: 'personer', listas: 'Avatarer visar den', mapp: `${AP}/input`, namn: 'Bilderna av personerna', slag: 'personer', projekt: AP, git: false, ignore: `/${AP}/input/`, register: [`${AP}/vagar.json`], lasare: ['studion', 'verktyg'], gratis: false, delning: 'barn', visas: 'aldrig', radera: 'ja'},
   {id: 'korningar', listas: 'Avatarer visar den', mapp: `${AP}/output`, namn: 'Körningarna: en persons figur steg för steg', slag: 'figurer', projekt: AP, git: false, ignore: `/${AP}/output/`, register: [`${AP}/vagar.json`], lasare: ['studion', 'verktyg'], gratis: false, betald: true, delning: 'barnbarn', visas: 'media', radera: 'ja'},
@@ -121,7 +121,6 @@ export const PLATSER: readonly Plats[] = [
   {id: 'aldre-rorelsekatalog', mapp: `${AP}/rorelser`, namn: 'En äldre rörelsekatalog, som ska föras in i rörelseschemat', slag: 'rorelser', projekt: AP, git: true, ignore: null, register: [], lasare: ['ingen'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: GIT},
   // ── standarddocka: dockans editor ──
   {id: 'inspelningar', mapp: `${SD}/klipp`, namn: 'Dockans inspelningar i editorn', slag: 'dockfilmer', projekt: SD, git: false, ignore: `/${SD}/**/klipp/`, register: [`${SD}/rorelsekatalog.json`], lasare: ['dockan', 'studion'], gratis: true, hur: 'editorn filmar rörelsen igen', delning: 'barn', stam: true, visas: 'media', radera: 'ja'},
-  {id: 'vyn', mapp: `${SD}/vy`, namn: 'Dockans senaste vy ur Blender (skrivs om varje gång)', slag: 'tillfalligt', projekt: SD, git: false, ignore: `/${SD}/**/vy/`, register: [], lasare: ['verktyg'], gratis: true, hur: 'görs om av vyskriptet', delning: 'barn', visas: 'media', radera: 'ja'},
   // ── live-bj: mätningen av livebordet. Film av riktiga dealrar: visas aldrig, bara storlek och antal. ──
   {id: 'livefilmen', mapp: `${LB}/video`, namn: 'Filmen från livebordet', slag: 'matdata', projekt: LB, git: false, ignore: `/${LB}/video/`, register: [], lasare: ['verktyg'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Film av riktiga dealrar: den mäts bara, och sköts i livebordets mätning.'},
   {id: 'liverutor', mapp: `${LB}/rutor`, namn: 'Rutorna ur livefilmen', slag: 'matdata', projekt: LB, git: false, ignore: `/${LB}/rutor/`, register: [], lasare: ['verktyg'], gratis: true, hur: 'skärs ur filmen igen', delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Bilder av riktiga dealrar: de sköts i livebordets mätning.'},
@@ -148,7 +147,7 @@ export const PEKARE: readonly {fil: string; ord: string; en: string; flera: stri
   {fil: `${BJ}/dealer3d/src/doll.ts`, ord: 'Dockornas mått i koden', en: 'Dockornas kod nämner den', flera: '', kod: true},
   {fil: `${BJ}/dealer3d/src/persondockor.ts`, ord: 'Persondockorna i koden', en: 'Persondockornas register nämner den', flera: '', kod: true},
   {fil: `${BJ}/dealer3d/page/server.ts`, ord: 'Dockans sida i studion', en: 'Dockans sida i studion laddar den', flera: '', kod: true},
-  {fil: `${BJ}/dealer3d/src/standard-room.ts`, ord: 'Dockans rum', en: 'Dockans rum laddar den', flera: '', kod: true},
+
   {fil: `${SD}/editor/server.ts`, ord: 'Dockans editor', en: 'Dockans editor laddar den', flera: '', kod: true},
   {fil: `${SD}/editor/scen.ts`, ord: 'Dockans editor', en: 'Dockans editor laddar den', flera: '', kod: true},
   {fil: `${AP}/vagar.json`, ord: 'Avatarernas vägar', en: 'Avatarernas vägar pekar på den', flera: ''},

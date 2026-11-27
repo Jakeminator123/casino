@@ -1,7 +1,7 @@
 // The card plan drawn in the real perspective (Jakob's yes 2026-11-17 to "Kortplanen: rita korten i verkligt perspektiv,
 // större närmare dealern?", and on the size the same evening: "kör vi 1.0 så kanske det är bra. men bara allt är logiskt"):
 // on "Plant bord" every card of placements/default.json is a real card (63 x 88 mm) lying at its own place, seen through the
-// table's lens (src/table-lens.ts, the 3D lane's), so cards nearer the dealer are larger than the plan's old projective plane
+// table's lens (src/plan-lens.ts), so cards nearer the dealer are larger than the plan's old projective plane
 // drew them (a real card narrows to 0.956 at its far edge). The plan says where a card lies and which way it points; its size
 // follows from the lens. How large the game draws its cards is afterwork (Efterarbete's "Kortens storlek").
 // The recording always has a real card (Jakob 2026-11-26): every drawing of the plan in the lab and in an order (Bordet's
@@ -15,7 +15,8 @@
 // below).
 // Pure; tests in tools/card-plan.test.ts.
 import { flatQuad, planQuad, quad, toPixels, type Geometry, type PlacementPlan, type View } from './placement-model.ts';
-import { FILM, TABLE_LENS, pixelToFelt, realCardQuad, type Lens, type Pixel } from './table-lens.ts';
+import { FILM, TABLE_LENS, pixelToFelt, realCardQuad, type Lens } from './plan-lens.ts';
+import type { Pixel } from './space.ts';
 
 /**
  * Efterarbete's "Kortens storlek" as a share of the rule's card. The setting is written against the contract's card, of which

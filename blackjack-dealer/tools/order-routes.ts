@@ -9,9 +9,6 @@
 //                                       bank, model, length, takes), or with seats one draft per seat sharing a group
 //   PUT  /api/orders/<id>               change a draft: title, takes, hand, side, turn, free addition, length (If-Match)
 //   POST /api/orders/<id>/refresh       fetch what a draft waits for once it holds, draw its last picture again (If-Match)
-//   POST /api/orders/docka              {dealer, place, entry}: the doll's deal to that card becomes its film and a
-//                                       draft (tools/doll-order.ts; about a minute, one at a time), from Inspelning's step 3 (Spara
-//                                       utkastet on a deal from A2.3); entry is the step's pose, "A2.3" or "A2.1" (A2.3 left out)
 //   POST /api/orders/<id>/approve      Jakob's click: freezes the order with its hash, refused beyond the policy (If-Match)
 //   GET  /assets/orders/<id>/<file>     a picture or film of an order, only from that folder; and a take's film (take-<n>/after.mp4)
 //   GET  /assets/references/docka/<id>/source.mp4   a reference film of the dummy's, only one data/rendered-references.json lists
@@ -28,7 +25,6 @@ import { sendFile } from './studio-files.ts';
 import { mediaRoles } from './media-roles.ts';
 import { orderStore, type NewOrder, type StoreOptions } from './order-store.ts';
 import { orderTakeFilm } from './order-take-film.ts';
-import { dollOrder } from './doll-order.ts';
 import { productionList, readProduction } from './produce.ts';
 
 const BODY_LIMIT = 16384;
@@ -45,9 +41,6 @@ export function orderRoutes(options: { root: string; origin: string } & StoreOpt
     mutations = task.then(() => {}, () => {});
     return task;
   }
-
-  // One doll order at a time: it renders in headless Chrome.
-  let dolling = false;
 
   const json = (res: ServerResponse, status: number, value: unknown) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }).end(JSON.stringify(value)); };
   const fail = (res: ServerResponse, error: unknown) => json(res, error instanceof StoreError ? error.status : 500, { error: error instanceof StoreError ? error.message : 'Något gick fel i servern.' });
@@ -147,16 +140,6 @@ export function orderRoutes(options: { root: string; origin: string } & StoreOpt
           const { orders } = await store.savePreview(inputs as NewOrder[], ifMatch(req));
           json(res, 201, { ...(await store.one(orders[0].id)), made: orders.map((order) => order.id) });
         });
-        return true;
-      }
-      if (p === '/api/orders/docka') {
-        if (method !== 'POST') throw new StoreError(405, 'Bara POST.');
-        const value = (await body(req, true)) as { dealer?: unknown; place?: unknown; entry?: unknown } | null;
-        if (!value || typeof value.dealer !== 'string' || typeof value.place !== 'string' || Object.keys(value).some((k) => k !== 'dealer' && k !== 'place' && k !== 'entry')) throw new StoreError(400, 'Skicka dealer och place.');
-        if (value.entry !== undefined && value.entry !== 'A2.1' && value.entry !== 'A2.3') throw new StoreError(400, 'entry ska vara A2.1 eller A2.3.');
-        if (dolling) throw new StoreError(409, 'Dockans film görs redan; vänta tills den är klar.');
-        dolling = true;
-        try { json(res, 201, await dollOrder(root, { dealer: value.dealer, place: value.place, ...(value.entry ? { entry: value.entry } : {}) })); } finally { dolling = false; }
         return true;
       }
       const m = /^\/api\/orders\/([a-z0-9]+(?:-[a-z0-9]+)*)(\/approve|\/refresh)?$/.exec(p);

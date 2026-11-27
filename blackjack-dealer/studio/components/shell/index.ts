@@ -3,4 +3,4 @@ export { Shell } from "./Shell";
 export { Rail, VIEWS, activeView } from "./Rail";
 export { Page } from "./Page";
 export { BankStatus } from "./BankStatus";
-export { useSetup } from "./SetupProvider";
+

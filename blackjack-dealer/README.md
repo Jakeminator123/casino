@@ -153,8 +153,8 @@ Kopian på nätet (`dealer-lake.vercel.app`) har samma meny utan sparning, och i
   (`tools/doll-reference-put.ts`). `data/speech.json` (replikerna, som Kartas talblad läser) och den tomma
   `data/speech-patches.json` står kvar tills Karta och gallringen inte läser dem.
 - `data/manifest.json`: filernas ursprung och SHA-256.
-- `data/scene-presets/<namn>.json`: utseendena (förvalen) i Scen; Casino spelar `casino`. `data/play-view.json`:
-  spelvyn, inramningen för dator och mobil som gäller alla utseenden; bara Scen skriver den (`tools/play-view-store.ts`).
+- `data/scene-presets/<namn>.json`: utseendena (förvalen); Casino spelar `casino`. `data/play-view-live.json`:
+  spelvyn vid livebordet, inramningen för dator och mobil som gäller alla utseenden (`tools/play-view-store.ts`).
 - `placements/default.json`: Jakobs kortplan (16 kort och D.C3), sparad från Bordet.
 
 Media (`assets/`), `.runtime/`, `.env*` och `private/` är lokala och Git-ignorerade.

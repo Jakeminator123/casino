@@ -17,26 +17,15 @@ import sharp from 'sharp';
 import { CARD_RGB, WINDOW_CARD, cardMark, validatePlan, type PlacementPlan } from '../src/placement-model.ts';
 import { planCardQuad, throughLens } from '../src/card-plan.ts';
 import { scaleQuad, type Drawn } from '../src/order-model.ts';
-import { UPPSATTNING, type UppsattningId } from '../src/uppsattning.ts';
 
 /**
- * The bank's frame: the former standard's picture (src/uppsattning.ts UPPSATTNING.forra.bild, FILM in src/table-lens.ts).
- * Every card drawn here is drawn on it, since the card plan, the texture and the shoe's window are the former standard's;
- * the live table's card places are its own (src/table-live.ts) and nothing is drawn on its pictures.
+ * The bank's frame: the picture a dealer's anchors and films are made in when her draft is made from her anchors
+ * (tools/order-store.ts prepare). Every card drawn here is drawn on it, by the card plan (placements/default.json), the
+ * texture and the shoe's window; the standard's card places are its own (src/table-live.ts) and nothing is drawn on its
+ * pictures.
  */
-export const BANK_FRAME = UPPSATTNING.forra.bild;
+export const BANK_FRAME = { width: 1764, height: 1174 };
 export const W = BANK_FRAME.width, H = BANK_FRAME.height, N = W * H;
-/**
- * The dealer edge's row in a set-up's picture: the former standard's is data (the scene contract's measured row,
- * data/scene-contract.json keyFigures.dealerEdgeImageRow, 831.5), the live table's where its own camera sees the middle of
- * its dealer edge (src/uppsattning.ts kant and see).
- */
-export async function dealerEdgeRow(root: string, id: UppsattningId): Promise<number> {
-  if (id !== 'forra') return UPPSATTNING[id].see(UPPSATTNING[id].kant())!.y;
-  const row = (JSON.parse(await readFile(path.join(root, 'data', 'scene-contract.json'), 'utf8')) as { keyFigures?: { dealerEdgeImageRow?: { value?: unknown } } }).keyFigures?.dealerEdgeImageRow?.value;
-  if (typeof row !== 'number') throw Error('data/scene-contract.json saknar dealerkantens rad i bilden (keyFigures.dealerEdgeImageRow).');
-  return row;
-}
 export type Pt = [number, number];
 export type Rgb = Buffer; // W × H × 3, row by row
 const sha = (b: Buffer | string) => createHash('sha256').update(b).digest('hex');
@@ -58,10 +47,10 @@ export function decodeFrame(file: string, index: number): Rgb {
   if (out.length !== N * 3) throw Error(`${file} ruta ${index}: ${out.length} byte, inte bankens ruta ${W} × ${H}.`);
   return out;
 }
-/** A picture as RGB, refused when it is not `frame` (the bank's, unless a set-up's picture is named: UPPSATTNING[id].bild). */
+/** A picture as RGB, refused when it is not `frame` (the bank's, unless another picture is named). */
 export async function readRgb(file: string | Buffer, frame: { width: number; height: number } = BANK_FRAME): Promise<Rgb> {
   const { data, info } = await sharp(file).removeAlpha().raw().toBuffer({ resolveWithObject: true });
-  if (info.width !== frame.width || info.height !== frame.height || info.channels !== 3) throw Error(`${typeof file === 'string' ? file : 'Bilden'} är ${info.width} × ${info.height}, inte ${frame === BANK_FRAME ? 'bankens ruta' : 'uppsättningens ruta'} ${frame.width} × ${frame.height}.`);
+  if (info.width !== frame.width || info.height !== frame.height || info.channels !== 3) throw Error(`${typeof file === 'string' ? file : 'Bilden'} är ${info.width} × ${info.height}, inte ${frame === BANK_FRAME ? 'bankens ruta' : 'standardens ruta'} ${frame.width} × ${frame.height}.`);
   return data;
 }
 export const pngOf = (rgb: Rgb, frame: { width: number; height: number } = BANK_FRAME) => sharp(rgb, { raw: { width: frame.width, height: frame.height, channels: 3 } }).png().toBuffer();

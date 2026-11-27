@@ -33,7 +33,6 @@
 // holds in Material (TreeNode.films names the one the films stand on).
 import { HOLE_CARD, REVEAL_NODE, buildGraph, dealHub, parseEdge, resolveRound, type BankData, type Graph, type Segment } from './clip-graph.ts';
 import { SEAT_HUB, hubChain, judgedBank } from './game-director.ts';
-import { DATATS_FORVAL, VALETS_FORVAL, datatsUppsattning, type UppsattningId } from './uppsattning.ts';
 
 // ── The register ────────────────────────────────────────────────────────────
 export type TreeState = 'spelas' | 'byggs' | 'vilar';
@@ -41,22 +40,15 @@ export type TreeState = 'spelas' | 'byggs' | 'vilar';
 export type TreeAnchor = { entry: string; seat?: number; markOf?: string };
 /** A further way of dealing of a tree: its own anchors at the shoe (one A2.x), on the tree's A1. */
 export type TreeWay = { id: string; name: string; state: TreeState; anchors: TreeAnchor[]; note?: string };
-/**
- * wayOf: set on a way drawn as a tree of its own (treeList), the id of the tree it is a way of; never in the register.
- * uppsattning: the table and camera the tree's films are made under (src/uppsattning.ts: 'live' or 'forra'). A film of the tree
- * has it through the anchors it stands on, as it has the camera; a tree without the field is the former standard's (the data's
- * default), so nothing that exists is rewritten. The game plays a tree only under its own set-up (treeSetup, playedCut).
- */
-export type TreeDef = { id: string; name: string; state: TreeState; root: string; anchors: TreeAnchor[]; ways?: TreeWay[]; shares?: string; opening?: string; note?: string; wayOf?: string; uppsattning?: UppsattningId };
-/** The set-up a tree's films are made under: its field, else the former standard. */
-export const treeSetup = (tree: Pick<TreeDef, 'uppsattning'> | null | undefined): UppsattningId => datatsUppsattning(tree?.uppsattning);
+/** wayOf: set on a way drawn as a tree of its own (treeList), the id of the tree it is a way of; never in the register. */
+export type TreeDef = { id: string; name: string; state: TreeState; root: string; anchors: TreeAnchor[]; ways?: TreeWay[]; shares?: string; opening?: string; note?: string; wayOf?: string };
 export type TreeRegister = { schemaVersion: 1; about: string; dealers: Record<string, { trees: TreeDef[] }> };
 
 // ── Ways ────────────────────────────────────────────────────────────────────
 /** A way of a tree as a tree of its own: the tree's A1 and the way's anchors, its own id, name and state. */
 export function wayTree(tree: TreeDef, way: TreeWay): TreeDef {
   const root = tree.anchors.filter((a) => a.entry === tree.root);
-  return { id: way.id, name: way.name, state: way.state, root: tree.root, anchors: [...root, ...way.anchors], ...(way.note ? { note: way.note } : {}), ...(tree.uppsattning ? { uppsattning: tree.uppsattning } : {}), wayOf: tree.id };
+  return { id: way.id, name: way.name, state: way.state, root: tree.root, anchors: [...root, ...way.anchors], ...(way.note ? { note: way.note } : {}), wayOf: tree.id };
 }
 /** The register's trees with each further way after its tree, as trees of their own: what the views, the game and Bordet list. */
 export const treeList = (trees: readonly TreeDef[]): TreeDef[] => trees.flatMap((t) => [t, ...(t.ways ?? []).map((w) => wayTree(t, w))]);
@@ -452,8 +444,7 @@ export type TreeAnswer = { schemaVersion: 1; dealer: string; made: string; trees
  * whose films it plays; hub: that tree's anchor at the shoe; count: its number (as Karta shows it); own: the takes placed in
  * home; drop: the takes placed in another tree of the dealer. A take placed in no tree (Borta, an older attempt) is in neither.
  */
-// uppsattning: the set-up the tree's films are made under (treeSetup), so that the game shows them under its camera and no other.
-export type TreeCut = { schemaVersion: 1; dealer: string; tree: string; name: string; home: string; hub: string; count: TreeCount; own: string[]; drop: string[]; uppsattning?: UppsattningId };
+export type TreeCut = { schemaVersion: 1; dealer: string; tree: string; name: string; home: string; hub: string; count: TreeCount; own: string[]; drop: string[] };
 /** A tree's id as the address and the lab server take it (?trad=<id>). */
 export const TREE_ID = /^[a-z0-9-]{1,40}$/;
 
@@ -518,9 +509,8 @@ export function treePlay<B extends CutBank>(bank: B, word: string | null, reply:
  * played: the trees whose films it plays; drop: the takes placed in a tree it does not play, so that a tree being built does not
  * leak into it. When the films of one tree are played, hub and own are that tree's anchor at the shoe and its takes: the game
  * plays it exactly as ?trad=<id> does. With several, hub is READY and own empty: their films are only kept, nothing renamed.
- * uppsattning: the set-up the cut is for (the game shows it; playedCut); setups: the set-ups of all the trees that are spelas.
  */
-export type GameCut = { schemaVersion: 1; dealer: string; played: string[]; hub: string; own: string[]; drop: string[]; uppsattning?: UppsattningId; setups?: UppsattningId[] };
+export type GameCut = { schemaVersion: 1; dealer: string; played: string[]; hub: string; own: string[]; drop: string[] };
 /** The trees whose films the game plays without a tree word: each tree that is spelas, as the tree whose films it plays (homeOf). */
 export const playedTrees = (trees: readonly TreeDef[]): Set<string> => new Set(trees.filter((t) => t.state === 'spelas').map((t) => homeOf(t, trees).id));
 /**
@@ -531,38 +521,13 @@ export function unplayedTakes(trees: readonly TreeDef[], takes: readonly Pick<Tr
   return takes.filter((t) => t.tree !== null && ((!played.has(t.tree) && !t.also?.some((w) => played.has(w))) || fromSeat(t))).map((t) => t.id);
 }
 /**
- * The set-up the game shows without a word for it (src/game-page.ts): the live table, the choice's default, when a tree that is
- * spelas is made under it, else the set-up of the trees that are (the former standard when none is, or none says).
- */
-export const playedSetup = (setups: readonly UppsattningId[]): UppsattningId => (setups.includes(VALETS_FORVAL) ? VALETS_FORVAL : setups.includes(DATATS_FORVAL) || !setups.length ? DATATS_FORVAL : setups[0]);
-/**
  * The cut the game without a tree word plays (GameCut). A tree that shares another's films is one played tree with it.
- * hubOf: a tree's anchor at the shoe (treeHubs, as treeCut gives it for ?trad=). setup: the set-up the game shows (?uppsattning=),
- * else playedSetup: only the played trees made under it are played, and under another set-up than the former standard the takes of
- * no tree are left out too (they are the former's: a film is never shown under another set-up's camera).
+ * hubOf: a tree's anchor at the shoe (treeHubs, as treeCut gives it for ?trad=).
  */
-export function playedCut(dealer: string, trees: readonly TreeDef[], takes: readonly Pick<TreeTake, 'id' | 'tree' | 'seat' | 'also'>[], hubOf: (tree: TreeDef) => string, setup: UppsattningId | null = null): GameCut {
-  const all = [...playedTrees(trees)], setupOf = (id: string) => treeSetup(trees.find((t) => t.id === id)), setups = [...new Set(all.map(setupOf))].sort();
-  const uppsattning = setup ?? playedSetup(setups), played = all.filter((id) => setupOf(id) === uppsattning), one = played.length === 1 ? (trees.find((t) => t.id === played[0]) ?? null) : null;
-  const drop = [...unplayedTakes(trees, takes, new Set(played)), ...(uppsattning === DATATS_FORVAL ? [] : takes.filter((t) => t.tree === null).map((t) => t.id))];
-  // The set-ups are said when one was asked for or a played tree has another than the former standard: a cut that does not say
-  // them is the former standard's, as every cut before the choice was.
-  const said = setup !== null || setups.some((s) => s !== DATATS_FORVAL);
-  return { schemaVersion: 1, dealer, played, hub: one ? hubOf(one) : 'READY', own: one ? cutTakes(one.id, takes).own : [], drop, ...(said ? { uppsattning, setups } : {}) };
-}
-/**
- * The set-up each film of a dealer is made under, as her trees say it (a film is its tree's: treeSetup), for a page that plays
- * films out of the whole bank (Scen, studio/lib/parts.ts): a film placed in a tree (a view's cut, own) is the set-up of the tree it is
- * placed in (the view's home), and every other film the former standard's, as playedCut leaves it. views: the answer of
- * GET /api/trees?dealer=<id> (TreeAnswer.trees); without cuts (an older server, the copy on the net) every film is the former's.
- */
-export function filmSetups(views: readonly Pick<TreeView, 'tree' | 'home' | 'cut'>[]): (take: string | null | undefined) => UppsattningId {
-  const made = new Map<string, UppsattningId>();
-  for (const v of views) {
-    const home = views.find((w) => w.tree.id === v.home)?.tree ?? v.tree;
-    for (const id of v.cut?.own ?? []) if (!made.has(id)) made.set(id, treeSetup(home));
-  }
-  return (take) => (take ? made.get(take) : undefined) ?? DATATS_FORVAL;
+export function playedCut(dealer: string, trees: readonly TreeDef[], takes: readonly Pick<TreeTake, 'id' | 'tree' | 'seat' | 'also'>[], hubOf: (tree: TreeDef) => string): GameCut {
+  const played = [...playedTrees(trees)], one = played.length === 1 ? (trees.find((t) => t.id === played[0]) ?? null) : null;
+  const drop = unplayedTakes(trees, takes, new Set(played));
+  return { schemaVersion: 1, dealer, played, hub: one ? hubOf(one) : 'READY', own: one ? cutTakes(one.id, takes).own : [], drop };
 }
 /**
  * The bank the game plays without ?trad= (src/game-page.ts): the lab's cut (reply), else the one the bank carries for the dealer

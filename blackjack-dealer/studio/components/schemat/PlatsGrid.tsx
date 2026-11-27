@@ -1,6 +1,6 @@
 "use client";
 
-// Schemat's card places (SchemaView.tsx): every card place of the doll's table (src/uppsattning.ts kortplatser, through
+// Schemat's card places (SchemaView.tsx): every card place of the doll's table (src/standard.ts kortplatser, through
 // /api/schema) as a grid, the seats as the source numbers them in the order they lie in the picture and the dealer's own
 // last, card 1, 2, 3 … down; a cell is filled where the doll has the deal there, with how (lyft, ritad, klipp, film). Beside
 // it the same places seen from above, where they lie on the felt. A click opens the deal's motion. No number is written here:

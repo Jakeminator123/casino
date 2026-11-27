@@ -33,8 +33,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { StoreError } from './placement-store.ts';
 import { orderStore, type NewOrder, type StoreOptions } from './order-store.ts';
-import { STEPS, edgeOf, personOf, pictureOf, stepOfEdge, uppsattningOf, type Order, type RenderedReference, type StepKey } from '../src/order-model.ts';
-import { UPPSATTNING } from '../src/uppsattning.ts';
+import { STEPS, edgeOf, personOf, stepOfEdge, type Order, type RenderedReference, type StepKey } from '../src/order-model.ts';
+import { STANDARD } from '../src/standard.ts';
 import { parseJakob } from '../studio/lib/names.ts';
 
 const VALUED = ['--mall', '--takes', '--title', '--extra', '--extra-efter', '--reference', '--end', '--base', '--continues', '--trad', '--docka', '--sekunder', '--person'];
@@ -147,7 +147,7 @@ export async function newCommand(root: string, args: readonly string[], options:
   const film = person && clip ? renderedFilms(root).find((f) => f.id === clip) ?? null : null;
   return {
     ok: true, id: dry ? null : order.id, dry, title: order.title, status: order.status, step: order.step.key, edge: order.step.edge,
-    ...(person ? { person: person.name, uppsattning: UPPSATTNING[uppsattningOf(order)].namn, picture: `${pictureOf(order).width} × ${pictureOf(order).height}`, camera: film?.camera ?? null } : {}),
+    ...(person ? { person: person.name, standard: STANDARD.namn, picture: `${STANDARD.bild.width} × ${STANDARD.bild.height}`, camera: film?.camera ?? null } : {}),
     model: order.generation.model, seconds: order.generation.params.duration ?? null, resolution: order.generation.params.resolution ?? null,
     template: order.prompt.template, style: order.prompt.style, words: order.prompt.text.split(/\s+/).length, text: order.prompt.text,
     pictures: order.pictures.map((p, i) => ({ goesAs: p.goesAs, label: p.label, entry: trees[i].entry, trees: trees[i].trees, path: p.path ?? null, ...(person ? { size: `${p.width} × ${p.height}`, ...(p.seconds !== undefined ? { seconds: p.seconds } : {}) } : {}) })),

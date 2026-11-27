@@ -1,11 +1,13 @@
 // A hand as a rigid shape in its own axes, and the ways a modelled film moves it: placed somewhere, turned from one set
 // of axes to another in a single turn, its fingers bent at their own joints. Pure: no I/O and no three.js.
-// Used by the films that are laid by hand and not read off a film (tools/pose-film.ts, src/two-hand.ts). A shape is the
+// Used by the motions lifted out of the live table's film (tools/lyft-till-docka.ts). A shape is the
 // hand's 21 points against its wrist as [along the hand, the way the palm looks, across]; bending a finger turns the
 // points beyond a joint about that joint in the plane of the first two, so every bone keeps its length.
-import {add, cross, dot, length, mul, sub, unit, type Vec3} from './camera.ts';
+import {add, cross, dot, length, mul, sub, unit, type Vec3} from '../../src/space.ts';
 import {turned} from './body.ts';
-import {FINGERS} from './capture.ts';
+
+/** The hand's 21 points finger by finger, thumb to little finger, from the palm outward (0 is the wrist). */
+export const FINGERS = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16], [17, 18, 19, 20]];
 
 export type Axes = {forward: Vec3; palm: Vec3; across: Vec3};
 /** A hand's own axes: along wrist to middle knuckle, the way its palm looks (`sign` as in the read deals: +1 her right, -1 her left), and across. */

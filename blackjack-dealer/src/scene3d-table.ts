@@ -8,14 +8,14 @@
 // The cup holders set into the roll are src/scene3d-rail.ts; they are built on the roll as it is drawn here (railPoint) and take the
 // roll's leather and the room's light from the table's group (userData.rail).
 import * as T from 'three';
-import {BET, laidDepth, ringOffset, spotToScene, tableToFilm, type BetSpot, type FilmCamera, type Spot} from './scene3d-geometry.ts';
-import {TABLE_BASE, TABLE_RAIL, TABLE_TOP} from './table-lens.ts';
+import {BET, spotToScene, tableToFilm, type BetSpot, type FilmCamera, type Spot} from './scene3d-geometry.ts';
+import {STANDARD} from './standard.ts';
+import {LIVE} from './table-live.ts';
 
 export const FELTS: Record<string, [string, string]> = {green: ['#134232', '#0a2a20'], blue: ['#16325e', '#0b1c38'], vin: ['#571a26', '#330d15'], svart: ['#23272a', '#101214']};
-// Half width, depth toward the players, rail width. The width and the rail are the standard's (TABLE_TOP in src/table-lens.ts,
-// where the doll's table reads them too); b is the depth of the table as it was drawn for Bred lins's camera, half a real
-// table's: under the standard's lens the depth is TABLE_TOP.depth (REAL_TABLE, tableUnder below).
-export const TABLE = {a: TABLE_TOP.halfWidth, b: 0.6, rail: TABLE_TOP.rail};
+// The drawn table's own oval, which a size multiplies and the legs and the smoke are laid against: half width, depth toward the
+// players and rail width. The table that stands is the live table's (tableUnder, STANDARD.bord in src/standard.ts) in its place.
+export const TABLE = {a: 0.95, b: 0.6, rail: 0.1};
 // The serving shelf behind the dealer's edge at her right hand (state shelf; a lab trial of 2026-11-13, off from the start). The film
 // in which she takes a champagne glass from beside the table has her arm go down behind a table top that reaches further back
 // there than this table does (the film's own table: her arm ends against the green at rows 776 to 800 of the frame), so without
@@ -28,27 +28,16 @@ export const SHELF = {deep: 0.4, inner: 0.27, thick: 0.035};
 // deals: a larger table has more plain felt round it. Below 1 the outer bet rings reach the rail; above 1.4 the felt image ends.
 export const TABLE_SIZE = {min: 0.9, max: 1.4};
 /** The felt's half width and depth at a size (held within TABLE_SIZE; anything that is no number is 1). */
-// A size is one number for the whole oval, or the oval's width and depth each by itself: under the table's lens (src/table-lens.ts)
-// the world is in real metres, and the table is as wide as TABLE and as deep as a real blackjack table (REAL_TABLE, tableUnder).
-// `base`: another table's half width and depth in TABLE's place (the live table's half circle, src/uppsattning.ts bord), which the
-// size then multiplies as it multiplies TABLE.
+// A size is one number for the whole oval, or the oval's width and depth each by itself, in real metres. `base`: another table's
+// half width and depth in TABLE's place (the live table's half circle, STANDARD.bord in src/standard.ts), which the size then
+// multiplies as it multiplies TABLE.
 export type TableSize = number | {wide: number; deep: number; base?: {a: number; b: number}};
 export function sized(size: TableSize = 1): {a: number; b: number} {
   const within = (v: number) => Number.isFinite(v) ? Math.min(TABLE_SIZE.max, Math.max(TABLE_SIZE.min, v)) : 1;
   return typeof size === 'number' ? {a: TABLE.a * within(size), b: TABLE.b * within(size)} : {a: (size.base?.a ?? TABLE.a) * within(size.wide), b: (size.base?.b ?? TABLE.b) * within(size.wide) * (size.deep > 0 ? size.deep : 1)};
 }
-/**
- * How deep the table is in real metres. TABLE's 0.6 m is half a real table: it was drawn for the contract's camera, which in the
- * dealer's own metres stands 0.25 m over the felt and 0.76 m from her edge, just past that table's rail, so the felt fills the
- * picture. The lens stands where the films were taken from, 1.11 m up and 1.84 m away, and sees past a table 0.6 m deep to its rail
- * and the floor. No film shows the players' edge, so nothing measures the depth: it is set to a real table's, 1.15 m from the
- * dealer's edge to the players', which is also what keeps the felt under the whole of the game's picture.
- */
-export const REAL_TABLE = {depth: TABLE_TOP.depth};
-/** The table's size under a film camera: as wide as asked and a real table's depth, under Bred lins laid through the film's pixels (1.26 units, where the scale alone ends the felt above the bottom of a phone's picture). */
-export const tableUnder = (camera: FilmCamera, size: number, own?: {halfWidth: number; depth: number}): TableSize => own
-  ? {wide: size, deep: 1, base: {a: own.halfWidth, b: own.depth}} // a set-up's own table in its own metres (the live table's: as measured)
-  : {wide: size, deep: laidDepth(camera, 0, REAL_TABLE.depth) / camera.scale / TABLE.b};
+/** The table that stands: the live table's half circle in its own metres (STANDARD.bord), as wide as `size` asks. */
+export const tableUnder = (size: number): TableSize => ({wide: size, deep: 1, base: {a: STANDARD.bord.halfWidth, b: STANDARD.bord.depth}});
 // What the table stands on. column: the first base, one thick leg on a brass foot; it was never meant to be seen, and from a
 // camera that has backed away it is ugly (Jakob, 2026-11-11). legs: two tapered legs of photographed wood on brass plinths with
 // a stretcher between them, a brass foot rail on the players' side, a board that closes the underside, and the table's shadow
@@ -245,7 +234,9 @@ float lampLight(vec3 p){
   vec3 l = lampAt - p; float d2 = dot(l, l), d = sqrt(d2);
   return 1. - lampOn + lampOn * min(1., max(l.y, 0.) / d / d2 * smoothstep(lampCone, 1., dot(-l / d, lampAxis)) * lampRef);
 }`;
-export const BASE = TABLE_BASE; // heights above the felt and places, dealer metres: the standard's (src/table-lens.ts)
+// What the table stands on: heights above the felt (floor, the underside of the top, where the rail's apron ends) and where the
+// two legs stand (legX from the middle, legZ from the dealer's edge toward the players), dealer metres. Ours: no film shows them.
+export const BASE = {floor: -0.95, under: -0.15, legX: 0.58, legZ: 0.25, rail: -0.72};
 export const PRINT = {width: 2.8, depth: 1.4, back: 0.1, pxW: 4096, pxH: 2048}; // the felt image covers width x depth metres and starts `back` behind the dealer edge
 export const FELT_PX_PER_M = PRINT.pxW / PRINT.width; // what a cloth tile is stored at, to be drawn into the felt image as it is
 const GOLD = '#d8b665';
@@ -267,11 +258,11 @@ export function section(points: number[][], shade: (o: number, y: number) => num
 // the apron by 9 mm, with a shallow groove on each shoulder where the top panel is sewn to the sides. Sampled densely at the seams and
 // sparsely on the underside that nothing sees. The points run from the middle of the underside up the inner face, over the top and
 // back round, so the faces point outward; the shade darkens the creases at the brass bead and under the overhang.
-// The section's measures are the standard's (TABLE_RAIL in src/table-lens.ts), which the doll's table reads too.
-const CORE = [TABLE_RAIL.centre, TABLE_RAIL.lift], SEAMS = [2.3, 0.84]; // seam angles round the core, radians from the outward side
-export const RAIL = {centre: CORE[0], top: CORE[1] + TABLE_RAIL.above}; // the middle of the roll's top: out from the felt edge, and above the felt (for what is set into the rail, src/scene3d-rail.ts)
+// The section's measures are the live table's (LIVE.rail.section in src/table-live.ts).
+const SECTION = LIVE.rail.section, CORE = [SECTION.centre, SECTION.lift], SEAMS = [2.3, 0.84]; // seam angles round the core, radians from the outward side
+export const RAIL = {centre: CORE[0], top: CORE[1] + SECTION.above}; // the middle of the roll's top: out from the felt edge, and above the felt (for what is set into the rail, src/scene3d-rail.ts)
 const ROLL = (() => {
-  const at = (q: number) => { const c = Math.cos(q), s = Math.sin(q), e = s > 0 ? 0.8 : 0.66, x = TABLE_RAIL.halfWidth * Math.sign(c) * Math.abs(c) ** e, y = (s > 0 ? TABLE_RAIL.above : TABLE_RAIL.below) * Math.sign(s) * Math.abs(s) ** e;
+  const at = (q: number) => { const c = Math.cos(q), s = Math.sin(q), e = s > 0 ? 0.8 : 0.66, x = SECTION.halfWidth * Math.sign(c) * Math.abs(c) ** e, y = (s > 0 ? SECTION.above : SECTION.below) * Math.sign(s) * Math.abs(s) ** e;
     const dent = SEAMS.reduce((sum, m) => sum + Math.exp(-(((q - m) / 0.075) ** 2)), 0), f = 1 - 0.0016 * dent / Math.hypot(x, y); return [CORE[0] + x * f, CORE[1] + y * f]; };
   const F = 2880, fine: number[][] = [], length = [0], weight = [0];
   for (let i = 0; i <= F; i++) { const q = 1.5 * Math.PI - 2 * Math.PI * i / F; fine.push(at(q)); if (!i) continue;
@@ -474,11 +465,8 @@ export function roomReflection() {
 
 // camera: the film camera in use, through which V6's cloth is laid flat; marks: the kinds of print drawn (feltMarks; absent = all).
 // size: the table's size (sized); the rail's shadow on the felt follows the felt's edge.
-// bare: only the print, on a clear sheet: no ground, no dealer-side list and no rail shadow, for a table model that brings its own
-// cloth and lays this image over it (src/scene3d-bord02.ts).
-// bets: the bet rings where a set-up has them measured (the live table's, src/scene3d-geometry.ts setupBets); without them a ring
-// lies before each seat's first card by the one rule (ringOffset). A spot's turn turns its printed card place.
-export type FeltPrint = {spots: Spot[]; logo: string; felt: string; scale: number; marks?: string; cloth?: TableCloth; camera: FilmCamera; size?: TableSize; bare?: boolean; bets?: BetSpot[]};
+// bets: the bet rings, round the live table's measured bet marks (src/scene3d-geometry.ts setupBets). A spot's turn turns its printed card place.
+export type FeltPrint = {spots: Spot[]; logo: string; felt: string; scale: number; marks?: string; cloth?: TableCloth; camera: FilmCamera; size?: TableSize; bets: BetSpot[]};
 // What the table offers what is set into its rail (createTable's group.userData.rail).
 export type RailLink = {leather: T.Material; follow(material: T.MeshStandardMaterial, own: number): void};
 export function createTable(lit: <M extends T.Material>(material: M) => M = m => m) {
@@ -586,10 +574,9 @@ export function createTable(lit: <M extends T.Material>(material: M) => M = m =>
   function draw(print: FeltPrint) {
     lastPrint = print;
     const g = canvas.getContext('2d')!, [light, dark] = FELTS[print.felt] ?? FELTS.green, on = feltMarks(print.marks);
-    const weave = print.bare ? null : print.cloth === 'v6' && print.camera ? v6Pattern(g, print.camera) : isRunwayCloth(print.cloth) ? runwayPattern(g, print.cloth) : null;
+    const weave = print.cloth === 'v6' && print.camera ? v6Pattern(g, print.camera) : isRunwayCloth(print.cloth) ? runwayPattern(g, print.cloth) : null;
     g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1;
-    if (print.bare) g.clearRect(0, 0, PRINT.pxW, PRINT.pxH);
-    else if (weave) { g.fillStyle = weave; g.fillRect(0, 0, PRINT.pxW, PRINT.pxH); }
+    if (weave) { g.fillStyle = weave; g.fillRect(0, 0, PRINT.pxW, PRINT.pxH); }
     else {
       g.fillStyle = dark; g.fillRect(0, 0, PRINT.pxW, PRINT.pxH);
       const pool = g.createRadialGradient(X(0), Y(0.3), 40, X(0), Y(0.3), 1.25 * k); pool.addColorStop(0, light); pool.addColorStop(1, dark); g.fillStyle = pool; g.fillRect(0, 0, PRINT.pxW, PRINT.pxH);
@@ -597,11 +584,11 @@ export function createTable(lit: <M extends T.Material>(material: M) => M = m =>
       g.globalAlpha = 0.05; for (let i = 0; i < 70000; i++) { g.fillStyle = random() > 0.5 ? '#fff' : '#000'; g.fillRect(random() * PRINT.pxW, random() * PRINT.pxH, 2, 2); } g.globalAlpha = 1;
     }
     // dealer-side trim: the film's body ends exactly at s = 0
-    if (on.has('trim') && !print.bare) { g.fillStyle = '#17110c'; g.fillRect(0, 0, PRINT.pxW, Y(0.016)); g.fillStyle = GOLD; g.globalAlpha = 0.55; g.fillRect(0, Y(0.016), PRINT.pxW, 3); g.globalAlpha = 1; }
+    if (on.has('trim')) { g.fillStyle = '#17110c'; g.fillRect(0, 0, PRINT.pxW, Y(0.016)); g.fillStyle = GOLD; g.globalAlpha = 0.55; g.fillRect(0, Y(0.016), PRINT.pxW, 3); g.globalAlpha = 1; }
     // the rail's soft shadow on the felt along the arc: a dark band just outside the felt edge, blurred inward and clipped to the felt
     const edge = sized(print.size);
     g.save(); g.beginPath(); g.ellipse(X(0), Y(0), edge.a * k, edge.b * k, 0, 0, 2 * Math.PI); g.clip();
-    for (const [width, blur, alpha] of print.bare ? [] : [[0.04, 0.016, 0.55], [0.01, 0.0035, 0.65]]) { g.filter = `blur(${Math.round(blur * k)}px)`; g.strokeStyle = `rgba(3,2,1,${alpha})`; g.lineWidth = 2 * width * k;
+    for (const [width, blur, alpha] of [[0.04, 0.016, 0.55], [0.01, 0.0035, 0.65]]) { g.filter = `blur(${Math.round(blur * k)}px)`; g.strokeStyle = `rgba(3,2,1,${alpha})`; g.lineWidth = 2 * width * k;
       g.beginPath(); g.ellipse(X(0), Y(0), (edge.a + width) * k, (edge.b + width) * k, 0, 0, 2 * Math.PI); g.stroke(); }
     g.restore();
     const seats = print.spots.filter(p => /^P\d\.C1$/.test(p.id)), row = seats.length ? seats.reduce((t, p) => t + p.s, 0) / seats.length : 0.35, span = Math.max(0.3, ...seats.map(p => Math.abs(p.x))) * 1.5;
@@ -627,9 +614,8 @@ export function createTable(lit: <M extends T.Material>(material: M) => M = m =>
       if (on.has('numbers')) { g.font = `600 ${Math.round(0.02 * k)}px Georgia, serif`; g.fillStyle = GOLD; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(seat, 0, at); } };
     for (const p of print.spots) { const first = p.id.endsWith('C1'); g.save(); g.translate(X(p.x), Y(p.s)); if (p.turn) g.rotate(p.turn); g.strokeStyle = GOLD; g.globalAlpha = first ? 0.6 : 0.25; g.lineWidth = 3;
       if (on.has('boxes')) { g.beginPath(); g.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 8); g.stroke(); }
-      if (first && p.id[0] === 'P' && !print.bets) ring(p.id[1], ringOffset(print.camera, p) * k);
       g.restore(); }
-    for (const b of print.bets ?? []) { g.save(); g.translate(X(b.x), Y(b.s)); g.strokeStyle = GOLD; g.lineWidth = 3; ring(b.id.slice(1), 0); g.restore(); }
+    for (const b of print.bets) { g.save(); g.translate(X(b.x), Y(b.s)); g.strokeStyle = GOLD; g.lineWidth = 3; ring(b.id.slice(1), 0); g.restore(); }
     texture.needsUpdate = true;
   }
 
@@ -709,8 +695,5 @@ export function createTable(lit: <M extends T.Material>(material: M) => M = m =>
   }
   /** The serving shelf at the dealer's right hand, shown or not. */
   const setShelf = (on: boolean) => { shelfOn = on; if (shelf) shelf.visible = on; };
-  // For a table model that stands in this one's place (src/scene3d-bord02.ts): what makes a material one of the table's (`own`),
-  // the felt image itself, the room's light for a material of its own (railLink.follow), and the level of a cloth drawn in its own
-  // light in the room that is showing (the "duk" cloth's; 1 without a room's light).
-  return {group, draw, build, setEnvironment, setLamp, setShelf, own, canvas, follow: railLink.follow, level: () => dukFelt.color.r};
+  return {group, draw, build, setEnvironment, setLamp, setShelf};
 }

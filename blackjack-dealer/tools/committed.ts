@@ -4,7 +4,7 @@
 // committed: the suite then says the same wherever it runs, and what he has saved is judged by the lab, not by the tests.
 // Outside a Git checkout (no HEAD) the disk is all there is, and it is read.
 import { execFileSync } from 'node:child_process';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 
 const git = (args: string[], cwd: string) => execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 1 << 27, stdio: ['ignore', 'pipe', 'ignore'] });
 
@@ -13,11 +13,10 @@ export function committedText(file: string, cwd = process.cwd()): string {
   try { return git(['show', `HEAD:./${file}`], cwd); } catch { return readFileSync(`${cwd}/${file}`, 'utf8'); }
 }
 
-/** The files of a folder that HEAD holds, as paths relative to `cwd`; an untracked file of his is not among them. */
+/** The files of a folder that HEAD holds, as paths relative to `cwd` (none when HEAD has none there, as data/orders/ when no order is kept); an untracked file of his is not among them. */
 export function committedFiles(dir: string, cwd = process.cwd()): string[] {
   try {
-    const list = git(['ls-tree', '-r', '--name-only', 'HEAD', '--', `./${dir}`], cwd).split('\n').filter(Boolean);
-    if (list.length) return list;
+    return git(['ls-tree', '-r', '--name-only', 'HEAD', '--', `./${dir}`], cwd).split('\n').filter(Boolean);
   } catch { /* not a checkout */ }
-  return readdirSync(`${cwd}/${dir}`).map((name) => `${dir}/${name}`);
+  return existsSync(`${cwd}/${dir}`) ? readdirSync(`${cwd}/${dir}`).map((name) => `${dir}/${name}`) : [];
 }

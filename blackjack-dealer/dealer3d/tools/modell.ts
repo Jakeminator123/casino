@@ -1,9 +1,9 @@
 // En GLB-modell läst utan three.js: ledernas lägen och huden i vilopose för en riggad docka (avatar-auto-pipeline bygger
-// standarddockorna), och delarnas lådor för en modell utan skelett (bordet). Lägena är de three.js ger när modellen
+// dockorna; dealer3d/tools/docka-matt.ts mäter dem). Lägena är de three.js ger när modellen
 // läses (dealer3d/src/figure-model.ts, standarddocka/editor/scen.ts): nodernas egna flyttningar, vridningar och skalor.
 // Bara läsning; inget skrivs.
 import {readFileSync} from 'node:fs';
-import {add, mul, type Vec3} from '../src/camera.ts';
+import {add, mul, type Vec3} from '../../src/space.ts';
 
 type M4 = number[]; // 4x4, kolumn för kolumn (som glTF)
 const I: M4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
@@ -50,17 +50,4 @@ export function lasDocka(fil: string) {
   const hud: Hud = {horn, leder: skin.joints.map(j => g.nodes[j].name ?? ''), pa: we.map((w, i) => [0, 1, 2, 3].filter(k => w[k] > 0).map(k => ({led: jo[i][k], vikt: w[k]})))};
   const pa = (name: string, minst = 0.5) => { const j = hud.leder.indexOf(name); return horn.filter((_, i) => hud.pa[i].some(x => x.led === j && x.vikt >= minst)); };
   return {led, hud, pa};
-}
-
-/** Varje namngiven del av en modell utan skelett som sina hörn i världen, med modellens rot flyttad till `rot`. */
-export function lasDelar(fil: string, rot: Vec3): Map<string, Vec3[]> {
-  const {g, accessor, world} = oppna(fil, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, rot[0], rot[1], rot[2], 1]), out = new Map<string, Vec3[]>();
-  g.nodes.forEach((n, i) => { if (n.mesh === undefined || !n.name) return; const m = world.get(i)!; out.set(n.name, g.meshes[n.mesh].primitives.flatMap(pr => accessor(pr.attributes.POSITION).map(p => apply(m, p as Vec3)))); });
-  return out;
-}
-/** Varje namngiven del som en låda (minsta och största x, y, z) i världen. */
-export function lasLador(fil: string, rot: Vec3): Map<string, {lo: Vec3; hi: Vec3}> {
-  return new Map([...lasDelar(fil, rot)].map(([n, h]) => { const lo: Vec3 = [Infinity, Infinity, Infinity], hi: Vec3 = [-Infinity, -Infinity, -Infinity];
-    for (const q of h) for (let j = 0; j < 3; j++) { lo[j] = Math.min(lo[j], q[j]); hi[j] = Math.max(hi[j], q[j]); }
-    return [n, {lo, hi}]; }));
 }

@@ -68,7 +68,7 @@ export const MARKS: readonly Option[] = opts(
 // What each key needs to do anything, read off the scene (src/scene3d-view.ts, scene3d-room.ts, scene3d-table.ts): the
 // shimmer's length only with the shimmer, the depth ramp only with depth blur, the room's light on the table only on the
 // photo surface, the felt colour not under V6's cloth, the card options only with drawn cards, the focus distance only
-// with the own focus and the depth of field only with a focus at all, and the three surfaces of table BORD-02 only on that table.
+// with the own focus and the depth of field only with a focus at all.
 const NEEDS: Partial<Record<SceneKey, Needs>> = {
   roomShiftSeconds: { key: "roomShift", is: ["shimmer"] },
   dofRange: { key: "depthBlur", is: [true] },
@@ -78,9 +78,6 @@ const NEEDS: Partial<Record<SceneKey, Needs>> = {
   fanPeriod: { key: "fan", is: [true] },
   roomLight: { key: "surface", is: ["photo", "natur", "natur-2", "natur-3", "natur-duk"] },
   felt: { key: "cloth", is: ["print"] },
-  modelCloth: { key: "tableModel", is: ["bord-02"] },
-  modelWood: { key: "tableModel", is: ["bord-02"] },
-  modelRail: { key: "tableModel", is: ["bord-02"] },
   cardMethod: { key: "cards", is: [true] },
   cardInHand: { key: "cards", is: [true] },
   cardHand: { key: "cards", is: [true] },
@@ -130,10 +127,6 @@ export const SCENE_KEYS: readonly KeySpec[] = [
   // ── Bord ──
   // The look's lens (Jakob 2026-11-25: Bred lins is a filter on the same standard; Lins in src/card-plan.ts).
   spec("lins", "bord", "D", "Lins", choice(["standard", "Standard"], ["bred", "Bred lins"]), "Standard är filmens egen lins, samma mått som Inspelning och dockan. Bred lins är den äldre, vidare kameran: bordet, markerlådan och insatsringarna blir större nära dealern. Sparas med utseendet."),
-  spec("tableModel", "bord", "U", "Bordsmodell", choice(["standard", "Standardbordet"], ["bord-02", "BORD-02, njurformat"]), "BORD-02 (prov): njurformat bord med läderreling. Duk, filtfärg, underrede, mugghållare och hylla gäller standardbordet."),
-  spec("modelCloth", "bord", "U", "Spelyta", choice(["filt", "Grön mikromocka"], ["gras", "Gräsmatta"]), "BORD-02:s spelyta, fotograferad: Scuba Suede eller Grass Ground från Poly Haven."),
-  spec("modelWood", "bord", "U", "Träsarg", choice(["valnot", "Valnötsfaner"], ["furu", "Lackerad furu"]), "BORD-02:s sarg; benen behåller valnötsfaneret."),
-  spec("modelRail", "bord", "U", "Reling", choice(["brun", "Brunt läder"], ["rodbrun", "Rödbrunt läder"], ["denim", "Blå denim"]), "BORD-02:s vadderade reling längs spelarnas kant."),
   spec("cloth", "bord", "U", "Duk", choice(["print", "Kodens filt"], ["v6", "V6-duken"], ["runway", "Runway-filten"], ["runway-2", "Runway-filten 2: tät duk"], ["runway-3", "Runway-filten 3: borstad boj"]), "V6-duken tar filtens färg och korn ur V6:s bord; Runway-filtarna ur var sin Runway-bild av hemvyn."),
   spec("felt", "bord", "U", "Filtens färg", choice(["green", "Grön"], ["blue", "Blå"], ["vin", "Vinröd"], ["svart", "Svart"]), "Filtens färg; gäller inte V6-duken."),
   spec("marks", "bord", "U", "Markeringar", { kind: "set", options: MARKS }, "Vad filten bär för tryck, varje slag för sig."),
@@ -141,7 +134,6 @@ export const SCENE_KEYS: readonly KeySpec[] = [
   spec("surface", "bord", "U", "Yta", choice(["painted", "Målad"], ["photo", "Fotomaterial"], ["natur", "Naturmaterial"], ["natur-2", "Naturmaterial 2: blankt läder"], ["natur-3", "Naturmaterial 3: slätt läder"], ["natur-duk", "Duken på naturbordet"]), "Fotomaterial tar rummets ljus; Naturmaterial ger Runway-läder; Duken: filten i eget ljus, reling och metall i rummets."),
   spec("base", "bord", "U", "Underrede", choice(["column", "Pelare"], ["legs", "Två ben"]), "Bordets fot; syns när kameran backar."),
   spec("tableSize", "bord", "U", "Bordets storlek", slider(0.9, 1.4, 0.05, " ×"), "Filt, reling och fot växer åt sidorna och mot spelarna; dealerns kant och trycket står kvar. 1 är som förut (prov)."),
-  spec("tray", "bord", "U", "Markerbräde", toggle, "Det byggda markerbrädet, försänkt vid dealern."),
   spec("shelf", "bord", "U", "Hylla vid dealern", toggle, "En låg hylla bakom bordskanten vid hennes högra sida, för filmen där hon tar ett glas därifrån (prov)."),
   spec("cups", "bord", "U", "Mugghållare", toggle, "Hållare i guld, försänkta i relingens läder mellan platserna. Förval på."),
   // ── Kort och marker ──
@@ -189,11 +181,12 @@ const BY_KEY = new Map<string, KeySpec>(SCENE_KEYS.map((s) => [s.key, s]));
 export const keySpec = (key: string): KeySpec | null => BY_KEY.get(key) ?? null;
 export const isSceneKey = (key: string): key is SceneKey => BY_KEY.has(key);
 /**
- * Keys a look could carry until 2026-11-26 and no longer has: scale ("Skala k") and lens ("Dealerns lins") gave a look a
- * scale and a camera of its own beside the standard. A saved look or an address that still names one is read without it
- * and without a word about it (lib/scene-presets.ts; src/game-look.ts RETIRED_KEYS is the same list for the game).
+ * Keys a look could carry and no longer has: scale ("Skala k") and lens ("Dealerns lins") gave a look a scale and a camera of
+ * its own (until 2026-11-26); tray, tableModel, modelCloth, modelWood and modelRail were the former standard's built tray and
+ * its table BORD-02 (until 2026-11-27: the live table has neither). A saved look or an address that still names one is read
+ * without it and without a word about it (lib/scene-presets.ts; src/game-look.ts RETIRED_KEYS is the same list for the game).
  */
-export const RETIRED_KEYS: readonly string[] = ["scale", "lens"];
+export const RETIRED_KEYS: readonly string[] = ["scale", "lens", "tray", "tableModel", "modelCloth", "modelWood", "modelRail"];
 
 // ── The felt's marks in one word (feltMarks / marksText of src/scene3d-table.ts, same rules) ──
 export function marksOf(text: string | null | undefined): Set<string> {

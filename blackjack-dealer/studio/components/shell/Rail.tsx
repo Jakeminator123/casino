@@ -3,8 +3,7 @@
 // The menu, the column on the left of every view. From the top: the studio's mark and name, whose studio it is
 // (DealerSwitch, one button per dealer), the views in the order of the chain with the part of the chain over a group in a
 // wide window, the active one marked and a count where it helps (the chosen dealer's takes waiting for Jakob beside
-// Granska; beside Karta the number of the tree the game plays, "22/36 steg", from src/dealer-trees.ts countWord, as
-// Karta's row shows it), then Beslut and Ordlista, and last whether the server answers. What lies beside the work
+// Granska), then Beslut and Ordlista, and last whether the server answers. What lies beside the work
 // (Ljud) is reached from the start page. A view's link keeps the chosen dealer in the address.
 //
 // One row is drawn in two ways (app/globals.css, --breakpoint-rail): in a window wide enough, an icon and a word on a line
@@ -13,7 +12,7 @@
 // In the online copy (lib/mode.ts) the workshops of this computer and Beslut are not there, so they are not drawn; instead
 // the bot is there: the view Önskemål (with the answers from Jakob not yet seen) and "Fråga", which opens and closes the
 // panel (components/bot).
-import { Archive, BookOpen, Clapperboard, House, Images, Inbox, ListChecks, MessageCircleQuestion, PersonStanding, Ruler, ScanEye, Spade, Users, Workflow } from "lucide-react";
+import { Archive, BookOpen, Clapperboard, House, Inbox, ListChecks, MessageCircleQuestion, PersonStanding, Ruler, ScanEye, Spade, Users, Workflow } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState, type ComponentType } from "react";
@@ -21,16 +20,15 @@ import { useBank } from "../../lib/bank.ts";
 import { dealerHref } from "../../lib/dealer.ts";
 import { isSnapshot } from "../../lib/mode.ts";
 import { waitingCount } from "../../lib/decisions.ts";
-import { awaitingJakob, primarCount } from "../../lib/verdict.ts";
-import { countWord } from "../../../src/dealer-trees.ts";
+import { awaitingJakob } from "../../lib/verdict.ts";
 import { useBot } from "../bot/BotProvider";
 import { useDecisions } from "../decisions/useDecisions";
-import { firstTree, useTrees } from "../map/useTrees";
+
 import { useRequests } from "../requests/RequestsProvider";
 import { cn } from "../ui/cn";
 import { Tooltip } from "../ui/Tooltip";
 import { DealerSwitch } from "./DealerSwitch";
-import { SetupSwitch } from "./SetupSwitch";
+
 import { Glossary } from "./Glossary";
 
 type Icon = ComponentType<{ className?: string }>;
@@ -44,16 +42,12 @@ type View = { href: string; label: string; hint: string; icon: Icon; group?: str
 export const VIEWS: readonly View[] = [
   { href: "/", label: "Start", hint: "Kedjan från bild till film och alla verkstäder, och det som väntar på dig", icon: House },
   { href: "/avatarer/", label: "Avatarer", hint: "Från bilder av en person till en docka på vårt skelett: vägarna steg för steg, och föremålen vid bordet", icon: Users, group: "Förlagan" },
-  { href: "/dockan/", label: "Dockan", hint: "Dockans editor: standarddockans rörelser spelas, justeras och filmas", icon: PersonStanding },
-  // Filmverkstaden (Bordet until 2026-11-27; the address is still /bordet/): the one view of the table, in the studio and in the
-  // copy. Its parts hold what Placering (Inspelning), Scen (Scen, Råfilm, Efterarbete) and Beställ were; their old addresses lead there.
-  { href: "/bordet/", label: "Filmverkstaden", short: "Filmer", hint: "Spela in med dockan och kortplanen, beställ filmer, lägg dem i scenen och efterarbeta", icon: Clapperboard, group: "Filmerna" },
+  { href: "/dockan/", label: "Dockan", hint: "Dockans editor: Danilos och Frasses rörelser spelas, justeras och filmas", icon: PersonStanding },
+  // Karta is Schemat: the dolls' anchors, stages and motions with what exists for each.
+  { href: "/karta/", label: "Karta", hint: "Rörelseschemat: ankarena, rörelserna och vad som finns för varje docka", icon: Workflow },
+  { href: "/bestall/", label: "Beställ", short: "Beställ", hint: "Beställningarna hos Runway: kön och en beställning att skicka", icon: Clapperboard, group: "Filmerna" },
   // Granska holds the proofs too since 2026-11-17 (its part Prov); /prov/ leads there.
   { href: "/granska/", label: "Granska", hint: "Filmer som väntar på ditt beslut, och proven", icon: ScanEye },
-  // Karta holds Primära too since 2026-11-17 (each step with its Primär and secondary films); /primara/ leads there. Since
-  // 2026-11-21 it draws the dealer's trees, one at a time, against the 36 steps of his measure.
-  { href: "/karta/", label: "Karta", hint: "Nodträden: vilka av de 36 stegen som har film, och vad ett saknat steg behöver", icon: Workflow },
-  { href: "/material/", label: "Material", hint: "Per dealer: ingångsbild, keystone, ankare, filmer och referenser", icon: Images },
   { href: "/game/", label: "Casino", hint: "Spela blackjack som i casinot: spelmotorn, marker och reglage, med valt förval", icon: Spade, group: "Spelet" },
   { href: "/matt/", label: "Mått", hint: "Alla mått ur koden: kameror, bord, kortplatser, dockor och rörelser, bredvid livebordet", icon: Ruler, group: "Grunden" },
   // Biblioteket (2026-11-27): allt som lagras i repot, per slag, med var det används, och raderingen på hans klick.
@@ -65,7 +59,7 @@ export const VIEWS: readonly View[] = [
  * the measures need this computer. Filmverkstaden is there Scen, Råfilm and Efterarbete only (no Inspelning, no Kön), and
  * Casino plays there too (the game page runs the engine itself).
  */
-const LOCAL_ONLY: readonly string[] = ["/avatarer/", "/dockan/", "/matt/", "/bibliotek/"];
+const LOCAL_ONLY: readonly string[] = ["/avatarer/", "/dockan/", "/bestall/", "/matt/", "/bibliotek/"];
 const SHOWN: readonly View[] = isSnapshot ? VIEWS.filter((view) => !LOCAL_ONLY.includes(view.href)) : VIEWS;
 /** Where the mark at the top leads: the start page. */
 const HOME = "/";
@@ -161,16 +155,8 @@ export function Rail() {
   const decisions = useDecisions();
   const waitingDecisions = decisions.answer ? waitingCount(decisions.answer.decisions) : 0;
   const [glossary, setGlossary] = useState(false);
-  const { graph, status, error, dealer, readAt } = useBank();
-  // Karta's number is its tree's: the tree the game plays, as Karta's row counts it. Where the server has no trees (the
-  // online copy) Karta draws the bank's map, and the number is its Primär count, as that map's header says.
-  const trees = useTrees(dealer, readAt);
-  const tree = firstTree(trees.answer);
-  const counts = useMemo(() => {
-    if (!graph) return null;
-    const p = primarCount(graph);
-    return { waiting: awaitingJakob(graph).length, karta: tree ? `${countWord(tree.count)} steg` : trees.state === "off" ? `${p.set}/${p.total} primära` : null };
-  }, [graph, tree, trees.state]);
+  const { graph, status, error, dealer } = useBank();
+  const counts = useMemo(() => (graph ? { waiting: awaitingJakob(graph).length } : null), [graph]);
   const offline = !!error;
   const who = isSnapshot ? "Kopian" : "Servern";
   const answers = status === "loading" ? "Läser klippbanken…" : offline ? `${who} svarar inte` : `${who} svarar`;
@@ -188,7 +174,6 @@ export function Rail() {
         <span className="hidden font-display text-md font-semibold tracking-[-0.01em] text-ink rail:block">Dealer Studio</span>
       </Link>
       <DealerSwitch />
-      <SetupSwitch />
       <Rule />
       {/* The views scroll when the window is low; the thin scrollbar (app/globals.css) shows that there is more. */}
       <ul className="flex min-h-0 flex-col gap-0.5 overflow-y-auto">
@@ -204,7 +189,7 @@ export function Rail() {
               view={view}
               href={dealerHref(view.href, dealer)}
               active={active === view.href}
-              note={view.href === "/karta/" ? (counts?.karta ?? null) : null}
+              note={null}
               count={view.href === "/granska/" && counts && counts.waiting > 0 ? String(counts.waiting) : null}
               tone="brass"
             />

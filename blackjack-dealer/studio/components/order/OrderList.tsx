@@ -7,7 +7,6 @@
 // length, and the cost. A click opens "Det här skickas". Under the queue the one line on how
 // approved orders get placed. Placed and delivered orders are folded, newest first.
 import { Clock, Film, ImageIcon } from "lucide-react";
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { useBank } from "../../lib/bank.ts";
 import { isStandardDoll } from "../../lib/dealer.ts";
@@ -109,12 +108,7 @@ export function OrderList({ menu, all, onOpen }: { menu: ReactNode; all: OrdersA
           {all.orders.length} beställningar{all.balance ? ` · saldo ${credits(all.balance.credits)} krediter` : ""}
         </span>
       }
-      actions={
-        // The protocol of every take (another view, /protokoll/).
-        <Link href="/protokoll/" className="text-sm text-dim hover:text-ink hover:underline">
-          Protokoll
-        </Link>
-      }
+
     >
       <div className="flex flex-col gap-8">
         <p data-ordering className={ordering.open ? "text-sm text-dim" : "rounded-sm bg-[#3a2a1a] px-3 py-2 text-sm text-[#f0b07a]"}>

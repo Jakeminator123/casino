@@ -33,7 +33,7 @@
 import {readFileSync, readdirSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-import {CARD, cross, dot, length, sub, unit, type Vec3} from '../src/camera.ts';
+import {CARD, cross, dot, length, sub, unit, type Vec3} from '../../src/space.ts';
 import {LIVE, LIVE_CAMERA, liveSee} from '../../src/table-live.ts';
 import {dollNamed} from '../src/doll.ts';
 import {handFaults, boneLengths} from '../src/hand-rule.ts';

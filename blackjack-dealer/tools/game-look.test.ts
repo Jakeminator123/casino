@@ -52,17 +52,18 @@ test('the address: the preset, the keys that fit, the keys that do not, and the 
   assert.deepEqual(readLook(params('forval=levande&dust=0.8&room=la&sway=1&table=casino-ab12&tema=scout&inbaddad=1'), rooms),
     {asked: 'levande', forval: 'levande', keys: {dust: 0.8, room: 'la', sway: true}, ignored: []});
   assert.deepEqual(readLook(params('forval=Inte%20ett%20namn&dust=4&room=skog&zoom=x'), rooms), {asked: 'Inte ett namn', forval: null, keys: {}, ignored: ['dust', 'room', 'zoom']});
-  // tray=built keeps the built tray, fan=<px> is the cards' fan step: neither is a scene key, neither is named
+  // fan=<px> is the cards' fan step, no scene key, and tray (the former standard's built tray) is retired: neither is named
   assert.deepEqual(readLook(params('tray=built&fan=24'), rooms), {asked: null, forval: null, keys: {}, ignored: []});
-  assert.deepEqual(readLook(params('tray=0&fan=1'), rooms), {asked: null, forval: null, keys: {tray: false, fan: true}, ignored: []});
+  assert.deepEqual(readLook(params('tray=0&fan=1'), rooms), {asked: null, forval: null, keys: {fan: true}, ignored: []});
   // the last value of a word wins, as in the studio's readAddress
   assert.deepEqual(readLook(params('dust=9&dust=0.3'), rooms).keys, {dust: 0.3});
   assert.deepEqual(readLook(params('dust=9&dust=0.3'), rooms).ignored, []);
 });
 
 test('a preset as the lab hands it out: its state kept, a key that does not fit dropped and named', async () => {
-  const file = JSON.parse(await readFile('data/scene-presets/levande.json', 'utf8'));
-  assert.deepEqual(presetFrom({preset: file}), {state: file.state, dropped: []});
+  // a key that has been retired (RETIRED_KEYS: the saved looks still carry tray) is left out without a word
+  const file = JSON.parse(await readFile('data/scene-presets/levande.json', 'utf8')), kept = Object.fromEntries(Object.entries(file.state).filter(([k]) => !RETIRED_KEYS.includes(k)));
+  assert.deepEqual(presetFrom({preset: file}), {state: kept, dropped: []});
   assert.deepEqual(presetFrom({preset: {state: {dust: 0.5, glow: 1, zoom: 9}}}), {state: {dust: 0.5}, dropped: ['glow', 'zoom']});
   for (const answer of [null, {}, {preset: null}, {preset: {state: []}}, {error: 'Det finns inget förval med det namnet.'}]) assert.equal(presetFrom(answer), null);
 });
@@ -108,9 +109,9 @@ test('the lens the game plays: the address\'s, else the look\'s, else Standard; 
 test('the look over the game: a preset is a whole look, keys alone lie over the game\'s own', () => {
   const blurOf = (room: string) => ({panorama: 5, la: 4, hall: 11}[room] ?? 11);
   for (const p of SHIPPED) assert.deepEqual(lookState(DEFAULTS, p.state, {}, blurOf), effective(DEFAULTS, p.state), `${p.name} as the Scen view shows it`);
-  // a key the preset leaves out is the scene's default, also where the game sets its own (tray, cards, format)
+  // a key the preset leaves out is the scene's default, also where the game sets its own (cards, format)
   const bare = lookState(DEFAULTS, {dust: 0.4}, {zoom: 1.1}, blurOf);
-  assert.deepEqual([bare.dust, bare.zoom, bare.tray, bare.cards, bare.format, bare.room], [0.4, 1.1, DEFAULTS.tray, DEFAULTS.cards, DEFAULTS.format, DEFAULTS.room]);
+  assert.deepEqual([bare.dust, bare.zoom, bare.cards, bare.format, bare.room], [0.4, 1.1, DEFAULTS.cards, DEFAULTS.format, DEFAULTS.room]);
   // over a preset the keys stay as written, as in the Scen view; alone a room brings its own blur
   assert.equal(lookState(DEFAULTS, SHIPPED[0].state, {room: 'hall'}, blurOf).blur, 5);
   assert.deepEqual(lookState(DEFAULTS, null, {room: 'hall'}, blurOf), {room: 'hall', blur: 11});

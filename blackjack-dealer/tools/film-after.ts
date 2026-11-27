@@ -1,31 +1,22 @@
-// Brings a delivered film into the bank's frame and measures it (src/film-after.ts): the after-work that the first orders ran as
-// Python scratch scripts, not kept (efterarbete.py, slutkoll.py, kantkoll.py, filmmatt.py), the same frames without Python. Orders nothing and spends nothing.
+// Brings a delivered film into the standard's picture and measures it (src/film-after.ts). Orders nothing and spends nothing.
 //   node tools/film-after.ts <order id> <take> [flags]
-// Reads data/orders/<id>.json (the model, first.png and the anchor it was copied from, last.png, the motion's target) and the
-// delivery assets/orders/<id>/take-<n>/source.mp4, which is only read. A deal ordered without a last picture (order-new.ts
-// --no-end, a seat's first landing) is checked against the card plan's card instead (dealCheckOf). Writes beside it, never over anything:
-//   after.mp4   the set-up's frame (the bank's 1764 × 1174) at the delivery's own rate, no sound; H.264 CRF 12, preset slow, 4:2:0, encoded by
-//               FFmpeg from BGR frames exactly as the script did, so the same frames give the same file
+// Reads data/orders/<id>.json (the model, its first picture, last.png) and the delivery assets/orders/<id>/take-<n>/source.mp4,
+// which is only read. Writes beside it, never over anything:
+//   after.mp4   the standard's picture (src/standard.ts bild, 1728 × 972) at the delivery's own rate, no sound; H.264 CRF 12,
+//               preset slow, 4:2:0, encoded by FFmpeg from BGR frames
 //   after.json  the receipt: the treatment and why, every flag, the frames cut, the scaling, the tone lock's gain and lift, the
-//               pictures with their SHA-256, the original's SHA-256 before and after (unchanged), and every measure: the green
-//               before and after, slutkoll (on the delivery and on after.mp4), kantkoll on the first and last frame, filmmatt's
-//               pixel half; --compare adds the frame-by-frame comparison with another film
-// The treatment follows the model (TREATMENTS in src/film-after.ts): WAN 3 cuts its two dark last frames and lifts the person to
-// first.png; Kling 4 keeps every frame and is scaled from 1172 to 1174 rows; Kling 3.0 4K is scaled down and lifted. The green
-// comes from the anchor first.png was copied from (its from.path), as every after-work tonight used it. A delivery that is not
-// the first picture's shape (width/height within 1 %) is refused: fitting it to the bank's frame is the main agent's and Jakob's.
-// The delivery's colour tags are ignored on decoding, as OpenCV did (a Kling 4 film is tagged BT.709 and was read as BT.601).
-// The frame is the order's set-up's picture (src/order-model.ts pictureOf): the bank's 1764 × 1174 at the former standard,
-// 1728 × 972 at the live table. Only the former's table has the green screen, so a film of another set-up (Aleph 2 over the
-// doll's film at the live table: 1920 × 1080 in, scaled to 1728 × 972, its guidance picture at second 0 as its first picture)
-// gets no levelling, no kantkoll, no landing against the card plan and no dealCheck, and its receipt says so (notMeasured).
-// Flags, the cases the scripts had:
-//   --keep-tail | --cut <n>   keep every frame | cut the n last frames (default by the model: WAN 3 cuts 2)
-//   --lock | --no-lock        lift the person to first.png's levels, or not (default by the model)
+//               pictures with their SHA-256, the original's SHA-256 before and after (unchanged), and every measure: slutkoll
+//               (on the delivery and on after.mp4) and filmmatt's pixel half; --compare adds the frame-by-frame comparison
+// The treatment follows the model (TREATMENTS in src/film-after.ts). A delivery that is not the first picture's shape
+// (width/height within 1 %) is refused: fitting it to the picture is the main agent's and Jakob's. A film made over another
+// (Aleph 2 over the doll's film: 1920 × 1080 in) has its guidance picture at second 0 as its first picture. The live table has
+// no green and no yellow and blue cards, so nothing is levelled, no edge is checked and no landing is measured: the receipt
+// says so (notMeasured), and the film is reviewed frame by frame by eye. The delivery's colour tags are ignored on decoding.
+// Flags:
+//   --keep-tail | --cut <n>   keep every frame | cut the n last frames (default by the model)
+//   --lock | --no-lock        lift the person to the first picture's levels, or not (default by the model)
 //   --fps <rate>              the rate written (default: the delivery's own, e.g. 24 for Kling)
-//   --anchor <png>            the picture whose green is wanted (default: the anchor first.png comes from)
-//   --seats <P1.C1,…>         the targets filmmatt measures the landing at (default: the order's motion.target)
-//   --out <dir>               write after.mp4 and after.json into that folder instead (a trial; nothing beside the original)
+//   --out <dir>              write after.mp4 and after.json into that folder instead (a trial; nothing beside the original)
 //   --compare <film>          compare after.mp4 frame by frame with another film (tonight's Python after.mp4)
 // Exit code 2 and the reason in Swedish when the run is refused; nothing is then written.
 import {readFile, writeFile, mkdir, rename, rm, stat} from 'node:fs/promises';
@@ -36,12 +27,8 @@ import path from 'node:path';
 import sharp from 'sharp';
 import {probe, sha256File, type Probe} from './film-fix.ts';
 import {orderTake, OrderError} from './order-collect.ts';
-import {TREATMENTS, resizeCubic, smoothGreen, toneLock, levelFrame, NO_TONE, cornerMean, endCheck, stillAnchorTail, edgeCheck, edgeRows, filmMeasure, seam, round, cardBlobs, type Tone, type PlanTarget} from '../src/film-after.ts';
-import {checkDeal, type DealCheck, type FrameCard} from '../src/deal-check.ts';
-import {dealerEdgeRow, planQuad, readPlan, type Pt} from './order-images.ts';
-import {uppsattningOf} from '../src/order-model.ts';
-import {UPPSATTNING} from '../src/uppsattning.ts';
-import type {PlacementPlan} from '../src/placement-model.ts';
+import {TREATMENTS, resizeCubic, toneLock, NO_TONE, endCheck, stillAnchorTail, filmMeasure, seam, round, type Tone} from '../src/film-after.ts';
+import {STANDARD} from '../src/standard.ts';
 
 const ROOT = process.cwd();
 const childEnv = () => {
@@ -103,7 +90,7 @@ export function rateText(fps: string): string { const [n, d] = fps.split('/').ma
 /** Whether a delivery has the first picture's shape (width/height within SHAPE_TOLERANCE): Kling 4's 1764 × 1172 does, 16:9 does not. */
 export function sameShape(w: number, h: number, pw: number, ph: number): boolean { return Math.abs(w / h - pw / ph) / (pw / ph) <= SHAPE_TOLERANCE; }
 
-export type Options = {cut?: number; lock?: boolean; fps?: string; anchor?: string; seats?: string[]; out?: string; compare?: string};
+export type Options = {cut?: number; lock?: boolean; fps?: string; out?: string; compare?: string};
 /** Reads the flags; unknown flags are refused, so that a typo is not ignored. */
 export function readFlags(args: string[]): Options {
   const o: Options = {};
@@ -114,8 +101,6 @@ export function readFlags(args: string[]): Options {
     else if (a === '--lock') o.lock = true;
     else if (a === '--no-lock') o.lock = false;
     else if (a === '--fps') { o.fps = value(); if (!/^\d+(\/\d+)?$/.test(o.fps)) throw new Refused('--fps är ett tal eller ett bråk (24, 30, 30000/1001).'); }
-    else if (a === '--anchor') o.anchor = value();
-    else if (a === '--seats') o.seats = value().split(',').filter(Boolean);
     else if (a === '--out') o.out = value();
     else if (a === '--compare') o.compare = value();
     else throw new Refused(`Okänd flagga ${a}.`);
@@ -135,32 +120,29 @@ export async function afterWork(id: string, take: number, options: Options = {},
   const takeDir = path.join(folder, `take-${take}`), source = path.join(takeDir, 'source.mp4');
   if (!existsSync(source)) throw new Refused(`Leveransen saknas: ${posix(source)}.`);
   const pics = (order as {pictures?: {name: string; path: string | null; goesAs?: string; seconds?: number; from?: {path?: string}}[]}).pictures ?? [];
-  // The set-up's picture is the frame the film is brought to. Only the former standard's table has the green screen the
-  // levelling, the edge check and the deal's card check read; a film of another set-up is scaled to its picture and no more.
-  const setup = uppsattningOf(order as {uppsattning?: unknown}), frame = UPPSATTNING[setup].bild, green = setup === 'forra', whose = green ? 'bankens' : `${UPPSATTNING[setup].namn.toLowerCase()}s`;
+  // The standard's picture is the frame the film is brought to; it is scaled to it and no more.
+  const frame = STANDARD.bild, whose = `${STANDARD.namn.toLowerCase()}s`;
   // A film made over another (Aleph 2) has no first picture: its guidance picture at second 0 is the picture it starts on.
   const firstEntry = pics.find(p => p.name === 'first.png') ?? pics.find(p => p.goesAs === 'keyframe' && p.seconds === 0), firstFile = path.join(folder, firstEntry?.name ?? 'first.png'), lastFile = path.join(folder, 'last.png');
-  if (!existsSync(firstFile)) throw new Refused(`${id}: first.png saknas (${posix(firstFile)}); utan den finns varken grönt eller ton att gå efter.`);
-  // A first picture cut out of a film (a return that continues a give) names that film as its source: the picture as sent is then the anchor.
-  const anchorFile = options.anchor ? path.resolve(options.anchor) : firstEntry?.from?.path && /\.(png|jpe?g|webp)$/i.test(firstEntry.from.path) && existsSync(path.join(root, firstEntry.from.path)) ? path.join(root, firstEntry.from.path) : firstFile;
+  if (!existsSync(firstFile)) throw new Refused(`${id}: första bilden saknas (${posix(firstFile)}); utan den finns ingen ton att gå efter.`);
   const outDir = options.out ? path.resolve(options.out) : takeDir, film = path.join(outDir, 'after.mp4'), receipt = path.join(outDir, 'after.json'), part = path.join(outDir, 'after.part.mp4');
   for (const f of [film, receipt]) if (existsSync(f)) throw new Refused(`${posix(f)} finns redan; efterarbetet skriver aldrig över (det som ligger där kan vara det som banken gjordes av).`);
   if (path.resolve(film) === path.resolve(source)) throw new Refused('Utfilen får inte vara originalet.');
 
-  const facts: Probe = probe(source), anchor = await readPicture(anchorFile), first = await readPicture(firstFile), last = existsSync(lastFile) ? await readPicture(lastFile) : null;
-  const W = anchor.width, H = anchor.height;
-  if (W !== frame.width || H !== frame.height) throw new Refused(`Ankaret ${posix(anchorFile)} är ${W} × ${H}, inte ${whose} ${frame.width} × ${frame.height}.`);
-  if (first.width !== W || first.height !== H || (last && (last.width !== W || last.height !== H))) throw new Refused(`first.png och last.png ska ha ${whose} storlek.`);
-  if (!sameShape(facts.width, facts.height, W, H)) throw new Refused(`Leveransen är ${facts.width} × ${facts.height} (bredd/höjd ${round(facts.width / facts.height, 3)}), inte första bildens form ${round(W / H, 3)}: stanna och rapportera; passningen till ${green ? 'bankens ram' : `${whose} ruta`} är huvudagentens och Jakobs.`);
+  const facts: Probe = probe(source), first = await readPicture(firstFile), last = existsSync(lastFile) ? await readPicture(lastFile) : null;
+  const W = first.width, H = first.height;
+  if (W !== frame.width || H !== frame.height) throw new Refused(`Första bilden ${posix(firstFile)} är ${W} × ${H}, inte ${whose} ${frame.width} × ${frame.height}.`);
+  if (last && (last.width !== W || last.height !== H)) throw new Refused(`last.png ska ha ${whose} storlek.`);
+  if (!sameShape(facts.width, facts.height, W, H)) throw new Refused(`Leveransen är ${facts.width} × ${facts.height} (bredd/höjd ${round(facts.width / facts.height, 3)}), inte första bildens form ${round(W / H, 3)}: stanna och rapportera; passningen till ${whose} ruta är huvudagentens och Jakobs.`);
   const cut = options.cut ?? treatment.cutTail, lock = options.lock ?? treatment.lock, fps = rateText(options.fps ?? facts.fps), rate = (([n, d]) => n / (d || 1))(fps.split('/').map(Number));
-  const scaled = facts.width !== W || facts.height !== H, seats = options.seats ?? (typeof (order.motion as {target?: unknown} | null)?.target === 'string' ? [String((order.motion as {target: string}).target)] : []);
+  const scaled = facts.width !== W || facts.height !== H;
   const other = options.compare ? path.resolve(options.compare) : null;
-  if (other) { if (!existsSync(other)) throw new Refused(`${posix(other)} finns inte.`); const o = probe(other); if (o.width !== W || o.height !== H) throw new Refused(`${posix(other)} är ${o.width} × ${o.height}; jämförelsen kräver ${green ? 'bankens ram' : `${whose} ruta`}.`); }
+  if (other) { if (!existsSync(other)) throw new Refused(`${posix(other)} finns inte.`); const o = probe(other); if (o.width !== W || o.height !== H) throw new Refused(`${posix(other)} är ${o.width} × ${o.height}; jämförelsen kräver ${whose} ruta.`); }
   const sourceSha = await sha256File(source);
 
   await mkdir(outDir, {recursive: true});
-  const gt = green ? smoothGreen(anchor.data, W, H) : null, started = Date.now(), edge = edgeRows(await dealerEdgeRow(root, setup));
-  let tone: Tone | null = null, index = 0, written = 0, firstLevels: [number[], number[]] | null = null, lastLevels: [number[], number[]] | null = null;
+  const started = Date.now();
+  let tone: Tone | null = null, index = 0, written = 0;
   const queue: Uint8Array[] = [], sourceEnd = last ? endCheck(last.data, W, H) : null, enc = encoder(part, W, H, fps);
   let whole = false, encoded = false;
   try {
@@ -173,9 +155,7 @@ export async function afterWork(id: string, take: number, options: Options = {},
       sourceEnd?.add(frame);
       queue.push(frame);
       if (queue.length > cut) {
-        const f = queue.shift()!, o = gt ? levelFrame(f, gt, W, H, tone ?? NO_TONE) : f, levels: [number[], number[]] = [cornerMean(f, W, H), cornerMean(o, W, H)];
-        if (!firstLevels) firstLevels = levels; lastLevels = levels;
-        await enc.write(o); written++;
+        await enc.write(queue.shift()!); written++;
       }
     }
     await enc.end(); encoded = true;
@@ -189,7 +169,7 @@ export async function afterWork(id: string, take: number, options: Options = {},
 
   // The measures, on the film as written (decoded again, as the scripts read after.mp4), and the comparison when asked.
   async function measures() {
-  const out = probe(part), measure = filmMeasure(W, H, rate), endAfter = last ? endCheck(last.data, W, H) : null, plan = await planTargets(root);
+  const out = probe(part), measure = filmMeasure(W, H, rate), endAfter = last ? endCheck(last.data, W, H) : null;
   const tail = last ? stillAnchorTail(last.data, rate) : null;
   let f0: Uint8Array | null = null, fl: Uint8Array | null = null, comparison: FilmComparison | null = null;
   const cmp = other ? comparer(other) : null;
@@ -205,85 +185,26 @@ export async function afterWork(id: string, take: number, options: Options = {},
   const t = tone ?? {...NO_TONE, pixels: 0}, rgb = (v: number[]) => [v[2], v[1], v[0]];
   const record = {schemaVersion: 1, tool: 'tools/film-after.ts', createdAt: new Date().toISOString(), seconds: round((Date.now() - started) / 1000, 1),
     order: id, take, model, treatment: {...treatment, cutTail: cut, lock, fps, flags: options, scaledFrom: scaled ? [facts.width, facts.height] : null,
-      scaling: scaled ? `varje ruta skalad rakt till ${green ? 'bankens ram' : `${whose} ruta`}, bikubiskt (OpenCV INTER_CUBIC), som efterarbete.py` : null, soundDropped: facts.audio,
+      scaling: scaled ? `varje ruta skalad rakt till ${whose} ruta, bikubiskt (OpenCV INTER_CUBIC)` : null, soundDropped: facts.audio,
       colourTagsIgnored: Object.keys(facts.colour).length ? facts.colour : null, port: 'efterarbete.py, slutkoll.py, kantkoll.py och filmmatt.py:s pixeldel (src/film-after.ts)'},
-    pictures: {anchor: {path: posix(anchorFile), sha256: anchor.sha256, why: 'det gröna som varje ruta förs till'}, first: {path: posix(firstFile), sha256: first.sha256, why: lock ? 'tonlåsets referens' : 'startskarven'},
+    pictures: {first: {path: posix(firstFile), sha256: first.sha256, why: lock ? 'tonlåsets referens' : 'startskarven'},
       ...(last ? {last: {path: posix(lastFile), sha256: last.sha256, why: 'slutkoll och slutskarven'}} : {})},
     source: {path: posix(source), sha256: sourceSha, sha256After: sourceAfter, untouched: true, bytes: (await stat(source)).size, width: facts.width, height: facts.height, fps: facts.fps, frames: facts.frames, audio: facts.audio, colour: facts.colour},
     output: {path: posix(film), sha256: await sha256File(part), bytes: (await stat(part)).size, width: out.width, height: out.height, fps: out.fps, frames: out.frames, audio: out.audio, encoding: `FFmpeg ${ENCODE.join(' ')} från BGR-rutor`,
       dropped: cut ? [facts.frames - cut, facts.frames - 1] : null, frameMap: 'samma rutnummer som originalet'},
     tone: lock ? {gainRGB: rgb(t.gain).map(v => round(v, 4)), liftRGB: rgb(t.lift).map(v => round(v, 2)), pixels: t.pixels} : null,
     // As efterarbete.py printed it (gain and lift in OpenCV's B, G, R; greens R, G, B), for a line-by-line comparison with tonight's notes.
-    efterarbete: {frames: written, gainBGR: t.gain.map(v => round(v, 3)), liftBGR: t.lift.map(v => round(v, 2)), greenBefore: {first: firstLevels?.[0], last: lastLevels?.[0]}, greenAfter: {first: firstLevels?.[1], last: lastLevels?.[1]}},
+    efterarbete: {frames: written, gainBGR: t.gain.map(v => round(v, 3)), liftBGR: t.lift.map(v => round(v, 2))},
     slutkoll: {source: sourceEnd?.result() ?? null, after: endAfter?.result() ?? null},
     stillAnchorTail: tail?.result() ?? null,
-    kantkoll: green ? {firstFrame: f0 ? edgeCheck(f0, W, H, edge) : null, lastFrame: fl ? edgeCheck(fl, W, H, edge) : null} : null,
-    filmmatt: {...measure.result(green ? seats : [], plan), startSeam: f0 ? seam(f0, first.data) : null, endSeam: fl && last ? seam(fl, last.data) : null},
+    filmmatt: {...measure.result([], {}), startSeam: f0 ? seam(f0, first.data) : null, endSeam: fl && last ? seam(fl, last.data) : null},
     ...(comparison ? {comparison} : {}),
-    // The automatic check of a deal (src/deal-check.ts): a take that fails it goes to no reviewer; remarks go with it.
-    ...(green && isDeal(order) ? {dealCheck: dealCheckOf(order, measure.dealFrames(), last, rate, last ? null : await planCardFor(root, order))} : {}),
-    // Another set-up's film: what was not measured and why, so that no one reads a missing check as a passed one.
-    ...(green ? {} : {uppsattning: setup, notMeasured: `${UPPSATTNING[setup].namn} har ingen grön duk och inga gula och blå kort: varken det gröna, kantkollen, landningen mot kortplanen eller kontrollen av given mäts här. Filmen skalades till ${frame.width} × ${frame.height} och granskas ruta för ruta med ögat.`}),
+    // What was not measured and why, so that no one reads a missing check as a passed one.
+    notMeasured: `${STANDARD.namn} har ingen grön duk och inga gula och blå kort: varken det gröna, kanten, landningen eller given mäts här. Filmen skalades till ${frame.width} × ${frame.height} och granskas ruta för ruta med ögat.`,
     review: 'Efterarbetet ersätter ingen granskning: varje ruta granskas i full upplösning (../.claude/skills/granska-film/SKILL.md).'};
   if (record.output.frames !== written) throw Error(`after.mp4 har ${record.output.frames} rutor, ${written} skrevs.`);
   return record;
   }
-}
-
-/** A deal from the pinch or the drag (its step key in the order). */
-const isDeal = (order: {step?: {key?: string}}) => /^GIV-/.test(String(order.step?.key ?? ''));
-/**
- * Where the plan lays a card, as an order's last picture would have drawn it (tools/order-images.ts planQuad: through the
- * table's lens on "Plant bord", in film pixels): the outline, its box (left, top, right, bottom, as cardBlobs gives a card's),
- * the outline's middle (an order's place) and its area. Measured against six drawn last pictures of 2026-11-21 (P4.C1, P4.C2,
- * D.C3) the box lies 0–2 px from the card cardBlobs finds on last.png and the area 1–2 % under it. Null when the plan has no
- * such place.
- */
-export type PlanCard = {target: string; quad: Pt[]; bbox: [number, number, number, number]; centre: [number, number]; n: number; plan?: {path: string; sha256: string}};
-export function planCardOf(plan: PlacementPlan, target: string): PlanCard | null {
-  if (!plan.targets?.[target]?.geometry?.native) return null;
-  const q = planQuad(plan, target), xs = q.map(p => p[0]), ys = q.map(p => p[1]);
-  let twice = 0; for (let i = 0; i < q.length; i++) { const [x0, y0] = q[i], [x1, y1] = q[(i + 1) % q.length]; twice += x0 * y1 - x1 * y0; }
-  return {target, quad: q.map(([x, y]) => [round(x, 1), round(y, 1)] as Pt), bbox: [Math.round(Math.min(...xs)), Math.round(Math.min(...ys)), Math.round(Math.max(...xs)), Math.round(Math.max(...ys))],
-    centre: [round(xs.reduce((s, v) => s + v, 0) / q.length, 1), round(ys.reduce((s, v) => s + v, 0) / q.length, 1)], n: Math.round(Math.abs(twice) / 2)};
-}
-/** The plan's card for an order's motion.target, from placements/default.json; null without a target or a plan. */
-async function planCardFor(root: string, order: {motion?: unknown}): Promise<PlanCard | null> {
-  const target = (order.motion as {target?: unknown} | null)?.target;
-  if (typeof target !== 'string' || !existsSync(path.join(root, 'placements', 'default.json'))) return null;
-  const {plan, file} = await readPlan(root), card = planCardOf(plan, target);
-  return card && {...card, plan: file};
-}
-
-/** Whether an order has a last picture: one that goes to the model as its end frame (order-new.ts --no-end leaves it out). */
-const hasEnd = (order: {pictures?: unknown}) => Array.isArray(order.pictures) && order.pictures.some(p => (p as {goesAs?: string} | null)?.goesAs === 'endFrame');
-/**
- * The check of a deal: the card per frame from the pass, against the last picture's card (the largest blue outside the
- * shoe on last.png, by the same colour rule; the plan's rule drew it as a real card at its place). An order with a last
- * picture whose file is missing, or whose card cannot be measured, has nothing to land on, and the check says so. An order
- * without a last picture (a seat's first landing, made from the film's last frame afterwards) lands on the plan's card
- * (`planCard`, planCardOf) by the same check and thresholds; the result then says so in `cardFrom`, and its texts name the
- * plan's card instead of the last picture's.
- */
-export function dealCheckOf(order: {motion?: unknown; pictures?: unknown}, deal: {frames: FrameCard[]; changePerFrame: number[]}, last: {width: number; height: number; data: Uint8Array} | null, fps: number, planCard: PlanCard | null = null): DealCheck & {cardFrom?: string; planCard?: PlanCard} {
-  const side = (order.motion as {side?: string} | null)?.side === 'BACK' ? 'BACK' : 'FRONT';
-  if (!last && !hasEnd(order)) {
-    const target = String((order.motion as {target?: unknown} | null)?.target ?? '(inget mål)');
-    if (!planCard) return {pass: false, fails: [{code: 'ingen-plats-i-planen', text: `Ordern har ingen sista bild och kortplanen ingen plats ${target}: inget att jämföra landningen med.`}], remarks: [], measures: {}};
-    const check = checkDeal(deal.frames, {fps, side, lastCard: {bbox: planCard.bbox, centre: planCard.centre, n: planCard.n}, changePerFrame: deal.changePerFrame});
-    const named = (f: DealCheck['fails'][number]) => ({...f, text: f.text.replaceAll('sista bildens kort', 'kortplanens kort').replace(': returen hoppar.', ': kortet ligger utanför sin plats.').replace('handen hoppar till sista bilden', 'handen hoppar i filmens sista rutor')});
-    return {...check, fails: check.fails.map(named), remarks: check.remarks.map(named), cardFrom: `kortplanen, ${planCard.target} (ingen sista bild)`, planCard};
-  }
-  const card = last ? cardBlobs(last.data, last.width, last.height).filter(b => b.c === (side === 'BACK' ? 'Y' : 'B') && !b.inShoe).sort((a, b) => b.area - a.area)[0] : null;
-  if (!card?.box) return {pass: false, fails: [{code: 'ingen-sista-bild', text: 'Sista bildens kort går inte att mäta: inget att jämföra landningen med.'}], remarks: [], measures: {}};
-  return checkDeal(deal.frames, {fps, side, lastCard: {bbox: card.box, centre: [card.x, card.y], n: card.area}, changePerFrame: deal.changePerFrame});
-}
-
-async function planTargets(root: string): Promise<Record<string, PlanTarget>> {
-  const file = path.join(root, 'placements', 'default.json');
-  if (!existsSync(file)) return {};
-  const targets = JSON.parse(await readFile(file, 'utf8')).targets ?? {};
-  return Object.fromEntries(Object.entries(targets).map(([k, v]) => [k, (v as {geometry: {native: PlanTarget}}).geometry.native]));
 }
 
 /** Frame by frame against another film: identical frames, the mean and largest difference per value, and how the differences spread. */
@@ -311,7 +232,7 @@ function comparer(other: string) {
 
 if (import.meta.main) {
   const [id, takeText, ...rest] = process.argv.slice(2);
-  if (!id || !takeText) { console.error('Användning: node tools/film-after.ts <beställnings-id> <tagning> [--keep-tail|--cut n] [--lock|--no-lock] [--fps r] [--anchor png] [--seats P1.C1] [--out mapp] [--compare film]'); process.exit(1); }
+  if (!id || !takeText) { console.error('Användning: node tools/film-after.ts <beställnings-id> <tagning> [--keep-tail|--cut n] [--lock|--no-lock] [--fps r] [--out mapp] [--compare film]'); process.exit(1); }
   try {
     const {record, film, receipt} = await afterWork(id, Number(takeText), readFlags(rest));
     const r = record as Record<string, any>;

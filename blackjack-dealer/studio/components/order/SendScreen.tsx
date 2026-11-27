@@ -10,12 +10,10 @@
 // again when something has changed; "Godkänn och lägg i kön" freezes it, after which nothing in it changes. Writes only on
 // Jakob's click.
 import { ArrowLeft, Check, ClipboardCopy, RefreshCw, TriangleAlert } from "lucide-react";
-import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { asApiError } from "../../lib/api.ts";
 import { labUrl } from "../../lib/lab.ts";
 import { swedishMoment } from "../../lib/mode.ts";
-import { referenceName } from "../../lib/bordet.ts";
 import { mandateText } from "../../lib/verdict.ts";
 import { cardCode } from "../../lib/names.ts";
 import { approveOrder, changeOrder, costWords, motionWords, orderLine, orderingState, picturesInOrder, refreshOrder, storedParts, styleWords, whoseName, type OrderAnswer, type OrdersAnswer } from "../../lib/orders.ts";
@@ -38,6 +36,12 @@ function Section({ title, aside, children, className }: { title: ReactNode; asid
 }
 
 const capital = (s: string) => (s ? `${s[0].toUpperCase()}${s.slice(1)}` : s);
+/** The reference film in words: whose film it is, and to or from which card. */
+function referenceName(c: { dealer: string; edge: string; goesTo: string }, names: Readonly<Record<string, string>>): string {
+  const who = c.dealer === "docka" ? "Dockans" : genitive(names[c.dealer] ?? c.dealer);
+  const back = !/^(READY(?:-[A-Z])?|DRAWN|IDLE)>/.test(c.edge);
+  return `${who} ${back ? "retur från" : "giv till"} ${seatWords(c.goesTo)}`;
+}
 /** A note stored with the order, without a command in brackets ("(node tools/…)") or a register's path ("ur data/….json"). */
 const noteWords = (note: string) => note.replace(/\s*\((?:node|python)\s[^)]*\)/g, "").replace(/\s+ur\s+data\/[\w./-]+\.json/g, "");
 
@@ -225,9 +229,7 @@ export function SendScreen({ menu, answer, all, onBack, onOpen, onSaved }: { men
             <span className="text-ink">
               {why} {ready ? "Det finns nu: hämta bilderna hit." : `När ${waitWords(answer.waiting)} är ${new Set(answer.waiting.map((w) => w.label)).size > 1 ? "godkända" : "godkänd"} i Material hämtas bilderna hit av sig själv.`}
             </span>
-            <Link href={`/material/?dealer=${order.dealer}`} className="text-brass-hi hover:underline">
-              Till Material
-            </Link>
+
             <Button size="sm" className="ml-auto" icon={<RefreshCw />} disabled={!ready} loading={busy} onClick={() => void refresh()}>
               Hämta bilderna
             </Button>
