@@ -19,7 +19,8 @@ Kommandon körs från `blackjack-dealer/`; sökvägar räknas från casino-roten
 
 ## Det han ska döma
 
-- **Prov:** en provmapp `assets/proofs/<namn>/` med `proof.json` (`title`, `description`, `takes`, `area`), visad i
+- **Prov:** en provmapp `assets/proofs/<namn>/` med `proof.json` (`title`, `description`, `area`, en etikett per fil i
+  `labels`, och `takes` där provet har tagningar), visad i
   Granska, Prov (`/studio/granska/?prov=<namn>`). `area` är provets område, ett av `rorelser`, `ansikte-och-hander`,
   `filmer`, `bord-och-kamera`, `avatarer`, `studion` (`studio/lib/proof-areas.ts`); Prov grupperar efter det. Granskarens
   omdöme är en bricka (`verdicts` i `proof.json`); hans egen dom är aldrig förifylld. Ett resultat döms först av en
@@ -33,7 +34,7 @@ Kommandon körs från `blackjack-dealer/`; sökvägar räknas från casino-roten
 - En stillbild bredvid varje film, eftersom filmer kan se utfrätta ut i hans flik. Ett nytt utseende för alla, till
   exempel läpparna, visas i spelets storlek och i rörelse och kräver hans ja; granskarnas poäng räcker inte
   (2026-11-17).
-- Text räcker inte för honom: visa i Karta eller spelet, i spelets storlek.
+- Text räcker inte för honom: visa i bild eller film, i Dockan, Karta eller spelet, i spelets storlek.
 - Ett fel på hans telefon läses med hans skärmbild av sidan med `?diagnos=1`; en headless-inspelning visar inte vad en
   telefon gör, och felet kallas inte rättat efter en inspelning.
 

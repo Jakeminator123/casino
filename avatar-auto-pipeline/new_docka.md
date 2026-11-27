@@ -2,7 +2,7 @@
 
 Standarddockan och standardscenen: syftet, vägen från spelets mått till en byggd docka, koordinaterna, måtten i korthet, dockorna, skelettet och lederna, bryggan mot `blackjack-dealer`s docka, hur en dealer anpassas, valen och varför, licenserna och det som återstår.
 
-Reglerna står i `AGENTS.md`, mapparna och kommandona i `README-SV.md`. Måtten har en källa, spelets kod i `../blackjack-dealer`; `scen/standard.yaml` är de talen i Blenders koordinater, skriven av `scen/gen_standard.py`. Talen i det här dokumentet är en läsbar bild av måttfilen som den stod 2026-11-26: skiljer de sig gäller måttfilen.
+Reglerna står i `AGENTS.md`, mapparna och kommandona i `README-SV.md`. Måtten har en källa, spelets kod i `../blackjack-dealer` (livebordet i `src/table-live.ts`, kortet i `src/space.ts`, dockorna i `dealer3d/src/doll.ts`); `scen/standard.yaml` är de talen i Blenders koordinater, skriven av `scen/gen_standard.py`. Talen i det här dokumentet är en läsbar bild av måttfilen som den stod 2026-11-27: skiljer de sig gäller måttfilen.
 
 ---
 
@@ -34,14 +34,13 @@ Det finns **två vägar** som möts i samma standardscen och samma skelett. Alla
 | Steg | Vad | Kommando |
 | --- | --- | --- |
 | A. Läs spelet | `scen/las_spelet.ts` läser spelets kod i `../blackjack-dealer`, och `scen/gen_standard.py` skriver `scen/standard.yaml` med källan på varje rad. Måttfilen ändras aldrig för hand. | `python scen/gen_standard.py` |
-| B. Bygg bordet | Procedurellt ur YAML: filt, rulle, sarg, ben, bricka, sko, kassering, 52 kort, markeringar, insatsringar. Default är spelets ovala standardbord. | `blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py` |
-| C. Alternativt bord | Njurformat BORD-02 (labb/utseende), skrivs till `assets/bord/bord_02.*` så standardfilen inte skrivs över. | samma, plus `-- --modell bord-02` |
-| D. Bygg dockorna | MPFB 2.0.18, kvinna + man, identiskt skelett, människans mått (avsnitt 6). Kräver MPFB, därför inte `--factory-startup`. `-- --namn N` skriver `standarddocka_<kön>_N.*` (prov) i stället för de modeller som används. | `blender -b --python-exit-code 1 --python scen/bygg_docka.py` |
-| E. Bygg stolen | Meshy-stol skalad till `stol.sits_z` / `sits_mitt`. | `blender -b --factory-startup --python-exit-code 1 --python scen/bygg_stol.py` |
-| F. Importera en rörelse | dealer3d-JSON → Blender-Action på standarddockan. | se avsnitt 8 |
-| G. QC | Rendera fasta kameror, måttöverlägg, kontroll mot spelets kortpixlar. | se avsnitt 9 |
-| H. Katalog + klipp | En rad i `rorelser/katalog.yaml` per rörelse (`id`, `namn`, `langd_s` 2–20, `seat`, `status`). En rörelse = en Action. Rendera 2–20 s. | headless `blender -b --python …` |
-| I. Valfri filmförädling | Runway Aleph / Luma / Kling / Act-Two, med 3D-klippet som rörelsestyrning. **Bara med Jakobs ja** (betalt). | – |
+| B. Bygg bordet | Procedurellt ur YAML: livebordet (filten en halvcirkel, rullen, sargen, benen), skon, lådan för använda kort, 52 kort, kortplatsernas markeringar och insatsringarna, utan markerbricka; `-- --med-bricka` lägger vår markerbricka vid kanten (`standardbord_live_bricka.*`). | `blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py` |
+| C. Bygg dockorna | MPFB 2.0.18: grunddockorna kvinna och man med identiskt skelett och människans mått, och på mannens grund dockorna med mätta mått (Danilo, Frasse, Tomasz och personerna i `personer/`; avsnitt 6). Utan `--kon` byggs kvinnan och mannen, `-- --kon <docka>` bygger en. Kräver MPFB, därför inte `--factory-startup`. `-- --namn N` skriver `standarddocka_<docka>_N.*` (prov) i stället för de modeller som används. | `blender -b --python-exit-code 1 --python scen/bygg_docka.py` |
+| D. Bygg stolen | Meshy-stol skalad till `stol.sits_z` / `sits_mitt`. | `blender -b --factory-startup --python-exit-code 1 --python scen/bygg_stol.py` |
+| E. Importera en rörelse | dealer3d-JSON → Blender-Action på en docka. | se avsnitt 8 |
+| F. QC | Rendera fasta kameror, måttöverlägg, kontroll mot spelets kortpixlar. | se avsnitt 9 |
+| G. Katalog + klipp | En rad i `rorelser/katalog.yaml` per rörelse (`id`, `namn`, `langd_s` 2–20, `seat`, `status`). En rörelse = en Action. Rendera 2–20 s. | headless `blender -b --python …` |
+| H. Valfri filmförädling | Runway Aleph / Luma / Kling / Act-Two, med 3D-klippet som rörelsestyrning. **Bara med Jakobs ja** (betalt). | – |
 
 ### 3.2 Gamla vägen: avatar-auto-pipeline steg 01–08 (från foton)
 
@@ -61,7 +60,8 @@ Skripten i `steg/` bygger en **specifik dealer från fotografier** via Meshy, in
 | 10 | `steg/10-kropp-i-ett-stycke/` | Prov, körs för hand: en kropp ur Runway (Hunyuan 3D 3.1 Pro) med hand och arm i ett stycke blir en docka utan påsatta händer. Meshy-huvudet sys på och händerna märks som Handpar (`montera_huvud.py`), skelett och vikter lånas av en färdig docka, armbågen och handleden läggs i kroppens egen arm och fingrarna sätts med steg 5:s `fit_fingers` i handens egen ram (`rigga.py`, `fingrar_handflata.py`: handflatan pekar framåt i Hunyuans A-pose). `prova_hander.py` knyter handen och nyper på vilken dealer som helst. |
 | 11 | `steg/11-pa-dockans-grund/` | Prov, körs för hand: en färdig dealer sätts på en grunddockas skelett (Danilo eller Frasse), led för led, så att han spelar dockans rörelser utan skalning (`pa_grund.py`). Armar, ben och fingrar vrids och sträcks ben för ben till dockans leder och längder, bålen och handflatan formas mjukt genom lederna, huvudet flyttas utan att formas om, och ytan binds till dockans armatur med sina egna vikter; fingrarna behåller sin egen krökning i vila. |
 
-Körning via `auto_avatar.py` / `STARTA avatar.cmd`. Nycklar i `.env`. Betalda steg sparar kvitton i stegmappen.
+Körning via `auto_avatar.py` / `STARTA avatar.cmd`. Nycklar i `.env`. Betalda steg sparar kvitton i stegmappen. Steg
+12–15 och `ny_dealer.py` (en ny dealer ur bilder, en rad) står i `README-SV.md`.
 
 Rekommenderad hybrid för en namngiven dealer: börja med grunddockan (väg 3.1) för proportioner och skelett, använd fotostegen bara för **ansikte/hud och kläder**, inte för att byta skelett.
 
@@ -73,23 +73,23 @@ Allt i Blender och i `standard.yaml` är **meter, Z upp, högerhänt**.
 
 | | Värde | Källa |
 | --- | --- | --- |
-| Origo | Golvet rakt under dealerkantens mitt (`dealerEdge`, s = 0) | `dealer3d/src/world.ts dealerEdge(TABLE_LENS)` |
-| +X | Dealerns vänster = bildens höger sett från spelarna (samma x som spelets linsvärld) | konvention, dokumenterad i YAML-huvudet |
+| Origo | Golvet rakt under dealerkantens mitt (s = 0) | `LIVE.edge` i `src/table-live.ts` |
+| +X | Dealerns vänster = bildens höger sett från spelarna (samma x som livebordets linsvärld) | konvention, dokumenterad i YAML-huvudet |
 | +Y | Bakåt, från spelarna mot dealerns rygg. Spelarna står på −Y. Blenders Front-vy (från −Y) ser dealern framifrån | YAML-huvudet |
 | +Z | Upp | YAML-huvudet |
-| Filtens Z | 0,95 m | `scene3d-table.ts BASE.floor` (scenens golv ligger 0,95 m under filten) |
-| Bordets (x, s) | X = x, Y = −s. s = 0 är dealerkanten, s ökar mot spelarna | samma för ovalen och BORD-02 |
+| Filtens Z | 0,95 m, slutlett: golvet syns aldrig i filmen (±0,1 m) | `LIVE.floor` |
+| Bordets (x, s) | X = x, Y = −s. s = 0 är dealerkanten, s ökar mot spelarna | YAML-huvudet |
 | Yaw | Grader moturs sett ovanifrån, 0 = längs +X | YAML-huvudet |
 
-Omräkning från spelets linsvärld (three.js, Y upp, filmkameran i (0, h, 0) tittar mot −z):
+Omräkning från livebordets linsvärld (three.js, Y upp, kameran i (0, h, 0) tittar mot −z):
 
 ```
 X = x
-Y = −(z − dealerEdge.z) = −(z + 1,843773)
+Y = −(z − dealerkant_lins_z) = −(z + 1,5375)
 Z = y + 0,95
 ```
 
-Riktningar: `(x, −z, y)`. Kod: `gemensamt/riggverktyg.py` (`Ram`). `dealerkant_lins_z = −1,8437725961` ur `world.ts`.
+Riktningar: `(x, −z, y)`. Kod: `gemensamt/riggverktyg.py` (`Ram`). `dealerkant_lins_z = −1,5375` ur `LIVE.edge`.
 
 ---
 
@@ -97,131 +97,103 @@ Riktningar: `(x, −z, y)`. Kod: `gemensamt/riggverktyg.py` (`Ram`). `dealerkant
 
 Varje tal i `scen/standard.yaml` har `# källa: fil (namn)` eller `# antaget:` + motivering. **Spelet vinner.**
 
-### 5.1 Filmkamera (en lins, hela världen räknas ur den)
+### 5.1 Filmkamera (livebordets kamera, hela världen räknas ur den)
 
 | Mått | Värde | Källa |
 | --- | --- | --- |
-| Bild | 1764 × 1174 px | `table-lens.ts FILM` |
-| Brännvidd | 47,6327 mm på 36 mm sensor (sensor_fit HORIZONTAL) | härlett: `focal_px / bild_bredd * 36`; focal_px 2334 ur `table-lens.ts TABLE_LENS` |
-| Höjd över filten | 1,1099955533 m ≈ 1,11 m | `TABLE_LENS` |
-| Lutning | 0,4373194932 rad = 25,057° nedåt | `TABLE_LENS` |
-| Position i standardkoordinater | (0, −1,8438, 2,0600), mål (0, 0,5305, 0,9500) | `filmEye` = spelare 4 |
-| Kontroll | Spelets kortpixlar hamnar mitt i Blenders kort (`qc/bord_film_kontroll.png`) | `verktyg/qc_kontroll_film.py` |
+| Bild | 1728 × 972 px | `LIVE_CAMERA.film` |
+| Brännvidd | 26,8812 mm på 36 mm sensor (sensor_fit HORIZONTAL) | härlett: `focal_px / bild_bredd * 36`; focal_px 1290,3 ur `LIVE_CAMERA`, mätt ur 29 kort på filten |
+| Höjd över filten | 0,6175 m | `LIVE_CAMERA` |
+| Lutning | 18,13° nedåt; rullningen −0,16° tas inte med i Blender | `LIVE_CAMERA` |
+| Position i standardkoordinater | (0, −1,5375, 1,5675), mål (0, 0,3484, 0,95) | `liveFrame()` |
+| Kontroll | Spelets kortpixlar hamnar mitt i Blenders kort | `verktyg/qc_kontroll_film.py` |
 
-Övriga kameror (alla 1764 × 1174 och 47,63 mm om inget annat sägs): `spelare_1`–`spelare_7` ur `world.ts seatEye()`; `dealer_ogon` (antaget, 24 mm, 9 cm framför huvudets mitt); `hander` (antaget, 85 mm närbild); `hel` (antaget, 35 mm QC); `topp` (ortografisk, skala 2,3 m, antaget).
+Övriga kameror (bilden 1728 × 972 om inget annat sägs, alla antagna): `dealer_ogon` (Danilos ögon 9 cm framför axlarnas plan i den mätta höjden, tittar på plats 4, 24 mm); `hander` (85 mm närbild från spelarsidan); `hel` (35 mm QC); `topp` (ortografisk, skala 2,3 m).
 
-### 5.2 Bord – vad som faktiskt är standard i blackjack-dealer
+### 5.2 Bordet
 
-Spelet skiljer standarden från utseendet (`blackjack-dealer/docs/SYSTEM.md`, Standarden: «En standard i botten, utseendet ovanpå»):
-
-- **Standarden** är fasta mått: kamera, filtplan, kort, sko, bricka (TRAY flyttad till `table-lens.ts` / återexporterad från `world.ts`).
-- **Bordets form** är utseende (`tableModel` i `scene3d-view.ts`, scen-presets). Default är oförändrat `tableModel: 'standard'`.
-- Det finns **inget BORD-03**. Casino-presetet `data/scene-presets/casino.json` sätter inte `tableModel` och ärver därför `'standard'`.
-
-**Bordet som byggs som förval är ovalen**, inte BORD-02. BORD-02 (njurformat, vingar bakåt till Y = +0,24 m) finns kvar som `bord_02` / `--modell bord-02`.
-
-| | Standard (default) | BORD-02 (labb) | Dockans Kortplan-bord |
-| --- | --- | --- | --- |
-| Nyckel | `tableModel: 'standard'` | `tableModel: 'bord-02'` | `dealer3d/src/stage.ts` (sedan `9e440db`, «Kortplan får en bild: dockans 3D-bord») |
-| Form | Halv-ellips, **rak dealerkant vid s = 0**, inga vingar | Njurformat, vingar bakåt till Y = +0,24 m, Bézier-urtag | Halvcirkel, också **rak dealerkant** |
-| Bredd × djup | 1,90 × 1,15 m (`TABLE.a*2`, `REAL_TABLE.depth`) | 1,92 × 1,296 m | Radie 1,02 m → 2,04 × 1,02 m |
-| Rulle | 0,10 m längs spelarbågen | 0,062 m | 0,12 m |
-| Filtfärg | `#134232` (`FELTS.green[0]`) | `#215343` | – |
-| Ben | x = ±0,58 m, s = 0,25 m (`BASE.legX/legZ`) | x = ±0,48 m, s = 0,29 m | – |
-| Golv under filt | 0,95 m | samma i vår scen (BORD-02-källans 75 cm används inte) | 0,90 m (`stage.ts`) |
-| Kommentar | `TABLE.b = 0,60 m` är kontraktets kortare bord; under filmlinsen används 1,15 m | Inte spelets default | Visuellt nära ovalen men inte samma kontur |
-
-Källa standardoval: `scene3d-table.ts` `TABLE` / `REAL_TABLE` (under linsen, `tableUnder`). Källa BORD-02: `scene3d-bord02.ts`. Rulle på standardbordet: `TABLE.rail` 0,10 m; sektion `CORE[1] = 0,012`, `halv_hojd = 0,034` (`scene3d-table.ts`). Hyllan bakom dealerkanten (`SHELF`) är avstängd som standard (labb 2026-11-13).
+Livebordet, mätt på filmen: en halvcirkel med rak kant mot dealern (bågen en cirkel inom 1,8 mm), radie 0,7295 m med mitten 1,56 cm bakom kanten, 1,459 m brett längs kanten och 0,714 m djupt (`LIVE.felt`). Rullen utanför bågen, sargen, benen, färgerna och texturerna är vårt utseende. Spelets 3D-scen bygger samma bord (`tableUnder` i `src/scene3d-table.ts`, `STANDARD.bord`).
 
 ### 5.3 Filt, rulle, sarg, bricka, marker
 
 | Del | Mått | Källa |
 | --- | --- | --- |
-| Filt Z | 0,95 m | `BASE.floor` |
-| Rulle bredd | 0,10 m (standard) | `TABLE.rail` |
-| Rulle mitt över filt | 0,012 m | `scene3d-table.ts CORE[1]` |
-| Rulle halv höjd | 0,034 m | `RAIL.top − CORE[1]` |
-| Sarg underkant | −0,16 m relativt filt; på standarddockans bord (`--kant-bak`, `--docka`) −0,05 m där dealern sitter, 0,66 m brett från dealerkanten fram till Y = −0,16, så att låren går fria (`KNAN` i `bygg_bord.py`) | kommentar i `scene3d-table.ts`; `BASE.under = −0,15` |
-| Mässingslist | [−0,002, 0,005] m | `scene3d-table.ts BEAD` |
-| Bricka (TRAY) | x −0,30…+0,24 m, s 0…0,10 m, djup 0,03 m | `scene3d-props.ts` (officiell standard, även i `table-lens.ts` / `world.ts`) |
-| Mässingsram | 7 mm i filtnivå | `game3d-tray.ts` |
-| Rör | 12 rader (värden 5, 5, 25, 25, 100, 100, 500, 1000, 500, 100, 25, 5) | `game3d-tray.ts TRAY_ROWS` (`TRAY.tubes = 11` i props – vi följer de 12 raderna) |
-| Chip | radie 0,0195 m, höjd 0,003145 m | `game3d-chips.ts` |
-| Markeringsfärg | `#d8b665` | `scene3d-table.ts GOLD` |
-| Kortmarkering | 4 mm marginal, 3 mm linje (antaget) runt P1–P7 C1/C2 och D.C1–C3 | antaget, för att kortet ska synas inne i ramen |
+| Filt Z | 0,95 m | `LIVE.floor` (slutlett) |
+| Rulle bredd | 0,10 m | antaget (vår), `LIVE.rail` |
+| Rulle mitt över filt | 0,012 m | `LIVE.rail.section` |
+| Rulle halv höjd | 0,034 m | `LIVE.rail.section` |
+| Sarg underkant | −0,16 m relativt filt | antaget (vår) |
+| Mässingslist | [−0,002, 0,005] m | antaget (vår) |
+| Ben | x = ±0,58 m, s = 0,25 m | antaget (vårt) |
+| Filtfärg, markeringsfärg | `#134232`, `#d8b665` | antaget (vår) |
+| Markerbricka | livebordet har ingen; vår med `--med-bricka`: x −0,30…+0,24 m, s 0…0,10 m, djup 0,03 m, mässingsram 7 mm, 12 rader rör, chip radie 0,0195 m och höjd 0,003145 m | `markerbricka` i `standard.yaml`; `game3d-chips.ts` |
+| Kortmarkering | 4 mm marginal, 3 mm linje runt kortplatserna | antaget, för att kortet ska synas inne i ramen |
 
 ### 5.4 Kort
 
 | Mått | Värde | Källa |
 | --- | --- | --- |
-| Bredd × längd × tjocklek | 63 × 88 × 0,3 mm | `table-lens.ts CARD` |
+| Bredd × längd × tjocklek | 63 × 88 × 0,3 mm | `CARD` i `src/space.ts` |
 | Hörnradie | 3,5 mm | `CARD` |
-| Lekar i skon | 8 (antaget; vanlig kasinosko 6–8). 8 × 52 × 0,3 mm = 0,125 m bunt | antaget |
-
-Korten ligger rakt (`yaw_kort = 0`, placements angle 0). Givexempel i bordet: ett kort per C1 plus dealerns två.
+| Lekar i skon | 8 (antaget; vanlig kasinosko 6–8) | antaget |
 
 ### 5.5 Kortplatser P1–P7 och D
 
-Mittpunkter på filten för varje kortplats (P1–P7 med två kort var, dealerns tre) står under `platser` i `scen/standard.yaml`. Källa: `dealer3d/src/world.ts spots(placements/default.json, TABLE_LENS)`, alltså Jakobs sparade plan sedd genom filmens lins. Från en höft 0,38 m bakom kanten ligger spelarnas första kort 0,74–0,80 m bort och dealerns kort 0,54–0,56 m.
-
-
-Observation: korten ligger 0,16–0,40 m framför dealerkanten, medan ovalens spelarkant är 1,15 m bort. Filmens kortplan sitter tätare mot dealern än på ett typiskt kasinobord. Vi följer spelet.
+Mittpunkter på filten för varje kortplats står under `platser` i `scen/standard.yaml`, med kortets vridning (`yaw_kort`). Källa: `LIVE.cards` i `src/table-live.ts`: där korten först låg stilla i filmen, vinkeln mätt där landningarna är eniga och annars spegelbilden av samma kort på den speglade platsen. Platserna räknas ännu från bildens vänster: P1 längst till vänster i bilden (dealerns höger), P7 närmast skon. Korten ligger 0,18–0,51 m framför dealerkanten.
 
 ### 5.6 Insatsringar (bet)
 
 | Mått | Värde | Källa |
 | --- | --- | --- |
-| Offset framför C1, mot spelarna | 0,083 m | `scene3d-geometry.ts BET.real` |
-| Radie | 0,027 m | `BET.radius` |
+| Mitt | livebordets insatsmärken, plats 1 till vänster i bilden | `LIVE.betMarks` |
+| Radie | 0,027 m | `BET` i `src/standard.ts` |
 | Linjebredd | 3 mm | antaget, samma som kortmarkering |
 
-P1…P7: P1 (−0,5321, −0,3195, 0,95) … P4 (−0,0190, −0,4800, 0,95) … P7 (0,5007, −0,3195, 0,95).
+P1…P7: P1 (−0,4967, −0,4040, 0,95) … P4 (0,0004, −0,6301, 0,95) … P7 (0,4991, −0,3983, 0,95).
 
 ### 5.7 Sko
 
-Dealerns sko på bildens högra sida (dealerns vänster). Källa: `table-lens.ts SHOE`, pose `shoePose(TABLE_LENS)`, fönsterkort `shoeCard()`.
+Dealerns sko på bildens högra sida (dealerns vänster): en lång klar låda, öppen upptill, med en klar ram i fronten som lutar bakåt och ett fönster där nästa kort syns med ryggen utåt; kortleken ligger på en bädd som stiger bakåt. Källa: `LIVE.shoe`, `liveShoePose()`, `liveShoeCard()`.
 
 | Mått | Värde |
 | --- | --- |
-| Längd × bredd | 0,436 × 0,082 m |
-| Höjd bak / fram | 0,131 / 0,100 m |
-| Platta | 51,60° |
-| Fönsterlyft | 0,022 m |
-| Fot fram / bak / mitt | (0,3382, −0,1086, 0,95) / (0,7390, 0,0630, 0,95) / (0,5386, −0,0228, 0,95) |
-| Yaw bakåt | 23,180° |
-| Fönsterkortets mitt | (0,3625, −0,0536, 1,0071) – där handen tar |
-| Översta 5 korten | egna objekt `sko_kort_1…5` (`dragbart`, meshen `sko_kortrygg` med ryggen utåt); resten en bunt (8 lekar) |
-| Frontplatta | `sko_front`: 1,3 mm tunn platta 1,6 mm framför plattans plan (framför kortet), samma lutning, nederkant 59 mm över filten; U-öppning 50 mm bred nedtill, 40 mm i bågen, topp 2 mm under kortets överkant; under den springan där kortet dras ut. Inget mått i `standard.yaml` ändras; talen och varför i `SKO_FRONT` i `scen/bygg_bord.py` |
-
-`v` löper i [0, bredd] från den nära väggen (`fot_fram`). Skokorten har skala (1, 1, 1) – inte speglad. Kortplanens skopunkt `(0,3872, 0,0658, 0,95)` ur `placements/default.json` är en planmarkör, inte skons fot.
+| Längd × bredd (foten) | 0,274 × 0,103 m |
+| Höjd bak / fram | 0,117 / 0,061 m |
+| Frontens lutning | 56,6° från filten |
+| Bäddens lutning | 13,4° |
+| Fönsterlyft | 0,003 m |
+| Fotens främre hörn mot spelarna | (0,4521, −0,1531, 0,95) |
+| Yaw bakåt | 15,512° |
+| Fönsterkortets mitt | (0,4577, −0,0981, 0,9787) – där handen tar |
+| Kortleken | 0,18 m längs bädden (skattat: åtta lekar) |
+| Översta 5 korten | egna objekt `sko_kort_1…5` (`dragbart`, meshen `sko_kortrygg` med ryggen utåt); resten en bunt |
+| Lös bit | en klar bit som ligger plant på filten framför skon; kortet som dras ut glider över den (`LIVE.clearPiece`) |
 
 ### 5.8 Kassering
 
-Finns **inte** i spelet. Speglad mot skon på dealerns höger: mitt (−0,62, −0,03, 0,95), yaw −23,18°, yttermått 80 × 105 × 140 mm, 4 mm akryl (allt antaget).
+Mätt: en klar låda vid dealerns högra hörn, öppen upptill, med de använda korten liggande med ryggen upp (`LIVE.box`, `liveBox()`): mitt (−0,6115, −0,0351, 0,95), yaw 2,14°, yttermått 76 × 93 × 157,5 mm; väggarna 4 mm akryl (antaget).
 
 ### 5.9 Dealerposition och stol
 
-| Mått | Standarddockan (vår sittposition) | Paow (uppmätt ur film, SAM 3D Body) | Källa |
+Dealrarna i filmen sitter på en hög stol (`LIVE.dealer`). Hur djupt bakom kanten de sitter syns svagt framifrån: 0,2 m är antaget. Armarna går inte att mäta; dockornas egna används.
+
+| Mått | Danilo (stilen kameran) | Frasse (stilen bordet) | Källa |
 | --- | --- | --- | --- |
-| Överarm / underarm | 0,290 / 0,260 m | 0,293 / 0,275 m | `doll.ts STANDARD` / `doll.ts PAOW` |
-| Räckvidd axel→handled | 0,535 m | 0,552 m | samma |
-| Höft under filt | 0,20 m → höft Z = 0,75 m | 0,278 m → höft Z = 0,672 m | STANDARD / PAOW |
-| Axlar bakom kant | **0,38 m** (Y = +0,38) | 0,38 m | **PAOW**, inte gamla ASSUMED 0,18 m (som hamnade i BORD-02:s vingar) |
-| Höft | (−0,0152, 0,3800, 0,7500) | (−0,0159, 0,3800, 0,6720) | `dollFrame` X/Z + PAOW Y |
-| Höger / vänster axel | (−0,1743, 0,38, 1,2989) / (0,1438, 0,38, 1,2989) | (−0,1989, 0,38, 1,1796) / (0,1672, 0,38, 1,1796) | härlett / PAOW |
-| Vilohand handled | (−0,1671, 0,0540, 0,9720) | – | `body.ts restingHand` |
+| Överarm / underarm | 0,279 / 0,272 m | 0,279 / 0,272 m | `DANILO`, `FRASSE` i `doll.ts` |
+| Räckvidd axel→handled | 0,536 m | 0,536 m | samma |
+| Axlarnas mitt | (0,0330, 0,2005, 1,2680) | (0,0460, 0,2005, 1,2600) | `LIVE.dealer` |
+| Axelbredd | 0,357 m | 0,348 m | `LIVE.dealer` |
+| Axlar över filten | 0,318 m | 0,31 m | `doll.ts` |
+| Höft under filten | 0,1146 m | 0,1226 m | `doll.ts` |
+| Ögon över filten | 0,509 m | 0,514 m | `LIVE.dealer` |
 
-Tabellen är måttfilens `docka`-block (doll.ts STANDARD, den äldre vita dockan). Standarddockorna sitter i editorn och studion med axellederna 0,31 m över filten och 0,38 m bakom spelets kant (`place` för MAN i `doll.ts`), och Blenders vila `sitt_vila` står likadant: talen står i `SITT` högst upp i `bygg_docka.py` (axlarna, låren som `sitter.ts` ställer dem, handlederna på filten framför brickan som i rörelsens vila) och ska följa spelet.
+Måttfilens `docka`-block är Danilos plats och mått, där `bygg_docka.py` ställer dockan.
 
-**Avståndet till bordet.** 0,38 m är avståndet från bordskanten till axellederna. Med en bål som är drygt 0,2 m djup blir det ungefär 0,26 m luft mellan magen och kanten, och det syns bara från sidan: filmens kamera ser henne rakt framifrån. För Paow är måttet läst ur hennes filmer (överarmarna hänger, underarmarna pekar fram och händerna vilar vid kanten) och kan inte ändras utan att filmerna görs om, eftersom hon, skon och korten ligger på bestämda ställen i bilden. För standarddockan och för en ny dealer är avståndet ett val: sitter hon närmare böjer hon armarna mer och lutar sig mindre, och varken skon eller kortplatserna behöver flyttas. Valet är Jakobs och inte gjort (2026-11-26).
-
-Stolen syns inte i filmen (spelet har inga ben). Våra antagna mått: `sits_z` 0,66 m (höftleden ca 9 cm över sitsen), `sits_mitt` (−0,0152, 0,46) så höften hamnar över sitsens främre del, sits 0,42 × 0,40 m, ryggstöd 0,35 m, fotstöd Z 0,22 m. Stolen är Meshy-modellen, skalad i `bygg_stol.py`.
-
-Spelarplatser (antaget; spelet har inga spelarkroppar): på linjen från dealerns höft genom C1/C2-mitten, 0,30 m utanför ovalens kant. P4:s stol ungefär (0,021, −1,450), yaw 91°.
+Stolen syns inte i filmen. `sits_z` 0,67 m (slutlett: `LIVE.floor.seatOverFloor`); antaget: `sits_mitt` (0,0330, 0,28) så att höftleden hamnar över sitsens främre del, sits 0,42 × 0,40 m, ryggstöd 0,35 m, fotstöd Z 0,22 m. Stolen är Meshy-modellen, skalad i `bygg_stol.py`.
 
 ### 5.10 Räckvidd
 
-`rackviddstest.mal`: skons fönsterkort, D.C1, P1.C1, P7.C1. Handleden ska hamna 0,02 m över kortet (`world.ts ASSUMED knuckleLift`). Standardräckvidd 0,535 m räcker till alla dessa punkter från höften vid Y = +0,38 m (längsta C1 är P1/P7, ca 0,80 m från höften; axel–handled 0,535 plus bålens lutning och axelns förskjutning).
+`rackviddstest.mal`: skons fönsterkort, D.C1, P1.C1, P7.C1. Handleden ska hamna 0,02 m över kortet (antaget). Där armen inte når lutar dockan bålen (`lyft-till-docka.ts` i `blackjack-dealer/dealer3d/tools/`).
 
 ---
 
@@ -266,6 +238,9 @@ bredare (`cheek/*-cheek-volume`, `chin/chin-bones`). Armarna, händerna och bål
 inom en till två centimeter från hans, lika mycket som Meshys leder genom ärmarna är osäkra. Längden (1,760 m) följer av
 delarna; figurens storlek är ett antagande (1,80 m med skor och hår). Midjan nådde 0,858 av 0,930 m (målet fullt ut).
 `standarddocka_tomasz_matt_form` är samma docka med huvudet i hans ansiktes form (steg 13, prov).
+
+**En person ur sina bilder** (`personer/<person>.json`, steg 15; Kenji: `--kon kenji`) byggs på Danilos eller Frasses
+docka, den vars rörelser han spelar, med bara det som skiljer mer än mätningens osäkerhet (`ny_dealer.py`, `README-SV.md`).
 
 Kläder finns inte på grunddockan (naken mesh för QC). Se avsnitt 10.
 
@@ -354,7 +329,7 @@ Lokala `LIMIT_ROTATION`-constraints (`ledgrans`), plus IK-gångjärn. Värden i 
 | jaw | ±35 | ±5 | ±10 | |
 | eye.L / eye.R | ±30 | ±5 | ±35 | |
 
-`mest_lutning_rad` / `mest_vridning_rad` = 0,6 rad ≈ 34° ur `doll.ts STANDARD` beskriver spelets tillåtna bållutning, inte Blender-constraintarna.
+`mest_lutning_rad` / `mest_vridning_rad` = 0,436 / 0,349 rad (25° / 20°) ur `doll.ts` (Danilo och Frasse) beskriver spelets tillåtna bållutning och bålvridning, inte Blender-constraintarna.
 
 ### 7.6 Bennamn mot dealer3d
 
@@ -407,19 +382,20 @@ skelettet, bennamnen, ansiktsformerna och kroppens mått är desamma som utan de
 
 ## 8. Bryggan dealer3d ↔ Blender
 
-dealer3d sparar rörelser som JSON (till exempel `dealer3d/data/giv-fran-2-3-p4c1-ren-a-man.json`), i **linsvärlden**.
+dealer3d sparar rörelser som JSON (till exempel `dealer3d/data/lyft-danilo-p4.json`), i **livebordets linsvärld**.
 
 | Fält | Innehåll |
 | --- | --- |
-| `fps`, `frameCount` | Bildtakt (ofta 30) och antal bildrutor |
+| `fps`, `frameCount` | Bildtakt (30) och antal bildrutor |
 | `hip` | Dockans höft, linsvärld (m) |
 | `frames[i].L`, `.R` | Vänster/höger arm: `s` axel, `e` armbåge, `w` handled, `k`, `p` 21 handpunkter i MediaPipe-ordning |
-| `frames[i].h`, `.g` | Huvudets mitt; blickpunkt |
-| `frames[i].card` | Kortet: `c` mitt, `l` långsida, `n` normal, `id` |
+| `frames[i].h`, `.g`, `.hv` | Huvudets mitt; blickpunkt; huvudets eget mål |
+| `frames[i].a` | Minen |
+| `frames[i].card` | Kortet: `c` mitt, `l` långsida, `n` normal |
 
 ```text
 # dealer3d → Blender
-blender -b assets/docka/standarddocka_kvinna.blend --python-exit-code 1 --python verktyg/dealer3d_till_blender.py -- --in <rörelse.json> [--namn NAMN] [--spara fil.blend] [--naturlig-hand]
+blender -b assets/docka/standarddocka_danilo.blend --python-exit-code 1 --python verktyg/dealer3d_till_blender.py -- --in <rörelse.json> [--namn NAMN] [--spara fil.blend] [--naturlig-hand]
 
 # Blender → dealer3d
 blender -b <fil.blend> --python-exit-code 1 --python verktyg/blender_till_dealer3d.py -- --action NAMN --ut ut.json
@@ -429,7 +405,7 @@ blender -b <fil.blend> --python-exit-code 1 --python verktyg/blender_till_dealer
 
 Retargeting (`dealer3d_till_blender.py`):
 
-- Placerar `Hips` på källans `hip` (Y = 0,38 m bakom kanten för Paow).
+- Placerar `Hips` på källans `hip` (Danilos 0,2 m bakom kanten).
 - Riktar `Spine/Spine1/Spine2` mot källans axelmitt och axellinje.
 - Låter `RightShoulder/LeftShoulder` följa med framåt vid lång sträckning.
 - Siktar `neck/Head` mot `h` och blick `g`.
@@ -455,7 +431,7 @@ Kontrollbilderna renderas med EEVEE. Längre filmer renderas bättre på den sta
 
 Grundregeln: **samma skelett, byta det som syns**. Då fungerar alla 40 Actions utan omretargeting.
 
-1. **Proportioner.** Utgå från kvinna eller man. Justera MPFB-mått (längd, axelbredd, arm, bål, midja) i en kopia av `bygg_docka.py` eller en egen YAML-profil, och bygg om. Ändra inte bennamn. Kontrollera att `over_arm`, `underarm` och räckvidd fortfarande når P1, P7 och skon – eller dokumentera avvikelsen och kompensera med lutning (max ca 0,6 rad enligt STANDARD).
+1. **Proportioner.** Utgå från Danilos eller Frasses docka, den vars rörelser dealern ska spela: personens mått ur bilderna i en personfil (`personer/<person>.json`, steg 15, `ny_dealer.py`) eller en nyckel i `MATT` i `bygg_docka.py`, och bygg om. Ändra inte bennamn. Kontrollera att `over_arm`, `underarm` och räckvidd fortfarande når P1, P7 och skon – eller dokumentera avvikelsen och kompensera med lutning (högst dockans `mest_lutning_rad` i `doll.ts`).
 2. **Ansikte och hud från foton.** Använd steg 01–03 för att ta fram ett huvud (Meshy eller fotogrammetri), och byt huvudets *mesh och textur* på grunddockan. Behåll `Head` och ansiktsbenen; oversampla vikter från den befintliga riggen. Shape keys kan behöva omprojektion. Originalfoton stannar på datorn, i `input/<namn>/`.
 3. **Kläder som separata mesh.** Jacka, skjorta, byxor, skor modelleras eller köps som egna objekt, binds till **samma armatur** (data transfer / weights från kroppen). Kläder ska inte bakas in i kroppsmeshen: då blir det svårt att byta outfit och lätt att förstöra vikter. Grunddockan är naken just för den uppdelningen.
 4. **Hår, accessoarer, bricka/klocka.** Egna objekt, samma rig eller child-of mot lämpligt ben (`Head`, `RightHand`, …).
@@ -473,9 +449,8 @@ Betalda Meshy-/Runway-steg bara med Jakobs ja.
 | Procedurellt bord, kort, sko, bricka, chips | Meshy eller färdiga modeller | Exakta mått och upprepbarhet. En millimeter fel på ett kort syns i filmlinsen. Meshy vinner när formen är organisk och måtten lösa – därför är **stolen** det enda Meshy-objektet. |
 | MPFB2 + Mixamo-ben | Rigify, eller Meshy-rig som grund | dealer3d och Mixamo-biblioteket förväntar `RightArm` / `RightForeArm` / `neck` / `Head`. Rigify har andra namn och skulle kräva en ständig omnamningsbrygga. MPFB ger mätbara proportioner och CC0-kropp. |
 | Två kön, ett skelett | En docka, eller unikt skelett per dealer | Actions återanvänds. Kön är mesh + mått, inte en ny rig. |
-| Höft Y = 0,38 m (Paow) även på ovalen | Gamla ASSUMED 0,18 m | 0,18 m stack in i BORD-02:s vingar. På ovalen finns inga vingar, men 0,38 m är den uppmätta dealerpositionen ur film och den dealer3d använder för Paow-rörelser. Vi behåller den. |
-| Ovalen som byggt default, BORD-02 som alternativ | Bygga bara BORD-02, eller Kortplan-halvcirkeln | Spelets `tableModel` default är `'standard'`. Halvcirkeln i Kortplan är en förenklad visning, inte måttstandarden. |
-| Skriptad giv först, mocap som komplement | Ren text-till-rörelse | Handen ska hamna där kortet ska ligga. AI-motion (Meshy Text to Motion, Kimodo, …) är bra utkast för vila/andning, sällan tillräckligt för en giv. |
+| Livebordet, mätt på film, som enda bord | Ett eget ritat bord | Rörelserna är lyfta ur filmen av samma bord: kameran, kortplatserna och skon måste vara filmens för att händerna ska hamna där kortet ligger. |
+| Rörelser lyfta ur film av riktiga dealrar | Ren text-till-rörelse, eller givar ritade med regler | Handen ska hamna där kortet ska ligga, och rörelsen ska vara en människas (`../live-bj/`, `lyft-till-docka.ts`). AI-motion (Meshy Text to Motion, Kimodo, …) är bra utkast för vila/andning, sällan tillräckligt för en giv. |
 | Mocap-rekommendation | – | Filma en giv med kroppen tydlig (Rokoko Vision, QuickMagic, DeepMotion, ev. Tencent FlowHMR lokalt). Retargeta till standarddockan. Räkna med extra arbete på händer och kortkontakt. Mixamo-biblioteket är bra för vila, inte för casino-givar. |
 | Filmförädling efter 3D | Text-till-film som ersätter 3D | Kling 3.0 Motion Control / Wan Animate / Runway Act-Two (och Aleph/Luma när de används som stil-lager) får hud och ljus att kännas fotografiska, **med vårt klipp som rörelsestyrning**. Act-Two i stillbildsläge hittar på egen kamerarörelse – använd hellre vårt klipp som character video om kameran ska vara låst. |
 | Headless Blender, inte GUI-MCP i vardagen | Styra Jakobs öppna Blender | Säkrare. En MCP mot Blender får bara kopplas till en avsedd instans, aldrig till fönstret där någon redan tittar. |
@@ -514,15 +489,11 @@ Provdealern Rosalina, gjord från foton (cirka 95 krediter), raderades 2026-11-2
 - Grunddockan saknar kläder (medvetet). Nästa steg: skjorta/väst/byxor som separata mesh på samma rig.
 - Vägen från foton (steg 01–08) är inte kopplad till standardscenen: steg 08 bygger sitt eget bord. Dealern från foton i dag är Tomasz (`output/tomasz/`, 2026-11-26, steg 1–7 utan film).
 - Texturerna, korten och kortatlasen i `assets/bord/` hämtades för hand; adresserna står i `kallor.json` men inget skript hämtar dem eller bygger atlasen. Stolens råfil är betald och finns bara på datorn där den beställdes. På en annan dator kan bordet och stolen därför inte byggas förrän filerna finns där.
-- Måttfilens `docka`-block (höften 0,20 m under filten, axlarna 0,35 m över den, armarna 0,29 och 0,26 m) är doll.ts STANDARD:s äldre tal, inte standarddockornas plats (axlarna 0,31 m över filten, 0,38 m bakom spelets kant; `SITT` i `bygg_docka.py`). Se 5.9.
+- Blenders vila `sitt_vila` (`SITT` i `bygg_docka.py`) står ännu med axlarna 0,38 m bakom kanten och handlederna framför en markerbricka, inte på Danilos plats i måttfilens `docka`-block (0,2 m). Se 5.9.
 - Knogarnas läge: i MPFB:s skelett sitter långfingrets knoge 107 mm från handleden hos mannen (100 hos kvinnan), mot en människas 86–95 mm; handflatan är lång och fingrarnas leder sitter för långt ut. Inte rättat.
-- Mannens hjässa står 364 mm över axellederna (en människas mått; den äldre dockan 332): med axellederna 0,31 m över filten når den överkanten av spelets bild, och för att hjässan ska stå där den äldre dockans gör behöver axlarna sitta cirka 0,28 m över filten.
-- Kortplans «dockans 3D-bord» är en halvcirkel r = 1,02 m, inte ovalen 1,90 × 1,15 m. Vi följer ovalen i Blender; avvikelsen är värd att känna till när man jämför med Kortplan.
-- `TABLE.b = 0,60 m` i spelets kontrakt skiljer sig från `REAL_TABLE.depth = 1,15 m` under linsen. Vi bygger det som filmen ser (1,15 m).
-- Kassering, en del rull-/bensmått, kläder och flera kameror (`dealer_ogon`, `hander`, `hel`, `topp`) är antagna.
+- Rullen, sargen, benen, kläder och flera kameror (`dealer_ogon`, `hander`, `hel`, `topp`) är antagna; golvets höjd och sitsen är slutledda, inte mätta.
 - 22 ARKit-nycklar saknas (avsnitt 7.7).
-- Skon är en funktionell låda, inte en fotograferad skormodell.
+- Skon är byggd efter måtten på livebordets klara sko, inte en fotograferad skormodell.
 - Överföringen av en rörelse från blackjack-dealers docka är grov: i provet med given till plats 5 sträcker dockan armen rak, lutar sig djupt och pekar fingrarna rakt ned (`--naturlig-hand` vänder handflatan nedåt). Bryggan sätter handleden över kortets mitt, medan blackjack-dealers docka når kortet med fingrarna.
 - Rendering på laptopen är långsam för längre klipp.
 - Inget Blender-MCP i vardagen ännu.
-- blackjack-dealers docka i studion ritas ännu som cylindrar och kulor; standarddockans kropp är inte inkopplad där.

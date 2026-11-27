@@ -34,8 +34,8 @@ beskrivs i `blackjack-dealer/tools/python/README.md`. Det tar ungefär en minut 
   inte hittas fast handleden syns. `titta-har.txt` innehåller måtten.
 - En stor bild delas i bitar i full storlek (`bilder/`), så att inget döms på en förminskad kopia.
 - Läs i den här ordningen: `titta-har.txt`, bladen, `ansiktet-over-tiden.png`, närbilderna där måtten pekar, och sist
-  provets egna bilder i full storlek. Döm aldrig på bladen ensamma. Kortets trasiga kanter i `atta-bilder-20261127`
-  syntes bara i närbilderna.
+  provets egna bilder i full storlek. Döm aldrig på bladen ensamma. Kortets trasiga kanter i provet med åtta
+  stillbilder ur dockan (`atta-bilder-20261127`, i arkivet) syntes bara i närbilderna.
 - Vad måtten fångar (prövat 2026-11-27):
   - Ett ansikte som glider fångas av ögat i `ansiktet-over-tiden.png`, inte av formtalen. I `tomasz-gor-danilos-giv`
     blev Tomasz dockan, fast formtalen ändrades mindre än 5 %.
@@ -84,12 +84,10 @@ node tools/extern-domare.ts <provmapp> [--bilder a.png,b.png] [--torr]
 
 ## Trohet mot förlagan
 
-- En **lyft** rörelse (Danilos och Frasses, ur filmen av riktiga dealrar) är en trogen kopia av en verklig giv. Den
-  döms bredvid förlagan: gör dockan, och filmen av den, det den riktiga dealern gör? Exempel: vänsterhanden som lyftes
-  framför bröstet i ruta 52 var "en kvarleva från gamla dockan", och skon med stående kort var fel mot filmens
-  liggande kort.
-- En **ritad** rörelse (standarddockans givar) är det generella mönstret som ska "byggas på, förbättras" (Jakob
-  2026-11-27). Den döms på om den ser mänsklig och riktig ut, inte på om den är identisk med en viss giv i filmen.
+- Dockornas rörelser (Danilos, Frasses och persondockornas) är lyfta ur filmen av riktiga dealrar: en trogen kopia av
+  en verklig giv. De döms bredvid förlagan: gör dockan, och filmen av den, det den riktiga dealern gör? Exempel:
+  vänsterhanden som lyftes framför bröstet i ruta 52 var "en kvarleva från gamla dockan", och skon med stående kort var
+  fel mot filmens liggande kort.
 - Den riktiga dealern ses bara på den här datorn. Jämförelsefilmerna ligger i `live-bj/rutor/jamfor/`. Underlag
   ur dem görs med `--ut` inne i `live-bj/rutor/` (Git har inte den mappen), och verktyget vägrar annars. Rutor ur det
   riktiga klippet hamnar aldrig i ett prov, i `assets/`, i Git eller hos en tjänst, och inte heller hos den externa

@@ -2,8 +2,9 @@
 
 En filmad dealer till Jakobs blackjackspel: två kort till sju spelare och dealern, med trovärdig utdelning. Rörelserna
 är korta filmklipp mellan fasta ankare (vila, redo, kortets plats) i en klippbank; en runda är en väg genom klippen,
-och samma rundor spelas i studion, i 3D-scenen och i spelet. Dealern heter Paow. Filmerna beställs hos Runway och
-dockan i `dealer3d/` styr deras rörelse. Projektet är mappen `blackjack-dealer` i det publika repot
+och samma rundor spelas i studion, i 3D-scenen och i spelet. Filmerna beställs hos Runway och styrs av dockorna i
+`dealer3d/` (Danilo, Frasse och persondockorna vid livebordet), vars rörelser är lyfta ur filmen av ett riktigt
+livebord. Projektet är mappen `blackjack-dealer` i det publika repot
 [Jakeminator123/casino](https://github.com/Jakeminator123/casino); media och hemligheter följer inte med Git, och det
 gamla repot Jakeminator123/dealer står kvar som arkiv.
 
@@ -18,8 +19,8 @@ docs/SYSTEM.md  kontrakten: format, register, scenen, spelet, korten, klippbanke
 studio/         studion: Jakobs arbetsyta i webbläsaren (Next.js), byggd till studio/out/
 pages/          sidorna bredvid studion: 3D-sidan (scene3d.html) och Ljud (sound.html)
 game/           spelmotorn (Scouts regler, oförändrade i sak) och spelsidan i game/page/
-src/            den delade motorn: 3D-scen, klippgraf, kort, kortplan, beställningar, tal
-dealer3d/       dockan: bordets verkliga geometri, givar som tal och dockans filmer
+src/            den delade motorn: standarden (livebordet), 3D-scen, klippgraf, kort, beställningar
+dealer3d/       dockorna: deras mått (src/), de lyfta rörelserna (data/) och verktygen som gör och prövar dem (tools/)
 tools/          kommandon, servern (preview.ts), Python-skripten (tools/python/) och testerna (*.test.ts)
 cloud/          studions låsta kopia på nätet: låset och boten
 data/           registren (nedan)
@@ -63,54 +64,32 @@ servrar som sina egna barn första gången vyn öppnas, och stoppar dem när den
 - **Ramen** (menyn, rubrikraden, panelerna, knapparna) är Next.js, React och Tailwind. Färger och mått står i
   `studio/app/globals.css`, menyn i `studio/components/shell/Rail.tsx` och byggstenarna i `studio/components/ui/`
   (provsida: `/studio/ui/`). En ändring syns efter `npm --prefix studio run build` och en omladdning.
-- **Bildytan** i mitten är annan kod, som ramens stil inte når: filmspelaren (`studio/components/player/`), scenen
-  (three.js, `src/scene3d-*.ts`), dockan (`dealer3d/page/docka.html` i en ram) och spelet (`game/page/game.html` i en
-  ram). Ljud är en egen HTML-sida i `pages/`, nådd från Start.
+- **Bildytan** i mitten är annan kod, som ramens stil inte når: filmspelaren (`studio/components/player/`), dockans
+  editor (`../standarddocka/editor/` i en ram), scenen (three.js, `src/scene3d-*.ts`) och spelet (`game/page/game.html`
+  i en ram). Ljud och 3D-sidan (`/scene3d.html`, scenen med alla reglage) är egna HTML-sidor i `pages/`.
 
-Orden står i studions Ordlista (`studio/lib/words.ts`). Menyn följer kedjan: Start, Avatarer, Dockan, Filmverkstaden, Granska,
-Karta, Material, Casino, Mått och Biblioteket. Under dealerväxeln (med Standarddockan under rubriken Docka) står valet
-**Standard**: Live eller Förra, alltså Livestandarden eller Förra standarden (namnen ur `src/uppsattning.ts`;
-`studio/lib/uppsattning-val.ts`, `studio/components/shell/Setup*.tsx`): ett val för hela studion, ihågkommet i webbläsaren,
-förvalt Live, och `?uppsattning=` i en adress väljer. Dockan skickar ordet till editorn,
-Casino till spelet (`studio/lib/casino.ts` gameSrc), och Mått märker det valda. Filmverkstaden bygger Scen under valet med
-dess egen spelvy (Spara som spelvy sparar mot det valda, `/api/play-view?uppsattning=`) och spelar där bara filmer som är
-gjorda vid vald standard (annars bordet utan dealer och en rad som säger varför; `docs/SYSTEM.md`), och en ny beställning bär valet
-(`studio/lib/new-film.ts` draftBody; beställningen görs där, eller säger varför inte). Beställningarnas bilder visas i sin
-egen form (bildens mått, annars orderns uppsättnings, `shapeOf` i `studio/lib/orders.ts`). Dockan i Inspelning står ännu
-vid förra standardens bord. Vyerna:
+Orden står i studions Ordlista (`studio/lib/words.ts`). Menyn följer kedjan: Start, Avatarer, Dockan, Karta, Beställ,
+Granska, Casino, Mått och Biblioteket, och i foten Beslut och Ordlista. En standard gäller överallt, livebordet
+(`src/standard.ts`, `docs/SYSTEM.md`), så studion har inget val av bord. Vyerna:
 
 - **Start** (`/studio/`, `studio/components/start/`, innehållet i `studio/lib/start.ts`): det som väntar på hans dom,
   kedjan med verkstaden för varje steg, en ruta per verkstad och det som ligger vid sidan (Ljud).
-  En gammal Scen-adress (`/?runda=…`) leder fortfarande till Filmverkstadens Scen.
 - **Avatarer** (`/studio/avatarer/`, `studio/components/avatars/`): en guide över `../avatar-auto-pipeline/vagar.json`
   (`studio/lib/avatars.ts`, genom `GET /api/vagar`). Vägarna med Version 1 för sig och stegen med kostnad och vad som
   finns i `output/<person>/`; Delarna med alternativen och reglerna; Föremål och material med de färdiga modellerna i
   3D (`studio/components/avatars/ModelView.tsx`). Startar ingen körning.
-- **Dockan** (`/studio/dockan/`): standarddockans editor i en ram; ord i adressen går vidare till editorn
-  (`/studio/dockan/?uppsattning=live`).
+- **Dockan** (`/studio/dockan/`): dockornas editor ur `../standarddocka/` i en ram, startad när vyn öppnas; ord i
+  adressen går vidare till editorn (`/studio/dockan/?docka=frasse&plats=4`).
 - **Mått** (`/studio/matt/`): `../MATT.md`:s text, läst ur koden varje gång (`studio/lib/measures.ts`), utan filnamn och
-  källkolumner; delen Vårt bord och livebordet (`?del=livebordet`, `studio/lib/setups.ts`) räknar standarden och klonen
-  ur `src/table-lens.ts` och `src/table-live.ts` i webbläsaren: uppifrån, genom var sin kamera, i tal, och de lyfta
-  dealrarnas filmer ur provet `danilo-frasse-i-editorn-20261127`.
-- **Filmverkstaden** (hette Bordet till 2026-11-27; adressen är kvar, `/studio/bordet/`) är den enda vyn av bordet (Jakob 2026-11-17, 2026-11-19): **Inspelning**, filmens format (dockan vid bordet
-  med kortplanens kort, skon och markerlådan genom filmens kamera), i tre steg (var kortet landar; hur det kommer dit;
-  beställ), **Kön** (godkännande och Protokoll), **Scen** (en runda i 3D-scenen), **Råfilm** och **Efterarbete** (korten
-  och markerna över filmen). I koden och adressen heter Inspelning `kortplan`, sitt gamla namn (`?lage=kortplan`).
-  Inspelning har en bild (Jakob 2026-11-25: "ett och samma läge", "allt i 3d"): dockans 3D-bord i en ram
-  (`dealer3d/page/docka.html`), med planens kort på filten och utkastet synligt direkt; dockans reglage står i studions högerspalt under steg 2. Spara skriver bara `placements/default.json`;
-  dockans reglage är till för att pröva och sparas inte: en beställning filmar dockans giv utan dem.
-- **Karta**: dealerns träd, valda i en lista överst (Alla träd, träden, kompositionerna). Ett träd ritas med sina bilder och
-  36 steg; ett träd med flera sätt att dela ut från samma A1 (Tatuerad: A2.3 och nypet från A2.1) har en grenväljare. Ett steg
-  visar sina filmer som spelet spelar dem i just det trädet (Primär, sekundära, Gör primär), och talet ligger på A1. Alla träd
-  (`?trad=alla`) är nätet: A1, grenarna till ankarna vid skon (i dag A2.1 och A2.3) och stegen under dem, med sök, "bara där de skiljer sig" och
-  Sätt ihop till en komposition. Koden: `studio/components/map/`, träden ur `GET /api/trees` (`tools/dealer-tree.ts`).
-  Växeln överst byter till **Schemat** (`?vy=schema`; standarddockan öppnar där): för en docka vid standardens bord
-  (Danilo, Frasse) en runda som en väg med det som saknas i rött och Spela i Dockan, kortplatserna med vad hon har (lyft,
-  ritad, inspelat klipp, film), och rörelseschemat ur `../standarddocka/rorelsekatalog.json` som en bild: ankarena i rundans
-  ordning, hennes rörelser som pilar och resten bakom Visa det som saknas, stadierna som en rad över. Koden:
-  `studio/components/schemat/`, `studio/lib/schemat.ts`, ur `GET /api/schema` (`tools/schema-routes.ts`), som läser
-  katalogen, `../live-bj/data/segment.json` och filerna varje gång; `node tools/schema-routes.ts` skriver ut där katalogen
-  och filerna inte säger samma sak.
+  källkolumner, med delarna som en rad knappar överst.
+- **Karta** (`/studio/karta/`): **Schemat**, dockornas rörelseschema. För den valda dockan en runda som en väg med det
+  som saknas i rött och Spela i Dockan, kortplatserna med vad hon har, och rörelseschemat ur
+  `../standarddocka/rorelsekatalog.json` som en bild: ankarena i rundans ordning, hennes rörelser som pilar och resten
+  bakom Visa det som saknas, stadierna som en rad över. Koden: `studio/components/schemat/`, `studio/lib/schemat.ts`, ur
+  `GET /api/schema` (`tools/schema-routes.ts`), som läser katalogen, `../live-bj/data/segment.json` och filerna varje
+  gång; `node tools/schema-routes.ts` skriver ut där katalogen och filerna inte säger samma sak.
+- **Beställ** (`/studio/bestall/`, `studio/components/order/`): beställningarna hos Runway, kön och en order att
+  godkänna och skicka (skillen `bestalla-film`).
 - **Granska**: Filmer (Jakobs domar) och Prov (provmapparna under `assets/proofs/`, `?prov=<mapp>`). Ett prov visar den
   oberoende domarens dom skild från hans egen (`domare` i `proof.json`, `studio/components/proofs/DomarePanel.tsx`): dess
   bricka, skälen, det den skulle rätta och den externa rösten; där de två är oense märks provet och står först i sitt
@@ -122,17 +101,15 @@ vid förra standardens bord. Vyerna:
   används och hans ord; livebordets film och bilder bara som storlek. Kartan, frågan och raderingen körs i en egen
   process, så att servern aldrig står still; en radering tar saken ur den senaste kartan i stället för att räkna om.
   Radera tar den från disken (`tools/lager-remove.ts`); `?slag=`, `?enhet=` och `?fraga=` i adressen väljer.
-- **Material** (vilka bilder som gäller), **Casino** (spelet med vald look), och från Start Ljud.
-- **Spelet vid livebordet** (`/game.html?uppsattning=live`; utan ord livebordet när ett träd gjort vid det spelas, annars
-  förra standarden med en rad som säger det, `src/game-page.ts`): livebordets kamera, bord, sko, låda, kortplatser och
-  ringar, och spelets kort på de mätta platserna (`src/game-table.ts` liveLayout, `src/game3d-props.ts` liveProps). Utan
-  godkända filmer vid livebordet visas bordet utan dealer. Uppsättningen och dess regler: `docs/SYSTEM.md`, Standarden.
-- I foten **Beslut** (det som väntar på Jakobs svar) och **Ordlista**.
-  **Jämför** nås från en tagning. Det som hör ihop är en knapp, och Casino i menyn är samma spel som spelet (2026-11-17).
-- En vy för alla skärmar: en mobilvy härleds ur samma kort och lins. Dealerväxeln visar dealrarna i `data/dealers.json`,
-  den första som förval (ingen dealer är namngiven i koden, `studio/lib/dealer.ts`); utan dealer finns ingen växel, sidorna
-  har ett tomt läge med en rad och spelet visar bordet utan dealer. En pausad dealer visas bara när en adress nämner den
-  (Jakob 2026-11-18).
+- **Casino** (`/studio/game/`): spelet med vald look, samma spel som `/game.html` (2026-11-17), vid livebordet
+  (`src/game-page.ts`): livebordets kamera, bord, sko, låda, kortplatser och ringar, och spelets kort på de mätta
+  platserna (`createLayout` i `src/game-table.ts`, `liveProps` i `src/game3d-props.ts`). Utan godkända filmer visas bordet utan
+  dealer.
+- I foten **Beslut** (det som väntar på Jakobs svar) och **Ordlista**. Det som hör ihop är en knapp.
+- En vy för alla skärmar: en mobilvy härleds ur samma kort och kamera. Dealerväxeln visar dealrarna i
+  `data/dealers.json`, den första som förval (ingen dealer är namngiven i koden, `studio/lib/dealer.ts`); utan dealer
+  finns ingen växel, och dockorna är inga dealrar. En pausad dealer visas bara när en adress nämner den (Jakob
+  2026-11-18).
 
 Kopian på nätet (`dealer-lake.vercel.app`) har samma meny utan sparning, och i stället för Beslut
 Önskemål och boten.
@@ -142,19 +119,24 @@ Kopian på nätet (`dealer-lake.vercel.app`) har samma meny utan sparning, och i
 - `data/motions.jsonl`: filmregistret, en post per film och tagning med Jakobs dom; läses och skrivs genom
   `tools/register-store.ts`, med en SQLite-kopia under `.runtime/register/` (`node tools/register.ts get <id>`).
 - `data/clip-jobs.json`: klippbankens ankare, jobb och härledda tagningar.
-- `data/orders/<id>.json`: beställningarna, var och en gjord för en uppsättning (fältet `uppsattning`, utan fält den förra
-  standarden); `data/order-methods.json` receptet per steg; `data/order-policy.json` taken, fullmakten och priserna.
-- `data/dealers.json` och `data/media-roles.json`: vilka dealers som finns och vilka bilder som gäller.
-- `data/dealer-trees.json`, `data/dealer-compositions.json`: träden och kompositionerna i Karta.
+- `data/orders/<id>.json`: beställningarna; `data/order-methods.json` receptet per steg; `data/order-policy.json` taken,
+  fullmakten och priserna. Anrop utanför Beställ står i liggaren `.runtime/runway-api/ledger.json`.
+- `data/dealers.json` och `data/media-roles.json`: vilka dealrar som finns och vilka bilder som gäller.
+- `data/dealer-trees.json`, `data/dealer-compositions.json`: dealrarnas träd och kompositioner, som spelet läser
+  (`?trad=`, `?komposition=`).
 - `data/decisions.json`: korten i Beslut; bara sidan skriver hans svar (`tools/decision-store.ts`).
 - `data/proof-notes.json`: hans ord om proven; `node tools/proof-notes.ts` visar det olästa, `--answer <nr> "<text>"`
   svarar och `--read <nr>` markerar läst.
-- `data/rendered-references.json`: dockans filmer, med uppsättning, kamera och en styrbild per person
-  (`tools/doll-reference-put.ts`). `data/speech.json` (replikerna, som Kartas talblad läser) och den tomma
-  `data/speech-patches.json` står kvar tills Karta och gallringen inte läser dem.
+- `data/rendered-references.json`: dockans filmer, med kamera och en styrbild per person
+  (`tools/doll-reference-put.ts`). `data/speech.json` (replikerna) och den tomma `data/speech-patches.json` står kvar
+  tills inget läser dem.
+- `dealer3d/data/`: dockornas lyfta rörelser och ankare (`lyft-<docka>-*.json`, `ankare-*-<docka>.json`), skrivna av
+  `dealer3d/tools/lyft-till-docka.ts`; persondockorna i `dealer3d/src/persondockor.ts`, skrivna av
+  `../avatar-auto-pipeline/ny_dealer.py`.
 - `data/manifest.json`: filernas ursprung och SHA-256.
 - `data/scene-presets/<namn>.json`: utseendena (förvalen); Casino spelar `casino`. `data/play-view-live.json`:
   spelvyn vid livebordet, inramningen för dator och mobil som gäller alla utseenden (`tools/play-view-store.ts`).
-- `placements/default.json`: Jakobs kortplan (16 kort och D.C3), sparad från Bordet.
+- `placements/default.json`: Jakobs kortplan (16 kort och D.C3) i klippbankens bild, läst genom `src/plan-lens.ts`
+  av kontrollerna av bankens filmer och den äldre beställningsvägen.
 
 Media (`assets/`), `.runtime/`, `.env*` och `private/` är lokala och Git-ignorerade.

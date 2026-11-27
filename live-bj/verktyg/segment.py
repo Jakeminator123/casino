@@ -747,9 +747,9 @@ def shares(head, tr, a, b):
 
 
 def drawn_numbers(pieces, tracks, table, behind, heights):
-    """What a drawn deal (blackjack-dealer/dealer3d/src/koreo-giv.ts) needs from the film, per dealer: how long each part
-    takes, where the hands meet and how high, when the other hand begins its next, where the eyes are in each part, and
-    how the deal differs between the seats. Medians and the spread (10-90 %) over every deal where the measure holds."""
+    """A deal with a handover in numbers, per dealer: how long each part takes, where the hands meet and how high, when
+    the other hand begins its next, where the eyes are in each part, and how the deal differs between the seats. Medians
+    and the spread (10-90 %) over every deal where the measure holds."""
     by_tr = {id(tr): tr for tr in tracks}
     H, V, head = pieces['H'], pieces['V'], pieces['huvud']
     mean_h = float(np.median([x['greppen_vid_bytet_m'] for x in heights])) if heights else 0.07

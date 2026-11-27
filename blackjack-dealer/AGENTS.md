@@ -14,10 +14,10 @@ en skill i `../.claude/skills/`: `ny-dealer`, `bestalla-film`, `granska-film`, `
   mot misstag, och påfyllning gör bara han. Meshy och hans RunPod bara på hans eget ja.
 - **Deploy, uppladdning och databasändring** bara på hans uttryckliga ord, och ett ja gäller den gången. Nätdelen
   vilar sedan 2026-11-25.
-- **Domarna är hans.** Domar i Granska och Material och valet av Primär sätts bara av honom, och en tagning han har
+- **Domarna är hans.** Domar i Granska och valet av Primär sätts bara av honom, och en tagning han har
   dömt rörs inte. Har han lämnat över domen för vissa filmer dömer huvudagenten och en oberoende granskare i hans
   ställe (`node tools/review-put.ts`), märkt som inte hans, och hans beslut ersätter den.
-- **Kortplanen är hans.** `placements/default.json` skrivs bara av Bordet när han trycker Spara.
+- **Kortplanen är hans.** `placements/default.json` skrivs bara av honom, aldrig av en agent.
 - **Original och referenser** raderas aldrig, och en referenshash ändras aldrig för att dölja en avvikelse.
 - **Personer.** Hans foto som förlaga (`private/referenser/`) går bara till bildmodellen. En riktig dealers film
   eller en YouTube-referens mäts bara och går aldrig in i Git, `assets/` eller ett prov. Signerade adresser från
@@ -33,7 +33,7 @@ en skill i `../.claude/skills/`: `ny-dealer`, `bestalla-film`, `granska-film`, `
   ett uppdrag som säger det. Frågan säger följden; det spelet spelar, det som har en roll, det betalda och det som väntar
   på hans dom kräver hans andra klick. Aldrig erbjudet: det Git har (också inne i en mapp med media), hans domar och
   anteckningar, Beslut, kortplanen, hans sparade val, liggarna, indata till ett bygge och livebordets film. Ett obesvarat
-  kort i Beslut, ett träd i Karta, en munlapp, en beställning som pågår eller ett lås vägrar raderingen. Att flytta ut
+  kort i Beslut, ett träd (`data/dealer-trees.json`), en munlapp, en beställning som pågår eller ett lås vägrar raderingen. Att flytta ut
   något ur repot till ett arkiv på hans ord är något annat: `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>"
   --arkiv <mapp utanför repot>`.
 
@@ -42,8 +42,8 @@ en skill i `../.claude/skills/`: `ny-dealer`, `bestalla-film`, `granska-film`, `
 - **En väg för varje sak, färre val** (2026-11-24): "det är för mycket val, för komplicerat i onödan". Det som finns
   dubbelt blir en sak, också när det tränger undan gamla klipp eller vägar.
 - **En standard i botten, utseendet ovanpå** (2026-11-25). Kameran, bordet, kortet, kortplatserna, skon och
-  markerlådan har fasta mått (`docs/SYSTEM.md`, Standarden) som dockan, inspelningen och varje beställd film utgår
-  från. Bakgrund, duk, ljus och kortens utseende läggs ovanpå i Scen och ändrar aldrig måtten.
+  lådan har fasta mått (livebordet, `docs/SYSTEM.md`, Standarden) som dockan, inspelningen och varje beställd film utgår
+  från. Bakgrund, duk, ljus och kortens utseende läggs ovanpå i 3D-scenen och ändrar aldrig måtten.
 - **Studion först** (2026-11-11): prov och effekter görs i studion; spelet får bara det han har godkänt där.
 - **Filmerna först** (2026-11-17): "filmerna är det vi först måste få rätt".
 - **Vanlig svenska i studion** (2026-11-25): filnamn och verktygsnamn visas inte för honom. Orden för studions delar

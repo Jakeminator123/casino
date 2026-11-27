@@ -23,7 +23,7 @@ avatar-auto-pipeline/
     standard.yaml            alla mått, skrivna ur spelets kod (ändras aldrig för hand)
     gen_standard.py          skriver standard.yaml; las_spelet.ts läser spelets kod åt den
     bygg_bord.py             livebordet, korten, skon och lådan för använda kort ur måtten
-    bygg_docka.py            standarddockorna (kvinna och man) och dockorna med mätta mått (Danilo, Frasse, Tomasz) med MPFB
+    bygg_docka.py            grunddockorna (kvinna och man) och på mannens grund dockorna med mätta mått (Danilo, Frasse, Tomasz, och personerna i personer/) med MPFB
     bygg_stol.py             stolen, skalad till måtten; meshy_stol.py beställer råfilen (betalt)
     qc_render.py             kontrollbilder genom de fasta kamerorna
   verktyg/                   bryggan mot blackjack-dealers docka, inspektion, kontrollbilder och mätning av en figur (mat_figur.py)
@@ -64,7 +64,7 @@ dockorna och Node 24 för måtten. Allt körs från den här mappen.
 .\.venv\Scripts\python.exe scen/gen_standard.py                                                     måtten ur spelet
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py                       livebordet (standardbord_live.*): dess filt (halvcirkel, radie 0,73 m), sko, låda, insatsmärken och kortplatser i vårt utseende, utan markerbricka; talen står i spelets kod (LIVE i ../blackjack-dealer/src/table-live.ts) och kommer hit genom standard.yaml
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --med-bricka       samma bord med vår markerbricka vid kanten, ett tillägg (standardbord_live_bricka.*)
-blender -b --python-exit-code 1 --python scen/bygg_docka.py                                        dockorna (MPFB, därför utan --factory-startup) med människans mått; -- --kon <nyckel i MATT> bygger en (man, kvinna, danilo, frasse, tomasz_matt), -- --namn N skriver standarddocka_<kön>_N.* i stället för de modeller som används
+blender -b --python-exit-code 1 --python scen/bygg_docka.py                                        dockorna (MPFB, därför utan --factory-startup) med människans mått, utan val kvinnan och mannen; -- --kon <docka> bygger en (man, kvinna, danilo, frasse, tomasz_matt, eller en person i personer/ som kenji), -- --namn N skriver standarddocka_<docka>_N.* i stället för de modeller som används
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_stol.py                       stolen
 ```
 
@@ -111,7 +111,7 @@ Action på dockans skelett, så samma rörelse fungerar på varje docka som dela
 `blackjack-dealer`s docka och Blender med bryggan:
 
 ```text
-blender -b assets/docka/standarddocka_kvinna.blend --python-exit-code 1 --python verktyg/dealer3d_till_blender.py -- --in <rörelse.json> [--namn NAMN] [--spara fil.blend] [--naturlig-hand]
+blender -b assets/docka/standarddocka_danilo.blend --python-exit-code 1 --python verktyg/dealer3d_till_blender.py -- --in <rörelse.json> [--namn NAMN] [--spara fil.blend] [--naturlig-hand]
 blender -b <fil.blend> --python-exit-code 1 --python verktyg/blender_till_dealer3d.py -- --action NAMN --ut ut.json
 ```
 

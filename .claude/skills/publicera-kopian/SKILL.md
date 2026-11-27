@@ -15,10 +15,10 @@ Kopian står på `c9d006d` från 2026-11-20; `/meta.json` säger vilken commit d
 ## Vad kopian är
 
 - Studion som låst kopia: allt går att läsa och spela, inget att ändra, inga kostnader syns, samma meny som studion
-  (2026-11-13) utan Lipsync och sparning; Bordet har där bara Scen, Råfilm och Efterarbete, och Beslut byts mot
-  Önskemål (`studio/components/shell/Rail.tsx`). Den enda sidan på nätet (2026-11-23): `https://dealer-lake.vercel.app`,
-  med dörrarna `/casino` (spelet ensamt) och `/trailer` (filmen före spelet, sedan Paows casino). Casinot visar det som
-  är sparat med Använd i Casino i studion (2026-11-21).
+  (2026-11-13) utan sparning, och Beslut byts mot Önskemål (`studio/components/shell/Rail.tsx`). Det som bara går på
+  hans dator (Dockan, Mått) visar där ett tomt läge. Den enda sidan på nätet (2026-11-23):
+  `https://dealer-lake.vercel.app`, med dörrarna `/casino` (spelet ensamt) och `/trailer` (filmen före spelet, sedan
+  casinot). Casinot visar det som är sparat med Använd i Casino i studion (2026-11-21).
 - **Vercel:** teamet `jakeminator123s-projects`, projektet `dealer-studio`, utan Git-koppling: varje version läggs upp
   färdigbyggd. Varje CLI-kommando får `--scope jakeminator123s-projects`. Länken ligger bara i
   `blackjack-dealer/.runtime/studio-deploy/`.

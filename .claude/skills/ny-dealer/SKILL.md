@@ -1,54 +1,88 @@
 ---
 name: ny-dealer
-description: Använd i blackjack-dealer när en ny dealer ska göras från en bild av en person, eller en ny uppsättning av en dealer som finns (nya ankare, nya händer, nytt utseende), från ingångsbild, keystone och ankare till filmerna för en hel runda. Också när frågan är hur långt en dealer har kommit eller vad som saknas för en runda (produce.ts).
+description: Använd i casino när en ny dealer ska göras ur bilder av en person med avatar-auto-pipeline/ny_dealer.py - måtten ur bilderna, dockan på Danilos eller Frasses grund, de lyfta rörelserna, dockfilmen och rutorna ur den, de betalda anropen till Runway (stillbilder och Kling 4, Aleph 2), en ny omgång, efterarbetet, provet och domen före Jakob - eller när frågan är hur långt en ny dealer har kommit (--lage).
 ---
 
-# En ny dealer från en bild
+# En ny dealer ur bilder
 
-Kommandon körs från `blackjack-dealer/`; sökvägar räknas från casino-roten. Varje beställning på vägen följer skillen
-`bestalla-film`, varje leverans skillen `granska-film`.
+`ny_dealer.py` i `avatar-auto-pipeline/` gör allt som är gratis, från personens bilder till färdiga anrop hos Runway.
+Läs skriptets huvud; mapparna och kommandona står i `avatar-auto-pipeline/README-SV.md`. Sökvägar räknas från
+casino-roten. Kenji Nakamura är den första personen (provet `kenji-ny-dealer-ur-bilder-20261127`).
 
-## Vem beslutar
+## Före
 
-- **Jakob:** vilken bild som gäller i Material och varje films dom i Granska; han kan också godkänna en order själv.
-- **Huvudagenten:** lägger in dealern på hans ord, godkänner beställningar inom fullmakten, för in i banken och sätter en
-  preliminär dom bara där han har lämnat över domen.
-- **Granskaren:** en underagent som inte beställde filmen; föreslår.
+- Personens tre bilder i `avatar-auto-pipeline/input/<person>/` (`1-portratt`, `2-helfigur`, `3-halvfigur`). Personerna
+  där är framställda; ett foto av en riktig person går in bara på Jakobs ord (`avatar-auto-pipeline/AGENTS.md`).
+- Blender med MPFB 2, FFmpeg, Node, SAM 3D Body i sin egen miljö (steg 15:s huvud) och MediaPipe-miljön
+  `blackjack-dealer/tools/python/.venv`, som skriptet körs med från `avatar-auto-pipeline/`:
 
-## Vägen
+  ```text
+  ..\blackjack-dealer\tools\python\.venv\Scripts\python.exe -I ny_dealer.py <person> [--stil kameran|bordet] [--utseende "<på engelska>"] [--prov <provmapp>] [--aleph]
+  ```
 
-1. **Dealern i registren:** en post i `blackjack-dealer/data/dealers.json` (`id`, `name`, `look`, `films.prefix`) och en
-   dealer i `blackjack-dealer/data/media-roles.json`. Utan posten vägrar Beställ, och studions växel visar henne inte.
-2. **Ingångsbild** (2026-11-12: "vilken bild som helst"): Material, Lägg till bild, roll `ingangsbild`. Ett foto av en
-   riktig person som förlaga ligger i `blackjack-dealer/private/` och går bara till bildmodellen.
-3. **Keystone,** stående och sittande, i hög upplösning på vitt; spelas aldrig. Nano Banana Pro 4K med ingångsbilden
-   som `@woman`; roll `keystone`. Likhet: `blackjack-dealer/tools/python/identitet.py` och en oberoende granskare.
-4. **Ankare 1** (vila, `IDLE`): en redigering av ett ankare 1 i bankens ruta med dealerns bild, inte en ny person i en
-   annans ruta (det gav vaxig hud och för kort kropp). Texten är mallen `blackjack-dealer/tools/texts/ankare-1.txt`; ordern
-   skrivs för hand, och efterarbetet är stillbildens fyra steg (`blackjack-dealer/tools/python/README.md`). Roll `ankare-1`.
-5. **Ankare 2.1** (nyp, `READY`): Beställ, steget `ANKARE-2.1`; eller, som för Paows tatuerade A2.1, filmens sista ruta
-   ur en Kling 4-film från A1 till en målbild (det höll, 4/5). **Ankare 2.3** (båda händerna vid skon) görs som en riktig
-   ruta ur en film från A1, med dockans film som referens och rak bål, aldrig som montage. Ankare 2.2 är arkiverat.
-6. **Vad saknas:** `node tools/produce.ts <dealer>` (eller Beställs block "Det här saknas för en runda") räknar de 33
-   filmerna med samma funktioner som Karta; metoden per steg står i `blackjack-dealer/data/order-methods.json`.
-7. **Filmerna**, i ordning: ingången, vila, en giv till en ytterplats som metodprov, samma metod till alla platser,
-   returer, dealerns kort och hålkortets vändning, utgången. Utkast med `node tools/produce.ts <dealer> --draft`.
-8. **Jakobs dom** i Granska; spela en runda med `/game.html?dealer=<id>` eller studions Casino, och börja om från steg 6.
+## Stegen, gratis och på datorn
 
-Alla bilder blir `kandidat`; bara Jakob sätter `gäller`. Alla ankare till en dealer har samma sko, grönt, ton och
-slutrad för kroppen (`blackjack-dealer/data/dealer-standard.json`), i bankens ruta 1764 × 1174.
+`--steg 3-6` börjar om efter dockan och `--steg 5` filmar om. `--lage` säger bara vad som finns, vad som saknas och vad
+nästa betalda steg kostar.
 
-## Klar
+1. **Måtten** ur bilderna (steg 15: SAM 3D Body och MediaPipes kropp, handens 21 punkter och ansiktsnätet) till
+   `avatar-auto-pipeline/personer/<person>.json`, bara tal, och en ritning av mätningen över bilderna. SAM körs bara när
+   dess svar saknas i `output/<person>/15-matt-ur-bilder/`.
+2. **Dockan,** byggd på dockan för den dealer vars rörelser personen spelar (`--stil kameran`, förval: Danilos;
+   `bordet`: Frasses), med bara det som skiljer mer än mätningens osäkerhet: Blender utan fönster,
+   `scen/bygg_docka.py --kon <docka>`, under låset `slask/blackjack-dealer/gpu-och-headless.lock`.
+3. **Systemet:** dockan mätt på sin modell och skriven i `blackjack-dealer/dealer3d/src/persondockor.ts`. Då är den med
+   bland dockorna (`LIVE_DOLLS`), i editorn och i verktygen (`titta.ts --docka <docka>`).
+4. **Rörelserna:** de lyfta rörelserna i dockans stil (`blackjack-dealer/dealer3d/tools/lyft-till-docka.ts --docka
+   <docka>`, till `dealer3d/data/lyft-<docka>-*.json` och `ankare-*-<docka>.json`) och kontrollen (`lyft-kolla.ts`,
+   svaret i `output/<person>/lyft-kolla.txt`).
+5. **Dockfilmen:** givens rörelse (`lyft-<docka>-p<plats>`; `--plats`, förval dagens plats 4) filmad med editorn
+   (`standarddocka/verktyg/titta.ts`) genom livebordets kamera i nyckelutseendet, och rutorna ur den: första, sista och
+   rutorna vid rörelsens egna händelser, aldrig två där dockan står i samma ställning. Varje ruta får en text om vad
+   dockan gör och hur kortet står, ur rörelsens tal (`dockans-rutor.json`).
+6. **Anropen,** färdiga men inte lagda, i `anrop/`, med kostnaden och ordningen i `anrop/kostnad.json`: stillbilderna
+   (GPT Image 2.6 Sunburst; startbilden ur dockans första ruta och personens tre bilder, sista bilden och mellanbilderna
+   som ändringar av den, och efter landningen som ändringar av sista bilden) och film A, Kling 4 med första bild,
+   mellanbilderna och sista bild. Med `--aleph` också film B, Aleph 2 över dockfilmen med startbilden som styrbild.
 
-Hon är färdig för en runda när `node tools/produce.ts <dealer>` säger att de 21 steg en runda kräver är klara. Hon
-spelar bara sina egna dömda tagningar.
+Utan `--prov` hamnar filmen, rutorna och anropen i `avatar-auto-pipeline/output/<person>/16-dockfilm/`, med
+`--prov <provmapp>` i `blackjack-dealer/assets/proofs/<provmapp>/original/`. `--utseende` är personens utseende i ord för
+bildmodellen och står sedan kvar i personfilen.
 
-## Det vägen inte kan än
+## Det betalda
 
-- Keystone och ankare 1 är inga steg i Beställ (`STEPS` i `blackjack-dealer/src/order-model.ts`).
-- Ett tredje eller fjärde kort: planen har inte platsen, och ordermodellen vägrar `D.C3` som mål tills Jakob lägger den
-  i Inspelning.
-- Helfiguren (hon kommer och sätter sig, reser sig och går) har inget steg: Kling 4 i 16:9, två delar per film som möts i
-  den stående bilden, med `motion.frame` och `layer: "BEHIND_TABLE"` i posten.
-- En ny uppsättning med samma kropp och kläder får sina vilor lokalt ur den gamlas
-  (`blackjack-dealer/tools/python/hands-from-anchor.py`), utan beställning.
+- **Bara huvudagenten lägger anropen,** inom fullmakten (`blackjack-dealer/AGENTS.md`, "Det som skyddar Jakob här"; taken i
+  `blackjack-dealer/data/order-policy.json`). Större bara med Jakobs ja. En underagent förbereder och rapporterar
+  kostnaden.
+- Från `blackjack-dealer/`, i ordningen i `kostnad.json`: `node tools/runway-api.ts place <anrop.json>`, sedan
+  `node tools/runway-api.ts collect <anropets namn> <fil>`. Varje bild sparas i omgångens `ut/` med det namn nästa anrop
+  väntar sig (`start.png`, `sista.png`, `mellan-NN.png`), och för film A skalad till 1728 × 972 som `k-start.png`,
+  `k-NN.png` och `k-sista.png`.
+- Vad modellerna kan och kostar, och vad proven har visat: skillen `runway` (trettonde provet är Kenjis).
+
+## Efterarbetet
+
+- **Filmen i dockans takt:** `node standarddocka/verktyg/i-dockans-takt.ts <film.mp4> --docka <rörelse.json> --bild
+  <stillbild.png>@<dockruta> … --takt <takt.json> --ut <film.mp4>`. Kling lägger bilderna i sin egen takt; verktyget
+  parar varje bild med sin dockruta.
+- **Dealern på vårt bord:** `node standarddocka/verktyg/lagg-pa-bord.ts <grön film> --platta <bordet ensamt.png> --ut
+  <film> --egen-sko <bordet med vår sko.png> --docka <rörelse.json> --takt <takt.json>`: vår sko och kortlek, och vårt
+  eget kort ritat ur dockans tal. Verktygens huvud säger resten.
+
+## En ny omgång
+
+`--omgang v2` lägger filmen, rutorna och anropen i en egen undermapp bredvid den förra, som aldrig skrivs över, och
+anropen får omgångens namn. Är dockans första och sista ruta desamma som i den förra omgången tas start- och sista bilden
+därifrån och betalas inte igen; `kostnad.json` säger vad jämförelsen fann. Dockans fel blir filmens: ett fel i rörelsen
+rättas i lyftet (`lyft-till-docka.ts`), och sedan görs en ny omgång med `--steg 4-6 --omgang <nästa>`.
+
+## Provet och domen
+
+- Provet är `blackjack-dealer/assets/proofs/<provmapp>/`: `proof.json` (`area: "avatarer"`, `title`, `description`, en
+  etikett per fil i `labels`), de bilder och filmer han ska se, med en stillbild bredvid varje film, och originalen i
+  `original/` (skillen `visa-for-jakob`).
+- Det som visas för honom döms först av en oberoende domare (skillen `doma`), och domen står i `proof.json` som
+  domarens, inte hans. Ett Inte bra går tillbaka och görs om i en ny omgång.
+- En person blir dealer i spelet först när Jakob har dömt hans filmer. Den äldre vägen till en dealer i klippbanken
+  (`blackjack-dealer/data/dealers.json`, `tools/produce.ts`, beställningar per steg) finns kvar i koden men har ingen
+  dealer.
