@@ -281,25 +281,21 @@ Dockan i `dealer3d/` är en vit docka i bordets verkliga geometri vars filmer st
   ett ska få nyp"): vänster arm går över högerhanden som vilar på filten, som i hennes filmer. Ett kort som planen
   lägger stängt vägras från A2.1, eftersom nypet alltid vänder kortet upp (`dealer3d/src/doll-choices.ts`);
   beställningen, dockans sida (`dealer3d/page/lay.ts` placeFrom) och `docka-cykel.ts` vägrar samma kort.
-- Sidan ett av dealerns kort ligger med är planens (`intent.endSide`), också i dockans egen sida: en sparad standard
-  läggs med planens sida.
+- Sidan ett av dealerns kort ligger med är planens (`intent.endSide`), också i dockans egen sida.
 - Standarddockan är grunden: varje grundrörelse (`dealer3d/data/`) läggs på standarddockan och förs över till den valda
-  dockan med hennes mått (`dealer3d/page/pose-on-doll.ts`). Hans sparade justeringar gäller den docka de sparades för.
-- En sparad rörelse per kort (2026-11-23): `dealer3d/standard/<docka>-<plats>.json`, alltid från A2.3. Från A2.1 ger
-  dockan nypets egen rörelse, som varken styrs eller sparas. En dealers docka ger alltid Naturlig (handens vinkel 17° när
+  dockan med hennes mått (`dealer3d/page/pose-on-doll.ts`).
+- Dockans reglage i Inspelning är till för att pröva och sparas inte (Jakob 2026-11-27: inga äldre versioner eller
+  undanlagda kopior); en beställning filmar dockans giv från A2.3 som den läggs utan dem. Från A2.1 ger
+  dockan nypets egen rörelse, som inte styrs. En dealers docka ger alltid Naturlig (handens vinkel 17° när
   kortet tas och −30° när det är vänt, `dealer3d/src/natural.ts`; landningen väljs, `dealer3d/src/landing.ts`);
   Standarddockan ger den äldre given.
 - Det Inspelning visar är det en beställning filmar (Jakob 2026-11-26: "vattentätt"): en kedja bygger given med
-  återgången för både dockans sida och `dealer3d/tools/docka-cykel.ts` (`filmRules`, `filmDeal`, `filmed` och
-  `savedState` i `dealer3d/page/natural-lab.ts`; `dealer3d/tests/samma-rorelse.test.ts` håller dem lika ruta för ruta).
+  återgången för både dockans sida och `dealer3d/tools/docka-cykel.ts` (`filmRules`, `filmDeal` och `filmed` i
+  `dealer3d/page/natural-lab.ts`; `dealer3d/tests/samma-rorelse.test.ts` håller dem lika ruta för ruta).
   Ett kort som läggs stängt vänds och landas aldrig, och Var kortet vänds, Vändningen börjar och Handens höjd verkar
-  inte på det, vad ett sparat värde än säger. Reglage som inte kan verka i läget visas inte. Reglagens ändlägen är de
+  inte på det. Reglage som inte kan verka i läget visas inte. Reglagens ändlägen är de
   största värden som går att lägga för alla kort: Kortets fart 150 %, Var kortet vänds 30 % (`ENDS` där). Valen Rörelse,
   Hela given, Vänd vid platsen och raden med rutor i steg 2 togs bort 2026-11-26; Ställning är tre knappar i bildens rad.
-- Inget sparat går förlorat (Jakob 2026-11-26): Spara som standard lägger den ersatta i `dealer3d/standard/forra/`, en
-  per plats. Ta tillbaka den förra byter den sparade och den förra, och förvalet står för den som saknas. Alla till
-  förvalet lägger dockans alla standarder i `dealer3d/standard/undanlagda/<tid>/` och som förra. Vägarna finns i
-  `dealer3d/page/server.ts` och flyttar eller kopierar, raderar aldrig (`dealer3d/tests/standard-undan.test.ts`).
 - Skons nästa kort står 0,6 mm bakom kortet som dras ut (`dealer3d/src/stage.ts`). Kortets övre ände håller sin
   millimeter över det när kortet glider ut (`two-hand.ts`), och nypets kort bärs aldrig in under plåten
   (`pinch-deal.ts`, `CLEAR.shoe`). Kortet hålls ute ur skon också mellan två rutor, så som sidan ritar det där

@@ -19,8 +19,8 @@
 //                "Spara utkastet"; NewFilm.tsx). The
 //                anchor the card goes from is the guide tree's (lib/bordet.ts treeAnchor): step 2, the pose the
 //                doll deals from and Scen's round all name it, and step 3 orders from it. Step 3 makes a deal from A2.3 to a
-//                player's card or one of the dealer's own from the doll's saved standard where the dealer has a doll of her
-//                own.
+//                player's card or one of the dealer's own from the doll's deal (as the lab lays it untouched) where the
+//                dealer has a doll of her own.
 //   Kön          the orders (OrderView): what a round lacks, the drafts to approve, an order open with "Det här skickas"
 //   Scen, Råfilm, Efterarbete   the live picture (SceneBody: the 3D scene, the films on their green, what is laid over)
 // The plan is a draft (useDraft): nothing is written until Jakob's click on "Spara i kortplanen", which writes the whole
@@ -58,7 +58,7 @@ import { Page } from "../shell";
 import { Badge, Button, ErrorState, IconButton, SegmentedControl, Skeleton, cn, useToast } from "../ui";
 import { treeChip } from "../map/TreeRow";
 import type { Made } from "./FilmList";
-import { DOLL_CARD, DollControls, DollNote, DollStage, ownDoll, useDollFilm, useDollGroups, useDollStandard, type DollEntry, type DollFilm, type StandardState } from "./DollPanel";import type { DollGroup } from "../../lib/doll-films.ts";
+import { DOLL_CARD, DollControls, DollNote, DollStage, ownDoll, useDollFilm, useDollGroups, type DollEntry, type DollFilm } from "./DollPanel";import type { DollGroup } from "../../lib/doll-films.ts";
 import { NewFilm, type Phase } from "./NewFilm";
 import type { SceneKind } from "./SceneBody";
 import { RowSends } from "./Sends";
@@ -169,9 +169,6 @@ export function BordetView() {
     if (askedQueue) setMode("ko");
   }
   const [step, setStep] = useState<StepId | null>(() => (first || params.get("lage") === "bestall" ? "order" : "place"));
-  // Raised when the doll lab saves a standard: what step 2 and 3 say of it is read again.
-  const [savedTick, setSavedTick] = useState(0);
-  const onDollSaved = useCallback(() => setSavedTick((n) => n + 1), []);
   const [media, setMedia] = useState<MediaAnswer | null>(null);
   const [ledger, setLedger] = useState<Ledger | null>(null);
   const [choices, setChoices] = useState<Record<string, RowChoice>>(() => (first?.wish && first.model ? { [wishKey(first.wish)]: { model: first.model } } : {}));
@@ -274,18 +271,17 @@ export function BordetView() {
   };
   const created = (answer: CreatedOrders) => madeDraft(answer.made[0], "Det godkänns i Kön.");
   const dollMade = (made: DollOrdered) => madeDraft(made.id, `Med dockans film ${made.film}. Det godkänns i Kön.`);
-  // The doll's standard for the chosen card (step 2 says it, step 3 orders from it), and the doll's films by card.
-  const standard = useDollStandard(dealer, place, savedTick, mode === "kortplan" && (step === "motion" || step === "order"));
+  // The doll's films by card.
   const doll = useDollGroups(orders, ledger, dealer);
   // The dealer's film of the card's deal from the tree's anchor, which the doll's picture can lay over her (lib/bordet.ts cardFilm).
   const found = useMemo(() => (isSnapshot ? null : cardFilm(graph, view, place)), [graph, view, place]);
   const dollFilm = useDollFilm(found, view?.tree.name ?? null);
-  // Step 3 orders a deal from A2.3 to a player's card or one of the dealer's own from the doll's saved standard (Jakob 2026-11-23,
+  // Step 3 orders a deal from A2.3 to a player's card or one of the dealer's own from the doll's deal (Jakob 2026-11-23,
   // "Ett ställe för dockan"; "Givarna från A2.3 beställs ändå med dockans film"), where the dealer has a doll of her own.
   // tools/doll-order.ts sends the anchor that holds in Material; where the tree's own picture is another, the panel says so
-  // (treePicture). The standard read is the chosen card's, which the guide's step follows.
+  // (treePicture).
   const dollTarget = guideRow?.wish.step === "GIV-2.3" ? guideRow.wish.target : null;
-  const dollWay = dollTarget && DOLL_CARD.test(dollTarget) && ownDoll(dealer) ? { place: dollTarget, standard, treePicture: base } : null;
+  const dollWay = dollTarget && DOLL_CARD.test(dollTarget) && ownDoll(dealer) ? { place: dollTarget, treePicture: base } : null;
   /** A step chosen among the tiles: its card is chosen in Inspelning, and the guide goes on to Hur. */
   const pickItem = (i: GuideItem, go: (card: Place) => void) => {
     setGuide((g) => ({ ...g, pick: { from: i.from, to: i.to }, phase: "hur" }));
@@ -424,9 +420,8 @@ export function BordetView() {
             setPlace={setPlace}
             dealer={dealer}
             from={from}
-            standard={standard}
             dollCount={doll.count}
-            lab={{ orders, ordersRead, groups: doll.groups, onSaved: onDollSaved, film: dollFilm }}
+            lab={{ orders, ordersRead, groups: doll.groups, film: dollFilm }}
             treeChoice={treeChoice}
             newFilm={newFilm}
             newFilmSummary={guideSummary}
@@ -440,7 +435,7 @@ export function BordetView() {
 }
 
 function TableBody({
-  menu, step, setStep, place, setPlace, dealer, from, standard, dollCount, lab, treeChoice, newFilm, newFilmSummary,
+  menu, step, setStep, place, setPlace, dealer, from, dollCount, lab, treeChoice, newFilm, newFilmSummary,
 }: {
   menu: ReactNode;
   /** The choice of tree for the row above the picture, or null where the dealer has one tree or none. */
@@ -452,12 +447,10 @@ function TableBody({
   dealer: string;
   /** The anchor the card goes from: the guide tree's (lib/bordet.ts treeAnchor). */
   from: Exclude<Anchor, "1">;
-  /** The doll's saved standard for the chosen card (step 2's line on the doll). */
-  standard: StandardState;
   /** How many films of the doll's there are, for the toolbar. */
   dollCount: number;
-  /** What the doll's films need, what is done when the lab saves a standard, and the film its picture can lay over the doll. */
-  lab: { orders: OrdersAnswer | null; ordersRead: boolean; groups: readonly DollGroup[]; onSaved: () => void; film: DollFilm | null };
+  /** What the doll's films need, and the film its picture can lay over the doll. */
+  lab: { orders: OrdersAnswer | null; ordersRead: boolean; groups: readonly DollGroup[]; film: DollFilm | null };
   /** Step 3, the guide Ny film; go chooses a card in Inspelning. */
   newFilm: (go: (card: Place) => void) => ReactNode;
   /** One line of what the guide has chosen, for step 3 folded. */
@@ -507,7 +500,7 @@ function TableBody({
       body: (
         <>
           <MotionPanel plan={plan} id={place} editable={editable} />
-          <DollNote dealer={dealer} place={place} standard={standard} />
+          <DollNote dealer={dealer} />
         </>
       ),
       // the doll lab's controls: their host stays in place while the step is folded, so that the lab's nodes are kept
@@ -563,7 +556,6 @@ function TableBody({
             ordersRead={lab.ordersRead}
             groups={lab.groups}
             onPlace={setPlace}
-            onSaved={lab.onSaved}
             onMoved={moved}
           />
         </div>

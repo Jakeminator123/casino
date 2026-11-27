@@ -56,8 +56,6 @@
   .grid span { font-size: 12px; color: var(--muted); text-align: center; }
   .grid span.row { text-align: left; }
   .grid button { padding: 5px 0; position: relative; min-height: 28px; }
-  .grid button.saved::after { content: ''; position: absolute; right: 3px; top: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
-  .grid button[aria-pressed=true].saved::after { background: #17140a; }
   .switch { display: flex; align-items: center; gap: 8px; cursor: pointer; }
   .switch input { width: 16px; height: 16px; accent-color: var(--gold); }
   .knob { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; margin-top: 4px; }
@@ -72,8 +70,6 @@
   #turnNote.warn { color: var(--warn); }
   #shaping { margin-top: 4px; }
   #landingNote.warn { color: var(--warn); }
-  #save { background: var(--gold); border-color: var(--gold); color: #17140a; font-weight: 600; }
-  #save:disabled { background: #1c221f; border-color: var(--line); color: #5d6862; font-weight: 400; }
   #status.warn { color: var(--warn); }
   @media (max-width: 900px) { main { grid-template-columns: 1fr; } aside { position: static; max-height: none; } }
   /* Embedded in the studio (Bordet, Inspelning; ?inbaddad=1): the page is the frame's size and does not scroll, the picture has
@@ -156,9 +152,7 @@
     <div><h2>Styr</h2>
       <p class="small" id="builtNote" hidden>Från A2.1 ger dockan nypets egen rörelse; den styrs inte här.</p>
       <div id="knobs"></div>
-      <div class="acts" id="steerActs"><button id="reset">Återställ</button><button id="save">Spara som standard</button></div>
-      <!-- His saved standards, forgiving (Jakob 2026-11-26): nothing is deleted, a standard replaced or laid aside can be taken back (dealer3d/page/server.ts). -->
-      <div class="acts" id="standardActs"><button id="back">Ta tillbaka den förra</button><button id="allDefault">Alla till förvalet</button></div>
+      <div class="acts" id="steerActs"><button id="reset">Återställ</button></div>
       <p class="small" id="status"></p></div>
     </div>
   </aside>

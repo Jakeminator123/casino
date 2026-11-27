@@ -2,7 +2,7 @@
 // Inspelning shows is what an order films (Jakob 2026-11-26: "everything must be watertight and not unnecessarily
 // complicated"). Pure: no I/O and no three.js.
 // - The one chain (the end of this file): filmRules, filmDeal and filmed turn a state (the place, its recipe, the doll and
-//   what the controls or a saved standard steer) into the motion filmed, the deal with its return. The page plays it and
+//   what the controls or docka-cykel.ts's flags steer) into the motion filmed, the deal with its return. The page plays it and
 //   docka-cykel.ts writes it, both through these three functions only.
 // - The way is the doll's (wayFor), not a choice: every dealer's doll deals "Naturlig" (Jakob 2026-11-23, "vissa aningen
 //   konstiga ställningar görs lite naturligare som standard"): the deal laid from its recipe with the natural hand change
@@ -16,11 +16,11 @@
 // In "Naturlig" her right hand ends at the laid card as `landing` says (dealer3d/src/landing.ts); without one, or with the
 // default, as it did before landings were made, to the last digit. Last, her free fingers keep to what a hand can do
 // (dealer3d/src/hand-rule.ts `humaneMotion`, Jakob 2026-11-23: "inget finger kan försvinna på ett konstigt sätt").
-import {NO_STEER, cardTempoOf, layDeal, sideOf, type LaidDeal, type PoseFilm, type Recipe, type Steer} from './lay.ts';
+import {cardTempoOf, layDeal, sideOf, type LaidDeal, type PoseFilm, type Recipe, type Steer} from './lay.ts';
 import {poseOnDoll, type PoseOptions} from './pose-on-doll.ts';
 import {natural} from '../src/natural.ts';
-import {LANDING_DEFAULT, landed, landingOf, landingTimes, type Landing} from '../src/landing.ts';
-import {TURN_DEFAULT, turnOf, turnedInHand, type TurnId} from '../src/turn-in-hand.ts';
+import {LANDING_DEFAULT, landed, landingTimes, type Landing} from '../src/landing.ts';
+import {TURN_DEFAULT, turnedInHand, type TurnId} from '../src/turn-in-hand.ts';
 import {naturalDoll, type Doll} from '../src/doll.ts';
 import {humaneMotion} from '../src/hand-rule.ts';
 import {buildReturnCycle, type DealMotion, type ReturnCycleOptions} from '../src/return-cycle.ts';
@@ -151,19 +151,10 @@ export const wayFor = (doll: Doll): Way => doll.name === 'standard' ? 'forut' : 
  *   lay.ts cardTempoMost for the card;
  * - where the turn begins (Steer.turnNear, "Var kortet vänds"): P4.C1 and P4.C2 lay to 35 % (at 40 % her arm is 10 mm
  *   short), P5.C1, P5.C2 and P6.C2 to 40 %, the other eleven to 50 % and more.
- * A standard saved before with a value past them is laid with its own value; a combination of sliders a card cannot take
- * is said on the page and cannot be saved.
+ * A combination of sliders a card cannot take is said on the page.
  */
 export const ENDS = {cardTempo: 1.5, turnNear: 0.3};
-/** What a saved standard's `lab` says (dealer3d/standard/<name>.json, written by the lab's "Spara som standard"). */
-export type SavedLab = {recipe?: string; steer?: Partial<Steer>; naturlig?: {knobs?: Partial<Knobs>}; landing?: unknown; turn?: unknown};
-/** A saved standard as a state of the chain, read alike by the lab and by docka-cykel.ts: the recipe it names (null: the place's own), the steering, the shoulders and elbows, the landing and the turn. The side is the plan's: the caller sets it. */
-export function savedState(lab: SavedLab | null | undefined): {recipe: string | null; steer: Steer; knobs: Knobs; landing: Landing; turn: TurnId} {
-  const k = lab?.naturlig?.knobs, pair = (v: number[] | undefined, or: [number, number]) => [...(v ?? or)] as [number, number];
-  return {recipe: lab?.recipe ?? null, steer: {...NO_STEER, ...lab?.steer} as Steer, knobs: {shoulderR: pair(k?.shoulderR, NO_KNOBS.shoulderR), shoulderL: pair(k?.shoulderL, NO_KNOBS.shoulderL), elbowOut: pair(k?.elbowOut, NO_KNOBS.elbowOut)},
-    landing: landingOf(lab?.landing), turn: turnOf(lab?.turn)};
-}
-/** One state of a deal from A2.3 as it is filmed: the place, its recipe and the pose film it begins on, the doll, and what the lab's controls or a saved standard steer. `source`: the recipe's file, which the return records. `cycle`, `flatHand`, `before`: docka-cykel.ts's own flags (none on the page). */
+/** One state of a deal from A2.3 as it is filmed: the place, its recipe and the pose film it begins on, the doll, and what the lab's controls (or docka-cykel.ts's flags) steer. `source`: the recipe's file, which the return records. `cycle`, `flatHand`, `before`: docka-cykel.ts's own flags (none on the page). */
 export type FilmInput = {plan: Plan; place: string; recipe: Recipe; pose: PoseFilm; doll: Doll; lens: Lens; steer: Steer; knobs: Knobs; landing: Landing; turn: TurnId;
   source?: {path: string; sha256: string}; cycle?: ReturnCycleOptions; flatHand?: boolean; before?: AsBefore};
 /**

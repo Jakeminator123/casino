@@ -358,7 +358,7 @@ Mappen lånar det som redan finns i stället för att kopiera det:
    2026-11-23: sista given går direkt till A1). Jakob har bett om att slippa be en agent: en knapp som ritar en giv
    till alla platser är ett förslag, inte byggt.
 5. Det gamla kan nu tas bort (`AGENTS.md`: när dockornas egna rörelser spelas i editorn och studion): Paows docka,
-   hennes sparade standarder (`dealer3d/standard/`), de äldre grundrörelserna, bordet `standardbord_nara` och
+   de äldre grundrörelserna, bordet `standardbord_nara` och
    listorna `TILL_SKON` och `GIVAR` i `editor/rorelse.ts`. Inte gjort: det rör studions dockvy och Paows filmer
    och görs som ett eget steg, efter hans dom ovan.
 6. Blenders vila (`SITT` i `bygg_docka.py`) efter mannens nya plats (axlarna 0,29 m, höften 0,1426 m under filten,
@@ -455,7 +455,7 @@ ska.
      `dealer3d/src/ren-giv.ts`. Mannen och kvinnan delar ankare, regler och val, så att en grundställning görs en
      gång (Jakob 2026-11-26: "så man inte behöver jobba dubbelt för grundposer"); bara måtten skiljer. De givarna blir
      de som editorn och studion spelar, när spärren är grön och varje plats är sedd med ögat. Först då kan dockan
-     `paow`, hennes sparade standarder (`dealer3d/standard/`) och de äldre grundrörelserna tas bort: tills dess är
+     `paow`, och de äldre grundrörelserna tas bort: tills dess är
      givarna ritade för hennes kropp, och hennes godkända filmer är gjorda av dem.
   3. Studions dockvy (Bordets Inspelning) får editorns scen. Gjort 2026-11-26: spelets vy, det närmare bordet, skon
      med frontplattan, brickan, stolen och ljuset (standardrummet, ovan). Kvar: blicken mot kameran, armarna över

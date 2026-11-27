@@ -14,7 +14,7 @@ en modells API läser ingenting själv: skicka med den här filen och projektets
 | `blackjack-dealer/` | Spelet, studion i webbläsaren och 3D-dockans rörelsekod (`dealer3d/`). Här står måtten för kamera, bord, kort och kortplatser som allt annat läser. | `README.md`, `STATUS.md` |
 | `standarddocka/` | Editorn där standarddockans rörelser spelas, justeras och filmas, och verktygen som mäter dem. | `README.md`, `DOMAR.md` |
 | `avatar-auto-pipeline/` | Blender-skripten som bygger standarddockan, bordet och stolen, och vägen från foton till en riggad dealer. Python. | `README-SV.md` |
-| `kortspelspaket/` | Ett köpt animationspaket och en visare för det. Prövas som grund för rörelserna. | `README.md`, `OVERLAMNING.md` |
+| `kortspelspaket/` | Ett köpt animationspaket och en visare för det. Ligger vid sidan (Jakob 2026-11-27): det är inte grunden för dockans rörelser och inte ett facit att mäta mot. | `README.md`, `OVERLAMNING.md` |
 | `live-bj/` | Mätning av en riktig dealers rörelser, blick och kameravinklar ur en blackjackfilm. Filmen och rutorna ur den går aldrig in i Git eller i ett prov; bara de små måttfilerna i `data/` och verktygen. Mäter med Python-miljön i `blackjack-dealer/tools/python/`. | mappens README |
 | `slask/` | Tillfälligt arbete. Git har bara verktyget `slask.ts`. | nedan |
 | `inbox/` | Korta lappar mellan chattar som arbetar samtidigt. Git har bara verktyget `inbox.ts`. | nedan |
@@ -55,8 +55,11 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
   tillfälliga filer) och rätta dokumenten som ändringen gjorde fel. Säg med en rad i svaret vad som städades.
 - **Dokument.** En sak står på ett ställe och beskriver det som gäller nu; historien står i Git. Regler här och i
   projektets `AGENTS.md`, kartan och körningen i projektets README, läget i `STATUS.md` där det finns.
+- **Inget gammalt lagras** (Jakob 2026-11-27: "så inte skit lagras"). Ett verktyg lägger aldrig undan en äldre version,
+  en kopia eller en lista över det som är borta i en mapp som Git har: historien står i Git. Ett register pekar bara
+  på det som finns; tas en fil bort tas raden om den bort i samma steg.
 - **Ingen viss dator.** Repot ska gå att klona till valfri mapp: ingen kod eller text pekar på en användare eller en
-  disk. Media följer inte med Git.
+  disk. Media följer inte med Git, så det som bara finns på en dator får inte vara något koden kräver.
 
 ## Tillfälligt och producerat
 

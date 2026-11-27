@@ -9,7 +9,7 @@
 //                                       bank, model, length, takes), or with seats one draft per seat sharing a group
 //   PUT  /api/orders/<id>               change a draft: title, takes, hand, side, turn, free addition, length (If-Match)
 //   POST /api/orders/<id>/refresh       fetch what a draft waits for once it holds, draw its last picture again (If-Match)
-//   POST /api/orders/docka              {dealer, place, entry}: the doll's saved movement to that card becomes its film and a
+//   POST /api/orders/docka              {dealer, place, entry}: the doll's deal to that card becomes its film and a
 //                                       draft (tools/doll-order.ts; about a minute, one at a time), from Inspelning's step 3 (Spara
 //                                       utkastet on a deal from A2.3); entry is the step's pose, "A2.3" or "A2.1" (A2.3 left out)
 //   POST /api/orders/<id>/approve      Jakob's click: freezes the order with its hash, refused beyond the policy (If-Match)

@@ -198,7 +198,7 @@ if(has('--restart')){
    // Film orders and the state of a candidate picture (tools/order-routes.ts): answered there when the address is theirs.
    if(url.pathname==='/api/orders/ledger'){await (await import('./order-ledger.ts')).serveLedger(req,res);return;} // Protokoll (tools/order-ledger.ts), before the orders' own routes, which would take "ledger" for an order id.
    if(await handleOrders(req,res,url))return;
-   if(await handleDollLab(req,res,url))return; // Docklabbet (dealer3d/page/server.ts): /dealer3d/docka, its modules and motions, and the saved standards in dealer3d/standard/.
+   if(await handleDollLab(req,res,url))return; // Docklabbet (dealer3d/page/server.ts): /dealer3d/docka, its modules, motions and models, read only.
    if(url.pathname==='/api/trees'){await (await import('./dealer-tree.ts')).serveTrees(req,res,url);return;} // Karta's trees: nodes, 36 steps and number per tree (tools/dealer-tree.ts)
    if(url.pathname==='/api/compositions'){await (await import('./dealer-composition.ts')).serveCompositions(req,res,url,origin);return;} // Karta's compositions: several trees put together, read, saved and removed (tools/dealer-composition.ts)
    if(url.pathname==='/api/clip-speed'){await (await import('./clip-speed.ts')).serveClipSpeed(req,res,origin);return;} // a film's own speed, set in Karta (tools/clip-speed.ts)

@@ -13,7 +13,7 @@
 //   Skicka  exactly what is sent and its price, the server's draft before it is saved, and "Spara utkastet"; afterwards the
 //           draft, the way to Kön and the way back to the tree in Karta. A deal from A2.3 to a player's card or one of the
 //           dealer's own is saved from the doll (Jakob 2026-11-23: "EN väg och ETT ställe man använder dockan"): its film of
-//           his saved standard is made first, about a minute, and goes as the reference (lib/orders.ts orderDoll,
+//           the deal, "Naturlig" as the lab lays it untouched, is made first, about a minute, and goes as the reference (lib/orders.ts orderDoll,
 //           tools/doll-order.ts); "Utan dockan" saves the recipe's draft instead. The side a dealer's card lies with is the
 //           plan's alone (Inspelning, step 2; a player's card always lies open), so the doll and the order's text say the same.
 // The tree chosen here also chooses the anchor Inspelning's card goes from in step 2 and in the doll's picture
@@ -38,14 +38,13 @@ import { WayChip, pictureName } from "../order/Pictures";
 import { ProofStill } from "../proofs";
 import { TakeCard } from "../takes";
 import { Badge, Button, SegmentedControl, Skeleton, buttonClasses, cn, useToast } from "../ui";
-import type { StandardState } from "./DollPanel";
 import { Marks } from "./FilmList";
 import { DraftSends } from "./Sends";
 
 export type Phase = "vad" | "hur" | "skicka";
 const STATE_CHIP = { saknas: { tone: "remark", word: "saknas" }, prov: { tone: "wait", word: "väntar på dom" }, finns: { tone: "ok", word: "finns" } } as const;
-/** A deal saved from the doll: the card, his saved standard for it as the lab has it, and the tree's own A2.3 picture where it is not the one that holds. */
-export type DollWay = { place: string; standard: StandardState; treePicture: string | null };
+/** A deal saved from the doll: the card, and the tree's own A2.3 picture where it is not the one that holds. */
+export type DollWay = { place: string; treePicture: string | null };
 
 export function NewFilm({
   dealer, dealers, trees, view, item, phase, onPhase, onPick, place, row, body, sends, entries, names, ordering, blocked, made, orders, composition, onCreated, doll, onDollMade,
@@ -308,7 +307,7 @@ function How({ item, row, body, sends, graph, order, way, dollWay, loading, fore
       {body && loading && !order ? <p role="status" className="text-xs text-dim">Hämtar bilderna som skickas …</p> : null}
       <Foreign pictures={foreign} view={view} />
       {off && item.step?.order?.command ? <Command text={item.step.order.command} /> : null}
-      {doll ? <p data-doll-way-note className="text-xs text-dim">Givet sparas från dockan (Skicka): dockans film av din sparade standard blir referensfilm. Valen nedan gäller bara om du sparar utan dockan.</p> : null}
+      {doll ? <p data-doll-way-note className="text-xs text-dim">Givet sparas från dockan (Skicka): dockans film av given blir referensfilm. Valen nedan gäller bara om du sparar utan dockan.</p> : null}
       {doll ? <WayChip way={dollWay} /> : null}
       {sends}
       {/* whether the way chosen above holds: his own verdicts on films made so (a way that fell cannot be approved); the doll's way has its word above */}
@@ -392,8 +391,6 @@ function Send({
       </div>
     );
   if (doll && !recipe) {
-    const st = doll.standard;
-    const from = st.state === "läst" ? (st.standard ? `din sparade standard ${st.standard.name}${st.standard.cardTempo !== 1 ? ` (kortets fart ${Math.round(st.standard.cardTempo * 100)} %)` : ""}` : "Naturlig (ingen sparad standard för kortet)") : st.state === "läser" ? "din sparade standard (läser …)" : "din sparade standard";
     const orderIt = () => {
       setDolling({ busy: true });
       // the guide offers the doll's way for a deal from A2.3 only (BordetView dollWay): that is the pose ordered
@@ -408,7 +405,7 @@ function Send({
         <div className="flex flex-col gap-1 rounded-md border border-brass/30 bg-brass/5 px-3 py-2.5 text-sm leading-5">
           <span className="font-semibold text-ink">Från dockan</span>
           <span className="text-dim">
-            Dockans film av {from} till {doll.place}, giv och återgång i en film, blir referensfilm (mall 15). Filmen görs först, ungefär en minut; sedan ligger utkastet i Kön med bilderna, texten och priset.
+            Dockans film av given till {doll.place} (Naturlig, som dockan lägger den), giv och återgång i en film, blir referensfilm (mall 15). Filmen görs först, ungefär en minut; sedan ligger utkastet i Kön med bilderna, texten och priset.
           </span>
           {doll.treePicture ? <span className="text-xs text-[#f0b07a]">A2.3-bilden blir den som gäller i Material, inte trädets egen ({doll.treePicture}).</span> : null}
         </div>
@@ -425,7 +422,7 @@ function Send({
             Utan dockan
           </Button>
         </div>
-        <p className="text-xs text-faint">Ett utkast beställer inget: det godkänns i Kön och läggs sedan hos Runway. Det som är sparat som standard för dockan är det som beställs; reglage som inte är sparade följer inte med.</p>
+        <p className="text-xs text-faint">Ett utkast beställer inget: det godkänns i Kön och läggs sedan hos Runway. Dockans reglage följer inte med: given beställs som dockan lägger den utan dem.</p>
       </div>
     );
   }

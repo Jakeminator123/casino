@@ -98,7 +98,7 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
    rakt ut vid A2.3 (knogen 33° åt sidan och 24° bakåt, utanför handregeln), vilket syns från A1 till A2.3 och i varje
    givs första ruta. Dockan från A2.1 görs om, enklare, med kortbanan ur dockan (2026-11-24), och härmar de bästa
    A2.1-klippen, som han själv vill välja (2026-11-23); en giv tar 2 s som förval; händerna fria i givarna;
-   handleden i vändningen; P7.C1:s vändning (förvalet 17 rutor, hans undanlagda standard 11); ställningen A2.1, där
+   handleden i vändningen; P7.C1:s vändning (förvalet 17 rutor, hans borttagna standard 11, i Git); ställningen A2.1, där
    lång-, ring- och lillfingret ligger upp till 34 mm inne i skons kropp redan i första rutan
    (`dealer3d/data/ankare-2-1-paow.json`; lillfingrets topp syns som en vit prick i P7.C1, ruta 16–17); ett stängt nyp
    (dockan lägger inget stängt kort från A2.1, fast hon gjorde det i den otatuerade `paow-giv-2-1-d-01-01`, nu i
@@ -203,9 +203,8 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   på disken för 20 av 36 steg, Tatuerad nyp för alla sina 8. Samma rutor som originalen men inte samma filer:
   posterna bär de nya filernas sha256, domarna är orörda, och ursprunget står i `assets/motions/<klipp>/generation.json`
   och ankarnas `receipt.json`.
-- Dockans standarder: Paows 15 sparade
-  standarder är undanlagda på hans ord (2026-11-26, `dealer3d/standard/undanlagda/2026-11-26-011850/`): förvalet
-  gäller på varje plats, och den förra tas tillbaka med Ta tillbaka den förra på dockans sida. Provet
+- Dockans sparade standarder och Spara som standard är borttagna på hans ord (2026-11-27; de äldre står i Git):
+  dockans reglage prövas bara, och en beställning filmar förvalet. Provet
   `nyp-plats-1-2-20261126` visar nypet till plats 1 och 2 bredvid hennes filmer (dockan vänder kortet i luften, hon
   vid platsen).
 - Hans ögon på spelvyn och linsen i Scen (2026-11-26): gruppen Spelvy (Visa Inspelningen, Dator eller Mobil; Spara

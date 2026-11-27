@@ -14,8 +14,9 @@ för den här mappen. Kartan, körningen, läget och nästa steg står i `README
 - **Mappen lånar, den kopierar inte.** Måtten kommer ur `../blackjack-dealer/src/table-lens.ts`, modellerna och
   byggskripten ur `../avatar-auto-pipeline/`, rörelsekoden ur `../blackjack-dealer/dealer3d/`. Ett mått eller en
   kamera skrivs aldrig in här som egna tal.
-- **En väg för varje sak.** Det gamla (Paows docka, hennes sparade standarder, de äldre grundrörelserna) tas bort i
-  samma steg som standarddockans egna rörelser har tagit över, inte tidigare och inte senare.
+- **En väg för varje sak.** Det gamla (Paows docka och de äldre grundrörelserna) tas bort i samma steg som
+  standarddockans egna rörelser har tagit över, inte tidigare och inte senare. Hennes sparade standarder är redan
+  borta (2026-11-27).
 - **Det han ska se** visas som ett prov i studion (`../blackjack-dealer/assets/proofs/<namn>/` med `proof.json`,
   sidan Granska), eftersom det är där han tittar. Hans anteckningar läses med `node tools/proof-notes.ts` från
   `../blackjack-dealer/`.

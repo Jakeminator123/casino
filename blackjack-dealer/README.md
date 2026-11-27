@@ -68,8 +68,7 @@ Orden står i studions Ordlista (`studio/lib/words.ts`). Vyerna:
   och markerna över filmen). I koden och adressen heter Inspelning `kortplan`, sitt gamla namn (`?lage=kortplan`).
   Inspelning har en bild (Jakob 2026-11-25: "ett och samma läge", "allt i 3d"): dockans 3D-bord i en ram
   (`dealer3d/page/docka.html`), med planens kort på filten och utkastet synligt direkt; dockans reglage står i studions högerspalt under steg 2. Spara skriver bara `placements/default.json`;
-  dockans rörelse sparas med Spara som standard (`dealer3d/standard/`; den ersatta läggs i `forra/`, och Alla till
-  förvalet lägger undan i `undanlagda/<tid>/`).
+  dockans reglage är till för att pröva och sparas inte: en beställning filmar dockans giv utan dem.
 - **Karta**: dealerns träd, valda i en lista överst (Alla träd, träden, kompositionerna). Ett träd ritas med sina bilder och
   36 steg; ett träd med flera sätt att dela ut från samma A1 (Tatuerad: A2.3 och nypet från A2.1) har en grenväljare. Ett steg
   visar sina filmer som spelet spelar dem i just det trädet (Primär, sekundära, Gör primär), och talet ligger på A1. Alla träd

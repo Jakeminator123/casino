@@ -33,7 +33,7 @@ test('a deal is ordered from A2.3 whatever the plan says of handbyte', async () 
       assert.equal(made.entry, 'A2.3');
       assert.equal(made.notation, 'A2.3 - A3P5C1');
       assert.match(made.film, /^docka-paow-2-3-p5c1-bestalld-/);
-      assert.match(made.title, /dockans sparade rörelse/);
+      assert.match(made.title, /dockans giv från A2\.3/);
     } finally { await rm(root, {recursive: true, force: true}); }
   }
 });

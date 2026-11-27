@@ -158,8 +158,8 @@ export type Shoe = {foot: {front: Pixel; back: Pixel}; length: number; width: nu
 export const SHOE: Shoe = {foot: {front: {x: 1268.1, y: 895.9}, back: {x: 1666.5, y: 796.8}}, length: 0.436, width: 0.082, backHeight: 0.131, frontHeight: 0.1, plateLean: 51.6 * Math.PI / 180, windowLift: 0.022};
 /**
  * The shoe as it stood until 2026-11-23: its foot read by eye on frame 36 of paow-giv-2-1-p4-11-01, its measures assumed;
- * its card stood 3 cm from the films' (28 px on screen). Kept only so that the motions laid before then (dealer3d/data, the
- * saved standards in dealer3d/standard) can be laid again and tried with the shoe they were laid with; nothing new uses it.
+ * its card stood 3 cm from the films' (28 px on screen). Kept only so that the motions laid before then (dealer3d/data)
+ * can be laid again and tried with the shoe they were laid with; nothing new uses it.
  */
 export const SHOE_LAID_BEFORE_20261123: Shoe = {foot: {front: {x: 1262, y: 890}, back: {x: 1688, y: 800}}, length: 0.42, width: 0.118, backHeight: 0.19, frontHeight: 0.105, plateLean: 58 * Math.PI / 180, windowLift: 0.012};
 export const SHOE_FOOT = SHOE.foot;

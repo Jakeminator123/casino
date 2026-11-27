@@ -238,10 +238,9 @@
   /* The doll's controls in Bordet's Inspelning, step 2 (components/bordet/DollPanel.tsx): the doll lab lays its own markup
      (dealer3d/page/docka.html: Vändning, Landning, Styr, each a div with an h2) into the host
      as one <div class="docklabb-styr">, and its own stylesheet does not reach this document. Its controls keep their ids
-     here (#knobs, #save, #status …): no other element of the studio may use them, and every rule stays
+     here (#knobs, #reset, #status …): no other element of the studio may use them, and every rule stays
      under .docklabb-styr. Drawn in the studio's look: the headings as a column section's, the button groups (.seg, chosen
-     by aria-pressed, unavailable :disabled) as SegmentedControl, the other buttons as Button (Spara som standard, #save, as
-     the primary), the sliders (label.knob: name, value, range; .off when unavailable) as Slider, the notes (.small, .warn
+     by aria-pressed, unavailable :disabled) as SegmentedControl, the other buttons as Button, the sliders (label.knob: name, value, range; .off when unavailable) as Slider, the notes (.small, .warn
      when something is wrong) as the column's notes. */
   .docklabb-host:empty::before {
     content: "Dockans reglage visas här när dockan har laddats.";
@@ -342,16 +341,6 @@
     flex-wrap: wrap;
     gap: 6px;
     margin-top: 12px;
-  }
-  .docklabb-styr #save {
-    border-color: transparent;
-    background: var(--color-brass);
-    color: var(--color-brass-ink);
-    font-weight: 600;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25);
-  }
-  .docklabb-styr #save:not(:disabled):hover {
-    background: var(--color-brass-hi);
   }
   .docklabb-styr .knob {
     display: grid;

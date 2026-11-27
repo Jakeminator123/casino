@@ -90,10 +90,10 @@ export type OrderChange = { title?: string; takes?: number; extra?: string | nul
 export const changeOrder = (id: string, change: OrderChange, revision: string) => call<OrderAnswer>(`api/orders/${id}`, "Ändringen", send("PUT", change, revision));
 export const approveOrder = (id: string, revision: string) => call<OrderAnswer>(`api/orders/${id}/approve`, "Godkännandet", send("POST", undefined, revision));
 /**
- * The draft made from the doll's saved movement to a card (POST /api/orders/docka, tools/doll-order.ts): about a minute.
+ * The draft made from the doll's deal to a card (POST /api/orders/docka, tools/doll-order.ts): about a minute.
  * `entry` is the pose of the step being ordered, said by the caller: the plan's "Handbyte" never chooses it.
  */
-export type DollOrdered = { id: string; title: string; place: string; entry: "A2.1" | "A2.3"; film: string; standard: string | null; cost: { total: number } };
+export type DollOrdered = { id: string; title: string; place: string; entry: "A2.1" | "A2.3"; film: string; cost: { total: number } };
 export const orderDoll = (dealer: string, place: string, entry: "A2.1" | "A2.3") => call<DollOrdered>("api/orders/docka", "Dockans beställning", send("POST", { dealer, place, entry }));
 export const refreshOrder =(id: string, revision: string) => call<OrderAnswer>(`api/orders/${id}/refresh`, "Bilderna", send("POST", undefined, revision));
 

@@ -212,13 +212,11 @@ export function recipeFor(target: string): PlaceRecipe | null {
 
 /**
  * The pose a deal begins in and, with its return, ends in (Jakob 2026-11-23: "A2.1, A2.2 och A2.3 är olika in- och
- * utgångar"; a saved deal per card from A2.3, standardName). A2.3: every deal laid above. A2.1, the pinch at the shoe: her
+ * utgångar"). A2.3: every deal laid above. A2.1, the pinch at the shoe: her
  * one-hand deal to every place but a card laid closed (dealer3d/src/doll-choices.ts), built on the doll's bones
  * (dealer3d/src/pinch-deal.ts) from her pose A2.1 (POSE_21), one way. A2.2 is archived: no deal begins in it.
  */
 export type Entry = 'A2.1' | 'A2.3';
-/** A saved standard's name (dealer3d/standard/<name>.json): <doll>-<place>, a deal from A2.3. From A2.1 nothing is saved: the deal there is the pinch's own and nothing steers it (Jakob 2026-11-26). */
-export const standardName = (doll: string, place: string) => `${doll}-${place.toLowerCase().replace('.', '')}`;
 /** The pose A2.1 per doll that has it (dealer3d/data/<name>.json: the first frame of the deal the lab showed as A2.1, and her hip), which pinch-deal.ts builds the deal from. */
 export const POSE_21: Record<string, string> = {paow: 'ankare-2-1-paow'};
 export type EntryPlace = PlaceRecipe | {pinch: string} | {none: 'unposed' | 'closed'};

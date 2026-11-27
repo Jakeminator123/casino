@@ -11,9 +11,10 @@ kartan och hur visaren startas står i `README.md`; läget och vägen framåt i 
   de tre köpta filerna igen, så det som görs där försvinner.
 - **`sekvenser.json` är Jakobs.** Bitarna han klipper ut i visaren är namn och tider, inget ur paketet: filen går in
   i Git, och det han har sparat där skrivs inte över.
-- **Riktningen** (Jakob 2026-11-26): pröva att bygga rörelserna utifrån paketets skelett och rörelser och lyfta in det
-  som behövs ur de andra mapparna, ett steg i taget. De andra projekten arbetar vidare som förut tills ett steg här är
-  bevisat i bild och han har sagt sitt. Inget gammalt följer med av sig självt.
+- **Mappen ligger vid sidan** (Jakob 2026-11-27: paketet "är lite by the side, och har inte så mycket med det vi gör
+  nu"). Den 26:e prövades tanken att bygga rörelserna utifrån paketets skelett; den vilar. Standarddockans rörelser
+  ritas av koden i `../blackjack-dealer/dealer3d/` och mäts mot riktiga dealrar (`../live-bj/`), inte mot paketet.
+  Inget lyfts härifrån in i de andra mapparna utan hans ord.
 - **Bordsvyn lånar, den kopierar inte.** Spelets bord, kamera och rum kommer ur `../blackjack-dealer/`
   (`src/table-lens.ts`, `dealer3d/src/standard-room.ts`) och modellerna ur `../avatar-auto-pipeline/assets/`. Det som
   är paketets eget (dess bord, var den som sitter är) står i `visa/bord.ts`.
