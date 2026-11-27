@@ -2,8 +2,8 @@
 // so a new logo or felt colour is a texture change. Sizes are dealer metres; the group is scaled by the
 // film camera's scale into the scene. The table's outline and the layout of the print are provisional:
 // they were chosen to fit the film frame, not taken from a real table.
-// The players' rail is a padded leather roll with a stitched seam on each shoulder, a brass bead against the felt and a
-// lacquered walnut apron under its overhang. Its sheen comes from a small painted room that only the rail's own materials
+// The players' rail is a padded leather roll, the live table's (LIVE.rail), with a stitched seam on each shoulder, a brass bead
+// against the felt and a lacquered walnut apron under its outer side. Its sheen comes from a small painted room that only the rail's own materials
 // reflect (an environment map of their own), so the scene's lights, the film and everything in the home view stay as they were.
 // The cup holders set into the roll are src/scene3d-rail.ts; they are built on the roll as it is drawn here (railPoint) and take the
 // roll's leather and the room's light from the table's group (userData.rail).
@@ -14,8 +14,9 @@ import {LIVE} from './table-live.ts';
 
 export const FELTS: Record<string, [string, string]> = {green: ['#134232', '#0a2a20'], blue: ['#16325e', '#0b1c38'], vin: ['#571a26', '#330d15'], svart: ['#23272a', '#101214']};
 // The drawn table's own oval, which a size multiplies and the legs and the smoke are laid against: half width, depth toward the
-// players and rail width. The table that stands is the live table's (tableUnder, STANDARD.bord in src/standard.ts) in its place.
-export const TABLE = {a: 0.95, b: 0.6, rail: 0.1};
+// players and rail width (the live table's, LIVE.rail). The table that stands is the live table's (tableUnder, STANDARD.bord in
+// src/standard.ts) in its place.
+export const TABLE = {a: 0.95, b: 0.6, rail: LIVE.rail.width};
 // The serving shelf behind the dealer's edge at her right hand (state shelf; a lab trial of 2026-11-13, off from the start). The film
 // in which she takes a champagne glass from beside the table has her arm go down behind a table top that reaches further back
 // there than this table does (the film's own table: her arm ends against the green at rows 776 to 800 of the frame), so without
@@ -254,16 +255,16 @@ export function section(points: number[][], shade: (o: number, y: number) => num
   return {points, v, length, shade: (at: number) => { let i = 1; while (i < v.length - 1 && v[i] < at) i++; const f = Math.min(1, Math.max(0, (at - v[i - 1]) / (v[i] - v[i - 1] || 1)));
     return shade(points[i - 1][0] + (points[i][0] - points[i - 1][0]) * f, points[i - 1][1] + (points[i][1] - points[i - 1][1]) * f); }};
 }
-// The leather roll: a rounded box section (a superellipse round CORE), fuller on top, about 10 cm wide and 4.6 cm high, overhanging
-// the apron by 9 mm, with a shallow groove on each shoulder where the top panel is sewn to the sides. Sampled densely at the seams and
-// sparsely on the underside that nothing sees. The points run from the middle of the underside up the inner face, over the top and
-// back round, so the faces point outward; the shade darkens the creases at the brass bead and under the overhang.
-// The section's measures are the live table's (LIVE.rail.section in src/table-live.ts).
-const SECTION = LIVE.rail.section, CORE = [SECTION.centre, SECTION.lift], SEAMS = [2.3, 0.84]; // seam angles round the core, radians from the outward side
-export const RAIL = {centre: CORE[0], top: CORE[1] + SECTION.above}; // the middle of the roll's top: out from the felt edge, and above the felt (for what is set into the rail, src/scene3d-rail.ts)
+// The leather roll: the live table's (LIVE.rail in src/table-live.ts, measured on the film), two half ellipses round CORE: the roll's
+// middle width/2 out from the felt edge at the felt's level, rising `above` over the felt and turning in `below` under it, with a
+// shallow groove on each shoulder where the top panel is sewn to the sides. Sampled densely at the seams and sparsely on the underside
+// that nothing sees. The points run from the middle of the underside up the inner face, over the top and back round, so the faces
+// point outward; the shade darkens the crease at the felt and the underside of its outer side, over the apron.
+const RL = LIVE.rail, CORE = [RL.width / 2, 0], SEAMS = [2.3, 0.84]; // seam angles round the core, radians from the outward side
+export const RAIL = {centre: CORE[0], top: CORE[1] + RL.above}; // the middle of the roll's top: out from the felt edge, and above the felt (for what is set into the rail, src/scene3d-rail.ts)
 const ROLL = (() => {
-  const at = (q: number) => { const c = Math.cos(q), s = Math.sin(q), e = s > 0 ? 0.8 : 0.66, x = SECTION.halfWidth * Math.sign(c) * Math.abs(c) ** e, y = (s > 0 ? SECTION.above : SECTION.below) * Math.sign(s) * Math.abs(s) ** e;
-    const dent = SEAMS.reduce((sum, m) => sum + Math.exp(-(((q - m) / 0.075) ** 2)), 0), f = 1 - 0.0016 * dent / Math.hypot(x, y); return [CORE[0] + x * f, CORE[1] + y * f]; };
+  const at = (q: number) => { const c = Math.cos(q), s = Math.sin(q), x = RL.width / 2 * c, y = (s > 0 ? RL.above : RL.below) * s;
+    const dent = SEAMS.reduce((sum, m) => sum + Math.exp(-(((q - m) / 0.075) ** 2)), 0), f = 1 - 0.001 * dent / Math.hypot(x, y); return [CORE[0] + x * f, CORE[1] + y * f]; };
   const F = 2880, fine: number[][] = [], length = [0], weight = [0];
   for (let i = 0; i <= F; i++) { const q = 1.5 * Math.PI - 2 * Math.PI * i / F; fine.push(at(q)); if (!i) continue;
     const step = Math.hypot(fine[i][0] - fine[i - 1][0], fine[i][1] - fine[i - 1][1]), seam = SEAMS.reduce((sum, m) => sum + Math.exp(-(((q - m) / 0.12) ** 2)), 0);
@@ -272,15 +273,15 @@ const ROLL = (() => {
   for (let n = 0; n < count; n++) { const goal = weight[F] * n / (count - 1); while (i < F - 1 && weight[i + 1] < goal) i++; const f = Math.min(1, Math.max(0, (goal - weight[i]) / (weight[i + 1] - weight[i])));
     points.push([fine[i][0] + (fine[i + 1][0] - fine[i][0]) * f, fine[i][1] + (fine[i + 1][1] - fine[i][1]) * f]); }
   const seamV = SEAMS.map(m => length[Math.round((1.5 * Math.PI - m) / (2 * Math.PI) * F)] / length[F]);
-  const shade = (o: number, y: number) => (1 - 0.62 * Math.exp(-Math.hypot(o - 0.009, y) / 0.009)) * (1 - 0.55 * Math.exp(-Math.hypot(o - 0.099, y + 0.02) / 0.008)) * (y < CORE[1] - 0.022 ? 0.6 : 1);
+  const shade = (o: number, y: number) => (1 - 0.62 * Math.exp(-Math.hypot(o - 0.002, y) / 0.006)) * (1 - 0.55 * Math.exp(-Math.hypot(o - (RL.width - 0.004), y + 0.7 * RL.below) / 0.006)) * (y < CORE[1] - 0.7 * RL.below ? 0.6 : 1);
   return {...section(points, shade), seams: seamV.map((v, s) => ({v, toward: s ? -1 : 1}))}; // `toward`: direction of v from the seam to the crown
 })();
-// A half-round brass bead along the felt edge, tucked under the roll and 2 mm over the felt so no gap shows.
+// A half-round brass bead along the felt edge, in the roll's inner foot and 5 mm over the felt, so no gap shows where they meet.
 const BEAD = section([[-0.0022, -0.003], [-0.0022, 0.0008], [-0.0012, 0.0032], [0.0008, 0.0047], [0.0035, 0.0053], [0.0062, 0.0046], [0.0082, 0.0028], [0.0092, 0], [0.0092, -0.004]], o => 1 - 0.5 * Math.max(0, Math.min(1, (o - 0.004) / 0.005)));
-// The apron: a straight lacquered face with a rounded lower edge. Its top rises straight into the roll, so nothing under the overhang
-// faces up into the light; it sits in the overhang's shade.
-const APRON = section([[0.0985, -0.006], [0.0993, -0.018], [0.1, -0.03], [0.1, -0.075], [0.1, -0.118], [0.0993, -0.126], [0.096, -0.1305], [0.088, -0.133], [0.05, -0.15]],
-  (o, y) => (0.28 + 0.72 * Math.min(1, Math.max(0, (-0.016 - y) / 0.034))) * (y < -0.128 ? 0.7 : 1));
+// The apron: a straight lacquered face 2 mm in under the roll's outer side (RL.width out), with a rounded lower edge. Its top rises
+// into the roll, so nothing under the roll faces up into the light; it sits in the roll's shade.
+const APRON = section([[-0.006, -0.002], [-0.003, -0.01], [-0.002, -0.03], [-0.002, -0.075], [-0.002, -0.118], [-0.0027, -0.126], [-0.006, -0.1305], [-0.014, -0.133], [-0.052, -0.15]].map(([o, y]) => [RL.width + o, y]),
+  (o, y) => (0.28 + 0.72 * Math.min(1, Math.max(0, (-RL.below - 0.001 - y) / 0.034))) * (y < -0.128 ? 0.7 : 1));
 
 // Sweeps a section along the players' arc. Each ring sits at the felt-edge point P(t) and the section's `out` runs along the edge's
 // true outward normal, so the rail keeps its width round the tight ends. `cap` rounds the two ends off past the dealer's edge: the
@@ -342,8 +343,8 @@ function ringAlong(size: TableSize): Float64Array {
  * Where a point of the table's plan (x across, z toward the players, table metres as the table's group has them) lies on the rail's
  * roll for a table of `size`: the angle t of the felt edge it stands out from (Newton's method from `near`) and how far out along
  * that edge's normal (o); the roll's top there, as the mesh draws it: its height above the felt (y), the leather's texture
- * coordinates (u, v, as sweep gives them) and its normal [x, y, z]. For points over the top half of the roll (o from about 0.01 to
- * 0.1); beyond it the top's last segment goes on.
+ * coordinates (u, v, as sweep gives them) and its normal [x, y, z]. For points over the top half of the roll (o from about 0.005 to
+ * the roll's width, RL.width); beyond it the top's last segment goes on.
  */
 export function railPoint(x: number, z: number, size: TableSize = 1, near = Math.PI / 2) {
   const {a, b} = sized(size); let t = near;

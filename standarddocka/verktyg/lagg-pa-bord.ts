@@ -26,9 +26,12 @@
 // ärmen vid skon och framför vårt kort.
 //
 // Plattorna ligger fast i standarddocka/klipp/ (utanför Git): platta-bord-ensamt.png (--platta) och platta-bord-med-sko.png
-// (--egen-sko), livebordet genom sin egen kamera i 1728 x 972. De görs om när bordet eller rummet ändras: node
-// standarddocka/verktyg/titta.ts --runda --spela-in 0-0 --utan docka,kort,sko,stol --kamera plats4 (med skon: --utan
-// docka,kort,stol), och första rutan ur klippet. Arbetet görs i plattans storlek, och filmen skalas till den. Två knep är lånade ur
+// (--egen-sko), livebordet genom sin egen kamera i 1728 x 972. De görs om när bordet eller rummet ändras, båda i en
+// körning (på en rad): editorn filmar en stilla ruta utan docka, kort, sko och stol, visar skon och filmar en till,
+//   node standarddocka/verktyg/titta.ts --utan docka,kort,sko,stol --kor "(async () => [await window.editor.spelaIn(['spel'], 0, 0, {namn: 'platta-bord-ensamt', stilla: 0.04}), window.editor.visa('sko', true), await window.editor.spelaIn(['spel'], 0, 0, {namn: 'platta-bord-med-sko', stilla: 0.04})])()"
+// och för var och en av de två (standarddocka/klipp/<namn>-kameran-danilo.mp4) blir rutan plattan och filmen tas bort:
+//   ffmpeg -i standarddocka/klipp/<namn>-kameran-danilo.mp4 -frames:v 1 -y standarddocka/klipp/<namn>.png
+// Arbetet görs i plattans storlek, och filmen skalas till den. Två knep är lånade ur
 // blackjack-dealer (src/scene3d-film.ts, src/film-after.ts):
 //  - Det gröna mäts i varje ruta för sig, i två hörn som alltid är tomma (uppe till vänster bakgrunden, nere till
 //    vänster bordet), och varje bildpunkts grönhet räknas mot det. Utklippet följer då med när filmmodellen låter det

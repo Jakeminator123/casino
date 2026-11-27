@@ -40,7 +40,9 @@ export function railTop(t: number, size: TableSize = 1): number[] {
 // rest, pressed down `sink` more everywhere. The leather is drawn down over `collar` beyond the rim, `along` the rail and `across`
 // it (where the roll falls away), with soft folds `folds` deep. The cover lies `cover` above the roll's surface over the cup and
 // comes down onto it at the collar's edge.
-export const CUP = {radius: 0.026, depth: 0.05, corner: 0.005, lip: {width: 0.004, height: 0.0024, bulge: 0.0007}, bend: 0.4, sink: 0.001, collar: {along: 0.011, across: 0.005}, folds: 0.0006, cover: 0.0005};
+// Sized to sit in the live table's roll (6.5 cm wide and 2.1 cm high, LIVE.rail): the well, its rim and the collar across the rail
+// stay inside the roll's top.
+export const CUP = {radius: 0.015, depth: 0.04, corner: 0.004, lip: {width: 0.0035, height: 0.002, bulge: 0.0006}, bend: 0.4, sink: 0.001, collar: {along: 0.009, across: 0.004}, folds: 0.0005, cover: 0.0005};
 const AROUND = 96; // steps round a cup
 // The polished gold of the rim and the spun gold of the well: colour, roughness and how much of the room's light each takes (as the
 // table's `lights`). lean: how far the well's wall is taken to lean back toward the opening when it reflects the room. A warm room

@@ -7,7 +7,7 @@
 // kroppens mått för spärren i kropp.ts (matKropp), på samma sätt.
 import * as T from 'three';
 import {qexp, qrot, type Foljd, type Frame, type Q, type V3} from './rorelse.ts';
-import {balensAxlar, iBalensAxlar, type Arm, type Bord, type Kroppsmatt} from './kropp.ts';
+import {balensAxlar, iBalensAxlar, skivan, type Arm, type Bord, type Kroppsmatt} from './kropp.ts';
 
 /**
  * luft: minsta luft under underarmen över bordet (meter). handen: den del av underarmen närmast handleden som får ligga
@@ -106,10 +106,13 @@ export function matKropp(k: Kropp, f: Frame, hip: number[]): Kroppsmatt {
   return {bal: {y0: lagst, dy: DY, skivor: hela, folj: fylldFolj.map(s => Math.round(s * 1000) / 1000)}, huvud: {c: lo.map((v, i) => (v + hi[i]) / 2) as V3, r: ((hi[0] - lo[0]) + (hi[1] - lo[1]) + (hi[2] - lo[2])) / 6}, armar, vila: a};
 }
 
-/** Minsta luft under underarmen från armbågen E till handleden W där den är över bordet (framför kanten); Infinity om den inte är det. */
+/**
+ * Minsta luft under underarmen från armbågen E till handleden W där den är över bordet: över filten, och över rullen längs
+ * kanten mot dealern, som står LIVE.rail.above över filten (kropp.ts skivan); Infinity om den inte är över bordet.
+ */
 function luftUnder(E: T.Vector3, W: T.Vector3, r: (s: number) => number, bord: Bord): number {
   let minst = Infinity; const P = new T.Vector3();
-  for (let k = 0; k <= 24; k++) { const s = k / 24 * (1 - ARMAR.handen); P.copy(E).lerp(W, s); if (P.z <= bord.kantZ) continue; minst = Math.min(minst, P.y - r(s) - bord.skivaY); }
+  for (let k = 0; k <= 24; k++) { const s = k / 24 * (1 - ARMAR.handen); P.copy(E).lerp(W, s); const y = skivan(bord, P.x, P.z); if (y === null) continue; minst = Math.min(minst, P.y - r(s) - y); }
   return minst;
 }
 const kvat = (axel: number[], vinkel: number): Q => { const s = Math.sin(vinkel / 2); return [axel[0] * s, axel[1] * s, axel[2] * s, Math.cos(vinkel / 2)]; };

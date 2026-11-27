@@ -284,6 +284,15 @@ rörelser och filmerna som görs av dem.
   varför skapas våra avatarer utifrån en standard som inte är just det som ska följa alla mått från Danilo och
   Frasse så att säga?" Studion ska ha en sida där vår bild ligger över filmens, och dockans kropp ska vara
   dealerns, inte en medelmans med två mått ändrade.
+- **Så gör dealern handbytet** (2026-11-27, kväll, sett i speglingen mot filmen). "Jag ser att dealern i youtube har
+  tummen som visas och vi har hans pekfinger." Och: "Nu ser jag det! Det är alltså youtubekillen som med sin vänstra
+  hands tumme viker upp kortet så det böjs lite grann. Där har vi det!" I förstoring, ruta för ruta: högerhanden
+  ligger kvar platt på filten vid kanten och väntar; vänstern skjuter kortet plant fram till högerns fingertoppar och
+  reser det sedan på kant med tummen, så att det buktar en aning; högern tar det nedifrån och bär det under
+  handflatan. När kortet ligger på platsen håller dealern det med tummen, med handen lågt, inte med ett pekande
+  finger. Han frågade också om relingen ("möjligen lite annat avstånd på just den reling ... har vi verkligen
+  klonat även det?"): den var antagen och är nu mätt ur filmen. Och om filmerna: "försök ha en anledning med att
+  skapa filmerna nu. Vi vill hitta 'the magic sauce' för att sedan kunna massproducera, inte innan."
 - **Den tjocka dockan** (2026-11-27): "Om vi använder just den där 'tjocka dockan' som jag inte tror är den samma som
   är den 'nya standarddockan' kanske det blir fel av bara farten då den känns riktigt klumpig. Är den ens med
   skelett/leder/MediaPipe:ad och annat? Eller är det bara den idiotiska förra 'standarddockan'?" Den är Danilos och

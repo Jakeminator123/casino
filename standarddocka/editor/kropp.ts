@@ -13,6 +13,7 @@
 // Spärren rör bara det en ändring gör. Ställningen utan ändringar räknas också, och det den själv gör (en arm som ligger
 // an mot bålen, en armbåge i en viss vinkel, en hand långt ut) är tillåtet: en ändring får inte göra det värre.
 import type {Frame, Led, Limb, V3} from './rorelse.ts';
+import {LIVE} from '../../blackjack-dealer/src/table-live.ts';
 
 // ---- små räknesätt -------------------------------------------------------------------------------------------
 type P = readonly number[];
@@ -37,6 +38,17 @@ const GRAD = 180 / Math.PI;
 // ---- måtten --------------------------------------------------------------------------------------------------
 /** Bordet: kanten mot dealern (filten är framför den, z större) och skivans överkant. */
 export type Bord = {kantZ: number; skivaY: number};
+/**
+ * Bordets överkant under punkten (x, z): filten framför kanten mot dealern, och bakom kanten rullen som går längs den mellan
+ * bågens två ändar (LIVE.rail: dess övre halva ellips, `width` bred från kanten och `above` hög över filten). null bakom rullen,
+ * där inget bord är under armen.
+ */
+export function skivan(b: Bord, x: number, z: number): number | null {
+  if (z > b.kantZ) return b.skivaY;
+  const {width: w, above} = LIVE.rail, o = b.kantZ - z;
+  if (o > w || Math.abs(x - LIVE.felt.centre[0]) > LIVE.felt.widthAtEdge / 2 + w) return null;
+  const u = (o - w / 2) / (w / 2); return b.skivaY + above * Math.sqrt(Math.max(0, 1 - u * u));
+}
 /** En arm: modellens axelled (bålens axlar), överarmens och underarmens längd (meter), och tjockleken (radie) i tio fack längs var och en, från leden närmast axeln. */
 export type Arm = {axel: V3; over: number; under: number; tjockOver: number[]; tjockUnder: number[]};
 /**
@@ -107,8 +119,8 @@ function iBalen(m: Kroppsmatt, a: Axlar, p: P, r: number): Djup | null {
 function iHuvudet(m: Kroppsmatt, a: Axlar, p: P, r: number): Djup {
   const d = sub(p, iVarlden(a, m.huvud.c)), l = len(d); return {djup: m.huvud.r + r - l, ut: l > 1e-6 ? mul(d, 1 / l) : a.z};
 }
-/** Hur djupt en del av armen ligger i bordets skiva där den är över bordet; -Infinity bakom kanten. */
-const iBordet = (b: Bord, p: P, r: number) => p[2] > b.kantZ ? b.skivaY + r - p[1] : -Infinity;
+/** Hur djupt en del av armen ligger i bordet (filten, och rullen längs kanten: skivan) där den är över det; -Infinity bakom rullen. */
+const iBordet = (b: Bord, p: P, r: number) => { const y = skivan(b, p[0], p[2]); return y === null ? -Infinity : y + r - p[1]; };
 /** Hur djupt en del av handen ligger i filten (mer än FILT_TOL) där den är över bordet; -Infinity bakom kanten. */
 const iFilten = (b: Bord, p: P, r: number) => p[2] > b.kantZ ? r - FILT_TOL - p[1] : -Infinity;
 

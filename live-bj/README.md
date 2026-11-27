@@ -137,7 +137,7 @@ rundade kant blir en cirkel på bordet med 1,8 mm fel över 1234 punkter. Korten
 | Bildvinkel i sidled | 67,6 grader (± 5 %) | 41,4 grader |
 | Kameran till filtens kant mot dealern | 1,54 m | 2,07 m |
 | Filten | halvcirkel, radie 0,73 m: 1,46 m bred vid dealerns kant, 0,71 m djup | 1,90 m bred, 1,08 m djup |
-| Rullen runt filten (runt bågen och längs dealerns kant) | 6,5 cm ut från filtens kant, toppen ca 2 cm över filten (1–2,4) | 10 cm, 4,6 cm hög |
+| Rullen runt filten (runt bågen och längs dealerns kant) | 6,5 cm ut från filtens kant, toppen ca 2 cm över filten (1–2,4) | samma (bara runt bågen) |
 | Dealerns egna kort, från hans kant | 0,19 m | 0,39 m |
 | Spelarens kort på mittplatsen, från dealerns kant | 0,49 m | 0,63 m |
 | Insatsmärket på mittplatsen, från dealerns kant | 0,63 m | 0,71 m |

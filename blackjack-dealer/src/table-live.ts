@@ -97,11 +97,9 @@ export type LiveSetup = {
    * camera, its outline against the film's on the empty table along 90 rays round the arc (1.4 pixels rms, at most 3.6).
    * The width is sure to 1 mm (0.065 to 0.066); the height weakly (`above` 0.009 to 0.024, `below` 0.006 to 0.015 fit as
    * well), and the same rail along the dealer's edge falls on the film's there (its top 0.0 pixels off over 31 columns).
-   * section: not the live table's but the game's own 3D roll (src/scene3d-table.ts), antaget (ours): its look, wider and
-   * higher. The middle of the roll out from the felt's edge (centre) and above the felt (lift), its half width, and how
-   * far it rises above and reaches below that middle.
+   * The Blender build (avatar-auto-pipeline/scen/bygg_bord.py) and the game's 3D table (src/scene3d-table.ts) draw it so.
    */
-  rail: {width: number; above: number; below: number; section: {centre: number; lift: number; halfWidth: number; above: number; below: number}};
+  rail: {width: number; above: number; below: number};
   /**
    * mätt (live-bj/verktyg/reling.py, 2026-11-27): a tray behind the dealer's edge at his right (the picture's left), framed
    * by the rail: its left side is the rail of the arc's end going straight back, its right side's outer edge stands at
@@ -168,7 +166,7 @@ export const LIVE: LiveSetup = {
   camera: LIVE_CAMERA,
   edge: [0, 0, -1.5375],
   felt: {centre: [0.002, 0, -1.5531], radius: 0.7295, edgeZ: -1.5375, frontZ: -0.824, depth: 0.714, widthAtEdge: 1.459},
-  rail: {width: 0.065, above: 0.021, below: 0.015, section: {centre: 0.057, lift: 0.012, halfWidth: 0.05, above: 0.034, below: 0.031}},
+  rail: {width: 0.065, above: 0.021, below: 0.015},
   shelf: {right: -0.403, back: 0.332},
   shoe: {
     foot: {byDealer: [0.427, 0, -1.4842], towardPlayers: [0.4521, 0, -1.3844], back: [0.7162, 0, -1.4577]},

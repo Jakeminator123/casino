@@ -112,7 +112,7 @@ Varje tal i `scen/standard.yaml` har `# källa: fil (namn)` eller `# antaget:` +
 
 ### 5.2 Bordet
 
-Livebordet, mätt på filmen: en halvcirkel med rak kant mot dealern (bågen en cirkel inom 1,8 mm), radie 0,7295 m med mitten 1,56 cm bakom kanten, 1,459 m brett längs kanten och 0,714 m djupt (`LIVE.felt`). Rullen är också mätt: en låg rulle runt bågen och rakt längs kanten mot dealern, och bakom kanten vid dealerns högra sida ramar den in en hylla (`LIVE.rail`, `LIVE.shelf`; `live-bj/verktyg/reling.py`). Sargen, benen, färgerna och texturerna är vårt utseende. Spelets 3D-scen bygger samma filt (`tableUnder` i `src/scene3d-table.ts`, `STANDARD.bord`) med sin egen, bredare rulle.
+Livebordet, mätt på filmen: en halvcirkel med rak kant mot dealern (bågen en cirkel inom 1,8 mm), radie 0,7295 m med mitten 1,56 cm bakom kanten, 1,459 m brett längs kanten och 0,714 m djupt (`LIVE.felt`). Rullen är också mätt: en låg rulle runt bågen och rakt längs kanten mot dealern, och bakom kanten vid dealerns högra sida ramar den in en hylla (`LIVE.rail`, `LIVE.shelf`; `live-bj/verktyg/reling.py`). Sargen, benen, färgerna och texturerna är vårt utseende. Spelets 3D-scen bygger samma filt och samma rulle runt bågen (`tableUnder` och `RAIL` i `src/scene3d-table.ts`, `STANDARD.bord`, `LIVE.rail`).
 
 ### 5.3 Filt, rulle, sarg, bricka, marker
 
