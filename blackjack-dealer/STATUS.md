@@ -57,8 +57,9 @@ Fem arbeten går samtidigt; det som är klart står under Läget när det har ta
 - **Givens rörelse efter hans Nja:** kortet landar där dealern lägger det, given delas vid handbytet, tummen och
   vänsterhanden.
 - **Filmens efterarbete:** kortet ritas av oss, och takten blir ett verktyg (provet `efter-nja-eget-kort-och-takt-20261127`).
-- **Lagret:** de ersatta proven, figurerna som föll, den förra standardens klipp och kortspelspaketet flyttas till
-  arkiven bredvid repot.
+- **Lagret är gjort:** de sex ersatta proven, figurerna som föll, den förra standardens 43 klipp och ett orderutkast
+  som aldrig lades ligger i arkivet `casino-arkiv-paow-och-forra` bredvid repot (rader i dess förteckning), och
+  kortspelspaketet i `kortspelspaket-arkiv` bredvid repot. Inget är raderat. Repot gick från 3,2 till 1,9 GB.
 
 Det den förra chatten visste som inte stod någonstans:
 
@@ -112,8 +113,11 @@ I den här ordningen om han inte säger annat.
 
 ## Väntar på Jakob
 
-- **Kortet `sju-bilder-vid-livebordet` i Beslut.** Han sa Nja i chatten 2026-11-27, men kortet är inte besvarat på
-  sidan. Kortet `tomasz-gor-danilos-giv` (Nej) står kvar tills flera kameror prövas igen.
+- **En film till, sedan dömer han.** Kortet `sju-bilder-vid-livebordet` i Beslut besvarade han 2026-11-27 kl. 15.08
+  med Ja och orden "Ok, så om du menar att vi skapar större kort och möjligen annat, gör en video till! Sedan kanske
+  vi kan döma efter det!", och i Prov märkte han filmen 01 och jämförelsen 08 Inte bra. Nästa film görs alltså med
+  rättningarna (kortets storlek mätt mot livefilmen, eget ritat kort, snabb vändning, landningen), och han dömer den.
+  Kortet `tomasz-gor-danilos-giv` (Nej) står kvar tills flera kameror prövas igen.
 - **Hans egen dom på proven från 2026-11-27** (Granska, Prov). En oberoende domare dömde dem i hans ställe (fältet
   `domare` i provets `proof.json`, märkt som inte hans); hans dom ersätter domarens.
   - Domaren Bra: `kartan-over-schemat-20261127`, `studion-i-roten-20261127`, `skon-med-liggande-kort-20261127`,
@@ -123,9 +127,9 @@ I den här ordningen om han inte säger annat.
     kortet och att blicken inte är på skon.
   - Domaren Nja: `sju-bilder-vid-livebordet-20261127` (den externa Inte bra), `tomasz-dockan-pa-hans-matt-20261127`
     och `studion-mindre-text-20261127`.
-  - Domaren Inte bra, ersatta av proven ovan: `danilo-frasse-i-editorn-20261127`, `danilo-frasse-rorelser-20261127`,
-    `meshy-provet-20261127`, `tomasz-pa-danilos-grund-20261127`, `tomasz-ansikte-20261127` och
-    `hander-hunyuan-mot-meshy-20261127`. De raderas på hans ord (Prov eller Biblioteket).
+  - Domaren Inte bra, ersatta av proven ovan och flyttade till arkivet på hans ord 2026-11-27:
+    `danilo-frasse-i-editorn-20261127`, `danilo-frasse-rorelser-20261127`, `meshy-provet-20261127`,
+    `tomasz-pa-danilos-grund-20261127`, `tomasz-ansikte-20261127` och `hander-hunyuan-mot-meshy-20261127`.
   - Inte dömda av någon: `biblioteket-20261127`, `scen-ratt-film-20261127` och `livebordet-i-spelet-20261127`.
   - Dömda av honom: `livebordet-klonat-20261127` och `danilo-frasse-kroppar-20261127` Bra,
     `dealerns-handled-20261127` Inte bra, `runway-3d-20261127` ("meshy/vår docka bäst") och
@@ -138,8 +142,6 @@ I den här ordningen om han inte säger annat.
   mapp.
 - **Git-historien.** Ett namn och ett användarnamn är borta ur filerna men står kvar i historien: antingen skrivs
   historien om på hans ord, eller görs repot privat.
-- **Kortspelspaketet.** Dess visare ritar förra standardens bord, som försvinner med den: visaren pekas om, eller
-  paketet arkiveras.
 - **RunPod för mätningen.** Livefilmens rutor mäts på den här datorns processor, eftersom filmen aldrig får lämna
   datorn. Om de ska få mätas på hans hyrda maskin är hans beslut. Han frågade 2026-11-27: "kan vi inte köra tyngre
   jobb med GPU-krävande och jättetunga jobb på min runpod? Eller är det för jobbigt att sätta upp?" Det går för vårt

@@ -236,6 +236,10 @@ rörelser och filmerna som görs av dem.
     koordinater som kanske måste mätas på nytt."
   - **En överlämning för alla platser.** "Försökte vi att skapa som en universell överlämning med detta parti när
     händerna möts?" Inte prövat; handbytet står som förslag till ankare i rörelseschemat.
+  - **På sidan, samma eftermiddag:** filmen (01) och jämförelsen med dockan (08) märkte han Inte bra, och i Beslut
+    svarade han Ja med orden "Ok, så om du menar att vi skapar större kort och möjligen annat, gör en video till!
+    Sedan kanske vi kan döma efter det!" Kortet upplever han alltså som för litet; nästa film görs med det rättat,
+    och den dömer han.
 - **Standarden är filmens, och bara den (2026-11-27, eftermiddag).** "Vi byter standard till att i princip enbart
   utgå från vy/vinkel/riktningar/storlekar och annat som fanns i videon (man ska sedan kunna spela vårt
   casino/blackjack i annan vinkel, men det kan ändras sedan när man väl har allt på plats vad det gäller den nya
