@@ -9,9 +9,8 @@
 // reaches into studio/. KEYS is a copy of what an address needs of it (each key's kind, range and choices) with the same
 // checks; tools/game-look.test.ts fails when the two part. Pure: no DOM, no network.
 //
-// Two of the game's own words share a name with a scene key and keep their meaning: tray=built keeps the built tray
-// (src/game-page.ts), and fan=<px> is the cards' fan step (src/game-table.ts); fan is the scene's fan shadow only as a
-// switch word (0, 1, true, false).
+// One of the game's own words shares a name with a scene key and keeps its meaning: fan=<px> is the cards' fan step
+// (src/game-table.ts); fan is the scene's fan shadow only as a switch word (0, 1, true, false).
 import type {SceneState} from './scene3d-view.ts';
 import {LINS_ALIAS_WORD, linsOfAlias} from './card-plan.ts';
 
@@ -43,8 +42,7 @@ export const KEYS: Readonly<Record<LookKey, KeyKind>> = {
   clock: on, dust: range(0, 1), flicker: on, flickerEvery: range(4, 90), flickerStrength: range(0, 1), fan: on, fanStrength: range(0, 0.4), fanPeriod: range(2, 12), roomLife: on, smoke: range(0, 1), dealerLife: range(0, 2), filmTempo: range(1, 2),
   tal: one('repliker', 'av'), // the dealer's fixed lines as talk films, or as text only (src/game-page.ts)
   exposure: range(0.3, 2), roomLight: range(0, 2.5), lamp: range(0, 1), wrap: range(0, 1.5), dealerRoom: range(0, 1), filmEven: on, edgeClean: range(0, 1), filmBright: range(0.6, 1.4), filmWarm: range(-0.2, 0.2), shadowAbove: range(0, 1),
-  cloth: one('print', 'v6', 'runway', 'runway-2', 'runway-3'), felt: one('green', 'blue', 'vin', 'svart'), marks: {kind: 'set', options: MARKS}, logo: {kind: 'text', maxLength: 28}, surface: one('painted', 'photo', 'natur', 'natur-2', 'natur-3', 'natur-duk'), base: one('column', 'legs'), tableSize: range(0.9, 1.4), tray: on, cups: on, shelf: on,
-  tableModel: one('standard', 'bord-02'), modelCloth: one('filt', 'gras'), modelWood: one('valnot', 'furu'), modelRail: one('brun', 'rodbrun', 'denim'), // table BORD-02 (src/scene3d-bord02.ts)
+  cloth: one('print', 'v6', 'runway', 'runway-2', 'runway-3'), felt: one('green', 'blue', 'vin', 'svart'), marks: {kind: 'set', options: MARKS}, logo: {kind: 'text', maxLength: 28}, surface: one('painted', 'photo', 'natur', 'natur-2', 'natur-3', 'natur-duk'), base: one('column', 'legs'), tableSize: range(0.9, 1.4), cups: on, shelf: on,
   cards: on, cardInHand: on, cardMethod: one('scene', 'film', 'matte'), cardHand: one('film', 'standard'), cardScale: range(0.8, 2),
   cardTaper: range(0.8, 0.96), // Kortens form under Standard (CARD_TAPER in src/card-plan.ts)
   cardRank: one('A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'), cardSuit: one('spades', 'hearts', 'diamonds', 'clubs'), chipGloss: range(0, 1),
@@ -55,11 +53,12 @@ export const KEYS: Readonly<Record<LookKey, KeyKind>> = {
 };
 export const isLookKey = (word: string): word is LookKey => Object.prototype.hasOwnProperty.call(KEYS, word);
 /**
- * Keys a look could carry until 2026-11-26 and no longer has: scale (Skala k) and lens (Dealerns lins) gave a look a scale
- * and a camera of its own beside the standard. A saved look or an address that still names one is read without it and
- * without a word about it (studio/lib/scene-keys.ts RETIRED_KEYS is the same list; tools/game-look.test.ts compares).
+ * Keys a look could carry and no longer has: scale (Skala k) and lens (Dealerns lins) gave a look a scale and a camera of its
+ * own (until 2026-11-26); tray, tableModel, modelCloth, modelWood and modelRail were the former standard's built tray and its
+ * table BORD-02 (until 2026-11-27: the live table has neither). A saved look or an address that still names one is read
+ * without it and without a word about it (studio/lib/scene-keys.ts RETIRED_KEYS is the same list; tools/game-look.test.ts compares).
  */
-export const RETIRED_KEYS: readonly string[] = ['scale', 'lens'];
+export const RETIRED_KEYS: readonly string[] = ['scale', 'lens', 'tray', 'tableModel', 'modelCloth', 'modelWood', 'modelRail'];
 
 const hasControl = (text: string) => [...text].some(c => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127);
 
@@ -97,7 +96,7 @@ export function readLook(params: Params, rooms?: readonly string[]): Look {
   const forval = asked !== null && PRESET_NAME.test(asked) && asked.length <= NAME_LIMIT ? asked : null;
   const keys: Record<string, unknown> = {}, ignored: string[] = [];
   params.forEach((text, word) => {
-    if (!isLookKey(word) || word === 'tray' && text === 'built' || word === 'fan' && !SWITCH_WORDS.includes(text)) return;
+    if (!isLookKey(word) || word === 'fan' && !SWITCH_WORDS.includes(text)) return;
     const value = decode(KEYS[word], text, rooms);
     if (value === null) { if (!ignored.includes(word)) ignored.push(word); } else keys[word] = value;
   });

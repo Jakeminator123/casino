@@ -19,7 +19,7 @@
 // single-precision sums and the final truncation to bytes. Compared against tonight's after.mp4 files with tools/film-after.ts
 // --compare (2026-11-13): WAN 3 and the 4K film byte-identical; Kling 4 about ten values a frame one level apart before encoding.
 
-import {UPPSATTNING} from './uppsattning.ts';
+import {FILM} from './plan-lens.ts';
 
 /** Three values per pixel; in a frame and in the tone they are B, G, R (OpenCV's order). */
 export type Triple = [number, number, number];
@@ -27,11 +27,11 @@ export type RGB = Triple;
 
 // ── The bank's frame and the treatments ─────────────────────────────────────
 /**
- * The bank's frame: the former standard's picture (src/uppsattning.ts). The green, the corners, the shoe's window and the
- * person's part of the picture below are measured in it; a film of another set-up is brought to that set-up's picture
+ * The bank's frame: the green-screen films' picture (1764 x 1174, src/plan-lens.ts FILM). The green, the corners, the shoe's
+ * window and the person's part of the picture below are measured in it; a film at the live table is brought to its own picture
  * (tools/film-after.ts) and gets none of the green screen's measures, since its table has no green screen.
  */
-export const BANK = UPPSATTNING.forra.bild;
+export const BANK = FILM;
 /** Left of the shoe: only the dealer (the tone lock and the end check measure her, not the shoe or the card in it). */
 export const PERSON_RIGHT = 1150;
 /** The corner the green level is read in, as the scripts print it: x 0..95, y 0..95. */

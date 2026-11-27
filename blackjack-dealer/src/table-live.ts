@@ -1,20 +1,20 @@
-// The live table: a second set-up beside the standard (Jakob 2026-11-27: "ska vi bara klona allt som finns på videon
-// först, sedan helt enkelt laborera med den så vi inte sitter i gamla spår?"). A real blackjack table measured on a film
-// by the measuring workshop live-bj/ (its live-bj/data/uppsattning.json and scen.json, 2026-11-27), copied in here so
-// that this is our set-up: nothing here reads live-bj/ when it runs. The standard in table-lens.ts, and all that uses
-// it (the game, Paow's films, the doll's motions of today), is not touched by it. The standard doll is set at this table
-// through this camera to be compared with the real dealer; the Blender build is avatar-auto-pipeline/scen/bygg_bord.py
-// --live (through scen/standard.yaml livebord, written by scen/gen_standard.py out of this file).
+// The live table: the one standard, Livestandarden (Jakob 2026-11-27: "vi byter standard till att i princip enbart utgå
+// från vy/vinkel/riktningar/storlekar och annat som fanns i videon"). A real blackjack table measured on a film by the
+// measuring workshop live-bj/ (its live-bj/data/uppsattning.json and scen.json, 2026-11-27), copied in here so that this
+// is our set-up: nothing here reads live-bj/ when it runs. The camera, the table, the shoe, the card places and the bet
+// marks that the game, the doll, the editor, recording and every order use; the dolls Danilo and Frasse sit at it. The
+// Blender build is avatar-auto-pipeline/scen/bygg_bord.py (through scen/standard.yaml, written by scen/gen_standard.py
+// out of this file).
 //
 // Preliminary: measured on one film through one camera. Every number says how sure it is, in the words of the
 // measurement: mätt (measured), skattat (estimated, measured but weakly), slutlett (inferred from other measures, not
 // seen), antaget (assumed: ours, until a measurement comes). An assumed number is ours on purpose and is changed here
 // when it is measured.
 //
-// World frame: the lens world of the live camera, as table-lens.ts has it for ours: metres, x toward the picture's right
-// (the dealer's left), y up with the felt at y = 0, z toward the player, the camera straight over the origin looking
-// along -z, pitched down and slightly rolled. Pure: imports only table-lens.ts, no I/O, so the browser reads it too.
-import {CARD, TABLE_RAIL, TABLE_TOP, cardCorners, type Pixel, type ShoePose, type Vec3} from './table-lens.ts';
+// World frame: the lens world of the live camera: metres, x toward the picture's right (the dealer's left), y up with the
+// felt at y = 0, z toward the player, the camera straight over the origin looking along -z, pitched down and slightly
+// rolled. Pure: imports only src/space.ts (the vectors and the real card), no I/O, so the browser reads it too.
+import {CARD, cardCorners, type Pixel, type ShoePose, type Vec3} from './space.ts';
 
 const D = Math.PI / 180;
 /** How sure a number is (the measurement's own words: measured, estimated, inferred, assumed). */
@@ -27,7 +27,6 @@ export type Sure = 'mätt' | 'skattat' | 'slutlett' | 'antaget';
  * cm, tilt 0.3 degrees; it stands still through the film. Unlike ours it has its own picture (1728 x 972, 67.6 by 41.3
  * degrees) and a roll: a level line across the felt falls toward the right of the picture by 2.8 pixels per 1000
  * (roll -0.16 degrees). Pixels are pixel centres, origin top left; `centre` is where the optical axis meets the picture.
- * Not a table-lens Lens: filmEye and see draw in the bank's picture without roll, so this camera has its own liveSee.
  */
 export type LiveCamera = {focalPx: number; pitch: number; roll: number; height: number; centre: Pixel; film: {width: number; height: number}};
 export const LIVE_CAMERA: LiveCamera = {focalPx: 1290.3, pitch: 18.13 * D, roll: -0.16 * D, height: 0.6175, centre: {x: 863.5, y: 485.5}, film: {width: 1728, height: 972}};
@@ -90,8 +89,12 @@ export type LiveSetup = {
   edge: Vec3;
   /** mätt: a half circle with a straight edge toward the dealer; the circle's centre lies 1.56 cm behind that edge. */
   felt: {centre: Vec3; radius: number; edgeZ: number; frontZ: number; depth: number; widthAtEdge: number};
-  /** antaget (ours): the padded rail round the arc, outside the felt; it stands up from the felt and is mätt in pixels only. */
-  rail: {width: number; section: typeof TABLE_RAIL};
+  /**
+   * antaget (ours): the padded rail round the arc, outside the felt; it stands up from the felt and is mätt in pixels only.
+   * section: the leather roll's own, the middle of the roll out from the felt's edge (centre) and above the felt (lift), its
+   * half width, and how far it rises above and reaches below that middle.
+   */
+  rail: {width: number; section: {centre: number; lift: number; halfWidth: number; above: number; below: number}};
   /**
    * A long clear box (mätt again 2026-11-27 on the film's frames: the deck lies, it does not stand). Its front is a clear
    * frame leaning back from the foot's two front corners, open in a window where the next card's back shows; inside, the
@@ -150,7 +153,7 @@ export const LIVE: LiveSetup = {
   camera: LIVE_CAMERA,
   edge: [0, 0, -1.5375],
   felt: {centre: [0.002, 0, -1.5531], radius: 0.7295, edgeZ: -1.5375, frontZ: -0.824, depth: 0.714, widthAtEdge: 1.459},
-  rail: {width: TABLE_TOP.rail, section: TABLE_RAIL},
+  rail: {width: 0.1, section: {centre: 0.057, lift: 0.012, halfWidth: 0.05, above: 0.034, below: 0.031}},
   shoe: {
     foot: {byDealer: [0.427, 0, -1.4842], towardPlayers: [0.4521, 0, -1.3844], back: [0.7162, 0, -1.4577]},
     length: 0.274, width: 0.103, backHeight: 0.117, frontHeight: 0.061, plateLean: (90 - 33.4) * D, windowLift: 0.003, bedLean: 13.4 * D, deckLength: 0.18,
@@ -214,7 +217,7 @@ export const LIVE: LiveSetup = {
 };
 
 // ---- what follows from it ----------------------------------------------------------------------------------------
-/** The shoe's pose in table-lens.ts's form: the front corner toward the players, the way to the back, and across to the far wall. */
+/** The shoe's pose (src/space.ts ShoePose): the front corner toward the players, the way to the back, and across to the far wall. */
 export function liveShoePose(s: LiveSetup['shoe'] = LIVE.shoe): ShoePose {
   const f = s.foot.towardPlayers, b = s.foot.back, n = Math.hypot(b[0] - f[0], b[2] - f[2]), back: Vec3 = [(b[0] - f[0]) / n, 0, (b[2] - f[2]) / n];
   return {front: f, back, far: [back[2], 0, -back[0]], footLength: n}; // across, away from the camera (-z): toward the dealer's corner
@@ -240,7 +243,7 @@ export function liveBox(b: LiveSetup['box'] = LIVE.box): {centre: Vec3; turn: nu
   const [nl, nr, fr] = b.foot, a = Math.atan2(-(nr[2] - nl[2]), nr[0] - nl[0]), c = Math.atan2(-(fr[2] - nr[2]), fr[0] - nr[0]) - Math.PI / 2;
   return {centre: [(nl[0] + fr[0]) / 2, 0, (nl[2] + fr[2]) / 2], turn: (a + c) / 2};
 }
-/** A card place's heading for table-lens.ts cardCorners (radians: positive turns the card's far end toward the picture's right). */
+/** A card place's heading for src/space.ts cardCorners (radians: positive turns the card's far end toward the picture's right). */
 export const liveCardHeading = (c: LiveCard) => -(c.turn > 90 ? c.turn - 180 : c.turn) * D;
 /** The four corners of a card lying at a card place, as cardCorners gives them. */
 export const liveCardCorners = (id: string): Vec3[] | null => { const c = LIVE.cards[id]; return c ? cardCorners(c.at, liveCardHeading(c)) : null; };

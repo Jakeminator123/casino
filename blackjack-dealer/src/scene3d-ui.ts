@@ -3,13 +3,12 @@
 import {buildGraph, resolveRound, type Step} from './clip-graph.ts';
 import {createScene, DEFAULTS, type SceneState} from './scene3d-view.ts';
 import type {Part} from './scene3d-film.ts';
-import {filmToScene, type CardTrack} from './scene3d-geometry.ts';
-import {LINS_ALIAS_WORD, linsOfAlias} from './card-plan.ts';
+import type {CardTrack} from './scene3d-geometry.ts';
 import {readRegister, type RoomId} from './scene3d-room.ts';
 import {FELT_MARKS, NATURES, RUNWAY_CLOTHS, TABLE_SIZE, feltMarks, isNature, isRunwayCloth, marksText, type FeltMark, type Nature, type RunwayCloth} from './scene3d-table.ts';
 
 const query = new URLSearchParams(location.search), bare = query.get('ui') === '0';
-const el = <K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLElementTagNameMap[K]> = {}, ...kids: (Node | string)[]) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
+const el = <K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLElementTagNameMap[K]> = {}, ...kids: (Node | string)[]): HTMLElementTagNameMap[K] => { const n = document.createElement(tag); Object.assign(n, props); n.append(...kids); return n; };
 const $ = (id: string) => document.getElementById(id)!;
 const panel = $('panel'), hudBox = $('hud'), canvas = $('view') as HTMLCanvasElement, stage = $('stage');
 if (bare) document.body.classList.add('noui');
@@ -40,8 +39,6 @@ const missing = new Set<RoomId>(), setters: Partial<Record<keyof SceneState, (va
 const scene = createScene(canvas, stage, {contract, plan: placements.plan ?? placements, urls: {plate: 'assets/scene/room.png', panorama: 'assets/scene/panorama-vegas.jpg', la: 'assets/scene/panorama-la.jpg', skog: 'assets/scene/panorama-skog.jpg'}, rooms: panoramas, onChange: () => { sync(); hud(); void followTrack(); }, onMissingRoom: room => { missing.add(room); hud(); }});
 const state = scene.state;
 for (const [key, value] of query) if (key in DEFAULTS) { const k = key as keyof SceneState, base = DEFAULTS[k]; (state as Record<string, unknown>)[k] = typeof base === 'number' ? Number(value) : typeof base === 'boolean' ? value === '1' : value; }
-// The lens by its older word (geometri=kontrakt, src/card-plan.ts linsOfAlias), where the address has no lins of its own.
-{ const alias = query.has('lins') ? null : linsOfAlias(query.get(LINS_ALIAS_WORD)); if (alias) state.lins = alias; }
 if (bare) state.format = 'fill';
 
 // ---- card track of the clip on screen: focus can follow the card ---------------------------------
@@ -67,11 +64,10 @@ async function followTrack() {
 const decimal = (v: number, digits = 2) => v.toFixed(digits).replace('.', ',');
 function hud() {
   const s = scene.status(), chip = (text: string, tone = '') => el('span', {className: `chip ${tone}`, textContent: text}), id = /motions\/([^/]+)\//.exec(scene.players.path)?.[1] ?? 'läser film…';
-  const added = [state.focus !== 'off' && 'fokus', state.fan && 'fläktskugga', state.tray && 'markerbräde', state.cards && ({scene: 'kort i scenen', film: 'kort i filmrutan', matte: 'kort med filmens kort som matt'}[state.cardMethod]), state.clock && 'klocka', state.dust > 0 && 'luft', state.flicker && 'ljusskifte', (state.filmBright !== 1 || state.filmWarm !== 0) && 'ljuskalibrering',
+  const added = [state.focus !== 'off' && 'fokus', state.fan && 'fläktskugga', state.cards && ({scene: 'kort i scenen', film: 'kort i filmrutan', matte: 'kort med filmens kort som matt'}[state.cardMethod]), state.clock && 'klocka', state.dust > 0 && 'luft', state.flicker && 'ljusskifte', (state.filmBright !== 1 || state.filmWarm !== 0) && 'ljuskalibrering',
     state.shadowAbove < 1 && 'skugga ovanför kanten bort', marksText(feltMarks(state.marks)) !== 'all' && 'valda markeringar', state.cloth === 'v6' && 'V6-duken', isRunwayCloth(state.cloth) && RUNWAY_CLOTHS[state.cloth].name.split(':')[0], isNature(state.surface) && NATURES[state.surface].name.split(':')[0].toLowerCase(), state.lamp > 0 && 'lampa över dealern', state.chipGloss !== DEFAULTS.chipGloss && 'markernas glans', state.roomLife && 'rörelse i rummet', state.dealerRoom > 0 && 'rummets ljus på dealern', state.tableSize !== 1 && 'annan bordsstorlek'].filter(Boolean);
   hudBox.replaceChildren(chip(id),
     s.view === 'moved' ? chip('Kameran är flyttad: 2,5D-närmevärde, inte filmens sanning', 'warn') : s.view === 'turned' ? chip('Bara vridning/zoom: filmen är geometriskt exakt', 'ok') : chip('Hemvy: filmen pixel för pixel', 'ok'),
-    s.camera.source === 'contract' ? chip(`Lins: Bred lins (kontraktets kamera) · skala k = ${decimal(s.camera.scale)}`) : chip('Lins: Standard (filmens egen) · verkliga meter', 'ok'),
     added.length ? chip(`Utöver v1: ${added.join(' + ')}`) : chip('Som kontrollpunkt v1'),
     ...(s.focus ? [chip(`Skärpan ligger på ${s.focus.what}${Number.isFinite(s.focus.distance) ? ` · ${decimal(s.focus.distance)} m` : ''}${(state.focus === 'card' || state.focus === 'follow') && !s.focus.tracked ? ' · klippet saknar kortspårning' : ''}`)] : []),
     ...(s.cards.error ? [chip('Renderade kort kunde inte läsas in: ' + s.cards.error, 'warn')] : state.cards && s.cards.loading ? [chip('Läser in kortritaren…')] : state.cards && !s.cards.tracked ? [chip('Klippet saknar kortspårning: filmens färgyta visas', 'warn')] : []),
@@ -150,7 +146,7 @@ function build() {
     check('Håll blicken på dealern vid flytt', 'aim'), check('Gunga kameran automatiskt', 'sway'),
     el('div', {className: 'btns'}, button('Hemvy (filmkameran)', () => scene.home()), button('Mobilvy', () => { scene.home(); scene.set({format: 'mob', pitch: -9, zoom: 1}); }), button('Hela bordet', () => { scene.home(); scene.set({mode: 'lean', dz: 1.14, dy: 0.26, pitch: -5.5, zoom: 0.9}); }), button('Grannstol (bryter)', () => { scene.home(); scene.set({mode: 'lean', dx: 0.55}); })),
     note('<b>Titta runt</b> vrider kameran på stället: det är exakt för en 2D-film. <b>Luta / flytta</b> ändrar kamerans plats: rummet och bordet är äkta 3D, filmen är två platta ytor och börjar ljuga ju längre du går.'));
-  group('Format', choice('format', [['desk', 'Dator 1764×1174'], ['mob', 'Mobil 9:16'], ['fill', 'Fyll fönstret']]));
+  group('Format', choice('format', [['desk', 'Dator 1728×972'], ['mob', 'Mobil 9:16'], ['fill', 'Fyll fönstret']]));
   const select = el('select'); select.append(...rounds.map((r, i) => el('option', {value: `round:${i}`, textContent: r.label})), ...clips.map(c => el('option', {value: c.id, textContent: c.id}))); select.value = first;
   select.addEventListener('change', () => { scene.players.toggle(false); void scene.players.load(partsOf(select.value)); });
   group('Film', select, el('div', {className: 'btns'}, button('Pausa', () => scene.players.toggle(), 'play'), button('−1 ruta', () => void scene.players.step(-1)), button('+1 ruta', () => void scene.players.step(1))),
@@ -175,7 +171,7 @@ function build() {
   setters.marks = ((v: string) => { const now = feltMarks(v); for (const m of marks) m.input.checked = now.has(m.mark); }) as never;
   // the table's size rebuilds the table, a moment after the slider rests (as Skala k does)
   let sizeTimer = 0; const tableSize = slider('Bordets storlek', 'tableSize', TABLE_SIZE.min, TABLE_SIZE.max, 0.05, '×', () => { clearTimeout(sizeTimer); sizeTimer = window.setTimeout(() => scene.rebuild(), 120); });
-  group('Bord', check('Markerbräde försänkt vid dealern', 'tray'), el('label', {className: 'row two'}, el('span', {textContent: 'Logotext'}), logo), choice('felt', [['green', 'Grön'], ['blue', 'Blå'], ['vin', 'Vinröd'], ['svart', 'Svart']]),
+  group('Bord', el('label', {className: 'row two'}, el('span', {textContent: 'Logotext'}), logo), choice('felt', [['green', 'Grön'], ['blue', 'Blå'], ['vin', 'Vinröd'], ['svart', 'Svart']]),
     note('Filt, linjer, kortrutor och logga är en enda platt bild sedd rakt uppifrån. Kortrutorna kommer ur kortplanen (endast läst). Bordets form och tryckets layout är provisoriska.'),
     ...marks.map(m => m.row), el('div', {className: 'btns'}, button('Alla markeringar', () => scene.set({marks: 'all'})), button('Inga', () => scene.set({marks: 'none'}))),
     note('<b>Markeringar</b>: varje slag för sig, i adressen som <code>?marks=rings,numbers</code> (eller <code>all</code>, <code>none</code>).'),
@@ -186,62 +182,30 @@ function build() {
     el('label', {className: 'row two'}, el('span', {textContent: 'Underrede'}), choice('base', [['column', 'Pelare (förut)'], ['legs', 'Två ben']])),
     tableSize, note('<b>Bordets storlek</b> (prov): filten, relingen och underredet växer åt sidorna och mot spelarna; dealerns kant står kvar där filmen har den och trycket ligger kvar där filmen delar ut. 1,00 är bordet som det var. Under 1 når de yttersta insatsringarna relingen.'),
     note('<b>Två ben</b>: fotograferat trä, mässingsfötter, fotstöd i mässing och bordets skugga på golvet, efter rumsstudien 7 november. Syns när kameran backar: knappen <b>Hela bordet</b> under Kamera.'),
-    (() => { const box = el('input', {type: 'checkbox'}); box.checked = query.get('sko') === '3d'; box.addEventListener('change', () => void shoe.set(box.checked)); return el('label', {className: 'check'}, box, el('span', {textContent: 'Sko i 3D i stället för filmens sko (prov)'})); })(),
-    note('<b>Sko i 3D</b>: din skomodell står som ett föremål i scenen där filmens sko står, och filmens sko ritas inte. Den står kvar när dealern går. Inte löst än: i en giv klipps handen där den sträcker sig in till skon.'),
-    check('Mugghållare i relingen', 'cups'), check('Hylla vid dealerns högra sida', 'shelf'), note('<b>Mugghållare</b>: en mässingsring mellan varje plats, nedsänkt i lädret.'),
-    el('label', {className: 'row two'}, el('span', {textContent: 'Bordsmodell'}), choice('tableModel', [['standard', 'Standardbordet'], ['bord-02', 'BORD-02, njurformat']])),
-    el('label', {className: 'row two'}, el('span', {textContent: 'Spelyta'}), choice('modelCloth', [['filt', 'Grön mikromocka'], ['gras', 'Gräsmatta']])),
-    el('label', {className: 'row two'}, el('span', {textContent: 'Träsarg'}), choice('modelWood', [['valnot', 'Valnötsfaner'], ['furu', 'Lackerad furu']])),
-    el('label', {className: 'row two'}, el('span', {textContent: 'Reling'}), choice('modelRail', [['brun', 'Brunt läder'], ['rodbrun', 'Rödbrunt läder'], ['denim', 'Blå denim']])),
-    note('<b>BORD-02</b> (prov): det njurformade bordet ur Ultimate Reality, byggt ur sina egna mått (192 × 129,6 cm), med sju fotograferade material från Poly Haven som tre val. Trycket är scenens eget, där filmerna delar ut. Spelyta, träsarg och reling gäller bara det bordet; duk, filtfärg, underrede, mugghållare och hylla gäller standardbordet. <b>Yta</b> styr ljuset: på Målad och Duken behåller spelytan sin egen färg, på de fotograferade ytorna belyses den av rummet.'));
-  group('Marker och bricka', el('div', {className: 'btns'}, button('Lägg insatser', () => chipsLab.lay()), button('En marker till på plats 4', () => chipsLab.more())),
-    el('div', {className: 'btns'}, button('Dealern tar plats 2', () => chipsLab.take(2)), button('Betala plats 6', () => chipsLab.pay(6)), button('Rensa', () => chipsLab.clear())),
+    check('Mugghållare i relingen', 'cups'), check('Hylla vid dealerns högra sida', 'shelf'), note('<b>Mugghållare</b>: en mässingsring mellan varje plats, nedsänkt i lädret.'));
+  group('Marker', el('div', {className: 'btns'}, button('Lägg insatser', () => chipsLab.lay()), button('En marker till på plats 4', () => chipsLab.more()), button('Rensa', () => chipsLab.clear())),
     slider('Markernas glans', 'chipGloss', 0, 1, 0.01, '', () => { chipsLab.gloss(); hud(); }),
-    note('<b>Markernas glans</b> följer markerstudiens lutning (grovhet 0,64 − 0,28 × glans) kring markernas utseende förut, 0,50. Syns när insatser ligger.'),
-    note('Spelets marker med tyngd, och en bricka med <b>samma marker</b> på högkant i stället för den byggda. En förlorad insats lyfts, vänds på högkant och sätts ner i sin rad; en vinst bärs ut ur brickan och ställs bredvid insatsen. Ingen hand syns: det kräver en film där hon sträcker sig.'));
-  // Lins is the look's lens (SceneState.lins): Standard is the table's lens (the film's camera, the standard), Bred lins the
-  // contract's older wide camera (src/scene3d-view.ts filmCamera). There is no other camera and no scale of a look's own.
-  group('Lins', el('label', {className: 'row two'}, el('span', {textContent: 'Lins'}), choice('lins', [['standard', 'Standard'], ['bred', 'Bred lins']], lins => { scene.home(); scene.set({lins}); })),
-    note('Hemvyn är filmen oavsett lins. Linsen styr hur filttrycket, bordet och rummet ligger i perspektiv och hur vridning och parallax ser ut. '
-      + '<b>Standard</b> är filmens egen kamera: kortplanen, dockan och beställningarnas slutbild ritar genom samma lins, med ett verkligt kort och dealern i verklig storlek. '
-      + '<b>Bred lins</b> är den äldre, vidare kameran som passar kortrutorna men inte är filmens egen; dealern är inte ritad med den linsen, och bordet byggs i kontraktets skala (k = 2).'));
+    note('<b>Markernas glans</b> följer markerstudiens lutning (grovhet 0,64 − 0,28 × glans) kring markernas utseende förut, 0,50. Syns när insatser ligger.'));
 }
 
-// ---- chips and the house's tray (src/game3d-chips.ts, src/game3d-tray.ts): tried here without a game behind them ----------
-// Bets are laid on three seats, the house takes one and pays another: the chips fall with weight, a lost bet is carried into
-// the tray and winnings out of it. The modules are the game's own and are fetched the first time a button is pressed.
+// ---- chips (src/game3d-chips.ts): tried here without a game behind them ----------
+// Bets are laid on three seats and fall with weight. The module is the game's own and is fetched the first time a button is pressed.
 const chipsLab = (() => {
   type Spot3 = {x: number; y: number; s: number};
-  type Chips = {set(bets: Record<number, number[]>, now: number): void; update(now: number): boolean; send(seat: number, to: (value: number) => Spot3, now: number, arrive: (value: number) => void): void;
-    pay(seat: number, values: number[], from: (value: number) => Spot3, now: number, leave: (value: number) => void): void; clearWinnings(): void; setGloss(gloss: number): void};
-  type Tray = {mouth(value: number, taking: boolean): Spot3; add(value: number): boolean; remove(value: number): boolean};
-  let chips: Chips | null = null, tray: Tray | null = null, bets: Record<number, number[]> = {}, loading: Promise<void> | null = null;
+  type Chips = {set(bets: Record<number, number[]>, now: number): void; update(now: number): boolean; clearWinnings(): void; setGloss(gloss: number): void};
+  let chips: Chips | null = null, bets: Record<number, number[]> = {}, loading: Promise<void> | null = null;
   const now = () => performance.now() / 1000;
-  const load = () => loading ??= Promise.all([import('./game3d-chips.ts'), import('./game3d-tray.ts')]).then(([c, t]) => {
-    const made = c.createChips(scene), house = t.createHouseTray(scene); made.setGloss(state.chipGloss); scene.set({tray: false}); scene.notch(house.notch); scene.addProp(house); scene.addProp(made); chips = made; tray = house;
+  const load = () => loading ??= import('./game3d-chips.ts').then(c => {
+    const made = c.createChips(scene); made.setGloss(state.chipGloss); scene.addProp(made); chips = made;
     scene.onFrame(() => { made.update(now()); }); });
   const show = () => chips?.set(bets, now());
   return {
     lay() { void load().then(() => { chips!.clearWinnings(); bets = {2: [25, 25, 100], 4: [5, 5, 25], 6: [100, 500]}; show(); }); },
     more() { void load().then(() => { bets = {...bets, 4: [...(bets[4] ?? []), 25]}; show(); }); },
-    take(seat: number) { void load().then(() => { if (!bets[seat]) return; delete bets[seat]; chips!.send(seat, value => tray!.mouth(value, false), now(), value => { tray!.add(value); }); }); },
-    pay(seat: number) { void load().then(() => { if (!bets[seat]) return; chips!.pay(seat, bets[seat], value => tray!.mouth(value, true), now(), value => { tray!.remove(value); }); }); },
     clear() { void load().then(() => { bets = {}; chips!.clearWinnings(); show(); }); },
     gloss() { chips?.setGloss(state.chipGloss); }, // chips that are not laid yet take it when they are made
   };
 })();
-
-// ---- the shoe trial: Jakob's shoe model as an object of the scene where the film's own shoe stands, and the film's shoe left
-// undrawn (panel Bord, or ?sko=3d). The whole-body films have no shoe on the table, so the film's shoe goes when the dealer
-// leaves and comes back when she sits; an object of the scene stays. A film with a frame of its own (whole body) keeps all of
-// its picture: its shoe box holds something else. Not solved here: a hand that reaches into the box, as in a deal, is cut with it.
-const shoe = (() => { let remove: (() => void) | null = null, box: number[] | null = null, wanted = false;
-  scene.onFrame(() => { if (remove && box) scene.hideFilm(scene.players.part?.frame ? null : box); });
-  return {async set(on: boolean) { wanted = on; if (on && !remove) { const m = await import('./game3d-props.ts'), camera = scene.status().camera, at = (p: number[]) => filmToScene(camera, p[0], p[1]);
-      const prop = await m.loadShoe(scene, {rear: at(m.FILM_SHOE.rear), front: at(m.FILM_SHOE.front), far: at(m.FILM_SHOE.far)}); if (!wanted || remove) return; box = m.FILM_SHOE.box; remove = scene.addProp(prop); }
-    else if (!on && remove) { remove(); remove = null; scene.hideFilm(null); } }};
-})();
-if (query.get('sko') === '3d') void shoe.set(true);
 
 // ---- mouse and keyboard ------------------------------------------------------------------------------
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));

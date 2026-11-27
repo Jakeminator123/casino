@@ -4,7 +4,7 @@
 // No DOM, WebGL or file access here. The drawing itself is src/card-overlay-view.ts.
 import {classify, morph, blobs, grown, centre, signedArea, inside, clockwise, is, sound, YELLOW, BLUE, SHADE, TINT, TABLE, SKIN, DARK, type Pt, type Side} from './card-track.ts';
 import {CARD_TAPER, planCardFrom, planShape, throughLens} from './card-plan.ts';
-import {TABLE_LENS, type Lens} from './table-lens.ts';
+import {TABLE_LENS, type Lens} from './plan-lens.ts';
 import type {PlacementPlan} from './placement-model.ts';
 
 // film: where the film's own card is in the frame, when the track draws the card somewhere else than the film has it (a track that

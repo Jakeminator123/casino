@@ -10,7 +10,7 @@
 // Tests: tools/order-model.test.ts.
 import { UNNAMED, dealersOf, parseEdge } from './clip-graph.ts';
 import type {ReviewEvidence} from './review-evidence.ts';
-import { DATATS_FORVAL, UPPSATTNING, UPPSATTNINGAR, datatsUppsattning, type UppsattningId } from './uppsattning.ts';
+import { STANDARD } from './standard.ts';
 
 // ── Words ───────────────────────────────────────────────────────────────────
 export const ORDER_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -303,11 +303,8 @@ export type Order = {
    * every order for a dealer.
    */
   person?: { id: string; name: string } | null;
-  /**
-   * The set-up the order is made under (src/uppsattning.ts: its picture, camera, table and shoe). Absent: the former standard
-   * (DATATS_FORVAL), as every order made before the choice; only written where it is another (uppsattningOf).
-   */
-  uppsattning?: UppsattningId;
+  /** Written by orders made while there were two set-ups ('live'); read as nothing, never written (src/standard.ts is the one). */
+  uppsattning?: 'live';
   kind: Kind;
   /**
    * The step: a film between two anchors (edge "READY>P4.C1"), or the picture a still makes (makes). shape: a deal goes to
@@ -352,19 +349,9 @@ export type Approval = { by: (typeof APPROVERS)[number]; at: string; orderSha256
 export const approvalWords = (a: Pick<Approval, 'by' | 'mandate'>) =>
   a.by === 'huvudagent' ? 'Godkänd av huvudagenten på Jakobs uppdrag' : a.mandate ? 'Godkänd av Jakob i chatten' : 'Godkänd av Jakob';
 
-// ── The set-up (src/uppsattning.ts) ─────────────────────────────────────────
-/**
- * The set-up an order, a film's post or a doll's film is made under: its field, else the former standard (DATATS_FORVAL),
- * so that nothing made before the choice is rewritten. A new order takes the set-up of what it is made of (tools/order-store.ts).
- */
-export const uppsattningOf = (o: { uppsattning?: unknown } | null | undefined): UppsattningId => datatsUppsattning(o?.uppsattning);
-/**
- * The field as it is written: only where it is not the data's default, so that an order, a post or a doll's film made under
- * the former standard is what it was before the choice, character for character, and keeps its hash.
- */
-export const uppsattningField = (id: UppsattningId): { uppsattning?: UppsattningId } => (id === DATATS_FORVAL ? {} : { uppsattning: id });
-/** The picture an order's pictures and films are made in: its set-up's (1764 × 1174 at the former standard, 1728 × 972 at the live table). */
-export const pictureOf = (o: { uppsattning?: unknown } | null | undefined): { width: number; height: number } => UPPSATTNING[uppsattningOf(o)].bild;
+// ── The picture ─────────────────────────────────────────────────────────────
+/** The picture an order's pictures and films are made in: the standard's (src/standard.ts, the live table's 1728 × 972). */
+export const ORDER_PICTURE: { width: number; height: number } = STANDARD.bild;
 /** The person of an order (a trial for someone who is not a dealer yet), or null. */
 export const personOf = (o: { person?: Order['person'] } | null | undefined) => (o?.person && typeof o.person.id === 'string' ? o.person : null);
 /** Who an order makes the film of, in words: the person's name, else the dealer's (or its id). */
@@ -869,9 +856,9 @@ export type BankFacts = {
 export type RenderedReference = { id: string; edge: string; path: string; sha256: string; seconds: number; fromDeal?: string; capture?: string; lays?: 'LH' | 'RH'; shape?: Shape; check?: { pass: boolean; clean?: boolean; codes?: string[] } | null;
   /** A film of a dealer's own doll ("paow"), not the dummy's: never the default; an order chooses it by name (node tools/order-new.ts --docka paow). */
   doll?: string;
-  /** The set-up it is filmed at (src/uppsattning.ts); absent: the former standard, as every film registered before the choice. */
-  uppsattning?: UppsattningId;
-  /** The camera of that set-up it is filmed through: "kameran" (the live table's own) or a seat's ("plats-7"); absent: the set-up's own. */
+  /** Written by films registered while there were two set-ups ('live'); read as nothing, never written. */
+  uppsattning?: 'live';
+  /** The camera it is filmed through: "kameran" (the live table's own) or a seat's ("plats-7"); absent: the table's own. */
   camera?: string;
   /**
    * Per person (his id): the guidance picture made of the film's first frame for him (kept beside the film as
@@ -898,8 +885,6 @@ export type RefCandidate = {
   fromDeal?: string | null;
   /** For a rendered film of a dealer's own doll: whose (RenderedReference.doll); such a film is chosen only by name. */
   doll?: string | null;
-  /** The set-up the film is made at (RenderedReference.uppsattning, a bank take's post; uppsattningOf). */
-  uppsattning?: UppsattningId;
   /** For a rendered film: its guidance pictures per person (RenderedReference.styrbilder). */
   styrbilder?: Record<string, Styrbild>;
   match: 0 | 1 | 2; verdict: RefVerdict; approvedStraight: boolean; words: string | null;
@@ -930,10 +915,9 @@ export function wantedEdge(step: StepDef, target: string | null): string | null 
  * The bank's takes a reference film can be chosen from for a step: takes of the same step and seat first, then the same
  * seat from another grip, then the same step to another seat. Within that a take Jakob has rejected comes last, the
  * dealer's own before another dealer's, then by his verdict. One per film (the best placed take names it). A film with an
- * archived take is never offered because the whole file goes out. Only films of the set-up asked for (want.uppsattning;
- * absent: the former standard), since a film shows its own table and camera.
+ * archived take is never offered because the whole file goes out.
  */
-export function referenceCandidates(bank: BankFacts, want: { dealer: string; step: StepDef; target: string | null; model?: Pick<ModelDef, 'referenceSeconds'> | null; uppsattning?: UppsattningId }): RefCandidate[] {
+export function referenceCandidates(bank: BankFacts, want: { dealer: string; step: StepDef; target: string | null; model?: Pick<ModelDef, 'referenceSeconds'> | null }): RefCandidate[] {
   const w = parseEdge(wantedEdge(want.step, want.target) ?? '');
   if (!w) return [];
   const owners = dealersOf(bank as never);
@@ -945,7 +929,7 @@ export function referenceCandidates(bank: BankFacts, want: { dealer: string; ste
     ...edits.flatMap((x) => { const src = byId.get(x.source?.clip ?? ''); return src ? [{ id: x.id, from: src.from, to: src.to, film: x.id, frames: null }] : []; }),
     ...derived.map((d) => ({ id: d.id, from: d.from, to: d.to, film: d.clip, frames: d.frames })),
   ];
-  const range = want.model?.referenceSeconds ?? null, setup = want.uppsattning ?? DATATS_FORVAL;
+  const range = want.model?.referenceSeconds ?? null;
   const out: RefCandidate[] = [];
   for (const t of takes) {
     const e = parseEdge(`${t.from === 'DRAWN' ? DRAWN_AS : t.from}>${t.to}`);
@@ -955,10 +939,6 @@ export function referenceCandidates(bank: BankFacts, want: { dealer: string; ste
     if (match === null) continue;
     if (bank.media && t.id in bank.media && !bank.media[t.id]?.video) continue;
     if (archived.has(t.id) || archived.has(t.film)) continue;
-    // Only a film of the order's set-up: a film's post without the field is the former standard's, and so is a caller that
-    // names none (written before the choice).
-    const made = uppsattningOf(bank.motions?.[t.film]);
-    if (made !== setup) continue;
     const record = bank.motions?.[t.id], source = record?.source ?? bank.motions?.[t.film]?.source;
     const seconds = source?.frames && source.fps ? Math.round((source.frames / source.fps) * 1000) / 1000 : (byId.get(t.film)?.duration ?? null);
     const whole = !t.frames || !source?.frames || (t.frames[0] <= 0 && t.frames[1] >= source.frames - 1);
@@ -967,7 +947,7 @@ export function referenceCandidates(bank: BankFacts, want: { dealer: string; ste
       take: t.id, film: t.film, path: `assets/motions/${t.film}/source.mp4`, dealer: owners[t.id] ?? UNNAMED, edge: `${t.from}>${t.to}`, goesTo: e.target,
       match, verdict, approvedStraight: straight, words, seconds, frames: whole ? null : t.frames, also: derived.filter((d) => d.clip === t.film && d.id !== t.id).map((d) => d.id),
       fits: !range || (seconds !== null && seconds >= range[0] && seconds <= range[1]), sha256: source?.sha256 ?? null,
-      check: bank.referenceChecks?.[t.film] ?? null, lays: record?.motion?.releaseHand === 'RH' ? 'RH' : 'LH', ...uppsattningField(made),
+      check: bank.referenceChecks?.[t.film] ?? null, lays: record?.motion?.releaseHand === 'RH' ? 'RH' : 'LH',
     });
   }
   // A film whose reference check fails comes after every one that passes or is not checked, within its match.
@@ -980,10 +960,8 @@ export function referenceCandidates(bank: BankFacts, want: { dealer: string; ste
     if (!e) continue;
     const match = e.id === w.id ? 0 : e.base === w.base ? 1 : null;
     if (match === null) continue;
-    const made = uppsattningOf(r);
-    if (made !== setup) continue;
     out.push({ take: r.id, film: r.id, path: r.path, dealer: 'docka', edge: r.edge, goesTo: e.target, kind: 'RENDERED', fromDeal: r.fromDeal ?? null, doll: r.doll ?? null, match, verdict: 'EJ_DÖMD', approvedStraight: false, words: null,
-      check: r.check ?? null, lays: r.lays ?? 'LH', shape: r.shape ?? null, seconds: r.seconds, frames: null, also: [], fits: !range || (r.seconds >= range[0] && r.seconds <= range[1]), sha256: r.sha256, ...uppsattningField(made), ...(r.styrbilder ? { styrbilder: r.styrbilder } : {}) });
+      check: r.check ?? null, lays: r.lays ?? 'LH', shape: r.shape ?? null, seconds: r.seconds, frames: null, also: [], fits: !range || (r.seconds >= range[0] && r.seconds <= range[1]), sha256: r.sha256, ...(r.styrbilder ? { styrbilder: r.styrbilder } : {}) });
   }
   const rank = (c: RefCandidate) => [c.match, c.kind === 'RENDERED' ? 0 : 1, ...key(c).slice(1)];
   out.sort((a, b) => { const ka = rank(a), kb = rank(b); for (let i = 0; i < ka.length; i++) if (ka[i] !== kb[i]) return ka[i] - kb[i]; if (a.kind === 'RENDERED' && b.kind === 'RENDERED') return (listed.get(b.take) ?? 0) - (listed.get(a.take) ?? 0); return a.take.localeCompare(b.take); });
@@ -1310,8 +1288,7 @@ export function validateOrder(value: unknown): { order: Order | null; errors: st
     if (!isObject(o.person) || typeof o.person.id !== 'string' || !/^[a-z0-9]+$/.test(o.person.id) || typeof o.person.name !== 'string' || !o.person.name.trim() || o.person.name.length > 60) errors.push('person ska vara {id, name}.');
     if (o.dealer !== undefined) errors.push('En beställning för en person som inte är dealer än har ingen dealer.');
   } else if (typeof o.dealer !== 'string' || !/^[a-z0-9]+$/.test(o.dealer)) errors.push('dealer ska vara ett id.');
-  if (o.uppsattning !== undefined && !(UPPSATTNINGAR as readonly unknown[]).includes(o.uppsattning)) errors.push(`uppsattning ska vara ${UPPSATTNINGAR.join(' eller ')}.`);
-  if (o.uppsattning === DATATS_FORVAL) errors.push(`uppsattning skrivs bara när den inte är ${DATATS_FORVAL} (utan fältet gäller den).`);
+  if (o.uppsattning !== undefined && o.uppsattning !== 'live') errors.push('uppsattning finns bara kvar som live, i beställningar från när det fanns två.');
   if (o.kind !== 'STILL' && o.kind !== 'FILM') errors.push('kind ska vara STILL eller FILM.');
   if (!isObject(o.step) || !stepOf(String(o.step.key))) errors.push('step.key är okänd.');
   if (!Array.isArray(o.pictures) || !o.pictures.length) errors.push('pictures saknas.');
