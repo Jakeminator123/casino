@@ -27,7 +27,7 @@ Mapparna, kommandona och det som måste finnas på datorn innan något byggs st�
 
 ## 3. Pipelinen steg för steg
 
-Det finns **två vägar** som möts i samma standardscen och samma skelett.
+Det finns **två vägar** som möts i samma standardscen och samma skelett. Alla sätt att bygga en docka, del för del, och vad som går ihop står i `VAGAR.md` (skriven ur `vagar.json`).
 
 ### 3.1 Ny väg: standardscenen (det vi bygger nu)
 
@@ -49,7 +49,7 @@ Skripten i `steg/` bygger en **specifik dealer från fotografier** via Meshy, in
 
 | Steg | Mapp | Roll |
 | --- | --- | --- |
-| 01 | `steg/01-referenser/` | Gör A-pose-referenser ur inskickade foton (`apose_referenser.py`). |
+| 01 | `steg/01-referenser/` | Gör tre referensbilder ur fotona med gpt-image-2: huvudet framifrån, kroppen i A-pose och en öppen högerhand (`apose_referenser.py`). |
 | 02 | `steg/02-meshy-delar/` | Meshy image-to-3D för huvud, händer och kropp var för sig (`meshy_enbild.py`, `rendera_vyer.py`). **Betalt – kräver Jakobs ja.** |
 | 03 | `steg/03-montering/` | Montera delarna i A-pose, rensa bröstkorg, förenkla 4K-mesh (`montera_apose.py`, `clean_kropp_chest.py`, `forenkla_4k.py`, …). Händerna behåller sin egen handled och skarven läggs inne i ärmen (`HANDLED_IN`); förr vidgades handleden till ärmens mått. |
 | 04 | `steg/04-rigg/` | Meshy Auto-Rig (`meshy_rigg.py`). **Betalt – kräver ja.** |
@@ -294,11 +294,11 @@ Per hand, alla med förälder `*Hand` för länk 1 och sedan kedja 1→2→3:
 
 ### 7.3 Ansiktsben under Head (16 st, inklusive headfront)
 
-Alla har `Head` som förälder. `headfront` krävs av dealer3d; de övriga 15 är MPFB-ansiktsben för mimik tillsammans med shape keys.
+Alla har `Head` som förälder. `headfront` läses inte längre av spelet (sedan 2026-11-26), men bryggan (`verktyg/`) och exportens kontroll använder den (7.6); de övriga 15 är MPFB-ansiktsben för mimik tillsammans med shape keys.
 
 | Ben | Roll |
 | --- | --- |
-| headfront | Referens framåt på huvudet (dealer3d-krav) |
+| headfront | Referens framåt på huvudet (bryggan och exportens kontroll) |
 | jaw | Käke |
 | eye.L, eye.R | Ögon (blick; kompletterar saknade eyeLook-shape keys) |
 | oculi01.L/R, oculi02.L/R | Ögonring / ögonlock |
@@ -334,11 +334,11 @@ Lokala `LIMIT_ROTATION`-constraints (`ledgrans`), plus IK-gångjärn. Värden i 
 
 ### 7.6 Bennamn mot dealer3d
 
-dealer3d (`figure-model.ts`) kräver exakt dessa exportnamn, **utan** `mixamorig:`-prefix:
+dealer3d (`figure-model.ts`) kräver exakt dessa exportnamn, **utan** `mixamorig:`-prefix, och `Hips` ovanför båda axlarna:
 
-`RightArm`, `LeftArm`, `RightForeArm`, `LeftForeArm`, `RightHand`, `LeftHand`, `RightUpLeg`, `LeftUpLeg`, `RightLeg`, `LeftLeg`, `RightFoot`, `LeftFoot`, `neck`, `Head`, `headfront`.
+`Hips`, `RightArm`, `LeftArm`, `RightForeArm`, `LeftForeArm`, `RightHand`, `LeftHand`, `RightUpLeg`, `LeftUpLeg`, `RightLeg`, `LeftLeg`, `RightFoot`, `LeftFoot`, `neck`, `Head`.
 
-Vår docka uppfyller listan. Fingrar, ansiktsben och vridben är utöver kraven och stör inte.
+`headfront` läses inte längre av spelet (sedan 2026-11-26), men bryggan (`verktyg/dealer3d_till_blender.py`, `verktyg/blender_till_dealer3d.py`) använder den, och exportens kontroll kräver den (`KRAVDA_BEN` i `gemensamt/riggverktyg.py`, steg 06). Vår docka uppfyller listan. Vridben, fingrar för en hel hand, ögonen (`eye.L`/`eye.R`) och ansiktsformerna används av spelet när de finns.
 
 ### 7.7 30 ARKit shape keys – och vad som saknas
 
@@ -447,7 +447,7 @@ Betalda Meshy-/Runway-steg bara med Jakobs ja.
 | Val | Mot | Varför vi valde så |
 | --- | --- | --- |
 | Procedurellt bord, kort, sko, bricka, chips | Meshy eller färdiga modeller | Exakta mått och upprepbarhet. En millimeter fel på ett kort syns i filmlinsen. Meshy vinner när formen är organisk och måtten lösa – därför är **stolen** det enda Meshy-objektet. |
-| MPFB2 + Mixamo-ben | Rigify, eller Meshy-rig som grund | dealer3d och Mixamo-biblioteket förväntar `RightArm` / `RightForeArm` / `neck` / `headfront`. Rigify har andra namn och skulle kräva en ständig omnamningsbrygga. MPFB ger mätbara proportioner och CC0-kropp. |
+| MPFB2 + Mixamo-ben | Rigify, eller Meshy-rig som grund | dealer3d och Mixamo-biblioteket förväntar `RightArm` / `RightForeArm` / `neck` / `Head`. Rigify har andra namn och skulle kräva en ständig omnamningsbrygga. MPFB ger mätbara proportioner och CC0-kropp. |
 | Två kön, ett skelett | En docka, eller unikt skelett per dealer | Actions återanvänds. Kön är mesh + mått, inte en ny rig. |
 | Höft Y = 0,38 m (Paow) även på ovalen | Gamla ASSUMED 0,18 m | 0,18 m stack in i BORD-02:s vingar. På ovalen finns inga vingar, men 0,38 m är den uppmätta dealerpositionen ur film och den dealer3d använder för Paow-rörelser. Vi behåller den. |
 | Ovalen som byggt default, BORD-02 som alternativ | Bygga bara BORD-02, eller Kortplan-halvcirkeln | Spelets `tableModel` default är `'standard'`. Halvcirkeln i Kortplan är en förenklad visning, inte måttstandarden. |
@@ -488,7 +488,7 @@ Provdealern Rosalina, gjord från foton (cirka 95 krediter), raderades 2026-11-2
 
 - Rörelsekatalogen är inte fylld med ~40 färdiga, godkända klipp. Nästa stora arbete efter standardscenen.
 - Grunddockan saknar kläder (medvetet). Nästa steg: skjorta/väst/byxor som separata mesh på samma rig.
-- Vägen från foton (steg 01–08) är inte kopplad till standardscenen: steg 08 bygger sitt eget bord. Ingen dealer från foton finns kvar: provdealern Rosalina raderades 2026-11-26.
+- Vägen från foton (steg 01–08) är inte kopplad till standardscenen: steg 08 bygger sitt eget bord. Dealern från foton i dag är Tomasz (`output/tomasz/`, 2026-11-26, steg 1–7 utan film).
 - Texturerna, korten och kortatlasen i `assets/bord/` hämtades för hand; adresserna står i `kallor.json` men inget skript hämtar dem eller bygger atlasen. Stolens råfil är betald och finns bara på datorn där den beställdes. På en annan dator kan bordet och stolen därför inte byggas förrän filerna finns där.
 - Måttfilens `docka`-block (höften 0,20 m under filten, axlarna 0,35 m över den, armarna 0,29 och 0,26 m) är doll.ts STANDARD:s äldre tal, inte standarddockornas plats (axlarna 0,31 m över filten, 0,38 m bakom spelets kant; `SITT` i `bygg_docka.py`). Se 5.9.
 - Knogarnas läge: i MPFB:s skelett sitter långfingrets knoge 107 mm från handleden hos mannen (100 hos kvinnan), mot en människas 86–95 mm; handflatan är lång och fingrarnas leder sitter för långt ut. Inte rättat.

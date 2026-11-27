@@ -16,6 +16,8 @@ avatar-auto-pipeline/
   AGENTS.md                  regler
   README-SV.md               den här filen: mappar och körning
   new_docka.md               standarddockan: skelett, leder, bryggan, anpassning, val och brister
+  vagar.json                 vägarna för att bygga en docka, del för del, och reglerna för vad som går ihop (källan för guiden; ändras för hand)
+  vagar.py, VAGAR.md         vagar.py kontrollerar vagar.json mot koden och skriver VAGAR.md ur den (--kolla, --val); VAGAR.md ändras aldrig för hand
   scen/                      standardscenen
     standard.yaml            alla mått, skrivna ur spelets kod (ändras aldrig för hand)
     gen_standard.py          skriver standard.yaml; las_spelet.ts läser spelets kod åt den
@@ -132,6 +134,6 @@ Slutfilerna ligger i `output/<namn>/`:
 | `07-qc\resultat-oversikt.png` | Kvalitetsblad (helkropp, ansikte, handleder). |
 | `08-film\<namn>-ror-sig.mp4` | Rörelsefilmen, när den har renderats klart. |
 
-Ingen dealer från foton finns i mappen i dag: provdealern Rosalina raderades 2026-11-26.
+Dealern från foton i dag är Tomasz (2026-11-26, steg 1–7 utan film) i `output/tomasz/`; hans dealer-GLB och kontrollblad väntar på Jakobs dom i `../slask/avatar-auto-pipeline/granska/tomasz/`.
 
 Om något avbryts kan du fortsätta utan att betala om: `--from-step 5` eller `--only-step 7`. Hoppa över filmen med `--no-video`. Betalda jobb sparar ett kvitto i stegmappen: `referenser.json`, `korning.json` och `riggjobb.json`. En omstart använder samma kvitto. Radera dem inte.

@@ -170,6 +170,19 @@ function main(argv: string[]): number {
     console.log('Rött: MATT.md stämde inte med måtten i koden och är nu skriven om (node matt.ts). Committa MATT.md och pusha igen.');
     return 1;
   }
+  // The same for the ways of building a dealer doll (avatar-auto-pipeline/vagar.json is the source, checked against the
+  // code; VAGAR.md is its printout). A computer without Python skips it and says so.
+  const ways = path.join(ROOT, 'avatar-auto-pipeline');
+  if (existsSync(path.join(ways, 'vagar.py'))) {
+    const python = [path.join(ways, '.venv/Scripts/python.exe'), path.join(ways, '.venv/bin/python')].find(existsSync) ?? 'python';
+    const check = spawnSync(python, ['-I', 'vagar.py', '--kolla'], {cwd: ways, env: cleanEnv(), stdio: 'ignore'});
+    if (check.error) console.log('[VARNING] Python saknas: avatarvägarna (avatar-auto-pipeline/vagar.py --kolla) kontrollerades inte.');
+    else if (check.status !== 0) {
+      spawnSync(python, ['-I', 'vagar.py'], {cwd: ways, env: cleanEnv(), stdio: 'inherit'});
+      console.log('Rött: avatarvägarna stämde inte (avatar-auto-pipeline/vagar.py). Stämmer vagar.json med koden är VAGAR.md nu skriven om: committa den och pusha igen. Annars står felet ovan: rätta vagar.json.');
+      return 1;
+    }
+  }
   const runs = testRuns(ROOT, files.map(f => f.path));
   for (const run of runs) {
     const open = lines(git(ROOT, ['diff', '--name-only', 'HEAD', '--', run.name]));

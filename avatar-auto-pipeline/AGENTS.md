@@ -6,6 +6,10 @@ riggning hos Meshy, montering och export i Blender). Rotens `AGENTS.md` gäller;
 här mappen. Mapparna och alla kommandon står i `README-SV.md`; skelettet, lederna och hur en dealer anpassas i
 `new_docka.md`.
 
+- **Vägarna har en källa:** `vagar.json` säger vilka delar en dealerdocka byggs av, vilka alternativ som finns, de
+  färdiga vägarna (Version 1 är det `auto_avatar.py` kör i dag) och vad som går ihop. `VAGAR.md` är en utskrift och
+  ändras aldrig för hand: `python -I vagar.py` kontrollerar filen mot koden och skriver den, och kontrollen före push
+  gör det när något inte stämmer. Ett nytt steg eller alternativ skrivs in i `vagar.json` i samma ändring.
 - **Måtten har en källa:** spelets kod i `../blackjack-dealer` (kameran, bordet, kortet, skon, kortplatserna och
   dockornas mått). `scen/standard.yaml` är de talen i Blenders koordinater, skriven av `python scen/gen_standard.py`,
   och ändras aldrig för hand: ändra i spelet eller i `gen_standard.py` och kör om.
