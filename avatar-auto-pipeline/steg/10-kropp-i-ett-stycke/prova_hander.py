@@ -1,6 +1,7 @@
 """Ett hårdare fingerprov än steg 05:s (12 grader per led), för vilken riggad dealer som helst: en knuten hand och ett nyp.
 
-- Knuten hand: varje fingerled, tummens med, böjs 60 grader in mot handflatan.
+- Knuten hand: varje led i de fyra fingrarna böjs 60 grader in mot handflatan, och tummen läggs utanpå pekfingrets och
+  långfingrets mellersta leder (knyt).
 - Nyp: pekfingret böjs (35, 45 och 30 grader) och tummen vrids och böjs tills dess topp når pekfingrets.
 Böjningen räknas i handens egen ram, ur benen som spelet läser den (figure-model.ts): framåt från handleden mot
 långfingrets knoge, tummens sida och handflatan som tummen x framåt (höger hand) eller framåt x tummen (vänster). Leden böjs
@@ -75,9 +76,54 @@ def vila(arm):
 
 
 def knyt(arm, side, grader=60):
-    _, _, palm = handram(arm, side)
-    for digit in DIGITS:
+    """Fyra fingrar böjda `grader` i varje led in mot handflatan, och tummen lagd utanpå dem som i en knuten hand: dess
+    topp söks (bara med benen, som i nypet) till en punkt 12 mm utanför pekfingrets och långfingrets mellersta leder.
+    Tummen böjs alltså inte som ett finger in mot handflatan; det gjorde den förut och lade sig då som en knopp på sidan
+    (domaren 2026-11-27, provet tomasz-med-dockans-hander-20261127)."""
+    w, f, palm = handram(arm, side)
+    for digit in DIGITS[1:]:
         boj(arm, side, digit, (grader, grader, grader), palm)
+    B = ben(arm)
+    mitt = np.mean([(_varld(arm, B[f"{side}Hand{d}2"]) + _varld(arm, B[f"{side}Hand{d}2"], True)) / 2 for d in ("Index", "Middle")], axis=0)
+    ut = mitt - (w + f * 0.05); ut /= np.linalg.norm(ut)
+    return tumme_till(arm, side, mitt + ut * 0.012, palm, 0.0)
+
+
+def tumme_till(arm, side, target, palm, mal_mm):
+    """Tummen vriden kring handflatans normal och böjd tills dess topp står `mal_mm` från `target` (sökt i ett rutnät,
+    bara med benen: huden räknas inte om för varje försök)."""
+    B = ben(arm)
+    t1 = B[side + "HandThumb1"]
+    keep = {n: B[f"{side}HandThumb{n}"].matrix_basis.copy() for n in (1, 2, 3)}
+    skins = [m for o in bpy.context.scene.objects if o.type == "MESH" for m in o.modifiers if m.type == "ARMATURE"]
+    for m in skins:
+        m.show_viewport = False
+
+    def prova(swing, curl1, curl2):
+        for n in (1, 2, 3):
+            B[f"{side}HandThumb{n}"].matrix_basis = keep[n].copy()
+        bpy.context.view_layer.update()
+        vrid(arm, t1, palm, swing)
+        boj(arm, side, "Thumb", (curl1, curl2, curl2 * 0.8), palm)
+        d = float(np.linalg.norm(_varld(arm, B[side + "HandThumb3"], True) - target))
+        return abs(d - mal_mm / 1000), d
+    best = min((prova(s, c1, c2) + (s, c1, c2) for s in range(-90, 91, 10) for c1 in range(0, 61, 10) for c2 in range(0, 61, 10)))
+    _, _, s0, c10, c20 = best
+    for s in np.arange(s0 - 8, s0 + 8.1, 2):
+        for c1 in np.arange(max(0, c10 - 8), c10 + 8.1, 2):
+            for c2 in np.arange(max(0, c20 - 8), c20 + 8.1, 2):
+                r = prova(float(s), float(c1), float(c2))
+                if r[0] < best[0]:
+                    best = r + (float(s), float(c1), float(c2))
+    for n in (1, 2, 3):
+        B[f"{side}HandThumb{n}"].matrix_basis = keep[n].copy()
+    for m in skins:
+        m.show_viewport = True
+    bpy.context.view_layer.update()
+    _, d, swing, curl1, curl2 = best
+    vrid(arm, t1, palm, swing)
+    boj(arm, side, "Thumb", (curl1, curl2, curl2 * 0.8), palm)
+    return {"tumme_sving_grader": swing, "tumme_bojning_grader": [curl1, curl2, round(curl2 * 0.8)], "toppen_fran_malet_mm": round(d * 1000, 1)}
 
 
 def nyp(arm, side):
@@ -85,48 +131,9 @@ def nyp(arm, side):
     w, f, palm = handram(arm, side)
     boj(arm, side, "Index", (35, 45, 30), palm)
     B = ben(arm)
-    target = _varld(arm, B[side + "HandIndex3"], True)
-    t1 = B[side + "HandThumb1"]
-    keep = {n: B[f"{side}HandThumb{n}"].matrix_basis.copy() for n in (1, 2, 3)}
-    skins = [m for o in bpy.context.scene.objects if o.type == "MESH" for m in o.modifiers if m.type == "ARMATURE"]
-    for m in skins:  # sökningen läser bara benen: huden räknas inte om för varje försök
-        m.show_viewport = False
-    best = None
-    for swing in range(-90, 91, 10):
-        for curl1 in range(0, 61, 10):
-            for curl2 in range(0, 61, 10):
-                for n in (1, 2, 3):
-                    B[f"{side}HandThumb{n}"].matrix_basis = keep[n].copy()
-                bpy.context.view_layer.update()
-                vrid(arm, t1, palm, swing)
-                boj(arm, side, "Thumb", (curl1, curl2, curl2 * 0.8), palm)
-                d = float(np.linalg.norm(_varld(arm, B[side + "HandThumb3"], True) - target))
-                if best is None or abs(d - 0.012) < best[0]:
-                    best = (abs(d - 0.012), swing, curl1, curl2, d)
-    for n in (1, 2, 3):
-        B[f"{side}HandThumb{n}"].matrix_basis = keep[n].copy()
-    _, s0, c10, c20, _ = best  # finare runt det bästa
-    for swing in np.arange(s0 - 8, s0 + 8.1, 2):
-        for curl1 in np.arange(max(0, c10 - 8), c10 + 8.1, 2):
-            for curl2 in np.arange(max(0, c20 - 8), c20 + 8.1, 2):
-                for n in (1, 2, 3):
-                    B[f"{side}HandThumb{n}"].matrix_basis = keep[n].copy()
-                bpy.context.view_layer.update()
-                vrid(arm, t1, palm, swing)
-                boj(arm, side, "Thumb", (curl1, curl2, curl2 * 0.8), palm)
-                d = float(np.linalg.norm(_varld(arm, B[side + "HandThumb3"], True) - target))
-                if abs(d - 0.012) < best[0]:
-                    best = (abs(d - 0.012), float(swing), float(curl1), float(curl2), d)
-    for n in (1, 2, 3):
-        B[f"{side}HandThumb{n}"].matrix_basis = keep[n].copy()
-    for m in skins:
-        m.show_viewport = True
-    bpy.context.view_layer.update()
-    _, swing, curl1, curl2, d = best
-    vrid(arm, t1, palm, swing)
-    boj(arm, side, "Thumb", (curl1, curl2, curl2 * 0.8), palm)
-    return {"tumme_sving_grader": swing, "tumme_bojning_grader": [curl1, curl2, round(curl2 * 0.8)],
-            "topparnas_ben_mm": round(d * 1000, 1)}
+    r = tumme_till(arm, side, _varld(arm, B[side + "HandIndex3"], True), palm, 12)
+    return {"tumme_sving_grader": r["tumme_sving_grader"], "tumme_bojning_grader": r["tumme_bojning_grader"],
+            "topparnas_ben_mm": r["toppen_fran_malet_mm"]}
 
 
 def _hud(mesh):
@@ -233,8 +240,9 @@ def prova(path):
         fingers, hand = fingrarnas_horn(mesh, side)
         edges = _kanter(mesh, hand)
         r = {"fingrarnas_horn": {d: int(len(v)) for d, v in fingers.items()}, "vila": matt(mesh, side, rest, fingers, edges)}
-        vila(arm); knyt(arm, side, 60)
+        vila(arm); tumme = knyt(arm, side, 60)
         r["knuten_60"] = matt(mesh, side, rest, fingers, edges)
+        r["knuten_60"]["tumme"] = tumme
         vila(arm); n = nyp(arm, side)
         n.update(matt(mesh, side, rest, fingers, edges, par=[("Thumb", "Index"), ("Index", "Middle")]))
         n["glapp_tumme_pekfinger_mm"] = glapp(mesh, side, fingers)

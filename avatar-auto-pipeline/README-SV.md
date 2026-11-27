@@ -209,12 +209,25 @@ Dockans händer i personens ärm (steg 14, på prov sedan 2026-11-27, gratis och
 kropp, sitt huvud och sina kläder men får dockans händer, med deras egna fingerleder och vikter, insatta i skjortans
 manschett som en hand i en ärm. Hans egen hand och kroppens hud ur manschetten tas bort med ett rakt snitt där tyget
 slutar, handleden flyttas till ärmens mitt, ärmen trycks ihop längs underarmen tills manschetten slutar strax innanför
-leden, och dockans hand sätts in med en bit underarm inne i ärmen, skalad till hans hand och med en jämn hudton ur den.
-Hur det görs och varför står i skriptets huvud; rapporten (`<ut>.json`) säger snittet, flytten och kontrollen (handleden
-böjd och vriden, hörn genom tyget, manschettens töjning):
+leden, dockans hand sätts in med en bit underarm inne i ärmen, skalad till hans hand, och manschetten stängs mot
+handleden med en stel ring. Huden och formen tas ur hans egen hand (`hudbilder.py`): handryggen ur förlagan från steg 1,
+handflatan ur den förra handens bild, lagda på dockans hand inpassade efter handens 21 punkter (MediaPipe, samma miljö
+som steg 09) och jämkade till ansiktets ton; handflatans bredd och fingrarnas tjocklek mäts i förlagan mot dockans. Hur
+det görs och varför står i skriptens huvud; rapporten (`<ut>.json`) säger snittet, flytten, formen, huden och kontrollen
+(handleden böjd och vriden, hörn genom tyget, manschettens töjning). Bakningen och bilderna renderar, så de körs under det
+delade låset:
 
 ```text
-blender -b --factory-startup --python-exit-code 1 --python steg/14-dockans-hander/dockans_hander.py -- assets/docka/standarddocka_tomasz.glb assets/docka/standarddocka_danilo.glb assets/docka/standarddocka_tomasz_dockhander.glb
+blender -b --factory-startup --python-exit-code 1 --python steg/14-dockans-hander/hudbilder.py -- assets/docka/standarddocka_tomasz.glb assets/docka/standarddocka_danilo.glb output/tomasz/01-referenser/hands-ref.png output/tomasz/14-dockans-hander
+blender -b --factory-startup --python-exit-code 1 --python steg/14-dockans-hander/dockans_hander.py -- assets/docka/standarddocka_tomasz.glb assets/docka/standarddocka_danilo.glb assets/docka/standarddocka_tomasz_dockhander.glb --hud output/tomasz/14-dockans-hander
+```
+
+Den betalda vägen för huden (10 Meshy-krediter) målar en kopia av bara dockans högra hand efter förlagan, med dockans
+egen karta, och lägger bilden på båda händerna (`--meshy-bild`); `--dry-run` är gratis:
+
+```text
+blender -b --factory-startup --python-exit-code 1 --python steg/14-dockans-hander/meshy_kopia.py -- assets/docka/standarddocka_danilo.glb output/tomasz/01-referenser/hands-ref.png output/tomasz/14-dockans-hander/meshy/kopia.glb
+.venv\Scripts\python.exe -I steg/12-ny-yta/meshy_ny_yta.py assets/docka/standarddocka_danilo.glb output/tomasz/14-dockans-hander/meshy --kopia output/tomasz/14-dockans-hander/meshy/kopia.glb --vy output/tomasz/01-referenser/hands-ref.png [--dry-run]
 ```
 
 Om något avbryts kan du fortsätta utan att betala om: `--from-step 5` eller `--only-step 7`. Hoppa över filmen med `--no-video`. Betalda jobb sparar ett kvitto i stegmappen: `referenser.json`, `korning.json` och `riggjobb.json`. En omstart använder samma kvitto. Radera dem inte.

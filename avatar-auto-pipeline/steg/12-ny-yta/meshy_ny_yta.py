@@ -16,7 +16,8 @@ Kartan är i övrigt dockans egen, så bilden passar dockan i vila.
       --vy output/tomasz-flervy/01-vyer/vy-0.png --vy output/tomasz-flervy/01-vyer/vy-1.png [--dry-run] [--task-id ID]
 
 --dry-run gör kopian (gratis, Blender utan fönster) och skriver ut vad som skulle skickas, hur stort och vad det kostar,
-utan att läsa nyckeln eller anropa Meshy. Kvittot är <mapp>/ny-yta.json; en omstart med samma kopia, vyer och
+utan att läsa nyckeln eller anropa Meshy. --kopia skickar en färdig kopia i stället för hela dockan, till exempel bara
+handen (steg 14, meshy_kopia.py). Kvittot är <mapp>/ny-yta.json; en omstart med samma kopia, vyer och
 inställningar betalar inte igen, och ett jobb som kan ha startats återupptas med --task-id. Radera aldrig kvittot.
 Meshys adresser (med signatur) skrivs aldrig i en fil.
 """
@@ -135,6 +136,8 @@ def main():
     parser.add_argument("--vy", type=Path, action="append", required=True, help="1–4 vyer, framifrån först")
     parser.add_argument("--task-id")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--kopia", type=Path, help="en färdig kopia (med sin .json bredvid) i stället för yta.py kopia, "
+                                                    "till exempel bara handen ur steg 14 (meshy_kopia.py)")
     args = parser.parse_args()
     if not 1 <= len(args.vy) <= 4:
         parser.error("1–4 vyer (--vy), framifrån först.")
@@ -143,13 +146,17 @@ def main():
     folder = args.mapp.resolve()
     folder.mkdir(parents=True, exist_ok=True)
     receipt = folder / "ny-yta.json"
-    kopia = folder / "kopia.glb"
+    kopia = args.kopia.resolve() if args.kopia else folder / "kopia.glb"
     with FileLock(str(folder / ".meshy.lock"), timeout=0):
         record = json.loads(receipt.read_bytes()) if receipt.exists() else None
         if record and record.get("task_id"):
             if not kopia.is_file() or digest(kopia) != record["input"]["kopia_sha256"]:
                 raise ValueError("Kvittot har ett jobb men kopian det skickade saknas eller är ändrad.")
             rap = json.loads(kopia.with_suffix(".json").read_text(encoding="utf-8"))
+        elif args.kopia:
+            rap = json.loads(kopia.with_suffix(".json").read_text(encoding="utf-8"))
+            if rap.get("kopia_sha256") != digest(kopia) or rap.get("docka_sha256") != digest(docka):
+                raise ValueError("Kopian stämmer inte med sin rapport eller med dockan: gör om den.")
         else:
             rap = gor_kopia(docka, vyer[0], kopia)
         bilder = [vybild(v) for v in vyer]
