@@ -33,9 +33,13 @@ put('blackjack-dealer/dealer3d/data/lyft-kenji-p4.json', rorelse('kenji'), T);
 put('standarddocka/klipp/live-lyft-danilo-p4-hela-kameran-danilo.mp4', 'docka', T + 60);
 put('blackjack-dealer/assets/proofs/prov-a/original/dockfilm-lyft-kenji-p4-nyckel.mp4', 'nyckel');
 for (const name of ['03-dockfilmen-given.mp4', '05-kenji-ger.mp4', '06-samma-i-halv-fart.mp4']) put(`blackjack-dealer/assets/proofs/prov-a/${name}`, name);
+// (ett prov vars omgång ligger en mapp ned, där ny_dealer.py --omgang lägger dockfilmen)
+put('blackjack-dealer/assets/proofs/prov-b/original/v4/dockfilm-lyft-kenji-p4-nyckel.mp4', 'nyckel');
+put('blackjack-dealer/assets/proofs/prov-b/01-kenji-tre-klipp.mp4', 'tre klipp');
 const PROBES: Record<string, Probe> = {
   'live-lyft-danilo-p4-hela-kameran-danilo.mp4': {width: 1728, height: 972, fps: 30, frames: 6},
   '03-dockfilmen-given.mp4': {width: 1728, height: 972, fps: 30, frames: 6},
+  '01-kenji-tre-klipp.mp4': {width: 1728, height: 972, fps: 30, frames: 6},
   '05-kenji-ger.mp4': {width: 1728, height: 972, fps: 30, frames: 6},
   '06-samma-i-halv-fart.mp4': {width: 1728, height: 972, fps: 30, frames: 12},
 };
@@ -102,16 +106,18 @@ test("our frame k is shown against the film's second the lift has for it, and on
   assert.deepEqual(g.tider, [10.2, 10.233, 10.267, 10.3, 10.3, 10.3]);
   assert.equal(g.lyftetTill, 3);
   assert.deepEqual(g.marken, {skon: 1, bytet: 3, ligger: 4});
-  assert.deepEqual(g.var.map(v => v.namn), ['Dockan', 'Kenji 05'], 'the doll film and the half-speed film are not a person in this give');
+  assert.deepEqual(g.var.map(v => v.namn), ['Dockan', 'Kenji 05', 'Kenji 01'], 'the doll film and the half-speed film are not a person in this give; a proof whose round lies one folder down is found too');
   assert.ok(!JSON.stringify(s).includes(root) && !JSON.stringify(s).includes('live-bj'), 'the answer names no folder of the machine and no path into live-bj');
   assert.deepEqual(tiderFor([1, 2, 3], 1, 4), {tider: [2, 3, 3, 3], lyftetTill: 1});
   assert.equal(tiderFor([1, 2, 3], 3, 2), null);
 
   // A recording older than the motion is not offered; a give with nothing to show is not listed.
   utimesSync(path.join(root, 'standarddocka/klipp/live-lyft-danilo-p4-hela-kameran-danilo.mp4'), T - 60, T - 60);
-  assert.deepEqual((await list()).givar[0].var.map(v => v.id), ['prov-a/05-kenji-ger.mp4']);
-  PROBES['05-kenji-ger.mp4'] = {width: 1728, height: 972, fps: 30, frames: 7};
-  utimesSync(path.join(root, 'blackjack-dealer/assets/proofs/prov-a/05-kenji-ger.mp4'), T + 1, T + 1);
+  assert.deepEqual((await list()).givar[0].var.map(v => v.id), ['prov-a/05-kenji-ger.mp4', 'prov-b/01-kenji-tre-klipp.mp4']);
+  for (const [prov, fil] of [['prov-a', '05-kenji-ger.mp4'], ['prov-b', '01-kenji-tre-klipp.mp4']]) {
+    PROBES[fil] = {width: 1728, height: 972, fps: 30, frames: 7};
+    utimesSync(path.join(root, `blackjack-dealer/assets/proofs/${prov}/${fil}`), T + 1, T + 1);
+  }
   assert.deepEqual((await list()).givar, []);
 });
 

@@ -29,7 +29,8 @@ den som får betala (blackjack-dealer/tools/runway-api.ts place).
              referensfilm, fylld till 3 s med stillhet i ankarna
   6          ankarbilderna (en gång per person och kamera) och tre anrop till Kling 4 med ankarbilderna som första och sista
              bild och stegets referensfilm, med kostnaden och vilka rutor av varje levererat klipp som är steget
-  7 efter    när klippen ligger i ut/klipp-<nr>.mp4: steget ut ur stillheten, dealern på vårt bord och hela given ihopsatt
+  7 efter    när klippen ligger i ut/klipp-<nr>.mp4: steget ut ur stillheten, där klippet gör rörelsen (det mäts hur mycket
+             senare än dockan), hela given ihopsatt i dockans 30 bilder/s, och dealern på vårt bord med vår sko och vårt kort
              (--efter-prov: referensfilmerna i klippens ställe, för att pröva efterarbetet utan något betalt)
 --omgang lägger en ny omgång av filmen, rutorna och anropen i en egen undermapp, bredvid de förra, och tar startbilden
 och sista bilden, var för sig, ur den senaste förra omgången när dockans första eller sista ruta är densamma där (kostnad.json
@@ -258,6 +259,22 @@ KANT = 0.2    # under det står kortet med kanten mot kameran: ett streck under 
 SYNS = 0.3    # så mycket av ytan ska synas i rutan som tas i stället
 
 
+def kortets_form(kort):
+    """Hur kortet står, ur dess egna tal: lutningen mot filten i grader, och i ord (plant, på högkant på en kortkant, på en
+    långkant eller lutat). Långsidans lodräta del säger vilken kant det står på."""
+    lutar = round(math.degrees(math.acos(min(1.0, abs(kort['n'][1])))))
+    lodrat = abs(kort['l'][1])
+    return lutar, ('flat' if lutar < 15 else 'standing upright on its short edge' if lutar > 60 and lodrat > 0.7 else
+                   'standing on its long edge' if lutar > 70 and lodrat < 0.3 else f'tilted about {round(lutar, -1)} degrees')
+
+
+def kortets_sida(kort, kamera):
+    """Vilken sida av kortet kameran ser, i ord."""
+    sett = kanten_mot(kort, kamera)
+    return ('almost hidden: its edge is toward the camera, so only a thin line of it shows under the palm' if abs(sett) < KANT else
+            'its white face toward the camera' if sett > 0 else 'its yellow back toward the camera')
+
+
 def rutorna(rorelse, antal, kamera):
     """Rutorna efter RÖRELSENS EGNA HÄNDELSER (made.times), inte jämnt i tiden (den första filmen av Kenjis giv, domarens
     Nja 2026-11-27: tre nästan likadana bilder vid skon, där dockan står still, fick Kling 4 att hitta på ett tidigt drag och
@@ -313,10 +330,9 @@ def kortets_lage(ruta, kamera):
     w = [nn[1] * l[2] - nn[2] * l[1], nn[2] * l[0] - nn[0] * l[2], nn[0] * l[1] - nn[1] * l[0]]
     hojder = [c[1] + s * H / 2 * l[1] + u * B / 2 * w[1] for s in (-1, 1) for u in (-1, 1)]
     lag, hog = max(0.0, min(hojder)), max(hojder)
-    lutar = round(math.degrees(math.acos(min(1.0, abs(nn[1])))))
+    lutar, form = kortets_form(kort)
     sett = kanten_mot(kort, kamera)
-    sida = ('almost hidden: its edge is toward the camera, so only a thin line of it shows under the palm' if abs(sett) < KANT else
-            'its white face toward the camera' if sett > 0 else 'its yellow back toward the camera')
+    sida = kortets_sida(kort, kamera)
     # pekfingrets topp på kortet, sett i bilden: dess läge mot kortets mitt i sidled (x) och djupled (z), i andelar av
     # kortets halva utsträckning åt det hållet
     ex, ez = (abs(l[0]) * H + abs(w[0]) * B) / 2, (abs(l[2]) * H + abs(w[2]) * B) / 2
@@ -345,13 +361,29 @@ def kortets_lage(ruta, kamera):
     handflata = sum(ruta[hand]['p'][i][1] for i in (0, 5, 17)) / 3
     handen = 'right' if hand == 'R' else 'left'
     under = (f'carried under his {handen} hand, below its palm' if c[1] < handflata else f'held up in his {handen} hand, above its palm')
-    form = ('flat' if lutar < 15 else 'standing upright on its short edge' if lutar > 60 and abs(l[1]) > 0.7 else
-            'standing on its long edge' if lutar > 70 and abs(l[1]) < 0.3 else f'tilted about {round(lutar, -1)} degrees')
     nedre = 'its lower edge touching the felt' if lag < 0.005 else f'its lowest corner {round(lag * 100)} cm above the felt'
-    pa = fingret(hand)
+    upp = [0, 1, 0] if lutar > 45 else [0, 0, -1]   # bildens upp på kortet: lodrätt för ett stående kort, bort från kameran för ett liggande
+
+    def greppet(hand):
+        """Hur handen håller ett kort som står på kant, ur var dess fingertoppar är mot kortet: tummen och fingrarna framför
+        kortet (på kamerans sida) eller bakom det, och vid vilken del av kortet i bilden. None när ingen topp är vid kortet.
+        (Var en topp vilar på kortet sett uppifrån, fingret, säger inget om ett kort som står: där är greppet om kanten saken.)"""
+        P = ruta[hand]['p']
+        vid = {i: d for i, d in ((i, sub(P[i], c)) for i in (4, 8, 12, 16, 20))
+               if abs(dot(d, nn)) < 0.04 and abs(dot(d, l)) < H / 2 + 0.02 and abs(dot(d, w)) < B / 2 + 0.03}
+        if not vid:
+            return None
+        halva = max(abs(dot(l, upp)) * H, abs(dot(w, upp)) * B) / 2 or 1
+        hojd = sum(dot(d, upp) for d in vid.values()) / len(vid) / halva
+        del_ = 'lower edge' if hojd < -0.7 else 'lower part' if hojd < -0.3 else 'upper edge' if hojd > 0.7 else 'upper part' if hojd > 0.3 else 'middle'
+        var = lambda d: 'in front of it' if dot(d, nn) * sett > 0 else 'behind it'
+        fingrar = [d for i, d in vid.items() if i != 4]
+        delar = ([f'the thumb {var(vid[4])}'] if 4 in vid else []) + (
+            [f'the fingertips {var([sum(d[k] for d in fingrar) / len(fingrar) for k in range(3)])}'] if fingrar else [])
+        return f'his {"right" if hand == "R" else "left"} hand is {handens_form(P)}, and holds the card at its {del_}: {", ".join(delar)}'
+    pa = (greppet(hand) if lutar > 45 else None) or fingret(hand)
     # båda händernas grepp: var varje hands fingrar är på kortet (dess övre eller nedre del i bilden) och om de är framför
     # det (på kamerans sida) eller bakom
-    upp = [0, 1, 0] if lutar > 45 else [0, 0, -1]   # bildens upp på kortet: lodrätt för ett stående kort, bort från kameran för ett liggande
     grepp = []
     for h, namn_ in (('L', 'left'), ('R', 'right')):
         nara = [q for q in (ruta[h]['p'][i] for i in (4, 8, 12, 5, 9)) if abs(dot(sub(q, c), nn)) < 0.03
@@ -677,8 +709,10 @@ def ankarna(rorelse):
             {'ankare': a3, 'ruta': T['ligger'], 'ut': f'{a3.lower()}.png'}, {'ankare': 'A2.3 med kortet', 'ruta': n - 1, 'ut': 'sista.png'}]
 
 
+# Vad varje klipp gör, i ord för filmmodellen. {bytet}: hur kortet står i handbytet, ur rörelsens tal (kortets_form och
+# kortets_sida i ankarrutan A2M), så att texten säger samma sak som ankarbilden och referensfilmen.
 STEGEN = (('skon-till-bytet', 0, 1, 'From the ready position at the shoe to the handover: his left hand draws the front card out of the shoe, back up, '
-                                     'slides it flat over the felt toward the middle in front of him and stands it on its long edge, back toward the camera, '
+                                     'slides it flat over the felt toward the middle in front of him and {bytet}, '
                                      'while his right hand waits on the felt and then comes in to the card.'),
           ('bytet-till-platsen', 1, 2, 'From the handover to the card lying at its place: his right hand takes the card, carries it low and hidden under the '
                                         'closed hand, turns it over under the hand and lays it down face up at its place, holding it with the thumb; his left '
@@ -700,6 +734,9 @@ def steg_film_ankare():
     for f in UT.glob('ref-*.mp4'):
         f.unlink()
     N = max(1, math.ceil(REF_MINST * FPS - 1e-9))   # referensfilmens rutor (3 s)
+    byteskort = rorelse['frames'][T['meet']]['card']
+    lutar, form = kortets_form(byteskort)
+    bytet = 'keeps it flat on the felt' if lutar < 15 else f'raises it there until it is {form}, {kortets_sida(byteskort, kamera)}'
     steg = []
     for nr, (namn, i, j, gor) in enumerate(STEGEN, 1):
         r0, r1 = ank[i]['ruta'], ank[j]['ruta']
@@ -717,7 +754,8 @@ def steg_film_ankare():
         if fick != tot:
             sys.exit(f'{ref.name}: {fick} rutor, väntade {tot}')
         steg.append({'nr': nr, 'namn': namn, 'fran': ank[i]['ankare'], 'till': ank[j]['ankare'], 'dockrutor': [r0, r1], 'rutor_i_steget': L,
-                     'ref': ref.name, 'ref_rutor': tot, 'ref_s': round(tot / FPS, 3), 'stilla_fore': fore, 'stilla_efter': efter, 'gor': gor})
+                     'ref': ref.name, 'ref_rutor': tot, 'ref_s': round(tot / FPS, 3), 'stilla_fore': fore, 'stilla_efter': efter,
+                     'gor': gor.format(bytet=bytet)})
     (UT / 'dockans-rutor.json').write_text(json.dumps({
         'lage': 'ankarklipp',
         'om': f'{NAMN}s giv till dagens plats {a.plats} (blackjack-dealer/dealer3d/data/{GIV}.json, {n} rutor vid {FPS} rutor/s) som tre klipp mellan '
@@ -848,8 +886,8 @@ def steg_anrop_ankare():
                                  f'i referensfilmen rutorna {s["stilla_fore"]}–{s["stilla_fore"] + s["rutor_i_steget"] - 1} vid {FPS} bilder/s, och i klippet tiden '
                                  f'{s["stilla_fore"] / FPS:.3f}–{(s["stilla_fore"] + s["rutor_i_steget"] - 1) / FPS:.3f} s; vid {f_ut} bilder/s klippets rutor '
                                  f'{math.ceil(s["stilla_fore"] / FPS * f_ut - 1e-9)}–{math.floor((s["stilla_fore"] + s["rutor_i_steget"] - 1) / FPS * f_ut + 1e-9)}. '
-                                 f'Klippets ruta k är dockruta {s["dockrutor"][0]} + k x {FPS}/{f_ut} - {s["stilla_fore"]}. Har klippet en annan längd eller bildtakt '
-                                 f'räknas tiden om med dess egen (steg 7 gör det: klippets längd mot referensfilmens).')}
+                                 f'Klippets ruta k är dockruta {s["dockrutor"][0]} + k x {FPS}/{f_ut} - {s["stilla_fore"]}. Filmmodellen gör rörelsen '
+                                 f'något senare än referensfilmen (Kling 4 cirka 0,1 s): steg 7 mäter hur mycket i det levererade klippet och klipper där.')}
         anrop[f'klipp-{s["nr"]}'] = {
             'name': f'{NAMN}-ny-dealer-{OMG}klipp-{s["nr"]}-{s["namn"]}',
             'what': (f'{vad} Klipp {s["nr"]}, {s["fran"]} till {s["till"]}: Kling 4, 1080p, {KLIPP_S} s, ankarbilderna som första och sista bild och dockans film '
@@ -897,12 +935,49 @@ def steg_anrop_ankare():
         print(f'  {vad_}: {j}', flush=True)
 
 
+def rorelse_i_film(film):
+    """Hur mycket bilden rör sig i en film, ruta för ruta: medelskillnaden mot rutan före över bordets del av bilden (de
+    nedre 60 procenten, där händerna, kortet och skon är; huvudets små rörelser räknas inte), läst liten och grå. Ger
+    bildtakten och talen (det första är 0)."""
+    B_, H_ = 160, 90
+    mat = json.loads(subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=r_frame_rate', '-of', 'json', str(film)],
+                                    capture_output=True, text=True, check=True).stdout)
+    tal, namn_ = mat['streams'][0]['r_frame_rate'].split('/')
+    ra = subprocess.run(['ffmpeg', '-v', 'error', '-i', str(film), '-vf', f'scale={B_}:{H_}:flags=area,format=gray', '-f', 'rawvideo', '-'],
+                        capture_output=True, check=True).stdout
+    n, fran = len(ra) // (B_ * H_), int(H_ * 0.4) * B_
+    rutor = [ra[i * B_ * H_ + fran:(i + 1) * B_ * H_] for i in range(n)]
+    return float(tal) / float(namn_), [0.0] + [sum(abs(x - y) for x, y in zip(rutor[i], rutor[i - 1])) / len(rutor[i]) for i in range(1, n)]
+
+
+def forskjutning(klipp, ref):
+    """Hur mycket senare klippet gör referensfilmens rörelse, i sekunder, och hur lika rörelserna då är (0–1). Kling 4 följde
+    2026-11-27 dockans film cirka 0,1 s efter i alla tre klippen, så att ett steg klippt på referensfilmens egna tider
+    tappade rörelsens slut. Förskjutningen är den där klippets rörelse, ruta för ruta, stämmer bäst med referensfilmens;
+    båda läses på ett gemensamt tidsnät, utan sitt eget brus (medianen)."""
+    N = 240   # tidsnätets steg per sekund
+
+    def pa_natet(film):
+        f, E = rorelse_i_film(film)
+        golv = sorted(E)[len(E) // 2]
+        return [max(0.0, E[min(len(E) - 1, math.ceil(i / N * f - 1e-9))] - golv) for i in range(int((len(E) - 1) / f * N) + 1)]
+    K, Rf = pa_natet(klipp), pa_natet(ref)
+
+    def likhet(d):   # (klippets tid t + d mot referensfilmens tid t)
+        par = [(K[i + d], Rf[i]) for i in range(len(Rf)) if 0 <= i + d < len(K)]
+        kk, rr = sum(x * x for x, _ in par), sum(y * y for _, y in par)
+        return sum(x * y for x, y in par) / math.sqrt(kk * rr) if kk and rr else 0.0
+    d = max(range(-N // 4, N // 2 + 1), key=likhet)
+    return d / N, likhet(d)
+
+
 def steg_efter(prov=False):
     """Efterarbetet, gratis, när klippen är levererade (omgångens ut/klipp-<nr>.mp4): varje klipps steg klipps ut ur
-    stillheten (klippets tid mot referensfilmens, omräknat med klippets egen längd) och läggs om till dockans 30 bilder/s,
-    dealern läggs på vårt bord med vårt kort (standarddocka/verktyg/lagg-pa-bord.ts, plattorna i standarddocka/klipp/,
-    dockrutorna ur en takt med stegets första och sista dockruta), och klippen sätts ihop till hela given, med
-    ankarrutan där två klipp möts en gång. prov: referensfilmerna i klippens ställe (verktyget prövat utan något betalt)."""
+    stillheten och läggs om till dockans 30 bilder/s (klippets tid är referensfilmens, så mycket senare som klippet gör
+    rörelsen: forskjutning), stegen sätts ihop till hela given i grönt, med ankarrutan där två klipp möts en gång, och
+    dealern läggs på vårt bord med vår sko och vårt kort, hela given som en tagning (standarddocka/verktyg/lagg-pa-bord.ts,
+    plattorna i standarddocka/klipp/, dockrutorna ur en takt med varje stegs första ruta; skon mäts i handbytets ruta,
+    där ingen hand är vid den). prov: referensfilmerna i klippens ställe (verktyget prövat utan något betalt)."""
     R = json.loads((UT / 'dockans-rutor.json').read_text(encoding='utf-8'))
     if R.get('lage') != 'ankarklipp':
         sys.exit('steg 7: omgångens rutor är inte gjorda med --ankarklipp')
@@ -920,43 +995,60 @@ def steg_efter(prov=False):
         m_ = json.loads(mat)
         tal, namn_ = m_['streams'][0]['r_frame_rate'].split('/')
         f_ut, D = float(tal) / float(namn_), float(m_['format']['duration'])
-        skala = D / s['ref_s']   # (klippets tid mot referensfilmens)
-        S, Sl = s['stilla_fore'] / FPS * skala, (s['stilla_fore'] + s['rutor_i_steget']) / FPS * skala
+        senare, likt = forskjutning(klipp, UT / s['ref'])
+        S = s['stilla_fore'] / FPS + senare
+        Sl = S + s['rutor_i_steget'] / FPS
         gron = E / f'gron-{s["nr"]}.mp4'
-        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(klipp), '-vf', f'trim=start={S:.6f}:end={Sl:.6f},setpts=PTS-STARTPTS,fps={FPS}',
+        # dockruta j i steget är klippets tid S + j / 30: tiden flyttas så att S blir 0, och rutorna läggs på dockans takt
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(klipp), '-vf',
+                        f'setpts=PTS-{S:.6f}/TB,fps={FPS}:start_time=0:round=near,trim=end_frame={s["rutor_i_steget"]},setpts=PTS-STARTPTS',
                         '-c:v', 'libx264', '-crf', '12', '-pix_fmt', 'yuv420p', '-an', str(gron)], check=True)
         L = rakna(gron)
-        takt = E / f'takt-{s["nr"]}.json'
-        takt.write_text(json.dumps({'om': f'Klipp {s["nr"]} ({s["fran"]} till {s["till"]}): stegets rutor i klippet, omlagda till {FPS} bilder/s, mot givens dockrutor (ny_dealer.py steg 7).',
-                                    'film': gron.name, 'ankare': [{'dockruta': s['dockrutor'][0], 'filmruta': 0}, {'dockruta': s['dockrutor'][1], 'filmruta': L - 1}]},
-                                   ensure_ascii=False, indent=1), encoding='utf-8')
-        bord = E / f'bord-{s["nr"]}.mp4'
-        bord.unlink(missing_ok=True)
-        r = kor(['node', 'standarddocka/verktyg/lagg-pa-bord.ts', rel(gron), '--platta', rel(platta), '--egen-sko', rel(sko),
-                 '--docka', rel(BJ / 'dealer3d' / 'data' / f'{GIV}.json'), '--takt', rel(takt), '--ut', rel(bord)], fanga=True)
-        fel = None if r.returncode == 0 and bord.exists() else (r.stdout.strip().splitlines() or ['föll'])[-1][:300]
         gjorda.append({'nr': s['nr'], 'klipp': rel(klipp), 'bilder_per_s': round(f_ut, 3), 'langd_s': round(D, 3), 'tid_i_klippet_s': [round(S, 3), round(Sl, 3)],
-                       'rutor_i_steget': L, 'dockrutor': s['dockrutor'], 'gron': gron.name, **({'bord': bord.name} if not fel else {'bord_fel': fel})})
-        print(f'klipp {s["nr"]}: {f_ut:.2f} bilder/s, {D:.2f} s; steget {S:.3f}–{Sl:.3f} s, {L} rutor (dockans {s["rutor_i_steget"]})'
-              + (f' -> {rel(bord)}' if not fel else f'; lagg-pa-bord.ts föll: {fel}'), flush=True)
+                       'senare_an_dockan_s': round(senare, 3), 'rorelsens_likhet': round(likt, 2),
+                       'rutor_i_steget': L, 'dockrutor': s['dockrutor'], 'gron': gron.name})
+        print(f'klipp {s["nr"]}: {f_ut:.2f} bilder/s, {D:.2f} s; rörelsen {senare:+.3f} s mot dockans (likhet {likt:.2f}); steget {S:.3f}–{Sl:.3f} s, '
+              f'{L} rutor (dockans {s["rutor_i_steget"]})', flush=True)
+        if L != s['rutor_i_steget'] or likt < 0.4:
+            print(f'  OBS klipp {s["nr"]}: ' + (f'{L} rutor ur klippet, steget har {s["rutor_i_steget"]}' if L != s['rutor_i_steget'] else
+                                               'klippets rörelse liknar inte referensfilmens: se på klippet innan filmen visas'), flush=True)
     if saknas:
         print('steg 7: klippen saknas (inget är beställt än?): ' + ', '.join(saknas), flush=True)
     if len(gjorda) == len(R['steg']):
-        # (där två klipp möts är ankarrutan med i båda: den tas en gång)
-        for vilka, namn_ in (('bord', 'given-pa-bordet.mp4'), ('gron', 'given-i-gront.mp4')):
-            if not all(vilka in g for g in gjorda):
-                continue
-            filer = [E / g[vilka] for g in gjorda]
-            ing = sum((['-i', str(f)] for f in filer), [])
-            kedja = ';'.join(f'[{i}:v]' + ('' if i == 0 else 'select=gte(n\\,1),') + f'setpts=PTS-STARTPTS[v{i}]' for i in range(len(filer)))
-            subprocess.run(['ffmpeg', '-v', 'error', '-y', *ing, '-filter_complex', kedja + ';' + ''.join(f'[v{i}]' for i in range(len(filer))) + f'concat=n={len(filer)}:v=1:a=0[ut]',
-                            '-map', '[ut]', '-r', str(FPS), '-c:v', 'libx264', '-crf', '14', '-pix_fmt', 'yuv420p', str(E / namn_)], check=True)
-        given = (E / 'given-pa-bordet.mp4' if all('bord' in g for g in gjorda) else E / 'given-i-gront.mp4' if all('gron' in g for g in gjorda) else None)
-        hela = rakna(given) if given else None
+        # Hela given i grönt: stegen efter varandra, med ankarrutan där två klipp möts en gång.
+        gron_hela = E / 'given-i-gront.mp4'
+        filer = [E / g['gron'] for g in gjorda]
+        ing = sum((['-i', str(f)] for f in filer), [])
+        kedja = ';'.join(f'[{i}:v]' + ('' if i == 0 else 'select=gte(n\\,1),') + f'setpts=PTS-STARTPTS[v{i}]' for i in range(len(filer)))
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', *ing, '-filter_complex', kedja + ';' + ''.join(f'[v{i}]' for i in range(len(filer))) + f'concat=n={len(filer)}:v=1:a=0[ut]',
+                        '-map', '[ut]', '-r', str(FPS), '-c:v', 'libx264', '-crf', '12', '-pix_fmt', 'yuv420p', str(gron_hela)], check=True)
+        hela = rakna(gron_hela)
+        # Vilken dockruta varje filmruta är: varje stegs första ruta och givens sista (lagg-pa-bord.ts --takt).
+        ankare, vid = [], 0
+        for g in gjorda:
+            ankare.append({'dockruta': g['dockrutor'][0], 'filmruta': vid})
+            vid += g['rutor_i_steget'] - 1
+        ankare.append({'dockruta': gjorda[-1]['dockrutor'][1], 'filmruta': vid})
+        takt = E / 'takt.json'
+        takt.write_text(json.dumps({'om': f'Hela given ur de {len(gjorda)} klippen, i dockans {FPS} bilder/s, mot givens dockrutor: varje stegs första ruta och '
+                                          'givens sista (ny_dealer.py --ankarklipp --steg 7).', 'film': gron_hela.name, 'ankare': ankare},
+                                   ensure_ascii=False, indent=1), encoding='utf-8')
+        # Dealern på vårt bord med vår sko och vårt kort, hela given som en tagning: dess första ruta är redo vid skon, där
+        # dealerns färger mäts, och i handbytets ruta är ingen hand vid skon, så där mäts filmens stilla sko.
+        byte = R['tider']['meet']
+        skoruta = next((x['filmruta'] for x in ankare if x['dockruta'] == byte), min(byte, hela - 1))
+        bord = E / 'given-pa-bordet.mp4'
+        for f in [bord, *E.glob('bord-*.mp4'), *E.glob('takt-*.json')]:   # (också det förra sättets filer, ett klipp i taget)
+            f.unlink(missing_ok=True)
+        r = kor(['node', 'standarddocka/verktyg/lagg-pa-bord.ts', rel(gron_hela), '--platta', rel(platta), '--egen-sko', rel(sko), '--sko-ruta', skoruta,
+                 '--docka', rel(BJ / 'dealer3d' / 'data' / f'{GIV}.json'), '--takt', rel(takt), '--ut', rel(bord)], fanga=True)
+        fel = None if r.returncode == 0 and bord.exists() else (r.stdout.strip().splitlines() or ['föll'])[-1][:300]
+        given = gron_hela if fel else bord
         (E / 'efter.json').write_text(json.dumps({'om': 'Efterarbetet (ny_dealer.py --ankarklipp --steg 7)' + (': PROV med referensfilmerna i klippens ställe' if prov else ''),
-                                                  'klippen': gjorda, 'given': given.name if given else None, 'rutor': hela, 'dockans_rutor': R['rutor']},
-                                                 ensure_ascii=False, indent=1), encoding='utf-8')
-        print(f'given: {rel(given)} ({hela} rutor; dockans giv {R["rutor"]})' if given else 'given: inget att sätta ihop', flush=True)
+                                                  'klippen': gjorda, 'gron': gron_hela.name, 'takt': takt.name, 'sko_ruta': skoruta,
+                                                  **({'bord_fel': fel} if fel else {'bord': bord.name}), 'given': given.name, 'rutor': hela,
+                                                  'dockans_rutor': R['rutor']}, ensure_ascii=False, indent=1), encoding='utf-8')
+        print(f'given: {rel(given)} ({hela} rutor; dockans giv {R["rutor"]})' + (f'; lagg-pa-bord.ts föll: {fel}' if fel else ''), flush=True)
 
 
 # ------------------------------------------------------------------------------------------------ läget
@@ -975,8 +1067,15 @@ def lage():
     k = UT / 'anrop' / 'kostnad.json'
     if k.exists():
         s = json.loads(k.read_text(encoding='utf-8'))['krediter']
-        print(f'  nästa betalda steg: stillbilderna {s["stillbilder"]} krediter, sedan film A (Kling 4) {s["A_kling4"]}, med bilderna {s["A_alla"]} krediter '
-              f'({s["A_alla"] / 100:.2f} dollar)' + (f'; eller B (Aleph 2) {s["B_aleph2"]}, båda {s["bada"]}' if 'B_aleph2' in s else '') + '. Inget är lagt.')
+        # (ett anrop som säger var dess resultat sparas, "ut", är lagt och hämtat när filen finns där)
+        anrop = [json.loads(f.read_text(encoding='utf-8')) for f in sorted((UT / 'anrop').glob('*.json')) if f.name != 'kostnad.json']
+        med_ut = [x for x in anrop if x.get('ut')]
+        kvar = [x for x in med_ut if not (CASINO / x['ut']).exists()]
+        print(f'  de betalda stegen: stillbilderna {s["stillbilder"]} krediter, sedan film A (Kling 4) {s["A_kling4"]}, med bilderna {s["A_alla"]} krediter '
+              f'({s["A_alla"] / 100:.2f} dollar)' + (f'; eller B (Aleph 2) {s["B_aleph2"]}, båda {s["bada"]}' if 'B_aleph2' in s else '')
+              + (f'. {len(med_ut) - len(kvar)} av {len(med_ut)} anrop har sitt resultat på plats'
+                 + (f'; kvar att lägga: {sum(x["expectCredits"] for x in kvar)} krediter.' if kvar else ': inget är kvar att lägga.') if med_ut else
+                 '. Vad som är lagt står i liggaren (blackjack-dealer/.runtime/runway-api/ledger.json).'))
 
 
 if not a.lage:

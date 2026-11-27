@@ -497,7 +497,7 @@ Steg för steg:
 | 4 Rörelserna | De lyfta rörelserna i stilen lagda på dockan (lyft-till-docka.ts --docka) och kontrollen (lyft-kolla.ts). `python ny_dealer.py <person> --steg 4` |  | gratis |  | inte mätt |
 | 5 Dockfilmen | Givens dockfilm genom livebordets kamera i nyckelutseendet, och var åttonde ruta och första och sista ur den. `python ny_dealer.py <person> --steg 5` |  | gratis |  | inte mätt |
 | 6 Anropen | Stillbilderna (GPT Image 2.6) och filmen (Kling 4 med bilderna; Aleph 2 över dockfilmen med --aleph), färdiga men inte lagda, med kostnaden. Med --ankarklipp: fyra ankarbilder och tre klipp i Kling 4 med dockans film av varje steg som referensfilm. `python ny_dealer.py <person> --steg 6` |  | gratis |  | inte mätt |
-| 7 Efterarbetet (--ankarklipp) | När klippen är levererade: steget klipps ut ur stillheten och läggs om till dockans takt, dealern läggs på vårt bord (lagg-pa-bord.ts) och klippen sätts ihop till hela given. `python ny_dealer.py <person> --ankarklipp --steg 7` |  | gratis |  | inte mätt |
+| 7 Efterarbetet (--ankarklipp) | När klippen är levererade: steget klipps ut ur stillheten där klippet gör rörelsen (hur mycket senare än dockan mäts i klippet) och läggs om till dockans takt, stegen sätts ihop till hela given, och dealern läggs på vårt bord med vår sko och vårt kort (lagg-pa-bord.ts). `python ny_dealer.py <person> --ankarklipp --steg 7` |  | gratis |  | inte mätt |
 
 Flaggorna:
 

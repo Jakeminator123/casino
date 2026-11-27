@@ -11,7 +11,8 @@
 // efter lyftets sista ruta dess sista (dealer3d/tools/lyft-till-docka.ts, made.liftFrames), och lyftets ruta i har filmens
 // sekund frames[i].t (live-bj/verktyg/lyft.py). Vår vy finns för en giv när dess inspelning är nyare än lyftet och har
 // lika många rutor som rörelsen; en persons film när ett prov har dockfilmen av personens docka i samma giv (original/
-// dockfilm-lyft-<docka>-<giv>…mp4), personens lyft är samma lyft från samma ruta, och filmen har rörelsens rutor och storlek.
+// dockfilm-lyft-<docka>-<giv>…mp4, eller i en omgång under original/), personens lyft är samma lyft från samma ruta, och
+// filmen har rörelsens rutor och storlek.
 //
 // Filmen och vägarna finns bara här: kopian på nätet har ingen server, dess bygge (tools/build-studio-snapshot.ts) tar inget
 // utanför blackjack-dealer/ och frågar aldrig efter de här vägarna, och studions sida får filmens adress ur svaret, inte ur
@@ -122,7 +123,10 @@ export async function spegling(options: Options = {}): Promise<Spegling> {
   const personer: {docka: string; rorelse: string; prov: string; filer: string[]}[] = [];
   const provRot = path.join(casino, KALLOR.prov);
   for (const prov of (await readdir(provRot, {withFileTypes: true}).catch(() => [])).filter(d => d.isDirectory() && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(d.name))) {
-    const original = await readdir(path.join(provRot, prov.name, 'original')).catch(() => [] as string[]);
+    // (dockfilmen ligger i original/, eller i en omgång under den: original/v4/, där ny_dealer.py --omgang lägger den)
+    const rot = path.join(provRot, prov.name, 'original'), overst = await readdir(rot, {withFileTypes: true}).catch(() => []);
+    const original = [...overst.filter(d => d.isFile()).map(d => d.name),
+      ...(await Promise.all(overst.filter(d => d.isDirectory()).map(d => readdir(path.join(rot, d.name)).catch(() => [] as string[])))).flat()];
     const docka = original.map(n => /^dockfilm-lyft-([a-z0-9]+)-(p[1-7]|vantan-\d)(?:-[a-z0-9-]+)?\.mp4$/.exec(n)).find(Boolean);
     if (!docka) continue;
     const filer = (await readdir(path.join(provRot, prov.name)).catch(() => [] as string[])).filter(n => /^[a-z0-9][a-z0-9._-]*\.mp4$/.test(n) && !n.includes('dockfilm')).sort();

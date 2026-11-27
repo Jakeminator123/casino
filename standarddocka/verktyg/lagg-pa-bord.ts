@@ -33,9 +33,9 @@
 //   ffmpeg -i standarddocka/klipp/<namn>-kameran-danilo.mp4 -frames:v 1 -y standarddocka/klipp/<namn>.png
 // Arbetet görs i plattans storlek, och filmen skalas till den. Två knep är lånade ur
 // blackjack-dealer (src/scene3d-film.ts, src/film-after.ts):
-//  - Det gröna mäts i varje ruta för sig, i två hörn som alltid är tomma (uppe till vänster bakgrunden, nere till
-//    vänster bordet), och varje bildpunkts grönhet räknas mot det. Utklippet följer då med när filmmodellen låter det
-//    gröna glida i ton under en lång tagning.
+//  - Det gröna mäts i varje ruta för sig, på ett ställe på filten och ett i bakgrunden som ingenting går över i filmen
+//    (bordet läses ur table-live.ts LIVE genom livebordets kamera), och varje bildpunkts grönhet räknas mot bordets eller
+//    bakgrundens. Utklippet följer då med när filmmodellen låter det gröna glida i ton under en lång tagning.
 //  - Skuggan läggs som en kvot: hur mycket mörkare en grön bildpunkt är än det rena gröna på samma ställe (det ljusaste
 //    stället har haft under hela filmen, eftersom skuggorna flyttar sig) gånger vårt bord. Skuggan följer då händerna,
 //    men bordets egen färg och tryck är våra.
@@ -87,32 +87,66 @@ async function* rutor(fil: string): AsyncGenerator<Buffer> {
   for await (const bit of p.stdout) { kvar = kvar.length ? Buffer.concat([kvar, bit as Buffer]) : bit as Buffer; while (kvar.length >= N) { yield kvar.subarray(0, N); kvar = kvar.subarray(N); } }
 }
 const ljus = (r: number, g: number, b: number) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
-/** Medelfärgen i en ruta på 48 bildpunkter med hörnet (x, y). */
-const hornet = (f: Buffer, x: number, y: number) => { let r = 0, g = 0, b = 0; for (let j = y; j < y + 48; j++) for (let i = x; i < x + 48; i++) { const o = (j * W + i) * 3; r += f[o]; g += f[o + 1]; b += f[o + 2]; } return [r / 2304, g / 2304, b / 2304]; };
-const HORN = {uppe: [8, 8], nere: [8, H - 56]} as const, LO = 0.12, HI = 0.5;
+const LO = 0.12, HI = 0.5;
 /** Hur grön en bildpunkt är mot rutans rena gröna (0 inte alls, 1 helt): grönt över det största av rött och blått. */
 const gron = (r: number, g: number, b: number, ren: number) => { const s = (g - Math.max(r, b)) / ren; return s <= LO ? 0 : s >= HI ? 1 : (s - LO) / (HI - LO); };
-/** Rutans rena gröna: uppe (bakgrunden) och nere (bordet), och bordets ljus. */
-const renaGrona = (f: Buffer) => { const uppe = hornet(f, ...HORN.uppe), nere = hornet(f, ...HORN.nere); return {ru: uppe[1] - Math.max(uppe[0], uppe[2]), rn: nere[1] - Math.max(nere[0], nere[2]), ln: ljus(nere[0], nere[1], nere[2])}; };
 
-// Första varvet, på var fjärde bildpunkt: raden där bordet börjar, och bordets rena gröna ljus per ställe (det ljusaste
-// en helt grön bildpunkt där har varit under filmen, räknat mot rutans eget hörn så att filmens glidning i ton inte räknas in).
-const C = 4, cw = Math.ceil(W / C), ch = Math.ceil(H / C), rent = new Float32Array(cw * ch); let kant = -1;
+// Livebordets kamera i arbetets bildpunkter (plattans storlek; bildpunkternas mitt räknas, som i table-live.ts).
+const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], mul = (a: Vec3, k: number): Vec3 => [a[0] * k, a[1] * k, a[2] * k];
+const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const unit = (a: Vec3) => mul(a, 1 / Math.hypot(a[0], a[1], a[2])), lerp = (a: Vec3, b: Vec3, u: number) => add(a, mul(sub(b, a), u));
+const RAM = liveFrame(LIVE_CAMERA), sk = W / LIVE_CAMERA.film.width, FOK = LIVE_CAMERA.focalPx * sk, CX = (LIVE_CAMERA.centre.x + 0.5) * sk - 0.5, CY = (LIVE_CAMERA.centre.y + 0.5) * sk - 0.5;
+if (Math.abs(H - LIVE_CAMERA.film.height * sk) > 1) throw Error(`Plattan (${W} x ${H}) har inte livebordets bildform (${LIVE_CAMERA.film.width} x ${LIVE_CAMERA.film.height}).`);
+/** Var kameran ritar punkten p. */
+const se = (p: Vec3): [number, number] => { const d = sub(p, RAM.position), z = Math.max(1e-6, dot(d, RAM.forward)); return [CX + FOK * dot(d, RAM.right) / z, CY - FOK * dot(d, RAM.up) / z]; };
+
+// Bordet i bilden, ur livebordet (table-live.ts LIVE) genom kameran. SKIVA är bordets skiva: filten, relingen runt den (ut till
+// relingens bredd i filtens höjd och halva bredden i dess topp) och hyllan bakom dealerns kant vid hans höger, ut till
+// relingens yttre kant. Där får dealerns skugga falla, aldrig på golvet eller väggen (Kling 2026-11-27: skuggan lades där
+// som ett rutmönster). BORD är skivan och bordets sida under den ner till bildens underkant; där räknas det gröna mot
+// filtens gröna, och annars mot bakgrundens.
+const {felt, rail, shelf} = LIVE, SKIVA = new Uint8Array(WH), BORD = new Uint8Array(WH);
+/** Ligger punkten p på skivan, med relingen ut till w från filtens kant? */
+const paSkivan = (p: Vec3, w: number) => (Math.hypot(p[0] - felt.centre[0], p[2] - felt.centre[2]) <= felt.radius + w && p[2] >= felt.edgeZ - w)
+  || (p[0] >= felt.centre[0] - felt.radius - rail.width && p[0] <= shelf.right && p[2] <= felt.edgeZ && p[2] >= felt.edgeZ - shelf.back);
+/** Var strålen genom bildpunkten (x, y) når höjden h över filten, eller null. */
+const nar = (x: number, y: number, h: number): Vec3 | null => { const d = add(RAM.forward, add(mul(RAM.right, (x - CX) / FOK), mul(RAM.up, -(y - CY) / FOK))), t = (h - RAM.position[1]) / d[1]; return t > 0 ? add(RAM.position, mul(d, t)) : null; };
+for (let x = 0; x < W; x++) { let ovan = H;
+  for (let y = 0; y < H; y++) { const p0 = nar(x, y, 0), p1 = nar(x, y, rail.above); if ((p0 && paSkivan(p0, rail.width)) || (p1 && paSkivan(p1, rail.width / 2))) { SKIVA[y * W + x] = 1; if (y < ovan) ovan = y; } }
+  for (let y = ovan; y < H; y++) BORD[y * W + x] = 1; }
+// Där det rena gröna mäts i varje ruta: en ruta på filten och en i bakgrunden som ingenting går över i filmen. Filtens
+// ställen ligger 10 cm innanför relingen mot var och en av spelarnas platser (LIVE.betMarks), framför kortplatserna där
+// dealerns händer, korten och skon inte når när han ger; bakgrundens i bildens två övre hörn, om de ligger utanför bordet.
+// Av dem tas det som var grönast i sin sämsta ruta under filmen, alltså det som ingenting gick över.
+const RUTA = 32, medel = (f: Buffer, x0: number, y0: number) => { let r = 0, g = 0, b = 0; for (let y = y0; y < y0 + RUTA; y++) for (let x = x0; x < x0 + RUTA; x++) { const o = (y * W + x) * 3; r += f[o]; g += f[o + 1]; b += f[o + 2]; } const n = RUTA * RUTA; return [r / n, g / n, b / n]; };
+const helt = (x0: number, y0: number, i: Uint8Array, ja: number) => { if (x0 < 0 || y0 < 0 || x0 + RUTA > W || y0 + RUTA > H) return false; for (let y = y0; y < y0 + RUTA; y++) for (let x = x0; x < x0 + RUTA; x++) if (i[y * W + x] !== ja) return false; return true; };
+const STALLEN = {filt: LIVE.betMarks.map(m => { const d = Math.hypot(m[0] - felt.centre[0], m[2] - felt.centre[2]), r = felt.radius - 0.1, [x, y] = se([felt.centre[0] + (m[0] - felt.centre[0]) * r / d, 0, felt.centre[2] + (m[2] - felt.centre[2]) * r / d]); return [Math.round(x - RUTA / 2), Math.round(y - RUTA / 2)]; }).filter(([x, y]) => helt(x, y, SKIVA, 1)),
+  bakgrund: [[8, 8], [W - 8 - RUTA, 8]].filter(([x, y]) => helt(x, y, BORD, 0))};
+// Första varvet: var det gröna mäts (och tagningens första ruta, där dealerns färger mäts, och rutan där skon står orörd).
+const samst = {filt: STALLEN.filt.map(() => Infinity), bakgrund: STALLEN.bakgrund.map(() => Infinity)};
 let skoBild: Buffer | null = null, forstaBild: Buffer | null = null, varv1 = 0;
 for await (const f of rutor(falt)) {
-  if (!varv1) forstaBild = Buffer.from(f);              // (tagningens första ruta, där dealerns färger mäts)
-  if (varv1++ === skoRuta) skoBild = Buffer.from(f);   // (rutan där skon står orörd, för --egen-sko)
-  const uppe = hornet(f, ...HORN.uppe), nere = hornet(f, ...HORN.nere), lu = ljus(uppe[0], uppe[1], uppe[2]), ln = ljus(nere[0], nere[1], nere[2]), rn = nere[1] - Math.max(nere[0], nere[2]);
-  if (kant < 0) { for (let y = 8; y < H - 8 && kant < 0; y++) { const o = (y * W + 20) * 3, l = ljus(f[o], f[o + 1], f[o + 2]); if (Math.abs(l - ln) < Math.abs(l - lu)) kant = y; }
-    if (kant < 0 || !(rn > 30)) throw Error(`${falt}: hittar inte det gröna bordet nere till vänster och den gröna bakgrunden uppe till vänster. Är filmen inspelad i utseendet nyckel?`); }
-  for (let y = kant; y < H; y += C) for (let x = 0; x < W; x += C) { const o = (y * W + x) * 3, r = f[o], g = f[o + 1], b = f[o + 2]; if (gron(r, g, b, rn) < 1) continue; const k = (y / C | 0) * cw + (x / C | 0), l = ljus(r, g, b) / ln; if (l > rent[k]) rent[k] = l; }
+  if (!varv1) forstaBild = Buffer.from(f);
+  if (varv1++ === skoRuta) skoBild = Buffer.from(f);
+  for (const slag of ['filt', 'bakgrund'] as const) STALLEN[slag].forEach(([x, y], i) => { const [r, g, b] = medel(f, x, y); samst[slag][i] = Math.min(samst[slag][i], g - Math.max(r, b)); });
 }
-// Ställen som aldrig var rent gröna (under skon, vid kanten) får grannarnas värde; sedan jämnas fältet ut, så att en
-// skugga som låg kvar på ett ställe hela filmen fylls i av det omkring.
-for (let varv = 0; varv < 40; varv++) { let tomma = 0; const forra = rent.slice(); for (let j = kant / C | 0; j < ch; j++) for (let i = 0; i < cw; i++) { const k = j * cw + i; if (forra[k] > 0) continue; let s = 0, n = 0;
+const valt = (slag: 'filt' | 'bakgrund') => { let i = -1; samst[slag].forEach((s, j) => { if (i < 0 || s > samst[slag][i]) i = j; }); if (i < 0 || !(samst[slag][i] > 30)) throw Error(`${falt}: hittar inget rent grönt ${slag === 'filt' ? 'på bordets filt' : 'i bakgrunden'} genom livebordets kamera. Är filmen inspelad i utseendet nyckel vid livebordet?`); return STALLEN[slag][i]; };
+const MATT_FILT = valt('filt'), MATT_BAK = valt('bakgrund');
+/** Rutans rena gröna: i bakgrunden (ru) och på filten (rn), och filtens ljus. */
+const renaGrona = (f: Buffer) => { const u = medel(f, MATT_BAK[0], MATT_BAK[1]), n = medel(f, MATT_FILT[0], MATT_FILT[1]); return {ru: u[1] - Math.max(u[0], u[2]), rn: n[1] - Math.max(n[0], n[2]), ln: ljus(n[0], n[1], n[2])}; };
+if (visa) console.log(`det gröna mäts på filten vid (${MATT_FILT.map(v => v + RUTA / 2).join(', ')}) och i bakgrunden vid (${MATT_BAK.map(v => v + RUTA / 2).join(', ')})`);
+
+// Andra varvet, på var fjärde bildpunkt: bordets rena gröna ljus per ställe (det ljusaste en helt grön bildpunkt där har
+// varit under filmen, räknat mot rutans eget gröna på filten så att filmens glidning i ton inte räknas in).
+const C = 4, cw = Math.ceil(W / C), ch = Math.ceil(H / C), rent = new Float32Array(cw * ch), iBord = (i: number, j: number) => BORD[Math.min(H - 1, j * C) * W + Math.min(W - 1, i * C)] === 1;
+for await (const f of rutor(falt)) { const {rn, ln} = renaGrona(f);
+  for (let y = 0; y < H; y += C) for (let x = 0; x < W; x += C) { const o = (y * W + x) * 3, r = f[o], g = f[o + 1], b = f[o + 2]; if (!BORD[y * W + x] || gron(r, g, b, rn) < 1) continue; const k = (y / C | 0) * cw + (x / C | 0), l = ljus(r, g, b) / ln; if (l > rent[k]) rent[k] = l; } }
+// Ställen på bordet som aldrig var rent gröna (under skon, vid kanten) får grannarnas värde; sedan jämnas fältet ut, så att
+// en skugga som låg kvar på ett ställe hela filmen fylls i av det omkring.
+for (let varv = 0; varv < 40; varv++) { let tomma = 0; const forra = rent.slice(); for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) { const k = j * cw + i; if (forra[k] > 0 || !iBord(i, j)) continue; let s = 0, n = 0;
   for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const x = i + dx, y = j + dy; if (x < 0 || x >= cw || y < 0 || y >= ch) continue; const v = forra[y * cw + x]; if (v > 0) { s += v; n++; } } if (n) rent[k] = s / n; else tomma++; } if (!tomma) break; }
-for (let varv = 0; varv < 3; varv++) { const forra = rent.slice(), R = 6; for (let j = kant / C | 0; j < ch; j++) for (let i = 0; i < cw; i++) { let s = 0, n = 0, m = 0;
-  for (let dy = -R; dy <= R; dy += 3) for (let dx = -R; dx <= R; dx += 3) { const x = i + dx, y = j + dy; if (x < 0 || x >= cw || y < (kant / C | 0) || y >= ch) continue; const v = forra[y * cw + x]; if (v > 0) { s += v; n++; if (v > m) m = v; } }
+for (let varv = 0; varv < 3; varv++) { const forra = rent.slice(), R = 6; for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) { if (!iBord(i, j)) continue; let s = 0, n = 0, m = 0;
+  for (let dy = -R; dy <= R; dy += 3) for (let dx = -R; dx <= R; dx += 3) { const x = i + dx, y = j + dy; if (x < 0 || x >= cw || y < 0 || y >= ch || !iBord(x, y)) continue; const v = forra[y * cw + x]; if (v > 0) { s += v; n++; if (v > m) m = v; } }
   if (n) rent[j * cw + i] = (s / n + m) / 2; } }
 
 // Plattorna, och det som är samma för varje film.
@@ -121,9 +155,6 @@ const P = await forstaRutan(platta);
 const KOD = ['-an', '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv', '-movflags', '+faststart'];
 if (utMapp) mkdirSync(utMapp, {recursive: true});
 const K = new Float32Array(WH), A = new Float32Array(WH), S = new Float32Array(WH), T = new Float32Array(WH), D = new Uint8ClampedArray(N);
-// Var skuggan får falla: plattans filt och bordskant (mörka), aldrig golvet eller väggen bakom bordet (Kling 2026-11-27:
-// skuggan lades där som ett rutmönster).
-const filt = new Uint8Array(WH); for (let q = 0; q < WH; q++) { const o = q * 3; filt[q] = (q / W | 0) >= kant && ljus(P[o], P[o + 1], P[o + 2]) < 100 ? 1 : 0; }
 /** Det rena gröna ljuset på stället (rutnätet `rent`), läst mjukt mellan rutnätets punkter och inte i rutor. */
 const rentVid = (x: number, y: number) => { const fx = x / C - 0.5, fy = y / C - 0.5, i = Math.max(0, Math.min(cw - 2, Math.floor(fx))), j = Math.max(0, Math.min(ch - 2, Math.floor(fy))), u = Math.min(1, Math.max(0, fx - i)), v = Math.min(1, Math.max(0, fy - j));
   return (rent[j * cw + i] * (1 - u) + rent[j * cw + i + 1] * u) * (1 - v) + (rent[(j + 1) * cw + i] * (1 - u) + rent[(j + 1) * cw + i + 1] * u) * v || 1; };
@@ -148,20 +179,12 @@ if (P2) { if (!skoBild) throw Error(`--sko-ruta ${skoRuta} finns inte i ${falt}.
 type Kort = {c: Vec3; l: Vec3; n: Vec3};
 /** Kortets läge i en filmruta: dockruta t (med bråk), flyttat dx och dz meter på filten och vridet v radianer kring lodlinjen. */
 type Lage = {t: number; dx: number; dz: number; v: number};
-const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], mul = (a: Vec3, k: number): Vec3 => [a[0] * k, a[1] * k, a[2] * k];
-const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const unit = (a: Vec3) => mul(a, 1 / Math.hypot(a[0], a[1], a[2])), lerp = (a: Vec3, b: Vec3, u: number) => add(a, mul(sub(b, a), u));
 const rorelse = dockFil ? JSON.parse(readFileSync(dockFil, 'utf8')) as {frameCount: number; frames: {card: Kort}[]} : null, SIST = rorelse ? rorelse.frames.length - 1 : 0;
 const ankare = taktFil ? (JSON.parse(readFileSync(taktFil, 'utf8')) as {ankare: {dockruta: number; filmruta: number}[]}).ankare : null;
 if (ankare && ankare.length < 2) throw Error(`${taktFil}: färre än två ankare.`);
 /** Dockrutan som filmrutan f svarar mot: rakt mellan ankarna i --takt, annars samma ruta. */
 const dockrutaVid = (f: number) => { if (!ankare) return Math.min(SIST, f); let i = 0; while (i < ankare.length - 2 && f > ankare[i + 1].filmruta) i++;
   const a = ankare[i], b = ankare[i + 1]; return Math.max(0, Math.min(SIST, a.dockruta + (f - a.filmruta) * (b.dockruta - a.dockruta) / (b.filmruta - a.filmruta))); };
-// Livebordets kamera i arbetets bildpunkter (plattans storlek; bildpunkternas mitt räknas, som i table-live.ts).
-const RAM = liveFrame(LIVE_CAMERA), sk = W / LIVE_CAMERA.film.width, FOK = LIVE_CAMERA.focalPx * sk, CX = (LIVE_CAMERA.centre.x + 0.5) * sk - 0.5, CY = (LIVE_CAMERA.centre.y + 0.5) * sk - 0.5;
-if (rorelse && Math.abs(H - LIVE_CAMERA.film.height * sk) > 1) throw Error(`Plattan (${W} x ${H}) har inte livebordets bildform (${LIVE_CAMERA.film.width} x ${LIVE_CAMERA.film.height}).`);
-/** Var kameran ritar punkten p. */
-const se = (p: Vec3): [number, number] => { const d = sub(p, RAM.position), z = Math.max(1e-6, dot(d, RAM.forward)); return [CX + FOK * dot(d, RAM.right) / z, CY - FOK * dot(d, RAM.up) / z]; };
 /** Dockans kort vid dockruta t: mitten rakt mellan rutorna, riktningarna mjukt. */
 const dockKort = (t: number): Kort => { const F = rorelse!.frames, i = Math.max(0, Math.min(SIST, Math.floor(t))), j = Math.min(SIST, i + 1), u = Math.max(0, Math.min(1, t - i)), a = F[i].card, b = F[j].card;
   const l = unit(lerp(a.l, b.l, u)), n0 = lerp(a.n, b.n, u); return {c: lerp(a.c, b.c, u), l, n: unit(sub(n0, mul(l, dot(n0, l))))}; };
@@ -203,9 +226,13 @@ if (rorelse && P2) { const s = liveShoeCard(), q = horn({c: s.centre, l: s.long,
   if (n > 20) { const l = vinkelLjus(s.out), p = pm.map(x => x / n / l), a = am.map(x => x / m), ma = (a[0] + a[1] + a[2]) / 3, mp = (p[0] + p[1] + p[2]) / 3;
     const kov = a.reduce((s, x, c) => s + (x - ma) * (p[c] - mp), 0), va = a.reduce((s, x) => s + (x - ma) ** 2, 0); ljusGang = Math.max(0.2, kov / va); ljusLyft = Math.max(0, mp - ljusGang * ma); }
   if (visa) console.log(`kortets ljus: förstärkning ${ljusGang.toFixed(2)}, lyft ${ljusLyft.toFixed(3)} (skons kort i plattan över ${n} bildpunkter)`); }
+/** Spårkortets gula rygg, också blekt av rörelseoskärpa (Kling 2026-11-27: kortet i farten var 245, 214, 122, och
+ * verktyget såg det då inte och ritade vårt kort efter dockan, bredvid handen): blått under hälften av grönt, eller upp till
+ * 0,62 av grönt när rött och grönt är nära varandra, vilket hud och hud blandad med det gröna inte är. */
+const gul = (r: number, g: number, b: number) => r > 100 && Math.min(r, g) - b > 25 && (b < 0.5 * g || (b < 0.62 * g && r - g < 0.2 * r));
 /** Spårkortets egna färger (gul rygg, turkos ram, rosa märke), också mjukt blandade och blekta mot det vita (ramen blir
  * ljust turkos: grönt och blått lika, rött under). */
-const sparFarg = (r: number, g: number, b: number) => (r > 100 && Math.min(r, g) - b > 25 && b < 0.5 * g) || (b > 120 && r < 0.72 * g && g > 0.86 * b) || (r > 140 && b > 110 && g < Math.min(r, b) - 30)
+const sparFarg = (r: number, g: number, b: number) => gul(r, g, b) || (b > 120 && r < 0.72 * g && g > 0.86 * b) || (r > 140 && b > 110 && g < Math.min(r, b) - 30)
   || (Math.min(g, b) > 170 && Math.abs(g - b) < 12 && r < Math.min(g, b) - 10) || (b > 50 && r < 0.6 * Math.min(g, b) && g > 0.8 * b && g < 1.25 * b);
 /** Vitt eller grått utan färg, ljusare än min (kortets framsida, också i skugga; och en ljus skjorta). */
 const graVit = (r: number, g: number, b: number, min: number) => Math.min(r, g, b) > min && Math.max(r, g, b) - Math.min(r, g, b) < 35;
@@ -217,7 +244,7 @@ const hud = (r: number, g: number, b: number) => r > 80 && r > g + 20 && r - b >
 // en ljusgrå skjorta, och kortets vita framsida en vit skjortas högdager).
 const fack = (r: number, g: number, b: number) => (r >> 4) << 8 | (g >> 4) << 4 | b >> 4, PERSON = new Uint8Array(4096);
 if (P2 || rorelse) { const f = forstaBild!, {ru, rn} = renaGrona(f), gr = new Uint8Array(WH), sp = new Float32Array(WH), n = new Float64Array(4096); let alla = 0;
-  for (let q = 0; q < WH; q++) { const o = q * 3, r = f[o], b = f[o + 2]; let g = f[o + 1]; gr[q] = gron(r, g, b, (q / W | 0) >= kant ? rn : ru) > 0 ? 1 : 0; if (g > Math.max(r, b)) g = Math.max(r, b); sp[q] = !gr[q] && sparFarg(r, g, b) ? 1 : 0; }
+  for (let q = 0; q < WH; q++) { const o = q * 3, r = f[o], b = f[o + 2]; let g = f[o + 1]; gr[q] = gron(r, g, b, BORD[q] ? rn : ru) > 0 ? 1 : 0; if (g > Math.max(r, b)) g = Math.max(r, b); sp[q] = !gr[q] && sparFarg(r, g, b) ? 1 : 0; }
   lada(sp, 12);
   for (let y = 3; y < H - 3; y++) for (let x = 3; x < W - 3; x++) { const q = y * W + x; if (gr[q] || gr[q - 3] || gr[q + 3] || gr[q - 3 * W] || gr[q + 3 * W] || sp[q] > 0 || SKO[q]) continue;
     const o = q * 3, r = f[o], b = f[o + 2], g = Math.min(f[o + 1], Math.max(r, b)); n[fack(r, g, b)]++; alla++; }
@@ -256,12 +283,12 @@ const holje = (b: Lada, d: number): [number, number][] => {
 const iHoljet = (h: [number, number][], x: number, y: number, m: number) => { if (h.length < 3) return false;
   for (let i = 0; i < h.length; i++) { const a = h[i], c = h[(i + 1) % h.length], l = Math.hypot(c[0] - a[0], c[1] - a[1]); if ((c[0] - a[0]) * (y - a[1]) - (c[1] - a[1]) * (x - a[0]) < -m * l) return false; } return true; };
 const filmKortet = (f: Buffer, b: Lada, ru: number, rn: number, kMax: number, d: number, inne?: Float32Array) => {
-  for (let y = b.y0; y < b.y1; y++) { const ren = y >= kant ? rn : ru; for (let x = b.x0; x < b.x1; x++) { const q = y * W + x, o = q * 3, r = f[o], bl = f[o + 2]; let g = f[o + 1]; const k = gron(r, g, bl, ren); if (g > Math.max(r, bl)) g = Math.max(r, bl);
+  for (let y = b.y0; y < b.y1; y++) { for (let x = b.x0; x < b.x1; x++) { const q = y * W + x, o = q * 3, r = f[o], bl = f[o + 2]; let g = f[o + 1]; const k = gron(r, g, bl, BORD[q] ? rn : ru); if (g > Math.max(r, bl)) g = Math.max(r, bl);
     let v = k >= 1 ? 2 : 0; if (!v) { const s = P2 && SKO[q];
       // (kortets kärna är där det gröna är litet inblandat; det mer gröna (upp till kMax: kortets suddiga kant) räknas bara
       // inom åtta bildpunkter från kärnan, eftersom handens och skjortans kant mot det gröna också blir gul och turkos; det
       // vita och grå i vårt kort är kärna (7) men räknas inte när det avgörs vad som är innanför kortet)
-      if (k < kMax && (s ? !DEKK[q] && r > 100 && Math.min(r, g) - bl > 25 && bl < 0.5 * g : sparFarg(r, g, bl))) v = k < 0.35 ? 1 : 4;
+      if (k < kMax && (s ? !DEKK[q] && gul(r, g, bl) : sparFarg(r, g, bl))) v = k < 0.35 ? 1 : 4;
       else if (!s && k <= 0 && graVit(r, g, bl, 110)) v = inne && inne[q] > 0 && graVit(r, g, bl, 150) ? 7 : PERSON[fack(r, g, bl)] ? 3 : 8; }
     SPAR[q] = v; } }
   for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) { const q = y * W + x; KAR[q] = SPAR[q] === 1 && x > b.x0 && x < b.x1 - 1 && y > b.y0 && y < b.y1 - 1 && SPAR[q - 1] === 1 && SPAR[q + 1] === 1 && SPAR[q - W] === 1 && SPAR[q + W] === 1 ? 1 : 0; }
@@ -299,7 +326,9 @@ const sok = (f: Buffer, t0: number, forra: Lage | null) => {
   for (const s of [1, 0.5, 0.25, 0.125, 0.0625]) { if (s < 0.2 && st === 2) { st = 1; bk = kost(basta); }
     for (let varv = 0, battre = true; battre && varv < 20; varv++) { battre = false;
       for (const e of [-1, 1]) { battre = prova({...basta, t: basta.t + e * s}) || battre; battre = prova({...basta, dx: basta.dx + e * 0.01 * s}) || battre; battre = prova({...basta, dz: basta.dz + e * 0.01 * s}) || battre; battre = prova({...basta, v: basta.v + e * 0.08 * s}) || battre; } } }
-  const {inne, ute} = rakna(basta); return {L: basta, nF, tackt: inne / nF, ute, b};
+  // (täcker vårt kort inte ens en tredjedel av det funna är det inte kortet i ett läge vi kan lägga vårt i, som när bara en
+  // strimma av framsidan sticker fram under handen: rutan följer då rutorna omkring)
+  const {inne, ute} = rakna(basta); return {L: inne >= nF / 3 ? basta : null, nF, tackt: inne / nF, ute, b};
 };
 // Kortet ritat (CL linjärt ljus gånger täckning, CA täckning) och filmens kort som tas bort (BORT).
 const CL = new Float32Array(N), CA = new Float32Array(WH), BORT = new Float32Array(WH), HM = new Float32Array(WH), SAK = new Uint8Array(WH);
@@ -329,21 +358,26 @@ if (rorelse) { const lagen: Lage[] = [];
   for await (const f of hallen()) { const nr = sokt.length, t = dockrutaVid(nr), s = sok(f, t, forra); sokt.push(s.L); t0.push(t); vikt.push(s.L ? s.nF : 0); sokLador.push(s.b); if (s.L) forra = s.L;
     rad.push(`ruta ${String(nr).padStart(3)}  dockruta ${t.toFixed(1).padStart(5)}${s.L ? ` → ${s.L.t.toFixed(1).padStart(5)}  flyttat ${(s.L.dx * 1000).toFixed(0).padStart(3)} ${(s.L.dz * 1000).toFixed(0).padStart(3)} mm  vridet ${(s.L.v * 180 / Math.PI).toFixed(0).padStart(3)}°  filmens kort ${String(s.nF * 4).padStart(5)} bp, täckt ${(s.tackt * 100).toFixed(0).padStart(3)} %, utanför ${s.ute * 4} bp` : `  (filmens kort syns inte: ${s.nF * 4} bp)`}`); }
   const n = sokt.length, fran = sokt.map((L, i) => L ? i : -1).filter(i => i >= 0);
-  // (mellan sökta rutor: dockrutans avvikelse och förskjutningen rakt emellan; före den första från ingenting i ruta 0, efter den sista som den)
+  // (mellan sökta rutor: dockrutans avvikelse och förskjutningen rakt emellan; före den första är tiden den första funnas,
+  // eftersom filmmodellen ligger lika mycket efter dockan redan innan kortet syns (Kling 2026-11-27: kortet i handen kom ur
+  // skon en till två rutor efter dockans), och förskjutningen växer från ingenting i ruta 0; efter den sista som den)
   const del = (i: number): Lage => { const L = sokt[i]!; return {t: L.t - t0[i], dx: L.dx, dz: L.dz, v: L.v}; }, noll: Lage = {t: 0, dx: 0, dz: 0, v: 0};
   for (let i = 0; i < n; i++) { if (sokt[i]) { lagen.push(sokt[i]!); continue; } const f = [...fran].reverse().find(j => j < i), e = fran.find(j => j > i);
-    const a = f === undefined ? noll : del(f), b = e === undefined ? a : del(e), fa = f ?? 0, u = e === undefined ? 0 : (i - fa) / (e - fa), m = {t: a.t + (b.t - a.t) * u, dx: a.dx + (b.dx - a.dx) * u, dz: a.dz + (b.dz - a.dz) * u, v: a.v + (b.v - a.v) * u};
+    const a = f === undefined ? noll : del(f), b = e === undefined ? a : del(e), fa = f ?? 0, u = e === undefined ? 0 : (i - fa) / (e - fa), m = {t: f === undefined ? b.t : a.t + (b.t - a.t) * u, dx: a.dx + (b.dx - a.dx) * u, dz: a.dz + (b.dz - a.dz) * u, v: a.v + (b.v - a.v) * u};
     lagen.push({t: Math.max(0, Math.min(SIST, t0[i] + m.t)), dx: m.dx, dz: m.dz, v: m.v}); }
-  // (kortet jämnas över rutan före och efter, vägt efter hur mycket av filmens kort som syns, så att det inte darrar)
-  const ra = lagen.map(kortVid);
-  kort = ra.map((_, i) => { let c: Vec3 = [0, 0, 0], l: Vec3 = [0, 0, 0], m: Vec3 = [0, 0, 0];
-    for (const [j, k] of [[i - 1, 1], [i, 2], [i + 1, 1]]) { if (j < 0 || j >= n) continue; const w = k * (vikt[j] + 1); c = add(c, mul(ra[j].c, w)); l = add(l, mul(ra[j].l, w)); m = add(m, mul(ra[j].n, w)); }
-    const ws = [[i - 1, 1], [i, 2], [i + 1, 1]].filter(([j]) => j >= 0 && j < n).reduce((s, [j, k]) => s + k * (vikt[j] + 1), 0), lu = unit(l); return {c: mul(c, 1 / ws), l: lu, n: unit(sub(m, mul(lu, dot(m, lu))))}; });
+  // (kortet jämnas över rutan före och efter, vägt efter hur mycket av filmens kort som syns, så att det inte darrar; bara
+  // med rutor där kortet är inom 2 cm: ett kort i farten, 6 cm per ruta ur skon, drogs annars mot grannarna och hamnade
+  // framför handen)
+  const ra = lagen.map(kortVid), nara = (a: Kort, b: Kort) => Math.hypot(a.c[0] - b.c[0], a.c[1] - b.c[1], a.c[2] - b.c[2]) < 0.02;
+  kort = ra.map((_, i) => { let c: Vec3 = [0, 0, 0], l: Vec3 = [0, 0, 0], m: Vec3 = [0, 0, 0], ws = 0;
+    for (const [j, k] of [[i - 1, 1], [i, 2], [i + 1, 1]]) { if (j < 0 || j >= n || !nara(ra[j], ra[i])) continue; const w = k * (vikt[j] + 1); c = add(c, mul(ra[j].c, w)); l = add(l, mul(ra[j].l, w)); m = add(m, mul(ra[j].n, w)); ws += w; }
+    const lu = unit(l); return {c: mul(c, 1 / ws), l: lu, n: unit(sub(m, mul(lu, dot(m, lu))))}; });
   // (ett kort som ligger platt på filten under fingret hoppar inte: där jämnas läget över tre rutor åt varje håll, så att ett
-  // språng i filmmodellens kort blir en vridning under fingret; Kling vred kortet rakt på en ruta 2026-11-27)
+  // språng i filmmodellens kort blir en vridning under fingret; Kling vred kortet rakt på en ruta 2026-11-27. Också här
+  // bara med rutor där kortet är inom 2 cm: kortet som skjuts plant över filten från skon ligger också platt)
   const platt = (k: Kort) => Math.abs(k.n[1]) > 0.97 && k.c[1] < 0.005, fore = kort.slice();
   kort = fore.map((k, i) => { if (!platt(k)) return k; let c: Vec3 = [0, 0, 0], l: Vec3 = [0, 0, 0], m: Vec3 = [0, 0, 0], ws = 0;
-    for (let j = Math.max(0, i - 3); j <= Math.min(n - 1, i + 3); j++) { if (!platt(fore[j])) continue; const w = (4 - Math.abs(j - i)) * (vikt[j] + 1); c = add(c, mul(fore[j].c, w)); l = add(l, mul(fore[j].l, w)); m = add(m, mul(fore[j].n, w)); ws += w; }
+    for (let j = Math.max(0, i - 3); j <= Math.min(n - 1, i + 3); j++) { if (!platt(fore[j]) || !nara(fore[j], k)) continue; const w = (4 - Math.abs(j - i)) * (vikt[j] + 1); c = add(c, mul(fore[j].c, w)); l = add(l, mul(fore[j].l, w)); m = add(m, mul(fore[j].n, w)); ws += w; }
     const lu = unit(l); return {c: mul(c, 1 / ws), l: lu, n: unit(sub(m, mul(lu, dot(m, lu))))}; });
   // (där kortet ligger still, hörnen inom 3 bildpunkter i minst fem rutor i rad, får det ett enda läge: rutornas medel)
   for (let i = 0; i < n;) { const h0 = horn(kort[i]); let j = i + 1; while (j < n && horn(kort[j]).every((p, k) => Math.hypot(p[0] - h0[k][0], p[1] - h0[k][1]) < 3)) j++;
@@ -356,8 +390,8 @@ if (rorelse) { const lagen: Lage[] = [];
 const kod = spawn(FFMPEG, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', `${W}x${H}`, '-r', takt, '-i', '-', '-vf', 'scale=out_color_matrix=bt709:out_range=tv', ...KOD, mal], {stdio: ['pipe', 'ignore', 'inherit'], windowsHide: true});
 const klar = once(kod, 'close'), bild = Buffer.alloc(N); let antal = 0, nr = 0;
 for await (const f of hallen()) {
-  const uppe = hornet(f, ...HORN.uppe), nere = hornet(f, ...HORN.nere), ru = uppe[1] - Math.max(uppe[0], uppe[2]), rn = nere[1] - Math.max(nere[0], nere[2]), ln = ljus(nere[0], nere[1], nere[2]);
-  for (let y = 0; y < H; y++) { const ren = y >= kant ? rn : ru; for (let x = 0; x < W; x++) { const o = (y * W + x) * 3; K[y * W + x] = gron(f[o], f[o + 1], f[o + 2], ren); } }
+  const {ru, rn, ln} = renaGrona(f);
+  for (let q = 0; q < WH; q++) { const o = q * 3; K[q] = gron(f[o], f[o + 1], f[o + 2], BORD[q] ? rn : ru); }
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const o = (y * W + x) * 3, q = y * W + x; let r = f[o], g = f[o + 1], b = f[o + 2], k = K[q];
     // Kanten mot det gröna: en kall bildpunkt (blåare än röd) bredvid helt grönt är skärmens grönt blandat i skjortan eller
     // kortets ram och lyser som en ljus turkos rand mot vårt mörka bord (Klings film 2026-11-27); den räknas till bordet.
@@ -366,7 +400,7 @@ for await (const f of hallen()) {
     if (k < 1 && b > r + 10 && Math.min(g, b) > 90 && x > 0 && y > 0 && x < W - 1 && y < H - 1 && (K[q - 1] >= 1 || K[q + 1] >= 1 || K[q - W] >= 1 || K[q + W] >= 1)) k = Math.max(k, 0.9);
     A[q] = k;
     // Dealerns skugga på filten: där det gröna är mörkare än det rena gröna på stället (jämnas nedan).
-    S[q] = k > 0 && filt[q] && skugga > 0 ? 1 - skugga * (1 - Math.min(1, ljus(r, g, b) / (ln * rentVid(x, y)))) : 1;
+    S[q] = k > 0 && SKIVA[q] && skugga > 0 ? 1 - skugga * (1 - Math.min(1, ljus(r, g, b) / (ln * rentVid(x, y)))) : 1;
     // Dealern: det gröna som spiller över i kanten tas ned till det största av rött och blått.
     if (g > Math.max(r, b)) g = Math.max(r, b);
     D[o] = r; D[o + 1] = g; D[o + 2] = b; }
@@ -416,5 +450,5 @@ for await (const f of hallen()) {
   nr++; antal++; if (!kod.stdin.write(bild)) await once(kod.stdin, 'drain');
 }
 kod.stdin.end(); const [slut] = await klar; if (slut !== 0) throw Error('FFmpeg kunde inte skriva filmen.');
-console.log(`${antal} rutor lagda på ${platta}: ${mal} (bordet börjar vid rad ${kant})${rorelse ? `, kortet ${valor} ritat efter ${path.basename(dockFil!)}` : ''}`);
+console.log(`${antal} rutor lagda på ${platta}: ${mal} (det gröna mätt på filten och i bakgrunden genom livebordets kamera)${rorelse ? `, kortet ${valor} ritat efter ${path.basename(dockFil!)}` : ''}`);
 }

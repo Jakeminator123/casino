@@ -7,7 +7,8 @@ description: Använd i casino när en ny dealer ska göras ur bilder av en perso
 
 `ny_dealer.py` i `avatar-auto-pipeline/` gör allt som är gratis, från personens bilder till färdiga anrop hos Runway.
 Läs skriptets huvud; mapparna och kommandona står i `avatar-auto-pipeline/README-SV.md`. Sökvägar räknas från
-casino-roten. Kenji Nakamura är den första personen (provet `kenji-ny-dealer-ur-bilder-20261127`).
+casino-roten. Kenji Nakamura är den första personen (proven `kenji-ny-dealer-ur-bilder-20261127`, de tre första
+omgångerna, och `kenji-tre-klipp-mellan-ankarbilder-20261127`, den fjärde, gjord med `--ankarklipp`).
 
 ## Före
 
@@ -62,10 +63,14 @@ A3PnC1 → A2.3 med kortet. Klippen möts i ankarbilderna.
    (`/v1/image_to_video`, `promptImage` med `first` och `last`, `referenceVideos` med stegets referensfilm, 3 s,
    `auto_1080p`). En ankarbild som redan är gjord för samma dockruta i en tidigare omgång tas därifrån. `kostnad.json`
    säger per klipp vilka rutor av det levererade klippet som är själva steget.
-7. **Efterarbetet** (`--steg 7`, gratis, när klippen ligger i `ut/klipp-<nr>.mp4`): steget klipps ut ur stillheten efter
-   klippets egen längd och bildtakt och läggs om till dockans 30 bilder/s, dealern läggs på vårt bord
-   (`lagg-pa-bord.ts` med plattorna och en takt med stegets dockrutor), och klippen sätts ihop med ankarrutan en gång där
-   två möts. `--efter-prov` prövar det med referensfilmerna i klippens ställe.
+7. **Efterarbetet** (`--steg 7`, gratis, när klippen ligger i `ut/klipp-<nr>.mp4`): steget klipps ut ur stillheten där
+   klippet gör rörelsen och läggs om till dockans 30 bilder/s. Filmmodellen gör rörelsen något senare än
+   referensfilmen (Kling 4 0,06–0,08 s, 2026-11-27), så skriptet mäter förskjutningen i varje klipp (rörelsen ruta för
+   ruta mot referensfilmens) och säger hur lik rörelsen är; under 0,4 ska klippet ses på innan det används. Stegen sätts
+   ihop i grönt med ankarrutan en gång där två möts (`efter/given-i-gront.mp4`, lika många rutor som dockans giv), och
+   dealern läggs på vårt bord, hela given som en tagning (`lagg-pa-bord.ts` med plattorna, en takt med varje stegs
+   första dockruta, och skon mätt i handbytets ruta, där ingen hand är vid den): `efter/given-pa-bordet.mp4`.
+   `--efter-prov` prövar det med referensfilmerna i klippens ställe.
 
 Utan `--prov` hamnar filmen, rutorna och anropen i `avatar-auto-pipeline/output/<person>/16-dockfilm/`, med
 `--prov <provmapp>` i `blackjack-dealer/assets/proofs/<provmapp>/original/`. `--utseende` är personens utseende i ord för
@@ -79,7 +84,9 @@ bildmodellen och står sedan kvar i personfilen.
 - Från `blackjack-dealer/`, i ordningen i `kostnad.json`: `node tools/runway-api.ts place <anrop.json>`, sedan
   `node tools/runway-api.ts collect <anropets namn> <fil>`. Varje bild sparas i omgångens `ut/` med det namn nästa anrop
   väntar sig (`start.png`, `sista.png`, `mellan-NN.png`), och för film A skalad till 1728 × 972 som `k-start.png`,
-  `k-NN.png` och `k-sista.png`.
+  `k-NN.png` och `k-sista.png`. Med `--ankarklipp` säger varje anrop själv var resultatet sparas (`"ut"`), och
+  ankarbilderna skalas likadant till `k-<namn>.png` bredvid. `--lage` säger hur många anrop som har sitt resultat på
+  plats och vad som är kvar att lägga.
 - Vad modellerna kan och kostar, och vad proven har visat: skillen `runway` (trettonde provet är Kenjis).
 
 ## Efterarbetet
