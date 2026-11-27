@@ -14,7 +14,7 @@ export function snapshotMaterial(bank: BankData, proofs: readonly Proof[], deale
     if (bytes === undefined || added.has(key)) return;
     added.add(key);
     dealer.entries.push({id: `kopian-${createHash('sha256').update(key).digest('hex')}`, name, role, path, served: path, bytes, fps,
-      exists: true, inside: true, width: null, height: null, frames: null, count: null, usedBy: []});
+      exists: true, width: null, height: null, frames: null, count: null, usedBy: []});
   };
 
   for (const kind of ['jobs', 'derived', 'edits'] as const) for (const {id} of bank[kind] ?? []) {

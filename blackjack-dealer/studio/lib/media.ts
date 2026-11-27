@@ -108,9 +108,8 @@ export type Register = { schemaVersion: 1; about?: string; dealers: Record<strin
 export const ID = /^[a-z0-9]+(?:[.-][a-z0-9]+)*$/;
 export const CARD = /^(?:P[1-7]\.C[12]|D\.C[1-3])$/;
 const INSIDE = /^(?:assets|output)\/(?:[A-Za-z0-9][A-Za-z0-9._-]*\/)*[A-Za-z0-9][A-Za-z0-9._-]*$/;
-const OUTSIDE = /^[A-Za-z]:\/(?:[^/\\]+\/)*[^/\\]+$/;
 
-/** A file in the repo the lab may hand out ("assets/…", "output/…"); anything else is outside. */
+/** A file in the repo the lab may hand out ("assets/…", "output/…"). The register names no other: a path on one computer's disk is refused. */
 export const isInside = (path: string): boolean => INSIDE.test(path) && !path.split("/").includes("..");
 /** A picture or a film by its name. */
 export const kindOfPath = (path: string): "image" | "video" | "folder" | "other" =>
@@ -146,7 +145,7 @@ export function validateRegister(value: unknown): { register: Register | null; e
       if ((e.role as string) === "prov") errors.push(`${where}: rollen prov finns inte längre: ett prov registreras av sitt proof.json.`);
       else if (!isRole(e.role)) errors.push(`${where}: okänd roll ${String(e.role)}.`);
       if (typeof e.name !== "string" || !e.name.trim() || e.name.length > 80) errors.push(`${where}: namnet saknas eller är för långt.`);
-      if (e.path !== undefined && (typeof e.path !== "string" || (!isInside(e.path) && !OUTSIDE.test(e.path)))) errors.push(`${where}: sökvägen ska ligga under assets/ eller output/, eller vara en hel sökväg utanför repot.`);
+      if (e.path !== undefined && (typeof e.path !== "string" || !isInside(e.path))) errors.push(`${where}: sökvägen ska ligga under assets/ eller output/.`);
       if (e.frame !== undefined && (!Number.isInteger(e.frame) || e.frame < 0 || !e.path || kindOfPath(e.path) !== "video")) errors.push(`${where}: en ruta ska vara ett heltal ≥ 0 i en film.`);
       if (e.fps !== undefined && (typeof e.fps !== "number" || !(e.fps > 0) || e.fps > 240)) errors.push(`${where}: fps ska vara ett tal över 0.`);
       if (e.still !== undefined && (!Number.isInteger(e.still) || e.still < 0 || e.frame !== undefined || !e.path || kindOfPath(e.path) !== "video")) errors.push(`${where}: still är rutan en hel film visas med.`);
@@ -215,9 +214,8 @@ export function unassigned(register: Register, jobs: readonly JobLike[]): string
 /** What the lab found for one entry: whether it is there, where the page may load it from, its size, and who uses it. */
 export type Found = {
   exists: boolean;
-  /** The address the page loads the picture or film from (relative to the lab's root); null outside the repo or when missing. */
+  /** The address the page loads the picture or film from (relative to the lab's root); null when the file is missing. */
   served: string | null;
-  inside: boolean;
   width: number | null;
   height: number | null;
   bytes: number | null;

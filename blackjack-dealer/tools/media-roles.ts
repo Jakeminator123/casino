@@ -253,13 +253,12 @@ export function mediaRoles(root: string) {
  }
 
  async function look(entry: Entry): Promise<Found> {
-  const none: Found = {exists: false, served: null, inside: false, width: null, height: null, bytes: null, fps: null, frames: null, count: null, usedBy: []};
-  if (!entry.path) return none;
-  const inside = isInside(entry.path), file = inside ? path.join(root, ...entry.path.split('/')) : entry.path;
+  const none: Found = {exists: false, served: null, width: null, height: null, bytes: null, fps: null, frames: null, count: null, usedBy: []};
+  // Only a file inside the repo is ever looked at: the register names no path on one computer's disk.
+  if (!entry.path || !isInside(entry.path)) return none;
+  const file = path.join(root, ...entry.path.split('/'));
   const s = await stat(file).catch(() => null);
-  if (!s?.isFile()) return {...none, inside};
-  const ok = inside ? await confined(entry.path) : true;
-  if (!ok) return {...none, inside};
+  if (!s?.isFile() || !(await confined(entry.path))) return none;
   const stamp = mediaFileStamp(s);
   let known = facts.get(file);
   if (known?.stamp !== stamp) {
@@ -273,7 +272,7 @@ export function mediaRoles(root: string) {
    facts.set(file, known);
   }
   const count = entry.pattern ? await countPattern(root, entry.pattern) : null;
-  return {exists: true, served: inside ? entry.path : null, inside, width: known.width, height: known.height, bytes: s.size, fps: known.fps, frames: known.frames, count, usedBy: []};
+  return {exists: true, served: entry.path, width: known.width, height: known.height, bytes: s.size, fps: known.fps, frames: known.frames, count, usedBy: []};
  }
 
  /** GET /api/media: every dealer's entries with what was found, and the measures. */
@@ -289,7 +288,7 @@ export function mediaRoles(root: string) {
    }));
    const held = entries.filter(e => e.role === 'ankare-1' && !e.card && e.state === 'gäller');
    const reference = held.length === 1 ? held[0] : undefined;
-   const hashSource = async (entry: EntryAnswer) => entry.exists && entry.inside && entry.path && entry.width && entry.height
+   const hashSource = async (entry: EntryAnswer) => entry.exists && entry.path && entry.width && entry.height
     ? hashPath(path.join(root, entry.path)) : null;
    const referenceSha = fits?.schemaVersion === 2 && reference ? await hashSource(reference) : null;
    for (const entry of entries) entry.fit = await fitFor(fits, id, entry, reference, referenceSha, hashSource);

@@ -7,7 +7,7 @@
 // of the row, Z between the fitted picture and its full size, Esc closes. A candidate picture has Godkänn and Underkänn
 // in the header (StateDecision), given the register's revision; not in the online copy.
 import * as RD from "@radix-ui/react-dialog";
-import { ChevronLeft, ChevronRight, HardDrive, ImageOff, Info, Maximize2, Minimize2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImageOff, Info, Maximize2, Minimize2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useBank, useOptionalBank } from "../../lib/bank.ts";
@@ -52,8 +52,8 @@ function Picture({ entry, close }: { entry: EntryAnswer; close: boolean }) {
       <div className="grid h-full place-items-center p-10 text-center">
         {/* The file's path is not his words: it waits under the pointer, as in Var den ligger. */}
         <div className="flex max-w-md flex-col items-center gap-3 text-dim [&_svg]:size-7" title={entry.path}>
-          {entry.inside ? <ImageOff /> : <HardDrive />}
-          <p className="text-md text-ink">{entry.inside ? "Filen saknas på den här datorn." : "Filen ligger utanför projektets mapp, så den visas inte här."}</p>
+          <ImageOff />
+          <p className="text-md text-ink">Filen saknas på den här datorn.</p>
         </div>
       </div>
     );
@@ -168,12 +168,11 @@ function Facts({ entry }: { entry: EntryAnswer }) {
           {entry.frame !== undefined ? (
             <span className="block text-sm">
               Ruta {entry.frame}
-              {entry.frames ? ` av ${entry.frames}` : ""} i filmen{entry.inside ? "" : " (utanför projektets mapp)"}
+              {entry.frames ? ` av ${entry.frames}` : ""} i filmen
             </span>
-          ) : entry.inside ? (
+          ) : (
             <span className="block text-sm">I projektets mapp</span>
-          ) : null}
-          {!entry.inside ? <span className="mt-1 block text-xs text-[#f0b07a]">Utanför projektets mapp: servern lämnar inte ut den.</span> : null}
+          )}
         </Fact>
         {size || entry.bytes ? (
           <Fact label="Storlek">

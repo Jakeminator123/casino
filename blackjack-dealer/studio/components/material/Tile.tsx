@@ -4,10 +4,10 @@
 // once (ProofStill), or a quiet panel when the file lies outside the lab or is gone. Under it its short name and how many
 // of the bank's films start or end on it; its state as a chip on the picture, and top right how it fits today's card plan
 // when it does not (and what a reference is for). A replaced picture is drawn dimmer.
-import { Film, HardDrive, ImageOff, Play } from "lucide-react";
+import { Film, ImageOff, Play } from "lucide-react";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
-import { fitChip, referenceChips, sizeWords, usedWords, type EntryAnswer, type State } from "../../lib/media.ts";
+import { fitChip, referenceChips, usedWords, type EntryAnswer, type State } from "../../lib/media.ts";
 import { ProofStill, type Cover } from "../proofs";
 import { Badge, buttonClasses, cn, type BadgeTone } from "../ui";
 
@@ -110,13 +110,8 @@ export function Tile({ entry, onOpen, selected = false, line, marks = [], quiet,
       >
         {cover ? (
           <ProofStill cover={cover} fps={entry.fps ?? 30} className={cn("absolute inset-0 transition-[filter,opacity] duration-200 group-hover:brightness-110", (entry.state === "ersatt" || entry.state === "arkiverad") && "opacity-55 saturate-50")} />
-        ) : entry.inside ? (
-          <Placeholder icon={<ImageOff />}>Filen saknas</Placeholder>
         ) : (
-          <Placeholder icon={<HardDrive />}>
-            <span>Utanför mappen</span>
-            {entry.width && entry.height ? <span className="tabular-nums text-dim">{sizeWords(entry.width, entry.height)}</span> : null}
-          </Placeholder>
+          <Placeholder icon={<ImageOff />}>Filen saknas</Placeholder>
         )}
         {entry.state ? <StateChip state={entry.state} className="absolute left-1.5 top-1.5 bg-canvas/85 backdrop-blur-sm" /> : null}
         <FitChips entry={entry} />
