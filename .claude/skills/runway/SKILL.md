@@ -350,12 +350,24 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     - Kortet vänds inte av handen. Det byter från rygg till framsida plant under fingrarna (ruta 43–48).
     - Vänsterhanden släpper kortet, går tillbaka till det och hänger som en klo innan den når skon (ruta 36–80).
     - Kortet byter valör mellan de två ankarna med kort.
+  - **Samma giv i WAN 3.0** (`wan3`, 720p, 2 s i Frasses takt, utan ljud, 20 krediter, uppdraget
+    `9f72e08e-38fa-4370-a65e-d65d268bbae1`) med vändningen beskriven ord för ord. Ut kom 1280 x 720, 30 bilder/s och 60
+    rutor. Klippet börjar och slutar på ankarna, kameran står still och mannen är samma. Domaren dömde ändå Inte bra med
+    hög säkerhet:
+    - Kortet vänds i skons mynning, inte av handen (ruta 5–9).
+    - Kortet vrids 90° på en ruta (27–28) och byter tryck.
+    - Högern bär kortet på högkant med framsidan mot kameran (ruta 33–39).
+    - Rutor upprepas ungefär var femte ruta.
+  - **Slutsatsen:** första och sista bild räcker för att klippen ska gå ihop, men inte för att få vändningen. Ingen av de
+    två billiga modellerna vänder kortet med handen när den bara har ankarna och en text. Det som saknas är en förlaga
+    för rörelsen mitt i klippet: en bild vid handbytet med kortets rygg upp (ankaret A2M i schemat, som då delar given i
+    två klipp), eller dockans film som referensfilm (Kling 4 tar båda tillsammans med första och sista bild).
   - **Till nästa gång:**
     - Ankaret med kortet kvar görs genom att klistra in kortets bildpunkter ur A3P4C1, inte genom en ändring, så att
       kortet blir exakt samma.
     - Huvudet i A2.3 ska vridas mot skon som Frasses (29°): orden i bilden räckte inte till det.
     - Ankarna ges i klippets egen storlek.
-  - **Kostnaden:** 49 krediter, varav fem bilder 20, två klipp 32 och ihopsättningen 1. Uppdragen ligger bland
+  - **Kostnaden:** 69 krediter, varav fem bilder 20, tre klipp 52 och ihopsättningen 1. Uppdragen ligger bland
     Runways tillgångar: A2.3 `590f63c2-42ca-4c71-956d-e6c743f1e9f0`, A3P4C1
     `e1c973ed-68ed-405b-b432-eb1dbd8351af`, A2.3 med kortet `195733d8-51fd-4ecc-bd63-ba3a60303cb9`, given
     `f0120b8e-84e5-4c8c-99f2-8781b7d7ca53`, handen hem `b4b2b919-e782-4b5c-b843-d46388f59940` och de två ihopsatta

@@ -33,8 +33,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   det som återstår är ett svagt blink i ljus och skärpa i första rutan efter skarven. Givklippet fäller filmen.
   Kortet vänds inte av handen: det byter från rygg till framsida plant under fingrarna (ruta 43–48). Vänsterhanden
   släpper kortet, går tillbaka till det och hänger som en klo innan den når skon (ruta 36–80). Kortet byter också
-  valör mellan de två ankarna med kort. Domen fälldes utan MediaPipe och utan extern domare, eftersom ingen av dem
-  finns i molnet.
+  valör mellan de två ankarna med kort. En andra tagning av given i WAN 3.0 i Frasses takt (2 s) dömdes också Inte
+  bra: kortet vändes i skons mynning, inte av handen. Domarna fälldes utan MediaPipe och utan extern domare, eftersom
+  ingen av dem finns i molnet. Nästa steg för vägen står under Nästa steg, punkt 1.
 - **Studion** (`http://127.0.0.1:4319/studio/`): Start, Karta med Schemat (rundan, kortplatserna och rörelseschemat för
   Danilo och Frasse), Granska med Prov, Beslut, Beställ, Dockan (editorn i `../standarddocka/`), Avatarer, Mått och
   Biblioteket. Regeln "Studion visar, den förklarar inte" (`AGENTS.md`) är genomförd på Schemat, Start, Mått, Beställ,
@@ -52,6 +53,14 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 I den här ordningen om han inte säger annat.
 
 1. **Filmen, efter hans Nja** (hans ord står i `../standarddocka/DOMAR.md`, sist):
+   - **Kedjan av ankarbilder genom en hel runda** (tolfte provet i skillen `runway`). Givarna går mellan fasta bilder,
+     i rundans ordning (`rundaAv`, platserna 7 till 1 i dagens numrering) och spelets klippgraf
+     (`src/clip-graph.ts`: READY > Pn.C1 > READY).
+     - För första kortet till sju platser behövs 15 bilder per person och kamera: A2.3, sju A3PnC1 och sju A2.3 med
+       kortet kvar. Det är ungefär 60 krediter.
+     - Det behövs också 14 klipp, och vändningen kräver mer än första och sista bild.
+     - Nästa prov är en giv med handbytet (A2M, med kortets rygg upp) som en egen bild, eller Kling 4 med första och
+       sista bild och dockans film som referensfilm.
    - **Vändningen ska gå fort.** Kling lägger stillbilderna jämnt i tiden, så sträckan där bilderna ligger tätast
      (bytet och vändningen) blev upp till sex gånger långsammare än dockans. Fil 10 och 11 i provet prövar att ge varje
      del dockans takt i efterhand, med hela rutor och med de överhoppade rutorna inblandade som rörelseoskärpa. Till
