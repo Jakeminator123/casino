@@ -394,8 +394,21 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     ur rörelsens tal; lägg filmen i dockans takt efteråt med `standarddocka/verktyg/i-dockans-takt.ts`.
   - **Dockans fel blir filmens:** kortets vinkel i handbytet var vårt eget påhitt och rättades i lyftet (ryggen mot
     kameran, buret under handen).
-  - **Andra omgången** (tio stillbilder ur den rättade rörelsen, 82 krediter, och Kling 4, 57) är gjord; hur den dömdes
-    skrivs in av huvudagenten.
+  - **Andra omgången** (tio stillbilder, 82 krediter, och Kling 4, 57) filmades efter en rörelse där kortet hängde i
+    fingertoppen och ersattes av den tredje.
+  - **Tredje omgången, Kling 4** (nio nya stillbilder, 72, och filmen, 57), efter den rörelse domaren dömde Bra: filmen
+    håller mannen, händerna är mänskliga och kortet syns hela vägen. Domaren: Nja; Jakob om samma film: "Tempot är
+    konstigt", och händerna får inte kontakt med kortet. Orsaken är två källor: händerna är Klings egen rörelse mellan
+    bilderna, kortet ritas efter dockans tal, och takten trycks in efteråt mellan sex ankare (Kling gick inte genom fyra
+    av de tio bilderna: draget ur skon blev slow motion och bytet tre gånger för fort). Att upprepa rutor ger hack, att
+    blanda dem ger dubbla fingrar; mellanrutor ur rörelsen (`minterpolate`) är inte dömda.
+  - **Tredje omgången, Aleph 2** (56 krediter) över den rättade dockfilmen med tre styrbilder (start vid sekund 0,
+    handbytet vid 0,97 och sista bilden med `"at": 1`; en tid över filmens hela sekunder, 2, nekas utan kostnad): exakt
+    Danilos takt och inga upprepade rutor, men domaren: Inte bra. Ansiktet går sönder (ett ögonlock sväller i ruta
+    16–33) och blir yngre mot slutet trots tre styrbilder, vänsterhanden blir dockans (plastig), och spårkortets gula
+    lämnar flagor vid fingrarna. Aleph tar takten och rörelsen ur dockan men också dess yta.
+  - **Nästa att pröva:** takten ur dockans film och ansiktet och händerna ur stillbilderna i samma anrop (Kling 4 med
+    stillbilderna och dockfilmen som referensfilm), och vårt kort lagt där filmens fingertoppar är, ruta för ruta.
 - Fjortonde provet, 2026-11-27, **handbytet som egen ankarbild: A2.3 → A2M → A3P4C1 → A2.3 med kortet**, för hand i
   Runways app med en ny person ur ett foto som Jakob skickade. Fotot gick bara till bildmodellen i Runway, aldrig in i
   Git. Frasses ställning genom livebordets kamera; domarens ord, inte Jakobs.

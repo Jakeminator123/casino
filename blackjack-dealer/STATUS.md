@@ -29,7 +29,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   - Pekfingret följer kortet ned, ligger i dess bortre hörn (till höger i bilden) och lyfter rakt upp. Tummen är
     lyftets egen. `lyft-kolla.ts` har spärrar mot kort som läggs till rätta på filten och kort som rör sig utan fingret.
   - Domaren dömde given fyra gånger bredvid det riktiga klippet (domarens ord, inte Jakobs): tre Nja och till sist
-    **Bra**, bra nog att filma en person efter, med en anmärkning för vänsterhanden vid skon.
+    **Bra**, bra nog att filma en person efter, med en anmärkning för vänsterhanden vid skon. **Jakobs egen dom på
+    dockfilmen av den rörelsen (Kenjis docka) samma kväll: Inte bra**, och om dockan: "den känns riktigt klumpig".
+    Domaren var alltså för snäll: den jämför rörelsen med klippet men fäller inte dockans kropp och händer.
 - **Kortets storlek.** Dockans kort genom livebordets kamera är livefilmens kort inom 1–2 bildpunkter (72 × 52 mot
   73 × 53). Kortet i Kling-filmen han dömde var 4–9 % mindre per kant: filmmodellen ritar det själv. Det rättas av att
   vi ritar kortet.
@@ -47,10 +49,21 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
     över dockfilmen **Inte bra** (kortet försvann i bytet och ansiktet blev yngre). Domarens ord, inte Jakobs.
   - Andra omgången (139 krediter): tio stillbilder valda där något händer i rörelsen, och Kling 4. Rörelsen den
     filmades efter hade kortet hängande i fingertoppen och är ersatt; filmen ligger kvar i provets `original/v2/`.
-  - Tredje omgången (129 krediter), efter den rörelse domaren dömde Bra: filmen i provet,
-    `05-kenji-ger-ett-kort-vid-livebordet.mp4`, i dockans takt på vårt bord med vår sko och vårt eget kort. Kvar i
-    den enligt den som gjorde utskärningen: ett litet rosa streck under pekfingret i ruta 8–9 och en svag skuggkant
-    runt axlarna i ruta 30, båda ur hur filmmodellen ritade. Handen går hem tidigare än dockans.
+  - **Jakobs dom 2026-11-27 kl. 17.47: Inte bra** på hela provet, på filmen (06, halv fart av 05) och på dockfilmen
+    (03). Hans dom ersätter domarnas. Film 11 och 15 lades i provet efter hans dom och är inte dömda av honom.
+  - Tredje omgången, efter den rörelse domaren dömde Bra, gjord på två sätt som ligger bredvid varandra i provet
+    (film 15 är film 05 med mellanrutor räknade ur rörelsen, så att början inte hackar; inte dömd):
+    - **Film 05, mellan tio stillbilder (Kling 4, 129 krediter)**, lagd i Danilos takt efteråt, på vårt bord med vår
+      sko och vårt kort. Domaren: **Nja**; den externa domaren Inte bra på en tidigare version. Samma man hela vägen,
+      mänskliga händer och ett helt kort i varje ruta. Jakob 2026-11-27: "Tempot är konstigt också", och händerna får
+      inte kontakt med kortet ("det kan ändå inte flyga upp till högra"). Orsaken: händerna är filmmodellens egen
+      rörelse mellan bilderna, kortet ritas efter dockans tal, och takten trycks in efteråt (draget ur skon blir slow
+      motion och bytet tre gånger för fort; rutor upprepas, så början hackar).
+    - **Film 11, ruta för ruta efter dockans film (Aleph 2, 56 krediter):** exakt Danilos takt, men domaren: **Inte
+      bra**. Ansiktet går sönder och blir yngre, vänsterhanden blir dockans plast, och spårkortets gula lämnar flagor
+      vid fingrarna.
+    - Domarens råd för nästa film: takten ur dockans film och ansiktet och händerna ur stillbilderna i samma anrop,
+      och vårt kort lagt där filmens fingertoppar är, ruta för ruta.
 - **Efterarbetet är två verktyg** i `../standarddocka/verktyg/`: `i-dockans-takt.ts` parar varje stillbild med sin
   filmruta och läser filmen i Danilos takt med hela rutor (valet `--oskarpa`, som blandar filmrutor, gav dubbla
   fingrar och en rand runt axlarna och används inte), och `lagg-pa-bord.ts` skär ut dealern, lägger
@@ -67,17 +80,24 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - **Lagret:** de sex ersatta proven, figurerna som föll, den förra standardens klipp och ett orderutkast som aldrig
   lades ligger i arkivet bredvid repot, och kortspelspaketet i `kortspelspaket-arkiv` bredvid repot. Inget är raderat.
   Repot gick från 3,2 till 1,9 GB.
-- **Pengar** (2026-11-27 kl. 17.20): Runway 4 691 krediter kvar. Av hans budget på 3 000 för eftermiddagen ("Var
-  resonable, men ja - du får 3000 ...") är 455 använda, alla på Kenjis tre omgångar. Meshy 363, orört. Den externa
+- **Pengar** (2026-11-27 kl. 18.15): Runway 4 635 krediter kvar. Av hans budget på 3 000 för eftermiddagen ("Var
+  resonable, men ja - du får 3000 ...") är 511 använda, alla på Kenjis tre omgångar. Meshy 363, orört. Den externa
   domaren (OpenAI) har ett tak på 5 USD per tolv timmar i verktyget.
 
 ## Nästa steg
 
 I den här ordningen om han inte säger annat.
 
-1. **Hans dom på Kenjis film** (kortet `kenji-ger-ett-kort` i Beslut). Hans ord var "gör en video till! Sedan kanske
-   vi kan döma efter det". Kortet `sju-bilder-vid-livebordet` med det svaret står kvar i Beslut; det tas ut när han har
-   sett den nya filmen.
+1. **Nästa film av Kenji,** efter hans ord om tempot och kortets kontakt och domarens råd:
+   - Takten ur dockans film i själva anropet: Kling 4 med stillbilderna och dockfilmen som referensfilm (cirka 70
+     krediter; stillbilderna finns i provets `original/v3/ut/`), så att inget behöver tryckas in efteråt.
+   - Vårt kort läggs där filmens fingertoppar är, ruta för ruta, i stället för efter dockans kortbana
+     (`../standarddocka/verktyg/lagg-pa-bord.ts`).
+   - Dockans kropp: lederna är dealerns, men bålens och armarnas volym är kroppsgeneratorns egen, så dockan är
+     tjockare än Danilo (Jakob: "den tjocka dockan ... känns riktigt klumpig"). Volymen ska mätas ur filmen eller ur
+     personens bilder (SAM 3D Body ger kroppsformen).
+   - Hans dom på filmerna som finns: kortet `kenji-ger-ett-kort` i Beslut. Kortet `sju-bilder-vid-livebordet` med
+     svaret "gör en video till" står kvar tills han har dömt.
 2. **Rörelsen:** vänsterhanden platt på skons kort (kräver att vänsterns handled vid skon mäts om i filmen; ett
    försök gjorde de andra givarna sämre och togs bort), tummens form när fingret ligger på kortet, pekfingret som går
    genom kortet i två rutor under handen, och högerhanden som går fram och tillbaka före bytet där dealerns ligger

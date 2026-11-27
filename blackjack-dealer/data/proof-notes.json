@@ -200,14 +200,29 @@
       "id": 235,
       "proof": "kenji-ny-dealer-ur-bilder-20261127",
       "file": "03-dockfilmen-given-till-plats-4.mp4",
-      "choice": null,
+      "choice": "inte-bra",
       "text": "Kn vara bra..",
-      "at": "2026-11-27T16:24:27.577Z",
+      "at": "2026-11-27T16:47:34.677Z",
       "answer": {
         "text": "Den du såg var filmad före dagens rättningar. Filen är nu bytt mot dockfilmen efter den rättade rörelsen (kortet under handen, fingret följer kortet ned).",
         "at": "2026-11-27T16:32:38.156Z"
-      },
-      "read": "2026-11-27T16:32:38.156Z"
+      }
+    },
+    {
+      "id": 236,
+      "proof": "kenji-ny-dealer-ur-bilder-20261127",
+      "file": null,
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-27T16:46:39.811Z"
+    },
+    {
+      "id": 237,
+      "proof": "kenji-ny-dealer-ur-bilder-20261127",
+      "file": "06-samma-i-halv-fart.mp4",
+      "choice": "inte-bra",
+      "text": "",
+      "at": "2026-11-27T16:47:17.952Z"
     }
   ]
 }

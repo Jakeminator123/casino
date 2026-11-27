@@ -256,6 +256,26 @@ rörelser och filmerna som görs av dem.
   - **Vänstern som drar nästa kort innan det förra ligger** nämner han igen som "det svåra (osäker på om det ens ska
     göras)".
   - Om Kenjis dockfilm före dagens rättningar: "Kan vara bra..".
+- **Kenjis film mellan stillbilder: tempot och kortets kontakt** (2026-11-27, provet
+  `kenji-ny-dealer-ur-bilder-20261127`, film 05 och arbetsfilen före den). Om en arbetsfil där utskärningen tog
+  bort bitar av skjortan: den "ser bra ut fast man ser liksom att någon typ av överläggningsgrej ligger vid händerna".
+  Om filmen: "Tempot är konstigt också." Och om händerna och kortet: "Är kanske också inte bordet lite lågt eller
+  händerna för typ korta i förhållande för att få kortkontakt. I och för sig kanske denna Kenji och de andra
+  dealrarna är tänkta att börja vika upp kortet med start från sin egen vänsterhand, men det kan ändå inte flyga upp
+  till högra." Kortet ska alltså sitta i en hand hela vägen, och takten ska vara dealerns utan att kännas påtvingad.
+  **Hans dom i Prov samma kväll: Inte bra** på hela provet, på filmen (06, halv fart av 05) och på dockfilmen (03,
+  den rättade rörelsen, som han först skrev "Kan vara bra.." om). Domaren hade dömt dockans rörelse Bra och filmen
+  Nja; hans dom ersätter dem. Filmerna 11 (Aleph 2) och 15 (utan hack) lades i provet efter hans dom.
+- **Livebordet är det som filmades** (2026-11-27): "Liveboardet i min värld är det som ursprungligen filmades med alla
+  vinklar, kort, sko, dealer och allt så som kom från live-bj. Alla mått ska finnas där och är tagna därifrån väl?
+  Hur som helst, om jag tittar på vyn ... så verkar det inte se ut såsom på youtubevideon." Måtten är filmens (dockan
+  lagd över en ruta ur filmen ligger på dealern, skon och bordets kant); utseendet är vårt eget och neutralt, och
+  det är det han ser skilja.
+- **Den tjocka dockan** (2026-11-27): "Om vi använder just den där 'tjocka dockan' som jag inte tror är den samma som
+  är den 'nya standarddockan' kanske det blir fel av bara farten då den känns riktigt klumpig. Är den ens med
+  skelett/leder/MediaPipe:ad och annat? Eller är det bara den idiotiska förra 'standarddockan'?" Den är Danilos och
+  Kenjis docka med dealerns leder och de lyfta rörelserna, men kroppens volym är kroppsgeneratorns egen: den ska bli
+  dealerns eller personens.
 - **Standarden är filmens, och bara den (2026-11-27, eftermiddag).** "Vi byter standard till att i princip enbart
   utgå från vy/vinkel/riktningar/storlekar och annat som fanns i videon (man ska sedan kunna spela vårt
   casino/blackjack i annan vinkel, men det kan ändras sedan när man väl har allt på plats vad det gäller den nya
