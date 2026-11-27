@@ -352,4 +352,5 @@ def main():
         json.dump(result, f, separators=(',', ':'))
 
 
-main()
+if __name__ == '__main__':
+    main()
