@@ -71,7 +71,7 @@ function Measures() {
   return (
     <Page
       title="Mått"
-      status={<span>ur koden, läst {time}</span>}
+      status={<span>läst {time}</span>}
       actions={
         <>
           <SegmentedControl size="sm" label="Måttens delar" value={part} onChange={choose} options={PARTS} />

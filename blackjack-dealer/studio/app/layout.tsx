@@ -14,7 +14,7 @@ const icon =
   );
 
 export const metadata: Metadata = {
-  title: "Dealer · Studio",
+  // No title here: each page gives the tab its own, "Karta · Studio" (components/shell/TabTitle.tsx, through Page).
   description: "Dealerns studio: filmer, nodkarta, granskning och scen.",
   icons: { icon },
   // The online copy is behind a password and is not to be found by search engines (its server says the same in X-Robots-Tag).

@@ -3,23 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dealer · Ljud</title>
+<title>Ljud · Studio</title>
 <link rel="stylesheet" href="sound.css">
 </head>
 <body data-page="ljud-labb">
 <div id="app">
   <div id="stage"><canvas id="view"></canvas><div id="hud"></div><p id="hint">Tryck på ett ljud till höger.<br>Ljudet börjar med första trycket (webbläsarens regel).</p><div id="fail" role="alert"></div></div>
   <aside id="panel">
+    <p class="sub"><a href="/studio/" style="color:inherit">← Studion</a></p>
     <h1>Ljud</h1>
-    <p class="sub">Marker, kort, bakgrunder och musik, gjorda här i webbläsaren.</p>
-    <p class="lab-note"><b>En sida bredvid studion.</b> Ingenting här ändrar spelet. Alla ljud räknas fram i webbläsaren, utan ljudfiler, och blir lite olika varje gång. Tryck flera gånger på samma knapp för att höra hur de varierar.</p>
     <p class="note start" id="start-note">Ljudet börjar med första trycket (webbläsarens regel).</p>
     <fieldset><legend>Marker</legend>
       <div class="sounds" id="chips"></div>
       <label class="row">Styrka<input type="range" id="strength" min="5" max="100" step="1"><output id="strength-out"></output></label>
       <label class="row">Höjd på stapeln<input type="range" id="height" min="0" max="20" step="1"><output id="height-out"></output></label>
       <label class="row">Plats på bordet<input type="range" id="pan" min="-100" max="100" step="5"><output id="pan-out"></output></label>
-      <p class="note">Höjden är hur många marker som redan ligger där. Fem och Tjugo marker börjar på filten när den är noll; Marker på marker och Ta tillbaka har alltid minst en under sig.</p>
     </fieldset>
     <fieldset><legend>Kort</legend>
       <div class="sounds" id="cards"></div>
@@ -32,7 +30,6 @@
       <div class="seg three" id="tracks"></div>
       <p class="note" id="track-note"></p>
       <label class="row">Musik<input type="range" id="music" min="0" max="100" step="1"><output id="music-out"></output></label>
-      <p class="note">Musiken skrivs medan den spelar och upprepar sig inte. Byte av låt tonar över.</p>
     </fieldset>
     <fieldset><legend>Volym</legend>
       <label class="row">Allt<input type="range" id="volume" min="0" max="100" step="1"><output id="volume-out"></output></label>
@@ -41,7 +38,6 @@
       <div class="meter" title="Nivån ut till högtalarna. Strecket står vid −6 dBFS, taket för ett enskilt ljud."><span>Nivå, dBFS</span><div class="bar"><i id="meter-fill"></i><b id="meter-hold"></b><u></u></div><output id="meter-out">–</output></div>
       <div class="btns"><button type="button" id="mute" aria-pressed="false">Stäng av ljudet</button></div>
     </fieldset>
-    <p class="note">Tangenterna 1–9 spelar ljuden i samma ordning som knapparna. M stänger av och sätter på ljudet.</p>
   </aside>
 </div>
 <script type="module" src="preview-ui.js"></script>

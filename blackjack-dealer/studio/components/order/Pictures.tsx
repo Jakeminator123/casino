@@ -171,7 +171,8 @@ export function PictureCard({ picture, owner, dealer, planned, order, className 
         ) : null}
       </div>
       <p className="truncate text-xs text-dim">
-        {picture.from?.built ? `Ritad: ${picture.from.built}${drawn ? " (i rutan: kortet förstorat, planens kontur streckad)" : ""}` :picture.from?.note ? `Ur: ${picture.from.note}${picture.from.frame !== undefined ? `, ruta ${picture.from.frame}` : ""}` : picture.waits ? `Väntar på ${picture.waits.label}` : ""}
+        {/* Where the picture comes from, without the notes on how it was made (they name tools and files: the studio does not). */}
+        {picture.from?.built ? `Ritad: ${picture.from.built}` : picture.from?.note && picture.from.frame !== undefined ? `Ruta ${picture.from.frame}` : picture.waits ? `Väntar på ${picture.waits.label}` : ""}
       </p>
       {drawn ? (
         // The drawn card's pixels come from a frame of another film: only the card itself is taken, nothing of the person in it.

@@ -265,9 +265,7 @@ export function SendScreen({ menu, answer, all, onBack, onOpen, onSaved }: { men
                   {doll ? null : order.reference.approvedStraight ? " · rakt godkänd" : " · inte rakt godkänd"}
                 </p>
                 {/* the doll's film is rendered from the plan, not a take from the bank: no verdict of his, no hand to leak in */}
-                {doll ? (
-                  <p>Dockans film: den visar bara rörelsen.</p>
-                ) : order.reference.dealer && order.reference.dealer !== order.dealer ? (
+                {doll ? null : order.reference.dealer && order.reference.dealer !== order.dealer ? (
                   <p className="text-[#f0b07a]">{capital(genitive(names[order.reference.dealer] ?? order.reference.dealer))} film, tillåten som referens: texten säger att den bara visar rörelsen. Handen i den filmen kan läcka in.</p>
                 ) : null}
                 {order.reference.from && !doll ? (
@@ -302,8 +300,6 @@ export function SendScreen({ menu, answer, all, onBack, onOpen, onSaved }: { men
           <div className="flex flex-col gap-7">
             <Section title="Modell">
               <p className="text-sm text-ink">{[model?.label ?? order.generation.model, ...values].join(" · ")}</p>
-              {model?.delivered ? <p className="text-sm text-brass-hi">{model.delivered}</p> : null}
-              {model ? <p className="text-xs text-faint">{model.note}</p> : null}
               {model?.off ? <p className="text-xs text-[#f0b07a]">Beställs inte längre: {model.off}</p> : null}
             </Section>
 
@@ -317,8 +313,9 @@ export function SendScreen({ menu, answer, all, onBack, onOpen, onSaved }: { men
                 <dt className="text-dim">Saldo</dt>
                 <dd className="tabular-nums text-ink">{all.balance ? `${credits(all.balance.credits)} krediter (${swedishMoment(all.balance.at) ?? all.balance.at.slice(0, 10)})` : "okänt"}</dd>
               </dl>
-              {draft ? (
-                <p data-ordering className={ordering.open ? "text-sm text-dim" : "rounded-sm bg-[#3a2a1a] px-2.5 py-1.5 text-sm text-[#f0b07a]"}>
+              {/* Only what stops an approval is said; the rule itself is in the glossary. */}
+              {draft && !ordering.open ? (
+                <p data-ordering className="rounded-sm bg-[#3a2a1a] px-2.5 py-1.5 text-sm text-[#f0b07a]">
                   {ordering.words}
                 </p>
               ) : null}

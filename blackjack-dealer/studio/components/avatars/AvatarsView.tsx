@@ -168,7 +168,6 @@ function Ways({ data }: { data: AvatarAnswer }) {
   const person = data.people.find((p) => p.name === who) ?? null;
   return (
     <div className="flex flex-col gap-5">
-      <p className="max-w-[100ch] text-sm leading-6 text-soft">{plainWords(data.vagar.om.vad)} {plainWords(data.vagar.skelettet.regel)}</p>
       <PersonPicker people={data.people} chosen={who} onChoose={setWho} />
       <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
         <WayList ways={ways} chosen={way?.id ?? ""} onChoose={setChosen} />

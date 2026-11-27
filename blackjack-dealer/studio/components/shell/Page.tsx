@@ -3,6 +3,7 @@
 // scroll (the scene, the node map): fill it with h-full / absolute inset-0.
 import type { ReactNode } from "react";
 import { cn } from "../ui/cn";
+import { TabTitle } from "./TabTitle";
 
 export function Page({
   title,
@@ -23,6 +24,7 @@ export function Page({
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
+      {typeof title === "string" ? <TabTitle title={title} /> : null}
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line bg-surface px-4 sm:gap-3 sm:px-6">
         <h1 className="shrink-0 font-display text-xl font-semibold tracking-[-0.015em] text-ink">{title}</h1>
         {status ? (

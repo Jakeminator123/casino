@@ -46,9 +46,7 @@ export function DecisionsView() {
             {waiting.length ? (
               waiting.map((d) => <DecisionCard key={d.id} decision={d} />)
             ) : (
-              <EmptyState icon={<CheckCheck />} title="Inget väntar på dig">
-                När en agent behöver ditt svar dyker det upp här.
-              </EmptyState>
+              <EmptyState icon={<CheckCheck />} title="Inget väntar på dig" />
             )}
             {answered.length ? (
               <section aria-label="Besvarade" className="mt-4 flex flex-col gap-3 border-t border-line pt-4">

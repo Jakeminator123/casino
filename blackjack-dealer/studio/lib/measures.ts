@@ -40,10 +40,19 @@ export function plainText(text: string): string {
 
 export type Section = { title: string; id: string; blocks: Block[] };
 
+/** A table's cell without a file's name: what plainText leaves, and a bare path or file name left in it (with its parenthesis). */
+const plainCell = (text: string) =>
+  plainText(text)
+    .replace(/\s*\([^()]*(?:[/\\]|\.(?:ts|json|md|py|yaml|glb|blend)\b)[^()]*\)/g, "")
+    .replace(/\S*[/\\]\S+|\S+\.(?:ts|json|md|py|yaml|glb|blend)\b/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
 /**
- * MATT.md as the page shows it: the heading of each part (## …) with its blocks under it, the first part being the
- * introduction. Left out: the title, the paragraph for the one who writes the file, the part Källorna, the source
- * columns of the tables and the file names of the text; an empty paragraph or list after that goes too.
+ * MATT.md as the page shows it: the heading of each part (## …) with its headings and tables under it. The studio shows and
+ * does not explain (blackjack-dealer/AGENTS.md): the paragraphs and lists, which tell how to read the numbers, are left
+ * out, as are the title, the part Källorna, the source columns of the tables and every file name in a cell; a part with
+ * nothing left goes too.
  */
 export function measureSections(blocks: readonly Block[]): Section[] {
   const out: Section[] = [{ title: "Så läses måtten", id: "inledning", blocks: [] }];
@@ -54,18 +63,14 @@ export function measureSections(blocks: readonly Block[]): Section[] {
       continue;
     }
     const here = out[out.length - 1];
-    if (b.typ === "stycke") {
-      if (b.text.startsWith("**Den här filen")) continue;
-      const text = plainText(b.text);
-      if (text) here.blocks.push({ typ: "stycke", text });
-    } else if (b.typ === "lista") {
-      const rader = b.rader.map(plainText).filter(Boolean);
-      if (rader.length) here.blocks.push({ typ: "lista", rader });
-    } else if (b.typ === "tabell") {
+    if (b.typ === "stycke" || b.typ === "lista") continue;
+    if (b.typ === "tabell") {
       const keep = b.huvud.map((h, i) => (SOURCE_COLUMNS.has(h) ? -1 : i)).filter((i) => i >= 0);
       if (keep.length < 2) continue;
-      here.blocks.push({ typ: "tabell", huvud: keep.map((i) => b.huvud[i]), rader: b.rader.map((r) => keep.map((i) => plainText(r[i] ?? ""))) });
+      here.blocks.push({ typ: "tabell", huvud: keep.map((i) => b.huvud[i]), rader: b.rader.map((r) => keep.map((i) => plainCell(r[i] ?? ""))) });
     } else here.blocks.push({ ...b, text: plainText(b.text) });
   }
+  // A heading with no table after it before the next heading or the part's end says nothing on its own.
+  for (const s of out) s.blocks = s.blocks.filter((x, i) => x.typ !== "rubrik" || s.blocks.slice(i + 1).find((y) => y.typ === "tabell" || (y.typ === "rubrik" && y.niva <= x.niva))?.typ === "tabell");
   return out.filter((s) => s.blocks.length && s.title !== "Källorna");
 }

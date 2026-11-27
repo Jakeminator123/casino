@@ -40,8 +40,6 @@ export function PromptText({ text, parts, className }: { text: string; parts: Pa
             </span>
           ))}
         </div>
-      ) : !parts ? (
-        <p className="text-xs text-faint">Skriven med en äldre mall: texten visas som den är, utan markeringar.</p>
       ) : null}
     </div>
   );
