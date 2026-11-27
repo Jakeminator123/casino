@@ -320,6 +320,58 @@ Vad som måste finnas före en körning, vilket sätt det än är:
   - **Efterarbetet behövde trimmas för Kling:** spårkortets turkosa ram och magenta märke kommer mjukare än ur en
     dockfilm, och filmens sko gick inte att färga om rent. Skon och kortleken läggs i stället in som våra egna under
     handen (`--egen-sko` med en platta av bordet med sko).
+- Tolfte provet, 2026-11-27, **en giv som två klipp mellan tre ankarbilder, för hand i Runways app** (Jakob: "försöka
+  skapa klipp den manuella vägen", 70 krediter). Gjort genom Runways koppling i chatten, som är appens arbetsyta med
+  appens krediter och inte API:ts. Video kräver att arbetsytan har en betald plan. Tomasz i Frasses ställning genom
+  livebordets kamera. Det här är agentens läsning; domarens dom står i `blackjack-dealer/STATUS.md`.
+  - **Förlagan till ankarbilderna kom ur måtten, utan dockans modell.** Livebordet ur `table-live.ts` (filten, sargen,
+    insatsringarna, skon och lådan) och Frasses lyfta ställning projicerades genom `LIVE_CAMERA` och ritades platt som
+    en grå docka. Ställningen var axlar, armbågar, handleder, fingrar, huvud och kort ur
+    `dealer3d/data/ankare-skon-frasse.json` och ruta 62 (`rests`) i `lyft-frasse-p4.json`. Det räckte. Nano Banana 2.1
+    (1K, 16:9, 4 krediter) gjorde A2.3 av förlagan och två foton av Tomasz (halvfigur, porträtt). Vinkeln blev rätt,
+    med skon till höger i bilden, vänstern vid skon, högern på filten och blicken ned. Bakgrunden hittade modellen på.
+    På datorn gör editorn samma förlaga med den riktiga dockan (`standarddocka/verktyg/titta.ts`).
+  - **De andra ankarna gjordes som ändringar av A2.3**, 4 krediter styck. Mannen, ljuset och bakgrunden blev samma:
+    A2.3 och A2.3 med kortet kvar skiljer bara i kortet (3 661 bildpunkter). Första försöket till A3P4C1 lät den
+    vilande högerhanden ligga kvar, så han fick tre händer. Det rättades med orden "exactly two hands", med att handen
+    *flyttas*, och med att filten där den låg nu är tom.
+  - **Klippen:** MiniMax H3 Lite (`minimax-h3-lite`), 768p, 4 s, med första och sista bild, 16 krediter styck. Given
+    gick från A2.3 till A3P4C1, och handen hem från A3P4C1 till A2.3 med kortet kvar. Ut kom 1344 x 768 i 24 bilder/s,
+    107 rutor och ljud. Modellen skär bort 16 bildpunkter på var sida av en bild i 1376 x 768, så ankarna bör ges i
+    1344 x 768. Första och sista rutan ligger på ankarna: medelavvikelsen är 3–4 av 255, vilket är komprimeringens
+    brus. Skarven mellan klippen ligger på 2,7. Givens ordning blev Frasses: vänstern drar kortet med ryggen upp plant
+    över filten, högern tar över, vänder det och lägger det, och vänstern går tillbaka till skon. Ansiktet höll hela
+    vägen.
+  - **Takten är modellens:** 4,5 s per klipp mot Frasses 1 s för given och 0,4 s för handen hem, och handen hem tvekar
+    över kortet (ruta 24–36). Uppspelningsfarten (1,5 och 3 gånger) tar det mesta.
+  - **Domaren** (en underagent, inte Jakob, utan MediaPipe och utan extern domare) dömde Inte bra med medel säkerhet.
+    Skarvarna håller för kropp, händer och huvud; kvar är ett svagt blink i ljus och skärpa i första rutan efter
+    skarven, som två rutors övertoning tar. Givklippet fäller filmen:
+    - Kortet vänds inte av handen. Det byter från rygg till framsida plant under fingrarna (ruta 43–48).
+    - Vänsterhanden släpper kortet, går tillbaka till det och hänger som en klo innan den når skon (ruta 36–80).
+    - Kortet byter valör mellan de två ankarna med kort.
+  - **Samma giv i WAN 3.0** (`wan3`, 720p, 2 s i Frasses takt, utan ljud, 20 krediter, uppdraget
+    `9f72e08e-38fa-4370-a65e-d65d268bbae1`) med vändningen beskriven ord för ord. Ut kom 1280 x 720, 30 bilder/s och 60
+    rutor. Klippet börjar och slutar på ankarna, kameran står still och mannen är samma. Domaren dömde ändå Inte bra med
+    hög säkerhet:
+    - Kortet vänds i skons mynning, inte av handen (ruta 5–9).
+    - Kortet vrids 90° på en ruta (27–28) och byter tryck.
+    - Högern bär kortet på högkant med framsidan mot kameran (ruta 33–39).
+    - Rutor upprepas ungefär var femte ruta.
+  - **Slutsatsen:** första och sista bild räcker för att klippen ska gå ihop, men inte för att få vändningen. Ingen av de
+    två billiga modellerna vänder kortet med handen när den bara har ankarna och en text. Det som saknas är en förlaga
+    för rörelsen mitt i klippet: en bild vid handbytet med kortets rygg upp (ankaret A2M i schemat, som då delar given i
+    två klipp), eller dockans film som referensfilm (Kling 4 tar båda tillsammans med första och sista bild).
+  - **Till nästa gång:**
+    - Ankaret med kortet kvar görs genom att klistra in kortets bildpunkter ur A3P4C1, inte genom en ändring, så att
+      kortet blir exakt samma.
+    - Huvudet i A2.3 ska vridas mot skon som Frasses (29°): orden i bilden räckte inte till det.
+    - Ankarna ges i klippets egen storlek.
+  - **Kostnaden:** 69 krediter, varav fem bilder 20, tre klipp 52 och ihopsättningen 1. Uppdragen ligger bland
+    Runways tillgångar: A2.3 `590f63c2-42ca-4c71-956d-e6c743f1e9f0`, A3P4C1
+    `e1c973ed-68ed-405b-b432-eb1dbd8351af`, A2.3 med kortet `195733d8-51fd-4ecc-bd63-ba3a60303cb9`, given
+    `f0120b8e-84e5-4c8c-99f2-8781b7d7ca53`, handen hem `b4b2b919-e782-4b5c-b843-d46388f59940` och de två ihopsatta
+    `cf27f7d7-526e-49db-8fc2-0a024e7f105d`.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: Kling 4 med styrbilden som första bild och filmen som lös förlaga
@@ -337,5 +389,9 @@ Ingen av dem behövs för att läsa dokumentationen; den är öppen.
   `claude mcp login plugin:runway-api:runway-dev` i en terminal. Kopplingen visar vilka modeller projektet får använda
   (`list_projects`, `list_models`) och varför ett uppdrag föll; den gör ingen film. I Cursor: `/add-plugin runway-api`.
   Steg: `https://docs.dev.runwayml.com/guides/plugin.md`; bara kopplingen: `https://dev.runwayml.com/mcp` (`guides/mcp.md`).
-- **Runways koppling som gör film i chatten** (`mcp.runwayml.com`) är en annan sak: den beställer och drar krediter.
-  En agent beställer bara genom vägarna i `bestalla-film`, där varje anrop bokförs.
+- **Runways koppling som gör film i chatten** (`mcp.runwayml.com`) är en annan sak. Den beställer i appens arbetsyta
+  och drar appens krediter. En agent beställer genom vägarna i `bestalla-film`, där varje anrop bokförs. Den här
+  kopplingen används bara på Jakobs ord och inom den budget han säger (tolfte provet). Där är appens egen lista över
+  tillgångar liggaren, och uppdragens id skrivs i provet; signerade adresser skrivs aldrig i repot. I en molnsession
+  behöver nätet släppa fram `dnznrvs05pmza.cloudfront.net`, `d2jqrm6oza8nb6.cloudfront.net`, `img.runwayml.com` och
+  `runway-datasets.s3.us-east-1.amazonaws.com` för att hämta och ladda upp.

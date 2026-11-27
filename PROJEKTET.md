@@ -174,6 +174,12 @@ en verkstad i taget när inget annat arbete pågår i den.
   bättre, och scenen behöver alla kort som dealern rör.
 - **Några stillbilder i stället för en film som förlaga** (Kling 4 med sju mellanbilder): rörelsen stannar inte vid
   bilderna och kortet landar rätt, men takten blir filmmodellens egen.
+- **Klipp som börjar och slutar på samma ankarbilder går att sätta ihop** (2026-11-27, tolfte provet i skillen
+  `runway`). Den första bilden av personen görs av dockans förlaga, och resten som ändringar av den, så att person,
+  ljus och bakgrund blir desamma. Varje klipp får två av dem som första och sista bild. Klippens kanter låg på bilderna
+  inom komprimeringens brus, och domaren såg inget hopp i kroppen i skarven. Det klippet gör mellan bilderna är
+  däremot filmmodellens eget: i den billigaste vändes kortet inte av handen. Därför är schemat med ankare och klipp
+  bärande, medan modellen och förlagan för rörelsen avgör om rörelsen blir bra.
 - **Ansiktets miner går att mäta ur en framställd närbild** av en framställd person. De riktiga dealrarna gjorde dem
   helt enkelt inte medan de gav kort.
 - **En färdig figur som formas om till en annan dockas skelett får sträckta, trasiga händer** (Jakob: "skitdåligt").
