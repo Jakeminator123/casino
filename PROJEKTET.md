@@ -104,6 +104,21 @@ av Tomasz görs för Tomasz.
   gånger bättre (prövat på vår egen dockfilm).
 - **Kortet kan ritas ur dockans tal** i stället för att letas upp i bilden: där filmen följer dockan ligger kortet
   1–2 mm rätt och flackar inte. Det går sämre där filmmodellen själv har ritat kortet fel (`kortbyte-20261127`).
+- **De första filmerna av en lyft rörelse dömde Jakob inte bra** (Tomasz som gör Danilos giv, Aleph 2, 2026-11-27):
+  utseendet glömdes efter hand, han var skakig, blicken gick uppåt, och vänsterhanden gjorde något den riktiga dealern
+  inte gör. Det sista stod i vårt eget verktyg, som lade den förra standarddockans giv ovanpå filmens rörelse.
+  Mätningarna (kortet inom en bildpunkt, takten rätt) sa ingenting om något av det. Sedan dess döms ett resultat av en
+  oberoende domare innan det visas för honom.
+- **Två kameror ger samma man i samma ögonblick,** sett i stillbilder från livebordets kamera och från plats 7. Det
+  säger att vägen med flera kameror kan hålla, inte att filmerna är bra.
+- **En hel sekvens i en tagning föll:** ansiktet gled och det kom till kort som inte fanns. En giv i taget håller
+  bättre, och scenen behöver alla kort som dealern rör.
+- **Några stillbilder i stället för en film som förlaga** (Kling 4 med sju mellanbilder): rörelsen stannar inte vid
+  bilderna och kortet landar rätt, men takten blir filmmodellens egen.
+- **Ansiktets miner går att mäta ur en framställd närbild** av en framställd person. De riktiga dealrarna gjorde dem
+  helt enkelt inte medan de gav kort.
+- **En färdig figur som formas om till en annan dockas skelett får sträckta, trasiga händer** (Jakob: "skitdåligt").
+  Skelettet stämde på 0 mm; ögat fällde den ändå.
 - **Av 3D-figurerna är Meshy-vägen bäst på likhet,** men händerna är dess svaga del: en hand som sätts på i
   efterhand får handledens led inne i ärmen, och rättningen ovanpå det dömde Jakob Inte bra ("om vi har leder innan i
   dockan, varför lägga på ett lager till"). En kropp i ett stycke med egna händer böjs rätt vid handleden men har
@@ -111,10 +126,14 @@ av Tomasz görs för Tomasz.
 
 ## Det som är öppet och avgörs av prov
 
-- **Ser de lyfta rörelserna naturliga ut på en kropp,** och i den färdiga filmen? Danilo och Frasse finns som
-  streckfigurer vid det klonade bordet; kropparna i editorn och en första film återstår.
-- **Håller sju filmer av samma rörelse ihop?** Samma giv filmad från flera platser och gjord till personen: ser det ut
-  som samma människa som gör samma sak, från varje håll? Det är provet som avgör vägen mot målet.
+- **Gör dockan det den riktiga dealern gör?** Danilo och Frasse spelar de lyfta rörelserna med kropp vid det klonade
+  bordet, men verktyget som lade lyftet på dockan blandade in den gamla given. Det skrivs om så att händerna följer
+  filmen, och skon mäts om (korten ligger). Först när en oberoende domare har godkänt dockans giv bredvid det riktiga
+  klippet görs nya filmer.
+- **Håller sju filmer av samma rörelse ihop?** Två kameror gav samma man i samma ögonblick. Alla sju görs först när
+  rörelsen är rätt och en film från en kamera har fått Jakobs ja.
+- **Händerna har var sin tid.** I filmen börjar vänsterhanden ofta nästa kort medan högern går hem. Ankarena, som i dag
+  är en hel bild, behöver ett läge per hand, och bryggor för det oväntade. Hela filmen delas in per hand för det.
 - **Övergången till den klonade uppsättningen** är gjord i editorn (dockorna, rörelserna, inspelningen, platskamerorna)
   men inte i spelet och beställningarna, som ännu går efter den förra standarden. Filmerna som spelet har är gjorda
   för den förra standardens kamera och bord, så varje film behöver säga vilken uppsättning den är gjord för.

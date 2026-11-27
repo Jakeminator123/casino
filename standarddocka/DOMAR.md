@@ -166,3 +166,39 @@ en dom han har ändrat sig om ersätts. Hur mappen är byggd och läget står i 
   vi använder är väldigt bra med sina givar, så ett litet typ hack som sker omkring ruta 50/51 faktiskt syns i denna
   film". Filmmodellen följer dockan ruta för ruta och rättar ingenting: en rörelse filmas först när den är ren.
 - **Struket (2026-11-26).** Att luta bordet mot kameran: "Vi skiter i lutning av bordet".
+
+## Livebordet, Danilo och Frasse (2026-11-27)
+
+Samma dygn som den klonade uppsättningen blev den nya standarden. Domarna gäller dockorna vid livebordet, deras lyfta
+rörelser och filmerna som görs av dem.
+
+- **Den klonade uppsättningen är den nya standarden.** "Det nya bordet, sko, alltihopa ska bli den nya standarden
+  överallt." "Jag skulle vilja helt övergå till det som är klonat totalt." Den förra står kvar som ett val. I casinot
+  vill han dessutom ha en vy som går att ställa in, "liknande som det var tidigare".
+- **Rörelserna är de riktiga dealrarnas, inte den gamla dockans.** Om vänsterhanden som lyftes framför bröstet vid
+  handbytet, i dockan och i filmen av Tomasz: "Detta är en rörelse som youtubedealern inte gör. Detta är definitivt en
+  kvarleva från gamla dockan eller förra standarddockans rörelsemönster och inte en kopia av det skelett/rigg/rörelser
+  och annat som kommer från de nya dealrarna." Händerna ska vara där filmens är; inget i en lyft rörelse får komma ur
+  de ritade givarna.
+- **Inga mikrorörelser.** Om filmerna av Tomasz som gör Danilos giv: "han var liksom lite skakig på grund av, jag vet
+  inte, att för små mikrorörelser kommer med?"
+- **Blicken mot kameran, inte uppåt.** "Känns som att han tittar uppåt, men uppåt och inte mot kameran, som om dockan
+  delvis utgår ifrån en gammal standarddocka som hade en annan vy som kamera."
+- **Skons kort ligger.** "Kortskon som används är också med stående kort och inte det som youtubefilmen har, dvs
+  liggandes."
+- **Personens utseende får inte glömmas.** Om samma filmer: "allteftersom glömdes utseendet på Tomasz". Han tror att
+  personens egen riggade figur som förlaga hjälper filmmodellen att hålla det.
+- **Händerna har var sin tid.** "Om man kollar på videon så kan ibland dealerns vänsterhand börja ta ut kort eller annat
+  medan dennes högerhand återgår till vila. Det skulle kunna bli någon form av ny feature som gör att vi inte får så
+  konstiga vänsterhänder vid tillbakagång till just typ A2.n."
+- **Bryggor och nya rörelser.** Rörelser som ska in: "ta in kort till slasken", "svepa bordet som riktiga dealern gör i
+  klippen" och att "snabbt, med hela handen kunna peka på den som ska agera". Och: "om andra oväntade gester görs, så
+  ska dockan inte behöva härma just den sekvensen just då, utan vänta in youtubedealerns nästa och mest liknande start
+  för t.ex. 'P4C2'-start eller 'VILA'"; bryggorna får göra klippen "aningen längre".
+- **En persons figur byggs på den docka vars rörelser den ska spela.** "Den docka som är skapad utifrån [Danilo och
+  Frasse] och som vi arbetat med hela tiden [är] grunden för den docka av Tomasz som ska göras." Men Tomasz formad om
+  till Danilos skelett, med händer som sträcktes, dömde han "skitdåligt".
+- **Handleden.** Om rättningen ovanpå den påsatta handen: Inte bra. "Men om vi har leder innan i dockan varför lägga på
+  ett lager till. Vinkeln här är lite fel på hur armen går från tröjan också."
+- **En domare när han är borta.** "Sätt en extern bild- och videogranskare som får agera domare i stället för mig när
+  jag är borta, så att [en figur med trasiga händer] kan ses att det är skitdåligt." Hur det går till: skillen `doma`.
