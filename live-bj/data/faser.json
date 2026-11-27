@@ -1,0 +1,1270 @@
+{
+ "about": "The game's sign through the film, written by verktyg/faser.py. spans: which sign stood when (seconds of the film, clean stretches only; run is the index in data/kalla.json). rounds: from the bets closing to the next bets being asked for.",
+ "rate": 5,
+ "spans": [
+  {
+   "run": 0,
+   "sign": "place your bets",
+   "from": 25.4,
+   "to": 35.2
+  },
+  {
+   "run": 1,
+   "sign": "unknown 1 words 247 wide",
+   "from": 41.0,
+   "to": 41.4
+  },
+  {
+   "run": 1,
+   "sign": "place your bets",
+   "from": 41.4,
+   "to": 47.2
+  },
+  {
+   "run": 2,
+   "sign": "bets accepted",
+   "from": 59.0,
+   "to": 61.0
+  },
+  {
+   "run": 2,
+   "sign": "dealing",
+   "from": 61.0,
+   "to": 71.2
+  },
+  {
+   "run": 2,
+   "sign": "make your decision",
+   "from": 71.2,
+   "to": 77.2
+  },
+  {
+   "run": 2,
+   "sign": "dealing",
+   "from": 77.2,
+   "to": 83.6
+  },
+  {
+   "run": 3,
+   "sign": "dealing",
+   "from": 87.6,
+   "to": 91.6
+  },
+  {
+   "run": 3,
+   "sign": "none",
+   "from": 91.6,
+   "to": 94.4
+  },
+  {
+   "run": 4,
+   "sign": "place your bets",
+   "from": 97.6,
+   "to": 100.8
+  },
+  {
+   "run": 4,
+   "sign": "bets closed",
+   "from": 100.8,
+   "to": 102.2
+  },
+  {
+   "run": 4,
+   "sign": "bets accepted",
+   "from": 102.2,
+   "to": 104.2
+  },
+  {
+   "run": 4,
+   "sign": "dealing",
+   "from": 104.2,
+   "to": 111.4
+  },
+  {
+   "run": 4,
+   "sign": "make your decision",
+   "from": 111.4,
+   "to": 113.6
+  },
+  {
+   "run": 4,
+   "sign": "dealing",
+   "from": 113.6,
+   "to": 123.8
+  },
+  {
+   "run": 5,
+   "sign": "none",
+   "from": 127.4,
+   "to": 130.0
+  },
+  {
+   "run": 5,
+   "sign": "place your bets",
+   "from": 130.0,
+   "to": 132.0
+  },
+  {
+   "run": 5,
+   "sign": "bets closed",
+   "from": 132.0,
+   "to": 133.2
+  },
+  {
+   "run": 5,
+   "sign": "bets accepted",
+   "from": 133.2,
+   "to": 135.4
+  },
+  {
+   "run": 5,
+   "sign": "dealing",
+   "from": 135.4,
+   "to": 143.0
+  },
+  {
+   "run": 5,
+   "sign": "make your decision",
+   "from": 143.0,
+   "to": 146.4
+  },
+  {
+   "run": 5,
+   "sign": "dealing",
+   "from": 146.4,
+   "to": 159.0
+  },
+  {
+   "run": 5,
+   "sign": "dealer wins",
+   "from": 159.0,
+   "to": 164.4
+  },
+  {
+   "run": 5,
+   "sign": "place your bets",
+   "from": 164.4,
+   "to": 170.4
+  },
+  {
+   "run": 5,
+   "sign": "bets closed",
+   "from": 170.4,
+   "to": 171.2
+  },
+  {
+   "run": 5,
+   "sign": "bets accepted",
+   "from": 171.2,
+   "to": 173.8
+  },
+  {
+   "run": 5,
+   "sign": "dealing",
+   "from": 173.8,
+   "to": 179.6
+  },
+  {
+   "run": 5,
+   "sign": "make your decision",
+   "from": 179.6,
+   "to": 181.8
+  },
+  {
+   "run": 5,
+   "sign": "dealing",
+   "from": 181.8,
+   "to": 188.2
+  },
+  {
+   "run": 5,
+   "sign": "make your decision",
+   "from": 188.2,
+   "to": 189.8
+  },
+  {
+   "run": 5,
+   "sign": "dealing",
+   "from": 189.8,
+   "to": 212.8
+  },
+  {
+   "run": 6,
+   "sign": "none",
+   "from": 215.8,
+   "to": 218.8
+  },
+  {
+   "run": 6,
+   "sign": "place your bets",
+   "from": 218.8,
+   "to": 229.2
+  },
+  {
+   "run": 6,
+   "sign": "last bets",
+   "from": 229.2,
+   "to": 232.2
+  },
+  {
+   "run": 6,
+   "sign": "bets closed",
+   "from": 232.2,
+   "to": 232.8
+  },
+  {
+   "run": 6,
+   "sign": "bets accepted",
+   "from": 232.8,
+   "to": 251.6
+  },
+  {
+   "run": 6,
+   "sign": "dealing",
+   "from": 251.6,
+   "to": 257.4
+  },
+  {
+   "run": 7,
+   "sign": "dealing",
+   "from": 259.4,
+   "to": 298.4
+  },
+  {
+   "run": 7,
+   "sign": "make your decision",
+   "from": 298.4,
+   "to": 302.0
+  },
+  {
+   "run": 7,
+   "sign": "dealing",
+   "from": 302.0,
+   "to": 322.2
+  },
+  {
+   "run": 7,
+   "sign": "none",
+   "from": 322.2,
+   "to": 328.0
+  },
+  {
+   "run": 7,
+   "sign": "place your bets",
+   "from": 328.0,
+   "to": 338.4
+  },
+  {
+   "run": 7,
+   "sign": "last bets",
+   "from": 338.4,
+   "to": 341.4
+  },
+  {
+   "run": 7,
+   "sign": "bets closed",
+   "from": 341.4,
+   "to": 342.2
+  },
+  {
+   "run": 7,
+   "sign": "bets accepted",
+   "from": 342.2,
+   "to": 345.6
+  },
+  {
+   "run": 7,
+   "sign": "dealing",
+   "from": 345.6,
+   "to": 355.2
+  },
+  {
+   "run": 8,
+   "sign": "make your decision",
+   "from": 359.4,
+   "to": 360.0
+  },
+  {
+   "run": 8,
+   "sign": "dealing",
+   "from": 360.0,
+   "to": 366.0
+  },
+  {
+   "run": 8,
+   "sign": "make your decision",
+   "from": 366.0,
+   "to": 367.4
+  },
+  {
+   "run": 8,
+   "sign": "dealing",
+   "from": 367.4,
+   "to": 402.2
+  },
+  {
+   "run": 9,
+   "sign": "place your bets",
+   "from": 408.8,
+   "to": 418.6
+  },
+  {
+   "run": 9,
+   "sign": "last bets",
+   "from": 418.6,
+   "to": 421.6
+  },
+  {
+   "run": 9,
+   "sign": "bets closed",
+   "from": 421.6,
+   "to": 422.2
+  },
+  {
+   "run": 9,
+   "sign": "bets accepted",
+   "from": 422.2,
+   "to": 425.6
+  },
+  {
+   "run": 9,
+   "sign": "dealing",
+   "from": 425.6,
+   "to": 437.6
+  },
+  {
+   "run": 9,
+   "sign": "make your decision",
+   "from": 437.6,
+   "to": 441.6
+  },
+  {
+   "run": 9,
+   "sign": "dealing",
+   "from": 441.6,
+   "to": 447.4
+  },
+  {
+   "run": 9,
+   "sign": "make your decision",
+   "from": 447.4,
+   "to": 448.8
+  },
+  {
+   "run": 9,
+   "sign": "dealing",
+   "from": 448.8,
+   "to": 466.4
+  },
+  {
+   "run": 9,
+   "sign": "none",
+   "from": 466.4,
+   "to": 472.4
+  },
+  {
+   "run": 9,
+   "sign": "place your bets",
+   "from": 472.4,
+   "to": 483.0
+  },
+  {
+   "run": 9,
+   "sign": "last bets",
+   "from": 483.0,
+   "to": 483.4
+  },
+  {
+   "run": 9,
+   "sign": "bets closed",
+   "from": 483.4,
+   "to": 484.6
+  },
+  {
+   "run": 9,
+   "sign": "bets accepted",
+   "from": 484.6,
+   "to": 488.2
+  },
+  {
+   "run": 9,
+   "sign": "dealing",
+   "from": 488.2,
+   "to": 530.4
+  },
+  {
+   "run": 10,
+   "sign": "none",
+   "from": 548.8,
+   "to": 552.6
+  },
+  {
+   "run": 10,
+   "sign": "place your bets",
+   "from": 552.6,
+   "to": 554.6
+  },
+  {
+   "run": 10,
+   "sign": "bets closed",
+   "from": 554.6,
+   "to": 556.0
+  },
+  {
+   "run": 10,
+   "sign": "bets accepted",
+   "from": 556.0,
+   "to": 560.6
+  },
+  {
+   "run": 10,
+   "sign": "dealing",
+   "from": 560.6,
+   "to": 576.2
+  },
+  {
+   "run": 10,
+   "sign": "make your decision",
+   "from": 576.2,
+   "to": 579.4
+  },
+  {
+   "run": 10,
+   "sign": "dealing",
+   "from": 579.4,
+   "to": 597.6
+  },
+  {
+   "run": 10,
+   "sign": "none",
+   "from": 597.6,
+   "to": 603.4
+  },
+  {
+   "run": 10,
+   "sign": "place your bets",
+   "from": 603.4,
+   "to": 606.0
+  },
+  {
+   "run": 10,
+   "sign": "bets closed",
+   "from": 606.0,
+   "to": 606.8
+  },
+  {
+   "run": 10,
+   "sign": "bets accepted",
+   "from": 606.8,
+   "to": 613.0
+  },
+  {
+   "run": 10,
+   "sign": "dealing",
+   "from": 613.0,
+   "to": 659.8
+  },
+  {
+   "run": 10,
+   "sign": "none",
+   "from": 659.8,
+   "to": 665.6
+  },
+  {
+   "run": 10,
+   "sign": "place your bets",
+   "from": 665.6,
+   "to": 669.4
+  },
+  {
+   "run": 10,
+   "sign": "bets closed",
+   "from": 669.4,
+   "to": 669.6
+  },
+  {
+   "run": 11,
+   "sign": "bets accepted",
+   "from": 672.6,
+   "to": 683.6
+  },
+  {
+   "run": 11,
+   "sign": "dealing",
+   "from": 683.6,
+   "to": 696.8
+  },
+  {
+   "run": 11,
+   "sign": "make your decision",
+   "from": 696.8,
+   "to": 699.0
+  },
+  {
+   "run": 11,
+   "sign": "dealing",
+   "from": 699.0,
+   "to": 711.2
+  },
+  {
+   "run": 12,
+   "sign": "none",
+   "from": 724.6,
+   "to": 728.6
+  },
+  {
+   "run": 12,
+   "sign": "place your bets",
+   "from": 728.6,
+   "to": 732.0
+  },
+  {
+   "run": 12,
+   "sign": "bets closed",
+   "from": 732.0,
+   "to": 733.4
+  },
+  {
+   "run": 12,
+   "sign": "bets accepted",
+   "from": 733.4,
+   "to": 742.6
+  },
+  {
+   "run": 12,
+   "sign": "dealing",
+   "from": 742.6,
+   "to": 756.0
+  },
+  {
+   "run": 12,
+   "sign": "make your decision",
+   "from": 756.0,
+   "to": 757.8
+  },
+  {
+   "run": 12,
+   "sign": "dealing",
+   "from": 757.8,
+   "to": 770.4
+  },
+  {
+   "run": 12,
+   "sign": "make your decision",
+   "from": 770.4,
+   "to": 772.2
+  },
+  {
+   "run": 12,
+   "sign": "dealing",
+   "from": 772.2,
+   "to": 778.6
+  },
+  {
+   "run": 12,
+   "sign": "make your decision",
+   "from": 778.6,
+   "to": 779.8
+  },
+  {
+   "run": 12,
+   "sign": "dealing",
+   "from": 779.8,
+   "to": 780.6
+  },
+  {
+   "run": 13,
+   "sign": "dealer wins",
+   "from": 787.4,
+   "to": 791.6
+  },
+  {
+   "run": 13,
+   "sign": "place your bets",
+   "from": 791.6,
+   "to": 802.2
+  },
+  {
+   "run": 13,
+   "sign": "last bets",
+   "from": 802.2,
+   "to": 805.2
+  },
+  {
+   "run": 13,
+   "sign": "bets closed",
+   "from": 805.2,
+   "to": 805.8
+  },
+  {
+   "run": 13,
+   "sign": "bets accepted",
+   "from": 805.8,
+   "to": 809.2
+  },
+  {
+   "run": 13,
+   "sign": "dealing",
+   "from": 809.2,
+   "to": 822.2
+  },
+  {
+   "run": 13,
+   "sign": "make your decision",
+   "from": 822.2,
+   "to": 823.8
+  },
+  {
+   "run": 13,
+   "sign": "dealing",
+   "from": 823.8,
+   "to": 824.6
+  },
+  {
+   "run": 14,
+   "sign": "dealing",
+   "from": 837.4,
+   "to": 842.0
+  },
+  {
+   "run": 14,
+   "sign": "make your decision",
+   "from": 842.0,
+   "to": 843.2
+  },
+  {
+   "run": 14,
+   "sign": "dealing",
+   "from": 843.2,
+   "to": 866.2
+  },
+  {
+   "run": 14,
+   "sign": "none",
+   "from": 866.2,
+   "to": 872.0
+  },
+  {
+   "run": 14,
+   "sign": "place your bets",
+   "from": 872.0,
+   "to": 882.6
+  },
+  {
+   "run": 14,
+   "sign": "last bets",
+   "from": 882.6,
+   "to": 885.6
+  },
+  {
+   "run": 14,
+   "sign": "bets closed",
+   "from": 885.6,
+   "to": 886.2
+  },
+  {
+   "run": 14,
+   "sign": "bets accepted",
+   "from": 886.2,
+   "to": 889.8
+  },
+  {
+   "run": 14,
+   "sign": "dealing",
+   "from": 889.8,
+   "to": 892.6
+  },
+  {
+   "run": 15,
+   "sign": "dealing",
+   "from": 900.8,
+   "to": 923.2
+  },
+  {
+   "run": 15,
+   "sign": "none",
+   "from": 923.2,
+   "to": 929.0
+  },
+  {
+   "run": 15,
+   "sign": "place your bets",
+   "from": 929.0,
+   "to": 936.4
+  },
+  {
+   "run": 15,
+   "sign": "last bets",
+   "from": 936.4,
+   "to": 938.2
+  },
+  {
+   "run": 15,
+   "sign": "bets closed",
+   "from": 938.2,
+   "to": 938.8
+  },
+  {
+   "run": 15,
+   "sign": "bets accepted",
+   "from": 938.8,
+   "to": 942.2
+  },
+  {
+   "run": 15,
+   "sign": "dealing",
+   "from": 942.2,
+   "to": 953.8
+  },
+  {
+   "run": 15,
+   "sign": "make your decision",
+   "from": 953.8,
+   "to": 955.4
+  },
+  {
+   "run": 15,
+   "sign": "dealing",
+   "from": 955.4,
+   "to": 975.4
+  },
+  {
+   "run": 15,
+   "sign": "dealer wins",
+   "from": 975.4,
+   "to": 976.4
+  },
+  {
+   "run": 16,
+   "sign": "dealer wins",
+   "from": 979.0,
+   "to": 980.6
+  },
+  {
+   "run": 16,
+   "sign": "place your bets",
+   "from": 980.6,
+   "to": 990.0
+  },
+  {
+   "run": 16,
+   "sign": "last bets",
+   "from": 990.0,
+   "to": 993.0
+  },
+  {
+   "run": 16,
+   "sign": "bets closed",
+   "from": 993.0,
+   "to": 993.4
+  },
+  {
+   "run": 17,
+   "sign": "take a seat",
+   "from": 996.0,
+   "to": 1007.6
+  },
+  {
+   "run": 17,
+   "sign": "unknown 1 words 310 wide",
+   "from": 1007.6,
+   "to": 1009.0
+  },
+  {
+   "run": 17,
+   "sign": "unknown 1 words 309 wide",
+   "from": 1009.0,
+   "to": 1011.0
+  },
+  {
+   "run": 17,
+   "sign": "take a seat",
+   "from": 1011.0,
+   "to": 1014.6
+  }
+ ],
+ "rounds": [
+  {
+   "from": 59.0,
+   "signs": [
+    {
+     "sign": "bets accepted",
+     "from": 59.0,
+     "to": 60.8
+    },
+    {
+     "sign": "dealing",
+     "from": 61.0,
+     "to": 71.0
+    },
+    {
+     "sign": "make your decision",
+     "from": 71.2,
+     "to": 77.0
+    },
+    {
+     "sign": "dealing",
+     "from": 77.2,
+     "to": 83.4
+    }
+   ],
+   "to": 83.4,
+   "whole": false
+  },
+  {
+   "from": 100.8,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 100.8,
+     "to": 102.0
+    },
+    {
+     "sign": "bets accepted",
+     "from": 102.2,
+     "to": 104.0
+    },
+    {
+     "sign": "dealing",
+     "from": 104.2,
+     "to": 111.2
+    },
+    {
+     "sign": "make your decision",
+     "from": 111.4,
+     "to": 113.4
+    },
+    {
+     "sign": "dealing",
+     "from": 113.6,
+     "to": 123.6
+    }
+   ],
+   "to": 123.6,
+   "whole": false
+  },
+  {
+   "from": 132.0,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 132.0,
+     "to": 133.0
+    },
+    {
+     "sign": "bets accepted",
+     "from": 133.2,
+     "to": 135.2
+    },
+    {
+     "sign": "dealing",
+     "from": 135.4,
+     "to": 142.8
+    },
+    {
+     "sign": "make your decision",
+     "from": 143.0,
+     "to": 146.2
+    },
+    {
+     "sign": "dealing",
+     "from": 146.4,
+     "to": 158.8
+    },
+    {
+     "sign": "dealer wins",
+     "from": 159.0,
+     "to": 164.2
+    }
+   ],
+   "to": 164.2,
+   "whole": true
+  },
+  {
+   "from": 170.4,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 170.4,
+     "to": 171.0
+    },
+    {
+     "sign": "bets accepted",
+     "from": 171.2,
+     "to": 173.6
+    },
+    {
+     "sign": "dealing",
+     "from": 173.8,
+     "to": 179.4
+    },
+    {
+     "sign": "make your decision",
+     "from": 179.6,
+     "to": 181.6
+    },
+    {
+     "sign": "dealing",
+     "from": 181.8,
+     "to": 188.0
+    },
+    {
+     "sign": "make your decision",
+     "from": 188.2,
+     "to": 189.6
+    },
+    {
+     "sign": "dealing",
+     "from": 189.8,
+     "to": 212.6
+    }
+   ],
+   "to": 212.6,
+   "whole": false
+  },
+  {
+   "from": 232.2,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 232.2,
+     "to": 232.6
+    },
+    {
+     "sign": "bets accepted",
+     "from": 232.8,
+     "to": 251.4
+    },
+    {
+     "sign": "dealing",
+     "from": 251.6,
+     "to": 257.2
+    }
+   ],
+   "to": 257.2,
+   "whole": false
+  },
+  {
+   "from": 341.4,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 341.4,
+     "to": 342.0
+    },
+    {
+     "sign": "bets accepted",
+     "from": 342.2,
+     "to": 345.4
+    },
+    {
+     "sign": "dealing",
+     "from": 345.6,
+     "to": 355.0
+    }
+   ],
+   "to": 355.0,
+   "whole": false
+  },
+  {
+   "from": 421.6,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 421.6,
+     "to": 422.0
+    },
+    {
+     "sign": "bets accepted",
+     "from": 422.2,
+     "to": 425.4
+    },
+    {
+     "sign": "dealing",
+     "from": 425.6,
+     "to": 437.4
+    },
+    {
+     "sign": "make your decision",
+     "from": 437.6,
+     "to": 441.4
+    },
+    {
+     "sign": "dealing",
+     "from": 441.6,
+     "to": 447.2
+    },
+    {
+     "sign": "make your decision",
+     "from": 447.4,
+     "to": 448.6
+    },
+    {
+     "sign": "dealing",
+     "from": 448.8,
+     "to": 466.2
+    },
+    {
+     "sign": "none",
+     "from": 466.4,
+     "to": 472.2
+    }
+   ],
+   "to": 472.2,
+   "whole": true
+  },
+  {
+   "from": 483.4,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 483.4,
+     "to": 484.4
+    },
+    {
+     "sign": "bets accepted",
+     "from": 484.6,
+     "to": 488.0
+    },
+    {
+     "sign": "dealing",
+     "from": 488.2,
+     "to": 530.2
+    }
+   ],
+   "to": 530.2,
+   "whole": false
+  },
+  {
+   "from": 554.6,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 554.6,
+     "to": 555.8
+    },
+    {
+     "sign": "bets accepted",
+     "from": 556.0,
+     "to": 560.4
+    },
+    {
+     "sign": "dealing",
+     "from": 560.6,
+     "to": 576.0
+    },
+    {
+     "sign": "make your decision",
+     "from": 576.2,
+     "to": 579.2
+    },
+    {
+     "sign": "dealing",
+     "from": 579.4,
+     "to": 597.4
+    },
+    {
+     "sign": "none",
+     "from": 597.6,
+     "to": 603.2
+    }
+   ],
+   "to": 603.2,
+   "whole": true
+  },
+  {
+   "from": 606.0,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 606.0,
+     "to": 606.6
+    },
+    {
+     "sign": "bets accepted",
+     "from": 606.8,
+     "to": 612.8
+    },
+    {
+     "sign": "dealing",
+     "from": 613.0,
+     "to": 659.6
+    },
+    {
+     "sign": "none",
+     "from": 659.8,
+     "to": 665.4
+    }
+   ],
+   "to": 665.4,
+   "whole": true
+  },
+  {
+   "from": 669.4,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 669.4,
+     "to": 669.4
+    }
+   ],
+   "to": 669.4,
+   "whole": false
+  },
+  {
+   "from": 732.0,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 732.0,
+     "to": 733.2
+    },
+    {
+     "sign": "bets accepted",
+     "from": 733.4,
+     "to": 742.4
+    },
+    {
+     "sign": "dealing",
+     "from": 742.6,
+     "to": 755.8
+    },
+    {
+     "sign": "make your decision",
+     "from": 756.0,
+     "to": 757.6
+    },
+    {
+     "sign": "dealing",
+     "from": 757.8,
+     "to": 770.2
+    },
+    {
+     "sign": "make your decision",
+     "from": 770.4,
+     "to": 772.0
+    },
+    {
+     "sign": "dealing",
+     "from": 772.2,
+     "to": 778.4
+    },
+    {
+     "sign": "make your decision",
+     "from": 778.6,
+     "to": 779.6
+    },
+    {
+     "sign": "dealing",
+     "from": 779.8,
+     "to": 780.4
+    }
+   ],
+   "to": 780.4,
+   "whole": false
+  },
+  {
+   "from": 805.2,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 805.2,
+     "to": 805.6
+    },
+    {
+     "sign": "bets accepted",
+     "from": 805.8,
+     "to": 809.0
+    },
+    {
+     "sign": "dealing",
+     "from": 809.2,
+     "to": 822.0
+    },
+    {
+     "sign": "make your decision",
+     "from": 822.2,
+     "to": 823.6
+    },
+    {
+     "sign": "dealing",
+     "from": 823.8,
+     "to": 824.4
+    }
+   ],
+   "to": 824.4,
+   "whole": false
+  },
+  {
+   "from": 885.6,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 885.6,
+     "to": 886.0
+    },
+    {
+     "sign": "bets accepted",
+     "from": 886.2,
+     "to": 889.6
+    },
+    {
+     "sign": "dealing",
+     "from": 889.8,
+     "to": 892.4
+    }
+   ],
+   "to": 892.4,
+   "whole": false
+  },
+  {
+   "from": 938.2,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 938.2,
+     "to": 938.6
+    },
+    {
+     "sign": "bets accepted",
+     "from": 938.8,
+     "to": 942.0
+    },
+    {
+     "sign": "dealing",
+     "from": 942.2,
+     "to": 953.6
+    },
+    {
+     "sign": "make your decision",
+     "from": 953.8,
+     "to": 955.2
+    },
+    {
+     "sign": "dealing",
+     "from": 955.4,
+     "to": 975.2
+    },
+    {
+     "sign": "dealer wins",
+     "from": 975.4,
+     "to": 976.2
+    }
+   ],
+   "to": 976.2,
+   "whole": false
+  },
+  {
+   "from": 993.0,
+   "signs": [
+    {
+     "sign": "bets closed",
+     "from": 993.0,
+     "to": 993.2
+    }
+   ],
+   "to": 993.2,
+   "whole": false
+  }
+ ]
+}

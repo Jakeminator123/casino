@@ -1,0 +1,89 @@
+{
+ "about": "The live table picture inside the screen recording, written by verktyg/ram.py. crop is x, y, width, height in the film; runs are the stretches in seconds where the picture is shown unzoomed.",
+ "source": "https://www.youtube.com/watch?v=OKSnPf75PeU",
+ "file": "video/kalla.mp4",
+ "width": 1920,
+ "height": 1080,
+ "fps": 60.0,
+ "frameCount": 62390,
+ "crop": {
+  "x": 96,
+  "y": 71,
+  "width": 1728,
+  "height": 972
+ },
+ "runs": [
+  {
+   "from": 25.25,
+   "to": 35.0
+  },
+  {
+   "from": 41.0,
+   "to": 47.0
+  },
+  {
+   "from": 59.0,
+   "to": 83.5
+  },
+  {
+   "from": 87.5,
+   "to": 94.25
+  },
+  {
+   "from": 97.5,
+   "to": 123.75
+  },
+  {
+   "from": 127.25,
+   "to": 212.75
+  },
+  {
+   "from": 215.75,
+   "to": 257.25
+  },
+  {
+   "from": 259.25,
+   "to": 355.0
+  },
+  {
+   "from": 359.25,
+   "to": 402.0
+  },
+  {
+   "from": 408.75,
+   "to": 530.25
+  },
+  {
+   "from": 548.75,
+   "to": 669.5
+  },
+  {
+   "from": 672.5,
+   "to": 711.0
+  },
+  {
+   "from": 724.5,
+   "to": 780.5
+  },
+  {
+   "from": 787.25,
+   "to": 824.5
+  },
+  {
+   "from": 837.25,
+   "to": 892.5
+  },
+  {
+   "from": 900.75,
+   "to": 976.25
+  },
+  {
+   "from": 979.0,
+   "to": 993.25
+  },
+  {
+   "from": 996.0,
+   "to": 1014.5
+  }
+ ]
+}
