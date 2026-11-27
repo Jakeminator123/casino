@@ -180,8 +180,16 @@ rörelser och filmerna som görs av dem.
   kvarleva från gamla dockan eller förra standarddockans rörelsemönster och inte en kopia av det skelett/rigg/rörelser
   och annat som kommer från de nya dealrarna." Händerna ska vara där filmens är; inget i en lyft rörelse får komma ur
   de ritade givarna.
-- **Inga mikrorörelser.** Om filmerna av Tomasz som gör Danilos giv: "han var liksom lite skakig på grund av, jag vet
-  inte, att för små mikrorörelser kommer med?"
+- **Inga småryck, värst i huvudet.** Om filmerna av Tomasz som gör Danilos giv: "han var liksom lite skakig på grund
+  av, jag vet inte, att för små mikrorörelser kommer med?" Och senare samma dag: "Små olika typer av 'ryck' som vi fick
+  när vår docka nitiskt följde livedealern förut och som gjorde att det såg dåligt ut", "få bort de allra värsta
+  smårycken som fanns i till exempel huvud var det framförallt. Men jag vet att det har skett kring handen också",
+  "fått det väldigt ofta när videomodeller följt 3d-gubbar". Dockan följer dealerns rörelse, inte mätningens brus
+  ruta för ruta: huvud och axlar är lika stilla som hans, handens fart är en jämn kurva, och blicken hålls på ett mål
+  och vrids mjukt till nästa.
+- **Tomasz från två kameror: Nej.** Kortet "Tomasz gör Danilos giv från två kameror: är det samma man?" fick svaret
+  Nej (2026-11-27). Det han hade sagt om filmerna står i punkterna här: utseendet glömdes, småryck, blicken uppåt,
+  skons stående kort och vänsterhanden som dealern inte gör. Inga fler platser filmas förrän det är rättat.
 - **Blicken mot kameran, inte uppåt.** "Känns som att han tittar uppåt, men uppåt och inte mot kameran, som om dockan
   delvis utgår ifrån en gammal standarddocka som hade en annan vy som kamera."
 - **Skons kort ligger.** "Kortskon som används är också med stående kort och inte det som youtubefilmen har, dvs
