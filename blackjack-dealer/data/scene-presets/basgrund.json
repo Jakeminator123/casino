@@ -6,7 +6,6 @@
   "state": {
     "room": "panorama",
     "blur": 5,
-    "tray": true,
     "cards": true,
     "roomShift": "shimmer"
   },

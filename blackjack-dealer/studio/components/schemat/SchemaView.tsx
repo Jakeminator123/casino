@@ -16,7 +16,7 @@ import { Button, ErrorState, Panel, SegmentedControl, Skeleton, buttonClasses, c
 import { AnchorSheet, MotionSheet } from "./MotionSheet";
 import { PlatsGrid, cellsOf } from "./PlatsGrid";
 import { SchemaGraph, SchemaList, drawn } from "./SchemaGraph";
-import { SchemaSwitch } from "./SchemaSwitch";
+
 import { SLAG_ORD, getSchema, platsAv, type Schema } from "@/lib/schemat";
 
 function useAddress() {
@@ -65,7 +65,7 @@ export function SchemaView() {
   return (
     <Page
       title="Karta"
-      status={<SchemaSwitch value="schema" />}
+
       actions={
         <Button size="sm" variant="quiet" icon={<RotateCw />} onClick={() => setRound((n) => n + 1)} title="Läs om" aria-label="Läs om">
           <span className="hidden sm:inline">Läs om</span>

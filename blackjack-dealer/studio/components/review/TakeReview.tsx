@@ -2,21 +2,20 @@
 
 // <TakeReview take={take} edge={edge} … />: one take, large, for Jakob's decision: its name in his words (the step
 // "A2.1 → P4C1" and the take's short name), the film, what a reviewer noted (two lines, more on demand), the decision
-// bar, "Ursprung" (what the film was made from, folded), and "Jämför mot primär" when the step has another film. Space
+// bar and "Ursprung" (what the film was made from, folded). Space
 // plays, ← → step a frame. A film with sound (take.sound: a talk film) is heard, with a sound button. A take judged for
 // him (review.provisional: "dömd åt dig", not in his queue) shows that verdict, who gave it, under which words of his and
 // why above his buttons, marked as not his; his click replaces it.
-import { ArrowLeftRight, ChevronLeft, ChevronRight, Undo2 } from "lucide-react";
-import Link from "next/link";
+import { ChevronLeft, ChevronRight, Undo2 } from "lucide-react";
 import { useMemo, useRef, type Ref } from "react";
 import { describeEdge, type Edge, type Take } from "../../../src/clip-graph.ts";
 import type { Decision } from "../../lib/api.ts";
 import { takeEdgeName, factsLine, takeFacts, takeNames } from "../../lib/names.ts";
-import { comparePair, playableFilm, reviewerNotes } from "../../lib/review.ts";
+import { reviewerNotes } from "../../lib/review.ts";
 import { VERDICT_LABEL, mandateText, provisionalOf, provisionalWords, verdictOf, type Verdict } from "../../lib/verdict.ts";
-import { compareHref } from "../compare/ChoiceList";
+
 import { FilmPlayer, type FilmMark, type FilmPlayerHandle } from "../player";
-import { DecisionBar, FilmTable, TakeChip } from "../takes";
+import { DecisionBar, TakeChip } from "../takes";
 import type { DecisionBarHandle } from "../takes/DecisionBar";
 import { Origin } from "../takes/Origin";
 import { useBank } from "../../lib/bank.ts";
@@ -60,8 +59,7 @@ export function TakeReview({
   const name = useMemo(() => takeNames(edge.takes).get(take.id) ?? take.id, [edge.takes, take.id]);
   const notes = reviewerNotes(take);
   const facts = factsLine(takeFacts(take));
-  const others = edge.takes.filter((t) => t.id !== take.id && playableFilm(t));
-  const pair = others.length ? comparePair(edge, take.id) : null;
+
   const marks: FilmMark[] = take.landingFrame !== null ? [{ frame: take.landingFrame, label: "Landning", kind: "landing" }] : [];
   const decisionBox = useRef<HTMLDivElement>(null);
   const { graph } = useBank();
@@ -77,7 +75,6 @@ export function TakeReview({
               {name}
             </h2>
             <TakeChip take={take} />
-            <FilmTable take={take} />
           </div>
           <span className="truncate text-xs text-faint">{[edge.experiment ? "Experiment utanför modellen" : describeEdge(edge), facts].join(" · ")}</span>
         </div>
@@ -92,11 +89,7 @@ export function TakeReview({
               </button>
             </span>
           ) : null}
-          {pair?.a && pair.b ? (
-            <Link href={compareHref(edge.id, take.id, pair.b.id)} className={buttonClasses({ variant: "secondary", size: "md" })}>
-              <ArrowLeftRight /> {pair.b.explicitMain ? "Jämför mot primär" : "Jämför mot den som spelas"}
-            </Link>
-          ) : null}
+
           {onStep ? (
             <span className="flex items-center gap-0.5">
               <IconButton label="Föregående som väntar" icon={<ChevronLeft />} onClick={() => onStep(-1)} />

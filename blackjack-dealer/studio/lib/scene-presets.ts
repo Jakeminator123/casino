@@ -49,10 +49,10 @@ export function presetInForm<T extends { state: Partial<SceneState> }>(answered:
 }
 
 // What the game sets on the scene by itself (src/game-own.ts GAME_OWN): the room Las Vegas when the player has chosen none,
-// its blur 5 (its entry in data/scene-rooms.json), the tray, the drawn cards and the shimmer when the room changes. The
+// its blur 5 (its entry in data/scene-rooms.json), the drawn cards and the shimmer when the room changes. The
 // framing is the play view's, as in every look without one of its own, and the picture filling the stage is the game's
 // way to show it, not the look's (Scen's Visa). Everything else is the scene's own.
-const GAME: Partial<SceneState> = { room: "panorama", blur: 5, tray: true, cards: true, roomShift: "shimmer" };
+const GAME: Partial<SceneState> = { room: "panorama", blur: 5, cards: true, roomShift: "shimmer" };
 // What Jakob remembers of the 3D lab (proof 3d-kanslan), without the sway: the camera leans and stays where it is put
 // (Jakob 2026-11-13, "Autoläget ska inte gunga heller"; the scene's own sway is off and its switch is under Kamera). The
 // Scen view starts with it.

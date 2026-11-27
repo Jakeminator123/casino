@@ -35,7 +35,7 @@ test('the lens is saved with the look as the key lins; a file in the older form 
   const root = await temp(t), store = scenePresetStore(root), file = path.join(root, 'data/scene-presets/casino.json');
   const fields = ['schemaVersion', 'name', 'label', 'about', 'state', 'updatedAt'];
   // Casino's file as it stood before 2026-11-21: no word, which means Standard
-  const before = {schemaVersion: 1, name: 'casino', label: 'Casino', about: 'Casinos sparade visning, vald i Scen & bord.', state: {room: 'panorama', roomShift: 'shimmer', blur: 5, tray: true, cards: true, pitch: -8, zoom: 0.84, format: 'fill'}, updatedAt: '2026-11-19T17:14:04.461Z'};
+  const before = {schemaVersion: 1, name: 'casino', label: 'Casino', about: 'Casinos sparade visning, vald i Scen & bord.', state: {room: 'panorama', roomShift: 'shimmer', blur: 5, cards: true, pitch: -8, zoom: 0.84, format: 'fill'}, updatedAt: '2026-11-19T17:14:04.461Z'};
   await writeFile(file, JSON.stringify(before, null, 2) + '\n');
   assert.deepEqual((await store.load('casino')).preset.state, before.state);
   // Casino's file as Använd i Casino wrote it with Bred lins until 2026-11-26: the word beside the state

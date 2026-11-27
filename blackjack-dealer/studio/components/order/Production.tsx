@@ -194,10 +194,6 @@ export function Production({ dealer, dealerName, plan, onOpen }: { dealer: strin
             <p className="mb-1 max-w-[420px] text-xs leading-4 text-dim">
               {`${list.counts.missing || "Inget"} av bankens ${list.counts.total} steg saknar film${list.counts.missing && !missing.length ? ", inget av dem behövs för en runda" : ""} · landningsbilder som gäller: ${list.landings.length ? list.landings.map((t) => nodeCode(t)).join(", ") : "ingen än"}`}
               {candidatesOf(list) ? ` · ${candidatesOf(list)} ${candidatesOf(list) === 1 ? "kandidat" : "kandidater"}` : ""}
-              {" i "}
-              <Link href={`/material/?dealer=${encodeURIComponent(dealer)}`} className="text-brass-hi hover:underline">
-                Material
-              </Link>
               {". En plats andra kort spelar det första kortets film."}
             </p>
           </div>

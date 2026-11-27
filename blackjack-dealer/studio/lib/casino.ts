@@ -1,19 +1,15 @@
 // The Casino view's addresses. Its own, /game/?forval=levande&dust=0.8&table=casino-k3x9qa, carries the look (a preset and
-// the keys that differ from it, as Bordet's Scen writes them: lib/scene-presets.ts) and the table, so a calibrated look can
-// be sent as a link. From it: the game in the frame (/game.html?forval=…&inbaddad=1&…&table=…, read by src/game-look.ts)
-// and the same look in Bordet's Scen (/bordet/?lage=scen&forval=…&…). Another view reaches the Casino with casinoAddress(preset, keys).
-// The lens (Standard or Bred lins) is the look's key lins like any other (Jakob 2026-11-25): the address's when it names it,
-// else the preset's, saved with the look; an address's older word geometri=lins|kontrakt is read as that key (readAddress in
-// lib/scene-presets.ts) and written as lins.
-// The tree (?trad=<id>, a tree of data/dealer-trees.json; Karta's Prova i Casino writes it): the game in the frame plays that
-// tree's films only (src/game-page.ts). Without it the Casino is as before. Several trees put together (?komposition=<id>, a
-// composition of data/dealer-compositions.json; Karta's Komposition writes it) are played the same way, each from its own anchors.
+// the keys that differ from it: lib/scene-presets.ts) and the table, so a look can be sent as a link. From it: the game in
+// the frame (/game.html?forval=…&inbaddad=1&…&table=…, read by src/game-look.ts).
+// The tree (?trad=<id>, a tree of data/dealer-trees.json): the game in the frame plays that tree's films only
+// (src/game-page.ts). Several trees put together (?komposition=<id>, a composition of data/dealer-compositions.json) are
+// played the same way, each from its own anchors.
 // Pure: no DOM, no network; tests in studio/tests/casino.test.ts.
 import type { SceneState } from "../../src/scene3d-view.ts";
 import { SCENE_KEYS, encodeValue } from "./scene-keys.ts";
 import { CASINO_PRESET, readAddress } from "./scene-presets.ts";
 import { TREE_ID } from "../../src/dealer-trees.ts";
-import { ADRESSORD, lasUppsattning, type UppsattningId } from "./uppsattning-val.ts";
+
 
 /**
  * The Casino on the internet: the copy's door /casino (cloud/studio/gate.ts GAME_HOME), the game with Casino's saved look as it
@@ -45,7 +41,7 @@ export function readCasino(params: Params, rooms?: readonly string[]): CasinoLoo
   const keys = new URLSearchParams();
   // "table" is the Casino's own word, and "robot" belongs to every lab page (src/preview-ui.ts); neither is a look key.
   params.forEach((value, key) => {
-    if (key !== "table" && key !== "robot" && key !== TREE_WORD && key !== COMPOSITION_WORD && key !== ADRESSORD && !Object.hasOwn(PLAYBACK_WORDS, key)) keys.append(key, value);
+    if (key !== "table" && key !== "robot" && key !== TREE_WORD && key !== COMPOSITION_WORD && !Object.hasOwn(PLAYBACK_WORDS, key)) keys.append(key, value);
   });
   if (!keys.has("forval")) keys.set("forval", CASINO_PRESET);
   const { forval, patch, ignored } = readAddress(keys, rooms);
@@ -84,28 +80,12 @@ export function casinoSearch(look: Pick<CasinoLook, "forval" | "patch" | "playba
 }
 
 /**
- * The Casino view with a look, for a link from another view (next/link adds the base path /studio):
- * casinoAddress("levande", {dust: 0.8}) is "/game/?forval=levande&dust=0.8". keys: the scene keys that differ from the
- * preset (patchOf(current, presetState) in lib/scene-presets.ts). table: a table name, else the Casino's own. trad: one tree
- * the game plays (Karta's Prova i Casino), komposition: several put together (Karta's Komposition), else all the dealer's films.
+ * The game in the frame: the lab's own page, with the look, the frame's mark, the table and the tree.
  */
-export function casinoAddress(forval: string, keys: Partial<SceneState> = {}, table?: string | null, trad?: string | null, komposition?: string | null): string {
-  return `/game/${casinoSearch({ forval, patch: keys, table: table && TABLE_NAME.test(table) ? table : null, trad, komposition })}`;
+export function gameSrc(look: Pick<CasinoLook, "forval" | "patch" | "table" | "playback" | "trad" | "komposition">): string {
+  return `/game.html?${join([["forval", look.forval], ["inbaddad", "1"], ...keyPairs(look.patch), ["table", look.table], ...playbackPairs(look), ...treePair(look)])}`;
 }
 
-/**
- * The game in the frame: the lab's own page, with the look, the frame's mark, the table, the tree and the menu's choice of
- * table and camera (?uppsattning=live|forra, src/uppsattning.ts ADRESSORD; a word that names no set-up is left out).
- */
-export function gameSrc(look: Pick<CasinoLook, "forval" | "patch" | "table" | "playback" | "trad" | "komposition">, uppsattning?: UppsattningId | null): string {
-  const setup: [string, string][] = lasUppsattning(uppsattning) ? [[ADRESSORD, lasUppsattning(uppsattning)!]] : [];
-  return `/game.html?${join([["forval", look.forval], ["inbaddad", "1"], ...keyPairs(look.patch), ["table", look.table], ...playbackPairs(look), ...treePair(look), ...setup])}`;
-}
-
-/** The same look in Bordet's Scen, to calibrate it further. */
-export function scenHref(look: Pick<CasinoLook, "forval" | "patch">): string {
-  return `/bordet/?${join([["lage", "scen"], ["forval", look.forval], ...keyPairs(look.patch)])}`;
-}
 
 /** A fresh table name: a new game session on the lab server, with a new balance and shoe. */
 export function freshTable(random: () => number = Math.random): string {
