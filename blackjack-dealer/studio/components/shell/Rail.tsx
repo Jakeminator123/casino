@@ -13,7 +13,7 @@
 // In the online copy (lib/mode.ts) the workshops of this computer and Beslut are not there, so they are not drawn; instead
 // the bot is there: the view Önskemål (with the answers from Jakob not yet seen) and "Fråga", which opens and closes the
 // panel (components/bot).
-import { BookOpen, Clapperboard, House, Images, Inbox, ListChecks, MessageCircleQuestion, PersonStanding, Ruler, ScanEye, Spade, Users, Workflow } from "lucide-react";
+import { Archive, BookOpen, Clapperboard, House, Images, Inbox, ListChecks, MessageCircleQuestion, PersonStanding, Ruler, ScanEye, Spade, Users, Workflow } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState, type ComponentType } from "react";
@@ -56,6 +56,8 @@ export const VIEWS: readonly View[] = [
   { href: "/material/", label: "Material", hint: "Per dealer: ingångsbild, keystone, ankare, filmer och referenser", icon: Images },
   { href: "/game/", label: "Casino", hint: "Spela blackjack som i casinot: spelmotorn, marker och reglage, med valt förval", icon: Spade, group: "Spelet" },
   { href: "/matt/", label: "Mått", hint: "Alla mått ur koden: kameror, bord, kortplatser, dockor och rörelser, bredvid livebordet", icon: Ruler, group: "Grunden" },
+  // Biblioteket (2026-11-27): allt som lagras i repot, per slag, med var det används, och raderingen på hans klick.
+  { href: "/bibliotek/", label: "Biblioteket", hint: "Allt som lagras: filmer, figurer, bilder, prov och resten, med storlek och var det används; radera på riktigt", icon: Archive },
 ];
 
 /**
@@ -63,7 +65,7 @@ export const VIEWS: readonly View[] = [
  * the measures need this computer. Filmverkstaden is there Scen, Råfilm and Efterarbete only (no Inspelning, no Kön), and
  * Casino plays there too (the game page runs the engine itself).
  */
-const LOCAL_ONLY: readonly string[] = ["/avatarer/", "/dockan/", "/matt/"];
+const LOCAL_ONLY: readonly string[] = ["/avatarer/", "/dockan/", "/matt/", "/bibliotek/"];
 const SHOWN: readonly View[] = isSnapshot ? VIEWS.filter((view) => !LOCAL_ONLY.includes(view.href)) : VIEWS;
 /** Where the mark at the top leads: the start page. */
 const HOME = "/";

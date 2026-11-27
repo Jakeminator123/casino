@@ -317,7 +317,7 @@ export function ledgerOf(input: LedgerInput): Ledger {
   const rows: LedgerRow[] = [];
   for (const raw of input.orders ?? []) {
     if (!isObj(raw) || !str(raw.id)) { problems.push("En beställning utan id hoppades över."); continue; }
-    const order = raw, id = str(order.id)!, dealer = str(order.dealer) ?? "okänd", kind = order.kind === "STILL" ? "STILL" : "FILM";
+    const order = raw, id = str(order.id)!, dealer = str(order.dealer) ?? str(obj(order.person).name) ?? "okänd", kind = order.kind === "STILL" ? "STILL" : "FILM";
     const step = obj(order.step), motion = obj(order.motion), target = str(motion.target);
     const group = stepGroupOf(str(step.key), kind);
     const method = methodOf(order, owners);

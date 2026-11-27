@@ -5,7 +5,7 @@
 // with the workshop that does each step, the workshops themselves (one tile each, with a line of what it is for and where
 // in the chain it belongs), and last what lies beside the work. A workshop with a server of its own shows whether it
 // runs; the studio starts it when its page is opened.
-import { ArrowRight, Clapperboard, Images, ListChecks, Music, Package, PersonStanding, Ruler, Scale, ScanEye, Spade, Speech, Users, Workflow, type LucideIcon } from "lucide-react";
+import { Archive, ArrowRight, Clapperboard, Images, ListChecks, Music, Package, PersonStanding, Ruler, Scale, ScanEye, Spade, Speech, Users, Workflow, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Page } from "../shell";
@@ -20,7 +20,7 @@ import { awaitingJakob } from "../../lib/verdict.ts";
 import { workshopStates, type WorkshopId, type WorkshopState } from "../../lib/workshops.ts";
 import { START_CHAIN, START_SIDE, START_TILES, type Tile } from "../../lib/start.ts";
 
-const ICONS: Record<Tile["icon"], LucideIcon> = { users: Users, doll: PersonStanding, film: Clapperboard, review: ScanEye, map: Workflow, images: Images, game: Spade, ruler: Ruler, live: Scale, pack: Package, lips: Speech, sound: Music, decisions: ListChecks };
+const ICONS: Record<Tile["icon"], LucideIcon> = { users: Users, doll: PersonStanding, film: Clapperboard, review: ScanEye, map: Workflow, images: Images, game: Spade, ruler: Ruler, live: Scale, pack: Package, lips: Speech, sound: Music, decisions: ListChecks, library: Archive };
 
 function TileCard({ tile, dealer, count, workshop }: { tile: Tile; dealer: string; count?: number; workshop?: WorkshopState }) {
   const Icon = ICONS[tile.icon];

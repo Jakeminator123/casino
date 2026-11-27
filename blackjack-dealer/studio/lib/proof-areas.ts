@@ -18,13 +18,29 @@ export const NO_AREA = "Utan område";
 
 export const areaWord = (area: string | null | undefined): string => AREAS.find((a) => a.id === area)?.word ?? NO_AREA;
 
-/** The proofs in groups by area, in the list's order, those without one last; empty groups left out. */
-export function byArea<T extends Pick<Proof, "area">>(proofs: readonly T[]): { word: string; proofs: T[] }[] {
+/**
+ * The proofs in groups by area, in the list's order, those without one last; empty groups left out. Within a group the
+ * proofs where the judge and the external voice disagree come first (Jakob needs to look at those), the rest as given.
+ */
+export function byArea<T extends Pick<Proof, "area" | "domare">>(proofs: readonly T[]): { word: string; proofs: T[] }[] {
   const known = new Set<string>(AREAS.map((a) => a.id));
-  const groups: { word: string; proofs: T[] }[] = AREAS.map((a) => ({ word: a.word, proofs: proofs.filter((p) => p.area === a.id) }));
-  groups.push({ word: NO_AREA, proofs: proofs.filter((p) => !p.area || !known.has(p.area)) });
+  const first = (list: T[]) => [...list.filter(oense), ...list.filter((p) => !oense(p))];
+  const groups: { word: string; proofs: T[] }[] = AREAS.map((a) => ({ word: a.word, proofs: first(proofs.filter((p) => p.area === a.id)) }));
+  groups.push({ word: NO_AREA, proofs: first(proofs.filter((p) => !p.area || !known.has(p.area))) });
   return groups.filter((g) => g.proofs.length);
 }
+
+// ── The judge (the skill doma): its verdict in his place, never his ─────────
+/** The judge's verdict word ("Bra", "Nja", "Inte bra"), or null where no judge has judged the proof. */
+export const domOf = (p: Pick<Proof, "domare">): string | null => (typeof p.domare?.dom === "string" && p.domare.dom.trim() ? p.domare.dom.trim() : null);
+/** The external voice's verdict word, or null. */
+export const externOf = (p: Pick<Proof, "domare">): string | null => (typeof p.domare?.extern?.dom === "string" && p.domare.extern.dom.trim() ? p.domare.extern.dom.trim() : null);
+/** The judge and the external voice disagree: marked, and first in its area. */
+export const oense = (p: Pick<Proof, "domare">): boolean => p.domare?.oenig === true;
+/** The tone of a verdict word, as the takes' chips have it. */
+export const domTone = (dom: string | null): "ok" | "remark" | "bad" | "neutral" => (dom === "Bra" ? "ok" : dom === "Nja" ? "remark" : dom === "Inte bra" ? "bad" : "neutral");
+/** A reason as a sentence (the external voice's carry where it is seen: "… (fil, ruta 30–42)" is left to the sentence alone). */
+export const skalText = (s: string | { vad?: string } | null | undefined): string => (typeof s === "string" ? s : (s?.vad ?? "")).trim();
 
 /**
  * Where a proof stands for him. "vantar": a card in Beslut asks him about it and has no answer. "domt": he has answered its
@@ -41,10 +57,10 @@ export function standing(id: string, cards: readonly { proof?: string; answer: u
   return "utan";
 }
 
-/** The line over the proofs: how many, how many without his verdict, how many asked in Beslut, and their room. */
-export function proofsLine(stands: readonly Standing[], bytes: number): string {
+/** The line over the proofs: how many, how many without his verdict, how many asked in Beslut, how many the judge failed (and where the two judges disagree), and their room. */
+export function proofsLine(stands: readonly Standing[], bytes: number, judge: { falld: number; oense: number } = { falld: 0, oense: 0 }): string {
   const utan = stands.filter((s) => s === "utan").length, vantar = stands.filter((s) => s === "vantar").length;
-  return [`${stands.length} prov`, `${utan} utan din dom`, ...(vantar ? [`${vantar} väntar på dig i Beslut`] : []), sizeWord(bytes)].join(" · ");
+  return [`${stands.length} prov`, `${utan} utan din dom`, ...(vantar ? [`${vantar} väntar på dig i Beslut`] : []), ...(judge.falld ? [`${judge.falld} fällda av domaren`] : []), ...(judge.oense ? [`${judge.oense} där domarna är oense`] : []), sizeWord(bytes)].join(" · ");
 }
 
 /**

@@ -26,6 +26,7 @@
     "inbox/**/*.ts",
     "slask/slask.ts",
     "matt.ts",
+    "lager.ts",
     "avatar-auto-pipeline/scen/**/*.ts",
     "standarddocka/**/*.ts",
     "kortspelspaket/**/*.ts",

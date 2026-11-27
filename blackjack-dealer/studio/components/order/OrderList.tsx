@@ -12,17 +12,17 @@ import type { ReactNode } from "react";
 import { useBank } from "../../lib/bank.ts";
 import { labUrl } from "../../lib/lab.ts";
 import { swedishMoment } from "../../lib/mode.ts";
-import { HANDOVER, costWords, orderLine, orderingState, picturesInOrder, sections, styleWords, type OrderAnswer, type OrdersAnswer, type Picture } from "../../lib/orders.ts";
+import { HANDOVER, aspectOf, costWords, orderLine, orderingState, picturesInOrder, sections, shapeOf, styleWords, whoseName, type Order, type OrderAnswer, type OrdersAnswer, type Picture } from "../../lib/orders.ts";
 import { MODELS, approvalWords, credits, scaleWords, stepOf } from "../../../src/order-model.ts";
 import { Card, EmptyState } from "../ui";
 import { StatusChip, WayChip, pictureName } from "./Pictures";
 import { Production } from "./Production";
 import { QueueFrame } from "./QueueFrame";
 
-function Thumb({ picture }: { picture: Picture }) {
+function Thumb({ picture, order }: { picture: Picture; order: Order }) {
   const src = picture.path ? labUrl(picture.path) : null;
   return (
-    <div className="relative aspect-1764/1174 min-w-0 flex-1 overflow-hidden rounded-md border border-line bg-well">
+    <div className="relative min-w-0 flex-1 overflow-hidden rounded-md border border-line bg-well" style={aspectOf(shapeOf(order, picture))}>
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element -- a lab file; a static export cannot optimise
         <img src={src} alt={pictureName(picture)} className="size-full object-cover" loading="lazy" />
@@ -51,7 +51,7 @@ function OrderCard({ answer, dealerName, onOpen }: { answer: OrderAnswer; dealer
     <Card interactive className="cursor-pointer p-3" onClick={onOpen} role="button" tabIndex={0} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onOpen())}>
       <div className="flex gap-2">
         {shown.slice(0, 2).map((pic) => (
-          <Thumb key={pic.name} picture={pic} />
+          <Thumb key={pic.name} picture={pic} order={order} />
         ))}
       </div>
       <div className="mt-3 flex items-start gap-2">
@@ -96,7 +96,7 @@ export function OrderList({ menu, all, onOpen }: { menu: ReactNode; all: OrdersA
   const cards = (s: (typeof list)[number]) => (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(330px,1fr))] gap-4">
       {s.orders.map((a) => (
-        <OrderCard key={a.order.id} answer={a} dealerName={names.get(a.order.dealer) ?? a.order.dealer} onOpen={() => onOpen(a.order.id)} />
+        <OrderCard key={a.order.id} answer={a} dealerName={whoseName(a.order, names)} onOpen={() => onOpen(a.order.id)} />
       ))}
     </div>
   );

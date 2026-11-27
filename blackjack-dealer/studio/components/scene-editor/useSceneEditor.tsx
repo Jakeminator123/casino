@@ -14,7 +14,10 @@
 // The play view (src/play-view.ts, Jakob 2026-11-25) is read when the editor starts: a look that names no framing is shown with
 // its Dator, as the game shows it. Visa, first in the panel (PlayViewPanel), shows the film as recorded (Inspelningen) or what
 // the player sees (Dator, Mobil); Scen opens on Dator. Visa is never saved with a look, and a look keeps zoom, pitch and yaw only
-// when "Egen inramning" is on (lib/scene-presets.ts savedState). "Spara som spelvy" writes the play view, on his click.
+// when "Egen inramning" is on (lib/scene-presets.ts savedState). "Spara som spelvy" writes the play view, on his click. The
+// scene stands under the menu's table and camera (useSetup, src/scene3d-view.ts setUppsattning), and each has its own play
+// view (/api/play-view?uppsattning=live): the one read and saved is the chosen table's (Jakob 2026-11-27: "en annan vy som jag
+// vill kunna ställa in för när jag eller en annan ska testa eller spela i casinot").
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { CARD_TAPER, LINS } from "../../../src/card-plan.ts";
 import { PLAY_VIEW, sameFraming, type Framing, type PlayView } from "../../../src/play-view.ts";
@@ -56,6 +59,8 @@ import { PlayViewPanel } from "./PlayViewPanel";
 import { PresetBar } from "./PresetBar";
 import { deletePreset, getPlayView, listPresets, putPlayView, savePreset, type Preset } from "./presetApi.ts";
 import { roomItems } from "./RoomGrid";
+import { useSetup } from "../shell/SetupProvider";
+import { choiceName } from "../../lib/uppsattning-val.ts";
 
 // What the mouse changes in the scene's state behind the page's back (SceneCanvas: drag, wheel, double click), and what the
 // scene may set itself (a room it does not have becomes the salon; cards that cannot be read are switched off).
@@ -99,13 +104,17 @@ export function useSceneEditor(firstLook: () => LookAsk) {
   }, [reloadPresets]);
   const presetOf = useCallback((name: string) => presets.find((p) => p.name === name) ?? null, [presets]);
 
+  // ── the menu's table and camera (Bord och kamera): the scene is built under it, and each has its own play view ──
+  const { id: setup } = useSetup();
+
   // ── the play view: one framing for a computer and one for a phone, for every look; the game's own until it is read ──
   const [view, setView] = useState<PlayView>(PLAY_VIEW);
   const [viewRevision, setViewRevision] = useState<string | null>(null);
   const [viewRead, setViewRead] = useState(false);
   const readView = useCallback(async () => {
+    setViewRead(false);
     try {
-      const { revision, ...read } = await getPlayView();
+      const { revision, ...read } = await getPlayView(setup);
       setView(read);
       setViewRevision(revision);
     } catch (error) {
@@ -114,7 +123,7 @@ export function useSceneEditor(firstLook: () => LookAsk) {
     } finally {
       setViewRead(true);
     }
-  }, [toast]);
+  }, [toast, setup]);
   useEffect(() => {
     void readView();
   }, [readView]);
@@ -182,6 +191,16 @@ export function useSceneEditor(firstLook: () => LookAsk) {
     },
     [defaults, view, visa, patcher],
   );
+
+  // The scene under the menu's table and camera (src/scene3d-view.ts setUppsattning): another choice builds it anew under its
+  // camera and table, and the look is shown again with that table's play view once it is read.
+  const builtUnder = useRef<string | null>(null);
+  useEffect(() => {
+    if (!scene) return;
+    scene.setUppsattning(setup);
+    if (builtUnder.current !== null && builtUnder.current !== setup) setNeedApply(true);
+    builtUnder.current = setup;
+  }, [scene, setup]);
 
   // The look the address asks for, once the scene is there and the preset it names and the play view are known.
   useEffect(() => {
@@ -379,10 +398,10 @@ export function useSceneEditor(firstLook: () => LookAsk) {
     const name = visa === "mob" ? "Mobil" : "Dator";
     setSavingView(true);
     try {
-      const { revision, ...saved } = await putPlayView({ dator: visa === "fill" ? framing : view.dator, mobil: visa === "mob" ? framing : view.mobil }, viewRevision);
+      const { revision, ...saved } = await putPlayView({ dator: visa === "fill" ? framing : view.dator, mobil: visa === "mob" ? framing : view.mobil }, viewRevision, setup);
       setView(saved);
       setViewRevision(revision);
-      toast({ tone: "ok", title: `Spelvyn för ${name} är sparad`, detail: "Den gäller alla utseenden." });
+      toast({ tone: "ok", title: `Spelvyn för ${name} är sparad: ${choiceName(setup)}`, detail: "Den gäller alla utseenden vid det bordet, i Casino och i spelet." });
     } catch (error) {
       const e = asApiError(error, "Spelvyn");
       if (e.status === 409) {
@@ -510,6 +529,7 @@ export function useSceneEditor(firstLook: () => LookAsk) {
         onSaveView={() => void saveView()}
         own={own}
         onOwn={ownFraming}
+        table={choiceName(setup)}
       />
     ) : null;
   const panel =

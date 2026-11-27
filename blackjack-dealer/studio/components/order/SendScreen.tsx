@@ -18,7 +18,7 @@ import { swedishMoment } from "../../lib/mode.ts";
 import { referenceName } from "../../lib/bordet.ts";
 import { mandateText } from "../../lib/verdict.ts";
 import { cardCode } from "../../lib/names.ts";
-import { approveOrder, changeOrder, costWords, motionWords, orderLine, orderingState, picturesInOrder, refreshOrder, storedParts, styleWords, type OrderAnswer, type OrdersAnswer } from "../../lib/orders.ts";
+import { approveOrder, changeOrder, costWords, motionWords, orderLine, orderingState, picturesInOrder, refreshOrder, storedParts, styleWords, whoseName, type OrderAnswer, type OrdersAnswer } from "../../lib/orders.ts";
 import { MODELS, REF_VERDICT_LABEL, SHOWN_LABEL, approvalWords, SHAPE_LABEL, TAKES_MAX, credits, genitive, groupBudget, scaleWords, seatWords, stepOf, takeStates, waitWords } from "../../../src/order-model.ts";
 import { Badge, Button, Dialog, SegmentedControl, TextArea, cn, useToast } from "../ui";
 import { PictureCard, StatusChip } from "./Pictures";
@@ -86,7 +86,7 @@ export function SendScreen({ menu, answer, all, onBack, onOpen, onSaved }: { men
   const why = answer.problems[0] ?? refusals[0] ?? null;
   const ready = answer.waiting.length > 0 && answer.waiting.every((w) => w.ready);
   const dealer = all.dealers?.find((d) => d.id === order.dealer);
-  const parts = storedParts(order, dealer?.look, all.plan, dealer?.name ?? order.dealer);
+  const parts = storedParts(order, dealer?.look, all.plan, dealer?.name ?? whoseName(order));
   const choices = motionWords(order);
   const names = Object.fromEntries((all.dealers ?? []).map((d) => [d.id, d.name]));
   const scale = order.motion?.cardScale ?? 1;
@@ -96,7 +96,7 @@ export function SendScreen({ menu, answer, all, onBack, onOpen, onSaved }: { men
   // one who made it, in older words ("ankare 2.3 C") and sometimes with a film's id.
   const line = orderLine(order);
   const stepLabel = stepOf(order.step.key)?.label ?? order.step.label;
-  const dealerName = dealer?.name ?? names[order.dealer] ?? order.dealer;
+  const dealerName = dealer?.name ?? whoseName(order, names);
   const heading = `${dealerName} · ${line ?? stepLabel}`;
   const doll = order.reference.status === "FINNS" && order.reference.dealer === "docka";
   const p = order.generation.params;
@@ -251,7 +251,7 @@ export function SendScreen({ menu, answer, all, onBack, onOpen, onSaved }: { men
 
         <div className={cn("grid gap-5", pictures.length >= 3 ? "grid-cols-3" : "grid-cols-2")}>
           {pictures.map((p) => (
-            <PictureCard key={p.name} picture={p} owner={answer.owners ? (answer.owners[p.name] ?? null) : undefined} dealer={order.dealer} planned={p.from?.built && planned ? planned : null} />
+            <PictureCard key={p.name} picture={p} owner={answer.owners ? (answer.owners[p.name] ?? null) : undefined} dealer={order.dealer} order={order} planned={p.from?.built && planned ? planned : null} />
           ))}
         </div>
 

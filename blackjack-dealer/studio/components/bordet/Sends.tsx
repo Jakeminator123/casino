@@ -19,7 +19,7 @@ import { CARD_SCALES, SHAPE_LABEL, STYLE_LABEL, TAKES_MAX, a3Name, modelsFor, op
 import { referenceName, referenceOwner, referenceRole, sentence, type FilmRow, type RowChoice } from "../../lib/bordet.ts";
 import { labUrl } from "../../lib/lab.ts";
 import { scoreWords, verdictWords, type LedgerRow } from "../../lib/ledger.ts";
-import { orderLine, picturesInOrder, storedParts, type OrderAnswer, type OrdersAnswer } from "../../lib/orders.ts";
+import { orderLine, picturesInOrder, storedParts, whoseName, type OrderAnswer, type OrdersAnswer } from "../../lib/orders.ts";
 import { PictureCard, StatusChip, WayChip } from "../order/Pictures";
 import { PromptText } from "../order/PromptText";
 import { Badge, SegmentedControl, Select, TextArea, buttonClasses, cn } from "../ui";
@@ -268,7 +268,7 @@ export function DraftSends({ answer, all, names, takes = [] }: { answer: OrderAn
   const { order } = answer;
   const pictures = picturesInOrder(order.pictures).filter((p) => p.goesAs !== "referenceImage");
   const dealer = all.dealers?.find((d) => d.id === order.dealer);
-  const parts = storedParts(order, dealer?.look, all.plan, dealer?.name ?? order.dealer);
+  const parts = storedParts(order, dealer?.look, all.plan, dealer?.name ?? whoseName(order));
   const ref = order.reference.status === "FINNS" ? order.reference : null;
   return (
     <div data-draft className="flex flex-col gap-4">
@@ -287,7 +287,7 @@ export function DraftSends({ answer, all, names, takes = [] }: { answer: OrderAn
       ) : null}
       <div className="grid grid-cols-2 gap-2">
         {pictures.map((p) => (
-          <PictureCard key={p.name} picture={p} owner={answer.owners ? (answer.owners[p.name] ?? null) : undefined} dealer={order.dealer} />
+          <PictureCard key={p.name} picture={p} owner={answer.owners ? (answer.owners[p.name] ?? null) : undefined} dealer={order.dealer} order={order} />
         ))}
       </div>
       <Part title="Referensfilm">

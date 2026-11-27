@@ -5,6 +5,7 @@
 // in a gallery that opens the viewer, every file by its short name with its review chip where it is a take (lib/verdict.ts),
 // the takes the proof names (ProofTakes, one press to Filmer); the rest of a label and the proof's description on demand.
 // Under the film, under each picture and under the proof's title: Jakob's own word (NoteBar), never in the way of the media.
+// Under it the independent judge's verdict (DomarePanel), set apart from his.
 import { ChevronDown, Film, Image as ImageIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -17,6 +18,7 @@ import { ProofChip } from "../takes";
 import { cn } from "../ui/cn";
 import { ImageViewer } from "./ImageViewer";
 import { NoteBar, type ProofNotes } from "./NoteBar";
+import { DomarePanel } from "./DomarePanel";
 import { ProofStill } from "./ProofStill";
 import { ProofTakes, WaitingLink, type NamedTakes } from "./ProofTakes";
 
@@ -82,6 +84,7 @@ export function ProofRoom({ proof, file, named, notes, onFile }: { proof: Proof;
           <NoteBar notes={notes} proof={proof.id} file={null} className="min-w-0 flex-1" />
         </div>
         <WaitingLink proof={proof} named={named} />
+        <DomarePanel proof={proof} />
       </div>
 
       {film ? (

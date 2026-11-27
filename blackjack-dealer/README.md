@@ -45,7 +45,8 @@ Alla `npm`- och `node`-kommandon körs från den här mappen. Node 24.22.3 (Volt
 | `npm run hooks:install`, `npm run check` | installerar kontrollen före push för hela casino-repot; kör den på de commits som ska ut |
 | `npm run verify` | jämför registrerade filer med sin hash i `data/manifest.json` (kräver media) |
 | `npm run stada` | raderar projektets del av slasken som inte har ändrats på tre timmar, utom `granska/` (`-- --torr` listar bara); `node ../slask/slask.ts` visar hela slasken |
-| `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (servern utför den säkra nivån själv när den startar); översikt över lagringen. På Jakobs ord: `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>" [--arkiv <mapp>]` |
+| `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (servern utför den säkra nivån själv när den startar, till papperskorgen); översikt över lagringen. På Jakobs ord: `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>" [--arkiv <mapp>]` |
+| `node ../lager.ts` | kartan över allt som lagras i hela casino-repot: storlek per ställe och slag, vad inget pekar på och vad registren pekar på som saknas (`--json` som data). Radering på riktigt, med frågan och spärrarna: `tools/lager-remove.ts`, från Biblioteket |
 
 Serverns adresser står i `tools/lab-routes.ts`, och vägarna till resten av casino-repot i `tools/casino-routes.ts`
 (verkstädernas servrar, måtten ur `../matt.ts --json`, avatarernas vägar); utan media på datorn visar studion och
@@ -67,11 +68,14 @@ stoppar dem när den själv stoppas. En som redan svarar på sin port (`/vem`) s
   ram). Ljud är en egen HTML-sida i `pages/`, nådd från Start.
 
 Orden står i studions Ordlista (`studio/lib/words.ts`). Menyn följer kedjan: Start, Avatarer, Dockan, Filmverkstaden, Granska,
-Karta, Material, Casino och Mått. Under dealerväxeln står valet **Bord och kamera** (Livebordet eller Förra standarden,
+Karta, Material, Casino, Mått och Biblioteket. Under dealerväxeln står valet **Bord och kamera** (Livebordet eller Förra standarden,
 ur `src/uppsattning.ts`; `studio/lib/uppsattning-val.ts`, `studio/components/shell/Setup*.tsx`): ett val för hela studion,
 ihågkommet i webbläsaren, förvalt livebordet, och `?uppsattning=` i en adress väljer. Dockan skickar ordet till editorn,
-Casino till spelet (`studio/lib/casino.ts` gameSrc), och Mått märker det valda; Filmverkstaden visar valet men går ännu
-efter förra standarden. Vyerna:
+Casino till spelet (`studio/lib/casino.ts` gameSrc), och Mått märker det valda. Filmverkstaden bygger Scen under valet med
+dess egen spelvy (Spara som spelvy sparar mot det valda, `/api/play-view?uppsattning=`), och en ny beställning bär valet
+(`studio/lib/new-film.ts` draftBody; beställningen görs där, eller säger varför inte). Beställningarnas bilder visas i sin
+egen form (bildens mått, annars orderns uppsättnings, `shapeOf` i `studio/lib/orders.ts`). Dockan i Inspelning står ännu
+vid förra standardens bord. Vyerna:
 
 - **Start** (`/studio/`, `studio/components/start/`, innehållet i `studio/lib/start.ts`): det som väntar på hans dom,
   kedjan med verkstaden för varje steg, en ruta per verkstad och det som ligger vid sidan (Kortpaketet, Lipsync, Ljud).
@@ -98,7 +102,16 @@ efter förra standarden. Vyerna:
   visar sina filmer som spelet spelar dem i just det trädet (Primär, sekundära, Gör primär), och talet ligger på A1. Alla träd
   (`?trad=alla`) är nätet: A1, grenarna till ankarna vid skon (i dag A2.1 och A2.3) och stegen under dem, med sök, "bara där de skiljer sig" och
   Sätt ihop till en komposition. Koden: `studio/components/map/`, träden ur `GET /api/trees` (`tools/dealer-tree.ts`).
-- **Granska**: Filmer (Jakobs domar) och Prov (provmapparna under `assets/proofs/`, `?prov=<mapp>`).
+- **Granska**: Filmer (Jakobs domar) och Prov (provmapparna under `assets/proofs/`, `?prov=<mapp>`). Ett prov visar den
+  oberoende domarens dom skild från hans egen (`domare` i `proof.json`, `studio/components/proofs/DomarePanel.tsx`): dess
+  bricka, skälen, det den skulle rätta och den externa rösten; där de två är oense märks provet och står först i sitt
+  område. Radera provet raderar från disken med Bibliotekets fråga (`studio/components/bibliotek/RaderaFraga.tsx`).
+- **Biblioteket** (`/studio/bibliotek/`, `studio/components/bibliotek/`, `studio/lib/bibliotek.ts`): allt som lagras i
+  casino-repot ur kartan `../lager.ts` (`tools/lager-routes.ts`: `/api/lager`, `/api/lager/fraga`, `/api/lager/radera`,
+  `/api/lager/fil`), per slag, med storlek, var det används, vad som väntar på hans dom och vad som går att göra om
+  gratis; överst hur mycket som ligger var och hur mycket som inget pekar på. En enhet öppnas med sin användning och en
+  miniatyr (modeller i 3D); livebordets film och bilder bara som storlek och antal. Radera tar den från disken
+  (`tools/lager-remove.ts`); `?slag=`, `?enhet=` och `?fraga=` i adressen väljer.
 - **Material** (vilka bilder som gäller), **Casino** (spelet med vald look), och från Start **Lipsync** (hur munnen
   görs, skrivskyddad) och Ljud.
 - **Spelet vid livebordet** (`/game.html?uppsattning=live`; utan ord livebordet när ett träd gjort vid det spelas, annars

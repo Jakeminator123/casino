@@ -33,7 +33,8 @@
 import { Clapperboard, Play, RotateCcw, Save, Undo2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { FILM_ASPECT } from "../../lib/parts.ts";
 import { stepOf, type Anchor, type BankFacts, type OrdersAnswer } from "../../../src/order-model.ts";
 import { editPlace, type Place } from "../../../src/placement-model.ts";
 import type { Ledger } from "../../lib/ledger.ts";
@@ -43,7 +44,7 @@ import { cardFilm, filmRow, hasRound, lastOrder, pathCard, roundFor, sceneWords,
 import { useViewContext } from "../../lib/context.ts";
 import { isStandardDoll } from "../../lib/dealer.ts";
 import { isSnapshot, swedishMoment } from "../../lib/mode.ts";
-import { GUIDE_WORDS, cardOf, filmCode, guideOf, itemOf, pickFor, pickOfWish, pickTree, sameIn, treeBase, type GuideItem, type StepPick } from "../../lib/new-film.ts";
+import { GUIDE_WORDS, cardOf, draftBody, filmCode, guideOf, itemOf, pickFor, pickOfWish, pickTree, sameIn, treeBase, type GuideItem, type StepPick } from "../../lib/new-film.ts";
 import { getOrders, orderingState, presetOf, type CreatedOrders, type DollOrdered } from "../../lib/orders.ts";
 import { PLAN_VIEW, START_PLACE, changedPlaces, decimal, placeCode, placeFromCode, placeName } from "../../lib/placement.ts";
 import { useTrees } from "../map/useTrees";
@@ -55,7 +56,7 @@ import { SlotPicker } from "../placement/SlotPicker";
 import { useGesture, usePlanKeys } from "../placement/usePlanKeys.ts";
 import { draftActions, useDraft } from "../placement/useDraft.ts";
 import { Page } from "../shell";
-import { SetupNote } from "../shell/SetupNote";
+import { useSetup } from "../shell/SetupProvider";
 import { Badge, Button, ErrorState, IconButton, SegmentedControl, Skeleton, cn, useToast } from "../ui";
 import { treeChip } from "../map/TreeRow";
 import type { Made } from "./FilmList";
@@ -248,7 +249,9 @@ export function BordetView() {
   // picture that holds in Material is another (the store's existing base; nothing new in the order's format).
   const guideRow = item?.wish ? rowOf(item.wish) : null;
   const base = view && item?.wish ? treeBase(view, item.wish, entries) : null;
-  const body = guideRow?.body ? (base ? { ...guideRow.body, base } : guideRow.body) : null;
+  // The menu's table and camera goes with the order (draftBody): it is made there, or the store says why not.
+  const { id: setup } = useSetup();
+  const body = draftBody(guideRow?.body, base, setup);
 
   // Whether anything can be approved now (the switch, the balance, the agents' mandate), in one line where films are ordered.
   const ordering = orders ? orderingState(orders) : null;
@@ -390,7 +393,6 @@ export function BordetView() {
           ) : when ? (
             <span className="text-faint">Sparad {when}</span>
           ) : null}
-          <SetupNote />
         </>
       }
       actions={
@@ -545,7 +547,7 @@ function TableBody({
         </div>
         {draft.conflict ? <p className="shrink-0 border-b border-underkand/30 bg-underkand/8 px-4 py-1.5 text-xs text-[#ef8b8b]">Planen har ändrats på annat håll sedan den lästes.</p> : null}
         {/* the doll's picture: in one column the film's shape and the lab's transport row under it, at most most of the window; side by side all the height there is */}
-        <div className="relative h-[calc(100cqw*1174/1764+72px)] max-h-[85vh] shrink-0 lg:landscape:h-auto lg:landscape:max-h-none lg:landscape:min-h-0 lg:landscape:flex-1">
+        <div style={{ "--bild": String(1 / FILM_ASPECT) } as CSSProperties} className="relative h-[calc(100cqw*var(--bild)+72px)] max-h-[85vh] shrink-0 lg:landscape:h-auto lg:landscape:max-h-none lg:landscape:min-h-0 lg:landscape:flex-1">
           <DollStage
             place={place}
             entry={entry}

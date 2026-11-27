@@ -592,14 +592,19 @@ export function archivePath(file: string, unit: string, alone: boolean): string 
  * checkout, which is then the copy that is kept: copied, compared by SHA-256, only then removed; the emptied folders go.
  * Refused even on his word: noir, V6, originals and references and anything outside assets/ (KEPT_ON_WORD), and a unit that a
  * register still names (WORD_POINTERS, a draft order): the pointer goes first, so that nothing points at a file that is gone.
+ * hard: his click in the studio (Biblioteket, Prov; tools/lager-remove.ts, Jakob 2026-11-27: "hårt radera ... direkt faktiskt
+ * raderar saker på riktigt"): the files are deleted from the disk, no trash and no copy; the receipt says what went. dry: only
+ * what would go and what is refused, nothing touched and no receipt. only: of a unit's files only those it matches go (an
+ * order's films and pictures, its receipts stay).
  */
-export async function removeOnWord(targets: readonly string[], o: {repo: string; why: string; trash: string; receiptDir: string; archive?: string; now?: number}): Promise<{receipt: string | null; result: WordReceipt}> {
+export async function removeOnWord(targets: readonly string[], o: {repo: string; why: string; trash: string; receiptDir: string; archive?: string; now?: number; hard?: boolean; dry?: boolean; only?: RegExp}): Promise<{receipt: string | null; result: WordReceipt}> {
   if (!o.why?.trim()) throw new Error('Säg vems ord och varför (--varfor "<text>").');
+  if (o.hard && o.archive) throw new Error('Hårt raderat har inget arkiv.');
   const {pathsIn, idsNamed} = await import('./media-audit.ts');
-  const now = o.now ?? Date.now(), day = new Date(now).toISOString().slice(0, 10), to = o.archive ? path.resolve(o.archive) : path.join(o.trash, day);
+  const now = o.now ?? Date.now(), day = new Date(now).toISOString().slice(0, 10), to = o.hard ? '' : o.archive ? path.resolve(o.archive) : path.join(o.trash, day);
   const outside = path.relative(path.resolve(o.repo), to);
   if (o.archive && !(outside.startsWith('..') || path.isAbsolute(outside))) throw new Error('Arkivet ska ligga utanför utcheckningen.');
-  if (!o.archive && !existsSync(path.dirname(path.resolve(o.trash)))) throw new Error(`Korgen saknas: ${path.dirname(o.trash)} finns inte. Inget tas bort.`);
+  if (!o.hard && !o.dry && !o.archive && !existsSync(path.dirname(path.resolve(o.trash)))) throw new Error(`Korgen saknas: ${path.dirname(o.trash)} finns inte. Inget tas bort.`);
   const read = (f: string) => { try { return readFileSync(path.join(o.repo, f), 'utf8'); } catch { return ''; } };
   const list = (d: string) => existsSync(path.join(o.repo, d)) ? readdirSync(path.join(o.repo, d)) : [];
   const register = motionRegister(o.repo), speakers = list('assets/speech').filter(d => !d.includes('.'));
@@ -628,8 +633,8 @@ export async function removeOnWord(targets: readonly string[], o: {repo: string;
     const where = kept(unit) ?? filesOf(unit).map(kept).find(Boolean); if (where) return `skyddad också på hans ord: ${where}`;
     const pointer = named(unit, ids); return pointer ? `${pointer} pekar fortfarande på den: ta bort pekaren först` : null;
   };
-  const receipt = path.join(o.receiptDir, `${new Date(now).toISOString().replace(/[:.]/g, '-')}-pa-hans-ord.json`);
-  const result: WordReceipt = {tool: 'tools/media-thin.ts --ta-bort', started: new Date(now).toISOString(), why: o.why.trim(), to: to.replace(/\\/g, '/'), archive: !!o.archive, units: [], posts: [], verdicts: 0, jobs: 0, done: [], refused: [], error: null};
+  const receipt = path.join(o.receiptDir, `${new Date(now).toISOString().replace(/[:.]/g, '-')}-${o.hard ? 'raderat-pa-hans-klick' : 'pa-hans-ord'}.json`);
+  const result: WordReceipt = {tool: o.hard ? 'tools/lager-remove.ts (hans klick i studion)' : 'tools/media-thin.ts --ta-bort', started: new Date(now).toISOString(), why: o.why.trim(), to: to.replace(/\\/g, '/'), archive: !!o.archive, units: [], posts: [], verdicts: 0, jobs: 0, done: [], refused: [], error: null};
   const save = () => saveReceipt(receipt, result);
   const going: string[] = [];
   for (const [film, f] of films) {
@@ -637,17 +642,20 @@ export async function removeOnWord(targets: readonly string[], o: {repo: string;
     if (no) result.refused.push({unit: film, reason: `${no[0]}: ${no[1]}`}); else going.push(...f.units);
   }
   for (const u of single) { const r = refusal(u, [u.split('/').at(-1)!]); if (r) result.refused.push({unit: u, reason: r}); else going.push(u); }
+  if (o.dry) { result.units = going.filter(u => filesOf(u).length); result.posts = [...films.keys()].filter(f => !result.refused.some(r => r.unit === f)).flatMap(f => films.get(f)!.posts); return {receipt: null, result}; }
   try {
     // The pointers of the register first: the posts of the films that go.
     const gone = [...films.keys()].filter(f => !result.refused.some(r => r.unit === f));
     if (gone.length) { const r = register.remove(gone, {why: o.why.trim(), at: new Date(now).toISOString()}); result.posts = r.removed; result.verdicts = r.verdicts.length; result.jobs = r.jobs; save(); }
     for (const unit of going) {
-      const files = filesOf(unit);
+      const files = filesOf(unit).filter(f => !o.only || o.only.test(f));
       if (!files.length) continue;
       result.units.push(unit);
       for (const rel of files) {
         const abs = path.join(o.repo, rel); checkedPath(o.repo, abs);
         const st = lstatSync(abs); if (st.isSymbolicLink() || !st.isFile()) throw new Error(`${rel} är ingen vanlig fil`);
+        // His click in the studio: off the disk, no copy kept anywhere.
+        if (o.hard) { unlinkSync(abs); result.done.push({at: new Date().toISOString(), path: rel, action: 'raderad', bytes: st.size, sha256: '', to: ''}); save(); continue; }
         const sha = await hash(abs), dest = path.join(to, o.archive ? archivePath(rel, unit, files.length === 1) : rel);
         mkdirSync(path.dirname(dest), {recursive: true});
         if (existsSync(dest)) { if (await hash(dest) !== sha) throw new Error(`${dest} finns redan med annat innehåll: ${rel} står kvar.`); }

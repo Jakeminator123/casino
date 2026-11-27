@@ -4,11 +4,12 @@
 import type { Gap, Segment } from "../../src/clip-graph.ts";
 import type { GameCardOptions } from "../../src/game-film.ts";
 import { labUrl } from "./lab.ts";
+import { DATATS_FORVAL, UPPSATTNING } from "../../src/uppsattning.ts";
 
 /** How long a step without a film shows its card while a round plays (seconds at speed 1). */
 export const GAP_SECONDS = 1.5;
-/** The films' own shape, 1764 × 1174 (FILM in src/scene3d-geometry.ts): the 3D scene's home view and Råfilm alike. */
-export const FILM_ASPECT = 1764 / 1174;
+/** The bank's films' own shape, the former standard's picture (src/uppsattning.ts bild, 1764 × 1174 today): the 3D scene's home view and Råfilm alike. */
+export const FILM_ASPECT = UPPSATTNING[DATATS_FORVAL].bild.width / UPPSATTNING[DATATS_FORVAL].bild.height;
 
 /**
  * One step of the round. A film plays source frames start … end − 1 of path (end is exclusive, as in the bank); a gap has

@@ -5,6 +5,7 @@
 // is read in the form since 2026-11-26 (lib/scene-presets.ts presetInForm), whichever form the server or the copy answers.
 import { readPlayView, type Framing, type PlayView } from "../../../src/play-view.ts";
 import { TARGETS, validatePlan, type PlacementPlan } from "../../../src/placement-model.ts";
+import { ADRESSORD, DATATS_FORVAL, type UppsattningId } from "../../../src/uppsattning.ts";
 import { ApiError, SNAPSHOT_REFUSAL, asApiError } from "../../lib/api.ts";
 import { labUrl } from "../../lib/lab.ts";
 import { isSnapshot } from "../../lib/mode.ts";
@@ -67,15 +68,18 @@ const storedOf = (answer: unknown): StoredPlayView => {
   return { ...readPlayView(answer), revision: typeof revision === "string" ? revision : null };
 };
 
-/** GET /api/play-view (the copy answers its frozen one). */
-export async function getPlayView(): Promise<StoredPlayView> {
-  return storedOf(await call<unknown>("api/play-view", "Spelvyn"));
+/** The play view's address for a set-up: each table and camera has its own (?uppsattning=live; the former standard without the word). */
+const viewAddress = (setup: UppsattningId) => (isSnapshot || setup === DATATS_FORVAL ? "api/play-view" : `api/play-view?${ADRESSORD}=${setup}`);
+
+/** GET /api/play-view for the chosen table and camera (the copy answers its frozen one). */
+export async function getPlayView(setup: UppsattningId): Promise<StoredPlayView> {
+  return storedOf(await call<unknown>(viewAddress(setup), "Spelvyn"));
 }
 
-/** Saves both framings against the revision last read (none while there is no file). Only from his click; never in the copy. */
-export async function putPlayView(framings: { dator: Framing; mobil: Framing }, revision: string | null): Promise<StoredPlayView> {
+/** Saves both framings of the chosen table and camera against the revision last read (none while there is no file). Only from his click; never in the copy. */
+export async function putPlayView(framings: { dator: Framing; mobil: Framing }, revision: string | null, setup: UppsattningId): Promise<StoredPlayView> {
   return storedOf(
-    await call<unknown>("api/play-view", "Spelvyn", {
+    await call<unknown>(viewAddress(setup), "Spelvyn", {
       method: "PUT",
       headers: { "content-type": "application/json", ...(revision ? { "if-match": revision } : {}) },
       body: JSON.stringify({ dator: framings.dator, mobil: framings.mobil }),

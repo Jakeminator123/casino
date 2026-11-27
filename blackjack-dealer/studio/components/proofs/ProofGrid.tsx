@@ -6,18 +6,20 @@
 // without his verdict, how many a card in Beslut asks about, and how much room they take. A card: a still, the title (with
 // a second line that tells it apart where another proof has the same title), how many films and pictures, the takes'
 // verdicts counted (lib/verdict.ts: underlag is not counted), how many places Jakob has said something about, where it
-// stands for him (lib/proof-areas.ts standing) and its size; and "Ta bort provet", which asks first and then sends the
-// proof to the trash on his click (tools/proof-remove.ts). His notes are never removed with it.
+// stands for him (lib/proof-areas.ts standing) and its size; and "Radera provet", which asks first, the same question as
+// Biblioteket's (components/bibliotek/RaderaFraga.tsx), and then deletes the proof from the disk on his click, no trash
+// (tools/lager-remove.ts). His notes are never removed with it.
 import { Film, MessageSquare, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { removeProof, type Proof } from "../../lib/api.ts";
+import type { Proof } from "../../lib/api.ts";
+import { RaderaFraga } from "../bibliotek/RaderaFraga";
 import { countLine, coverOf, matchProof, proofDay, proofHref, proofTitle, sortProofs, verdictTally } from "../../lib/proofs.ts";
 import { PROOF_VERDICT_LABEL, splitLabel, type ProofVerdict } from "../../lib/verdict.ts";
 import { notesOn, type ShownNote } from "../../lib/proof-notes.ts";
-import { byArea, proofBytes, proofsLine, sizeWord, standing, STANDING_WORD, telling, type Standing } from "../../lib/proof-areas.ts";
+import { byArea, domOf, domTone, externOf, oense, proofBytes, proofsLine, sizeWord, standing, STANDING_WORD, telling, type Standing } from "../../lib/proof-areas.ts";
 import { isSnapshot } from "../../lib/mode.ts";
-import { Button, Dialog, EmptyState, IconButton, TextField, cn, useToast } from "../ui";
+import { Badge, EmptyState, IconButton, TextField, cn } from "../ui";
 import { ProofStill } from "./ProofStill";
 import { waitingIn, type NamedTakes } from "./ProofTakes";
 
@@ -38,11 +40,13 @@ function ProofCard({ proof, waiting, said, stand, shared, onRemove }: { proof: P
   const { name: title, rest } = splitLabel(proofTitle(proof));
   const second = telling(proof, rest, shared);
   const day = proofDay(proof);
+  // The judge's verdict in his place (the skill doma): its own chip, never his; where the two judges disagree the card is marked.
+  const dom = domOf(proof), extern = externOf(proof), split = oense(proof);
   return (
     <div className="group relative h-full">
       <Link
         href={proofHref(proof.id)}
-        className="flex h-full flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-inset transition-[border-color,background-color] duration-150 hover:border-line-strong hover:bg-raised/50 focus-visible:outline-offset-2"
+        className={cn("flex h-full flex-col overflow-hidden rounded-lg border bg-surface shadow-inset transition-[border-color,background-color] duration-150 hover:border-line-strong hover:bg-raised/50 focus-visible:outline-offset-2", split ? "border-[#f0b07a]/70" : "border-line")}
       >
         <div className="relative">
           <ProofStill cover={cover} fps={proof.fps} className="aspect-16/10 transition-[filter] duration-200 group-hover:brightness-110" />
@@ -58,6 +62,13 @@ function ProofCard({ proof, waiting, said, stand, shared, onRemove }: { proof: P
             {title}
           </span>
           {second ? <span className="line-clamp-2 text-xs leading-4 text-dim">{second}</span> : null}
+          {dom || split ? (
+            <span className="flex flex-wrap items-center gap-1" title="Domarens ord, inte dina: din dom ersätter den.">
+              {split ? <Badge tone="remark" size="sm">Domarna är oense</Badge> : null}
+              {dom ? <Badge tone={domTone(dom)} size="sm">Domaren: {dom}</Badge> : null}
+              {extern ? <Badge tone={domTone(extern)} size="sm">Extern domare: {extern}</Badge> : null}
+            </span>
+          ) : null}
           <span className="mt-auto flex items-center gap-2 text-xs text-faint">
             <span className="truncate">{[countLine(proof), day].filter(Boolean).join(" · ")}</span>
             <span className="ml-auto flex shrink-0 items-center gap-2">
@@ -77,7 +88,7 @@ function ProofCard({ proof, waiting, said, stand, shared, onRemove }: { proof: P
       </Link>
       {isSnapshot ? null : (
         <IconButton
-          label="Ta bort provet"
+          label="Radera provet"
           icon={<Trash2 />}
           size="sm"
           onClick={() => onRemove(proof)}
@@ -91,29 +102,12 @@ function ProofCard({ proof, waiting, said, stand, shared, onRemove }: { proof: P
 export function ProofGrid({ proofs, named, notes, cards, onRemoved }: { proofs: readonly Proof[]; named: NamedTakes; notes: readonly ShownNote[]; cards: readonly Card[]; onRemoved: () => void }) {
   const [query, setQuery] = useState("");
   const [asking, setAsking] = useState<Proof | null>(null);
-  const [busy, setBusy] = useState(false);
-  const toast = useToast();
   const sorted = useMemo(() => sortProofs(proofs), [proofs]);
   const shown = useMemo(() => sorted.filter((p) => matchProof(p, query)), [sorted, query]);
   const standOf = (p: Proof) => standing(p.id, cards, notesOn(notes, p.id));
   // A title more than one proof has ("Standarddockan" five times): those cards get a second line that tells them apart.
   const titles = useMemo(() => { const n = new Map<string, number>(); for (const p of proofs) { const t = splitLabel(proofTitle(p)).name; n.set(t, (n.get(t) ?? 0) + 1); } return n; }, [proofs]);
   const room = proofs.reduce((s, p) => s + proofBytes(p), 0);
-
-  const remove = async (p: Proof) => {
-    setBusy(true);
-    try {
-      const r = await removeProof(p.id);
-      if (r.refused) toast({ tone: "bad", title: "Provet finns kvar", detail: r.refused });
-      else toast({ tone: "ok", title: "Provet är borttaget", detail: "Det ligger i papperskorgen i 14 dygn. Dina anteckningar om det finns kvar." });
-      setAsking(null);
-      onRemoved();
-    } catch (error) {
-      toast({ tone: "bad", title: "Provet gick inte att ta bort", detail: (error as Error).message });
-    } finally {
-      setBusy(false);
-    }
-  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -127,7 +121,7 @@ export function ProofGrid({ proofs, named, notes, cards, onRemoved }: { proofs: 
           wrapperClassName="w-[380px] max-w-full"
         />
         <span className="text-sm text-faint tabular-nums">
-          {query.trim() ? `${shown.length} av ${proofs.length} prov` : proofsLine(proofs.map(standOf), room)}
+          {query.trim() ? `${shown.length} av ${proofs.length} prov` : proofsLine(proofs.map(standOf), room, { falld: proofs.filter((p) => domOf(p) === "Inte bra").length, oense: proofs.filter(oense).length })}
         </span>
       </div>
       {shown.length ? (
@@ -153,24 +147,7 @@ export function ProofGrid({ proofs, named, notes, cards, onRemoved }: { proofs: 
           Prova ett annat ord.
         </EmptyState>
       )}
-      <Dialog
-        open={!!asking}
-        onOpenChange={(open) => { if (!open && !busy) setAsking(null); }}
-        title="Ta bort provet?"
-        description={asking ? splitLabel(proofTitle(asking)).name : undefined}
-        footer={
-          <>
-            <Button variant="quiet" onClick={() => setAsking(null)} disabled={busy}>Behåll</Button>
-            <Button variant="danger" loading={busy} onClick={() => asking && void remove(asking)}>Ta bort</Button>
-          </>
-        }
-      >
-        {asking ? (
-          <p className="leading-5 text-soft">
-            Provets {asking.files.length} filer ({sizeWord(proofBytes(asking))}) går till papperskorgen och ligger där i 14 dygn, också betalda filmer, och dess filmer i slasken följer med. Dina anteckningar om provet finns kvar. Har provet ett kort i Beslut stannar det så länge kortet finns.
-          </p>
-        ) : null}
-      </Dialog>
+      <RaderaFraga id={asking ? `blackjack-dealer/assets/proofs/${asking.id}` : null} onClose={() => setAsking(null)} onDone={() => { setAsking(null); onRemoved(); }} />
     </div>
   );
 }

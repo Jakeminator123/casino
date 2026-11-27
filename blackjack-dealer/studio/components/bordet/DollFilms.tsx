@@ -13,16 +13,17 @@ import { useRef, useState, type ReactNode } from "react";
 import type { DollFilm, DollGroup } from "../../lib/doll-films.ts";
 import { labUrl } from "../../lib/lab.ts";
 import { scoreWords, type LedgerRow } from "../../lib/ledger.ts";
+import { aspectOf, shapeOf } from "../../lib/orders.ts";
 import { VerdictChip } from "../takes";
 import { Badge, Button, EmptyState, cn } from "../ui";
 
 /** One film in a row: the picture in the film's own shape, and what is said under it. */
-function Cell({ src, stand, doll = false, children }: { src: string; stand?: string | null; doll?: boolean; children: ReactNode }) {
+function Cell({ src, stand, doll = false, shape, children }: { src: string; stand?: string | null; doll?: boolean; /** The film's width and height: its table and camera's. */ shape: { width: number; height: number }; children: ReactNode }) {
   // A delivered file the lab does not hand out (an older server) leaves the order's first picture in its place, dimmed.
   const [failed, setFailed] = useState(false);
   return (
     <figure className="flex min-w-0 flex-col gap-1.5">
-      <div className={cn("relative aspect-1764/1174 overflow-hidden rounded-md border bg-well", doll ? "border-brass/45" : "border-line")}>
+      <div className={cn("relative overflow-hidden rounded-md border bg-well", doll ? "border-brass/45" : "border-line")} style={aspectOf(shape)}>
         {failed ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element -- a lab file; a static export cannot optimise */}
@@ -99,6 +100,8 @@ function FilmRow({ entry, dealer }: { entry: DollFilm; dealer: string }) {
   };
   const takes = entry.orders.flatMap((o) => o.takes.map((row) => ({ row, many: o.takes.length > 1 })));
   const without = entry.orders.flatMap((o) => o.without);
+  // The doll's film and the orders made over it share its table and camera (data/rendered-references.json uppsattning).
+  const shape = shapeOf(entry.film);
   return (
     <section data-doll-film={entry.film.id} className="flex flex-col gap-2.5 border-b border-line px-4 py-4">
       <header className="flex flex-wrap items-center gap-2">
@@ -115,12 +118,12 @@ function FilmRow({ entry, dealer }: { entry: DollFilm; dealer: string }) {
         ) : null}
       </header>
       <div ref={films} className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,380px),1fr))] gap-3">
-        <Cell src={entry.film.path} doll>
+        <Cell src={entry.film.path} doll shape={shape}>
           <span className="font-medium text-brass-hi">Dockan</span>
           {takes.length ? null : <span>ingen film beställd med den</span>}
         </Cell>
         {takes.map(({ row, many }) => (
-          <Cell key={row.key} src={(row.see.film ?? row.see.file)!} stand={row.see.stand}>
+          <Cell key={row.key} src={(row.see.film ?? row.see.file)!} stand={row.see.stand} shape={shape}>
             <TakeLine row={row} dealer={dealer} many={many} />
           </Cell>
         ))}

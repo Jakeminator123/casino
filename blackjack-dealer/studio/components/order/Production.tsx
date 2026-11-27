@@ -19,7 +19,7 @@ import { dealerHref } from "../../lib/dealer.ts";
 import { labUrl } from "../../lib/lab.ts";
 import { FOR_YOU } from "../../lib/verdict.ts";
 import { nodeCode } from "../../lib/names.ts";
-import { PRODUCTION_CHIP, getProduction, productionCount, type Production as List, type ProductionAnchor, type ProductionRow } from "../../lib/orders.ts";
+import { PRODUCTION_CHIP, aspectOf, getProduction, productionCount, shapeOf, type Production as List, type ProductionAnchor, type ProductionRow } from "../../lib/orders.ts";
 import { ANCHOR_NODE, type PlanAnswer } from "../../../src/order-model.ts";
 import { CARD_COLOUR } from "../../../src/placement-model.ts";
 import { firstTree, useTrees } from "../map/useTrees";
@@ -29,8 +29,8 @@ import { Badge, Skeleton, cn } from "../ui";
 /** The A3 candidates in Material that do not hold yet, where the production answer counts them (candidates); else 0. */
 const candidatesOf = (list: List): number => ("candidates" in list && typeof list.candidates === "number" ? list.candidates : 0);
 
-const W = 1764,
-  H = 1174;
+/** The shape of a dealer's pictures: her anchors' table and camera, the former standard's for every dealer today (src/uppsattning.ts, through shapeOf); the plan's card places are in its pixels. */
+const SHAPE = shapeOf(null);
 const CARD_FILL = CARD_COLOUR;
 const ANCHOR_TONE = { gäller: "ok", kandidat: "wait", saknas: "bad" } as const;
 
@@ -39,7 +39,7 @@ function StepPicture({ row, plan }: { row: ProductionRow; plan: PlanAnswer | nul
   const p = row.picture;
   const cards = p.cards.flatMap((c) => (plan?.seats[c.target] ? [{ quad: plan.seats[c.target].quad, side: c.side }] : []));
   return (
-    <div className="relative aspect-1764/1174 w-[132px] shrink-0 overflow-hidden rounded-md border border-line bg-well">
+    <div className="relative w-[132px] shrink-0 overflow-hidden rounded-md border border-line bg-well" style={aspectOf(SHAPE)}>
       {p.path && p.frame === null && !p.path.endsWith(".mp4") ? (
         // eslint-disable-next-line @next/next/no-img-element -- a lab file
         <img src={labUrl(p.path)} alt="" className="size-full object-cover" loading="lazy" />
@@ -53,7 +53,7 @@ function StepPicture({ row, plan }: { row: ProductionRow; plan: PlanAnswer | nul
       )}
       {p.path && cards.length ? (
         // The card where the plan lays it, with a ring around it: at this size the card alone is a few pixels.
-        <svg viewBox={`0 0 ${W} ${H}`} className="pointer-events-none absolute inset-0 size-full" aria-hidden>
+        <svg viewBox={`0 0 ${SHAPE.width} ${SHAPE.height}`} className="pointer-events-none absolute inset-0 size-full" aria-hidden>
           {cards.map((c, i) => {
             const cx = c.quad.reduce((s, q) => s + q[0], 0) / c.quad.length,
               cy = c.quad.reduce((s, q) => s + q[1], 0) / c.quad.length;
@@ -105,7 +105,7 @@ function StepCard({ row, plan, dealer, onOpen }: { row: ProductionRow; plan: Pla
 function AnchorTile({ anchor }: { anchor: ProductionAnchor }) {
   return (
     <figure className="flex w-[108px] flex-col gap-1">
-      <div className="relative aspect-1764/1174 overflow-hidden rounded-md border border-line bg-well">
+      <div className="relative overflow-hidden rounded-md border border-line bg-well" style={aspectOf(SHAPE)}>
         {anchor.path ? (
           // eslint-disable-next-line @next/next/no-img-element -- a lab file
           <img src={labUrl(anchor.path)} alt={nodeCode(ANCHOR_NODE[anchor.at])} className={cn("size-full object-cover", anchor.state !== "gäller" && "opacity-60")} loading="lazy" />

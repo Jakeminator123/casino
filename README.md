@@ -23,5 +23,9 @@ gången på en ny dator installeras paketen och studion byggs (några minuter).
 Alla mått, vinklar och kortplatser står samlade i [`MATT.md`](MATT.md), som skrivs ut ur koden med `node matt.ts`;
 studions sida Mått visar samma tal, lästa ur koden varje gång (`node matt.ts --json`).
 
+Allt som lagras utanför Git (filmer, figurer, bilder, prov, det som väntar på dom) står i kartan [`lager.ts`](lager.ts):
+`node lager.ts` visar hur mycket som ligger var och vad registren pekar på som saknas. Studions sida **Biblioteket**
+(`/studio/bibliotek/`) visar samma karta per slag, med var varje sak används, och raderar på riktigt på ett klick.
+
 Node 24 och, för Blender-skripten, Python med miljön i `avatar-auto-pipeline/.venv/`. Reglerna för den som arbetar här,
 människa eller agent, står i [`AGENTS.md`](AGENTS.md).

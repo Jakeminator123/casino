@@ -24,6 +24,14 @@ export type ClipBankResponse = BankData & {
 };
 
 export type ProofFile = { name: string; path: string; kind: "video" | "image"; bytes: number };
+/** A reason of the judge: a sentence, or (the external voice) a sentence with the file and frames it is seen in. */
+export type DomarSkal = string | { vad?: string; fil?: string; ruta?: string };
+/** The independent judge's verdict (.claude/skills/doma: "Föra in domen"), and the external voice beside it where there is one. */
+export type Domare = {
+  av?: string; dag?: string; dom?: string; skal?: DomarSkal[]; ratta?: DomarSkal[]; sakerhet?: string;
+  extern?: { av?: string; modell?: string; dom?: string; skal?: DomarSkal[]; ratta?: DomarSkal[]; sakerhet?: string } | null;
+  oenig?: boolean; obs?: string;
+};
 export type Proof = {
   id: string;
   /** The part of the work the proof belongs to (lib/proof-areas.ts); null where its proof.json names none. */
@@ -32,6 +40,8 @@ export type Proof = {
   description: string | null;
   labels: Record<string, string> | null;
   verdicts: Record<string, string> | null;
+  /** The independent judge's verdict in his place (proof.json domare, the skill doma): never his; his own replaces it. */
+  domare?: Domare | null;
   /** The files the proof names as takes (produced films or pictures that may be used); the rest is underlag. */
   takes: string[] | null;
   updatedAt: number | null;
@@ -146,10 +156,6 @@ export async function getRooms(): Promise<Rooms> {
 
 /** Every proof under assets/proofs/ (GET /api/proofs). */
 export const getProofs = (): Promise<ProofList> => read<ProofList>("api/proofs", "Proven");
-
-/** "Ta bort provet": his click, the proof to the trash (DELETE /api/proofs/<id>, tools/proof-remove.ts). `refused` says why it stays. */
-export const removeProof = (id: string): Promise<{ removed: string[]; refused: string | null }> =>
-  read(`api/proofs/${encodeURIComponent(id)}`, "Provet", { method: "DELETE" });
 
 // ── The write ───────────────────────────────────────────────────────────────
 /**

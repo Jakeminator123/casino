@@ -3,6 +3,7 @@
 // which films of the bank start or end on each picture. This module is the shared, pure part: the shapes, the roles in
 // the order of the chain, the check of the register, the key a job's first or last picture is matched by, and the rules
 // for a picture added from the studio. No DOM, no network, no fs.
+import { DATATS_FORVAL, UPPSATTNING } from "../../src/uppsattning.ts";
 
 // ── Roles ───────────────────────────────────────────────────────────────────
 /** Jakob's chain, in its order: from the first picture of a new dealer to the films, then what stands beside it. */
@@ -282,8 +283,8 @@ export type MediaAnswer = {
 export const UPLOAD_ROLES = ["ingangsbild", "keystone", "ankare-1", "ankare-2.1", "ankare-2.2", "ankare-2.3"] as const satisfies readonly Role[];
 export type UploadRole = (typeof UPLOAD_ROLES)[number];
 export const isUploadRole = (value: unknown): value is UploadRole => typeof value === "string" && (UPLOAD_ROLES as readonly string[]).includes(value);
-/** The bank's frame: an anchor should be exactly this size. */
-export const ANCHOR_SIZE = { width: 1764, height: 1174 } as const;
+/** The bank's frame, the former standard's picture (src/uppsattning.ts bild): an anchor of the bank should be exactly this size. */
+export const ANCHOR_SIZE: { readonly width: number; readonly height: number } = UPPSATTNING[DATATS_FORVAL].bild;
 /** The largest picture the lab takes: a 4K PNG is about 17 MB; room for 6000 × 4000. */
 export const UPLOAD_LIMIT = 40 * 1024 * 1024;
 export const NAME_LIMIT = 40;

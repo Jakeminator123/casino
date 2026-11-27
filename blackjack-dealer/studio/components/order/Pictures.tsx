@@ -10,15 +10,15 @@ import { useState } from "react";
 import { labUrl } from "../../lib/lab.ts";
 import { swedishMoment } from "../../lib/mode.ts";
 import { cardCode } from "../../lib/names.ts";
-import { SHOWN_CHIP, offsetWords, ownerWords, shownWords, type OrderAnswer, type Owner, type Picture } from "../../lib/orders.ts";
+import { SHOWN_CHIP, aspectOf, offsetWords, ownerWords, shapeOf, shownWords, type OrderAnswer, type Owner, type Picture } from "../../lib/orders.ts";
 import type { Drawn } from "../../../src/order-model.ts";
 import type { WayAnswer } from "../../../src/order-ways.ts";
 import { CARD_COLOUR } from "../../../src/placement-model.ts";
 import { CardMark } from "../placement/CardMark";
 import { Badge, IconButton, cn } from "../ui";
 
-const W = 1764,
-  H = 1174;
+/** A picture's shape where nothing else says it: the former standard's, the data's default (src/uppsattning.ts, through shapeOf). */
+const FORMER = shapeOf(null);
 
 /** What a frozen label may carry that is not his words: a file's name, a path or a script, a hash, a frame number, P5.C1. */
 const TECHNICAL = /\.(?:png|jpe?g|webp|mp4|py|ts|json)\b|\/|\bsha\b|\(f\d+\)|\bP\d\.C\d\b/i;
@@ -72,7 +72,7 @@ export function WayChip({ way, why = false, className }: { way: WayAnswer | null
 }
 
 /** The card, magnified: the drawn pixels with the plan's outline dashed over them; the card fills about half the inset. */
-export function CardInset({ src, drawn, size = 132 }: { src: string; drawn: Drawn; size?: number }) {
+export function CardInset({ src, drawn, size = 132, shape = FORMER }: { src: string; drawn: Drawn; size?: number; /** The picture's width and height. */ shape?: { width: number; height: number } }) {
   const h = Math.round(size * 0.72);
   const xs = drawn.quad.map((p) => p[0]);
   const zoom = Math.min(4, Math.max(1, (size * 0.5) / Math.max(1, Math.max(...xs) - Math.min(...xs))));
@@ -81,7 +81,7 @@ export function CardInset({ src, drawn, size = 132 }: { src: string; drawn: Draw
     top = cy * zoom - h / 2;
   const points = drawn.quad.map(([x, y]) => `${x * zoom - left},${y * zoom - top}`).join(" ");
   return (
-    <div className="relative overflow-hidden rounded-md border border-white/15 shadow-pop" style={{ width: size, height: h, backgroundImage: `url(${src})`, backgroundSize: `${W * zoom}px ${H * zoom}px`, backgroundPosition: `${-left}px ${-top}px`, imageRendering: "pixelated" }}>
+    <div className="relative overflow-hidden rounded-md border border-white/15 shadow-pop" style={{ width: size, height: h, backgroundImage: `url(${src})`, backgroundSize: `${shape.width * zoom}px ${shape.height * zoom}px`, backgroundPosition: `${-left}px ${-top}px`, imageRendering: "pixelated" }}>
       <svg className="absolute inset-0" width={size} height={h} aria-hidden>
         <polygon points={points} fill="none" stroke="#e8cb85" strokeWidth={1.25} strokeDasharray="4 3" />
       </svg>
@@ -127,10 +127,11 @@ function PictureViewer({ src, title, open, onOpenChange }: { src: string; title:
 }
 
 /** One picture of an order, with whose it is when the answer says. */
-export function PictureCard({ picture, owner, dealer, planned, className }: { picture: Picture; owner?: Owner | null; dealer?: string; planned?: { quad: [number, number][]; side: "FRONT" | "BACK" } | null; className?: string }) {
+export function PictureCard({ picture, owner, dealer, planned, order, className }: { picture: Picture; owner?: Owner | null; dealer?: string; planned?: { quad: [number, number][]; side: "FRONT" | "BACK" } | null; /** The order it belongs to: its table and camera give the shape where the picture does not say its own. */ order?: { uppsattning?: unknown } | null; className?: string }) {
   const [open, setOpen] = useState(false);
   const src = picture.path ? labUrl(picture.path) : null;
   const drawn = picture.drawn ?? null;
+  const shape = shapeOf(order, picture);
   return (
     <figure className={cn("flex min-w-0 flex-col gap-2", className)}>
       <figcaption className="flex flex-wrap items-center gap-2">
@@ -142,7 +143,7 @@ export function PictureCard({ picture, owner, dealer, planned, className }: { pi
           </Badge>
         ) : null}
       </figcaption>
-      <div className="relative aspect-1764/1174 overflow-hidden rounded-lg border border-line bg-well">
+      <div className="relative overflow-hidden rounded-lg border border-line bg-well" style={aspectOf(shape)}>
         {src ? (
           <button type="button" onClick={() => setOpen(true)} className="block size-full cursor-zoom-in" aria-label={`Visa ${pictureName(picture)} stort`}>
             {/* eslint-disable-next-line @next/next/no-img-element -- a lab file; next/image cannot optimise in a static export */}
@@ -156,7 +157,7 @@ export function PictureCard({ picture, owner, dealer, planned, className }: { pi
               {picture.from?.built ? `Ritas när den är godkänd i Material: ${picture.from.built}.` : "Den kopieras hit när den är godkänd i Material."}
             </span>
             {planned ? (
-              <svg viewBox={`0 0 ${W} ${H}`} className="pointer-events-none absolute inset-0 size-full" aria-label="Där kortet ritas">
+              <svg viewBox={`0 0 ${shape.width} ${shape.height}`} className="pointer-events-none absolute inset-0 size-full" aria-label="Där kortet ritas">
                 <polygon points={planned.quad.map((p) => p.join(",")).join(" ")} fill={CARD_COLOUR[planned.side]} stroke={CARD_COLOUR[planned.side]} strokeWidth={4} strokeLinejoin="round" />
                 <CardMark quad={planned.quad} side={planned.side} />
               </svg>
@@ -165,7 +166,7 @@ export function PictureCard({ picture, owner, dealer, planned, className }: { pi
         )}
         {drawn && src ? (
           <div className="pointer-events-none absolute bottom-2 right-2">
-            <CardInset src={src} drawn={drawn} />
+            <CardInset src={src} drawn={drawn} shape={shape} />
           </div>
         ) : null}
       </div>

@@ -33,6 +33,7 @@ export function PlayViewPanel({
   onSaveView,
   own,
   onOwn,
+  table,
 }: {
   visa: Visa;
   current: SceneState;
@@ -50,6 +51,8 @@ export function PlayViewPanel({
   /** The look has a framing of its own: a save keeps zoom, pitch and yaw. */
   own: boolean;
   onOwn: (on: boolean) => void;
+  /** The menu's table and camera, by its name (src/uppsattning.ts): each has its own play view. */
+  table: string;
 }) {
   const format = keySpec("format")!;
   const options = format.kind === "choice" ? ORDER.map((value) => ({ value, label: format.options.find((o) => o.value === value)?.label ?? value, title: TITLE[value] })) : [];
@@ -74,7 +77,7 @@ export function PlayViewPanel({
             disabled={recording || savingView}
             loading={savingView}
             onClick={onSaveView}
-            title={recording ? "Välj Dator eller Mobil under Visa" : `Zoom och vridning som spelvy för ${which}. Den gäller alla utseenden som inte har en egen inramning.`}
+            title={recording ? "Välj Dator eller Mobil under Visa" : `Zoom och vridning som spelvy för ${which} vid ${table}. Den gäller alla utseenden som inte har en egen inramning.`}
           >
             Spara som spelvy
           </Button>
@@ -91,6 +94,7 @@ export function PlayViewPanel({
           control={<Switch size="sm" checked={own} onChange={onOwn} aria-label="Egen inramning i det här utseendet" />}
         />
       ) : null}
+      <p className="pt-1 text-xs text-dim">Spelvyn gäller {table}: varje bord och kamera i menyn har sin egen, som Casino och spelet visar.</p>
       <p className="pb-1 pt-1.5 text-xs text-faint">Vrida och zooma håller filmen exakt. Att flytta kameran (sidled, höjd, djup) ger en ungefärlig bild: dealern är en platt film.</p>
     </div>
   );

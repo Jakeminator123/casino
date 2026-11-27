@@ -9,10 +9,11 @@ import { labUrl } from "./lab.ts";
 import { isSnapshot } from "./mode.ts";
 import { nodeCode } from "./names.ts";
 import {
-  ANCHOR_NODE, ANCHOR_ROLE, FLIP_LABEL, HAND_LABEL, mandateWords, LANDS_LABEL, STYLE_LABEL, genitive, MODELS, SEAT_TARGETS, SHOWN_LABEL, credits, cutIntoOf, edgeOf, handChoiceOf, seatList, seatWords, stepOf, styleOf, summaryOf, waitWords,
+  ANCHOR_NODE, ANCHOR_ROLE, personOf, pictureOf, FLIP_LABEL, HAND_LABEL, mandateWords, LANDS_LABEL, STYLE_LABEL, genitive, MODELS, SEAT_TARGETS, SHOWN_LABEL, credits, cutIntoOf, edgeOf, handChoiceOf, seatList, seatWords, stepOf, styleOf, summaryOf, waitWords,
   type Anchor, type FlipAxis, type HandChoice, type Order, type OrderAnswer, type OrdersAnswer, type Owner, type Picture, type PlanAnswer, type Shape, type Shown, type StepDef, type StepKey, type TextStyle,
 } from "../../src/order-model.ts";
 import { orderPrompt, wordCount, type Choice, type Part } from "../../src/order-prompts.ts";
+import type { UppsattningId } from "../../src/uppsattning.ts";
 import { dealPose } from "../../src/game-director.ts";
 
 export type { Order, OrderAnswer, OrdersAnswer, Picture, Shown, FlipAxis, StepKey, HandChoice, Owner, Part, Choice, Shape, TextStyle };
@@ -73,7 +74,27 @@ export type NewOrderInput = {
   cardScale?: number;
   /** A deal bara dit: an A3 candidate of the seat as its last picture, a named exception, or null for none ("utan slutbild") (tools/order-store.ts NewOrder.end). */
   end?: string | null;
+  /**
+   * The table and camera chosen in the menu (src/uppsattning.ts). The store makes the draft at the set-up of what it is made
+   * of (the dealer's anchors) and refuses another in words, so a film is never ordered at a table other than the one chosen.
+   */
+  uppsattning?: UppsattningId;
 };
+
+/** Whose film an order makes, by name: the person's for a trial of one who is not a dealer yet (order.person), else the dealer's. */
+export function whoseName(order: Pick<Order, "dealer" | "person">, names?: ReadonlyMap<string, string> | Readonly<Record<string, string>>): string {
+  const person = personOf(order);
+  if (person) return person.name;
+  const named = names instanceof Map ? names.get(order.dealer) : (names as Record<string, string> | undefined)?.[order.dealer];
+  return named ?? order.dealer ?? "okänd";
+}
+/** A picture's shape: its own width and height where the order wrote them, else its table and camera's (src/uppsattning.ts bild, through pictureOf). */
+export function shapeOf(order: { uppsattning?: unknown } | null | undefined, picture?: { width?: number | null; height?: number | null } | null): { width: number; height: number } {
+  const w = picture?.width, h = picture?.height;
+  return typeof w === "number" && typeof h === "number" && w > 0 && h > 0 ? { width: w, height: h } : pictureOf(order);
+}
+/** The CSS of a box in a picture's shape. */
+export const aspectOf = (s: { width: number; height: number }) => ({ aspectRatio: `${s.width} / ${s.height}` });
 export type OrderPreviewInput = NewOrderInput | readonly NewOrderInput[];
 export type OrderPreview = import("../../tools/order-store.ts").OrderPreview;
 export type CreatedOrders = OrderAnswer & { made: string[] };
@@ -165,9 +186,9 @@ export function costWords(order: Pick<Order, "takes" | "cost">): string {
   return `${n} ${n === 1 ? "tagning" : "tagningar"} × ${credits(order.cost.perTake)} = ${credits(order.cost.total)} krediter`;
 }
 
-/** The pictures in the order they matter: first, in-between, last; or the dealer's picture first (an older still's pose after it). */
+/** The pictures in the order they matter: first, in-between, last; or the dealer's picture first (an older still's pose after it); a person's guidance picture (keyframe) first. */
 export function picturesInOrder(pictures: readonly Picture[]): Picture[] {
-  const rank = (p: Picture) => (p.goesAs === "startFrame" ? 0 : p.goesAs === "endFrame" ? 2 : p.tag === "anchor" ? 0 : 1);
+  const rank = (p: Picture) => (p.goesAs === "startFrame" || p.goesAs === "keyframe" ? 0 : p.goesAs === "endFrame" ? 2 : p.tag === "anchor" ? 0 : 1);
   return [...pictures].sort((a, b) => rank(a) - rank(b));
 }
 

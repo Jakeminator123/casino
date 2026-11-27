@@ -6,7 +6,7 @@ import type { WorkshopId } from "./workshops.ts";
 export type Tile = {
   name: string;
   href: string;
-  icon: "users" | "doll" | "film" | "review" | "map" | "images" | "game" | "ruler" | "live" | "pack" | "lips" | "sound" | "decisions";
+  icon: "users" | "doll" | "film" | "review" | "map" | "images" | "game" | "ruler" | "live" | "pack" | "lips" | "sound" | "decisions" | "library";
   /** What it is for, in one line. */
   line: string;
   /** Where in the chain it belongs ("Steg 2–3"). */
@@ -45,6 +45,7 @@ export const START_TILES: readonly Tile[] = [
   { name: "Casino", href: "/game/", icon: "game", steps: "Steg 8: spelet", line: "Blackjack som i casinot, med filmerna du har godkänt." },
   { name: "Mått", href: "/matt/", icon: "ruler", steps: "Allt utgår från dem", localOnly: true, line: "Alla mått på ett ställe, ur koden: kamerorna, bordet, kortplatserna, dockorna och rörelserna, bredvid livebordet." },
   { name: "Livebordet", href: "/matt/?del=livebordet", icon: "live", steps: "Facit från verkligheten", localOnly: true, line: "Ett riktigt livebord och två riktiga dealrar, mätta på film: klonen är den nya standarden, bredvid den förra. Här visas bara talen, aldrig filmen." },
+  { name: "Biblioteket", href: "/bibliotek/", icon: "library", steps: "Allt som lagras", localOnly: true, line: "Filmerna, figurerna, borden, proven och resten, per slag: hur mycket, var det används och vad som väntar på dig. Det du raderar här är borta på riktigt." },
 ];
 
 export const START_SIDE: readonly Tile[] = [

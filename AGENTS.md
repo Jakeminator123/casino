@@ -99,6 +99,12 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
   som väntar på hans dom, i projektets granskning eller i `slask/<projekt>/granska/<namn>/`, och det han har godkänt
   eller som spelet använder, i projektets mediemapp. Underkänt, bortvalt och ersatt raderas genast av den som gjorde
   det; inget läggs undan för säkerhets skull.
+- Var allt lagras står i kartan `lager.ts` i roten (som `matt.ts` för måtten): varje mapp med media eller producerat,
+  dess slag, projekt, register, läsare och om det går att göra om gratis. `node lager.ts` visar storlek per ställe och
+  slag och vad registren pekar på som saknas. En ny sådan mapp skrivs in där i samma steg (testet
+  `blackjack-dealer/tools/lager.test.ts` håller det mot `.gitignore`). Studions Biblioteket visar kartan, och hans klick
+  där och i Prov raderar från disken utan papperskorg (`blackjack-dealer/tools/lager-remove.ts`); det skyddade kräver
+  hans andra klick. En agent raderar med samma verktyg, inte för hand.
 
 ## Sökningen
 

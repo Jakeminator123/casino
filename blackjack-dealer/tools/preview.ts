@@ -138,8 +138,8 @@ if(has('--restart')){
    if(!dir.isDirectory()||!clipId.test(dir.name))continue;
    const base=`assets/proofs/${dir.name}`,info=await readJson(`${base}/proof.json`),files:unknown[]=[];let changed=0;
    for(const entry of await readdir(base,{withFileTypes:true}).catch(()=>[])){const file=`${base}/${entry.name}`;if(entry.isFile()&&/\.(?:mp4|png|jpg)$/.test(entry.name)&&await proofPath(file)){const s=await stat(file);changed=Math.max(changed,s.mtimeMs);files.push({name:entry.name,path:file,kind:entry.name.endsWith('.mp4')?'video':'image',bytes:s.size});}}
-   // area: the part of the work the proof belongs to (studio/lib/proof-areas.ts), by which Prov groups them.
-   list.push({id:dir.name,area:typeof info?.area==='string'&&clipId.test(info.area)?info.area:null,title:typeof info?.title==='string'?info.title:null,description:typeof info?.description==='string'?info.description:null,labels:info?.labels&&typeof info.labels==='object'?info.labels:null,verdicts:info?.verdicts&&typeof info.verdicts==='object'?info.verdicts:null,takes:proofTakes(info?.takes),updatedAt:Math.round(changed)||null,chapters:Array.isArray(info?.chapters)?info.chapters:null,fps:Number(info?.film?.fps)||30,files});
+   // area: the part of the work the proof belongs to (studio/lib/proof-areas.ts), by which Prov groups them. domare: the independent judge's verdict (skill doma), never his.
+   list.push({id:dir.name,area:typeof info?.area==='string'&&clipId.test(info.area)?info.area:null,title:typeof info?.title==='string'?info.title:null,description:typeof info?.description==='string'?info.description:null,labels:info?.labels&&typeof info.labels==='object'?info.labels:null,verdicts:info?.verdicts&&typeof info.verdicts==='object'?info.verdicts:null,domare:info?.domare&&typeof info.domare==='object'&&!Array.isArray(info.domare)?info.domare:null,takes:proofTakes(info?.takes),updatedAt:Math.round(changed)||null,chapters:Array.isArray(info?.chapters)?info.chapters:null,fps:Number(info?.film?.fps)||30,files});
   }
   return {schemaVersion:1,proofs:list};
  };
@@ -202,6 +202,7 @@ if(has('--restart')){
    if(url.pathname==='/api/orders/ledger'){await (await import('./order-ledger.ts')).serveLedger(req,res);return;} // Protokoll (tools/order-ledger.ts), before the orders' own routes, which would take "ledger" for an order id.
    if(await handleOrders(req,res,url))return;
    if(await handleCasino(req,res,url,origin))return; // The rest of casino (tools/casino-routes.ts): the workshops' servers, the measures (matt.ts) and the avatars' paths.
+   if(url.pathname.startsWith('/api/lager')){await (await import('./lager-routes.ts')).handleLager(req,res,url,origin);return;} // Biblioteket (tools/lager-routes.ts): the map of all that is stored (../lager.ts), and his hard removal (tools/lager-remove.ts), Prov's "Ta bort provet" among it.
    if(await handleDollLab(req,res,url))return; // Docklabbet (dealer3d/page/server.ts): /dealer3d/docka, its modules, motions and models, read only.
    if(url.pathname==='/api/trees'){await (await import('./dealer-tree.ts')).serveTrees(req,res,url);return;} // Karta's trees: nodes, 36 steps and number per tree (tools/dealer-tree.ts)
    if(url.pathname==='/api/compositions'){await (await import('./dealer-composition.ts')).serveCompositions(req,res,url,origin);return;} // Karta's compositions: several trees put together, read, saved and removed (tools/dealer-composition.ts)
@@ -306,13 +307,6 @@ if(has('--restart')){
      else res.end(JSON.stringify(tableOf(name).command(body)));
     }catch(error){if(error instanceof SessionError)refuse(error.status,error.code,error.message);else refuse(500,'INTERNAL','Spelet kunde inte svara.');}
     return;
-   }
-   // "Ta bort provet" in Prov: his click is his word (tools/proof-remove.ts): the folder to the trash, his notes stay.
-   if(url.pathname.startsWith('/api/proofs/')&&req.method==='DELETE'){
-    res.setHeader('Content-Type','application/json; charset=utf-8');
-    if(req.headers.origin!==origin){res.writeHead(403).end(JSON.stringify({error:'Ta bort från studion på datorn.'}));return;}
-    try{res.end(JSON.stringify(await (await import('./proof-remove.ts')).removeProof(process.cwd(),decodeURIComponent(url.pathname.slice('/api/proofs/'.length)))));}
-    catch(error){res.writeHead(400).end(JSON.stringify({error:(error as Error).message}));}return;
    }
    if(url.pathname==='/api/proofs'&&req.method==='GET'){res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(await proofs()));return;}
    // Jakob's own word on the proofs (data/proof-notes.json, tools/proof-notes-store.ts) for Granska, part Prov. Any page

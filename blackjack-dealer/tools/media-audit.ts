@@ -43,6 +43,8 @@ export type Item = Unit & {use: Use; why: string[]; what: string; judged?: strin
 export const UNIT_DEPTH: Record<string, number> = {
   anchors: 2, keystones: 2, motions: 2, orders: 2, proofs: 2, sources: 2, tracking: 2, lab: 2, originals: 2, reference: 2,
   films: 3, speech: 3, scene: 3, 'scene-work': 3, props: 2,
+  // assets/references/docka/<id>/: one of the doll's films for the orders (data/rendered-references.json), with its guidance pictures
+  references: 3,
 };
 // speech/<dealer>/patches/<id> is one patch, one level further down.
 const deeper = (parts: string[]) => parts[0] === 'speech' && parts[2] === 'patches' ? 4 : parts[0] === 'props' && parts[1] === 'source' ? 3 : null;
@@ -103,6 +105,7 @@ export function whatOf(u: Unit): string {
     case 'lab': return `labbets bakgrundsbild (${id})`;
     case 'props': return `3D-föremål på bordet (${id})`;
     case 'reference': return `referensbild (${id})`;
+    case 'references': return `dockans film till beställningarna (${id})`;
     default: return id;
   }
 }

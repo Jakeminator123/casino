@@ -12,7 +12,8 @@ import { TREE_ID, isCard, type StepKind, type StepState, type TreeView, type Vie
 import { ANCHOR_NODE, ANCHOR_ROLE, stepOf, stepOfEdge } from "../../src/order-model.ts";
 import type { FilmWish } from "./bordet.ts";
 import { nodeCode, parseJakob } from "./names.ts";
-import { anchorFor } from "./orders.ts";
+import { anchorFor, type NewOrderInput } from "./orders.ts";
+import type { UppsattningId } from "../../src/uppsattning.ts";
 
 /** The words the guide owns in Bordet's address (with lage=bestall); Bordet takes them out when the guide closes. */
 export const GUIDE_WORDS = ["trad", "film", "komposition"] as const;
@@ -175,4 +176,13 @@ export function treeBase(view: Pick<TreeView, "nodes">, wish: FilmWish, entries:
   const entry = id ? entries.find((e) => e.id === id) : undefined;
   if (!entry || entry.role !== ANCHOR_ROLE[def.from] || entry.node !== node || entry.card || !entry.served) return null;
   return anchorFor(entries, def.from).holds?.id === id ? null : id;
+}
+
+/**
+ * The body sent for the new film: the row's, with the tree's picture where it is not the one that holds (treeBase), and the
+ * menu's table and camera (src/uppsattning.ts), so that the order is made where he chose. The store makes a draft at the
+ * set-up of what it is made of (the dealer's anchors) and refuses another in words (tools/order-store.ts).
+ */
+export function draftBody(body: NewOrderInput | null | undefined, base: string | null, uppsattning: UppsattningId): NewOrderInput | null {
+  return body ? { ...body, ...(base ? { base } : {}), uppsattning } : null;
 }

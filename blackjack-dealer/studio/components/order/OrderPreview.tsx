@@ -78,7 +78,7 @@ export function PreviewPictures({ order }: { order: Order }) {
       {picturesInOrder(order.pictures)
         .filter((p) => p.goesAs !== "referenceImage")
         .map((picture) => (
-          <PictureCard key={picture.name} picture={picture} />
+          <PictureCard key={picture.name} picture={picture} order={order} />
         ))}
     </div>
   );
