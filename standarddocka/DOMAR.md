@@ -220,3 +220,19 @@ rörelser och filmerna som görs av dem.
   (2026-11-27, sjunde försöket): "Något är nog med tummen, annars ser ju iaf detta bra ut." I den ställningen ligger
   tummen tryckt längs de böjda fingrarna och flyter ihop med dem. Han frågade samtidigt om "den pluffsiga dockan" ska
   användas trots allt: den är förlaga för ställningen, och utseendet kommer ur bilderna av personen.
+- **Den första filmen vid livebordet: Nja** (2026-11-27, provet `sju-bilder-vid-livebordet-20261127`: Tomasz ger ett
+  kort till plats 4, Kling 4 med sju stillbilder). "Ser på den där filmen och tycker nja också." Det han sa ska rättas:
+  - **Vändningen ska gå fort.** "Varför saktas det in så mycket när kortet ska vändas? Just vändningen ska gå, eller
+    skulle jag vilja testa, snabbt", gärna med lite oskärpa, "men för den delen ska inte något bli slarvigt".
+  - **Inget överlägg på kortet.** "Varför är det så att korten som dras ifrån den nya skon redan här har ett rött
+    överlägg?" Kortryggen "ska i och för sig vara mönstrat röd". Han frågade också varför korten är gula i den gröna
+    filmen (det är spårkortet i nyckelutseendet).
+  - **Filmen ska inte gå i en annan takt än dockan** utan skäl: "om det nu är så att vi av någon schematisk anledning
+    ska köra vår video snabbare än den docka som finns (varför?), så vet jag inte vad det tjänar till".
+  - **Handen ska möta kortet som i originalklippet.** "Möter inte dealerns högra hand kortet ... så skyfflas ju kortet
+    upp, och det är ju fantastiskt."
+  - **Kortet ska inte läggas till rätta av sig självt.** "Kortet läggs sedan ned, och ska inte automatiskt läggas i
+    rätt vinkel bara för det inte kom exakt rätt; försök i stället få kortet (med livevyns storlek av kortet) till
+    koordinater som kanske måste mätas på nytt."
+  - **En överlämning för alla platser.** "Försökte vi att skapa som en universell överlämning med detta parti när
+    händerna möts?" Inte prövat; handbytet står som förslag till ankare i rörelseschemat.
