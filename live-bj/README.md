@@ -31,6 +31,7 @@ Allt körs från repots rot. `PY` är `blackjack-dealer/tools/python/.venv/Scrip
 | Räkna ut mönstret | `PY live-bj/verktyg/monster.py live-bj/data/kalla.json live-bj/data/faser.json live-bj/matt live-bj/data/monster.json` | Varje handrörelse, blinkning, sänkt blick och huvudrörelse, och sammanställningen per dealer. |
 | Skriv stilarna | `PY live-bj/verktyg/stil.py live-bj/data live-bj/matt` | `data/stil-kameran.json` och `data/stil-bordet.json`: takten, fartkurvorna, handbytet, bålen, huvudet, blicken, blinkningarna, vilan, den andra handen och greppet, med hur varje tal är mätt. Behöver `data/scen.json`. |
 | Dela upp i stycken | `PY live-bj/verktyg/rorelser.py live-bj/data live-bj/matt` (`--visa <a> <b>` skriver ut handrörelserna mellan två sekunder med platserna de fick) | `data/rorelser.json`: varje stycke med slag, rutor, händer och om det är rent nog att rita efter. |
+| Mät dockan | `PY live-bj/verktyg/mat.py <dockans film> <dess källfil> <mapp> --steg 1 --ensam`, sedan `PY live-bj/verktyg/docka.py <mapp> <ut.json> [<dockans egna tal per ruta>]` | Dockans film mätt på samma sätt, och mot dockans egna tal i `../blackjack-dealer/dealer3d/data/giv-*.json`: hur väl mätningen hittar det som är känt. Källfilen är som `data/kalla.json`: filmens storlek, rutor i sekunden och ett parti för hela filmen. Körs i slasken; inget sparas här. |
 | Titta på måtten | `PY live-bj/verktyg/titta.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt live-bj/rutor/kontroll/<namn>.jpg <sekund> ...` | Ett ark med måtten ritade över filmens rutor. |
 | Streckfigur | `PY live-bj/verktyg/streck.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt live-bj/rutor/streck-<a>-<b>.mp4 <a> <b>` | En film med dealern som streckfigur bredvid bordsbilden; `--bara` ger bara figuren. |
 
@@ -64,13 +65,14 @@ på 1,0–1,2 s (sett i bild i de rundor som är kontrollerade; räkningen i `da
 och för låg för platserna tills kortets eget spår är inlagt).
 
 **Handbytet** är en verklig inbromsning, ingen flygande växling. Greppen är som närmast en kortlängd från varandra
-(9,0 och 7,5 cm): de håller i var sin ände. Handen som har kortet går från vänsterns toppfart (1,8 m/s) ned till
-0,1 m/s och upp till högerns (0,8–0,9 m/s) på en halv sekund. Det är mätt på handlederna; fingrarna och kortet rör sig
+(9,0 och 7,5 cm): de håller i var sin ände. Handen som har kortet går från vänsterns toppfart (1,3 m/s) ned till
+0,09 m/s och upp till högerns (0,7 m/s) på en halv sekund. Det är mätt på handlederna; fingrarna och kortet rör sig
 lite till, så kortets egen fart i bytet är högre än så.
 
 **Fartkurvan.** Vänstern till skon är en jämn klocka med toppen mitt i. Tillbaka med kortet är den sned: toppen kommer
-efter en fjärdedel av vägen och resten är en lång inbromsning mot mötet. Högern ut är bred och flack, med en medelfart
-på 0,46–0,48 m/s.
+efter en fjärdedel av vägen och resten är en lång inbromsning mot mötet. Högern ut är bred och flack. Farterna
+(bästa skattning, sann inom en tredjedel): vänstern till skon 1,3 / 1,0 m/s som mest och 0,7 / 0,6 i medel, högern ut
+1,2 / 0,9 som mest och 0,6 / 0,5 i medel.
 
 **Bålen börjar med handen.** När bålen följer med (i 41–62 % av turerna till skon, i nio av tio när högern lägger ut
 ett kort) börjar den samtidigt med handen, inom några hundradelar i median, och flyttar sig 2–5 cm i sidled.
@@ -137,10 +139,17 @@ eget kort, och säkra antal per plats) väntar på kortets spår.
 - **Vänster och höger** är alltid dealerns egna. Skon står till vänster om honom, alltså till höger i bilden.
 - **Längder** ges i bildpunkter i bordsbilden (1728×972) och i dealerns egen axelbredd i bilden, så att de går att föra
   över till en figur av en annan storlek.
-- **Meter** räknas genom kameran i `data/scen.json`. En kamera ger inget djup, så en höjd eller ett avstånd antas för
-  varje del och står i stilfilen: handleden 5 cm över filten, axlar och huvud 20 cm bakom filtens kant mot dealern.
-  Kameran står lågt, så en hand som är lyft hamnar för långt bort när den läggs på filten; sidled håller på en tiondel
-  när, djupled är det svagaste.
+- **Meter** räknas genom kameran i `data/scen.json`. En kamera ger inget djup, så handledens fart och väg räknas på
+  två sätt: lagd på ett plan 5 cm över filten (för högt när handen lyfts eller går i djupled) och tvärs synlinjen (för
+  lågt då). Stilfilerna ger båda som gränser och deras geometriska medel som bästa skattning. Sättet är prövat på
+  dockans egna filmer, där facit finns (`verktyg/docka.py`): den övre gränsen blev 1,2–2,1 gånger den sanna
+  toppfarten, den undre 0,6–0,7 gånger, och den bästa skattningen hamnade inom en tredjedel. Formen på en fartkurva
+  och sekunderna är väl mätta; meterna håller alltså på en tredjedel när. Axlar och huvud läggs på ett upprätt plan
+  20 cm bakom filtens kant mot dealern och håller på en tiondel när.
+- **Samma mätning på dockan.** MediaPipe hittar också dockan: kroppen i varje ruta, händerna i de flesta, ansiktet i
+  två av tre. Handleden hamnar 14–40 bildpunkter från dockans sanna handled, och blinkningar går inte att mäta på en
+  docka utan iris (den mäter sex blinkningar på två sekunder där det inte finns någon). Ett kort stopp kan missas: på
+  mannens film hittas ett nästan-stopp där dockans egna tal har tre.
 - **Var en hand är** avgörs av punkten mellan tummens och pekfingrets toppar, lagd på filten. Platserna längst till
   vänster om dealern ligger en handsbredd från skons mynning; bara vänsterhanden räknas som vid skon.
 - **Spelets gränssnitt ligger över bilden.** När händerna ligger bakom skylten eller knapparna mitt i bilden hittas de

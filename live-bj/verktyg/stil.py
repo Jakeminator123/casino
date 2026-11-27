@@ -6,9 +6,11 @@
 # data/stil-bordet.json (the second: quicker, a still trunk, the eyes on the table). The names are the styles', not
 # the persons'.
 #
-# Metres. One camera gives no depth, so a height or a distance is assumed for each part and said in the file: a wrist
-# over the table is laid on a level plane a little over the felt (twice, low and raised, and both are given), and the
-# shoulders and the head on an upright plane behind the dealer's edge of the table.
+# Metres. One camera gives no depth, so a wrist's speed and path are counted two ways, one that is too high when the
+# hand lifts or goes in depth (laid on a level plane a little over the felt) and one that is too low then (across the
+# line of sight), and the file gives both and their geometric mean as the best. verktyg/docka.py tried this on our own
+# figure's films, where the truth is known: the best came within about a third. The shoulders and the head are laid on
+# an upright plane behind the dealer's edge of the table.
 import sys, json, os, glob, math
 import numpy as np
 
@@ -16,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from monster import Stretch, smooth, runs, stats, sign_at, SWAP   # noqa: E402
 
 NAMES = {'A': 'kameran', 'B': 'bordet'}
-WRIST_LOW, WRIST_RAISED = 0.05, 0.12   # metres over the felt: a hand that slides on the felt, and one lifted to the shoe
+WRIST_LOW = 0.05                       # metres over the felt that a wrist is taken to be
 BEHIND_EDGE = 0.20                     # metres behind the dealer's edge of the felt where the shoulders are taken to be
 EYE_FULL = 30.0                        # degrees the eye has turned when MediaPipe's look score is 1 (an estimate)
 BETTING = ['place your bets', 'last bets', 'bets accepted']
@@ -53,6 +55,15 @@ class Camera:
         s = (height - self.h) / d[:, 2]
         return np.stack([s * d[:, 0], s * d[:, 1]], axis=1)
 
+    def across(self, px, height):
+        """The pixels' steps taken as steps across the line of sight, in metres: each step times the distance to the point
+        (found on the plane this high over the felt) over the focal length. A step toward or away from the camera is not
+        seen this way, so a path comes out too short where plane() makes it too long; the truth lies between the two."""
+        px = np.asarray(px, float)
+        on = self.plane(px, height)
+        depth = on[:, 1] * math.cos(self.t) + (self.h - height) * math.sin(self.t)
+        return np.linalg.norm(np.diff(px, axis=0), axis=1) * (depth[1:] + depth[:-1]) / 2 / self.f
+
     def wall(self, px, away):
         """Where the pixels lie on an upright plane this far from the camera: x to the picture's right, z up from the felt."""
         d = self.rays(np.asarray(px, float))
@@ -81,11 +92,17 @@ def main():
         st = Stretch(raw)
         st.wrist = {s: smooth(st.pose[:, i], 5) for s, i in (('L', 15), ('R', 16))}
         st.low = {s: cam.plane(st.wrist[s], WRIST_LOW) for s in 'LR'}
+        # The wrist's speed, step by step, three ways: laid on the plane (too fast when the hand lifts or goes in depth),
+        # across the line of sight (too slow then), and their geometric mean, which is the one to use.
+        st.v = {}
+        for s in 'LR':
+            most = np.linalg.norm(np.diff(st.low[s], axis=0), axis=1) * st.fps
+            least = cam.across(st.wrist[s], WRIST_LOW) * st.fps
+            st.v[s] = {'most': most, 'least': least, 'best': np.sqrt(most * least)}
         st.tip = {}   # where the hand holds a card: between the thumb's tip and the index finger's; the wrist where the hand was not found
         for s in 'LR':
             tips = np.array([np.mean([e['hands'][s]['image'][4][:2], e['hands'][s]['image'][8][:2]], axis=0) if s in e['hands'] else [np.nan, np.nan] for e in raw['frames']])
             st.tip[s] = cam.plane(np.where(np.isnan(tips), st.wrist[s], tips), 0.0)
-        st.raised = {s: cam.plane(st.wrist[s], WRIST_RAISED) for s in 'LR'}
         st.mid_m, st.nose_m = cam.wall(smooth(st.mid, 5), away), cam.wall(smooth(st.pose[:, 0], 5), away)
         st.sh_l, st.sh_r = cam.wall(st.pose[:, 11], away), cam.wall(st.pose[:, 12], away)
         gx = ((st.blend('eyeLookOutLeft') - st.blend('eyeLookInLeft')) + (st.blend('eyeLookInRight') - st.blend('eyeLookOutRight'))) / 2   # plus: toward his left, the picture's right
@@ -107,32 +124,33 @@ def main():
         right_back = [m for m in moves if m['hand'] == 'R' and m['length'] >= 0.6 and m['to'][1] < m['from'][1] - 0.08 * unit]
         rest_head = np.array(d['rest']['head'])
 
-        def speeds(m, plane='low'):
+        def speeds(m):
             st = where(m['from_t'])
             a, b = index(st, m['from_t']), index(st, m['to_t'])
-            p = getattr(st, plane)[m['hand']][a:b + 1]
-            if len(p) < 4 or np.isnan(p).any():
+            v = {k: series[a:b] for k, series in st.v[m['hand']].items()}
+            if b - a < 3 or np.isnan(v['most']).any() or np.isnan(v['least']).any():
                 return None
-            return np.linalg.norm(np.diff(p, axis=0), axis=1) * st.fps, float(np.linalg.norm(p[-1] - p[0]))
+            return v, st.fps
 
         def curve(group):
-            rows, tops, tops_raised, lengths, means = [], [], [], [], []
+            rows, tops, means, paths = [], {'best': [], 'least': [], 'most': []}, {'best': [], 'least': [], 'most': []}, {'best': [], 'least': [], 'most': []}
             for m in group:
-                got, lifted = speeds(m), speeds(m, 'raised')
-                if got is None or got[0].max() <= 0:
+                got = speeds(m)
+                if got is None or got[0]['best'].max() <= 0:
                     continue
-                v, length = got
-                rows.append(np.interp(np.linspace(0, 1, 21), np.linspace(0, 1, len(v)), v / v.max()))
-                tops.append(float(v.max()))
-                tops_raised.append(float(lifted[0].max()))
-                lengths.append(length)
-                means.append(length / m['seconds'])
+                v, fps = got
+                rows.append(np.interp(np.linspace(0, 1, 21), np.linspace(0, 1, len(v['best'])), v['best'] / v['best'].max()))
+                for k in tops:
+                    tops[k].append(float(v[k].max()))
+                    paths[k].append(float(v[k].sum() / fps))
+                    means[k].append(float(v[k].mean()))
             if not rows:
                 return None
             rows = np.array(rows)
+            three = lambda d, digits=2: {'best': stats(d['best'], digits), 'at_least': stats(d['least'], digits)['median'], 'at_most': stats(d['most'], digits)['median']}
             return {'moves': len(rows), 'time': [round(float(x), 2) for x in np.linspace(0, 1, 21)], 'speed_share_of_top': [round(float(x), 2) for x in np.median(rows, axis=0)],
                     'quarter_low': [round(float(x), 2) for x in np.percentile(rows, 25, axis=0)], 'quarter_high': [round(float(x), 2) for x in np.percentile(rows, 75, axis=0)],
-                    'top_m_s': stats(tops), 'top_m_s_if_wrist_raised': stats(tops_raised), 'mean_m_s': stats(means), 'length_m': stats(lengths)}
+                    'top_m_s': three(tops), 'mean_m_s': three(means), 'path_m': three(paths, 3)}
 
         # The handover: the left hand comes in with the card, the right hand takes it on.
         # The card is taken to be with the left hand until the two hands are nearest each other, and with the right hand after.
@@ -144,8 +162,7 @@ def main():
             if b - a < 12 or last <= a + 2:
                 continue
             apart = np.linalg.norm(st.tip['L'][a:b + 1] - st.tip['R'][a:b + 1], axis=1)
-            vl = np.linalg.norm(np.diff(st.low['L'][a:b + 1], axis=0), axis=1) * st.fps
-            vr = np.linalg.norm(np.diff(st.low['R'][a:b + 1], axis=0), axis=1) * st.fps
+            vl, vr = st.v['L']['best'][a:b], st.v['R']['best'][a:b]
             if np.isnan(apart).any() or np.isnan(vl).any() or np.isnan(vr).any():
                 continue
             k = int(np.argmin(apart[:last - a + 1]))
@@ -265,12 +282,11 @@ def main():
             for m in group:
                 st = where(m['from_t'])
                 a, b = index(st, m['from_t']), index(st, m['to_t'])
-                p = st.low['R' if m['hand'] == 'L' else 'L'][a:b + 1]
-                if len(p) < 3 or np.isnan(p).any():
+                v = st.v['R' if m['hand'] == 'L' else 'L']['best'][a:b]
+                if len(v) < 2 or np.isnan(v).any():
                     continue
-                step = np.linalg.norm(np.diff(p, axis=0), axis=1)
-                lengths.append(float(step.sum()))
-                still_share.append(float((step * st.fps < 0.05).mean()))
+                lengths.append(float(v.sum() / st.fps))
+                still_share.append(float((v < 0.05).mean()))
             return {'path_m': stats(lengths, 3), 'mean_m_s': stats([l / m['seconds'] for l, m in zip(lengths, group)], 3), 'still_share_of_the_time': stats(still_share)}
 
         # The grip while the card is carried: does the hand's shape change, more than it does at rest.
@@ -303,19 +319,22 @@ def main():
             'kalla': {'film': source['source'], 'stretches_s': [[r['from'], r['to']] for r in source['runs'] if (inside(r['from']) or inside(r['to']))],
                       'note': 'The clean stretches of data/kalla.json in which this dealer works; the change of dealer at ' + f'{SWAP[0]:.0f} to {SWAP[1]:.0f} s is left out.'},
             'enhet': 'Seconds, degrees and metres throughout. Shares are 0 to 1. grip.pinch and grip.open are shares of the hand\'s own size. Nothing is left in shoulder widths; one shoulder width is metres.shoulder_width_m.',
-            'metres': {'how': 'From the camera of data/scen.json. A wrist over the table is laid on a level plane ' + f'{WRIST_LOW} m over the felt (and, for the top speed, also {WRIST_RAISED} m); '
-                              f'the shoulders and the head on an upright plane {BEHIND_EDGE} m behind the dealer\'s edge of the felt. A wrist 0.1 m higher than assumed lies about a fifth nearer the camera than the numbers say, '
-                              'so lengths toward and away from the camera are the weakest; sideways lengths hold within about a tenth.',
+            'metres': {'how': 'From the camera of data/scen.json. One camera gives no depth, so a wrist\'s speed and path are counted two ways. at_most: the wrist laid on a level plane ' + f'{WRIST_LOW} m over the felt, '
+                              'which makes a lift of the hand look like a long way in depth. at_least: the picture\'s steps taken as steps across the line of sight, which does not see a move toward or away from the camera. '
+                              'best: the geometric mean of the two. Tried on our own figure\'s films, where the truth is known (verktyg/docka.py): at_most came out 1.2 to 2.1 times the true top speed, at_least 0.6 to 0.7 times, '
+                              'and best within about a third of it; the same for the paths. So read best as true within a third, and the shapes and the seconds as well measured. '
+                              f'The shoulders and the head are laid on an upright plane {BEHIND_EDGE} m behind the dealer\'s edge of the felt; they move sideways and hold within about a tenth.',
                        'camera_check_m': round(cam.check_m, 4), 'shoulder_width_m': round(width_m, 3), 'metres_per_pixel_at_the_shoulders': round(px_m, 5)},
             'tempo': {'how': 'The wrist\'s moves, found by its speed (begins above 1.0 shoulder widths a second, ends under 0.35). Well measured.',
                       'left_to_shoe_s': shoe['out'], 'left_at_shoe_s': shoe['grip'], 'left_back_with_card_s': shoe['back'], 'left_whole_trip_s': shoe['whole'], 'grip_to_grip_when_dealing_on_s': shoe['grip_to_grip'],
                       'right_out_s': d['right_hand']['out']['seconds'], 'right_back_s': d['right_hand']['back']['seconds']},
             'speed': {'how': 'The wrist\'s speed through each move, in 21 steps of the move\'s own time, as a share of that move\'s top speed; the median over the moves, with the quarters. '
-                             'Speeds in metres a second on the plane just over the felt. The shape is well measured; the metres depend on the assumed height.',
+                             'top, mean and path each as best, at_least and at_most (see metres.how). The shape and the seconds are well measured; the metres hold within about a third.',
                       'left_to_shoe': curve(to_shoe), 'left_back_with_card': curve(from_shoe), 'right_out': curve(right_out), 'right_back': curve(right_back)},
             'handover': {'how': 'The hands are measured, not the card: the card is taken to be with the left hand until the two hands\' grips are nearest each other, and with the right hand from then on. '
                                 'top_before is the left wrist\'s top speed on the way in, top_after the right wrist\'s on the way out, dip the lowest speed of the hand that has the card between those two tops '
-                                '(as metres a second and as a share of the higher top: 0 is a full stop, 1 no dip). curve is that speed from the one top to the other in 21 steps. '
+                                '(as metres a second, the best estimate of metres.how, and as a share of the higher top: 0 is a full stop, 1 no dip). curve is that speed from the one top to the other in 21 steps. '
+                                'On our own figure\'s film this way of measuring found one near stop where the figure\'s own numbers have three, so a short dip can be missed. '
                                 'Counted only where the right hand does carry on (over 0.3 m/s) after the meeting. An estimate until the card\'s own track is laid beside it.',
                          **{k: stats(v, 3) for k, v in handover.items()},
                          'curve_time': [round(float(x), 2) for x in np.linspace(0, 1, 21)], 'curve_share_of_top': None if curves is None else [round(float(x), 2) for x in np.median(curves, axis=0)]},
@@ -339,7 +358,7 @@ def main():
             'rest': {'how': 'Both hands still for two seconds or more, whatever the game shows; the spread about the mean of each two seconds (rms, millimetres). slow is the same after a half-second mean, which takes away the measuring\'s own flutter '
                             '(about 0.5 pixel, 0.6 mm): trust slow. breath is the period of a regular rise and fall of the shoulders where one stands out, else nothing.',
                      **{k: stats(v, 2) for k, v in rest.items()}},
-            'other_hand': {'how': 'What the hand that is not dealing does during the other hand\'s move: its path, its mean speed, and the share of the time it is still (under 0.05 m/s).',
+            'other_hand': {'how': 'What the hand that is not dealing does during the other hand\'s move: its path, its mean speed (the best estimate of metres.how), and the share of the time it is still (under 0.05 m/s).',
                            'right_while_left_goes_to_shoe': other(to_shoe), 'right_while_left_comes_back': other(from_shoe), 'left_while_right_goes_out': other(right_out)},
             'grip': {'how': 'The hand\'s shape during a carry: pinch is thumb tip to index tip, open is the fingertips\' mean distance from the wrist, both against the hand\'s size. change is the largest minus the smallest '
                             'during the carry (the ninth tenth minus the first, so that one wild frame does not count); alive when it is more than nine in ten half-second windows change at rest; through_the_carry is the '
@@ -349,7 +368,7 @@ def main():
         with open(os.path.join(data_dir, f'stil-{style}.json'), 'w', encoding='utf-8') as f:
             json.dump(result, f, indent=1)
         t = result['trunk']['with_left_to_shoe']
-        print(f"{style}: shoulder width {width_m:.3f} m, camera check {cam.check_m * 1000:.1f} mm, to the shoe top {result['speed']['left_to_shoe']['top_m_s']['median']} m/s, trunk goes along {t['goes_along_share']:.0%} "
+        print(f"{style}: shoulder width {width_m:.3f} m, camera check {cam.check_m * 1000:.1f} mm, to the shoe top {result['speed']['left_to_shoe']['top_m_s']['best']['median']} m/s, trunk goes along {t['goes_along_share']:.0%} "
               f"starting {t['starts_after_hand_s']['median'] if t['starts_after_hand_s'] else None} s after the hand, gaze while dealing {result['gaze']['while_dealing_sign']}")
 
 

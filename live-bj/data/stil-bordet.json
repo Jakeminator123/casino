@@ -46,7 +46,7 @@
  },
  "enhet": "Seconds, degrees and metres throughout. Shares are 0 to 1. grip.pinch and grip.open are shares of the hand's own size. Nothing is left in shoulder widths; one shoulder width is metres.shoulder_width_m.",
  "metres": {
-  "how": "From the camera of data/scen.json. A wrist over the table is laid on a level plane 0.05 m over the felt (and, for the top speed, also 0.12 m); the shoulders and the head on an upright plane 0.2 m behind the dealer's edge of the felt. A wrist 0.1 m higher than assumed lies about a fifth nearer the camera than the numbers say, so lengths toward and away from the camera are the weakest; sideways lengths hold within about a tenth.",
+  "how": "From the camera of data/scen.json. One camera gives no depth, so a wrist's speed and path are counted two ways. at_most: the wrist laid on a level plane 0.05 m over the felt, which makes a lift of the hand look like a long way in depth. at_least: the picture's steps taken as steps across the line of sight, which does not see a move toward or away from the camera. best: the geometric mean of the two. Tried on our own figure's films, where the truth is known (verktyg/docka.py): at_most came out 1.2 to 2.1 times the true top speed, at_least 0.6 to 0.7 times, and best within about a third of it; the same for the paths. So read best as true within a third, and the shapes and the seconds as well measured. The shoulders and the head are laid on an upright plane 0.2 m behind the dealer's edge of the felt; they move sideways and hold within about a tenth.",
   "camera_check_m": 0.0003,
   "shoulder_width_m": 0.348,
   "metres_per_pixel_at_the_shoulders": 0.00135
@@ -97,7 +97,7 @@
   }
  },
  "speed": {
-  "how": "The wrist's speed through each move, in 21 steps of the move's own time, as a share of that move's top speed; the median over the moves, with the quarters. Speeds in metres a second on the plane just over the felt. The shape is well measured; the metres depend on the assumed height.",
+  "how": "The wrist's speed through each move, in 21 steps of the move's own time, as a share of that move's top speed; the median over the moves, with the quarters. top, mean and path each as best, at_least and at_most (see metres.how). The shape and the seconds are well measured; the metres hold within about a third.",
   "left_to_shoe": {
    "moves": 72,
    "time": [
@@ -124,97 +124,103 @@
     1.0
    ],
    "speed_share_of_top": [
-    0.19,
-    0.26,
-    0.34,
-    0.43,
-    0.49,
-    0.57,
-    0.67,
-    0.77,
-    0.84,
-    0.9,
-    0.94,
-    0.92,
-    0.89,
-    0.82,
-    0.68,
-    0.58,
+    0.2,
+    0.29,
+    0.37,
     0.46,
-    0.36,
-    0.26,
-    0.16,
+    0.56,
+    0.66,
+    0.76,
+    0.86,
+    0.92,
+    0.94,
+    0.93,
+    0.88,
+    0.83,
+    0.74,
+    0.62,
+    0.52,
+    0.42,
+    0.33,
+    0.24,
+    0.17,
     0.11
    ],
    "quarter_low": [
     0.16,
-    0.21,
-    0.27,
-    0.33,
-    0.42,
-    0.48,
-    0.56,
+    0.25,
+    0.32,
+    0.39,
+    0.5,
+    0.59,
     0.66,
-    0.77,
-    0.81,
+    0.76,
     0.85,
     0.86,
-    0.79,
-    0.69,
-    0.56,
-    0.46,
-    0.37,
-    0.28,
+    0.85,
+    0.78,
+    0.7,
+    0.6,
+    0.48,
+    0.39,
+    0.32,
+    0.27,
     0.21,
-    0.13,
-    0.08
+    0.15,
+    0.09
    ],
    "quarter_high": [
     0.24,
-    0.33,
-    0.43,
-    0.49,
-    0.58,
-    0.68,
-    0.77,
-    0.88,
-    0.94,
+    0.34,
+    0.48,
+    0.61,
+    0.69,
+    0.78,
+    0.85,
+    0.93,
     0.97,
     0.98,
-    0.98,
+    0.96,
     0.95,
-    0.93,
-    0.88,
-    0.77,
-    0.58,
-    0.44,
+    0.92,
+    0.89,
+    0.82,
+    0.69,
+    0.54,
+    0.42,
     0.32,
-    0.23,
+    0.21,
     0.14
    ],
    "top_m_s": {
-    "n": 72,
-    "median": 1.33,
-    "p10": 1.06,
-    "p90": 1.53
-   },
-   "top_m_s_if_wrist_raised": {
-    "n": 72,
-    "median": 1.16,
-    "p10": 0.93,
-    "p90": 1.34
+    "best": {
+     "n": 72,
+     "median": 1.01,
+     "p10": 0.87,
+     "p90": 1.17
+    },
+    "at_least": 0.82,
+    "at_most": 1.33
    },
    "mean_m_s": {
-    "n": 72,
-    "median": 0.69,
-    "p10": 0.56,
-    "p90": 0.8
+    "best": {
+     "n": 72,
+     "median": 0.57,
+     "p10": 0.48,
+     "p90": 0.63
+    },
+    "at_least": 0.43,
+    "at_most": 0.72
    },
-   "length_m": {
-    "n": 72,
-    "median": 0.32,
-    "p10": 0.27,
-    "p90": 0.4
+   "path_m": {
+    "best": {
+     "n": 72,
+     "median": 0.264,
+     "p10": 0.227,
+     "p90": 0.327
+    },
+    "at_least": 0.208,
+    "at_most": 0.329
    }
   },
   "left_back_with_card": {
@@ -243,97 +249,103 @@
     1.0
    ],
    "speed_share_of_top": [
-    0.34,
-    0.51,
-    0.69,
-    0.8,
-    0.92,
-    0.95,
-    0.96,
-    0.94,
-    0.89,
-    0.81,
-    0.7,
+    0.29,
+    0.42,
     0.58,
-    0.48,
-    0.39,
-    0.33,
-    0.27,
+    0.73,
+    0.85,
+    0.92,
+    0.96,
+    0.96,
+    0.96,
+    0.91,
+    0.83,
+    0.72,
+    0.61,
+    0.52,
+    0.45,
+    0.37,
+    0.29,
     0.22,
-    0.18,
-    0.14,
-    0.12,
+    0.16,
+    0.13,
     0.09
    ],
    "quarter_low": [
-    0.26,
-    0.4,
-    0.54,
-    0.71,
-    0.81,
-    0.88,
+    0.2,
+    0.34,
+    0.47,
+    0.62,
+    0.76,
+    0.83,
+    0.92,
+    0.93,
     0.9,
-    0.86,
-    0.8,
-    0.69,
-    0.59,
-    0.45,
-    0.35,
-    0.29,
-    0.24,
-    0.19,
-    0.17,
+    0.82,
+    0.74,
+    0.6,
+    0.47,
+    0.41,
+    0.33,
+    0.25,
+    0.23,
+    0.18,
     0.14,
     0.11,
-    0.1,
-    0.07
+    0.08
    ],
    "quarter_high": [
-    0.43,
-    0.61,
-    0.82,
-    0.91,
+    0.37,
+    0.55,
+    0.75,
+    0.86,
+    0.94,
+    0.97,
     0.98,
     0.98,
     0.99,
-    0.97,
-    0.94,
-    0.88,
-    0.8,
-    0.69,
-    0.58,
-    0.5,
-    0.42,
-    0.35,
+    0.96,
+    0.9,
+    0.82,
+    0.71,
+    0.65,
+    0.54,
+    0.46,
+    0.36,
     0.28,
-    0.23,
-    0.18,
+    0.21,
     0.15,
-    0.12
+    0.11
    ],
    "top_m_s": {
-    "n": 72,
-    "median": 1.84,
-    "p10": 1.56,
-    "p90": 2.05
-   },
-   "top_m_s_if_wrist_raised": {
-    "n": 72,
-    "median": 1.61,
-    "p10": 1.36,
-    "p90": 1.8
+    "best": {
+     "n": 72,
+     "median": 1.3,
+     "p10": 1.17,
+     "p90": 1.5
+    },
+    "at_least": 1.03,
+    "at_most": 1.84
    },
    "mean_m_s": {
-    "n": 72,
-    "median": 0.83,
-    "p10": 0.65,
-    "p90": 0.96
+    "best": {
+     "n": 72,
+     "median": 0.73,
+     "p10": 0.57,
+     "p90": 0.85
+    },
+    "at_least": 0.58,
+    "at_most": 0.96
    },
-   "length_m": {
-    "n": 72,
-    "median": 0.31,
-    "p10": 0.28,
-    "p90": 0.36
+   "path_m": {
+    "best": {
+     "n": 72,
+     "median": 0.272,
+     "p10": 0.234,
+     "p90": 0.325
+    },
+    "at_least": 0.215,
+    "at_most": 0.363
    }
   },
   "right_out": {
@@ -362,97 +374,103 @@
     1.0
    ],
    "speed_share_of_top": [
-    0.25,
-    0.4,
-    0.52,
-    0.66,
-    0.74,
-    0.72,
-    0.78,
-    0.86,
-    0.87,
-    0.82,
-    0.81,
-    0.76,
-    0.66,
-    0.61,
-    0.52,
-    0.5,
-    0.42,
-    0.35,
-    0.27,
     0.19,
-    0.08
-   ],
-   "quarter_low": [
-    0.15,
-    0.28,
-    0.38,
-    0.49,
-    0.54,
-    0.55,
+    0.36,
+    0.46,
+    0.63,
+    0.72,
+    0.7,
+    0.77,
+    0.84,
+    0.86,
+    0.82,
+    0.77,
+    0.76,
+    0.68,
+    0.64,
     0.57,
     0.52,
-    0.54,
-    0.63,
-    0.73,
-    0.69,
-    0.61,
-    0.5,
     0.42,
+    0.37,
+    0.27,
+    0.17,
+    0.07
+   ],
+   "quarter_low": [
+    0.14,
+    0.21,
     0.36,
-    0.3,
-    0.26,
-    0.19,
+    0.47,
+    0.53,
+    0.46,
+    0.44,
+    0.41,
+    0.43,
+    0.51,
+    0.7,
+    0.7,
+    0.61,
+    0.52,
+    0.46,
+    0.39,
+    0.33,
+    0.28,
+    0.21,
     0.13,
-    0.05
+    0.04
    ],
    "quarter_high": [
-    0.33,
-    0.47,
+    0.27,
+    0.43,
     0.62,
-    0.76,
-    0.81,
-    0.87,
+    0.74,
+    0.78,
+    0.86,
+    0.91,
+    0.95,
     0.94,
     0.94,
-    0.94,
-    0.9,
-    0.87,
+    0.89,
+    0.84,
     0.85,
-    0.88,
-    0.77,
+    0.79,
     0.72,
     0.61,
-    0.55,
-    0.52,
-    0.36,
-    0.23,
-    0.11
+    0.51,
+    0.43,
+    0.31,
+    0.22,
+    0.1
    ],
    "top_m_s": {
-    "n": 41,
-    "median": 0.94,
-    "p10": 0.71,
-    "p90": 2.31
-   },
-   "top_m_s_if_wrist_raised": {
-    "n": 41,
-    "median": 0.83,
-    "p10": 0.63,
-    "p90": 2.02
+    "best": {
+     "n": 41,
+     "median": 0.92,
+     "p10": 0.69,
+     "p90": 1.99
+    },
+    "at_least": 0.89,
+    "at_most": 0.94
    },
    "mean_m_s": {
-    "n": 41,
-    "median": 0.48,
-    "p10": 0.3,
-    "p90": 1.05
+    "best": {
+     "n": 41,
+     "median": 0.49,
+     "p10": 0.4,
+     "p90": 1.0
+    },
+    "at_least": 0.46,
+    "at_most": 0.54
    },
-   "length_m": {
-    "n": 41,
-    "median": 0.34,
-    "p10": 0.21,
-    "p90": 0.71
+   "path_m": {
+    "best": {
+     "n": 41,
+     "median": 0.388,
+     "p10": 0.196,
+     "p90": 0.862
+    },
+    "at_least": 0.369,
+    "at_most": 0.416
    }
   },
   "right_back": {
@@ -481,143 +499,149 @@
     1.0
    ],
    "speed_share_of_top": [
-    0.16,
-    0.29,
-    0.43,
-    0.54,
-    0.61,
-    0.7,
+    0.17,
+    0.3,
+    0.4,
+    0.51,
+    0.57,
+    0.69,
     0.8,
-    0.85,
     0.86,
-    0.88,
+    0.87,
+    0.9,
     0.85,
     0.83,
-    0.77,
-    0.71,
-    0.6,
-    0.51,
-    0.43,
+    0.76,
+    0.67,
+    0.59,
+    0.52,
+    0.44,
     0.33,
-    0.23,
-    0.17,
-    0.1
+    0.22,
+    0.16,
+    0.08
    ],
    "quarter_low": [
-    0.1,
-    0.22,
+    0.11,
+    0.23,
     0.33,
-    0.4,
-    0.48,
-    0.53,
-    0.4,
-    0.47,
-    0.52,
-    0.55,
-    0.64,
-    0.71,
-    0.64,
-    0.57,
-    0.48,
     0.41,
-    0.35,
-    0.26,
+    0.47,
+    0.42,
+    0.29,
+    0.43,
+    0.51,
+    0.6,
+    0.63,
+    0.69,
+    0.63,
+    0.55,
+    0.5,
+    0.41,
+    0.33,
+    0.24,
     0.17,
     0.11,
-    0.06
+    0.05
    ],
    "quarter_high": [
-    0.26,
-    0.43,
-    0.58,
-    0.68,
-    0.75,
+    0.24,
+    0.38,
+    0.52,
+    0.64,
+    0.7,
     0.8,
-    0.88,
+    0.87,
     0.94,
     0.96,
     0.96,
     0.94,
     0.89,
-    0.86,
-    0.81,
-    0.74,
+    0.85,
+    0.78,
+    0.7,
     0.65,
-    0.56,
-    0.45,
-    0.33,
-    0.21,
-    0.15
+    0.53,
+    0.43,
+    0.3,
+    0.2,
+    0.13
    ],
    "top_m_s": {
-    "n": 55,
-    "median": 1.14,
-    "p10": 0.78,
-    "p90": 3.14
-   },
-   "top_m_s_if_wrist_raised": {
-    "n": 55,
-    "median": 1.0,
-    "p10": 0.69,
-    "p90": 2.75
+    "best": {
+     "n": 55,
+     "median": 1.12,
+     "p10": 0.75,
+     "p90": 2.53
+    },
+    "at_least": 1.11,
+    "at_most": 1.14
    },
    "mean_m_s": {
-    "n": 55,
-    "median": 0.51,
-    "p10": 0.37,
-    "p90": 0.83
+    "best": {
+     "n": 55,
+     "median": 0.57,
+     "p10": 0.42,
+     "p90": 0.93
+    },
+    "at_least": 0.54,
+    "at_most": 0.59
    },
-   "length_m": {
-    "n": 55,
-    "median": 0.33,
-    "p10": 0.22,
-    "p90": 0.61
+   "path_m": {
+    "best": {
+     "n": 55,
+     "median": 0.315,
+     "p10": 0.216,
+     "p90": 0.929
+    },
+    "at_least": 0.301,
+    "at_most": 0.356
    }
   }
  },
  "handover": {
-  "how": "The hands are measured, not the card: the card is taken to be with the left hand until the two hands' grips are nearest each other, and with the right hand from then on. top_before is the left wrist's top speed on the way in, top_after the right wrist's on the way out, dip the lowest speed of the hand that has the card between those two tops (as metres a second and as a share of the higher top: 0 is a full stop, 1 no dip). curve is that speed from the one top to the other in 21 steps. Counted only where the right hand does carry on (over 0.3 m/s) after the meeting. An estimate until the card's own track is laid beside it.",
+  "how": "The hands are measured, not the card: the card is taken to be with the left hand until the two hands' grips are nearest each other, and with the right hand from then on. top_before is the left wrist's top speed on the way in, top_after the right wrist's on the way out, dip the lowest speed of the hand that has the card between those two tops (as metres a second, the best estimate of metres.how, and as a share of the higher top: 0 is a full stop, 1 no dip). curve is that speed from the one top to the other in 21 steps. On our own figure's film this way of measuring found one near stop where the figure's own numbers have three, so a short dip can be missed. Counted only where the right hand does carry on (over 0.3 m/s) after the meeting. An estimate until the card's own track is laid beside it.",
   "meets_after_left_arrives_s": {
-   "n": 69,
+   "n": 67,
    "median": -0.133,
    "p10": -0.167,
-   "p90": 0.327
+   "p90": 0.247
   },
   "hands_apart_m": {
-   "n": 69,
+   "n": 67,
    "median": 0.075,
-   "p10": 0.031,
+   "p10": 0.03,
    "p90": 0.135
   },
   "dip_share_of_top": {
-   "n": 69,
-   "median": 0.051,
-   "p10": 0.006,
-   "p90": 0.221
+   "n": 67,
+   "median": 0.063,
+   "p10": 0.008,
+   "p90": 0.455
   },
   "dip_m_s": {
-   "n": 69,
-   "median": 0.092,
+   "n": 67,
+   "median": 0.089,
    "p10": 0.011,
-   "p90": 0.425
+   "p90": 0.646
   },
   "top_before_m_s": {
-   "n": 69,
-   "median": 1.836,
-   "p10": 1.536,
-   "p90": 2.061
+   "n": 67,
+   "median": 1.318,
+   "p10": 1.171,
+   "p90": 1.503
   },
   "top_after_m_s": {
-   "n": 69,
-   "median": 0.857,
-   "p10": 0.457,
-   "p90": 1.551
+   "n": 67,
+   "median": 0.725,
+   "p10": 0.416,
+   "p90": 1.538
   },
   "top_to_top_s": {
-   "n": 69,
-   "median": 0.567,
-   "p10": 0.367,
-   "p90": 1.133
+   "n": 67,
+   "median": 0.533,
+   "p10": 0.12,
+   "p90": 1.06
   },
   "curve_time": [
    0.0,
@@ -644,26 +668,26 @@
   ],
   "curve_share_of_top": [
    1.0,
-   0.91,
-   0.75,
-   0.51,
-   0.29,
-   0.22,
-   0.22,
-   0.2,
+   0.95,
+   0.78,
+   0.49,
+   0.38,
+   0.28,
+   0.24,
+   0.21,
    0.17,
-   0.15,
-   0.15,
-   0.15,
-   0.16,
-   0.16,
+   0.18,
+   0.19,
    0.17,
    0.19,
-   0.21,
-   0.28,
-   0.31,
-   0.37,
-   0.45
+   0.17,
+   0.2,
+   0.23,
+   0.3,
+   0.39,
+   0.43,
+   0.48,
+   0.53
   ]
  },
  "trunk": {
@@ -917,19 +941,19 @@
   }
  },
  "other_hand": {
-  "how": "What the hand that is not dealing does during the other hand's move: its path, its mean speed, and the share of the time it is still (under 0.05 m/s).",
+  "how": "What the hand that is not dealing does during the other hand's move: its path, its mean speed (the best estimate of metres.how), and the share of the time it is still (under 0.05 m/s).",
   "right_while_left_goes_to_shoe": {
    "path_m": {
     "n": 72,
-    "median": 0.195,
-    "p10": 0.081,
-    "p90": 0.309
+    "median": 0.16,
+    "p10": 0.077,
+    "p90": 0.277
    },
    "mean_m_s": {
     "n": 72,
-    "median": 0.434,
-    "p10": 0.141,
-    "p90": 0.648
+    "median": 0.371,
+    "p10": 0.122,
+    "p90": 0.593
    },
    "still_share_of_the_time": {
     "n": 72,
@@ -941,41 +965,41 @@
   "right_while_left_comes_back": {
    "path_m": {
     "n": 72,
-    "median": 0.205,
-    "p10": 0.138,
-    "p90": 0.267
+    "median": 0.187,
+    "p10": 0.124,
+    "p90": 0.249
    },
    "mean_m_s": {
     "n": 72,
-    "median": 0.55,
-    "p10": 0.345,
-    "p90": 0.71
+    "median": 0.48,
+    "p10": 0.294,
+    "p90": 0.664
    },
    "still_share_of_the_time": {
     "n": 72,
     "median": 0.0,
     "p10": 0.0,
-    "p90": 0.12
+    "p90": 0.18
    }
   },
   "left_while_right_goes_out": {
    "path_m": {
     "n": 41,
-    "median": 0.321,
-    "p10": 0.065,
-    "p90": 0.651
+    "median": 0.253,
+    "p10": 0.046,
+    "p90": 0.522
    },
    "mean_m_s": {
     "n": 41,
-    "median": 0.552,
-    "p10": 0.092,
-    "p90": 0.794
+    "median": 0.438,
+    "p10": 0.063,
+    "p90": 0.626
    },
    "still_share_of_the_time": {
     "n": 41,
-    "median": 0.06,
+    "median": 0.08,
     "p10": 0.0,
-    "p90": 0.62
+    "p90": 0.72
    }
   }
  },

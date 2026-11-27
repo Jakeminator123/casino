@@ -1,8 +1,10 @@
 # Measures the dealer in the film frame by frame with MediaPipe: the body (33 points), both hands (21 points each), and
 # the face (head turn, where the eyes look, blinks, the mouth). Only the clean stretches of data/kalla.json are read.
-#   python -I live-bj/verktyg/mat.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt [--steg 2] [--del 0/4] [--bara 127.25]
+#   python -I live-bj/verktyg/mat.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt [--steg 2] [--del 0/4] [--bara 127.25] [--ensam]
 # --steg 2 takes every second frame (30 a second); --del i/n lets n runs of the tool share the stretches; --bara takes
-# one stretch by its start. Writes one file per stretch, matt/rorelse-<start>.json. Reads the film only, saves no picture.
+# one stretch by its start; --ensam is for a film with nobody behind the dealer (our own figure's films, each with a
+# small file like data/kalla.json that gives its size, its frames a second and one stretch for the whole film).
+# Writes one file per stretch, matt/rorelse-<start>.json. Reads the film only, saves no picture.
 # The model files are those of blackjack-dealer/tools/python/models (its README says where they come from).
 #
 # How the dealer is told from the two dealers at the tables behind him: their corners of the picture are painted over
@@ -16,6 +18,7 @@ from mediapipe.tasks.python import vision, BaseOptions
 HERE = os.path.dirname(os.path.abspath(__file__))
 MODELS = os.environ.get('DEALER_MODELS') or os.path.join(HERE, '..', '..', 'blackjack-dealer', 'tools', 'python', 'models')
 BEHIND = [(0.0, 0.0, 0.324, 0.355), (0.747, 0.0, 1.0, 0.34)]   # the dealers behind: x0, y0, x1, y1 as shares of the picture
+ALONE = '--ensam' in sys.argv                                   # a film with nobody behind the dealer (our own figure): nothing is painted over
 HAND_BOX = 0.19     # side of the square around a wrist, as a share of the picture's width
 FACE_POINTS = {'irisR': 468, 'irisL': 473, 'eyeR_out': 33, 'eyeR_in': 133, 'eyeL_in': 362, 'eyeL_out': 263, 'lidR_up': 159, 'lidR_down': 145, 'lidL_up': 386, 'lidL_down': 374,
                'nose': 1, 'chin': 152, 'brow': 10, 'mouth_up': 13, 'mouth_down': 14, 'mouthR': 61, 'mouthL': 291}   # R and L are the dealer's own right and left
@@ -56,7 +59,7 @@ def measure(cap, source, run, step, out):
                 continue
             pic = full[y:y + h, x:x + w]
             alone = pic.copy()
-            for a, b, c, d in BEHIND:
+            for a, b, c, d in ([] if ALONE else BEHIND):
                 alone[int(b * h):int(d * h), int(a * w):int(c * w)] = (40, 20, 50)
             pr = pm.detect_for_video(as_image(alone), int((index - first) * 1000 / fps))
             entry = {'f': index, 't': round(index / fps, 3), 'pose': None, 'hands': {}, 'face': None}
