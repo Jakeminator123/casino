@@ -55,24 +55,24 @@ const ensureStudio=()=>{
 if(has('--restart')){
  // A new server for changed server code, without losing the lab tab: the tab is told, waits and reloads by itself.
  const alive=await health();
- if(alive&&(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd())))throw Error('Preview identity differs');
- if(alive){const s=await readState();if(!s?.token)throw Error('Preview control failed');
-  const r=await fetch(origin+'/stop?restart=1',{method:'POST',headers:{'x-dealer-token':s.token}});if(!r.ok)throw Error('Preview control failed');
+ if(alive&&(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd())))throw Error('Porten svarar från en annan server än den här mappens: stoppa den först.');
+ if(alive){const s=await readState();if(!s?.token)throw Error('Servern svarade inte på kommandot: försök igen.');
+  const r=await fetch(origin+'/stop?restart=1',{method:'POST',headers:{'x-dealer-token':s.token}});if(!r.ok)throw Error('Servern svarade inte på kommandot: försök igen.');
   for(let i=0;i<40&&await health();i++)await new Promise(done=>setTimeout(done,250));}
  await startServer();console.log(alive?'Servern är omstartad; flikarna laddar om sig själva.':'Servern är startad.');
 }else if(has('--stop')||has('--status')){
  const alive=await health();
  // Not running is an answer, not a failure; a status file left by a server that was killed is cleared on the way.
  if(!alive){const s=await readState();if(s&&sameRoot(s.root,process.cwd()))await unlink(state).catch(()=>{});console.log('Servern är inte igång.');}
- else if(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd()))throw Error('Preview identity differs');
- else if(has('--status'))console.log(JSON.stringify(alive));
- else{const s=await readState();if(!s?.token)throw Error('Preview control failed');
+ else if(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd()))throw Error('Porten svarar från en annan server än den här mappens: stoppa den först.');
+ else if(has('--status'))console.log(`Studion går: ${origin}/studio/`);
+ else{const s=await readState();if(!s?.token)throw Error('Servern svarade inte på kommandot: försök igen.');
   const r=await fetch(origin+'/stop',{method:'POST',headers:{'x-dealer-token':s.token}});
-  if(!r.ok)throw Error('Preview control failed');console.log(await r.text());}
+  if(!r.ok)throw Error('Servern svarade inte på kommandot: försök igen.');console.log(await r.text());}
 }else if(has('--ensure')){
  // Before a link to the lab is handed to Jakob: the server is started if it is not running, and no tab is opened or moved.
  const alive=await health();
- if(alive&&(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd())))throw Error('Preview identity differs');
+ if(alive&&(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd())))throw Error('Porten svarar från en annan server än den här mappens: stoppa den först.');
  ensureStudio();if(!alive)await startServer();console.log(alive?`Servern går: ${origin}`:`Servern är startad: ${origin}`);
 }else if(has('--open')){
  // The one way to put a lab page in front of Jakob: node tools/preview.ts --open "/studio/granska/?prov=<id>" (npm start does
@@ -83,11 +83,11 @@ if(has('--restart')){
  const target=openAddress(args,origin);
  if(!target)throw Error('Ange en sida i studion, till exempel /studio/granska/?prov=<id>');
  let alive=await health();
- if(alive&&(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd())))throw Error('Preview identity differs');
+ if(alive&&(alive.name!=='dealer'||!sameRoot(alive.root,process.cwd())))throw Error('Porten svarar från en annan server än den här mappens: stoppa den först.');
  ensureStudio();if(!alive)await startServer();
  let s=await readState();for(let i=0;i<20&&!s?.token;i++){await new Promise(done=>setTimeout(done,100));s=await readState();}
  const r=await fetch(origin+'/tab/show',{method:'POST',headers:{'x-dealer-token':s?.token??'','content-type':'application/json'},body:JSON.stringify({url:target})});
- if(!r.ok)throw Error('Preview control failed');
+ if(!r.ok)throw Error('Servern svarade inte på kommandot: försök igen.');
  if((await r.json() as {reused:boolean}).reused)console.log(`Visas i den nyaste öppna fliken: ${origin}${target}`);
  else{
   const [command,list]:[string,string[]]=process.platform==='win32'?['rundll32',['url.dll,FileProtocolHandler',origin+target]]:process.platform==='darwin'?['open',[origin+target]]:['xdg-open',[origin+target]];
@@ -246,7 +246,10 @@ if(has('--restart')){
    // studio only, on his click in Scen, against the revision last read.
    if(url.pathname==='/api/play-view'){
     res.setHeader('Content-Type','application/json; charset=utf-8');
-    const setup=lasUppsattning(url.searchParams.get('uppsattning'))??'forra',playView=playViews[setup];
+    // A misspelt word is refused: read as the former standard it would save his play view into the wrong file.
+    const ord=url.searchParams.get('uppsattning'),last=lasUppsattning(ord);
+    if(ord&&!last){res.writeHead(400).end(JSON.stringify({error:`Okänt ord i adressen: uppsattning=${ord.slice(0,40)}. Det ska vara live eller forra.`}));return;}
+    const setup=last??'forra',playView=playViews[setup];
     try{
      if(req.method==='GET'){res.end(JSON.stringify({...await playView.load(),uppsattning:setup}));return;}
      if(req.method!=='PUT'){res.writeHead(405).end();return;}
@@ -375,7 +378,7 @@ if(has('--restart')){
    const studio=url.pathname==='/studio'||url.pathname.startsWith('/studio/')?await resolveStudio(url.pathname):null;
    if(studio){
     if(studio.kind==='redirect'){res.writeHead(301,{Location:studio.to+url.search}).end();return;}
-    if(studio.kind==='unbuilt'){res.writeHead(503,{'Content-Type':'text/html; charset=utf-8'}).end('<!doctype html><html lang="sv"><meta charset="utf-8"><title>Dealer · Studio</title><body style="margin:0;height:100vh;display:grid;place-items:center;background:#0d0f0e;color:#e8ece9;font:15px system-ui,sans-serif"><p>Studion är inte byggd på den här datorn. Kör <code>npm --prefix studio ci</code> och <code>npm --prefix studio run build</code>, och ladda om. <a style="color:#d9b96a" href="/scene3d.html">Till 3D-sidan</a></p></body></html>');return;}
+    if(studio.kind==='unbuilt'){res.writeHead(503,{'Content-Type':'text/html; charset=utf-8'}).end('<!doctype html><html lang="sv"><meta charset="utf-8"><meta http-equiv="refresh" content="3"><title>Dealer Studio · byggs om</title><body style="margin:0;height:100vh;display:grid;place-items:center;background:#0d0f0e;color:#e8ece9;font:15px system-ui,sans-serif"><div style="max-width:34rem;padding:1.5rem;text-align:center"><p style="font-size:17px">Studion byggs om just nu. Sidan försöker igen var tredje sekund.</p><p style="opacity:.7">Kommer den inte tillbaka inom ett par minuter är studion inte byggd på den här datorn: kör <code>npm --prefix studio ci</code> och <code>npm --prefix studio run build</code>. <a style="color:#d9b96a" href="/scene3d.html">Till 3D-sidan</a></p></div></body></html>');return;}
     if(studio.kind==='none'){res.writeHead(404).end();return;}
     file=studio.file;type=studio.type;
    }else{
