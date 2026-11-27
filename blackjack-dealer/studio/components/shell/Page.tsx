@@ -23,7 +23,7 @@ export function Page({
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-6">
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line bg-surface px-4 sm:gap-3 sm:px-6">
         <h1 className="shrink-0 font-display text-xl font-semibold tracking-[-0.015em] text-ink">{title}</h1>
         {status ? (
           <>
@@ -31,10 +31,11 @@ export function Page({
             <div className="flex min-w-0 items-center gap-2 truncate text-sm text-dim">{status}</div>
           </>
         ) : null}
-        {actions ? <div className="ml-auto flex shrink-0 items-center gap-2">{actions}</div> : null}
+        {/* On a narrow screen the buttons scroll sideways in their place rather than leave the screen. */}
+        {actions ? <div className="ml-auto flex min-w-0 items-center gap-2 overflow-x-auto [&>*]:shrink-0">{actions}</div> : null}
       </header>
       <main className={cn("relative min-h-0 flex-1", full ? "overflow-hidden" : "overflow-y-auto scrollbar-gutter-stable", className)}>
-        {full ? children : <div className="mx-auto w-full max-w-[1680px] px-6 pb-10 pt-6">{children}</div>}
+        {full ? children : <div className="mx-auto w-full max-w-[1680px] px-4 pb-10 pt-4 sm:px-6 sm:pt-6">{children}</div>}
       </main>
     </div>
   );

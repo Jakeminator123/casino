@@ -15,7 +15,7 @@ import { Page } from "../shell";
 import { Button, ErrorState, Panel, SegmentedControl, Skeleton, buttonClasses, cn } from "../ui";
 import { AnchorSheet, MotionSheet } from "./MotionSheet";
 import { PlatsGrid, cellsOf } from "./PlatsGrid";
-import { SchemaGraph, drawn } from "./SchemaGraph";
+import { SchemaGraph, SchemaList, drawn } from "./SchemaGraph";
 import { SchemaSwitch } from "./SchemaSwitch";
 import { SLAG_ORD, getSchema, platsAv, type Schema } from "@/lib/schemat";
 
@@ -118,9 +118,10 @@ export function SchemaView() {
                 );
               })}
             </div>
-            <div className="overflow-x-auto p-3">
+            <div className="hidden overflow-x-auto p-3 md:block">
               <SchemaGraph schema={schema} docka={docka.id} stadium={stadium} chosen={rorelse} missing={missing} onPick={pick} onAnchor={pickAnchor} />
             </div>
+            <SchemaList className="px-4 md:hidden" schema={schema} docka={docka.id} stadium={stadium} missing={missing} onPick={pick} onAnchor={pickAnchor} />
           </Panel>
         </div>
       )}

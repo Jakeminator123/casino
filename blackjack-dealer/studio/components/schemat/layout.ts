@@ -16,7 +16,7 @@ export const PLATS: Record<string, [number, number]> = {
   "A2.3": [2, 1],
   A2M: [3, 0],
   A3PnCm: [4, 1],
-  A3DCm: [4, 2],
+  A3DCm: [3, 2],
   A1V: [5, 1],
 };
 

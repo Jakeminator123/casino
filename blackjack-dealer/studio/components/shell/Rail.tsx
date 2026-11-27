@@ -190,7 +190,8 @@ export function Rail() {
       <DealerSwitch />
       <SetupSwitch />
       <Rule />
-      <ul className="flex min-h-0 flex-col gap-0.5 overflow-y-auto scrollbar-none">
+      {/* The views scroll when the window is low; the thin scrollbar (app/globals.css) shows that there is more. */}
+      <ul className="flex min-h-0 flex-col gap-0.5 overflow-y-auto">
         {SHOWN.map((view) => (
           <li key={view.href}>
             {view.group ? (

@@ -7,7 +7,8 @@
 // stage lifts its home and motions and tones the rest down. A click on a curve or a name opens the motion, on a box the anchor.
 // The picture fills its frame, down to a width where the names can be read; narrower, it is scrolled sideways.
 import { useMemo, useState } from "react";
-import { NODE, schemaLayout, type LayoutMotion } from "./layout";
+import { cn } from "../ui";
+import { NODE, PLATS, schemaLayout, type LayoutMotion } from "./layout";
 import { finnsFor, platsOchKort, type Schema, type Status } from "@/lib/schemat";
 
 /** Words in lines of at most `max` characters, at most `rows` lines (the last cut with …). */
@@ -24,7 +25,7 @@ export function wrap(text: string, max: number, rows: number): string[] {
   return kept;
 }
 
-const LINE = 15, CHAR = 6.7, NAME_CHARS = 18, MIN_WIDTH = 980;
+const LINE = 15, CHAR = 6.7, NAME_CHARS = 18, MIN_WIDTH = 620;
 const GROUP = "grupp:";
 
 /** The status a doll's motion is drawn with: hers when she has it (the catalogue's finns or delvis), else what it lacks. */
@@ -41,6 +42,66 @@ const LACK: Record<Status, { stroke: string; dash: string }> = {
   saknas: { stroke: "var(--color-faint)", dash: "6 5" },
   förslag: { stroke: "var(--color-brass)", dash: "0.5 5" },
 };
+
+/**
+ * The same scheme as a list, for a narrow screen (a phone): each anchor in the round's order (PLATS), and under it the motions
+ * from it, with the same dots, her motions only unless "Visa det som saknas" is on. A click opens the motion or the anchor.
+ */
+export function SchemaList({ schema, docka, stadium, missing, onPick, onAnchor, className }: { schema: Schema; docka: string; stadium: string | null; missing: boolean; onPick: (rorelse: string) => void; onAnchor: (ankare: string) => void; className?: string }) {
+  const stage = stadium ? schema.stadier.find((s) => s.id === stadium) ?? null : null;
+  const order = (id: string) => (PLATS[id] ? PLATS[id][0] * 10 + PLATS[id][1] : 1000 + schema.ankare.findIndex((a) => a.id === id));
+  const anchors = [...schema.ankare].sort((a, b) => order(a.id) - order(b.id));
+  const name = (id: string | null) => schema.ankare.find((a) => a.id === id)?.namn ?? id ?? "";
+  return (
+    <ul className={cn("divide-y divide-line", className)}>
+      {anchors.flatMap((a) => {
+        const from = schema.rorelser
+          .filter((r) => r.franAnkare === a.id && (missing || drawn(schema, docka, r.id).has))
+          .sort((x, y) => Number(y.tillAnkare === a.id) - Number(x.tillAnkare === a.id));
+        if (!from.length) return [];
+        const dim = stage ? stage.hem !== a.id && !from.some((r) => stage.rorelser.includes(r.id)) : false;
+        return [
+          <li key={a.id} className={cn("py-2.5", dim && "opacity-30")}>
+            <button type="button" onClick={() => onAnchor(a.id)} className="flex items-baseline gap-2 text-left">
+              <span className="text-xs text-faint tabular-nums">{a.id}</span>
+              <span className={cn("font-semibold", stage?.hem === a.id ? "text-brass-hi" : "text-ink")}>{a.namn}</span>
+            </button>
+            <ul className="mt-1.5 space-y-1">
+              {from.map((r) => {
+                const d = drawn(schema, docka, r.id), lit = !stage || stage.rorelser.includes(r.id);
+                return (
+                  <li key={r.id} className={cn(!lit && "opacity-40")}>
+                    <button type="button" onClick={() => onPick(r.id)} className={cn("flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left text-sm", d.has ? "bg-raised text-ink" : "border border-dashed border-line-strong text-dim")}>
+                      <svg width={12} height={12} viewBox="0 0 12 12" aria-hidden className="mt-1 shrink-0">
+                        {d.has ? (
+                          d.status === "delvis" ? (
+                            <>
+                              <circle cx={6} cy={6} r={5} fill="none" stroke="var(--color-godkand)" strokeWidth={1.5} />
+                              <path d="M 6 1 A 5 5 0 0 0 6 11 Z" fill="var(--color-godkand)" />
+                            </>
+                          ) : (
+                            <circle cx={6} cy={6} r={5} fill="var(--color-godkand)" />
+                          )
+                        ) : (
+                          <circle cx={6} cy={6} r={4.5} fill="none" stroke={d.status === "förslag" ? "var(--color-brass)" : "var(--color-faint)"} strokeDasharray="2 2" />
+                        )}
+                      </svg>
+                      <span className="min-w-0 flex-1">
+                        {r.namn}
+                        {r.tillAnkare !== a.id ? <span className="block text-xs text-faint">→ {name(r.tillAnkare)}</span> : null}
+                      </span>
+                      {d.has && d.places > 1 ? <span className="shrink-0 text-xs text-[#7fd3a5] tabular-nums">{d.places} platser</span> : null}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </li>,
+        ];
+      })}
+    </ul>
+  );
+}
 
 /** The dot by a name: full for finns, half for delvis. */
 function Dot({ x, y, status }: { x: number; y: number; status: Status }) {
@@ -83,7 +144,9 @@ export function SchemaGraph({
     for (const g of groups) layoutMotions.push({ id: GROUP + g.anchor, franAnkare: g.anchor, tillAnkare: g.anchor });
     const used = new Set(layoutMotions.flatMap((m) => [m.franAnkare ?? "", m.tillAnkare ?? ""]));
     const mine = new Set(schema.ankaren.filter((a) => a.docka === docka).map((a) => a.ankare));
-    const anchors = schema.ankare.filter((a) => missing || used.has(a.id) || mine.has(a.id));
+    // With "Visa det som saknas" also the anchors a motion of the scheme goes to or from; never one no motion touches.
+    const touched = new Set(schema.rorelser.flatMap((r) => [r.franAnkare ?? "", r.tillAnkare ?? ""]));
+    const anchors = schema.ankare.filter((a) => used.has(a.id) || mine.has(a.id) || (missing && touched.has(a.id)));
     return { layoutMotions, groups, anchors, mine };
   }, [schema, docka, missing]);
 
