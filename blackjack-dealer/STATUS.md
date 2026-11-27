@@ -93,27 +93,32 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 I den här ordningen om han inte säger annat.
 
-1. **Nästa film av Kenji,** efter hans ord om tempot och kortets kontakt och domarens råd:
-   - Takten ur dockans film i själva anropet: Kling 4 med stillbilderna och dockfilmen som referensfilm (cirka 70
-     krediter; stillbilderna finns i provets `original/v3/ut/`), så att inget behöver tryckas in efteråt.
+1. **En giv till dagens plats 4 som tre klipp mellan ankarbilder, med dockans film som referensfilm.** Det är vad
+   båda vägarna 2026-11-27 kom fram till (den här datorns tre omgångar med Kenji, och den andra sessionens tolfte och
+   fjortonde prov för hand i Runways app):
+   - Klippen följer schemat: A2.3 → A2M (samma för alla platser), A2M → A3P4C1, A3P4C1 → A2.3 med kortet. Kling 4, med
+     ankarbilderna som första och sista bild och dockans film av samma steg som referensfilm. Takten och rörelsen
+     kommer då ur dockan redan när filmen görs, ansiktet och händerna ur bilderna, och klippen går ihop i ankarna.
+     En referensfilm ska vara minst 3 s: steget fylls ut med stillhet i ankarna och klipps där efteråt.
+   - Kenjis fyra ankarbilder finns redan i provets `original/` (betalda): `v2/ut/start.png` (A2.3),
+     `v3/ut/mellan-29.png` (A2M), `v3/ut/mellan-44.png` (A3P4C1) och `v3/ut/sista.png` (A2.3 med kortet). Tre klipp
+     kostar cirka 200 krediter.
+   - Före beställningen, gratis, eftersom Kling med referensfilm kopierar dockans fel: vänsterhanden platt på skon,
+     och dockans kropp. Lederna är dealerns, men bålens och armarnas volym är kroppsgeneratorns egen, så dockan är
+     tjockare än Danilo (Jakob: "den tjocka dockan ... känns riktigt klumpig"); volymen ska komma ur filmen eller
+     personens bilder (SAM 3D Body ger kroppsformen).
    - Vårt kort läggs där filmens fingertoppar är, ruta för ruta, i stället för efter dockans kortbana
      (`../standarddocka/verktyg/lagg-pa-bord.ts`).
-   - Dockans kropp: lederna är dealerns, men bålens och armarnas volym är kroppsgeneratorns egen, så dockan är
-     tjockare än Danilo (Jakob: "den tjocka dockan ... känns riktigt klumpig"). Volymen ska mätas ur filmen eller ur
-     personens bilder (SAM 3D Body ger kroppsformen).
-   - Hans dom på filmerna som finns: kortet `kenji-ger-ett-kort` i Beslut. Kortet `sju-bilder-vid-livebordet` med
-     svaret "gör en video till" står kvar tills han har dömt.
+   - Hans dom på filmerna som finns är Inte bra. Korten `kenji-ger-ett-kort` och `sju-bilder-vid-livebordet` ("gör
+     en video till") står kvar i Beslut tills nästa film finns.
 2. **Rörelsen:** vänsterhanden platt på skons kort (kräver att vänsterns handled vid skon mäts om i filmen; ett
    försök gjorde de andra givarna sämre och togs bort), tummens form när fingret ligger på kortet, pekfingret som går
    genom kortet i två rutor under handen, och högerhanden som går fram och tillbaka före bytet där dealerns ligger
    kvar och väntar. Bytet till de andra platserna saknas: de behöver sina lyft lagda från samma ankare A2M.
 3. **Kedjan av ankarbilder genom en hel runda** (tolfte och fjortonde provet i skillen `runway`): givarna går mellan
    fasta bilder i rundans ordning (`rundaAv`, platserna 7 till 1 i dagens numrering) och spelets klippgraf
-   (`src/clip-graph.ts`). Handbytet som egen bild är prövat och får handen att vända kortet.
-   - Nästa: slå ihop det med vägen här. Varje steg i schemat (A2.3 → A2M, A2M → A3PnC1, A3PnC1 → A2.3) blir ett klipp
-     i Kling 4, med ankarbilderna som första och sista bild och dockans film av samma steg som referensfilm, genom
-     livebordets kamera i nyckelfärgerna. Då kommer takten och rörelsen från dockan, och klippen går ihop i
-     ankarna.
+   (`src/clip-graph.ts`). Handbytet som egen bild är prövat och får handen att vända kortet. Görs när punkt 1 har
+   gett en giv som håller.
    - Ankarbilderna görs som ändringar av A2.3: kortplatsen målas in före ändringen, och A2.3 med kortet klistras
      in.
    - Samma referensfilm, med ankarbilder från spelarnas kameror, ger samma rörelse från alla sju platserna. Klipp inte
