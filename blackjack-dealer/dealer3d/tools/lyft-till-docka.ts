@@ -149,16 +149,18 @@ const dynor = (h: Hand) => add(toppMitt(h), mul(h.a.palm, BALL(8)));
 const LUFT = 0.0006;
 /** Den led i högern som håller kortet från bytet till platsen: tummens topp (FINGERS[0], dealerns tumme på kortet, förlagans ruta 29–76). */
 const TUMME = 4;
-/** Var tummen ligger på kortet när det ligger plant med framsidan upp: 12 mm från den bortre kortsidan (kortets egna u från mitten). */
-const VAND_U = -(CARD.height / 2 - 0.012);
-/** Fingrarnas böjning (grader i knogen, mellan- och ytterleden) i högern på kortet: en lös knuten hand, som dealerns (förlagans ruta 31–76). */
-const NAVE: Record<number, [number, number, number]> = {1: [43, 100, 60], 2: [48, 100, 60], 3: [48, 100, 60], 4: [48, 100, 60]};
+/** Var tummen ligger på kortet när det ligger plant med framsidan upp: 22 mm från den bortre kortsidan (kortets egna u från mitten), in över kortets hörn som dealerns (domaren 2026-11-27: 12–15 bildpunkter in). */
+const VAND_U = -(CARD.height / 2 - 0.022);
+/** Fingrarnas böjning (grader i knogen, mellan- och ytterleden) i högern på kortet: en knuten hand med fingrarna inne i handflatan, som dealerns (förlagans ruta 36–58), inte hängande som en tass. */
+const NAVE: Record<number, [number, number, number]> = {1: [75, 100, 60], 2: [80, 100, 60], 3: [80, 100, 60], 4: [80, 100, 60]};
 /** Hur mycket högerns knutna hand lutar nedåt framåt från vågrätt (grader): knogarna lite lägre än handleden, så att handen inte står mer än armen tål från underarmen (lyft-kolla.ts, 50 grader) när underarmen kommer ovanifrån. */
 const NAVE_LUT = 12;
 /** Tummens riktning i handen (fram, mot handflatan, ut åt tumsidan): mest ut åt tumsidan och lite fram och ned, så att den ligger längs kortets bortre kant som dealerns (förlagans ruta 40–56) och den knutna handen står lågt bredvid kortet. */
 const TUMRIKTNING: Vec3 = [0.12, 0.26, 0.96];
 /** Hur mycket högerns knutna hand rullar med tumsidan nedåt (grader): den vilar mot pekfingrets sida, så att tummen ligger lågt längs kortet. */
 const NAVE_RULL = 10;
+/** Hur långt axeln högst skjuts fram mot handen när armen annars inte når (meter, skulderbladet); resten tar bålens lutning. */
+const AXEL_FRAM = 0.09;
 /**
  * DEALERNS HAND PÅ KORTET (Jakob 2026-11-27 efter Youtubefilmen bredvid vår: "Jag ser att dealern i youtube har tummen som
  * visas och vi har hans pekfinger"; förlagans ruta 29–76 i förstoring): från bytet till att den lämnar kortet är högern en
@@ -171,7 +173,9 @@ function tumhand(h: Hand, krok: number): Hand {
   let S = h.S;
   if (krok > 0) { S = S.map(v => [...v] as Vec3); const b = bendsOf(S);
     for (let f = 1; f <= 4; f++) { const c = FINGERS[f], x = b[f - 1], lens = [1, 2, 3].map(j => length(sub(S[c[j]], S[c[j - 1]])));
-      const flex = x.flex.map((v, j) => v + (NAVE[f][j] - v) * krok) as [number, number, number], side = x.side.map(v => v * (1 - krok)) as [number, number, number];
+      // (fingrarna ihop i näven, parallella med handens riktning, inte isär som en tass)
+      const u = unit(sub(S[c[0]], S[0])), ihop = -grad(Math.atan2(u[2], u[0]));
+      const flex = x.flex.map((v, j) => v + (NAVE[f][j] - v) * krok) as [number, number, number], side = x.side.map((v, j) => v + ((j === 0 ? ihop : 0) - v) * krok) as [number, number, number];
       fingerFrom(S, f, {flex, side}, lens).forEach((p, j) => { S[c[j + 1]] = p; }); }
     // (tummen: rak från sin rot längs TUMRIKTNING, ytterleden lite mer nedåt mot kortet)
     const c = FINGERS[0], sida = Math.sign(S[c[0]][2]) || 1, d = unit([TUMRIKTNING[0], TUMRIKTNING[1], TUMRIKTNING[2] * sida]), d2 = unit(add(d, [0, 0.2, 0]));
@@ -195,7 +199,9 @@ function tumhand(h: Hand, krok: number): Hand {
 function plathand(h: Hand, w: number): Hand {
   const P = vilform(h.S), b0 = bendsOf(h.S), b1 = bendsOf(P), S = h.S.map(v => [...v] as Vec3);
   for (let f = 1; f <= 4; f++) { const c = FINGERS[f], lens = [1, 2, 3].map(j => length(sub(S[c[j]], S[c[j - 1]])));
-    const flex = b0[f - 1].flex.map((v, j) => v + (b1[f - 1].flex[j] - v) * w) as [number, number, number], side = b0[f - 1].side.map((v, j) => v + (b1[f - 1].side[j] - v) * w) as [number, number, number];
+    // (fingrarna ihop: var och en vriden i knogen så att den går parallellt med handens riktning, inte ut från handleden som en solfjäder)
+    const u = unit(sub(S[c[0]], S[0])), ihop: [number, number, number] = [-grad(Math.atan2(u[2], u[0])), 0, 0];
+    const flex = b0[f - 1].flex.map((v, j) => v + (b1[f - 1].flex[j] - v) * w) as [number, number, number], side = b0[f - 1].side.map((v, j) => v + (ihop[j] - v) * w) as [number, number, number];
     fingerFrom(S, f, {flex, side}, lens).forEach((p, j) => { S[c[j + 1]] = p; }); }
   const F = flat(h.a.forward), Pd: Vec3 = [0, -1, 0];
   return {a: between(h.a, {forward: F, palm: Pd, across: cross(Pd, F)}, w), w: h.w, S};
@@ -227,8 +233,8 @@ const lyftVid = (ti: Vandtid, x: number) => x >= ti.plan ? 0 : KORT_LYFT * smoot
 // med framsidan mot dealern, tummen på framsidan 12 mm från den kortsidan och VAND_V från den högra långsidan, och vrids
 // ett kvarts varv kring en vågrät axel tvärs bordet till sitt läge plant på platsen (ramen S). Tummen ligger hela tiden på
 // framsidan på samma ställe: kortet glider aldrig under den.
-/** Var tummen håller kortet i sidled, från kortets mitt mot dess högra långsida (dealerns vänster när kortet ligger): 10 mm in. */
-const VAND_V = CARD.width / 2 - 0.010;
+/** Var tummen håller kortet i sidled, från kortets mitt mot dess högra långsida (dealerns vänster när kortet ligger): 18 mm in. */
+const VAND_V = CARD.width / 2 - 0.018;
 /** Kortets ram: långsidan l och framsidans normal n. */
 export type Ram = {l: Vec3; n: Vec3};
 const ramMed = (R: Ram) => { const l = unit(R.l), n = unit(R.n); return {l, n, a: unit(cross(n, l))}; };
@@ -249,7 +255,10 @@ function vridning(A: Ram, B: Ram): {ax: Vec3; v: number} {
 function kortIHogern(tipp: Vec3, M: Ram, S: Ram, s: number, vag: number): Kort {
   const {ax, v} = vridning(M, S), vinkel = vag > 0 ? v * s : -(2 * Math.PI - v) * s, m = ramMed(M);
   const l = unit(turned(m.l, ax, vinkel)), n = unit(turned(m.n, ax, vinkel)), a = cross(n, l), E = sub(tipp, mul(n, BALL(TUMME) + LUFT + CARD.thickness / 2));
-  return {c: sub(sub(E, mul(l, VAND_U)), mul(a, VAND_V)), l, n};
+  // (i bytet nuddar pekfingertoppen kortets nedre hörn på dealerns vänstra sida, förlagans ruta 27–29; medan kortet rullas
+  // och handen knyts går kontakten till tummens ställe på kortet)
+  const k = smooth(s), u0 = -(CARD.height / 2 - 0.004), v0 = CARD.width / 2 - 0.004, U = u0 + (VAND_U - u0) * k, V = v0 + (VAND_V - v0) * k;
+  return {c: sub(sub(E, mul(l, U)), mul(a, V)), l, n};
 }
 
 // ---- jämningen --------------------------------------------------------------------------------------------------------
@@ -636,6 +645,8 @@ export function bygg(b: Bygg) {
   const pek = {platt: Array<number>(n).fill(0), krok: Array<number>(n).fill(0)};
   const lyftHand = (s: Sida, t: number): Hand => { const j = Math.min(t, n - 1), h: Hand = {a: L[s].vinklar[j], w: L[s].w[j], S: fri[s].S[j]};
     if (s !== 'R') return h; const h1 = pek.platt[j] ? plathand(h, pek.platt[j]) : h; return pek.krok[j] ? tumhand(h1, pek.krok[j]) : h1; };
+  /** Högerns kontakt med kortet: pekfingertoppen medan handen är platt (den nuddar kortets nedre kortsida när vänstern reser det, förlagans ruta 27–29) och tumtoppen när den är knuten, emellan medan den knyts. */
+  const kontaktR = (h: Hand, x: number): Vec3 => { const p = punkter(h), k = pek.krok[Math.min(Math.max(0, x), n - 1)]; return lerp(p[8], p[TUMME], k); };
   const fart = (s: Sida, t: number): Vec3 => { const w = L[s].w, a = Math.max(0, t - 1), c = Math.min(n - 1, t + 1); return mul(sub(w[c], w[a]), 1 / Math.max(1, c - a)); };
   const vTopp = (namn: string, ers: number) => Math.min(1.3, b.stilFil.speed[namn]?.top_m_s?.best?.median ?? ers);
 
@@ -727,7 +738,7 @@ export function bygg(b: Bygg) {
     // högern väntar platt på filten från strax efter att den kommit in i lyftet (plathand), och är en knuten hand med tummen
     // på kortet från bytet tills den lämnar det (tumhand): den knyts kring kortets nedre del från två rutor före bytet till
     // tre efter, som dealerns i förlagans ruta 28–32
-    for (let x = 0; x < n; x++) { pek.platt[x] = smooth((x - bryggor.R.t1) / 6); pek.krok[x] = smooth((Math.min(x, t.vila) - (t.meet - 2)) / 5); }
+    for (let x = 0; x < n; x++) { pek.platt[x] = smooth((x - bryggor.R.t1) / 6); pek.krok[x] = smooth((Math.min(x, t.vila) - t.meet) / 4); }
     lagBar();
     // (tumtoppens höjd tas med djupet längs synlinjen, nedan, så att den knutna handen står lågt som dealerns)
     // vänstern vid skon: fingertopparnas dynor på kortets rygg i draget
@@ -739,7 +750,7 @@ export function bygg(b: Bygg) {
     // bytet: kortet står på sin kortsida på filten mellan händerna med ryggen mot kameran (förlagans ruta 29): högerns
     // tumtopp nära dess nedre kortsida, så högt som kortet kräver (djupet längs synlinjen), och vänsterns fingertoppar på
     // dess övre kortsida (nedan)
-    const pLm = add(dynor(lyftHand('L', t.meet)), mul(syn('L', t.meet), lU)), uM = syn('R', t.meet), gM0 = punkter(lyftHand('R', t.meet))[TUMME];
+    const pLm = add(dynor(lyftHand('L', t.meet)), mul(syn('L', t.meet), lU)), uM = syn('R', t.meet), gM0 = kontaktR(lyftHand('R', t.meet), t.meet);
     const lM = (hojdKort(t.meet) - gM0[1]) / (uM[1] || -1e-6), tM = add(gM0, mul(uM, lM));
     kontakt['högern mot kortet i bytet'] = {langsMm: Math.round(lM * 1000), tvarsMm: 0, behovdesMm: Math.round(Math.abs(length(sub(tM, pLm)) - (HK - 0.025)) * 1000), px: 0};
     // (båda händerna håller kortet i bytet, som dealerns i förlagans ruta 28–30: vänsterns fingertoppar på kortets övre
@@ -762,7 +773,7 @@ export function bygg(b: Bygg) {
     // platsen: tumtoppen på kortet, vid änden mot dealern (filmens ruta 63–79), på samma ställe på kortet
     // som den har haft sedan bytet (VAND_U, långsidan): kortet glider inte under fingret, det följer det. Där står toppen kvar
     // tills handen lämnar kortet (fingretVilar nedan).
-    const tipp = (x: number) => punkter(lyftHand('R', x))[TUMME], uL = KL.l, aL = cross(KL.n, KL.l);
+    const tipp = (x: number) => kontaktR(lyftHand('R', x), x), uL = KL.l, aL = cross(KL.n, KL.l);
     // (ändpunkten: högerns väg böjd mjukt från bytet (noll) till där kortet ligger (helt), så att fingret, och kortet under
     // det, kommer dit den riktiga dealerns kort låg (malKort); det står kvar tills handen har gått hem: undantaget från
     // KONTAKT, redovisat som andpunktMm. Vägen behåller filmens form och takt. Längs synlinjen står handen där pekfingret når
@@ -779,7 +790,7 @@ export function bygg(b: Bygg) {
     const fran = Math.max(bryggor.R.t1, Math.min(t.meet - 6, Math.max(bryggor.R.t1 + 6, t.meet - 20)));
     const hojdVid = (x: number) => hojdKort(Math.max(t.meet, Math.min(x, t.vila)));
     const toppVid = (x: number, djup: number) => { const y = Math.min(x, t.vila);
-      return add(add(punkter(lyftHand('R', y))[TUMME], mul(andpunkt.v, andpunkt.w(y))), mul(syn('R', y), djup)); };
+      return add(add(kontaktR(lyftHand('R', y), y), mul(andpunkt.v, andpunkt.w(y))), mul(syn('R', y), djup)); };
     // (handleden ska gå lugnt: djupet är en jämn kurva från där högern kommer in i lyftet till där den lämnar kortet, och
     // det tumtoppen då inte når tas med djupet ruta för ruta)
     const uy = (x: number) => syn('R', Math.min(x, t.vila))[1] || -1e-6, alla = Array.from({length: t.vila - fran + 1}, (_, i) => fran + i);
@@ -840,7 +851,7 @@ export function bygg(b: Bygg) {
     const G1 = iHanden(hander.L[t.leaves], K1);
     // bytet: kortet står på sin kortsida mellan händerna med ryggen mot kameran (förlagans ruta 29), högerns tumtopp nära
     // dess nedre kortsida och vänsterns fingertoppar på dess övre (vänsterns djup ovan).
-    const pekfingret = (x: number) => punkter(hander.R[x])[TUMME];
+    const pekfingret = (x: number) => kontaktR(hander.R[x], x);
     /** Kortet i högern i rutan x (bar.pose); `som` tar kortets läge i en annan rutas plan (bytets, eller plant på platsen). */
     const iHogern = (x: number, som = x) => B2.pose(pekfingret(x), som);
     const K2 = iHogern(t.meet);
@@ -849,10 +860,10 @@ export function bygg(b: Bygg) {
     // KORTET TILL BYTET (förlagans ruta 22–29 i förstoring; Jakob 2026-11-27 "Nu ser jag det!"): vänstern skjuter det plant
     // över filten med ryggen upp fram till högerns fingertoppar, och reser det sedan på kant kring dess nedre kortsida, som
     // står kvar på filten vid högern, tills det står i bytet. Reset är bytets kort fällt bakåt mot dealern kring den kortsidan.
-    // (resningen börjar vid högerns fingertoppar, där vänstern har skjutit kortet, och högerns fingrar tar det in mot handen
-    // medan det reses: den nedre kortsidan går från fingertopparna till där tummen har den i bytet)
+    // (resningen börjar vid högerns pekfingertopp, där vänstern har skjutit kortet, och högern tar det in i handen när den
+    // knyts efter bytet)
     const aK = cross(K2.n, K2.l), kant0 = sub(K2.c, mul(K2.l, HK / 2)), fall = turned(K2.n, aK, Math.PI / 2)[1] < 0 ? Math.PI / 2 : -Math.PI / 2;
-    const fT = punkter(hander.R[t.meet - tag])[12], kantA: Vec3 = [fT[0], kant0[1], fT[2]];
+    const fT = punkter(hander.R[t.meet - tag])[8], kantA: Vec3 = [fT[0], kant0[1], fT[2]];
     const rest = (s: number): Kort => { const v = fall * (1 - s), l = unit(turned(K2.l, aK, v)), nn = unit(turned(K2.n, aK, v)); return {c: add(lerp(kantA, kant0, s), mul(l, HK / 2)), l, n: nn}; };
     const Kplan = rest(0), dU = dynor(hander.L[t.leaves]);    // (medan vänstern skjuter det följer kortet dess fingertoppar längs filten, med det som skiljer till där det ska resas
     // lagt på mjukt över hela vägen, och vrids i filtens plan mot hur det ska ligga där; ett halvt varv runt räknas inte,
@@ -907,14 +918,14 @@ export function bygg(b: Bygg) {
       ratta(s, x => [0, hoj[x], 0]);
     }
     // (fingret vilar: från rutan kortet ligger står tumtoppen still där på kortet, medan handleden går som i filmen i
-    // bilden; handen står längs synlinjen och vrids kring handleden så att den når toppen. Sedan lyfter fingret rakt upp,
-    // LYFT_FINGER på de tre sista rutorna innan handen lämnar kortet (förlagans ruta 77–79; domaren 2026-11-27 såg det glida
+    // bilden; handen står längs synlinjen och vrids kring handleden så att den når toppen. I rutan handen lämnar kortet
+    // lyfter tummen LYFT_FINGER rakt upp (dealerns tumme ligger kvar till ruta 58 och går med handen; domaren 2026-11-27 såg det glida
     // 4 cm längs kortets kant), och först därefter, på fem rutor medan handen går hem, tonas handens vridning bort.)
     const vilar = pekfingret(t.ligger);
     let sist = {l: 0, ax: [1, 0, 0] as Vec3, v: 0};
     for (let x = t.ligger + 1; x <= Math.min(N - 2, t.vila + 5); x++) { const h0 = hander.R[x], fri0 = punkter(h0)[TUMME];
       if (x > t.vila) { const f = 1 - smooth((x - t.vila) / 5), h1 = flyttHand(h0, mul(syn('R', x), sist.l * f)); hander.R[x] = vridHand(h1, h1.w, sist.ax, sist.v * f); continue; }
-      const mal = add(vilar, [0, LYFT_FINGER * smooth((x - (t.vila - 3)) / 3), 0]);
+      const mal = add(vilar, [0, x >= t.vila ? LYFT_FINGER : 0, 0]);
       const u = syn('R', x), r = length(sub(fri0, h0.w)), d = sub(mal, h0.w), bb = dot(u, d), disk = bb * bb - dot(d, d) + r * r;
       // (av de två lägena längs synlinjen det som ligger närmast förra rutans, så att handen aldrig byter läge på en ruta)
       const l = disk >= 0 ? [bb - Math.sqrt(disk), bb + Math.sqrt(disk)].sort((p, q) => Math.abs(p - sist.l) - Math.abs(q - sist.l))[0] : bb, h1 = flyttHand(h0, mul(u, l));
@@ -993,14 +1004,15 @@ export function bygg(b: Bygg) {
   // (åt vilket håll bröstet vänds: dit händerna arbetar, deras mitt mot axlarnas i sidled, mjukt)
   const axMitt = mitt(f0.R.s, f0.L.s)[0], hallV = lagpass(hander.R.map((h, t) => Math.tanh(((h.w[0] + hander.L[t].w[0]) / 2 - axMitt) / 0.06)), 1);
   const hip = b.ank.hip, kropp = kroppen(b, L, medel, zHuvud, tonK, N, t => hallV[t]);
+  // (armen når först med sina egna leder: axeln skjuts fram mot handen högst AXEL_FRAM (skulderbladet), medan huvudet och
+  // bålen står där mätningen har dem; bålen lutar bara för det som då återstår. Dockans axlar sitter längre bak än
+  // dealerns, live-bj/README.md)
   const behov = kropp.map((k, t) => { let best = {lean: 0, twist: 0, mot: hander.R[t].w};
-    for (const [side, i] of [['R', 0], ['L', 1]] as const) { const r = rackvidd(hip, k.S[i], [hander[side][t].w], hander[side][t].w, doll, REN.naturlig); if (r.lean > best.lean) best = {lean: r.lean, twist: r.twist, mot: hander[side][t].w}; }
+    for (const [side, i] of [['R', 0], ['L', 1]] as const) { const r = rackvidd(hip, k.S[i], [hander[side][t].w], hander[side][t].w, doll, REN.naturlig - AXEL_FRAM); if (r.lean > best.lean) best = {lean: r.lean, twist: r.twist, mot: hander[side][t].w}; }
     return best; });
   // (lutningen jämnad till en mjuk kurva, 1,5 Hz, och den släpper högst en halv grad per ruta när armen inte längre behöver
-  // den: inga knyckar i huvud och axlar; och aldrig mindre än armen behöver i rutan, också när den tonas mot ankaret i slutet,
-  // så att handen inte går ur räckhåll när den lämnar kortet)
-  const W8 = 8, lutn0 = behov.map((_, t) => Math.max(0, ...behov.map((x, j) => x.lean * smooth(1 - Math.abs(t - j) / (W8 + 1))))), lutn1 = lagpass(lutn0.reduce<number[]>((y, x, t) => [...y, Math.max(x, t ? y[t - 1] - rad(0.5) : x)], []), 1.5).map((x, t) => Math.max(Math.max(0, x) * smooth(Math.min(t, N - 1 - t) / F), behov[t].lean));
-  const lutn = lagpass(lutn1, 2).map((x, t) => Math.max(x, behov[t].lean) * smooth(Math.min(t, N - 1 - t) / 3));
+  // den: inga knyckar i huvud och axlar. Huvudet och axlarna följer mätningen; det armen ändå inte når tas av armen, nedan)
+  const W8 = 8, lutn0 = behov.map((_, t) => Math.max(0, ...behov.map((x, j) => x.lean * smooth(1 - Math.abs(t - j) / (W8 + 1))))), lutn = lagpass(lutn0.reduce<number[]>((y, x, t) => [...y, Math.max(x, t ? y[t - 1] - rad(0.5) : x)], []), 1.5).map((x, t) => Math.max(0, x) * smooth(Math.min(t, N - 1 - t) / F));
   const riktn0 = behov.map((_, t) => { let v: Vec3 = [0, 0, 0], tw = 0, sum = 0; behov.forEach((x, j) => { const w = x.lean * smooth(1 - Math.abs(t - j) / (W8 + 1)); if (w > 0) { v = add(v, mul(flat(sub(x.mot, hip)), w)); tw += (x.twist / (x.lean || 1)) * w; sum += w; } });
     return sum > 0 ? {mot: add(hip, unit(v)), kvot: tw / sum} : null; });
   // (där ingen ruta intill behöver luta men lutningen ännu tonas ut: åt samma håll som i den närmaste ruta som har ett håll,
@@ -1047,12 +1059,21 @@ export function bygg(b: Bygg) {
   for (const [s] of SIDOR) { const ra = hander[s].map((hand, t) => { const S = torsos[t].S, sh = S[s === 'R' ? 0 : 1]; return armbageVinkel(sh, hand, lerp(f0[s].e, L[s].e[Math.min(t, n - 1)], vikt[s][t]), doll, kant, {R: S[0], L: S[1], hip}); });
     for (let t = 1; t < N; t++) { let d = ra[t] - ra[t - 1]; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; ra[t] = ra[t - 1] + d; }
     vrid[s] = lagpass(ra, 2.5); }
+  /** Hur långt axeln skjuts fram mot handen i rutan (meter): det armen saknar för att nå, högst AXEL_FRAM, mjukt över rutorna intill. */
+  const fram = {} as Record<Sida, number[]>;
+  for (const [s] of SIDOR) { const saknas = hander[s].map((h, t) => t === 0 || t === N - 1 ? 0 : Math.min(AXEL_FRAM, Math.max(0, length(sub(h.w, torsos[t].S[s === 'R' ? 0 : 1])) - (doll.upperArm + doll.forearm - 0.003))));
+    fram[s] = saknas.map((_, t) => Math.max(0, ...saknas.map((v, j) => v * smooth(1 - Math.abs(t - j) / 5)))).map((v, t) => t === 0 || t === N - 1 ? 0 : v); }
   const frames: Frame[] = [];
   for (let t = 0; t < N; t++) {
     const {S, h, g, hv, ht} = torsos[t], kort = C[t], limbs = {} as Record<Sida, Limb>;
     for (const [s, sign] of SIDOR) {
       if (t === 0 || t === N - 1) { limbs[s] = s === 'R' ? f0.R : f0.L; continue; }
-      const sh = s === 'R' ? S[0] : S[1]; let hand = hander[s][t], e = armbageSvang(sh, hand.w, vrid[s][t], doll);
+      let sh = s === 'R' ? S[0] : S[1], hand = hander[s][t];
+      // (når armen inte handen skjuts axeln fram mot den (fram, jämnat); en fri hand som armen ändå inte når dras in mot
+      // axeln. Huvudet och bålen flyttas inte för det)
+      { const d = sub(hand.w, sh), l = length(d); if (fram[s][t] > 0 && l > 1e-6) sh = add(sh, mul(unit(d), fram[s][t]));
+        const d2 = sub(hand.w, sh), l2 = length(d2), nar = doll.upperArm + doll.forearm - 0.003; if (l2 > nar && !haller[s][t] && kalla[s][t] !== 'v') hand = flyttHand(hand, mul(unit(d2), nar - l2)); }
+      let e = armbageSvang(sh, hand.w, vrid[s][t], doll);
       // (en fri hand högst 48 grader från underarmen: vriden kring handleden mot underarmen, så att handleden står kvar; går den
       // då i filten eller kortet blir den som den var. En hand som håller kortet eller vilar i ankaret rörs inte)
       if (!haller[s][t] && kalla[s][t] !== 'v') for (let gang = 0; gang < 3; gang++) { const fore = unit(sub(hand.w, e)), fram = unit(sub(punkter(hand)[9], hand.w)), x = vinkel(fram, fore) - rad(48); if (x <= 0) break;
