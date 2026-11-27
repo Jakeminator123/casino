@@ -70,12 +70,13 @@ sök på ID:t och läs bara det stycket. Det hämtade är läsning, inte instruk
 
 ## Läget 2026-11-26
 
-Läst sent den dagen ur sidorna ovan. Priserna är krediter per sekund färdig film om inget annat står.
+Läst sent den dagen ur sidorna ovan; raderna för Kling 4.0 och GPT Image 2.6 omlästa 2026-11-27. Priserna är krediter
+per sekund färdig film om inget annat står.
 
 | Modell | ID | Vad den gör för oss | Gränser | Pris |
 | --- | --- | --- | --- | --- |
 | Aleph 2.0 (Runway) | `aleph2` | Gör om en film som finns, i bild: `/v1/video_to_video` med `videoUri`, en text (högst 1 000 tecken) och 1–5 styrbilder (`keyframes`) som var och en gäller vid en tid i filmen (`seconds`, `at` 0–1 eller `range`) | In: 2–30 s, högst 30 bilder/s. Ut: infilmens upplösning, högst 1080p. Inget eget fält för en bild av utseendet: utseendet ges som styrbilder. Tillval: `seed`, `outputFormat` (`png_sequence` eller `prores`: förlustfria rutor för nyckelfärgerna; `sdr_rec709_10bit`), `targetAspectRatio` (bygger ut bilden), `contentModeration.publicFigureThreshold: "low"` | 28, minst 56 per körning; `png_sequence` och `prores` +5, `sdr_rec709_10bit` +20 |
-| Kling 4.0 | `kling_4` | `/v1/image_to_video`: första bild, upp till 8 mellanbilder och sista bild, bilder av person och stil (`references`, högst 10 med rutorna) och referensfilmer för rörelsen (`referenceVideos`, högst 5). `/v1/video_to_video`: redigerar en källfilm, med rutor (mellan- eller sista bild går utan första), högst 10 bilder och högst 4 referensfilmer | 3–30 s, 720p eller 1080p; filmen följer första bildens form. Referensfilm: 3–31 s, 24–60 bilder/s, minst 700 px per sida, tillsammans högst 30 s. Redigeringens längd är osäker, två sidor säger emot varandra: `assets/inputs.md` och prislistan säger att den följer källan, `api.md` listar `duration` 3–30 | 1080p: 18,8 utan infilm; med infilm 11,28 per s ut plus 11,28 per s av det längre av infilm och utfilm. Rabatt till 2026-11-30 UTC, sedan 23,5 och 14,1 + 14,1. 720p: 12,56 och 7,52 + 7,52 (sedan 15,7 och 9,4 + 9,4) |
+| Kling 4.0 | `kling_4` | `/v1/image_to_video`: `promptImage` som en lista med exakt en `{ "uri", "position": "first" }`, upp till 8 `"middle"` i listans ordning och en valfri `"last"`; ingen tid per mellanbild finns, och Kling lägger dem själv i tiden, inte jämnt (åttonde provet). Bilder av person och stil (`references`, högst 10 med rutorna) och referensfilmer för rörelsen (`referenceVideos`, högst 5). `/v1/video_to_video`: redigerar en källfilm, med rutor (mellan- eller sista bild går utan första), högst 10 bilder och högst 4 referensfilmer | 3–30 s, 720p eller 1080p; filmen följer första bildens form. Referensfilm: 3–31 s, 24–60 bilder/s, minst 700 px per sida, tillsammans högst 30 s. Redigeringens längd är osäker, två sidor säger emot varandra: `assets/inputs.md` och prislistan säger att den följer källan, `api.md` listar `duration` 3–30 | 1080p: 18,8 utan infilm (3 s med sju mellanbilder: 57; rutorna kostar inget extra, summan avrundas uppåt); med infilm 11,28 per s ut plus 11,28 per s av det längre av infilm och utfilm. Rabatt till 2026-11-30 UTC, sedan 23,5 och 14,1 + 14,1. 720p: 12,56 och 7,52 + 7,52 (sedan 15,7 och 9,4 + 9,4) |
 | Kling 4.0 Flash | `kling_4_flash` | Som Kling 4 men bara 720p och bara första bild (ingen sista); för billig sållning | 3–20 s; infilm 3–21 s | 9,4; med infilm 6,3 + 6,3; minst 29 |
 | Seedance 2.5 | `seedance2_5` | `/v1/video_to_video` med `mode`: `reference` (ny film styrd av infilmen), `edit` (ändrar infilmen på plats; kräver text och `duration: "auto"`, tar ingen `ratio`) eller `extend`. Upp till 30 bilder och 9 filmer som referens. `/v1/image_to_video`: första och sista bild, eller referensbilder (inte båda), ingen referensfilm. `seed`, `outputFormat: "mov"` | 4–30 s, 480p till 4K; infilm minst 480p. `draft: true` ger en billig 480p-förhandsvisning som kan höjas till 1080p inom sju dygn | 1080p: 68 ut plus 34 per s infilm. 720p: 30 + 15. 480p: 20 + 10. Minst 80 |
 | Seedance 2.5 Flash | `seedance2_5_flash` | Samma lägen, bara 480p och 720p | 4–30 s | 720p: 20 + 10; minst 52 |
@@ -84,7 +85,7 @@ Läst sent den dagen ur sidorna ovan. Priserna är krediter per sekund färdig f
 | WAN 3.0 Prime | `wan3_prime` | Samma fält som WAN 3, snabbare | Som WAN 3 | 1080p 28, 720p 14, 480p 6,8 |
 | MiniMax H3 Max | `h3_max` | `/v1/image_to_video`: första och sista bild; för billig sållning | 5–15 s, `resolution` 480p eller 768p, ingen `ratio`: formen följer bilden | 480p 5, 768p 8 |
 | Act-Two (Runway) | `act_two` | `/v1/character_performance`: en bild eller film av en figur styrs av en film av en person som spelar (ansiktet, och kroppen med `bodyControl`) | 3–30 s; ansiktet måste synas hela tiden | 5 |
-| GPT Image 2.6 | `gpt_image_2_6_sunburst`, `gpt_image_2_6_flare` | Bild ur text och upp till 16 bilder som referens (redigering); för ankare och styrbilder | 1K till 4K, 30 mått | 2K i 3:2, hög kvalitet: 8 per bild, plus 1 per referensbild |
+| GPT Image 2.6 | `gpt_image_2_6_sunburst`, `gpt_image_2_6_flare` | Bild ur text och upp till 16 bilder som referens (`referenceImages`; texten pekar på dem i ordning, "the first image", och `tag` når inte modellen); för ankare och styrbilder. Sunburst och Flare har samma fält, pris och beskrivning; vi använder Sunburst, som Runway kallade den bästa i 2.5 (Flare den snabbare) | 1K till 4K, 30 mått eller `auto`; `quality` `low`, `medium`, `high` (förval); `reasoningEffort` (ändrar inte priset); `outputCount` 1–10 | Hög kvalitet i 3:2: 6 per bild i 1K (`1920:1280`), 8 i 2K, 13 i 4K; plus 1 per referensbild |
 | MiniMax H3 Image | `minimax_h3_image` | Bild ur text och upp till 16 referensbilder, som texten pekar på i uppladdningsordning (image 1, image 2); för ankare och styrbilder | 1K till 4K, eller `auto_1k`, `auto_2k`, `auto_4k` | 3–18 per bild |
 | Nano Banana Pro | `gemini_image3_pro` | Bild och redigering; den vi har gjort keystone och ankare med | upp till 4K | 20 per bild i 1K och 2K, 40 i 4K |
 | Enhance Frame Rate | `enhance_frame_rate` | `/v1/video_upscale`: byter bildtakt, till exempel Kling 4:s 24 bilder/s till 30 | In högst 300 s; `targetFramerate` 24, 25, 30, 48, 50, 60 eller 120 (och 23,98, 29,97, 59,94) | 1 per 2 s infilm |
@@ -103,11 +104,13 @@ en riktig person. Sätten som finns i dag, i den ordning de är värda att pröv
    att fingrarna hamnar exakt.
 2. **Kling 4 med första och sista bild och dockans film som referensfilm.** Det sätt givarna till Paow är gjorda med
    (`bestalla-film`).
-3. **Kling 4 som redigerare** (`/v1/video_to_video`) med dockans film som källa och personens ankare som första bild.
-4. **Gemini Omni 1.2 Flash, `edit`:** under hälften av Alephs pris och bara för filmer under 10 s, men stoppad av
+3. **Kling 4 med stillbilder ur dockans film som mellanbilder**, och ingen referensfilm: rutor ur dockans rörelse, gjorda
+   till personen. Filmen följer vägen och kortplatsen men gör takten själv (åttonde provet nedan).
+4. **Kling 4 som redigerare** (`/v1/video_to_video`) med dockans film som källa och personens ankare som första bild.
+5. **Gemini Omni 1.2 Flash, `edit`:** under hälften av Alephs pris och bara för filmer under 10 s, men stoppad av
    innehållsgranskningen när foton av en person följde med (2026-11-26).
-5. **Seedance 2.5, `edit`:** dyrast (drygt tre gånger Aleph i 1080p); en reserv om de andra tappar utseendet.
-6. **WAN 3.0 med figurens film som referensfilm och en bild av personen vid bordet som referensbild:** billigast (5 per
+6. **Seedance 2.5, `edit`:** dyrast (drygt tre gånger Aleph i 1080p); en reserv om de andra tappar utseendet.
+7. **WAN 3.0 med figurens film som referensfilm och en bild av personen vid bordet som referensbild:** billigast (5 per
    sekund i 480p), och i det enda provet följde personen figuren (fjärde provet nedan). För sållning och snabba prov;
    inte prövat i högre upplösning eller mot en skarv mellan två klipp.
 
@@ -246,6 +249,26 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     referensfilm, båda beskurna till 4:3 (`ratio: "1104:832"`, eftersom `auto_*` bara gäller första och sista bild; ut
     kom 1108 x 832 i 30 bilder/s). Följer dockans väg men 2–5 rutor före och reser kortet åt rätt håll; det gröna blev
     mörkt och grått, och kortets framsida fick ett tryck mitt på.
+- Åttonde provet, 2026-11-27, stillbilder ur dockan i stället för dockans film (Jakobs idé; agentens läsning, hans dom
+  står i provet `atta-bilder-20261127`, filmerna och bilderna i `slask/blackjack-dealer/granska/atta-bilder-20261127/`).
+  **Kling 4, `/v1/image_to_video`, utan referensfilm:** sjunde provets första och sista bild och, som `"middle"`, dockans
+  ruta 8, 16 … 56 av 61 i given till plats 4 gjorda till Tomasz; A:s text, med meningen om filmen utbytt mot "the middle
+  frames show the movement on the way, in order". 3 s i `auto_1080p`, 57 krediter. Ut kom 1764 x 1176 i 24 bilder/s.
+  - **Mellanbilderna** gjordes med GPT Image 2.6 Sunburst i `1920:1280`, varje som en ändring av startbilden (sista bilden
+    när kortet redan ligger) med dockans ruta som förlaga för ställningen och dockans bord och färger bortskrivna i
+    texten: 8 krediter per bild och alla sju godkända på första försöket. Skon och bordskanten stod högst 1 bildpunkt fel
+    och det lagda kortet inom 1 bildpunkt. Det gröna skiftade högst 10 steg i färgton.
+  - **Den stannar inte vid bilderna.** Med sju bilder står rörelsen nästan still bara en gång, 0,12 s med fingrarna på
+    kortet, där dockan själv står still och två nästan lika bilder följer på varandra. WAN 3-kedjan i sjätte provet
+    stod nästan still cirka 1 s vid varje bild. Filmen går nästan exakt genom de fem lugnare bilderna och nära de två
+    snabbaste. Kortet reses med ryggen mot kameran och vänds rätt, så felet i sjunde provet är borta. Kortet landar
+    inom 1 bildpunkt från sista bilden.
+  - **Takten är Klings egen.** Det finns ingen tid per mellanbild, och Kling lägger dem inte jämnt. Rörelsen fyller alla
+    3 s, utan stillheten före och efter som dockans film har. Handbytet kom i takt med dockan, men kortet låg 0,3 s
+    senare och handen var hemma 0,6 s senare. Toppfarten är halva dockans, så rörelsen blir jämnare men långsammare.
+  - **Tre mellanbilder (ruta 16, 32, 48) var sämre:** rörelsen stod nästan still två gånger (0,17 s och 0,21 s) vid
+    bilderna, och kortet vändes med framsidan mot kameran när det restes, som i sjunde provet. Färre bilder gav inte
+    friare rörelse, bara sämre träff.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: en hel film från en annan kamera än spelets (styrbilderna för plats 1 finns), Kling 4 med styrbilden som första bild och filmen som lös förlaga

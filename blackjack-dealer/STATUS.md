@@ -191,6 +191,8 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
     med och utan tider i texten, och med Tomasz-dockan som förlaga: ingen skillnad): inte dömda än.
   - `dockans-ansikte-20261127` (iris, bryn, läppar och mun på standarddockorna, byggda som modeller på prov): inte dömt
     än; `ansiktsuttryck-20261127` och `livebordet-klonat-20261127` kommer.
+  - `atta-bilder-20261127` (Kling 4 med sju stillbilder ur dockans giv som mellanbilder och ingen film, och med tre;
+    kort i Beslut, `atta-bilder-giv`): inte dömt än.
 - Standarddockan, hela kortrundan som en person (2026-11-26): han dömde hela provet Inte bra samma kväll (22:28).
   Mappen med de betalda filmerna står kvar i slaskens `granska/` tills han säger att den får gå. Provet `tomasz-runda-20261126` (Granska, Prov) med kortet
   `tomasz-runda-plats-4` i Beslut. Dockan gör vilan till skon och första kortet till plats 7 till 1 i en tagning, filmad

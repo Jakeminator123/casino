@@ -87,7 +87,8 @@ det vi beställer med och vad proven har visat.
   gamlas (`blackjack-dealer/tools/python/hands-from-anchor.py`); korta vilor klipps ur en film där hon återvänder till
   A1 ("gillar dessa korta klipp!", `tools/register-derived.ts --frames`).
 - **Föll, gör inte om:** hela rundan i en tagning (0 av 7, cirka 3 500 krediter); Kling 3.0 4K (ingen skärpevinst);
-  Kling 3.0 Motion Control (ingen sista bild); en mellanbild i Kling 4; Aleph som rättare; en stängd giv till en
+  Kling 3.0 Motion Control (ingen sista bild); en mellanbild som referensbild i Kling 4 (MCP:s `generate_video` har
+  inga mellanbilder; API:ts `"middle"` håller, skillen `runway`, åttonde provet); Aleph som rättare; en stängd giv till en
   spelarplats; handbyte i given utan referens; en ny person i en annans bankruta.
 - **En ny modell:** en post i `MODELS` (`blackjack-dealer/src/order-model.ts`), ett pris i orderpolicyn, ett efterarbete i
   `TREATMENTS` (`blackjack-dealer/src/film-after.ts`) och en pilot.
