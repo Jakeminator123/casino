@@ -187,6 +187,12 @@ rörelser och filmerna som görs av dem.
   "fått det väldigt ofta när videomodeller följt 3d-gubbar". Dockan följer dealerns rörelse, inte mätningens brus
   ruta för ruta: huvud och axlar är lika stilla som hans, handens fart är en jämn kurva, och blicken hålls på ett mål
   och vrids mjukt till nästa.
+- **En kortrygg per film.** Om given gjord med bilder ur dockan (kortet `atta-bilder-giv`, svaret "Bättre: gör med
+  bilder"): "Dock fladdrar gult och rött som kortrygg. Är detta för vi har kortrygg som rött och gult blandat? Detta
+  bör vara en bugg, eller att vi inte enats om vilket kort som ska användas." Det finns två ryggar i dag: den röda i
+  det vanliga utseendet, som på livebordet, och den gula i nyckelutseendet (spårkortet, `NYCKEL` i `editor/scen.ts`).
+  Varje bild som styr en och samma film ska visa samma rygg: röd i en film som ska visas som den är, gul bara i en
+  inspelning som ska skäras ut.
 - **Tomasz från två kameror: Nej.** Kortet "Tomasz gör Danilos giv från två kameror: är det samma man?" fick svaret
   Nej (2026-11-27). Det han hade sagt om filmerna står i punkterna här: utseendet glömdes, småryck, blicken uppåt,
   skons stående kort och vänsterhanden som dealern inte gör. Inga fler platser filmas förrän det är rättat.
