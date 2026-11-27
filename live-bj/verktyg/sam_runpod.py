@@ -1,36 +1,48 @@
-"""SAM 3D Body tried on a hired machine at RunPod, on our own figure's film, where the true numbers are known: does it
-give the depth that the MediaPipe lift (lyft.py) lacks? live-bj/README.md, "Djup ur SAM 3D Body", says how the trial is
-run again and what it gave. One file with three uses; sam_runpod.ts hires the machine and sends this file there.
+"""SAM 3D Body for the lift's depth (lyft.py): reads a person's joints in metres out of key frames of a film, given a
+box around the person and the camera. It runs on this computer's processor (no picture leaves it), or for our own
+figure's film on a hired machine at RunPod (sam_runpod.ts hires it and sends this file there). live-bj/README.md,
+"Djup ur SAM 3D Body", says how it is run, and what the trial on our figure's film and the run on the live table gave.
 
+  SAMPY live-bj/verktyg/sam_runpod.py installera <sam-mapp>
+      Sets SAM 3D Body up in <sam-mapp> (../sam-3d-body beside the repository, as dealer3d/tools/docka-sam.py expects
+      it; its Python environment <sam-mapp>/.venv, made as the README says): the code from GitHub, DINOv3's code for
+      torch.hub, and the checkpoint facebook/sam-3d-body-dinov3 from Hugging Face with HF_TOKEN, read here out of the
+      key file in the repository's root and never printed.
+  PY live-bj/verktyg/sam_runpod.py rutor <film> <källfil> <mätt-mapp> <ut-mapp> <kamera> [--tider <lyft-mapp>] [--var 5] [--vantan-gles 2] [--tatt 2] [--som <scen.json>]
+      The key frames: every --var-th frame of each stretch measured by mat.py (or, with --tider, of each piece lyft.py
+      giv lifted: in the waits every --var times --vantan-gles, and with --tatt every frame within that many of the card
+      leaving the shoe, the hand-over and the card coming to rest; listed the deals first, then the waits, then the
+      denser ones), cut out of the film as mat.py reads it and saved as <ut-mapp>/t<milliseconds>.png, with a box
+      around the dealer from MediaPipe's body and hands in that frame, and <ut-mapp>/lista.json with the camera.
+      <kamera> is `spelet` (the play lens our figure is filmed through) or a scen.json (the live table's camera).
+      --som <scen.json> redraws our figure's frames as that camera's picture (its size, focal length and middle), to
+      try SAM at the live picture's scale; only for the trial.
+  SAMPY live-bj/verktyg/sam_runpod.py las <ut-mapp> <lista.json> [--tradar 3] [--sort full]
+      Reads every picture of the list with the body model and writes <ut-mapp>/sam.json: per picture its time, box,
+      the 70 key points in the camera's frame and in the picture, and the seconds it took. On the processor when there
+      is no NVIDIA card, at low priority and with --tradar threads (a quarter of the logical processors unless said),
+      picking up where it stopped if it is run again. --sort body leaves the hands' own decoder out.
+  PY live-bj/verktyg/sam_runpod.py spara <sam.json> <ut.json>
+      The answer kept as numbers only (the joints, no pixels, no picture), small enough for data/sam-prov/.
+  PY live-bj/verktyg/sam_runpod.py jamfor <sam.json> <the figure's own numbers> <mätt-mapp> <ut.json>
+      SAM alone against the truth on our figure's film, joint by joint in the camera's frame (sideways, height, depth):
+      as the model gives it, with one scale and one shift fitted over the whole film, and only moved so that the trunk
+      stands where it truly does (what the lift is given); beside it the MediaPipe lift of `lyft.py prov` on the same
+      frames. Also the arm's bones from frame to frame, what lyft.py takes as `nearer`, the time a frame took, and what a
+      hired machine cost (the liggare.json sam_runpod.ts keeps beside sam.json).
   python3 sam_runpod.py serve
-      On the hired machine only (sam_runpod.ts starts it; the standard library alone). Sets SAM 3D Body up: its code
-      from GitHub, the packages its body model needs (not the person detector or the field-of-view estimator: the box
-      and the lens are given), DINOv3's code for torch.hub, and the checkpoint from Hugging Face with HF_TOKEN. Meanwhile
-      it answers on port 8000, every call carrying the run's own secret in the header X-Sam-Prov:
-        GET /status                the stage (code, packages, dinov3, model, ready or failed) and the setup log's tail
-        PUT /in/<name>             a file into /work/in
-        POST /job {"cmd": [...]}   a command started in /work; GET /job/<id>?from=<byte> its state and log
-        GET /out/<path>            a file out of /work/out
-  PY live-bj/verktyg/sam_runpod.py ruta <the figure's own numbers>
-      The box around the figure in its film, x0,y0,x1,y1 in pixels: its own joints through the play lens, with room.
-  PY live-bj/verktyg/sam_runpod.py jamfor <sam.json> <the figure's own numbers> <the film measured by mat.py --ensam> <ut.json>
-      SAM against the truth joint by joint in the camera's frame (sideways, height, depth): as the model gives it, with
-      one scale and one shift fitted over the whole film, and only moved so that the trunk stands where it truly does
-      (what the lift is given); beside it the MediaPipe lift of `lyft.py prov` on the same frames. Also how steady the
-      arm's bones are from frame to frame, how near the camera each wrist is said to be against its shoulder (what
-      lyft.py takes from MediaPipe as `nearer`), the time a frame took, and what the machine cost (the liggare.json
-      that sam_runpod.ts keeps beside sam.json).
+      On the hired machine only (sam_runpod.ts starts it): sets SAM 3D Body up there and answers on port 8000, every call
+      carrying the run's own secret in the header X-Sam-Prov: GET /status, PUT /in/<name>, POST /job {"cmd": [...]},
+      GET /job/<id>?from=<byte>, GET /out/<path>. SAM_PROV_WORK moves its /work, to try it on this computer.
 
-SAM_PROV_WORK moves serve's /work, for trying the service on this computer (the setup then stops at nvidia-smi).
-
-PY is blackjack-dealer/tools/python/.venv/Scripts/python.exe -I. The camera's frame is SAM's: metres, x to the
-picture's right, y down, z into the picture, the camera at 0. The figure's own numbers are in the lens world (x to the
-picture's right, y up with the felt at 0, z toward the player); the play lens (blackjack-dealer/src/table-lens.ts
-PLAY_LENS, read by docka.py play_lens) turns one into the other.
+PY is blackjack-dealer/tools/python/.venv/Scripts/python.exe -I; SAMPY is ../sam-3d-body/.venv/Scripts/python.exe -I.
+The camera's frame is SAM's: metres, x to the picture's right, y down, z into the picture, the camera at 0. Our
+figure's own numbers are in the lens world (x to the picture's right, y up with the felt at 0, z toward the player).
 """
 import os, sys, json, math
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+CASINO = os.path.dirname(os.path.dirname(HERE))
 PORT = 8000
 SAM_ZIP = 'https://codeload.github.com/facebookresearch/sam-3d-body/zip/refs/heads/main'
 DINOV3_ZIP = 'https://codeload.github.com/facebookresearch/dinov3/zip/refs/heads/main'
@@ -41,10 +53,74 @@ PACKAGES = ['roma', 'pytorch-lightning', 'yacs', 'omegaconf', 'timm', 'einops', 
             'huggingface_hub', 'ftfy', 'regex', 'scikit-learn', 'submitit', 'termcolor', 'torchmetrics', 'scikit-image', 'pandas']
 
 
+# ── Setting the model up, here or on the hired machine ──────────────────────────
+
+def unzip(url, target, say):
+    """A GitHub branch as a zip (no git needed), unpacked into target; the zip's comment is the commit."""
+    import urllib.request, zipfile, shutil, tempfile
+    os.makedirs(target, exist_ok=True)
+    spare = tempfile.mkdtemp(dir=os.path.dirname(os.path.abspath(target)))
+    archive = os.path.join(spare, 'branch.zip')
+    urllib.request.urlretrieve(url, archive)
+    with zipfile.ZipFile(archive) as z:
+        top = z.namelist()[0].split('/')[0]
+        z.extractall(spare)
+        commit = z.comment.decode('ascii', 'replace')
+    for name in os.listdir(os.path.join(spare, top)):
+        if not os.path.exists(os.path.join(target, name)):
+            shutil.move(os.path.join(spare, top, name), os.path.join(target, name))
+    shutil.rmtree(spare)
+    say(f'{url} -> {target}, commit {commit}')
+
+
+def fetch(sam, torch_home, hf, say, stage=lambda name: None):
+    """The code, DINOv3's code where torch.hub looks for it (used as it is, with no call to GitHub's API) and the checkpoint."""
+    import time, importlib
+    stage('code')
+    if not os.path.isdir(os.path.join(sam, 'sam_3d_body')):
+        unzip(SAM_ZIP, sam, say)
+    stage('dinov3')
+    target = os.path.join(torch_home, 'hub', 'facebookresearch_dinov3_main')
+    if not os.path.isdir(os.path.join(target, 'dinov3')):
+        unzip(DINOV3_ZIP, target, say)
+    stage('model')
+    importlib.invalidate_caches()
+    from huggingface_hub import snapshot_download
+    where = os.path.join(sam, 'checkpoints', 'sam-3d-body-dinov3')
+    tic = time.time()
+    snapshot_download(CHECKPOINT, local_dir=where, token=hf or None)
+    total = 0
+    for root, _, files in os.walk(where):
+        for name in files:
+            p = os.path.join(root, name)
+            if '.cache' not in p:
+                total += os.path.getsize(p)
+                say(f'{os.path.relpath(p, where)} {os.path.getsize(p) / 1e6:.1f} MB')
+    say(f'checkpoint {total / 1e9:.2f} GB in {time.time() - tic:.0f} s')
+
+
+def hf_token():
+    """HF_TOKEN out of the key file in the repository's root; never printed."""
+    path = os.path.join(CASINO, '.env.local')
+    with open(path, encoding='utf-8') as f:
+        for line in f:
+            key, _, value = line.strip().partition('=')
+            if key.strip() == 'HF_TOKEN' and value.strip():
+                return value.strip().strip('"').strip("'")
+    sys.exit('HF_TOKEN saknas i nyckelfilen i repots rot.')
+
+
+def installera(sam):
+    sam = os.path.abspath(sam)
+    fetch(sam, os.path.join(sam, 'torch'), hf_token(), print)
+    size = sum(os.path.getsize(os.path.join(r, n)) for r, _, files in os.walk(sam) for n in files)
+    print(f'{sam}: {size / 1e9:.2f} GB in all, the Python environment with it')
+
+
 # ── On the hired machine ─────────────────────────────────────────────────────────
 
 def serve():
-    import hmac, http.server, subprocess, threading, time, urllib.parse, urllib.request, zipfile, re, shutil, importlib
+    import hmac, http.server, subprocess, threading, time, urllib.parse, re
     secret = os.environ.pop('SAM_PROV_SECRET')
     hf = os.environ.pop('HF_TOKEN', '')
     os.environ.pop('SAM_PROV_SERVER', None)          # what started this; the commands below inherit no secret
@@ -74,27 +150,12 @@ def serve():
         if code:
             raise RuntimeError(f'{os.path.basename(cmd[0])} {cmd[1] if len(cmd) > 1 else ""} ended with {code}')
 
-    def unzip(url, target):
-        """A GitHub branch as a zip (the image has no git), unpacked to target; the zip's comment is the commit."""
-        archive = target + '.zip'
-        urllib.request.urlretrieve(url, archive)
-        with zipfile.ZipFile(archive) as z:
-            top = z.namelist()[0].split('/')[0]
-            z.extractall(os.path.dirname(target))
-            commit = z.comment.decode('ascii', 'replace')
-        shutil.move(os.path.join(os.path.dirname(target), top), target)
-        os.remove(archive)
-        note(f'{url} -> {target}, commit {commit}')
-
     def setup():
         try:
             state['stage'] = 'gpu'
             run(['nvidia-smi', '--query-gpu=name,memory.total,memory.free,driver_version', '--format=csv'])
             import torch
             note(f'python {sys.version.split()[0]}, torch {torch.__version__}, cuda {torch.cuda.is_available()}, cpus {os.cpu_count()}')
-            state['stage'] = 'code'
-            if not os.path.isdir(sam):
-                unzip(SAM_ZIP, sam)
             state['stage'] = 'packages'
             frozen = subprocess.run([sys.executable, '-m', 'pip', 'freeze'], capture_output=True, text=True).stdout
             pins = [line for line in frozen.splitlines() if re.match(r'(?i)^(torch|torchvision|torchaudio|numpy)==', line)]
@@ -102,24 +163,7 @@ def serve():
                 f.write('\n'.join(pins) + '\n')
             note('kept as they are: ' + ', '.join(pins))
             run([sys.executable, '-m', 'pip', 'install', '--no-cache-dir', '--progress-bar', 'off', '-c', os.path.join(work, 'pins.txt'), *PACKAGES])
-            state['stage'] = 'dinov3'
-            hub = os.path.join(torch_home, 'hub')
-            target = os.path.join(hub, 'facebookresearch_dinov3_main')   # torch.hub's own cache name: it is used as it is, with no call to GitHub's API
-            if not os.path.isdir(target):
-                os.makedirs(hub, exist_ok=True)
-                unzip(DINOV3_ZIP, target)
-            state['stage'] = 'model'
-            importlib.invalidate_caches()
-            from huggingface_hub import snapshot_download
-            where = os.path.join(sam, 'checkpoints', 'sam-3d-body-dinov3')
-            tic = time.time()
-            snapshot_download(CHECKPOINT, local_dir=where, token=hf or None)
-            for root, _, files in os.walk(where):
-                for name in files:
-                    p = os.path.join(root, name)
-                    if '.cache' not in p:
-                        note(f'{os.path.relpath(p, where)} {os.path.getsize(p) / 1e6:.1f} MB')
-            note(f'checkpoint in {time.time() - tic:.0f} s')
+            fetch(sam, torch_home, hf, note, lambda name: state.update(stage=name))
             state['stage'] = 'ready'
             note(f'READY after {time.time() - state["began"]:.0f} s')
         except BaseException as e:   # noqa: BLE001 - the stage and the reason are what the caller needs
@@ -213,15 +257,228 @@ def serve():
     http.server.ThreadingHTTPServer(('0.0.0.0', PORT), Handler).serve_forever()
 
 
-# ── At home: the box and the comparison ─────────────────────────────────────────
+# ── Reading the pictures (on the hired machine, or here on the processor) ──────
 
-def lens():
-    """The play lens as docka.py reads it out of table-lens.ts: height, tilt (radians), focal length, picture's middle."""
+def las(out, listing, threads=None, kind='full'):
+    import time
+    began = time.time()
+    sam = os.path.abspath(os.environ.get('SAM_3D_BODY') or os.path.join(CASINO, '..', 'sam-3d-body'))
+    os.environ.setdefault('TORCH_HOME', os.path.join(sam, 'torch'))
+    os.environ.setdefault('MOMENTUM_ENABLED', '0')      # set means off: MHR comes from the checkpoint's own model file
+    os.environ['HF_HUB_OFFLINE'] = '1'
+    sys.path.insert(0, sam)
+    import numpy as np
+    import cv2
+    import torch
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    if device == 'cpu':
+        torch.set_num_threads(int(threads or max(1, (os.cpu_count() or 4) // 4)))
+        if os.name == 'nt':   # below normal, so that the computer stays free for the rest
+            import ctypes
+            kernel = ctypes.windll.kernel32
+            kernel.GetCurrentProcess.restype = ctypes.c_void_p
+            kernel.SetPriorityClass.argtypes = [ctypes.c_void_p, ctypes.c_uint32]
+            kernel.SetPriorityClass(kernel.GetCurrentProcess(), 0x00004000)
+    from sam_3d_body import load_sam_3d_body, SAM3DBodyEstimator
+    from sam_3d_body.metadata.mhr70 import mhr_names
+    if device == 'cpu':   # sam-3d-body sends its batches and a few index tensors to "cuda" by name; on the processor they stay here
+        import sam_3d_body.sam_3d_body_estimator as estimator_module
+        import sam_3d_body.models.meta_arch.sam3d_body as model_module
+        moved = estimator_module.recursive_to
+        here_too = lambda x, target, *rest, **named: moved(x, 'cpu' if target == 'cuda' else target, *rest, **named)
+        estimator_module.recursive_to = model_module.recursive_to = here_too
+        torch.Tensor.cuda = lambda self, *rest, **named: self
+    plan = json.load(open(listing, encoding='utf-8'))
+    here = os.path.dirname(os.path.abspath(listing))
+    cam = plan['camera']
+    checkpoint = os.path.join(sam, 'checkpoints', 'sam-3d-body-dinov3')
+    model, cfg = load_sam_3d_body(checkpoint_path=os.path.join(checkpoint, 'model.ckpt'), device=device, mhr_path=os.path.join(checkpoint, 'assets', 'mhr_model.pt'))
+    if device == 'cpu':   # its backbone runs in bfloat16, which a processor without it does twenty times slower than float32
+        model = model.float()
+        model.backbone_dtype = torch.float32
+    estimator = SAM3DBodyEstimator(model, cfg)
+    loaded = time.time() - began
+    print(f'LOADED {loaded:.1f}s on {device}' + (f' with {torch.get_num_threads()} threads' if device == 'cpu' else ''), flush=True)
+    K = torch.tensor([[[cam['focalPx'], 0, cam['cx']], [0, cam['focalPx'], cam['cy']], [0, 0, 1]]], dtype=torch.float32)
+    os.makedirs(out, exist_ok=True)
+    answer = os.path.join(out, 'sam.json')
+    done = json.load(open(answer, encoding='utf-8'))['pictures'] if os.path.exists(answer) else []   # (also an answer kept by spara: it goes on from that)
+    have = {int(round(p['t'] * 1000)) for p in done}
+
+    def save():
+        result = {'model': f'{CHECKPOINT}, the body model only, the box and the camera given, inference {kind}', 'camera': cam, 'film': plan.get('film'),
+                  'frame': 'metres, the camera\'s frame: x right, y down, z into the picture', 'keypointNames': mhr_names, 'pictures': done,
+                  'loadSeconds': round(loaded, 1), 'wallSeconds': round(time.time() - began, 1), 'device': torch.cuda.get_device_name(0) if device == 'cuda' else f'processor, {torch.get_num_threads()} threads',
+                  'peakMiB': round(torch.cuda.max_memory_allocated() / 2**20) if device == 'cuda' else None}
+        with open(answer + '.tmp', 'w', encoding='utf-8') as f:
+            json.dump(result, f, separators=(',', ':'))
+        os.replace(answer + '.tmp', answer)
+
+    for entry in plan['pictures']:
+        if int(round(entry['t'] * 1000)) in have:
+            continue
+        bgr = cv2.imread(os.path.join(here, entry.get('file', entry['picture'])), cv2.IMREAD_COLOR)
+        if bgr is None or (bgr.shape[1], bgr.shape[0]) != (cam['width'], cam['height']):
+            sys.exit(f"{entry['picture']}: not read, or not {cam['width']} x {cam['height']}")
+        tic = time.time()
+        people = estimator.process_one_image(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB), bboxes=np.array([entry['box']], dtype=np.float32), cam_int=K, inference_type=kind)
+        if len(people) != 1:
+            sys.exit(f"{entry['picture']}: expected one person, got {len(people)}")
+        p = people[0]
+        shift = np.asarray(p['pred_cam_t'], dtype=np.float64)
+        keypoints = np.asarray(p['pred_keypoints_3d'], dtype=np.float64) + shift
+        seen = np.asarray(p['pred_keypoints_2d'], dtype=np.float64)[:, :2]
+        back = np.stack([cam['focalPx'] * keypoints[:, 0] / keypoints[:, 2] + cam['cx'], cam['focalPx'] * keypoints[:, 1] / keypoints[:, 2] + cam['cy']], axis=-1)
+        done.append({'picture': entry['picture'], 't': entry['t'], 'box': entry['box'], 'seconds': round(time.time() - tic, 2), 'camT': np.round(shift, 5).tolist(),
+                     'keypoints': np.round(keypoints, 5).tolist(), 'pixels': np.round(seen, 2).tolist(), 'reprojectionMaxPx': round(float(np.abs(back - seen).max()), 3)})
+        save()
+        print(f"READ {entry['picture']} {done[-1]['seconds']:.2f}s ({len(done)}/{len(plan['pictures'])})", flush=True)
+    save()
+    print(f'COMPLETE {len(done)} pictures, load {loaded:.1f}s, wall {time.time() - began:.1f}s', flush=True)
+
+
+def spara(answer, out):
+    """SAM's answer kept as numbers only: per picture its time, box, seconds and the 70 key points (0.1 mm); no pixels."""
+    data = json.load(open(answer, encoding='utf-8'))
+    kept = {k: data.get(k) for k in ('model', 'camera', 'film', 'frame', 'keypointNames', 'loadSeconds', 'wallSeconds', 'device')}
+    kept['about'] = 'SAM 3D Body\'s answer (verktyg/sam_runpod.py las), kept by sam_runpod.py spara: the joints and the model\'s numbers, no picture. lyft.py giv --sam reads it.'
+    kept['pictures'] = [{'t': p['t'], 'box': p['box'], 'seconds': p['seconds'], 'keypoints': [[round(v, 4) for v in q] for q in p['keypoints']]} for p in sorted(data['pictures'], key=lambda p: p['t'])]
+    with open(out, 'w', encoding='utf-8') as f:
+        json.dump(kept, f, separators=(',', ':'))
+    print(f"{out}: {len(kept['pictures'])} pictures, {os.path.getsize(out) / 1e3:.0f} kB")
+
+
+# ── The key frames, here ─────────────────────────────────────────────────────────
+
+def play_camera():
+    """The play lens as docka.py reads it out of blackjack-dealer/src/table-lens.ts."""
     sys.path.insert(0, HERE)
     from docka import play_lens
     cam, _ = play_lens()
     return cam
 
+
+def camera_of(name, size):
+    """focal length and middle of `spelet` (the play lens) or of a scen.json's camera, with the picture's size."""
+    if name == 'spelet':
+        c = play_camera()
+        return {'focalPx': c.f, 'cx': c.cx, 'cy': c.cy, 'width': size[0], 'height': size[1]}
+    c = json.load(open(name, encoding='utf-8'))['camera']
+    return {'focalPx': c['focalPx'], 'cx': c['principalPoint'][0], 'cy': c['principalPoint'][1], 'width': size[0], 'height': size[1]}
+
+
+def box_of(frame, width, height):
+    """The dealer's box in the picture: MediaPipe's body (to the hips) and hands, the crown above the nose, and room."""
+    import numpy as np
+    pose = np.array([p[:2] for p in frame['pose']['image'][:25]], float)
+    every = np.concatenate([pose] + [np.array(h['image'], float)[:, :2] for h in frame['hands'].values()])
+    (x0, y0), (x1, y1) = every.min(axis=0), every.max(axis=0)
+    nose, shoulders = pose[0, 1], (pose[11, 1] + pose[12, 1]) / 2
+    y0 = min(y0, nose - 2.2 * (shoulders - nose))
+    room = 0.15 * max(x1 - x0, y1 - y0)
+    return [round(max(0.0, x0 - room), 1), round(max(0.0, y0 - room), 1), round(min(width - 1.0, x1 + room), 1), round(min(height - 1.0, y1 + room), 1)]
+
+
+def events(piece):
+    """In a lifted deal: the frames where the card leaves the shoe, where the right hand takes it over, and where it rests."""
+    frames, out = piece['frames'], [piece['leavesShoe'], piece['rests']]
+    for k in range(piece['leavesShoe'] + 1, piece['rests'] + 1):
+        r, c = frames[k]['R'], frames[k]['card']['c']
+        grip = [(a + b) / 2 for a, b in zip(r['p'][4], r['p'][8])] if r['p'] else r['w']
+        if c and max(abs(a - b) for a, b in zip(c, grip)) < 1e-3:
+            out.append(k)
+            break
+    return out
+
+
+def rutor(film, source_file, measured, out, camera, times=None, every=5, dense=0, like=None, wait_factor=1):
+    import glob
+    import numpy as np
+    import cv2
+    source = json.load(open(source_file, encoding='utf-8'))
+    crop = source['crop']
+    stretches = [json.load(open(p, encoding='utf-8')) for p in sorted(glob.glob(os.path.join(measured, 'rorelse-*.json')))]
+    by_ms = {}
+    for st in stretches:
+        for k, f in enumerate(st['frames']):
+            by_ms[int(round(f['t'] * 1000))] = (st, k)
+    wanted, order = set(), {}   # order: the deals' frames first, then the waits', then the denser ones
+    if times:
+        for name in sorted(glob.glob(os.path.join(times, '*.json'))):
+            piece = json.load(open(name, encoding='utf-8'))
+            ts = [f['t'] for f in piece['frames']]
+            deal = 'leavesShoe' in piece
+            step = every if deal else every * wait_factor
+            for k in set(range(0, len(ts), step)) | {len(ts) - 1}:
+                ms = int(round(ts[k] * 1000))
+                order[ms] = min(order.get(ms, 9), 0 if deal else 1)
+            if dense and deal:
+                for k in events(piece):
+                    for j in range(max(0, k - dense), min(len(ts), k + dense + 1)):
+                        ms = int(round(ts[j] * 1000))
+                        order[ms] = min(order.get(ms, 9), 2)
+        wanted = set(order)
+    else:
+        for st in stretches:
+            ts = [f['t'] for f in st['frames']]
+            wanted |= {int(round(ts[k] * 1000)) for k in range(0, len(ts), every)}
+    missing = sorted(ms for ms in wanted if ms not in by_ms or by_ms[ms][0]['frames'][by_ms[ms][1]]['pose'] is None)
+    if missing:
+        print(f'{len(missing)} key frames without a measured body are left out: {missing[:8]} ...')
+    wanted -= set(missing)
+    size = (crop['width'], crop['height'])
+    cam = camera_of(camera, size)
+    if like:   # the frame redrawn as another camera's picture: scaled to its focal length, the middle put on its middle
+        other = camera_of(like, size)
+        target = (int(round(2 * other['cx'] + 1)), int(round(2 * other['cy'] + 1)))
+        s = other['focalPx'] / cam['focalPx']
+        new = (int(round(size[0] * s)), int(round(size[1] * s)))
+        sx, sy = new[0] / size[0], new[1] / size[1]
+        ox, oy = int(round(other['cx'] - ((cam['cx'] + 0.5) * sx - 0.5))), int(round(other['cy'] - ((cam['cy'] + 0.5) * sy - 0.5)))
+        moved = lambda x, y: ((x + 0.5) * sx - 0.5 + ox, (y + 0.5) * sy - 0.5 + oy)
+        cx, cy = moved(cam['cx'], cam['cy'])
+        cam = {'focalPx': round(cam['focalPx'] * (sx + sy) / 2, 3), 'cx': round(cx, 3), 'cy': round(cy, 3), 'width': target[0], 'height': target[1]}
+    os.makedirs(out, exist_ok=True)
+    plan = []
+    cap = cv2.VideoCapture(film)
+    for st in stretches:
+        mine = sorted((st['frames'][by_ms[ms][1]]['f'], ms) for ms in wanted if by_ms[ms][0] is st)
+        if not mine:
+            continue
+        needed = dict(mine)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, st['frames'][0]['f'])    # as mat.py reads it: from the stretch's first frame, straight through
+        index = st['frames'][0]['f']
+        while index <= mine[-1][0]:
+            ok, full = cap.read()
+            if not ok:
+                break
+            if index in needed:
+                ms = needed[index]
+                frame = st['frames'][by_ms[ms][1]]
+                pic = full[crop['y']:crop['y'] + crop['height'], crop['x']:crop['x'] + crop['width']]
+                box = box_of(frame, *size)
+                if like:
+                    small = cv2.resize(pic, new, interpolation=cv2.INTER_AREA)
+                    edge = np.median(np.concatenate([pic[0], pic[-1], pic[:, 0], pic[:, -1]]), axis=0)
+                    pic = np.empty((target[1], target[0], 3), np.uint8)
+                    pic[:] = edge.astype(np.uint8)
+                    pic[oy:oy + new[1], ox:ox + new[0]] = small
+                    box = [round(v, 1) for v in (*moved(box[0], box[1]), *moved(box[2], box[3]))]
+                name = f't{ms:07d}.png'
+                cv2.imwrite(os.path.join(out, name), pic)
+                plan.append({'picture': name, 't': ms / 1000, 'box': box})
+            index += 1
+    cap.release()
+    plan.sort(key=lambda p: (order.get(int(round(p['t'] * 1000)), 0), p['t']))   # a reading stopped early has the deals whole
+    with open(os.path.join(out, 'lista.json'), 'w', encoding='utf-8') as f:
+        json.dump({'about': 'Key frames for SAM 3D Body (sam_runpod.py las), written by sam_runpod.py rutor: the picture, its time in the film, the box around the dealer (x0, y0, x1, y1).',
+                   'film': os.path.basename(film), 'camera': cam, 'pictures': plan}, f, indent=1)
+    count = lambda level: sum(1 for p in plan if order.get(int(round(p['t'] * 1000)), 0) == level)
+    print(f"{len(plan)} key frames ({count(0)} in the deals, {count(1)} in the waits, {count(2)} denser round the card's moments) in {out}, "
+          f"{cam['width']} x {cam['height']}, focal {cam['focalPx']}, middle {cam['cx']}, {cam['cy']}")
+
+
+# ── SAM alone against our figure's own numbers ──────────────────────────────────
 
 def to_camera(cam, p):
     """Lens world (x right, y up, z toward the player) to the camera's frame (x right, y down, z into the picture)."""
@@ -240,12 +497,6 @@ def from_camera(cam, q):
     return np.stack([x, -y * c - z * s + cam.h, y * s - z * c], axis=-1)
 
 
-def pixels(cam, q):
-    import numpy as np
-    q = np.asarray(q, float)
-    return np.stack([cam.cx + cam.f * q[..., 0] / q[..., 2], cam.cy + cam.f * q[..., 1] / q[..., 2]], axis=-1)
-
-
 TIPS = (4, 8, 12, 16, 20)            # MediaPipe's hand: the thumb's, index's, middle, ring and little finger's tips
 FINGERS = ('thumb', 'index', 'middle', 'ring', 'pinky')   # SAM's (MHR70) names for the same five: right-thumb-tip and so on
 
@@ -260,20 +511,6 @@ def truth_points(truth):
         for n, tip in enumerate(TIPS):
             out[f'{side}.t{n}'] = np.array([f[side]['p'][tip] if f[side].get('p') else [np.nan] * 3 for f in frames], float)
     return out
-
-
-def ruta(truth_file):
-    import numpy as np
-    cam, truth = lens(), json.load(open(truth_file, encoding='utf-8'))
-    pts = truth_points(truth)
-    head = pts['h']
-    every = np.concatenate([v for v in pts.values()] + [head + [0, 0.14, 0], head + [0.1, 0, 0], head - [0.1, 0, 0]], axis=0)
-    every = every[~np.isnan(every).any(axis=1)]
-    px = pixels(cam, to_camera(cam, every))
-    (x0, y0), (x1, y1) = px.min(axis=0), px.max(axis=0)
-    room = 0.15 * max(x1 - x0, y1 - y0)
-    box = [max(0, x0 - room), max(0, y0 - room), min(2 * cam.cx, x1 + room), min(2 * cam.cy, y1 + room)]
-    print(','.join(str(int(round(v))) for v in box))
 
 
 def sam_index(names):
@@ -366,13 +603,12 @@ def jamfor(sam_file, truth_file, measured, out_file):
     sys.path.insert(0, HERE)
     from lyft import lift, HAND_AT_SHOE, HAND_AT_CARD
     from monster import smooth
-    cam = lens()
+    cam = play_camera()
     sam, truth = json.load(open(sam_file, encoding='utf-8')), json.load(open(truth_file, encoding='utf-8'))
     real_world = truth_points(truth)
     n_truth = len(truth['frames'])
-    # The frames SAM read: their number is in the picture's name (r000.png is frame 0).
-    shots = sorted(sam['pictures'], key=lambda p: p['picture'])
-    frames = [int(''.join(ch for ch in os.path.basename(p['picture']) if ch.isdigit())) for p in shots]
+    shots = sorted(sam['pictures'], key=lambda p: p['t'])
+    frames = [int(round(p['t'] * truth['fps'])) for p in shots]
     assert all(0 <= k < n_truth for k in frames), frames
     real = {k: to_camera(cam, v[frames]) for k, v in real_world.items()}
     index = sam_index(sam['keypointNames'])
@@ -380,10 +616,13 @@ def jamfor(sam_file, truth_file, measured, out_file):
     seen_px = np.array([p['pixels'] for p in shots], float)
     got = {k: kp[:, i] for k, i in index.items() if k != 'ears'}
     got['h'] = kp[:, list(index['ears'])].mean(axis=1)            # the head's middle: halfway between the ears
-    # Did SAM find the figure at all: its own 2D points against the figure's true joints through the lens.
+    # Did SAM find the figure at all: its own 2D points against the figure's true joints, through the camera it was given.
+    lens = sam['camera']
     found = {}
     for k in ('R.s', 'L.s', 'R.e', 'L.e', 'R.w', 'L.w'):
-        found[k] = round(float(np.median(np.linalg.norm(seen_px[:, index[k]] - pixels(cam, real[k]), axis=1))), 1)
+        q = real[k]
+        truth_px = np.stack([lens['cx'] + lens['focalPx'] * q[:, 0] / q[:, 2], lens['cy'] + lens['focalPx'] * q[:, 1] / q[:, 2]], axis=-1)
+        found[k] = round(float(np.median(np.linalg.norm(seen_px[:, index[k]] - truth_px, axis=1))), 1)
     sam_fit, scale, shift = fitted(got, real)
     # What the lift is given: where the trunk sits. SAM moved, unscaled, so that its shoulders' middle over the film is the true one.
     trunk = np.nanmean(np.concatenate([real['R.s'], real['L.s']]) - np.concatenate([got['R.s'], got['L.s']]), axis=0)
@@ -430,19 +669,22 @@ def jamfor(sam_file, truth_file, measured, out_file):
         for name, a, b in (('overarm', s_i, e_i), ('underarm', e_i, w_i)):
             d = np.linalg.norm(world[frames, a] - world[frames, b], axis=1)
             world_bones[f'{side}.{name}'] = {'medel': round(float(d.mean()), 3), 'min': round(float(d.min()), 3), 'max': round(float(d.max()), 3), 'spridning': round(float(d.std()), 3)}
+    true_bones, sam_bones = bones(real), bones(got)
+    correction = {name: round(float(np.mean([true_bones[f'{s}.{name}']['medel'] - sam_bones[f'{s}.{name}']['medel'] for s in 'RL'])), 3) for name in ('overarm', 'underarm')}
     seconds = [p['seconds'] for p in shots]
     result = {
-        'about': 'SAM 3D Body (sam-3d-body-dinov3, the body model only, the box and the play lens given) on our own figure\'s film, against the figure\'s own numbers, '
+        'about': 'SAM 3D Body (sam-3d-body-dinov3, the body model only, the box and the camera given) on our own figure\'s film, against the figure\'s own numbers, '
                  'written by live-bj/verktyg/sam_runpod.py jamfor. Errors in cm in the camera\'s frame: sidled x, hojd y, djup z (along the line of sight); median over frames and joints, '
                  'and the worst tenth. sam_ra is as the model gives it; sam_passad after one scale and one shift fitted over the whole film on the body\'s joints; sam_balen_given only moved (not scaled) so that '
                  'its shoulders\' middle over the film is the true one, which is what the lift is given. mediapipe_lyftet is lyft.py\'s lift '
                  '(the prov: it is given the figure\'s true trunk distance and arm lengths) on the same frames. bara_rorelsen takes each joint\'s own constant offset away first. huvud is the head\'s '
-                 'middle (SAM: halfway between its ears; the lift: 9 cm behind the eyes). fingertoppar are the five tips of each hand (MediaPipe\'s 4, 8, 12, 16, 20).',
-        'facit': os.path.basename(truth_file), 'facit_about': truth.get('about'), 'frames': frames,
-        'hittad_px': found, 'hittad_about': 'median pixels between SAM\'s own 2D points and the figure\'s true joints through the lens',
+                 'middle (SAM: halfway between its ears; the lift: 9 cm behind the eyes). fingertoppar are the five tips of each hand (MediaPipe\'s 4, 8, 12, 16, 20). '
+                 'benlangder_m.rattelse is what SAM\'s mean upper arm and forearm lack against the figure\'s: lyft.py giv --sam adds it to the live dealers\' bones.',
+        'facit': os.path.basename(truth_file), 'facit_about': truth.get('about'), 'kamera': lens, 'frames': frames,
+        'hittad_px': found, 'hittad_about': 'median pixels between SAM\'s own 2D points and the figure\'s true joints through the camera SAM was given',
         'passning': {'sam_skala': round(scale, 4), 'sam_flytt_m': [round(float(v), 3) for v in shift], 'sam_balen_flytt_m': [round(float(v), 3) for v in trunk], 'mediapipe_skala': round(mp_scale, 4)},
         **report,
-        'benlangder_m': {'sant': bones({k: v for k, v in real.items()}), 'sam_ra': bones(got), 'sam_passad': bones(got, scale), 'mediapipe_egen_kropp': world_bones,
+        'benlangder_m': {'sant': true_bones, 'sam_ra': sam_bones, 'sam_passad': bones(got, scale), 'mediapipe_egen_kropp': world_bones, 'rattelse': correction,
                          'about': 'per frame upper arm (shoulder to elbow) and forearm (elbow to wrist): mean, least, most and spread; mediapipe_egen_kropp is MediaPipe\'s world landmarks, the input the lift starts from'},
         'narmare_cm': nearer, 'narmare_about': 'median error of how much nearer the camera, along the felt, the wrist (and the elbow) is than its shoulder: lyft.py takes this from MediaPipe as nearer',
         'tid': {'sekunder_per_ruta_median': round(float(np.median(seconds)), 2), 'sekunder_per_ruta_max': round(float(np.max(seconds)), 2), 'laddning_s': sam.get('loadSeconds'),
@@ -454,25 +696,33 @@ def jamfor(sam_file, truth_file, measured, out_file):
     with open(out_file, 'w', encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=1)
     print(f"{len(frames)} frames; SAM's 2D points from the true joints (px, median): {found}")
-    print(f"scale fitted: SAM {scale:.3f}, shift {np.round(shift, 3).tolist()} m; MediaPipe lift {mp_scale:.3f}")
+    print(f"scale fitted: SAM {scale:.3f}, shift {np.round(shift, 3).tolist()} m; MediaPipe lift {mp_scale:.3f}; bones short by {correction}")
     for label in report:
         print(f'\n{label}\n' + table([(name, report[label][name]) for name, _ in GROUPS]))
         print('  bara rorelsen, djup: ' + ', '.join(f"{name} {r['djup']}" for name, r in report[label]['bara_rorelsen'].items() if r))
     print('\nnearer (cm, median error):', json.dumps(nearer, ensure_ascii=False))
-    print('bones (m):', json.dumps(result['benlangder_m'], ensure_ascii=False))
     print('time:', json.dumps(result['tid'], ensure_ascii=False))
     print(out_file)
 
 
 def main():
-    if len(sys.argv) < 2:
+    args = sys.argv[1:]
+    option = lambda name, default=None: args[args.index(name) + 1] if name in args else default
+    plain = [a for i, a in enumerate(args) if not a.startswith('--') and (i == 0 or not args[i - 1].startswith('--'))]
+    if not plain:
         sys.exit(__doc__)
-    if sys.argv[1] == 'serve':
+    if plain[0] == 'serve':
         return serve()
-    if sys.argv[1] == 'ruta':
-        return ruta(sys.argv[2])
-    if sys.argv[1] == 'jamfor':
-        return jamfor(*sys.argv[2:6])
+    if plain[0] == 'installera':
+        return installera(plain[1])
+    if plain[0] == 'las':
+        return las(plain[1], plain[2], option('--tradar'), option('--sort', 'full'))
+    if plain[0] == 'rutor':
+        return rutor(*plain[1:6], times=option('--tider'), every=int(option('--var', '5')), dense=int(option('--tatt', '0')), like=option('--som'), wait_factor=int(option('--vantan-gles', '1')))
+    if plain[0] == 'jamfor':
+        return jamfor(*plain[1:5])
+    if plain[0] == 'spara':
+        return spara(plain[1], plain[2])
     sys.exit(__doc__)
 
 

@@ -1,7 +1,14 @@
 {
- "about": "SAM 3D Body (sam-3d-body-dinov3, the body model only, the box and the play lens given) on our own figure's film, against the figure's own numbers, written by live-bj/verktyg/sam_runpod.py jamfor. Errors in cm in the camera's frame: sidled x, hojd y, djup z (along the line of sight); median over frames and joints, and the worst tenth. sam_ra is as the model gives it; sam_passad after one scale and one shift fitted over the whole film on the body's joints; sam_balen_given only moved (not scaled) so that its shoulders' middle over the film is the true one, which is what the lift is given. mediapipe_lyftet is lyft.py's lift (the prov: it is given the figure's true trunk distance and arm lengths) on the same frames. bara_rorelsen takes each joint's own constant offset away first. huvud is the head's middle (SAM: halfway between its ears; the lift: 9 cm behind the eyes). fingertoppar are the five tips of each hand (MediaPipe's 4, 8, 12, 16, 20).",
+ "about": "SAM 3D Body (sam-3d-body-dinov3, the body model only, the box and the camera given) on our own figure's film, against the figure's own numbers, written by live-bj/verktyg/sam_runpod.py jamfor. Errors in cm in the camera's frame: sidled x, hojd y, djup z (along the line of sight); median over frames and joints, and the worst tenth. sam_ra is as the model gives it; sam_passad after one scale and one shift fitted over the whole film on the body's joints; sam_balen_given only moved (not scaled) so that its shoulders' middle over the film is the true one, which is what the lift is given. mediapipe_lyftet is lyft.py's lift (the prov: it is given the figure's true trunk distance and arm lengths) on the same frames. bara_rorelsen takes each joint's own constant offset away first. huvud is the head's middle (SAM: halfway between its ears; the lift: 9 cm behind the eyes). fingertoppar are the five tips of each hand (MediaPipe's 4, 8, 12, 16, 20). benlangder_m.rattelse is what SAM's mean upper arm and forearm lack against the figure's: lyft.py giv --sam adds it to the live dealers' bones.",
  "facit": "giv-fran-2-3-p4c1-ren-a-man.json",
  "facit_about": "Standarddockans man, A2.3 till plats 4 kort 1 och tillbaka till A2.3 i samma rörelse, given som koreografi, version A \"nyckelvridningen\" (dealer3d/src/koreo-giv.ts, läst på Jakobs ord och två lärofilmer): vänsterhanden drar kortet plant ur skon till mötespunkten ute över bordet och reser det på högkant med framsidan mot dealern, högern nyper dess övre kant ovanifrån (tummen ned på framsidan, pekfingret på ryggen) och rullar det framåt med underarmen som en nyckel, bär det plant och lågt, sätter ned det och skjuter det på plats med fingertopparna, på dockans egna ben från ankaret dealer3d/data/ankare-2-3-man.json vid standarddockornas sko (dealer3d/tools/hud.ts SKON). Bålen lutar bara så mycket som räckvidden kräver, och underarmarna går över bordets kant. Kortet ligger i ruta 36 (1.20 s), handen åter i A2.3 i ruta 60 (0.80 s därefter). Skriven av dealer3d/tools/ren-givar.ts --docka man --plats 4 --koreo a.",
+ "kamera": {
+  "focalPx": 2334,
+  "cx": 881.5,
+  "cy": 586.5,
+  "width": 1764,
+  "height": 1174
+ },
  "frames": [
   0,
   1,
@@ -66,183 +73,183 @@
   60
  ],
  "hittad_px": {
-  "R.s": 16.8,
-  "L.s": 16.4,
-  "R.e": 21.1,
-  "L.e": 31.1,
-  "R.w": 9.5,
-  "L.w": 10.4
+  "R.s": 16.1,
+  "L.s": 19.6,
+  "R.e": 22.3,
+  "L.e": 30.9,
+  "R.w": 12.5,
+  "L.w": 9.6
  },
- "hittad_about": "median pixels between SAM's own 2D points and the figure's true joints through the lens",
+ "hittad_about": "median pixels between SAM's own 2D points and the figure's true joints through the camera SAM was given",
  "passning": {
-  "sam_skala": 0.985,
+  "sam_skala": 0.9804,
   "sam_flytt_m": [
-   -0.007,
+   -0.006,
    0.006,
-   -0.097
+   -0.081
   ],
   "sam_balen_flytt_m": [
-   0.005,
-   0.023,
-   -0.127
+   0.006,
+   0.022,
+   -0.123
   ],
   "mediapipe_skala": 1.018
  },
  "sam_ra": {
   "axlar": {
    "sidled": 0.8,
-   "hojd": 2.2,
-   "djup": 12.9,
-   "median": 13.0,
-   "samsta_tiondel": 18.1,
-   "djup_samsta_tiondel": 17.9,
+   "hojd": 1.9,
+   "djup": 13.1,
+   "median": 13.4,
+   "samsta_tiondel": 18.6,
+   "djup_samsta_tiondel": 18.4,
    "punkter": 122
   },
   "armbagar": {
-   "sidled": 1.0,
+   "sidled": 0.9,
    "hojd": 1.6,
-   "djup": 11.4,
-   "median": 11.7,
-   "samsta_tiondel": 15.7,
-   "djup_samsta_tiondel": 15.4,
+   "djup": 11.2,
+   "median": 11.6,
+   "samsta_tiondel": 15.1,
+   "djup_samsta_tiondel": 14.6,
    "punkter": 122
   },
   "handleder": {
-   "sidled": 1.0,
+   "sidled": 1.1,
    "hojd": 0.5,
-   "djup": 15.3,
-   "median": 15.6,
-   "samsta_tiondel": 19.5,
-   "djup_samsta_tiondel": 19.4,
+   "djup": 14.9,
+   "median": 15.3,
+   "samsta_tiondel": 18.4,
+   "djup_samsta_tiondel": 18.3,
    "punkter": 122
   },
   "huvud": {
-   "sidled": 1.7,
-   "hojd": 2.2,
-   "djup": 12.8,
-   "median": 13.3,
-   "samsta_tiondel": 14.9,
-   "djup_samsta_tiondel": 14.5,
+   "sidled": 1.5,
+   "hojd": 2.1,
+   "djup": 11.9,
+   "median": 12.3,
+   "samsta_tiondel": 15.2,
+   "djup_samsta_tiondel": 15.1,
    "punkter": 61
   },
   "fingertoppar": {
-   "sidled": 1.2,
-   "hojd": 1.2,
-   "djup": 17.8,
-   "median": 18.1,
-   "samsta_tiondel": 22.1,
-   "djup_samsta_tiondel": 21.8,
+   "sidled": 0.9,
+   "hojd": 1.3,
+   "djup": 16.9,
+   "median": 17.3,
+   "samsta_tiondel": 21.0,
+   "djup_samsta_tiondel": 20.8,
    "punkter": 610
   },
   "per_led": {
    "R.s": {
-    "sidled": 1.1,
-    "hojd": 2.2,
-    "djup": 8.4,
+    "sidled": 0.8,
+    "hojd": 1.9,
+    "djup": 8.5,
     "median": 9.2,
-    "samsta_tiondel": 13.0,
-    "djup_samsta_tiondel": 12.9,
+    "samsta_tiondel": 13.1,
+    "djup_samsta_tiondel": 13.0,
     "punkter": 61
    },
    "L.s": {
-    "sidled": 0.4,
-    "hojd": 2.2,
-    "djup": 16.8,
-    "median": 16.9,
-    "samsta_tiondel": 18.3,
-    "djup_samsta_tiondel": 18.2,
+    "sidled": 0.7,
+    "hojd": 2.0,
+    "djup": 16.0,
+    "median": 16.2,
+    "samsta_tiondel": 19.6,
+    "djup_samsta_tiondel": 19.4,
     "punkter": 61
    },
    "R.e": {
-    "sidled": 0.7,
+    "sidled": 0.8,
     "hojd": 1.1,
-    "djup": 9.9,
-    "median": 10.0,
-    "samsta_tiondel": 15.4,
-    "djup_samsta_tiondel": 15.3,
+    "djup": 10.4,
+    "median": 10.5,
+    "samsta_tiondel": 14.7,
+    "djup_samsta_tiondel": 14.6,
     "punkter": 61
    },
    "L.e": {
-    "sidled": 1.2,
+    "sidled": 1.0,
     "hojd": 2.9,
-    "djup": 12.0,
-    "median": 12.4,
-    "samsta_tiondel": 15.8,
-    "djup_samsta_tiondel": 15.4,
+    "djup": 11.7,
+    "median": 12.3,
+    "samsta_tiondel": 15.3,
+    "djup_samsta_tiondel": 14.6,
     "punkter": 61
    },
    "R.w": {
-    "sidled": 0.3,
-    "hojd": 0.6,
-    "djup": 15.0,
-    "median": 15.0,
-    "samsta_tiondel": 21.3,
-    "djup_samsta_tiondel": 21.3,
+    "sidled": 0.5,
+    "hojd": 0.4,
+    "djup": 14.9,
+    "median": 14.9,
+    "samsta_tiondel": 19.7,
+    "djup_samsta_tiondel": 19.7,
     "punkter": 61
    },
    "L.w": {
-    "sidled": 3.6,
-    "hojd": 0.5,
-    "djup": 15.4,
-    "median": 15.8,
-    "samsta_tiondel": 18.2,
-    "djup_samsta_tiondel": 17.7,
+    "sidled": 3.3,
+    "hojd": 0.6,
+    "djup": 14.9,
+    "median": 15.3,
+    "samsta_tiondel": 17.7,
+    "djup_samsta_tiondel": 17.3,
     "punkter": 61
    },
    "h": {
-    "sidled": 1.7,
-    "hojd": 2.2,
-    "djup": 12.8,
-    "median": 13.3,
-    "samsta_tiondel": 14.9,
-    "djup_samsta_tiondel": 14.5,
+    "sidled": 1.5,
+    "hojd": 2.1,
+    "djup": 11.9,
+    "median": 12.3,
+    "samsta_tiondel": 15.2,
+    "djup_samsta_tiondel": 15.1,
     "punkter": 61
    }
   },
   "bara_rorelsen": {
    "axlar": {
-    "sidled": 0.3,
+    "sidled": 0.4,
     "hojd": 0.7,
-    "djup": 1.7,
-    "median": 2.0,
-    "samsta_tiondel": 4.1,
-    "djup_samsta_tiondel": 3.9,
+    "djup": 2.2,
+    "median": 2.5,
+    "samsta_tiondel": 5.0,
+    "djup_samsta_tiondel": 4.9,
     "punkter": 122
    },
    "armbagar": {
     "sidled": 0.6,
-    "hojd": 0.2,
+    "hojd": 0.3,
     "djup": 2.1,
     "median": 2.3,
-    "samsta_tiondel": 4.7,
-    "djup_samsta_tiondel": 4.5,
+    "samsta_tiondel": 5.8,
+    "djup_samsta_tiondel": 5.5,
     "punkter": 122
    },
    "handleder": {
-    "sidled": 0.5,
+    "sidled": 0.6,
     "hojd": 0.3,
-    "djup": 2.7,
+    "djup": 2.6,
     "median": 2.8,
-    "samsta_tiondel": 5.4,
-    "djup_samsta_tiondel": 5.3,
+    "samsta_tiondel": 6.0,
+    "djup_samsta_tiondel": 5.8,
     "punkter": 122
    },
    "huvud": {
     "sidled": 1.8,
-    "hojd": 0.6,
-    "djup": 1.7,
+    "hojd": 0.3,
+    "djup": 1.9,
     "median": 2.7,
-    "samsta_tiondel": 3.8,
-    "djup_samsta_tiondel": 3.3,
+    "samsta_tiondel": 4.2,
+    "djup_samsta_tiondel": 3.5,
     "punkter": 61
    },
    "fingertoppar": {
-    "sidled": 0.9,
+    "sidled": 0.7,
     "hojd": 0.4,
-    "djup": 2.9,
-    "median": 3.2,
-    "samsta_tiondel": 5.9,
-    "djup_samsta_tiondel": 5.7,
+    "djup": 2.7,
+    "median": 3.1,
+    "samsta_tiondel": 6.3,
+    "djup_samsta_tiondel": 6.2,
     "punkter": 610
    }
   }
@@ -250,131 +257,131 @@
  "sam_passad": {
   "axlar": {
    "sidled": 1.2,
-   "hojd": 1.3,
-   "djup": 3.7,
+   "hojd": 0.9,
+   "djup": 3.4,
    "median": 4.1,
-   "samsta_tiondel": 6.8,
-   "djup_samsta_tiondel": 6.2,
+   "samsta_tiondel": 8.2,
+   "djup_samsta_tiondel": 8.0,
    "punkter": 122
   },
   "armbagar": {
-   "sidled": 0.5,
-   "hojd": 1.0,
-   "djup": 2.6,
-   "median": 3.4,
-   "samsta_tiondel": 5.3,
-   "djup_samsta_tiondel": 5.1,
+   "sidled": 0.6,
+   "hojd": 1.1,
+   "djup": 2.1,
+   "median": 3.0,
+   "samsta_tiondel": 7.0,
+   "djup_samsta_tiondel": 6.6,
    "punkter": 122
   },
   "handleder": {
-   "sidled": 0.7,
+   "sidled": 0.8,
    "hojd": 1.0,
-   "djup": 2.9,
-   "median": 3.7,
-   "samsta_tiondel": 7.2,
-   "djup_samsta_tiondel": 6.9,
+   "djup": 3.2,
+   "median": 3.8,
+   "samsta_tiondel": 6.4,
+   "djup_samsta_tiondel": 6.2,
    "punkter": 122
   },
   "huvud": {
-   "sidled": 1.5,
-   "hojd": 3.4,
-   "djup": 1.2,
-   "median": 4.0,
-   "samsta_tiondel": 5.9,
-   "djup_samsta_tiondel": 4.1,
+   "sidled": 1.4,
+   "hojd": 3.3,
+   "djup": 1.9,
+   "median": 4.3,
+   "samsta_tiondel": 5.6,
+   "djup_samsta_tiondel": 3.3,
    "punkter": 61
   },
   "fingertoppar": {
-   "sidled": 1.5,
+   "sidled": 1.2,
    "hojd": 1.6,
-   "djup": 5.1,
-   "median": 5.9,
-   "samsta_tiondel": 9.9,
-   "djup_samsta_tiondel": 9.4,
+   "djup": 5.0,
+   "median": 5.6,
+   "samsta_tiondel": 9.2,
+   "djup_samsta_tiondel": 8.8,
    "punkter": 610
   },
   "per_led": {
    "R.s": {
-    "sidled": 1.4,
-    "hojd": 1.3,
-    "djup": 4.7,
-    "median": 5.2,
-    "samsta_tiondel": 7.8,
-    "djup_samsta_tiondel": 7.3,
+    "sidled": 1.0,
+    "hojd": 0.9,
+    "djup": 4.2,
+    "median": 5.0,
+    "samsta_tiondel": 9.2,
+    "djup_samsta_tiondel": 9.1,
     "punkter": 61
    },
    "L.s": {
-    "sidled": 1.1,
-    "hojd": 1.3,
-    "djup": 3.5,
+    "sidled": 1.5,
+    "hojd": 1.0,
+    "djup": 3.2,
     "median": 3.9,
-    "samsta_tiondel": 5.2,
-    "djup_samsta_tiondel": 4.9,
+    "samsta_tiondel": 6.8,
+    "djup_samsta_tiondel": 6.5,
     "punkter": 61
    },
    "R.e": {
-    "sidled": 0.6,
+    "sidled": 1.0,
     "hojd": 0.6,
-    "djup": 3.2,
-    "median": 3.4,
-    "samsta_tiondel": 5.3,
-    "djup_samsta_tiondel": 5.3,
+    "djup": 3.1,
+    "median": 3.3,
+    "samsta_tiondel": 8.4,
+    "djup_samsta_tiondel": 8.3,
     "punkter": 61
    },
    "L.e": {
     "sidled": 0.5,
     "hojd": 2.3,
-    "djup": 2.0,
-    "median": 3.4,
-    "samsta_tiondel": 5.3,
-    "djup_samsta_tiondel": 4.7,
+    "djup": 1.6,
+    "median": 3.0,
+    "samsta_tiondel": 4.8,
+    "djup_samsta_tiondel": 4.1,
     "punkter": 61
    },
    "R.w": {
     "sidled": 0.4,
-    "hojd": 1.0,
-    "djup": 2.2,
-    "median": 2.7,
-    "samsta_tiondel": 9.0,
-    "djup_samsta_tiondel": 8.7,
+    "hojd": 0.7,
+    "djup": 4.3,
+    "median": 4.4,
+    "samsta_tiondel": 7.8,
+    "djup_samsta_tiondel": 7.6,
     "punkter": 61
    },
    "L.w": {
-    "sidled": 2.4,
-    "hojd": 1.0,
-    "djup": 3.1,
-    "median": 4.0,
-    "samsta_tiondel": 5.8,
-    "djup_samsta_tiondel": 4.8,
+    "sidled": 1.9,
+    "hojd": 1.1,
+    "djup": 2.7,
+    "median": 3.4,
+    "samsta_tiondel": 5.7,
+    "djup_samsta_tiondel": 4.9,
     "punkter": 61
    },
    "h": {
-    "sidled": 1.5,
-    "hojd": 3.4,
-    "djup": 1.2,
-    "median": 4.0,
-    "samsta_tiondel": 5.9,
-    "djup_samsta_tiondel": 4.1,
+    "sidled": 1.4,
+    "hojd": 3.3,
+    "djup": 1.9,
+    "median": 4.3,
+    "samsta_tiondel": 5.6,
+    "djup_samsta_tiondel": 3.3,
     "punkter": 61
    }
   },
   "bara_rorelsen": {
    "axlar": {
-    "sidled": 0.3,
+    "sidled": 0.4,
     "hojd": 0.7,
-    "djup": 1.6,
-    "median": 2.0,
-    "samsta_tiondel": 4.1,
-    "djup_samsta_tiondel": 3.9,
+    "djup": 2.2,
+    "median": 2.5,
+    "samsta_tiondel": 5.0,
+    "djup_samsta_tiondel": 4.9,
     "punkter": 122
    },
    "armbagar": {
     "sidled": 0.6,
-    "hojd": 0.2,
+    "hojd": 0.3,
     "djup": 2.1,
     "median": 2.4,
-    "samsta_tiondel": 4.6,
-    "djup_samsta_tiondel": 4.5,
+    "samsta_tiondel": 5.8,
+    "djup_samsta_tiondel": 5.5,
     "punkter": 122
    },
    "handleder": {
@@ -382,185 +389,185 @@
     "hojd": 0.3,
     "djup": 2.6,
     "median": 2.7,
-    "samsta_tiondel": 5.5,
-    "djup_samsta_tiondel": 5.4,
+    "samsta_tiondel": 6.1,
+    "djup_samsta_tiondel": 6.0,
     "punkter": 122
    },
    "huvud": {
     "sidled": 1.8,
-    "hojd": 0.5,
-    "djup": 1.6,
+    "hojd": 0.3,
+    "djup": 1.8,
     "median": 2.6,
-    "samsta_tiondel": 3.8,
+    "samsta_tiondel": 4.0,
     "djup_samsta_tiondel": 3.3,
     "punkter": 61
    },
    "fingertoppar": {
-    "sidled": 0.9,
+    "sidled": 0.7,
     "hojd": 0.4,
-    "djup": 2.9,
-    "median": 3.3,
-    "samsta_tiondel": 6.0,
-    "djup_samsta_tiondel": 5.8,
+    "djup": 2.7,
+    "median": 3.0,
+    "samsta_tiondel": 6.4,
+    "djup_samsta_tiondel": 6.2,
     "punkter": 610
    }
   }
  },
  "sam_balen_given": {
   "axlar": {
-   "sidled": 0.5,
+   "sidled": 0.3,
    "hojd": 0.7,
-   "djup": 4.1,
-   "median": 4.2,
-   "samsta_tiondel": 6.0,
-   "djup_samsta_tiondel": 5.9,
+   "djup": 3.7,
+   "median": 3.9,
+   "samsta_tiondel": 7.9,
+   "djup_samsta_tiondel": 7.9,
    "punkter": 122
   },
   "armbagar": {
-   "sidled": 1.1,
+   "sidled": 1.3,
    "hojd": 0.9,
-   "djup": 2.6,
-   "median": 3.3,
-   "samsta_tiondel": 5.1,
-   "djup_samsta_tiondel": 4.7,
+   "djup": 1.8,
+   "median": 2.7,
+   "samsta_tiondel": 7.3,
+   "djup_samsta_tiondel": 6.7,
    "punkter": 122
   },
   "handleder": {
-   "sidled": 1.4,
+   "sidled": 1.7,
    "hojd": 2.8,
-   "djup": 3.1,
-   "median": 5.6,
-   "samsta_tiondel": 8.5,
-   "djup_samsta_tiondel": 6.8,
+   "djup": 3.4,
+   "median": 5.4,
+   "samsta_tiondel": 7.4,
+   "djup_samsta_tiondel": 6.0,
    "punkter": 122
   },
   "huvud": {
    "sidled": 2.1,
-   "hojd": 4.5,
-   "djup": 1.3,
+   "hojd": 4.3,
+   "djup": 1.9,
    "median": 5.3,
    "samsta_tiondel": 6.8,
-   "djup_samsta_tiondel": 3.8,
+   "djup_samsta_tiondel": 3.3,
    "punkter": 61
   },
   "fingertoppar": {
-   "sidled": 1.1,
-   "hojd": 3.4,
-   "djup": 5.1,
-   "median": 7.2,
-   "samsta_tiondel": 10.7,
-   "djup_samsta_tiondel": 9.2,
+   "sidled": 1.3,
+   "hojd": 3.5,
+   "djup": 4.7,
+   "median": 6.9,
+   "samsta_tiondel": 10.0,
+   "djup_samsta_tiondel": 8.4,
    "punkter": 610
   },
   "per_led": {
    "R.s": {
-    "sidled": 0.6,
-    "hojd": 0.8,
-    "djup": 4.3,
-    "median": 4.6,
-    "samsta_tiondel": 7.0,
-    "djup_samsta_tiondel": 6.8,
+    "sidled": 0.3,
+    "hojd": 1.0,
+    "djup": 3.9,
+    "median": 4.1,
+    "samsta_tiondel": 8.9,
+    "djup_samsta_tiondel": 8.9,
     "punkter": 61
    },
    "L.s": {
-    "sidled": 0.4,
+    "sidled": 0.3,
     "hojd": 0.6,
-    "djup": 4.1,
-    "median": 4.2,
-    "samsta_tiondel": 5.6,
-    "djup_samsta_tiondel": 5.5,
+    "djup": 3.7,
+    "median": 3.9,
+    "samsta_tiondel": 7.1,
+    "djup_samsta_tiondel": 7.0,
     "punkter": 61
    },
    "R.e": {
-    "sidled": 0.7,
-    "hojd": 1.2,
-    "djup": 3.2,
-    "median": 3.5,
-    "samsta_tiondel": 5.4,
-    "djup_samsta_tiondel": 5.1,
+    "sidled": 0.5,
+    "hojd": 1.1,
+    "djup": 3.1,
+    "median": 3.3,
+    "samsta_tiondel": 8.7,
+    "djup_samsta_tiondel": 8.4,
     "punkter": 61
    },
    "L.e": {
-    "sidled": 1.7,
+    "sidled": 1.5,
     "hojd": 0.7,
-    "djup": 1.9,
-    "median": 3.0,
-    "samsta_tiondel": 4.8,
-    "djup_samsta_tiondel": 4.4,
+    "djup": 1.4,
+    "median": 2.4,
+    "samsta_tiondel": 4.3,
+    "djup_samsta_tiondel": 3.7,
     "punkter": 61
    },
    "R.w": {
-    "sidled": 0.7,
-    "hojd": 2.8,
-    "djup": 2.3,
-    "median": 3.5,
-    "samsta_tiondel": 9.5,
-    "djup_samsta_tiondel": 8.6,
+    "sidled": 1.0,
+    "hojd": 2.5,
+    "djup": 4.1,
+    "median": 5.3,
+    "samsta_tiondel": 7.9,
+    "djup_samsta_tiondel": 7.3,
     "punkter": 61
    },
    "L.w": {
-    "sidled": 4.1,
+    "sidled": 3.8,
     "hojd": 2.8,
-    "djup": 3.3,
-    "median": 5.8,
-    "samsta_tiondel": 7.6,
-    "djup_samsta_tiondel": 5.0,
+    "djup": 2.8,
+    "median": 5.5,
+    "samsta_tiondel": 7.2,
+    "djup_samsta_tiondel": 4.9,
     "punkter": 61
    },
    "h": {
     "sidled": 2.1,
-    "hojd": 4.5,
-    "djup": 1.3,
+    "hojd": 4.3,
+    "djup": 1.9,
     "median": 5.3,
     "samsta_tiondel": 6.8,
-    "djup_samsta_tiondel": 3.8,
+    "djup_samsta_tiondel": 3.3,
     "punkter": 61
    }
   },
   "bara_rorelsen": {
    "axlar": {
-    "sidled": 0.3,
+    "sidled": 0.4,
     "hojd": 0.7,
-    "djup": 1.7,
-    "median": 2.0,
-    "samsta_tiondel": 4.1,
-    "djup_samsta_tiondel": 3.9,
+    "djup": 2.2,
+    "median": 2.5,
+    "samsta_tiondel": 5.0,
+    "djup_samsta_tiondel": 4.9,
     "punkter": 122
    },
    "armbagar": {
     "sidled": 0.6,
-    "hojd": 0.2,
+    "hojd": 0.3,
     "djup": 2.1,
     "median": 2.3,
-    "samsta_tiondel": 4.7,
-    "djup_samsta_tiondel": 4.5,
+    "samsta_tiondel": 5.8,
+    "djup_samsta_tiondel": 5.5,
     "punkter": 122
    },
    "handleder": {
-    "sidled": 0.5,
+    "sidled": 0.6,
     "hojd": 0.3,
-    "djup": 2.7,
+    "djup": 2.6,
     "median": 2.8,
-    "samsta_tiondel": 5.4,
-    "djup_samsta_tiondel": 5.3,
+    "samsta_tiondel": 6.0,
+    "djup_samsta_tiondel": 5.8,
     "punkter": 122
    },
    "huvud": {
     "sidled": 1.8,
-    "hojd": 0.6,
-    "djup": 1.7,
+    "hojd": 0.3,
+    "djup": 1.9,
     "median": 2.7,
-    "samsta_tiondel": 3.8,
-    "djup_samsta_tiondel": 3.3,
+    "samsta_tiondel": 4.2,
+    "djup_samsta_tiondel": 3.5,
     "punkter": 61
    },
    "fingertoppar": {
-    "sidled": 0.9,
+    "sidled": 0.7,
     "hojd": 0.4,
-    "djup": 2.9,
-    "median": 3.2,
-    "samsta_tiondel": 5.9,
-    "djup_samsta_tiondel": 5.7,
+    "djup": 2.7,
+    "median": 3.1,
+    "samsta_tiondel": 6.3,
+    "djup_samsta_tiondel": 6.2,
     "punkter": 610
    }
   }
@@ -912,53 +919,53 @@
   },
   "sam_ra": {
    "R.overarm": {
-    "medel": 0.275,
-    "min": 0.265,
-    "max": 0.285,
+    "medel": 0.277,
+    "min": 0.268,
+    "max": 0.289,
     "spridning": 0.007
    },
    "R.underarm": {
-    "medel": 0.252,
-    "min": 0.24,
-    "max": 0.265,
+    "medel": 0.253,
+    "min": 0.242,
+    "max": 0.27,
     "spridning": 0.008
    },
    "L.overarm": {
-    "medel": 0.271,
-    "min": 0.257,
-    "max": 0.285,
+    "medel": 0.273,
+    "min": 0.26,
+    "max": 0.29,
     "spridning": 0.01
    },
    "L.underarm": {
-    "medel": 0.252,
-    "min": 0.238,
-    "max": 0.269,
-    "spridning": 0.01
+    "medel": 0.253,
+    "min": 0.24,
+    "max": 0.273,
+    "spridning": 0.009
    }
   },
   "sam_passad": {
    "R.overarm": {
-    "medel": 0.271,
-    "min": 0.261,
-    "max": 0.281,
+    "medel": 0.272,
+    "min": 0.262,
+    "max": 0.284,
     "spridning": 0.007
    },
    "R.underarm": {
     "medel": 0.248,
-    "min": 0.236,
-    "max": 0.261,
-    "spridning": 0.008
+    "min": 0.237,
+    "max": 0.264,
+    "spridning": 0.007
    },
    "L.overarm": {
-    "medel": 0.267,
-    "min": 0.253,
-    "max": 0.281,
+    "medel": 0.268,
+    "min": 0.255,
+    "max": 0.284,
     "spridning": 0.01
    },
    "L.underarm": {
     "medel": 0.248,
     "min": 0.235,
-    "max": 0.265,
+    "max": 0.268,
     "spridning": 0.009
    }
   },
@@ -988,12 +995,16 @@
     "spridning": 0.011
    }
   },
+  "rattelse": {
+   "overarm": 0.004,
+   "underarm": 0.019
+  },
   "about": "per frame upper arm (shoulder to elbow) and forearm (elbow to wrist): mean, least, most and spread; mediapipe_egen_kropp is MediaPipe's world landmarks, the input the lift starts from"
  },
  "narmare_cm": {
   "L": {
    "handled_mot_axel": {
-    "sam": 1.6,
+    "sam": 2.1,
     "mediapipe": 4.0,
     "sant_omfang_cm": [
      19.2,
@@ -1001,13 +1012,13 @@
     ]
    },
    "armbage_mot_axel": {
-    "sam": 4.4,
+    "sam": 4.5,
     "mediapipe": 10.6
    }
   },
   "R": {
    "handled_mot_axel": {
-    "sam": 6.2,
+    "sam": 5.3,
     "mediapipe": 11.9,
     "sant_omfang_cm": [
      32.4,
@@ -1015,19 +1026,19 @@
     ]
    },
    "armbage_mot_axel": {
-    "sam": 1.3,
+    "sam": 0.9,
     "mediapipe": 8.6
    }
   }
  },
  "narmare_about": "median error of how much nearer the camera, along the felt, the wrist (and the elbow) is than its shoulder: lyft.py takes this from MediaPipe as nearer",
  "tid": {
-  "sekunder_per_ruta_median": 1.69,
-  "sekunder_per_ruta_max": 2.04,
-  "laddning_s": 13.1,
-  "hela_korningen_s": 118.3,
+  "sekunder_per_ruta_median": 0.74,
+  "sekunder_per_ruta_max": 2.2,
+  "laddning_s": 19.9,
+  "hela_korningen_s": 68.8,
   "kort": "NVIDIA GeForce RTX 3070",
-  "topp_mib": 2137,
+  "topp_mib": 3469,
   "rutor": 61
  },
  "index": {
@@ -1061,9 +1072,17 @@
     "created": "2026-11-27T02:19:07.937Z",
     "minutes": 5.67,
     "usd": 0.0123
+   },
+   {
+    "gpu": "NVIDIA GeForce RTX 3070",
+    "cloud": "COMMUNITY",
+    "perHour": 0.13,
+    "created": "2026-11-27T02:42:50.616Z",
+    "minutes": 6.55,
+    "usd": 0.0142
    }
   ],
-  "minuter": 5.67,
-  "usd_skattat": 0.0123
+  "minuter": 12.22,
+  "usd_skattat": 0.0265
  }
 }

@@ -1,11 +1,11 @@
-// SAM 3D Body on a hired machine at RunPod, for the trial in live-bj/README.md ("Djup ur SAM 3D Body"): the body model
-// needs an NVIDIA card, and this computer has none. Hires the cheapest card that is enough, sets the model up there,
-// sends the pictures and blackjack-dealer/dealer3d/tools/docka-sam.py, runs it, brings sam.json home and destroys the
-// machine. sam_runpod.py is what runs on the machine (serve) and what compares the answer with the truth (jamfor).
+// SAM 3D Body on a hired machine at RunPod, for our own figure's film only (live-bj/README.md, "Djup ur SAM 3D Body"):
+// the live table's frames are read on this computer's processor (sam_runpod.py las) and never sent, and this tool
+// refuses a list cut from that film. Hires the cheapest card that is enough, sets the model up there, sends the
+// pictures of each list that sam_runpod.py rutor wrote, reads them with sam_runpod.py las, brings each answer home as
+// <ut-mapp>/<the list's folder>.json and destroys the machine.
 //
 //   node live-bj/verktyg/sam_runpod.ts lista                     the balance and the account's machines (none is touched)
-//   node live-bj/verktyg/sam_runpod.ts kor <ut-mapp> <bild.png> ... --box x0,y0,x1,y1 [--focal 2334]
-//        [--facit <giv.json> --reserv <bild.png> --reserv-box x0,y0,x1,y1]   if SAM does not find the figure, one picture of a person to see that the model works
+//   node live-bj/verktyg/sam_runpod.ts kor <ut-mapp> <lista.json> [<lista.json> ...] [--torr]   --torr: everything but the hiring
 //        [--hogst-per-timme 0.35] [--minuter 90] [--tak 3]                 the most a card may cost an hour, and the ceilings for all runs together
 //   node live-bj/verktyg/sam_runpod.ts stang <ut-mapp>           destroys every machine this tool started (from the ledger) that is still there
 //
@@ -24,18 +24,16 @@ import {randomBytes} from 'node:crypto';
 import {parseEnv} from 'node:util';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {PLAY_LENS, filmEye, see} from '../../blackjack-dealer/src/table-lens.ts';
 
 const SELF = fileURLToPath(import.meta.url), HERE = path.dirname(SELF), CASINO = path.resolve(HERE, '..', '..');
 const KEY_FILE = path.join(CASINO, '.env.local');
 const SERVER = path.join(HERE, 'sam_runpod.py');
-const READER = path.join(CASINO, 'blackjack-dealer', 'dealer3d', 'tools', 'docka-sam.py');
+const LIVE_FILM = 'kalla.mp4';   // the live table's film (data/kalla.json): its frames stay on this computer
 const API = 'https://api.runpod.io/v2';
 // PyTorch's own small image (3.4 GB): Python 3.11 as sam-3d-body's INSTALL.md asks, and PyTorch 2.7.1, the least DINOv3 asks.
 const IMAGE = 'pytorch/pytorch:2.7.1-cuda12.6-cudnn9-runtime', CUDA = '12.6';
 const NAME = 'casino-sam-prov';
 const PORT = 8000;
-const NOT_FOUND_PX = 60;   // SAM's own 2D joints further than this from the figure's (median): it did not find the figure
 
 class Halt extends Error {}
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -143,36 +141,38 @@ function closeEntry(out: string, id: string, how: string) {
 function options(argv: string[]) {
   const named: Record<string, string> = {}, plain: string[] = [];
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i].startsWith('--')) named[argv[i].slice(2)] = argv[++i];
+    if (argv[i] === '--torr') named.torr = 'ja';
+    else if (argv[i].startsWith('--')) named[argv[i].slice(2)] = argv[++i];
     else plain.push(argv[i]);
   }
   return {named, plain};
 }
 
-const median = (v: number[]) => { const s = [...v].sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : NaN; };
+type Plan = {name: string; folder: string; film: string; camera: any; pictures: {picture: string; t: number; box: number[]}[]};
 
-/** How far SAM's own 2D shoulders, elbows and wrists lie from the figure's true ones through the play lens (median pixels). */
-function foundPx(sam: any, facitFile: string): number {
-  const truth = JSON.parse(readFileSync(facitFile, 'utf8')), eye = filmEye(PLAY_LENS);
-  const names: string[] = sam.keypointNames.map((n: string) => n.toLowerCase().replace(/[- ]/g, '_'));
-  const d: number[] = [];
-  for (const pic of sam.pictures) {
-    const frame = truth.frames[Number(path.basename(pic.picture).replace(/\D/g, ''))];
-    for (const [side, word] of [['R', 'right'], ['L', 'left']]) for (const [j, joint] of [['s', 'shoulder'], ['e', 'elbow'], ['w', 'wrist']]) {
-      const i = names.indexOf(`${word}_${joint}`), p = frame && see(eye, frame[side][j]);
-      if (i >= 0 && p) d.push(Math.hypot(pic.pixels[i][0] - p.x, pic.pixels[i][1] - p.y));
-    }
-  }
-  return median(d);
+/** The lists sam_runpod.py rutor wrote: each is sent under its folder's name. A list cut from the live table's film is refused. */
+function plans(files: string[]): Plan[] {
+  return files.map(file => {
+    if (!existsSync(file)) throw new Halt(`${file} finns inte.`);
+    const list = JSON.parse(readFileSync(file, 'utf8')), folder = path.dirname(path.resolve(file));
+    const name = path.basename(folder).replace(/[^A-Za-z0-9._-]/g, '-');
+    if (String(list.film) === LIVE_FILM) throw new Halt(`${file} är tagen ur livebordets film: de rutorna lämnar inte datorn. Läs dem här med sam_runpod.py las.`);
+    for (const p of list.pictures) if (!existsSync(path.join(folder, p.picture))) throw new Halt(`${path.join(folder, p.picture)} finns inte.`);
+    return {name, folder, film: list.film, camera: list.camera, pictures: list.pictures};
+  });
 }
 
 async function kor(argv: string[]) {
   const {named, plain} = options(argv);
-  const [out, ...pictures] = plain;
-  const box = named.box, focal = Number(named.focal ?? 2334);
+  const [out, ...lists] = plain;
   const perHourMax = Number(named['hogst-per-timme'] ?? 0.35), minutesMax = Number(named.minuter ?? 90), usdMax = Number(named.tak ?? 3);
-  if (!out || !pictures.length || !/^\d+(\.\d+)?(,\d+(\.\d+)?){3}$/.test(box ?? '')) throw new Halt('Använd: kor <ut-mapp> <bild.png> ... --box x0,y0,x1,y1 (se överst i filen).');
-  for (const p of [...pictures, READER, SERVER, ...(named.reserv ? [named.reserv] : [])]) if (!existsSync(p)) throw new Halt(`${p} finns inte.`);
+  const dry = 'torr' in named;
+  if (!out || !lists.length) throw new Halt('Använd: kor <ut-mapp> <lista.json> [<lista.json> ...] (se överst i filen).');
+  const work = plans(lists);
+  if (new Set(work.map(w => w.name)).size !== work.length) throw new Halt('Två listor ligger i mappar med samma namn.');
+  const count = work.reduce((s, w) => s + w.pictures.length, 0);
+  const bytes = work.reduce((s, w) => s + w.pictures.reduce((t, p) => t + readFileSync(path.join(w.folder, p.picture)).length, 0), 0);
+  say(`Att skicka: ${work.map(w => `${w.name} (${w.film}, ${w.pictures.length} rutor)`).join(', ')}; ${count} rutor, ${(bytes / 1e6).toFixed(1)} MB.`);
   keys();
   if (!hfToken) throw new Halt('HF_TOKEN saknas i nyckelfilen; modellen är spärrad utan den.');
   mkdirSync(out, {recursive: true});
@@ -204,6 +204,10 @@ async function kor(argv: string[]) {
   const affordable = cards.filter(c => usedUsd + c.price * leftMin / 60 <= usdMax);
   say(`Kort som räcker, billigast först: ${affordable.slice(0, 8).map(c => `${c.id} ${c.cloud} ${c.price} USD/h ${c.memory} GB (${c.stock})`).join('; ') || 'inga'}`);
   if (!affordable.length) throw new Halt(`Inget NVIDIA-kort med minst 8 GB för högst ${perHourMax} USD i timmen har lediga maskiner just nu.`);
+  // Measured 2026-11-27 on an RTX 3070: 2.3 minutes to start and set up, about a second to send a picture, 1.7 s to read one.
+  const minutes = 2.5 + count * (1 + 1.7) / 60;
+  say(`Skattat: ${minutes.toFixed(1)} min på ${affordable[0].id}, cirka ${(affordable[0].price * minutes / 60).toFixed(3)} USD.`);
+  if (dry) { say('Torrkörning: ingen maskin hyrs.'); return; }
 
   secret = randomBytes(24).toString('hex');
   const name = `${NAME}-${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12)}`;
@@ -275,19 +279,17 @@ async function kor(argv: string[]) {
       await sleep(15000);
     }
     say(String(state.log).split('\n').filter((l: string) => !/^\s*(Requirement already|Collecting|Downloading|Using cached|Installing|Attempting|Found existing|Uninstalling|Successfully uninstalled)/.test(l)).slice(-14).join('\n'));
-    // 3. The reader and the pictures over.
-    const send = async (file: string, as: string) => {
-      const r = await call('PUT', `/in/${as}`, readFileSync(file), 'application/octet-stream');
+    // 3. Each list's pictures over (named after the list, so that two lists cannot clash), then its reading, and the answer home.
+    const send = async (body: Buffer, as: string) => {
+      const r = await call('PUT', `/in/${as}`, body, 'application/octet-stream');
       if (!r.ok) throw new Halt(`Uppladdningen av ${as}: ${r.status}`);
     };
-    await send(READER, 'docka-sam.py');
-    for (const p of pictures) await send(p, path.basename(p));
-    say(`${mins()} uppe: docka-sam.py och ${pictures.length} bilder`);
-    // 4. The run, and its answer home.
-    const job = async (folder: string, names: string[], around: string) => {
-      const cmd = ['PYTHON', '-I', '-B', '/work/in/docka-sam.py', `/work/out/${folder}`, ...names.map(n => `/work/in/${n}`), '--box', around, '--focal', String(focal)];
-      const r = await call('POST', '/job', JSON.stringify({cmd}), 'application/json');
-      if (!r.ok) throw new Halt(`Körningen startade inte: ${r.status}`);
+    for (const w of work) {
+      for (const p of w.pictures) await send(readFileSync(path.join(w.folder, p.picture)), `${w.name}-${p.picture}`);
+      await send(Buffer.from(JSON.stringify({film: w.film, camera: w.camera, pictures: w.pictures.map(p => ({...p, file: `${w.name}-${p.picture}`}))})), `${w.name}.json`);
+      say(`${mins()} uppe: ${w.name}, ${w.pictures.length} rutor`);
+      const r = await call('POST', '/job', JSON.stringify({cmd: ['PYTHON', '-I', '-B', '/work/sam_runpod.py', 'las', `/work/out/${w.name}`, `/work/in/${w.name}.json`]}), 'application/json');
+      if (!r.ok) throw new Halt(`Läsningen startade inte: ${r.status}`);
       const {job: key} = await r.json() as {job: string};
       let from = 0;
       for (;;) {
@@ -295,26 +297,13 @@ async function kor(argv: string[]) {
         let j: any;
         try { const q = await call('GET', `/job/${key}?from=${from}`); if (!q.ok) continue; j = await q.json(); } catch { continue; }
         if (j.log) { process.stdout.write(hide(j.log)); from = j.size; }
-        if (j.done) { if (j.code !== 0) throw new Halt(`docka-sam.py slutade med ${j.code}.`); break; }
-        if (Date.now() > deadline - 3 * 60000) throw new Halt('Tiden räcker inte för körningen.');
+        if (j.done) { if (j.code !== 0) throw new Halt(`Läsningen av ${w.name} slutade med ${j.code}.`); break; }
+        if (Date.now() > deadline - 3 * 60000) throw new Halt('Tiden räcker inte för läsningen.');
       }
-      const got = await call('GET', `/out/${folder}/sam.json`);
-      if (!got.ok) throw new Halt(`sam.json kom inte hem: ${got.status}`);
-      const text = await got.text();
-      writeFileSync(path.join(out, `${folder}.json`), text);
-      say(`${mins()} ${path.join(out, `${folder}.json`)}`);
-      return JSON.parse(text);
-    };
-    const sam = await job('sam', pictures.map(p => path.basename(p)), box!);
-    if (named.facit) {
-      const px = foundPx(sam, named.facit);
-      say(`SAM:s egna 2D-leder från dockans sanna (axlar, armbågar, handleder): ${px.toFixed(1)} bildpunkter i median.`);
-      if (px > NOT_FOUND_PX && named.reserv) {
-        say('SAM hittade inte dockan: en bild av en person, för att se att modellen fungerar.');
-        await send(named.reserv, path.basename(named.reserv));
-        const extra = await job('reserv', [path.basename(named.reserv)], named['reserv-box'] ?? box!);
-        say(`Reserven: ${extra.pictures.length} bild, återprojektion ${extra.pictures[0]?.reprojectionMaxPx} px.`);
-      }
+      const got = await call('GET', `/out/${w.name}/sam.json`);
+      if (!got.ok) throw new Halt(`Svaret för ${w.name} kom inte hem: ${got.status}`);
+      writeFileSync(path.join(out, `${w.name}.json`), await got.text());
+      say(`${mins()} ${path.join(out, `${w.name}.json`)}`);
     }
   } finally {
     clearTimeout(timer);

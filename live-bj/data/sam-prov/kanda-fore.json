@@ -1,0 +1,99 @@
+{
+ "about": "The lifted pieces against what is known of the live table (data/uppsattning.json), in cm of the lens world\n(sideways x, height y, depth z): the left hand's grip (between the thumb's and the index finger's tips) where the card\nleaves the shoe against the grip at the shoe's front; the right hand's grip where the card comes to rest against the\ncard's own middle as the card's track saw it lie; in the waits, how high the grips are over the felt they lie on; and\nhow often a wrist is under the felt.",
+ "pieces": {
+  "bordet-hoger-plats-7.json": {
+   "handled_under_filten_andel": 0.0,
+   "vid_skon_cm": [
+    1.1,
+    0.1,
+    5.8
+   ],
+   "vid_kortet_cm": [
+    -11.0,
+    4.1,
+    -4.0
+   ]
+  },
+  "bordet-mitten-plats-4.json": {
+   "handled_under_filten_andel": 0.0,
+   "vid_skon_cm": [
+    -4.0,
+    2.9,
+    -4.3
+   ],
+   "vid_kortet_cm": [
+    -3.6,
+    -0.6,
+    -10.9
+   ]
+  },
+  "bordet-vanster-plats-1.json": {
+   "handled_under_filten_andel": 0.0,
+   "vid_skon_cm": [
+    -2.5,
+    -1.5,
+    11.2
+   ],
+   "vid_kortet_cm": [
+    1.2,
+    5.1,
+    5.0
+   ]
+  },
+  "bordet-vantan-1.json": {
+   "handled_under_filten_andel": 0.0,
+   "greppets_hojd_cm": -0.3
+  },
+  "bordet-vantan-2.json": {
+   "handled_under_filten_andel": 0.0,
+   "greppets_hojd_cm": -0.4
+  },
+  "kameran-hoger-plats-7.json": {
+   "handled_under_filten_andel": 0.0,
+   "vid_skon_cm": [
+    -8.0,
+    -2.7,
+    7.9
+   ],
+   "vid_kortet_cm": [
+    -10.6,
+    7.4,
+    0.7
+   ]
+  },
+  "kameran-mitten-plats-4.json": {
+   "handled_under_filten_andel": 0.0,
+   "vid_skon_cm": [
+    -8.4,
+    -0.9,
+    4.1
+   ],
+   "vid_kortet_cm": [
+    -5.1,
+    1.4,
+    -6.9
+   ]
+  },
+  "kameran-vanster-plats-2.json": {
+   "handled_under_filten_andel": 0.0,
+   "vid_skon_cm": [
+    -11.8,
+    0.1,
+    12.8
+   ],
+   "vid_kortet_cm": [
+    5.1,
+    5.5,
+    -8.8
+   ]
+  },
+  "kameran-vantan-1.json": {
+   "handled_under_filten_andel": 0.0,
+   "greppets_hojd_cm": -0.2
+  },
+  "kameran-vantan-2.json": {
+   "handled_under_filten_andel": 0.0,
+   "greppets_hojd_cm": 0.1
+  }
+ }
+}

@@ -1,0 +1,67 @@
+{
+ "about": "lyft.py prov: our figure's film lifted like a live deal, against its own numbers; cm in felt coordinates (sideways, depth along the felt, height). Arms the figure's own; SAM's depth from docka-var5-som-livebordet.json.",
+ "upper": 0.279,
+ "fore": 0.272,
+ "joints": {
+  "L shoulder": {
+   "median": 2.5,
+   "worst_tenth": 5.4,
+   "sideways": 0.7,
+   "depth": 2.4,
+   "depth_worst_tenth": 5.1,
+   "height": 1.2,
+   "top_speed_true": 0.2,
+   "top_speed_lifted": 0.09
+  },
+  "L elbow": {
+   "median": 4.5,
+   "worst_tenth": 8.1,
+   "sideways": 1.6,
+   "depth": 3.2,
+   "depth_worst_tenth": 6.8,
+   "height": 1.7,
+   "top_speed_true": 1.21,
+   "top_speed_lifted": 0.77
+  },
+  "L wrist": {
+   "median": 5.0,
+   "worst_tenth": 8.6,
+   "sideways": 2.4,
+   "depth": 3.2,
+   "depth_worst_tenth": 7.3,
+   "height": 1.8,
+   "top_speed_true": 1.78,
+   "top_speed_lifted": 0.98
+  },
+  "R shoulder": {
+   "median": 6.4,
+   "worst_tenth": 9.9,
+   "sideways": 2.0,
+   "depth": 5.1,
+   "depth_worst_tenth": 9.8,
+   "height": 1.9,
+   "top_speed_true": 0.4,
+   "top_speed_lifted": 0.18
+  },
+  "R elbow": {
+   "median": 3.6,
+   "worst_tenth": 14.4,
+   "sideways": 1.1,
+   "depth": 3.4,
+   "depth_worst_tenth": 14.2,
+   "height": 0.7,
+   "top_speed_true": 0.86,
+   "top_speed_lifted": 0.64
+  },
+  "R wrist": {
+   "median": 5.0,
+   "worst_tenth": 15.5,
+   "sideways": 1.1,
+   "depth": 4.6,
+   "depth_worst_tenth": 14.9,
+   "height": 1.5,
+   "top_speed_true": 1.05,
+   "top_speed_lifted": 0.6
+  }
+ }
+}

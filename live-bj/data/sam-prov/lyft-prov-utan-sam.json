@@ -1,0 +1,67 @@
+{
+ "about": "lyft.py prov: our figure's film lifted like a live deal, against its own numbers; cm in felt coordinates (sideways, depth along the felt, height). Arms the figure's own; SAM's depth from nowhere (MediaPipe alone).",
+ "upper": 0.279,
+ "fore": 0.272,
+ "joints": {
+  "L shoulder": {
+   "median": 2.5,
+   "worst_tenth": 5.4,
+   "sideways": 0.7,
+   "depth": 2.4,
+   "depth_worst_tenth": 5.1,
+   "height": 1.2,
+   "top_speed_true": 0.2,
+   "top_speed_lifted": 0.09
+  },
+  "L elbow": {
+   "median": 3.8,
+   "worst_tenth": 5.0,
+   "sideways": 0.8,
+   "depth": 3.2,
+   "depth_worst_tenth": 4.5,
+   "height": 0.8,
+   "top_speed_true": 1.21,
+   "top_speed_lifted": 0.75
+  },
+  "L wrist": {
+   "median": 7.1,
+   "worst_tenth": 10.8,
+   "sideways": 3.5,
+   "depth": 5.3,
+   "depth_worst_tenth": 5.5,
+   "height": 3.5,
+   "top_speed_true": 1.78,
+   "top_speed_lifted": 0.98
+  },
+  "R shoulder": {
+   "median": 6.4,
+   "worst_tenth": 9.9,
+   "sideways": 2.0,
+   "depth": 5.1,
+   "depth_worst_tenth": 9.8,
+   "height": 1.9,
+   "top_speed_true": 0.4,
+   "top_speed_lifted": 0.18
+  },
+  "R elbow": {
+   "median": 9.3,
+   "worst_tenth": 19.8,
+   "sideways": 1.0,
+   "depth": 9.1,
+   "depth_worst_tenth": 19.5,
+   "height": 2.0,
+   "top_speed_true": 0.86,
+   "top_speed_lifted": 0.65
+  },
+  "R wrist": {
+   "median": 9.7,
+   "worst_tenth": 21.2,
+   "sideways": 1.1,
+   "depth": 9.4,
+   "depth_worst_tenth": 20.0,
+   "height": 2.5,
+   "top_speed_true": 1.05,
+   "top_speed_lifted": 0.62
+  }
+ }
+}
