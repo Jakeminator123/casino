@@ -14,8 +14,8 @@ en modells API läser ingenting själv: skicka med den här filen och projektets
 | Mapp | Vad det är | Läs |
 | --- | --- | --- |
 | `blackjack-dealer/` | Spelet, studion i webbläsaren och 3D-dockans rörelsekod (`dealer3d/`). Studion är ingången till hela repot (`STARTA studion.cmd` eller `node start.ts` i roten) och startar dockans editor själv. Här står måtten för kamera, bord, kort och kortplatser som allt annat läser. | `README.md`, `STATUS.md` |
-| `standarddocka/` | Editorn där standarddockans rörelser spelas, justeras och filmas, och verktygen som mäter dem. | `README.md`, `DOMAR.md` |
-| `avatar-auto-pipeline/` | Blender-skripten som bygger standarddockan, bordet och stolen, och vägen från foton till en riggad dealer. Python. | `README-SV.md` |
+| `standarddocka/` | Editorn där dockorna (Danilo, Frasse och persondockorna) spelar sina lyfta rörelser vid livebordet och filmas, filmens efterarbete (dockans takt, utskärningen med vårt eget kort) och Jakobs domar. | `README.md`, `DOMAR.md` |
+| `avatar-auto-pipeline/` | Blender-skripten som bygger dockorna, livebordet och stolen, och vägen från bilder av en person till en ny dealer: `python ny_dealer.py <person>` mäter personen ur bilderna, bygger dockan, löser rörelserna och förbereder filmen. Python. | `README-SV.md` |
 | `live-bj/` | Mätning av en riktig dealers rörelser, blick och kameravinklar ur en blackjackfilm. Filmen och rutorna ur den går aldrig in i Git eller i ett prov; bara de små måttfilerna i `data/` och verktygen. De två mätta dealrarna har arbetsnamn (Jakob 2026-11-27): Danilo (den första, ung och smal; stilen `kameran`) och Frasse (den andra, med skägg; stilen `bordet`). Namnen är också namnen på två nya dockor hos oss, med kroppens mått, stil och rörelser ur mätningen och vårt eget ansikte. Mäter med Python-miljön i `blackjack-dealer/tools/python/`. | mappens README |
 | `slask/` | Tillfälligt arbete. Git har bara verktyget `slask.ts`. | nedan |
 | `inbox/` | Korta lappar mellan chattar som arbetar samtidigt. Git har bara verktyget `inbox.ts`. | nedan |
@@ -87,18 +87,20 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
 
 ## Måtten och rörelseschemat
 
-- Måtten har en källa: koden (kameran, bordet, kortet och kortplatserna i `blackjack-dealer/src/table-lens.ts`,
-  dockornas mått i `blackjack-dealer/dealer3d/src/doll.ts`, takten i `dealer3d/src/koreo-giv.ts`). Ett mått ändras
-  där, aldrig i ett dokument.
-- Uppsättningen som är klonad ur filmen av livebordet (`blackjack-dealer/src/table-live.ts`: kameran, bordet, skon,
-  korten, kortplatserna) är den nya standarden för inspelning, beställning och visning (Jakob 2026-11-27: "helt
-  övergå till det som är klonat"). Den förra standarden står kvar som ett val. Nytt arbete görs i den klonade
-  uppsättningen om inget annat sägs; vad som är flyttat dit står i `PROJEKTET.md`.
+- Måtten har en källa: koden (kameran, bordet, skon och kortplatserna i `blackjack-dealer/src/table-live.ts`, kortet
+  i `src/space.ts`, dockornas mått i `blackjack-dealer/dealer3d/src/doll.ts` och en persons i
+  `avatar-auto-pipeline/personer/<person>.json`, rörelsernas takt i lyftfilerna `dealer3d/data/lyft-*.json`). Ett
+  mått ändras där, aldrig i ett dokument.
+- Livestandarden är den enda standarden (Jakob 2026-11-27: "helt övergå till det som är klonat", "enbart utgå från
+  vy/vinkel/riktningar/storlekar och annat som fanns i videon"): kameran, bordet, skon, korten och kortplatserna som
+  de är mätta ur filmen av livebordet, och rörelserna lyfta ur samma film. Den förra standarden (det förra bordet och
+  kameran, mannen, kvinnan och de ritade givarna) är borta ur koden och arkiverad utanför repot. En annan vy för
+  spelet får läggas ovanpå senare; den ändrar aldrig måtten.
 - `MATT.md` i roten är en utskrift av alla mått, vinklar, kortplatser, höjder och takter på ett ställe, bredvid det som
   är mätt på ett riktigt livebord (`live-bj/data/`). Läs den för att se ett mått. Den ändras aldrig för hand:
   `node matt.ts` skriver den, och kontrollen före push skriver om den och säger till när den inte stämmer.
 - Rörelseschemat står i `standarddocka/rorelsekatalog.json`: ankarena (en bild som klipp börjar och slutar i: A1,
-  A2.3, A3PnCm), stadierna (vad dealern gör: VILA, REDO, GIV, TILLBAKA …, vart och ett med hemankare, grundklipp och
+  A2.3, handbytet A2M, A3PnCm), stadierna (vad dealern gör: VILA, REDO, GIV, TILLBAKA …, vart och ett med hemankare, grundklipp och
   varianter) och rörelserna (klippen), med vilka som finns och vilka som saknas. En ny rörelse skrivs in där.
 
 ## Tillfälligt och producerat
