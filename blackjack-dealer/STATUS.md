@@ -184,19 +184,22 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 I den här ordningen om han inte säger annat.
 
-1. **Bytet i rörelsen, och sedan nya klipp av Kenjis giv.** Sättet är funnet och prövat (Kenjis fjärde omgång, se
-   Läget): fyra ankarbilder och tre klipp i Kling 4 med dockans film av varje steg som referensfilm, och efterarbetet i
-   `ny_dealer.py --ankarklipp --steg 7`. Kling kopierar dockan till 96–98 %, så det som är kvar rättas i dockan först:
-   - **Bytet (dockans ruta 28–35):** kortet ska ligga i en hand i varje ruta och följa den in i näven, som hos
-     dealern, inte ligga bredvid och hoppa in under den. Samma arbetssätt som förut: dockan bredvid källfilmen i tre
-     gångers förstoring för varje ruta, regeln bakom det som skiljer rättas i `dealer3d/tools/lyft-till-docka.ts`,
-     och en domare som inte har gjort ändringen mäter i bildpunkter. Domaren avgör när en film har ett skäl (läget
-     efter nionde domen står i Läget).
-   - **Vilan vid skon (ruta 0)** är en platt hand och hemvägen en lös näve; handen på det lagda kortet är löst böjd.
-   - **Bildtexterna** följer dockan: en löst böjd hand heter inte "closed fist", och blicken läggs på skon i A2.3
-     och på kortet i de andra ankarna (gjort i `ny_dealer.py`).
-   - Sedan, betalt och med skäl: en hel ny omgång med röd kortrygg, 238 krediter (fyra ankarbilder 34 och tre klipp
-     204). Efterarbetet är gratis och gör filmen på minuter.
+1. **Vändningen i rörelsen, och sedan ett nytt klipp av Kenjis giv.** Sättet är funnet och prövat (Kenjis fjärde
+   och femte omgång, se Läget): fyra ankarbilder med röd kortrygg och tre klipp i Kling 4 med dockans film av varje
+   steg som referensfilm (`ny_dealer.py --ankarklipp --rygg rod`), och efterarbetet i steg 7. Kling kopierar dockan
+   till 96–98 %, så det som är kvar rättas i dockan först:
+   - **Kortet vid tummen (dockans ruta 33–38):** kortet bärs med ryggen upp vid tummen, är dolt en ruta och kommer
+     fram som en låg strimma under tumtoppen, som dealerns, i stället för att ligga under fingrarna på ena sidan av
+     näven och dyka upp på den andra. Samma arbetssätt som förut: dockan bredvid källfilmen i tre gångers förstoring
+     för varje ruta, regeln bakom det som skiljer rättas i `dealer3d/tools/lyft-till-docka.ts`, och en domare som
+     inte har gjort ändringen mäter i bildpunkter. Domaren avgör när ett nytt klipp har ett skäl.
+   - Sedan, betalt och med skäl: bara det klipp vars rörelse har ändrats (`--steg 5`, sedan `--steg 6 --om-klipp
+     2`, 68 krediter), när ankarrutorna 29 och 43 står kvar. Efterarbetet är gratis och gör filmen på minuter.
+   - **Handen på det lagda kortet och blicken:** filmens näve är hårdare än dealerns lösa, låga hand, och blicken
+     går inte till skon när kortet dras. Båda är dockans (fingrarna i ruta 40–57 och huvudet i ruta 15–24).
+   - **Vid nästa hela omgång:** ta bort det rosa märket ur spårkortets framsida (det hamnar under tummen och används
+     inte), och ta då också bort det gula spårkortet och vägen utan referensfilm (stillbilder och Kling 4 utan
+     referensfilm, Aleph 2), som gav hans Inte bra: en väg för varje sak.
    - **Dockans kropp.** Lederna är dealerns, men bålens och armarnas volym är kroppsgeneratorns egen, så dockan är
      tjockare än Danilo (Jakob: "den tjocka dockan ... känns riktigt klumpig"); volymen ska komma ur filmen eller
      personens bilder (SAM 3D Body ger kroppsformen). Filten kan få filmens ton senare.

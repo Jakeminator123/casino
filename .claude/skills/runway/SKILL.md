@@ -450,7 +450,15 @@ Vad som måste finnas före en körning, vilket sätt det än är:
       Verktygets mått fångade det (rörelsens likhet 0,73 mot 0,96–0,97 i de andra). Med bara ryggen beskriven och
       meningen "no other card, sheet or object ever appears on the table" höll omtagningen (likhet 0,96).
     - **Dockans rörelse kopieras, också när den är rätt:** kortet tas av högern mellan händerna, bärs med ryggen upp
-      under handen och kommer fram under tummen, som i dockans film.
+      under handen och kommer fram under tummen, som i dockans film. Det dockan gör otydligt blir otydligt: kortet
+      bars under fingrarna på ena sidan av näven och kom fram vid tummen på den andra, och i filmen är det borta en
+      ruta och dyker upp vänt ("ett hopp, inte en kortkant som tummen vänder").
+    - **Domaren** (domarens ord, inte Jakobs): Nja, klart bättre än den fjärde. Kortet är ett och samma riktiga kort
+      i en hand ända in i näven. Kvar: vändningen syns inte, näven på det lagda kortet är hårt knuten, och blicken
+      går inte till skon.
+    - **Spårkortets märke hamnar under tummen.** Framsidans rosa märke sitter i kortets hörn, där dealerns tumme
+      ligger, och färgar tummens kant i filmen. Märket används inte av efterarbetet: ta bort det ur framsidan när en
+      hel ny omgång görs (dockans utseende i `standarddocka/editor/scen.ts` och bildtexterna i `ny_dealer.py`).
 - Fjortonde provet, 2026-11-27, **handbytet som egen ankarbild: A2.3 → A2M → A3P4C1 → A2.3 med kortet**, för hand i
   Runways app med en ny person ur ett foto som Jakob skickade. Fotot gick bara till bildmodellen i Runway, aldrig in i
   Git. Frasses ställning genom livebordets kamera; domarens ord, inte Jakobs.

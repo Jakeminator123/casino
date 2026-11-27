@@ -117,9 +117,12 @@ const LO = 0.12, HI = 0.5;
 // Det gröna i djup skugga är lika grönt som det rena, bara mörkare: mätt mot det rena gröna i hela dess ljus räknades det
 // som halvt dealer och blev en mörk, trasig rand kring en hand i farten (domaren 2026-11-27). Grönheten mäts därför också mot
 // bildpunktens eget ljus (andelen grönt över rött och blått, mot samma andel i det rena gröna, GRON_ANDEL som mäts i varje
-// ruta), och den största av de två gäller. Skuggan läggs sedan på vårt bord som en kvot (S).
+// ruta), och den största av de två gäller. Skuggan läggs sedan på vårt bord som en kvot (S). I det nästan svarta (grönt
+// högst 24) räknas andelen bara när det gröna står minst fem steg över rött och blått: där är en andel av ett par steg
+// bara brus (håret är svart utan grönt i, 10 10 10), men skuggan i armhålan mot det gröna (0 9 0, 1 12 5) är grön och
+// blev annars en kolsvart kil mellan armen och kroppen (domaren 2026-11-28).
 let GRON_ANDEL = 0.55;
-const gron = (r: number, g: number, b: number, ren: number) => { const d = g - Math.max(r, b), s = Math.max(d / ren, g > 24 ? d / g / GRON_ANDEL : 0); return s <= LO ? 0 : s >= HI ? 1 : (s - LO) / (HI - LO); };
+const gron = (r: number, g: number, b: number, ren: number) => { const d = g - Math.max(r, b), s = Math.max(d / ren, g > 24 || d >= 5 ? d / g / GRON_ANDEL : 0); return s <= LO ? 0 : s >= HI ? 1 : (s - LO) / (HI - LO); };
 
 // Livebordets kamera i arbetets bildpunkter (plattans storlek; bildpunkternas mitt räknas, som i table-live.ts).
 const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], mul = (a: Vec3, k: number): Vec3 => [a[0] * k, a[1] * k, a[2] * k];
