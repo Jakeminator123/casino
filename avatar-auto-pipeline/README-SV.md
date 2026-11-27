@@ -37,6 +37,7 @@ avatar-auto-pipeline/
   Auto avatar.cmd            dra foton till den här filen
   starta_avatar.ps1, auto_avatar.py   styr stegen
   steg/01-referenser … 08-film       ett skript per steg
+  steg/10-kropp-i-ett-stycke/        en kropp ur Runway med egna händer blir en docka, gratis (prov, körs för hand)
   metod/                     grundfunktioner för mesh och GLB
   input/<namn>/              dina foton
   output/<namn>/             allt som en körning skapar
@@ -135,5 +136,20 @@ Slutfilerna ligger i `output/<namn>/`:
 | `08-film\<namn>-ror-sig.mp4` | Rörelsefilmen, när den har renderats klart. |
 
 Dealern från foton i dag är Tomasz (2026-11-26, steg 1–7 utan film) i `output/tomasz/`; hans dealer-GLB och kontrollblad väntar på Jakobs dom i `../slask/avatar-auto-pipeline/granska/tomasz/`.
+
+En kropp i ett stycke ur Runway (steg 10, på prov sedan 2026-11-27, gratis och lokalt): Hunyuan-kroppen får personens
+Meshy-huvud och sina egna händer, lånar skelettet av en färdig dealer och exporteras med steg 6. Huvudet och skelettet
+kommer från en körning genom steg 1–6; kroppen beställs för hand hos Runway. Varje skripts huvud säger hur det gör:
+
+```text
+.venv\Scripts\python.exe -B steg/10-kropp-i-ett-stycke/montera_huvud.py kropp.glb output/<namn>/03-montering/delar/huvud.glb <arb>/med-huvud.glb --hudref output/<namn>/01-referenser/head-ref.png
+blender -b --python steg/03-montering/forenkla_4k.py -- <arb>/med-huvud.glb <arb>/latt.glb 180000
+blender -b --python-exit-code 1 --python steg/10-kropp-i-ett-stycke/rigga.py -- <arb>/latt.glb assets/docka/standarddocka_<namn>.glb <arb>/avatar-rigg.glb
+blender -b --python-exit-code 1 --python steg/06-dealer-export/exportera_dealer.py -- <arb>/avatar-rigg.glb assets/docka/standarddocka_<namn>_hunyuan.glb
+blender -b --python-exit-code 1 --python steg/10-kropp-i-ett-stycke/prova_hander.py -- assets/docka/standarddocka_<namn>_hunyuan.glb <arb>/prov.json
+```
+
+`<arb>` är en arbetsmapp i slasken (`../slask/avatar-auto-pipeline/<uppgift>/`); `rigga.py` skriver också steg 5:s
+fingerprov (`hudvikter.json`) bredvid riggen.
 
 Om något avbryts kan du fortsätta utan att betala om: `--from-step 5` eller `--only-step 7`. Hoppa över filmen med `--no-video`. Betalda jobb sparar ett kvitto i stegmappen: `referenser.json`, `korning.json` och `riggjobb.json`. En omstart använder samma kvitto. Radera dem inte.

@@ -57,6 +57,7 @@ Skripten i `steg/` bygger en **specifik dealer från fotografier** via Meshy, in
 | 06 | `steg/06-dealer-export/` | Exportera dealer-A-pose som GLB som dealer3d kan läsa, med två vridben i varje underarm (`vridben.py`, 7.1b; huden i vila mäts oförändrad). |
 | 07 | `steg/07-qc/` | QC-översikt (helkropp, ansikte, handleder). |
 | 08 | `steg/08-film/` | Animera dealern i en filmscen (`animera_dealer.py`). Ny standardscen ska användas i stället för ad hoc-bord. |
+| 10 | `steg/10-kropp-i-ett-stycke/` | Prov, körs för hand: en kropp ur Runway (Hunyuan 3D 3.1 Pro) med hand och arm i ett stycke blir en docka utan påsatta händer. Meshy-huvudet sys på och händerna märks som Handpar (`montera_huvud.py`), skelett och vikter lånas av en färdig docka, armbågen och handleden läggs i kroppens egen arm och fingrarna sätts med steg 5:s `fit_fingers` i handens egen ram (`rigga.py`, `fingrar_handflata.py`: handflatan pekar framåt i Hunyuans A-pose). `prova_hander.py` knyter handen och nyper på vilken dealer som helst. |
 
 Körning via `auto_avatar.py` / `STARTA avatar.cmd`. Nycklar i `.env`. Betalda steg sparar kvitton i stegmappen.
 
