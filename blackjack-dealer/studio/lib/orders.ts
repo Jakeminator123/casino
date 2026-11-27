@@ -269,9 +269,12 @@ export function routeOf(step: StepDef, targets: readonly string[], shape: Shape 
  * and at the top of "Det här skickas" in place of its stored summary, which for an order made before 2026-11-18 describes the
  * movement in words that were never sent. Null for an order whose step is unknown.
  */
-export function orderLine(order: Pick<Order, "step" | "motion">): string | null {
+export function orderLine(order: Pick<Order, "step" | "motion" | "reference">): string | null {
   const step = stepOf(order.step.key);
-  return step ? routeOf(step, order.motion?.target ? [order.motion.target] : [], order.step.shape, "").line : null;
+  // A person's order made from the doll's film carries no motion: where the card goes stands on its reference film.
+  const onFilm = order.reference?.status === "FINNS" && /^(?:P[1-7]|D)\.C\d+$/.test(order.reference.goesTo) ? order.reference.goesTo : null;
+  const target = order.motion?.target ?? onFilm;
+  return step ? routeOf(step, target ? [target] : [], order.step.shape, "").line : null;
 }
 
 // ── A new order from the address ────────────────────────────────────────────
