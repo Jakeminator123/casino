@@ -3,4 +3,5 @@ export { VerdictChip, TakeChip, ProofChip } from "./VerdictChip";
 export { TakeThumb, frameRange, stillFrame } from "./TakeThumb";
 export { TakeCard } from "./TakeCard";
 export { DecisionBar } from "./DecisionBar";
+export { FilmTable, useFilmSetup } from "./FilmTable";
 export { frameStill, frameTime } from "./frames";

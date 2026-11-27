@@ -16,7 +16,7 @@ import { comparePair, playableFilm, reviewerNotes } from "../../lib/review.ts";
 import { VERDICT_LABEL, mandateText, provisionalOf, provisionalWords, verdictOf, type Verdict } from "../../lib/verdict.ts";
 import { compareHref } from "../compare/ChoiceList";
 import { FilmPlayer, type FilmMark, type FilmPlayerHandle } from "../player";
-import { DecisionBar, TakeChip } from "../takes";
+import { DecisionBar, FilmTable, TakeChip } from "../takes";
 import type { DecisionBarHandle } from "../takes/DecisionBar";
 import { Origin } from "../takes/Origin";
 import { useBank } from "../../lib/bank.ts";
@@ -77,6 +77,7 @@ export function TakeReview({
               {name}
             </h2>
             <TakeChip take={take} />
+            <FilmTable take={take} />
           </div>
           <span className="truncate text-xs text-faint">{[edge.experiment ? "Experiment utanför modellen" : describeEdge(edge), facts].join(" · ")}</span>
         </div>

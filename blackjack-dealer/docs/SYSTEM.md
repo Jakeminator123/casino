@@ -33,10 +33,20 @@ Originalmätningar och referenshashar bevaras; en adapter konverterar vid en utt
   fältet `uppsattning` är förra standardens, så inget som finns skrivs om. Adressordet är `uppsattning=live|forra`
   (editorns äldre `standard` läses som `forra` och skrivs aldrig); i studion heter valet Bord och kamera, eftersom
   "uppsättning" redan betyder en dealers sats ankare.
-- **Träden** bär fältet (`TreeDef.uppsattning` i `src/dealer-trees.ts`); en film har det genom ankarena den står på, som
-  kameran. Spelet visar ordets uppsättning, annars filmernas: livebordet när ett träd gjort vid det spelas, annars förra
-  standarden med en rad som säger det (`playedCut`, `GET /api/trees?spel=1&uppsattning=`). En film visas aldrig under en
-  annan uppsättnings kamera: utan egna filmer visas bordet, skon och korten utan dealer (`players.still`).
+- **Träden** bär fältet (`TreeDef.uppsattning` i `src/dealer-trees.ts`); en film har det genom trädet den står i, som
+  kameran, och en film i inget träd är den förras (`treeSetup`, `filmSetups`). Spelet visar ordets uppsättning, annars
+  filmernas: livebordet när ett träd gjort vid det spelas, annars förra standarden med en rad som säger det (`playedCut`,
+  `GET /api/trees?spel=1&uppsattning=`). Utan egna filmer visas bordet, skon och korten utan dealer (`players.still`).
+- **En film visas aldrig under en annan uppsättnings kamera.** Spärren ligger i scenens dörr för filmer (`guardFilms` i
+  `src/scene3d-view.ts`): varje del säger sin films uppsättning (`Part.uppsattning`, utan fält den förra;
+  `filmenPassar` i `src/uppsattning.ts`), och en kedja eller en film med en del från en annan uppsättning vägras hel, med
+  orsaken i ord (`status().refused`). En film som står i bild när scenen flyttas till en annan uppsättning stannar och
+  ritas inte. Spelet sätter fältet ur sitt snitt (`createFilm`, en komposition är den förras), Scen ur träden
+  (`partsOf` med `filmSetups`). Scen står vid menyns val: en runda med en film från det andra bordet spelar ingenting
+  där, bordet med sin sko och låda (`liveProps`, som spelet) står utan dealer, och en rad säger vems filmerna är och var
+  de syns, med en knapp som väljer det bordet. Råfilm visar filmerna som de är. En sida om en viss film (Granska, Karta)
+  visar den som den är och säger när den är gjord vid det andra bordet (`FilmTable`), och Kartas "I scenen" öppnar Scen
+  vid filmens bord. `tools/uppsattning.test.ts` håller spärren.
 - **Scenen** får uppsättningen när den byggs (`SceneData.uppsattning`, `scene.setUppsattning`). Under livebordet gäller
   dess kamera vad linsen än är (`setupCamera` i `src/scene3d-geometry.ts`: bilden och rullningen bärs i kameran, i
   shadern och i vyn, så att den i hemläget är filmkameran bildpunkt för bildpunkt), dess bord (`tableUnder` med

@@ -10,6 +10,7 @@ import type {FilmEffect} from './clip-graph.ts';
 import type {CardTrack} from './card-overlay.ts';
 import type {GameCardOptions} from './game-film.ts';
 import {MOUTH_GLSL, mouthUniforms, putMouth, type MouthPart, type MouthShown} from './scene3d-mouth.ts';
+import type {UppsattningId} from './uppsattning.ts';
 
 const VERTEX = `varying vec4 vFilm; varying vec3 vWorld; uniform mat4 filmVP;
 void main(){ vec4 w = modelMatrix * vec4(position, 1.); vWorld = w.xyz; vFilm = filmVP * w; gl_Position = projectionMatrix * viewMatrix * w; }`;
@@ -509,7 +510,9 @@ export function createFilmLayers(filmVP: T.Matrix4, light: Record<string, {value
 // made the film (its record's source.model), for the key filmEven; a part without it is drawn as it is. `rest`: a rest film, which
 // keeps its speed under the key filmTempo, as a spoken line does. `mouth`: a spoken line laid on the part from a mouth patch
 // (src/scene3d-mouth.ts); the part plays at its own speed, neither tempo nor hurry changes it, so that mouth and sound stay with it.
-export type Part = {path: string; start?: number; end?: number | null; rate?: number; absoluteRate?: boolean; track?: CardTrack | null; cards?: GameCardOptions | null; frame?: FilmFrame | null; fps?: number; sound?: boolean; model?: string; rest?: boolean; effect?: PartEffect | null; mouth?: MouthPart | null};
+// `uppsattning`: the table and camera the film is made under (src/uppsattning.ts; without it the former standard's, as every film
+// made before the choice): the scene shows a part only under its own (src/scene3d-view.ts guardFilms).
+export type Part = {path: string; start?: number; end?: number | null; rate?: number; absoluteRate?: boolean; track?: CardTrack | null; cards?: GameCardOptions | null; frame?: FilmFrame | null; fps?: number; sound?: boolean; model?: string; rest?: boolean; effect?: PartEffect | null; mouth?: MouthPart | null; uppsattning?: UppsattningId};
 // A film's effect on the scene (a record's motion.effect, carried on the part). room-flash, lightning: for `seconds` of the film's
 // own time from `at` the room is another (`room`, an id of the register), and with `mono` the whole picture is black and white,
 // table, cards and dealer too. A white flash takes the picture there and a softer one takes it back (roomFlashAt).

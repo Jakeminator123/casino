@@ -5,13 +5,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {ADRESSORD, DATATS_FORVAL, UPPSATTNING, UPPSATTNINGAR, VALETS_FORVAL, datatsUppsattning, dockansUppsattning, lasUppsattning, uppsattningAv, valdUppsattning} from '../src/uppsattning.ts';
+import {ADRESSORD, DATATS_FORVAL, UPPSATTNING, UPPSATTNINGAR, VALETS_FORVAL, datatsUppsattning, dockansUppsattning, filmenPassar, lasUppsattning, uppsattningAv, valdUppsattning} from '../src/uppsattning.ts';
 import {LIVE, LIVE_CAMERA, liveSee} from '../src/table-live.ts';
 import {FILM, TABLE_LENS, cardCorners} from '../src/table-lens.ts';
 import {FRAMING_LIMITS, PLAY_VIEW} from '../src/play-view.ts';
 import {filmPixel, filmToScene, filmToTable, setupBets, setupCamera, setupSpots, solveCamera, tableToFilm} from '../src/scene3d-geometry.ts';
 import {createLayout, liveLayout, type Slot} from '../src/game-table.ts';
-import {playedCut, type TreeDef} from '../src/dealer-trees.ts';
+import {filmSetups, playedCut, type TreeDef} from '../src/dealer-trees.ts';
+import {guardFilms} from '../src/scene3d-view.ts';
+import type {Part, PlayOptions} from '../src/scene3d-film.ts';
+import type {UppsattningId} from '../src/uppsattning.ts';
 
 const plan = (() => { const f = JSON.parse(readFileSync(new URL('../placements/default.json', import.meta.url), 'utf8')); return f.plan ?? f; })();
 const edgeRow = JSON.parse(readFileSync(new URL('../data/scene-contract.json', import.meta.url), 'utf8')).keyFigures.dealerEdgeImageRow.value as number;
@@ -29,12 +32,40 @@ test('the choice\'s default is the live table, the data\'s the former standard, 
   assert.equal(valdUppsattning(null), 'live'); assert.equal(valdUppsattning(null, 'man'), 'forra'); assert.equal(valdUppsattning(null, 'kvinna'), 'forra');
   assert.equal(valdUppsattning(null, 'danilo'), 'live'); assert.equal(valdUppsattning('forra', 'danilo'), 'forra'); assert.equal(valdUppsattning('standard'), 'forra');
   assert.equal(dockansUppsattning('frasse'), 'live'); assert.equal(dockansUppsattning('paow'), null);
+  // the names Jakob sees, long and short, are the source's and are not changed by the choice
+  assert.deepEqual(UPPSATTNINGAR.map(id => [UPPSATTNING[id].namn, UPPSATTNING[id].kort]).sort(), [['Förra standarden', 'Förra'], ['Livebordet', 'Live']]);
+});
+
+test('a film is shown only under its own set-up, and a film that says none is the former standard\'s', () => {
+  assert.equal(filmenPassar({}, 'forra'), true); assert.equal(filmenPassar({}, 'live'), false);
+  assert.equal(filmenPassar(null, 'forra'), true); assert.equal(filmenPassar({uppsattning: 'live'}, 'live'), true);
+  assert.equal(filmenPassar({uppsattning: 'live'}, 'forra'), false); assert.equal(filmenPassar({uppsattning: 'standard'}, 'forra'), true);
+});
+
+test('the scene takes a film only under its own set-up: another chain is refused whole and said, the former\'s pass as they are', async () => {
+  const calls: {how: string; parts: Part[]; options?: PlayOptions}[] = [], said: (UppsattningId | null)[] = [], errors: string[] = [];
+  const queue = {play(parts: Part[], options?: PlayOptions) { calls.push({how: 'play', parts, options}); }, load(parts: Part[]) { calls.push({how: 'load', parts}); return Promise.resolve(); }};
+  let under: UppsattningId = 'live';
+  const scene = guardFilms(queue, () => under, s => said.push(s));
+  // Paow's films say no set-up (the former standard's): under the live table nothing of them is played or fetched, and why is said
+  scene.play([{path: 'deal.mp4'}, {path: 'back.mp4'}], {cut: true, onError: e => errors.push(e.message)});
+  await assert.rejects(scene.load([{path: 'deal.mp4'}]), /gjord vid Förra standarden och visas inte vid Livebordet/);
+  assert.deepEqual(calls, []); assert.deepEqual(said, ['forra', 'forra']); assert.deepEqual(errors, ['Filmen är gjord vid Förra standarden och visas inte vid Livebordet.']);
+  // one film of another set-up in a chain turns the whole chain away
+  scene.play([{path: 'live.mp4', uppsattning: 'live'}, {path: 'deal.mp4'}]); assert.deepEqual(calls, []);
+  // a live film under the live table goes through, and under the former standard her films go through untouched, options and all
+  scene.play([{path: 'live.mp4', uppsattning: 'live'}]); assert.equal(said.at(-1), null);
+  under = 'forra';
+  const parts: Part[] = [{path: 'deal.mp4', start: 3, end: 40}], options: PlayOptions = {cut: true};
+  scene.play(parts, options); await scene.load(parts);
+  assert.deepEqual(calls.map(c => c.how), ['play', 'play', 'load']); assert.equal(calls[1].parts, parts); assert.equal(calls[1].options, options); assert.equal(calls[2].parts, parts);
+  scene.play([{path: 'live.mp4', uppsattning: 'live'}]); assert.equal(calls.length, 3); assert.equal(said.at(-1), 'live');
 });
 
 test('each set-up has everything the game reads: picture, camera, edge, card places with their lie, bet marks, shoe, table, play view and dolls', () => {
   for (const id of UPPSATTNINGAR) {
     const u = UPPSATTNING[id], at = `${id}`;
-    assert.equal(u.id, id); assert.ok(u.namn && u.om, at);
+    assert.equal(u.id, id); assert.ok(u.namn && u.kort && u.om && u.kort.length <= 6, at);
     assert.ok(Number.isInteger(u.bild.width) && Number.isInteger(u.bild.height) && u.bild.width > u.bild.height, at);
     for (const v of [u.kamera.focalPx, u.kamera.pitch, u.kamera.roll, u.kamera.height, u.kamera.centre.x, u.kamera.centre.y]) assert.ok(Number.isFinite(v), at);
     // the optical axis meets the picture in its middle: the scene's film camera takes it so
@@ -130,4 +161,14 @@ test('the game plays a tree only under its own set-up: without a word the live t
   assert.equal(former.uppsattning, 'forra'); assert.deepEqual(former.played, ['forra-tree']); assert.deepEqual(former.drop, ['l1']);
   const none = playedCut('paow', [tree('forra-tree')], takes, () => 'READY', 'live');
   assert.equal(none.uppsattning, 'live'); assert.deepEqual(none.played, []); assert.deepEqual(none.setups, ['forra']); assert.deepEqual(none.drop.sort(), ['borta', 'f1', 'l1']);
+});
+
+test('a film is its tree\'s set-up, a film of no tree the former standard\'s: Scen reads it from the trees as the game does', () => {
+  const tree = (id: string, uppsattning?: 'live', shares?: string): TreeDef => ({id, name: id, state: 'spelas', root: 'IDLE', anchors: [], ...(uppsattning ? {uppsattning} : {}), ...(shares ? {shares} : {})});
+  const view = (t: TreeDef, home: string, own: string[]) => ({tree: t, home, cut: {own, drop: []}});
+  const setupOf = filmSetups([view(tree('casino'), 'casino', ['f1']), view(tree('delar', undefined, 'live-tree'), 'live-tree', ['l1']), view(tree('live-tree', 'live'), 'live-tree', ['l1'])]);
+  assert.equal(setupOf('f1'), 'forra'); assert.equal(setupOf('l1'), 'live', 'a tree that shares another\'s films gives them the home tree\'s set-up');
+  assert.equal(setupOf('borta'), 'forra'); assert.equal(setupOf(null), 'forra');
+  // an answer without cuts, or none at all: every film is the former's, as before the choice
+  assert.equal(filmSetups([{tree: tree('live-tree', 'live'), home: 'live-tree'}])('l1'), 'forra'); assert.equal(filmSetups([])('f1'), 'forra');
 });

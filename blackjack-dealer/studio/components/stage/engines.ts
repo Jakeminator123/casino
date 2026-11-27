@@ -12,8 +12,9 @@ import { frameOfTime } from "../../lib/sync.ts";
 export type Scene = ReturnType<typeof createScene>;
 export type RunCalls = { onStep(step: number): void; onEnd(): void; onError(error: Error): void };
 
+// The part says the table and camera its film is made under, so that the scene shows it there and nowhere else (guardFilms).
 const scenePart = (part: PlayPart, start: number) => ({
-  path: part.path!, start, end: part.end, ...(part.fps !== 30 ? { fps: part.fps } : {}), ...(part.cards ? { cards: part.cards } : {}),
+  path: part.path!, start, end: part.end, ...(part.fps !== 30 ? { fps: part.fps } : {}), ...(part.cards ? { cards: part.cards } : {}), ...(part.uppsattning ? { uppsattning: part.uppsattning } : {}),
 });
 
 export type Engine = {

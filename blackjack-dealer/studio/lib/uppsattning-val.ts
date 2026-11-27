@@ -4,6 +4,7 @@
 // names one, else the remembered choice of this browser, else the source's default. The word "uppsättning" is not shown to
 // Jakob in this sense (it is a dealer's set of anchors to him): the studio says "Bord och kamera". Pure; the memory's key is
 // here, the reading of the browser is in components/shell/SetupProvider.tsx. Tests: studio/tests/uppsattning-val.test.ts.
+import { genitive } from "../../src/order-model.ts";
 import { ADRESSORD, NAMN, UPPSATTNING, UPPSATTNINGAR, VALETS_FORVAL, lasUppsattning, type UppsattningId } from "../../src/uppsattning.ts";
 
 export type { UppsattningId };
@@ -12,13 +13,26 @@ export { ADRESSORD, NAMN, VALETS_FORVAL, lasUppsattning };
 /** Where this browser remembers the choice (as the dealer switch remembers its own, lib/dealer.ts DEALER_MEMORY). */
 export const UPPSATTNING_MEMORY = "studio.bordOchKamera";
 
-/** The choices the menu shows, in the source's order, with the source's names, a short word for a narrow menu, and one line on what each is. */
+/** The choices the menu shows, in the source's order, with the source's names (the short one for a narrow menu) and one line on what each is. */
 export const CHOICES: readonly { id: UppsattningId; namn: string; kort: string; om: string }[] = UPPSATTNINGAR.map((id) => ({
   id,
   namn: UPPSATTNING[id].namn,
-  kort: id === "live" ? "Live" : "Förra",
+  kort: UPPSATTNING[id].kort,
   om: UPPSATTNING[id].om,
 }));
+
+/**
+ * Why a scene at the chosen table shows no dealer, in his words, and the table that would show her (Jakob 2026-11-27: a film is
+ * never shown under another table's camera): "Paows filmer är gjorda vid Förra standarden. Välj Förra standarden i menyn för att
+ * se dem här." films: the table each film of the round is made at (lib/parts.ts setupOf); null when every film is the chosen one's.
+ */
+export function otherTableLine(dealerName: string, chosen: UppsattningId, films: readonly UppsattningId[]): { text: string; table: UppsattningId } | null {
+  const other = films.filter((f) => f !== chosen);
+  if (!other.length) return null;
+  const table = UPPSATTNINGAR.find((id) => other.includes(id))!, name = UPPSATTNING[table].namn, one = other.length === 1;
+  const whose = other.length === films.length ? `${genitive(dealerName)} ${one ? "film" : "filmer"}` : `${one ? "En" : other.length} av rundans ${films.length} filmer`;
+  return { text: `${whose} är ${one ? "gjord" : "gjorda"} vid ${name}. Välj ${name} i menyn för att se ${one ? "den" : "dem"} här.`, table };
+}
 
 /** The choice: the address's word, else the remembered one, else the source's default. A word that names no set-up is passed over. */
 export const chooseUppsattning = (address: string | null | undefined, remembered: string | null | undefined): UppsattningId =>

@@ -17,6 +17,11 @@
 // game shows (Jakob 2026-11-17: "Spela i casino bör rimligtvis vara samma som i casino, alltså som det är i runtime"), so
 // "Prova i Casino" opens what the rail's Casino opens until a key is changed. The round plays the chosen dealer's films
 // (lib/bank.ts); a step without a film is a gap, shown as one.
+// The 3D scene stands at the menu's table and camera (Bord och kamera) and shows only films made there (Jakob 2026-11-27: a film
+// is never shown under another table's camera; src/scene3d-view.ts guardFilms). A film is its tree's table (src/dealer-trees.ts
+// filmSetups, as the game reads it). A round with a film made at another table plays nothing in the scene: the table, its shoe and
+// its card places stand there without a dealer, a line over the picture says whose films they are and where to see them, with
+// a button that chooses that table, and the strip under the picture still lists every film. Råfilm shows the films as they are.
 // The lens (Standard or Bred lins) is the look's key lins, under Bord in the column like every other key (Jakob 2026-11-25:
 // Bred lins is a filter on the same standard), live in the scene and saved with the look; an older address's
 // geometri=lins|kontrakt is read as that key and written as it.
@@ -29,8 +34,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { resolveRound } from "../../../src/clip-graph.ts";
-import { countWord } from "../../../src/dealer-trees.ts";
+import { countWord, filmSetups } from "../../../src/dealer-trees.ts";
 import { LINS_ALIAS_WORD } from "../../../src/card-plan.ts";
+import { datatsUppsattning } from "../../../src/uppsattning.ts";
 import { sceneWords } from "../../lib/bordet.ts";
 import { useBank } from "../../lib/bank.ts";
 import { ONLINE_CASINO } from "../../lib/casino.ts";
@@ -38,14 +44,16 @@ import { stepFacts, useViewContext } from "../../lib/context.ts";
 import { openingRound, ownSteps, withDealer } from "../../lib/dealer.ts";
 import { isSnapshot } from "../../lib/mode.ts";
 import { formatJakob } from "../../lib/names.ts";
-import { partsOf } from "../../lib/parts.ts";
+import { partsOf, playable } from "../../lib/parts.ts";
 import { addressOf, contextRound, readAddress, readyRounds, roundFacts, roundFromText, type Round } from "../../lib/rounds.ts";
 import { CASINO_PRESET } from "../../lib/scene-presets.ts";
 import { readSceneCardTrial, withSceneCardTrial } from "../../lib/scene-card-trial.ts";
+import { choiceName, otherTableLine } from "../../lib/uppsattning-val.ts";
 import { firstTree, useTrees } from "../map/useTrees";
 import { RoundPicker, RoundStrip } from "../round";
 import { joinParts, readLook, roundPart, useSceneEditor } from "../scene-editor";
 import { ROUND_WORDS } from "../scene-editor/address.ts";
+import { useSetup } from "../shell/SetupProvider";
 import { Stage, createClock, type StageHandle } from "../stage";
 import { Button, Dialog, ErrorState, IconButton, Skeleton, Tooltip, buttonClasses, useToast } from "../ui";
 
@@ -75,7 +83,12 @@ export function SceneBody({ kind, toolbar, roundText: cardRound }: { kind: Scene
   const params = useMemo(() => new URLSearchParams(query), [query]);
   const toast = useToast();
   const { graph, status, error, reload, dealer, dealers, owners, readAt } = useBank();
-  const tree = firstTree(useTrees(dealer, readAt).answer);
+  const trees = useTrees(dealer, readAt);
+  const tree = firstTree(trees.answer);
+  const dealerName = dealers.find((d) => d.id === dealer)?.name ?? dealer;
+  // The table and camera each film is made under (its tree's), and the menu's choice, which the scene stands at.
+  const setupOf = useMemo(() => filmSetups(trees.answer?.trees ?? []), [trees.answer]);
+  const { id: setup, set: chooseSetup } = useSetup();
   const rounds = useMemo(() => readyRounds(graph), [graph]);
   const [address, setAddress] = useState(() => readAddress(params));
   // The round's words of the address as they stand, until a round is chosen here.
@@ -120,14 +133,19 @@ export function SceneBody({ kind, toolbar, roundText: cardRound }: { kind: Scene
   );
   const lins = editor.lins, cardTaper = editor.cardTaper;
   const parts = useMemo(() => {
-    const parts = partsOf(segments), words = readSceneCardTrial(new URLSearchParams(searchText));
+    const parts = partsOf(segments, setupOf), words = readSceneCardTrial(new URLSearchParams(searchText));
     return plan ? withSceneCardTrial(parts, segments, plan, lins, words ?? {}, words ? "film" : null, cardTaper) : parts;
-  }, [segments, plan, searchText, lins, cardTaper]);
+  }, [segments, setupOf, plan, searchText, lins, cardTaper]);
   const notation = round?.steps.length ? formatJakob(round.steps) : "";
   const mode = kind === "rafilm" ? "platt" : "3d";
   const flat = mode === "platt";
   // How far the dealer is, by the number Karta, the rail and Kön show ("Paow: Casino 22/36 steg"), while the tree lacks films.
-  const few = tree && tree.count.have < tree.count.total ? `${dealers.find((d) => d.id === dealer)?.name ?? dealer}: ${tree.tree.name} ${countWord(tree.count)} steg` : null;
+  const few = tree && tree.count.have < tree.count.total ? `${dealerName}: ${tree.tree.name} ${countWord(tree.count)} steg` : null;
+  // What the stage plays: in the scene only a round whose every film is made at the menu's table (until the trees are read, which say
+  // where each film is made, nothing); on their green (Råfilm) every film as it is. otherTable: why the scene shows no dealer.
+  const otherTable = flat ? null : otherTableLine(dealerName, setup, parts.filter(playable).map((p) => datatsUppsattning(p.uppsattning)));
+  const refuse = !flat && (trees.state === "loading" || !!otherTable);
+  const stageParts = useMemo(() => (refuse ? [] : parts), [refuse, parts]);
 
   // The address follows the round and the look (a moment after the hand stops), beside Bordet's own words. The lens's older
   // word goes: the look says it as lins.
@@ -149,7 +167,7 @@ export function SceneBody({ kind, toolbar, roundText: cardRound }: { kind: Scene
 
   useViewContext({
     vy: "bordet",
-    val: { läge: kind === "rafilm" ? "Råfilm" : kind === "efterarbete" ? "Efterarbete" : "Scen", runda: notation, forval: editor.label, andrat: String(editor.count) },
+    val: { läge: kind === "rafilm" ? "Råfilm" : kind === "efterarbete" ? "Efterarbete" : "Scen", runda: notation, forval: editor.label, andrat: String(editor.count), bord: choiceName(setup), ...(otherTable ? { utanDealer: otherTable.text } : {}) },
     live: () => stepFacts(clock.get().pos, segments),
   });
 
@@ -220,9 +238,18 @@ export function SceneBody({ kind, toolbar, roundText: cardRound }: { kind: Scene
         ) : (
           <div className="flex flex-col lg:min-h-0 lg:flex-1" {...editor.pointer}>
             {/* On a narrow screen the picture itself is 16:9, as in the game, and the transport sits under it. */}
-            <Stage ref={stage} className="lg:min-h-0 lg:flex-1" pictureClassName="aspect-video max-lg:flex-none lg:aspect-auto" parts={parts} mode={mode} clock={clock} initial={editor.initial} onScene={editor.onScene} onSceneChange={editor.onSceneChange}>
+            <Stage ref={stage} className="lg:min-h-0 lg:flex-1" pictureClassName="aspect-video max-lg:flex-none lg:aspect-auto" parts={stageParts} mode={mode} clock={clock} initial={editor.initial} onScene={editor.onScene} onSceneChange={editor.onSceneChange}>
               {editor.comparing && !flat ? (
                 <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-full border border-brass/50 bg-black/70 px-4 py-1.5 text-sm font-semibold text-brass-hi shadow-pop backdrop-blur-sm">Basgrund</div>
+              ) : otherTable ? (
+                <div className="pointer-events-none absolute inset-x-0 top-3 flex justify-center px-3">
+                  <div role="status" data-other-table className="pointer-events-auto flex max-w-xl flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-xl border border-line-strong bg-surface/95 px-4 py-2.5 text-center text-sm text-ink shadow-pop backdrop-blur-sm">
+                    <span>{otherTable.text}</span>
+                    <Button size="sm" variant="secondary" onClick={() => chooseSetup(otherTable.table)}>
+                      Välj {choiceName(otherTable.table)}
+                    </Button>
+                  </div>
+                </div>
               ) : null}
             </Stage>
           </div>

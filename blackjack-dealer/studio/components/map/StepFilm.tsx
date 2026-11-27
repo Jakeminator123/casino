@@ -8,7 +8,8 @@ import { Archive, Ban, Columns2, MessageSquare, Play, Repeat, Shuffle, Star, typ
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Edge, Take } from "../../../src/clip-graph.ts";
-import { TakeCard, TakeChip } from "@/components/takes";
+import { FilmTable, TakeCard, TakeChip, useFilmSetup } from "@/components/takes";
+import { ADRESSORD, type UppsattningId } from "@/lib/uppsattning-val";
 import { Button, buttonClasses, cn } from "@/components/ui";
 import { ARCHIVE_ACTION } from "@/lib/archive";
 import { isSnapshot } from "@/lib/mode";
@@ -73,11 +74,14 @@ export function SeamLine({ seam, className }: { seam: Seam; className?: string }
 }
 
 const QUIET = buttonClasses({ variant: "quiet", size: "sm" });
-const scene = (edge: Edge, take: Take) => ({ pathname: "/bordet/", query: { lage: "scen", kant: edge.id, tagning: take.id } });
+// "I scenen": the take in Scen where it belongs, at the table and camera it is made at (useFilmSetup; the menu follows the link),
+// so that the film is never shown under another table's camera. Until its table is known the link names none.
+const scene = (edge: Edge, take: Take, made: UppsattningId | null) => ({ pathname: "/bordet/", query: { lage: "scen", kant: edge.id, tagning: take.id, ...(made ? { [ADRESSORD]: made } : {}) } });
 const compare = (edge: Edge, take: Take, other: Take | null) => (other && other.id !== take.id ? { pathname: "/jamfor/", query: { kant: edge.id, a: take.id, b: other.id } } : null);
 
 /** The Primär, large: its film plays in place or over the whole window. */
 export function PrimaryFilm({ film, edge, name, selected, onPick, onExpand, onArchive, marks = [] }: { film: Film; edge: Edge; name?: string; selected: boolean; onPick: () => void; onExpand?: () => void; onArchive?: () => void; marks?: readonly Mark[] }) {
+  const made = useFilmSetup(film.take);
   return (
     <div id={`tagning-${film.take.id}`} className={cn("scroll-mt-4", marks.length && "opacity-60")}>
       <TakeCard
@@ -91,13 +95,14 @@ export function PrimaryFilm({ film, edge, name, selected, onPick, onExpand, onAr
         extra={
           <span className="flex flex-col gap-1.5 pt-0.5">
             <UseChip use={film.use} className="self-start" />
+            <FilmTable take={film.take} className="self-start" />
             <OlderMarks marks={marks} />
             {film.seam ? <SeamLine seam={film.seam} /> : null}
           </span>
         }
         actions={
           <>
-            <Link href={scene(edge, film.take)} className={QUIET}>
+            <Link href={scene(edge, film.take, made)} className={QUIET}>
               <Play />
               I scenen
             </Link>
@@ -153,6 +158,7 @@ export function SecondaryFilm({
   marks?: readonly Mark[];
 }) {
   const { take, use, seam, proposal } = film;
+  const made = useFilmSetup(take);
   const title = name ?? takeName(take, edge.takes);
   const versus = compare(edge, take, against);
   // Brass only where his best take waits and making it Primär gives no visible jump.
@@ -202,7 +208,7 @@ export function SecondaryFilm({
               Jämför
             </Link>
           ) : null}
-          <Link href={scene(edge, take)} className={QUIET}>
+          <Link href={scene(edge, take, made)} className={QUIET}>
             <Play />
             I scenen
           </Link>

@@ -3,8 +3,9 @@
 // <SetupSwitch />: the studio's one choice of table and camera, under the dealer switch at the top of the menu: "Bord och
 // kamera", with Livebordet and Förra standarden (the source's names, src/uppsattning.ts), the chosen one marked. A click
 // chooses for every view and is remembered (components/shell/SetupProvider.tsx). The views that read it pass its word on:
-// Dockan to the editor, Casino to the game, Mått marks it, Filmverkstaden builds Scen under it with its own play view and
-// sends it with a new order (the store makes the draft there, or says why not). Inspelning's doll stands at the former table.
+// Dockan to the editor, Casino to the game, Mått marks it, Filmverkstaden builds Scen under it with its own play view, plays there
+// only the films made at it (components/bordet/SceneBody.tsx), and sends it with a new order (the store makes the draft there, or
+// says why not). Inspelning's doll stands at the former table.
 import { isSnapshot } from "../../lib/mode.ts";
 import { CHOICES, NAMN } from "../../lib/uppsattning-val.ts";
 import { cn } from "../ui/cn";
@@ -14,7 +15,7 @@ import { useSetup } from "./SetupProvider";
 const LABEL = "text-center text-[9.5px] font-semibold uppercase leading-3 tracking-[0.12em] text-faint rail:w-full rail:text-left rail:text-2xs rail:leading-4 rail:tracking-widest";
 
 /** Where the choice holds today, said in the tooltip. */
-const SETUP_REACH = "Gäller i Dockan, i Mått, i Casino och i Filmverkstaden: Scen och spelvyn går efter valet, och en ny beställning görs vid valt bord och kamera. Dockan i Inspelning står ännu vid förra standardens bord.";
+const SETUP_REACH = "Gäller i Dockan, i Mått, i Casino och i Filmverkstaden: Scen och spelvyn går efter valet, Scen spelar bara filmer som är gjorda vid valt bord, och en ny beställning görs vid valt bord och kamera. Dockan i Inspelning står ännu vid förra standardens bord.";
 
 export function SetupSwitch() {
   const { id, set } = useSetup();

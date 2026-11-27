@@ -551,6 +551,20 @@ export function playedCut(dealer: string, trees: readonly TreeDef[], takes: read
   return { schemaVersion: 1, dealer, played, hub: one ? hubOf(one) : 'READY', own: one ? cutTakes(one.id, takes).own : [], drop, ...(said ? { uppsattning, setups } : {}) };
 }
 /**
+ * The set-up each film of a dealer is made under, as her trees say it (a film is its tree's: treeSetup), for a page that plays
+ * films out of the whole bank (Scen, studio/lib/parts.ts): a film placed in a tree (a view's cut, own) is the set-up of the tree it is
+ * placed in (the view's home), and every other film the former standard's, as playedCut leaves it. views: the answer of
+ * GET /api/trees?dealer=<id> (TreeAnswer.trees); without cuts (an older server, the copy on the net) every film is the former's.
+ */
+export function filmSetups(views: readonly Pick<TreeView, 'tree' | 'home' | 'cut'>[]): (take: string | null | undefined) => UppsattningId {
+  const made = new Map<string, UppsattningId>();
+  for (const v of views) {
+    const home = views.find((w) => w.tree.id === v.home)?.tree ?? v.tree;
+    for (const id of v.cut?.own ?? []) if (!made.has(id)) made.set(id, treeSetup(home));
+  }
+  return (take) => (take ? made.get(take) : undefined) ?? DATATS_FORVAL;
+}
+/**
  * The bank the game plays without ?trad= (src/game-page.ts): the lab's cut (reply), else the one the bank carries for the dealer
  * (gameCuts: the online copy has no /api/trees, and its frozen bank holds the cut it was built with, tools/studio-freeze.ts
  * freezeBank); with neither, the bank as it is.

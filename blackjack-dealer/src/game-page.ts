@@ -222,7 +222,9 @@ if (swayAsked > 0) scene.set({dealerLife: 0});
 const swayIn = () => { if (swayAsked > 0 && swayFrom === null && scene.state.dealerLife === 0) swayFrom = performance.now(); };
 scene.rebuild(); scene.start();
 new ResizeObserver(frame).observe(stage); frame();
-const film = createFilm(scene.players as unknown as FilmPlayers, graph, layout, path => fetch(path).then(res => res.ok ? res.json() : null));
+// Her films say the set-up they are made under, the cut's (a composition's are the former standard's), and the scene shows them only
+// under it (src/scene3d-view.ts guardFilms).
+const film = createFilm(scene.players as unknown as FilmPlayers, graph, layout, path => fetch(path).then(res => res.ok ? res.json() : null), Math.random, composition.cut ? DATATS_FORVAL : filmedUnder);
 // A composition: each of its trees as a graph of its own (the home tree's is the page's own), and the composer that chooses among them.
 if (composition.cut && compositionCode && homeTree) { const cut = composition.cut;
   film.compose({composer: compositionCode.createComposer(cut), graphs: Object.fromEntries(cut.trees.map(t => [t.tree, t.tree === homeTree ? graph : buildGraph(judgedBank(compositionCode.treeBank(bank, cut, t.tree)), {dealer})]))}); }

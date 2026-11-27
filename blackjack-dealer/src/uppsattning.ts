@@ -54,8 +54,8 @@ export const BET = {radius: 0.027, clear: 0.012};
 
 export type Uppsattning = {
   id: UppsattningId;
-  /** Its name where Jakob sees it, and one line on what it is. */
-  namn: string; om: string;
+  /** Its name where Jakob sees it, a short word for a narrow menu (the studio's on a phone), and one line on what it is. */
+  namn: string; kort: string; om: string;
   /** The picture its films and stills are made in. */
   bild: {width: number; height: number};
   /** The camera: focal length in the picture's pixels, pitch below the horizontal and roll (radians; roll as table-live.ts liveFrame turns the picture), height over the felt, and where the optical axis meets the picture. */
@@ -84,7 +84,7 @@ export type Uppsattning = {
 
 // ---- live ------------------------------------------------------------------------------------------------------
 const live: Uppsattning = {
-  id: 'live', namn: 'Livebordet', om: 'Bordet, kameran, skon, korten och kortplatserna som de är mätta ur filmen av ett riktigt livebord.',
+  id: 'live', namn: 'Livebordet', kort: 'Live', om:'Bordet, kameran, skon, korten och kortplatserna som de är mätta ur filmen av ett riktigt livebord.',
   bild: LIVE_CAMERA.film,
   kamera: {focalPx: LIVE_CAMERA.focalPx, pitch: LIVE_CAMERA.pitch, roll: LIVE_CAMERA.roll, height: LIVE_CAMERA.height, centre: LIVE_CAMERA.centre},
   see: p => liveSee(p), onFelt: (px, lift = 0) => liveOnFelt(px, lift),
@@ -108,7 +108,7 @@ const cards = (u?: Underlag): Plats[] => Object.entries(u?.plan?.targets ?? {}).
   const px = planPixel({u: n.u, v: n.v}), at = onPlane(EYE, px.x, px.y); return at ? [{id, at, heading: 0}] : []; // the plan's angle is not read: all are 0 (docs/SYSTEM.md)
 });
 const forra: Uppsattning = {
-  id: 'forra', namn: 'Förra standarden', om: 'Bordet, kameran och skon som bankens filmer är tagna med, och kortplanens platser.',
+  id: 'forra', namn: 'Förra standarden', kort: 'Förra', om:'Bordet, kameran och skon som bankens filmer är tagna med, och kortplanens platser.',
   bild: FILM,
   kamera: {focalPx: TABLE_LENS.focalPx, pitch: TABLE_LENS.pitch, roll: 0, height: TABLE_LENS.height, centre: CENTRE},
   see: p => see(EYE, p), onFelt: (px, lift = 0) => onPlane(EYE, px.x, px.y, lift),
@@ -131,3 +131,9 @@ export const dockansUppsattning = (docka: string | null | undefined): Uppsattnin
 export const valdUppsattning = (word: unknown, docka?: string | null): UppsattningId => lasUppsattning(word) ?? dockansUppsattning(docka) ?? VALETS_FORVAL;
 /** The set-up data was made under: its field, else the data's default (a tree, a film or an order from before the choice). */
 export const datatsUppsattning = (field: unknown): UppsattningId => lasUppsattning(field) ?? DATATS_FORVAL;
+/**
+ * Whether a film may be shown under a set-up: only under its own (docs/SYSTEM.md: a film is never shown under another set-up's
+ * camera). The film says its set-up in the field uppsattning (a film part, src/scene3d-film.ts Part); without it, the former
+ * standard's, as every film made before the choice.
+ */
+export const filmenPassar = (film: {uppsattning?: unknown} | null | undefined, under: UppsattningId): boolean => datatsUppsattning(film?.uppsattning) === under;

@@ -4,7 +4,7 @@
 import type { Gap, Segment } from "../../src/clip-graph.ts";
 import type { GameCardOptions } from "../../src/game-film.ts";
 import { labUrl } from "./lab.ts";
-import { DATATS_FORVAL, UPPSATTNING } from "../../src/uppsattning.ts";
+import { DATATS_FORVAL, UPPSATTNING, type UppsattningId } from "../../src/uppsattning.ts";
 
 /** How long a step without a film shows its card while a round plays (seconds at speed 1). */
 export const GAP_SECONDS = 1.5;
@@ -15,7 +15,8 @@ export const FILM_ASPECT = UPPSATTNING[DATATS_FORVAL].bild.width / UPPSATTNING[D
  * One step of the round. A film plays source frames start … end − 1 of path (end is exclusive, as in the bank); a gap has
  * no path and says why (gap). speed is the take's own (a clip generated in slow motion says 2); the stage plays it at
  * speed × the speed Jakob chose. known: false when the bank does not know the film's length and end is read from the
- * ordered duration instead.
+ * ordered duration instead. uppsattning: the table and camera the film is made under, where it is not the former standard's
+ * (its tree's, src/dealer-trees.ts filmSetups): the 3D scene shows it only there (src/scene3d-view.ts guardFilms).
  */
 export type PlayPart = {
   step: number;
@@ -32,18 +33,21 @@ export type PlayPart = {
   cards?: GameCardOptions;
   gap: Gap | null;
   known: boolean;
+  uppsattning?: UppsattningId;
 };
 
 /** A place in the round: the step and the source frame of its film (0 on a gap). */
 export type Position = { step: number; frame: number };
 
-export function partsOf(segments: readonly Segment[]): PlayPart[] {
+/** setupOf: the table and camera a take's film is made under (src/dealer-trees.ts filmSetups); without it, every film is the former's. */
+export function partsOf(segments: readonly Segment[], setupOf: (take: string) => UppsattningId = () => DATATS_FORVAL): PlayPart[] {
   return segments.map((s, step) => {
     const take = s.take;
     const base = { step, edge: s.id, from: s.from, to: s.to, take: take?.id ?? null, fps: s.fps > 0 ? s.fps : 30 };
     if (!take || !s.video || s.gap) return { ...base, path: null, start: 0, end: 0, speed: 1, track: null, gap: s.gap ?? "MISSING", known: true };
     const ordered = take.job?.duration ? Math.round(take.job.duration * base.fps) : null;
     const end = s.end ?? take.frames ?? ordered ?? s.start + 1;
+    const made = setupOf(take.id);
     return {
       ...base,
       path: labUrl(s.video),
@@ -53,6 +57,7 @@ export function partsOf(segments: readonly Segment[]): PlayPart[] {
       track: take.media?.track ? labUrl(take.media.track) : null,
       gap: null,
       known: s.end !== null || take.frames !== null,
+      ...(made === DATATS_FORVAL ? {} : { uppsattning: made }),
     };
   });
 }
@@ -64,7 +69,7 @@ export const partSeconds = (part: PlayPart) => (playable(part) ? (part.end - par
 /** The films' time of the round (gap cards left out). */
 export const roundSeconds = (parts: readonly PlayPart[]) => parts.filter(playable).reduce((sum, p) => sum + partSeconds(p), 0);
 /** A key that changes only when what is played changes (not when a note or a verdict does). */
-export const partsKey = (parts: readonly PlayPart[]) => parts.map((p) => `${p.path ?? p.gap}:${p.start}-${p.end}x${p.speed}@${p.fps}${p.cards ? `#${JSON.stringify(p.cards)}` : ""}`).join("|");
+export const partsKey = (parts: readonly PlayPart[]) => parts.map((p) => `${p.path ?? p.gap}:${p.start}-${p.end}x${p.speed}@${p.fps}${p.uppsattning ? `~${p.uppsattning}` : ""}${p.cards ? `#${JSON.stringify(p.cards)}` : ""}`).join("|");
 
 /** Where a round starts: the first frame of its first step. */
 export const firstPosition = (parts: readonly PlayPart[]): Position | null => (parts.length ? { step: 0, frame: parts[0].start } : null);

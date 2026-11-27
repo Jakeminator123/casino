@@ -72,7 +72,8 @@ Karta, Material, Casino, Mått och Biblioteket. Under dealerväxeln står valet 
 ur `src/uppsattning.ts`; `studio/lib/uppsattning-val.ts`, `studio/components/shell/Setup*.tsx`): ett val för hela studion,
 ihågkommet i webbläsaren, förvalt livebordet, och `?uppsattning=` i en adress väljer. Dockan skickar ordet till editorn,
 Casino till spelet (`studio/lib/casino.ts` gameSrc), och Mått märker det valda. Filmverkstaden bygger Scen under valet med
-dess egen spelvy (Spara som spelvy sparar mot det valda, `/api/play-view?uppsattning=`), och en ny beställning bär valet
+dess egen spelvy (Spara som spelvy sparar mot det valda, `/api/play-view?uppsattning=`) och spelar där bara filmer som är
+gjorda vid valt bord (annars bordet utan dealer och en rad som säger varför; `docs/SYSTEM.md`), och en ny beställning bär valet
 (`studio/lib/new-film.ts` draftBody; beställningen görs där, eller säger varför inte). Beställningarnas bilder visas i sin
 egen form (bildens mått, annars orderns uppsättnings, `shapeOf` i `studio/lib/orders.ts`). Dockan i Inspelning står ännu
 vid förra standardens bord. Vyerna:

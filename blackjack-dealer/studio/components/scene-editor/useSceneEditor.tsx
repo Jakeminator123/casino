@@ -15,9 +15,10 @@
 // its Dator, as the game shows it. Visa, first in the panel (PlayViewPanel), shows the film as recorded (Inspelningen) or what
 // the player sees (Dator, Mobil); Scen opens on Dator. Visa is never saved with a look, and a look keeps zoom, pitch and yaw only
 // when "Egen inramning" is on (lib/scene-presets.ts savedState). "Spara som spelvy" writes the play view, on his click. The
-// scene stands under the menu's table and camera (useSetup, src/scene3d-view.ts setUppsattning), and each has its own play
-// view (/api/play-view?uppsattning=live): the one read and saved is the chosen table's (Jakob 2026-11-27: "en annan vy som jag
-// vill kunna ställa in för när jag eller en annan ska testa eller spela i casinot").
+// scene stands under the menu's table and camera (useSetup, src/scene3d-view.ts setUppsattning), with that table's own shoe and
+// box where it has them (extras.ts table), and each has its own play view (/api/play-view?uppsattning=live): the one read and
+// saved is the chosen table's (Jakob 2026-11-27: "en annan vy som jag vill kunna ställa in för när jag eller en annan ska testa
+// eller spela i casinot"). Which films play there is the view's (components/bordet/SceneBody.tsx): only those made at it.
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { CARD_TAPER, LINS } from "../../../src/card-plan.ts";
 import { PLAY_VIEW, sameFraming, type Framing, type PlayView } from "../../../src/play-view.ts";
@@ -338,6 +339,10 @@ export function useSceneEditor(firstLook: () => LookAsk) {
   useEffect(() => {
     void extras.current?.apply(want);
   }, [scene, want]);
+  // The chosen table's own things that no film shows: at the live table its clear shoe and box, and no tray (as the game lays it).
+  useEffect(() => {
+    void extras.current?.table(setup);
+  }, [scene, setup]);
   const chipGloss = current?.chipGloss;
   useEffect(() => {
     if (chipGloss !== undefined) extras.current?.gloss(chipGloss);

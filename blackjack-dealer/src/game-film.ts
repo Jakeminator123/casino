@@ -14,6 +14,7 @@ import {slotOf, slotLabel, slotFilm, type Layout, type Pt, type TableCards} from
 import {hubChain, inTurn, lyingAfter, planBeats, revealStep, SEAT_HUB, STAND_IN_FILM, type Beat, type FilmSignal} from './game-director.ts';
 import type {Composer, Move, WovenBridge} from './composition.ts';
 import {placeLines, type MouthPatch} from './speech-patch.ts';
+import {DATATS_FORVAL, type UppsattningId} from './uppsattning.ts';
 
 // What this file uses of the scene's film queue.
 // frame: a film whose picture is not the standard frame (the entrance and the exit, drawn behind the table) says so in its
@@ -23,8 +24,10 @@ import {placeLines, type MouthPatch} from './speech-patch.ts';
 // mouth: a line said over this part from a mouth patch (src/scene3d-mouth.ts); begin is called as its sound begins, or with false
 // when it could not be laid (its text then stands in the chat).
 // effect: what the scene does while the part plays, from the film's record (FilmEffect in src/clip-graph.ts): a rest film's only.
+// uppsattning: the set-up the film is made under where it is not the former standard (createFilm's uppsattning): the scene shows a part
+// only under its own (src/scene3d-view.ts guardFilms).
 export type Mouth = {patch: MouthPatch; base: string};
-export type FilmPart = {path: string; start?: number; end?: number | null; rate?: number; absoluteRate?: boolean; track?: unknown; cards?: Record<string, unknown>; frame?: unknown; fps?: number; sound?: boolean; model?: string; rest?: boolean; mouth?: Mouth & {begin?: (said: boolean) => void}; effect?: FilmEffect};
+export type FilmPart = {path: string; start?: number; end?: number | null; rate?: number; absoluteRate?: boolean; track?: unknown; cards?: Record<string, unknown>; frame?: unknown; fps?: number; sound?: boolean; model?: string; rest?: boolean; mouth?: Mouth & {begin?: (said: boolean) => void}; effect?: FilmEffect; uppsattning?: UppsattningId};
 /** A take's effect as a part carries it; nothing when the record asks for none. */
 export const effectPart = (take: Take | null | undefined): {effect?: FilmEffect} => { const effect = effectOf(take?.motion); return effect ? {effect} : {}; };
 const frameOf = (take: Take | null | undefined) => (take?.motion?.motion as {frame?: unknown} | undefined)?.frame ?? null;
@@ -167,7 +170,10 @@ export function continuesCardFilm(deal: Pick<Segment, 'video' | 'fps' | 'end'> |
 // line belongs to when that is not the chain's first ('REVEAL': the dealer's line goes with the hole card's turn).
 export type Said = {part: FilmPart | null; begin(): void; key?: string; beat?: Beat['kind']};
 
-export function createFilm(players: FilmPlayers, bank: Graph, layout: Layout, readJson: (path: string) => Promise<unknown>, random: () => number = Math.random) {
+// uppsattning: the set-up the bank's films are made under (the game's cut, src/game-page.ts): every part says it, so that the scene shows
+// them under that camera and no other. The former standard's, the data's default, is said by no field, as before the choice.
+export function createFilm(players: FilmPlayers, bank: Graph, layout: Layout, readJson: (path: string) => Promise<unknown>, random: () => number = Math.random, uppsattning: UppsattningId = DATATS_FORVAL) {
+  const madeAt = uppsattning === DATATS_FORVAL ? {} : {uppsattning};
   let graph = bank; // whose films: another dealer at the table is another graph (use)
   let table: TableCards = {hands: [], dealer: []}, records: CardRecord[] = [], lying: number[] = [];
   let token = 0, resting: Take | null = null, carry: Carry = CARRY, words: CardWords = {}, calmOnly = false, heldRest: number | null = null; const played: string[] = [], tracks = new Map<string, Promise<CardTrack | null>>();
@@ -217,7 +223,7 @@ export function createFilm(players: FilmPlayers, bank: Graph, layout: Layout, re
     const range = idleRange(take.frames ?? 90); let asked = false;
     const next = () => { if (mine !== token || asked) return; const after = pickRest(); if (!after) return; asked = true; restFilm(mine, after, {ahead: true}); };
     void trackOf(take).then(track => { if (mine !== token) return;
-      players.play([{path: take.media.video!, start: range.start, end: range.end, ...fpsOf(take), ...modelOf(take), ...effectPart(take), rest: true, track, cards: cardOptions({own: null, lying}, table, records, layout, carry, words)}], {...(how.cut === true ? {cut: true} : {}),
+      players.play([{path: take.media.video!, start: range.start, end: range.end, ...fpsOf(take), ...modelOf(take), ...madeAt, ...effectPart(take), rest: true, track, cards: cardOptions({own: null, lying}, table, records, layout, carry, words)}], {...(how.cut === true ? {cut: true} : {}),
         onPart: () => { if (mine !== token) return; if (how.ahead) { resting = take; seen(take); } if (expected.length) players.preload?.(expected);
           if (how.hold === true && heldRest === mine) players.toggle?.(true); else aheadSoon(next); },
         onEnd: next}); });
@@ -341,7 +347,7 @@ export function createFilm(players: FilmPlayers, bank: Graph, layout: Layout, re
   function talkPart(clip: string): FilmPart | null {
     const take = graph.takes[clip];
     if (!take?.media.video || take.kind !== 'IDLE' || !take.idle?.onRequest || take.stage !== 'DONE' || take.decision === 'REJECTED') return null;
-    return {path: take.media.video, start: 0, end: null, ...fpsOf(take), ...modelOf(take), track: null, cards: cardOptions({own: null, lying}, table, records, layout, carry, words), sound: true};
+    return {path: take.media.video, start: 0, end: null, ...fpsOf(take), ...modelOf(take), ...madeAt, track: null, cards: cardOptions({own: null, lying}, table, records, layout, carry, words), sound: true};
   }
   /**
    * Plays one step of the game. signals: the engine's signals for the step. next: the table and card values after it.
@@ -375,7 +381,7 @@ export function createFilm(players: FilmPlayers, bank: Graph, layout: Layout, re
     const bridgesBefore = (i: number) => { for (const b of plan?.bridges ?? []) { if (b.before !== i || !b.film) continue;
       const beat = beats[i], lies = !beat ? lyingAfter(lying, beats) : beat.kind === 'REVEAL' && beat.own ? [...beat.lying, beat.own.shoeDraw] : beat.lying;
       bridged[parts.length] = true; beatOf.push(i); shows.push(null);
-      parts.push({path: b.film, start: 0, end: null, track: null, fps: b.fps, cards: cardOptions({own: null, lying: lies}, table, i <= turn ? closed : records, layout, carry, words)}); } };
+      parts.push({path: b.film, start: 0, end: null, track: null, fps: b.fps, ...madeAt, cards: cardOptions({own: null, lying: lies}, table, i <= turn ? closed : records, layout, carry, words)}); } };
     segments.forEach((s, i) => { bridgesBefore(i); if (!s?.video) return; beatOf.push(i);
       const beat = beats[i], prev = beats[i - 1], deal = segments[i - 1], target = s.film?.target;
       // Respect the chosen hand mode for borrowed films too. Their final card still uses the game's own landing quad.
@@ -392,7 +398,7 @@ export function createFilm(players: FilmPlayers, bank: Graph, layout: Layout, re
       // top of it). A film as filmed in a tree without a tempo says nothing, and the queue plays it at the round's tempo.
       const speed = s.take?.speed ?? 1, own = plan && tempo ? tempo.tree(plan.tree[i]) : null;
       const pace = tempo && (speed !== 1 || own !== null) ? {rate: filmRate(speed, own ?? tempo.round()), absoluteRate: true} : !tempo && speed !== 1 ? {rate: speed} : {};
-      parts.push({path: s.video, start: s.start, end: s.end, track: loaded[i], cards, frame: frameOf(s.take), ...fpsOf(s.take), ...modelOf(s.take), ...pace}); });
+      parts.push({path: s.video, start: s.start, end: s.end, track: loaded[i], cards, frame: frameOf(s.take), ...fpsOf(s.take), ...modelOf(s.take), ...madeAt, ...pace}); });
     bridgesBefore(beats.length);
     let done = 0; // beats landed so far, in order
     const land = (upTo: number) => { for (; done < upTo; done++) { const beat = beats[done]; if (beat.own && beat.kind !== 'DEAL' && !lying.includes(beat.own.shoeDraw)) lying = [...lying, beat.own.shoeDraw]; landed(beat, done); } };
@@ -452,7 +458,7 @@ export function createFilm(players: FilmPlayers, bank: Graph, layout: Layout, re
    * its own where the bank had none, two of them films Jakob had rejected (the rescue lane Kedjan, finding 5).
    */
   async function swap(away: (arrive: FilmPart[]) => void | Promise<void> = () => {}, next: Graph | null = null): Promise<{played: boolean; gaps: string[]}> {
-    const part = (s: Segment | undefined): FilmPart[] => s?.video ? [{path: s.video, start: s.start, end: s.end, track: null, frame: frameOf(s.take), ...fpsOf(s.take), ...modelOf(s.take)}] : [];
+    const part = (s: Segment | undefined): FilmPart[] => s?.video ? [{path: s.video, start: s.start, end: s.end, track: null, frame: frameOf(s.take), ...fpsOf(s.take), ...modelOf(s.take), ...madeAt}] : [];
     const banked = (of: Graph, from: string, to: string) => part(resolveRound(of, [{from, to}], {places})[0]);
     const leave = banked(graph, 'IDLE', 'AWAY'), arrive = banked(next ?? graph, 'AWAY', 'IDLE');
     const without = (edge: string, then: string) => `${edge}: ingen dömd film, ${then}`;

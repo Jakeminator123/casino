@@ -1,7 +1,11 @@
-// What lies on the table but is no key of the scene's state: the chip tray's model, the 3D shoe and the chips. Each is a
-// module of the lab (src/game3d-props.ts, game3d-tray.ts, game3d-chips.ts), read from the lab server the first time it is
-// asked for, and laid in the scene as a prop, as the game (src/game-page.ts 201-221) and the lab's 3D page (src/scene3d-ui.ts
-// chipsLab, shoe) do it. Nothing here is saved; a new scene starts without them and the view asks again.
+// What lies on the table but is no key of the scene's state: the chip tray's model, the 3D shoe and the chips, and the table's own
+// things that no film shows. Each is a module of the lab (src/game3d-props.ts, game3d-tray.ts, game3d-chips.ts), read from the lab
+// server the first time it is asked for, and laid in the scene as a prop, as the game (src/game-page.ts, the tray and liveProps) and
+// the lab's 3D page (src/scene3d-ui.ts chipsLab, shoe) do it. At the live table (the scene's set-up, src/uppsattning.ts: no tray) the
+// game lays no tray but the table's clear shoe and discard box with their cards, drawn from the measures: so does Scen, whatever
+// Brickans modell says, and the former standard's tray comes back with it. Nothing here is saved; a new scene starts without them
+// and the view asks again.
+import { UPPSATTNING, type UppsattningId } from "../../../src/uppsattning.ts";
 import { labModule } from "../../lib/lab.ts";
 import type { Scene } from "../stage/engines.ts";
 
@@ -38,29 +42,56 @@ export function createExtras(scene: Scene, onNote: (note: ExtrasNote) => void) {
   let chips: { made: ReturnType<ChipsModule["createChips"]>; remove: () => void; off: () => void } | null = null;
   let chipsLoad: Promise<void> | null = null;
   let gloss = 0.5;
+  // The table the scene stands at (setTable), and its own shoe and box when it has them (the live table's liveProps).
+  let table: UppsattningId = scene.uppsattning;
+  let own: { remove: () => void; prop: Freeable } | null = null;
+  let ownAsked = 0;
 
   async function setTray(kind: TrayModel) {
     want = { ...want, tray: kind };
     const asked = ++trayAsked;
-    if (tray?.kind === kind) return;
+    const laid: TrayModel = UPPSATTNING[table].bricka ? kind : "byggd"; // a table without a tray gets none (the scene hides its built one)
+    if (tray?.kind === laid) return;
     if (tray) {
       tray.remove();
       free(tray.prop);
       tray = null;
       scene.notch(null);
     }
-    if (kind === "byggd") return;
+    if (laid === "byggd") return;
     try {
       const made =
-        kind === "jakobs"
+        laid === "jakobs"
           ? await (await labModule<Props>("game3d-props")).loadTray(scene)
           : (await labModule<Trays>("game3d-tray")).createHouseTray(scene);
       if (gone || asked !== trayAsked) return;
       scene.notch(made.notch);
-      tray = { kind, remove: scene.addProp(made), prop: made };
+      tray = { kind: laid, remove: scene.addProp(made), prop: made };
       onNote(null);
     } catch {
-      if (!gone && asked === trayAsked) onNote({ what: "tray", text: kind === "jakobs" ? "Jakobs bricka (assets/props/tray.glb) finns inte på den här datorn." : "Husets bricka kunde inte läsas." });
+      if (!gone && asked === trayAsked) onNote({ what: "tray", text: laid === "jakobs" ? "Jakobs bricka (assets/props/tray.glb) finns inte på den här datorn." : "Husets bricka kunde inte läsas." });
+    }
+  }
+
+  // The table's own things that no film shows, as the game lays them: at a table without a tray (the live table) its clear shoe and
+  // discard box with their cards (liveProps), and no tray; at the former standard the tray, and the shoe is the film's.
+  async function setTable(id: UppsattningId) {
+    if (id === table && (own || UPPSATTNING[id].bricka)) return;
+    table = id;
+    void setTray(want.tray);
+    const asked = ++ownAsked;
+    if (own) {
+      own.remove();
+      free(own.prop);
+      own = null;
+    }
+    if (UPPSATTNING[id].bricka) return;
+    try {
+      const made = (await labModule<Props>("game3d-props")).liveProps(scene);
+      if (gone || asked !== ownAsked) return free(made);
+      own = { remove: scene.addProp(made), prop: made };
+    } catch {
+      if (!gone && asked === ownAsked) onNote({ what: "shoe", text: `${UPPSATTNING[id].namn}s sko och låda kunde inte läsas.` });
     }
   }
 
@@ -124,6 +155,8 @@ export function createExtras(scene: Scene, onNote: (note: ExtrasNote) => void) {
       gloss = value;
       chips?.made.setGloss(value);
     },
+    /** The table the scene stands at now (the menu's Bord och kamera): its own shoe and box, and whether it has a tray. */
+    table: setTable,
     dispose() {
       if (gone) return;
       gone = true;
@@ -133,9 +166,11 @@ export function createExtras(scene: Scene, onNote: (note: ExtrasNote) => void) {
       chips?.remove();
       chips?.off();
       chips?.made.dispose();
+      own?.remove();
       free(tray?.prop ?? null);
       free(shoe?.prop ?? null);
-      tray = shoe = chips = null;
+      free(own?.prop ?? null);
+      tray = shoe = chips = own = null;
     },
   };
 }
