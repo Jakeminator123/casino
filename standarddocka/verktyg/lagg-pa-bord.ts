@@ -33,8 +33,8 @@ import path from 'node:path';
 
 const arg = (name: string) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : undefined; };
 const forstaVal = process.argv.findIndex((x, i) => i >= 2 && x.startsWith('--')), filmer = process.argv.slice(2, forstaVal < 0 ? undefined : forstaVal), film = filmer[0];
-const platta = arg('--platta'), ut = arg('--ut'), utMapp = arg('--ut-mapp'), kortfarger = process.argv.includes('--kortfarger'), skugga = Number(arg('--skugga') ?? '1'), falt = arg('--falt') ?? film, egenSko = arg('--egen-sko'), hall = new Set((arg('--hall') ?? '').split(',').filter(Boolean).map(Number));
-if (!film || !platta || !(filmer.length === 1 ? ut || utMapp : utMapp) || !(skugga >= 0 && skugga <= 1)) throw Error('node standarddocka/verktyg/lagg-pa-bord.ts <grön film.mp4> [<fler filmer> …] --platta <bordet ensamt.png> (--ut <film.mp4> | --ut-mapp <mapp>) [--kortfarger] [--skugga 1] [--falt <hela tagningen.mp4>] [--hall <ruta,ruta>] [--egen-sko <bordet med vår sko.png>]');
+const platta = arg('--platta'), ut = arg('--ut'), utMapp = arg('--ut-mapp'), kortfarger = process.argv.includes('--kortfarger'), skugga = Number(arg('--skugga') ?? '1'), falt = arg('--falt') ?? film, egenSko = arg('--egen-sko'), skoRuta = Number(arg('--sko-ruta') ?? '30'), hall = new Set((arg('--hall') ?? '').split(',').filter(Boolean).map(Number));
+if (!film || !platta || !(filmer.length === 1 ? ut || utMapp : utMapp) || !(skugga >= 0 && skugga <= 1)) throw Error('node standarddocka/verktyg/lagg-pa-bord.ts <grön film.mp4> [<fler filmer> …] --platta <bordet ensamt.png> (--ut <film.mp4> | --ut-mapp <mapp>) [--kortfarger] [--skugga 1] [--falt <hela tagningen.mp4>] [--hall <ruta,ruta>] [--egen-sko <bordet med vår sko.png> [--sko-ruta 30]]');
 const FFMPEG = process.env.FFMPEG || 'ffmpeg', FFPROBE = process.env.FFPROBE || 'ffprobe';
 const [W, H, takt] = spawnSync(FFPROBE, ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height,r_frame_rate', '-of', 'csv=p=0', film], {encoding: 'utf8'}).stdout.trim().split(',').map((x, i) => i < 2 ? Number(x) : x) as [number, number, string];
 if (!(W > 0 && H > 0)) throw Error(`${film} gick inte att läsa.`);
@@ -56,7 +56,9 @@ const gron = (r: number, g: number, b: number, ren: number) => { const s = (g - 
 // Första varvet, på var fjärde bildpunkt: raden där bordet börjar, och bordets rena gröna ljus per ställe (det ljusaste
 // en helt grön bildpunkt där har varit under filmen, räknat mot rutans eget hörn så att filmens glidning i ton inte räknas in).
 const C = 4, cw = Math.ceil(W / C), ch = Math.ceil(H / C), rent = new Float32Array(cw * ch); let kant = -1;
+let skoBild: Buffer | null = null, varv1 = 0;
 for await (const f of rutor(falt, falt !== film)) {
+  if (varv1++ === skoRuta) skoBild = Buffer.from(f);   // (rutan där skon står orörd, för --egen-sko)
   const uppe = hornet(f, ...HORN.uppe), nere = hornet(f, ...HORN.nere), lu = ljus(uppe[0], uppe[1], uppe[2]), ln = ljus(nere[0], nere[1], nere[2]), rn = nere[1] - Math.max(nere[0], nere[2]);
   if (kant < 0) { for (let y = 8; y < H - 8 && kant < 0; y++) { const o = (y * W + 20) * 3, l = ljus(f[o], f[o + 1], f[o + 2]); if (Math.abs(l - ln) < Math.abs(l - lu)) kant = y; }
     if (kant < 0 || !(rn > 30)) throw Error(`${falt}: hittar inte det gröna bordet nere till vänster och den gröna bakgrunden uppe till vänster. Är filmen inspelad i utseendet nyckel?`); }
@@ -94,6 +96,15 @@ const P2 = egenSko ? (await rutor(egenSko, true).next()).value as Buffer : null,
 if (egenSko && !P2) throw Error(`${egenSko} gick inte att läsa.`);
 if (P2) { for (let q = 0; q < WH; q++) { const o = q * 3; SKO[q] = Math.abs(P2[o] - P[o]) + Math.abs(P2[o + 1] - P[o + 1]) + Math.abs(P2[o + 2] - P[o + 2]) > 24 ? 1 : 0; }
   lada(SKO, 6); for (let q = 0; q < WH; q++) SKO[q] = SKO[q] > 0.02 ? 1 : 0; }
+/** Spårkortets färger i filmen (gul rygg, vit framsida, turkos ram), också mjukt blandade som en filmmodell ritar dem. */
+const kortFarg = (r: number, g: number, b: number) => (r > 100 && Math.min(r, g) - b > 25 && b < 0.65 * g) || (Math.min(r, g, b) > 190 && Math.max(r, g, b) - Math.min(r, g, b) < 40) || (b > 120 && r < 0.72 * g && g > 0.86 * b);
+// Filmens stilla kortlek (DEKK): kortfärgat i skons område i en ruta där handen inte är vid skon (--sko-ruta, 30), med
+// marginal. Kortfärgat utanför den är kortet som dras: det kommer ur filmen också inne i skons område, så att det följer
+// fingrarna ut genom mynningen (domaren 2026-11-27: kortet dök upp först utanför mynningen).
+const DEKK = new Float32Array(WH);
+if (P2) { if (!skoBild) throw Error(`--sko-ruta ${skoRuta} finns inte i ${falt}.`);
+  for (let q = 0; q < WH; q++) { const o = q * 3; let r = skoBild[o], g = skoBild[o + 1], b = skoBild[o + 2]; if (g > Math.max(r, b)) g = Math.max(r, b); DEKK[q] = SKO[q] && kortFarg(r, g, b) ? 1 : 0; }
+  lada(DEKK, 3); for (let q = 0; q < WH; q++) DEKK[q] = DEKK[q] > 0.02 ? 1 : 0; }
 let forra: Buffer | null = null, nr = 0;
 for await (const f0 of rutor(en)) {
   // (en ruta som filmmodellen har ritat fel, --hall: den förra i dess ställe)
@@ -135,26 +146,38 @@ for await (const f0 of rutor(en)) {
       if (n < 6) VIT[q] = 0; }
     // (kortlekens ljusa kanter i skon: en ljus, varken grön, kall eller hudfärgad bildpunkt mitt i det röda (minst åtta
     // av rutan 5 x 5 runt om röda) blir också röd, så att kortleken är en enfärgad yta och inte prickig)
-    for (let y = 2; y < H - 2; y++) for (let x = 2; x < W - 2; x++) { const q = y * W + x, o = q * 3; if (RW[q] >= 0.5 || VIT[q] || A[q] >= 1) continue;
-      const r = D[o], g = D[o + 1], b = D[o + 2]; if (!(Math.min(r, g) > 170 && r - g < 18 && b <= g + 5)) continue; let n = 0;
+    // (och kortets ljusa kant mot det röda, den tandade underkanten på kortet som dras: en vit bildpunkt med minst tio röda
+    // i rutan 5 x 5 är kortets kant, inte dess framsida)
+    for (let y = 2; y < H - 2; y++) for (let x = 2; x < W - 2; x++) { const q = y * W + x, o = q * 3; if (RW[q] >= 0.5 || A[q] >= 1) continue;
+      const r = D[o], g = D[o + 1], b = D[o + 2]; if (!VIT[q] && !(Math.min(r, g) > 170 && r - g < 18 && b <= g + 5)) continue; let n = 0;
       for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (RW[q + dy * W + dx] >= 0.8) n++;
-      if (n >= 8) { RW[q] = 1; RL[q] = 0.95; } }
+      if (n >= (VIT[q] ? 10 : 8)) { RW[q] = 1; RL[q] = 0.95; VIT[q] = 0; } }
+    // (det gula som blandats med fingertoppen på kortet som dras: gulaktigt intill det röda (minst sex röda i rutan 5 x 5)
+    // blir rött, men inte huden (blått över 0,7 av grönt))
+    for (let y = 2; y < H - 2; y++) for (let x = 2; x < W - 2; x++) { const q = y * W + x, o = q * 3; if (RW[q] >= 0.5 || VIT[q] || A[q] >= 1) continue;
+      const r = D[o], g = D[o + 1], b = D[o + 2]; if (!(r > 100 && Math.min(r, g) - b > 20 && b < 0.7 * g)) continue; let n = 0;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (RW[q + dy * W + dx] >= 0.8) n++;
+      if (n >= 6) { RW[q] = 1; RL[q] = 0.95; } }
     lada(RW, 1); }
   if (skugga > 0) lada(S, 4);
   // (i skons område: bara handen och ärmen ur filmen, hud (varm, inte gul och inte kortets vita) och skjorta (kall, inte
   // turkos); hål i handen
   // fylls och lösa prickar tas bort i rutan 5 x 5, och kanten mjukas en bildpunkt)
+  // (masken räknas över hela bilden och används bara i skons område, så att dess kant inte skär en linje genom handen;
+  // kortet som dras (kortfärgat utanför filmens stilla kortlek) släpps fram som handen)
   if (P2) {
-    for (let q = 0; q < WH; q++) { if (!SKO[q]) { M[q] = 0; continue; } const o = q * 3, r = D[o], g = D[o + 1], b = D[o + 2];
-      M[q] = A[q] < 1 && ((r > 80 && r > g + 20 && r - b > 25 && b > 0.68 * g && g > 0.6 * r && (Math.min(r, g) < 190 || b > 0.75 * g) && Math.min(r, g, b) < 225) || (b > r + 10 && b > 110 && g < b + 5 && r > 0.5 * g)) ? 1 : 0; }
-    M2.set(M); lada(M2, 4); for (let q = 0; q < WH; q++) if (SKO[q] && M2[q] < 0.3) M[q] = 0;
-    M2.set(M); lada(M2, 2); for (let q = 0; q < WH; q++) if (SKO[q] && M2[q] > 0.8) M[q] = 1;
+    for (let q = 0; q < WH; q++) { const o = q * 3, r = D[o], g = D[o + 1], b = D[o + 2];
+      M[q] = A[q] < 1 && ((r > 80 && r > g + 20 && r - b > 25 && b > 0.68 * g && g > 0.6 * r && (Math.min(r, g) < 190 || b > 0.75 * g) && Math.min(r, g, b) < 225) || (b > r + 10 && b > 110 && g < b + 5 && r > 0.5 * g)
+        || (SKO[q] && !DEKK[q] && kortFarg(r, g, b))) ? 1 : 0; }
+    M2.set(M); lada(M2, 4); for (let q = 0; q < WH; q++) if (M2[q] < 0.3) M[q] = 0;
+    M2.set(M); lada(M2, 2); for (let q = 0; q < WH; q++) if (M2[q] > 0.8) M[q] = 1;
     lada(M, 1); }
   for (let q = 0; q < WH; q++) { const o = q * 3, k = A[q], s = S[q], pr = P[o] * s, pg = P[o + 1] * s, pb = P[o + 2] * s;
     let r = D[o], g = D[o + 1], b = D[o + 2];
     if (VIT[q]) { r = 244; g = 242; b = 236; }
     else if (RW[q] > 0) { const w = RW[q], l = RL[q] || 0.9; r += (Math.min(255, 184 * l) - r) * w; g += (Math.min(255, 51 * l) - g) * w; b += (Math.min(255, 59 * l) - b) * w; }
-    if (P2 && SKO[q]) { const m = M[q] * (1 - k); bild[o] = r * m + P2[o] * (1 - m); bild[o + 1] = g * m + P2[o + 1] * (1 - m); bild[o + 2] = b * m + P2[o + 2] * (1 - m); continue; }
+    // (plattan med skon får dealerns skugga på filten som plattan utan, så att skons fot inte får en ljus kant)
+    if (P2 && SKO[q]) { const m = M[q] * (1 - k); bild[o] = r * m + P2[o] * s * (1 - m); bild[o + 1] = g * m + P2[o + 1] * s * (1 - m); bild[o + 2] = b * m + P2[o + 2] * s * (1 - m); continue; }
     if (k >= 1) { bild[o] = pr; bild[o + 1] = pg; bild[o + 2] = pb; continue; }
     bild[o] = r * (1 - k) + pr * k; bild[o + 1] = g * (1 - k) + pg * k; bild[o + 2] = b * (1 - k) + pb * k; }
   antal++; if (!kod.stdin.write(bild)) await once(kod.stdin, 'drain');
