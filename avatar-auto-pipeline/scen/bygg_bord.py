@@ -19,6 +19,8 @@ Det är --kant-bak, --djup, --sko-ut och --sko-fram nedan med de talen, och skri
 först"): filten, skon, lådan för använda kort, insatsmärkena och kortplatserna där livebordet har dem, ur standard.yaml
 livebord (ur spelets LIVE i ../blackjack-dealer/src/table-live.ts), med vårt utseende (filt, sarg, rulle, ben och färger
 som standardbordet). Filten är deras halvcirkel och rullen ligger utanför den; livebordet har ingen markerbricka.
+Skon är deras: en klar låda vars front är en klar platta som lutar bakåt från fotens främre hörn, nästa kort bakom den
+med ryggen utåt, och en lös klar bit som ligger plant på filten framför (sko_los_bit).
 Origo ligger på golvet under livebordets dealerkant. Skriver standardbord_live.blend/.glb. Med --med-bricka läggs vår
 markerbricka (markerbricka i standard.yaml) in vid dealerkanten som ett tillägg, i standardbord_live_bricka.blend/.glb.
 
@@ -35,7 +37,7 @@ standardbord_nara<cm>.blend/.glb för ett annat avstånd (0.23 är standarddocka
 plats och kanten kommer till den, Jakob 2026-11-26: bygg det med --docka, så får det också sin form och sin sko);
 utan valet byggs allt exakt som förut.
 
-Skon är densamma i alla byggen: kilen ur standard.yaml och framtill en dealerskos frontplatta (sko_front) med en
+Skon är densamma i alla byggen utom --live: kilen ur standard.yaml och framtill en dealerskos frontplatta (sko_front) med en
 U-formad öppning, framför skons kort och med springan under (måtten och varför i SKO_FRONT nedan).
 
 Prov av bordets form och skons plats (Jakob 2026-11-26: "mindre äggformat ... mer som en halvmåne", och skon "aningen
@@ -738,17 +740,28 @@ def main():
     quad((ln, 0, 0), (ln, wd, 0), (ln, wd, hb), (ln, 0, hb))                             # bakvägg
     quad((uf, 0, hf), (ln, 0, hb), (ln, wd, hb), (uf, wd, hf))                           # lock
     quad((0, 0, 0), (0, wd, 0), (un, wd, base_h), (un, 0, base_h))                       # nos
+    if LIVE:  # livebordets sko är en klar låda: fronten är en hel klar platta, och nästa kort syns genom den
+        quad((un, 0, base_h), (un, wd, base_h), (uf, wd, hf), (uf, 0, hf))               # front
+        m_klar = pbr('sko_akryl', (0.92, 0.95, 1.0, 1), rough=0.03)  # klarare än lådans, så att kortet syns genom väggarnas två lager
+        m_klar.node_tree.nodes['Principled BSDF'].inputs['Alpha'].default_value = 0.12
+        try:
+            m_klar.surface_render_method = 'BLENDED'
+        except AttributeError:
+            m_klar.blend_method = 'BLEND'
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6); bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    shoe = obj_from_bm('sko_kropp', bm, c_sko, m_shoe)
+    shoe = obj_from_bm('sko_kropp', bm, c_sko, m_klar if LIVE else m_shoe)
     sol = shoe.modifiers.new('tjocklek', 'SOLIDIFY'); sol.thickness = 0.003
-    skofront = sko_front(P, lean, hf, wd, wt, c_sko)
-    if sko_flytt.length > 0:
-        shoe.location = sko_flytt; skofront.location = sko_flytt
+    if not LIVE:  # vår skos svarta frontplatta med öppningen för fingret
+        skofront = sko_front(P, lean, hf, wd, wt, c_sko)
+        if sko_flytt.length > 0:
+            shoe.location = sko_flytt; skofront.location = sko_flytt
+    else:  # den lösa klara biten som ligger plant på filten framför skon
+        prism('sko_los_bit', [tuple(p[:2]) for p in LV['los_bit']['horn']], FZ, FZ + 0.002, c_sko, m_klar)
     # kort i skon: översta korten som egna objekt (dragbara), resten som en bunt. Egen mesh med ryggen på båda sidor;
     # den heter inte kort_*, eftersom editorn (standarddocka/editor/scen.ts) döljer bordets lösa kort med det namnet,
     # och då syntes buntens vita kant i stället för skons rygg.
     mes = card_mesh('sko_kortrygg', back_cell, back_cell); mes.materials.append(m_card); mes.materials.append(m_edge)
-    # kortets långsida (meshens Y) uppför plattan och kortsidan (X) tvärs skon; i livebordets sko tvärtom (livebord.sko)
+    # kortets långsida (meshens Y) uppför plattan och kortsidan (X) tvärs skon; livebordets sko har dem under egna namn
     if LIVE:
         up = Vector(sk['fonsterkort_langsida']).normalized(); ac = Vector(sk['fonsterkort_kortsida']).normalized()
     else:

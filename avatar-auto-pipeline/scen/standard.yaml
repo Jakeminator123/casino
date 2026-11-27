@@ -397,20 +397,22 @@ livebord:  # ett riktigt livebord mätt på film (live-bj, 2026-11-27, prelimin�
     halv_bredd_vid_kanten: 0.7293  # härlett
     djup: 0.714
     rulle_utanfor: 0.1  # antaget (vår, bord.vadderad_kant.bredd): rullen ligger utanför bågen, så att filten som syns är den mätta
-  sko:  # källa: LIVE.shoe, liveShoePose(), liveShoeCard()
+  sko:  # en genomskinlig låda; fronten är en klar platta som lutar bakåt från fotens två främre hörn, och nästa kort syns genom den. källa: LIVE.shoe, liveShoePose(), liveShoeCard()
+    genomskinlig: true
     fot_fram: [0.4521, -0.1531, 0.9500]  # mätt: fotens främre hörn mot spelarna (hörnen lästa för ögat, 1-2 cm)
     fot_horn: [[0.4270, -0.0533, 0.9500], [0.4521, -0.1531, 0.9500], [0.7162, -0.0798, 0.9500]]  # mätt: främre vid dealern, främre mot spelarna, bakre mot spelarna
     yaw_bakat: 15.512  # härlett ur foten: bakänden vriden mot dealern
     langd: 0.274  # mätt (foten)
     bredd: 0.103  # mätt (foten)
     hojd_bak: 0.117  # mätt ur bilden
-    hojd_fram: 0.108  # skattat: frontplattans topp om plattan stod lodrätt; byts med lutningen
-    platta_lutning_grader: 51.60  # antaget (vår, sko.platta_lutning_grader)
-    fonster_lyft: 0.022  # antaget (vår, sko.fonster_lyft)
-    fonsterkort_mitt: [0.4732, -0.0938, 0.9973]  # nästa kort, på den lutande fronten som i vår sko men med långsidan tvärs skon som det som syns i mynningen; läget är antaget och stämmer inte med mynning_sedd (LIVE.shoe, liveShoeCard)
-    fonsterkort_langsida: [-0.2674, 0.9636, 0.0000]  # kortets långsida, tvärs skon
-    fonsterkort_kortsida: [0.5985, 0.1661, 0.7837]  # kortets kortsida, uppför fronten
-    mynning_sedd: [[0.3652, -0.0915, 0.9500], [0.4017, -0.0757, 0.9500], [0.4311, -0.1701, 0.9500], [0.3977, -0.1786, 0.9500]]  # mätt: det som syns av nästa kort i mynningen, lagt på filten (4 x 10 cm)
+    hojd_fram: 0.085  # skattat: frontplattans topp (hörnen lästa 0,060 och 0,107; omkring 0,08, så högt att kortet ryms)
+    platta_lutning_grader: 70.00  # skattat: från filten (hörnen lästa 34 och 11,5 grader bakåt från lodrätt; omkring 20)
+    fonster_lyft: 0.002  # antaget: kortets underkant över filten bakom fronten (skons golv)
+    front_horn: [[0.4270, -0.0533, 0.9500], [0.4521, -0.1531, 0.9500], [0.4732, -0.1478, 1.0565], [0.4663, -0.0434, 1.0101]]  # mätt som de lästes: fot vid dealern, fot mot spelarna, topp mot spelarna, topp vid dealern
+    fonsterkort_mitt: [0.4572, -0.0983, 0.9920]  # nästa kort bakom den klara fronten, ryggen utåt; mitten är plattans mitt, som mätningen har den
+    fonsterkort_langsida: [0.3296, 0.0915, 0.9397]  # kortets långsida, uppför fronten
+    fonsterkort_kortsida: [-0.2674, 0.9636, 0.0000]  # kortets kortsida, tvärs skon
+  los_bit: {horn: [[0.3652, -0.0915, 0.9500], [0.4017, -0.0757, 0.9500], [0.4311, -0.1701, 0.9500], [0.3977, -0.1786, 0.9500]], mitt: [0.3989, -0.1290, 0.9500]}  # mätt: en lös klar bit som ligger plant på filten strax framför skon (inget kort ligger på den). källa: LIVE.clearPiece
   kassering:  # mätt: en klar låda vid dealerns högra hörn, öppen upptill. källa: LIVE.box, liveBox()
     fot_mitt: [-0.6115, -0.0351, 0.9500]
     yaw: 2.143

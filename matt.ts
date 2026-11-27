@@ -220,8 +220,10 @@ const mynning = (p: ShoePose): Vec3 => [p.front[0] + p.far[0] * SHOE.width / 2, 
 const fran = (p: Vec3, bak: number) => p[2] - kant[2] + bak, skoVinkel = (p: ShoePose) => Math.atan2(-p.back[2], p.back[0]) * DEG;
 const sko = scen?.things?.sko, fot: number[][] | undefined = Array.isArray(sko?.footMetres) && sko.footMetres.length >= 3 ? sko.footMetres : undefined;
 const liveSkoVinkel = fot ? Math.atan2(fot[2][1] - fot[1][1], fot[2][0] - fot[1][0]) * DEG : undefined;
-const mun: number[][] | undefined = Array.isArray(sko?.mouthMetres) && sko.mouthMetres.length ? sko.mouthMetres : undefined;
-const munMitt = mun ? [mun.reduce((s, q) => s + q[0], 0) / mun.length, mun.reduce((s, q) => s + q[1], 0) / mun.length] : undefined;
+// Livebordets mynning är kortet i skons klara front (uppsattning.json shoe.card_when_drawn, linsvärlden); det scen.json
+// kallar mouth är en lös bit på filten framför skon.
+const livKort: number[] | undefined = data('live-bj/data/uppsattning.json')?.shoe?.card_when_drawn?.middle;
+const munMitt = Array.isArray(livKort) ? [livKort[0], -livKort[2]] : undefined;
 const munFran = munMitt && ok(T?.dealerEdgeM) ? T.dealerEdgeM - munMitt[1] : undefined;
 const myD = mynning(poseD), myF = mynning(poseF);
 r('Skon', 'längd', m(SHOE.length), visa(sko?.footLength, m), skillnad(SHOE.length, sko?.footLength, m), `${k('table-lens.ts', 'SHOE.length')}; ${k('scen.json', 'things.sko.footLength')} (foten på filten)`);
@@ -230,8 +232,8 @@ r('', 'höjd bak och fram', `${m(SHOE.backHeight)} och ${m(SHOE.frontHeight)}`, 
 r('', 'frontplattans lutning mot filten', gr(SHOE.plateLean * DEG), '— (bara i bildpunkter)', '—', k('table-lens.ts', 'SHOE.plateLean'));
 r('', 'kortet i fönstret, underkanten över filten', mm(SHOE.windowLift, 0), '—', '—', k('table-lens.ts', 'SHOE.windowLift'));
 r('', 'vinkel mot kanten (bakänden vriden mot dealern)', gr(skoVinkel(poseD)), visa(liveSkoVinkel, gr), skillnad(skoVinkel(poseD), liveSkoVinkel, gr), `${k('table-lens.ts', 'shoePose(TABLE_LENS).back')}; ${k('scen.json', 'things.sko.footMetres')} (den främre och den bakre hörnan mot spelarna)`);
-r('', 'mynningens mitt åt sidan', `${m(myD[0])} (filmernas sko ${m(myF[0])})`, visa(munMitt?.[0], m), skillnad(myD[0], munMitt?.[0], m), `${k('table-lens.ts', 'dollShoe, shoePose')}; ${k('scen.json', 'things.sko.mouthMetres')} (medel)`, DOM.skon);
-r('', 'mynningens mitt från kanten', `${m(fran(myD, DOLL_TABLE.edgeBack))} från dockans bords kant (filmernas sko ${m(fran(myF, 0))} från spelets kant)`, visa(munFran, m), skillnad(fran(myD, DOLL_TABLE.edgeBack), munFran, m), `${k('table-lens.ts', 'dollShoe, DOLL_TABLE.edgeBack')}; ${k('scen.json', 'table.dealerEdgeM, things.sko.mouthMetres')}`);
+r('', 'mynningens mitt åt sidan', `${m(myD[0])} (filmernas sko ${m(myF[0])})`, visa(munMitt?.[0], m), skillnad(myD[0], munMitt?.[0], m), `${k('table-lens.ts', 'dollShoe, shoePose')}; ${k('uppsattning.json', 'shoe.card_when_drawn.middle')} (kortet i den klara fronten)`, DOM.skon);
+r('', 'mynningens mitt från kanten', `${m(fran(myD, DOLL_TABLE.edgeBack))} från dockans bords kant (filmernas sko ${m(fran(myF, 0))} från spelets kant)`, visa(munFran, m), skillnad(fran(myD, DOLL_TABLE.edgeBack), munFran, m), `${k('table-lens.ts', 'dollShoe, DOLL_TABLE.edgeBack')}; ${k('scen.json', 'table.dealerEdgeM')}, ${k('uppsattning.json', 'shoe.card_when_drawn.middle')}`);
 r('', 'flyttad på dockans bord', `${cm(DOLL_TABLE.shoeOut)} ut längs sin längd och ${cm(DOLL_TABLE.shoeForward)} mot spelarna: ${cm(Math.hypot(myD[0] - myF[0], myD[2] - myF[2]))} från filmernas`, '', '', k('table-lens.ts', 'DOLL_TABLE.shoeOut, shoeForward'), DOM.skon);
 const front = byggBord ? /SKO_FRONT = dict\(([\s\S]*?)\n\)/.exec(byggBord) : null, sf: Record<string, number> = {};
 for (const x of (front?.[1] ?? '').matchAll(/(\w+)=([\d.]+),/g)) sf[x[1]] = Number(x[2]);
@@ -291,12 +293,13 @@ if (liveKod?.LIVE) {
   q('', 'bågens radie; mitten bakom kanten', `${m(L.felt.radius, 4)}; ${cm(L.felt.edgeZ - L.felt.centre[2], 2)}`, ok(uf?.arc_radius) ? `${m(uf.arc_radius, 4)}; ${cm(uf.dealers_edge_z - uf.arc_centre[2], 2)}` : '—', skillnad(L.felt.radius, uf?.arc_radius, m), hur(uf), lk('LIVE.felt'));
   q('', 'kanten mot dealern från kamerans fot', m(kantZ, 4), visa(uf?.dealers_edge_z, x => m(-x, 4)), skillnad(kantZ, ok(uf?.dealers_edge_z) ? -uf.dealers_edge_z : undefined, m), hur(uf), lk('LIVE.edge'));
   q('Rullen', 'bredd utanför filten', cm(L.rail.width), '— (bara i bildpunkter)', '—', 'antaget (vår)', lk('LIVE.rail'));
-  const fot = [L.shoe.foot.byDealer, L.shoe.foot.towardPlayers, L.shoe.foot.back], kortet = liveKod.liveShoeCard(L.shoe), sedd = L.shoe.seenMiddle;
+  const fot = [L.shoe.foot.byDealer, L.shoe.foot.towardPlayers, L.shoe.foot.back], kortet = liveKod.liveShoeCard(L.shoe), uFront = us?.front_plate, uKort = us?.card_when_drawn?.middle;
   q('Skon', 'fotens längd × bredd', `${m(L.shoe.length)} × ${m(L.shoe.width)}`, ok(us?.foot_length) ? `${m(us.foot_length)} × ${m(us.foot_width)}` : '—', skillnad(L.shoe.length, us?.foot_length, m), hur(us), lk('LIVE.shoe'));
   q('', 'fotens tre hörn: största avstånd', '', '', visa(storst(fot, us?.foot), mm), hur(us), lk('LIVE.shoe.foot'));
-  q('', 'höjd bak; frontens topp', `${m(L.shoe.backHeight)}; ${m(L.shoe.frontHeight)} (skattat: om fronten stod lodrätt)`, ok(us?.back_height) ? `${m(us.back_height)}; ${m(us.front_plate_top_if_upright)} om lodrät` : '—', skillnad(L.shoe.backHeight, us?.back_height, m), 'mätt; skattat', lk('LIVE.shoe'));
-  q('', 'frontens lutning; kortets underkant över filten', `${gr(L.shoe.plateLean * DEG)}; ${mm(L.shoe.windowLift, 0)}`, '— (inte mätt)', '—', 'antaget (vårt)', lk('LIVE.shoe'));
-  q('', 'nästa kort: mitten (klonen) mot mitten av det som syns i mynningen (mätt, lagt på filten)', `${m(kortet.centre[0])} åt sidan, ${m(franK(kortet.centre))} från kanten, ${cm(kortet.centre[1])} över filten`, `${m(sedd[0])} åt sidan, ${m(franK(sedd))} från kanten`, `${m(Math.hypot(kortet.centre[0] - sedd[0], kortet.centre[2] - sedd[2]))} isär`, 'det som syns mätt; kortets läge antaget', lk('liveShoeCard, LIVE.shoe.seen'));
+  q('', 'höjd bak; den klara frontens topp', `${m(L.shoe.backHeight)}; ${m(L.shoe.frontHeight)}`, ok(us?.back_height) ? `${m(us.back_height)}; ${Array.isArray(uFront?.top_height) ? uFront.top_height.map((x: number) => m(x)).join(' och ') + ' (de två topphörnen)' : '—'}` : '—', skillnad(L.shoe.backHeight, us?.back_height, m), 'mätt; skattat', lk('LIVE.shoe'));
+  q('', 'frontens lutning bakåt från lodrätt; kortets underkant över filten', `${gr(90 - L.shoe.plateLean * DEG)}; ${mm(L.shoe.windowLift, 0)}`, Array.isArray(uFront?.lean_back_degrees) ? `${uFront.lean_back_degrees.map((x: number) => gr(x)).join(' och ')} (de två topphörnen); —` : '—', '—', 'skattat; antaget', lk('LIVE.shoe'));
+  q('', 'nästa kort i fronten: mitten', `${m(kortet.centre[0])} åt sidan, ${m(franK(kortet.centre))} från kanten, ${cm(kortet.centre[1])} över filten`, Array.isArray(uKort) ? `${m(uKort[0])} åt sidan, ${m(franK(uKort))} från kanten, ${cm(uKort[1])} över filten` : '—', Array.isArray(uKort) ? mm(Math.hypot(kortet.centre[0] - uKort[0], kortet.centre[1] - uKort[1], kortet.centre[2] - uKort[2])) : '—', hur(us?.card_when_drawn), lk('liveShoeCard'));
+  q('', 'den lösa klara biten framför skon: hörnen, största avstånd', '', '', visa(storst(L.clearPiece.corners, us?.clear_piece_before_the_shoe?.corners), mm), hur(us?.clear_piece_before_the_shoe), lk('LIVE.clearPiece'));
   const lada = liveKod.liveBox(L.box);
   q('Lådan för använda kort', 'fotens mått; höjden', `${m(L.box.width)} × ${m(L.box.depth)}; ${m(L.box.height, 4)}`, ok(ub?.foot_width) ? `${m(ub.foot_width)} × ${m(ub.foot_depth)}; ${ub.height.map((x: number) => m(x)).join(' och ')}` : '—', skillnad(L.box.width, ub?.foot_width, m), hur(ub), lk('LIVE.box'));
   q('', 'mitten åt sidan; från kanten', `${m(lada.centre[0])}; ${m(franK(lada.centre))}`, '', visa(storst(L.box.foot, ub?.foot), x => `hörnen ${mm(x)}`), hur(ub), lk('liveBox'));
@@ -307,8 +310,9 @@ if (liveKod?.LIVE) {
   q('Kortplatserna', `${ids.length} st, största avstånd`, `dealerns kort 1 ${m(franK(L.cards['D.C1'].at))} och plats 4 kort 1 ${m(franK(L.cards['P4.C1'].at))} från kanten`, `${ids.filter(id => uk(id)).length} st`, kortAvst.every(Number.isFinite) ? mm(Math.max(...kortAvst)) : '—', hur(U?.card_places), lk('LIVE.cards'));
   q('', 'långsidans vridning', `${ids.filter(id => L.cards[id].turnFrom === 'mätt').length} mätta, ${ids.filter(id => L.cards[id].turnFrom !== 'mätt').length} ur den speglade platsen (landningarna var inte eniga)`, '', '', 'mätt; spegelbild', lk('LIVE.cards[id].turnFrom'));
   for (const [nm, st] of Object.entries(L.dealer.styles) as [string, any][]) {
-    const ut2 = ud?.[nm]?.trunk;
-    q(nm === 'kameran' ? 'Dealern (sitter)' : '', `${nm === 'kameran' ? LIVE_A : LIVE_B}: axlarnas mitt över filten; axelbredd; ögonen`, `${m(st.shouldersMiddle[1])}; ${m(st.shoulderWidth)}; ${m(st.eyesOverFelt)}`, ok(ut2?.shoulder_width) ? `${m(ut2.shoulders_middle[1])}; ${m(ut2.shoulder_width)}; ${m(ut2.eyes_over_felt)}` : '—', skillnad(st.shoulderWidth, ut2?.shoulder_width, m), 'mätt (på ett plan antaget bakom kanten)', lk(`LIVE.dealer.styles.${nm}`));
+    const ut2 = ud?.[nm]?.trunk, ug = ud?.[nm]?.left_hand_at_the_shoe?.grip_at_the_front, namn = nm === 'kameran' ? LIVE_A : LIVE_B;
+    q(nm === 'kameran' ? 'Dealern (sitter)' : '', `${namn}: axlarnas mitt över filten; axelbredd; ögonen`, `${m(st.shouldersMiddle[1])}; ${m(st.shoulderWidth)}; ${m(st.eyesOverFelt)}`, ok(ut2?.shoulder_width) ? `${m(ut2.shoulders_middle[1])}; ${m(ut2.shoulder_width)}; ${m(ut2.eyes_over_felt)}` : '—', skillnad(st.shoulderWidth, ut2?.shoulder_width, m), 'mätt (på ett plan antaget bakom kanten)', lk(`LIVE.dealer.styles.${nm}`));
+    q('', `${namn}: vänsterhandens grepp vid skon, höjd; från kortets mitt`, `${cm(st.leftAtShoe.atFront[1])}; ${cm(st.leftAtShoe.offCard)}`, Array.isArray(ug) ? `${cm(ug[1])}; ${cm(ud[nm].left_hand_at_the_shoe.off_the_card)}` : '—', Array.isArray(ug) ? mm(Math.hypot(st.leftAtShoe.atFront[0] - ug[0], st.leftAtShoe.atFront[1] - ug[1], st.leftAtShoe.atFront[2] - ug[2])) : '—', 'mätt i bilden; höjden slutledd', lk(`LIVE.dealer.styles.${nm}.leftAtShoe`));
   }
   q('', 'bålen bakom kanten', `${m(L.dealer.behindEdge)} (antaget); skattat ${Object.values(L.dealer.styles).map((st: any) => m(st.behindEdgeEstimated)).join(' och ')}`, '', '', 'antaget', lk('LIVE.dealer.behindEdge'));
   q('Golvet', 'filten över golvet; sitsen', `${m(L.floor.feltOverFloor, 2)} (±${tal(L.floor.giveOrTake, 2)}); ${m(L.floor.seatOverFloor, 2)}`, ok(U?.floor?.felt_over_floor) ? `${m(U.floor.felt_over_floor, 2)}; ${m(U.floor.seat_over_floor, 2)}` : '—', skillnad(L.floor.feltOverFloor, U?.floor?.felt_over_floor, m), hur(U?.floor), lk('LIVE.floor'));
@@ -619,7 +623,7 @@ saknas.unshift(
   `Skons lutning: skon står plant på filten; bara frontplattan lutar (${gr(SHOE.plateLean * DEG)}, \`table-lens.ts SHOE.plateLean\`). Korten i skon har ingen egen lutning: de ligger mot plattan och lutar som den.`,
   'Kortets vändning i handbytet har inget eget tal i koden: koreo-giv.ts säger "cirka 90 grader" i en kommentar, och Jakob sa "cirka 100 grader".',
   'Handledens gräns 36 grader i DOMAR.md är ett resultat på de vända platserna, inte ett tal i koden; koden håller handen inom RAK och RAK_H (koreo-giv.ts, ovan).',
-  'Livebordets sko: frontens lutning är inte mätt (klonen har vår, `table-live.ts LIVE.shoe.plateLean`), och var nästa kort ligger på den är därför antaget. Sargen (rullen) är bara mätt i bildpunkter. Livebordet har ingen markerbricka; platsmärkena är spelets ritade knappar i bilden.',
+  'Livebordets sko: den klara frontens lutning och topp är skattade, eftersom dess två topphörn lästes olika (34 och 11,5 grader bakåt från lodrätt, 0,060 och 0,107 m höga); klonen har omkring 20 grader och 0,085 m (`table-live.ts LIVE.shoe`). Sargen (rullen) är bara mätt i bildpunkter. Livebordet har ingen markerbricka; platsmärkena är spelets ritade knappar i bilden.',
   'Livebordets dealrar: hur långt bakom kanten de sitter är antaget (0,2 m; skattat 0,07–0,16 m), och armarnas längd går inte att mäta (dockans egna används).',
   'Livebordet: golvet syns inte i bilden; filtens och sitsens höjd över golvet är slutledda ur dealrarnas ögon när de står, inte mätta.',
   'Mannens och kvinnans ögon har ingen höjd i koden: ögonen är ben i modellerna (eyeL, eyeR i .glb-filerna), och närmast i koden är huvudets mitt. Blenders kamera dealer_ogon i standard.yaml är antagen, för den vita dockan.',
