@@ -195,7 +195,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
     `tomasz-gor-danilos-giv-20261127` Nej (kortet i Beslut).
 - **Ett kort väntar i Beslut:** `sju-bilder-vid-livebordet` (provet `sju-bilder-vid-livebordet-20261127`), den första
   filmen vid livebordet: Tomasz ger ett kort till plats 4, gjord av sju bilder ur dockans lyfta giv i Kling 4 och lagd
-  på vårt eget bord (131 krediter). Hans svar på de äldre korten är utförda och korten stängda: given görs med bilder
+  på vårt eget bord (131 krediter). Filmen att döma är nummer 09, i dockans takt. Domaren säger Nja: mannen och
+  rörelsen är bra, men kortet som dras ur skon har en fläck under fingertoppen i tre rutor, och skons främsta kort
+  följer inte fingrarna ut. Det rättas inte med mer puts i utskärningen utan med nästa steg i kedjan: kortet ritas av
+  oss ovanpå filmens kort. Den externa domaren säger Inte bra: handen ser ut att peka på kortet. Hans svar på de äldre korten är utförda och korten stängda: given görs med bilder
   ur dockan ("kling 4 med 7 bider vart nog bäst"; likheten med dockans film släpps inte helt, A och B var också bra),
   och dockans miner mäts ur framställda närbilder ("Jäkligt bra!"). Tomasz från två kameror fick Nej; det kortet står
   kvar tills flera kameror prövas igen.
