@@ -234,17 +234,17 @@ export function kolla(fil: string) {
 /**
  * HUVUDET SOM DET SYNS (domaren 2026-11-27 mätte dockans huvud i den ritade filmen med ansiktsnätet, och två försök föll på
  * att det inte var huvudet i datat): ansiktsnätets nick, vridning och tippning för dockans film genom livebordets kamera
- * (live-bj/verktyg/lyft.py dockhuvud, jämnat som dealerns) bredvid dealerns eget huvud i lyftet, ruta för ruta. Skillnaden
- * räknas efter medelskillnaden (dockans vila och dealerns är inte samma ansikte), farten per ruta som den är. Spärr: en
+ * (live-bj/verktyg/lyft.py dockhuvud, jämnat som dealerns) bredvid samma nät på dealern (lyftets ansikte), ruta för ruta, i
+ * absoluta tal mot kameran (ett lyft utan ansikte: lyftets huvud, efter medelskillnaden); farten per ruta som den är. Spärr: en
  * vinkel mer än 6° från dealerns i en ruta, eller fortare än dealerns snabbaste ruta och 0,5°.
  */
 function ansiktet(fil: string, ansikteFil: string, sparrar: {vad: string; rutor: number; varst: string; vid: number}[]) {
   const m = JSON.parse(readFileSync(fil, 'utf8')) as Motion, a = JSON.parse(readFileSync(ansikteFil, 'utf8')) as {evened: number[][]; found: number};
-  const lyft = JSON.parse(readFileSync(path.join(CASINO, m.made.lift), 'utf8')) as {frames: {huvud?: number[] | null}[]}, s = m.made.liftFrom ?? 0;
-  const dl = lyft.frames.slice(s).map(x => x.huvud ?? [0, 0, 0]), d = a.evened, n = Math.min(d.length, m.frames.length), rund = (x: number) => Math.round(x * 10) / 10;
+  const lyft = JSON.parse(readFileSync(path.join(CASINO, m.made.lift), "utf8")) as {frames: {huvud?: number[] | null; ansikte?: number[] | null}[]}, s = m.made.liftFrom ?? 0, absolut = lyft.frames.some(x => x.ansikte);
+  const dl = lyft.frames.slice(s).map(x => (absolut ? x.ansikte : x.huvud) ?? [0, 0, 0]), d = a.evened, n = Math.min(d.length, m.frames.length), rund = (x: number) => Math.round(x * 10) / 10;
   const med = (v: number[]) => [...v].sort((p, q) => p - q)[Math.floor(v.length / 2)];
   return (['nick', 'vridning', 'tippning'] as const).map((namn, k) => {
-    const doll = d.slice(0, n).map(x => x[k]), deal = doll.map((_, t) => dl[Math.min(t, dl.length - 1)][k]), off = med(doll.map((x, t) => x - deal[t]));
+    const doll = d.slice(0, n).map(x => x[k]), deal = doll.map((_, t) => dl[Math.min(t, dl.length - 1)][k]), off = absolut ? 0 : med(doll.map((x, t) => x - deal[t]));
     const diff = doll.map((x, t) => x - deal[t] - off), steg = (v: number[]) => Math.max(...v.slice(1).map((x, i) => Math.abs(x - v[i])));
     const varst = diff.reduce((b, x, t) => Math.abs(x) > Math.abs(diff[b]) ? t : b, 0), r = {namn, skillnad: rund(diff[varst]), vid: varst, fart: rund(steg(doll)), dealernsFart: rund(steg(deal))};
     if (Math.abs(r.skillnad) > 6) sparrar.push({vad: `ansiktet i bilden: ${namn} skiljer sig från dealerns`, rutor: diff.filter(x => Math.abs(x) > 6).length, varst: `${r.skillnad}°`, vid: varst});
@@ -271,7 +271,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     console.log(`  skakighet i stillheten (mm steg/ändring, dockan mot lyftet): ${Object.entries(sk).filter(([k]) => k !== 'toppfart').map(([k, v0]) => { const v = v0 as {dockan: {steg: number; andra: number; stilla: number}; lyftet: {steg: number; andra: number}}; return `${k} ${v.dockan.steg}/${v.dockan.andra} mot ${v.lyftet.steg}/${v.lyftet.andra} (${v.dockan.stilla} rutor)`; }).join('; ')}; toppfart (m/s) höger ${sk.toppfart.höger.dockan} mot ${sk.toppfart.höger.lyftet}, vänster ${sk.toppfart.vänster.dockan} mot ${sk.toppfart.vänster.lyftet}`);
     console.log(`  ryck (dockan mot dealern: största fart per ruta / största fartbyte / darr rms, mm; blicken grader): ${Object.entries(r.ryck).map(([k, v]) => `${k} ${v.dockan.mestFart}/${v.dockan.mestByte}/${v.dockan.darr} mot ${v.lyftet.mestFart}/${v.lyftet.mestByte}/${v.lyftet.darr}`).join('; ')}`);
     console.log(`  huvudets vinkel, största sväng över rörelsen (grader, lutning/vridning/tippning/största steg på en ruta): dockan ${r.huvudVinkel.dockan.lut}/${r.huvudVinkel.dockan.vrid}/${r.huvudVinkel.dockan.tipp}/${r.huvudVinkel.dockan.steg}, dealern ${r.huvudVinkel.dealern.lut}/${r.huvudVinkel.dealern.vrid}/${r.huvudVinkel.dealern.tipp}/${r.huvudVinkel.dealern.steg}; dockan som mest ifrån dealern i samma ruta ${r.huvudVinkel.ifran.lut}/${r.huvudVinkel.ifran.vrid}/${r.huvudVinkel.ifran.tipp}`);
-    if (r.ansikte) console.log(`  ansiktet i bilden (ansiktsnätet på dockans film mot dealerns huvud; största skillnad efter medelskillnaden, i ruta / största fart per ruta, dockan mot dealern, grader): ${r.ansikte.map(x => `${x.namn} ${x.skillnad} i ruta ${x.vid} / ${x.fart} mot ${x.dealernsFart}`).join("; ")}`);
+    if (r.ansikte) console.log(`  ansiktet i bilden (ansiktsnätet på dockans film mot samma nät på dealern, absoluta tal; största skillnad, i ruta / största fart per ruta, dockan mot dealern, grader): ${r.ansikte.map(x => `${x.namn} ${x.skillnad} i ruta ${x.vid} / ${x.fart} mot ${x.dealernsFart}`).join("; ")}`);
     const bl = (x: {rutor: number; grader: number; upp: number} | null) => x ? `${x.grader}° (${x.upp >= 0 ? '+' : ''}${x.upp}° upp, ${x.rutor} rutor)` : '–';
     console.log(`  blicken i vilan mot kameran: dockan ${bl(r.blicken.dockan)}, lyftet ${bl(r.blicken.lyftet)}, ankaret ${bl(r.blicken.ankaret)}`);
     console.log(`  mot lyftet i rörelsen, rutorna ${r.motLyftet.rutor.join('–')} (median mm sidled/höjd/djup, bildpunkter): ${r.motLyftet.rorelsen.map(l => `${l.led} ${l.x}/${l.y}/${l.z} (${l.bild} px)`).join('; ')}`);

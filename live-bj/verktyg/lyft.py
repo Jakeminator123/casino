@@ -382,24 +382,25 @@ def rita(lift_file, setup_file, out):
     print(out)
 
 
-def evened_angles(ang):
+def evened_angles(ang, median=9, mean=15):
     """Head angles per frame (nod, turn, tilt; NaN where no face) evened the way huvud evens the dealer's: gaps drawn
-    straight between their neighbours, a median over 9 frames, then a mean over 15."""
+    straight between their neighbours, a median over `median` frames (odd), then a mean over `mean` (odd; 9 and 15 as huvud)."""
     ang = np.array(ang, float)
     k = np.arange(len(ang))
     for j in range(3):
         ok = ~np.isnan(ang[:, j])
         ang[:, j] = np.interp(k, k[ok], ang[ok, j]) if ok.any() else 0.0
-        pad = np.pad(ang[:, j], 7, mode='edge')
-        med = np.array([np.median(pad[i + 3:i + 12]) for i in range(len(ang))])
-        ang[:, j] = np.convolve(np.pad(med, 7, mode='edge'), np.ones(15) / 15, mode='valid')
+        h = max(median, mean) // 2
+        pad = np.pad(ang[:, j], h, mode="edge")
+        med = np.array([np.median(pad[i + h - median // 2:i + h + median // 2 + 1]) for i in range(len(ang))])
+        ang[:, j] = np.convolve(np.pad(med, mean // 2, mode="edge"), np.ones(mean) / mean, mode="valid")
     return ang
 
 
 def dockhuvud(film, out):
     """The head of our doll in a film of it through the live camera, as the face mesh sees it: MediaPipe face_landmarker
     and its facial transformation matrix decomposed into nod, turn and tilt (degrees), as verktyg/mat.py measures the
-    dealer, per frame raw and evened as huvud evens his. For lyft-kolla.ts --ansikte: what the face in the picture does,
+    dealer, per frame raw and evened as huvud evens his absolute angles (median 5, mean 7). For lyft-kolla.ts --ansikte: what the face in the picture does,
     beside the dealer's own head. The doll's head is looked for in the picture's upper middle, where the live camera has it."""
     import cv2
     import mediapipe as mp
@@ -424,7 +425,7 @@ def dockhuvud(film, out):
             else:
                 raw.append(None)
     found = sum(1 for x in raw if x)
-    ev = evened_angles([x if x else [np.nan] * 3 for x in raw]) if found else np.zeros((len(raw), 3))
+    ev = evened_angles([x if x else [np.nan] * 3 for x in raw], 5, 7) if found else np.zeros((len(raw), 3))
     with open(out, 'w', encoding='utf-8') as f:
         json.dump({'about': dockhuvud.__doc__.split('\n')[0] + ' (verktyg/lyft.py dockhuvud). raw and evened: nod (down +), turn, tilt in degrees per frame, as the face mesh gives them (not from rest).',
                    'film': os.path.basename(film), 'found': found, 'raw': raw, 'evened': [[round(float(v), 2) for v in a] for a in ev]}, f, separators=(',', ':'))
@@ -450,7 +451,11 @@ def huvud(data_dir, measures, lift_dir):
         ts = np.array([f['t'] for f in raw['frames']])
         near = [raw['frames'][int(np.argmin(np.abs(ts - fr['t'])))] for fr in lf['frames']]
         ang = evened_angles([np.array(f['face']['turn'], float) - rest if f['face'] else [np.nan] * 3 for f in near])
-        for fr, (nod, turn, tilt) in zip(lf['frames'], ang):
+        # (and the face mesh's own angles toward the camera, not from rest, evened lightly (median 5, mean 7): what a
+        # picture of him shows, and what lyft-kolla.ts --ansikte holds a doll's film to)
+        absolut = evened_angles([np.array(f['face']['turn'], float) if f['face'] else [np.nan] * 3 for f in near], 5, 7)
+        for fr, (nod, turn, tilt), ab in zip(lf['frames'], ang, absolut):
+            fr['ansikte'] = [round(float(v), 1) for v in ab]
             fr['huvud'] = [round(float(nod), 1), round(float(turn), 1), round(float(tilt), 1)]
             if fr['h'] is None:
                 fr['hv'] = None
@@ -460,7 +465,7 @@ def huvud(data_dir, measures, lift_dir):
             a = math.atan2(to_camera[0], -to_camera[1]) + math.radians(turn)
             low = math.atan2(-to_camera[2], math.hypot(to_camera[0], to_camera[1])) + math.radians(nod)
             fr['hv'] = to_lens(head + np.array([math.sin(a) * math.cos(low), -math.cos(a) * math.cos(low), -math.sin(low)]))
-        lf['huvud_note'] = huvud.__doc__.split('\n')[0] + ' (verktyg/lyft.py huvud): huvud is nod, turn, tilt in degrees from rest, hv the point the head faces.'
+        lf['huvud_note'] = huvud.__doc__.split('\n')[0] + ' (verktyg/lyft.py huvud): huvud is nod, turn, tilt in degrees from rest, hv the point the head faces, ansikte the face mesh own nod, turn, tilt toward the camera (not from rest, evened lightly).'
         with open(name, 'w', encoding='utf-8') as f:
             json.dump(lf, f, separators=(',', ':'))
         print(f"{name}: the head's own angles in {len(ang)} frames; nod {ang[:, 0].min():.1f} to {ang[:, 0].max():.1f}, turn {ang[:, 1].min():.1f} to {ang[:, 1].max():.1f} degrees")

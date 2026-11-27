@@ -59,7 +59,7 @@ export type Limb = {s: Vec3; e: Vec3; w: Vec3; k: number; p: Vec3[]};
 /** En ruta: g är blickpunkten (ögonen), hv (om den finns) punkten huvudet vänds mot, ht (om den finns) huvudets tippning i grader (toppen mot dockans egen höger positiv): då bär ögonen blicken och huvudet rör sig som dealerns. */
 export type Frame = {card: Kort & {id: number}; R: Limb; L: Limb; h: Vec3; g: Vec3; hv?: Vec3; ht?: number; a: Record<string, number>};
 type LyftLimb = {s: Vec3; e: Vec3; w: Vec3; p: Vec3[] | null};
-export type LyftRuta = {t: number; blick?: string; R: LyftLimb; L: LyftLimb; h: Vec3 | null; g: Vec3 | null; hv?: Vec3 | null; huvud?: Vec3 | null; a: Record<string, number> | null; card?: {c: Vec3 | null; l: Vec3 | null; n: Vec3 | null; seen: boolean} | null};
+export type LyftRuta = {t: number; blick?: string; R: LyftLimb; L: LyftLimb; h: Vec3 | null; g: Vec3 | null; hv?: Vec3 | null; huvud?: Vec3 | null; ansikte?: Vec3 | null; a: Record<string, number> | null; card?: {c: Vec3 | null; l: Vec3 | null; n: Vec3 | null; seen: boolean} | null};
 export type Lyft = {style: 'kameran' | 'bordet'; docka: string; to?: string; kind?: string; left_at?: string; right_at?: string; film_seconds: number[]; fps: number; frameCount: number; leavesShoe?: number; rests?: number; hands?: string; frames: LyftRuta[]};
 type Stil = {face: {shapes: Record<string, {verdict: string; usual: number}>}; speed: Record<string, {top_m_s?: {best?: {median: number}}}>};
 type Sida = 'R' | 'L';
@@ -98,6 +98,15 @@ const ritningAv = (hojd: number, sida: number): Vec3 => [Math.cos(rad(hojd)) * M
 const vinkelSkillnad = (a: Vec3, b: Vec3): Vec3 => { const x = hojdSida(a), y = hojdSida(b); let s = x[1] - y[1]; while (s > 180) s -= 360; while (s < -180) s += 360; return [x[0] - y[0], s, 0]; };
 /** Blickpunkten för ett huvud i h som vetter mot hv, med ögonen vridna `ogon` (höjd, sida i grader) i huvudet: en meter ut. */
 const blickAv = (h: Vec3, hv: Vec3, ogon: Vec3): Vec3 => { const [p, s] = hojdSida(sub(hv, h)); return add(h, ritningAv(p + ogon[0], s + ogon[1])); };
+/**
+ * Dockans nick mot kameran (huvudMot, grader) och vad ansiktsnätet läser på hennes film genom livebordets kamera
+ * (live-bj/verktyg/lyft.py dockhuvud; mätt 2026-11-27 med huvudet låst i Danilos ankare vid skon). Dealerns nick läses av
+ * samma nät (lyftets ansikte), så dockans nick är den som ger samma tal: domaren ser med nätet och ögat, inte med lyftets
+ * vila. Över 40° tar halsen inte mer (figure-model.ts HEAD.most).
+ */
+const NICK_NAT: [number, number][] = [[0, 11.0], [10, 18.9], [20, 27.2], [30, 33.5], [40, 41.4]];
+const nickFranNat = (m: number) => { const k = NICK_NAT, i = m <= k[1][1] ? 0 : m >= k[k.length - 2][1] ? k.length - 2 : k.findIndex((p, j) => j < k.length - 1 && m >= p[1] && m <= k[j + 1][1]);
+  const [a, b] = [k[i], k[i + 1]]; return a[0] + (m - a[1]) * (b[0] - a[0]) / (b[1] - a[1]); };
 /** Huvudets ton till och från ankaret: högst så många grader per ruta vrider tonen själv huvudet, tillbaka till ankaret i slutet och (ovanpå dealerns egen rörelse) från det i början. */
 const HUVUD_UT = 1.0, HUVUD_IN = 0.45;
 const huvudTonLangd = (grader: number, fart: number) => Math.max(16, Math.ceil(4 / 3 * grader / fart));
@@ -395,7 +404,10 @@ function last(lyft: Lyft, zAxlar: number) {
   const h = lugna(fyll(f.map(x => x.h), lerp)), riktning = jamna(fyll(f.map(x => x.h && x.g ? unit(sub(x.g, x.h)) : null), lerp), 1).map(unit);
   const a = fyll(f.map(x => x.a), (x, y, t) => Object.fromEntries(Object.keys(x).map(k => [k, x[k] + ((y[k] ?? x[k]) - x[k]) * t])));
   // (huvudets egna vinklar, utan ögonen: lyftets huvud, live-bj/verktyg/lyft.py huvud; saknas de, huvudet i vila)
-  const huvudV = f.some(x => x.huvud) ? fyll(f.map(x => x.huvud ?? null), lerp) : f.map((): Vec3 => [0, 0, 0]);
+  // (nicken ur ansiktsnätets egen vinkel mot kameran (lyftets ansikte), omräknad till dockans genom NICK_NAT: så läser nätet
+  // samma nick på dockan som på dealern i samma ruta; vridning och tippning som lyftets huvud. Bara Danilo (stilen kameran):
+  // NICK_NAT är mätt på hans docka, och Frasses nick står kvar från hans vila tills hans docka är mätt)
+  const huvudV = f.some(x => x.huvud) ? fyll(f.map(x => x.huvud ? (x.ansikte && lyft.style === "kameran" ? [nickFranNat(x.ansikte[0]), x.huvud[1], x.huvud[2]] as Vec3 : x.huvud) : null), lerp) : f.map((): Vec3 => [0, 0, 0]);
   // (ögonen mot huvudet: dealerns blick (h mot g) mot hans huvud (h mot hv), höjd och sida i grader; en ruta där de skiljer
   // mer än 25° är brus och fylls från grannarna; hårt jämnad (1 Hz) och högst ±10°, som ögon kan)
   const ogon0 = f.map(x => { if (!x.h || !x.g || !x.hv) return null; const d = vinkelSkillnad(sub(x.g, x.h), sub(x.hv, x.h)); return Math.abs(d[0]) > 25 || Math.abs(d[1]) > 25 ? null : d; });
