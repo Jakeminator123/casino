@@ -51,6 +51,16 @@
   "shoulder_width_m": 0.348,
   "metres_per_pixel_at_the_shoulders": 0.00135
  },
+ "posture": {
+  "how": "He sits (a chair stands behind the table when the dealers change). The shoulders' middle and the eyes while the head is level and turned to the camera, as height over the felt, taken 0.2 m behind the dealer's edge of the felt; the two other pairs say what 10 cm nearer or farther would give. The camera is 0.6175 m over the felt. The floor is not in the picture: the table's height over the floor and the seat's are not measured.",
+  "shoulders_over_felt_m": 0.31,
+  "eyes_over_felt_m": 0.514,
+  "shoulders_over_felt_m_if_10_cm_nearer": 0.328,
+  "eyes_over_felt_m_if_10_cm_nearer": 0.52,
+  "shoulders_over_felt_m_if_10_cm_farther": 0.293,
+  "eyes_over_felt_m_if_10_cm_farther": 0.508,
+  "shoulder_width_m": 0.348
+ },
  "tempo": {
   "how": "The wrist's moves, found by its speed (begins above 1.0 shoulder widths a second, ends under 0.35). Well measured.",
   "left_to_shoe_s": {

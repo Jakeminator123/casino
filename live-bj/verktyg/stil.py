@@ -55,6 +55,14 @@ class Camera:
         s = (height - self.h) / d[:, 2]
         return np.stack([s * d[:, 0], s * d[:, 1]], axis=1)
 
+    def pixel(self, x, away, height):
+        """Where a point is seen: x to the picture's right, away from the camera along the felt, and its height over the felt."""
+        rel = np.array([x, away, height - self.h], float)
+        depth = float(rel @ self.fwd)
+        xn, yn = x / depth, float(rel @ self.down) / depth
+        c, s = math.cos(self.roll), math.sin(self.roll)
+        return [self.cx + self.f * (c * xn - s * yn), self.cy + self.f * (s * xn + c * yn)]
+
     def across(self, px, height):
         """The pixels' steps taken as steps across the line of sight, in metres: each step times the distance to the point
         (found on the plane this high over the felt) over the focal length. A step toward or away from the camera is not
@@ -109,6 +117,7 @@ def main():
         gy = st.blend('eyeLookDownLeft') - st.blend('eyeLookUpLeft')
         st.eye = np.stack([gx, gy], axis=1)
         st.signs = np.array([sign_at(spans, t) for t in st.t])
+        st.eyes_px = np.array([np.mean([e['face']['points'][k] for k in ('eyeR_out', 'eyeR_in', 'eyeL_in', 'eyeL_out')], axis=0) if e['face'] else [np.nan, np.nan] for e in raw['frames']])
         stretches.append(st)
     where = lambda t: next((st for st in stretches if st.t[0] - 1e-6 <= t <= st.t[-1] + 1e-6), None)
     index = lambda st, t: int(np.clip(np.searchsorted(st.t, t - 1e-6), 0, len(st.t) - 1))
@@ -308,6 +317,17 @@ def main():
                             'through_the_carry': [round(float(x), 2) for x in np.median(np.array(rows), axis=0)] if rows else None}
             return out
 
+        # How he sits: the shoulders' and the eyes' height over the felt while both hands are still and the head is level.
+        posture = {}
+        for label, behind in (('', BEHIND_EDGE), ('_if_10_cm_nearer', BEHIND_EDGE - 0.1), ('_if_10_cm_farther', BEHIND_EDGE + 0.1)):
+            sh, ey = [], []
+            for st in stretches:
+                calm = mine(st) & (np.abs(st.head[:, 0] - rest_head[0]) < 5) & (np.abs(st.head[:, 1] - rest_head[1]) < 8)
+                if calm.sum():
+                    sh.append(cam.wall(st.mid[calm], scene['table']['dealerEdgeM'] + behind)[:, 1])
+                    ey.append(cam.wall(st.eyes_px[calm], scene['table']['dealerEdgeM'] + behind)[:, 1])
+            posture['shoulders_over_felt_m' + label] = round(float(np.nanmedian(np.concatenate(sh))), 3)
+            posture['eyes_over_felt_m' + label] = round(float(np.nanmedian(np.concatenate(ey))), 3)
         reach = d['reach']['L'].get('1.4 to 9') or d['reach']['L'].get('0.9 to 1.4')
         width_m = float(np.nanmedian(np.concatenate([np.linalg.norm(st.sh_l - st.sh_r, axis=1)[mine(st)] for st in stretches])))
         px_m = width_m / unit
@@ -325,6 +345,10 @@ def main():
                               'and best within about a third of it; the same for the paths. So read best as true within a third, and the shapes and the seconds as well measured. '
                               f'The shoulders and the head are laid on an upright plane {BEHIND_EDGE} m behind the dealer\'s edge of the felt; they move sideways and hold within about a tenth.',
                        'camera_check_m': round(cam.check_m, 4), 'shoulder_width_m': round(width_m, 3), 'metres_per_pixel_at_the_shoulders': round(px_m, 5)},
+            'posture': {'how': 'He sits (a chair stands behind the table when the dealers change). The shoulders\' middle and the eyes while the head is level and turned to the camera, as height over the felt, '
+                               f'taken {BEHIND_EDGE} m behind the dealer\'s edge of the felt; the two other pairs say what 10 cm nearer or farther would give. The camera is {scene["camera"]["heightM"]} m over the felt. '
+                               'The floor is not in the picture: the table\'s height over the floor and the seat\'s are not measured.',
+                        **posture, 'shoulder_width_m': round(width_m, 3)},
             'tempo': {'how': 'The wrist\'s moves, found by its speed (begins above 1.0 shoulder widths a second, ends under 0.35). Well measured.',
                       'left_to_shoe_s': shoe['out'], 'left_at_shoe_s': shoe['grip'], 'left_back_with_card_s': shoe['back'], 'left_whole_trip_s': shoe['whole'], 'grip_to_grip_when_dealing_on_s': shoe['grip_to_grip'],
                       'right_out_s': d['right_hand']['out']['seconds'], 'right_back_s': d['right_hand']['back']['seconds']},

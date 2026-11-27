@@ -12,7 +12,7 @@ skärminspelning av ett bord med en fast kamera och två dealers efter varandra 
 | Var | Vad | I Git |
 | --- | --- | --- |
 | `verktyg/` | Verktygen nedan. Användningen står överst i varje fil. | ja |
-| `data/` | De små sammanställningarna i tal: `kalla.json` (bordsbildens ruta och de rena partierna), `faser.json` (spelets skyltar genom filmen och rundorna), `monster.json` (varje handrörelse, blinkning och huvudrörelse per dealer; en rad på 230 KB, läs den med sin sökväg), `scen.json` (kameran och bordets fasta saker), `stil-kameran.json` och `stil-bordet.json` (vardera dealerns sätt att ge, i meter, grader och sekunder: det dockan läser), `rorelser.json` (allt de gör, i stycken och slag). | ja |
+| `data/` | De små sammanställningarna i tal: `kalla.json` (bordsbildens ruta och de rena partierna), `faser.json` (spelets skyltar genom filmen och rundorna), `monster.json` (varje handrörelse, blinkning och huvudrörelse per dealer; en rad på 230 KB, läs den med sin sökväg), `scen.json` (kameran och bordets fasta saker), `givar.json` (varje kort som landade), `mot-vart-bord.json` (livebordet mot vårt eget i tal), `stil-kameran.json` och `stil-bordet.json` (vardera dealerns sätt att ge, i meter, grader och sekunder: det dockan läser), `rorelser.json` (allt de gör, i stycken och slag). | ja |
 | `video/` | Filmen, `kalla.mp4`. | nej |
 | `matt/` | Måtten per ruta, en fil per rent parti (`rorelse-<start>.json`). Görs om med `mat.py`. | nej |
 | `rutor/` | Ark och filmer att titta på: `oversikt/` (hela filmen i små rutor), `kontroll/` (måtten ritade över filmen), `streck-*.mp4`. | nej |
@@ -27,11 +27,14 @@ Allt körs från repots rot. `PY` är `blackjack-dealer/tools/python/.venv/Scrip
 | Hämta filmen | `live-bj/.venv/Scripts/yt-dlp --no-playlist --js-runtimes node -f 299 -o "live-bj/video/kalla.%(ext)s" <adressen>` | `video/kalla.mp4`, utan ljud. Miljön görs med `python -m venv live-bj/.venv` och `pip install yt-dlp`. Ingen inloggning behövdes. |
 | Hitta bordsbilden | `PY live-bj/verktyg/ram.py live-bj/video/kalla.mp4 live-bj/data/kalla.json` | Bildens ruta i skärminspelningen och de 18 partier (876 av 1040 s) där den visas orörd. |
 | Läs skyltarna | `PY live-bj/verktyg/faser.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/data/faser.json` | Vilken skylt som stod när ("Dealing", "Make your decision" ...) och rundorna. Tar 5 minuter. |
+| Mät bordet och kameran | `PY live-bj/verktyg/scen.py` (användningen står överst i filen) | `data/scen.json`: kameran räknad ur 29 ensamma kort, filten, skon, lådan, skärkortet, platsernas märken och var korten landar, i bildpunkter och i meter på filten. Skriver också det tomma bordet till `matt/bord-A.png` och `bord-B.png`. |
+| Hitta korten | `PY live-bj/verktyg/kort.py` (användningen står överst i filen) | `matt/kort-<start>.json` (varje kort i varannan ruta: hörn, riktning, sida upp, stilla eller på väg) och `data/givar.json` (varje kort som landade: när det lämnade skon, när och var det låg still, om det vändes). |
 | Mät dealern | `PY live-bj/verktyg/mat.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt --del 0/5` (fem körningar, `0/5` till `4/5`) | Kroppen, båda händerna och ansiktet i varannan ruta. Tar 40 minuter med fem körningar bredvid varandra. |
 | Räkna ut mönstret | `PY live-bj/verktyg/monster.py live-bj/data/kalla.json live-bj/data/faser.json live-bj/matt live-bj/data/monster.json` | Varje handrörelse, blinkning, sänkt blick och huvudrörelse, och sammanställningen per dealer. |
 | Skriv stilarna | `PY live-bj/verktyg/stil.py live-bj/data live-bj/matt` | `data/stil-kameran.json` och `data/stil-bordet.json`: takten, fartkurvorna, handbytet, bålen, huvudet, blicken, blinkningarna, vilan, den andra handen och greppet, med hur varje tal är mätt. Behöver `data/scen.json`. |
 | Dela upp i stycken | `PY live-bj/verktyg/rorelser.py live-bj/data live-bj/matt` (`--visa <a> <b>` skriver ut handrörelserna mellan två sekunder med platserna de fick) | `data/rorelser.json`: varje stycke med slag, rutor, händer och om det är rent nog att rita efter. |
 | Mät dockan | `PY live-bj/verktyg/mat.py <dockans film> <dess källfil> <mapp> --steg 1 --ensam`, sedan `PY live-bj/verktyg/docka.py <mapp> <ut.json> [<dockans egna tal per ruta>]` | Dockans film mätt på samma sätt, och mot dockans egna tal i `../blackjack-dealer/dealer3d/data/giv-*.json`: hur väl mätningen hittar det som är känt. Källfilen är som `data/kalla.json`: filmens storlek, rutor i sekunden och ett parti för hela filmen. Körs i slasken; inget sparas här. |
+| Lägg vårt bord över deras | `PY live-bj/verktyg/overlagg.py <stillbild> <vårt bord genom deras kamera, med alfa> <punkter.json> live-bj/data/scen.json <ut.jpg> [live-bj/data/mot-vart-bord.json]` | Vårt bord och vår docka halvgenomskinliga över en stillbild ur filmen, en andra bild med borden kant mot kant, och skillnaderna som tal. Bilden av vårt bord och `punkter.json` ritas av editorns sida och ligger i slasken. |
 | Titta på måtten | `PY live-bj/verktyg/titta.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt live-bj/rutor/kontroll/<namn>.jpg <sekund> ...` | Ett ark med måtten ritade över filmens rutor. |
 | Streckfigur | `PY live-bj/verktyg/streck.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt live-bj/rutor/streck-<a>-<b>.mp4 <a> <b>` | En film med dealern som streckfigur bredvid bordsbilden; `--bara` ger bara figuren. |
 
@@ -113,15 +116,50 @@ och handen tillbaka på 0,8 s. De här två dealerna är snabbare i varje led (0
 som rör sig samtidigt, så ett kort i följd tar 1,1–1,3 s från grepp till grepp. Takten är hans val; talen här säger
 bara hur det ser ut vid ett riktigt bord.
 
+## Det som är uppmätt: bordet, kameran och korten
+
+Kameran är räknad ur 29 ensamma kort på filten (0,54 bildpunkters fel per hörn) och kontrollerad oberoende: filtens
+rundade kant blir en cirkel på bordet med 1,8 mm fel över 1234 punkter. Korten är pokerkort (63,5 × 88,9 mm).
+
+| | Livebordet | Vår spelvy |
+| --- | --- | --- |
+| Kamerans höjd över filten | 0,62 m (± 2–3 cm) | 0,58 m |
+| Lutning nedåt | 18,1 grader | 12 grader |
+| Bildvinkel i sidled | 67,6 grader (± 5 %) | 41,4 grader |
+| Kameran till filtens kant mot dealern | 1,54 m | 2,07 m |
+| Filten | halvcirkel, radie 0,73 m: 1,46 m bred vid dealerns kant, 0,71 m djup | 1,90 m bred, 1,08 m djup |
+| Dealerns egna kort, från hans kant | 0,19 m | 0,39 m |
+| Spelarens kort på mittplatsen, från dealerns kant | 0,49 m | 0,63 m |
+| Insatsmärket på mittplatsen, från dealerns kant | 0,63 m | 0,71 m |
+| Skons mynning: i sidled, och från dealerns kant | 0,40 m och 0,13 m | 0,41 m och 0,30 m |
+| Platsernas spridning i sidled | ± 0,50 m | ± 0,50 m (−0,53 till +0,50) |
+| Dealerns ögon och axlar över filten | 0,51 m och 0,31–0,32 m | 0,545 m och 0,29 m |
+| Axelbredd | 0,36 och 0,35 m | 0,375 m |
+
+Samma tal står i `data/mot-vart-bord.json`. Skon är cirka 0,27 × 0,10 m i foten, lådan för använda kort 8 × 9 cm, och
+bordet har ingen markerbricka (markerna är spelets grafik). Allt står still genom filmen.
+
+**Dealern sitter**, på en hög stol som syns vid dealerbytet. **Golvet syns aldrig**, så bordets höjd över golvet är
+inte mätt. En slutledning: när dealerna står upp vid bordet är ögonen 0,63–0,69 m över filten, bara 0,15 m högre än
+när de sitter; med en vuxen mans ögonhöjd (1,63 m ± 0,07) ger det filten cirka 0,95 m över golvet (± 0,1) och sitsen
+cirka 0,67 m.
+
+**Korten** som ligger på bordet hittas säkert (inget av cirka 62 missades i 16 slumpade rutor; ungefär vart åttonde
+funnet kort är en extra rektangel i en tät solfjäder). Kortet i handen syns bara i 23 % av rutorna mellan sko och
+bord, så vändningen ges som ett fönster och kortets egen fart i handbytet går inte att få. Från att kortet är ute ur
+mynningen tills det ligger still tar det 1,03 / 0,93 s till en plats och 0,83 / 1,17 s till dealern själv.
+
 ## Det som är uppmätt: stycken och slag
 
 `data/rorelser.json` delar allt de gör i stycken (148 hos `kameran`, 201 hos `bordet`), med första och sista ruta,
-händer, var det börjar och om det är rent nog att rita efter. Slagen i den första versionen:
+händer, var det börjar och om det är rent nog att rita efter. Vart ett kort gick kommer ur kortets eget spår där det
+sågs lämna skon (`target_from`), annars ur händerna.
 
 | Slag | kameran | bordet | Längd | Läge |
 | --- | --- | --- | --- | --- |
-| Kort ur skon till en plats (vänstern drar, högern lägger) | 16 | 25 | 1,9 / 1,5 s | Säkert där det är funnet; för få hittas |
-| Kort ur skon, vänstern ensam | 42 | 47 | 1,2 / 1,0 s | Hans egna kort i de kontrollerade rundorna, plus de kort där högerns läggning inte hittades |
+| Kort ur skon till en plats | 28 | 50 | 2,0 / 1,7 s | Säkert: 25 / 45 sagda av kortet. Högern lägger i 16 / 23, vänstern ensam i 12 / 27 |
+| Kort ur skon till honom själv | 12 | 16 | 2,2 / 2,0 s | Säkert: alla sagda av kortet, och alla lagda av vänsterhanden ensam |
+| Kort ur skon, vart syns inte | 18 | 6 | 1,0 / 1,5 s | Varken kortet eller en läggning hittades |
 | Väntan (båda händerna stilla minst 1,5 s) | 20 | 36 | 3,8 / 4,6 s | Säkert |
 | Korten in i lådan | 10 | 7 | 2,2 / 4,2 s | Säkert att handen går dit; början av stycket är ungefärlig |
 | Vid sina egna kort | 37 | 39 | 0,8 / 0,6 s | Inte kontrollerat i bild: här ligger vändningen av hans eget kort och rättningar |
@@ -129,8 +167,8 @@ händer, var det börjar och om det är rent nog att rita efter. Slagen i den f�
 
 Dockan har i dag vilan till skon, första kortet till var och en av sju platser, och handen tillbaka. Nytt för den är
 alltså: kortet till sig själv med vänsterhanden, korten in i lådan, svepet över bordet, det som görs vid de egna korten
-och väntan med händerna på olika ställen. Det som kräver kortet självt (vilken sida som är upp, vändningen av hans
-eget kort, och säkra antal per plats) väntar på kortets spår.
+och väntan med händerna på olika ställen. Vändningen av hans eget kort är inte utskild än; den ligger bland styckena
+vid hans egna kort.
 
 ## Så mäts det
 

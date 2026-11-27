@@ -25,6 +25,8 @@ def main():
     data_dir, measures = sys.argv[1], sys.argv[2]
     read = lambda name: json.load(open(os.path.join(data_dir, name), encoding='utf-8'))
     spans, pattern, scene = read('faser.json')['spans'], read('monster.json'), read('scen.json')
+    cards = [c for c in read('givar.json')['cards'] if c['from'] == 'sko' and c.get('left') is not None] if os.path.exists(os.path.join(data_dir, 'givar.json')) else []
+    taken = set()   # the cards of data/givar.json already given to a piece
     cam = Camera(scene['camera'])
     mouth = np.mean(scene['things']['sko']['mouthMetres'], axis=0)
     box = np.mean(scene['things']['slaskbox']['footMetres'], axis=0)
@@ -91,8 +93,9 @@ def main():
                        'from and to are seconds of the film, from_frame and to_frame its frames (60 a second). L and R are the dealer\'s own left and right; seats are 1 to 7 from the picture\'s left, the dealer\'s right. '
                        'Places: shoe, box (for used cards), own cards (in front of him), toward the shoe and toward the box (the felt beside his own cards), seat N (the players\' cards), behind the edge (off the felt, at his body). '
                        'clean says whether the piece is measured well enough to draw from. Built on the hands, not the card: which side of a card is up, and the turning of his own card, are not told apart here. '
-                       'Kinds: card from the shoe to a seat (the left hand pulls it, the right hand lays it); card from the shoe, left hand alone (his own cards in the rounds checked by eye, and also any card whose laying '
-                       'by the right hand was not found, so its count is too high and the seats\' too low); cards into the box (the right hand lifted to the box\'s opening); waiting (both hands still 1.5 s or more); '
+                       'Kinds: card from the shoe to a seat and to himself, where to told by the card\'s own track (data/givar.json, target_from: the card) where it was seen leaving the shoe, else by the hands; '
+                       'card from the shoe, where to not seen (neither the card nor a laying by the right hand was found); hands says whether the left hand did it alone or the right hand laid it; '
+                       'cards into the box (the right hand lifted to the box\'s opening); waiting (both hands still 1.5 s or more); '
                        'the other kinds are named after where the hands go and are not yet checked by eye.',
               'styles': {}}
     for dealer, style in NAMES.items():
@@ -125,14 +128,23 @@ def main():
             else:
                 carry, by = back, 'left alone'
             start = reach['from_t'] if reach else back['from_t']
-            end = carry['to_t'] if carry else back['to_t']
+            end = carry['to_t']
             home = None
             if carry is not None and carry is not back:
                 home = next((n for n in moves[carry_i + 1:] if n['hand'] == 'R' and n['from_t'] - carry['to_t'] < 2.5), None)
-            # Laid by the left hand and not on a seat: in the rounds checked by eye these are his own cards, but a card whose
-            # laying by the right hand was not found also lands here, so it is not called his own until the card's track says so.
-            target = carry['end'] if carry['end'] and carry['end'].startswith('seat') else 'not on a seat'
-            piece = {'kind': 'card from the shoe', 'to': target, 'hands': by, 'from': round(start, 3), 'to_t': round(end, 3), 'from_frame': frame(start), 'to_frame': frame(end),
+            # Where the card went is the card's own word where data/givar.json saw it leave the shoe as the left hand pulled
+            # (the card is out of the mouth about a tenth of a second after the wrist sets off); else the hands' word.
+            near = [c for c in cards if id(c) not in taken and -0.5 <= c['left'] - back['from_t'] <= 0.7]
+            card = min(near, key=lambda c: abs(c['left'] - back['from_t'] - 0.1)) if near else None
+            if card is not None:
+                taken.add(id(card))
+                target = 'himself' if card['to']['place'] == 'dealer' else 'seat ' + card['to']['place'][4:]
+                if card['landed'] - back['from_t'] < 4:
+                    end = max(end, card['landed'])   # the piece lasts until the card lies still
+            else:
+                target = carry['end'] if carry['end'] and carry['end'].startswith('seat') else 'not seen'
+            piece = {'kind': 'card from the shoe', 'to': target, 'hands': by, 'target_from': 'the card' if card is not None else 'the hands',
+                     'card': None if card is None else {'out_of_the_mouth': card['left'], 'lies_still': card['landed'], 'seconds': card['duration'], 'turned_on_the_way': card['turned'], 'face': card['face']}, 'from': round(start, 3), 'to_t': round(end, 3), 'from_frame': frame(start), 'to_frame': frame(end),
                      'seconds': round(end - start, 3), 'begins': 'left hand already at the shoe' if reach is None else f"left hand at {reach['start'] or 'unknown'}", 'sign': back['sign'],
                      'parts': {'to_shoe_s': reach['seconds'] if reach else None, 'at_shoe_s': round(back['from_t'] - reach['to_t'], 3) if reach else None, 'back_s': back['seconds'],
                                'right_sets_off_after_left_arrives_s': round(carry['from_t'] - back['to_t'], 3) if carry is not None and carry is not back else None,
@@ -199,7 +211,7 @@ def main():
 
         kinds = {}
         for p in pieces:
-            key = p['kind'] if p['kind'] != 'card from the shoe' else ('card from the shoe, left hand alone' if p['to'] == 'not on a seat' else 'card from the shoe to a seat')
+            key = p['kind'] if p['kind'] != 'card from the shoe' else {'himself': 'card from the shoe to himself', 'not seen': 'card from the shoe, where to not seen'}.get(p['to'], 'card from the shoe to a seat')
             kinds.setdefault(key, []).append(p)
         summary = {}
         for key, ps in sorted(kinds.items(), key=lambda kv: -len(kv[1])):
@@ -208,6 +220,11 @@ def main():
                 entry['by'] = {h: sum(1 for p in ps if p['hands'] == h) for h in sorted({p['hands'] for p in ps})}
                 entry['parts'] = {part: stats([p['parts'][part] for p in ps if isinstance(p['parts'][part], (int, float))]) for part in ('to_shoe_s', 'at_shoe_s', 'back_s', 'right_sets_off_after_left_arrives_s', 'lay_s', 'lay_length', 'hand_stays_at_card_s', 'right_home_s')}
                 entry['begins'] = {b: sum(1 for p in ps if p['begins'] == b) for b in sorted({p['begins'] for p in ps})}
+                seen = [p['card'] for p in ps if p['card']]
+                entry['told_by_the_card'] = len(seen)
+                if seen:
+                    entry['card'] = {'out_of_the_mouth_to_lying_still_s': stats([c['seconds'] for c in seen if c['seconds'] and c['seconds'] > 0.3]), 'turned_on_the_way_share': round(sum(1 for c in seen if c['turned_on_the_way']) / len(seen), 3),
+                                     'lies_face_down_share': round(sum(1 for c in seen if c['face'] == 'down') / len(seen), 3)}
                 if key.endswith('to a seat'):
                     entry['per_seat'] = {s: {'count': len(q), 'seconds': stats([p['seconds'] for p in q]), 'lay_s': stats([p['parts']['lay_s'] for p in q if p['parts']['lay_s']])}
                                          for s in sorted({p['to'] for p in ps}) for q in [[p for p in ps if p['to'] == s]]}

@@ -1,0 +1,82 @@
+{
+ "about": "The live table against our own, written by verktyg/overlagg.py from data/scen.json and the editor's points of our table. Metres. from_dealers_edge is how far in front of the edge toward the dealer a thing lies on the felt; sideways is to the picture's right, the dealer's left. The cameras are compared as they stand; the tables edge against edge.",
+ "camera": {
+  "theirs": {
+   "height_over_felt": 0.6175,
+   "tilt_down_degrees": 18.13,
+   "field_of_view_sideways_degrees": 67.6,
+   "to_dealers_edge_along_felt": 1.538
+  },
+  "our_play_view": {
+   "height_over_felt": 0.58,
+   "tilt_down_degrees": 12,
+   "field_of_view_sideways_degrees": 41.4,
+   "to_dealers_edge_along_felt": 2.074
+  }
+ },
+ "felt": {
+  "theirs": {
+   "shape": "half circle",
+   "width_at_dealers_edge": 1.459,
+   "depth": 0.714,
+   "radius": 0.7295
+  },
+  "ours": {
+   "width_at_dealers_edge": 1.9,
+   "depth": 1.08
+  }
+ },
+ "dealers_own_cards": {
+  "theirs_from_dealers_edge": 0.185,
+  "ours_from_dealers_edge": 0.393
+ },
+ "players_cards_middle_seat": {
+  "theirs_from_dealers_edge": 0.486,
+  "ours_from_dealers_edge": 0.627
+ },
+ "bet_marks_middle_seat": {
+  "theirs_from_dealers_edge": 0.63,
+  "ours_from_dealers_edge": 0.71
+ },
+ "seats_spread_sideways": {
+  "theirs_bet_marks": [
+   -0.497,
+   0.499
+  ],
+  "ours_bet_rings": [
+   -0.532,
+   0.501
+  ],
+  "theirs_cards_land": [
+   -0.393,
+   0.426
+  ],
+  "ours_card_places": [
+   -0.532,
+   0.501
+  ]
+ },
+ "shoe_mouth": {
+  "theirs": {
+   "sideways": 0.399,
+   "from_dealers_edge": 0.129
+  },
+  "ours": {
+   "sideways": 0.407,
+   "from_dealers_edge": 0.297
+  },
+  "theirs_foot": {
+   "length": 0.274,
+   "width": 0.103
+  }
+ },
+ "figure": {
+  "ours": {
+   "eyes_over_felt": 0.545,
+   "eyes_behind_dealers_edge": 0.056,
+   "shoulders_over_felt": 0.29,
+   "shoulder_width": 0.375
+  },
+  "theirs": "see posture in data/stil-kameran.json and data/stil-bordet.json"
+ }
+}
