@@ -41,9 +41,11 @@ package-lock.json
 /blackjack-dealer/data/motions.jsonl
 /blackjack-dealer/data/motions-removed.jsonl
 
-# live-bj: the measured patterns of the two dealers as one long line (227 kB), read by its path; the small style files
-# beside it (live-bj/data/stil-*.json) stay searchable
+# live-bj: the measured patterns of the two dealers as one long line (227 kB), and the whole film cut per hand (one
+# piece per line, 0.5 MB; read it by its path, or segment.py dela --visa <a> <b>); the small style files beside them
+# (live-bj/data/stil-*.json) stay searchable
 /live-bj/data/monster.json
+/live-bj/data/segment.json
 
 # standarddocka: the motions' frames (numbers per frame, about 0.6 MB each), kept in Git and read by path, for example
 # standarddocka/rorelser/a1-a23-p4c1.rutor.json

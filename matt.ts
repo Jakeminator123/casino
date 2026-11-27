@@ -298,13 +298,17 @@ if (liveKod?.LIVE) {
   const fot = [L.shoe.foot.byDealer, L.shoe.foot.towardPlayers, L.shoe.foot.back], kortet = liveKod.liveShoeCard(L.shoe), uFront = us?.front_plate, uKort = us?.card_when_drawn?.middle;
   q('Skon', 'fotens längd × bredd', `${m(L.shoe.length)} × ${m(L.shoe.width)}`, ok(us?.foot_length) ? `${m(us.foot_length)} × ${m(us.foot_width)}` : '—', skillnad(L.shoe.length, us?.foot_length, m), hur(us), lk('LIVE.shoe'));
   q('', 'fotens tre hörn: största avstånd', '', '', visa(storst(fot, us?.foot), mm), hur(us), lk('LIVE.shoe.foot'));
-  q('', 'höjd bak; den klara frontens topp', `${m(L.shoe.backHeight)}; ${m(L.shoe.frontHeight)}`, ok(us?.back_height) ? `${m(us.back_height)}; ${Array.isArray(uFront?.top_height) ? uFront.top_height.map((x: number) => m(x)).join(' och ') + ' (de två topphörnen)' : '—'}` : '—', skillnad(L.shoe.backHeight, us?.back_height, m), 'mätt; skattat', lk('LIVE.shoe'));
-  q('', 'frontens lutning bakåt från lodrätt; kortets underkant över filten', `${gr(90 - L.shoe.plateLean * DEG)}; ${mm(L.shoe.windowLift, 0)}`, Array.isArray(uFront?.lean_back_degrees) ? `${uFront.lean_back_degrees.map((x: number) => gr(x)).join(' och ')} (de två topphörnen); —` : '—', '—', 'skattat; antaget', lk('LIVE.shoe'));
+  q('', 'höjd bak; den klara frontens topp', `${m(L.shoe.backHeight)}; ${m(L.shoe.frontHeight)}`, ok(us?.back_height) ? `${m(us.back_height)}; ${Array.isArray(uFront?.top_height) ? uFront.top_height.map((x: number) => m(x)).join(' och ') + ' (de två topphörnen)' : '—'}` : '—', skillnad(L.shoe.backHeight, us?.back_height, m), 'mätt', lk('LIVE.shoe'));
+  q('', 'frontens lutning bakåt från lodrätt', gr(90 - L.shoe.plateLean * DEG), Array.isArray(uFront?.lean_back_degrees) ? `${uFront.lean_back_degrees.map((x: number) => gr(x)).join(' och ')} (de två topphörnen)` : '—', '—', 'mätt', lk('LIVE.shoe.plateLean'));
+  q('', 'bädden kortleken ligger på: lutning från filten; höjd fram', `${gr(L.shoe.bedLean * DEG)}; ${mm(L.shoe.windowLift, 0)}`, ok(us?.bed?.lean_degrees) ? `${gr(us.bed.lean_degrees)}; ${mm(us.bed.height_at_front, 0)}` : '—', skillnad(L.shoe.bedLean * DEG, us?.bed?.lean_degrees, gr, false), hur(us?.bed), lk('LIVE.shoe.bedLean, windowLift'));
+  q('', 'korten i skon: hur de ligger', 'långsidan tvärs skon, kortsidan uppför fronten, lutade som den', Array.isArray(us?.card_when_drawn?.pattern_mm) ? `ryggens mönster ${tal(us.card_when_drawn.pattern_mm[0], 0)} mm tvärs och ${tal(us.card_when_drawn.pattern_mm[1], 0)} mm uppför` : '—', '—', hur(us?.card_when_drawn), lk('liveShoeCard'));
+  q('', 'kortleken längs bädden', m(L.shoe.deckLength), '—', '—', 'skattat', lk('LIVE.shoe.deckLength'));
   q('', 'nästa kort i fronten: mitten', `${m(kortet.centre[0])} åt sidan, ${m(franK(kortet.centre))} från kanten, ${cm(kortet.centre[1])} över filten`, Array.isArray(uKort) ? `${m(uKort[0])} åt sidan, ${m(franK(uKort))} från kanten, ${cm(uKort[1])} över filten` : '—', Array.isArray(uKort) ? mm(Math.hypot(kortet.centre[0] - uKort[0], kortet.centre[1] - uKort[1], kortet.centre[2] - uKort[2])) : '—', hur(us?.card_when_drawn), lk('liveShoeCard'));
   q('', 'den lösa klara biten framför skon: hörnen, största avstånd', '', '', visa(storst(L.clearPiece.corners, us?.clear_piece_before_the_shoe?.corners), mm), hur(us?.clear_piece_before_the_shoe), lk('LIVE.clearPiece'));
   const lada = liveKod.liveBox(L.box);
   q('Lådan för använda kort', 'fotens mått; höjden', `${m(L.box.width)} × ${m(L.box.depth)}; ${m(L.box.height, 4)}`, ok(ub?.foot_width) ? `${m(ub.foot_width)} × ${m(ub.foot_depth)}; ${ub.height.map((x: number) => m(x)).join(' och ')}` : '—', skillnad(L.box.width, ub?.foot_width, m), hur(ub), lk('LIVE.box'));
   q('', 'mitten åt sidan; från kanten', `${m(lada.centre[0])}; ${m(franK(lada.centre))}`, '', visa(storst(L.box.foot, ub?.foot), x => `hörnen ${mm(x)}`), hur(ub), lk('liveBox'));
+  q('', 'de använda korten', `ligger plant, ryggen upp; högen ${cm(L.box.pile)}`, ub?.cards ? 'ligger plant, ryggen upp' : '—', '—', 'mätt; högen skattad', lk('LIVE.box.pile'));
   q('Markerbrickan', '', 'ingen (vår kan läggas till i Blender som ett tillägg: bygg_bord.py --live --med-bricka)', U?.chip_tray ? 'ingen' : '—', '—', hur(U?.chip_tray), lk('LIVE.tray'));
   q('Insatsmärkena', 'sju, största avstånd', `plats 4 ${m(franK(L.betMarks[3]))} från kanten`, '', visa(storst(L.betMarks, U?.bet_marks?.seats), mm), hur(U?.bet_marks), lk('LIVE.betMarks'));
   const ids = Object.keys(L.cards), uk = (id: string) => { const [p, c] = id.split('.'); return U?.card_places?.[p === 'D' ? 'himself' : `seat ${p.slice(1)}`]?.[`card_${c.slice(1)}`]; };
@@ -536,25 +540,43 @@ if (F && KOREO) {
 }
 
 // ==== 6. Rörelsekatalogen ===========================================================================================
-// standarddocka/rorelsekatalog.json (ankarena och rörelserna mellan dem, med status) bredvid det som är mätt på de
-// riktiga dealrarna (live-bj/data/rorelser.json, styles.<stil>.kinds.<slag>); för en rörelse som finns kontrolleras att
-// dess filer finns i blackjack-dealer/dealer3d/data/ för mannen och kvinnan.
+// standarddocka/rorelsekatalog.json (lägena per hand, ankarena, rörelserna mellan dem, bryggorna, med status) bredvid
+// det som är mätt på de riktiga dealrarna: hela livefilmen indelad per hand (live-bj/data/segment.json,
+// dealrar.<A|B>.kategorier och lagen); för en rörelse som finns kontrolleras att dess filer finns i
+// blackjack-dealer/dealer3d/data/ för mannen och kvinnan.
 rubrik('## 6. Rörelsekatalogen');
-const katalog = data('standarddocka/rorelsekatalog.json'), livRor = data('live-bj/data/rorelser.json');
-const STILNAMN: Record<string, string> = {kameran: LIVE_A, bordet: LIVE_B};
-const stilar: string[] = livRor?.styles && typeof livRor.styles === 'object' ? Object.keys(livRor.styles) : [];
+const katalog = data('standarddocka/rorelsekatalog.json'), seg = data('live-bj/data/segment.json');
+const SEGNAMN: Record<string, string> = {A: 'Danilo (dealer A)', B: 'Frasse (dealer B)'};
+const dealrar: string[] = seg?.dealrar && typeof seg.dealrar === 'object' ? Object.keys(seg.dealrar) : [];
 const STATUS: Record<string, string> = {finns: 'finns', delvis: 'delvis', saknas: 'saknas', 'förslag': 'förslag'};
 if (!katalog) saknas.push('Rörelsekatalogen: `standarddocka/rorelsekatalog.json` finns inte eller går inte att läsa.');
 else {
   const ank: any[] = Array.isArray(katalog.ankare) ? katalog.ankare : [], ror: any[] = Array.isArray(katalog.rorelser) ? katalog.rorelser : [];
-  const stad: any[] = Array.isArray(katalog.stadier) ? katalog.stadier : [];
-  const BEGREPP: Record<string, string> = {ankare: 'Ankare', rorelse: 'Rörelse', stadium: 'Stadium', schemat: 'Schemat'};
+  const stad: any[] = Array.isArray(katalog.stadier) ? katalog.stadier : [], lagen: any[] = Array.isArray(katalog.lagen) ? katalog.lagen : [];
+  const BEGREPP: Record<string, string> = {lage: 'Läge', ankare: 'Ankare', rorelse: 'Rörelse', stadium: 'Stadium', schemat: 'Schemat', brygga: 'Brygga', harmas_inte: 'Det som inte härmas'};
   const begrepp = katalog.begrepp && typeof katalog.begrepp === 'object' ? Object.entries(katalog.begrepp as Record<string, unknown>) : [];
   const stor = (t: string) => t ? t[0].toUpperCase() + t.slice(1) : t;
   ut.push(`Rörelseschemat som ${k('standarddocka/rorelsekatalog.json')} har det: det ändras där, inte här.${katalog.regel ? ' ' + katalog.regel : ''}`);
   if (begrepp.length) ut.push('', begrepp.map(([n, t]) => `- **${BEGREPP[n] ?? stor(n)}.** ${String(t)}`).join('\n'));
+  // Ett läge i indelningen: lägena per plats (H3P1 … H3P7) räknas ihop under H3Pn.
+  const iLaget = (dl: string, id: string) => {
+    const l = seg?.dealrar?.[dl]?.lagen ?? {}, traff = Object.entries(l).filter(([n]) => n === id || (id.endsWith('Pn') && new RegExp(`^${id.slice(0, -1).replace('.', '\\.')}\\d$`).test(n))).map(([, v]) => v as any);
+    if (!traff.length) return '—';
+    return `${traff.reduce((s, v) => s + (v.stopp ?? 0), 0)} stopp, ${tal(traff.reduce((s, v) => s + (v.sekunder ?? 0), 0), 0)} s`;
+  };
+  if (lagen.length) ut.push('', '### Lägena per hand', '', `Var en hand är när ett klipp börjar och slutar. Bredvid: hur många gånger och hur länge sammanlagt handen står stilla i läget hos de riktiga dealrarna (${k('live-bj/data/segment.json', 'dealrar.<A|B>.lagen')}).`, '',
+    tabell(['Läge', 'Hand', 'Namn', 'Var', 'I ankarena', 'Status', ...dealrar.map(dl => SEGNAMN[dl] ?? dl)],
+      lagen.map(l => [String(l.id ?? ''), String(l.hand ?? ''), String(l.namn ?? ''), String(l.var ?? '') + (l.anteckning ? ` (${l.anteckning})` : ''), Array.isArray(l.i_ankare) && l.i_ankare.length ? l.i_ankare.join(', ') : '—', STATUS[l.status] ?? String(l.status ?? '—'), ...dealrar.map(dl => iLaget(dl, String(l.id)))])));
   ut.push('', '### Ankarena', '',
-    tabell(['Ankare', 'Namn', 'Var händerna är', 'Status', 'Anteckning'], ank.map(a => [String(a.id ?? ''), String(a.namn ?? ''), String(a.var ?? ''), STATUS[a.status] ?? String(a.status ?? '—'), String(a.anteckning ?? a.varfor ?? '')])));
+    tabell(['Ankare', 'Namn', 'Höger + vänster', 'Var händerna är', 'Status', 'Anteckning'], ank.map(a => [String(a.id ?? ''), String(a.namn ?? ''), a.lagen ? `${a.lagen.hoger ?? '?'} + ${a.lagen.vanster ?? '?'}` : '—', String(a.var ?? ''), STATUS[a.status] ?? String(a.status ?? '—'), String(a.anteckning ?? a.varfor ?? '')])));
+  if (dealrar.length) {
+    const par = new Map<string, Record<string, any>>();
+    for (const dl of dealrar) for (const [n, v] of Object.entries(seg.dealrar[dl].bada_stilla ?? {})) par.set(n, {...(par.get(n) ?? {}), [dl]: v});
+    const rader = [...par].sort(([, a], [, b]) => dealrar.reduce((s, dl) => s + (b[dl]?.sekunder ?? 0), 0) - dealrar.reduce((s, dl) => s + (a[dl]?.sekunder ?? 0), 0)).slice(0, 8);
+    ut.push('', 'Båda händerna stilla samtidigt hos de riktiga dealrarna, de åtta vanligaste paren av lägen (en hel bild; de vanligaste är kandidaterna till ankare):', '',
+      tabell(['Höger + vänster', 'Ankare', ...dealrar.map(dl => SEGNAMN[dl] ?? dl)], rader.map(([n, v]) => [n, ank.filter(a => a.lagen && `${a.lagen.hoger} + ${a.lagen.vanster}`.replace(/P\d|Pn/, 'Pn') === n).map(a => a.id).join(', ') || '—',
+        ...dealrar.map(dl => v[dl] ? `${v[dl].ganger} gånger, ${tal(v[dl].sekunder, 1)} s` : '—')])));
+  }
   /** Ett mönster ur katalogens "filer" som filnamn: <docka> är dockan, <n> plats 1–7, <a|b> vart och ett av alternativen. */
   const utvidga = (s: string): string[] | null => { const x = /<([^>]+)>/.exec(s); if (!x) return [s];
     const alt = x[1] === 'n' ? ['1', '2', '3', '4', '5', '6', '7'] : x[1].includes('|') ? x[1].split('|') : null; if (!alt) return null;
@@ -585,12 +607,18 @@ else {
     const lika = delar.length === 2 && delar[0][1] === delar[1][1];
     return {text: `\`${r.filer}\`: ${lika ? `mannen och kvinnan ${delar[0][1]}` : delar.map(([d, t]) => `${d} ${t}`).join('; ')} (${finns} av ${alla} filer som väntas)`, stammer};
   };
-  const slag = (stil: string, matt: any) => { if (!matt) return '— (inte urskilt i mätningen)'; const x = livRor?.styles?.[stil]?.kinds?.[matt]; if (!x) return '— (inget sådant slag)';
-    const sec = x.seconds ?? {}; return `${x.count ?? '?'} st (${x.clean ?? '?'} rena), ${visa(sec.median, sek)}${ok(sec.p10) && ok(sec.p90) ? ` (${tal(sec.p10, 2)}–${tal(sec.p90, 2)})` : ''}`; };
+  /** En kategori i indelningen hos en dealer, hand för hand: hur många stycken och hur länge ett tar (median, 10–90 %). */
+  const kategori = (dl: string, kat: any) => {
+    if (!kat) return '— (ingen kategori i indelningen)';
+    const k2 = seg?.dealrar?.[dl]?.kategorier ?? {}, delar: string[] = [];
+    for (const hand of ['höger', 'vänster']) { const x = k2[`${kat} ${hand}`]; if (!x) continue; const s = x.sekunder ?? {};
+      delar.push(`${hand} ${x.antal} st, ${visa(s.median, sek)}${ok(s.p10) && ok(s.p90) ? ` (${tal(s.p10, 2)}–${tal(s.p90, 2)})` : ''}`); }
+    return delar.length ? delar.join('; ') : '— (inte i filmen)';
+  };
   const radFor = (x: any) => { const f = filerFor(x); return [`${x.namn ?? ''} (${x.id ?? ''})`, `${x.fran ?? '?'} → ${x.till ?? '?'}${x.over ? ` (över ${x.over})` : ''}`, String(x.hander ?? ''), STATUS[x.status] ?? String(x.status ?? '—'), f.text, f.stammer,
-    ...stilar.map(st => slag(st, x.matt)), x.matt ? `\`${x.matt}\`` : '—', String(x.anteckning ?? '')]; };
-  const kol = ['Rörelse', 'Från → till', 'Händerna', 'Status', 'Filerna', 'Stämmer?', ...stilar.map(st => STILNAMN[st] ?? `Stilen ${st}`), 'Slaget i mätningen', 'Anteckning'];
-  ut.push('', '### Rörelserna, stadium för stadium', '', `I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i ${k('blackjack-dealer/dealer3d/data/')} för mannen och kvinnan (\`<n>\` är plats 1–7, \`<docka>\` mannen och kvinnan); "Stämmer?" jämför dem med katalogens status. En annan version än A väntas bara där A ges med två händer (fältet \`marke\` i A:s fil): platserna som ges med vänstern ensam har bara A. Bredvid står samma slag hos de två riktiga dealrarna (${k('live-bj/data/rorelser.json', 'styles.<stil>.kinds.<slag>')}${LIVE.includes('preliminärt') ? ', mätt på film, preliminärt' : ''}): hur många, hur många som är rena nog att rita efter, och hur länge ett tar (median, och 10–90 % av dem).`);
+    ...dealrar.map(dl => kategori(dl, x.segment)), x.segment ? `\`${x.segment}\`` : '—', String(x.anteckning ?? '')]; };
+  const kol = ['Rörelse', 'Från → till', 'Händerna', 'Status', 'Filerna', 'Stämmer?', ...dealrar.map(dl => SEGNAMN[dl] ?? dl), 'Kategorin i indelningen', 'Anteckning'];
+  ut.push('', '### Rörelserna, stadium för stadium', '', `I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i ${k('blackjack-dealer/dealer3d/data/')} för mannen och kvinnan (\`<n>\` är plats 1–7, \`<docka>\` mannen och kvinnan); "Stämmer?" jämför dem med katalogens status. En annan version än A väntas bara där A ges med två händer (fältet \`marke\` i A:s fil): platserna som ges med vänstern ensam har bara A. Bredvid står samma kategori i indelningen av hela livefilmen (${k('live-bj/data/segment.json', 'dealrar.<A|B>.kategorier')}${LIVE.includes('preliminärt') ? ', mätt på film, preliminärt' : ''}), hand för hand: hur många stycken och hur länge ett tar (median, och 10–90 % av dem). En kategori kan höra till flera rörelser: GIV är alla kort till en plats, vilket kort det än är.`);
   const kandaStadier = new Set(stad.map(st => st.id));
   for (const st of stad) {
     const egna = ror.filter(x => x.stadium === st.id);
@@ -613,10 +641,14 @@ else {
     delning.push(`- ${rs.map(x => x.id).join(' och ')} pekar på samma filer (\`${monster}\`): de är ritade i en fil, och rutan där kortet ligger (\`rests\` i filen) delar dem. ${antal ? `I de ${antal} filer som finns: ${[...varianter].map(([v, c]) => `${v}${varianter.size > 1 ? ` (${c} filer)` : ''}`).join('; ')}.` : 'Ingen av filerna finns.'}${rs.length > 2 ? ` (${rs.length} rörelser delar mönstret; bara de två första är räknade.)` : ''}`);
   }
   if (delning.length) { ut.push('', '**Rörelser som delar filer.**', '', delning.join('\n')); kallor.push({fil: `${DATA}<katalogens filer>`, hur: 'data (bara huvudet: fps, frameCount, rests)', ok: true}); }
-  const iKatalog = new Set(ror.map(x => x.matt).filter(Boolean)), utanfor: string[] = [];
-  for (const st of stilar) for (const n of Object.keys(livRor.styles[st]?.kinds ?? {})) if (!iKatalog.has(n) && !utanfor.includes(n)) utanfor.push(n);
-  if (utanfor.length) ut.push('', 'Slag som de riktiga dealrarna gör men som katalogen inte har:', '', utanfor.map(n => `- \`${n}\`: ${stilar.map(st => `${STILNAMN[st] ?? st} ${slag(st, n)}`).join('; ')}`).join('\n'));
-  if (!livRor) saknas.push('De riktiga dealrarnas slag av rörelser: `live-bj/data/rorelser.json` finns inte eller går inte att läsa, så katalogens kolumner för dem är tomma.');
+  const bryggor: any[] = Array.isArray(katalog.bryggor) ? katalog.bryggor : [], harmasEj: any[] = Array.isArray(katalog.harmas_inte) ? katalog.harmas_inte : [];
+  if (bryggor.length) ut.push('', '### Bryggorna', '', tabell(['Brygga', 'Namn', 'Vad', 'Regel'], bryggor.map(b => [String(b.id ?? ''), String(b.namn ?? ''), String(b.vad ?? ''), String(b.regel ?? '')])));
+  if (harmasEj.length) ut.push('', '### Det som inte härmas', '', tabell(['Kategori', 'Namn', 'Vad', ...dealrar.map(dl => SEGNAMN[dl] ?? dl)], harmasEj.map(x => [String(x.id ?? ''), String(x.namn ?? ''), String(x.vad ?? ''), ...dealrar.map(dl => kategori(dl, x.segment))])));
+  // Kategorier i indelningen som varken en rörelse eller listan över det som inte härmas pekar på (stoppen i arbetet räknas inte).
+  const iKatalog = new Set([...ror, ...harmasEj].map(x => x.segment).filter(Boolean)), utanfor: string[] = [];
+  for (const dl of dealrar) for (const n of Object.keys(seg.dealrar[dl].kategorier ?? {})) { const kat = n.replace(/ (höger|vänster|huvud)$/, ''); if (!n.endsWith(' huvud') && kat !== 'STOPP' && !iKatalog.has(kat) && !utanfor.includes(kat)) utanfor.push(kat); }
+  if (utanfor.length) ut.push('', 'Kategorier i indelningen som katalogen inte har en rörelse för:', '', utanfor.map(n => `- \`${n}\`: ${dealrar.map(dl => `${SEGNAMN[dl] ?? dl} ${kategori(dl, n)}`).join('; ')}`).join('\n'));
+  if (!seg) saknas.push('Indelningen av livefilmen: `live-bj/data/segment.json` finns inte eller går inte att läsa, så katalogens kolumner för de riktiga dealrarna är tomma (görs med `live-bj/verktyg/segment.py dela`).');
 }
 
 // ==== 7. Det som inte har något mått i kod än ===================================================================
@@ -625,7 +657,7 @@ saknas.unshift(
   `Skons lutning: skon står plant på filten; bara frontplattan lutar (${gr(SHOE.plateLean * DEG)}, \`table-lens.ts SHOE.plateLean\`). Korten i skon har ingen egen lutning: de ligger mot plattan och lutar som den.`,
   'Kortets vändning i handbytet har inget eget tal i koden: koreo-giv.ts säger "cirka 90 grader" i en kommentar, och Jakob sa "cirka 100 grader".',
   'Handledens gräns 36 grader i DOMAR.md är ett resultat på de vända platserna, inte ett tal i koden; koden håller handen inom RAK och RAK_H (koreo-giv.ts, ovan).',
-  'Livebordets sko: den klara frontens lutning och topp är skattade, eftersom dess två topphörn lästes olika (34 och 11,5 grader bakåt från lodrätt, 0,060 och 0,107 m höga); klonen har omkring 20 grader och 0,085 m (`table-live.ts LIVE.shoe`). Sargen (rullen) är bara mätt i bildpunkter. Livebordet har ingen markerbricka; platsmärkena är spelets ritade knappar i bilden.',
+  'Livebordets sko: kortleken ligger på en bädd som stiger bakåt, och korten lutar bakåt som fronten med långsidan tvärs skon (mätt om 2026-11-27; förut stod de nästan upprätt). Bara kortlekens längd längs bädden är skattad: den krymper när korten delas ut (`table-live.ts LIVE.shoe`). Sargen (rullen) är bara mätt i bildpunkter. Livebordet har ingen markerbricka; platsmärkena är spelets ritade knappar i bilden.',
   'Livebordets dealrar: hur långt bakom kanten de sitter är antaget (0,2 m; skattat 0,07–0,16 m), och armarnas längd går inte att mäta (dockans egna används).',
   'Livebordet: golvet syns inte i bilden; filtens och sitsens höjd över golvet är slutledda ur dealrarnas ögon när de står, inte mätta.',
   'Mannens och kvinnans ögon har ingen höjd i koden: ögonen är ben i modellerna (eyeL, eyeR i .glb-filerna), och närmast i koden är huvudets mitt. Blenders kamera dealer_ogon i standard.yaml är antagen, för den vita dockan.',

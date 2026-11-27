@@ -397,27 +397,30 @@ livebord:  # ett riktigt livebord mätt på film (live-bj, 2026-11-27, prelimin�
     halv_bredd_vid_kanten: 0.7293  # härlett
     djup: 0.714
     rulle_utanfor: 0.1  # antaget (vår, bord.vadderad_kant.bredd): rullen ligger utanför bågen, så att filten som syns är den mätta
-  sko:  # en genomskinlig låda; fronten är en klar platta som lutar bakåt från fotens två främre hörn, och nästa kort syns genom den. källa: LIVE.shoe, liveShoePose(), liveShoeCard()
+  sko:  # en lång genomskinlig låda, öppen upptill: fronten är en klar ram som lutar bakåt från fotens två främre hörn, med ett fönster där nästa kort syns; kortleken ligger på en bädd som stiger bakåt, varje kort lutat som fronten med långsidan tvärs skon. källa: LIVE.shoe, liveShoePose(), liveShoeCard()
     genomskinlig: true
     fot_fram: [0.4521, -0.1531, 0.9500]  # mätt: fotens främre hörn mot spelarna (hörnen lästa för ögat, 1-2 cm)
     fot_horn: [[0.4270, -0.0533, 0.9500], [0.4521, -0.1531, 0.9500], [0.7162, -0.0798, 0.9500]]  # mätt: främre vid dealern, främre mot spelarna, bakre mot spelarna
     yaw_bakat: 15.512  # härlett ur foten: bakänden vriden mot dealern
     langd: 0.274  # mätt (foten)
     bredd: 0.103  # mätt (foten)
-    hojd_bak: 0.117  # mätt ur bilden
-    hojd_fram: 0.085  # skattat: frontplattans topp (hörnen lästa 0,060 och 0,107; omkring 0,08, så högt att kortet ryms)
-    platta_lutning_grader: 70.00  # skattat: från filten (hörnen lästa 34 och 11,5 grader bakåt från lodrätt; omkring 20)
-    fonster_lyft: 0.002  # antaget: kortets underkant över filten bakom fronten (skons golv)
-    front_horn: [[0.4270, -0.0533, 0.9500], [0.4521, -0.1531, 0.9500], [0.4732, -0.1478, 1.0565], [0.4663, -0.0434, 1.0101]]  # mätt som de lästes: fot vid dealern, fot mot spelarna, topp mot spelarna, topp vid dealern
-    fonsterkort_mitt: [0.4572, -0.0983, 0.9920]  # nästa kort bakom den klara fronten, ryggen utåt; mitten är plattans mitt, som mätningen har den
-    fonsterkort_langsida: [0.3296, 0.0915, 0.9397]  # kortets långsida, uppför fronten
-    fonsterkort_kortsida: [-0.2674, 0.9636, 0.0000]  # kortets kortsida, tvärs skon
-  los_bit: {horn: [[0.3652, -0.0915, 0.9500], [0.4017, -0.0757, 0.9500], [0.4311, -0.1701, 0.9500], [0.3977, -0.1786, 0.9500]], mitt: [0.3989, -0.1290, 0.9500]}  # mätt: en lös klar bit som ligger plant på filten strax framför skon (inget kort ligger på den). källa: LIVE.clearPiece
-  kassering:  # mätt: en klar låda vid dealerns högra hörn, öppen upptill. källa: LIVE.box, liveBox()
+    hojd_bak: 0.117  # mätt ur bilden; väggarnas överkant går rakt från frontens topp hit
+    hojd_fram: 0.061  # mätt: frontens topp (de två topphörnen lästa 0,060 och 0,062)
+    platta_lutning_grader: 56.60  # mätt: från filten (topphörnen lästa 34,0 och 32,8 grader bakåt från lodrätt; kortets rygg i fönstret lutar lika)
+    fonster_lyft: 0.003  # mätt: där bädden börjar framtill, kortets underkant över filten
+    badd_lutning_grader: 13.40  # mätt: bädden stiger bakåt, sedd genom den nära väggen
+    lek_langd: 0.18  # skattat: hur långt längs bädden kortleken når (0,14 m vid 62 s, 0,23 m vid 600 s i filmen; 0,18 är åtta lekar)
+    front_horn: [[0.4270, -0.0533, 0.9500], [0.4521, -0.1531, 0.9500], [0.4907, -0.1434, 1.0117], [0.4663, -0.0434, 1.0101]]  # mätt: fot vid dealern, fot mot spelarna, topp mot spelarna, topp vid dealern
+    fonsterkort_mitt: [0.4577, -0.0981, 0.9787]  # nästa kort i frontens fönster, ryggen utåt; inom 2 mm från mätningens mitt
+    fonsterkort_langsida: [-0.2674, 0.9636, 0.0000]  # kortets långsida, tvärs skon (mot den bortre väggen)
+    fonsterkort_kortsida: [0.5304, 0.1472, 0.8348]  # kortets kortsida, uppför fronten
+  los_bit: {horn: [[0.3652, -0.0915, 0.9500], [0.4017, -0.0757, 0.9500], [0.4311, -0.1701, 0.9500], [0.3977, -0.1786, 0.9500]], mitt: [0.3989, -0.1290, 0.9500]}  # mätt: en lös klar bit som ligger plant på filten strax framför skon; kortet som dras ut glider över den. källa: LIVE.clearPiece
+  kassering:  # mätt: en klar låda vid dealerns högra hörn, öppen upptill; de använda korten ligger plant i den, ryggen upp. källa: LIVE.box, liveBox()
     fot_mitt: [-0.6115, -0.0351, 0.9500]
     yaw: 2.143
     yttermatt: [0.076, 0.093, 0.1575]  # foten mätt; höjden mätt ur bilden (0,156-0,159)
     vaggtjocklek: 0.004  # antaget (vår, kassering.vaggtjocklek)
+    kort_hog: 0.03  # skattat: de använda kortens hög, liggande med ryggen upp (2-5 cm genom filmen)
   skarkort: {mitt: [-0.5737, -0.1333, 0.9500], storlek: [0.0479, 0.0863]}  # mätt, men ligger bara ute ibland: byggs inte
   markerbricka: ingen  # mätt: det finns ingen (markerna är spelets grafik); bygg_bord.py --live --med-bricka lägger vår (markerbricka ovan) vid kanten, märkt som vårt tillägg
   insatsmarken:  # mätt: mitten av spelets platsknappar, plats 1 till vänster i bilden (dealerns höger). källa: LIVE.betMarks

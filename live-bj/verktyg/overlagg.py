@@ -3,7 +3,9 @@
 # differ; and writes the same differences as numbers.
 #   python -I live-bj/verktyg/overlagg.py <still.png> <our table through their camera.png, with alpha> <punkter.json> live-bj/data/scen.json <ut.jpg> [<ut.json>]
 # The picture of our table and punkter.json (our card places, shoe, tray, edges and figure in metres of the lens world
-# and in pixels of this picture) are drawn by the editor's side; they lie in the slask and are not kept. The sheet shows
+# and in pixels of this picture) are drawn by the editor's side, or for the live clone by a render of its Blender model
+# through the live camera and the same keys written from table-live.ts (the tray and the figure may be missing; sko_*
+# lines are drawn as the shoe's); they lie in the slask and are not kept. The sheet shows
 # a real person and stays on this computer (rutor/ is not in Git). The numbers go to data/mot-vart-bord.json.
 # Metres: the lens world, x to the picture's right, y up with the felt at 0, z toward the player, the camera over the origin.
 import sys, json, os, math
@@ -46,13 +48,20 @@ def main():
         for name in ('sko', 'slaskbox'):
             poly(scene['things'][name]['outline'], THEIRS)
         poly(scene['things']['sko']['front_plate'], THEIRS, width=3)
+        if 'card_back' in scene['things']['sko']:   # the next card's back pattern in the front's window, and the bed's edge
+            poly(scene['things']['sko']['card_back'], THEIRS, width=1)
+            poly(scene['things']['sko']['bed'], THEIRS, closed=False, width=1)
         for p in scene['seatsUiPx']:
             cv2.circle(pic, (int(p[0]), int(p[1])), 14, THEIRS, 2, cv2.LINE_AA)
         for place in scene['places'].values():
             mark(place['px'], THEIRS, cv2.MARKER_TILTED_CROSS, 16)
         poly([seen(m) for m in line['dealerkant']['lins_m']], OURS, closed=False)
         poly([seen(m) for m in line['sko_framande']['lins_m']], OURS)
-        poly([seen(m) for m in line['bricka_yttre']['lins_m']], OURS, width=1)
+        for name, more in line.items():   # the shoe's other lines where the points have them (the card's back pattern, the bed's edge)
+            if name.startswith('sko_') and name != 'sko_framande':
+                poly([seen(m) for m in more['lins_m']], OURS, closed=more.get('sluten', True), width=1)
+        if 'bricka_yttre' in line:   # the live table has no tray
+            poly([seen(m) for m in line['bricka_yttre']['lins_m']], OURS, width=1)
         for seat in range(1, 8):
             mark(seen(points['punkter'][f'kortplats_P{seat}.C1']['lins_m']), OURS, cv2.MARKER_CROSS)
             poly([seen(m) for m in line[f'insatsring_P{seat}']['lins_m']], OURS, width=1)
@@ -64,8 +73,8 @@ def main():
 
     draw(pic, 0.0)
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
-    cv2.imwrite(out, legend(pic, [('Livebordet: filtens kant, sko, lada, platsernas marken (ringar) och dar korten landar (kryss).', THEIRS),
-                                  ('Vart bord och var docka genom samma kamera, ritade halvgenomskinligt: kanten mot dealern, bricka, sko, kortplatser (plus), insatsringar.', OURS)]), [cv2.IMWRITE_JPEG_QUALITY, 90])
+    cv2.imwrite(out, legend(pic, [('Livebordet: filtens kant, sko (front, kortets rygg, badden), lada, platsernas marken (ringar) och dar korten landar (kryss).', THEIRS),
+                                  ('Vart bord genom samma kamera, ritat halvgenomskinligt: kanten mot dealern, bricka, sko (front, kortets rygg, badden), kortplatser (plus), insatsringar.', OURS)]), [cv2.IMWRITE_JPEG_QUALITY, 90])
     edge_to_edge = base.copy()
     draw(edge_to_edge, edge_ours - edge_theirs)
     second = os.path.splitext(out)[0] + '-kant-mot-kant.jpg'

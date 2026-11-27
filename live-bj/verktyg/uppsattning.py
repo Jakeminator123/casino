@@ -37,42 +37,62 @@ def main():
               'floor': {'how': 'inferred, not measured: the floor is never in the picture. When the dealers stand at the table their eyes are 0.63 to 0.69 m over the felt, 0.15 m more than seated; with a grown man\'s eye height '
                                '(1.63 m, give or take 0.07) the felt is about 0.95 m over the floor and the seat about 0.67 m.', 'felt_over_floor': 0.95, 'give_or_take': 0.1, 'seat_over_floor': 0.67, 'the_dealer': 'sits, on a high chair'}}
 
-    # The shoe: a clear box lying on the felt. Its front is a plate that leans back from the foot's two front corners, and
-    # the next card shows through it, back out; that is where the finger takes it. What data/scen.json calls the mouth
-    # is a separate clear piece lying flat on the felt just before the shoe, not a part of it.
+    # The shoe: a long clear box lying on the felt. Its front is a clear frame that leans back from the foot's two front
+    # corners; inside, the deck lies on a bed that rises toward the back, every card leaning back as the front does, and
+    # the next card's back shows in the front's window: that is where the finger takes it, and it is drawn down and out
+    # under the front onto the felt. What data/scen.json calls the mouth is a separate clear piece lying flat on the felt
+    # just before the shoe, not a part of it.
+    WALL = 0.004   # assumed: the clear walls' thickness, for the bed seen through the near wall
     shoe = things['sko']
     plate = np.array(shoe['mouthMetres'])
+    origin = np.array([0.0, 0.0, cam.h])
     front = [np.array([p[0], p[1], 0.0]) for p in shoe['footMetres'][:2]]                 # by the dealer, toward the players (felt: x, away, up)
-    across = (front[1] - front[0]) / np.linalg.norm(front[1] - front[0])
+    across = (front[1] - front[0]) / np.linalg.norm(front[1] - front[0])                 # across the shoe, toward the players
     back = np.array([-across[1], across[0], 0.0])                                         # along the shoe, from its front to its back
     back = back if back[0] > 0 else -back
-    tops = []
-    for corner, px in zip(front, (shoe['front_plate'][0], shoe['front_plate'][1])):       # the plate's top corner lies on its line of sight, straight back and up from its foot corner
+
+    def on(px, point, normal):
+        """Where a pixel's line of sight meets the plane through point with this normal."""
         d = cam.rays(np.array([px], float))[0]
-        origin = np.array([0.0, 0.0, cam.h])
-        s = float((corner - origin) @ across) / float(d @ across)
-        tops.append(origin + s * d)
+        return origin + d * float((point - origin) @ normal) / float(d @ normal)
+    tops = [on(px, corner, across) for corner, px in zip(front, shoe['front_plate'][:2])]  # each top corner straight back and up from its foot corner
     lean = [(float((t - c) @ back), float(t[2])) for t, c in zip(tops, front)]            # how far back and how high each top corner is
     card = np.array(front + tops[::-1])
+    slope = np.mean(tops, axis=0) - np.mean(front, axis=0); slope /= np.linalg.norm(slope)   # up the front
+    face = np.cross(slope, across); face = face if face @ back < 0 else -face            # out of the front
+    printed = np.array([on(px, front[0], face) for px in shoe['card_back']])              # the next card's back pattern, in the front's plane
+    wide = (abs(float((printed[1] - printed[0]) @ across)) + abs(float((printed[2] - printed[3]) @ across))) / 2
+    tall = (abs(float((printed[0] - printed[3]) @ slope)) + abs(float((printed[1] - printed[2]) @ slope))) / 2
+    bed = np.array([on(px, front[1] - across * WALL, across) for px in shoe['bed']])      # the bed's edge, on the near wall's inside
+    bed_run = [float((p - front[1]) @ back) for p in bed]
+    bed_lean = math.atan2(bed[1][2] - bed[0][2], bed_run[1] - bed_run[0])
+    bed_at = lambda run: bed[0][2] + (run - bed_run[0]) * math.tan(bed_lean)
     lens3 = lambda p: [round(float(p[0]), 4), round(float(p[2]), 4), round(-float(p[1]), 4)]
-    result['shoe'] = {'how': 'measured where it stands on the felt (corners read by eye, 1 to 2 cm); its back\'s height and its front plate measured from the picture. A clear box: the front is a plate leaning back from the '
-                             'foot\'s two front corners.',
+    unit3 = lambda v: [round(float(x), 3) for x in lens3(v)]
+    result['shoe'] = {'how': 'measured where it stands on the felt (corners read by eye, 1 to 2 cm); its back\'s height, its front, the bed and the next card measured from the picture. A long clear box: the front is a '
+                             'clear frame leaning back from the foot\'s two front corners, and the deck lies on an inclined bed inside, every card leaning as the front.',
                       'foot': [lens(p) for p in shoe['footMetres']], 'foot_note': 'front corner by the dealer, front corner toward the players, back corner', 'foot_length': shoe['footLength'], 'foot_width': shoe['footWidth'],
-                      'back_height': height_at(shoe['outline'][3], shoe['footMetres'][2][1]), 'front_plate_top_if_upright': height_at(shoe['front_plate'][1], shoe['footMetres'][1][1]),
+                      'back_height': height_at(shoe['outline'][3], shoe['footMetres'][2][1]),
                       'front_plate': {'how': 'measured: each top corner taken to lie straight back and up from its foot corner, on its own line of sight. The two corners should agree; where they differ, that is the reading\'s error.',
                                       'corners': [lens3(p) for p in card], 'corners_note': 'foot corner by the dealer, foot corner toward the players, top toward the players, top by the dealer',
                                       'top_height': [round(h, 3) for _, h in lean], 'top_back_from_foot': [round(a, 3) for a, _ in lean], 'lean_back_degrees': [round(math.degrees(math.atan2(a, h)), 1) for a, h in lean],
                                       'length_up_the_slope': [round(math.hypot(a, h), 3) for a, h in lean]},
-                      'card_when_drawn': {'how': 'measured: the next card shows through the front plate, back out, and the finger takes it there (dealer, left_hand_at_the_shoe). Its middle is the plate\'s middle; a card is narrower '
-                                                 'than the plate (63.5 mm against the foot\'s width), so sideways it is within 2 cm.', 'middle': lens3(card.mean(axis=0)),
-                                          'long_side': [round(float(v), 3) for v in lens3((tops[0] - front[0]) / np.linalg.norm(tops[0] - front[0]))], 'long_side_note': 'up the slope, in the lens world'},
-                      'clear_piece_before_the_shoe': {'how': 'measured: a separate clear piece lying flat on the felt just before the shoe\'s front (data/scen.json calls it the mouth; it is not the shoe\'s mouth and no card lies on it).',
+                      'bed': {'how': f'measured: two points of the bed\'s edge seen through the near wall, laid on the wall\'s inside ({WALL * 1000:.0f} mm in from its outside, assumed). It rises from the front toward the back.',
+                              'lean_degrees': round(math.degrees(bed_lean), 1), 'height_at_front': round(bed_at(0.0), 4), 'height_at_back': round(bed_at(shoe['footLength']), 4)},
+                      'card_when_drawn': {'how': 'measured: the next card\'s back shows in the front\'s window, and the finger takes it there (dealer, left_hand_at_the_shoe); it is drawn down the front and out under it onto the felt, '
+                                                 'toward the table\'s middle. Its back\'s printed pattern, laid on the front\'s plane, is pattern_mm across the shoe and up the front: the card (63.5 x 88.9 mm, the pattern inside a white '
+                                                 'border) lies with its long side across the shoe and its short side up the front. middle is the pattern\'s middle.',
+                                          'middle': lens3(printed.mean(axis=0)), 'pattern_mm': [round(wide * 1000, 1), round(tall * 1000, 1)],
+                                          'long_side': unit3(-across), 'long_side_note': 'across the shoe, toward its far wall by the dealer, in the lens world',
+                                          'short_side': unit3(slope), 'short_side_note': 'up the front, in the lens world'},
+                      'clear_piece_before_the_shoe': {'how': 'measured: a separate clear piece lying flat on the felt just before the shoe\'s front (data/scen.json calls it the mouth; it is not the shoe\'s mouth); the drawn card slides out over it.',
                                                       'corners': [lens(p) for p in plate], 'middle': lens(plate.mean(axis=0))}}
-    grip_place = card.mean(axis=0)
+    grip_place = printed.mean(axis=0)
     box = things['slaskbox']
     result['box_for_used_cards'] = {'how': 'measured where it stands (a clear box at the dealer\'s right corner); its height from the picture, two corners.', 'foot': [lens(p) for p in box['footMetres']],
                                     'foot_width': box['footWidth'], 'foot_depth': box['footDepth'], 'height': [height_at(box['outline'][0], box['footMetres'][0][1]), height_at(box['outline'][2], box['footMetres'][2][1])],
-                                    'opening': 'open at the top; the right hand is lifted to it with the cards'}
+                                    'opening': 'open at the top; the right hand is lifted to it with the cards',
+                                    'cards': 'lie flat in a pile on its floor, back up; the pile is about 2 to 5 cm high (read in two frames, 62 s and 600 s)'}
     if 'skarkort' in things:
         result['cut_card'] = {'how': 'measured in the 8 keyframes where it lies out, before the box.', 'middle': lens(things['skarkort']['m']), 'size_mm': things['skarkort']['sizeMm']}
     result['chip_tray'] = {'how': 'measured: there is none. The chips are the game\'s graphics.'}

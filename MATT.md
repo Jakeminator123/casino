@@ -51,8 +51,8 @@ De sju platsernas kameror är spelets vy flyttad till varje plats: lika hög och
 |  | frontplattans lutning mot filten | 51,6° | — (bara i bildpunkter) | — | `table-lens.ts SHOE.plateLean` |  |
 |  | kortet i fönstret, underkanten över filten | 22 mm | — | — | `table-lens.ts SHOE.windowLift` |  |
 |  | vinkel mot kanten (bakänden vriden mot dealern) | 23,2° | 15,5° | +7,7° (+49 %) | `table-lens.ts shoePose(TABLE_LENS).back`; `scen.json things.sko.footMetres` (den främre och den bakre hörnan mot spelarna) |  |
-|  | mynningens mitt åt sidan | 0,407 m (filmernas sko 0,322 m) | 0,455 m | −0,047 m (−10 %) | `table-lens.ts dollShoe, shoePose`; `uppsattning.json shoe.card_when_drawn.middle` (kortet i den klara fronten) | "aningen längre bort från dealern" om skon (2026-11-26) |
-|  | mynningens mitt från kanten | 0,297 m från dockans bords kant (filmernas sko 0,071 m från spelets kant) | 0,099 m | +0,198 m (+199 %) | `table-lens.ts dollShoe, DOLL_TABLE.edgeBack`; `scen.json table.dealerEdgeM`, `uppsattning.json shoe.card_when_drawn.middle` |  |
+|  | mynningens mitt åt sidan | 0,407 m (filmernas sko 0,322 m) | 0,458 m | −0,051 m (−11 %) | `table-lens.ts dollShoe, shoePose`; `uppsattning.json shoe.card_when_drawn.middle` (kortet i den klara fronten) | "aningen längre bort från dealern" om skon (2026-11-26) |
+|  | mynningens mitt från kanten | 0,297 m från dockans bords kant (filmernas sko 0,071 m från spelets kant) | 0,097 m | +0,2 m (+206 %) | `table-lens.ts dollShoe, DOLL_TABLE.edgeBack`; `scen.json table.dealerEdgeM`, `uppsattning.json shoe.card_when_drawn.middle` |  |
 |  | flyttad på dockans bord | 8 cm ut längs sin längd och 3 cm mot spelarna: 8,5 cm från filmernas |  |  | `table-lens.ts DOLL_TABLE.shoeOut, shoeForward` | "aningen längre bort från dealern" om skon (2026-11-26) |
 |  | frontplattan i Blender: öppningen för fingret | 50 mm bred nedtill, 40 mm i bågen, upp till 114 mm uppför plattan | — | — | `bygg_bord.py SKO_FRONT.ub, ur, us` (tolkad ur text) |  |
 |  | frontplattan i Blender: nederkant och tjocklek | nederkanten 74 mm uppför plattan (58 mm över filten); plattan 1,3 mm tjock | — | — | `bygg_bord.py SKO_FRONT.s0, n0, n1` (tolkad ur text) |  |
@@ -86,20 +86,24 @@ De sju platsernas kameror är spelets vy flyttad till varje plats: lika hög och
 | Rullen | bredd utanför filten | 10 cm | — (bara i bildpunkter) | — | antaget (vår) | `table-live.ts LIVE.rail` |
 | Skon | fotens längd × bredd | 0,274 m × 0,103 m | 0,274 m × 0,103 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE.shoe` |
 |  | fotens tre hörn: största avstånd |  |  | 0 mm | mätt | `table-live.ts LIVE.shoe.foot` |
-|  | höjd bak; den klara frontens topp | 0,117 m; 0,085 m | 0,117 m; 0,06 m och 0,107 m (de två topphörnen) | ±0 m (±0 %) | mätt; skattat | `table-live.ts LIVE.shoe` |
-|  | frontens lutning bakåt från lodrätt; kortets underkant över filten | 20°; 2 mm | 34° och 11,5° (de två topphörnen); — | — | skattat; antaget | `table-live.ts LIVE.shoe` |
-|  | nästa kort i fronten: mitten | 0,457 m åt sidan, 0,098 m från kanten, 4,2 cm över filten | 0,455 m åt sidan, 0,099 m från kanten, 4,2 cm över filten | 2,7 mm | mätt | `table-live.ts liveShoeCard` |
+|  | höjd bak; den klara frontens topp | 0,117 m; 0,061 m | 0,117 m; 0,06 m och 0,062 m (de två topphörnen) | ±0 m (±0 %) | mätt | `table-live.ts LIVE.shoe` |
+|  | frontens lutning bakåt från lodrätt | 33,4° | 34° och 32,8° (de två topphörnen) | — | mätt | `table-live.ts LIVE.shoe.plateLean` |
+|  | bädden kortleken ligger på: lutning från filten; höjd fram | 13,4°; 3 mm | 13,4°; 3 mm | ±0° | mätt | `table-live.ts LIVE.shoe.bedLean, windowLift` |
+|  | korten i skon: hur de ligger | långsidan tvärs skon, kortsidan uppför fronten, lutade som den | ryggens mönster 78 mm tvärs och 52 mm uppför | — | mätt | `table-live.ts liveShoeCard` |
+|  | kortleken längs bädden | 0,18 m | — | — | skattat | `table-live.ts LIVE.shoe.deckLength` |
+|  | nästa kort i fronten: mitten | 0,458 m åt sidan, 0,098 m från kanten, 2,9 cm över filten | 0,458 m åt sidan, 0,097 m från kanten, 2,9 cm över filten | 1,3 mm | mätt | `table-live.ts liveShoeCard` |
 |  | den lösa klara biten framför skon: hörnen, största avstånd |  |  | 0 mm | mätt | `table-live.ts LIVE.clearPiece` |
 | Lådan för använda kort | fotens mått; höjden | 0,076 m × 0,093 m; 0,1575 m | 0,076 m × 0,093 m; 0,159 m och 0,156 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE.box` |
 |  | mitten åt sidan; från kanten | −0,611 m; 0,035 m |  | hörnen 0 mm | mätt | `table-live.ts liveBox` |
+|  | de använda korten | ligger plant, ryggen upp; högen 3 cm | ligger plant, ryggen upp | — | mätt; högen skattad | `table-live.ts LIVE.box.pile` |
 | Markerbrickan |  | ingen (vår kan läggas till i Blender som ett tillägg: bygg_bord.py --live --med-bricka) | ingen | — | mätt | `table-live.ts LIVE.tray` |
 | Insatsmärkena | sju, största avstånd | plats 4 0,63 m från kanten |  | 0 mm | mätt | `table-live.ts LIVE.betMarks` |
 | Kortplatserna | 19 st, största avstånd | dealerns kort 1 0,177 m och plats 4 kort 1 0,512 m från kanten | 19 st | 0 mm | mätt | `table-live.ts LIVE.cards` |
 |  | långsidans vridning | 12 mätta, 7 ur den speglade platsen (landningarna var inte eniga) |  |  | mätt; spegelbild | `table-live.ts LIVE.cards[id].turnFrom` |
 | Dealern (sitter) | Dealer A, ser i kameran: axlarnas mitt över filten; axelbredd; ögonen | 0,318 m; 0,357 m; 0,509 m | 0,318 m; 0,357 m; 0,509 m | ±0 m (±0 %) | mätt (på ett plan antaget bakom kanten) | `table-live.ts LIVE.dealer.styles.kameran` |
-|  | Dealer A, ser i kameran: vänsterhandens grepp vid skon, höjd; från kortets mitt | 5 cm; 2,8 cm | 5 cm; 2,8 cm | 0 mm | mätt i bilden; höjden slutledd | `table-live.ts LIVE.dealer.styles.kameran.leftAtShoe` |
+|  | Dealer A, ser i kameran: vänsterhandens grepp vid skon, höjd; från kortets mitt | 4,8 cm; 3,5 cm | 4,8 cm; 3,5 cm | 0 mm | mätt i bilden; höjden slutledd | `table-live.ts LIVE.dealer.styles.kameran.leftAtShoe` |
 |  | Dealer B, ser på bordet: axlarnas mitt över filten; axelbredd; ögonen | 0,31 m; 0,348 m; 0,514 m | 0,31 m; 0,348 m; 0,514 m | ±0 m (±0 %) | mätt (på ett plan antaget bakom kanten) | `table-live.ts LIVE.dealer.styles.bordet` |
-|  | Dealer B, ser på bordet: vänsterhandens grepp vid skon, höjd; från kortets mitt | 4 cm; 3,7 cm | 4 cm; 3,7 cm | 0 mm | mätt i bilden; höjden slutledd | `table-live.ts LIVE.dealer.styles.bordet.leftAtShoe` |
+|  | Dealer B, ser på bordet: vänsterhandens grepp vid skon, höjd; från kortets mitt | 3,7 cm; 4 cm | 3,7 cm; 4 cm | 0 mm | mätt i bilden; höjden slutledd | `table-live.ts LIVE.dealer.styles.bordet.leftAtShoe` |
 |  | bålen bakom kanten | 0,2 m (antaget); skattat 0,065 m och 0,158 m |  |  | antaget | `table-live.ts LIVE.dealer.behindEdge` |
 | Golvet | filten över golvet; sitsen | 0,95 m (±0,1); 0,67 m | 0,95 m; 0,67 m | ±0 m (±0 %) | slutlett | `table-live.ts LIVE.floor` |
 
@@ -275,96 +279,153 @@ Blinkningarna och vilan. Dockan blinkar och rör sig i vilan bara med valet "Sm�
 
 Rörelseschemat som `standarddocka/rorelsekatalog.json` har det: det ändras där, inte här.
 
-- **Ankare.** En bild, inte en tid: en bestämd ställning där dockan står stilla, och som varje film börjar och slutar exakt i. Det är där två klipp kan sättas ihop, och där spelet kan välja vad som kommer härnäst. A står för ankare. Ett ankare kostar en bild per dealer och kamera, så de ska vara få: ett nytt läggs bara till där spelet måste kunna stanna och välja väg.
-- **Rörelse.** Ett klipp: en rörelse från ett ankare till ett ankare (ofta tillbaka till samma). Heter efter vad dealern gör.
+- **Läge.** Var en hand är, inte en hel bild: H för höger hand och V för vänster (dealerns egna händer; dealerns höger är till vänster i bilden), följt av samma siffror som ankarena: 1 vila, 2 skon, 3 ett kort på bordet, 4 lådan för använda kort. H1 är högern i vila, V2.3 vänstern vid skon, H3P4 högern vid kortet på plats 4.
+- **Ankare.** En bild, inte en tid: en bestämd ställning där dockan står stilla, och som varje film börjar och slutar exakt i. Ett ankare är ett läge för varje hand (A2.3 = H1 + V2.3). Det är där två klipp kan sättas ihop, och där spelet kan välja vad som kommer härnäst. A står för ankare. Ett ankare kostar en bild per dealer och kamera, så de ska vara få: ett nytt läggs bara till där spelet måste kunna stanna och välja väg.
+- **Rörelse.** Ett klipp: en rörelse från ett ankare till ett ankare (ofta tillbaka till samma). Heter efter vad dealern gör. Inuti klippet har händerna var sin tidslinje, som i filmen: vänstern kan ta nästa kort medan högern lägger det förra.
 - **Stadium.** Vad dealern håller på med i spelet just nu: VILA, REDO, GIV, TILLBAKA och så vidare. Ett stadium har ett hemankare och en uppsättning klipp som får spelas medan spelet är där: ett grundklipp och varianter. VILA är till exempel ett grundklipp på ungefär en sekund i A1 och ett antal korta klipp som alla börjar och slutar i A1.
 - **Schemat.** Ankarena är noderna, klippen är strecken mellan dem, och stadiet säger vilka streck som hör ihop. En runda är en väg genom schemat, skriven med streck som förut: A1 - A2.3 - A3P4C1 - A2.3 - A1.
+- **Brygga.** En kort rörelse som dockan gör själv, utan förlaga: från ankarets läge till där ett lyft stycke börjar, eller därifrån tillbaka. Den gör klippet aningen längre men låter oss lyfta det bästa stycket även när dealern började lite vid sidan av ankaret.
+- **Det som inte härmas.** Det dealern gör som inte ska härmas (sköta skon, en oväntad gest): dockan väntar då i sitt läge tills dealern börjar nästa stycke som börjar i samma läge, den mest lika starten (Jakob 2026-11-27).
+
+### Lägena per hand
+
+Var en hand är när ett klipp börjar och slutar. Bredvid: hur många gånger och hur länge sammanlagt handen står stilla i läget hos de riktiga dealrarna (`live-bj/data/segment.json dealrar.<A|B>.lagen`).
+
+| Läge | Hand | Namn | Var | I ankarena | Status | Danilo (dealer A) | Frasse (dealer B) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| H1 | höger | Vila framför | högern vilar på filten framför kroppen, vid eller bredvid de egna korten | A1, A1V, A2.3 | finns | 51 stopp, 120 s | 35 stopp, 148 s |
+| H1S | höger | Vila åt sidan | högern utsträckt åt sidan på filten, mot lådan för använda kort: så vilar båda dealrarna medan insatserna läggs | A1S | saknas | 5 stopp, 40 s | 11 stopp, 74 s |
+| H2M | höger | Vid mötet | högern framme vid kortet i vänsterns hand, mitt framför dealern och en bit åt skon | A2M | förslag | 4 stopp, 14 s | 4 stopp, 1 s |
+| H3Pn | höger | Vid kortet på plats n | högern kvar vid kortet den just lagt på plats n (1–7) | A3PnCm | finns | 12 stopp, 12 s | 17 stopp, 5 s |
+| H3D | höger | Vid dealerns egna kort | högern vid kortet den just lagt på dealerns egen plats, eller vilar där medan spelarna väljer | A3DCm | saknas | 20 stopp, 32 s | 34 stopp, 33 s |
+| H4 | höger | Vid lådan | högern lyft vid lådan för använda kort, med korten | — | saknas | 6 stopp, 7 s | 2 stopp, 1 s |
+| V1 | vänster | Vila framför | vänstern vilar på filten framför kroppen | A1, A1S | finns | 59 stopp, 116 s | 22 stopp, 14 s |
+| V1S | vänster | Vila mot skon | vänstern vilar mellan kroppen och skon, där den också lämnar kortet i handbytet: så väntar båda dealrarna medan spelarna väljer | A1V, A2M | saknas | 15 stopp, 43 s | 50 stopp, 197 s |
+| V2.3 | vänster | Vid skon | vänstern vid skons front, redo att ta kortet | A2.3, A3PnCm, A3DCm | finns | 60 stopp, 73 s | 43 stopp, 65 s |
+| V3D | vänster | Vid dealerns egna kort | vänstern vid kortet den lagt på dealerns egen plats, när den ger det ensam | — | saknas | 13 stopp, 15 s | 9 stopp, 8 s |
+| V3Pn | vänster | Vid kortet på plats n | vänstern vid kortet på en plats nära skon (6 och 7), när den ger ensam (dockans vänsterhandsgiv till plats 6 och 7 slutar här) | — | finns | 7 stopp, 11 s | 5 stopp, 8 s |
 
 ### Ankarena
 
-| Ankare | Namn | Var händerna är | Status | Anteckning |
-| --- | --- | --- | --- | --- |
-| A1 | Vila | båda händerna vilar på filten framför dealern, blicken mot kameran | finns |  |
-| A2.3 | Redo vid skon | vänstern vid skons mynning, högern redo framför dealern, blicken på skon | finns |  |
-| A3PnCm | Kortet har landat hos en spelare | plats n (1–7), kort m; handen ligger kvar vid kortet | finns | standarddockorna har kort 1 till varje plats; kort 2 och uppåt saknas |
-| A3DCm | Kortet har landat hos dealern | dealerns egna kortplats, kort m | saknas | finns bara för den äldre dockan |
-| A2.1 | Nyp i skons fönster | ena handen nyper kortet i skons fönster | finns | den äldre dockans (Paow); tas bort med henne |
-| A2.2 | Släp | handen över kortet i skon | finns | den äldre dockans (Paow); tas bort med henne |
+| Ankare | Namn | Höger + vänster | Var händerna är | Status | Anteckning |
+| --- | --- | --- | --- | --- | --- |
+| A1 | Vila | H1 + V1 | båda händerna vilar på filten framför dealern, blicken mot kameran | finns |  |
+| A1S | Vila under insatserna | H1S + V1 | högern utsträckt mot lådan, vänstern framför kroppen (Frasse: mot skon), blicken mot kameran | förslag | filmens vanligaste stillhet mellan rundorna; svepet över bordet börjar här när given börjar |
+| A1V | Väntan medan spelarna väljer | H1 + V1S | högern framför kroppen, vänstern mot skon | förslag | filmens vanligaste stillhet mitt i rundan, hos båda dealrarna |
+| A2.3 | Redo vid skon | H1 + V2.3 | vänstern vid skons mynning, högern redo framför dealern, blicken på skon | finns |  |
+| A2M | Handbytet | H2M + V1S | båda händerna vid kortet mitt framför dealern, vänstern håller det och högern tar det | förslag | skarven när korten ges i följd: i filmen nästan stannar kortets hand här (6–8 % av toppfarten), och högern går direkt från ett kort till nästa i stället för hem. Då behövs två klipp per kort (HEM-TILL-BYTET och GIV-FRAN-BYTET) i stället för ett för varje par av platser |
+| A3PnCm | Kortet har landat hos en spelare | H3Pn + V2.3 | plats n (1–7), kort m; handen ligger kvar vid kortet | finns | standarddockorna har kort 1 till varje plats; kort 2 och uppåt saknas. I filmen är vänstern oftast redan på väg med nästa kort i detta ögonblick |
+| A3DCm | Kortet har landat hos dealern | H3D + V2.3 | dealerns egna kortplats, kort m | saknas | finns bara för den äldre dockan |
+| A2.1 | Nyp i skons fönster | — | ena handen nyper kortet i skons fönster | finns | den äldre dockans (Paow); tas bort med henne |
+| A2.2 | Släp | — | handen över kortet i skon | finns | den äldre dockans (Paow); tas bort med henne |
+
+Båda händerna stilla samtidigt hos de riktiga dealrarna, de åtta vanligaste paren av lägen (en hel bild; de vanligaste är kandidaterna till ankare):
+
+| Höger + vänster | Ankare | Danilo (dealer A) | Frasse (dealer B) |
+| --- | --- | --- | --- |
+| H1 + V1S | A1V | 6 gånger, 28,1 s | 24 gånger, 67 s |
+| H1 + V2.3 | A2.3 | 16 gånger, 25,3 s | 10 gånger, 51,7 s |
+| H1S + V1S | — | — | 10 gånger, 74 s |
+| H1 + V1 | A1 | 19 gånger, 39,6 s | 2 gånger, 0,8 s |
+| H2 + V2.3 | — | 11 gånger, 25,2 s | — |
+| H1S + V1 | A1S | 6 gånger, 25,1 s | — |
+| H3D + V1 | — | 6 gånger, 4,9 s | 13 gånger, 10,2 s |
+| H3D + V3D | — | 11 gånger, 12,1 s | 2 gånger, 2,5 s |
 
 ### Rörelserna, stadium för stadium
 
-I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackjack-dealer/dealer3d/data/` för mannen och kvinnan (`<n>` är plats 1–7, `<docka>` mannen och kvinnan); "Stämmer?" jämför dem med katalogens status. En annan version än A väntas bara där A ges med två händer (fältet `marke` i A:s fil): platserna som ges med vänstern ensam har bara A. Bredvid står samma slag hos de två riktiga dealrarna (`live-bj/data/rorelser.json styles.<stil>.kinds.<slag>`, mätt på film, preliminärt): hur många, hur många som är rena nog att rita efter, och hur länge ett tar (median, och 10–90 % av dem).
+I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackjack-dealer/dealer3d/data/` för mannen och kvinnan (`<n>` är plats 1–7, `<docka>` mannen och kvinnan); "Stämmer?" jämför dem med katalogens status. En annan version än A väntas bara där A ges med två händer (fältet `marke` i A:s fil): platserna som ges med vänstern ensam har bara A. Bredvid står samma kategori i indelningen av hela livefilmen (`live-bj/data/segment.json dealrar.<A|B>.kategorier`, mätt på film, preliminärt), hand för hand: hur många stycken och hur länge ett tar (median, och 10–90 % av dem). En kategori kan höra till flera rörelser: GIV är alla kort till en plats, vilket kort det än är.
 
 #### Vila (VILA): hemankare A1, mellan rundorna och medan spelarna tänker
 
-| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Dealer A, ser i kameran | Dealer B, ser på bordet | Slaget i mätningen | Anteckning |
+| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Grundklippet i vila (VILA-GRUND) | A1 → A1 | stilla, med andning och blinkningar | delvis | — | — (inga filer att leta efter) | 20 st (19 rena), 3,83 s (1,77–6,81) | 36 st (32 rena), 4,55 s (2,4–8,97) | `waiting` | ställningen finns; andning, små egna rörelser och blinkning finns som ett val som är avstängt |
-| Korta varianter i vila (VILA-VARIANT) | A1 → A1 | en liten rörelse och tillbaka: rätta till händerna, en hand mot skon och åter, en blick mot en spelare | saknas | — | — (inga filer att leta efter) | 4 st (3 rena), 0,47 s (0,39–0,83) | — (inget sådant slag) | `a small shift of the hands` | de mätta dealrarna väntar ofta med vänstern vid skon och högern vid sina kort; hos oss blir det varianter som återvänder till A1, inte egna ankare |
+| Grundklippet i vila (VILA-GRUND) | A1 → A1 | stilla, med andning och blinkningar | delvis | — | — (inga filer att leta efter) | höger 53 st, 1,4 s (0,63–5,99); vänster 78 st, 1,48 s (0,66–5,16) | höger 58 st, 2,23 s (0,67–9,8); vänster 65 st, 2,17 s (0,63–7,02) | `VILA` | ställningen finns; andning, små egna rörelser och blinkning finns som ett val som är avstängt |
+| Korta varianter i vila (VILA-VARIANT) | A1 → A1 | en liten rörelse och tillbaka: rätta till händerna, en hand mot skon och åter, en blick mot en spelare | saknas | — | — (inga filer att leta efter) | höger 13 st, 5,33 s (1,3–11,49); vänster 9 st, 3,63 s (2,36–8,39) | höger 4 st, 5,87 s (2,86–10,51); vänster 9 st, 1,93 s (1,5–12,18) | `VANTA` | i filmen väntar händerna med små egna rörelser under 5 cm |
+
+#### Insatserna läggs (INSATSER): hemankare A1S, från att rundan är uppgjord tills given börjar
+
+| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Vila medan insatserna läggs (INSATS-VILA) | A1S → A1S | högern utsträckt mot lådan, stilla; blicken i kameran | saknas | — | — (inga filer att leta efter) | höger 53 st, 1,4 s (0,63–5,99); vänster 78 st, 1,48 s (0,66–5,16) | höger 58 st, 2,23 s (0,67–9,8); vänster 65 st, 2,17 s (0,63–7,02) | `VILA` |  |
+| Svepa bordet (SVEP) | A1S → A2.3 | högern sveper lågt från sidan tvärs över platserna och fram till mötet, där den tar första kortet; vänstern går till skon | saknas | — | — (inga filer att leta efter) | höger 2 st, 1,12 s (1,02–1,21) | höger 1 st, 4,37 s (4,37–4,37) | `SVEP` | Jakobs: så börjar given hos den riktiga dealern. I filmen ofta i samma rörelse som första kortet (fältet med_svep på givet) |
 
 #### Redo vid skon (REDO): hemankare A2.3, medan korten delas ut, mellan två kort
 
-| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Dealer A, ser i kameran | Dealer B, ser på bordet | Slaget i mätningen | Anteckning |
+| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Från vilan till skon (TILL-SKON) | A1 → A2.3 | båda | finns | `till-ankare-2-3-<docka>`: mannen och kvinnan 1 av 1 (2 av 2 filer som väntas) | ja | — (inte urskilt i mätningen) | — (inte urskilt i mätningen) | — |  |
-| Grundklippet vid skon (REDO-GRUND) | A2.3 → A2.3 | stilla och redo, varken spänd eller slapp | delvis | — | — (inga filer att leta efter) | — (inte urskilt i mätningen) | — (inte urskilt i mätningen) | — | finns som stillhet mellan givarna i rundan, inte som eget klipp |
-| Från skon tillbaka till vilan (TILL-VILAN) | A2.3 → A1 | båda | saknas | — | — (inga filer att leta efter) | — (inte urskilt i mätningen) | — (inte urskilt i mätningen) | — | takten är bestämd (0,8 s) |
+| Från vilan till skon (TILL-SKON) | A1 → A2.3 | båda | finns | `till-ankare-2-3-<docka>`: mannen och kvinnan 1 av 1 (2 av 2 filer som väntas) | ja | vänster 46 st, 0,63 s (0,3–0,97) | vänster 53 st, 0,57 s (0,34–0,92) | `TILL-SKON` |  |
+| Grundklippet vid skon (REDO-GRUND) | A2.3 → A2.3 | stilla och redo, varken spänd eller slapp | delvis | — | — (inga filer att leta efter) | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | finns som stillhet mellan givarna i rundan, inte som eget klipp |
+| Från skon tillbaka till vilan (TILL-VILAN) | A2.3 → A1 | båda | saknas | — | — (inga filer att leta efter) | höger 43 st, 0,6 s (0,17–1,03); vänster 50 st, 0,33 s (0,17–0,74) | höger 36 st, 0,37 s (0,2–1,32); vänster 34 st, 0,32 s (0,17–0,56) | `HEM` | takten är bestämd (0,8 s) |
 
 #### Ett kort ut (GIV): hemankare A2.3, ett kort går från skon till en spelare eller till dealern
 
-| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Dealer A, ser i kameran | Dealer B, ser på bordet | Slaget i mätningen | Anteckning |
+| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Första kortet till en spelare (GIV-KORT-1) | A2.3 → A3PnC1 | vänstern drar, högern lägger (plats 6 och 7: vänstern ensam) | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | 28 st (28 rena), 1,98 s (1,03–2,57) | 50 st (49 rena), 1,67 s (1,11–2,97) | `card from the shoe to a seat` | ritad i samma fil som handen hem; rutan där kortet ligger delar dem. Version A finns till alla sju platser, version B till plats 1–5 (plats 6 och 7 ges med vänstern ensam och har bara A) |
-| Andra kortet och fler till en spelare (GIV-KORT-2) | A2.3 → A3PnCm | som första kortet | saknas | — | — (inga filer att leta efter) | 28 st (28 rena), 1,98 s (1,03–2,57) | 50 st (49 rena), 1,67 s (1,11–2,97) | `card from the shoe to a seat` | Jakobs önskan: upp till sju kort per plats |
-| Kort till dealern själv (GIV-EGET) | A2.3 → A3DCm | vänstern ensam, direkt ur skon, utan handbyte | saknas | — | — (inga filer att leta efter) | — (inget sådant slag) | — (inget sådant slag) | `card from the shoe, left hand alone` | så gör båda de mätta dealrarna; dockan har redan en vänsterhandsgiv (plats 6 och 7) att bygga på |
+| Första kortet till en spelare (GIV-KORT-1) | A2.3 → A3PnC1 | vänstern drar, högern lägger (plats 6 och 7: vänstern ensam) | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | höger 30 st, 0,8 s (0,53–1,15); vänster 3 st, 0,23 s (0,23–0,34) | höger 60 st, 0,98 s (0,8–2,04); vänster 3 st, 0,23 s (0,13–0,34) | `GIV` | ritad i samma fil som handen hem; rutan där kortet ligger delar dem. Version A finns till alla sju platser, version B till plats 1–5 (plats 6 och 7 ges med vänstern ensam och har bara A). I filmen ges också plats 6 och 7 oftast med handbyte |
+| Andra kortet och fler till en spelare (GIV-KORT-2) | A2.3 → A3PnCm | som första kortet | saknas | — | — (inga filer att leta efter) | höger 30 st, 0,8 s (0,53–1,15); vänster 3 st, 0,23 s (0,23–0,34) | höger 60 st, 0,98 s (0,8–2,04); vänster 3 st, 0,23 s (0,13–0,34) | `GIV` | Jakobs önskan: upp till sju kort per plats |
+| Kort till dealern själv (GIV-EGET) | A2.3 → A3DCm | vänstern drar, högern lägger på dealerns plats; ibland vänstern ensam | saknas | — | — (inga filer att leta efter) | höger 14 st, 0,77 s (0,38–0,86); vänster 4 st, 0,67 s (0,61–0,72) | höger 21 st, 0,73 s (0,43–1,33); vänster 4 st, 0,53 s (0,5–0,57) | `GIV-EGET` | i filmen läggs dealerns kort oftast av högern efter ett handbyte, som en spelares; vänstern ensam är det ovanliga |
+| Kortet från handbytet till platsen (GIV-FRAN-BYTET) | A2M → A3PnCm | högern för kortet till platsen; vänstern går tillbaka till skon och tar nästa | förslag | — | — (inga filer att leta efter) | höger 30 st, 0,8 s (0,53–1,15); vänster 3 st, 0,23 s (0,23–0,34) | höger 60 st, 0,98 s (0,8–2,04); vänster 3 st, 0,23 s (0,13–0,34) | `GIV` | andra halvan av en giv i följd |
 
 #### Handen hem (TILLBAKA): hemankare A3PnCm, efter att kortet har landat
 
-| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Dealer A, ser i kameran | Dealer B, ser på bordet | Slaget i mätningen | Anteckning |
+| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Handen hem till skon (HEM-TILL-SKON) | A3PnCm → A2.3 | handen som lade kortet | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | — (inte urskilt i mätningen) | — (inte urskilt i mätningen) | — | andra halvan av givens fil |
-| Handen hem direkt till vilan (HEM-TILL-VILAN) | A3PnCm → A1 | båda | saknas | — | — (inga filer att leta efter) | — (inte urskilt i mätningen) | — (inte urskilt i mätningen) | — |  |
+| Handen hem till skon (HEM-TILL-SKON) | A3PnCm → A2.3 | handen som lade kortet | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | andra halvan av givens fil. I filmen går högern sällan hem mellan två kort; se HEM-TILL-BYTET |
+| Högern från platsen tillbaka till nästa kort (HEM-TILL-BYTET) | A3PnCm → A2M | högern går från kortet direkt till mötet, medan vänstern redan drar nästa kort ur skon | förslag | — | — (inga filer att leta efter) | höger 30 st, 0,8 s (0,53–1,15); vänster 3 st, 0,23 s (0,23–0,34) | höger 60 st, 0,98 s (0,8–2,04); vänster 3 st, 0,23 s (0,13–0,34) | `GIV` | så ger båda dealrarna i följd: händerna i otakt. Ersätter att båda händerna går hem mellan korten |
+| Handen hem direkt till vilan (HEM-TILL-VILAN) | A3PnCm → A1 | båda | saknas | — | — (inga filer att leta efter) | höger 43 st, 0,6 s (0,17–1,03); vänster 50 st, 0,33 s (0,17–0,74) | höger 36 st, 0,37 s (0,2–1,32); vänster 34 st, 0,32 s (0,17–0,56) | `HEM` | efter rundans sista kort; vänstern går ofta hem samtidigt |
+| Rätta till ett kort (RATTA) | A3PnCm → A3PnCm | en liten rörelse vid kortet som ligger | saknas | — | — (inga filer att leta efter) | — (inte i filmen) | höger 2 st, 0,28 s (0,27–0,3) | `RATTA` |  |
 
-#### Dealerns egna kort (DEALERNS TUR): hemankare A1, när spelarna är klara: hålkortet vänds och dealern drar
+#### Dealerns egna kort (DEALERNS TUR): hemankare A1, när spelarna är klara: dealern drar sina kort
 
-| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Dealer A, ser i kameran | Dealer B, ser på bordet | Slaget i mätningen | Anteckning |
+| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Vända sitt eget kort (VAND-EGET) | A1 → A1 | en hand | saknas | — | — (inga filer att leta efter) | 36 st (25 rena), 0,85 s (0,4–1,82) | 38 st (35 rena), 0,63 s (0,42–1,39) | `at his own cards` | ligger bland styckena vid de egna korten i mätningen, tillsammans med rättningar av korten; inte urskild i bild än |
+| Vända sitt eget kort (VAND-EGET) | A1 → A1 | en hand | saknas | — | — (inga filer att leta efter) | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | finns inte i filmen: livebordet ger dealerns kort med framsidan upp, utan hålkort. Ritas efter vårt eget spel om det behövs |
 
-#### Mot spelaren (SPELARENS TUR): hemankare A1, när en spelare ska välja
+#### Mot spelaren (SPELARENS TUR): hemankare A1V, när en spelare ska välja
 
-| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Dealer A, ser i kameran | Dealer B, ser på bordet | Slaget i mätningen | Anteckning |
+| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Visa att det är spelarens tur (VISA-TUR) | A1 → A1 (över plats n) | en öppen hand mot platsen och tillbaka | saknas | — | — (inga filer att leta efter) | 4 st (4 rena), 0,5 s (0,41–1,13) | 6 st (6 rena), 0,58 s (0,38–1,68) | `a small move at a seat` | inte urskilt i mätningen än |
+| Peka på spelaren som ska agera (PEKA) | A1V → A1V (över plats n) | snabbt, med hela handen öppen mot platsen och tillbaka | saknas | — | — (inga filer att leta efter) | höger 2 st, 0,95 s (0,72–1,18) | höger 2 st, 2,62 s (2,44–2,79); vänster 2 st, 0,27 s (0,27–0,27) | `PEKA` | Jakobs önskan. Nästan inte i filmen: där visar spelets skylt vems tur det är, och dealern ser i kameran. Ritas med högerns väg mot platsen ur givet som förlaga |
 
 #### Rundan görs upp (AVSLUT): hemankare A1, marker betalas ut och tas in, korten samlas in
 
-| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Dealer A, ser i kameran | Dealer B, ser på bordet | Slaget i mätningen | Anteckning |
+| Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Betala ut marker till en spelare (MARKER-UT) | A1 → A1 (över plats n) | en hand från brickan till platsen och tillbaka | saknas | — | — (inga filer att leta efter) | — (inte urskilt i mätningen) | — (inte urskilt i mätningen) | — | inte mätt: livebordet har inga marker (de är spelets grafik), så rörelsen får ritas efter vårt eget bord |
-| Ta in marker från en spelare (MARKER-IN) | A1 → A1 (över plats n) | en hand ut till platsen och tillbaka till brickan | saknas | — | — (inga filer att leta efter) | — (inte urskilt i mätningen) | — (inte urskilt i mätningen) | — | inte mätt: livebordet har inga marker (de är spelets grafik), så rörelsen får ritas efter vårt eget bord |
-| Ta in korten från bordet (KORTEN-IN) | A1 → A1 | högern sveper över platserna och samlar korten | saknas | — | — (inga filer att leta efter) | 1 st (1 rena), 4,6 s (4,6–4,6) | 10 st (9 rena), 3,38 s (2,61–5,51) | `a sweep over several seats` |  |
-| Lägga korten i lådan (I-LADAN) | A1 → A1 | högern lyfts till lådans öppning och tillbaka | saknas | — | — (inga filer att leta efter) | 10 st (6 rena), 2,17 s (0,74–4,06) | 7 st (7 rena), 4,17 s (3,05–5,12) | `cards into the box` | kan ritas ihop med Ta in korten till ett klipp |
+| Betala ut marker till en spelare (MARKER-UT) | A1 → A1 (över plats n) | en hand från brickan till platsen och tillbaka | saknas | — | — (inga filer att leta efter) | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | inte mätt: livebordet har inga marker (de är spelets grafik), så rörelsen får ritas efter vårt eget bord |
+| Ta in marker från en spelare (MARKER-IN) | A1 → A1 (över plats n) | en hand ut till platsen och tillbaka till brickan | saknas | — | — (inga filer att leta efter) | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | inte mätt: livebordet har inga marker (de är spelets grafik), så rörelsen får ritas efter vårt eget bord |
+| Korten in i lådan (KORT-IN) | A1 → A1S | högern samlar korten från platserna och de egna (vänstern hjälper), lyfter dem till lådans öppning och lägger dem där, och vilar sedan åt sidan | saknas | — | — (inga filer att leta efter) | höger 14 st, 1,85 s (0,71–4,96); vänster 8 st, 2,98 s (1,06–4,77) | höger 13 st, 4,87 s (0,4–7,53); vänster 10 st, 2,9 s (0,32–4,05) | `KORT-IN` | en enda rörelse i filmen: insamlingen och lådan hör ihop |
 
 **Rörelser som delar filer.**
 
 - GIV-KORT-1 och HEM-TILL-SKON pekar på samma filer (`giv-fran-2-3-p<n>c1-ren-<a|b>-<docka>`): de är ritade i en fil, och rutan där kortet ligger (`rests` i filen) delar dem. I de 24 filer som finns: Första kortet till en spelare i rutorna 0–36 (1,2 s), Handen hem till skon i rutorna 36–60 (0,8 s).
 
-Slag som de riktiga dealrarna gör men som katalogen inte har:
+### Bryggorna
 
-- `card from the shoe, where to not seen`: Dealer A, ser i kameran 18 st (13 rena), 1,03 s (0,73–2,54); Dealer B, ser på bordet 6 st (5 rena), 1,53 s (0,62–2,65)
-- `card from the shoe to himself`: Dealer A, ser i kameran 12 st (11 rena), 2,22 s (1,12–2,93); Dealer B, ser på bordet 16 st (16 rena), 1,95 s (1,6–2,53)
-- `between a seat and his own cards`: Dealer A, ser i kameran 8 st (6 rena), 1,55 s (0,69–5,27); Dealer B, ser på bordet 17 st (13 rena), 1,4 s (0,67–2,66)
-- `a reach to a seat and back`: Dealer A, ser i kameran 3 st (0 rena), 2,33 s (1,13–2,81); Dealer B, ser på bordet 8 st (4 rena), 1,58 s (1,01–2,37)
-- `other`: Dealer A, ser i kameran 2 st (2 rena), 0,73 s (0,65–0,81); Dealer B, ser på bordet — (inget sådant slag)
-- `the right hand out to the box side`: Dealer A, ser i kameran 2 st (0 rena), 1,62 s (1,44–1,79); Dealer B, ser på bordet 7 st (1 rena), 1,4 s (1,02–1,52)
+| Brygga | Namn | Vad | Regel |
+| --- | --- | --- | --- |
+| BRYGGA-IN | In i ett lyft stycke | från mitten av ankarets läge till där dealerns stycke börjar | dockans egen mjuka rörelse, 0,5 m/s och minst 0,2 s; ingen under 3 cm |
+| BRYGGA-UT | Ut ur ett lyft stycke | från där dealerns stycke slutar till mitten av ankarets läge | som BRYGGA-IN |
+| VANTA-IN | Vänta in nästa liknande start | där dealern gör något som inte härmas står dockan kvar i läget hon var i, tills dealern börjar nästa stycke som börjar i samma läge | börjar nästa stycke i ett annat läge: en BRYGGA-IN dit |
+| SVEP-IN | Svepet som väg in i given | från vilan under insatserna (A1S) går högern över bordet till första kortet | rörelsen SVEP; i filmen ofta ihopväxt med första kortet |
+
+### Det som inte härmas
+
+| Kategori | Namn | Vad | Danilo (dealer A) | Frasse (dealer B) |
+| --- | --- | --- | --- | --- |
+| SKON | Sköta skon | båda händerna vid skon: fylla på eller byta kortlek | höger 10 st, 1,02 s (0,26–4,95); vänster 16 st, 0,82 s (0,18–2,18) | — (inte i filmen) |
+| ANNAT | Annat | en rörelse som inte passar någon av rörelserna ovan, till exempel att ta upp skärkortet eller flytta något på bordet | höger 6 st, 0,75 s (0,47–1,37); vänster 1 st, 1,7 s (1,7–1,7) | höger 4 st, 0,47 s (0,28–1,02); vänster 3 st, 0,53 s (0,51–0,56) |
+
+Kategorier i indelningen som katalogen inte har en rörelse för:
+
+- `DRA`: Danilo (dealer A) vänster 63 st, 0,7 s (0,34–0,99); Frasse (dealer B) vänster 99 st, 0,83 s (0,4–0,97)
 
 ## 7. Det som inte har något mått i kod än
 
 - Skons lutning: skon står plant på filten; bara frontplattan lutar (51,6°, `table-lens.ts SHOE.plateLean`). Korten i skon har ingen egen lutning: de ligger mot plattan och lutar som den.
 - Kortets vändning i handbytet har inget eget tal i koden: koreo-giv.ts säger "cirka 90 grader" i en kommentar, och Jakob sa "cirka 100 grader".
 - Handledens gräns 36 grader i DOMAR.md är ett resultat på de vända platserna, inte ett tal i koden; koden håller handen inom RAK och RAK_H (koreo-giv.ts, ovan).
-- Livebordets sko: den klara frontens lutning och topp är skattade, eftersom dess två topphörn lästes olika (34 och 11,5 grader bakåt från lodrätt, 0,060 och 0,107 m höga); klonen har omkring 20 grader och 0,085 m (`table-live.ts LIVE.shoe`). Sargen (rullen) är bara mätt i bildpunkter. Livebordet har ingen markerbricka; platsmärkena är spelets ritade knappar i bilden.
+- Livebordets sko: kortleken ligger på en bädd som stiger bakåt, och korten lutar bakåt som fronten med långsidan tvärs skon (mätt om 2026-11-27; förut stod de nästan upprätt). Bara kortlekens längd längs bädden är skattad: den krymper när korten delas ut (`table-live.ts LIVE.shoe`). Sargen (rullen) är bara mätt i bildpunkter. Livebordet har ingen markerbricka; platsmärkena är spelets ritade knappar i bilden.
 - Livebordets dealrar: hur långt bakom kanten de sitter är antaget (0,2 m; skattat 0,07–0,16 m), och armarnas längd går inte att mäta (dockans egna används).
 - Livebordet: golvet syns inte i bilden; filtens och sitsens höjd över golvet är slutledda ur dealrarnas ögon när de står, inte mätta.
 - Mannens och kvinnans ögon har ingen höjd i koden: ögonen är ben i modellerna (eyeL, eyeR i .glb-filerna), och närmast i koden är huvudets mitt. Blenders kamera dealer_ogon i standard.yaml är antagen, för den vita dockan.
@@ -404,5 +465,5 @@ Det verktyget läste. "kod" är importerat som programmet självt använder det;
 | `blackjack-dealer/dealer3d/data/giv-fran-2-3-p4c1-ren-a-kvinna.json` | data | ja |
 | `blackjack-dealer/dealer3d/data/till-ankare-2-3-kvinna.json` | data | ja |
 | `standarddocka/rorelsekatalog.json` | data | ja |
-| `live-bj/data/rorelser.json` | data | ja |
+| `live-bj/data/segment.json` | data | ja |
 | `blackjack-dealer/dealer3d/data/<katalogens filer>` | data (bara huvudet: fps, frameCount, rests) | ja |

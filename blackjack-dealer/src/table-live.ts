@@ -92,26 +92,35 @@ export type LiveSetup = {
   felt: {centre: Vec3; radius: number; edgeZ: number; frontZ: number; depth: number; widthAtEdge: number};
   /** antaget (ours): the padded rail round the arc, outside the felt; it stands up from the felt and is mätt in pixels only. */
   rail: {width: number; section: typeof TABLE_RAIL};
-  /** A clear box: its front is a clear plate leaning back from the foot's two front corners, and the next card shows through it, back out. */
+  /**
+   * A long clear box (mätt again 2026-11-27 on the film's frames: the deck lies, it does not stand). Its front is a clear
+   * frame leaning back from the foot's two front corners, open in a window where the next card's back shows; inside, the
+   * deck lies on a bed that rises toward the back, every card leaning back as the front and lying with its long side
+   * across the shoe, so that the next card's back is a leaning red face seen from above. The top is open.
+   */
   shoe: {
     /** mätt where it stands on the felt (corners read by eye, 1 to 2 cm): by the dealer and toward the players at the front, and the back corner toward the players. */
     foot: {byDealer: Vec3; towardPlayers: Vec3; back: Vec3};
     length: number; width: number;
-    /** mätt from the picture. */
+    /** mätt from the picture: the back's top over the felt; the side walls' top edges run straight from the front's top to it. */
     backHeight: number;
-    /** skattat: the front plate's top over the felt. Its two top corners read 0.060 m (by the dealer) and 0.107 m (toward the players), the reading's error; about 0.08 is the best value, 0.085 here so that a card 88 mm long fits the front. */
+    /** mätt: the front's top over the felt, its two top corners read 0.060 m (by the dealer) and 0.062 m (toward the players). */
     frontHeight: number;
-    /** skattat: the front plate's lean from the felt. The two corners read 34 and 11.5 degrees back from upright; about 20 is the best value, so 70 from the felt. */
+    /** mätt: the front's lean from the felt (radians): its two top corners read 34.0 and 32.8 degrees back from upright, and the next card's back in its window leans the same (53 to 57 degrees from the felt). The cards in the shoe lean as it does. */
     plateLean: number;
-    /** antaget: how high over the felt the next card's lower edge stands behind the front (the shoe's floor). */
+    /** mätt: how high over the felt the bed begins at the front, where the next card's lower edge stands (in the front's plane). */
     windowLift: number;
-    /** mätt: the front plate's corners as read, foot by the dealer, foot toward the players, top toward the players, top by the dealer (their tops disagree, see frontHeight). */
+    /** mätt: the bed the deck lies on, its rise from the felt toward the back (radians), seen through the near wall: 13.4 degrees (12 to 13.5 by other readings). */
+    bedLean: number;
+    /** skattat: how far along the bed the deck reaches from the next card's lower edge. It shrinks as cards are dealt: 0.14 m at 62 s and 0.23 m at 600 s of the film; 0.18 m is eight decks, between them. */
+    deckLength: number;
+    /** The front's corners, foot by the dealer, foot toward the players, top toward the players, top by the dealer: the feet and the tops mätt, each top straight back and up from its foot. */
     frontCorners: Vec3[];
   };
-  /** mätt: a separate clear piece lying flat on the felt just before the shoe's front (no card lies on it): its corners and middle. */
+  /** mätt: a separate clear piece lying flat on the felt just before the shoe's front: its corners and middle. The drawn card slides out over it. */
   clearPiece: {corners: Vec3[]; middle: Vec3};
-  /** mätt where it stands: a clear box at the dealer's right, open at the top. Foot: near left, near right, far right. */
-  box: {foot: [Vec3, Vec3, Vec3]; width: number; depth: number; height: number};
+  /** mätt where it stands: a clear box at the dealer's right, open at the top. Foot: near left, near right, far right. The used cards lie flat in it, back up, in a pile `pile` metres high (skattat: 2 to 5 cm through the film). */
+  box: {foot: [Vec3, Vec3, Vec3]; width: number; depth: number; height: number; pile: number};
   /** mätt in the 8 keyframes where it lies out (it is not always there): the red cut card before the box. */
   cutCard: {middle: Vec3; size: [number, number]};
   /** mätt: there is none, the chips are the game's graphics. The Blender build can add ours (bygg_bord.py --live --med-bricka), marked as ours. */
@@ -133,7 +142,7 @@ export type LiveSetup = {
 
 const card = (x: number, z: number, turn: number, turnFrom: string, landings: number, spread: [number, number]): LiveCard => ({at: [x, 0, z], turn, turnFrom, landings, spread});
 /**
- * The set-up, copied from live-bj/data/uppsattning.json of 2026-11-27 (as pushed in 5d2c647, with the shoe's front measured). The card places' lie: where the landings agree on
+ * The set-up, copied from live-bj/data/uppsattning.json of 2026-11-27 (the shoe measured again the same day: its front, its bed and the next card). The card places' lie: where the landings agree on
  * it (long_side_agreement 0.5 or more) it is theirs; where they do not, it is the mirror image of the same card at the
  * mirrored seat (seat 1 and 7, 2 and 6, 3 and 5), else that seat's own first card's.
  */
@@ -144,11 +153,11 @@ export const LIVE: LiveSetup = {
   rail: {width: TABLE_TOP.rail, section: TABLE_RAIL},
   shoe: {
     foot: {byDealer: [0.427, 0, -1.4842], towardPlayers: [0.4521, 0, -1.3844], back: [0.7162, 0, -1.4577]},
-    length: 0.274, width: 0.103, backHeight: 0.117, frontHeight: 0.085, plateLean: 70 * D, windowLift: 0.002,
-    frontCorners: [[0.427, 0, -1.4842], [0.4521, 0, -1.3844], [0.4732, 0.1065, -1.3897], [0.4663, 0.0601, -1.4941]],
+    length: 0.274, width: 0.103, backHeight: 0.117, frontHeight: 0.061, plateLean: (90 - 33.4) * D, windowLift: 0.003, bedLean: 13.4 * D, deckLength: 0.18,
+    frontCorners: [[0.427, 0, -1.4842], [0.4521, 0, -1.3844], [0.4907, 0.0617, -1.3941], [0.4663, 0.0601, -1.4941]],
   },
   clearPiece: {corners: [[0.3652, 0, -1.446], [0.4017, 0, -1.4618], [0.4311, 0, -1.3674], [0.3977, 0, -1.3589]], middle: [0.3989, 0, -1.4085]},
-  box: {foot: [[-0.6481, 0, -1.4543], [-0.5725, 0, -1.458], [-0.5749, 0, -1.5506]], width: 0.076, depth: 0.093, height: (0.159 + 0.156) / 2},
+  box: {foot: [[-0.6481, 0, -1.4543], [-0.5725, 0, -1.458], [-0.5749, 0, -1.5506]], width: 0.076, depth: 0.093, height: (0.159 + 0.156) / 2, pile: 0.03},
   cutCard: {middle: [-0.5737, 0, -1.4042], size: [0.0479, 0.0863]},
   tray: null,
   betMarks: [[-0.4967, 0, -1.1335], [-0.3347, 0, -0.9978], [-0.1711, 0, -0.9279], [0.0004, 0, -0.9074], [0.173, 0, -0.9295], [0.3363, 0, -1.0013], [0.4991, 0, -1.1392]],
@@ -186,7 +195,7 @@ export const LIVE: LiveSetup = {
           {left: 'egna kort', right: 'plats 1', times: 3, seconds: 14.6, leftGrip: [-0.0805, 0, -1.4619], rightGrip: [-0.531, 0, -1.2734]},
           {left: 'egna kort', right: 'lådan', times: 3, seconds: 9.8, leftGrip: [-0.0473, 0, -1.4688], rightGrip: [-0.5336, 0, -1.3121]},
         ],
-        leftAtShoe: {reaches: 58, onFelt: [0.4683, 0, -1.5765], spread: [0.075, 0.071], atFront: [0.4303, 0.0501, -1.4486], offCard: 0.028},
+        leftAtShoe: {reaches: 58, onFelt: [0.4683, 0, -1.5765], spread: [0.075, 0.071], atFront: [0.4323, 0.0475, -1.4552], offCard: 0.035},
       },
       bordet: {
         name: 'frasse', shouldersMiddle: [0.046, 0.31, -1.738], shoulderWidth: 0.348, eyesOverFelt: 0.514,
@@ -197,7 +206,7 @@ export const LIVE: LiveSetup = {
           {left: 'plats 7', right: 'egna kort', times: 6, seconds: 27.6, leftGrip: [0.2647, 0, -1.2652], rightGrip: [-0.1327, 0, -1.3596]},
           {left: 'mot skon', right: 'egna kort', times: 4, seconds: 10.8, leftGrip: [0.1647, 0, -1.3902], rightGrip: [-0.1472, 0, -1.3561]},
         ],
-        leftAtShoe: {reaches: 71, onFelt: [0.4482, 0, -1.5481], spread: [0.044, 0.074], atFront: [0.4191, 0.04, -1.4477], offCard: 0.037},
+        leftAtShoe: {reaches: 71, onFelt: [0.4482, 0, -1.5481], spread: [0.044, 0.074], atFront: [0.421, 0.0374, -1.4544], offCard: 0.04},
       },
     },
   },
@@ -211,18 +220,20 @@ export function liveShoePose(s: LiveSetup['shoe'] = LIVE.shoe): ShoePose {
   return {front: f, back, far: [back[2], 0, -back[0]], footLength: n}; // across, away from the camera (-z): toward the dealer's corner
 }
 /**
- * The next card in the shoe, as the film shows it: behind the clear front plate, back out, its long side up the plate,
- * in the middle of the shoe, its lower edge windowLift over the felt and `behind` metres inside the plate's outer face
- * (the plate is 3 mm thick in the Blender build). Its middle then lies within 3 mm of the plate's middle, where the
- * measurement has it (live-bj uppsattning.json
- * shoe.card_when_drawn). Its centre, the direction of its long side (up the front), of its short side (across, toward
- * the far wall) and out of the front.
+ * The next card in the shoe, as the film shows it: in the clear front's window, back out, lying with its long side across
+ * the shoe and its short side up the front, leaning back as the front does (plateLean), in the middle of the shoe, its
+ * lower edge windowLift over the felt where the bed begins and `behind` metres inside the front's outer face. Its middle
+ * then lies within 2 mm of where the measurement has it (live-bj uppsattning.json shoe.card_when_drawn: its back's printed
+ * pattern is 78 mm across the shoe and 52 mm up the front). The finger takes it there and draws it down the front (-short)
+ * and out under it onto the felt, toward the table's middle (-liveShoePose().back). The rest of the deck lies behind it
+ * along the bed (bedLean, deckLength). Its centre, the direction of its long side (across, toward the far wall), of its
+ * short side (up the front) and out of the front.
  */
-export function liveShoeCard(s: LiveSetup['shoe'] = LIVE.shoe, behind = 0.004): {centre: Vec3; long: Vec3; short: Vec3; out: Vec3} {
+export function liveShoeCard(s: LiveSetup['shoe'] = LIVE.shoe, behind = 0.001): {centre: Vec3; long: Vec3; short: Vec3; out: Vec3} {
   const pose = liveShoePose(s), c = Math.cos(s.plateLean), n = Math.sin(s.plateLean), b = pose.back, f = pose.front, w = pose.far;
-  const long: Vec3 = [b[0] * c, n, b[2] * c], out: Vec3 = [-b[0] * n, c, -b[2] * n], along = s.windowLift / n + CARD.height / 2;
+  const short: Vec3 = [b[0] * c, n, b[2] * c], out: Vec3 = [-b[0] * n, c, -b[2] * n], along = s.windowLift / n + CARD.width / 2;
   const mid: Vec3 = [f[0] + w[0] * s.width / 2, 0, f[2] + w[2] * s.width / 2];
-  return {centre: [mid[0] + long[0] * along - out[0] * behind, long[1] * along - out[1] * behind, mid[2] + long[2] * along - out[2] * behind], long, short: w, out};
+  return {centre: [mid[0] + short[0] * along - out[0] * behind, short[1] * along - out[1] * behind, mid[2] + short[2] * along - out[2] * behind], long: w, short, out};
 }
 /** The box's middle on the felt and its turn (radians, the near side's direction from +x toward -z). */
 export function liveBox(b: LiveSetup['box'] = LIVE.box): {centre: Vec3; turn: number} {

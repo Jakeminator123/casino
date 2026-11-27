@@ -19,8 +19,9 @@ Det är --kant-bak, --djup, --sko-ut och --sko-fram nedan med de talen, och skri
 först"): filten, skon, lådan för använda kort, insatsmärkena och kortplatserna där livebordet har dem, ur standard.yaml
 livebord (ur spelets LIVE i ../blackjack-dealer/src/table-live.ts), med vårt utseende (filt, sarg, rulle, ben och färger
 som standardbordet). Filten är deras halvcirkel och rullen ligger utanför den; livebordet har ingen markerbricka.
-Skon är deras: en klar låda vars front är en klar platta som lutar bakåt från fotens främre hörn, nästa kort bakom den
-med ryggen utåt, och en lös klar bit som ligger plant på filten framför (sko_los_bit).
+Skon är deras (sko_live nedan): en lång klar låda, öppen upptill, med en klar ram i fronten, och kortleken liggande på en
+bädd som stiger bakåt, nästa kort i frontens fönster med ryggen utåt; och en lös klar bit plant på filten framför
+(sko_los_bit). I lådan för använda kort ligger en korthög med ryggen upp.
 Origo ligger på golvet under livebordets dealerkant. Skriver standardbord_live.blend/.glb. Med --med-bricka läggs vår
 markerbricka (markerbricka i standard.yaml) in vid dealerkanten som ett tillägg, i standardbord_live_bricka.blend/.glb.
 
@@ -579,6 +580,214 @@ def sko_front(P, lean, hf, wd, wt, col):
     return ob
 
 
+def sko_standard(c_sko, m_shoe, m_card, m_edge, back_cell):
+    """Vår sko (alla byggen utom --live): kilen ur standard.yaml med en riktig dealerskos frontplatta framför korten
+    (sko_front ovan), korten stående mot plattan. Ger hur långt skon flyttades (--sko-ut, --sko-fram)."""
+    K = STD['kort']
+    sk = STD['sko']; front = Vector(sk['fot_fram']); yawb = math.radians(sk['yaw_bakat'])
+    ax = Vector((math.cos(yawb), math.sin(yawb), 0)); side = Vector((-ax.y, ax.x, 0))
+    # --sko-ut längs skons längd och --sko-fram vinkelrätt mot spelarna (-side: side pekar mot den bortre väggen, mot
+    # dealern): allt som hör till skon flyttas lika långt. Kroppen och frontplattan byggs där standard.yaml har dem och
+    # flyttas sedan hela (objektets läge), så att deras hörn fogas ihop exakt som förut.
+    sko_flytt = ax * (SKO_UT or 0.0) - side * (SKO_FRAM or 0.0)
+    lean = math.radians(sk['platta_lutning_grader']); hf, hb, ln, wd = sk['hojd_fram'], sk['hojd_bak'], sk['langd'], sk['bredd']
+    uf = hf / math.tan(lean)   # där plattans topp möter locket
+    base_h = sk['fonster_lyft']; wt = 0.004
+    def P(u, v, h):  # skons lokala: u bakåt längs axeln, v åt sidan, h upp
+        q = front + ax * u + side * v; return (q.x, q.y, q.z + h)
+    bm = bmesh.new()
+    def quad(a, b, c, d):
+        bm.faces.new([bm.verts.new(P(*a)), bm.verts.new(P(*b)), bm.verts.new(P(*c)), bm.verts.new(P(*d))])
+    prof = [(0, 0), (ln, 0), (ln, hb), (uf, hf), (0, 0)]
+    for v in (0.0, wd - wt):  # sidoväggar: v=0 är nära väggen (fot_fram), v=wd är bortre väggen (pose.far)
+        for vv in (v, v + wt):
+            bm.faces.new([bm.verts.new(P(u, vv, h)) for u, h in prof[:4]])
+    quad((0, 0, 0), (ln, 0, 0), (ln, wd, 0), (0, wd, 0))                                 # botten
+    un = base_h / math.tan(lean)  # där nosen möter golvet; golvet börjar där, så att kortet glider ut framför nosen
+    quad((un, 0, base_h), (ln, 0, base_h), (ln, wd, base_h), (un, wd, base_h))           # golv i skon
+    quad((ln, 0, 0), (ln, wd, 0), (ln, wd, hb), (ln, 0, hb))                             # bakvägg
+    quad((uf, 0, hf), (ln, 0, hb), (ln, wd, hb), (uf, wd, hf))                           # lock
+    quad((0, 0, 0), (0, wd, 0), (un, wd, base_h), (un, 0, base_h))                       # nos
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6); bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    shoe = obj_from_bm('sko_kropp', bm, c_sko, m_shoe)
+    sol = shoe.modifiers.new('tjocklek', 'SOLIDIFY'); sol.thickness = 0.003
+    skofront = sko_front(P, lean, hf, wd, wt, c_sko)  # vår skos svarta frontplatta med öppningen för fingret
+    if sko_flytt.length > 0:
+        shoe.location = sko_flytt; skofront.location = sko_flytt
+    # kort i skon: översta korten som egna objekt (dragbara), resten som en bunt. Egen mesh med ryggen på båda sidor;
+    # den heter inte kort_*, eftersom editorn (standarddocka/editor/scen.ts) döljer bordets lösa kort med det namnet,
+    # och då syntes buntens vita kant i stället för skons rygg.
+    mes = card_mesh('sko_kortrygg', back_cell, back_cell); mes.materials.append(m_card); mes.materials.append(m_edge)
+    # kortets långsida (meshens Y) uppför plattan och kortsidan (X) tvärs skon
+    up = Vector(sk['fonsterkort_upp']).normalized(); ac = Vector(sk['fonsterkort_tvars']).normalized()
+    nrm = ac.cross(up)
+    if nrm.dot(ax) > 0:  # normalen ska peka ut ur skon (framåt), med bevarad högerhandad matris (det=+1)
+        ac = -ac; nrm = -nrm
+    rot = Matrix((ac, up, nrm)).transposed().to_4x4()
+    c0 = Vector(sk['fonsterkort_mitt']) + sko_flytt; step = ax * (K['tjocklek'] / math.sin(lean))
+    for k in range(5):
+        ob = bpy.data.objects.new(f'sko_kort_{k+1}', mes); c_sko.objects.link(ob)
+        ob.matrix_world = Matrix.Translation(c0 + step * k) @ rot @ Matrix.Rotation(math.pi, 4, 'Y')  # baksidan utåt
+        ob['dragbart'] = True
+    ndecks = K['lekar_i_skon']; ncards = ndecks * 52 - 5; depth = ncards * step.length
+    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1.0)
+    bmesh.ops.scale(bm, vec=(K['bredd'], K['langd'], 1), verts=bm.verts)
+    for v in bm.verts:  # skjuv: varje kort förskjuts horisontellt bakåt
+        k = v.co.z + 0.5; v.co.z = 0
+        v.co = rot.to_3x3() @ v.co + step.normalized() * (step.length * 5 + depth * k)
+    bunt = obj_from_bm('sko_kortbunt', bm, c_sko, m_edge); bunt.location = c0
+    bunt['kort'] = ncards
+    return sko_flytt
+
+
+# ---------------------------------------------------------------- livebordets sko (--live)
+# Livebordets sko som filmen visar den (mätt i live-bj 2026-11-27; måtten i standard.yaml livebord.sko, ur spelets
+# LIVE.shoe): en lång klar låda, öppen upptill, med väggarnas överkant rakt från frontens topp till ryggens. Fronten är en
+# klar ram som lutar bakåt från fotens främre kant, med ett fönster där nästa kort syns och fingret tar det; nedtill är
+# den öppen, där kortet dras ut under den. Inne i skon ligger kortleken på en bädd som stiger bakåt, varje kort lutat
+# som fronten och med långsidan tvärs skon, ryggen utåt; bakom leken en klar kloss som håller den. Klar plast syns på
+# sina kanter: varje kant får en ljus list (AKRYL_KANT), och kortbuntens kanter är randiga som en hög kort.
+AKRYL_KANT = 0.0012       # antaget: listernas halva bredd, så att den klara plasten syns som i filmen (ljusa kanter)
+RAM = dict(sida=0.0035, t=0.003)  # antaget: frontramens sidolister innanför väggarna och dess tjocklek
+KLOSS = 0.045             # antaget: den klara klossen bakom leken, längs bädden (filmen visar en klar kloss med ett hjul)
+LEK_RAND = 0.015          # buntens randmönster går igen var 15:e mm längs bädden
+
+
+def _klar(name, alpha, color=(0.92, 0.95, 1.0, 1), rough=0.03):
+    m = pbr(name, color, rough=rough)
+    m.node_tree.nodes['Principled BSDF'].inputs['Alpha'].default_value = alpha
+    try:
+        m.surface_render_method = 'BLENDED'
+    except AttributeError:
+        m.blend_method = 'BLEND'
+    return m
+
+
+def _rand_material():
+    """Kortbuntens kant: vita kortkanter med en mörkare skarv var 1,4 mm och lite olika ljusa däremellan, så att bunten
+    läses som kort på kant (en bild i 4 x 64 punkter över LEK_RAND, packad i filen så att glb:n bär den)."""
+    img = bpy.data.images.get('kortkant_rander') or bpy.data.images.new('kortkant_rander', 4, 64)
+    px = []
+    for j in range(64):
+        g = 0.58 if j % 6 == 0 else 0.93 - 0.06 * ((j * 37) % 5) / 4
+        px += [g, g * 0.98, g * 0.94, 1.0] * 4
+    img.pixels = px; img.pack()
+    m = pbr('kortbunt_rander', rough=0.7)
+    t = m.node_tree.nodes.new('ShaderNodeTexImage'); t.image = img; t.interpolation = 'Closest'
+    m.node_tree.links.new(t.outputs[0], m.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+    return m
+
+
+def _listverk(name, segs, col, mat, r=AKRYL_KANT):
+    """Tunna fyrkantiga lister längs sträckor (a, b): klar plasts ljusa kanter."""
+    bm = bmesh.new()
+    for a, b in segs:
+        a, b = Vector(a), Vector(b); d = b - a
+        if d.length < 1e-6:
+            continue
+        u = d.normalized(); o = u.cross(Vector((0, 0, 1)))
+        o = o.normalized() if o.length > 1e-6 else Vector((1, 0, 0)); p = u.cross(o).normalized()
+        ring = [o * r + p * r, -o * r + p * r, -o * r - p * r, o * r - p * r]
+        va = [bm.verts.new(a + q) for q in ring]; vb = [bm.verts.new(b + q) for q in ring]
+        for i in range(4):
+            j = (i + 1) % 4; bm.faces.new((va[i], va[j], vb[j], vb[i]))
+        bm.faces.new(va[::-1]); bm.faces.new(vb)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return obj_from_bm(name, bm, col, mat)
+
+
+def sko_live(c_sko, m_card, back_cell):
+    """Livebordets sko (se ovan). Ger ingenting: den flyttas aldrig."""
+    K = STD['kort']; sk = LV['sko']
+    front = Vector(sk['fot_fram']); yawb = math.radians(sk['yaw_bakat'])
+    ax = Vector((math.cos(yawb), math.sin(yawb), 0)); side = Vector((-ax.y, ax.x, 0)); up = Vector((0, 0, 1))
+    lean = math.radians(sk['platta_lutning_grader']); bed = math.radians(sk['badd_lutning_grader'])
+    hf, hb, ln, wd = sk['hojd_fram'], sk['hojd_bak'], sk['langd'], sk['bredd']
+    uf = hf / math.tan(lean); wt = 0.003
+    P = lambda u, v, h: front + ax * u + side * v + up * h
+    m_klar = _klar('sko_akryl', 0.05)  # så klar att kortleken syns genom två väggar; kanterna (m_kant) visar plasten
+    m_kant = _klar('sko_akryl_kant', 0.55, (0.97, 0.98, 1.0, 1), rough=0.15)
+    m_rand = _rand_material()
+    kanter = []
+
+    def skiva(name, pts, tjock, mat):
+        """En klar skiva: polygonen pts (världens punkter, i ett plan) och lika stor tjock bakom sig (vektor)."""
+        bm = bmesh.new(); a = [bm.verts.new(p) for p in pts]; b = [bm.verts.new(p + tjock) for p in pts]
+        bm.faces.new(a); bm.faces.new(b[::-1])
+        for i in range(len(pts)):
+            j = (i + 1) % len(pts); bm.faces.new((a[i], a[j], b[j], b[i]))
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        return obj_from_bm(name, bm, c_sko, mat)
+
+    # huset: sidoväggarna (profilen: foten, ryggen, överkanten rakt från frontens topp), botten och ryggen; öppet upptill
+    prof = [(0.0, 0.0), (ln, 0.0), (ln, hb), (uf, hf)]
+    skiva('sko_vagg_nara', [P(u, 0, h) for u, h in prof], side * wt, m_klar)
+    skiva('sko_vagg_bortre', [P(u, wd, h) for u, h in prof], -side * wt, m_klar)
+    skiva('sko_botten', [P(0, 0, 0), P(ln, 0, 0), P(ln, wd, 0), P(0, wd, 0)], up * wt, m_klar)
+    skiva('sko_rygg', [P(ln, 0, 0), P(ln, wd, 0), P(ln, wd, hb), P(ln, 0, hb)], -ax * wt, m_klar)
+    for v in (0.0, wd):
+        kanter += [(P(0, v, 0), P(ln, v, 0)), (P(ln, v, 0), P(ln, v, hb)), (P(ln, v, hb), P(uf, v, hf)), (P(uf, v, hf), P(0, v, 0))]
+    kanter += [(P(0, 0, 0), P(0, wd, 0)), (P(ln, 0, 0), P(ln, wd, 0)), (P(ln, 0, hb), P(ln, wd, hb)), (P(uf, 0, hf), P(uf, wd, hf))]
+
+    # fronten: en ram i frontens plan (s uppför den från fotens framkant), sidolister och en överlist; nedtill öppen
+    S = ax * math.cos(lean) + up * math.sin(lean); N = -ax * math.sin(lean) + up * math.cos(lean)
+    F = lambda s, v: front + S * s + side * v
+    s_top = hf / math.sin(lean); s_kort = sk['fonster_lyft'] / math.sin(lean) + K['bredd'] + 0.002   # fönstrets överkant, 2 mm över kortet
+    v0, v1 = wt + RAM['sida'], wd - wt - RAM['sida']
+    for nm, pts in (('sko_front_nara', [F(0, wt), F(0, v0), F(s_top, v0), F(s_top, wt)]), ('sko_front_bortre', [F(0, v1), F(0, wd - wt), F(s_top, wd - wt), F(s_top, v1)]),
+                    ('sko_front_topp', [F(s_kort, v0), F(s_kort, v1), F(s_top, v1), F(s_top, v0)])):
+        skiva(nm, pts, -N * RAM['t'], m_klar)
+    kanter += [(F(s_kort, v0), F(s_kort, v1)), (F(0, v0), F(s_kort, v0)), (F(0, v1), F(s_kort, v1))]
+
+    # bädden: från kortets underkant framtill, stigande bakåt till ryggen, 3 mm tjock under sin yta
+    Bd = ax * math.cos(bed) + up * math.sin(bed)
+    u_b0 = sk['fonster_lyft'] / math.tan(lean); h_b0 = sk['fonster_lyft']
+    run = (ln - wt - u_b0) / math.cos(bed)
+    b0, b1 = P(u_b0, wt, h_b0), P(u_b0, wd - wt, h_b0)
+    skiva('sko_badd', [b0, b1, b1 + Bd * run, b0 + Bd * run], -up * 0.003, m_klar)
+    kanter += [(b0, b1), (b0, b0 + Bd * run), (b1, b1 + Bd * run)]
+
+    # kortleken: de fem främsta korten som egna objekt (dragbara), resten som en bunt längs bädden. Kortets kortsida
+    # (meshens X) uppför fronten och långsidan (Y) tvärs skon, ryggen utåt. Egen mesh med ryggen på båda sidor: den heter
+    # inte kort_*, eftersom editorn (standarddocka/editor/scen.ts) döljer bordets lösa kort med det namnet.
+    mes = card_mesh('sko_kortrygg', back_cell, back_cell); mes.materials.append(m_card); mes.materials.append(m_rand)
+    ac = Vector(sk['fonsterkort_kortsida']).normalized(); lg = Vector(sk['fonsterkort_langsida']).normalized()
+    nrm = ac.cross(lg)
+    if nrm.dot(ax) > 0:  # normalen ska peka ut ur skon (framåt), med bevarad högerhandad matris (det=+1)
+        lg = -lg; nrm = -nrm
+    rot = Matrix((ac, lg, nrm)).transposed().to_4x4()
+    step = Bd * (K['tjocklek'] / math.sin(lean - bed))   # nästa kort: lika tjockt bakom, med underkanten på bädden
+    c0 = Vector(sk['fonsterkort_mitt'])
+    for k in range(5):
+        ob = bpy.data.objects.new(f'sko_kort_{k+1}', mes); c_sko.objects.link(ob)
+        ob.matrix_world = Matrix.Translation(c0 + step * k) @ rot @ Matrix.Rotation(math.pi, 4, 'Y')  # baksidan utåt
+        ob['dragbart'] = True
+    langd = sk['lek_langd']; ncards = int(round(langd / step.length)); depth = langd - 5 * step.length
+    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1.0)
+    bmesh.ops.scale(bm, vec=(K['bredd'], K['langd'], 1), verts=bm.verts)
+    for v in bm.verts:  # skjuv: varje kort ligger lika långt bakom det förra längs bädden
+        k = v.co.z + 0.5; v.co.z = 0
+        v.co = rot.to_3x3() @ v.co + Bd * (step.length * 5 + depth * k)
+    lay = bm.loops.layers.uv.verify()
+    for f in bm.faces:  # ränderna längs bädden: v är sträckan bakåt, så att varje rand ligger som kortens kanter
+        for lp in f.loops:
+            lp[lay].uv = (0.5, (lp.vert.co @ Bd) / LEK_RAND)
+    bunt = obj_from_bm('sko_kortbunt', bm, c_sko, m_rand); bunt.location = c0
+    bunt['kort'] = ncards
+
+    # klossen bakom leken: klar, lika stor som ett kort, längs bädden
+    k0 = c0 + Bd * langd; hx, hy = ac * (K['bredd'] / 2), lg * (K['langd'] / 2 + 0.002)
+    yta = [k0 - hx - hy, k0 + hx - hy, k0 + hx + hy, k0 - hx + hy]
+    skiva('sko_kloss', yta, Bd * KLOSS, m_klar)
+    kanter += [(a, b) for a, b in zip(yta, yta[1:] + yta[:1])] + [(p, p + Bd * KLOSS) for p in yta]
+
+    # den lösa klara biten som ligger plant på filten framför skon; kortet som dras ut glider över den
+    lb = [Vector((p[0], p[1], FZ)) for p in LV['los_bit']['horn']]
+    skiva('sko_los_bit', lb, up * 0.003, m_klar)
+    kanter += [(a + up * 0.003, b + up * 0.003) for a, b in zip(lb, lb[1:] + lb[:1])]
+    _listverk('sko_kanter', kanter, c_sko, m_kant)
+
+
 def main():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.context.preferences.filepaths.save_version = 0  # inga .blend1-kopior
@@ -715,74 +924,11 @@ def main():
             ob['kort'] = s + r
     meb = card_mesh('kort_baksida', back_cell, back_cell); meb.materials.append(m_card); meb.materials.append(m_edge)
 
-    # ---- sko: kilen ur standard.yaml med en riktig dealerskos frontplatta framför korten (sko_front ovan)
-    sk = LV['sko'] if LIVE else STD['sko']; front = Vector(sk['fot_fram']); yawb = math.radians(sk['yaw_bakat'])
-    ax = Vector((math.cos(yawb), math.sin(yawb), 0)); side = Vector((-ax.y, ax.x, 0))
-    # --sko-ut längs skons längd och --sko-fram vinkelrätt mot spelarna (-side: side pekar mot den bortre väggen, mot
-    # dealern): allt som hör till skon flyttas lika långt. Kroppen och frontplattan byggs där standard.yaml har dem och
-    # flyttas sedan hela (objektets läge), så att deras hörn fogas ihop exakt som förut.
-    sko_flytt = ax * (SKO_UT or 0.0) - side * (SKO_FRAM or 0.0)
-    lean = math.radians(sk['platta_lutning_grader']); hf, hb, ln, wd = sk['hojd_fram'], sk['hojd_bak'], sk['langd'], sk['bredd']
-    uf = hf / math.tan(lean)   # där plattans topp möter locket
-    base_h = sk['fonster_lyft']; wt = 0.004
-    def P(u, v, h):  # skons lokala: u bakåt längs axeln, v åt sidan, h upp
-        q = front + ax * u + side * v; return (q.x, q.y, q.z + h)
-    bm = bmesh.new()
-    def quad(a, b, c, d):
-        bm.faces.new([bm.verts.new(P(*a)), bm.verts.new(P(*b)), bm.verts.new(P(*c)), bm.verts.new(P(*d))])
-    prof = [(0, 0), (ln, 0), (ln, hb), (uf, hf), (0, 0)]
-    for v in (0.0, wd - wt):  # sidoväggar: v=0 är nära väggen (fot_fram), v=wd är bortre väggen (pose.far)
-        for vv in (v, v + wt):
-            bm.faces.new([bm.verts.new(P(u, vv, h)) for u, h in prof[:4]])
-    quad((0, 0, 0), (ln, 0, 0), (ln, wd, 0), (0, wd, 0))                                 # botten
-    un = base_h / math.tan(lean)  # där nosen möter golvet; golvet börjar där, så att kortet glider ut framför nosen
-    quad((un, 0, base_h), (ln, 0, base_h), (ln, wd, base_h), (un, wd, base_h))           # golv i skon
-    quad((ln, 0, 0), (ln, wd, 0), (ln, wd, hb), (ln, 0, hb))                             # bakvägg
-    quad((uf, 0, hf), (ln, 0, hb), (ln, wd, hb), (uf, wd, hf))                           # lock
-    quad((0, 0, 0), (0, wd, 0), (un, wd, base_h), (un, 0, base_h))                       # nos
-    if LIVE:  # livebordets sko är en klar låda: fronten är en hel klar platta, och nästa kort syns genom den
-        quad((un, 0, base_h), (un, wd, base_h), (uf, wd, hf), (uf, 0, hf))               # front
-        m_klar = pbr('sko_akryl', (0.92, 0.95, 1.0, 1), rough=0.03)  # klarare än lådans, så att kortet syns genom väggarnas två lager
-        m_klar.node_tree.nodes['Principled BSDF'].inputs['Alpha'].default_value = 0.12
-        try:
-            m_klar.surface_render_method = 'BLENDED'
-        except AttributeError:
-            m_klar.blend_method = 'BLEND'
-    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6); bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    shoe = obj_from_bm('sko_kropp', bm, c_sko, m_klar if LIVE else m_shoe)
-    sol = shoe.modifiers.new('tjocklek', 'SOLIDIFY'); sol.thickness = 0.003
-    if not LIVE:  # vår skos svarta frontplatta med öppningen för fingret
-        skofront = sko_front(P, lean, hf, wd, wt, c_sko)
-        if sko_flytt.length > 0:
-            shoe.location = sko_flytt; skofront.location = sko_flytt
-    else:  # den lösa klara biten som ligger plant på filten framför skon
-        prism('sko_los_bit', [tuple(p[:2]) for p in LV['los_bit']['horn']], FZ, FZ + 0.002, c_sko, m_klar)
-    # kort i skon: översta korten som egna objekt (dragbara), resten som en bunt. Egen mesh med ryggen på båda sidor;
-    # den heter inte kort_*, eftersom editorn (standarddocka/editor/scen.ts) döljer bordets lösa kort med det namnet,
-    # och då syntes buntens vita kant i stället för skons rygg.
-    mes = card_mesh('sko_kortrygg', back_cell, back_cell); mes.materials.append(m_card); mes.materials.append(m_edge)
-    # kortets långsida (meshens Y) uppför plattan och kortsidan (X) tvärs skon; livebordets sko har dem under egna namn
+    # ---- sko: livebordets som filmen visar den (sko_live ovan), annars vår (sko_standard ovan)
     if LIVE:
-        up = Vector(sk['fonsterkort_langsida']).normalized(); ac = Vector(sk['fonsterkort_kortsida']).normalized()
+        sko_live(c_sko, m_card, back_cell); sko_flytt = Vector((0.0, 0.0, 0.0))
     else:
-        up = Vector(sk['fonsterkort_upp']).normalized(); ac = Vector(sk['fonsterkort_tvars']).normalized()
-    nrm = ac.cross(up)
-    if nrm.dot(ax) > 0:  # normalen ska peka ut ur skon (framåt), med bevarad högerhandad matris (det=+1)
-        ac = -ac; nrm = -nrm
-    rot = Matrix((ac, up, nrm)).transposed().to_4x4()
-    c0 = Vector(sk['fonsterkort_mitt']) + sko_flytt; step = ax * (K['tjocklek'] / math.sin(lean))
-    for k in range(5):
-        ob = bpy.data.objects.new(f'sko_kort_{k+1}', mes); c_sko.objects.link(ob)
-        ob.matrix_world = Matrix.Translation(c0 + step * k) @ rot @ Matrix.Rotation(math.pi, 4, 'Y')  # baksidan utåt
-        ob['dragbart'] = True
-    ndecks = K['lekar_i_skon']; ncards = ndecks * 52 - 5; depth = ncards * step.length
-    bm = bmesh.new(); bmesh.ops.create_cube(bm, size=1.0)
-    bmesh.ops.scale(bm, vec=(K['bredd'], K['langd'], 1), verts=bm.verts)
-    for v in bm.verts:  # skjuv: varje kort förskjuts horisontellt bakåt
-        k = v.co.z + 0.5; v.co.z = 0
-        v.co = rot.to_3x3() @ v.co + step.normalized() * (step.length * 5 + depth * k)
-    bunt = obj_from_bm('sko_kortbunt', bm, c_sko, m_edge); bunt.location = c0
-    bunt['kort'] = ncards
+        sko_flytt = sko_standard(c_sko, m_shoe, m_card, m_edge, back_cell)
 
     # ---- kassering
     ks = LV['kassering'] if LIVE else STD['kassering']; w, d, h = ks['yttermatt']; t = ks['vaggtjocklek']; fm = Vector(ks['fot_mitt']); yk = math.radians(ks['yaw'])
@@ -792,6 +938,14 @@ def main():
     for nm, sz, off in kparts:
         o = Vector(off); o.rotate(Matrix.Rotation(yk, 3, 'Z'))
         box('kassering_' + nm, sz, fm + o, c_bord, m_acryl, rot_z=yk)
+    if LIVE and ks.get('kort_hog'):  # de använda korten ligger plant i lådan, ryggen upp, långsidan längs lådans djup
+        hh = ks['kort_hog']; hog = box('kassering_korthog', (K['bredd'], K['langd'], hh), fm + Vector((0, 0, t + hh / 2)), c_bord, _rand_material(), rot_z=yk)
+        lay = hog.data.uv_layers.active.data
+        for poly in hog.data.polygons:
+            for li in poly.loop_indices:
+                lay[li].uv = (0.5, hog.data.vertices[hog.data.loops[li].vertex_index].co.z / LEK_RAND)
+        ob = bpy.data.objects.new('kassering_overst', meb); c_bord.objects.link(ob)
+        ob.location = fm + Vector((0, 0, t + hh)); ob.rotation_euler = (0, 0, yk)
 
     # ---- exempelgiv: ett kort per C1 och dealerns två (länkade kopior = instanser)
     demo = {'P1.C1': 'HA', 'P2.C1': 'S10', 'P3.C1': 'D7', 'P4.C1': 'CK', 'P5.C1': 'H5', 'P6.C1': 'SQ', 'P7.C1': 'D9', 'D.C1': 'C8'}

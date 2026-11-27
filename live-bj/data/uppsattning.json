@@ -428,7 +428,7 @@
   "the_dealer": "sits, on a high chair"
  },
  "shoe": {
-  "how": "measured where it stands on the felt (corners read by eye, 1 to 2 cm); its back's height and its front plate measured from the picture. A clear box: the front is a plate leaning back from the foot's two front corners.",
+  "how": "measured where it stands on the felt (corners read by eye, 1 to 2 cm); its back's height, its front, the bed and the next card measured from the picture. A long clear box: the front is a clear frame leaning back from the foot's two front corners, and the deck lies on an inclined bed inside, every card leaning as the front.",
   "foot": [
    [
     0.427,
@@ -450,7 +450,6 @@
   "foot_length": 0.274,
   "foot_width": 0.103,
   "back_height": 0.117,
-  "front_plate_top_if_upright": 0.108,
   "front_plate": {
    "how": "measured: each top corner taken to lie straight back and up from its foot corner, on its own line of sight. The two corners should agree; where they differ, that is the reading's error.",
    "corners": [
@@ -465,9 +464,9 @@
      -1.3844
     ],
     [
-     0.4732,
-     0.1065,
-     -1.3897
+     0.4907,
+     0.0617,
+     -1.3941
     ],
     [
      0.4663,
@@ -478,37 +477,53 @@
    "corners_note": "foot corner by the dealer, foot corner toward the players, top toward the players, top by the dealer",
    "top_height": [
     0.06,
-    0.107
+    0.062
    ],
    "top_back_from_foot": [
     0.041,
-    0.022
+    0.04
    ],
    "lean_back_degrees": [
     34.0,
-    11.5
+    32.8
    ],
    "length_up_the_slope": [
     0.073,
-    0.109
+    0.073
    ]
   },
+  "bed": {
+   "how": "measured: two points of the bed's edge seen through the near wall, laid on the wall's inside (4 mm in from its outside, assumed). It rises from the front toward the back.",
+   "lean_degrees": 13.4,
+   "height_at_front": 0.0029,
+   "height_at_back": 0.0681
+  },
   "card_when_drawn": {
-   "how": "measured: the next card shows through the front plate, back out, and the finger takes it there (dealer, left_hand_at_the_shoe). Its middle is the plate's middle; a card is narrower than the plate (63.5 mm against the foot's width), so sideways it is within 2 cm.",
+   "how": "measured: the next card's back shows in the front's window, and the finger takes it there (dealer, left_hand_at_the_shoe); it is drawn down the front and out under it onto the felt, toward the table's middle. Its back's printed pattern, laid on the front's plane, is pattern_mm across the shoe and up the front: the card (63.5 x 88.9 mm, the pattern inside a white border) lies with its long side across the shoe and its short side up the front. middle is the pattern's middle.",
    "middle": [
-    0.4547,
-    0.0417,
-    -1.4381
+    0.458,
+    0.0294,
+    -1.4405
+   ],
+   "pattern_mm": [
+    77.8,
+    51.7
    ],
    "long_side": [
-    0.542,
-    0.829,
-    -0.136
+    -0.244,
+    -0.0,
+    -0.97
    ],
-   "long_side_note": "up the slope, in the lens world"
+   "long_side_note": "across the shoe, toward its far wall by the dealer, in the lens world",
+   "short_side": [
+    0.534,
+    0.835,
+    -0.134
+   ],
+   "short_side_note": "up the front, in the lens world"
   },
   "clear_piece_before_the_shoe": {
-   "how": "measured: a separate clear piece lying flat on the felt just before the shoe's front (data/scen.json calls it the mouth; it is not the shoe's mouth and no card lies on it).",
+   "how": "measured: a separate clear piece lying flat on the felt just before the shoe's front (data/scen.json calls it the mouth; it is not the shoe's mouth); the drawn card slides out over it.",
    "corners": [
     [
      0.3652,
@@ -563,7 +578,8 @@
    0.159,
    0.156
   ],
-  "opening": "open at the top; the right hand is lifted to it with the cards"
+  "opening": "open at the top; the right hand is lifted to it with the cards",
+  "cards": "lie flat in a pile on its floor, back up; the pile is about 2 to 5 cm high (read in two frames, 62 s and 600 s)"
  },
  "cut_card": {
   "how": "measured in the 8 keyframes where it lies out, before the box.",
@@ -1029,13 +1045,13 @@
      0.075,
      0.071
     ],
-    "height_at_the_front": 0.05,
+    "height_at_the_front": 0.048,
     "grip_at_the_front": [
-     0.4303,
-     0.0501,
-     -1.4486
+     0.4323,
+     0.0475,
+     -1.4552
     ],
-    "off_the_card": 0.028
+    "off_the_card": 0.035
    }
   },
   "bordet": {
@@ -1150,13 +1166,13 @@
      0.044,
      0.074
     ],
-    "height_at_the_front": 0.04,
+    "height_at_the_front": 0.037,
     "grip_at_the_front": [
-     0.4191,
-     0.04,
-     -1.4477
+     0.421,
+     0.0374,
+     -1.4544
     ],
-    "off_the_card": 0.037
+    "off_the_card": 0.04
    }
   }
  }

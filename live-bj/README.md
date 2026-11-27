@@ -12,10 +12,10 @@ skärminspelning av ett bord med en fast kamera och två dealers efter varandra 
 | Var | Vad | I Git |
 | --- | --- | --- |
 | `verktyg/` | Verktygen nedan. Användningen står överst i varje fil. | ja |
-| `data/` | De små sammanställningarna i tal: `kalla.json` (bordsbildens ruta och de rena partierna), `faser.json` (spelets skyltar genom filmen och rundorna), `monster.json` (varje handrörelse, blinkning och huvudrörelse per dealer; en rad på 230 KB, läs den med sin sökväg), `scen.json` (kameran och bordets fasta saker), `givar.json` (varje kort som landade), `mot-vart-bord.json` (livebordet mot vårt eget i tal), `uppsattning.json` (hela livebordets uppsättning i linsvärldens meter, för att byggas som en andra uppsättning bredvid vår standard), `stil-kameran.json` och `stil-bordet.json` (vardera dealerns sätt att ge, i meter, grader och sekunder: det dockan läser), `rorelser.json` (allt de gör, i stycken och slag), `sam-prov/jamforelse.json` (SAM 3D Body mot facit och MediaPipe-lyftet på dockans film, nedan). | ja |
+| `data/` | De små sammanställningarna i tal: `kalla.json` (bordsbildens ruta och de rena partierna), `faser.json` (spelets skyltar genom filmen och rundorna), `monster.json` (varje handrörelse, blinkning och huvudrörelse per dealer; en rad på 230 KB, läs den med sin sökväg), `scen.json` (kameran och bordets fasta saker), `givar.json` (varje kort som landade), `mot-vart-bord.json` (livebordet mot vårt eget i tal), `uppsattning.json` (hela livebordets uppsättning i linsvärldens meter, för att byggas som en andra uppsättning bredvid vår standard), `stil-kameran.json` och `stil-bordet.json` (vardera dealerns sätt att ge, i meter, grader och sekunder: det dockan läser), `rorelser.json` (allt de gör, i stycken och slag), `segment.json` (hela filmen indelad per dealer och per hand, nedan; ett stycke per rad, läs den med sin sökväg), `sam-prov/` (SAM 3D Body: proven på dockans film, svaret för livebordets nyckelrutor i tal och lyften mot bordets kända punkter, nedan). | ja |
 | `video/` | Filmen, `kalla.mp4`. | nej |
 | `matt/` | Måtten per ruta, en fil per rent parti (`rorelse-<start>.json`). Görs om med `mat.py`. | nej |
-| `rutor/` | Ark och filmer att titta på: `oversikt/` (hela filmen i små rutor), `kontroll/` (måtten ritade över filmen), `streck-*.mp4`. | nej |
+| `rutor/` | Ark och filmer att titta på: `oversikt/` (hela filmen i små rutor), `kontroll/` (måtten ritade över filmen), `segment/` (indelningens tidslinje och ett blad per kategori med rutor ur filmen), `streck-*.mp4`. | nej |
 | `.venv/` | Nedladdaren `yt-dlp`. | nej |
 
 ## Körningen, i ordning
@@ -33,9 +33,12 @@ Allt körs från repots rot. `PY` är `blackjack-dealer/tools/python/.venv/Scrip
 | Räkna ut mönstret | `PY live-bj/verktyg/monster.py live-bj/data/kalla.json live-bj/data/faser.json live-bj/matt live-bj/data/monster.json` | Varje handrörelse, blinkning, sänkt blick och huvudrörelse, och sammanställningen per dealer. |
 | Skriv stilarna | `PY live-bj/verktyg/stil.py live-bj/data live-bj/matt` | `data/stil-kameran.json` och `data/stil-bordet.json`: takten, fartkurvorna, handbytet, bålen, huvudet, blicken, blinkningarna, vilan, den andra handen och greppet, med hur varje tal är mätt. Behöver `data/scen.json`. |
 | Dela upp i stycken | `PY live-bj/verktyg/rorelser.py live-bj/data live-bj/matt` (`--visa <a> <b>` skriver ut handrörelserna mellan två sekunder med platserna de fick) | `data/rorelser.json`: varje stycke med slag, rutor, händer och om det är rent nog att rita efter. |
+| Dela in per hand | `PY live-bj/verktyg/segment.py dela live-bj/data live-bj/matt` (`--visa <a> <b>` skriver ut styckena mellan två sekunder), sedan `PY live-bj/verktyg/segment.py rita live-bj/data <mapp>` och `PY live-bj/verktyg/segment.py blad live-bj/data live-bj/matt live-bj/video/kalla.mp4 live-bj/rutor/segment` | `data/segment.json`: hela filmen per dealer och hand (nedan). `rita` ritar tidslinjen och tabellerna ur talen ensamma, för ett prov; `blad` lägger rutor ur filmen bredvid, bara i `rutor/segment/`. Tar en minut; läser `lyft/` för höjderna och för vad som redan är lyft, så den körs om efter `lyft.py`. |
 | Mät dockan | `PY live-bj/verktyg/mat.py <dockans film> <dess källfil> <mapp> --steg 1 --ensam`, sedan `PY live-bj/verktyg/docka.py <mapp> <ut.json> [<dockans egna tal per ruta>]` | Dockans film mätt på samma sätt, och mot dockans egna tal i `../blackjack-dealer/dealer3d/data/giv-*.json`: hur väl mätningen hittar det som är känt. Källfilen är som `data/kalla.json`: filmens storlek, rutor i sekunden och ett parti för hela filmen. Körs i slasken; inget sparas här. |
 | Samla uppsättningen | `PY live-bj/verktyg/uppsattning.py live-bj/data live-bj/matt` | `data/uppsattning.json`: kameran, filten, skon, lådan, var varje kort landar och hur det ligger, hur dealern sitter och var händerna vilar, i linsvärldens meter (x åt bildens höger, y upp med filten på 0, z mot spelaren). Varje grupp säger om den är mätt, skattad, slutledd eller antagen. Det som klonas är måtten och rörelsen, inte lokalens utseende, bordets tryck eller personerna. |
-| Lyft givar | `PY live-bj/verktyg/lyft.py giv live-bj/data live-bj/matt live-bj/data/lyft` (`prov <dockans mätta film> <dockans egna tal>` prövar lyftet mot facit, `rita <lyft> live-bj/data/uppsattning.json <ut.png>` ritar ett lyft uppifrån och från sidan) | `data/lyft/<stil>-<mitten, vanster eller hoger>-plats-<n>.json`: tre givar per stil i dockans eget rörelseformat (per ruta båda armarna med axel, armbåge, handled och handens 21 punkter, huvudet, blickpunkten, kortet och minen `a`: de ansiktsformer dockans modell har, 0–1), i uppsättningens meter. Dessutom två väntestycken per stil, `<stil>-vantan-<n>.json`. Vilka ansiktsformer som bär något på ett ansikte som är 135 bildpunkter högt står i stilfilerna under `face`. |
+| Djup ur SAM 3D Body | `PY live-bj/verktyg/sam_runpod.py rutor ...`, sedan `SAMPY live-bj/verktyg/sam_runpod.py las ...` (hela raden under "Djup ur SAM 3D Body" nedan) | Lederna i meter i nyckelrutorna av de lyfta styckena, lästa här på processorn; rutorna raderas efteråt. Tar timmar. |
+| Lyft givar | `PY live-bj/verktyg/lyft.py giv live-bj/data live-bj/matt live-bj/data/lyft --sam live-bj/data/sam-prov/livebordet-sam.json` (utan `--sam` MediaPipe ensam; `prov <dockans mätta film> <dockans egna tal> [--sam <svar>]` prövar lyftet mot facit, `kanda <mapp med lyft> live-bj/data/uppsattning.json` mot bordets kända punkter, `rita <lyft> live-bj/data/uppsattning.json <ut.png>` ritar ett lyft uppifrån och från sidan) | `data/lyft/<stil>-<mitten, vanster eller hoger>-plats-<n>.json`: tre givar per stil i dockans eget rörelseformat (per ruta båda armarna med axel, armbåge, handled och handens 21 punkter, huvudet, blickpunkten, kortet och minen `a`: de ansiktsformer dockans modell har, 0–1), i uppsättningens meter. Dessutom två väntestycken per stil, `<stil>-vantan-<n>.json`. Vilka ansiktsformer som bär något på ett ansikte som är 135 bildpunkter högt står i stilfilerna under `face`. |
+| Lägg lyften på dockorna | `node dealer3d/tools/lyft-till-docka.ts --alla`, sedan `node dealer3d/tools/lyft-kolla.ts` (båda från `blackjack-dealer/`) | Danilos och Frasses rörelser, `../blackjack-dealer/dealer3d/data/lyft-<docka>-*.json`, och vilan de börjar och slutar i (`ankare-vila-<docka>.json`). Det råa lyftet är sanningen om var händerna är: handlederna, händernas vinkel och fingrarna är lyftets ruta för ruta (jämnade lugnt i stillhet och lätt i rörelse), kortet följer händerna, och inget kommer ur den förra standarddockans koreografi. Vårt eget är dockans mått, vilan, de märkta bryggorna mellan vilan och lyftet (`made.faser`, med var varje hands egen handling börjar och slutar), rättningar vid en kontakt (högst 2 cm) och kortets slutläge på platsen. Kontrollen mäter varje handled mot lyftet, armen mot bålen, skakigheten och blicken i vilan. Görs om när ett lyft eller skon ändras. |
 | Lägg vårt bord över deras | `PY live-bj/verktyg/overlagg.py <stillbild> <vårt bord genom deras kamera, med alfa> <punkter.json> live-bj/data/scen.json <ut.jpg> [live-bj/data/mot-vart-bord.json]` | Vårt bord och vår docka halvgenomskinliga över en stillbild ur filmen, en andra bild med borden kant mot kant, och skillnaderna som tal. Bilden av vårt bord och `punkter.json` ritas av editorns sida och ligger i slasken. |
 | Titta på måtten | `PY live-bj/verktyg/titta.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt live-bj/rutor/kontroll/<namn>.jpg <sekund> ...` | Ett ark med måtten ritade över filmens rutor. |
 | Streckfigur | `PY live-bj/verktyg/streck.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt live-bj/rutor/streck-<a>-<b>.mp4 <a> <b>` | En film med dealern som streckfigur bredvid bordsbilden; `--bara` ger bara figuren. |
@@ -68,9 +71,9 @@ inte vid skon.
 
 **Spelarens kort och hans egna.** Ett kort till en spelare går via högerhanden: vänstern drar, högern lägger på 0,5 s
 (0,7 axelbredder) och är hemma igen på 0,5–0,8 s. Hela stycket, från att vänstern lämnar sin plats till att kortet
-ligger, tar 1,9 s (A) och 1,5 s (B). Sina egna kort lägger han med vänsterhanden ensam, direkt ur skon och utan byte,
-på 1,0–1,2 s (sett i bild i de rundor som är kontrollerade; räkningen i `data/rorelser.json` är för hög för det slaget
-och för låg för platserna tills kortets eget spår är inlagt).
+ligger, tar 1,9 s (A) och 1,5 s (B). Sina egna kort får han oftast som en spelare, med handbyte och
+högern som lägger (14 och 21 gånger mot vänstern ensam 4 och 4 i `data/segment.json`, sett i bild vid 140,5 och
+750,3 s); `data/rorelser.json` räknar dem som vänsterns ensam, eftersom det letar efter högern bara på platserna.
 
 **Handbytet** är en verklig inbromsning, ingen flygande växling. Greppen är som närmast en kortlängd från varandra
 (9,0 och 7,5 cm): de håller i var sin ände. Handen som har kortet går från vänsterns toppfart (1,3 m/s) ned till
@@ -141,12 +144,18 @@ rundade kant blir en cirkel på bordet med 1,8 mm fel över 1234 punkter. Korten
 | Dealerns ögon och axlar över filten | 0,51 m och 0,31–0,32 m | 0,545 m och 0,29 m |
 | Axelbredd | 0,36 och 0,35 m | 0,375 m |
 
-Samma tal står i `data/mot-vart-bord.json`. Skon är en genomskinlig låda, cirka 0,27 × 0,10 m i foten och 0,12 m hög
-i ryggen. Dess front är en platta som lutar bakåt från fotens två främre hörn (6–11 cm hög; de två hörnen är avlästa
-olika, så lutningen är osäker, 12–34 grader), och nästa kort syns genom den med baksidan utåt: där tar fingret det,
-4–5 cm över filten. Det `data/scen.json` kallar `mouth` är inte skons mynning utan en lös genomskinlig bit som ligger
-plant på filten strax framför skon. Lådan för använda kort är 8 × 9 cm i foten och 0,16 m hög, och bordet har ingen
-markerbricka (markerna är spelets grafik). Allt står still genom filmen.
+Samma tal står i `data/mot-vart-bord.json`. Skon är en lång genomskinlig låda, cirka 0,27 × 0,10 m i foten, öppen
+upptill och 0,12 m hög i ryggen; väggarnas överkant går rakt ned till frontens topp, 6 cm över filten. Fronten är en
+klar ram som lutar 33–34 grader bakåt från lodrätt (de två topphörnen), med ett fönster där nästa kort syns. Kortleken
+ligger på en bädd som stiger 13 grader bakåt (från 3 mm över filten framtill), och varje kort lutar som fronten med
+långsidan tvärs skon: ryggens mönster är 78 mm tvärs och 52 mm uppför. Därför syns det främsta kortets rygg som en
+lutande yta snett uppifrån, och kortleken som ett långt vitt block längs bädden (0,14 m vid 62 s, 0,23 m vid 600 s).
+Fingrarna tar kortet mitt på ryggen, cirka 3 cm över filten, och drar det nedåt och ut under fronten, plant över filten
+mot bordets mitt. Det `data/scen.json` kallar `mouth` är inte skons mynning utan en lös genomskinlig bit som ligger plant
+på filten strax framför skon; kortet glider ut över den. Hörnen, bädden och kortets rygg är lästa för ögat i rutor där
+skon står fri (`scen.py`, `FIXED`), och kortet, bädden och ryggens topp går ihop med kameran inom 1–3 bildpunkter (högst 4 mm). Lådan för använda
+kort är 8 × 9 cm i foten och 0,16 m hög, och korten ligger plant i den med ryggen upp, en hög på 2–5 cm; bordet har
+ingen markerbricka (markerna är spelets grafik). Allt står still genom filmen.
 
 **Dealern sitter**, på en hög stol som syns vid dealerbytet. **Golvet syns aldrig**, så bordets höjd över golvet är
 inte mätt. En slutledning: när dealerna står upp vid bordet är ögonen 0,63–0,69 m över filten, bara 0,15 m högre än
@@ -167,7 +176,7 @@ sågs lämna skon (`target_from`), annars ur händerna.
 | Slag | kameran | bordet | Längd | Läge |
 | --- | --- | --- | --- | --- |
 | Kort ur skon till en plats | 28 | 50 | 2,0 / 1,7 s | Säkert: 25 / 45 sagda av kortet. Högern lägger i 16 / 23, vänstern ensam i 12 / 27 |
-| Kort ur skon till honom själv | 12 | 16 | 2,2 / 2,0 s | Säkert: alla sagda av kortet, och alla lagda av vänsterhanden ensam |
+| Kort ur skon till honom själv | 12 | 16 | 2,2 / 2,0 s | Kortet säkert, alla sagda av det; handen inte: oftast lägger högern efter ett handbyte (indelningen per hand nedan) |
 | Kort ur skon, vart syns inte | 18 | 6 | 1,0 / 1,5 s | Varken kortet eller en läggning hittades |
 | Väntan (båda händerna stilla minst 1,5 s) | 20 | 36 | 3,8 / 4,6 s | Säkert |
 | Korten in i lådan | 10 | 7 | 2,2 / 4,2 s | Säkert att handen går dit; början av stycket är ungefärlig |
@@ -176,8 +185,83 @@ sågs lämna skon (`target_from`), annars ur händerna.
 
 Dockan har i dag vilan till skon, första kortet till var och en av sju platser, och handen tillbaka. Nytt för den är
 alltså: kortet till sig själv med vänsterhanden, korten in i lådan, svepet över bordet, det som görs vid de egna korten
-och väntan med händerna på olika ställen. Vändningen av hans eget kort är inte utskild än; den ligger bland styckena
-vid hans egna kort.
+och väntan med händerna på olika ställen. Vändningen av hans eget kort finns inte: bordet ger dealerns kort med
+framsidan upp, utan hålkort (indelningen nedan).
+
+## Det som är uppmätt: hela filmen per hand
+
+`data/segment.json` delar hela filmen per dealer och **per hand**: höger hand, vänster hand och huvudet med blicken har
+var sitt spår, eftersom händerna i filmen har var sin tidslinje. Varje stycke har start- och slutruta (filmens egen, 60
+i sekunden) och sekunder, en kategori ur rörelseschemat (`../standarddocka/rorelsekatalog.json`), plats och kort där
+det går att säga (P1–P7 från bildens vänster, D dealern själv, C1, C2 …), handens läge där det börjar och slutar, och
+hur säker indelningen är (`syns`: andelen rutor där handen hittades; `saker`: hog, mellan, lag, eller kant där stycket
+börjar eller slutar vid ett partis kant). 85–90 % av styckena är säkra.
+
+**Så delas det.** Ett spår delas där handen står still minst 0,2 s, där vänstern griper i skon och där ett kort kommer
+till ro under handen (kortets eget spår i `givar.json`; den hand som är närmast kortet då lade det). Mellan två sådana
+ställen är det en rörelse, och ett stopp är VILA (minst 0,6 s), VANTA (med små egna rörelser under 5 cm) eller STOPP
+(kortare, en del av arbetet). Rörelsens kategori kommer ur vad som händer: kortet som läggs (GIV, GIV-EGET), kortet
+som lämnar skon (DRA), korten som tas bort (KORT-IN), vart handen går (TILL-SKON, HEM, PEKA, SVEP, RATTA) och högern
+vid skon (SKON). Det som inte passar är ANNAT. Kortens nummer räknas per plats i rundan, bara bland kort som landar
+medan spelet ger.
+
+| Kategori | Hand | Danilo (`kameran`) | Frasse (`bordet`) |
+| --- | --- | --- | --- |
+| GIV: kortet till en spelare | höger | 30 st, 0,80 s (0,53–1,15) | 60 st, 0,98 s (0,80–2,04) |
+| GIV | vänster ensam | 3 st, 0,23 s | 3 st, 0,23 s |
+| GIV-EGET: kortet till dealern själv | höger, efter handbyte | 14 st, 0,77 s (0,38–0,86) | 21 st, 0,73 s (0,43–1,33) |
+| GIV-EGET | vänster ensam | 4 st, 0,67 s | 4 st, 0,53 s |
+| DRA: vänstern drar kortet till handbytet | vänster | 63 st, 0,70 s (0,34–0,99) | 99 st, 0,83 s (0,40–0,97) |
+| TILL-SKON | vänster | 46 st, 0,63 s | 53 st, 0,57 s |
+| HEM | höger / vänster | 43 / 50 st, 0,60 / 0,33 s | 36 / 34 st, 0,37 / 0,32 s |
+| KORT-IN: korten in i lådan | höger | 14 st, 1,85 s (0,71–4,96) | 13 st, 4,87 s (0,40–7,53) |
+| SVEP: över bordet innan given | höger | 2 egna, och i inget av givarna | 1 egen, och 5 som går rakt in i första givet |
+| PEKA: handen mot en plats utan kort | höger | 2 st | 2 st |
+| RATTA: rätta till ett kort | höger | – | 2 st |
+| SKON: sköter skon (härmas inte) | båda | 26 st | – |
+| ANNAT (härmas inte) | båda | 7 st | 7 st |
+| VILA / VANTA | höger | 53 / 13 st, 1,4 / 5,3 s | 58 / 4 st, 2,2 / 5,9 s |
+
+Sett i bild (`rutor/segment/blad-*.jpg`): svepet går lågt från vilan vid lådan tvärs över platserna till mötet när
+given börjar (136,9 och 430,4 s); korten in samlas med båda händerna och läggs i lådan med högern (164–169 s); ANNAT är
+till exempel handen till örat (114,6 och 116,4 s); SKON är påfyllningen av skon (262–285 s). Dealerns eget kort ges
+oftast som en spelares, med handbyte och högern som lägger (sett vid 140,5 och 750,3 s). Att peka på spelaren som ska
+välja finns nästan inte: då står spelets skylt i bild, och dealern ser i kameran (40–46 % av tiden) med händerna i vila.
+
+**Lägena per hand.** Ett ankare är ett läge för varje hand (A1 = H1 + V1, A2.3 = H1 + V2.3, A3PnCm = H3Pn + V2.3);
+lägena och vad de betyder står i rörelseschemat. `lagen` ger per dealer var varje läge ligger på filtens plan, hur
+många stopp och hur många sekunder; `bada_stilla` vilka par av lägen händerna står i samtidigt (kandidaterna till
+ankare: hos båda dealrarna är H1 + V1S, högern framför kroppen och vänstern mot skon, den vanligaste väntan mitt i
+rundan, och H1S + V1 eller V1S, högern utsträckt mot lådan, vilan under insatserna); `overgangar` hur många rörelser
+som går från ett läge till ett annat, per hand.
+
+**Händerna i otakt.** Efter ett kort på en plats går högern nästan aldrig hem: den går direkt till nästa kort (Danilo
+17 av 30 givar, Frasse 53 av 60), och i ögonblicket den lägger kortet drar vänstern redan nästa ur skon (18 av 30 och
+35 av 60) eller står vid skon med det (5 och 18). Vänsterns nästa grepp kommer 0,0 s (Danilo) och 0,1 s (Frasse) efter
+att kortet ligger, i median. Där högern går hem tar vänstern nästa kort 0,4 s innan den är hemma. `otakt` har talen.
+
+**Talen för den ritade given** (`for_ritade_rorelser`): delarna av ett kort med handbyte, median och 10–90 %, där
+båda händerna syns, per dealer och plats för plats. Vänstern lämnar skon och händerna möts efter 0,33 / 0,27 s,
+greppen är närmare än 13 cm i 0,1 s, kortet ligger 0,57 / 0,63 s efter mötet, hela givet tar 0,90 / 0,87 s. Mötet
+ligger 0,11 / 0,14 m åt dealerns vänster och 0,17 / 0,11 m fram från bordskanten. Blicken följer kortet till platsen
+(mot skon för P5–P7, mot lådan för P1–P2, ned för P4 och dealern). Höjderna kommer bara ur de lyfta givarna
+(`lyft/`, SAM:s djup): handlederna 4–10 cm över filten vid bytet, högerns handled som högst 6–7 cm på väg till
+platsen. Jämfört med den ritade given (`../blackjack-dealer/dealer3d/src/koreo-giv.ts`, KOREO) är kortet inte rest på
+högkant vid bytet och greppen är inte 9–11 cm upp, och vänstern väntar inte vid skon tills nästa klipp: den griper
+nästa kort när det förra ligger.
+
+**Att lyfta härnäst** (`att_lyfta`) är det en hel kortrunda behöver, i ordning: första och andra kortet till varje
+plats, dealerns kort, väntan med båda händerna stilla, peka, svep, korten in, handen hem och vänstern till skon, med
+det bästa stycket ur filmen för varje (händerna syns, stilla före och efter, inget oväntat runt omkring). För en giv
+börjar klippet där vänstern tar kortet i skon och slutar där kortet ligger. `basta` har de två bästa per kategori,
+plats och kort, med bryggorna: dockans egen rörelse från lägets mitt till styckets början och från dess slut, vid
+0,5 m/s. `ersattningar` säger för varje stycke som inte ska härmas i vilket läge dockan väntar och vilket stycke hon
+väntar in. Platser som redan har ett lyft står sist.
+
+**Det som inte går att avgöra ur mätningen:** höjden över filten utom i de lyfta givarna; kortets nummer där kortet
+inte sågs landa (C saknas); händerna när spelets knappar ligger över dem (under "Make your decision", `syns` lågt);
+om ett stopp vid en plats är en rättning eller en pekning; och blicken mer noga än åt vilket håll huvudet är vänt och
+om ögonen är sänkta.
 
 ## Så mäts det
 
@@ -199,7 +283,7 @@ vid hans egna kort.
   två filmer mot facit hamnar varje led 4–11 cm fel i median, nästan allt i djupled (sidled och höjd 1–3 cm), och den
   sämsta tiondelen av rutorna upp till 20 cm för högerarmen. Farten i ett lyft blir för låg (0,6–0,9 av den sanna
   toppfarten), eftersom djupet jämnas. Använd lyften för bålens, axlarnas och huvudets rörelse och för handens väg i
-  sidled och höjd; djupet är en skattning.
+  sidled och höjd; djupet är en skattning. Där SAM 3D Body har läst rutorna tar lyftet djupet därifrån (nedan).
 - **Samma mätning på dockan.** MediaPipe hittar också dockan: kroppen i varje ruta, händerna i de flesta, ansiktet i
   två av tre. Handleden hamnar 14–40 bildpunkter från dockans sanna handled, och blinkningar går inte att mäta på en
   docka utan iris (den mäter sex blinkningar på två sekunder där det inte finns någon). Ett kort stopp kan missas: på
@@ -211,56 +295,118 @@ vid hans egna kort.
 
 ## Djup ur SAM 3D Body
 
-Prövat 2026-11-27 på dockans egen film, där facit finns: mannen ger ett kort till plats 4
+SAM 3D Body (`facebook/sam-3d-body-dinov3`) läser en persons leder i meter ur en bild, given en ruta kring personen och
+kamerans brännvidd och bildmitt (`verktyg/sam_runpod.py las`). Livefilmens rutor läses här på datorns processor och
+lämnar aldrig datorn. En hyrd maskin hos RunPod (`verktyg/sam_runpod.ts`) används bara för vår egen dockfilm, och den
+vägrar en lista tagen ur livefilmen. Talen står i `data/sam-prov/`.
+
+**Prövat på dockan** (2026-11-27), där facit finns: mannen ger ett kort till plats 4
 (`../blackjack-dealer/assets/proofs/takt-12-08-20261127/1-mannen-plats-4.mp4`, 61 rutor; facit
-`../blackjack-dealer/dealer3d/data/giv-fran-2-3-p4c1-ren-a-man.json`). Alla 61 rutor lästes med
-`../blackjack-dealer/dealer3d/tools/docka-sam.py` (bara kroppsmodellen, spelets lins och en ruta kring dockan räknad ur
-facit) på en hyrd maskin, och jämfördes med facit och med MediaPipe-lyftet (`lyft.py prov`) på samma rutor. Talen står
-i `data/sam-prov/jamforelse.json`. Fel i centimeter i djupled (längs kamerans synlinje), median över rutorna, och i
-parentes den sämsta tiondelen:
+`../blackjack-dealer/dealer3d/data/giv-fran-2-3-p4c1-ren-a-man.json`). SAM ensam mot facit, fel i cm i djupled (längs
+kamerans synlinje), median och i parentes den sämsta tiondelen (`jamforelse.json`):
 
 | Led | SAM som den ger det | SAM med en skala och en flytt för hela filmen | SAM flyttad så att bålen står där den står (det lyftet får veta) | MediaPipe-lyftet |
 | --- | --- | --- | --- | --- |
-| Axlar | 12,9 | 3,7 (6,2) | 4,1 (5,9) | 4,9 (8,3) |
-| Armbågar | 11,4 | 2,6 (5,1) | 2,6 (4,7) | 4,5 (18,4) |
-| Handleder | 15,3 | 2,9 (6,9) | 3,1 (6,8) | 6,1 (19,6) |
-| Huvudet | 12,8 | 1,2 (4,1) | 1,3 (3,8) | 18,1 (26,1) |
-| Fingertopparna | 17,8 | 5,1 (9,4) | 5,1 (9,2) | 14,0 (24,7) |
+| Axlar | 13,1 | 3,4 (8,0) | 3,7 (7,9) | 4,9 (8,3) |
+| Armbågar | 11,2 | 2,1 (6,6) | 1,8 (6,7) | 4,5 (18,4) |
+| Handleder | 14,9 | 3,2 (6,2) | 3,4 (6,0) | 6,1 (19,6) |
+| Huvudet | 11,9 | 1,9 (3,3) | 1,9 (3,3) | 18,1 (26,1) |
+| Fingertopparna | 16,9 | 5,0 (8,8) | 4,7 (8,4) | 14,0 (24,7) |
 
-- **SAM hittar dockan:** dess egna punkter i bilden ligger 16 bildpunkter från dockans leder i median. I sidled och
-  höjd är felet 1–4 cm, som lyftets.
-- **Avståndet är en skattning, formen håller.** SAM lägger hela dockan cirka 10 cm för långt från kameran; med bålens
-  plats given är djupet 1–5 cm fel i stället för lyftets 2–18. Störst skillnad på armen som ger: högra handleden 2,3 cm
-  mot 9,6 (sämsta tiondelen 8,6 mot 21), högra armbågen 3,2 mot 9,2. Det lyftet tar ur MediaPipe som `nearer` (hur
-  mycket närmare kameran handleden är än axeln) blir 1,6 och 6,2 cm fel med SAM, mot 4,0 och 11,9.
-- **Armarna är stadiga:** överarmen 0,26–0,29 m och underarmen 0,24–0,27 m genom filmen (dockans är 0,28 och 0,27;
-  underarmen blir 2 cm för kort), mot 0,20–0,30 och 0,12–0,25 i MediaPipes egen kropp.
-- **Tid och pris:** 1,7 s per ruta på ett RTX 3070 (kroppsmodellen räknas på processorn, som `docka-sam.py` gör) och
-  13 s att ladda. Maskinen (RunPod, RTX 3070, 0,13 USD i timmen) levde 5,7 minuter, varav 2,3 för att starta och sätta
-  upp modellen: 0,01 USD. De cirka 150 nyckelrutor som dealrarnas lyft behöver blir under 10 minuter och 0,02–0,05 USD.
+- SAM hittar dockan (dess egna punkter i bilden 10–31 bildpunkter från dockans leder). I sidled och höjd är felet
+  1–4 cm, som lyftets. Avståndet är en skattning (hela dockan 8–12 cm för långt bort), men formen håller.
+- Samma film omritad som livebordets bild (1728 × 972, brännvidd 1290, dockan lika liten som dealrarna;
+  `rutor --som`) gav samma sak: 1,7–5,0 cm i djupled med bålen given (`jamforelse-som-livebordet.json`).
+- SAM:s armar är stadiga (spridning 1 cm genom filmen), men överarmen blir 0,4 och underarmen 1,9 cm kortare än dockans
+  (`benlangder_m.rattelse`); `lyft.py giv --sam` lägger tillbaka det.
 
-Körs om från repots rot (`PY` som ovan; nycklarna `RUNPOD_API_KEY` och `HF_TOKEN` i `.env.local` i roten, och
-modellen `facebook/sam-3d-body-dinov3` är spärrad hos Hugging Face tills kontot har fått tillgång). Betalt: bara på
-Jakobs ord.
+**Genom lyftet**, som det skulle gå för dealrarna: dockans film omritad som livebordets bild, SAM i var femte ruta,
+`lyft.py prov` med och utan `--sam` (`lyft-prov-utan-sam.json`, `lyft-prov-med-sam.json`). Fel i cm, median och
+sämsta tiondel:
+
+| Led | Utan SAM | Med SAM:s djup |
+| --- | --- | --- |
+| Vänster armbåge | 3,8 (5,0) | 4,5 (8,1) |
+| Vänster handled | 7,1 (10,8) | 5,0 (8,6) |
+| Höger armbåge (armen som ger) | 9,3 (19,8) | 3,6 (14,4) |
+| Höger handled | 9,7 (21,2) | 5,0 (15,5) |
+
+Axlarna är desamma (2,5 och 6,4 cm): de sätts där bålen antas sitta. Vikten för SAM:s djup prövades från 2 till 200
+mot MediaPipes 1; från 5 och uppåt börjar SAM:s egna fel synas, så den är 5 (`lyft.py`, `SAM_KEY`).
+
+**På processorn:** 49 s per ruta med tre trådar när datorn är ledig, 1–2 minuter när andra arbetar, och samma leder
+som den hyrda maskinen inom 2–5 mm. Modellen körs i float32 här; i bfloat16, som den själv väljer, tog en ruta 11
+minuter. Att bara läsa kroppen utan händernas egen avkodare (`--sort body`) gick inte fortare och flyttade lederna 2–3
+cm, så hela läsningen används. Uppsättningen ligger utanför repot i `../sam-3d-body/` (koden, modellen 2,8 GB och
+Python-miljön, 4,1 GB i allt), där `../blackjack-dealer/dealer3d/tools/docka-sam.py` också letar.
+
+**Livebordet** (2026-11-27, här på processorn). 259 nyckelrutor togs ut ur de tio lyfta styckena: givarna var femte
+lyftruta, väntan var tionde och tätare kring kortets ögonblick. Läsningen stoppades kl. 06.46, när datorn behövdes av
+andra (processen fick en femtedels kärna och flyttades ut ur minnet). 70 är lästa, kamerans tre givar hela. Talen står i
+`data/sam-prov/livebordet-sam.json`, utan bilder; rutorna är raderade.
+
+- **I lyften:** kamerans tre givar (Danilo) har SAM:s djup för armbågar och handleder. Bordets tre givar och alla fyra
+  väntestycken står kvar på MediaPipe tills läsningen tas upp igen. Fältet `djup` i varje lyft säger vilket.
+  Lederna flyttade sig högst 3–12 cm i kamerans givar.
+- **Mot bordets kända punkter** (`lyft.py kanda`; `sam-prov/kanda-fore.json` och `kanda-efter.json`): högerns grepp
+  där kortet läggs, kamerans givar, gick från 6,9 till 5,2 cm fel i djupled. Med handlederna fria gick det från 12,4 till
+  6,1 cm. Vid skon jämförs inget: skon mäts om.
+- **Skon:** i SAM-lyften låses vänsterns handled inte längre på 0,10 m (`HAND_AT_SHOE`, antaget) där kortet lämnar
+  skon. I MediaPipe-lyften gör den det fortfarande; det är en höjd, inte skons punkt. Kortets `c` före det lämnar skon
+  läses ur `uppsattning.json` och följer med när skon har nya mått och `lyft.py giv` körs igen.
+- **Armarna** ur SAM för kamerans dealer: 0,285 och 0,259 m (spridning 0,5 cm över 69 rutor), med dockans rättelse
+  0,289 och 0,279 m, bredvid mannens 0,279 och 0,272. Det är en skattning och står i fältet `armar`; bordets dealer har
+  de antagna 0,30 och 0,26.
+- **Blicken** räknas mot livebordets kamera (0,6175 m, 18,13 grader). Huvudets och nu också ögonens vila, som de är i
+  spelskyltarnas rutor där båda mest ser in i kameran, tas bort. MediaPipe läste bordets dealer med blicken 18 grader
+  nedåt också där; kamerans dealer 5 grader. I väntan ser båda 8–18 grader över kameran, troligen på en skärm. Varje ruta
+  har `blick` (kameran inom 20 grader, skon, plats n, egna korten, bordet, annat) och `blick_grader`.
+- **SAM:s axeldjup** (bålens vridning) prövades på dockan och gjorde lyftet sämre: axlarna från 2,5 till 3,7 cm fel,
+  högra armbågen från 3,6 till 7,6 cm. Axlarna står därför kvar på ett plan.
+- **Skakigheten** när handen står still: handleden flyttar sig 0,3 mm per ruta i median (1,7 mm för nio av tio). Fingertopparna
+  flyttar sig 1,9 mm (6,7 mm) och ligger 1,6 mm (4,8 mm) från sin egen jämnade väg. Fingrarna är MediaPipes hand, ojämnad.
+
+**Körs om** från repots rot (`PY` som ovan, `SAMPY` är `../sam-3d-body/.venv/Scripts/python.exe -I`). Uppsättningen en
+gång (Python 3.13; `HF_TOKEN` i `.env.local` i roten, med tillgång till den spärrade modellen hos Hugging Face):
 
 ```
-ffmpeg -i <filmen> -fps_mode passthrough -start_number 0 slask/live-bj/sam/rutor/r%03d.png
-PY live-bj/verktyg/sam_runpod.py ruta <facit>                       # rutan kring dockan, x0,y0,x1,y1
-node live-bj/verktyg/sam_runpod.ts kor slask/live-bj/sam/korning slask/live-bj/sam/rutor/r*.png --box <rutan> --facit <facit>
+py -3.13 -m venv ../sam-3d-body/.venv
+../sam-3d-body/.venv/Scripts/python.exe -m pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+../sam-3d-body/.venv/Scripts/python.exe -m pip install roma pytorch-lightning yacs omegaconf timm einops opencv-python-headless braceexpand huggingface_hub ftfy regex scikit-learn submitit termcolor torchmetrics scikit-image pandas
+SAMPY live-bj/verktyg/sam_runpod.py installera ../sam-3d-body
+```
+
+Livebordet, här på datorn (rutorna i slasken raderas när svaret är sparat). Att ta upp läsningen igen där den
+stoppades: lägg det sparade svaret i ut-mappen först, så läser `las` bara resten (cirka 190 rutor, 1–3 timmar):
+
+```
+PY live-bj/verktyg/sam_runpod.py rutor live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt slask/live-bj/sam/live live-bj/data/scen.json --tider live-bj/data/lyft --var 5 --vantan-gles 2 --tatt 2
+mkdir -p slask/live-bj/sam/live-sam && cp live-bj/data/sam-prov/livebordet-sam.json slask/live-bj/sam/live-sam/sam.json
+SAMPY live-bj/verktyg/sam_runpod.py las slask/live-bj/sam/live-sam slask/live-bj/sam/live/lista.json --tradar 3
+PY live-bj/verktyg/sam_runpod.py spara slask/live-bj/sam/live-sam/sam.json live-bj/data/sam-prov/livebordet-sam.json
+PY live-bj/verktyg/lyft.py giv live-bj/data live-bj/matt live-bj/data/lyft --sam live-bj/data/sam-prov/livebordet-sam.json
+PY live-bj/verktyg/lyft.py kanda live-bj/data/lyft live-bj/data/uppsattning.json --ut live-bj/data/sam-prov/kanda-efter.json
+```
+
+`las` går med låg prioritet, tar upp där den slutade om den körs igen, och läser givarnas rutor först, sedan
+väntans och sist de tätare kring kortets ögonblick. `lyft.py giv --sam` tar SAM:s djup bara i ett stycke som SAM har
+läst igenom (`sam_covers`), så varje lyft har ett djup. Dockans prov (mätningen och rutorna i slasken, läsningen på en
+hyrd maskin, betald: bara på Jakobs ord; `RUNPOD_API_KEY` i `.env.local`):
+
+```
 PY live-bj/verktyg/mat.py <filmen> <källfil> slask/live-bj/sam/matt --steg 1 --ensam
-PY live-bj/verktyg/sam_runpod.py jamfor slask/live-bj/sam/korning/sam.json <facit> slask/live-bj/sam/matt live-bj/data/sam-prov/jamforelse.json
+PY live-bj/verktyg/sam_runpod.py rutor <filmen> <källfil> slask/live-bj/sam/matt slask/live-bj/sam/docka spelet --var 1
+PY live-bj/verktyg/sam_runpod.py rutor <filmen> <källfil> slask/live-bj/sam/matt slask/live-bj/sam/docka-som-live spelet --var 1 --som live-bj/data/scen.json
+node live-bj/verktyg/sam_runpod.ts kor slask/live-bj/sam/korning slask/live-bj/sam/docka/lista.json slask/live-bj/sam/docka-som-live/lista.json
+PY live-bj/verktyg/sam_runpod.py jamfor slask/live-bj/sam/korning/docka.json <facit> slask/live-bj/sam/matt live-bj/data/sam-prov/jamforelse.json
+PY live-bj/verktyg/lyft.py prov slask/live-bj/sam/matt <facit> --sam live-bj/data/sam-prov/docka-var5-som-livebordet.json --ut live-bj/data/sam-prov/lyft-prov-med-sam.json
 ```
 
-`kor` hyr det billigaste NVIDIA-kortet med minst 8 GB för högst 0,35 USD i timmen, sätter upp modellen där (koden från
-GitHub, paketen, kontrollpunkten med `HF_TOKEN`), skickar rutorna och `docka-sam.py`, hämtar `sam.json` och förstör
-maskinen; en klocka, en vaktprocess bredvid och ett `finally` stänger den, och liggaren `liggare.json` i ut-mappen
-håller alla körningar under 90 minuter och 3 USD sammanlagt. `lista` visar saldot och kontots maskiner; `stang` förstör
-det verktyget har startat. Källfilen till `mat.py` är som `data/kalla.json`: hela filmen som ett parti.
-
-**Före dealrarna:** deras rutor skulle lämna datorn till den hyrda maskinen, vilket [AGENTS.md](AGENTS.md) inte tillåter
-utan Jakobs ord. `docka-sam.py` tar bara spelets bild (1764 × 1174) och lins; livebordets bild och kamera
-(`data/scen.json`) behöver samma läsning med sina egna mått. Svaret går sedan in i `lyft.py` som `nearer`, eller
-ersätter armarnas djup där, med bålen placerad som i dag.
+Källfilen till `mat.py` och `rutor` är som `data/kalla.json`: hela filmen som ett parti. `kor` hyr det billigaste
+NVIDIA-kortet med minst 8 GB för högst 0,35 USD i timmen och förstör maskinen efteråt (en klocka, en vaktprocess
+bredvid och ett `finally`); liggaren i ut-mappen håller alla körningar under 90 minuter och 3 USD sammanlagt, och
+`--torr` gör allt utom att hyra. De två körningarna på dockan 2026-11-27 tog 12 minuter på ett RTX 3070 för 0,13 USD i
+timmen: 0,03 USD (`jamforelse.json`, `kostnad`).
 
 ## Överlämning
 
@@ -281,8 +427,8 @@ kedjan körs de senare om.
 
 **Känt svagt:**
 
-- Djupet. En kamera ger inget. Farter i meter håller på en tredjedel när, ett lyft 4–11 cm per led (SAM 3D Body gav
-  1–5 cm på dockan, men är inte infört; se ovan).
+- Djupet. En kamera ger inget. Farter i meter håller på en tredjedel när, ett lyft 4–11 cm per led. SAM 3D Body gav
+  1–5 cm på dockan och ligger i kamerans tre givar, men inte i bordets eller väntan (se ovan).
 - Bålens avstånd bakom kanten är skattat (0,07 och 0,16 m), och bålens lutning framåt syns inte i lyften.
 - Fingrarna. Handen är 40–55 bildpunkter; måtten säger att greppet lever, inte ledernas vinklar.
 - Kortet i handen syns i 23 % av rutorna. Vändningen och kortets fart i handbytet går inte att få.
@@ -290,19 +436,18 @@ kedjan körs de senare om.
 - Höften, midjan och armens delar är dolda eller går inte att mäta framifrån.
 - Partierna 25–35 s och 41–47 s är inzoomade 0,6–2 % utan att `ram.py` ser det; `scen.py` och `kort.py` rättar
   det, `mat.py` inte (punkterna ligger 1–2 bildpunkter fel vid händerna där).
-- Skons frontplatta är avläst med två hörn som inte är överens (se ovan).
-- Slagen vid dealerns egna kort, svepen och sträckningarna i `rorelser.json` är inte kontrollerade i bild.
+- Kortlekens längd i skon är läst i två rutor; den krymper när korten delas ut.
+- Slagen vid dealerns egna kort, svepen och sträckningarna i `rorelser.json` är inte kontrollerade i bild. I
+  `segment.json` är svepet, korten in, dealerns kort, SKON och ANNAT sedda i bild i några fall var; PEKA och RATTA är
+  för få för att säga mer än att de är sällsynta.
 
 **Kvar att göra:**
 
-- Fler lyft: kortet till honom själv med vänsterhanden, korten in i lådan, väntan på fler ställen. Urvalet står
-  i `lyft.py` (`giv`); ett nytt slag är en ny loop över styckena i `rorelser.json`.
+- Fler lyft, i den ordning `data/segment.json` säger (`att_lyfta`): kort till plats 5 och 6, dealerns kort, andra
+  kortet, väntan, svepet och korten in. Urvalet i `lyft.py` (`giv`) går i dag över styckena i `rorelser.json`.
 - Mäta provet `naturlig-giv-20261127` som dockans andra filmer (`mat.py --ensam`, sedan `docka.py`).
-- Djup ur SAM 3D Body: prövat på dockan och tydligt bättre (se ovan). Kvar är Jakobs ord om dealrarnas rutor, läsningen
-  med livebordets bild och kamera, och att föra in det i `lyft.py` som `nearer` (hur mycket närmare kameran armbågen
-  är än axeln, handleden än armbågen och handleden än axeln, i meter längs filten, per ruta), som i dag kommer ur
-  MediaPipes egen kropp i `lift()`.
-- Skilja ut vändningen av dealerns eget kort ur styckena "at his own cards".
+- Djup ur SAM 3D Body för bordets givar och väntestyckena: läsningen tas upp där den stoppades (kommandot under
+  "Djup ur SAM 3D Body"), sedan `lyft.py giv --sam` igen. Det tar 1–3 timmar på processorn när datorn är fri.
 - Låta `ram.py` se inzoomningen (smala kontrollrutor intill bildens kant) och köra om `mat.py` för de två partierna.
 
 **Det som kräver filmen:** allt ovan utom lyften och stilarna. Filmen ligger inte i Git; den hämtas med kommandot
