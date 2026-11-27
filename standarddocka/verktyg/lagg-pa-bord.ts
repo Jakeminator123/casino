@@ -236,6 +236,11 @@ if (rorelse && P2) { const s = liveShoeCard(), q = horn({c: s.centre, l: s.long,
   if (n > 20) { const l = vinkelLjus(s.out), p = pm.map(x => x / n / l), a = am.map(x => x / m), ma = (a[0] + a[1] + a[2]) / 3, mp = (p[0] + p[1] + p[2]) / 3;
     const kov = a.reduce((s, x, c) => s + (x - ma) * (p[c] - mp), 0), va = a.reduce((s, x) => s + (x - ma) ** 2, 0); ljusGang = Math.max(0.2, kov / va); ljusLyft = Math.max(0, mp - ljusGang * ma); }
   if (visa) console.log(`kortets ljus: förstärkning ${ljusGang.toFixed(2)}, lyft ${ljusLyft.toFixed(3)} (skons kort i plattan över ${n} bildpunkter)`); }
+/** Vår kortryggs medelfärg som den ritas (kortatlasens rygg i kortets ljus), för kortet som färgas om i farten (se Kortet). */
+const RYGGFARG: number[] = RYGG ? (() => { const s = [0, 0, 0]; let n = 0; for (let y = RYGG.h * 0.2 | 0; y < RYGG.h * 0.8; y++) for (let x = RYGG.w * 0.2 | 0; x < RYGG.w * 0.8; x++) { const o = (y * RYGG.w + x) * 3; for (let c = 0; c < 3; c++) s[c] += RYGG.px[o + c]; n++; }
+  return s.map(v => tillByte(Math.min(1, v / n * ljusGang + ljusLyft))); })() : [190, 60, 60];
+/** Så många bildpunkter på en halv ruta rör sig kortet minst när det räknas som i farten. */
+const FART = 8;
 /** Spårkortets gula rygg, också blekt av rörelseoskärpa (Kling 2026-11-27: kortet i farten var 245, 214, 122, och
  * verktyget såg det då inte och ritade vårt kort efter dockan, bredvid handen): blått under hälften av grönt, eller upp till
  * 0,62 av grönt när rött och grönt är nära varandra, vilket hud och hud blandad med det gröna inte är. */
@@ -260,10 +265,16 @@ const fack = (r: number, g: number, b: number) => (r >> 4) << 8 | (g >> 4) << 4 
 // fingrarna över vårt kort blev borta eller fick gula flagor (domaren 2026-11-27: kortet "ligger ovanpå fingrarna").
 type Ton = [number, number];
 const HUD = {ton: [55, 30] as Ton, farg: [213, 158, 128], ljus: 170};
-/** Det gula i ett område: medeltonen över de gula bildpunkterna (minst 30), eller null. */
-const gultI = (bild: Uint8Array | Uint8ClampedArray, med: (q: number) => boolean, b: Lada): Ton | null => { let u = 0, v = 0, n = 0;
-  for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) { const q = y * W + x; if (!med(q)) continue; const o = q * 3, r = bild[o], g = bild[o + 1], bl = bild[o + 2]; if (gul(r, g, bl)) { u += r - g; v += g - bl; n++; } }
-  return n >= 30 ? [u / n, v / n] : null; };
+/** Det gula i ett område: medelfärgen över de gula bildpunkterna (minst 30), eller null. */
+const gulFargI = (bild: Uint8Array | Uint8ClampedArray, med: (q: number) => boolean, b: Lada): number[] | null => { const s = [0, 0, 0]; let n = 0;
+  for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) { const q = y * W + x; if (!med(q)) continue; const o = q * 3, r = bild[o], g = bild[o + 1], bl = bild[o + 2]; if (gul(r, g, bl)) { s[0] += r; s[1] += g; s[2] += bl; n++; } }
+  return n >= 30 ? s.map(v => v / n) : null; };
+const tonAv = (f: number[]): Ton => [f[0] - f[1], f[1] - f[2]];
+/** Det gula i ett område som ton, eller null. */
+const gultI = (bild: Uint8Array | Uint8ClampedArray, med: (q: number) => boolean, b: Lada): Ton | null => { const f = gulFargI(bild, med, b); return f ? tonAv(f) : null; };
+/** Hur stor del av bildpunktens ton som är det gula Y (0–1), när tonen ses som hud plus gult; 0 för det kalla. */
+const gulDel = (r: number, g: number, b: number, Y: Ton) => { const u = r - g, v = g - b, det = HUD.ton[0] * Y[1] - Y[0] * HUD.ton[1]; if (r < g - 5 || Math.abs(det) < 200) return 0;
+  return Math.max(0, Math.min(1, (HUD.ton[0] * v - HUD.ton[1] * u) / det)); };
 /** Hur stor del av bildpunkten som är dealerns hud (0–1) när dess ton är en blandning av hud och det gula Y, eller null när
  * den inte är en sådan blandning (kall eller grå). */
 const hudDel = (r: number, g: number, b: number, Y: Ton) => { const u = r - g, v = g - b, det = HUD.ton[0] * Y[1] - Y[0] * HUD.ton[1]; if (r < g - 5 || Math.abs(det) < 200) return null;
@@ -392,10 +403,10 @@ const mal = utMapp ? path.join(utMapp, path.basename(en)) : ut!;
 const hallen = async function* (): AsyncGenerator<Buffer> { let forra: Buffer | null = null, nr = 0; for await (const f0 of rutor(en)) { const f: Buffer = hall.has(nr++) && forra ? forra : f0; forra = Buffer.from(f); yield f; } };
 
 // Kortets läge ruta för ruta: sökt där filmens kort syns, och däremellan dockans med förskjutningen från rutorna omkring.
-let kort: Kort[] = []; const sokLador: Lada[] = [];
+let kort: Kort[] = []; const sokLador: Lada[] = [], sokVikt: number[] = [];   // (sokVikt: hur mycket av filmens kort som sågs i rutan, i sökningens bildpunkter)
 if (rorelse) { const lagen: Lage[] = [];
   const sokt: (Lage | null)[] = [], t0: number[] = [], vikt: number[] = [], rad: string[] = []; let forra: Lage | null = null;
-  for await (const f of hallen()) { const nr = sokt.length, t = dockrutaVid(nr), s = sok(f, t, forra); sokt.push(s.L); t0.push(t); vikt.push(s.L ? s.nF : 0); sokLador.push(s.b); if (s.L) forra = s.L;
+  for await (const f of hallen()) { const nr = sokt.length, t = dockrutaVid(nr), s = sok(f, t, forra); sokt.push(s.L); t0.push(t); vikt.push(s.L ? s.nF : 0); sokVikt.push(s.L ? s.nF : 0); sokLador.push(s.b); if (s.L) forra = s.L;
     rad.push(`ruta ${String(nr).padStart(3)}  dockruta ${t.toFixed(1).padStart(5)}${s.L ? ` → ${s.L.t.toFixed(1).padStart(5)}  flyttat ${(s.L.dx * 1000).toFixed(0).padStart(3)} ${(s.L.dz * 1000).toFixed(0).padStart(3)} mm  vridet ${(s.L.v * 180 / Math.PI).toFixed(0).padStart(3)}°  filmens kort ${String(s.nF * 4).padStart(5)} bp, täckt ${(s.tackt * 100).toFixed(0).padStart(3)} %, utanför ${s.ute * 4} bp` : `  (filmens kort syns inte: ${s.nF * 4} bp)`}`); }
   const n = sokt.length, fran = sokt.map((L, i) => L ? i : -1).filter(i => i >= 0);
   // (mellan sökta rutor: dockrutans avvikelse och förskjutningen rakt emellan; före den första är tiden den första funnas,
@@ -479,9 +490,28 @@ for await (const f of hallen()) {
   if (rorelse) { CA.fill(0); CL.fill(0); BORT.fill(0);
     const vid = (o: number) => horn(kortMellan(kort, nr + o)), fore = vid(-0.25), efter = vid(0.25), steg = Math.max(...fore.map((p, i) => Math.hypot(p[0] - efter[i][0], p[1] - efter[i][1]))), ns = Math.max(1, Math.min(48, Math.ceil(steg / 1.5)));
     rl = ladaKring([...fore, ...efter, ...vid(0)], 2);
-    for (let s = 0; s < ns; s++) rita(kortMellan(kort, nr + (ns > 1 ? -0.25 + 0.5 * s / (ns - 1) : 0)), 1 / ns, rl);
+    // I farten, med ryggen mot kameran, är filmens hand och kort utsmetade i varandra, och att skära isär dem bildpunkt för
+    // bildpunkt och rita ett skarpt kort under handen gav ett prickigt kort med hål (domaren 2026-11-27). Där står filmens
+    // egen hand och eget kort kvar, och kortets gula färgas om till vår rygg (MALA): varje bildpunkt så mycket som dess ton
+    // är det gula, ramens turkos blir vit och märkets rosa röd. Framsidan ritas alltid av oss, den bär kortets valör.
+    // (farten är dockans egen i rutan, hörnens väg över sex tiondels dockruta: kortets sökta läge darrar mellan rutorna och
+    // säger inget om farten. Omfärgningen gäller bara kring kortets läge, 45 bildpunkter: handens gulgröna kant mot det gröna
+    // längre bort är inte kortet)
+    const td = dockrutaVid(nr), d0 = horn(dockKort(Math.max(0, td - 0.3))), d1 = horn(dockKort(Math.min(SIST, td + 0.3))), dockFart = Math.max(...d0.map((p, i) => Math.hypot(p[0] - d1[i][0], p[1] - d1[i][1])));
+    // (inte där filmens kort är skarpt och helt: funnet över minst sex tiondelar av kortets yta i bilden. Där ritas vårt.)
+    const h4 = vid(0), yta = Math.abs(h4.reduce((s, p, i) => { const n2 = h4[(i + 1) % 4]; return s + p[0] * n2[1] - n2[0] * p[1]; }, 0)) / 2, skarpt = (sokVikt[nr] ?? 0) * 4 >= 0.6 * yta;
+    const mitten = kortMellan(kort, nr), mala = dot(mitten.n, sub(RAM.position, mitten.c)) <= 0 && dockFart >= FART && !skarpt, zon = ladaKring([[rl.x0, rl.y0], [rl.x1, rl.y1]], 45);
+    if (!mala) for (let s = 0; s < ns; s++) rita(kortMellan(kort, nr + (ns > 1 ? -0.25 + 0.5 * s / (ns - 1) : 0)), 1 / ns, rl);
     // (filmens kort letas där vårt ligger och där sökningen letade, så att det tas bort också där vårt kort inte hamnade)
     const v = ladaKring([[rl.x0, rl.y0], [rl.x1, rl.y1]], 60), s = sokLador[nr], b = s ? {x0: Math.min(v.x0, s.x0), y0: Math.min(v.y0, s.y0), x1: Math.max(v.x1, s.x1), y1: Math.max(v.y1, s.y1)} : v; const hol = filmKortet(f, b, ru, rn, 1, langd(vid(0)), CA);
+    if (mala) { const gf = gulFargI(D, q => SPAR[q] === 1, b), Y = gf ? tonAv(gf) : null;
+      NK.fill(0); for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) { const q = y * W + x; NK[q] = SPAR[q] === 1 ? 1 : 0; } lada(NK, 12);
+      if (gf && Y) for (let y = Math.max(b.y0, zon.y0); y < Math.min(b.y1, zon.y1); y++) for (let x = Math.max(b.x0, zon.x0); x < Math.min(b.x1, zon.x1); x++) { const q = y * W + x, o = q * 3; if (A[q] >= 1 || NK[q] <= 0.001) continue; const r = D[o], g = D[o + 1], bl = D[o + 2];
+        if (SPAR[q] === 1) { if (P2 && SKO[q]) M[q] = 1;                                   // (kortet som dras fram vid skon står kvar som handen)
+          if (bl > r + 20) { const l = Math.min(255, ljus(r, g, bl) * 1.1); D[o] = l; D[o + 1] = l; D[o + 2] = l; continue; }                               // ramens turkos: vit
+          if (!gul(r, g, bl) && r > g + 30) { const k = ljus(r, g, bl) / Math.max(1, ljus(RYGGFARG[0], RYGGFARG[1], RYGGFARG[2])); for (let c = 0; c < 3; c++) D[o + c] = RYGGFARG[c] * k; continue; } }   // märkets rosa: ryggens röda
+        const a = SPAR[q] === 1 && gul(r, g, bl) ? 1 : gulDel(r, g, bl, Y); if (a > 0.15) for (let c = 0; c < 3; c++) D[o + c] = D[o + c] + a * (RYGGFARG[c] - gf[c]); } }
+    else {
     // (säkert dealern (SAK 2): dealerns färg, hopkopplad genom det som inte är grönt eller filmens kort med dealern utanför
     // filmens kort; en hudfärgad fläck helt inne i kortet är kortets märke blandat i det gula. I vårt kort bara där minst
     // halva rutan 5 x 5 runt om är dealern, så att märket inte blir prickar)
@@ -505,7 +535,7 @@ for await (const f of hallen()) {
       const h = SAK[q] === 2; if ((CA[q] > 0 || SAK[q] === 1) && (!h || HM[q] < 0.5)) { BORT[q] = 1; continue; } if (h) continue; const R = A[q] > 0 ? 5 : 2; let nara = false;
       for (let dy = -R; dy <= R && !nara; dy++) for (let dx = -R; dx <= R; dx++) { const p = q + dy * W + dx; if (p >= 0 && p < WH && SPAR[p] === 1 && x + dx >= b.x0 && x + dx < b.x1 && y + dy >= b.y0 && y + dy < b.y1) { nara = true; break; } }
       if (nara) BORT[q] = 1; }
-    lada(BORT, 1); }
+    lada(BORT, 1); } }
   for (let q = 0; q < WH; q++) { const o = q * 3, k = A[q], s = S[q], iSko = P2 && SKO[q], Pb = iSko ? P2 : P;
     let br = Pb[o] * s, bg = Pb[o + 1] * s, bb = Pb[o + 2] * s;
     if (rl && CA[q] > 0) { const a = Math.min(1, CA[q]); br = br * (1 - a) + tillByte(CL[o] / CA[q]) * a; bg = bg * (1 - a) + tillByte(CL[o + 1] / CA[q]) * a; bb = bb * (1 - a) + tillByte(CL[o + 2] / CA[q]) * a; }
