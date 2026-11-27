@@ -59,9 +59,22 @@ lc = coll('qc_ljus')
 for name, loc, size, energy in (('tak', (0, -0.3, 2.6), 2.0, 260), ('fyll', (0, -2.2, 1.9), 1.5, 70), ('bak', (0, 1.5, 2.2), 1.5, 60)):
     ld = bpy.data.lights.new(name, 'AREA'); ld.size = size; ld.energy = energy
     ob = bpy.data.objects.new('ljus_' + name, ld); lc.objects.link(ob); ob.location = loc; look_at(ob, (0, -0.3, 0.95))
-golv = bpy.data.meshes.new('golv'); bm = bmesh.new(); bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=4); bm.to_mesh(golv); bm.free()
-go = bpy.data.objects.new('qc_golv', golv); lc.objects.link(go)
-golv.materials.append(pbr('qc_golv', (0.18, 0.17, 0.16, 1), rough=0.8))
+# golvet går ut i världens mörker som editorns (standarddocka/editor/rum.ts GOLVET): helt till INNE meter från rummets
+# mitt (0,38 m framför dealerns axlar), sedan allt mer genomskinligt, borta vid UTE; så syns ingen golvkant i bilden
+INNE, UTE = 2.5, 10.0
+golv = bpy.data.meshes.new('golv'); bm = bmesh.new(); bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=UTE); bm.to_mesh(golv); bm.free()
+go = bpy.data.objects.new('qc_golv', golv); lc.objects.link(go); go.location = (0, STD['dealer']['bakom_kant'] - 0.38, 0)
+mg = pbr('qc_golv', (0.18, 0.17, 0.16, 1), rough=0.8); nt = mg.node_tree; ut = next(n for n in nt.nodes if n.type == 'OUTPUT_MATERIAL')
+tc = nt.nodes.new('ShaderNodeTexCoord'); ln = nt.nodes.new('ShaderNodeVectorMath'); ln.operation = 'LENGTH'
+mr = nt.nodes.new('ShaderNodeMapRange'); mr.interpolation_type = 'SMOOTHSTEP'; mr.inputs['From Min'].default_value = INNE; mr.inputs['From Max'].default_value = UTE
+mix = nt.nodes.new('ShaderNodeMixShader'); klar = nt.nodes.new('ShaderNodeBsdfTransparent')
+nt.links.new(tc.outputs['Object'], ln.inputs[0]); nt.links.new(ln.outputs['Value'], mr.inputs['Value']); nt.links.new(mr.outputs['Result'], mix.inputs[0])
+nt.links.new(nt.nodes['Principled BSDF'].outputs[0], mix.inputs[1]); nt.links.new(klar.outputs[0], mix.inputs[2]); nt.links.new(mix.outputs[0], ut.inputs['Surface'])
+try:
+    mg.surface_render_method = 'BLENDED'
+except AttributeError:
+    mg.blend_method = 'BLEND'
+golv.materials.append(mg)
 
 cams = make_cameras(coll('qc_kameror'), a.kameror)
 eng = {'EEVEE': ['BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE'], 'CYCLES': ['CYCLES']}[a.motor]

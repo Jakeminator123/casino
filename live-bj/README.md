@@ -28,6 +28,7 @@ Allt körs från repots rot. `PY` är `blackjack-dealer/tools/python/.venv/Scrip
 | Hitta bordsbilden | `PY live-bj/verktyg/ram.py live-bj/video/kalla.mp4 live-bj/data/kalla.json` | Bildens ruta i skärminspelningen och de 18 partier (876 av 1040 s) där den visas orörd. |
 | Läs skyltarna | `PY live-bj/verktyg/faser.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/data/faser.json` | Vilken skylt som stod när ("Dealing", "Make your decision" ...) och rundorna. Tar 5 minuter. |
 | Mät bordet och kameran | `PY live-bj/verktyg/scen.py` (användningen står överst i filen) | `data/scen.json`: kameran räknad ur 29 ensamma kort, filten, skon, lådan, skärkortet, platsernas märken och var korten landar, i bildpunkter och i meter på filten. Skriver också det tomma bordet till `matt/bord-A.png` och `bord-B.png`. |
+| Mät relingen | `PY live-bj/verktyg/reling.py live-bj/data/scen.json live-bj/data/reling.json [--ark live-bj/rutor/kontroll/reling.jpg]` | `data/reling.json`: den stoppade rullen runt filten (bredd ut från filtens kant, höjd över och under filtens nivå), mätt som en form genom kameran mot filmens kontur på det tomma bordet; samma rulle längs kanten mot dealern, och hyllan bakom kanten vid dealerns höger. Läser `matt/bord-A.png` och `bord-B.png`; tar en minut. |
 | Hitta korten | `PY live-bj/verktyg/kort.py` (användningen står överst i filen) | `matt/kort-<start>.json` (varje kort i varannan ruta: hörn, riktning, sida upp, stilla eller på väg) och `data/givar.json` (varje kort som landade: när det lämnade skon, när och var det låg still, om det vändes). |
 | Mät dealern | `PY live-bj/verktyg/mat.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt --del 0/5` (fem körningar, `0/5` till `4/5`) | Kroppen, båda händerna och ansiktet i varannan ruta. Tar 40 minuter med fem körningar bredvid varandra. |
 | Räkna ut mönstret | `PY live-bj/verktyg/monster.py live-bj/data/kalla.json live-bj/data/faser.json live-bj/matt live-bj/data/monster.json` | Varje handrörelse, blinkning, sänkt blick och huvudrörelse, och sammanställningen per dealer. |
@@ -136,6 +137,7 @@ rundade kant blir en cirkel på bordet med 1,8 mm fel över 1234 punkter. Korten
 | Bildvinkel i sidled | 67,6 grader (± 5 %) | 41,4 grader |
 | Kameran till filtens kant mot dealern | 1,54 m | 2,07 m |
 | Filten | halvcirkel, radie 0,73 m: 1,46 m bred vid dealerns kant, 0,71 m djup | 1,90 m bred, 1,08 m djup |
+| Rullen runt filten (runt bågen och längs dealerns kant) | 6,5 cm ut från filtens kant, toppen ca 2 cm över filten (1–2,4) | 10 cm, 4,6 cm hög |
 | Dealerns egna kort, från hans kant | 0,19 m | 0,39 m |
 | Spelarens kort på mittplatsen, från dealerns kant | 0,49 m | 0,63 m |
 | Insatsmärket på mittplatsen, från dealerns kant | 0,63 m | 0,71 m |
@@ -430,7 +432,7 @@ Skrivet 2026-11-27 av agenten som byggde mappen, för den som fortsätter.
 
 **Göra om allt från filmen**, i den här ordningen (kommandona står i tabellen ovan): hämta filmen, `ram.py`,
 `faser.py`, `mat.py` (fem körningar), `scen.py`, `kort.py` (per parti, sedan `samla`), `scen.py` en gång till med
-`--givar` så att kortplatserna kommer med, `monster.py`, `stil.py`, `rorelser.py`, `uppsattning.py`, `lyft.py giv`.
+`--givar` så att kortplatserna kommer med, `reling.py`, `monster.py`, `stil.py`, `rorelser.py`, `uppsattning.py`, `lyft.py giv`.
 `stil.py`, `rorelser.py`, `uppsattning.py` och `lyft.py` läser bara måtten i `matt/` och `data/` och tar sekunder;
 bara `ram.py`, `faser.py`, `mat.py`, `scen.py` och `kort.py` läser filmen. `docka.py` och `overlagg.py` står vid
 sidan av: den första mäter dockans egna filmer, den andra behöver en bild av vårt bord från editorns sida.

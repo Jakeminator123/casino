@@ -40,10 +40,14 @@ bord:  # mätt: en halvcirkel med rak kant mot dealern (bågen en cirkel inom 1,
   bredd: 1.4587  # härlett: filtens bredd längs dealerkanten
   djup: 0.714
   kontur_bagsteg: 180  # antaget: bågens täthet
-  vadderad_kant:  # antaget (vår): läderrullen utanför bågen, så att filten som syns är den mätta. källa: LIVE.rail
-    bredd: 0.1
-    mitt_over_filt: 0.012  # LIVE.rail.section.lift
-    halv_hojd: 0.034  # LIVE.rail.section.above
+  vadderad_kant:  # mätt: en låg läderrulle som står på filtens kant, runt bågen och rakt längs kanten mot dealern; sektionen är två halva ellipser kring en mitt bredd/2 ut, i filtens nivå (live-bj/verktyg/reling.py). källa: LIVE.rail
+    bredd: 0.065  # mätt: hur långt ut från filtens kant (säker på 1 mm)
+    over_filt: 0.021  # mätt svagt: rullens topp över filten (0,009-0,024 passar lika bra)
+    under_filt: 0.015  # mätt svagt: hur långt under filtens nivå dess yttre sida går innan den vänder in under bordet
+  hylla:  # mätt: en grund hylla bakom kanten mot dealern, vid hans högra sida (bildens vänster), inramad av samma rulle; botten i filtens nivå (antaget). källa: LIVE.shelf
+    vanster_inre: -0.7273  # härlett: den vänstra sidan är bågens ände som går rakt bakåt (filtens vänstra hörn)
+    hoger_yttre: -0.403  # mätt: den högra sidans ytterkant (X)
+    bak_yttre: 0.332  # mätt: bakre sidans ytterkant, bakom kanten mot dealern (Y)
   sarg:  # antaget (vår): valnötssarg under rullens överhäng, höjder relativt filten
     underkant: -0.16
     massingslinje: [-0.002, 0.005]  # mässingslist mot filten, ~2 mm över

@@ -65,9 +65,10 @@ bildmodellen och står sedan kvar i personfilen.
 - **Filmen i dockans takt:** `node standarddocka/verktyg/i-dockans-takt.ts <film.mp4> --docka <rörelse.json> --bild
   <stillbild.png>@<dockruta> … --takt <takt.json> --ut <film.mp4>`. Kling lägger bilderna i sin egen takt; verktyget
   parar varje bild med sin dockruta.
-- **Dealern på vårt bord:** `node standarddocka/verktyg/lagg-pa-bord.ts <grön film> --platta <bordet ensamt.png> --ut
-  <film> --egen-sko <bordet med vår sko.png> --docka <rörelse.json> --takt <takt.json>`: vår sko och kortlek, och vårt
-  eget kort ritat ur dockans tal. Verktygens huvud säger resten.
+- **Dealern på vårt bord:** `node standarddocka/verktyg/lagg-pa-bord.ts <grön film> --platta
+  standarddocka/klipp/platta-bord-ensamt.png --ut <film> --egen-sko standarddocka/klipp/platta-bord-med-sko.png --docka
+  <rörelse.json> --takt <takt.json>`: vår sko och kortlek, och vårt eget kort ritat ur dockans tal. Verktygens huvud
+  säger resten, också hur plattorna görs om.
 
 ## En ny omgång
 

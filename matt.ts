@@ -94,7 +94,7 @@ const DOM = {
 const yaml = lasYaml('avatar-auto-pipeline/scen/standard.yaml');
 const DATA = 'blackjack-dealer/dealer3d/data/';
 // Livebordet: mätt av live-bj/ på en film; läses om det finns, och är preliminärt tills filen själv säger att kameran är bekräftad.
-const scen = data('live-bj/data/scen.json'), stilA = data('live-bj/data/stil-kameran.json'), stilB = data('live-bj/data/stil-bordet.json'), U = data('live-bj/data/uppsattning.json');
+const scen = data('live-bj/data/scen.json'), stilA = data('live-bj/data/stil-kameran.json'), stilB = data('live-bj/data/stil-bordet.json'), U = data('live-bj/data/uppsattning.json'), R = data('live-bj/data/reling.json');
 const bekraftad = (o: any): boolean => !!o && typeof o === 'object' && Object.entries(o).some(([n, v]) => (/confirm|bekr/i.test(n) && v === true) || bekraftad(v));
 const MATT = scen && bekraftad(scen.camera) ? 'Mätt på film' : 'Mätt på film (preliminärt)';
 const LIVE_A = 'Danilo (dealer A, ser i kameran)', LIVE_B = 'Frasse (dealer B, ser på bordet)';
@@ -153,7 +153,9 @@ rubrik('## 2. Bordet och det som står på det');
   const uf = U?.felt, us = U?.shoe, ub = U?.box_for_used_cards;
   q('Filten', 'djup; bredd vid kanten mot dealern', `${m(L.felt.depth)}; ${m(L.felt.widthAtEdge)}`, ok(uf?.depth) ? `${m(uf.depth)}; ${m(uf.width_at_dealers_edge)}` : '—', skillnad(L.felt.depth, uf?.depth, m), hur(uf), lk('LIVE.felt'));
   q('', 'bågens radie; mitten bakom kanten', `${m(L.felt.radius, 4)}; ${cm(L.felt.edgeZ - L.felt.centre[2], 2)}`, ok(uf?.arc_radius) ? `${m(uf.arc_radius, 4)}; ${cm(uf.dealers_edge_z - uf.arc_centre[2], 2)}` : '—', skillnad(L.felt.radius, uf?.arc_radius, m), hur(uf), lk('LIVE.felt'));
-  q('Rullen', 'bredd utanför filten; rullens topp över filten', `${cm(L.rail.width)}; ${mm(L.rail.section.lift + L.rail.section.above, 0)}`, '— (bara i bildpunkter)', '—', 'antaget (vår)', lk('LIVE.rail'));
+  const ur = R?.rail, uh = R?.tray;
+  q('Rullen', 'bredd utanför filten; rullens topp över filten; dess yttre sida under filtens nivå', `${cm(L.rail.width, 1)}; ${mm(L.rail.above, 0)}; ${mm(L.rail.below, 0)}`, ok(ur?.width) ? `${cm(ur.width, 1)}; ${mm(ur.above, 0)}; ${mm(ur.below, 0)} (${tal(ur.rmsPx, 1)} bildpunkter fel)` : '—', skillnad(L.rail.width, ur?.width, m), 'mätt (höjden svagt)', lk('LIVE.rail'));
+  q('Hyllan bakom kanten, vid dealerns höger', 'högra sidans ytterkant i sidled; bakre sidan bakom kanten', `${m(L.shelf.right)}; ${m(L.shelf.back)}`, ok(uh?.right) ? `${m(uh.right)}; ${m(uh.back)}` : '—', skillnad(L.shelf.back, uh?.back, m), 'mätt', lk('LIVE.shelf'));
   const fot = [L.shoe.foot.byDealer, L.shoe.foot.towardPlayers, L.shoe.foot.back], kortet = liveShoeCard(L.shoe), uFront = us?.front_plate, uKort = us?.card_when_drawn?.middle;
   q('Skon', 'fotens längd × bredd', `${m(L.shoe.length)} × ${m(L.shoe.width)}`, ok(us?.foot_length) ? `${m(us.foot_length)} × ${m(us.foot_width)}` : '—', skillnad(L.shoe.length, us?.foot_length, m), hur(us), lk('LIVE.shoe'));
   q('', 'fotens tre hörn: största avstånd', '', '', visa(storst(fot as number[][], us?.foot), mm), hur(us), lk('LIVE.shoe.foot'));

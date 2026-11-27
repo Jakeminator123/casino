@@ -30,7 +30,7 @@ Talen står utskrivna i `../MATT.md`, och `tools/standard.test.ts` håller dem.
 | --- | --- | --- |
 | Världen | livebordets linsvärld i meter: x mot bildens höger (dealerns vänster), y upp med filten på 0, z mot spelarna, kameran rakt över origo | `src/table-live.ts` |
 | Kameran | brännvidd, lutning nedåt, rullning och höjd över filten, mätta ur korten på filten; bilden 1728 × 972 | `LIVE_CAMERA`, `liveFrame`, `liveSee`, `liveOnFelt` |
-| Bordet | en halvcirkel med rak kant mot dealern, rullen utanför | `LIVE.felt`, `LIVE.rail`; `STANDARD.bord` |
+| Bordet | en halvcirkel med rak kant mot dealern; rullen runt bågen och längs kanten mot dealern, och hyllan bakom kanten vid dealerns höger | `LIVE.felt`, `LIVE.rail`, `LIVE.shelf`; `STANDARD.bord` |
 | Kortet | ett verkligt kort, 63 × 88 mm, 0,3 mm tjockt, hörn 3,5 mm | `CARD` i `src/space.ts` |
 | Kortplatserna | där korten först låg stilla, i meter med sin vinkel; dagens platser räknas från bildens vänster | `LIVE.cards`; `STANDARD.kortplatser()`, `liveCardHeading` |
 | Insatserna | de mätta insatsmärkena, och våra ringar kring dem | `LIVE.betMarks`; `BET` i `src/standard.ts` |

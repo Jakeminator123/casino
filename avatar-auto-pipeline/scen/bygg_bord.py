@@ -5,8 +5,10 @@ Ut:   assets/bord/standardbord_live.blend och assets/bord/standardbord_live.glb
       (med --med-bricka assets/bord/standardbord_live_bricka.blend/.glb)
 Allt mått kommer ur standard.yaml (ur spelets LIVE i ../blackjack-dealer/src/table-live.ts) – ändra där, inte här.
 
-Filten är livebordets halvcirkel och rullen ligger utanför den; skon, lådan för använda kort, insatsmärkena och
-kortplatserna står där livebordet har dem, med vårt utseende (filt, sarg, rulle, ben och färger). Skon är deras
+Filten är livebordets halvcirkel. Rullen är livebordets (mätt: en låg läderrulle som står på filtens kant) och går runt
+bågen och rakt längs kanten mot dealern; bakom kanten vid dealerns högra sida ramar den in en hylla, som livebordets.
+Skon, lådan för använda kort, insatsmärkena och kortplatserna står där livebordet har dem, med vårt utseende (filt,
+sarg, rullens läder, ben och färger). Skon är deras
 (sko nedan): en lång klar låda, öppen upptill, med en klar ram i fronten, och kortleken liggande på en bädd som
 stiger bakåt, nästa kort i frontens fönster med ryggen utåt; och en lös klar bit plant på filten framför (sko_los_bit).
 I lådan för använda kort ligger en korthög med ryggen upp. Livebordet har ingen markerbricka; med --med-bricka läggs
@@ -95,32 +97,66 @@ def outline(grow=0.0, notch=None):
     return pts, n
 
 
-def rail(col, mat):
-    """Rullen: vår rulles sektion (bord.vadderad_kant) längs bågen, utanför filten (dess insida i den mätta radien), från
-    dealerkanten till dealerkanten."""
-    rl = B['vadderad_kant']; n = B['kontur_bagsteg']; half = rl['bredd'] / 2; P = 24
-    cx, cy, t0, t1 = _bage(); R = B['radie'] + half
-    bm = bmesh.new(); rings = []
-    for i in range(n + 1):
-        t = t0 + (t1 - t0) * i / n; nx, ny = math.cos(t), math.sin(t); ccx, ccy = cx + R * nx, cy + R * ny
-        ring = []
-        for j in range(P):
-            a = 2 * math.pi * j / P; r_out = half * math.cos(a); zz = FZ + rl['mitt_over_filt'] + rl['halv_hojd'] * math.sin(a)
-            ring.append(bm.verts.new((ccx + nx * r_out, ccy + ny * r_out, zz)))
-        rings.append(ring)
+def _sektion(hojd=1.0, P=24):
+    """Rullens sektion (bord.vadderad_kant): två halva ellipser kring en mitt bredd/2 ut från filtens kant, i filtens nivå;
+    (ut, upp) i meter. `hojd` krymper den på höjden (hyllans ram ligger 1 mm under rullen där de möts, så att ytorna inte
+    blandas)."""
+    rl = B['vadderad_kant']; w = rl['bredd']
+    return [(w / 2 + w / 2 * math.cos(a), hojd * (rl['over_filt'] if math.sin(a) > 0 else rl['under_filt']) * math.sin(a))
+            for a in (2 * math.pi * j / P for j in range(P))]
+
+
+def _svep(name, vag, sluten, col, mat, hojd=1.0):
+    """Rullen svept längs vägen `vag` (punkter (X, Y) på dess insida, i filtens nivå): sektionen når ut åt vänster om
+    färdriktningen, och i varje hörn ligger den längs bisektrisen (geringen), så att två raka sträckor möts i ett snitt."""
+    sek = _sektion(hojd); P = len(sek); n = len(vag); bm = bmesh.new(); rings = []
     for i in range(n):
+        p = Vector(vag[i])
+        fore = Vector(vag[i - 1]) if (i > 0 or sluten) else None
+        efter = Vector(vag[(i + 1) % n]) if (i < n - 1 or sluten) else None
+        nor = []
+        for a, b in ((fore, p), (p, efter)):
+            if a is not None and b is not None:
+                d = (b - a).normalized(); nor.append(Vector((-d.y, d.x)))
+        m = (nor[0] + nor[-1]).normalized(); s = 1.0 / max(0.3, m.dot(nor[0]))
+        rings.append([bm.verts.new((p.x + m.x * o * s, p.y + m.y * o * s, FZ + h)) for o, h in sek])
+    for i in range(n if sluten else n - 1):
+        r0, r1 = rings[i], rings[(i + 1) % n]
         for j in range(P):
-            bm.faces.new((rings[i][j], rings[i][(j+1) % P], rings[i+1][(j+1) % P], rings[i+1][j]))
-    bm.faces.new(rings[0]); bm.faces.new(list(reversed(rings[-1])))
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    lay = bm.loops.layers.uv.verify()
-    for f in bm.faces:
+            bm.faces.new((r0[j], r0[(j + 1) % P], r1[(j + 1) % P], r1[j]))
+    if not sluten:
+        bm.faces.new(rings[0]); bm.faces.new(list(reversed(rings[-1])))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces); bm.verts.index_update()
+    lay = bm.loops.layers.uv.verify(); langs = 0.0; u = []
+    for i in range(n):
+        if i:
+            langs += (Vector(vag[i]) - Vector(vag[i - 1])).length
+        u.append(langs)
+    for f in bm.faces:  # läderns textur: u längs vägen, v runt sektionen
         for lp in f.loops:
-            co = lp.vert.co; lp[lay].uv = (math.atan2(-co.y, co.x) * R, (co.z - FZ) * 4)
-    ob = obj_from_bm('bord_vaddering', bm, col, mat)
+            k = lp.vert.index; i, j = k // P, k % P
+            lp[lay].uv = (u[i] if i < n else 0.0, j / P * 0.25)
+    ob = obj_from_bm(name, bm, col, mat)
     for p in ob.data.polygons:
         p.use_smooth = True
     return ob
+
+
+def hylla_matt():
+    """Hyllan bakom kanten mot dealern (bord.hylla): ramens insida X vänster och höger, Y fram (rullens bortre sida längs
+    kanten) och bak."""
+    w = B['vadderad_kant']['bredd']; hy = B['hylla']
+    return hy['vanster_inre'], hy['hoger_yttre'] - w, w, hy['bak_yttre'] - w
+
+
+def rail(col, mat):
+    """Rullen runt filten: längs bågen och rakt längs kanten mot dealern, en sluten slinga med samma sektion; och hyllans
+    ram bakom kanten vid dealerns högra sida, vars vänstra sida är bågens ände som går rakt bakåt."""
+    pts, _ = outline()
+    slinga = _svep('bord_vaddering', pts, True, col, mat)  # bågen höger -> spelarna -> vänster, sedan kanten tillbaka
+    x0, x1, y0, y1 = hylla_matt(); w = B['vadderad_kant']['bredd']
+    ram = _svep('bord_hylla_ram', [(x0, w / 2), (x0, y1), (x1, y1), (x1, w / 2)], False, col, mat, hojd=0.95)
+    return slinga, ram
 
 
 def cylinder(name, loc, r0, r1, h, col, mat, seg=48, axis='Z'):
@@ -350,8 +386,13 @@ def main():
     pts, narc = outline(notch=urtag)
     felt = felt_sheet('bord_filt', pts, FZ, c_bord, m_felt)
     sg = B['sarg']
-    # sargen når ut under rullen, som ligger utanför filten
-    prism('bord_sarg', outline(B['vadderad_kant']['bredd'], notch=urtag)[0], FZ + sg['underkant'], FZ + sg['underlagg'], c_bord, m_wood)
+    # sargen når ut under rullen, som ligger utanför filten runt bågen och bakom kanten mot dealern, och under hyllan
+    w = B['vadderad_kant']['bredd']; ut = outline(w)[0]; xv, xh = ut[-1][0], ut[0][0]  # rullens yttre ändar längs kanten
+    prism('bord_sarg', outline(w, notch=urtag)[0], FZ + sg['underkant'], FZ + sg['underlagg'], c_bord, m_wood)
+    prism('bord_sarg_kant', [(xv, 0.0), (xh, 0.0), (xh, w), (xv, w)], FZ + sg['underkant'], FZ + sg['underlagg'], c_bord, m_wood)
+    hx0, hx1, hy0, hy1 = hylla_matt()
+    prism('bord_hylla_sarg', [(hx0 - w, 0.0), (hx1 + w, 0.0), (hx1 + w, hy1 + w), (hx0 - w, hy1 + w)], FZ + sg['underkant'], FZ + sg['underlagg'], c_bord, m_wood)
+    felt_sheet('bord_hylla_filt', [(hx0, hy0 * 0.9), (hx1, hy0 * 0.9), (hx1, hy1), (hx0, hy1)], FZ, c_bord, m_felt)
     band('bord_massingslinje', pts, FZ + sg['massingslinje'][0], FZ + sg['massingslinje'][1], 0.0008, c_bord, m_brass)
     rail(c_bord, m_leather)
     lg = B['ben']; legh = FZ + sg['underkant'] - lg['platta_hojd']

@@ -90,11 +90,26 @@ export type LiveSetup = {
   /** mätt: a half circle with a straight edge toward the dealer; the circle's centre lies 1.56 cm behind that edge. */
   felt: {centre: Vec3; radius: number; edgeZ: number; frontZ: number; depth: number; widthAtEdge: number};
   /**
-   * antaget (ours): the padded rail round the arc, outside the felt; it stands up from the felt and is mätt in pixels only.
-   * section: the leather roll's own, the middle of the roll out from the felt's edge (centre) and above the felt (lift), its
-   * half width, and how far it rises above and reaches below that middle.
+   * mätt (live-bj/verktyg/reling.py, live-bj/data/reling.json, 2026-11-27): the padded leather rail round the felt, a low
+   * roll standing on the felt's edge, the same round the arc and straight along the dealer's edge. Its section is two half
+   * ellipses on a middle width/2 out from the felt's edge at the felt's level: it reaches `width` out, rises `above` over
+   * the felt, and its outer side turns in `below` under the felt's level. Measured as a shape: the roll drawn through the
+   * camera, its outline against the film's on the empty table along 90 rays round the arc (1.4 pixels rms, at most 3.6).
+   * The width is sure to 1 mm (0.065 to 0.066); the height weakly (`above` 0.009 to 0.024, `below` 0.006 to 0.015 fit as
+   * well), and the same rail along the dealer's edge falls on the film's there (its top 0.0 pixels off over 31 columns).
+   * section: not the live table's but the game's own 3D roll (src/scene3d-table.ts), antaget (ours): its look, wider and
+   * higher. The middle of the roll out from the felt's edge (centre) and above the felt (lift), its half width, and how
+   * far it rises above and reaches below that middle.
    */
-  rail: {width: number; section: {centre: number; lift: number; halfWidth: number; above: number; below: number}};
+  rail: {width: number; above: number; below: number; section: {centre: number; lift: number; halfWidth: number; above: number; below: number}};
+  /**
+   * mätt (live-bj/verktyg/reling.py, 2026-11-27): a tray behind the dealer's edge at his right (the picture's left), framed
+   * by the rail: its left side is the rail of the arc's end going straight back, its right side's outer edge stands at
+   * x = `right`, and its back's outer edge `back` metres behind the dealer's edge (read by eye through the camera, 1 to 2
+   * cm). Its floor is dark like the felt and lies at the felt's level (antaget). In the film a clear box lies in it; ours
+   * is empty.
+   */
+  shelf: {right: number; back: number};
   /**
    * A long clear box (mätt again 2026-11-27 on the film's frames: the deck lies, it does not stand). Its front is a clear
    * frame leaning back from the foot's two front corners, open in a window where the next card's back shows; inside, the
@@ -153,7 +168,8 @@ export const LIVE: LiveSetup = {
   camera: LIVE_CAMERA,
   edge: [0, 0, -1.5375],
   felt: {centre: [0.002, 0, -1.5531], radius: 0.7295, edgeZ: -1.5375, frontZ: -0.824, depth: 0.714, widthAtEdge: 1.459},
-  rail: {width: 0.1, section: {centre: 0.057, lift: 0.012, halfWidth: 0.05, above: 0.034, below: 0.031}},
+  rail: {width: 0.065, above: 0.021, below: 0.015, section: {centre: 0.057, lift: 0.012, halfWidth: 0.05, above: 0.034, below: 0.031}},
+  shelf: {right: -0.403, back: 0.332},
   shoe: {
     foot: {byDealer: [0.427, 0, -1.4842], towardPlayers: [0.4521, 0, -1.3844], back: [0.7162, 0, -1.4577]},
     length: 0.274, width: 0.103, backHeight: 0.117, frontHeight: 0.061, plateLean: (90 - 33.4) * D, windowLift: 0.003, bedLean: 13.4 * D, deckLength: 0.18,

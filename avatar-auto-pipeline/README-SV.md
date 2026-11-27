@@ -62,7 +62,7 @@ dockorna och Node 24 för måtten. Allt körs från den här mappen.
 
 ```text
 .\.venv\Scripts\python.exe scen/gen_standard.py                                                     måtten ur spelet
-blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py                       livebordet (standardbord_live.*): dess filt (halvcirkel, radie 0,73 m), sko, låda, insatsmärken och kortplatser i vårt utseende, utan markerbricka; talen står i spelets kod (LIVE i ../blackjack-dealer/src/table-live.ts) och kommer hit genom standard.yaml
+blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py                       livebordet (standardbord_live.*): dess filt (halvcirkel, radie 0,73 m), rullen runt filten och hyllan bakom kanten, sko, låda, insatsmärken och kortplatser i vårt utseende, utan markerbricka; talen står i spelets kod (LIVE i ../blackjack-dealer/src/table-live.ts) och kommer hit genom standard.yaml
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --med-bricka       samma bord med vår markerbricka vid kanten, ett tillägg (standardbord_live_bricka.*)
 blender -b --python-exit-code 1 --python scen/bygg_docka.py                                        dockorna (MPFB, därför utan --factory-startup) med människans mått, utan val kvinnan och mannen; -- --kon <docka> bygger en (man, kvinna, danilo, frasse, tomasz_matt, eller en person i personer/ som kenji), -- --namn N skriver standarddocka_<docka>_N.* i stället för de modeller som används
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_stol.py                       stolen

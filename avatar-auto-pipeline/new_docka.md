@@ -112,16 +112,15 @@ Varje tal i `scen/standard.yaml` har `# källa: fil (namn)` eller `# antaget:` +
 
 ### 5.2 Bordet
 
-Livebordet, mätt på filmen: en halvcirkel med rak kant mot dealern (bågen en cirkel inom 1,8 mm), radie 0,7295 m med mitten 1,56 cm bakom kanten, 1,459 m brett längs kanten och 0,714 m djupt (`LIVE.felt`). Rullen utanför bågen, sargen, benen, färgerna och texturerna är vårt utseende. Spelets 3D-scen bygger samma bord (`tableUnder` i `src/scene3d-table.ts`, `STANDARD.bord`).
+Livebordet, mätt på filmen: en halvcirkel med rak kant mot dealern (bågen en cirkel inom 1,8 mm), radie 0,7295 m med mitten 1,56 cm bakom kanten, 1,459 m brett längs kanten och 0,714 m djupt (`LIVE.felt`). Rullen är också mätt: en låg rulle runt bågen och rakt längs kanten mot dealern, och bakom kanten vid dealerns högra sida ramar den in en hylla (`LIVE.rail`, `LIVE.shelf`; `live-bj/verktyg/reling.py`). Sargen, benen, färgerna och texturerna är vårt utseende. Spelets 3D-scen bygger samma filt (`tableUnder` i `src/scene3d-table.ts`, `STANDARD.bord`) med sin egen, bredare rulle.
 
 ### 5.3 Filt, rulle, sarg, bricka, marker
 
 | Del | Mått | Källa |
 | --- | --- | --- |
 | Filt Z | 0,95 m | `LIVE.floor` (slutlett) |
-| Rulle bredd | 0,10 m | antaget (vår), `LIVE.rail` |
-| Rulle mitt över filt | 0,012 m | `LIVE.rail.section` |
-| Rulle halv höjd | 0,034 m | `LIVE.rail.section` |
+| Rulle | bredd, topp över filten, under filtens nivå | mätt, `LIVE.rail` (talen i `scen/standard.yaml`, `bord.vadderad_kant`) |
+| Hylla bakom kanten | högra sidans ytterkant, bakre sidans avstånd från kanten | mätt, `LIVE.shelf` (`bord.hylla`) |
 | Sarg underkant | −0,16 m relativt filt | antaget (vår) |
 | Mässingslist | [−0,002, 0,005] m | antaget (vår) |
 | Ben | x = ±0,58 m, s = 0,25 m | antaget (vårt) |
@@ -491,7 +490,7 @@ Provdealern Rosalina, gjord från foton (cirka 95 krediter), raderades 2026-11-2
 - Texturerna, korten och kortatlasen i `assets/bord/` hämtades för hand; adresserna står i `kallor.json` men inget skript hämtar dem eller bygger atlasen. Stolens råfil är betald och finns bara på datorn där den beställdes. På en annan dator kan bordet och stolen därför inte byggas förrän filerna finns där.
 - Blenders vila `sitt_vila` (`SITT` i `bygg_docka.py`) står ännu med axlarna 0,38 m bakom kanten och handlederna framför en markerbricka, inte på Danilos plats i måttfilens `docka`-block (0,2 m). Se 5.9.
 - Knogarnas läge: i MPFB:s skelett sitter långfingrets knoge 107 mm från handleden hos mannen (100 hos kvinnan), mot en människas 86–95 mm; handflatan är lång och fingrarnas leder sitter för långt ut. Inte rättat.
-- Rullen, sargen, benen, kläder och flera kameror (`dealer_ogon`, `hander`, `hel`, `topp`) är antagna; golvets höjd och sitsen är slutledda, inte mätta.
+- Sargen, benen, kläder, hyllans botten (i filtens nivå) och flera kameror (`dealer_ogon`, `hander`, `hel`, `topp`) är antagna; rullens höjd är bara svagt mätt (bredden säkert); golvets höjd och sitsen är slutledda, inte mätta.
 - 22 ARKit-nycklar saknas (avsnitt 7.7).
 - Skon är byggd efter måtten på livebordets klara sko, inte en fotograferad skormodell.
 - Överföringen av en rörelse från blackjack-dealers docka är grov: i provet med given till plats 5 sträcker dockan armen rak, lutar sig djupt och pekar fingrarna rakt ned (`--naturlig-hand` vänder handflatan nedåt). Bryggan sätter handleden över kortets mitt, medan blackjack-dealers docka når kortet med fingrarna.

@@ -25,8 +25,10 @@
 // då i skon), utom skons område och spårkortet, är dealern (hud, hår, skjorta och stolen). Det avgör vad som är handen och
 // ärmen vid skon och framför vårt kort.
 //
-// Plattan: node standarddocka/verktyg/titta.ts --runda --spela-in 0-0 --utan docka,kort,sko,stol --kamera plats4, och
-// första rutan ur det klippet. Arbetet görs i plattans storlek, och filmen skalas till den. Två knep är lånade ur
+// Plattorna ligger fast i standarddocka/klipp/ (utanför Git): platta-bord-ensamt.png (--platta) och platta-bord-med-sko.png
+// (--egen-sko), livebordet genom sin egen kamera i 1728 x 972. De görs om när bordet eller rummet ändras: node
+// standarddocka/verktyg/titta.ts --runda --spela-in 0-0 --utan docka,kort,sko,stol --kamera plats4 (med skon: --utan
+// docka,kort,stol), och första rutan ur klippet. Arbetet görs i plattans storlek, och filmen skalas till den. Två knep är lånade ur
 // blackjack-dealer (src/scene3d-film.ts, src/film-after.ts):
 //  - Det gröna mäts i varje ruta för sig, i två hörn som alltid är tomma (uppe till vänster bakgrunden, nere till
 //    vänster bordet), och varje bildpunkts grönhet räknas mot det. Utklippet följer då med när filmmodellen låter det

@@ -28,7 +28,8 @@ Livebordet i koden (`blackjack-dealer/src/table-live.ts LIVE`), i kamerans linsv
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Filten | djup; bredd vid kanten mot dealern | 0,714 m; 1,459 m | 0,714 m; 1,459 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE.felt` |  |
 |  | bågens radie; mitten bakom kanten | 0,7295 m; 1,56 cm | 0,7295 m; 1,56 cm | ±0 m (±0 %) | mätt | `table-live.ts LIVE.felt` |  |
-| Rullen | bredd utanför filten; rullens topp över filten | 10 cm; 46 mm | — (bara i bildpunkter) | — | antaget (vår) | `table-live.ts LIVE.rail` |  |
+| Rullen | bredd utanför filten; rullens topp över filten; dess yttre sida under filtens nivå | 6,5 cm; 21 mm; 15 mm | 6,5 cm; 21 mm; 15 mm (1,4 bildpunkter fel) | ±0 m (±0 %) | mätt (höjden svagt) | `table-live.ts LIVE.rail` |  |
+| Hyllan bakom kanten, vid dealerns höger | högra sidans ytterkant i sidled; bakre sidan bakom kanten | −0,403 m; 0,332 m | −0,403 m; 0,332 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE.shelf` |  |
 | Skon | fotens längd × bredd | 0,274 m × 0,103 m | 0,274 m × 0,103 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE.shoe` |  |
 |  | fotens tre hörn: största avstånd |  |  | 0 mm | mätt | `table-live.ts LIVE.shoe.foot` |  |
 |  | höjd bak; den klara frontens topp | 0,117 m; 0,061 m | 0,117 m; 0,06 m och 0,062 m (de två topphörnen) | ±0 m (±0 %) | mätt | `table-live.ts LIVE.shoe` |  |
@@ -303,6 +304,7 @@ Det verktyget läste. "kod" är importerat som programmet självt använder det;
 | `live-bj/data/stil-kameran.json` | data | ja |
 | `live-bj/data/stil-bordet.json` | data | ja |
 | `live-bj/data/uppsattning.json` | data | ja |
+| `live-bj/data/reling.json` | data | ja |
 | `blackjack-dealer/dealer3d/data/lyft-*.json` | data (bara huvudet: fps, frameCount, leavesShoe, rests, to) | ja |
 | `standarddocka/rorelsekatalog.json` | data | ja |
 | `live-bj/data/segment.json` | data | ja |

@@ -39,10 +39,27 @@ async function load(url: string, progress?: (share: number) => void): Promise<T.
 }
 
 /**
- * Rummets ljus, bakgrund och golv, som i Blenders bilder: en mörk värld, ett golv på 8 x 8 m och fyra mjuka ljus
- * (ytljus i Blender): taket över bordet (det som kastar skuggorna), ett mot ansiktet framifrån höger, ett fyllnadsljus från
- * vänster och ett bakifrån. Bilden har en mjuk tonkurva som Blenders. `key`: rena färger för en film där dealern ska skäras
- * ut (en bakgrund i en färg och inget golv), som den kurvan skulle bleka, så där är den linjär.
+ * Golvet går ut i rummets mörker: helt fram till `inne` meter från rummets mitt (RUMMETS_Z) och sedan allt mer
+ * genomskinligt, borta vid `ute` meter. Så syns ingen golvkant genom någon kamera (livebordets kamera ser 18 grader ned, och
+ * kanten på ett golv som tar slut hamnar mitt i bilden som en linje bakom dealern), bara golv som tonar bort i den mörka
+ * bakgrunden. Vårt utseende, inget mått; Blenders bilder (avatar-auto-pipeline/scen/qc_render.py) har samma golv.
+ */
+export const GOLVET = {inne: 2.5, ute: 10};
+/** Golvets genomskinlighet som en bild (alphaMap läser den gröna kanalen): 1 inne, 0 ute, mjukt däremellan. */
+function golvetsTon(n = 256): T.DataTexture {
+  const data = new Uint8Array(n * n * 4);
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const r = Math.hypot((i + 0.5) / n - 0.5, (j + 0.5) / n - 0.5) * 2 * GOLVET.ute, s = Math.min(1, Math.max(0, (r - GOLVET.inne) / (GOLVET.ute - GOLVET.inne)));
+    data.fill(Math.round(255 * (1 - s * s * (3 - 2 * s))), (j * n + i) * 4, (j * n + i) * 4 + 4);
+  }
+  const t = new T.DataTexture(data, n, n, T.RGBAFormat); t.needsUpdate = true; return t;
+}
+
+/**
+ * Rummets ljus, bakgrund och golv, som i Blenders bilder: en mörk värld, golvet som tonar bort i den (GOLVET) och fyra
+ * mjuka ljus (ytljus i Blender): taket över bordet (det som kastar skuggorna), ett mot ansiktet framifrån höger, ett
+ * fyllnadsljus från vänster och ett bakifrån. Bilden har en mjuk tonkurva som Blenders. `key`: rena färger för en film där
+ * dealern ska skäras ut (en bakgrund i en färg och inget golv), som den kurvan skulle bleka, så där är den linjär.
  */
 export function roomLight(scene: T.Scene, renderer: T.WebGLRenderer, key?: {background: number}): {floor: T.Mesh} {
   renderer.outputColorSpace = T.SRGBColorSpace; renderer.toneMapping = key ? T.LinearToneMapping : T.AgXToneMapping; renderer.toneMappingExposure = key ? 0.7 : 1.0;
@@ -55,7 +72,8 @@ export function roomLight(scene: T.Scene, renderer: T.WebGLRenderer, key?: {back
   const ceiling = new T.SpotLight(0xffffff, 11, 0, 1.15, 1, 2); ceiling.position.set(0, 1.75, z + 0.2); ceiling.target.position.set(0, 0, z + 0.1); ceiling.castShadow = true; scene.add(ceiling, ceiling.target);
   ceiling.shadow.mapSize.set(4096, 4096); ceiling.shadow.bias = -0.00015; ceiling.shadow.normalBias = 0.01; ceiling.shadow.radius = 5; ceiling.shadow.camera.near = 0.3; ceiling.shadow.camera.far = 6;
   aimed(1.1, [0.7, 1.0, z + 1.6], [0, 0.4, z - 0.3]); aimed(0.55, [-0.9, 0.65, z + 1.9], [0, 0.05, z - 0.1]); aimed(0.9, [-0.4, 1.25, z - 1.9], [0, 0.35, z - 0.35]);
-  const floor = new T.Mesh(new T.PlaneGeometry(8, 8).rotateX(-Math.PI / 2), new T.MeshStandardMaterial({color: lin(0.18, 0.17, 0.16), roughness: 0.8})); floor.position.set(0, GOLV, z); floor.receiveShadow = true; floor.visible = !key; scene.add(floor);
+  const floor = new T.Mesh(new T.PlaneGeometry(2 * GOLVET.ute, 2 * GOLVET.ute).rotateX(-Math.PI / 2), new T.MeshStandardMaterial({color: lin(0.18, 0.17, 0.16), roughness: 0.8, alphaMap: golvetsTon(), transparent: true}));
+  floor.position.set(0, GOLV, z); floor.receiveShadow = true; floor.visible = !key; scene.add(floor);
   return {floor};
 }
 

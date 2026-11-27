@@ -69,7 +69,7 @@ servrar som sina egna barn första gången vyn öppnas, och stoppar dem när den
   i en ram). Ljud och 3D-sidan (`/scene3d.html`, scenen med alla reglage) är egna HTML-sidor i `pages/`.
 
 Orden står i studions Ordlista (`studio/lib/words.ts`). Menyn följer kedjan: Start, Avatarer, Dockan, Karta, Beställ,
-Granska, Casino, Mått och Biblioteket, och i foten Beslut och Ordlista. En standard gäller överallt, livebordet
+Granska, Casino, Mått, Spegla och Biblioteket, och i foten Beslut och Ordlista. En standard gäller överallt, livebordet
 (`src/standard.ts`, `docs/SYSTEM.md`), så studion har inget val av bord. Vyerna:
 
 - **Start** (`/studio/`, `studio/components/start/`, innehållet i `studio/lib/start.ts`): det som väntar på hans dom,
@@ -82,6 +82,11 @@ Granska, Casino, Mått och Biblioteket, och i foten Beslut och Ordlista. En stan
   adressen går vidare till editorn (`/studio/dockan/?docka=frasse&plats=4`).
 - **Mått** (`/studio/matt/`): `../MATT.md`:s text, läst ur koden varje gång (`studio/lib/measures.ts`), utan filnamn och
   källkolumner, med delarna som en rad knappar överst.
+- **Spegla** (`/studio/spegla/`, `studio/components/spegla/`, `studio/lib/spegla.ts`): Youtubefilmens bordsbild och vår vy av
+  samma giv på varandra i 1728 x 972 och i takt (vår ruta k mot filmens sekund ur lyftet), halvt om halvt, delad eller
+  bredvid; vår vy är dockans inspelning (`../standarddocka/klipp/live-lyft-<docka>-p<n>-hela-kameran-<docka>.mp4`, nyare än
+  lyftet) eller en persons film ur ett prov. `tools/spegla-routes.ts` (`/api/spegla`) strömmar filmen där den ligger, bara på
+  den här datorn; testet `tools/spegla-routes.test.ts` håller den och vägarna borta från kopian.
 - **Karta** (`/studio/karta/`): **Schemat**, dockornas rörelseschema. För den valda dockan en runda som en väg med det
   som saknas i rött och Spela i Dockan, kortplatserna med vad hon har, och rörelseschemat ur
   `../standarddocka/rorelsekatalog.json` som en bild: ankarena i rundans ordning, hennes rörelser som pilar och resten
