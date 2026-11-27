@@ -442,6 +442,13 @@ Vad som måste finnas före en körning, vilket sätt det än är:
   - **Uppdragen för den nya personen, från plats 5:** A2.3 `901e5090-bce3-44ba-b288-ecc22bd36e65`, A3P4C1
     `aade1ca6-381d-4b23-8558-bfbbe04192da`, given `452ec68b-0839-4c13-bea0-fe0faa7cda9d`, handen hem
     `0ae2eced-9ea5-4cfa-9e83-c49d596f2447`. A2M fick fel ställning och användes inte.
+  - **Domaren om plats 5: Inte bra (medel, "kan bli Nja").**
+    - Det som håller: given följer livefilmen ruta för ruta i samma takt. Kortet tas ur skon med ryggen upp, står på
+      kant och vänds snabbt av handen. Kameran står stilla.
+    - Ett ryck i ruta 26–27 kom ur referensfilmen, som var hopklippt just där. Klipp inte i en referensfilm.
+    - Handen hem i 480p gav ett slätare och yngre ansikte efter skarven. Gör varje klipp i samma upplösning.
+    - Kortets framsida syns inte i luften (ruta 35–37).
+    - Bakgrundspersonen fungerar som en skugga men tonar bort mitt i bilden.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: Kling 4 med styrbilden som första bild och filmen som lös förlaga

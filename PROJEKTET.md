@@ -180,6 +180,13 @@ en verkstad i taget när inget annat arbete pågår i den.
   inom komprimeringens brus, och domaren såg inget hopp i kroppen i skarven. Det klippet gör mellan bilderna är
   däremot filmmodellens eget: i den billigaste vändes kortet inte av handen. Därför är schemat med ankare och klipp
   bärande, medan modellen och förlagan för rörelsen avgör om rörelsen blir bra.
+- **Handbytet som egen bild får handen att vända kortet** (2026-11-27, fjortonde provet i skillen `runway`). Med A2M,
+  där kortet står på kant med ryggen mot kameran, mellan start och slut rullade handen kortet genom kanten. Det skedde
+  också i den billigaste modellen, med samma kort hela vägen. Utan bilden byttes trycket plant under fingrarna.
+  Domaren fällde ändå given: kortet stod stilla i 3 s före vändningen, och vänsterhanden låg kvar mitt på filten.
+- **Samma giv från en annan vinkel går** (samma prov). Kling 4 med livefilmen som referensfilm och ankarbilder från
+  spelarens plats gav samma giv i samma takt, med livefilmens fel. Referensfilmen får inte klippas, och alla klipp ska
+  ha samma upplösning.
 - **Ansiktets miner går att mäta ur en framställd närbild** av en framställd person. De riktiga dealrarna gjorde dem
   helt enkelt inte medan de gav kort.
 - **En färdig figur som formas om till en annan dockas skelett får sträckta, trasiga händer** (Jakob: "skitdåligt").
