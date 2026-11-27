@@ -1,6 +1,7 @@
 """Standarddockan: MPFB2 (CC0-kropp) + Mixamo-namngivet skelett (52 kropps-/handben + 16 ansiktsben under Head, och två
-vridben i varje underarm), ARKit-kompatibla shape keys för ansiktsuttryck, egna IK-kontroller, ledgränser och exportnamn
-som dealer3d kräver.
+vridben i varje underarm), ARKit-kompatibla shape keys för ansiktsuttryck, ett ansikte som går att läsa (ögonglober med
+iris och pupill, ögonbryn, läppar och en mörk munhåla med tänder; ANSIKTE nedan), egna IK-kontroller, ledgränser och
+exportnamn som dealer3d kräver.
 
 Bygger två grunddockor med 100 % identiskt skelett/bennamn så alla rörelser kan återanvändas, med människans mått för
 kön och längd (MATT nedan: längderna, armarnas tjocklek, händerna och fötterna mot ANSUR II):
@@ -139,6 +140,28 @@ SITT = {'axlar_over_filt': 0.31, 'axlar_bakom_kant': 0.38, 'x': -0.0159, 'hoft_u
         'lar': {'ut': 0.12, 'fall': 0.08, 'fran': -0.19, 'brant': 6},
         'handled': {'Right': (-0.207, 0.0963, 0.0341), 'Left': (0.1793, 0.0948, 0.0294)}}
 
+# Ansiktet (Jakob 2026-11-27: dockan ska kunna titta på spelaren, le och lyfta brynen, och det ska synas i spelets vy).
+# Färgerna är hörnfärger (färgattributet 'farg', ett värde per ythörn så att kanterna blir skarpa) på dockans enda
+# material, så att modellen förblir en mesh med ett material, i glTF en enda primitiv: dealer3d/tools/modell.ts läser
+# den första primitiven och figure-model.ts huden som en mesh. Färgerna är linjära; huden är dockans neutrala grå.
+# - Ögonen: en glob per öga på ögonbenet (eye.L/eye.R, vikt 1), med mitten i benets huvud och MPFB:s egen ögonradie (dess
+#   hjälpklot, som ögonlocken är formade efter), polen rakt fram (dit figure-model.ts räknar att ögat ser i vila) och
+#   ringar vid pupillens och irisens kant (grader från polen), så att de blir runda.
+# - Brynen: en tunn yta `over_huden` utanför huden över varje öga, med varje hörn bundet till huden under sig (samma
+#   ansiktsformer och vikter, interpolerade på ytan det ligger på), så att brynet följer browInnerUp/browOuterUp/browDown.
+#   Formen framifrån i ögats radier R från ögats mitt: tre punkter längs brynet (inre änden, toppen, yttre änden) med
+#   läget ut från näsan (`ut`, negativt inåt), höjden över ögats mitt (`hojd`) och tjockleken (`tjock`).
+# - Munnen: munhålan mörk och läpparna något mörkare än huden (ytorna MPFB:s egna masker för munnens insida och läpparna
+#   täcker på UV), och MPFB:s tänder (hjälpgeometrin; jawOpen och käkbenet flyttar de nedre) står kvar. Tungan
+#   (också hjälpgeometri) står inte kvar: jawOpen flyttar den knappt, så den låg kvar uppe vid gommen i en öppen mun.
+ANSIKTE = {
+    'farg': {'hud': (0.62, 0.6, 0.58), 'vitan': (0.78, 0.76, 0.72), 'iris': (0.03, 0.022, 0.017), 'pupill': (0.002, 0.002, 0.002),
+             'bryn': (0.035, 0.028, 0.024), 'munhala': (0.012, 0.005, 0.005), 'lappar': (0.5, 0.42, 0.41), 'tander': (0.72, 0.7, 0.64)},
+    'iris_grader': 26, 'pupill_grader': 10, 'ogats_radie': 0.985,  # andel av hjälpklotets radie
+    'bryn': {'ut': (-1.2, 0.5, 1.65), 'hojd': (1.15, 1.4, 1.15), 'tjock': (0.45, 0.33, 0.12), 'over_huden': 0.0006, 'delar': 20},
+}
+TANDER = ('helper-upper-teeth', 'helper-lower-teeth')  # MPFB:s hjälpgrupper som står kvar efter MASK
+
 
 def las_target(path: Path):
     deltas = {}
@@ -275,6 +298,169 @@ def _vridben_vikter(body, rig):
                     g.remove([v.index])
             delade += 1
         ut[side] = {'horn_med_underarmsvikt': delade, 'samlade_pa_ett_ben_for_fyra': sammanslagna}
+    return ut
+
+
+def _ogonklot(mitt, radie, fram, iris, pupill, varv=32):
+    """En ögonglob runt `mitt` med polen åt `fram` och ringar vid pupillens och irisens kant (grader från polen), så att
+    de blir runda. Returnerar bmesh och varje ytas färg (ANSIKTE['farg']) i ytornas ordning."""
+    fram = fram.normalized(); a = fram.orthogonal().normalized(); b = fram.cross(a)
+    vinklar = [pupill * 0.5, pupill, (pupill + iris) * 0.5, iris] + [float(x) for x in np.linspace(iris + 9, 170, 9)]
+    bm = bmesh.new(); pol = bm.verts.new(mitt + fram * radie); ringar = []
+    for th in vinklar:
+        t = math.radians(th)
+        ringar.append([bm.verts.new(mitt + radie * (math.cos(t) * fram + math.sin(t) * (math.cos(f) * a + math.sin(f) * b)))
+                       for f in (2 * math.pi * j / varv for j in range(varv))])
+    bak = bm.verts.new(mitt - fram * radie); farg = []
+    for j in range(varv):
+        bm.faces.new((pol, ringar[0][j], ringar[0][(j + 1) % varv])); farg.append('pupill')
+    for k in range(1, len(ringar)):
+        vad = 'pupill' if vinklar[k] <= pupill + 1e-6 else 'iris' if vinklar[k] <= iris + 1e-6 else 'vitan'
+        for j in range(varv):
+            bm.faces.new((ringar[k - 1][j], ringar[k][j], ringar[k][(j + 1) % varv], ringar[k - 1][(j + 1) % varv])); farg.append(vad)
+    for j in range(varv):
+        bm.faces.new((ringar[-1][j], bak, ringar[-1][(j + 1) % varv])); farg.append('vitan')
+    bm.normal_update()
+    for f in bm.faces:
+        f.smooth = True
+        if f.normal.dot(f.calc_center_median() - mitt) < 0:
+            f.normal_flip()
+    return bm, farg
+
+
+def _ansikte(body, rig, col, klot, s):
+    """Ögon, bryn och munhåla (ANSIKTE ovan) i dockans mesh: kroppens ytor färgas i 'farg', ögongloberna och brynen fogas
+    in med sina vikter, färger och (brynen) ansiktsformer. Körs efter vikterna och ansiktsformerna, i OBJECT-läge.
+    `klot`: MPFB:s ögonklot per sida (mitt och radie före skalningen `s`). Returnerar det rapporten behöver."""
+    from mathutils.bvhtree import BVHTree
+    from mathutils.interpolate import poly_3d_calc
+    A = ANSIKTE; F = {k: (*v, 1.0) for k, v in A['farg'].items()}
+    me = body.data; ut = {}
+    till_kropp = body.matrix_world.inverted() @ rig.matrix_world
+    deform = {b.name for b in rig.data.bones if b.use_deform}
+    vg_namn = {g.index: g.name for g in body.vertex_groups}
+
+    # -- kroppens egna ytor: munhålan och läpparna ur MPFB:s masker (på UV), tänderna ur sina hjälpgrupper
+    masker = {}
+    for vad, fil in (('munhala', 'mpfb_inside-mouth.jpg'), ('lappar', 'mpfb_lips.jpg')):
+        bild = bpy.data.images.load(str(Path(LocationService.get_mpfb_data('textures')) / fil))
+        W, H = bild.size; masker[vad] = np.array(bild.pixels[:]).reshape(H, W, 4)[:, :, 0]; bpy.data.images.remove(bild)
+    uv = np.empty(len(me.loops) * 2); me.uv_layers['UVMap'].data.foreach_get('uv', uv); uv = uv.reshape(-1, 2)
+    i_grupp = {}
+    for v in me.vertices:
+        for ge in v.groups:
+            i_grupp.setdefault(vg_namn[ge.group], set()).add(v.index)
+    for g in TANDER:
+        if not i_grupp.get(g):
+            raise SystemExit(f'{g} saknas i dockan: tänderna skulle stå kvar efter MASK')
+    tander = set().union(*(i_grupp[g] for g in TANDER))
+    hornfarg = np.tile(F['hud'], (len(me.loops), 1)); antal = {'tander': 0, **{k: 0 for k in masker}}
+    for p in me.polygons:
+        li = list(p.loop_indices)
+        vad = 'tander' if set(p.vertices) <= tander else None
+        if vad is None:
+            u, v = uv[li].mean(axis=0)
+            vad = next((k for k, m in masker.items() if m[min(m.shape[0] - 1, max(0, int(v * m.shape[0]))), min(m.shape[1] - 1, max(0, int(u * m.shape[1])))] > 0.5), None)
+        if vad:
+            hornfarg[li] = F[vad]; antal[vad] += 1
+    me.color_attributes.new('farg', 'FLOAT_COLOR', 'CORNER').data.foreach_set('color', hornfarg.ravel())
+    ut['ytor'] = antal
+
+    nya = []
+
+    def ny(namn, bm, del_nr, ytfarg, vikter):
+        """Ett nytt objekt i kroppens rum ur `bm`, med sin del i 'ansikte_del', en färg per yta och vikterna per hörn."""
+        m = bpy.data.meshes.new(namn); bm.to_mesh(m); bm.free()
+        o = bpy.data.objects.new(namn, m); col.objects.link(o); o.matrix_world = body.matrix_world.copy()
+        m.attributes.new('ansikte_del', 'INT', 'POINT').data.foreach_set('value', [del_nr] * len(m.vertices))
+        c = np.zeros((len(m.loops), 4))
+        for p in m.polygons:
+            c[list(p.loop_indices)] = F[ytfarg[p.index]]
+        m.color_attributes.new('farg', 'FLOAT_COLOR', 'CORNER').data.foreach_set('color', c.ravel())
+        for vi, par in enumerate(vikter):
+            for g, w in par:
+                (o.vertex_groups.get(g) or o.vertex_groups.new(name=g)).add([vi], w, 'REPLACE')
+        nya.append(o)
+
+    # -- ögonen: mitten i ögonbenets huvud, MPFB:s radie
+    ogon = {}
+    for sida in ('L', 'R'):
+        ben = f'eye.{sida}'; mitt = till_kropp @ rig.data.bones[ben].head_local
+        k_mitt, k_radie = klot[sida][0] * s, klot[sida][1] * s
+        r = k_radie * A['ogats_radie']; ogon[sida] = (mitt, r)
+        bm, ytfarg = _ogonklot(mitt, r, Vector((0, -1, 0)), A['iris_grader'], A['pupill_grader'])
+        n = len(bm.verts)
+        ny(f'oga_{sida}', bm, 1 if sida == 'L' else 2, ytfarg, [[(ben, 1.0)]] * n)
+        ut[ben] = {'mitt_m': [round(x, 4) for x in mitt], 'radie_mm': round(r * 1000, 2),
+                   'hjalpklotets_mitt_fran_benet_mm': round((k_mitt - mitt).length * 1000, 2), 'horn': n}
+
+    # -- brynen: bundna till huden under sig
+    bas = np.empty(len(me.vertices) * 3); me.shape_keys.reference_key.data.foreach_get('co', bas); bas = bas.reshape(-1, 3)
+    trad = BVHTree.FromPolygons([Vector(p) for p in bas], [tuple(p.vertices) for p in me.polygons])
+    B = A['bryn']; us, N = B['ut'], B['delar']
+
+    def kvad(u, ys):  # andragradskurvan genom brynets tre punkter
+        (u0, u1, u2), (y0, y1, y2) = us, ys
+        return (y0 * (u - u1) * (u - u2) / ((u0 - u1) * (u0 - u2)) + y1 * (u - u0) * (u - u2) / ((u1 - u0) * (u1 - u2))
+                + y2 * (u - u0) * (u - u1) / ((u2 - u0) * (u2 - u1)))
+
+    def hudvikt(vs, w):  # huden under punkten: vikterna interpolerade, högst fyra ben, summan 1
+        acc = {}
+        for vi, wi in zip(vs, w):
+            for ge in me.vertices[vi].groups:
+                g = vg_namn[ge.group]
+                if g in deform and ge.weight > 0:
+                    acc[g] = acc.get(g, 0.0) + wi * ge.weight
+        topp = sorted(acc.items(), key=lambda x: -x[1])[:4]; tot = sum(x for _, x in topp)
+        return [(g, x / tot) for g, x in topp]
+
+    bindning = {}
+    for sida, del_nr in (('L', 3), ('R', 4)):
+        E, R = ogon[sida]; sx = 1.0 if E.x > 0 else -1.0
+        bm = bmesh.new(); rader = []; bind = []; vikter = []
+        for i in range(N + 1):
+            u = us[0] + (us[2] - us[0]) * i / N; h = kvad(u, B['hojd']); t = float(np.interp(u, us, B['tjock']))
+            rad = []
+            for f in (0.5, 0.0, -0.5):
+                loc, nor, fi, _ = trad.ray_cast(Vector((E.x + sx * u * R, E.y - 0.2, E.z + (h + f * t) * R)), Vector((0, 1, 0)))
+                if loc is None:
+                    raise SystemExit(f'brynet ({sida}) når inte huden vid u={u:.2f}')
+                if nor.y > 0:
+                    nor = -nor
+                vs = list(me.polygons[fi].vertices); w = poly_3d_calc([Vector(bas[k]) for k in vs], loc)
+                rad.append(bm.verts.new(loc + nor * B['over_huden'])); bind.append((vs, list(w))); vikter.append(hudvikt(vs, w))
+            rader.append(rad)
+        for i in range(N):
+            for r in range(2):
+                bm.faces.new((rader[i][r], rader[i + 1][r], rader[i + 1][r + 1], rader[i][r + 1]))
+        bm.normal_update()
+        for f in bm.faces:
+            f.smooth = True
+            if f.normal.y > 0:
+                f.normal_flip()
+        bindning[del_nr] = bind
+        ny(f'bryn_{sida}', bm, del_nr, ['bryn'] * len(bm.faces), vikter)
+        ut[f'bryn.{sida}'] = {'horn': len(bind), 'ben': sorted({g for v in vikter for g, _ in v})}
+
+    # -- in i kroppen; brynens hörn får hudens ansiktsformer
+    with bpy.context.temp_override(active_object=body, object=body, selected_objects=[body] + nya, selected_editable_objects=[body] + nya):
+        bpy.ops.object.join()
+    del_av = np.empty(len(me.vertices), dtype=np.int32); me.attributes['ansikte_del'].data.foreach_get('value', del_av)
+    ref = np.empty(len(me.vertices) * 3); me.shape_keys.reference_key.data.foreach_get('co', ref); ref = ref.reshape(-1, 3)
+    for kb in me.shape_keys.key_blocks:
+        if kb == me.shape_keys.reference_key:
+            continue
+        co = np.empty(len(me.vertices) * 3); kb.data.foreach_get('co', co); co = co.reshape(-1, 3); d = co - ref
+        for del_nr, bind in bindning.items():
+            idx = np.nonzero(del_av == del_nr)[0]
+            if len(idx) != len(bind):
+                raise SystemExit(f'brynet {del_nr}: {len(idx)} hörn efter sammanfogningen, {len(bind)} väntades')
+            for j, (vs, w) in zip(idx, bind):
+                co[j] = ref[j] + sum(wi * d[vi] for vi, wi in zip(vs, w))
+        kb.data.foreach_set('co', co.ravel())
+    ut['delar_efter_sammanfogning'] = {int(k): int((del_av == k).sum()) for k in np.unique(del_av)}
+    me.attributes.remove(me.attributes['ansikte_del'])
+    me.color_attributes.active_color = me.color_attributes['farg']
     return ut
 
 
@@ -444,8 +630,15 @@ def bygg_en(kon: str, suffix: str = ''):
         if (t_pt - h_pt).length < 1e-4:
             t_pt = h_pt + Vector((0, -0.02, 0))
         ansikts_geometri[fbone] = (h_pt, t_pt)
+    # MPFB:s ögonklot (hjälpgeometrin som ögonlocken är formade efter): mitt och radie, för ögongloberna (_ansikte)
+    klot = {}
+    for sida in ('L', 'R'):
+        p = co_pre[_idx[f'helper-{sida.lower()}-eye']]; c = p.mean(axis=0)
+        klot[sida] = (Vector(c), float(np.linalg.norm(p - c, axis=1).mean()))
 
-    # Ta bort hjälpgeometri via MASK
+    # Ta bort hjälpgeometri via MASK; tänderna står kvar (jawOpen och käkbenet flyttar de nedre redan)
+    for g in TANDER:
+        body.vertex_groups['body'].add(_idx[g], 1.0, 'REPLACE')
     bpy.context.view_layer.objects.active = body
     for m in list(body.modifiers):
         if m.type == 'MASK':
@@ -622,12 +815,17 @@ def bygg_en(kon: str, suffix: str = ''):
                     best = (err, ang)
             pbs[leg].constraints['IK'].pole_angle = math.radians(best[1])
 
-    # ---------------------------------------------------------------- 5. material: neutral grå docka
-    mat = pbr('docka_neutral', (0.62, 0.6, 0.58, 1), rough=0.6)
-    body.data.materials.clear(); body.data.materials.append(mat)
+    # ---------------------------------------------------------------- 5. material: neutral grå docka, ansiktet i hörnfärger
     for o in list(bpy.data.objects):
         if o.type == 'MESH' and o not in (body,) and o.parent == rig:
             bpy.data.objects.remove(o, do_unlink=True)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    ansiktsinfo = _ansikte(body, rig, col, klot, s)
+    bpy.context.view_layer.objects.active = rig; bpy.ops.object.mode_set(mode='POSE')
+    mat = pbr('docka_neutral', ANSIKTE['farg']['hud'] + (1,), rough=0.6)
+    hornfarg = mat.node_tree.nodes.new('ShaderNodeVertexColor'); hornfarg.layer_name = 'farg'
+    mat.node_tree.links.new(hornfarg.outputs['Color'], next(n for n in mat.node_tree.nodes if n.type == 'BSDF_PRINCIPLED').inputs['Base Color'])
+    body.data.materials.clear(); body.data.materials.append(mat)
 
     for c in [c for p in pbs for c in p.constraints if c.name in ('IK', 'IK_rot')]:
         c.influence = 0.0
@@ -699,7 +897,7 @@ def bygg_en(kon: str, suffix: str = ''):
         rack[nm] = rad
     rapport = {
         'kon': kon,
-        'kalla': 'MPFB 2.0.18 (CC0-tillgångar) + mixamo-skelett + 16 ansiktsben + 4 vridben + ARKit-shapekeys, bygg_docka.py',
+        'kalla': 'MPFB 2.0.18 (CC0-tillgångar) + mixamo-skelett + 16 ansiktsben + 4 vridben + ARKit-shapekeys + ansiktet (ANSIKTE), bygg_docka.py',
         'mpfb_height': mpfb_height, 'passat_mot': {k: round(v, 4) for k, v in PASS.items()},'kalla_matten': MATT[kon]['kalla'],
         'passat_blev': {k: round(v * sk_m, 4) for k, v in m1.items()}, 'passning_fel_mm': fel,
         'mpfb_passning_vikter': vikter,
@@ -710,14 +908,14 @@ def bygg_en(kon: str, suffix: str = ''):
         'hoft_till_axel_m': round(skuld['hoger'].z - hoft.z, 4),
         'hoft_led_mitt': [round(c, 4) for c in hoft], 'rackvidd_arm_m': round(ua + fa, 4), 'rackvidd': rack,
         'ben': len(rig.data.bones), 'deformerande': sum(1 for b in rig.data.bones if b.use_deform),
-        'ansiktsben': ANSIKTSBEN, 'vridben': vridinfo,
+        'ansiktsben': ANSIKTSBEN, 'vridben': vridinfo, 'ansikte': ansiktsinfo,
         'shapekeys': [k.name for k in body.data.shape_keys.key_blocks] if body.data.shape_keys else [],
         'kravda_ben_saknas': [n for n in KRAVDA_BEN if n not in rig.data.bones],
         'gangjarn': {k: {'lokal_axel': 'XZ'[0 if v[0] == 0 else 1], 'tecken': v[1]} for k, v in gransinfo.items()},
         'aktioner': [a.name for a in bpy.data.actions],
     }
     (slask('bygge') / f'docka-rapport-{namn}.json').write_text(json.dumps(rapport, indent=1, ensure_ascii=False), encoding='utf-8')
-    print(f'RAPPORT ({namn})', json.dumps({k: rapport[k] for k in ('kon', 'langd_staende_m', 'over_arm_m', 'underarm_m', 'axelbredd_led_m', 'hoft_till_axel_m', 'ben', 'deformerande', 'kravda_ben_saknas', 'aktioner')}, ensure_ascii=False))
+    print(f'RAPPORT ({namn})', json.dumps({k: rapport[k] for k in ('kon', 'langd_staende_m', 'over_arm_m', 'underarm_m', 'axelbredd_led_m', 'hoft_till_axel_m', 'ben', 'deformerande', 'kravda_ben_saknas', 'aktioner', 'ansikte')}, ensure_ascii=False))
 
     bpy.ops.object.mode_set(mode='OBJECT')
     for p in pbs:

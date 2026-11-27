@@ -359,6 +359,26 @@ ARKit-setet har typiskt 52 blendshapes. **22 saknas** (MPFB hade ingen bra käll
 
 Tillräckligt för blink, bryn, leende, trut och käke i ett dealerkort. Inte en full face-capture-rig.
 
+### 7.8 Ansiktets utseende: ögon, bryn, läppar och mun
+
+Så att blicken, leendet och brynen syns i spelets vy (Jakob 2026-11-27). Allt står i `ANSIKTE` i `scen/bygg_docka.py`;
+skelettet, bennamnen, ansiktsformerna och kroppens mått är desamma som utan det.
+
+- **Färgerna är hörnfärger** (färgattributet `farg`, ett värde per ythörn) på dockans enda material, så att modellen
+  förblir en mesh med ett material, i glTF en enda primitiv med `COLOR_0` (three.js läser den som vertexfärg). Flera
+  material hade blivit flera primitiver, och `dealer3d/tools/modell.ts` läser bara den första.
+- **Ögonen:** en glob per öga, vikt 1 på `eye.L`/`eye.R`, med mitten i benets huvud (MPFB:s ögonklot ligger 0,1–0,6 mm
+  därifrån) och dess radie (mannen 16,2 mm, kvinnan 15,3 mm). Irisen och pupillen är ringar kring polen rakt fram, dit
+  `figure-model.ts` räknar att ögat ser i vila, så de följer benet när blicken vrids.
+- **Brynen:** en tunn yta 0,6 mm utanför huden över varje öga; varje hörn är bundet till huden under sig, med hudens
+  vikter och ansiktsformer interpolerade, så brynet följer `browInnerUp`, `browOuterUp*` och `browDown*`.
+- **Munnen:** munhålan och läpparna efter MPFB:s egna masker på UV (`mpfb_inside-mouth.jpg`, `mpfb_lips.jpg`): munhålan
+  mörk, läpparna något mörkare och varmare än huden. MPFB:s tänder (hjälpgeometri som `jawOpen` och `jaw` redan flyttar)
+  står kvar; tungan gör det inte, eftersom `jawOpen` knappt flyttar den.
+- **Det som saknas för tal och ett riktigt leende:** munformer för ljud (visem; `mouthClose`, `mouthRoll*`,
+  `mouthShrug*` och en tunga saknas, 7.7) och kinder som lyfts i ett leende (`cheekSquint*`). Det som finns
+  (`mouthSmile*`, `eyeSquint*`, `mouthUpperUp*`, `jawOpen`) kan blandas av rörelsen till ett större leende.
+
 ---
 
 ## 8. Bryggan dealer3d ↔ Blender
