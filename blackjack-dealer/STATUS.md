@@ -178,7 +178,21 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Väntar på Jakob
 
-- Standarddockan, hela kortrundan som en person (2026-11-26): provet `tomasz-runda-20261126` (Granska, Prov) med kortet
+- Proven från natten 2026-11-27 (Granska, Prov; inga kort i Beslut, han dömer dem i Prov). Riktningen han gav samma
+  natt: klona livebordets uppsättning ur filmen (`../live-bj/`) och gör två nya dockor, Danilo och Frasse, med
+  rörelserna lyfta ur filmen; standarddockorna står kvar. Måtten står i `../MATT.md`, rörelseschemat i
+  `../standarddocka/rorelsekatalog.json`.
+  - `takt-12-08-20261127` (den nya takten, 1,2 s ut och 0,8 s hem): "bra, men görs väl ännu bättre utifrån videos".
+  - `naturlig-giv-20261127` (version n bredvid A): "samma ju"; de små egna rörelserna: "konstiga huvudrörelser är inte
+    samma som ansiktsrörelser". Version n putsas inte vidare; den ligger kvar som prov i `dealer3d/data/`.
+  - `runway-3d-20261127` (Hunyuan och Trellis mot Meshy-dockan): "meshy/vår docka bäst", händerna sämst hos oss
+    (skarven vid handleden: rättas i `dealerns-handled-20261127`).
+  - `kortbyte-20261127` (filmens kort borttaget och ett nytt inlagt ur dockans tal) och `kling-tider-20261127` (Kling 4
+    med och utan tider i texten, och med Tomasz-dockan som förlaga: ingen skillnad): inte dömda än.
+  - `dockans-ansikte-20261127` (iris, bryn, läppar och mun på standarddockorna, byggda som modeller på prov): inte dömt
+    än; `ansiktsuttryck-20261127` och `livebordet-klonat-20261127` kommer.
+- Standarddockan, hela kortrundan som en person (2026-11-26): han dömde hela provet Inte bra samma kväll (22:28).
+  Mappen med de betalda filmerna står kvar i slaskens `granska/` tills han säger att den får gå. Provet `tomasz-runda-20261126` (Granska, Prov) med kortet
   `tomasz-runda-plats-4` i Beslut. Dockan gör vilan till skon och första kortet till plats 7 till 1 i en tagning, filmad
   med grönt överallt; Aleph 2 gör om den till personen; filmen styckas i åtta klipp utan stillhet, och den utskurna
   dealern läggs på vårt eget bord. Plats 4 är gjord; hans dom i chatten: rörelserna är stela (dockans rörelser, som
