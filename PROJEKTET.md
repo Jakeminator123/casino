@@ -109,6 +109,11 @@ av Tomasz görs för Tomasz.
   inte gör. Det sista stod i vårt eget verktyg, som lade den förra standarddockans giv ovanpå filmens rörelse.
   Mätningarna (kortet inom en bildpunkt, takten rätt) sa ingenting om något av det. Sedan dess döms ett resultat av en
   oberoende domare innan det visas för honom.
+- **Smårycken i en lyft rörelse kommer ur vårt eget verktyg, inte ur dealern** (mätt 2026-11-27 på Danilos giv till
+  plats 4). Dockans huvud sjönk 41 mm där dealerns sjönk 4, eftersom bålen lutades ruta för ruta för att armen skulle
+  nå. Högerhanden hoppade 2–3 cm på en enda ruta, där en rättning slogs på. Blicken och fingrarna, mätta ruta för ruta
+  i ett ansikte på 135 bildpunkter, är mest brus: den råa blicken byter håll 18 gånger per sekund. Dockan ska följa
+  rörelsen, inte mätningens brus, och en filmmodell följer varje sådant hopp.
 - **Två kameror ger samma man i samma ögonblick,** sett i stillbilder från livebordets kamera och från plats 7. Det
   säger att vägen med flera kameror kan hålla, inte att filmerna är bra.
 - **En hel sekvens i en tagning föll:** ansiktet gled och det kom till kort som inte fanns. En giv i taget håller
@@ -132,11 +137,15 @@ av Tomasz görs för Tomasz.
   klippet görs nya filmer.
 - **Håller sju filmer av samma rörelse ihop?** Två kameror gav samma man i samma ögonblick. Alla sju görs först när
   rörelsen är rätt och en film från en kamera har fått Jakobs ja.
-- **Händerna har var sin tid.** I filmen börjar vänsterhanden ofta nästa kort medan högern går hem. Ankarena, som i dag
-  är en hel bild, behöver ett läge per hand, och bryggor för det oväntade. Hela filmen delas in per hand för det.
-- **Övergången till den klonade uppsättningen** är gjord i editorn (dockorna, rörelserna, inspelningen, platskamerorna)
-  men inte i spelet och beställningarna, som ännu går efter den förra standarden. Filmerna som spelet har är gjorda
-  för den förra standardens kamera och bord, så varje film behöver säga vilken uppsättning den är gjord för.
+- **Händerna har var sin tid.** I filmen börjar vänsterhanden ofta nästa kort medan högern går hem. Hela filmen är
+  indelad per hand (`live-bj/data/segment.json`), och rörelseschemat har ett läge per hand, bryggor för det oväntade
+  och handbytet som förslag till nytt ankare. Inget av det är prövat som rörelse i dockan än.
+- **Övergången till den klonade uppsättningen** är gjord i editorn, i spelet (bordet, skon och korten ritas; ingen
+  dealer, eftersom ingen film är godkänd där än) och i beställningarna, som säger vilken uppsättning de gäller. Kvar:
+  Scen ska aldrig visa en film under en annan uppsättnings kamera (rättas), och Dockan i Filmverkstadens inspelning
+  följer inte menyns val.
+- **Hur räknas platserna?** I dag 1–7 från bildens vänster. Jakob har föreslagit att plats 1 blir den närmast skon,
+  som på ett riktigt bord (där börjar given i filmen); det avgörs av vad bytet rör.
 - **Hur många inspelningar per person behövs?** Varje person behöver egna filmer, för varje rörelse och varje kamera.
   Sju kameror gånger alla rörelser gånger alla personer blir många betalda filmer; vilka kameror och rörelser som
   verkligen behövs är inte bestämt.
