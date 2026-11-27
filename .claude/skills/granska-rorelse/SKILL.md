@@ -9,13 +9,16 @@ Sökvägar räknas från casino-roten. Läs först `standarddocka/DOMAR.md`: Jak
 2026-11-26: agenterna granskar "småsaker", till exempel att "giv till plats 7 ska få rätt vändningar av kort så att
 fingrar kommer rätt med kort", och att "fysik av typ kort och annat faktiskt görs så det är trovärdigt".
 
-## Vilken uppsättning
+## Vilken standard
 
-Utan ord visar editorn och `titta.ts` livebordet med Danilo: den klonade uppsättningen är den nya standarden
-(`blackjack-dealer/src/uppsattning.ts`). Den här skillen beskriver de ritade givarna vid den förra standardens bord:
-ge `--docka man` (eller `kvinna`) till `titta.ts`, så väljs den förra standarden. Danilos och Frasses lyfta rörelser
-har inget lager och sparas inte; de visas med `--docka danilo|frasse` och `--plats`, `--giv` eller `--sekvens`
-(`standarddocka/README.md`), och felen i dem rättas i lyftet (`blackjack-dealer/dealer3d/tools/lyft-till-docka.ts`).
+Utan ord visar editorn och `titta.ts` Livestandarden (det klonade livebordet) med Danilo; Förra standarden är det andra
+valet (`blackjack-dealer/src/uppsattning.ts`, adressordet `?uppsattning=live|forra`). Vid en standard visar editorn bara
+dess dockor, och en docka som inte sitter där ger standardens förvalda med en rad i panelen, inget fel
+(`standarddocka/editor/dockval.ts`): läs därför `state().uppsattning` och `state().docka` i `lage.json` innan du dömer
+en bild. Den här skillen beskriver de ritade givarna vid Förra standardens bord: ge `--docka man` (eller `kvinna`) till
+`titta.ts`, så väljs den standarden. Danilos och Frasses lyfta rörelser har inget lager och sparas inte; de visas med
+`--docka danilo|frasse` och `--plats`, `--giv` eller `--sekvens` (`standarddocka/README.md`), och felen i dem rättas i
+lyftet (`blackjack-dealer/dealer3d/tools/lyft-till-docka.ts`).
 
 ## Vad en rörelse är
 

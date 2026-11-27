@@ -1,0 +1,66 @@
+// Vilken standard och vilken docka editorn visar, ur adressens ord (?uppsattning= och ?docka=), och vad sidan säger när ett
+// ord inte passar (Jakob 2026-11-27: valet av standard är ett val, i studions meny; ett ord som inte passar ger aldrig ett
+// tekniskt fel). Ren kod: läser bara blackjack-dealer/src/uppsattning.ts (standarderna, deras namn, dockor och kortplatser),
+// så att reglerna prövas utan webbläsare (blackjack-dealer/tools/editor-dockval.test.ts).
+import {UPPSATTNING, dockansUppsattning, lasUppsattning, valdUppsattning, type Underlag, type Uppsattning, type UppsattningId} from '../../blackjack-dealer/src/uppsattning.ts';
+
+/** En docka i hans ord: namnet, och hon eller han (han, honom, hans i hennes eller hans form). */
+export type Dockord = {namn: string; han: string; honom: string; hans: string};
+const HAN = {han: 'han', honom: 'honom', hans: 'hans'}, HON = {han: 'hon', honom: 'henne', hans: 'hennes'};
+const ORD: Record<string, Dockord> = {man: {namn: 'Mannen', ...HAN}, kvinna: {namn: 'Kvinnan', ...HON}};
+/** Mannen och Kvinnan; en docka efter en riktig dealer (Danilo, Frasse) heter som han, med stor bokstav. */
+export const dockord = (docka: string): Dockord => ORD[docka] ?? {namn: docka.charAt(0).toUpperCase() + docka.slice(1), ...HAN};
+
+/** Ett ord ur adressen som det står i en rad han läser: kort och på en rad. */
+const citat = (ord: string) => `”${ord.replace(/\s+/g, ' ').slice(0, 40)}”`;
+
+export type Dockval = {uppsattning: UppsattningId; docka: string; rad: string};
+/**
+ * Standarden och dockan. Standarden är ?uppsattning=, annars dockans bord, annars förvalet (uppsattning.ts valdUppsattning),
+ * så att en adress utan ordet (?docka=man, som verktygen och dokumenten skriver) låter dockan välja sitt bord. Dockan byter
+ * aldrig standard när ordet står: vid en standard visas bara dess dockor. Dockan är ?docka= när den sitter vid standarden,
+ * annars standardens förvalda (den första i dess lista). Ett ord som inte passar ger aldrig ett fel: `rad` säger på vanlig
+ * svenska vad som visas i stället ('' när allt passar).
+ */
+export function dockval(uppsattningOrd: string | null | undefined, dockaSkriven: string | null | undefined): Dockval {
+  const dockaOrd = dockaSkriven?.toLowerCase(), uppsattning = valdUppsattning(uppsattningOrd, dockaOrd), {namn, dockor} = UPPSATTNING[uppsattning], forval = dockor[0], rader: string[] = [];
+  if (uppsattningOrd && !lasUppsattning(uppsattningOrd)) rader.push(`Det finns ingen standard som heter ${citat(uppsattningOrd)}. Här visas ${namn}.`);
+  if (!dockaOrd || dockor.includes(dockaOrd)) return {uppsattning, docka: dockaOrd || forval, rad: rader.join(' ')};
+  const hemma = dockansUppsattning(dockaOrd);
+  rader.push(`${hemma ? `${dockord(dockaOrd).namn} sitter vid ${UPPSATTNING[hemma].namn}` : `Det finns ingen docka som heter ${citat(dockaOrd)}`}. Här visas ${dockord(forval).namn}.`);
+  return {uppsattning, docka: forval, rad: rader.join(' ')};
+}
+
+// ---- de lyfta rörelserna vid livebordet ---------------------------------------------------------------------------
+// En docka vid livebordet har sina rörelser lyfta ur filmen (blackjack-dealer/dealer3d/tools/lyft-till-docka.ts):
+// lyft-<docka>-p<plats> är en giv till platsen och lyft-<docka>-vantan-<n> en väntan. `finns` är grundrörelserna som finns,
+// som editorns server listar dem (GET /blackjack-dealer/dealer3d/data/).
+const PLATSNR = [1, 2, 3, 4, 5, 6, 7];
+/** Platserna dockan har en lyft giv till, i nummerordning. */
+export const lyftaPlatser = (finns: ReadonlySet<string>, docka: string): number[] => PLATSNR.filter(p => finns.has(`lyft-${docka}-p${p}`));
+/**
+ * Platsen vars lyfta giv visas när han ber om `onskad`: den själv om dockan har en giv dit, annars den närmaste dockan har (den
+ * lägre vid lika långt), och `rad` säger det när han själv bad om platsen (`sagd`). null när dockan inte har någon lyft giv.
+ */
+export function lyftPlats(finns: ReadonlySet<string>, docka: string, onskad: number, sagd: boolean): {plats: number; rad: string} | null {
+  const har = lyftaPlatser(finns, docka); if (!har.length) return null;
+  if (har.includes(onskad)) return {plats: onskad, rad: ''};
+  const plats = har.reduce((a, b) => Math.abs(b - onskad) < Math.abs(a - onskad) ? b : a);
+  return {plats, rad: sagd ? `${dockord(docka).namn} har ingen giv till plats ${onskad} lyft ur filmen än. Här visas given till plats ${plats}.` : ''};
+}
+/**
+ * Platserna ordnade som en dealer ger dem: närmast skon först (i filmen av livebordet börjar varje giv där, 10 av 10), räknat ur
+ * läget, avståndet från kortplatsens första kort (P<plats>.C1) till skons front i standardens egna mått, och inte ur numret,
+ * så att ordningen står sig när platserna numreras om.
+ */
+export function fransSkon(platser: readonly number[], u: Uppsattning, underlag?: Underlag): number[] {
+  const kort = new Map(u.kortplatser(underlag).map(k => [k.id, k.at])), [sx, , sz] = u.sko.front;
+  const avstand = (p: number) => { const at = kort.get(`P${p}.C1`); return at ? Math.hypot(at[0] - sx, at[2] - sz) : Infinity; };
+  return [...platser].sort((a, b) => avstand(a) - avstand(b) || a - b);
+}
+/** Hela sekvensen (?sekvens=1): väntan 1, dockans alla lyfta givar närmast skon först, och väntan 2; bara de som finns. */
+export function helaSekvensen(finns: ReadonlySet<string>, docka: string, u: Uppsattning): string[] {
+  return ['vantan-1', ...fransSkon(lyftaPlatser(finns, docka), u).map(p => `p${p}`), 'vantan-2'].filter(x => finns.has(`lyft-${docka}-${x}`));
+}
+/** En rörelse i hans ord: en lyft giv är "given till plats N", en väntan "väntan N"; ett annat namn (en grundrörelse på prov) står som det är. */
+export const rorelsensOrd = (namn: string): string => { const m = /^lyft-[a-z0-9]+-(?:p(\d+)|vantan-(\d+))$/.exec(namn); return !m ? namn : m[1] ? `given till plats ${m[1]}` : `väntan ${m[2]}`; };

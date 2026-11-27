@@ -3,13 +3,15 @@
 //   --oppna   öppnar sidan i webbläsaren när servern är igång (det STARTA editorn.cmd gör); är en editor redan igång på
 //             porten öppnas den i stället.
 // Bara GET, utom PUT till standarddocka/rorelser/ (där Spara skriver) och POST till /inspelning/ (där Spela in skickar
-// sina bilder; FFmpeg gör filmen av dem i standarddocka/klipp/). Det som lämnas ut har sökvägar som speglar
+// sina bilder; FFmpeg gör filmen av dem i standarddocka/klipp/). GET /blackjack-dealer/dealer3d/data/ är listan över
+// grundrörelserna som finns ({rorelser: [namn utan .json]}), så att sidan vet vad den kan visa utan att pröva sig fram med
+// hämtningar som svarar 404. Det som lämnas ut har sökvägar som speglar
 // casino-mappen (så att sidans relativa importer är desamma i webbläsaren och på disken), och varje namn kontrolleras
 // mot en lista eller ett mönster: ingen sökväg utifrån kan peka ut ur mapparna. TypeScript lämnas ut med typerna
 // strukna (som blackjack-dealer/dealer3d/tools/shoot.ts gör), three.js ur blackjack-dealer/node_modules.
 import {createServer, type IncomingMessage, type ServerResponse} from 'node:http';
 import {createReadStream} from 'node:fs';
-import {mkdir, readFile, rename, rm, stat, writeFile} from 'node:fs/promises';
+import {mkdir, readFile, readdir, rename, rm, stat, writeFile} from 'node:fs/promises';
 import {stripTypeScriptTypes} from 'node:module';
 import {spawn, type ChildProcessByStdio} from 'node:child_process';
 import {randomBytes} from 'node:crypto';
@@ -22,7 +24,7 @@ const arg = (name: string) => { const i = process.argv.indexOf(name); return i >
 const PORT = Number(arg('--port') ?? 4320), OPEN = process.argv.includes('--oppna');
 if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) throw Error('--port tar ett heltal 1–65535.');
 const ROOT = fileURLToPath(new URL('../../', import.meta.url)); // casino-mappen, hittad från serverns egen plats
-const HERE = 'standarddocka/editor/', SAVES = 'standarddocka/rorelser/', CLIPS = 'standarddocka/klipp/';
+const HERE = 'standarddocka/editor/', SAVES = 'standarddocka/rorelser/', CLIPS = 'standarddocka/klipp/', DATA = 'blackjack-dealer/dealer3d/data/';
 const FFMPEG = process.env.FFMPEG ?? 'ffmpeg';
 const THREE = 'blackjack-dealer/node_modules/three/';
 
@@ -57,7 +59,7 @@ function fileFor(url: string): string | null {
   // En bords- eller dockmodell på prov (editorns ?bord=<namn> och ?modell=<namn>): bara de två mapparna, bara de två namnens början.
   m = url.match(/^\/avatar-auto-pipeline\/assets\/(bord\/standardbord|docka\/standarddocka)_([a-z0-9_]+)\.glb$/); if (m) return `avatar-auto-pipeline/assets/${m[1]}_${m[2]}.glb`;
   m = url.match(/^\/blackjack-dealer\/dealer3d\/src\/([a-z0-9-]+)\.ts$/i); if (m) return `blackjack-dealer/dealer3d/src/${m[1]}.ts`;
-  m = url.match(new RegExp(`^/blackjack-dealer/dealer3d/data/(${NAME})\\.json$`)); if (m) return `blackjack-dealer/dealer3d/data/${m[1]}.json`;
+  m = url.match(new RegExp(`^/${DATA}(${NAME})\\.json$`)); if (m) return `${DATA}${m[1]}.json`;
   m = url.match(new RegExp(`^/${SAVES}(${NAME}(?:\\.rutor)?)\\.json$`)); if (m) return `${SAVES}${m[1]}.json`;
   return null;
 }
@@ -164,6 +166,10 @@ const server = createServer(async (req, res) => {
     if (url === '/favicon.ico') { res.writeHead(204).end(); return; }
     if (url === '/' || url === '/standarddocka/editor') { res.writeHead(302, {location: '/' + HERE}).end(); return; }
     if (url === '/vem') { res.writeHead(200, {'content-type': 'text/plain; charset=utf-8'}).end('standarddockans editor'); return; }
+    if (url === `/${DATA}` && req.method === 'GET') {
+      const rorelser = (await readdir(path.join(ROOT, DATA))).flatMap(f => new RegExp(`^(${NAME})\\.json$`).exec(f)?.[1] ?? []).sort();
+      res.writeHead(200, {'content-type': TYPES['.json'], 'cache-control': 'no-store'}).end(JSON.stringify({rorelser})); return;
+    }
     const file = fileFor(url);
     if (!file) { res.writeHead(404).end('lämnas inte ut'); return; }
     if (req.method === 'PUT' && file.startsWith(SAVES)) { if (!sameOrigin(req)) { res.writeHead(403).end('fel ursprung'); return; } await save(req, res, file); return; }

@@ -31,8 +31,8 @@
 //                         --giv lyft-danilo-vantan-1 vilken lyft rörelse som helst; den spelas som den är, från vilan till
 //                         vilan i sin egen takt (editor/editor.ts LIVEBORD). Klippen heter live-<rörelsen>-<del>-<kamera>-<docka>
 //                         (kameran: kameran, sidan, uppifran, plats-N). Inte med --runda eller --vilan.
-//                         --sekvens vantan-1,p2,p4,p7,vantan-2 (namnen efter lyft-<docka>-; 1: väntan 1, alla dockans
-//                         lyfta givar och väntan 2) spelar dem efter varandra i en tagning, med korten kvar på bordet
+//                         --sekvens vantan-1,p7,p4,p2,vantan-2 (namnen efter lyft-<docka>-; 1: väntan 1, alla dockans
+//                         lyfta givar närmast skon först och väntan 2) spelar dem efter varandra i en tagning, med korten kvar på bordet
 //                         (editor/rorelse.ts sekvens); klippet heter då live-sekvens-<namnen>-hela-<kamera>-<docka>.
 //              [--utan-vridben]  underarmens vridning läggs på ForeArm som i en docka utan vridben (för att jämföra)
 //              [--bord <namn>] [--modell <namn>]  en modell på prov: standardbord_<namn>.glb eller standarddocka_<namn>.glb

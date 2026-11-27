@@ -1,15 +1,18 @@
-// Editorn för standarddockan: mannen vid Blenders bord i rörelsen A1 → A2.3 → kort 1 på en av de sju platserna och
-// tillbaka, en tidslinje att spela och dra i, kameror (också från de sju platserna), handtag att dra i som blir ändringar
-// ovanpå grundrörelserna, och inspelning av ett klipp. Ändringarna sparas genom editorns server i standarddocka/rorelser/
+// Editorn för dockorna: en docka vid standardens bord, vid livebordet Danilo eller Frasse i en rörelse lyft ur filmen, vid
+// förra standardens bord mannen eller kvinnan i rörelsen A1 → A2.3 → kort 1 på en av de sju platserna och tillbaka; en
+// tidslinje att spela och dra i, kameror (också från de sju platserna), handtag att dra i som blir ändringar ovanpå
+// grundrörelserna, och inspelning av ett klipp. Ändringarna sparas genom editorns server i standarddocka/rorelser/
 // (grundrörelserna ändras aldrig), klippen i standarddocka/klipp/.
-//   Utan ord: livebordet med Danilo (förvalet sedan 2026-11-27, se UPPSATTNING nedan).
+//   Utan ord: livestandarden med Danilo (förvalet sedan 2026-11-27, se VAL nedan).
+//   ?uppsattning=live|forra&docka=<en av standardens dockor>   standarden och dockan (dockval.ts): utan ?uppsattning väljer
+//   dockan sitt bord, och en docka som inte sitter vid standarden ger standardens förvalda, med en rad i panelen
 //   ?docka=man|kvinna&plats=<1–7>&t=<sekunder>&kamera=<spel|film|plats1…plats7|sida|topp|fri>[&kulor=0][&utseende=nyckel]
 //   förra standardens bord med mannen eller kvinnan (förval där: given till plats 4, spelets vy, Blenders bord som det är);
 //   ?uppsattning=forra räcker för mannen
 //   ?giv=<namn>[&vilan=<namn>]   en grundrörelse på prov i stället för platsens (se PROV nedan)
 //   [?uppsattning=live][&docka=danilo|frasse][&plats=<1–7>|&giv=<namn>]   livebordet med Danilo eller Frasse och deras
 //   rörelser lyfta ur filmen, var och en spelad som den är (se LIVEBORD nedan); ?docka=danilo eller frasse räcker;
-//   &sekvens=vantan-1,p2,p4,p7,vantan-2 (eller 1) flera efter varandra i en tagning, med korten kvar (se SEKVENS nedan)
+//   &sekvens=vantan-1,p7,p4,p2,vantan-2 (eller 1) flera efter varandra i en tagning, med korten kvar (se SEKVENS nedan)
 //   ?runda=1   hela rundan: vilan till skon och sedan första kortet till alla sju platserna, plats 7 först, i ett svep
 //   (se RUNDA nedan); med &stillhet=1 en exakt stillhet vid skon före och efter varje rörelse, som i tagningen som ska
 //   bli film och klippas; den tar inga ändringar och sparas inte. Med &liv=1[&fro=<tal>] rundans små egna rörelser och
@@ -24,38 +27,51 @@ import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import type {Plan} from '../../blackjack-dealer/dealer3d/src/world.ts';
 import {UTTRYCK, UTTRYCKEN, lagUttryck, medUttryck, uttryckVid, uttrycksserie, type LagtUttryck, type Uttrycksnamn} from './rorelse.ts';
 import {FART, GIVAR, LEDER, LEDNAMN, LIVSDELAR, RUNDANS_LIV, RUNDANS_PLATSER, STILLHET, VARAR, blickenFoljer, ensam, grundFor, sekvens, klipplista, lagretsFel, langd, markeText, vilanFor, grundensBrott, rundaAv, rundlivet, rutor, sattIhop, somDenBlev, stallning, stallningOchStopp, takt, taktFor, vikt, type Andring, type Ansikte, type Foljd, type Frame, type Led, type Liv, type Livsdel, type Motion, type Q, type Sparad, type Standarddocka, type V3} from './rorelse.ts';
-import {arLivedocka, byggScen, kameraVy, kameransPlats, platskamera, somKamera, type Docka, type Kamera, type Scen, type Uppsattning, type Utseende} from './scen.ts';
-import {valdUppsattning} from '../../blackjack-dealer/src/uppsattning.ts';
+import {byggScen, kameraVy, kameransPlats, platskamera, somKamera, type Docka, type Kamera, type Scen, type Uppsattning, type Utseende} from './scen.ts';
+import {NAMN as VALETS_NAMN, UPPSATTNING as STANDARDER} from '../../blackjack-dealer/src/uppsattning.ts';
+import {dockord, dockval, helaSekvensen, lyftPlats, rorelsensOrd} from './dockval.ts';
 import {ARMAR, lyftArmar, matArmar, matKropp} from './armar.ts';
 import type {Granser, Stopp} from './kropp.ts';
 
 const query = new URLSearchParams(location.search);
-/** Platsen kortet ges till (varje plats har sin egen rörelse och sina egna sparade ändringar). */
-const PLATS = GIVAR[Number(query.get('plats'))] ? Number(query.get('plats')) : 4;
+const $ = <E extends HTMLElement>(sel: string) => document.querySelector(sel) as E;
+const fel: string[] = [];
+const visaFel = (text: string) => { fel.push(text); const box = $('#fel'); box.style.display = 'block'; box.textContent = 'Något gick fel: ' + fel.join('\n'); };
+window.addEventListener('error', e => visaFel(String(e.message)));
+window.addEventListener('unhandledrejection', e => visaFel(String((e.reason as Error)?.message ?? e.reason)));
+/**
+ * Standarden och dockan (dockval.ts; Jakob 2026-11-27: valet av standard är ett val, i studions meny): ?uppsattning=live|forra
+ * (det äldre ordet standard läses som forra), annars dockans bord (?docka=man eller kvinna: förra standardens; danilo eller
+ * frasse: livebordets), annars livebordet, förvalet sedan han gjorde det klonade bordet till den nya standarden. Vid en
+ * standard visas bara dess dockor, och dockan byter aldrig bord. En docka som inte sitter vid standarden, eller ett okänt ord,
+ * ger standardens förvalda docka och en rad i panelen (VAL.rad), aldrig ett fel.
+ */
+const VAL = dockval(query.get('uppsattning'), query.get('docka'));
+const UPPSATTNING: Uppsattning = VAL.uppsattning, LIVEBORD = UPPSATTNING === 'live', STANDARD = STANDARDER[UPPSATTNING];
+/** Dockan som visas. Den väljer också grundrörelserna: dockans egna där de finns (rorelse.ts EGNA), annars de äldre. Vid livebordet Danilo eller Frasse. */
+const DOCKA = VAL.docka as Docka, ORD = dockord(DOCKA), Han = ORD.han.charAt(0).toUpperCase() + ORD.han.slice(1);
+/** Raderna i panelen om ord i adressen som inte passar, och vad som visas i stället. */
+const inteSa: string[] = VAL.rad ? [VAL.rad] : [];
+/** Grundrörelserna som finns (editorns server listar blackjack-dealer/dealer3d/data): sidan vet vad den kan visa utan att pröva sig fram. */
+const FINNS = new Set(await fetch('/blackjack-dealer/dealer3d/data/', {cache: 'no-store'}).then(r => r.ok ? r.json() as Promise<{rorelser: string[]}> : null).catch(() => null)
+  .then(x => x?.rorelser ?? (visaFel('Editorns server är äldre än sidan och vet inte vilka rörelser som finns. Stäng editorns fönster och starta den igen.'), [])));
 // En grundrörelse på prov (?giv=<namn> och ?vilan=<namn>, filer i blackjack-dealer/dealer3d/data): spelas i stället för
 // platsens giv eller vilan till skon, utan det sparade lagret, och går inte att spara. För den som gör om en grundrörelse.
-// Ett namn som inte är ett namn på en grundrörelse ger ett fel (visas när felrutan finns, nedan) i stället för att
-// platsens vanliga rörelse visas.
+// Ett namn som inte är en grundrörelse som finns ger ett fel (felrutan, nedan) i stället för att platsens vanliga rörelse
+// visas, så att ett verktyg aldrig mäter fel rörelse.
 const provFel: string[] = [];
 const prov = (vad: 'giv' | 'vilan') => { const namn = query.get(vad); if (namn === null || namn === '') return null;
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(namn)) { provFel.push(`?${vad}=${namn} är inget namn på en grundrörelse (små bokstäver, siffror och bindestreck, utan .json): inget visas i stället för fel rörelse.`); return '-'; } return namn; };
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(namn) || !FINNS.has(namn)) { provFel.push(`Det finns ingen grundrörelse som heter ${namn}: inget visas i stället för fel rörelse.`); return '-'; } return namn; };
 /**
  * Livebordet (förvalet, eller ?uppsattning=live; scen.ts Uppsattning): det klonade bordet genom sin egen kamera, med Danilo
  * eller Frasse (?docka=danilo|frasse, förval Danilo). Deras rörelser är lyfta ur
  * filmen av de riktiga dealrarna (dealer3d/data/lyft-<docka>-*.json) och går var och en från vilan till vilan: en spelas
  * som den är (rorelse.ts ensam), i sin egen takt, utan vilan till skon framför och utan det sparade lagret, som en
- * grundrörelse på prov. ?plats=<1–7> väljer given dit (lyft-<docka>-p<plats>), ?giv=<namn> vilken som helst av dem.
- * Inget sparas här.
+ * grundrörelse på prov. ?plats=<1–7> väljer given dit (lyft-<docka>-p<plats>; har dockan ingen dit, den närmaste hon eller
+ * han har, med en rad), ?giv=<namn> vilken som helst av dem. Inget sparas här.
  */
-const DOCKAORD = query.get('docka');
-// Uppsättningen (blackjack-dealer/src/uppsattning.ts valdUppsattning): ?uppsattning=live|forra (det äldre ordet standard läses
-// som forra), annars dockans bord (?docka=man eller kvinna: förra standardens; danilo eller frasse: livebordets), annars
-// livebordet, förvalet sedan Jakob 2026-11-27 gjorde det klonade bordet till den nya standarden.
-const UPPSATTNING: Uppsattning = valdUppsattning(query.get('uppsattning'), DOCKAORD), LIVEBORD = UPPSATTNING === 'live';
-if (LIVEBORD && DOCKAORD && !arLivedocka(DOCKAORD)) provFel.push(`Vid livebordet finns Danilo och Frasse (?docka=danilo eller frasse), inte ?docka=${DOCKAORD}: ?docka=${DOCKAORD} utan uppsättning visar förra standardens bord.`);
-if (!LIVEBORD && arLivedocka(DOCKAORD)) provFel.push(`${DOCKAORD === 'danilo' ? 'Danilo' : 'Frasse'} sitter vid livebordet, inte vid förra standardens: ?docka=${DOCKAORD} utan ?uppsattning=forra.`);
-if (LIVEBORD && query.get('vilan')) provFel.push('Vid livebordet går varje rörelse från vilan till vilan i en fil: ?vilan används inte där.');
-if (LIVEBORD && query.get('runda') === '1') provFel.push('Hela rundan finns bara vid förra standardens bord (?docka=man&runda=1): vid livebordet spelas en rörelse i taget.');
+if (LIVEBORD && query.get('vilan')) inteSa.push(`Vid ${STANDARD.namn} går varje rörelse från vilan till vilan: en annan vila används inte här.`);
+if (LIVEBORD && query.get('runda') === '1') inteSa.push(`Hela rundan finns bara vid ${STANDARDER.forra.namn}. Här visas en rörelse i taget.`);
 const PROVGIV = prov('giv'), PROVVILA = LIVEBORD ? null : prov('vilan'), PROV = !!(PROVGIV || PROVVILA) || LIVEBORD;
 /**
  * Hela rundan (?runda=1; rorelse.ts rundaAv): vilan till skon och sedan första kortet till alla sju platserna i en
@@ -72,28 +88,29 @@ const STILLA = RUNDA && query.get('stillhet') === '1';
  * frö (förval 1): samma frö ger samma tagning.
  */
 const rundlivUr = (text: string | null, fro: number): Liv | undefined => { const delar = !RUNDA || !text || text === '0' ? [] : text === '1' ? [...RUNDANS_LIV] : RUNDANS_LIV.filter(d => text.split(',').includes(d)); return delar.length ? {fro: Math.round(fro) || 1, delar} : undefined; };
-/** Dockan som visas (?docka=kvinna). Den väljer också grundrörelserna: dockans egna där de finns (rorelse.ts EGNA), annars de äldre. Vid livebordet Danilo eller Frasse. */
-const DOCKA: Docka = LIVEBORD ? (arLivedocka(DOCKAORD) ? DOCKAORD : 'danilo') : DOCKAORD === 'kvinna' ? 'kvinna' : 'man';
 /**
- * Vid livebordet en hel sekvens i en tagning (?sekvens=vantan-1,p2,p4,p7,vantan-2, namnen efter lyft-<docka>-; rorelse.ts
+ * Vid livebordet en hel sekvens i en tagning (?sekvens=vantan-1,p7,p4,p2,vantan-2, namnen efter lyft-<docka>-; rorelse.ts
  * sekvens): rörelserna efter varandra från vila till vila, och korten som har lagts ligger kvar. ?sekvens=1 är väntan 1,
- * dockans alla lyfta givar i platsernas ordning och väntan 2.
+ * dockans alla lyfta givar närmast skon först, som en dealer ger dem (dockval.ts helaSekvensen), och väntan 2.
  */
-const SEKVENS: string[] | null = await (async () => { const text = LIVEBORD ? query.get('sekvens') : null; if (!text) return null;
-  if (text !== '1') { const lista = text.split(',').filter(Boolean); if (!lista.length || !lista.every(x => /^[a-z0-9][a-z0-9-]*$/.test(x))) { provFel.push(`?sekvens=${text} är ingen lista av rörelser (som vantan-1,p2,p4).`); return null; } return lista; }
-  const finns = async (x: string) => (await fetch(`/blackjack-dealer/dealer3d/data/lyft-${DOCKA}-${x}.json`, {cache: 'no-store'}).catch(() => null))?.ok ? x : null;
-  return (await Promise.all(['vantan-1', ...[1, 2, 3, 4, 5, 6, 7].map(p => `p${p}`), 'vantan-2'].map(finns))).filter((x): x is string => !!x); })();
+const SEKVENS: string[] | null = (() => { const text = LIVEBORD ? query.get('sekvens') : null; if (!text) return null;
+  if (text === '1') return helaSekvensen(FINNS, DOCKA, STANDARD);
+  const lista = text.split(',').filter(Boolean), saknas = lista.filter(x => !/^[a-z0-9][a-z0-9-]*$/.test(x) || !FINNS.has(`lyft-${DOCKA}-${x}`));
+  if (!lista.length || saknas.length) { provFel.push(`Sekvensen tar ${ORD.namn}s rörelser lyfta ur filmen, som vantan-1,p7,p4: ${saknas.join(', ') || 'listan är tom'} finns inte.`); return null; } return lista; })();
+/** Platsen han bad om (?plats=), förval 4. */
+const ONSKAD = GIVAR[Number(query.get('plats'))] ? Number(query.get('plats')) : 4;
+/** Vid livebordet: platsen vars lyfta giv visas, den han bad om eller den närmaste dockan har (dockval.ts lyftPlats). */
+const LYFT = LIVEBORD && !PROVGIV && !SEKVENS ? lyftPlats(FINNS, DOCKA, ONSKAD, query.has('plats')) : null;
+if (LIVEBORD && !PROVGIV && !SEKVENS && !LYFT) provFel.push(`${ORD.namn} har inga givar lyfta ur filmen än.`);
+if (LYFT?.rad) inteSa.push(LYFT.rad);
+/** Platsen kortet ges till (varje plats har sin egen rörelse och sina egna sparade ändringar). */
+const PLATS = LYFT?.plats ?? ONSKAD;
 /** Vid livebordet: rörelsen som spelas, ?giv eller dockans lyfta giv till platsen (eller sekvensens namn). */
 const LIVEGIV = LIVEBORD ? SEKVENS ? `sekvens-${SEKVENS.join('-')}` : PROVGIV ?? `lyft-${DOCKA}-p${PLATS}` : null;
 const EGEN = LIVEGIV ? {vila: '', giv: LIVEGIV, egen: true, namn: `live-${LIVEGIV}`} : grundFor(DOCKA as Standarddocka, PLATS);
 const NAMN = RUNDA ? `runda-c1-${DOCKA}` : LIVEBORD ? EGEN.namn : PROV ? `prov-p${PLATS}` : EGEN.namn, SPARAS = `/standarddocka/rorelser/${NAMN}.json`, RUTOR = `/standarddocka/rorelser/${NAMN}.rutor.json`;
 const PLATSER = [1, 2, 3, 4, 5, 6, 7];
 const KAMERANAMN = (k: Kamera) => { const plats = kameransPlats(k); return LIVEBORD && k === 'spel' ? 'kameran' : plats ? `plats-${plats}` : ({film: 'gamla-kameran', sida: 'sidan', topp: 'uppifran', fri: 'fri'} as Record<string, string>)[k]; };
-const $ = <E extends HTMLElement>(sel: string) => document.querySelector(sel) as E;
-const fel: string[] = [];
-const visaFel = (text: string) => { fel.push(text); const box = $('#fel'); box.style.display = 'block'; box.textContent = 'Något gick fel: ' + fel.join('\n'); };
-window.addEventListener('error', e => visaFel(String(e.message)));
-window.addEventListener('unhandledrejection', e => visaFel(String((e.reason as Error)?.message ?? e.reason)));
 if (provFel.length) { visaFel(provFel.join(' ')); await new Promise(() => {}); } // sidan stannar här, med felet synligt
 const laddarText = (vad: string) => { $('#laddar').firstChild!.textContent = `Laddar ${vad} …`; };
 const sek = (t: number) => t.toFixed(2).replace('.', ',') + ' s';
@@ -123,7 +140,7 @@ laddarText('rörelserna');
 const lasSparat = () => fetch(SPARAS, {cache: 'no-store'}).then(r => r.status === 200 ? r.text() : ''); // 204: inget sparat ännu
 const [plan, andra, sparadText] = await Promise.all([
   hämta<Plan>('/blackjack-dealer/placements/default.json'),
-  hämta<Motion>(`/blackjack-dealer/dealer3d/data/${SEKVENS ? `lyft-${DOCKA}-${SEKVENS[0]}` : PROVGIV ?? EGEN.giv}.json`).catch(e => { throw LIVEGIV ? Error(`${DOCKA === 'danilo' ? 'Danilo' : 'Frasse'} har ingen rörelse som heter ${SEKVENS ? `lyft-${DOCKA}-${SEKVENS[0]}` : LIVEGIV} (${(e as Error).message}).`) : e; }),
+  hämta<Motion>(`/blackjack-dealer/dealer3d/data/${SEKVENS ? `lyft-${DOCKA}-${SEKVENS[0]}` : PROVGIV ?? EGEN.giv}.json`), // finns: FINNS är prövad ovan
   PROV || RUNDA ? '' : lasSparat(),
 ]);
 /** Platsen en lyft giv går till (fältet `to`, P<plats>.C1), eller null för en väntan. */
@@ -131,7 +148,7 @@ const platsFor = (m: Motion) => Number(/^P(\d)\./.exec([m.to ?? []].flat()[0] ??
 /** Vid livebordet: platsen den lyfta given går till, eller null för en väntan och en sekvens. */
 const GIVPLATS = LIVEBORD ? SEKVENS ? null : platsFor(andra) : PLATS;
 /** Sekvensens rörelser, i sin ordning (den första är `andra`). */
-const SEKVENSRORELSER = SEKVENS ? await Promise.all(SEKVENS.map(async (x, i) => { const namn = `lyft-${DOCKA}-${x}`, rorelse = i ? await hämta<Motion>(`/blackjack-dealer/dealer3d/data/${namn}.json`).catch(e => { throw Error(`${DOCKA === 'danilo' ? 'Danilo' : 'Frasse'} har ingen rörelse som heter ${namn} (${(e as Error).message}).`); }) : andra; return {namn, rorelse, plats: platsFor(rorelse)}; })) : null;
+const SEKVENSRORELSER = SEKVENS ? await Promise.all(SEKVENS.map(async (x, i) => { const namn = `lyft-${DOCKA}-${x}`, rorelse = i ? await hämta<Motion>(`/blackjack-dealer/dealer3d/data/${namn}.json`) : andra; return {namn, rorelse, plats: platsFor(rorelse)}; })) : null;
 // En giv på prov utan vila i adressen börjar i vilan för den docka den är ritad för (rorelse.ts vilanFor).
 // Rundan: vilan till skon och dockans egen giv till var och en av platserna, i spelets ordning.
 const RUNDGIVAR = RUNDA ? await Promise.all(RUNDANS_PLATSER.map(async plats => { const namn = grundFor(DOCKA as Standarddocka, plats).giv; return {plats, namn, rorelse: await hämta<Motion>(`/blackjack-dealer/dealer3d/data/${namn}.json`)}; })) : [];
@@ -171,9 +188,11 @@ const canvas = $<HTMLCanvasElement>('#bild');
 /** Utseendet 'nyckel' (?utseende=nyckel): rena färger på bakgrund, bord och kort, för film där dealern ska skiljas ut (scen.ts). */
 const UTSEENDE: Utseende = query.get('utseende') === 'nyckel' ? 'nyckel' : 'vanligt';
 /** Sidans adress med ett annat val, och de val som ska följa med när den laddas om. */
-// Dockan står alltid i adressen utom Danilo, förvalet: den väljer sitt bord (src/uppsattning.ts valdUppsattning), så mannen och
-// kvinnan står kvar vid förra standardens bord när sidan laddas om.
-const medVal = (val: Record<string, string>) => { const q = new URLSearchParams({plats: String(PLATS), kamera, ...(DOCKA !== 'danilo' ? {docka: DOCKA} : {}), ...(UTSEENDE === 'nyckel' ? {utseende: UTSEENDE} : {}), ...(RUNDA ? {runda: '1'} : {}), ...(STILLA ? {stillhet: '1'} : {}), ...(RUNDA && sparad.liv ? {liv: livText(sparad.liv), fro: String(sparad.liv.fro)} : {}), ...val}); if (q.get('docka') === 'danilo') q.delete('docka'); if (!q.get('runda')) { q.delete('runda'); q.delete('liv'); q.delete('fro'); } if (!q.get('runda') || !q.get('stillhet')) q.delete('stillhet'); if (!q.get('uppsattning')) q.delete('uppsattning'); if (!q.get('giv')) q.delete('giv'); if (!q.get('sekvens')) q.delete('sekvens'); return q.toString(); };
+// Standarden och dockan står alltid i adressen: sidan laddas om vid samma standard, och dockan byter den aldrig. Ett tomt
+// värde tar bort ordet.
+const medVal = (val: Record<string, string>) => { const q = new URLSearchParams({uppsattning: UPPSATTNING, docka: DOCKA, plats: String(PLATS), kamera, ...(UTSEENDE === 'nyckel' ? {utseende: UTSEENDE} : {}), ...(RUNDA ? {runda: '1'} : {}), ...(STILLA ? {stillhet: '1'} : {}), ...(RUNDA && sparad.liv ? {liv: livText(sparad.liv), fro: String(sparad.liv.fro)} : {}), ...val});
+  if (!q.get('runda')) for (const k of ['liv', 'fro', 'stillhet']) q.delete(k);
+  for (const [k, v] of [...q]) if (!v) q.delete(k); return q.toString(); };
 /** Rundans små rörelser som de står i adressen: 1 för alla delarna, annars delarnas namn. */
 const livText = (liv: Liv) => liv.delar.length === RUNDANS_LIV.length ? '1' : liv.delar.join(',');
 const scen: Scen = await byggScen(canvas, plan, foljd.hip, stallning(foljd, 0, []), laddarText, UTSEENDE, DOCKA, andra.doll, UPPSATTNING);
@@ -497,7 +516,7 @@ function visaRundliv() { const ruta = document.querySelector<HTMLInputElement>('
   const l = rundlivet(foljd, sparad.liv), platser = (rader: NonNullable<typeof l>) => rader.map(x => x.plats).filter(Boolean).join(', ');
   ruta.checked = !!l; slumpa.disabled = !l; om.style.display = l ? '' : 'none';
   if (l) { const blick = l.filter(x => x.blickMotSpelaren), finger = l.filter(x => x.fingerLyfter), min = l.filter(x => x.min);
-    om.textContent = `Frö ${sparad.liv!.fro}: han blinkar i ${l.filter(x => x.blinkarVidRuta !== null).length} av ${l.length} klipp${blick.length ? `, ser upp mot spelaren efter kortet till plats ${platser(blick)}` : ''}${min.length ? `, har en liten min i given till plats ${platser(min)}` : ''}${finger.length ? `, och ett finger lyfter på handen som ligger fri i given till plats ${platser(finger)}` : ''}. I varje klipp andas han in en gång, väger över några millimeter och rör huvudet lätt. Allt är borta i ankaren, så klippen möts som förut.`; } }
+    om.textContent = `Frö ${sparad.liv!.fro}: ${ORD.han} blinkar i ${l.filter(x => x.blinkarVidRuta !== null).length} av ${l.length} klipp${blick.length ? `, ser upp mot spelaren efter kortet till plats ${platser(blick)}` : ''}${min.length ? `, har en liten min i given till plats ${platser(min)}` : ''}${finger.length ? `, och ett finger lyfter på handen som ligger fri i given till plats ${platser(finger)}` : ''}. I varje klipp andas ${ORD.han} in en gång, väger över några millimeter och rör huvudet lätt. Allt är borta i ankaren, så klippen möts som förut.`; } }
 function visaStatus() { const s = $('#status'), omAldre = oanvant();
   // Hela rundan: vad den är, i stället för en plats sparade läge; den sparas inte.
   if (RUNDA) { s.className = rundvarning ? 'osparat' : ''; $<HTMLButtonElement>('#spara').disabled = true; const vanster = RUNDGIVAR.filter(g => g.rorelse.marke?.hander === 'vanster').map(g => g.plats);
@@ -506,7 +525,7 @@ function visaStatus() { const s = $('#status'), omAldre = oanvant();
   const lanad = PROV || EGEN.egen ? '' : `Plats ${PLATS} spelar ännu den äldre rörelsen, ritad för en annan kropp än ${DOCKA === 'kvinna' ? 'kvinnans' : 'mannens'}. `;
   s.className = osparat ? 'osparat' : sparadKl ? 'bra' : '';
   // (givens märke först: vänsterhanden ensam eller handbyte, och vilken version; Jakob 2026-11-26: "det måste markeras")
-  s.textContent = markeText(andra, GIVPLATS ?? PLATS) + lanad + (LIVEBORD ? `Vid livebordet: ${DOCKA === 'danilo' ? 'Danilo' : 'Frasse'} spelar ${GRUND.length > 1 ? `${GRUND.join(', ')} efter varandra i en tagning, var och en som den är` : `${GRUND[0]} som den är`}, från vilan till vilan i rörelsens egen takt, med den riktiga dealerns blick och min.${foljd.sekvens ? ` Korten som har lagts ligger kvar. Där rörelserna möts hoppar dockan högst ${Math.max(0, ...foljd.sekvens.skarvar.map(x => x.mm)).toString().replace('.', ',')} mm.` : ''}${andra.doll && andra.doll !== DOCKA ? ` Rörelsen är lyft för ${andra.doll}, inte för den här dockan.` : ''}${armarVridna ? ` Regeln som lyfter armbågarna över bordets kant ändrade ${armarVridna} rutor.` : ''} Det du drar i syns men sparas inte.`
+  s.textContent = markeText(andra, GIVPLATS ?? PLATS) + lanad + (LIVEBORD ? `${ORD.namn} spelar ${GRUND.length > 1 ? `${GRUND.map(rorelsensOrd).join(', ')} efter varandra i en tagning, var och en som den är` : `${rorelsensOrd(GRUND[0])} som den är`}, från vilan till vilan i rörelsens egen takt, med den riktiga dealerns blick och min.${foljd.sekvens ? ` Korten som har lagts ligger kvar. Där rörelserna möts hoppar dockan högst ${Math.max(0, ...foljd.sekvens.skarvar.map(x => x.mm)).toString().replace('.', ',')} mm.` : ''}${andra.doll && andra.doll !== DOCKA ? ` Rörelsen är lyft för ${dockord(andra.doll).namn}, inte för ${ORD.namn}.` : ''}${armarVridna ? ` Regeln som lyfter armbågarna över bordets kant ändrade ${armarVridna} rutor.` : ''} Det du drar i syns men sparas inte.`
     : PROV ? `På prov: ${GRUND.join(' och ')}. Sparas inte.` : sparar ? 'Sparar …' : osparat ? `Ändrat – inte sparat ännu.${omAldre ? ` ${omAldre}; Spara skriver över det.` : ''}` : sparadKl ? `Sparat kl. ${sparadKl}.${sparadVarning}` : omAldre ? `${omAldre}. Det står kvar tills du trycker Spara.` : sparadFil ? 'Allt är sparat.' : 'Inget sparat ännu.');
   if ((sparadVarning && !osparat) || omAldre) s.className = 'osparat';
   $<HTMLButtonElement>('#spara').disabled = PROV || sparar;
@@ -532,7 +551,7 @@ function visaDelar() {
     längd.dataset.del = String(i);
     // Hela rundan: takten är fast, och raden säger klippets rutor i tagningen.
     if (foljd.runda) { const k = foljd.runda.klipp[i]; längd.disabled = true; längd.title = 'Rundans takt är fast. Farten ändras på en plats i taget.';
-      li.title = `${i ? markeText(RUNDGIVAR[i - 1].rorelse, RUNDGIVAR[i - 1].plats) : ''}Klippet ${k.namn}: ruta ${k.forsta}–${k.sista}.${k.kortetLigger === null ? '' : ` Kortet ligger från ruta ${k.kortetLigger}.`} Han står stilla vid skon från ruta ${k.stillaFran}.`; }
+      li.title = `${i ? markeText(RUNDGIVAR[i - 1].rorelse, RUNDGIVAR[i - 1].plats) : ''}Klippet ${k.namn}: ruta ${k.forsta}–${k.sista}.${k.kortetLigger === null ? '' : ` Kortet ligger från ruta ${k.kortetLigger}.`} ${Han} står stilla vid skon från ruta ${k.stillaFran}.`; }
     s.textContent = Math.abs(fart - 1) < 0.005 ? 's' : `s · ${Math.round(fart * 100)} %`; s.classList.toggle('andrad', !tak.forval);
     // Ett tomt fält, 0 eller ett tal utanför det delen kan ta sägs vid fältet; tomt och 0 ändrar ingenting.
     längd.onclick = e => e.stopPropagation(); längd.oninput = () => längd.setCustomValidity('');
@@ -573,22 +592,33 @@ $('#liv-slumpa').onclick = () => sattLiv(sparad.liv?.delar ?? [], Math.floor(Mat
 // Vid livebordet är en plats dockans lyfta giv dit (de finns bara till några platser), och väntan har två knappar för sig.
 document.querySelectorAll<HTMLButtonElement>('#malplatser button[data-plats]').forEach(b => { const plats = Number(b.dataset.plats); b.classList.toggle('vald', !RUNDA && plats === (LIVEBORD ? GIVPLATS : PLATS));
   b.onclick = () => { if (RUNDA || plats !== PLATS || (LIVEBORD && GIVPLATS !== plats)) location.search = medVal({plats: String(plats), runda: '', giv: ''}); }; });
-if (LIVEBORD) { const namn = DOCKA === 'danilo' ? 'Danilo' : 'Frasse', finns = (giv: string) => fetch(`/blackjack-dealer/dealer3d/data/${giv}.json`, {cache: 'no-store'}).then(r => r.ok, () => false);
-  const prova = (b: HTMLButtonElement, giv: string, vad: string) => { b.disabled = true; void finns(giv).then(ja => { b.disabled = !ja; b.title = ja ? `${namn}: ${vad}, lyft ur filmen av den riktiga dealern (${giv})` : `${namn} har ingen ${vad} lyft ur filmen än.`; }); };
-  document.querySelectorAll<HTMLButtonElement>('#malplatser button[data-plats]').forEach(b => prova(b, `lyft-${DOCKA}-p${b.dataset.plats}`, `giv till plats ${b.dataset.plats}`));
-  document.querySelectorAll<HTMLButtonElement>('#malplatser button[data-vantan]').forEach(b => { const giv = `lyft-${DOCKA}-vantan-${b.dataset.vantan}`; prova(b, giv, `väntan ${b.dataset.vantan}`); b.classList.toggle('vald', !SEKVENS && GRUND[0] === giv);
+// Vilka som finns läses ur listan (FINNS): en knapp utan rörelse är avstängd och säger varför.
+if (LIVEBORD) { const lyft = (b: HTMLButtonElement, giv: string, vad: string) => { const ja = FINNS.has(giv); b.disabled = !ja; b.title = ja ? `${ORD.namn}: ${vad}, lyft ur filmen av den riktiga dealern` : `${ORD.namn} har ingen ${vad} lyft ur filmen än.`; };
+  document.querySelectorAll<HTMLButtonElement>('#malplatser button[data-plats]').forEach(b => lyft(b, `lyft-${DOCKA}-p${b.dataset.plats}`, `giv till plats ${b.dataset.plats}`));
+  document.querySelectorAll<HTMLButtonElement>('#malplatser button[data-vantan]').forEach(b => { const giv = `lyft-${DOCKA}-vantan-${b.dataset.vantan}`; lyft(b, giv, `väntan ${b.dataset.vantan}`); b.classList.toggle('vald', !SEKVENS && GRUND[0] === giv);
     b.onclick = () => { if (SEKVENS || GRUND[0] !== giv) location.search = medVal({giv}); }; });
-  // Hela sekvensen: väntan 1, alla dockans lyfta givar och väntan 2 i en tagning, med korten kvar på bordet.
-  const hela = document.querySelector<HTMLButtonElement>('#hela-sekvensen'); if (hela) { hela.classList.toggle('vald', !!SEKVENS); hela.onclick = () => { if (!SEKVENS) location.search = medVal({sekvens: '1'}); }; }
-  for (const x of document.querySelectorAll<HTMLElement>('#hela-rundan, [data-kamera=film]')) x.style.display = 'none';
-  const rubrik = document.querySelector('#panel h1'); if (rubrik) rubrik.textContent = `${namn} vid livebordet`; }
+  // Hela sekvensen: väntan 1, alla dockans lyfta givar närmast skon först och väntan 2 i en tagning, med korten kvar på bordet.
+  const hela = document.querySelector<HTMLButtonElement>('#hela-sekvensen'); if (hela) { hela.classList.toggle('vald', !!SEKVENS); hela.disabled = helaSekvensen(FINNS, DOCKA, STANDARD).length < 2; hela.onclick = () => { if (!SEKVENS) location.search = medVal({sekvens: '1'}); }; }
+  for (const x of document.querySelectorAll<HTMLElement>('#hela-rundan, [data-kamera=film]')) x.style.display = 'none'; }
 document.querySelectorAll<HTMLElement>('.bara-live').forEach(x => { x.style.display = LIVEBORD ? '' : 'none'; });
 // Hela rundan i en tagning (?runda=1): ett eget val under platserna.
 { const b = document.querySelector<HTMLButtonElement>('#hela-rundan'); if (b) { b.classList.toggle('vald', RUNDA); b.onclick = () => { if (!RUNDA) location.search = medVal({runda: '1'}); }; } }
-// Vilken docka som visas: samma rörelse och samma sparade ändringar, på den andra kroppen.
-// Danilo och Frasse sitter vid livebordet: med dem byts uppsättningen, och platsen blir 4 (den giv båda har).
-document.querySelectorAll<HTMLButtonElement>('#dockor button').forEach(b => { const docka = b.dataset.docka as Docka; b.classList.toggle('vald', docka === DOCKA);
-  b.onclick = () => { if (docka !== DOCKA) location.search = medVal({docka, uppsattning: '', ...(arLivedocka(docka) ? {plats: '4'} : {})}); }; });
+// Dockorna: bara standardens egna (uppsattning.ts dockor), och ett byte av docka byter aldrig standard; standarden väljs i
+// studions meny. Vid livebordet följer det han tittar på med till den andra dockan när den har det (hela sekvensen, väntan
+// med samma nummer), annars platsen eller den närmaste den har en lyft giv till.
+{ const ruta = $('#dockor'), visas = !SEKVENS && PROVGIV ? /^lyft-[a-z0-9]+-vantan-(\d+)$/.exec(PROVGIV)?.[1] : undefined;
+  ruta.title = LIVEBORD ? 'Dockorna efter de två riktiga dealrarna i filmen av livebordet. Deras rörelser är lyfta ur filmen och spelas som de är; här sparas inget.' : 'Mannen och kvinnan har samma skelett. Var och en spelar sina egna rörelser och har sina egna sparade ändringar.';
+  const tillDockan = (docka: string): Record<string, string> => !LIVEBORD ? {} : query.get('sekvens') === '1' && SEKVENS ? {sekvens: '1'}
+    : visas && FINNS.has(`lyft-${docka}-vantan-${visas}`) ? {giv: `lyft-${docka}-vantan-${visas}`} : {plats: String(lyftPlats(FINNS, docka, PLATS, false)?.plats ?? PLATS)};
+  for (const docka of STANDARD.dockor) { const b = document.createElement('button'); b.className = 'bred'; b.dataset.docka = docka; b.textContent = dockord(docka).namn; b.classList.toggle('vald', docka === DOCKA);
+    b.onclick = () => { if (docka !== DOCKA) location.search = medVal({docka, ...tillDockan(docka)}); }; ruta.append(b); } }
+// Rubriken och hjälptexten efter dockan som visas (namnet, och hon eller han), raden om standarden som gäller (inne i studion:
+// att den väljs i menyn), och raderna om ord i adressen som inte passade.
+{ $('#panel h1').textContent = `${ORD.namn} vid bordet`;
+  document.querySelectorAll<HTMLElement>('[data-ord]').forEach(x => { const ord = x.dataset.ord as 'han' | 'honom' | 'hans' | 'Han'; x.textContent = ord === 'Han' ? Han : ORD[ord]; });
+  $('#kamera-tips').textContent = `Dra i bilden för att vrida runt ${ORD.honom}, rulla för att komma närmare. ${LIVEBORD ? `${Han} tittar dit den riktiga dealern tittade i filmen.` : `${Han} tittar in i kameran på plats 4 när ${ORD.han} inte följer kortet.`}`;
+  $('#standard').textContent = window.self !== window.top ? `${STANDARD.namn}, vald i studions meny (${VALETS_NAMN}).` : `${STANDARD.namn}.`;
+  const inte = $('#inte-sa'); inte.textContent = inteSa.join(' '); inte.style.display = inteSa.length ? '' : 'none'; }
 { const valt = (): [number, number] => { const [a, b] = $<HTMLSelectElement>('#inspela-del').value.split('-').map(Number); return [a, b]; }, fel = (e: unknown) => visaFel(String((e as Error).message ?? e));
   $('#inspela-en').onclick = () => { void spelaIn([kamera], ...valt()).catch(fel); };
   $('#inspela-alla').onclick = () => { void spelaIn(PLATSER.map(platskamera), ...valt()).catch(fel); }; }

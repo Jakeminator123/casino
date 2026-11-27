@@ -16,15 +16,17 @@ standarddocka/
                 mot kameran; ställningen, stolen och blicken är tal och steg överst i filen
   vy/           den senaste arbetsvyn, skriven av scen/vy.py (varje körning skriver över den förra): vy.blend
                 (dubbelklicka för att öppna scenen i Blender), bilderna och mätningen; går inte in i Git
-  editor/       editorn i webbläsaren: mannen vid bordet, en tidslinje att spela och dra i, kameror (också från de
-                sju platserna), handtag på händer, armbågar och blick som blir ändringar ovanpå grundrörelserna,
+  editor/       editorn i webbläsaren: en docka vid standardens bord, en tidslinje att spela och dra i, kameror (också
+                från de sju platserna), handtag på händer, armbågar och blick som blir ändringar ovanpå grundrörelserna,
                 återställning och inspelning av klipp
-    server.ts   editorns egen server (bara den här datorn, port 4320); lämnar ut sidan, modellerna och rörelserna,
-                tar emot det som sparas och gör film av inspelningens bilder (FFmpeg)
+    server.ts   editorns egen server (bara den här datorn, port 4320); lämnar ut sidan, modellerna och rörelserna och
+                listan över grundrörelserna som finns, tar emot det som sparas och gör film av inspelningens bilder (FFmpeg)
     editor.ts   sidan: tidslinjen, kamerorna, handtagen, Spara, Återställ, Spela in
+    dockval.ts  vilken standard och docka sidan visar ur adressen, raden när ett ord inte passar, dockornas namn (hon
+                eller han), platsen och sekvensen vid livebordet; ren kod (testet ../blackjack-dealer/tools/editor-dockval.test.ts)
     scen.ts     scenen: dockan (mannen eller kvinnan) i standardrummet (bordet, stolen och ljuset ur
                 ../blackjack-dealer/dealer3d/src/standard-room.ts, samma som studions dockvy ritar), kortet, kamerorna;
-                eller Danilo eller Frasse vid livebordet genom dess kamera (uppsättningen live, Livebordet nedan)
+                eller Danilo eller Frasse vid livebordet genom dess kamera (Livestandarden, Livebordet nedan)
     rorelse.ts  rörelsen: grundrörelser efter varandra (dockans egna där de finns), skarven, takten, ändringarna
                 ovanpå, vem som håller kortet, och kontrollen av ett sparat lager (`lagretsFel`); och hela rundan i
                 en tagning (`rundaAv`) med sin klipplista och sina mått (`klipplista`, `rundansMatt`) och sina små
@@ -91,11 +93,17 @@ standarddocka/
 ```
 
 Editorn startas med dubbelklick på `STARTA editorn.cmd`, eller från casino-mappen med
-`node standarddocka/editor/server.ts --oppna`, och öppnas på `http://127.0.0.1:4320/standarddocka/editor/`. Utan ord
-visar den livebordet med Danilo (Livebordet nedan): det klonade bordet är standarden sedan 2026-11-27, och uppsättningen
-tas ur `../blackjack-dealer/src/uppsattning.ts` (`valdUppsattning`: `?uppsattning=live|forra`, annars dockans bord,
-annars livebordet). `?docka=man` eller `?docka=kvinna` (eller `?uppsattning=forra`) visar förra standardens bord, och
-`titta.ts` och `kropp.ts` gör samma val (`--docka man`). Där visar den
+`node standarddocka/editor/server.ts --oppna`, och öppnas på `http://127.0.0.1:4320/standarddocka/editor/`; i studion är
+den sidan Dockan. Utan ord visar den Livestandarden med Danilo (Livebordet nedan): det klonade bordet är standarden sedan
+2026-11-27. Valet av standard är ett val (Jakob 2026-11-27), i studions meny (Standard: Live eller Förra), och studion
+skickar det med som `?uppsattning=live|forra`. Standarden tas ur `../blackjack-dealer/src/uppsattning.ts`
+(`valdUppsattning`: `?uppsattning=`, annars dockans bord, annars Livestandarden), och regeln för dockan står i
+`editor/dockval.ts`: vid en standard visas bara dess dockor (knapparna "Dockan"), och ett byte av docka byter aldrig
+standard. En docka som inte sitter vid standarden, eller ett okänt ord, ger standardens förvalda docka (Danilo, eller
+mannen vid Förra standarden) och en rad överst i panelen, till exempel "Mannen sitter vid Förra standarden. Här visas
+Danilo.", aldrig ett fel. Raden under rubriken säger vilken standard som gäller, och inne i studion att den väljs i
+menyn. Utan `?uppsattning` väljer dockan sitt bord: `?docka=man` eller `?docka=kvinna` (eller `?uppsattning=forra`)
+visar Förra standardens bord, och `titta.ts` och `kropp.ts` gör samma val (`--docka man`). Där visar den
 följden A1 → A2.3 → kort 1 på en plats → tillbaka, ur `../blackjack-dealer/dealer3d/data/`. Dockans egna rörelser
 spelas där de finns (tabellen `EGNA` i `editor/rorelse.ts`, en rad per docka och plats; sedan 2026-11-26 mannen och
 kvinnan på alla sju platserna, till exempel `till-ankare-2-3-man` och `giv-fran-2-3-p4c1-ren-a-man`). Annars spelas
@@ -114,7 +122,8 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   (`seatEye` i `../blackjack-dealer/dealer3d/src/world.ts`); plats 4 är spelets kamera. Sidokameran är Blenders `sida`
   i `scen/vy.py` (samma siktlinje och en lika bred bild, 2,5 m): Blenders är ortografisk, och editorns står åtta gånger
   längre bort med smal vinkel, så att perspektivet nästan är borta (talen står i både `vy.py` och `editor/scen.ts`).
-- **Dockan:** mannen eller kvinnan (knapparna "Dockan", eller `?docka=man|kvinna`). De har samma skelett, och där de
+- **Dockan:** vid Förra standarden mannen eller kvinnan (knapparna "Dockan", eller `?docka=man|kvinna`). Rubriken och
+  hjälptexten följer dockan som visas, med namnet och hon eller han. De har samma skelett, och där de
   spelar samma grundrörelser delar de det som sparas; en dockas egna rörelser har sitt eget sparade lager. En docka som
   spelar sina egna rörelser visas i sin egen storlek, den som rörelserna, handens punkter och fingertopparna är mätta
   på (`editor/scen.ts`); spelar den en rörelse ritad för en annan kropp görs den så stor att armen blir
@@ -192,8 +201,8 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   en annan fil ur `../blackjack-dealer/dealer3d/data/` i stället för platsens, utan det sparade lagret och utan att
   kunna spara. En giv på prov utan vila börjar i vilan för den docka den är ritad för. Ett namn som inte är ett namn
   på en grundrörelse ger ett fel i stället för platsens vanliga rörelse. För den som gör om en grundrörelse.
-- **Livebordet** (förvalet; `?uppsattning=live`, eller `?docka=danilo` / `?docka=frasse`; knapparna "Danilo (livebordet)"
-  och "Frasse (livebordet)"; `verktyg/titta.ts` utan ord, eller `--docka danilo|frasse`): det klonade
+- **Livebordet** (Livestandarden, förvalet; `?uppsattning=live`, eller `?docka=danilo` / `?docka=frasse`; knapparna
+  "Danilo" och "Frasse"; `verktyg/titta.ts` utan ord, eller `--docka danilo|frasse`): det klonade
   livebordet ur filmen av ett riktigt bord (`../blackjack-dealer/src/table-live.ts`) med Danilo eller Frasse, de två
   dockorna efter de två riktiga dealrarna (`LIVE_DOLLS` i `dealer3d/src/doll.ts`), i sin egen storlek. Bordet är
   `standardbord_live.glb`, lagt med sin kant på livebordets (z = -1,5375) och filten på y = 0 (`livebordet` i
@@ -205,9 +214,14 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   kameran, där dealern sitter (`LIVE_FLYTT`). En lyft rörelse (`lyft-<docka>-p<plats>`, `lyft-<docka>-vantan-<n>`;
   platsknapparna, "Väntan 1" och "Väntan 2", eller `?giv=`) spelas som den är, från vilan till vilan i sin egen takt
   (`ensam` i `editor/rorelse.ts`), med dealerns blick och min (fältet `a`) och utan det sparade lagret: inget sparas
-  här. `?sekvens=vantan-1,p2,p4,p7,vantan-2` (knappen "Hela sekvensen", eller `?sekvens=1`: väntan 1, dockans alla lyfta
-  givar och väntan 2; `--sekvens` i `titta.ts`) spelar flera efter varandra i en tagning, i ett svep där de möts i vilan,
-  och korten som har lagts ligger kvar (`sekvens` i `editor/rorelse.ts`). Armregeln och spärren håller sig till
+  här. Vilka som finns läser sidan ur serverns lista (`GET /blackjack-dealer/dealer3d/data/`): en plats utan lyft giv
+  har en avstängd knapp, och en adress med en sådan plats visar den närmaste dockan har, med en rad om det
+  (`lyftPlats` i `editor/dockval.ts`). Ett namn i `?giv=`, `?vilan=` eller `?sekvens=` som inte finns ger däremot ett
+  fel, så att ett verktyg aldrig mäter fel rörelse. `?sekvens=vantan-1,p7,p4,p2,vantan-2` (knappen "Hela sekvensen",
+  eller `?sekvens=1`: väntan 1, dockans alla lyfta givar närmast skon först, som dealern i filmen ger dem, räknat ur
+  platsernas läge och inte ur numret (`helaSekvensen` i `editor/dockval.ts`), och väntan 2; `--sekvens` i `titta.ts`)
+  spelar flera efter varandra i en tagning, i ett svep där de möts i vilan, och korten som har lagts ligger kvar
+  (`sekvens` i `editor/rorelse.ts`). Armregeln och spärren håller sig till
   livebordets kant och filt. Klippen heter `live-<rörelsen>-<del>-<kamera>-<docka>[-nyckel].mp4` (kameran `kameran`,
   `sidan`, `uppifran` eller `plats-N`; en sekvens `live-sekvens-<namnen>-hela-…`).
   - **En annan kropp i dockans ställe:** `?docka=` väljer dockan, och med den rörelserna och måtten (`dollNamed`);

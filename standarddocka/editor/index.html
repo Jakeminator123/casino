@@ -99,8 +99,10 @@
 </main>
 <aside id="panel">
   <div>
-    <h1>Mannen vid bordet</h1>
-    <p>Rörelserna är redan inlagda. Tryck Spela under bilden för att se dem, eller dra i tidslinjen.</p>
+    <!-- Rubriken, raden om standarden och raden om ord i adressen som inte passade skrivs av editor.ts. -->
+    <h1>Dockan vid bordet</h1>
+    <p id="standard"></p>
+    <p id="inte-sa" style="margin:6px 0 0;color:var(--warn);display:none"></p>
   </div>
   <section>
     <h2>Rörelsen består av</h2>
@@ -113,14 +115,13 @@
       <button id="hela-sekvensen" class="bred bara-live" style="display:none" title="Väntan 1, alla givar som är lyfta ur filmen och väntan 2 efter varandra i en tagning, med korten kvar på bordet">Hela sekvensen</button>
       <button id="hela-rundan" class="bred" title="Vilan till skon och sedan första kortet till plats 7, 6, 5, 4, 3, 2 och 1 i en enda tagning, i ett svep. För att se hela rundan och spela in den som en film som sedan klipps.">Hela rundan (kort 1 till alla sju)</button>
       <label class="bara-runda" title="Lägger in en kort stillhet vid skon före och efter varje kort. Så spelas tagningen in när den ska göras om till film av en person och sedan klippas: stillheten är där filmen klipps. Utan krysset går rundan i ett svep, som klippen sedan spelas."><input type="checkbox" id="stillhet"> Med stillhet vid skon (tagningen som ska bli film)</label>
-      <label class="bara-runda" title="Lägger liv i honom utan att ändra given: i varje klipp andas han in en gång, väger över några millimeter och rör huvudet lätt, i några klipp blinkar han, och efter några kort ser han upp mot spelaren innan blicken går tillbaka till skon. Händerna och kortet rörs inte, och allt är borta i ankaren, så att klippen fortfarande möts i vilken ordning som helst."><input type="checkbox" id="rundliv"> Små egna rörelser och blinkning</label>
+      <label class="bara-runda" title="Lägger liv i dockan utan att ändra given: i varje klipp andas dockan in en gång, väger över några millimeter och rör huvudet lätt, i några klipp blinkar den, och efter några kort ser den upp mot spelaren innan blicken går tillbaka till skon. Händerna och kortet rörs inte, och allt är borta i ankaren, så att klippen fortfarande möts i vilken ordning som helst."><input type="checkbox" id="rundliv"> Små egna rörelser och blinkning</label>
       <button id="rundliv-slumpa" class="bred bara-runda" title="Samma slags små rörelser, på andra ställen: andra klipp blinkar, och blicken mot spelaren kommer efter andra kort">Slumpa om</button>
       <p class="tips bara-runda" id="rundliv-om" style="flex:0 0 100%;margin:2px 0 0"></p>
     </div>
-    <div class="platser" id="dockor" title="De två standarddockorna har samma skelett och gör samma rörelser. Det du ändrar och sparar gäller båda.">
+    <!-- En knapp per docka vid standarden som gäller (editor.ts): standarden väljs i studions meny, inte här. -->
+    <div class="platser" id="dockor">
       <span>Dockan</span>
-      <button data-docka="man" class="bred">Mannen</button><button data-docka="kvinna" class="bred">Kvinnan</button>
-      <button data-docka="danilo" class="bred" title="Danilo vid det klonade livebordet, genom livebordets kamera: rörelser lyfta ur filmen av en riktig dealer, spelade som de är">Danilo (livebordet)</button><button data-docka="frasse" class="bred" title="Frasse vid det klonade livebordet, genom livebordets kamera: rörelser lyfta ur filmen av en riktig dealer, spelade som de är">Frasse (livebordet)</button>
     </div>
   </section>
   <section>
@@ -137,7 +138,7 @@
         <button data-kamera="plats1">1</button><button data-kamera="plats2">2</button><button data-kamera="plats3">3</button><button data-kamera="spel">4</button><button data-kamera="plats5">5</button><button data-kamera="plats6">6</button><button data-kamera="plats7">7</button>
       </div>
     </div>
-    <p class="tips" style="margin-top:8px">Dra i bilden för att vrida runt honom, rulla för att komma närmare. Han tittar in i kameran på plats 4 när han inte följer kortet.</p>
+    <p class="tips" id="kamera-tips" style="margin-top:8px">Dra i bilden för att vrida runt dockan, rulla för att komma närmare.</p>
     <div class="visa">
       <label class="rad"><input type="checkbox" id="visa-bord" checked> Visa bordet</label>
       <label class="rad"><input type="checkbox" id="visa-stol" checked> Visa stolen</label>
@@ -157,7 +158,7 @@
   <!-- bara-plats: det som hör till en plats i taget och inte visas i hela rundan (editor.ts RUNDA). -->
   <section class="bara-plats">
     <h2>Ändra rörelsen</h2>
-    <p>Välj en del (eller klicka på en kula i bilden) och dra i pilarna. Ändringen görs där tidslinjen står och tonas in och ut mjukt. Höger och vänster är hans egna.</p>
+    <p>Välj en del (eller klicka på en kula i bilden) och dra i pilarna. Ändringen görs där tidslinjen står och tonas in och ut mjukt. Höger och vänster är <span data-ord="hans">hans</span> egna.</p>
     <div class="knappar" id="leder">
       <button data-led="hogerHand">Höger hand</button>
       <button data-led="vansterHand">Vänster hand</button>
@@ -180,9 +181,9 @@
   </section>
   <section class="bara-plats">
     <h2>Små egna rörelser</h2>
-    <p>Lägger liv i honom utan att ändra rörelsen. De tonar ut i varje dels början och slut, så att klippen fortfarande möts.</p>
+    <p>Lägger liv i <span data-ord="honom">honom</span> utan att ändra rörelsen. De tonar ut i varje dels början och slut, så att klippen fortfarande möts.</p>
     <div class="visa" id="liv">
-      <label class="rad"><input type="checkbox" data-liv="andning"> Han andas</label>
+      <label class="rad"><input type="checkbox" data-liv="andning"> <span data-ord="Han">Han</span> andas</label>
       <label class="rad"><input type="checkbox" data-liv="huvud"> Huvudet rör sig lätt</label>
       <label class="rad"><input type="checkbox" data-liv="blick"> En blick mot en spelare</label>
       <label class="rad"><input type="checkbox" data-liv="hand"> Ett finger lyfter på en vilande hand</label>
