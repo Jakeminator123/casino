@@ -1,5 +1,5 @@
 {
- "about": "Every card verktyg/kort.py saw come to rest on the table, per stretch (its start in seconds) and id. from is sko when the card was seen leaving the shoe's mouth (as a card on the felt, or as card colour at the mouth in the 3 s before it showed up), unseen when not. left and landed are seconds of the film (left: the card is out of the mouth; landed: it first lies still); duration is landed - left. to is where it first lay still (place: dealer or seat 1-7, seat 1 at the picture's left; px in the table picture, m on the felt). turned is true when it was seen back up first (at the mouth or on the felt) and face up later; turnWindow the seconds between the last back and the first face seen. collected is when it was taken away (null when the stretch ended first). Stretches the cards were already lying in when they began give cards that landed at the stretch's first second without a left.",
+ "about": "Every card verktyg/kort.py saw come to rest on the table, per stretch (its start in seconds) and id. from is sko when the card was seen leaving the shoe's mouth (as a card on the felt, or as card colour at the mouth in the 3 s before it showed up), unseen when not. left and landed are seconds of the film (left: the card is out of the mouth; landed: it first lies still); duration is landed - left. to is where it first lay still (place: dealer or seat 1-7, seat 1 at the picture's left; px in the table picture, m on the felt). turned is true when it was seen back up first (at the mouth or on the felt) and face up later; seenBackThenUp the second it was last seen back up and the second it was first seen face up: the turn lies between, hidden by the hand and the blur, and the second sighting is often the card already lying on its place (in kameran-mitten-plats-4 the face shows 5 frames before it). collected is when it was taken away (null when the stretch ended first). Stretches the cards were already lying in when they began give cards that landed at the stretch's first second without a left.",
  "counts": {
   "stretches": 18,
   "frames": 26301,
@@ -28,7 +28,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     65.833,
     65.9
    ],
@@ -55,7 +55,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     67.467,
     67.5
    ],
@@ -82,7 +82,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     68.467,
     69.367
    ],
@@ -109,7 +109,7 @@
    },
    "face": "down",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -133,7 +133,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": true
   },
@@ -157,7 +157,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": true
   },
@@ -181,7 +181,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": true
   },
@@ -205,7 +205,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": true
   },
@@ -229,7 +229,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     88.233,
     88.633
    ],
@@ -256,7 +256,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     90.867,
     90.933
    ],
@@ -283,7 +283,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 104.6,
    "alreadyThere": false
   },
@@ -307,7 +307,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 104.533,
    "alreadyThere": false
   },
@@ -331,7 +331,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 103.233,
    "alreadyThere": false
   },
@@ -355,7 +355,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 104.6,
    "alreadyThere": false
   },
@@ -379,7 +379,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 101.733,
    "alreadyThere": false
   },
@@ -403,7 +403,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     107.4,
     108.3
    ],
@@ -430,7 +430,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 122.567,
    "alreadyThere": false
   },
@@ -454,7 +454,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     108.8,
     108.867
    ],
@@ -481,7 +481,7 @@
    },
    "face": "down",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     110.3,
     110.367
    ],
@@ -508,7 +508,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     119.867,
     120.433
    ],
@@ -535,7 +535,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 129.117,
    "alreadyThere": true
   },
@@ -559,7 +559,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 128.517,
    "alreadyThere": true
   },
@@ -583,7 +583,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 135.683,
    "alreadyThere": false
   },
@@ -607,7 +607,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     138.717,
     139.417
    ],
@@ -634,7 +634,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     140.117,
     140.15
    ],
@@ -661,7 +661,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     140.883,
     141.717
    ],
@@ -688,7 +688,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 170.883,
    "alreadyThere": false
   },
@@ -712,7 +712,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 170.817,
    "alreadyThere": false
   },
@@ -736,7 +736,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 171.683,
    "alreadyThere": false
   },
@@ -760,7 +760,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -784,7 +784,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -808,7 +808,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -832,7 +832,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     176.35,
     176.483
    ],
@@ -859,7 +859,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     177.583,
     177.85
    ],
@@ -886,7 +886,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     178.617,
     178.917
    ],
@@ -913,7 +913,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     187.15,
     187.183
    ],
@@ -940,7 +940,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     191.217,
     191.317
    ],
@@ -967,7 +967,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     202.183,
     203.117
    ],
@@ -994,7 +994,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     204.817,
     204.85
    ],
@@ -1021,7 +1021,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     207.45,
     207.617
    ],
@@ -1048,7 +1048,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -1072,7 +1072,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     210.283,
     210.383
    ],
@@ -1099,7 +1099,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 220.117,
    "alreadyThere": true
   },
@@ -1123,7 +1123,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 220.117,
    "alreadyThere": true
   },
@@ -1147,7 +1147,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 220.117,
    "alreadyThere": true
   },
@@ -1171,7 +1171,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 220.483,
    "alreadyThere": true
   },
@@ -1195,7 +1195,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 220.883,
    "alreadyThere": true
   },
@@ -1219,7 +1219,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 220.817,
    "alreadyThere": true
   },
@@ -1243,7 +1243,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 219.383,
    "alreadyThere": true
   },
@@ -1267,7 +1267,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 220.883,
    "alreadyThere": false
   },
@@ -1291,7 +1291,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     225.417,
     225.75
    ],
@@ -1318,7 +1318,7 @@
    },
    "face": "down",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     227.283,
     227.317
    ],
@@ -1345,7 +1345,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 247.883,
    "alreadyThere": false
   },
@@ -1369,7 +1369,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     239.583,
     239.617
    ],
@@ -1396,7 +1396,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 247.883,
    "alreadyThere": false
   },
@@ -1420,7 +1420,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 247.883,
    "alreadyThere": false
   },
@@ -1444,7 +1444,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 247.483,
    "alreadyThere": false
   },
@@ -1468,7 +1468,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     289.583,
     289.65
    ],
@@ -1495,7 +1495,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     290.95,
     291.05
    ],
@@ -1522,7 +1522,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     292.117,
     292.183
    ],
@@ -1549,7 +1549,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 330.45,
    "alreadyThere": false
   },
@@ -1573,7 +1573,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 328.35,
    "alreadyThere": false
   },
@@ -1597,7 +1597,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 331.117,
    "alreadyThere": false
   },
@@ -1621,7 +1621,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 330.75,
    "alreadyThere": false
   },
@@ -1645,7 +1645,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     297.35,
     297.45
    ],
@@ -1672,7 +1672,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     312.15,
     312.183
    ],
@@ -1699,7 +1699,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     321.383,
     321.417
    ],
@@ -1726,7 +1726,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     350.417,
     350.45
    ],
@@ -1753,7 +1753,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -1777,7 +1777,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     351.383,
     353.383
    ],
@@ -1804,7 +1804,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -1828,7 +1828,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": true
   },
@@ -1852,7 +1852,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": true
   },
@@ -1876,7 +1876,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": true
   },
@@ -1900,7 +1900,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": true
   },
@@ -1924,7 +1924,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": true
   },
@@ -1948,7 +1948,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 401.183,
    "alreadyThere": true
   },
@@ -1972,7 +1972,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": true
   },
@@ -1996,7 +1996,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     364.95,
     364.983
    ],
@@ -2023,7 +2023,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     367.217,
     367.617
    ],
@@ -2050,7 +2050,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     369.95,
     369.983
    ],
@@ -2077,7 +2077,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     380.617,
     380.683
    ],
@@ -2104,7 +2104,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     388.617,
     388.65
    ],
@@ -2131,7 +2131,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 409.483,
    "alreadyThere": true
   },
@@ -2155,7 +2155,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 409.917,
    "alreadyThere": true
   },
@@ -2179,7 +2179,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 409.85,
    "alreadyThere": true
   },
@@ -2203,7 +2203,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 448.983,
    "alreadyThere": false
   },
@@ -2227,7 +2227,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 471.35,
    "alreadyThere": false
   },
@@ -2251,7 +2251,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 470.95,
    "alreadyThere": false
   },
@@ -2275,7 +2275,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     431.317,
     431.35
    ],
@@ -2302,7 +2302,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     435.05,
     435.217
    ],
@@ -2329,7 +2329,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 471.017,
    "alreadyThere": false
   },
@@ -2353,7 +2353,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     435.85,
     435.883
    ],
@@ -2380,7 +2380,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     446.45,
     446.517
    ],
@@ -2407,7 +2407,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     448.083,
     449.783
    ],
@@ -2434,7 +2434,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 471.683,
    "alreadyThere": false
   },
@@ -2458,7 +2458,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     463.783,
     463.983
    ],
@@ -2485,7 +2485,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     465.083,
     465.317
    ],
@@ -2512,7 +2512,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 484.35,
    "alreadyThere": false
   },
@@ -2536,7 +2536,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 506.117,
    "alreadyThere": false
   },
@@ -2560,7 +2560,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     512.217,
     512.25
    ],
@@ -2587,7 +2587,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     513.483,
     513.617
    ],
@@ -2614,7 +2614,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     514.383,
     515.017
    ],
@@ -2641,7 +2641,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     515.25,
     515.583
    ],
@@ -2668,7 +2668,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     515.617,
     515.85
    ],
@@ -2695,7 +2695,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     517.483,
     517.55
    ],
@@ -2722,7 +2722,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     518.917,
     518.983
    ],
@@ -2749,7 +2749,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     519.883,
     520.383
    ],
@@ -2776,7 +2776,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     520.717,
     520.817
    ],
@@ -2803,7 +2803,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     521.983,
     522.05
    ],
@@ -2830,7 +2830,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 560.35,
    "alreadyThere": true
   },
@@ -2854,7 +2854,7 @@
    },
    "face": "down",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 560.817,
    "alreadyThere": true
   },
@@ -2878,7 +2878,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 560.817,
    "alreadyThere": true
   },
@@ -2902,7 +2902,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 559.817,
    "alreadyThere": true
   },
@@ -2926,7 +2926,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 560.017,
    "alreadyThere": true
   },
@@ -2950,7 +2950,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 561.183,
    "alreadyThere": true
   },
@@ -2974,7 +2974,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 561.35,
    "alreadyThere": true
   },
@@ -2998,7 +2998,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 558.917,
    "alreadyThere": true
   },
@@ -3022,7 +3022,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 558.683,
    "alreadyThere": true
   },
@@ -3046,7 +3046,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 558.683,
    "alreadyThere": true
   },
@@ -3070,7 +3070,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 558.383,
    "alreadyThere": true
   },
@@ -3094,7 +3094,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 558.35,
    "alreadyThere": true
   },
@@ -3118,7 +3118,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 557.817,
    "alreadyThere": true
   },
@@ -3142,7 +3142,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     566.05,
     566.717
    ],
@@ -3169,7 +3169,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     566.883,
     567.617
    ],
@@ -3196,7 +3196,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     567.783,
     568.45
    ],
@@ -3223,7 +3223,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     568.683,
     569.25
    ],
@@ -3250,7 +3250,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 604.75,
    "alreadyThere": false
   },
@@ -3274,7 +3274,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     572.117,
     572.75
    ],
@@ -3301,7 +3301,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     573.117,
     573.65
    ],
@@ -3328,7 +3328,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     574.017,
     574.083
    ],
@@ -3355,7 +3355,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     575.117,
     575.15
    ],
@@ -3382,7 +3382,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     585.083,
     585.283
    ],
@@ -3409,7 +3409,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     594.117,
     594.25
    ],
@@ -3436,7 +3436,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     596.65,
     596.717
    ],
@@ -3463,7 +3463,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     616.383,
     617.283
    ],
@@ -3490,7 +3490,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     617.483,
     617.517
    ],
@@ -3517,7 +3517,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     618.617,
     618.95
    ],
@@ -3544,7 +3544,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     619.183,
     619.25
    ],
@@ -3571,7 +3571,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 668.383,
    "alreadyThere": false
   },
@@ -3595,7 +3595,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     620.183,
     620.25
    ],
@@ -3622,7 +3622,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     621.483,
     622.15
    ],
@@ -3649,7 +3649,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -3673,7 +3673,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     622.583,
     622.883
    ],
@@ -3700,7 +3700,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     624.083,
     624.15
    ],
@@ -3727,7 +3727,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     625.15,
     625.183
    ],
@@ -3754,7 +3754,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     633.917,
     633.983
    ],
@@ -3781,7 +3781,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     641.883,
     641.983
    ],
@@ -3808,7 +3808,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     646.083,
     646.15
    ],
@@ -3835,7 +3835,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -3859,7 +3859,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     648.817,
     650.25
    ],
@@ -3886,7 +3886,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     654.117,
     654.817
    ],
@@ -3913,7 +3913,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     659.383,
     659.683
    ],
@@ -3940,7 +3940,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 666.017,
    "alreadyThere": false
   },
@@ -3964,7 +3964,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     687.267,
     687.833
    ],
@@ -3991,7 +3991,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     688.033,
     688.7
    ],
@@ -4018,7 +4018,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     688.933,
     689.567
    ],
@@ -4045,7 +4045,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     689.767,
     689.833
    ],
@@ -4072,7 +4072,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -4096,7 +4096,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     690.667,
     690.767
    ],
@@ -4123,7 +4123,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     691.667,
     691.733
    ],
@@ -4150,7 +4150,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     692.933,
     693.167
    ],
@@ -4177,7 +4177,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     693.733,
     693.767
    ],
@@ -4204,7 +4204,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -4228,7 +4228,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     694.6,
     694.633
    ],
@@ -4255,7 +4255,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -4279,7 +4279,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     695.667,
     695.767
    ],
@@ -4306,7 +4306,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     704.033,
     704.133
    ],
@@ -4333,7 +4333,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 730.633,
    "alreadyThere": true
   },
@@ -4357,7 +4357,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 730.633,
    "alreadyThere": true
   },
@@ -4381,7 +4381,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 730.633,
    "alreadyThere": true
   },
@@ -4405,7 +4405,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 731.067,
    "alreadyThere": true
   },
@@ -4429,7 +4429,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 731.4,
    "alreadyThere": true
   },
@@ -4453,7 +4453,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 730.0,
    "alreadyThere": true
   },
@@ -4477,7 +4477,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 730.0,
    "alreadyThere": true
   },
@@ -4501,7 +4501,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 731.6,
    "alreadyThere": true
   },
@@ -4525,7 +4525,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 731.833,
    "alreadyThere": true
   },
@@ -4549,7 +4549,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 728.933,
    "alreadyThere": true
   },
@@ -4573,7 +4573,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 728.967,
    "alreadyThere": true
   },
@@ -4597,7 +4597,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 728.133,
    "alreadyThere": true
   },
@@ -4621,7 +4621,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     731.9,
     732.133
    ],
@@ -4648,7 +4648,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 732.933,
    "alreadyThere": false
   },
@@ -4672,7 +4672,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     745.933,
     746.0
    ],
@@ -4699,7 +4699,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -4723,7 +4723,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     746.933,
     747.2
    ],
@@ -4750,7 +4750,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     748.933,
     748.967
    ],
@@ -4777,7 +4777,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     748.933,
     750.033
    ],
@@ -4804,7 +4804,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     750.7,
     751.0
    ],
@@ -4831,7 +4831,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     751.933,
     752.633
    ],
@@ -4858,7 +4858,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     752.767,
     753.433
    ],
@@ -4885,7 +4885,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     753.7,
     754.0
    ],
@@ -4912,7 +4912,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     754.867,
     754.9
    ],
@@ -4939,7 +4939,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     769.267,
     769.467
    ],
@@ -4966,7 +4966,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -4990,7 +4990,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 793.45,
    "alreadyThere": true
   },
@@ -5014,7 +5014,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 793.25,
    "alreadyThere": true
   },
@@ -5038,7 +5038,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 793.683,
    "alreadyThere": true
   },
@@ -5062,7 +5062,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 793.683,
    "alreadyThere": true
   },
@@ -5086,7 +5086,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 792.317,
    "alreadyThere": true
   },
@@ -5110,7 +5110,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 792.583,
    "alreadyThere": true
   },
@@ -5134,7 +5134,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 794.083,
    "alreadyThere": true
   },
@@ -5158,7 +5158,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 794.083,
    "alreadyThere": true
   },
@@ -5182,7 +5182,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     787.283,
     787.317
    ],
@@ -5209,7 +5209,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 791.35,
    "alreadyThere": true
   },
@@ -5233,7 +5233,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     812.617,
     813.45
    ],
@@ -5260,7 +5260,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -5284,7 +5284,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     813.617,
     815.25
    ],
@@ -5311,7 +5311,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     815.383,
     815.617
    ],
@@ -5338,7 +5338,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -5362,7 +5362,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     816.25,
     817.05
    ],
@@ -5389,7 +5389,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     817.25,
     817.617
    ],
@@ -5416,7 +5416,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     818.483,
     818.883
    ],
@@ -5443,7 +5443,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     819.35,
     819.817
    ],
@@ -5470,7 +5470,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     820.217,
     820.483
    ],
@@ -5497,7 +5497,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     821.217,
     821.25
    ],
@@ -5524,7 +5524,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 875.117,
    "alreadyThere": true
   },
@@ -5548,7 +5548,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 875.117,
    "alreadyThere": true
   },
@@ -5572,7 +5572,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 875.617,
    "alreadyThere": true
   },
@@ -5596,7 +5596,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 875.683,
    "alreadyThere": true
   },
@@ -5620,7 +5620,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 875.883,
    "alreadyThere": true
   },
@@ -5644,7 +5644,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 876.717,
    "alreadyThere": true
   },
@@ -5668,7 +5668,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 876.383,
    "alreadyThere": true
   },
@@ -5692,7 +5692,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 876.35,
    "alreadyThere": true
   },
@@ -5716,7 +5716,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 873.95,
    "alreadyThere": true
   },
@@ -5740,7 +5740,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 872.517,
    "alreadyThere": true
   },
@@ -5764,7 +5764,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     859.417,
     860.283
    ],
@@ -5791,7 +5791,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 931.65,
    "alreadyThere": true
   },
@@ -5815,7 +5815,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 932.383,
    "alreadyThere": true
   },
@@ -5839,7 +5839,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 932.383,
    "alreadyThere": true
   },
@@ -5863,7 +5863,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 932.217,
    "alreadyThere": true
   },
@@ -5887,7 +5887,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 932.383,
    "alreadyThere": true
   },
@@ -5911,7 +5911,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 932.383,
    "alreadyThere": true
   },
@@ -5935,7 +5935,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     900.983,
     901.15
    ],
@@ -5962,7 +5962,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     902.083,
     902.117
    ],
@@ -5989,7 +5989,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 920.15,
    "alreadyThere": false
   },
@@ -6013,7 +6013,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     916.283,
     916.717
    ],
@@ -6040,7 +6040,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     922.217,
     922.25
    ],
@@ -6067,7 +6067,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     946.083,
     946.117
    ],
@@ -6094,7 +6094,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     946.717,
     947.117
    ],
@@ -6121,7 +6121,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     947.483,
     947.783
    ],
@@ -6148,7 +6148,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     948.45,
     949.383
    ],
@@ -6175,7 +6175,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     950.55,
     950.583
    ],
@@ -6202,7 +6202,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -6226,7 +6226,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     950.883,
     951.45
    ],
@@ -6253,7 +6253,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     952.683,
     952.783
    ],
@@ -6280,7 +6280,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     965.983,
     966.117
    ],
@@ -6307,7 +6307,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     974.517,
     974.883
    ],
@@ -6334,7 +6334,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -6358,7 +6358,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 981.567,
    "alreadyThere": true
   },
@@ -6382,7 +6382,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 981.567,
    "alreadyThere": true
   },
@@ -6406,7 +6406,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 981.933,
    "alreadyThere": true
   },
@@ -6430,7 +6430,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 981.933,
    "alreadyThere": true
   },
@@ -6454,7 +6454,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 981.933,
    "alreadyThere": true
   },
@@ -6478,7 +6478,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 981.933,
    "alreadyThere": true
   },
@@ -6502,7 +6502,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 980.8,
    "alreadyThere": true
   },
@@ -6526,7 +6526,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 980.567,
    "alreadyThere": true
   },
@@ -6550,7 +6550,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 980.933,
    "alreadyThere": true
   },
@@ -6574,7 +6574,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     1000.5,
     1000.833
    ],
@@ -6601,7 +6601,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     1001.633,
     1002.233
    ],
@@ -6628,7 +6628,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     1002.967,
     1003.0
    ],
@@ -6655,7 +6655,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     1003.767,
     1003.833
    ],
@@ -6682,7 +6682,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     1006.033,
     1006.1
    ],
@@ -6709,7 +6709,7 @@
    },
    "face": "up",
    "turned": true,
-   "turnWindow": [
+   "seenBackThenUp": [
     1005.033,
     1005.1
    ],
@@ -6736,7 +6736,7 @@
    },
    "face": "down",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": null,
    "alreadyThere": false
   },
@@ -6760,7 +6760,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 1010.567,
    "alreadyThere": false
   },
@@ -6784,7 +6784,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 1010.667,
    "alreadyThere": false
   },
@@ -6808,7 +6808,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 1010.633,
    "alreadyThere": false
   },
@@ -6832,7 +6832,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 1010.567,
    "alreadyThere": false
   },
@@ -6856,7 +6856,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 1010.667,
    "alreadyThere": false
   },
@@ -6880,7 +6880,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 1010.667,
    "alreadyThere": false
   },
@@ -6904,7 +6904,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 1010.667,
    "alreadyThere": false
   },
@@ -6928,7 +6928,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 1010.667,
    "alreadyThere": false
   },
@@ -6952,7 +6952,7 @@
    },
    "face": "up",
    "turned": false,
-   "turnWindow": null,
+   "seenBackThenUp": null,
    "collected": 1010.667,
    "alreadyThere": false
   }

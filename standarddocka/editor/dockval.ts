@@ -60,7 +60,9 @@ export function fransSkon(platser: readonly number[], u: Uppsattning, underlag?:
 }
 /** Hela sekvensen (?sekvens=1): väntan 1, dockans alla lyfta givar närmast skon först, och väntan 2; bara de som finns. */
 export function helaSekvensen(finns: ReadonlySet<string>, docka: string, u: Uppsattning): string[] {
-  return ['vantan-1', ...fransSkon(lyftaPlatser(finns, docka), u).map(p => `p${p}`), 'vantan-2'].filter(x => finns.has(`lyft-${docka}-${x}`));
+  // (givarna går från ankaret vid skon till ankaret vid skon, A2.3: vägen dit ur vilan och hem dit är egna rörelser)
+  return ['vantan-1', 'till-skon', ...fransSkon(lyftaPlatser(finns, docka), u).map(p => `p${p}`), 'hem', 'vantan-2'].filter(x => finns.has(`lyft-${docka}-${x}`));
 }
 /** En rörelse i hans ord: en lyft giv är "given till plats N", en väntan "väntan N"; ett annat namn (en grundrörelse på prov) står som det är. */
-export const rorelsensOrd = (namn: string): string => { const m = /^lyft-[a-z0-9]+-(?:p(\d+)|vantan-(\d+))$/.exec(namn); return !m ? namn : m[1] ? `given till plats ${m[1]}` : `väntan ${m[2]}`; };
+export const rorelsensOrd = (namn: string): string => { if (/^lyft-[a-z0-9]+-till-skon$/.test(namn)) return 'ur vilan till skon'; if (/^lyft-[a-z0-9]+-hem$/.test(namn)) return 'från skon hem till vilan';
+  const m = /^lyft-[a-z0-9]+-(?:p(\d+)|vantan-(\d+))$/.exec(namn); return !m ? namn : m[1] ? `given till plats ${m[1]}` : `väntan ${m[2]}`; };

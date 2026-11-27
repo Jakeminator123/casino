@@ -537,7 +537,7 @@ def measure(cap, source, scen, felt, bgs, statics, run, step, out, matt):
         if turned:
             last_back = max(tt for tt in backs if tt < min(tt2 for tt2 in ups if tt2 > min(backs)))
             first_up = min(tt for tt in ups if tt > last_back)
-            rec['turnWindow'] = [last_back, first_up]
+            rec['seenBackThenUp'] = [last_back, first_up]
         out_cards.append(rec)
     name = os.path.join(out, f"kort-{run['from']:07.2f}.json")
     with open(name, 'w', encoding='utf-8') as f:
@@ -620,15 +620,15 @@ def main_collect(args):
             dealt.append({'stretch': d['from'], 'id': c['id'], 'from': c['from'] or 'unseen', 'left': left, 'landed': c['rest']['t'],
                           'duration': round(c['rest']['t'] - left, 3) if left is not None else None,
                           'to': {'place': c['rest']['place'], 'px': c['rest']['px'], 'm': c['rest']['m']}, 'face': c['rest']['face'],
-                          'turned': c['turned'], 'turnWindow': c.get('turnWindow'), 'collected': c['collected'],
+                          'turned': c['turned'], 'seenBackThenUp': c.get('seenBackThenUp', c.get('turnWindow')), 'collected': c['collected'],
                           'alreadyThere': c['first'] - d['from'] < 0.1})
     with open(out, 'w', encoding='utf-8') as f:
         json.dump({'about': 'Every card verktyg/kort.py saw come to rest on the table, per stretch (its start in seconds) and id. from is sko when the card was seen '
                             'leaving the shoe\'s mouth (as a card on the felt, or as card colour at the mouth in the 3 s before it showed up), unseen when not. left '
                             'and landed are seconds of the film (left: the card is out of the mouth; landed: it first lies still); duration is landed - left. to is '
                             'where it first lay still (place: dealer or seat 1-7, seat 1 at the picture\'s left; px in the table picture, m on the felt). turned is '
-                            'true when it was seen back up first (at the mouth or on the felt) and face up later; turnWindow the seconds between the last back and '
-                            'the first face seen. collected is when it was taken away (null when the stretch ended first). Stretches the cards were already lying '
+                            'true when it was seen back up first (at the mouth or on the felt) and face up later; seenBackThenUp the second it was last seen back up and the second it was '
+                            'first seen face up: the turn lies between, hidden by the hand and the blur, and the second sighting is often the card already lying on its place (in kameran-mitten-plats-4 the face shows 5 frames before it). collected is when it was taken away (null when the stretch ended first). Stretches the cards were already lying '
                             'in when they began give cards that landed at the stretch\'s first second without a left.',
                    'counts': counts, 'cards': dealt}, f, indent=1)
     new = [g for g in dealt if not g['alreadyThere']]

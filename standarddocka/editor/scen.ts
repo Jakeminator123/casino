@@ -216,7 +216,8 @@ export async function byggScen(canvas: HTMLCanvasElement, plan: Plan, hip: numbe
       return {forward: s3(mid, p[0]), palm: [n[0] * side, n[1] * side, n[2] * side] as V3, points: p as V3[]}; };
     const looks = v(f.g).sub(v(f.h)).normalize();
     figure.pose({hip: h as V3, shoulders: [f.R.s as V3, f.L.s as V3], arms: [{shoulder: f.R.s as V3, elbow: f.R.e as V3, wrist: f.R.w as V3}, {shoulder: f.L.s as V3, elbow: f.L.e as V3, wrist: f.L.w as V3}],
-      hands: [hand(f.R.p, 1), hand(f.L.p, -1)], looks: [looks.x, looks.y, looks.z], lookAt: f.g as V3, face: f.a ?? {}}); // ansiktet i vila där rutan inte har något
+      hands: [hand(f.R.p, 1), hand(f.L.p, -1)], looks: [looks.x, looks.y, looks.z], lookAt: f.g as V3, face: f.a ?? {}, // ansiktet i vila där rutan inte har något
+      ...(f.hv ? {headAt: f.hv as V3} : {})}); // (en lyft rörelse kan ge huvudets eget mål, hv: då ser ögonen på blickpunkten och huvudet dit)
     kortLage(card, f.card);
   }
   /** Kortet: lokalt x tvärs, y ut ur framsidan (normalen), z längs långsidan, som dealer3d/src/stage.ts lägger sitt. */
