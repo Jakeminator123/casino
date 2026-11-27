@@ -67,8 +67,12 @@ function choose(proofDir: string, material: string): string[] {
     return [...has('ansiktet-over-tiden.png'), ...(sheets.length ? [path.join(d, sheets[Math.floor(sheets.length / 2)])] : []), ...has('narbild-hogerhanden-01.png'), ...has('narbild-vansterhanden-01.png')];
   });
   for (let k = 0; out.length < MAX_IMAGES && perFilm.some((l) => l.length > k); k++) for (const l of perFilm) if (l[k] && out.length < MAX_IMAGES) out.push(l[k]);
+  // the proof's own pictures, spread over the whole proof when they do not all fit: the last ones are often the
+  // decisive ones (dealerns-handled: the wrist at the table was picture 7 and 8, and a first-six choice missed it)
   const own = readdirSync(proofDir).filter((n) => /\.(png|jpg)$/.test(n)).sort().map((n) => path.join(proofDir, n));
-  for (const p of own) if (out.length < MAX_IMAGES) out.push(p);
+  const room = MAX_IMAGES - out.length;
+  const picked = own.length <= room ? own : Array.from({length: room}, (_, k) => own[Math.round(k * (own.length - 1) / Math.max(1, room - 1))]);
+  for (const p of new Set(picked)) out.push(p);
   return out;
 }
 

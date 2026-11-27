@@ -40,9 +40,14 @@ beskrivs i `blackjack-dealer/tools/python/README.md`. Det tar ungefär en minut 
   - Ett ansikte som glider fångas av ögat i `ansiktet-over-tiden.png`, inte av formtalen. I `tomasz-gor-danilos-giv`
     blev Tomasz dockan, fast formtalen ändrades mindre än 5 %.
   - Darr ("lite skakig") visar högpassen per punkt. MediaPipes eget brus är ungefär en bildpunkt, så talet säger något
-    först bredvid en annan del eller film i samma storlek. Filmerna av Danilos lyfta giv darrade i huvudet ungefär dubbelt
-    så mycket (0,4–0,5 % av axelbredden) som Kling-filmerna av den ritade dockan (0,2–0,3 %).
-  - Blicken mäts svagt (huvudets vinkel och irisens höjd i ögat). Döm den på närbilderna i vilan, mot var kameran står.
+    först bredvid en annan del eller film. Jämför en person med en person och en docka med en docka, eftersom dockans
+    släta ansikte mäts brusigt. Alephs filmer av Danilos lyfta giv darrade i huvudet 0,4–0,5 % av axelbredden och
+    Klings filmer av den ritade dockan 0,2–0,3 %. Om skillnaden kommer av rörelsen eller av modellen går inte att avgöra
+    ur de proven.
+  - Blicken mäts svagt: huvudets vinkel och irisens höjd i ögat, där rakt fram är ungefär 0,45 och under 0,40 betyder
+    att han ser upp. Under given låg irisen på 0,33–0,41 i film 1 av `tomasz-gor-danilos-giv` och på 0,29–0,33 i film 2,
+    medan den låg på 0,41–0,44 i film 3. Dockan bredvid låg redan på 0,34–0,43, så blicken uppåt kom från dockan. Döm
+    blicken på närbilderna i vilan, mot var kameran står.
   - Händerna: verktyget flaggar en hand som tappas medan handleden syns, och fingrar som ändrar längd mot varandra.
     Titta där. Antalet fingrar och leder räknas med ögat.
 
@@ -59,6 +64,11 @@ node tools/extern-domare.ts <provmapp> [--bilder a.png,b.png] [--torr]
 - Kommandot skickar högst sex bilder ur underlaget och provet, nedskalade, och checklistan nedan. Svaret kommer i
   domens form (dom, skäl med fil och ruta, det den skulle rätta, säkerhet) och skrivs till `extern-dom.json` i
   underlaget. `--torr` visar vad som skulle skickas och vad det kostar.
+- Den externa domaren ser bara de bilder den får. Domaren väljer därför de avgörande bilderna med `--bilder` när
+  kommandots eget val missar dem. Tänk på filmen där felet syns, och på `ansiktet-over-tiden.png` för den längsta
+  filmen. I kalibreringen fick den inte film 4 av `tomasz-gor-danilos-giv` och såg därför inget personbyte. I
+  `dealerns-handled` fick den inte bild 7 och 8 och såg därför inte krået vid bordet. Där en docka och en streckfigur
+  eller en förlaga ligger bredvid varandra väljer kommandot den sista delen, vilket inte alltid är resultatet.
 - **Vad den aldrig får se:** något under `live-bj/` (filmen av riktiga dealrar, rutor ur den och
   jämförelsefilmerna), hans foton (`private/`), nycklar, sökvägar eller hans namn. Skriptet vägrar sådana filer och
   skriver "ägaren" i stället för hans namn. Den får bara se dockor och framställda personer.
@@ -145,8 +155,23 @@ ser rutorna. Resten av domarens slaskmapp tas bort.
 
 ## Kalibreringen
 
-Domaren prövades blint 2026-11-27 på tolv prov, före hans domar. I de fem prov han fällde, eller fällde i chatten,
-fällde domaren också, med samma huvudskäl. Domaren var aldrig snällare än han. Den var strängare i fyra prov (Nja mot
-hans Bra), där den dömde utseendet hos det som ska vara neutralt. Den missade tre saker han såg: skakigheten, blicken
-uppåt och skon och vänsterhanden som inte var trogna förlagan. Därför står de nu i checklistan och i underlaget. En ny
-domare börjar med att läsa hans senaste anteckningar och lägger till det han fäller som inte står här.
+Domaren prövades blint 2026-11-27 på tolv prov, före hans domar. Han hade dömt nio av dem, och domaren höll med honom
+i fem. Två av de fem var inte helt blinda, eftersom PROJEKTET.md redan nämnde domen. Domaren var strängare i fyra (Nja
+mot hans Bra) och aldrig snällare.
+
+I de fem prov han fällde fällde domaren också, med samma huvudskäl: ansiktet som glöms, handen framför bröstet, den
+trasiga handen och krået vid handleden. Strängheten kom av att domaren dömde utseendet hos det som ska vara neutralt:
+en skyltdocka, en grå filt, en docka utan material. Den missade tre saker han såg:
+- skakigheten,
+- blicken uppåt,
+- att skon och vänsterhanden inte var trogna förlagan. Handen såg domaren, men inte orsaken.
+
+Därför står de nu i checklistan och i underlaget. En ny domare börjar med att läsa hans senaste anteckningar och lägger
+till det han fäller som inte står här.
+
+Den externa domaren (gpt-6.2-astra) dömde samma tolv prov efteråt, med kommandots eget bildval. Den höll med honom i
+fyra av nio, var strängare i tre och snällare i två. Båda gångerna den var snällare hade den inte fått de avgörande
+bilderna: i `dealerns-handled` fick den inte krået vid bordet, och i `danilo-frasse-i-editorn` fick den streckfigurens
+ansikte i stället för dockans. Den hittade också egna riktiga fel, som handen som står kvar över kortet och greppet där
+ingen klämma syns. Den sammanlagda kostnaden blev ungefär 1,5 USD. Rösten är alltså användbar som ett andra par ögon,
+men bara på de bilder domaren väljer åt den. Domen förs in av domaren, och där de är oense tittar Jakob först.
