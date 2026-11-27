@@ -9,6 +9,7 @@ import path from 'node:path';
 import {FRAMING_LIMITS, MOBILE_BELOW, PLAY_VIEW, framingFor, readFraming, readPlayView, sameFraming, validatePlayView} from '../src/play-view.ts';
 import {KEYS} from '../src/game-look.ts';
 import {playViewStore} from './play-view-store.ts';
+import {STANDARD} from '../src/standard.ts';
 
 const fails = (status: number) => (error: unknown) => (error as {status?: number}).status === status;
 
@@ -46,9 +47,9 @@ test('only a whole play view within the limits is saved', () => {
 
 test('the store: no file is the game\'s own framings; a save is made against the revision last read and never by a page that has not read', async t => {
   const root = await mkdtemp(path.join(tmpdir(), 'spelvy-')); t.after(() => rm(root, {recursive: true, force: true}));
-  const store = playViewStore(root), file = path.join(root, 'data/play-view.json');
+  const store = playViewStore(root), file = path.join(root, STANDARD.spelvyFil);
   const empty = await store.load();
-  assert.deepEqual(empty.view, {...PLAY_VIEW, revision: null});
+  assert.deepEqual(empty.view, {schemaVersion: 1, ...STANDARD.spelvy, updatedAt: '', revision: null});
   const mine = {dator: {zoom: 0.84, pitch: -9.7, yaw: 0}, mobil: {zoom: 1.55, pitch: -4.4, yaw: 0}};
   await assert.rejects(store.save(mine, '"old"'), fails(409), 'a revision for a file that is not there');
   await assert.rejects(store.save({...mine, dator: {zoom: 9, pitch: 0, yaw: 0}}, undefined), fails(400));

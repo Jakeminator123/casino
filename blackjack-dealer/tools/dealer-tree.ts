@@ -38,7 +38,6 @@ import {fileURLToPath} from 'node:url';
 import {HOLE_CARD, REVEAL_NODE, buildGraph, type BankData, type Take} from '../src/clip-graph.ts';
 import {ALL_TREES, STRAIGHT_CAMERA, TREE_ID, allAnchors, cameraOf, countWord, cutBank, cutTakes, filmCamera, isAnchorAtShoe, isCard, isTreeHub, levelOf, nodeCode, nodesOf, orderCommand, playedCut, stepName as stepWords, treeHubs, treeList, treeSetup, treeView, type Delivery, type GameCut, type MeasureStep, type Need, type OrderFacts, type TreeAnswer, type TreeCut, type TreeDef, type TreeRegister, type TreeState, type TreeStep, type TreeTake, type TreeView, type Verdict as TreeVerdict, type WayRef} from '../src/dealer-trees.ts';
 import {judgedBank} from '../src/game-director.ts';
-import {lasUppsattning, type UppsattningId} from '../src/uppsattning.ts';
 import {ANCHOR_NODE, costOf, modelFor, paramsOf, stepOf, type Policy, type StepKey} from '../src/order-model.ts';
 import {NO_RECIPE, methodFor, readMethods, recipeFor, referenceAbsent, secondsOf, triedWords, type MethodRegister} from '../src/order-methods.ts';
 import {GAME_VOICE, PHASE_LINE, spokenFilms, type SpeechTake} from '../src/speech-lines.ts';
@@ -682,26 +681,25 @@ export async function treeCut(dealer: string, id: string, given: TreeRegister | 
   const w = await readWorld(dealer, given), defs = treeList(w.register.dealers[dealer]?.trees ?? []), def = defs.find(t => t.id === id);
   if (!def) return null;
   const takes = placedTakes(w, dealer), view = treeView(dealer, def, defs, w.entries, takes);
-  return {schemaVersion: 1, dealer, tree: def.id, name: def.name, home: view.home, hub: view.hub, count: view.count, ...cutTakes(view.home, takes, true), ...(def.uppsattning ? {uppsattning: treeSetup(def)} : {})}; // without the field: the former standard's
+  return {schemaVersion: 1, dealer, tree: def.id, name: def.name, home: view.home, hub: view.hub, count: view.count, ...cutTakes(view.home, takes, true)};
 }
 
 /**
- * GET /api/trees?dealer=<id>&spel=1[&uppsattning=live|forra]: what the game without a tree word plays (src/dealer-trees.ts
- * gameBank): one tree that is spelas as ?trad= plays it (its anchor at the shoe and its takes); with several, the takes of the
- * trees it does not play left out. Only the trees made under the set-up the game shows are played (playedCut): the word's, else
- * the live table when a played tree is made under it, else the former standard.
+ * GET /api/trees?dealer=<id>&spel=1: what the game without a tree word plays (src/dealer-trees.ts gameBank): one tree that
+ * is spelas as ?trad= plays it (its anchor at the shoe and its takes); with several, the takes of the trees it does not play
+ * left out (playedCut).
  */
-export async function gameCut(dealer: string, register?: TreeRegister, setup: UppsattningId | null = null): Promise<GameCut> {
+export async function gameCut(dealer: string, register?: TreeRegister): Promise<GameCut> {
   const w = await readWorld(dealer, register ?? null);
-  return playedCutOf(w, dealer, register ?? w.register, setup);
+  return playedCutOf(w, dealer, register ?? w.register);
 }
 /**
  * The game's cut without a tree word (src/dealer-trees.ts playedCut) from what the placing already read. register: whose trees'
  * states decide (data/dealer-trees.json; another in memory says what the game would play if the trees stood so).
  */
-function playedCutOf(w: World, dealer: string, register: TreeRegister = w.register, setup: UppsattningId | null = null): GameCut {
+function playedCutOf(w: World, dealer: string, register: TreeRegister = w.register): GameCut {
   const defs = treeList(register.dealers[dealer]?.trees ?? []);
-  return playedCut(dealer, defs, placedTakes(w, dealer), def => treeHubs(def, w.entries).hub, setup);
+  return playedCut(dealer, defs, placedTakes(w, dealer), def => treeHubs(def, w.entries).hub);
 }
 
 /**
@@ -722,7 +720,7 @@ export async function serveTrees(req: IncomingMessage, res: ServerResponse, url:
   if (!/^[a-z0-9-]+$/.test(dealer)) return send(400, {error: 'Ange ?dealer=<id>.'});
   if (tree !== null && !TREE_ID.test(tree)) return send(400, {error: `Trädet "${tree.slice(0, 40)}" är inget träd-id.`});
   try {
-    if (tree === null) return send(200, url.searchParams.get('spel') === '1' ? await gameCut(dealer, undefined, lasUppsattning(url.searchParams.get('uppsattning'))) : await treeAnswer(dealer));
+    if (tree === null) return send(200, url.searchParams.get('spel') === '1' ? await gameCut(dealer) : await treeAnswer(dealer));
     const cut = await treeCut(dealer, tree);
     send(cut ? 200 : 404, cut ?? {error: `${dealer} har inget träd "${tree}".`});
   } catch (e) { send(500, {error: e instanceof Error ? e.message : String(e)}); }

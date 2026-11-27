@@ -12,7 +12,7 @@ export type KatalogLage = { id: string; hand: string; namn: string; var: string;
 export type KatalogStadium = { id: string; hem: string; namn: string; nar: string };
 export type KatalogRorelse = {
   id: string; stadium: string; namn: string; fran: string; till: string; over?: string; hander: string; status: Status;
-  anteckning?: string; filer?: string; lyfta?: string[]; segment: string | null;
+  anteckning?: string; lyfta?: string[]; segment: string | null;
 };
 export type Katalog = {
   om: string; begrepp: Record<string, string>; lagen: KatalogLage[]; ankare: KatalogAnkare[]; stadier: KatalogStadium[];
@@ -20,16 +20,16 @@ export type Katalog = {
 };
 
 // ── Svaret ──────────────────────────────────────────────────────────────────
-/** Hur något finns för en docka: lyft (katalogens lyfta), ritad av koden, inspelat i dockans editor, eller en beställd film. */
-export type Slag = "lyft" | "ritad" | "klipp" | "film";
-export const SLAGEN: readonly Slag[] = ["lyft", "ritad", "film", "klipp"];
+/** Hur något finns för en docka: lyft (katalogens lyfta), inspelat i dockans editor, eller en beställd film. */
+export type Slag = "lyft" | "klipp" | "film";
+export const SLAGEN: readonly Slag[] = ["lyft", "film", "klipp"];
 
 /** Ett ankare i bilden: katalogens, eller ett som en rörelse nämner men som katalogen saknar (okand). */
 export type Ankare = KatalogAnkare & { okand?: boolean };
 /** En docka vid standardens bord, och bordets kortplatser ur källan. */
 export type Docka = {
-  id: string; namn: string; uppsattning: string; bord: string;
-  /** Bordets kortplatser (src/uppsattning.ts kortplatser): id som P4.C1 eller D.C1, platsens nummer ur id:t, kortet, och läget på filten i meter (x åt bildens höger, z mot spelaren). */
+  id: string; namn: string; bord: string;
+  /** Bordets kortplatser (src/standard.ts kortplatser): id som P4.C1 eller D.C1, platsens nummer ur id:t, kortet, och läget på filten i meter (x åt bildens höger, z mot spelaren). */
   platser: { id: string; plats: string; kort: number; x: number; z: number; vinkel: number }[];
 };
 /** Något som finns för en docka och en rörelse. fil: filen det är (för provet; visas aldrig), oppna: sidan i studion där det öppnas. */
@@ -129,7 +129,6 @@ export const STATUS_ORD: Record<Status, { namn: string }> = {
 };
 export const SLAG_ORD: Record<Slag, { kort: string }> = {
   lyft: { kort: "lyft" },
-  ritad: { kort: "ritad" },
   klipp: { kort: "klipp" },
   film: { kort: "film" },
 };

@@ -1,27 +1,26 @@
 // Karta, Schemat (studions sida /studio/karta/?vy=schema, studio/components/schemat/): rörelseschemat ur
-// ../standarddocka/rorelsekatalog.json, med det som finns för standardens dockor (src/uppsattning.ts: dockorna vid
-// standardens bord, i dag Danilo och Frasse). Vägen i tools/preview.ts:
+// ../standarddocka/rorelsekatalog.json, med det som finns för standardens dockor (src/standard.ts dockor: Danilo och
+// Frasse vid livebordet). Vägen i tools/preview.ts:
 //   GET /api/schema   ankarena, stadierna och rörelserna; för varje docka bordets kortplatser och det som finns per rörelse och
-//                     plats (lyft, ritad, inspelat i dockans editor, beställd film) med sidan i Dockan där det öppnas; hur ofta
+//                     plats (lyft, inspelat i dockans editor, beställd film) med sidan i Dockan där det öppnas; hur ofta
 //                     varje rörelse finns i livefilmen (../live-bj/data/segment.json); rundan som en väg med Dockans adress för
 //                     hela rundan; och det katalogen säger som inte stämmer med filerna (fel, avvikelser: för agenterna, inte
 //                     för sidan).
 //   node tools/schema-routes.ts   skriver ut felen och avvikelserna.
 // Läser varje gång: katalogen, segment.json, dockans rörelser (dealer3d/data/, bara huvudet före rutorna), editorns klipp
-// (../standarddocka/klipp/, bara namnen), beställningarna (data/orders/) och kortplanen (placements/default.json, bara läst).
+// (../standarddocka/klipp/, bara namnen) och beställningarna (data/orders/); kortplatserna är livebordets (src/standard.ts).
 // Lagrar ingenting och skriver ingenting. De rena reglerna (vilket ankare ett id menar, vilken rörelse ett steg är, orden) står
 // i studio/lib/schemat.ts. Provet: tools/schema-routes.test.ts.
 //
-// Vilken rörelse en fil är: den katalogen säger. Fältet lyfta på en rörelse eller ett ankare namnger filerna (lyft-danilo-p4),
-// fältet filer är ett mönster (giv-fran-2-3-p<n>c1-ren-<a|b>-<docka>); platsen är filens kort (to: P4.C1), annars namnets
-// (p4c1). Ett inspelat klipp är den rörelse det är inspelat av (live-lyft-<lyftet>-…, live-sekvens-<delarna>-…). En
+// Vilken rörelse en fil är: den katalogen säger. Fältet lyfta på en rörelse eller ett ankare namnger filerna (lyft-danilo-p4);
+// platsen är filens kort (to: P4.C1), annars namnets (p4c1). Ett inspelat klipp är den rörelse det är inspelat av (live-lyft-<lyftet>-…, live-sekvens-<delarna>-…). En
 // beställning vars förlaga är en dockas film (reference.doll) är steget den beställer (step.edge, A2.3 → A3P4C1).
 import {open, readFile, readdir} from 'node:fs/promises';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {nodeCode} from '../src/dealer-trees.ts';
-import {ADRESSORD, UPPSATTNING, VALETS_FORVAL, dockansUppsattning, type UppsattningId} from '../src/uppsattning.ts';
+import {STANDARD} from '../src/standard.ts';
 import {
   ankareFor, dockNamn, kodAv, kortplatsOrd, platsAv, platsOchKort, rorelseFor, rundansVag,
   type Ankare, type Avvikelse, type Docka, type FilmRad, type FilmTal, type Katalog, type Post, type Schema, type Slag,
@@ -34,7 +33,6 @@ export const KALLOR = {
   data: 'blackjack-dealer/dealer3d/data',
   klipp: 'standarddocka/klipp',
   orders: 'blackjack-dealer/data/orders',
-  plan: 'blackjack-dealer/placements/default.json',
 } as const;
 
 type Json = Record<string, unknown>;
@@ -97,28 +95,14 @@ export function filmTal(seg: Segment | null, segment: string): FilmTal[] {
   });
 }
 
-// ── Filerna ─────────────────────────────────────────────────────────────────
-/** Ett mönster ur katalogen som ett uttryck: <docka> en av dockorna, <n> och <m> tal, <a|b> ett av orden, <ord> ett ord. */
-export function filerRe(filer: string, dockor: readonly string[]): RegExp {
-  const sett = new Set<string>(), grupp = (namn: string) => { const fri = !sett.has(namn); sett.add(namn); return fri ? `?<${namn}>` : '?:'; };
-  const delar = filer.split(/(<[^>]+>)/).map(d => {
-    if (!d.startsWith('<')) return d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const inne = d.slice(1, -1);
-    if (inne === 'docka') return `(${grupp('docka')}${dockor.join('|')})`;
-    if (inne === 'n' || inne === 'm') return `(${grupp(inne)}\\d+)`;
-    if (inne.includes('|')) return `(${grupp('val')}${inne.split('|').map(x => x.replace(/[^a-z0-9-]/g, '')).join('|')})`;
-    return '[a-z0-9]+';
-  });
-  return new RegExp(`^${delar.join('')}\\.json$`);
-}
 /** Kortplatsen i ett filnamn: p4c1 → P4.C1, d-c2 eller dc2 → D.C2. */
 const platsIFil = (namn: string): string | null => {
   const p = /(?:^|-)p(\d+)c(\d+)(?:-|$)/.exec(namn); if (p) return `P${p[1]}.C${p[2]}`;
   const d = /(?:^|-)d-?c(\d+)(?:-|$)/.exec(namn); return d ? `D.C${d[1]}` : null;
 };
-/** Sidan Dockan för en rörelse: dockans bord, dockan, platsen, och rörelsen när den inte är platsens egen (lyft-<docka>-p<n>). */
+/** Sidan Dockan för en rörelse: dockan, platsen, och rörelsen när den inte är platsens egen (lyft-<docka>-p<n>). */
 export function dockanFor(docka: string, fil: string, plats: string | null): string {
-  const q = new URLSearchParams({[ADRESSORD]: dockansUppsattning(docka) ?? VALETS_FORVAL, docka});
+  const q = new URLSearchParams({docka});
   const nr = plats ? platsOchKort(plats)?.plats : null;
   if (nr && /^\d+$/.test(nr)) q.set('plats', nr);
   if (fil !== `lyft-${docka}-p${nr}`) q.set('giv', fil);
@@ -145,18 +129,11 @@ async function dockornasFiler(casino: string, kat: Katalog, dockor: readonly str
     const plats = kortAv(namn, h);
     filer.set(namn, {namn, docka, rorelser: [rorelse], plats, slag, text: text(plats)});
   };
-  // Katalogens namn på lyften (fältet lyfta) och mönster för det ritade (fältet filer).
+  // Katalogens namn på lyften (fältet lyfta).
   for (const r of kat.rorelser) {
     for (const namn of r.lyfta ?? []) {
       if (!data.has(`${namn}.json`)) { fel.push(`${r.namn} nämner ${namn}, som inte finns bland dockans rörelser.`); continue; }
       await lagg(namn, r.id, 'lyft', plats => `lyft${plats ? `, ${kortplatsOrd(plats)}` : ''}`);
-    }
-    if (r.filer) {
-      const re = filerRe(r.filer, dockor);
-      for (const n of [...data].filter(n => re.test(n))) {
-        const val = re.exec(n)?.groups?.val;
-        await lagg(n.replace(/\.json$/, ''), r.id, 'ritad', plats => `ritad${plats ? `, ${kortplatsOrd(plats)}` : ''}${val && val.length === 1 ? `, version ${val.toUpperCase()}` : ''}`);
-      }
     }
   }
   for (const f of filer.values()) for (const r of f.rorelser) poster.push({docka: f.docka, rorelse: r, slag: f.slag, plats: f.plats, text: f.text, fil: `${KALLOR.data}/${f.namn}.json`, oppna: dockanFor(f.docka, f.namn, f.plats), oppnaOrd: 'Öppna i Dockan'});
@@ -166,9 +143,9 @@ async function dockornasFiler(casino: string, kat: Katalog, dockor: readonly str
     const docka = dockaAv(namn, await las(namn));
     if (dockor.includes(docka)) ankaren.push({docka, ankare: a.id, fil: `${KALLOR.data}/${namn}.json`});
   }
-  // Filerna katalogen inte nämner (ett mönster nämner sina filer för vilken docka som helst).
-  const namnda = new Set([...filer.keys(), ...kat.ankare.flatMap(a => a.lyfta ?? [])]), alla = kat.rorelser.flatMap(r => (r.filer ? [filerRe(r.filer, ['[a-z]+'])] : []));
-  for (const n of data) if (!namnda.has(n.replace(/\.json$/, '')) && !alla.some(re => re.test(n))) utanfor.push({slag: 'fil-utanfor', fil: `${KALLOR.data}/${n}`, text: 'En fil som katalogen inte nämner.'});
+  // Filerna katalogen inte nämner.
+  const namnda = new Set([...filer.keys(), ...kat.ankare.flatMap(a => a.lyfta ?? [])]);
+  for (const n of data) if (!namnda.has(n.replace(/\.json$/, ''))) utanfor.push({slag: 'fil-utanfor', fil: `${KALLOR.data}/${n}`, text: 'En fil som katalogen inte nämner.'});
 
   // Editorns klipp: den rörelse varje klipp är inspelat av (lyften, längsta namnet först).
   const lyften = [...filer.values()].filter(f => f.namn.startsWith('lyft-')).sort((a, b) => b.namn.length - a.namn.length);
@@ -212,14 +189,9 @@ export async function schema(casino = CASINO): Promise<Schema> {
   for (const r of kat.rorelser) if (!kat.stadier.some(s => s.id === r.stadium)) fel.push(`${r.namn} (${r.id}) hör till stadiet ${r.stadium}, som inte finns.`);
   const rorelser = kat.rorelser.map(r => ({...r, franAnkare: ankareFor(r.fran, ankare), tillAnkare: ankareFor(r.till, ankare), kategori: (r.segment && seg?.kategorier?.[r.segment]?.vad) || null}));
 
-  // Dockorna: de vid standardens bord, med bordets kortplatser (källan: src/uppsattning.ts).
-  const plan = await lasJson(casino, KALLOR.plan);
-  const platserAv = (u: UppsattningId): Docka['platser'] => {
-    try { return UPPSATTNING[u].kortplatser({plan: plan as never}).flatMap(p => { const pk = platsOchKort(p.id); return pk ? [{id: p.id, ...pk, x: p.at[0], z: p.at[2], vinkel: p.heading}] : []; }); }
-    catch { fel.push(`${UPPSATTNING[u].namn}: kortplatserna kunde inte läsas.`); return []; }
-  };
-  const u = VALETS_FORVAL;
-  const dockor: Docka[] = UPPSATTNING[u].dockor.map(id => ({id, namn: dockNamn(id), uppsattning: u, bord: UPPSATTNING[u].namn, platser: platserAv(u)}));
+  // Dockorna: de vid standardens bord, med bordets kortplatser (källan: src/standard.ts).
+  const platser: Docka['platser'] = STANDARD.kortplatser().flatMap(p => { const pk = platsOchKort(p.id); return pk ? [{id: p.id, ...pk, x: p.at[0], z: p.at[2], vinkel: p.heading}] : []; });
+  const dockor: Docka[] = STANDARD.dockor.map(id => ({id, namn: dockNamn(id), bord: STANDARD.namn, platser}));
   const {poster, ankaren, utanfor, fel: filfel} = await dockornasFiler(casino, kat, dockor.map(d => d.id));
   fel.push(...filfel);
 
@@ -243,7 +215,7 @@ export async function schema(casino = CASINO): Promise<Schema> {
         const del = namn.slice(`lyft-${d.id}-`.length);
         if (delar.at(-1) !== del) delar.push(del);
       }
-      return [d.id, `/dockan/?${new URLSearchParams({[ADRESSORD]: d.uppsattning, docka: d.id, sekvens: delar.join(',')})}`];
+      return [d.id, `/dockan/?${new URLSearchParams({docka: d.id, sekvens: delar.join(',')})}`];
     }));
     runda = {text: vag.join(' - '), steg: vag.map(kod => ({kod, ankare: ankareFor(kod, ankare)})), rorelser: steg.map(s => s.r?.id ?? null), sekvens};
   }

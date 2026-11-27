@@ -9,9 +9,9 @@ import assert from 'node:assert/strict';
 import {existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {UPPSATTNING, VALETS_FORVAL, dockansUppsattning} from '../src/uppsattning.ts';
+import {STANDARD} from '../src/standard.ts';
 import {ankareFor, ar, kodAv, platsAv, rorelseFor, rundansVag, type Katalog} from '../studio/lib/schemat.ts';
-import {KALLOR, filerRe, schema} from './schema-routes.ts';
+import {KALLOR, schema} from './schema-routes.ts';
 
 const CASINO = path.resolve(import.meta.dirname, '../..');
 const katalog = JSON.parse(readFileSync(path.join(CASINO, KALLOR.katalog), 'utf8')) as Katalog;
@@ -46,14 +46,12 @@ test('an id is read as the anchor it is one of, and a step as the motion it is',
   assert.equal(rorelseFor('A2.3', 'A3P4C2', r)?.id, 'X2');
   assert.equal(rorelseFor('A1', 'A3P4C1', r), null);
   assert.deepEqual(rundansVag('En runda: A1 - A2.3 - A3P4C1 - A2.3 - A1.'), ['A1', 'A2.3', 'A3P4C1', 'A2.3', 'A1']);
-  const re = filerRe('giv-fran-2-3-p<n>c1-ren-<a|b>-<docka>', ['man', 'kvinna']);
-  assert.ok(re.test('giv-fran-2-3-p4c1-ren-a-man.json') && !re.test('giv-fran-2-3-p4c1-ren-n-man.json') && !re.test('giv-fran-2-3-p4c1-ren-a-paow.json'));
 });
 
-test('what the route says a doll has is files that exist, at a card place of her table, opened at her table', async () => {
+test('what the route says a doll has is files that exist, at a card place of the table', async () => {
   const s = await schema();
   assert.deepEqual(s.fel, [], 'the catalogue and the files hold together');
-  assert.deepEqual(s.dockor.map(d => d.id), [...UPPSATTNING[VALETS_FORVAL].dockor], 'the dolls are the standard table\'s');
+  assert.deepEqual(s.dockor.map(d => d.id), [...STANDARD.dockor], 'the dolls are the standard table\'s');
   const dockor = new Map(s.dockor.map(d => [d.id, d]));
   const rorelser = new Set(s.rorelser.map(r => r.id));
   assert.ok(s.poster.length > 0, 'something exists');
@@ -66,7 +64,7 @@ test('what the route says a doll has is files that exist, at a card place of her
     if (p.oppna?.startsWith('/dockan/')) {
       const q = new URLSearchParams(p.oppna.split('?')[1]);
       assert.equal(q.get('docka'), p.docka, `${vem}: opens the same doll`);
-      assert.equal(q.get('uppsattning'), dockansUppsattning(p.docka), `${vem}: opens at her own table`);
+      assert.equal(q.get('uppsattning'), null, `${vem}: no set-up in the address`);
       if (q.get('giv')) assert.ok(existsSync(path.join(CASINO, KALLOR.data, `${q.get('giv')}.json`)), `${vem}: giv=${q.get('giv')} is a motion`);
     }
   }

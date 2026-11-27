@@ -98,7 +98,5 @@ next-env.d.ts
 # is there, and `node kortspelspaket/packa-upp.ts` remakes it.
 /kortspelspaket/**/paket/
 
-# standarddocka: the current view that scen/vy.py writes (read the measurement by its path, standarddocka/vy/vy_matt.json)
-# and the editor's recordings; the next run overwrites them
-/standarddocka/**/vy/
+# standarddocka: the editor's recordings; the next run overwrites them
 /standarddocka/**/klipp/
