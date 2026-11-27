@@ -7,7 +7,7 @@
 // /studio/dockan/?docka=frasse opens the editor with Frasse.
 import { ExternalLink, RotateCw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
 import { Page } from "../shell";
 import { Button, ErrorState, Spinner, buttonClasses } from "../ui";
 import { startWorkshop, WORKSHOP_WORDS, type WorkshopId, type WorkshopState } from "../../lib/workshops.ts";
@@ -15,7 +15,7 @@ import { startWorkshop, WORKSHOP_WORDS, type WorkshopId, type WorkshopState } fr
 
 const OWN = new Set(["dealer", "robot"]);
 
-function Frame({ id }: { id: WorkshopId }) {
+function Frame({ id, actions }: { id: WorkshopId; actions?: ReactNode }) {
   const words = WORKSHOP_WORDS[id];
   const params = useSearchParams();
   const [state, setState] = useState<WorkshopState | null>(null);
@@ -44,6 +44,7 @@ function Frame({ id }: { id: WorkshopId }) {
       status={state ? <span>går</span> : error ? <span className="text-[#ef8b8b]">svarar inte</span> : <span>startar …</span>}
       actions={
         <>
+          {actions}
           <Button size="sm" variant="quiet" onClick={again} title="Läs om sidan" icon={<RotateCw />}>
             Ladda om
           </Button>
@@ -74,10 +75,11 @@ function Frame({ id }: { id: WorkshopId }) {
   );
 }
 
-export function WorkshopView({ id }: { id: WorkshopId }) {
+/** actions: buttons of the view's own in the header, before the workshop's (Dockan's link to Spegla). */
+export function WorkshopView({ id, actions }: { id: WorkshopId; actions?: ReactNode }) {
   return (
     <Suspense fallback={<Page title={WORKSHOP_WORDS[id].title} full />}>
-      <Frame id={id} />
+      <Frame id={id} actions={actions} />
     </Suspense>
   );
 }

@@ -8,6 +8,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { Page } from "../shell";
 import { Button, ErrorState, Skeleton } from "../ui";
 import { getMeasures, measureSections, type Section } from "../../lib/measures.ts";
+import { SpeglaLank } from "../spegla/SpeglaLank";
 import { MeasureBlock } from "./MeasureText";
 
 function AllMeasures({ round }: { round: number }) {
@@ -59,9 +60,12 @@ function Measures() {
       title="Mått"
       status={<span>läst {time}</span>}
       actions={
-        <Button size="sm" variant="quiet" icon={<RotateCw />} onClick={again} title="Läs måtten ur koden igen">
-          Läs om
-        </Button>
+        <>
+          <SpeglaLank />
+          <Button size="sm" variant="quiet" icon={<RotateCw />} onClick={again} title="Läs måtten ur koden igen">
+            Läs om
+          </Button>
+        </>
       }
     >
       <AllMeasures round={round} />

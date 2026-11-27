@@ -23,7 +23,7 @@ const MATT: Where = { name: "Mått", href: "/matt/", localOnly: true };
 
 export const START_CHAIN: readonly ChainStep[] = [
   { nr: 1, name: "Personen", where: [{ name: "Avatarer", href: "/avatarer/", localOnly: true }] },
-  { nr: 2, name: "Rörelsen", where: [DOCKAN, { name: "Karta", href: "/karta/" }, MATT] },
+  { nr: 2, name: "Rörelsen", where: [DOCKAN, { name: "Karta", href: "/karta/" }, MATT, { name: "Spegla", href: "/spegla/", localOnly: true }] },
   { nr: 3, name: "Inspelningen", where: [DOCKAN] },
   { nr: 4, name: "Bilderna", where: [BESTALL] },
   { nr: 5, name: "Filmen", where: [BESTALL] },
@@ -40,6 +40,7 @@ export const START_TILES: readonly Tile[] = [
   { name: "Karta", href: "/karta/", icon: "map" },
   { name: "Casino", href: "/game/", icon: "game" },
   { name: "Mått", href: "/matt/", icon: "ruler", localOnly: true },
+  { name: "Spegla", href: "/spegla/", icon: "live", localOnly: true },
   { name: "Biblioteket", href: "/bibliotek/", icon: "library", localOnly: true },
 ];
 
