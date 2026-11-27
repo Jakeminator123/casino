@@ -19,7 +19,7 @@ export type Card = {c: number[]; l: number[]; n: number[]; id?: number};
  * vid livebordet (ensam) bär den riktiga dealerns min.
  */
 export type Ansikte = Record<string, number>;
-export type Frame = {card: Card; L: Limb; R: Limb; h: number[]; g: number[]; hv?: number[]; a?: Ansikte};
+export type Frame = {card: Card; L: Limb; R: Limb; h: number[]; g: number[]; hv?: number[]; ht?: number; a?: Ansikte};
 /** En sparad rörelse som den ligger i dealer3d/data (bara det editorn läser). */
 export type Motion = {fps: number; frameCount: number; hip: number[]; frames: Frame[]; leavesShoe: number; edge: number[]; folds: number; rests: number; doll?: string; film?: string;
   /** Kortplatsen given går till (P<plats>.C<kort>), i de lyfta rörelserna vid livebordet en lista med en. */

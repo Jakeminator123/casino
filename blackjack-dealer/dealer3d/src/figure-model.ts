@@ -20,14 +20,15 @@ import {fingertopp} from './fingertopp.ts';
  * What the model is posed from, in the scene's metres: her right then her left for shoulders, arms and hands; `looks` is
  * the way her head faces, and `lookAt` (if given) the point she looks at, which her eyes' line is aimed at; `headAt` (if
  * given) is the point her head faces, apart from her eyes: then the head is aimed there and only her eyes at `lookAt`
- * (a person moves the eyes, the head only a little). A hand's
+ * (a person moves the eyes, the head only a little); `headTilt` (if given, degrees) tips her head about the way it faces,
+ * the top of it toward her own right when positive (as the live dealer's measured head tilts). A hand's
  * `points` are the doll's 21 hand points (MediaPipe's order, the wrist first): with them a model that has finger bones
  * lays its palm as the doll's palm lies and bends each finger as the doll's. `face` (if given) is how much of each of her
  * face's shapes is on, 0-1 by the shape's name (the standard dolls have 30, named as ARKit names them: eyeBlinkLeft,
  * browInnerUp, mouthSmileRight ...); a shape not named is at rest, and a name she does not have is passed over. Without
  * `face` her face is left as it is.
  */
-export type FigurePose = {hip: Vec3; shoulders: [Vec3, Vec3]; arms: {shoulder: Vec3; elbow: Vec3; wrist: Vec3}[]; hands: ({forward: Vec3; palm: Vec3; points?: Vec3[]} | null)[]; looks: Vec3; lookAt?: Vec3; headAt?: Vec3; face?: Record<string, number>};
+export type FigurePose = {hip: Vec3; shoulders: [Vec3, Vec3]; arms: {shoulder: Vec3; elbow: Vec3; wrist: Vec3}[]; hands: ({forward: Vec3; palm: Vec3; points?: Vec3[]} | null)[]; looks: Vec3; lookAt?: Vec3; headAt?: Vec3; headTilt?: number; face?: Record<string, number>};
 /**
  * `measure`: the arms and the head as last posed, degrees, her right then her left: how far the upper arm was rolled to
  * set the elbow's hinge, how far the elbow is bent, how far the hand stands off the forearm's line and how far the
@@ -291,7 +292,8 @@ export async function loadFigure(url: string, {twistBones = true, arm = BODY.upp
         if (to.lengthSq() > 1e-10) swing(b, fingerWays[i]![k][n].clone().applyQuaternion(b.getWorldQuaternion(new T.Quaternion())), to); })); }
     });
     // Her head: the line of her eyes (from between them, straight ahead in the head's own frame) toward the point she looks
-    // at, at most HEAD.most from where her trunk carries it, level (no roll: her ears stay level as she turns), the neck
+    // at, at most HEAD.most from where her trunk carries it, level (no roll: her ears stay level as she turns) unless the
+    // pose tips it (headTilt, about the way the head faces), the neck
     // taking HEAD.neck of the turn; her eyes' bones turn the rest. Aimed twice, since her eyes move a little with her head.
     const eyesAt = () => eyes.length ? eyes.reduce((s, e) => s.add(at(e)), new T.Vector3()).multiplyScalar(1 / eyes.length) : at(head);
     const goal = p.lookAt ? v(p.lookAt) : eyesAt().addScaledVector(v(p.looks).normalize(), 1.5), headGoal = p.headAt ? v(p.headAt) : goal;
@@ -299,7 +301,7 @@ export async function loadFigure(url: string, {twistBones = true, arm = BODY.upp
       neck.quaternion.copy(bind.get(neck)!); head.quaternion.copy(bind.get(head)!); neck.updateMatrixWorld(true);
       const now = headForward.clone().applyQuaternion(head.getWorldQuaternion(new T.Quaternion())), to = headGoal.clone().sub(from).normalize(), angle = now.angleTo(to);
       const ahead = angle > 1e-6 ? now.clone().applyQuaternion(new T.Quaternion().slerp(new T.Quaternion().setFromUnitVectors(now, to), Math.min(1, HEAD.most / angle))).normalize() : now;
-      const up = flatten(new T.Vector3(0, 1, 0), ahead), level = new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(new T.Vector3().crossVectors(up, ahead), up, ahead)).multiply(headRest);
+      const up = flatten(new T.Vector3(0, 1, 0), ahead).applyAxisAngle(ahead, (p.headTilt ?? 0) * Math.PI / 180), level =new T.Quaternion().setFromRotationMatrix(new T.Matrix4().makeBasis(new T.Vector3().crossVectors(up, ahead), up, ahead)).multiply(headRest);
       turned(neck, new T.Quaternion().slerp(level.clone().multiply(head.getWorldQuaternion(new T.Quaternion()).invert()), HEAD.neck));
       turned(head, level.clone().multiply(head.getWorldQuaternion(new T.Quaternion()).invert()));
     };

@@ -212,15 +212,18 @@ första kortet till alla sju platserna i en tagning (Hela rundan nedan).
   och flyttad så att den står till sin ruta som livebordets kamera till plats 4:s, 0,907 m bakom rutan, 0,6175 m över
   filten, 18,13 grader ned, samma lins, utan rullningen. Sidan och uppifrån, liksom rummets ljus, står 49 cm närmare
   kameran, där dealern sitter (`LIVE_FLYTT`). En lyft rörelse (`lyft-<docka>-p<plats>`, `lyft-<docka>-vantan-<n>`;
-  platsknapparna, "Väntan 1" och "Väntan 2", eller `?giv=`) spelas som den är, från vilan till vilan i sin egen takt
+  platsknapparna, "Väntan 1" och "Väntan 2", eller `?giv=`) spelas som den är, i sin egen takt
   (`ensam` i `editor/rorelse.ts`), med dealerns blick och min (fältet `a`) och utan det sparade lagret: inget sparas
-  här. Vilka som finns läser sidan ur serverns lista (`GET /blackjack-dealer/dealer3d/data/`): en plats utan lyft giv
+  här. Givarna går från ankaret vid skon (A2.3) till ankaret vid skon, och väntorna går i vilan (A1). Mellan dem går
+  `lyft-<docka>-till-skon` (från vilan till skon) och `lyft-<docka>-hem` (från skon till vilan), som är vårt eget och
+  inte lyfta ur filmen. Vilka som finns läser sidan ur serverns lista (`GET /blackjack-dealer/dealer3d/data/`): en plats utan lyft giv
   har en avstängd knapp, och en adress med en sådan plats visar den närmaste dockan har, med en rad om det
   (`lyftPlats` i `editor/dockval.ts`). Ett namn i `?giv=`, `?vilan=` eller `?sekvens=` som inte finns ger däremot ett
-  fel, så att ett verktyg aldrig mäter fel rörelse. `?sekvens=vantan-1,p7,p4,p2,vantan-2` (knappen "Hela sekvensen",
-  eller `?sekvens=1`: väntan 1, dockans alla lyfta givar närmast skon först, som dealern i filmen ger dem, räknat ur
-  platsernas läge och inte ur numret (`helaSekvensen` i `editor/dockval.ts`), och väntan 2; `--sekvens` i `titta.ts`)
-  spelar flera efter varandra i en tagning, i ett svep där de möts i vilan, och korten som har lagts ligger kvar
+  fel, så att ett verktyg aldrig mäter fel rörelse. `?sekvens=vantan-1,till-skon,p7,p4,p2,hem,vantan-2` (knappen "Hela
+  sekvensen", eller `?sekvens=1`: väntan 1, vägen till skon, dockans alla lyfta givar närmast skon först, som dealern i
+  filmen ger dem, räknat ur platsernas läge och inte ur numret, vägen hem och väntan 2 (`helaSekvensen` i
+  `editor/dockval.ts`); `--sekvens` i `titta.ts`)
+  spelar flera efter varandra i en tagning, i ett svep där de möts i ankarena, och korten som har lagts ligger kvar
   (`sekvens` i `editor/rorelse.ts`). Armregeln och spärren håller sig till
   livebordets kant och filt. Klippen heter `live-<rörelsen>-<del>-<kamera>-<docka>[-nyckel].mp4` (kameran `kameran`,
   `sidan`, `uppifran` eller `plats-N`; en sekvens `live-sekvens-<namnen>-hela-…`).

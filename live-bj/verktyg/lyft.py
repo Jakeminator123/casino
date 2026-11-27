@@ -1,6 +1,7 @@
 # Lifts a deal out of a film into the room, in the form our own figure's moves have: per frame both arms (shoulder,
 # elbow, wrist and the hand's 21 points), the head, where he looks and the card, in metres of the lens world.
 #   python -I live-bj/verktyg/lyft.py giv live-bj/data live-bj/matt live-bj/data/lyft [--sam <sam.json>] [--fri]     the three deals of each style: the middle seat, far left, far right
+#   python -I live-bj/verktyg/lyft.py huvud live-bj/data live-bj/matt live-bj/data/lyft     the head's own turn (without the eyes) into the lifted pieces: fields huvud and hv
 #        (--fri holds no wrist to a known height, to see with kanda what the depth alone gives; written elsewhere, never to data/lyft)
 #   python -I live-bj/verktyg/lyft.py prov <our figure's film measured by mat.py --ensam> <the figure's own numbers per frame> [--sam <sam.json>] [--sam-ben] [--ut <json>]
 #   python -I live-bj/verktyg/lyft.py rita <a lifted deal> live-bj/data/uppsattning.json <ut.png>
@@ -380,8 +381,52 @@ def rita(lift_file, setup_file, out):
     print(out)
 
 
+def huvud(data_dir, measures, lift_dir):
+    """The head's own turn, without the eyes, into the lifted pieces already in lift_dir (nothing else in them changes): per
+    frame 'huvud', the nod (down +), turn and tilt in degrees from the head's rest (the betting phases, where the dealer looks
+    into the camera; data/monster.json), and 'hv', the point one metre out the head faces (counted as g is, from the head's
+    turn and nod alone; g also has the eyes' own look). Evened hard: a median over 9 frames, then a mean over 15 (half a
+    second), since the head's angles in a face of about 135 pixels flutter; frames without a face are drawn straight
+    between their neighbours. A doll's head follows this, and its eyes carry the rest of the gaze."""
+    read = lambda name: json.load(open(os.path.join(data_dir, name), encoding='utf-8'))
+    cam, pattern = Camera(read('scen.json')['camera']), read('monster.json')
+    files = [json.load(open(n, encoding='utf-8')) for n in glob.glob(os.path.join(measures, 'rorelse-*.json'))]
+    dealer_of = {style: dealer for dealer, style in NAMES.items()}
+    for name in sorted(glob.glob(os.path.join(lift_dir, '*.json'))):
+        lf = json.load(open(name, encoding='utf-8'))
+        rest = np.array(pattern['dealers'][dealer_of[lf['style']]]['rest']['head'], float)
+        t0, t1 = lf['film_seconds']
+        raw = next(r for r in files if r['frames'][0]['t'] - 1e-3 <= t0 and t1 <= r['frames'][-1]['t'] + 1e-3)
+        ts = np.array([f['t'] for f in raw['frames']])
+        near = [raw['frames'][int(np.argmin(np.abs(ts - fr['t'])))] for fr in lf['frames']]
+        ang = np.array([np.array(f['face']['turn'], float) - rest if f['face'] else [np.nan] * 3 for f in near])
+        k = np.arange(len(ang))
+        for j in range(3):
+            ok = ~np.isnan(ang[:, j])
+            ang[:, j] = np.interp(k, k[ok], ang[ok, j]) if ok.any() else 0.0
+            pad = np.pad(ang[:, j], 7, mode='edge')
+            med = np.array([np.median(pad[i + 3:i + 12]) for i in range(len(ang))])
+            ang[:, j] = np.convolve(np.pad(med, 7, mode='edge'), np.ones(15) / 15, mode='valid')
+        for fr, (nod, turn, tilt) in zip(lf['frames'], ang):
+            fr['huvud'] = [round(float(nod), 1), round(float(turn), 1), round(float(tilt), 1)]
+            if fr['h'] is None:
+                fr['hv'] = None
+                continue
+            head = np.array([fr['h'][0], -fr['h'][2], fr['h'][1]])      # back from the lens world (to_lens)
+            to_camera = np.array([0.0, 0.0, cam.h]) - head
+            a = math.atan2(to_camera[0], -to_camera[1]) + math.radians(turn)
+            low = math.atan2(-to_camera[2], math.hypot(to_camera[0], to_camera[1])) + math.radians(nod)
+            fr['hv'] = to_lens(head + np.array([math.sin(a) * math.cos(low), -math.cos(a) * math.cos(low), -math.sin(low)]))
+        lf['huvud_note'] = huvud.__doc__.split('\n')[0] + ' (verktyg/lyft.py huvud): huvud is nod, turn, tilt in degrees from rest, hv the point the head faces.'
+        with open(name, 'w', encoding='utf-8') as f:
+            json.dump(lf, f, separators=(',', ':'))
+        print(f"{name}: the head's own angles in {len(ang)} frames; nod {ang[:, 0].min():.1f} to {ang[:, 0].max():.1f}, turn {ang[:, 1].min():.1f} to {ang[:, 1].max():.1f} degrees")
+
+
 def main():
     option = lambda name: sys.argv[sys.argv.index(name) + 1] if name in sys.argv else None
+    if sys.argv[1] == 'huvud':
+        return huvud(sys.argv[2], sys.argv[3], sys.argv[4])
     if sys.argv[1] == 'prov':
         return prov(sys.argv[2], sys.argv[3], option('--sam'), '--sam-ben' in sys.argv, option('--ut'))
     if sys.argv[1] == 'rita':
