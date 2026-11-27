@@ -396,6 +396,52 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     kameran, buret under handen).
   - **Andra omgången** (tio stillbilder ur den rättade rörelsen, 82 krediter, och Kling 4, 57) är gjord; hur den dömdes
     skrivs in av huvudagenten.
+- Fjortonde provet, 2026-11-27, **handbytet som egen ankarbild: A2.3 → A2M → A3P4C1 → A2.3 med kortet**, för hand i
+  Runways app med en ny person ur ett foto som Jakob skickade. Fotot gick bara till bildmodellen i Runway, aldrig in i
+  Git. Frasses ställning genom livebordets kamera; domarens ord, inte Jakobs.
+  - **Förlagorna** ritades platt ur datan: A2M ur `dealer3d/data/ankare-byte-frasse.json`, de andra som i tolfte provet.
+    Kortets sida ritades ut (rygg röd och mönstrad, framsida vit). Nano Banana 2.1 gjorde A2.3 ur förlagan och fotot.
+    A2M och A3P4C1 gjordes som ändringar av A2.3, 4 krediter styck, och höll på första försöket. Inför A3P4C1 målades
+    kortplatsen in i bilden som ändrades; utan den lade modellen kortet framför kameran.
+  - **A2.3 med kortet** klistrades ihop av A3P4C1:s bildpunkter, gratis. Där pekfingret låg lagades kortet med sitt
+    motsatta hörn, eftersom ett klätt kort är likadant uppochned. Klippet ska vara centrerat på kortet, annars blir
+    kanten ett hack.
+  - **Tre klipp** gjordes i MiniMax H3 Lite, 4 s, 16 krediter styck: skon till bytet, bytet till platsen och handen
+    hem. Alla skarvar ligger på 2,6–2,9 av 255, och i läge under 0,1 bildpunkt.
+  - **Vändningen blev rätt.** Kortet dras ur skon med ryggen upp, står på kant i bytet och nyps och rullas av handen
+    genom kanten (ruta 136–140 i den ihopsatta filmen). Det är samma kung hela vägen, utan extra kort. Bilden där
+    kortet står på kant var det som saknades i tolfte provet.
+  - **Domaren: Inte bra (medel).**
+    - Takten: kortet står nästan stilla i cirka 3 s före vändningen, och att snabba upp hela klipp gav ryck.
+    - Vänsterhanden ligger som en knytnäve mitt på filten medan högern ger, och går till skon först efteråt.
+    - Högern är en klo över kortet i ruta 145–148.
+  - **Takten rättas gratis** genom att trycka ihop stillheten i stället för att snabba upp hela klipp. Varje ruta får
+    en vikt efter rörelsen i handområdet (lägst 0,08, högst 1), och klippen läggs om till Frasses längder (0,75, 1,4
+    och 0,7 s). Första och sista rutan behålls. Hela given blev 2,9 s, mot Frasses 2,8.
+  - **"Hej John":**
+    - `generate_talking_video` ur ankarbilden (2 krediter) talade med svensk röst, men gjorde en närbild i stället för
+      bordsbilden.
+    - Att redigera ett färdigt klipp med `gemini-omni-1.2-flash` gick inte: en uppladdad film gav "Input asset … was not
+      found" tre gånger. Det kostade inget.
+  - **Samma giv från en annan vinkel går** (Tomasz, dagens plats 5): `kling-4` med livekamerans klipp som
+    referensfilm och ankarbilder från plats 5 som första och sista bild gav samma giv i samma takt, och kopierade också
+    felen (57 krediter för 4 s).
+    - Att be Nano Banana om en ny vinkel kräver förlagan från den platsen. Utan den kopierade den livekamerans vinkel.
+    - Uppdragen för Tomasz: A2.3 `869fc36f-e69e-4c53-b1f9-60bbaac18c72`, A3P4C1
+      `ff79f0b2-1933-47fd-ab3a-ea5965abc79a`, given `21f58f76-ab03-46cd-9e36-723a0999faec`, handen hem
+      `8ce28f01-9c19-4e92-9aaf-28b54837cf67`.
+  - **Kostnaden:**
+    - Den nya personen: 62 krediter från livekameran och 87 från plats 5.
+    - Tomasz från plats 5: 85.
+  - **Uppdragen för den nya personen, från livekameran:**
+    - Ankarbilder: A2.3 `dd305997-fb50-467b-b264-3bf0e5230598`, A2M `0b74287a-f543-4c7d-898c-72a6b2e921e7`, A3P4C1
+      `dca613fb-7329-4bda-8a81-93070812d553`.
+    - Klipp: `11f6fd1f-8e1c-42d1-a91f-890abbdf58e8`, `d436e55d-08e1-472f-9305-e3bc06a639b8`,
+      `8d1d194d-92cf-49c2-a82a-9f3305f3df11`.
+    - Pratklippet: `728aa504-1498-4800-ac63-5d4f00d1ce86`.
+  - **Uppdragen för den nya personen, från plats 5:** A2.3 `901e5090-bce3-44ba-b288-ecc22bd36e65`, A3P4C1
+    `aade1ca6-381d-4b23-8558-bfbbe04192da`, given `452ec68b-0839-4c13-bea0-fe0faa7cda9d`, handen hem
+    `0ae2eced-9ea5-4cfa-9e83-c49d596f2447`. A2M fick fel ställning och användes inte.
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: Kling 4 med styrbilden som första bild och filmen som lös förlaga
