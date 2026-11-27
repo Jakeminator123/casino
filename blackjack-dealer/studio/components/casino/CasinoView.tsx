@@ -22,7 +22,7 @@ import { DEALER_PARAM, isStandardDoll, withDealer, withoutDealer } from "../../l
 import { isSnapshot } from "../../lib/mode.ts";
 import { SHIPPED } from "../../lib/scene-presets.ts";
 import { listPresets, type Preset } from "../scene-editor/presetApi.ts";
-import { Page } from "../shell";
+import { Page, useSetup } from "../shell";
 import { Button, EmptyState, Select, Spinner, buttonClasses, useToast } from "../ui";
 
 const shipped = (): Preset[] => SHIPPED.map((p) => ({ ...p, shipped: true, revision: null }));
@@ -96,7 +96,9 @@ function Casino() {
 
   // ── the game in the frame: a new address loads it anew (a new element, so the studio's back button is not the frame's) ──
   // The dealer is the rail's: the game page reads it as its own word (?dealer=), so another dealer is another game in the frame.
-  const src = `${gameSrc({ ...look, trad, komposition })}&${new URLSearchParams({ [DEALER_PARAM]: dealer })}`;
+  // The menu's choice of table and camera goes with it (?uppsattning=); the game reads it once it has its own reading of the word.
+  const { id: setup } = useSetup();
+  const src = `${gameSrc({ ...look, trad, komposition }, isSnapshot ? null : setup)}&${new URLSearchParams({ [DEALER_PARAM]: dealer })}`;
   const frame = useRef<HTMLIFrameElement | null>(null);
   const [loaded, setLoaded] = useState<string | null>(null);
 

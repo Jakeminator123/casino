@@ -46,6 +46,12 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
   får ändra ALLT"). Säg kort i svaret vad som ändrades.
 - **Rätta orsaken.** Ett fel rättas där det uppstår, inte med en lapp ovanpå, ett nytt förbud eller en ny spärr.
 - **Visa i stället för att fråga.** Det han ska ta ställning till visas i bild eller film.
+- **En oberoende domare när han är borta** (Jakob 2026-11-27: "sätt en extern bild- och videogranskare som får agera
+  domare i stället för mig när jag är borta"). Det som ska visas för honom som ett resultat (en film, en figur, en
+  rörelse, en bild) döms först av en granskare som inte har gjort det och som bara får resultatet och hans egna domar,
+  inte tillverkarens rapport. Domaren dömer som han: med ögat, strängt, och hellre Inte bra än kanske. Ett Inte bra går
+  tillbaka till den som gjorde det, och svaret till Jakob säger vad domaren sa. Domarens ord är märkt som inte hans, och
+  hans egen dom ersätter det. Hur det går till står i skillen `doma`.
 - **Git sköter agenten.** Jakob använder inte Git. Spara filerna, och när arbetet är kontrollerat: committa dina egna
   filer med ett kort meddelande om vad och varför, och pusha till `main`. Ingen force-push och ingen `--no-verify`.
 - **Kontrollen före push** (`.githooks/pre-push`, installeras en gång per utcheckning med

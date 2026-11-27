@@ -11,6 +11,8 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { Page } from "../shell";
 import { Button, ErrorState, Spinner, buttonClasses } from "../ui";
 import { startWorkshop, WORKSHOP_WORDS, type WorkshopId, type WorkshopState } from "../../lib/workshops.ts";
+import { ADRESSORD, choiceName } from "../../lib/uppsattning-val.ts";
+import { useSetup } from "../shell/SetupProvider";
 
 const OWN = new Set(["dealer", "robot"]);
 
@@ -20,6 +22,7 @@ function Frame({ id }: { id: WorkshopId }) {
   const [state, setState] = useState<WorkshopState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [round, setRound] = useState(0);
+  const { id: setup } = useSetup();
 
   useEffect(() => {
     let live = true;
@@ -32,14 +35,16 @@ function Frame({ id }: { id: WorkshopId }) {
 
   const again = useCallback(() => { setState(null); setRound((n) => n + 1); }, []);
   const passed = new URLSearchParams();
-  params.forEach((value, key) => { if (!OWN.has(key)) passed.append(key, value); });
+  params.forEach((value, key) => { if (!OWN.has(key) && key !== ADRESSORD) passed.append(key, value); });
+  // The menu's choice of table and camera, for a workshop that reads it (the editor's ?uppsattning=): the address's word is already the choice.
+  if (words.readsSetup) passed.set(ADRESSORD, setup);
   const src = state ? `${state.address}${passed.size ? `?${passed}` : ""}` : null;
 
   return (
     <Page
       title={words.title}
       full
-      status={state ? <span>{words.running} går{state.ours ? ", startad av studion" : ""}</span> : error ? <span className="text-[#ef8b8b]">svarar inte</span> : <span>startar …</span>}
+      status={state ? <span>{words.running} går{state.ours ? ", startad av studion" : ""}{words.readsSetup ? ` · ${choiceName(setup)}` : ""}</span> : error ? <span className="text-[#ef8b8b]">svarar inte</span> : <span>startar …</span>}
       actions={
         <>
           <Button size="sm" variant="quiet" onClick={again} title="Läs om sidan" icon={<RotateCw />}>

@@ -4,7 +4,7 @@
 // a slim strip above the view that says it is a copy (SnapshotBanner's CopyStrip) and the bot's panel as a third column on
 // the right while it is open (components/bot). It also holds the one TooltipProvider,
 // ToastProvider and BankProvider (useBank) that every view shares, and the bot's and the requests' state, which stay while
-// the view changes.
+// the view changes, and the one choice of table and camera (SetupProvider).
 import type { ReactNode } from "react";
 import { BankProvider } from "../../lib/bank.ts";
 import { BotLayer, DockColumn, useWide } from "../bot/BotDock";
@@ -13,6 +13,7 @@ import { RequestsProvider } from "../requests/RequestsProvider";
 import { ToastProvider } from "../ui/Toast";
 import { TooltipProvider } from "../ui/Tooltip";
 import { Rail } from "./Rail";
+import { SetupProvider } from "./SetupProvider";
 import { CopyStrip } from "./SnapshotBanner";
 
 function Frame({ wide, children }: { wide: boolean; children: ReactNode }) {
@@ -52,7 +53,9 @@ export function Shell({ children }: { children: ReactNode }) {
     <TooltipProvider>
       <ToastProvider>
         <BankProvider>
-          <WithBot>{children}</WithBot>
+          <SetupProvider>
+            <WithBot>{children}</WithBot>
+          </SetupProvider>
         </BankProvider>
       </ToastProvider>
     </TooltipProvider>

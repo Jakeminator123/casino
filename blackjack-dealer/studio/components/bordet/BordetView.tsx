@@ -55,6 +55,7 @@ import { SlotPicker } from "../placement/SlotPicker";
 import { useGesture, usePlanKeys } from "../placement/usePlanKeys.ts";
 import { draftActions, useDraft } from "../placement/useDraft.ts";
 import { Page } from "../shell";
+import { SetupNote } from "../shell/SetupNote";
 import { Badge, Button, ErrorState, IconButton, SegmentedControl, Skeleton, cn, useToast } from "../ui";
 import { treeChip } from "../map/TreeRow";
 import type { Made } from "./FilmList";
@@ -381,13 +382,16 @@ export function BordetView() {
       title="Filmverkstaden"
       full
       status={
-        !table ? null : draft.dirty ? (
-          <Badge tone="brass" size="md">
-            ● Osparat · {count} {count === 1 ? "ändrad" : "ändrade"}
-          </Badge>
-        ) : when ? (
-          <span className="text-faint">Sparad {when}</span>
-        ) : null
+        <>
+          {!table ? null : draft.dirty ? (
+            <Badge tone="brass" size="md">
+              ● Osparat · {count} {count === 1 ? "ändrad" : "ändrade"}
+            </Badge>
+          ) : when ? (
+            <span className="text-faint">Sparad {when}</span>
+          ) : null}
+          <SetupNote />
+        </>
       }
       actions={
         d && table ? (

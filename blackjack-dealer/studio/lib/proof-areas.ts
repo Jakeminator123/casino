@@ -1,8 +1,7 @@
 // The proofs' areas (Jakob 2026-11-27: "kategoriseras och får organisation"): the field `area` of a proof.json, one of a
 // few fixed words, by which Granska's part Prov groups the proofs (components/proofs/ProofGrid.tsx). And what each proof
-// stands at for him: waiting for his verdict (a card in Beslut without his answer, or takes it names that wait for him),
-// judged (his answer on its card, or a note of his on it), or neither; and how much room it takes. Data and pure
-// functions, no DOM.
+// stands at for him (standing, below), how much room it takes, and what tells two proofs with the same title apart. Data
+// and pure functions, no DOM.
 import type { Proof } from "./api.ts";
 
 export const AREAS = [
@@ -27,15 +26,36 @@ export function byArea<T extends Pick<Proof, "area">>(proofs: readonly T[]): { w
   return groups.filter((g) => g.proofs.length);
 }
 
-export type Standing = "vantar" | "domt" | "inget";
-export const STANDING_WORD: Record<Standing, string> = { vantar: "Väntar på dig", domt: "Du har sagt ditt", inget: "Ingen dom" };
+/**
+ * Where a proof stands for him. "vantar": a card in Beslut asks him about it and has no answer. "domt": he has answered its
+ * card or written a note on it. "utan": neither, and for him that too waits for his verdict (Jakob 2026-11-27: a proof
+ * without his verdict is something that waits for him), only not asked in Beslut.
+ */
+export type Standing = "vantar" | "domt" | "utan";
+export const STANDING_WORD: Record<Standing, string> = { vantar: "Väntar på dig i Beslut", domt: "Du har sagt ditt", utan: "Utan din dom" };
 
-/** Where a proof stands for him, from the cards in Beslut, his notes and the takes it names that wait for him. */
-export function standing(id: string, cards: readonly { proof?: string; answer: unknown }[], notesOnIt: number, takesWaiting: number): Standing {
+export function standing(id: string, cards: readonly { proof?: string; answer: unknown }[], notesOnIt: number): Standing {
   const own = cards.filter((c) => c.proof === id);
-  if (own.some((c) => !c.answer) || takesWaiting > 0) return "vantar";
+  if (own.some((c) => !c.answer)) return "vantar";
   if (own.some((c) => c.answer) || notesOnIt > 0) return "domt";
-  return "inget";
+  return "utan";
+}
+
+/** The line over the proofs: how many, how many without his verdict, how many asked in Beslut, and their room. */
+export function proofsLine(stands: readonly Standing[], bytes: number): string {
+  const utan = stands.filter((s) => s === "utan").length, vantar = stands.filter((s) => s === "vantar").length;
+  return [`${stands.length} prov`, `${utan} utan din dom`, ...(vantar ? [`${vantar} väntar på dig i Beslut`] : []), sizeWord(bytes)].join(" · ");
+}
+
+/**
+ * The second line of a card whose title another proof shares ("Standarddockan" five times): the rest of its title after the
+ * name, else the first sentence of its description, else its folder's name; null when the title is its own.
+ */
+export function telling(p: Pick<Proof, "id" | "description">, rest: string, shared: boolean): string | null {
+  if (!shared) return null;
+  if (rest) return rest;
+  const first = (p.description ?? "").replace(/^[A-ZÅÄÖ ]{3,}:\s*/, "").split(/(?<=[.!?])\s/)[0]?.trim();
+  return first ? (first.length > 110 ? `${first.slice(0, 108)}…` : first) : p.id;
 }
 
 /** The room a proof takes: its films and pictures together, in bytes. */

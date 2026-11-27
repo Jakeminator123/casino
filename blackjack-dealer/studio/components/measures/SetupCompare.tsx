@@ -12,6 +12,11 @@ import { buttonClasses, ErrorState, Skeleton } from "../ui";
 import { cn } from "../ui/cn";
 import { COMPARED_CARDS, readSetups, type Pt, type Px, type Setup } from "../../lib/setups.ts";
 import { getProofs } from "../../lib/api.ts";
+import type { UppsattningId } from "../../lib/uppsattning-val.ts";
+import { useSetup } from "../shell/SetupProvider";
+
+/** The mark beside the table and camera chosen in the menu. */
+const Chosen = () => <span className="ml-1.5 rounded-full bg-brass/90 px-1.5 py-px text-2xs font-semibold text-brass-ink">valt i menyn</span>;
 
 const OURS = "#d9b96a", LIVE = "#7fb8f5";
 const n = (x: number, d = 3) => x.toLocaleString("sv-SE", { maximumFractionDigits: d, minimumFractionDigits: 0 });
@@ -85,7 +90,7 @@ function Row({ what, a, b, d }: { what: ReactNode; a: string; b: string; d?: str
 }
 const Head = ({ children }: { children: ReactNode }) => <tr><td colSpan={4} className="bg-raised/60 px-3 pb-1 pt-3 text-2xs font-semibold uppercase tracking-widest text-faint">{children}</td></tr>;
 
-function Numbers({ ours, live }: { ours: Setup; live: Setup }) {
+function Numbers({ ours, live, chosen }: { ours: Setup; live: Setup; chosen: UppsattningId }) {
   const a = ours, b = live, ca = a.camera, cb = b.camera;
   const card = (s: Setup, id: string) => s.cards.find((c) => c.id === id);
   return (
@@ -94,8 +99,8 @@ function Numbers({ ours, live }: { ours: Setup; live: Setup }) {
         <thead>
           <tr className="border-b border-line-strong text-xs font-semibold text-dim">
             <th className="sticky left-0 bg-surface px-3 py-2">Mått</th>
-            <th className="px-3 py-2"><span style={{ color: OURS }}>■</span> Förra standarden, spelets vy</th>
-            <th className="px-3 py-2"><span style={{ color: LIVE }}>■</span> Livebordet</th>
+            <th className="px-3 py-2"><span style={{ color: OURS }}>■</span> Förra standarden, spelets vy{chosen === "forra" ? <Chosen /> : null}</th>
+            <th className="px-3 py-2"><span style={{ color: LIVE }}>■</span> Livebordet{chosen === "live" ? <Chosen /> : null}</th>
             <th className="px-3 py-2">Skillnad, förra − livebordets</th>
           </tr>
         </thead>
@@ -167,12 +172,13 @@ export function SetupCompare() {
     return () => { live = false; };
   }, [round]);
   const films = useLiftFilms();
+  const { id: setup } = useSetup();
   const legend = useMemo(() => (
     <div className="flex flex-wrap items-center gap-4 text-xs text-dim">
-      <span className="flex items-center gap-1.5"><span className="h-0.5 w-6" style={{ background: OURS }} />Förra standarden, genom spelets vy</span>
-      <span className="flex items-center gap-1.5"><span className="h-0.5 w-6 border-t-2 border-dashed" style={{ borderColor: LIVE }} />Livebordet: vår klon av det riktiga bordet, den nya standarden</span>
+      <span className="flex items-center gap-1.5"><span className="h-0.5 w-6" style={{ background: OURS }} />Förra standarden, genom spelets vy{setup === "forra" ? <Chosen /> : null}</span>
+      <span className="flex items-center gap-1.5"><span className="h-0.5 w-6 border-t-2 border-dashed" style={{ borderColor: LIVE }} />Livebordet: vår klon av det riktiga bordet, den nya standarden{setup === "live" ? <Chosen /> : null}</span>
     </div>
-  ), []);
+  ), [setup]);
 
   if (error) return <ErrorState title="Uppsättningarna gick inte att läsa" error={error} onRetry={() => setRound((r) => r + 1)} />;
   if (!setups) return <div className="space-y-3"><Skeleton className="h-8 w-2/3 rounded-md" /><Skeleton className="h-96 rounded-lg" /></div>;
@@ -196,8 +202,8 @@ export function SetupCompare() {
           <h2 className="font-display text-lg font-semibold text-ink">Genom var sin kamera</h2>
           <p className="text-xs text-dim">Så som filmerna ser bordet: den förra standarden genom spelets vy från plats 4, livebordet genom sin egen kamera. Starkare fyllda kort är första kortet.</p>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-            <figure className="flex flex-col gap-1.5"><Picture s={ours} colour={OURS} /><figcaption className="text-xs text-dim">{ours.name}</figcaption></figure>
-            <figure className="flex flex-col gap-1.5"><Picture s={live} colour={LIVE} /><figcaption className="text-xs text-dim">{live.name}</figcaption></figure>
+            <figure className="flex flex-col gap-1.5"><Picture s={ours} colour={OURS} /><figcaption className="text-xs text-dim">{ours.name}{setup === "forra" ? <Chosen /> : null}</figcaption></figure>
+            <figure className="flex flex-col gap-1.5"><Picture s={live} colour={LIVE} /><figcaption className="text-xs text-dim">{live.name}{setup === "live" ? <Chosen /> : null}</figcaption></figure>
           </div>
           <div className="flex flex-wrap gap-2 pt-1">
             <Link href="/dockan/?uppsattning=forra" className={buttonClasses({ variant: "secondary", size: "sm" })}>Förra standarden i Dockan</Link>
@@ -209,7 +215,7 @@ export function SetupCompare() {
 
       <section className="flex flex-col gap-2">
         <h2 className="font-display text-lg font-semibold text-ink">I tal</h2>
-        <Numbers ours={ours} live={live} />
+        <Numbers ours={ours} live={live} chosen={setup} />
       </section>
 
       <section className="flex flex-col gap-2">

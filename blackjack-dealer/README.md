@@ -67,7 +67,11 @@ stoppar dem när den själv stoppas. En som redan svarar på sin port (`/vem`) s
   ram). Ljud är en egen HTML-sida i `pages/`, nådd från Start.
 
 Orden står i studions Ordlista (`studio/lib/words.ts`). Menyn följer kedjan: Start, Avatarer, Dockan, Filmverkstaden, Granska,
-Karta, Material, Casino och Mått. Vyerna:
+Karta, Material, Casino och Mått. Under dealerväxeln står valet **Bord och kamera** (Livebordet eller Förra standarden,
+ur `src/uppsattning.ts`; `studio/lib/uppsattning-val.ts`, `studio/components/shell/Setup*.tsx`): ett val för hela studion,
+ihågkommet i webbläsaren, förvalt livebordet, och `?uppsattning=` i en adress väljer. Dockan skickar ordet till editorn,
+Casino till spelet (`studio/lib/casino.ts` gameSrc), och Mått märker det valda; Filmverkstaden visar valet men går ännu
+efter förra standarden. Vyerna:
 
 - **Start** (`/studio/`, `studio/components/start/`, innehållet i `studio/lib/start.ts`): det som väntar på hans dom,
   kedjan med verkstaden för varje steg, en ruta per verkstad och det som ligger vid sidan (Kortpaketet, Lipsync, Ljud).

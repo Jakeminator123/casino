@@ -2,11 +2,12 @@
 
 // <ProofGrid proofs={list} named={named} notes={notes} cards={cards} onRemoved={read} />: the proof folders as cards, in
 // groups by area (lib/proof-areas.ts: Rörelser, Ansikte och händer, Filmer, Bord och kamera, Avatarer, Studion, and those
-// without one last), newest first within a group, and a search field. Over them how many proofs there are, how many wait
-// for him and how much room they take. A card: a still, the title, how many films and pictures, the takes' verdicts counted
-// (lib/verdict.ts: underlag is not counted), how many places Jakob has said something about, where it stands for him
-// (waiting, said, neither) and its size; and "Ta bort provet", which asks first and then sends the proof to the trash on
-// his click (tools/proof-remove.ts). His notes are never removed with it.
+// without one last), newest first within a group, and a search field. Over them how many proofs there are, how many are
+// without his verdict, how many a card in Beslut asks about, and how much room they take. A card: a still, the title (with
+// a second line that tells it apart where another proof has the same title), how many films and pictures, the takes'
+// verdicts counted (lib/verdict.ts: underlag is not counted), how many places Jakob has said something about, where it
+// stands for him (lib/proof-areas.ts standing) and its size; and "Ta bort provet", which asks first and then sends the
+// proof to the trash on his click (tools/proof-remove.ts). His notes are never removed with it.
 import { Film, MessageSquare, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -14,7 +15,7 @@ import { removeProof, type Proof } from "../../lib/api.ts";
 import { countLine, coverOf, matchProof, proofDay, proofHref, proofTitle, sortProofs, verdictTally } from "../../lib/proofs.ts";
 import { PROOF_VERDICT_LABEL, splitLabel, type ProofVerdict } from "../../lib/verdict.ts";
 import { notesOn, type ShownNote } from "../../lib/proof-notes.ts";
-import { byArea, proofBytes, sizeWord, standing, STANDING_WORD, type Standing } from "../../lib/proof-areas.ts";
+import { byArea, proofBytes, proofsLine, sizeWord, standing, STANDING_WORD, telling, type Standing } from "../../lib/proof-areas.ts";
 import { isSnapshot } from "../../lib/mode.ts";
 import { Button, Dialog, EmptyState, IconButton, TextField, cn, useToast } from "../ui";
 import { ProofStill } from "./ProofStill";
@@ -26,15 +27,16 @@ const TALLY: { verdict: ProofVerdict; sign: string; tone: string }[] = [
   { verdict: "failed", sign: "✕", tone: "text-[#ef8b8b]" },
   { verdict: "unreviewed", sign: "○", tone: "text-faint" },
 ];
-const STANDING_TONE: Record<Standing, string> = { vantar: "bg-brass/90 text-brass-ink", domt: "bg-godkand/25 text-[#8fdcb2]", inget: "bg-black/60 text-soft" };
+const STANDING_TONE: Record<Standing, string> = { vantar: "bg-brass/90 text-brass-ink", domt: "bg-godkand/25 text-[#8fdcb2]", utan: "bg-black/65 text-brass-hi" };
 
 type Card = { proof?: string; answer: unknown };
 
-function ProofCard({ proof, waiting, said, stand, onRemove }: { proof: Proof; waiting: number; said: number; stand: Standing; onRemove: (p: Proof) => void }) {
+function ProofCard({ proof, waiting, said, stand, shared, onRemove }: { proof: Proof; waiting: number; said: number; stand: Standing; shared: boolean; onRemove: (p: Proof) => void }) {
   const cover = coverOf(proof);
   const films = proof.files.filter((f) => f.kind === "video").length;
   const tally = verdictTally(proof);
-  const title = splitLabel(proofTitle(proof)).name;
+  const { name: title, rest } = splitLabel(proofTitle(proof));
+  const second = telling(proof, rest, shared);
   const day = proofDay(proof);
   return (
     <div className="group relative h-full">
@@ -45,7 +47,7 @@ function ProofCard({ proof, waiting, said, stand, onRemove }: { proof: Proof; wa
         <div className="relative">
           <ProofStill cover={cover} fps={proof.fps} className="aspect-16/10 transition-[filter] duration-200 group-hover:brightness-110" />
           <span className={cn("pointer-events-none absolute left-2 top-2 rounded-xs px-1.5 py-0.5 text-2xs font-medium backdrop-blur-sm", STANDING_TONE[stand])}>
-            {stand === "vantar" && waiting ? (waiting === 1 ? "1 tagning väntar" : `${waiting} tagningar väntar`) : STANDING_WORD[stand]}
+            {stand !== "domt" && waiting ? (waiting === 1 ? "1 tagning väntar på dig" : `${waiting} tagningar väntar på dig`) : STANDING_WORD[stand]}
           </span>
           <span className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1.5 rounded-xs bg-black/65 px-1.5 py-0.5 text-2xs font-medium text-ink backdrop-blur-sm">
             {films ? <><Film className="size-3" /> {films} ·</> : null} {sizeWord(proofBytes(proof))}
@@ -55,6 +57,7 @@ function ProofCard({ proof, waiting, said, stand, onRemove }: { proof: Proof; wa
           <span className="line-clamp-2 text-sm font-semibold leading-5 text-ink" title={proofTitle(proof)}>
             {title}
           </span>
+          {second ? <span className="line-clamp-2 text-xs leading-4 text-dim">{second}</span> : null}
           <span className="mt-auto flex items-center gap-2 text-xs text-faint">
             <span className="truncate">{[countLine(proof), day].filter(Boolean).join(" · ")}</span>
             <span className="ml-auto flex shrink-0 items-center gap-2">
@@ -92,8 +95,9 @@ export function ProofGrid({ proofs, named, notes, cards, onRemoved }: { proofs: 
   const toast = useToast();
   const sorted = useMemo(() => sortProofs(proofs), [proofs]);
   const shown = useMemo(() => sorted.filter((p) => matchProof(p, query)), [sorted, query]);
-  const standOf = (p: Proof) => standing(p.id, cards, notesOn(notes, p.id), waitingIn(p, named));
-  const waitingAll = proofs.filter((p) => standOf(p) === "vantar").length;
+  const standOf = (p: Proof) => standing(p.id, cards, notesOn(notes, p.id));
+  // A title more than one proof has ("Standarddockan" five times): those cards get a second line that tells them apart.
+  const titles = useMemo(() => { const n = new Map<string, number>(); for (const p of proofs) { const t = splitLabel(proofTitle(p)).name; n.set(t, (n.get(t) ?? 0) + 1); } return n; }, [proofs]);
   const room = proofs.reduce((s, p) => s + proofBytes(p), 0);
 
   const remove = async (p: Proof) => {
@@ -123,7 +127,7 @@ export function ProofGrid({ proofs, named, notes, cards, onRemoved }: { proofs: 
           wrapperClassName="w-[380px] max-w-full"
         />
         <span className="text-sm text-faint tabular-nums">
-          {query.trim() ? `${shown.length} av ${proofs.length} prov` : `${proofs.length} prov · ${waitingAll} väntar på dig · ${sizeWord(room)}`}
+          {query.trim() ? `${shown.length} av ${proofs.length} prov` : proofsLine(proofs.map(standOf), room)}
         </span>
       </div>
       {shown.length ? (
@@ -138,7 +142,7 @@ export function ProofGrid({ proofs, named, notes, cards, onRemoved }: { proofs: 
             <ul className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
               {group.proofs.map((p) => (
                 <li key={p.id}>
-                  <ProofCard proof={p} waiting={waitingIn(p, named)} said={notesOn(notes, p.id)} stand={standOf(p)} onRemove={setAsking} />
+                  <ProofCard proof={p} waiting={waitingIn(p, named)} said={notesOn(notes, p.id)} stand={standOf(p)} shared={(titles.get(splitLabel(proofTitle(p)).name) ?? 0) > 1} onRemove={setAsking} />
                 </li>
               ))}
             </ul>

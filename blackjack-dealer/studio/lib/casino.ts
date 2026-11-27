@@ -13,6 +13,7 @@ import type { SceneState } from "../../src/scene3d-view.ts";
 import { SCENE_KEYS, encodeValue } from "./scene-keys.ts";
 import { CASINO_PRESET, readAddress } from "./scene-presets.ts";
 import { TREE_ID } from "../../src/dealer-trees.ts";
+import { ADRESSORD, lasUppsattning, type UppsattningId } from "./uppsattning-val.ts";
 
 /**
  * The Casino on the internet: the copy's door /casino (cloud/studio/gate.ts GAME_HOME), the game with Casino's saved look as it
@@ -44,7 +45,7 @@ export function readCasino(params: Params, rooms?: readonly string[]): CasinoLoo
   const keys = new URLSearchParams();
   // "table" is the Casino's own word, and "robot" belongs to every lab page (src/preview-ui.ts); neither is a look key.
   params.forEach((value, key) => {
-    if (key !== "table" && key !== "robot" && key !== TREE_WORD && key !== COMPOSITION_WORD && !Object.hasOwn(PLAYBACK_WORDS, key)) keys.append(key, value);
+    if (key !== "table" && key !== "robot" && key !== TREE_WORD && key !== COMPOSITION_WORD && key !== ADRESSORD && !Object.hasOwn(PLAYBACK_WORDS, key)) keys.append(key, value);
   });
   if (!keys.has("forval")) keys.set("forval", CASINO_PRESET);
   const { forval, patch, ignored } = readAddress(keys, rooms);
@@ -92,9 +93,13 @@ export function casinoAddress(forval: string, keys: Partial<SceneState> = {}, ta
   return `/game/${casinoSearch({ forval, patch: keys, table: table && TABLE_NAME.test(table) ? table : null, trad, komposition })}`;
 }
 
-/** The game in the frame: the lab's own page, with the look, the frame's mark, the table and the tree. */
-export function gameSrc(look: Pick<CasinoLook, "forval" | "patch" | "table" | "playback" | "trad" | "komposition">): string {
-  return `/game.html?${join([["forval", look.forval], ["inbaddad", "1"], ...keyPairs(look.patch), ["table", look.table], ...playbackPairs(look), ...treePair(look)])}`;
+/**
+ * The game in the frame: the lab's own page, with the look, the frame's mark, the table, the tree and the menu's choice of
+ * table and camera (?uppsattning=live|forra, src/uppsattning.ts ADRESSORD; a word that names no set-up is left out).
+ */
+export function gameSrc(look: Pick<CasinoLook, "forval" | "patch" | "table" | "playback" | "trad" | "komposition">, uppsattning?: UppsattningId | null): string {
+  const setup: [string, string][] = lasUppsattning(uppsattning) ? [[ADRESSORD, lasUppsattning(uppsattning)!]] : [];
+  return `/game.html?${join([["forval", look.forval], ["inbaddad", "1"], ...keyPairs(look.patch), ["table", look.table], ...playbackPairs(look), ...treePair(look), ...setup])}`;
 }
 
 /** The same look in Bordet's Scen, to calibrate it further. */

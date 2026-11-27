@@ -7,8 +7,8 @@ export type WorkshopId = "editorn" | "kortpaketet";
 export type WorkshopState = { id: WorkshopId; name: string; address: string; answers: boolean; ours: boolean; error: string | null };
 
 /** How each workshop is named and said in the studio. */
-export const WORKSHOP_WORDS: Record<WorkshopId, { title: string; starting: string; running: string }> = {
-  editorn: { title: "Dockan", starting: "Startar dockans editor …", running: "Dockans editor" },
+export const WORKSHOP_WORDS: Record<WorkshopId, { title: string; starting: string; running: string; readsSetup?: boolean }> = {
+  editorn: { title: "Dockan", starting: "Startar dockans editor …", running: "Dockans editor", readsSetup: true },
   kortpaketet: { title: "Kortpaketet", starting: "Startar kortpaketets visare …", running: "Kortpaketets visare" },
 };
 

@@ -30,6 +30,7 @@ import { useRequests } from "../requests/RequestsProvider";
 import { cn } from "../ui/cn";
 import { Tooltip } from "../ui/Tooltip";
 import { DealerSwitch } from "./DealerSwitch";
+import { SetupSwitch } from "./SetupSwitch";
 import { Glossary } from "./Glossary";
 
 type Icon = ComponentType<{ className?: string }>;
@@ -185,6 +186,7 @@ export function Rail() {
         <span className="hidden font-display text-md font-semibold tracking-[-0.01em] text-ink rail:block">Dealer Studio</span>
       </Link>
       <DealerSwitch />
+      <SetupSwitch />
       <Rule />
       <ul className="flex min-h-0 flex-col gap-0.5 overflow-y-auto scrollbar-none">
         {SHOWN.map((view) => (
