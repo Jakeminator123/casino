@@ -85,6 +85,12 @@ av Tomasz görs för Tomasz.
 - **Rörelserna ska komma från verkligheten där det går.** Att finputsa en ritad giv gav en skillnad som syntes i talen
   men inte för ögat (provet `naturlig-giv-20261127`). Därför klonas ett riktigt livebord och två riktiga dealrars
   rörelser. Det som klonas är mått och rörelse, aldrig en verklig persons utseende.
+- **Den klonade uppsättningen är den nya standarden** (Jakob 2026-11-27: "jag skulle vilja helt övergå till det som är
+  klonat totalt"): livebordets kamera, bord, sko, kort och kortplatser, som de är mätta ur filmen
+  (`blackjack-dealer/src/table-live.ts`), gäller för all inspelning, beställning och visning, också i spelet. Den förra
+  standarden står kvar som ett val, och uppsättningen ska gå att välja i studions menyer.
+- **En persons figur byggs på den docka vars rörelser den ska spela** (Jakob 2026-11-27): rörelserna kommer från
+  Danilo och Frasse, och deras dockor är grunden för personens.
 - **Jakob dömer med ögat.** Kontrollerna säger var det är värt att titta; de avgör inte om något är bra.
 
 ## Vad proven har visat hittills
@@ -109,6 +115,9 @@ av Tomasz görs för Tomasz.
   streckfigurer vid det klonade bordet; kropparna i editorn och en första film återstår.
 - **Håller sju filmer av samma rörelse ihop?** Samma giv filmad från flera platser och gjord till personen: ser det ut
   som samma människa som gör samma sak, från varje håll? Det är provet som avgör vägen mot målet.
+- **Övergången till den klonade uppsättningen** är gjord i editorn (dockorna, rörelserna, inspelningen, platskamerorna)
+  men inte i spelet och beställningarna, som ännu går efter den förra standarden. Filmerna som spelet har är gjorda
+  för den förra standardens kamera och bord, så varje film behöver säga vilken uppsättning den är gjord för.
 - **Hur många inspelningar per person behövs?** Varje person behöver egna filmer, för varje rörelse och varje kamera.
   Sju kameror gånger alla rörelser gånger alla personer blir många betalda filmer; vilka kameror och rörelser som
   verkligen behövs är inte bestämt.

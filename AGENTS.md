@@ -73,6 +73,10 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
 - Måtten har en källa: koden (kameran, bordet, kortet och kortplatserna i `blackjack-dealer/src/table-lens.ts`,
   dockornas mått i `blackjack-dealer/dealer3d/src/doll.ts`, takten i `dealer3d/src/koreo-giv.ts`). Ett mått ändras
   där, aldrig i ett dokument.
+- Uppsättningen som är klonad ur filmen av livebordet (`blackjack-dealer/src/table-live.ts`: kameran, bordet, skon,
+  korten, kortplatserna) är den nya standarden för inspelning, beställning och visning (Jakob 2026-11-27: "helt
+  övergå till det som är klonat"). Den förra standarden står kvar som ett val. Nytt arbete görs i den klonade
+  uppsättningen om inget annat sägs; vad som är flyttat dit står i `PROJEKTET.md`.
 - `MATT.md` i roten är en utskrift av alla mått, vinklar, kortplatser, höjder och takter på ett ställe, bredvid det som
   är mätt på ett riktigt livebord (`live-bj/data/`). Läs den för att se ett mått. Den ändras aldrig för hand:
   `node matt.ts` skriver den, och kontrollen före push skriver om den och säger till när den inte stämmer.
