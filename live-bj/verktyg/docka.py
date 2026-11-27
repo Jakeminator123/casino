@@ -109,4 +109,5 @@ def main():
     print(json.dumps({k: v for k, v in result.items() if k != 'about'}))
 
 
-main()
+if __name__ == '__main__':
+    main()

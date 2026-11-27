@@ -35,6 +35,7 @@ Allt körs från repots rot. `PY` är `blackjack-dealer/tools/python/.venv/Scrip
 | Dela upp i stycken | `PY live-bj/verktyg/rorelser.py live-bj/data live-bj/matt` (`--visa <a> <b>` skriver ut handrörelserna mellan två sekunder med platserna de fick) | `data/rorelser.json`: varje stycke med slag, rutor, händer och om det är rent nog att rita efter. |
 | Mät dockan | `PY live-bj/verktyg/mat.py <dockans film> <dess källfil> <mapp> --steg 1 --ensam`, sedan `PY live-bj/verktyg/docka.py <mapp> <ut.json> [<dockans egna tal per ruta>]` | Dockans film mätt på samma sätt, och mot dockans egna tal i `../blackjack-dealer/dealer3d/data/giv-*.json`: hur väl mätningen hittar det som är känt. Källfilen är som `data/kalla.json`: filmens storlek, rutor i sekunden och ett parti för hela filmen. Körs i slasken; inget sparas här. |
 | Samla uppsättningen | `PY live-bj/verktyg/uppsattning.py live-bj/data live-bj/matt` | `data/uppsattning.json`: kameran, filten, skon, lådan, var varje kort landar och hur det ligger, hur dealern sitter och var händerna vilar, i linsvärldens meter (x åt bildens höger, y upp med filten på 0, z mot spelaren). Varje grupp säger om den är mätt, skattad, slutledd eller antagen. Det som klonas är måtten och rörelsen, inte lokalens utseende, bordets tryck eller personerna. |
+| Lyft givar | `PY live-bj/verktyg/lyft.py giv live-bj/data live-bj/matt live-bj/data/lyft` (`prov <dockans mätta film> <dockans egna tal>` prövar lyftet mot facit, `rita <lyft> live-bj/data/uppsattning.json <ut.png>` ritar ett lyft uppifrån och från sidan) | `data/lyft/<stil>-<mitten, vanster eller hoger>-plats-<n>.json`: tre givar per stil i dockans eget rörelseformat (per ruta båda armarna med axel, armbåge, handled och handens 21 punkter, huvudet, blickpunkten och kortet), i uppsättningens meter. |
 | Lägg vårt bord över deras | `PY live-bj/verktyg/overlagg.py <stillbild> <vårt bord genom deras kamera, med alfa> <punkter.json> live-bj/data/scen.json <ut.jpg> [live-bj/data/mot-vart-bord.json]` | Vårt bord och vår docka halvgenomskinliga över en stillbild ur filmen, en andra bild med borden kant mot kant, och skillnaderna som tal. Bilden av vårt bord och `punkter.json` ritas av editorns sida och ligger i slasken. |
 | Titta på måtten | `PY live-bj/verktyg/titta.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt live-bj/rutor/kontroll/<namn>.jpg <sekund> ...` | Ett ark med måtten ritade över filmens rutor. |
 | Streckfigur | `PY live-bj/verktyg/streck.py live-bj/video/kalla.mp4 live-bj/data/kalla.json live-bj/matt live-bj/rutor/streck-<a>-<b>.mp4 <a> <b>` | En film med dealern som streckfigur bredvid bordsbilden; `--bara` ger bara figuren. |
@@ -42,7 +43,10 @@ Allt körs från repots rot. `PY` är `blackjack-dealer/tools/python/.venv/Scrip
 ## Det som är uppmätt: dealern
 
 Två dealers, A (404 s mätta) och B (446 s). I stilfilerna heter de efter sitt sätt, inte efter personen: A är
-`kameran` (söker kameran, lutar bålen mot skon) och B är `bordet` (snabbare, stilla bål, blicken på bordet). Talen här
+`kameran` (söker kameran, lutar bålen mot skon) och B är `bordet` (snabbare, stilla bål, blicken på bordet). Jakobs
+arbetsnamn för de två dockor som byggs på stilarna är Danilo (`kameran`) och Frasse (`bordet`); namnen är påhittade
+och står som fältet `docka` i filerna. Dockorna får vårt eget ansikte: det som tas ur mätningen är kroppens mått,
+hållningen och rörelsen, aldrig utseendet. Talen här
 är medianer ur `data/monster.json`; en axelbredd är dealerns egen i bilden (264 och 257 bildpunkter) och är 0,36 och
 0,35 m räknat genom kameran i `data/scen.json`. Samma tal i meter, med hur säkra de är, står i `data/stil-*.json`.
 
@@ -185,6 +189,13 @@ vid hans egna kort.
   toppfarten, den undre 0,6–0,7 gånger, och den bästa skattningen hamnade inom en tredjedel. Formen på en fartkurva
   och sekunderna är väl mätta; meterna håller alltså på en tredjedel när. Axlar och huvud läggs på ett upprätt plan
   20 cm bakom filtens kant mot dealern och håller på en tiondel när.
+- **Lyftet.** En kamera ger inget djup. Axlarna sätts där bålen antas sitta, armbågen och handleden läggs på sina
+  synlinjer så att armens längder håller, handleden låses i höjd i rutan där kortet tas ur skon och i rutan där det
+  läggs, och MediaPipes egen uppfattning om vad som är närmast kameran avgör mellan nära och fjärran. Prövat på dockans
+  två filmer mot facit hamnar varje led 4–11 cm fel i median, nästan allt i djupled (sidled och höjd 1–3 cm), och den
+  sämsta tiondelen av rutorna upp till 20 cm för högerarmen. Farten i ett lyft blir för låg (0,6–0,9 av den sanna
+  toppfarten), eftersom djupet jämnas. Använd lyften för bålens, axlarnas och huvudets rörelse och för handens väg i
+  sidled och höjd; djupet är en skattning.
 - **Samma mätning på dockan.** MediaPipe hittar också dockan: kroppen i varje ruta, händerna i de flesta, ansiktet i
   två av tre. Handleden hamnar 14–40 bildpunkter från dockans sanna handled, och blinkningar går inte att mäta på en
   docka utan iris (den mäter sex blinkningar på två sekunder där det inte finns någon). Ett kort stopp kan missas: på

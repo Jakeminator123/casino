@@ -872,7 +872,18 @@
  },
  "dealer": {
   "kameran": {
+   "docka": "danilo",
    "sits": true,
+   "body": {
+    "how": "measured through the camera at the trunk's assumed distance, with the head level and turned to the camera; nothing of the face. chin_to_forehead_top is between two points of the face's outline; chin_to_crown is that with a quarter added for the skull over the forehead (estimated). chin_over_shoulder_line is how far the chin is over the line between the shoulder joints: the neck and the jaw together. The waist and the hips are hidden by the table and cannot be measured. No stretch shows an arm from the side, so the arm's parts cannot be measured either (arm gives what can be said).",
+    "shoulder_width": 0.357,
+    "chin_to_forehead_top": 0.182,
+    "chin_to_crown": 0.228,
+    "chin_over_shoulder_line": 0.063,
+    "eyes_over_shoulder_line": 0.191,
+    "waist": null,
+    "hips": null
+   },
    "trunk": {
     "how": "the heights and the width are measured through the camera with the trunk taken 0.2 m behind the felt's edge (assumed); behind_edge_estimated is an estimate of that distance from the frames where a hand lies still on the felt: the wrist's place is then known, and MediaPipe's own metres of the body give the step from the wrist to the shoulder. Its depth is the weakest part of it: read it as give or take 0.1 m.",
     "shoulders_middle": [
@@ -973,7 +984,18 @@
    }
   },
   "bordet": {
+   "docka": "frasse",
    "sits": true,
+   "body": {
+    "how": "measured through the camera at the trunk's assumed distance, with the head level and turned to the camera; nothing of the face. chin_to_forehead_top is between two points of the face's outline; chin_to_crown is that with a quarter added for the skull over the forehead (estimated). chin_over_shoulder_line is how far the chin is over the line between the shoulder joints: the neck and the jaw together. The waist and the hips are hidden by the table and cannot be measured. No stretch shows an arm from the side, so the arm's parts cannot be measured either (arm gives what can be said).",
+    "shoulder_width": 0.348,
+    "chin_to_forehead_top": 0.168,
+    "chin_to_crown": 0.21,
+    "chin_over_shoulder_line": 0.089,
+    "eyes_over_shoulder_line": 0.204,
+    "waist": null,
+    "hips": null
+   },
    "trunk": {
     "how": "the heights and the width are measured through the camera with the trunk taken 0.2 m behind the felt's edge (assumed); behind_edge_estimated is an estimate of that distance from the frames where a hand lies still on the felt: the wrist's place is then known, and MediaPipe's own metres of the body give the step from the wrist to the shoulder. Its depth is the weakest part of it: read it as give or take 0.1 m.",
     "shoulders_middle": [

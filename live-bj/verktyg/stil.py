@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from monster import Stretch, smooth, runs, stats, sign_at, SWAP   # noqa: E402
 
 NAMES = {'A': 'kameran', 'B': 'bordet'}
+DOLLS = {'kameran': 'danilo', 'bordet': 'frasse'}   # Jakob's made-up working names for the two figures built on the styles; not the dealers' own names
 WRIST_LOW = 0.05                       # metres over the felt that a wrist is taken to be
 BEHIND_EDGE = 0.20                     # metres behind the dealer's edge of the felt where the shoulders are taken to be
 EYE_FULL = 30.0                        # degrees the eye has turned when MediaPipe's look score is 1 (an estimate)
@@ -335,7 +336,7 @@ def main():
             'about': 'One measured dealer\'s way of dealing, written by verktyg/stil.py from data/monster.json, data/scen.json and the measurements per frame. Seconds, degrees and metres. '
                      'Every group of numbers says how it was measured; n is how many moves or windows stand behind a median, p10 and p90 its spread. L and R are the dealer\'s own left and right; '
                      'the shoe stands at his left. The film is 30 measured frames a second, so no time is finer than 0.033 s.',
-            'style': style, 'measured_seconds': d['seconds'],
+            'style': style, 'docka': DOLLS[style], 'measured_seconds': d['seconds'],
             'kalla': {'film': source['source'], 'stretches_s': [[r['from'], r['to']] for r in source['runs'] if (inside(r['from']) or inside(r['to']))],
                       'note': 'The clean stretches of data/kalla.json in which this dealer works; the change of dealer at ' + f'{SWAP[0]:.0f} to {SWAP[1]:.0f} s is left out.'},
             'enhet': 'Seconds, degrees and metres throughout. Shares are 0 to 1. grip.pinch and grip.open are shares of the hand\'s own size. Nothing is left in shoulder widths; one shoulder width is metres.shoulder_width_m.',

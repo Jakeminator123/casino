@@ -1,6 +1,7 @@
 {
  "about": "One measured dealer's way of dealing, written by verktyg/stil.py from data/monster.json, data/scen.json and the measurements per frame. Seconds, degrees and metres. Every group of numbers says how it was measured; n is how many moves or windows stand behind a median, p10 and p90 its spread. L and R are the dealer's own left and right; the shoe stands at his left. The film is 30 measured frames a second, so no time is finer than 0.033 s.",
  "style": "bordet",
+ "docka": "frasse",
  "measured_seconds": 446.5,
  "kalla": {
   "film": "https://www.youtube.com/watch?v=OKSnPf75PeU",

@@ -11,7 +11,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from monster import Stretch, smooth, runs, stats, SWAP   # noqa: E402
-from stil import Camera, NAMES, BEHIND_EDGE, EYE_FULL   # noqa: E402
+from stil import Camera, NAMES, DOLLS, BEHIND_EDGE, EYE_FULL   # noqa: E402
 
 WRIST_ON_FELT = 0.04   # metres over the felt of the wrist's middle when the hand lies flat on it
 
@@ -112,6 +112,7 @@ def main():
             st.grip[s] = cam.plane(tips, 0.0)
         st.speed = {s: np.concatenate([[0], np.linalg.norm(np.diff(smooth(st.pose[:, w], 5), axis=0), axis=1) * st.fps / np.nanmedian(st.width)]) for s, w in (('L', 15), ('R', 16))}
         st.eyes_px = np.array([np.mean([e['face']['points'][k] for k in ('eyeR_out', 'eyeR_in', 'eyeL_in', 'eyeL_out')], axis=0) if e['face'] else [np.nan, np.nan] for e in raw['frames']])
+        st.chin_px, st.brow_px = (np.array([e['face']['points'][k] if e['face'] else [np.nan, np.nan] for e in raw['frames']]) for k in ('chin', 'brow'))
         stretches.append(st)
     t, sin, cos = cam.t, math.sin(cam.t), math.cos(cam.t)
     result['dealer'] = {}
@@ -141,6 +142,21 @@ def main():
         scale = style_file['posture']['shoulder_width_m'] / float(np.median(np.concatenate(widths)))   # MediaPipe's body is an average one: brought to this dealer's own shoulder width
         behind = float(np.mean([est[s][1] for s in est]) - edge) if est else None
         posture = style_file['posture']
+        # The body's measures that one camera from the front can give: with the head level and turned to the camera,
+        # the chin, the top of the forehead and the shoulders as heights at the trunk's distance. Nothing of the face.
+        chin, brow, line = [], [], []
+        for st in stretches:
+            level = np.array([inside(x) for x in st.t]) & (np.abs(st.head[:, 0] - rest_head[0]) < 5) & (np.abs(st.head[:, 1] - rest_head[1]) < 8) & (np.abs(st.head[:, 2] - rest_head[2]) < 5)
+            if level.sum():
+                chin.append(cam.wall(st.chin_px[level], edge + BEHIND_EDGE)[:, 1])
+                brow.append(cam.wall(st.brow_px[level], edge + BEHIND_EDGE)[:, 1])
+                line.append(cam.wall(st.mid[level], edge + BEHIND_EDGE)[:, 1])
+        chin, brow, line = (float(np.nanmedian(np.concatenate(v))) for v in (chin, brow, line))
+        body = {'how': 'measured through the camera at the trunk\'s assumed distance, with the head level and turned to the camera; nothing of the face. chin_to_forehead_top is between two points of the face\'s outline; '
+                       'chin_to_crown is that with a quarter added for the skull over the forehead (estimated). chin_over_shoulder_line is how far the chin is over the line between the shoulder joints: the neck and the jaw together. '
+                       'The waist and the hips are hidden by the table and cannot be measured. No stretch shows an arm from the side, so the arm\'s parts cannot be measured either (arm gives what can be said).',
+                'shoulder_width': posture['shoulder_width_m'], 'chin_to_forehead_top': round(brow - chin, 3), 'chin_to_crown': round((brow - chin) * 1.25, 3), 'chin_over_shoulder_line': round(chin - line, 3),
+                'eyes_over_shoulder_line': round(posture['eyes_over_felt_m'] - posture['shoulders_over_felt_m'], 3), 'waist': None, 'hips': None}
         sh_x = float(np.nanmedian(np.concatenate([cam.wall(st.mid[np.array([inside(x) for x in st.t])], edge + BEHIND_EDGE)[:, 0] for st in stretches])))
         waits = [p for p in pieces['styles'][style]['pieces'] if p['kind'] == 'waiting' and p['clean']]
         combos = {}
@@ -168,7 +184,7 @@ def main():
             share = float(seen @ over / (seen @ seen))               # the point on the camera's ray nearest the mouth's middle, as a share of the way out along the felt
             lifted = round(cam.h * (1 - share), 3)
         result['dealer'][style] = {
-            'sits': True,
+            'docka': DOLLS[style], 'sits': True, 'body': body,
             'trunk': {'how': 'the heights and the width are measured through the camera with the trunk taken ' + f'{BEHIND_EDGE} m behind the felt\'s edge (assumed); behind_edge_estimated is an estimate of that distance from the '
                              'frames where a hand lies still on the felt: the wrist\'s place is then known, and MediaPipe\'s own metres of the body give the step from the wrist to the shoulder. Its depth is the weakest part of it: read it as give or take 0.1 m.',
                       'shoulders_middle': [round(sh_x, 3), posture['shoulders_over_felt_m'], round(-(edge + BEHIND_EDGE), 3)], 'shoulder_width': posture['shoulder_width_m'], 'eyes_over_felt': posture['eyes_over_felt_m'],

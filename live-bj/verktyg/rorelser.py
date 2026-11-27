@@ -14,7 +14,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from monster import Stretch, smooth, runs, stats, sign_at, SWAP   # noqa: E402
-from stil import Camera, NAMES                                    # noqa: E402
+from stil import Camera, NAMES, DOLLS                             # noqa: E402
 
 OWN, PLAYERS = 0.33, 0.36       # metres from the arc's centre: nearer than OWN is in front of the dealer, beyond PLAYERS the players' cards
 STILL = 1.5                     # seconds both hands lie still before it is called waiting
@@ -231,7 +231,7 @@ def main():
             if key == 'waiting':
                 entry['hands_at'] = {k: v for k, v in sorted(((f"L {p['left_at']} | R {p['right_at']}", sum(1 for q in ps if q['left_at'] == p['left_at'] and q['right_at'] == p['right_at'])) for p in ps), key=lambda kv: -kv[1])}
             summary[key] = entry
-        result['styles'][style] = {'measured_seconds': d['seconds'], 'kinds': summary, 'pieces': pieces}
+        result['styles'][style] = {'docka': DOLLS[style], 'measured_seconds': d['seconds'], 'kinds': summary, 'pieces': pieces}
         print(f'{style}: {len(pieces)} pieces;', {k: (v['count'], v['seconds']['median'] if v['seconds'] else None) for k, v in summary.items()})
     with open(os.path.join(data_dir, 'rorelser.json'), 'w', encoding='utf-8') as f:
         json.dump(result, f, separators=(',', ':'))
