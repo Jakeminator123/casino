@@ -175,67 +175,39 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 
 ## Väntar på Jakob
 
-- Proven från natten 2026-11-27 (Granska, Prov; han dömer dem i Prov). Riktningen han gav samma natt, och skärpte på
-  morgonen: den klonade uppsättningen ur filmen av livebordet (`../live-bj/`, `src/table-live.ts`) är den nya
-  standarden och den förra står kvar som ett val; rörelserna kommer från Danilo och Frasse; en persons figur byggs på
-  den docka vars rörelser den ska spela (`../PROJEKTET.md`, Det som är bestämt). Måtten står i `../MATT.md`,
-  rörelseschemat i `../standarddocka/rorelsekatalog.json`.
-  - Dömda: `livebordet-klonat-20261127`, `ansiktsuttryck-20261127` och `danilo-frasse-kroppar-20261127`: Bra.
-    `takt-12-08-20261127`: "bra, men görs väl ännu bättre utifrån videos". `naturlig-giv-20261127` (version n bredvid
-    A): "samma ju", och "konstiga huvudrörelser är inte samma som ansiktsrörelser"; version n putsas inte vidare och
-    tas bort med sitt prov när editorn är ledig. `runway-3d-20261127`: "meshy/vår docka bäst", händerna sämst hos oss.
-    `dealerns-handled-20261127` (handleden rättad ovanpå den påsatta handen): Inte bra, "om vi har leder innan i
-    dockan varför lägga på ett lager till"; svaret är en kropp i ett stycke, se nästa rad.
-  - Inte dömda än: `hander-hunyuan-mot-meshy-20261127` (kroppen i ett stycke med egna händer mot den påsatta handen),
-    `tomasz-ansikte-20261127` (ett ansikte som rör sig på Tomasz), `ansikte-ur-framstalld-film-20261127` (ansiktets
-    former mätta ur en framställd närbild; kort i Beslut), `atta-bilder-20261127` (Kling 4 med sju stillbilder som
-    mellanbilder och ingen film, och med tre; kort i Beslut, `atta-bilder-giv`), `danilo-frasse-rorelser-20261127`
-    och `danilo-frasse-i-editorn-20261127` (de lyfta rörelserna som streckfigur och med kropp; hela sekvensen ligger
-    först), `kortbyte-20261127`, `kling-tider-20261127` och `dockans-ansikte-20261127`.
-  - På väg: `tomasz-gor-danilos-giv-20261127` (Danilos giv som film av Tomasz, från livebordets kamera och en
-    platskamera), `tomasz-pa-danilos-grund-20261127` (Tomasz figur på Danilos skelett) och
-    `studion-i-roten-20261127` (startsidan, menyn, Mått).
-- Standarddockan, hela kortrundan som en person (2026-11-26): han dömde hela provet Inte bra samma kväll (22:28).
-  Mappen med de betalda filmerna står kvar i slaskens `granska/` tills han säger att den får gå. Provet `tomasz-runda-20261126` (Granska, Prov) med kortet
-  `tomasz-runda-plats-4` i Beslut. Dockan gör vilan till skon och första kortet till plats 7 till 1 i en tagning, filmad
-  med grönt överallt; Aleph 2 gör om den till personen; filmen styckas i åtta klipp utan stillhet, och den utskurna
-  dealern läggs på vårt eget bord. Plats 4 är gjord; hans dom i chatten: rörelserna är stela (dockans rörelser, som
-  Aleph kopierar). Därför också Pamelas sätt i samma prov: WAN 3 med en startbild och en slutbild i grönt och utan
-  docka, given till plats 7 och plats 1, lagda på samma bord. Kortet frågar vilket av de två sätten som ska gälla.
-  Ett sista försök samma dag, efter hans förslag (landningsbild, sko med kortbunt, mönstrad kortrygg), rättade vändningen och skon. En kedja av fyra bilder (hans idé om en mellanbild mitt i vändningen) är också prövad för plats 1. Kedjan är också gjord i slow motion med vänsterhanden kvar på skon, efter hans ord. Allt i provet har kostat 1 758 krediter; de sex andra kamerorna är inspelade med dockan men inte beställda.
-  Arbetet sker i `../standarddocka/` (läget och nästa steg i
-  dess README) och visas för honom som prov härifrån; hans ord står som krav i `../standarddocka/DOMAR.md`.
-- Givarna till alla sju platser (provet `givar-sju-platser-20261126`) dömde han "Nja … I övrigt bra!": blicken vid
-  skon är rättad i alla givar. A och B till plats 4 fick "Superbra, 5/5 för båda" och "gärna A och B". Kvar från
-  honom där: sju kort per plats (nästa steg, överst i `../standarddocka/README.md`); de vända kortplatserna nämnde han
-  inte för sig. De tre äldre proven `docka-till-person-…` är besvarade: det första dömt "Mycket bra", om det andra
-  frågade han om kameran (det var den äldre, brantare; den nya serien är filmad med spelets kamera), och om det
-  tredje, nyckelfärgerna, lät han agenten avgöra: de används.
-- Om det som Material behåller utan fil ska kopieras hit från den stationära: hans två bilder av henne, hennes två
-  keystones och kortets textur (`assets/cards/kortets-textur.png`), som en ny beställning ritar kortet med. Allt annat
-  som bara fanns där är borta ur registren sedan 2026-11-26. Talets nästa replik behöver en bank av en tatuerad vila som
-  finns här: `data/speech.json` pekar ännu på `paow-vila-tat-01-01`, som inte gör det.
-- Återskapat här ur Runways leveranser (2026-11-25; Runway behåller en leverans cirka fem dygn, och den hämtas gratis
-  med uppdragets id): ankarna A1 `paow-vila-tatuerad`, A2.1 `paow-nyp-tatuerad`, A2.3 `paow-ankare-2-3-d`, `-c` och
-  `-marke` och stolarnas sex, som rutor ur filmerna, och 37 filmer genom `tools/film-after.ts`: Tatuerad har film
-  på disken för 20 av 36 steg, Tatuerad nyp för alla sina 8. Samma rutor som originalen men inte samma filer:
-  posterna bär de nya filernas sha256, domarna är orörda, och ursprunget står i `assets/motions/<klipp>/generation.json`
-  och ankarnas `receipt.json`.
-- Dockans sparade standarder och Spara som standard är borttagna på hans ord (2026-11-27; de äldre står i Git):
-  dockans reglage prövas bara, och en beställning filmar förvalet. Provet
-  `nyp-plats-1-2-20261126` visar nypet till plats 1 och 2 bredvid hennes filmer (dockan vänder kortet i luften, hon
-  vid platsen).
-- Hans ögon på spelvyn och linsen i Scen (2026-11-26): gruppen Spelvy (Visa Inspelningen, Dator eller Mobil; Spara
-  som spelvy) och Lins under Bord. Spelet utan valt utseende och grundutseendena följer nu spelvyns Dator (9,7°
-  lutning i stället för 8°); Jakob-1 och Profilval 1 har kvar sin egen inramning på dator. På mobil gäller alltid
-  spelvyns Mobil, så Profilval 1:s egen sidvridning syns inte längre där.
-- Korten under Bred lins (steg 9 D2): ska de ritas som filmens egna (dealerns kort 75 × 57 px i stället för 61 × 35)?
-  Han svarar när han har sett en före- och efterbild, gjord som D1:s: headless Chrome mot Casino på dator och mobil, med
-  spelets moduler ur två kopior (före och efter) i slaskens `granska/`, mätt som `tools/scene-measure.ts` mäter.
-- Trädet Tatuerad har ingen egen film för A2.3 → A3P4C2: de godkända tagningarna dit (`…-p4-c2-stol-…`) är stolarnas
-  och spelas inte rakt, så Inspelning och Scen visar den spelet spelar. Han väljer om de ska in.
-- Hans dom på `paow-giv-2-3-d-03-01` och `paow-halkort-05-01` (filmerna finns här), och andelarna för skjut och nyp i
-  Karta.
+- **Hans egen dom på proven från 2026-11-27** (Granska, Prov). Medan han var borta dömde en oberoende domare dem i
+  hans ställe (fältet `domare` i provets `proof.json`, märkt som inte hans); hans dom ersätter domarens.
+  - Domaren Bra: `kartan-over-schemat-20261127` (Karta, Schemat, på datorn och på telefonen),
+    `studion-i-roten-20261127`, `skon-med-liggande-kort-20261127`, `hela-filmen-indelad-20261127` och
+    `ansikte-ur-framstalld-film-20261127`.
+  - Domaren Nja: `tomasz-med-dockans-hander-20261127` (den externa domaren sa Bra) och
+    `tomasz-dockan-pa-hans-matt-20261127` (den externa sa också Nja).
+  - Domaren Inte bra, arbetet pågår: `lyftet-troget-filmen-20261127` (Danilos giv till plats 4 ur filmen). Ingen film
+    beställs förrän domaren har godkänt given.
+  - Domaren Inte bra, ersatta av proven ovan: `danilo-frasse-i-editorn-20261127`, `danilo-frasse-rorelser-20261127`,
+    `meshy-provet-20261127`, `tomasz-pa-danilos-grund-20261127`, `tomasz-ansikte-20261127` och
+    `hander-hunyuan-mot-meshy-20261127`. De raderas på hans ord (Prov eller Biblioteket).
+  - Inte dömda av någon: `biblioteket-20261127`, `scen-ratt-film-20261127` och `livebordet-i-spelet-20261127`.
+  - Dömda av honom: `livebordet-klonat-20261127` och `danilo-frasse-kroppar-20261127` Bra,
+    `dealerns-handled-20261127` Inte bra, `runway-3d-20261127` ("meshy/vår docka bäst", händerna sämst hos oss) och
+    `tomasz-gor-danilos-giv-20261127` Nej (kortet i Beslut).
+- **Korten i Beslut är alla besvarade** (`data/decisions.json`): given görs med bilder ur dockan i Kling 4 (sju bilder
+  var bäst; likheten med dockans film släpps inte helt, A och B var också bra), dockans miner mäts ur framställda
+  närbilder, och Tomasz från två kameror fick Nej. Kortet `atta-bilder-giv` pekar på ett prov som är arkiverat: han
+  säger om kortet ska bort.
+- **Blicken vid skon.** Hans dom 2026-11-26 säger att blicken i ankaret vid skon (A2.3) är på skon. Vid livebordet står
+  skon 63° åt sidan från dealerns huvud, och ingen av de två riktiga dealrarna ser dit: de drar kortet utan att titta.
+  Danilos och Frasses dockor följer de riktiga, och en giv börjar och slutar i samma bild med samma blick som förut.
+  Han säger till om blicken ska vara på skon ändå.
+- **Avaturn-figuren** gör han själv (en agent kan inte skapa kontot): de tre bilderna i
+  `../avatar-auto-pipeline/output/tomasz-avaturn/` laddas upp på avaturn.me, och den hämtade GLB-filen läggs i samma
+  mapp.
+- **Git-historien.** Ett namn och ett användarnamn är borta ur filerna men står kvar i historien: antingen skrivs
+  historien om på hans ord, eller görs repot privat.
+- **Kortspelspaketet.** Dess visare ritar förra standardens bord, som försvinner när livestandarden blir den enda:
+  visaren pekas om, eller paketet arkiveras.
+- **Arkivet** `casino-arkiv-paow-och-forra` ligger bredvid repot (Paows media, register och kod, 2 GB). Inget i repot
+  läser det; han flyttar det dit han vill ha det.
 
 ## Kända brister
 
