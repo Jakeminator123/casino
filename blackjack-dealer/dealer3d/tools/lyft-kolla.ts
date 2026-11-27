@@ -21,6 +21,9 @@
 // SKAKIGHETEN (Jakob 2026-11-27: "han var lite skakig"): i de rutor där punkten i stort är stilla (farten jämnad till 1 Hz
 // under 0,08 m/s) medianen av steget mellan två rutor och av ändringen i steget (andra differensen), i mm, för handlederna,
 // fingertopparna och huvudet, dockans bredvid lyftets; och handledernas toppfart, dockans bredvid lyftets.
+// RYCKEN (spärr): huvudet eller en axel fortare än dubbla dealerns; en handled som byter fart mer än dealerns i samma rutor
+// (8 mm marginal); blicken som vrider sig ryckigt (över 3 grader fartbyte på en ruta); fingertopparna som darrar mer än
+// dealerns. Talen står bredvid dealerns (det råa lyftet).
 // BLICKEN I VILAN: vinkeln mellan blicken och riktningen till livebordets kamera (LIVE_CAMERA) i rutorna där båda händerna
 // vilar (i en väntan alla rutor, i en giv vilan i början och slutet), dockans bredvid lyftets, och hur mycket av den som är
 // uppåt (+) eller nedåt.
@@ -149,6 +152,34 @@ export function kolla(fil: string) {
     'höger fingertoppar': {dockan: skak(dockan.map(x => tipp(x.R.p)!)), lyftet: skak(fylld(L.map(y => tipp(y.R.p))))}, 'vänster fingertoppar': {dockan: skak(dockan.map(x => tipp(x.L.p)!)), lyftet: skak(fylld(L.map(y => tipp(y.L.p))))},
     'huvudet': {dockan: skak(dockan.map(x => x.h)), lyftet: skak(fylld(L.map(y => y.h)))},
     toppfart: {höger: {dockan: topp(f.map(x => x.R.w)), lyftet: topp(L.map(y => y.R.w))}, vänster: {dockan: topp(f.map(x => x.L.w)), lyftet: topp(L.map(y => y.L.w))}}};
+  // RYCKEN (Jakob 2026-11-27: "Små olika typer av 'ryck' som vi fick när vår docka nitiskt följde livedealern ... i
+  // huvud var det framförallt. Men jag vet att det har skett kring handen också"): per punkt farten per ruta (mm), fartbytet
+  // (ändringen i fart mellan två rutor, som vektor) och darret (rms mot ett glidande medel över fem rutor), dockans bredvid
+  // det råa lyftets. Spärr: huvudet eller en axel fortare än dubbla dealerns (största farten, plus 1 mm); en handled vars
+  // fartbyte i en ruta där handen är lyftets är mer än 8 mm större än lyftets eget i rutorna omkring (två åt var sida);
+  // blicken som vrider sig ryckigt (vinkelns fartbyte över 3 grader på en ruta); fingertopparna mot handleden som darrar
+  // mer än lyftets.
+  const serie = (v: (Vec3 | null)[]) => { const fart: number[] = [], byte: number[] = [], darr: number[] = [];
+    for (let t = 1; t < v.length; t++) { const a = v[t - 1], b = v[t]; fart.push(a && b ? length(sub(b, a)) : NaN); }
+    for (let t = 2; t < v.length; t++) { const a = v[t - 2], b = v[t - 1], c = v[t]; byte.push(a && b && c ? length(sub(add3(c, a), mul2(b))) : NaN); }
+    for (let t = 2; t < v.length - 2; t++) { const w = v.slice(t - 2, t + 3); if (w.every(Boolean)) { const m = [0, 1, 2].map(k => w.reduce((s, p) => s + p![k], 0) / 5) as Vec3; darr.push(length(sub(v[t]!, m)) ** 2); } }
+    const mest = (x: number[]) => Math.max(...x.filter(Number.isFinite)); return {fart, byte, mestFart: mest(fart), mestByte: mest(byte), darr: Math.sqrt(darr.reduce((s, x) => s + x, 0) / (darr.length || 1))}; };
+  const mm1v = (x: number) => Math.round(x * 10000) / 10;
+  const ryck: Record<string, {dockan: {mestFart: number; mestByte: number; darr: number}; lyftet: {mestFart: number; mestByte: number; darr: number}}> = {};
+  const jamfor = (namn: string, d: (Vec3 | null)[], l: (Vec3 | null)[]) => { const a = serie(d), b = serie(l); ryck[namn] = {dockan: {mestFart: mm1v(a.mestFart), mestByte: mm1v(a.mestByte), darr: mm1v(a.darr)}, lyftet: {mestFart: mm1v(b.mestFart), mestByte: mm1v(b.mestByte), darr: mm1v(b.darr)}}; return {a, b}; };
+  for (const [namn, d, l] of [['huvudet', f.map(x => x.h), L.map(y => y.h)], ['höger axel', f.map(x => x.R.s), L.map(y => y.R.s)], ['vänster axel', f.map(x => x.L.s), L.map(y => y.L.s)]] as [string, Vec3[], (Vec3 | null)[]][]) {
+    const {a, b} = jamfor(namn, d, l); if (a.mestFart > 2 * b.mestFart + 0.001) not(`${namn} rör sig mer än dealerns`, a.mestFart, `${mm1v(a.mestFart)} mm på en ruta (dealern högst ${mm1v(b.mestFart)})`, a.fart.indexOf(a.mestFart) + 1); }
+  for (const [s, namn] of [['R', 'höger'], ['L', 'vänster']] as const) {
+    const {a, b} = jamfor(`${namn} handled`, f.map(x => x[s].w), L.map(y => y[s].w)), kod = m.made.hand?.[s] ?? 'l'.repeat(n);
+    a.byte.forEach((x, i) => { const t = i + 1; if (!'lka'.includes(kod[t] ?? 'v') || !Number.isFinite(x)) return; const ref = Math.max(...b.byte.slice(Math.max(0, i - 2), i + 3).filter(Number.isFinite), 0);
+      if (x > ref + 0.008) not(`${namn} handled rycker mer än dealerns`, x - ref, `fartbytet ${mm1v(x)} mm mot dealerns ${mm1v(ref)}`, t); });
+    const tipp = (p: Vec3[] | null, w: Vec3) => p ? sub(p[8], w) : null, {a: ta, b: tb} = jamfor(`${namn} pekfingertopp mot handleden`, f.map(x => tipp(x[s].p, x[s].w)), L.map(y => tipp(y[s].p, y[s].w)));
+    if (ta.darr > tb.darr) not(`${namn} pekfingertopp darrar mer än dealerns`, ta.darr, `${mm1v(ta.darr)} mm rms mot dealerns ${mm1v(tb.darr)}`, 0); }
+  { const rikt = (x: {h: Vec3 | null; g: Vec3 | null}) => x.h && x.g ? unit(sub(x.g, x.h)) : null, d = f.map(rikt), vinkel = (p: Vec3, q: Vec3) => grader(dot(p, q));
+    const steg = d.map((x, t) => t && x && d[t - 1] ? vinkel(x, d[t - 1]!) : NaN), byte = steg.map((x, t) => t > 1 ? Math.abs(x - steg[t - 1]) : NaN), mest = Math.max(...byte.filter(Number.isFinite));
+    const lr = L.map(y => rikt(y)), ls = lr.map((x, t) => t && x && lr[t - 1] ? vinkel(x, lr[t - 1]!) : NaN);
+    ryck.blicken = {dockan: {mestFart: Math.round(Math.max(...steg.filter(Number.isFinite)) * 10) / 10, mestByte: Math.round(mest * 10) / 10, darr: NaN}, lyftet: {mestFart: Math.round(Math.max(...ls.filter(Number.isFinite)) * 10) / 10, mestByte: NaN, darr: NaN}};
+    if (mest > 3) not('blicken vrider sig ryckigt', mest, `${Math.round(mest * 10) / 10}° fartbyte på en ruta`, byte.indexOf(mest)); }
   // blicken i vilan: mot livebordets kamera där båda händerna vilar
   // (i en väntan de rutor där lyftet säger att dealern ser in i kameran, fältet blick; finns det inte, alla)
   const kamera: Vec3 = [0, LIVE_CAMERA.height, 0], blickF = (t: number) => (L[t] as {blick?: string} | undefined)?.blick, harBlick = L.some((_, t) => blickF(t) !== undefined);
@@ -172,7 +203,7 @@ export function kolla(fil: string) {
   const fynd = [...samla].map(([vad, s]) => ({vad, rutor: s.rutor, varst: s.text, vid: s.vid}));
   const sparrar = fynd.filter(x => !/fingrar i varandra/.test(x.vad));
   const armIBalenMest = Object.fromEntries((['R', 'L'] as const).map(s => [s === 'R' ? 'höger' : 'vänster', mm(Math.max(...f.map(x => armIBalen(x, m.hip, s, doll))))]));
-  return {fil: path.basename(fil), docka: m.doll, rutor: n, sekunder: Math.round(n / FPS * 100) / 100, lyftetsSekunder: Math.round(L.length / FPS * 100) / 100, landning, fynd, sparrar, handMotLyftet, armIBalenMest, skakighet, blicken, motLyftet, farten};
+  return {fil: path.basename(fil), docka: m.doll, rutor: n, sekunder: Math.round(n / FPS * 100) / 100, lyftetsSekunder: Math.round(L.length / FPS * 100) / 100, landning, fynd, sparrar, handMotLyftet, armIBalenMest, skakighet, ryck, blicken, motLyftet, farten};
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -191,6 +222,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     console.log(`  arm in i bålen som mest (mm): höger ${r.armIBalenMest.höger}, vänster ${r.armIBalenMest.vänster}`);
     const sk = r.skakighet as Record<string, {dockan: {steg: number; andra: number; stilla: number}; lyftet: {steg: number; andra: number}}> & {toppfart: Record<string, {dockan: number; lyftet: number}>};
     console.log(`  skakighet i stillheten (mm steg/ändring, dockan mot lyftet): ${Object.entries(sk).filter(([k]) => k !== 'toppfart').map(([k, v]) => `${k} ${v.dockan.steg}/${v.dockan.andra} mot ${v.lyftet.steg}/${v.lyftet.andra} (${v.dockan.stilla} rutor)`).join('; ')}; toppfart (m/s) höger ${sk.toppfart.höger.dockan} mot ${sk.toppfart.höger.lyftet}, vänster ${sk.toppfart.vänster.dockan} mot ${sk.toppfart.vänster.lyftet}`);
+    console.log(`  ryck (dockan mot dealern: största fart per ruta / största fartbyte / darr rms, mm; blicken grader): ${Object.entries(r.ryck).map(([k, v]) => `${k} ${v.dockan.mestFart}/${v.dockan.mestByte}/${v.dockan.darr} mot ${v.lyftet.mestFart}/${v.lyftet.mestByte}/${v.lyftet.darr}`).join('; ')}`);
     const bl = (x: {rutor: number; grader: number; upp: number} | null) => x ? `${x.grader}° (${x.upp >= 0 ? '+' : ''}${x.upp}° upp, ${x.rutor} rutor)` : '–';
     console.log(`  blicken i vilan mot kameran: dockan ${bl(r.blicken.dockan)}, lyftet ${bl(r.blicken.lyftet)}, ankaret ${bl(r.blicken.ankaret)}`);
     console.log(`  mot lyftet i rörelsen, rutorna ${r.motLyftet.rutor.join('–')} (median mm sidled/höjd/djup, bildpunkter): ${r.motLyftet.rorelsen.map(l => `${l.led} ${l.x}/${l.y}/${l.z} (${l.bild} px)`).join('; ')}`);
