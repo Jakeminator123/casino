@@ -55,8 +55,8 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
 - **Git sköter agenten.** Jakob använder inte Git. Spara filerna, och när arbetet är kontrollerat: committa dina egna
   filer med ett kort meddelande om vad och varför, och pusha till `main`. Ingen force-push och ingen `--no-verify`.
 - **Kontrollen före push** (`.githooks/pre-push`, installeras en gång per utcheckning med
-  `node .githooks/check.ts --install`) stoppar hemligheter, `.env`-filer, media och filer över 5 MB, och kör testerna i
-  de projekt som har ändrats. `node .githooks/check.ts` kör samma kontroll i förväg. Är den röd rättas orsaken.
+  `node .githooks/check.ts --install`) stoppar hemligheter, `.env`-filer, media, filer över 5 MB och sökvägar till en viss dator, och kör testerna i
+  de projekt som har ändrats. `node .githooks/check.ts` kör samma kontroll i förväg, och med `--alla` över varje fil Git har. Är den röd rättas orsaken.
 - **Tester** skrivs bara för det som ska bestå: publiceringsskyddet, spelets regler, hans domar, beställningarna och
   kontrakten. Ett rött test som inte skyddar något av det är ett gammalt test och tas bort; säg vilket i svaret.
 - **Städa i samma steg.** Ta bort det ändringen gjorde överflödigt (kod som inget anropar, ersatta filer, egna
@@ -65,12 +65,23 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
   projektets `AGENTS.md`, kartan och körningen i projektets README, läget i `STATUS.md` där det finns.
 - **Inget gammalt lagras** (Jakob 2026-11-27: "så inte skit lagras"). Ett verktyg lägger aldrig undan en äldre version,
   en kopia eller en lista över det som är borta i en mapp som Git har: historien står i Git. Ett register pekar bara
-  på det som finns; tas en fil bort tas raden om den bort i samma steg.
-- **Höger och vänster är dealerns egna** (Jakob 2026-11-27: "det är viktigt vad som är vad"). I kod, data, filnamn
-  och dokument betyder höger och vänster (R och L, Right och Left i skelettet) alltid dealerns egen höger och vänster;
-  dealerns höger är till vänster i bilden. Det som räknas från den som tittar skrivs ut: "i bilden", "bildens vänster".
-  Platserna 1–7 räknas från bildens vänster, alltså från dealerns höger. En fil som visar en sida heter efter vad den
-  visar (handrygg, handflata), inte efter ett verktygs egna ord som front och back.
+  på det som finns; tas en fil bort tas raden om den bort i samma steg. Undantaget är hans domar: domen om en film som
+  är borttagen står kvar i `blackjack-dealer/data/motions-removed.jsonl`, eftersom domarna är hans.
+- **Riktningar räknas från dealerns kropp, inte från kameran** (Jakob 2026-11-27: "det är viktigt vad som är vad";
+  "jag omnämner ofta höger och vänster utifrån dealerns egna kropp ... så att dealerns vänsterhand är närmast skon"). I
+  kod, data, filnamn och dokument är höger och vänster (R och L, Right och Left i skelettet) alltid dealerns egna: skon
+  står vid hans vänster, och i bilden från spelarnas sida är hans vänster till höger. Det som räknas från den som tittar
+  skrivs ut: "i bilden", "bildens vänster". Fram är från dealern mot spelarna, bak mot hans rygg, upp och ned från
+  filten (i koden +x dealerns vänster, +y upp, +z fram). Handens sidor heter handrygg och handflata. Kortet har en
+  framsida och en rygg, två långkanter och två kortkanter, och det ligger plant eller står på högkant (Jakob: "högkant
+  och långkant kan bli begrepp om korten också"). En fil heter efter vad den visar, inte efter ett verktygs egna ord
+  som front och back.
+- **Platserna: 0 är dealern, 1 är närmast skon** (Jakob 2026-11-27: "Till vänster om dealern är ju egentligen seat 1",
+  "spelare 0 är dealer"). Plats 0 är dealern (D i koden), plats 1–7 spelarna: plats 1 vid dealerns vänster närmast
+  skon, sedan medurs sett uppifrån till plats 7 vid hans höger. Given går 1 till 7 och sist dealern. **Bytet är
+  beslutat men inte gjort:** i kod, data och filnamn räknas platserna ännu från bildens vänster (dagens plats 7 är
+  närmast skon) tills allt byts i ett steg. Skriv till dess "dagens plats n" eller "nya plats n", aldrig bara ett
+  nummer, när platsen inte är 4.
 - **Ingen viss dator.** Repot ska gå att klona till valfri mapp: ingen kod eller text pekar på en användare eller en
   disk. Media följer inte med Git, så det som bara finns på en dator får inte vara något koden kräver.
 
@@ -108,9 +119,13 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
 
 ## Sökningen
 
-`.gitignore` och `.ignore` i roten är de enda ignore-filerna. `.ignore` döljer för sökningen det Git har men ingen
+`.gitignore` och `.ignore` i roten är de enda ignore-filerna för sökningen. `.ignore` döljer för sökningen det Git har men ingen
 sökning ska vada igenom (maskindata, rörelsernas rutor, filmregistret). En tom sökträff betyder därför inte att filen
 saknas: läs den med sin sökväg. En ny mapp med maskindata eller stora filer läggs in där i samma steg.
+
+Vad en agent inte får läsa alls står för sig, lika i `.claude/settings.json` (Claude Code) och `.cursorignore` (Cursor):
+nycklarna, hans foton i `private/`, modeller och andra binärer, och filmen av livebordet. Egna filmer får flyttas dit de
+ska visas; en film under `live-bj/` flyttas och kopieras aldrig. Inställningen i `.claude/` ändrar bara Jakob själv.
 
 ## Flera chattar och underagenter
 

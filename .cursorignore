@@ -1,5 +1,13 @@
+# Det en agent i Cursor inte får läsa alls (sökningen styrs av .gitignore och .ignore). Samma sak står för Claude Code
+# i .claude/settings.json: håll de två lika.
+# Nycklar och Jakobs egna foton
+.env*
 *.pem
 private/
+# Filmen av det riktiga livebordet lämnar aldrig sin mapp (rutorna ur den får ses på datorn, inte filmerna flyttas)
+live-bj/**/*.mp4
+live-bj/**/*.mov
+live-bj/**/*.webm
 # 3D-binärer som ingen agent kan läsa
 *.glb
 *.fbx

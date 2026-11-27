@@ -46,6 +46,10 @@ package-lock.json
 # (live-bj/data/stil-*.json) stay searchable
 /live-bj/data/monster.json
 /live-bj/data/segment.json
+# live-bj: the motions lifted out of the film (numbers per frame, up to 0.4 MB each) and the depth samples they rest on;
+# read by path, for example live-bj/data/lyft/kameran-mitten-plats-4.json
+/live-bj/data/lyft/
+/live-bj/data/sam-prov/
 
 # standarddocka: the motions' frames (numbers per frame, about 0.6 MB each), kept in Git and read by path, for example
 # standarddocka/rorelser/a1-a23-p4c1.rutor.json

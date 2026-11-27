@@ -43,6 +43,10 @@ en skill i `../.claude/skills/`: `ny-dealer`, `bestalla-film`, `granska-film`, `
 - **Filmerna först** (2026-11-17): "filmerna är det vi först måste få rätt".
 - **Vanlig svenska i studion** (2026-11-25): filnamn och verktygsnamn visas inte för honom. Orden för studions delar
   står i dess Ordlista (`studio/lib/words.ts`).
+- **Studion visar, den förklarar inte** (2026-11-27): "Se till att inte så fruktansvärt mycket text och skit finns i
+  studion som läggs in av oklara anledningar", "den är så ful". En sida leder med saken själv: bilden, filmen, dockan,
+  kartan. En rubrik och högst en rad under; en ruta har ett namn och ett tal eller ett läge, ingen beskrivning.
+  Förklaringar står i Ordlistan. Ingen lägger löpande text på en sida för att beskriva sin egen funktion.
 - **Städa hårt** (2026-11-17, 2026-11-25): "det mesta som inte används ska raderas", "Var inte konservativ".
 
 ## Arbeta här

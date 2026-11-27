@@ -85,13 +85,59 @@ av Tomasz görs för Tomasz.
 - **Rörelserna ska komma från verkligheten där det går.** Att finputsa en ritad giv gav en skillnad som syntes i talen
   men inte för ögat (provet `naturlig-giv-20261127`). Därför klonas ett riktigt livebord och två riktiga dealrars
   rörelser. Det som klonas är mått och rörelse, aldrig en verklig persons utseende.
-- **Den klonade uppsättningen är den nya standarden** (Jakob 2026-11-27: "jag skulle vilja helt övergå till det som är
-  klonat totalt"): livebordets kamera, bord, sko, kort och kortplatser, som de är mätta ur filmen
-  (`blackjack-dealer/src/table-live.ts`), gäller för all inspelning, beställning och visning, också i spelet. Den förra
-  standarden står kvar som ett val, och uppsättningen ska gå att välja i studions menyer.
+- **Livestandarden är den enda standarden** (Jakob 2026-11-27: "jag skulle vilja helt övergå till det som är klonat
+  totalt", "det är nu vi ska sätta en standard på riktigt"): livebordets kamera, bord, sko, kort och kortplatser, som
+  de är mätta ur filmen (`blackjack-dealer/src/table-live.ts`), gäller för all inspelning, beställning och visning,
+  också i spelet. Den förra standarden och den äldre dealern Paow tas ur projektet: hennes material arkiveras utanför
+  repot ("vi arkiverar till skrivbordet"), och de ritade givarnas kod behålls och riktas mot livebordet. Beslutat
+  2026-11-27; tills det är gjort finns den förra standarden kvar som ett val i menyn.
+- **Platser och riktningar har en standard** (Jakob 2026-11-27): plats 0 är dealern, plats 1 den närmast skon vid hans
+  vänster, sedan runt till plats 7. Höger och vänster är dealerns egna. Regeln står i `AGENTS.md`.
 - **En persons figur byggs på den docka vars rörelser den ska spela** (Jakob 2026-11-27): rörelserna kommer från
   Danilo och Frasse, och deras dockor är grunden för personens.
 - **Jakob dömer med ögat.** Kontrollerna säger var det är värt att titta; de avgör inte om något är bra.
+
+## Dit vi går
+
+Målbilden för hur projektet ska vara ordnat, skriven 2026-11-27 efter Jakobs fråga ("kanske kan vissa funktioner slås
+ihop eller övertas av andra?"). Den säger riktningen; det som är gjort står i mapparnas README och i Git.
+
+**En av varje.**
+
+| I dag | Dit vi går |
+| --- | --- |
+| Två standarder för bord och kamera, valda i menyn | En: Livestandarden. Inget val. |
+| Platserna räknade från bildens vänster | Plats 0 är dealern, plats 1 närmast skon; riktningar från dealerns kropp. |
+| En äldre dealer med egna filmer, träd, register och beställningssätt | Arkiverad utanför repot. Personerna framåt är de framställda (Tomasz och de andra). |
+| Tre ställen där något väntar på hans dom (Granska, Beslut, mappar i slasken) | Ett: provet, med sina original i samma mapp. Biblioteket, Granska och Beslut läser samma svar på frågan om han har sagt sitt. |
+| Tre sätt att radera (hans klick, gallringen med papperskorg, slaskens städning) | Ett verktyg, för hans klick och en agents kommando, som säger följden först. |
+| Flera register som pekar på filmer och bilder | Ett filmregister: vilken rörelse, vilken kamera, vilken person, hans dom. |
+| Kartan som ett handskrivet träd per dealer | Schemat (ankare, rörelser, stadier) är kartan; filmerna hängs på schemats rörelser. |
+| Dockan visad av tre program (editorn, Filmverkstadens inspelning, kortpaketets visare) | Editorn visar dockan överallt. |
+| Studion förklarar sig i text på varje sida | Studion visar saken: bild, film, docka, karta. Orden står i Ordlistan. |
+
+**Verkstäderna.** Dockans värld ligger i dag i tre projekt: kroppen byggs i `avatar-auto-pipeline/scen/`, rörelserna
+ritas och lyfts i `blackjack-dealer/dealer3d/`, och editorn och schemat ligger i `standarddocka/`. Målet är fyra
+verkstäder och ett spel, var och en med en uppgift:
+
+| Verkstad | Uppgift | Tar över från |
+| --- | --- | --- |
+| Mätningen | mäta det riktiga bordet och de riktiga dealrarna | `live-bj/` |
+| Dockan | kroppen, rörelserna, schemat och editorn | `standarddocka/`, `blackjack-dealer/dealer3d/`, `avatar-auto-pipeline/scen/` |
+| Personen | från bilder till en figur och ett utseende | resten av `avatar-auto-pipeline/` |
+| Filmen | beställa, hämta, granska och bokföra | beställnings- och granskningsverktygen i `blackjack-dealer/tools/` |
+| Spelet och studion | reglerna, bordet i 3D och ingången till allt | `blackjack-dealer/` |
+
+En mapp flyttas inte förrän dess innehåll är rensat: en flytt ändrar varje sökväg i kod, skills och dokument, och görs
+en verkstad i taget när inget annat arbete pågår i den.
+
+**Ordningen.**
+
+1. Den äldre dealern arkiveras och den förra standarden tas bort; verktygen som bara fanns för dem går med.
+2. Platserna numreras om i det som är kvar, i ett steg.
+3. Studion görs om för en standard: färre sidor och mindre text.
+4. Det som är dubbelt slås ihop enligt tabellen.
+5. Mapparna ordnas efter verkstäderna.
 
 ## Vad proven har visat hittills
 
