@@ -100,6 +100,14 @@
    "sa": "Hunyuan-kroppen fick Tomasz Meshy-huvud, Tomasz-dockans skelett och en egen fingerrigg (steg 10, gratis): fingrarna böjer sig nu in mot handflatan. I rörelse vann Hunyuan handleden (ingen skarv, ingen krage) och den knutna handen, och vid bordet i spelets vy, där Meshy-dockans manschetter blir mörka krås; Meshy-dockan vann detaljerna på nära håll (naglar, knogar, ådror) och nypet.",
    "jakobs_ord": null
   },
+  "tomasz-ansikte-20261127": {
+   "namn": "Ett ansikte som rör sig på Tomasz Meshy-huvud",
+   "slag": "prov",
+   "datum": "2026-11-27",
+   "var": ["../blackjack-dealer/assets/proofs/tomasz-ansikte-20261127/", "assets/docka/standarddocka_tomasz_ansikte.glb"],
+   "sa": "Standarddockans 30 ansiktsformer fördes över till Tomasz Meshy-huvud (steg 09, gratis): han blinkar, sänker locken, flyttar blicken, ler, lyfter och sänker brynen och öppnar munnen, och likheten i vila står kvar. Ögonen är en glob per öga på nya ögonleder med hans egen målade iris, och munnen är uppskuren med en mörk munhåla. Inga tänder, och käkleden rör hakan svagt.",
+   "jakobs_ord": null
+  },
   "givar-sju-platser-20261126": {
    "namn": "Standarddockans giv till alla sju platser",
    "slag": "prov",
@@ -527,15 +535,14 @@
     {
      "id": "former-pa-framstallt-huvud",
      "namn": "Standarddockans former förda över till ett framställt huvud",
-     "status": "tankt",
-     "kraver": ["ett framställt huvud (Meshy eller Runway)", "standarddockans former"],
-     "ger": ["oklart: huvudet har ingen mun som öppnas och inga ögonlock, så formerna har inget att flytta"],
-     "gors_av": {"steg": null, "skript": [], "text": "inget skript"},
+     "status": "provat",
+     "kraver": ["en färdig dealer med ett framställt huvud (Meshy), med stängd mun och öppna ögon", "standarddockans huvud med sina 30 former", "ansiktets punkter i båda huvudena (MediaPipe-miljön i ../blackjack-dealer/tools/python/)"],
+     "ger": ["30 ansiktsformer med standarddockans namn på personens eget huvud: blinkning, lock, bryn, leende och öppen mun", "en glob per öga på nya ögonleder (eye.L, eye.R) med personens egen målade iris, och käkleden jaw", "munnen uppskuren med en mörk munhåla bakom; inga tänder och ingen tunga", "likheten i vila står kvar: huvudets form, UV och texturer är personens"],
+     "gors_av": {"steg": null, "skript": ["steg/09-ansikte/ansikte.py", "steg/09-ansikte/punkter.py"], "text": "körs för hand på en färdig dealer-GLB; hur formerna förs över står i skriptets huvud"},
      "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
-     "tid": {"sekunder": null, "text": "okänd"},
-     "provet": null,
-     "hinder": "Inte prövat. Formerna behöver något att flytta: en mun som kan öppnas och ögonlock, som ett framställt huvud inte har (regeln om uttryck).",
-     "belagt": {"kraver": "bedomning", "ger": "bedomning", "gors_av": "kod", "kostnad": "bedomning", "tid": "bedomning", "status": "kod", "hinder": "bedomning"}
+     "tid": {"sekunder": null, "text": "några minuter i Blender"},
+     "provet": {"id": "tomasz-ansikte-20261127", "sa": "Tomasz blinkar, sänker locken, flyttar blicken, ler, lyfter brynen och öppnar munnen, och ser ut som förut i vila; leendet syns i spelets vy. Byggt på dockan utan den rättade handleden."},
+     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "bedomning", "status": "prov"}
     }
    ]
   },
@@ -1096,9 +1103,9 @@
    "typ": "villkor",
    "princip": true,
    "om": ["huvud/meshy-huvud", "huvud/kroppens-eget-huvud", "huvud/mpfb-huvud", "huvud/mpfb-format-efter-person"],
-   "villkor": "Samma princip som för händerna, men här finns inget att behålla: ett framställt huvud (Meshy, Runway) är en yta utan rörliga delar. Ansiktsuttryck kräver ansiktsformer eller en ansiktsrigg, och de finns bara på standarddockans huvud. Att forma hennes huvud efter personens ansikte (MediaPipe ger 478 punkter i ett ansikte) är tänkt och inte prövat.",
+   "villkor": "Samma princip som för händerna, men här finns inget att behålla: ett framställt huvud (Meshy, Runway) är en yta utan rörliga delar. Ansiktsuttryck kräver ansiktsformer eller en ansiktsrigg. Standarddockans huvud har dem från bygget; ett framställt huvud får dem först när standarddockans former förs över (steg 09, prövat på Tomasz 2026-11-27), och då skärs munnen upp och ögonen byts mot globar. Att forma standarddockans huvud efter personens ansikte (MediaPipe ger 478 punkter i ett ansikte) är tänkt och inte prövat.",
    "prova": "Modellen har ansiktsformer (morph targets) och ögonben: spelet läser dem när de finns (figure-model.ts, about.faceShapes).",
-   "i_dag": "Version 1 har inga (Tomasz: inga former, inga ögonleder, ingen käke); standarddockan har 30 former, käken och ögonen.",
+   "i_dag": "Version 1 har inga (Tomasz: inga former, inga ögonleder, ingen käke); standarddockan har 30 former, käken och ögonen. Tomasz med steg 09 (på prov, körs för hand) har 30 former, ögonleder och käke.",
    "varfor": "Ett framställt huvud är en enda yta med textur: munnen är stängd i bilden det görs ur (steg 1 ber om en stängd mun) och ögonen är en del av ytan, så det finns inget som öppnas eller blinkar.",
    "belagt": {"villkor": "jakob", "prova": "kod", "i_dag": "korning", "varfor": "kod"},
    "kalla": "Jakob 2026-11-27: \"Men kanske också med ansikte om tillräckligt många datapunkter/leder finns (osäker)\""
@@ -1119,7 +1126,7 @@
    "om": ["huvud/meshy-huvud", "huvud/kroppens-eget-huvud"],
    "utesluter": ["ansiktsrigg/mpfb-ansikte"],
    "styrka": "maste",
-   "varfor": "Ett framställt huvud har inga rörliga delar att sätta formerna på (regeln om uttryck).",
+   "varfor": "MPFB:s former byggs i standarddockans eget bygge och hör till dess huvud. Ett framställt huvud har inga rörliga delar; dit förs formerna över med steg 09 (ansiktsrigg/former-pa-framstallt-huvud).",
    "belagt": {"varfor": "kod"},
    "kalla": "scen/bygg_docka.py; output/tomasz/06-dealer-export/tomasz-dealer-apose.json"
   },

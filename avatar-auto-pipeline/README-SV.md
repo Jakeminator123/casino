@@ -36,7 +36,7 @@ avatar-auto-pipeline/
   STARTA avatar.cmd          en dealer från foton: enklaste sättet att starta
   Auto avatar.cmd            dra foton till den här filen
   starta_avatar.ps1, auto_avatar.py   styr stegen
-  steg/01-referenser … 08-film       ett skript per steg
+  steg/01-referenser … 08-film       ett skript per steg; 09-ansikte ger en färdig dealer ett rörligt ansikte (prov)
   steg/10-kropp-i-ett-stycke/        en kropp ur Runway med egna händer blir en docka, gratis (prov, körs för hand)
   metod/                     grundfunktioner för mesh och GLB
   input/<namn>/              dina foton
@@ -136,6 +136,15 @@ Slutfilerna ligger i `output/<namn>/`:
 | `08-film\<namn>-ror-sig.mp4` | Rörelsefilmen, när den har renderats klart. |
 
 Dealern från foton i dag är Tomasz (2026-11-26, steg 1–7 utan film) i `output/tomasz/`; hans dealer-GLB och kontrollblad väntar på Jakobs dom i `../slask/avatar-auto-pipeline/granska/tomasz/`.
+
+Ett ansikte som rör sig (steg 09, på prov sedan 2026-11-27, gratis och lokalt): en färdig dealer-GLB får standarddockans
+30 ansiktsformer med samma namn, ögonleder (`eye.L`, `eye.R`) med en glob per öga som visar hans egen målade ögonyta, och
+käkleden `jaw`; hans huvud, UV och texturer står kvar, och munnen skärs upp med en mörk munhåla bakom. Hur det görs står
+i skriptets huvud. Kräver MediaPipe-miljön i `../blackjack-dealer/tools/python/.venv` (ansiktets punkter):
+
+```text
+blender -b --factory-startup --python-exit-code 1 --python steg/09-ansikte/ansikte.py -- assets/docka/standarddocka_tomasz.glb assets/docka/standarddocka_tomasz_ansikte.glb
+```
 
 En kropp i ett stycke ur Runway (steg 10, på prov sedan 2026-11-27, gratis och lokalt): Hunyuan-kroppen får personens
 Meshy-huvud och sina egna händer, lånar skelettet av en färdig dealer och exporteras med steg 6. Huvudet och skelettet
