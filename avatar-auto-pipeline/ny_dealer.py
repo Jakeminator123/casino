@@ -259,7 +259,7 @@ def kortets_lage(ruta, kamera):
     handen som håller det, och var pekfingrets topp är på kortet sett i bilden. Rörelsens card: mitten c, långsidan l,
     framsidans normal n; filten är y = 0; händernas 21 punkter p (4 tummens topp, 8 pekfingrets, 0 handleden, 5 och 17
     knogarna); bildens höger är +x och bildens överkant bort från kameran (-z)."""
-    B, H = 0.063, 0.088   # kortet (src/table-lens.ts CARD)
+    B, H = 0.063, 0.088   # kortet (src/space.ts CARD)
     kort = ruta['card']
     c, l, nn = kort['c'], kort['l'], kort['n']
     dot = lambda p, q: sum(x * y for x, y in zip(p, q))

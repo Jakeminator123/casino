@@ -323,54 +323,6 @@ def states_map(seg, scene, path):
     plt.close(fig)
 
 
-def koreo(repo):
-    """The drawn deal's own numbers, read from the code (koreo-giv.ts, KOREO), so that they have one source."""
-    text = open(os.path.join(repo, 'blackjack-dealer', 'dealer3d', 'src', 'koreo-giv.ts'), encoding='utf-8').read()
-    body = text[text.index('export const KOREO = {'):]
-    body = body[:body.index('};')]
-    num = lambda k: float(re.search(rf'\b{k}: *(-?[\d.]+)', body).group(1))
-    mote = re.search(r'mote: *\{x: *([\d.]+), *z: *([\d.]+)\}', body)
-    fps = 30
-    return {'framme': num('framme') / fps, 'nyp': num('nyp') / fps, 'slapper': num('vansterSlapper') / fps, 'vansterHemma': num('vansterHemma') / fps, 'ligger': num('ligger') / fps,
-            'hemma': num('hemma') / fps, 'vilar': num('vilar') / fps, 'hogerFran': num('hogerFran') / fps, 'mote_x': float(mote.group(1)), 'mote_z': float(mote.group(2)),
-            'lyft': num('lyft'), 'rest': num('rest'), 'ovanfor': num('ovanfor')}
-
-
-def drawn_table(seg, k, path):
-    """The film's numbers for a card given with the handover, beside the drawn deal's."""
-    deal = lambda dl: seg['dealrar'][dl]['for_ritade_rorelser']['giv_med_handbyte']
-    def cell(dl, key, scale=1.0, unit='s'):
-        x = deal(dl).get(key)
-        d = 0 if unit == 'cm' else 2
-        return '–' if not x else f"{sv(x['median'] * scale, d)} {unit} (oftast {sv(x['p10'] * scale, d)}–{sv(x['p90'] * scale, d)})"
-    def hcell(dl, key):
-        x = deal(dl)['hojd'].get(key)
-        return '–' if not x else f"{sv(x['median'] * 100, 1)} cm"
-    rows = [
-        ['från att vänstern lämnar skon tills händerna möts', cell('A', 'skon_till_bytet_s'), cell('B', 'skon_till_bytet_s'), f"{sv(k['framme'])} s, högern griper {sv(k['nyp'])} s"],
-        ['hur länge händerna håller kortet samtidigt', cell('A', 'bytet_s'), cell('B', 'bytet_s'), f"{sv(k['slapper'] - k['framme'])} s"],
-        ['från mötet tills kortet ligger på platsen', cell('A', 'bytet_till_platsen_s'), cell('B', 'bytet_till_platsen_s'), f"{sv(k['ligger'] - k['nyp'])} s"],
-        ['hela kortet, från skon till platsen', cell('A', 'hela_s'), cell('B', 'hela_s'), f"{sv(k['ligger'])} s (Jakobs takt)"],
-        ['vänstern tillbaka till skon efter mötet', cell('A', 'vanstern_tillbaka_efter_bytet_s'), cell('B', 'vanstern_tillbaka_efter_bytet_s'), f"{sv(k['vansterHemma'] - k['slapper'])} s"],
-        ['högern hem efter kortet, när den går hem', cell('A', 'hem_s'), cell('B', 'hem_s'), f"{sv(k['hemma'] - k['ligger'])} s, varje gång"],
-        ['vänsterns nästa grepp, räknat från att kortet ligger', cell('A', 'vansterns_nasta_grepp_efter_kortet_ligger_s'), cell('B', 'vansterns_nasta_grepp_efter_kortet_ligger_s'),
-         f"{sv(k['hemma'] - k['ligger'])} s eller mer (nästa klipp)"],
-        ['var händerna möts: åt dealerns vänster', cell('A', 'bytet_sidled_m', 100, 'cm'), cell('B', 'bytet_sidled_m', 100, 'cm'), f"{sv(k['mote_x'] * 100, 0)} cm"],
-        ['var händerna möts: framför bordskanten', cell('A', 'bytet_fran_kanten_m', 100, 'cm'), cell('B', 'bytet_fran_kanten_m', 100, 'cm'), '–'],
-        ['handlederna över filten när händerna möts', hcell('A', 'handlederna_vid_bytet_m'), hcell('B', 'handlederna_vid_bytet_m'),
-         f"kortet rest på högkant ({sv(k['rest'], 0)}°), högern {sv(k['ovanfor'] * 100, 1)} cm ovanför: cirka {sv(8.89 * math.sin(math.radians(k['rest'])) + k['ovanfor'] * 100, 0)} cm upp"],
-        ['fingrarna över filten när händerna möts', hcell('A', 'greppen_vid_bytet_m'), hcell('B', 'greppen_vid_bytet_m'), 'kortet plant på filten, sedan rest på högkant'],
-        ['högra handleden som högst på väg till platsen', hcell('A', 'hogern_hogst_till_platsen_m'), hcell('B', 'hogern_hogst_till_platsen_m'), f"kortet bärs {sv(k['lyft'] * 100, 0)} cm upp (B: 7,5 cm)"],
-        ['blicken medan kortet förs ut', 'följer kortet mot platsen', 'följer kortet mot platsen', 'följer kortet till platsen'],
-    ]
-    n = [deal(dl)['antal'] for dl in ('A', 'B')]
-    table(path, 'Ett kort med handbyte: filmen bredvid vår ritade giv', ['del av rörelsen', f'Danilo ({n[0]} kort)', f'Frasse ({n[1]} kort)', 'vår ritade giv i dag'], rows,
-          highlight=lambda i, j: j == 3 and i in (6, 9, 10),
-          note='Talen är det vanliga (mittvärdet) och spannet där de flesta ligger, ur alla kort där båda händerna syns. Höjderna kommer bara ur de sex kort som lyfts '
-               'i 3D; en vanlig film ger ingen höjd. Varför det spelar roll: rosa rader är där vår ritade giv gör något annat än dealrarna. I filmen reses kortet inte '
-               'på högkant, händerna möts lågt över filten, och vänstern griper nästa kort direkt. Hela kortet på 1,2 s är din takt, inte ett fel.')
-
-
 def seat_table(seg, path):
     rows = []
     for dl, dd in seg['dealrar'].items():
@@ -389,7 +341,6 @@ def seat_table(seg, path):
 
 def rita(data_dir, out_dir):
     seg, phases, scene, source = load(data_dir)
-    repo = os.path.abspath(os.path.join(data_dir, '..', '..'))
     os.makedirs(out_dir, exist_ok=True)
     for old in glob.glob(os.path.join(out_dir, '*.png')):   # the pictures are made anew; names may have changed
         os.remove(old)
@@ -445,7 +396,6 @@ def rita(data_dir, out_dir):
     table(os.path.join(out_dir, '08-vanligaste-vagarna.png'), 'De vanligaste vägarna för varje hand', ['dealer', 'hand', 'från  →  till', 'gånger'], rows,
           note='De fem vanligaste per hand och dealer. "Vid skon → vid skon" är vänsterns tur med ett kort: ur skon, fram till högern, och tillbaka till skon. Varför det '
                'spelar roll: varje väg är ett klipp dockan behöver, och de vanligaste behövs först.')
-    drawn_table(seg, koreo(repo), os.path.join(out_dir, '09-kortet-bredvid-var-giv.png'))
     seat_table(seg, os.path.join(out_dir, '10-kortet-plats-for-plats.png'))
     rows = []
     for r in seg['att_lyfta'][:16]:

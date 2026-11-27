@@ -110,12 +110,12 @@ Dockornas rörelser, lyfta ur livebordets film och lagda på dockans kropp (`bla
 | lyft-danilo-vantan-1 | — | 140 rutor = 4,67 s | — | — | — |
 | lyft-danilo-vantan-2 | — | 123 rutor = 4,1 s | — | — | — |
 | lyft-frasse-bytet-p4 | P4.C1 | 63 rutor = 2,1 s | 0 s | 1,4 s | 0,67 s |
-| lyft-frasse-hem | — | 45 rutor = 1,5 s | — | — | — |
+| lyft-frasse-hem | — | 47 rutor = 1,57 s | — | — | — |
 | lyft-frasse-p1 | P1.C2 | 74 rutor = 2,47 s | 0,37 s | 0,73 s | 1,33 s |
 | lyft-frasse-p4 | P4.C1 | 83 rutor = 2,77 s | 0,5 s | 1,57 s | 0,67 s |
 | lyft-frasse-p7 | P7.C1 | 52 rutor = 1,73 s | 0,4 s | 0,73 s | 0,57 s |
 | lyft-frasse-till-bytet | — | 21 rutor = 0,7 s | 0,5 s | — | — |
-| lyft-frasse-till-skon | — | 26 rutor = 0,87 s | — | — | — |
+| lyft-frasse-till-skon | — | 27 rutor = 0,9 s | — | — | — |
 | lyft-frasse-vantan-1 | — | 177 rutor = 5,9 s | — | — | — |
 | lyft-frasse-vantan-2 | — | 177 rutor = 5,9 s | — | — | — |
 | lyft-kenji-bytet-p4 | P4.C1 | 37 rutor = 1,23 s | 0 s | 0,47 s | 0,73 s |
