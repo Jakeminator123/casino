@@ -45,7 +45,7 @@ def main():
         poly(scene['table']['feltOutlinePx'], THEIRS)
         for name in ('sko', 'slaskbox'):
             poly(scene['things'][name]['outline'], THEIRS)
-        poly(scene['things']['sko']['mouth'], THEIRS, width=3)
+        poly(scene['things']['sko']['front_plate'], THEIRS, width=3)
         for p in scene['seatsUiPx']:
             cv2.circle(pic, (int(p[0]), int(p[1])), 14, THEIRS, 2, cv2.LINE_AA)
         for place in scene['places'].values():
@@ -82,7 +82,7 @@ def main():
     edge_theirs, edge_ours = table['dealerEdgeM'], -lens('dealerkant_mitt')[2]
     front_ours = -lens('framkant_mitt_filtens_slut')[2]
     our_width = abs(line['dealerkant']['lins_m'][0][0] - line['dealerkant']['lins_m'][-1][0])
-    mouth_theirs = np.mean(scene['things']['sko']['mouthMetres'], axis=0)
+    mouth_theirs = np.mean(scene['things']['sko']['footMetres'][:2], axis=0)   # the foot of the shoe's front plate, where the card comes out
     mouth_ours = np.mean([lens('sko_mynning_nere_nara'), lens('sko_mynning_nere_bortre')], axis=0)
     seats_theirs = [scene['places'][f'seat{k}']['m'] for k in range(1, 8) if f'seat{k}' in scene['places']]
     r = lambda v, n=3: round(float(v), n)
@@ -99,7 +99,7 @@ def main():
         'bet_marks_middle_seat': {'theirs_from_dealers_edge': r(edge_theirs - scene['seatsUiM'][3][1]), 'ours_from_dealers_edge': r(edge_ours + lens('insatsring_P4_mitt')[2])},
         'seats_spread_sideways': {'theirs_bet_marks': [r(scene['seatsUiM'][0][0]), r(scene['seatsUiM'][-1][0])], 'ours_bet_rings': [r(lens('insatsring_P1_mitt')[0]), r(lens('insatsring_P7_mitt')[0])],
                                   'theirs_cards_land': [r(min(s[0] for s in seats_theirs)), r(max(s[0] for s in seats_theirs))], 'ours_card_places': [r(lens('kortplats_P1.C1')[0]), r(lens('kortplats_P7.C1')[0])]},
-        'shoe_mouth': {'theirs': {'sideways': r(mouth_theirs[0]), 'from_dealers_edge': r(edge_theirs - mouth_theirs[1])}, 'ours': {'sideways': r(mouth_ours[0]), 'from_dealers_edge': r(edge_ours + mouth_ours[2])},
+        'shoe_front': {'theirs': {'sideways': r(mouth_theirs[0]), 'from_dealers_edge': r(edge_theirs - mouth_theirs[1])}, 'ours': {'sideways': r(mouth_ours[0]), 'from_dealers_edge': r(edge_ours + mouth_ours[2])},
                        'theirs_foot': {'length': scene['things']['sko']['footLength'], 'width': scene['things']['sko']['footWidth']}},
         'figure': {'ours': {'eyes_over_felt': r(lens('docka_ogon_mitt')[1]), 'eyes_behind_dealers_edge': r(-lens('docka_ogon_mitt')[2] - edge_ours),
                             'shoulders_over_felt': r(np.mean([lens('docka_axel_hoger')[1], lens('docka_axel_vanster')[1]])), 'shoulder_width': r(abs(lens('docka_axel_hoger')[0] - lens('docka_axel_vanster')[0]))},

@@ -428,7 +428,7 @@
   "the_dealer": "sits, on a high chair"
  },
  "shoe": {
-  "how": "measured where it stands on the felt (corners read by eye, 1 to 2 cm); its back's height measured from the picture; the front plate's lean not measured.",
+  "how": "measured where it stands on the felt (corners read by eye, 1 to 2 cm); its back's height and its front plate measured from the picture. A clear box: the front is a plate leaning back from the foot's two front corners.",
   "foot": [
    [
     0.427,
@@ -450,9 +450,64 @@
   "foot_length": 0.274,
   "foot_width": 0.103,
   "back_height": 0.117,
-  "front_plate_top_if_upright": 0.108,
+  "front_plate": {
+   "how": "measured: each top corner taken to lie straight back and up from its foot corner, on its own line of sight. The two corners should agree; where they differ, that is the reading's error.",
+   "corners": [
+    [
+     0.427,
+     0.0,
+     -1.4842
+    ],
+    [
+     0.4521,
+     0.0,
+     -1.3844
+    ],
+    [
+     0.4732,
+     0.1065,
+     -1.3897
+    ],
+    [
+     0.4663,
+     0.0601,
+     -1.4941
+    ]
+   ],
+   "corners_note": "foot corner by the dealer, foot corner toward the players, top toward the players, top by the dealer",
+   "top_height": [
+    0.06,
+    0.107
+   ],
+   "top_back_from_foot": [
+    0.041,
+    0.022
+   ],
+   "lean_back_degrees": [
+    34.0,
+    11.5
+   ],
+   "length_up_the_slope": [
+    0.073,
+    0.109
+   ]
+  },
   "card_when_drawn": {
-   "how": "measured as seen, laid on the felt: the part of the next card that shows in the mouth, back up. It is 4 by 10 cm there, less than a card, and the fingers that take it are lifted (dealer, left_hand_at_the_shoe), so the card lies on the shoe's sloping front and not flat on the felt.",
+   "how": "measured: the next card shows through the front plate, back out, and the finger takes it there (dealer, left_hand_at_the_shoe). Its middle is the plate's middle; a card is narrower than the plate (63.5 mm against the foot's width), so sideways it is within 2 cm.",
+   "middle": [
+    0.4547,
+    0.0417,
+    -1.4381
+   ],
+   "long_side": [
+    0.542,
+    0.829,
+    -0.136
+   ],
+   "long_side_note": "up the slope, in the lens world"
+  },
+  "clear_piece_before_the_shoe": {
+   "how": "measured: a separate clear piece lying flat on the felt just before the shoe's front (data/scen.json calls it the mouth; it is not the shoe's mouth and no card lies on it).",
    "corners": [
     [
      0.3652,
@@ -479,9 +534,7 @@
     0.3989,
     0.0,
     -1.4085
-   ],
-   "long_side_degrees": 17.3,
-   "long_side_note": "the long side's direction on the felt, from the z axis toward the x axis"
+   ]
   }
  },
  "box_for_used_cards": {
@@ -920,7 +973,7 @@
      {
       "times": 4,
       "seconds_in_all": 17.1,
-      "left_called": "shoe",
+      "left_called": "seat 7",
       "right_called": "lifted",
       "left_grip": [
        0.3207,
@@ -964,7 +1017,7 @@
     ]
    },
    "left_hand_at_the_shoe": {
-    "how": "measured where it is seen, inferred how high: the same point at the end of the left hand's reach to the shoe, where the finger takes the card. Laid on the felt it falls behind the mouth, so the fingertips are lifted there: height_if_over_the_mouth is how high they are if they are over the mouth's middle. The card is then taken on the shoe's sloping front, not flat on the felt.",
+    "how": "measured where it is seen, inferred how high: the same point at the end of the left hand's reach to the shoe, where the finger takes the card. Laid on the felt it falls behind the shoe's front, so the fingertips are lifted: grip_at_the_front is the point on its line of sight nearest the card in the front plate, and off_the_card how far from the card's middle that is.",
     "reaches": 58,
     "grip_laid_on_the_felt": [
      0.4683,
@@ -975,12 +1028,13 @@
      0.075,
      0.071
     ],
-    "height_if_over_the_mouth": 0.068,
-    "grip_over_the_mouth": [
-     0.3989,
-     0.068,
-     -1.4085
-    ]
+    "height_at_the_front": 0.05,
+    "grip_at_the_front": [
+     0.4303,
+     0.0501,
+     -1.4486
+    ],
+    "off_the_card": 0.028
    }
   },
   "bordet": {
@@ -1084,7 +1138,7 @@
     ]
    },
    "left_hand_at_the_shoe": {
-    "how": "measured where it is seen, inferred how high: the same point at the end of the left hand's reach to the shoe, where the finger takes the card. Laid on the felt it falls behind the mouth, so the fingertips are lifted there: height_if_over_the_mouth is how high they are if they are over the mouth's middle. The card is then taken on the shoe's sloping front, not flat on the felt.",
+    "how": "measured where it is seen, inferred how high: the same point at the end of the left hand's reach to the shoe, where the finger takes the card. Laid on the felt it falls behind the shoe's front, so the fingertips are lifted: grip_at_the_front is the point on its line of sight nearest the card in the front plate, and off_the_card how far from the card's middle that is.",
     "reaches": 71,
     "grip_laid_on_the_felt": [
      0.4482,
@@ -1095,12 +1149,13 @@
      0.044,
      0.074
     ],
-    "height_if_over_the_mouth": 0.057,
-    "grip_over_the_mouth": [
-     0.3989,
-     0.057,
-     -1.4085
-    ]
+    "height_at_the_front": 0.04,
+    "grip_at_the_front": [
+     0.4191,
+     0.04,
+     -1.4477
+    ],
+    "off_the_card": 0.037
    }
   }
  }

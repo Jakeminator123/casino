@@ -217,7 +217,7 @@ def rita(lift_file, setup_file, out):
     line = lambda pts, colour, width=1, closed=False, view=top: cv2.polylines(pic, [np.array([view(p) for p in pts], np.int32).reshape(-1, 1, 2)], closed, colour, width, cv2.LINE_AA)
     line(setup['felt']['outline'], (150, 60, 110), 2, True)
     line(setup['shoe']['foot'], (255, 255, 0), 2, True)
-    line(setup['shoe']['card_when_drawn']['corners'], (255, 255, 0), 1, True)
+    line(setup['shoe']['front_plate']['corners'], (255, 255, 0), 1, True)
     line(setup['box_for_used_cards']['foot'], (255, 255, 0), 2, True)
     for name, place in setup['card_places'].items():
         if name != 'how' and 'card_1' in place:
@@ -340,9 +340,9 @@ def main():
                 c = shown.get(when) if when >= piece['card']['lies_still'] - 0.1 else None
                 if c is not None:
                     turn = math.radians(c['turnM'])
-                    card = {'c': [round(c['m'][0], 4), 0.0005, round(-c['m'][1], 4)], 'l': [round(math.sin(turn), 4), 0, round(-math.cos(turn), 4)], 'n': [0, 1 if c['face'] == 'up' else -1, 0], 'seen': True}
+                    card = {'c': [round(c['m'][0], 4), 0.0005, round(-c['m'][1], 4)], 'l': [round(math.sin(turn), 4), 0, round(math.cos(turn), 4)], 'n': [0, 1 if c['face'] == 'up' else -1, 0], 'seen': True}
                 elif when < piece['card']['out_of_the_mouth']:
-                    card = {'c': setup['dealer'][style]['left_hand_at_the_shoe']['grip_over_the_mouth'], 'l': None, 'n': None, 'seen': False}
+                    card = {'c': setup['dealer'][style]['left_hand_at_the_shoe']['grip_at_the_front'], 'l': None, 'n': None, 'seen': False}
                 else:
                     card = {'c': to_lens(np.mean([grip[4], grip[8]], axis=0)) if grip is not None else to_lens(g[holder]['w']), 'l': None, 'n': None, 'seen': False}
                 frames.append({'t': when, 'R': {j: to_lens(g['R'][j]) for j in 'sew'} | {'p': [to_lens(q) for q in g['R']['p']] if g['R']['p'] is not None else None},

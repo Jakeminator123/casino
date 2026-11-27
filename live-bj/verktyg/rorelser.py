@@ -28,7 +28,7 @@ def main():
     cards = [c for c in read('givar.json')['cards'] if c['from'] == 'sko' and c.get('left') is not None] if os.path.exists(os.path.join(data_dir, 'givar.json')) else []
     taken = set()   # the cards of data/givar.json already given to a piece
     cam = Camera(scene['camera'])
-    mouth = np.mean(scene['things']['sko']['mouthMetres'], axis=0)
+    mouth = np.mean(scene['things']['sko']['footMetres'][:2], axis=0)   # the middle of the shoe's front, where the card is taken (what scen.json calls the mouth is a clear piece before the shoe)
     box = np.mean(scene['things']['slaskbox']['footMetres'], axis=0)
     centre = np.array(scene['table']['arc']['centreM'])
     edge = scene['table']['dealerEdgeM']

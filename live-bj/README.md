@@ -53,7 +53,7 @@ hållningen och rörelsen, aldrig utseendet. Talen här
 **Tekniken.** Vänsterhanden hämtar varje kort ur skon och drar det plant över filten in mot mitten; högerhanden tar
 över där och lägger det. Vänsterhanden gör nästan bara turen skon och åter, högerhanden gör det mesta av resten
 (lägger, vänder, samlar in, betalar ut). Mötet sker en halv till tre fjärdedels axelbredd till vänster om hans mitt,
-inte vid skons mynning.
+inte vid skon.
 
 | Vad | A | B |
 | --- | --- | --- |
@@ -136,13 +136,17 @@ rundade kant blir en cirkel på bordet med 1,8 mm fel över 1234 punkter. Korten
 | Dealerns egna kort, från hans kant | 0,19 m | 0,39 m |
 | Spelarens kort på mittplatsen, från dealerns kant | 0,49 m | 0,63 m |
 | Insatsmärket på mittplatsen, från dealerns kant | 0,63 m | 0,71 m |
-| Skons mynning: i sidled, och från dealerns kant | 0,40 m och 0,13 m | 0,41 m och 0,30 m |
+| Skons front, där kortet kommer ut: i sidled, och från dealerns kant | 0,44 m och 0,10 m | 0,41 m och 0,30 m |
 | Platsernas spridning i sidled | ± 0,50 m | ± 0,50 m (−0,53 till +0,50) |
 | Dealerns ögon och axlar över filten | 0,51 m och 0,31–0,32 m | 0,545 m och 0,29 m |
 | Axelbredd | 0,36 och 0,35 m | 0,375 m |
 
-Samma tal står i `data/mot-vart-bord.json`. Skon är cirka 0,27 × 0,10 m i foten, lådan för använda kort 8 × 9 cm, och
-bordet har ingen markerbricka (markerna är spelets grafik). Allt står still genom filmen.
+Samma tal står i `data/mot-vart-bord.json`. Skon är en genomskinlig låda, cirka 0,27 × 0,10 m i foten och 0,12 m hög
+i ryggen. Dess front är en platta som lutar bakåt från fotens två främre hörn (6–11 cm hög; de två hörnen är avlästa
+olika, så lutningen är osäker, 12–34 grader), och nästa kort syns genom den med baksidan utåt: där tar fingret det,
+4–5 cm över filten. Det `data/scen.json` kallar `mouth` är inte skons mynning utan en lös genomskinlig bit som ligger
+plant på filten strax framför skon. Lådan för använda kort är 8 × 9 cm i foten och 0,16 m hög, och bordet har ingen
+markerbricka (markerna är spelets grafik). Allt står still genom filmen.
 
 **Dealern sitter**, på en hög stol som syns vid dealerbytet. **Golvet syns aldrig**, så bordets höjd över golvet är
 inte mätt. En slutledning: när dealerna står upp vid bordet är ögonen 0,63–0,69 m över filten, bara 0,15 m högre än
@@ -201,6 +205,51 @@ vid hans egna kort.
   docka utan iris (den mäter sex blinkningar på två sekunder där det inte finns någon). Ett kort stopp kan missas: på
   mannens film hittas ett nästan-stopp där dockans egna tal har tre.
 - **Var en hand är** avgörs av punkten mellan tummens och pekfingrets toppar, lagd på filten. Platserna längst till
-  vänster om dealern ligger en handsbredd från skons mynning; bara vänsterhanden räknas som vid skon.
+  vänster om dealern ligger en handsbredd från skons front; bara vänsterhanden räknas som vid skon.
 - **Spelets gränssnitt ligger över bilden.** När händerna ligger bakom skylten eller knapparna mitt i bilden hittas de
   sämre; det syns som luckor i måtten och ska inte läsas som rörelse.
+
+## Överlämning
+
+Skrivet 2026-11-27 av agenten som byggde mappen, för den som fortsätter.
+
+**Göra om allt från filmen**, i den här ordningen (kommandona står i tabellen ovan): hämta filmen, `ram.py`,
+`faser.py`, `mat.py` (fem körningar), `scen.py`, `kort.py` (per parti, sedan `samla`), `scen.py` en gång till med
+`--givar` så att kortplatserna kommer med, `monster.py`, `stil.py`, `rorelser.py`, `uppsattning.py`, `lyft.py giv`.
+`stil.py`, `rorelser.py`, `uppsattning.py` och `lyft.py` läser bara måtten i `matt/` och `data/` och tar sekunder;
+bara `ram.py`, `faser.py`, `mat.py`, `scen.py` och `kort.py` läser filmen. `docka.py` och `overlagg.py` står vid
+sidan av: den första mäter dockans egna filmer, den andra behöver en bild av vårt bord från editorns sida.
+
+**Vad som är källa för vad i `data/`:** `kalla.json` (vilka sekunder som mäts) och `scen.json` (kameran, bordet) är
+grunden för allt. `monster.json` bär varje enskild händelse (handrörelse, blinkning, huvudrörelse);
+`stil-*.json` är sammanställningen dockan läser; `rorelser.json` är styckena; `givar.json` är kortens egna spår;
+`uppsattning.json` är det klonen byggs ur; `lyft/` är rörelser i dockans format. Ändras ett verktyg tidigare i
+kedjan körs de senare om.
+
+**Känt svagt:**
+
+- Djupet. En kamera ger inget. Farter i meter håller på en tredjedel när, ett lyft 4–11 cm per led.
+- Bålens avstånd bakom kanten är skattat (0,07 och 0,16 m), och bålens lutning framåt syns inte i lyften.
+- Fingrarna. Handen är 40–55 bildpunkter; måtten säger att greppet lever, inte ledernas vinklar.
+- Kortet i handen syns i 23 % av rutorna. Vändningen och kortets fart i handbytet går inte att få.
+- Tal. Munnen öppnas nästan aldrig i mätningen.
+- Höften, midjan och armens delar är dolda eller går inte att mäta framifrån.
+- Partierna 25–35 s och 41–47 s är inzoomade 0,6–2 % utan att `ram.py` ser det; `scen.py` och `kort.py` rättar
+  det, `mat.py` inte (punkterna ligger 1–2 bildpunkter fel vid händerna där).
+- Skons frontplatta är avläst med två hörn som inte är överens (se ovan).
+- Slagen vid dealerns egna kort, svepen och sträckningarna i `rorelser.json` är inte kontrollerade i bild.
+
+**Kvar att göra:**
+
+- Fler lyft: kortet till honom själv med vänsterhanden, korten in i lådan, väntan på fler ställen. Urvalet står
+  i `lyft.py` (`giv`); ett nytt slag är en ny loop över styckena i `rorelser.json`.
+- Mäta provet `naturlig-giv-20261127` som dockans andra filmer (`mat.py --ensam`, sedan `docka.py`).
+- Djup ur SAM 3D Body, om Jakob låter sätta upp den här: det går in i `lyft.py` som `nearer` (hur mycket närmare
+  kameran armbågen är än axeln, handleden än armbågen och handleden än axeln, i meter längs filten, per ruta), som
+  i dag kommer ur MediaPipes egen kropp i `lift()`. Pröva först med `lyft.py prov` mot dockans facit.
+- Skilja ut vändningen av dealerns eget kort ur styckena "at his own cards".
+- Låta `ram.py` se inzoomningen (smala kontrollrutor intill bildens kant) och köra om `mat.py` för de två partierna.
+
+**Det som kräver filmen:** allt ovan utom lyften och stilarna. Filmen ligger inte i Git; den hämtas med kommandot
+i tabellen, och `matt/` (måtten per ruta, 180 MB) görs om med `mat.py` och `kort.py` på ungefär en timme. Finns
+`matt/` kvar på datorn behövs filmen bara för att titta (`titta.py`, `streck.py`, `overlagg.py`).

@@ -56,10 +56,10 @@
    0.501
   ]
  },
- "shoe_mouth": {
+ "shoe_front": {
   "theirs": {
-   "sideways": 0.399,
-   "from_dealers_edge": 0.129
+   "sideways": 0.44,
+   "from_dealers_edge": 0.103
   },
   "ours": {
    "sideways": 0.407,

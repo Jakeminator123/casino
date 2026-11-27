@@ -24,7 +24,7 @@ SHARE = 0.15                            # the empty table: per pixel, the frame 
 # Read by eye off the empty table pictures with a 10-pixel grid (the slask tool grid.py): the outlines of the things
 # that do not move. Each is checked against every keyframe below.
 FIXED = {
-    'sko': {'about': 'the shoe: its foot on the felt (front corner by the dealer, front corner toward the players, back corner), the top of its back, and the tilted front plate where the next card shows',
+    'sko': {'about': 'the shoe: its foot on the felt (front corner by the dealer, front corner toward the players, back corner), the top of its back, and the tilted front plate where the next card shows. mouth is not the shoe's mouth: it is a separate clear piece lying flat on the felt just before the shoe',
             'foot': [[1207, 587], [1250, 620], [1449, 596]], 'back_top': [[1408, 483], [1461, 506]], 'front_plate': [[1241, 539], [1276, 533], [1250, 620], [1207, 587]],
             'outline': [[1207, 587], [1241, 539], [1408, 483], [1461, 506], [1449, 596], [1250, 620]],
             'mouth': [[1164, 599], [1191, 594], [1236, 626], [1209, 629]]},
