@@ -145,6 +145,7 @@ const ROTTER = [`${BJ}/assets`, `${AP}/assets`];
 /** Filerna som pekar på det som lagras, med vad de är. En `*` står för en post i mappen. Läses som text. */
 export const PEKARE: readonly {fil: string; ord: string; en: string; flera: string; kod?: boolean}[] = [
   {fil: `${BJ}/dealer3d/src/doll.ts`, ord: 'Dockornas mått i koden', en: 'Dockornas kod nämner den', flera: '', kod: true},
+  {fil: `${BJ}/dealer3d/src/persondockor.ts`, ord: 'Persondockorna i koden', en: 'Persondockornas register nämner den', flera: '', kod: true},
   {fil: `${BJ}/dealer3d/page/server.ts`, ord: 'Dockans sida i studion', en: 'Dockans sida i studion laddar den', flera: '', kod: true},
 
   {fil: `${SD}/editor/server.ts`, ord: 'Dockans editor', en: 'Dockans editor laddar den', flera: '', kod: true},

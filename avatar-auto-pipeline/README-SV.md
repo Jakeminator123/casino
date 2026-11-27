@@ -202,8 +202,10 @@ mätt och hur säkert det är; 2 dockan, byggd på den docka vars rörelser pers
 `bordet`) med bara det som skiljer mer än mätningens osäkerhet (`scen/bygg_docka.py --kon <docka>` läser personfilen
 själv); 3 dockan mätt på sin modell och skriven i `../blackjack-dealer/dealer3d/src/persondockor.ts`, så att den är med i
 `LIVE_DOLLS`, i editorns dockor och i verktygen; 4 de lyfta rörelserna i stilen på dockan och kontrollen
-(`lyft-till-docka.ts --docka`, `lyft-kolla.ts`); 5 givens dockfilm genom livebordets kamera i nyckelutseendet och var
-åttonde ruta, första och sista ur den; 6 anropen hos Runway, färdiga men inte lagda, med kostnaden (`anrop/kostnad.json`).
+(`lyft-till-docka.ts --docka`, `lyft-kolla.ts`); 5 givens dockfilm genom livebordets kamera i nyckelutseendet och
+rutorna ur den vid rörelsens egna händelser (aldrig två där dockan står stilla i samma ställning), med kortets höjd,
+lutning och fingrets läge på det ur rörelsens tal; 6 anropen hos Runway (stillbilderna och Kling 4; Aleph 2 med `--aleph`),
+färdiga men inte lagda, med kostnaden (`anrop/kostnad.json`). `--omgang v2` lägger en ny omgång bredvid den förra.
 Skalan är SAM:s egen kroppsform: en framställd bild har inget av känd storlek. Felet mot ett facit (Tomasz bilder mot hans
 mätta figur: armarna inom 1 cm, huvudet inom 0,5, axlarna 2,2 och bålen 2,4) är en undre gräns för osäkerheten
 (`steg/15-matt-ur-bilder/personmatt.py`). Handen tas inte in: SAM:s hand är 5 cm kortare än dockans mätt på samma sätt.
