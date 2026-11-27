@@ -91,8 +91,15 @@ const huvudMot = (h: Vec3, v: Vec3): Vec3 => { const c = sub(KAMERA, h), a = Mat
 /** En ton 0–1 med jämn fart i mitten (en fjärdedel upp i fart, en fjärdedel ned): högsta farten är 4/3 av medelfarten. */
 const jamnTon = (u: number) => { const x = clamp01(u), a = 0.25, v = 1 / (1 - a); return x < a ? v * x * x / (2 * a) : x > 1 - a ? 1 - v * (1 - x) ** 2 / (2 * a) : v * (a / 2 + x - a); };
 const r1 = (x: number) => Math.round(x * 10) / 10;
-/** Huvudets ton till och från ankaret: grader per ruta som tonen själv högst vrider huvudet, i början (ovanpå dealerns egen rörelse) och tillbaka till ankaret i slutet. */
-const HUVUD_IN = 0.35, HUVUD_UT = 1.0;
+/** En riktnings höjd (upp positivt) och sida (mot bildens höger positivt) i grader, och riktningen ur dem. */
+const hojdSida = (d: Vec3): [number, number] => { const u = unit(d); return [grad(Math.asin(clamp(u[1], -1, 1))), grad(Math.atan2(u[0], u[2]))]; };
+const ritningAv = (hojd: number, sida: number): Vec3 => [Math.cos(rad(hojd)) * Math.sin(rad(sida)), Math.sin(rad(hojd)), Math.cos(rad(hojd)) * Math.cos(rad(sida))];
+/** Hur riktningen a ligger mot riktningen b: höjd och sida i grader (sidan inom ±180), som en Vec3 med noll sist. */
+const vinkelSkillnad = (a: Vec3, b: Vec3): Vec3 => { const x = hojdSida(a), y = hojdSida(b); let s = x[1] - y[1]; while (s > 180) s -= 360; while (s < -180) s += 360; return [x[0] - y[0], s, 0]; };
+/** Blickpunkten för ett huvud i h som vetter mot hv, med ögonen vridna `ogon` (höjd, sida i grader) i huvudet: en meter ut. */
+const blickAv = (h: Vec3, hv: Vec3, ogon: Vec3): Vec3 => { const [p, s] = hojdSida(sub(hv, h)); return add(h, ritningAv(p + ogon[0], s + ogon[1])); };
+/** Huvudets ton till och från ankaret: högst så många grader per ruta vrider tonen själv huvudet, tillbaka till ankaret i slutet och (ovanpå dealerns egen rörelse) från det i början. */
+const HUVUD_UT = 1.0, HUVUD_IN = 0.45;
 const huvudTonLangd = (grader: number, fart: number) => Math.max(16, Math.ceil(4 / 3 * grader / fart));
 /**
  * Var huvudet i slutet börjar gå från dealerns till ankarets (e0: inte före rutan fran, inte efter lyftets sista) och hur
@@ -389,7 +396,11 @@ function last(lyft: Lyft, zAxlar: number) {
   const a = fyll(f.map(x => x.a), (x, y, t) => Object.fromEntries(Object.keys(x).map(k => [k, x[k] + ((y[k] ?? x[k]) - x[k]) * t])));
   // (huvudets egna vinklar, utan ögonen: lyftets huvud, live-bj/verktyg/lyft.py huvud; saknas de, huvudet i vila)
   const huvudV = f.some(x => x.huvud) ? fyll(f.map(x => x.huvud ?? null), lerp) : f.map((): Vec3 => [0, 0, 0]);
-  return {n, R: sida('R'), L: sida('L'), h, riktning, huvudV, a, zAxlar};
+  // (ögonen mot huvudet: dealerns blick (h mot g) mot hans huvud (h mot hv), höjd och sida i grader; en ruta där de skiljer
+  // mer än 25° är brus och fylls från grannarna; hårt jämnad (1 Hz) och högst ±10°, som ögon kan)
+  const ogon0 = f.map(x => { if (!x.h || !x.g || !x.hv) return null; const d = vinkelSkillnad(sub(x.g, x.h), sub(x.hv, x.h)); return Math.abs(d[0]) > 25 || Math.abs(d[1]) > 25 ? null : d; });
+  const ogon = jamna(ogon0.some(Boolean) ? fyll(ogon0, lerp) : f.map((): Vec3 => [0, 0, 0]), 1).map(v => [clamp(v[0], -10, 10), clamp(v[1], -10, 10), 0] as Vec3);
+  return {n, R: sida('R'), L: sida('L'), h, riktning, huvudV, ogon, a, zAxlar};
 }
 type Last = ReturnType<typeof last>;
 const axelMitt = (L: Last, t: number) => mitt(L.R.s[t], L.L.s[t]);
@@ -485,6 +496,15 @@ function tiderna(lyft: Lyft, L: Last) {
   return {n, resa, arrive, pull, leaves, narmast, meet, rests, vila, ligger: Math.max(ligger, plan + 1), ned: Math.min(vandFran, meet + 2), vandFran, plan, framsidan: plan - 2, avstandVidBytet: best};
 }
 type Tider = ReturnType<typeof tiderna>;
+/**
+ * En giv börjar redo vid skon (domaren 2026-11-27): lyftet från tre rutor innan vänstern är framme vid skon. Det som är
+ * före (handen till skon, huvudet ned ur kameran) hör till vägen till skon. `fran` är lyftets ruta där given börjar.
+ */
+function franSkon(lyft: Lyft, zA: number): Lyft & {fran: number} {
+  if (lyft.leavesShoe === undefined) return {...lyft, fran: 0};
+  const s = Math.max(0, tiderna(lyft, last(lyft, zA)).arrive - 3), f = (x?: number) => x === undefined ? x : x - s;
+  return {...lyft, fran: s, frames: lyft.frames.slice(s), frameCount: lyft.frames.length - s, leavesShoe: f(lyft.leavesShoe), rests: f(lyft.rests), film_seconds: [Math.round((lyft.film_seconds[0] + s / FPS) * 1000) / 1000, lyft.film_seconds[1]]};
+}
 
 /** Stilens ansiktsformer som bär, och minen i en ruta: blinkningarna som korta toppar ovanpå en halverad långsam del, eyeSquint dämpad. */
 function minen(L: Last, stil: Stil) {
@@ -909,25 +929,24 @@ export function bygg(b: Bygg) {
   // högst 1,5° per ruta; ögonen gör resten): huvudets tre vinklar (nick, vridning, tippning; utan ögonen) är lyftets
   // (live-bj/verktyg/lyft.py huvud), räknade från dockans eget håll mot kameran som lyft.py räknar dealerns. I en giv är de
   // som dealerns; i en väntan dealerns kring hans eget medel, eftersom dockans vila ser in i kameran (Jakob 2026-11-27:
-  // blicken mot kameran, inte uppåt; dealern håller där huvudet 11° över kameran). I början tonas skillnaden mellan
-  // ankarets och dealerns första ruta bort ovanpå hans egen rörelse (högst HUVUD_IN grader per ruta); i slutet, i en giv
+  // blicken mot kameran, inte uppåt; dealern håller där huvudet 11° över kameran). I början går huvudet från ankarets
+  // till dealerns, skillnaden tonad bort ovanpå hans egen rörelse (högst HUVUD_IN grader per ruta); i slutet, i en giv
   // först när kortet ligger, går huvudet från där dealerns är till ankarets (högst HUVUD_UT grader per ruta, och given är
-  // så lång att det hinner). Ögonen bär blicken: i en giv från
-  // ankarets blick till dealerns egen (kameran eller bordet, blickMal), på skon från strax före vänstern är där tills kortet
-  // har lämnat den, på platsen tills högern lämnar kortet, och sedan till ankarets blick igen, med 0,4 s mjuka vändningar; i
-  // en väntan blickens mål per stycke (blickMal).
+  // så lång att det hinner). ÖGONEN I EN GIV ÄR DEALERNS (domaren 2026-11-27: inga egna blickmål; dealern ser aldrig på
+  // skon eller platsen, han drar kortet utan att titta): hans blick mot hans huvud (lyftets ogon, högst ±10°, hårt
+  // jämnad), lagd på dockans huvud och tonad till och från ankarets på samma rutor som huvudet. I en väntan blickens mål
+  // per stycke (blickMal).
   const A = b.ank.huvudVinklar ?? [0, 0, 0], HV = giv ? L.huvudV : (() => { const m = medianV(L.huvudV); return L.huvudV.map(x => sub(x, m)); })();
   const Hj = (t: number) => HV[Math.min(t, n - 1)], E0 = Math.min(huvudTonLangd(length(sub(Hj(0), A)), HUVUD_IN), Math.floor((N - 1) / 2));
   const e0 = Math.max(E0, (huvudSlut ?? huvudetsSlut(HV, A, E0, N, false)).e0);
   const vinklar = Array.from({length: N}, (_, t) => t < e0 ? add(Hj(t), mul(sub(A, Hj(0)), 1 - jamnTon(t / E0))) : lerp(Hj(e0), A, jamnTon((t - e0) / (N - 1 - e0))));
   kvitto.huvudTon = [E0, N - 1 - e0];
-  const tonG = (t: number) => smooth(Math.min(t, N - 1 - t) / 12);
+  const eA: Vec3 = f0.hv ? vinkelSkillnad(sub(f0.g, f0.h), sub(f0.hv, f0.h)) : [0, 0, 0], Oj = (t: number) => L.ogon[Math.min(t, n - 1)];
+  const ogonV = Array.from({length: N}, (_, t) => t < e0 ? add(Oj(t), mul(sub(eA, Oj(0)), 1 - jamnTon(t / E0))) : lerp(Oj(e0), eA, jamnTon((t - e0) / (N - 1 - e0))));
   const torsos = torsos0.map((x, t) => {
     const ande = t === 0 || t === N - 1, hv = ande ? f0.hv : huvudMot(x.h, vinklar[t]), ht = ande ? f0.ht : r1(vinklar[t][2]);
-    if (!(giv && ti && plats)) return {...x, g: ande ? kamera : tavla[t], hv, ht};
-    const sko = kortISkon().c, pl = kortPaPlats(plats).c, w0 = smooth((t - (ti.arrive - 6)) / 12), w1 = smooth((t - (ti.leaves - 3)) / 12), w2 = smooth((t - (ti.vila - 3)) / 12);
-    const mal = lerp(lerp(lerp(tavla[t], sko, w0), pl, w1), f0.g, w2);
-    return {...x, g: ande ? f0.g : lerp(f0.g, mal, tonG(t)), hv, ht}; });
+    if (!giv) return {...x, g: ande ? kamera : tavla[t], hv, ht};
+    return {...x, g: ande ? f0.g : blickAv(x.h, hv!, ogonV[t]), hv, ht}; });
   // (armbågen där lyftets armbåge är i bilden där handen är lyftets, ankarets i vilan, emellan i bryggorna; vinkeln kring
   // linjen axel–handled vald ruta för ruta, utvecklad och jämnad: så byter armbågen aldrig sida på en ruta)
   const vrid: Record<Sida, number[]> = {R: [], L: []};
@@ -976,14 +995,14 @@ const rel = (fil: string) => path.relative(CASINO, fil).split(path.sep).join('/'
 const MITTEN: Record<string, string> = {kameran: 'kameran-mitten-plats-4.json', bordet: 'bordet-mitten-plats-4.json'};
 const stilFor = (lyft: Lyft) => las<Stil>(path.join(CASINO, `live-bj/data/stil-${lyft.style}.json`));
 /**
- * Ankaret vid skon (A2.3, rörelseschemats "Redo vid skon": vänstern vid skons mynning, högern i vilan, blicken på skon) för
- * dockan, ur filmen: stilens giv till mitten lagd med vilan som ankare, i rutan vänsterhanden kommer till skon. Kroppen
- * och vänsterhanden är givens där (dealerns hållning medan han ger, framåtlutad och med huvudet lätt böjt), högerhanden
- * vilans; huvudets hållning är dealerns eget huvud (utan ögonen, lyftets huvud) i givens första ruta, och ögonen ser dit
- * han ser där (Danilo in i kameran, Frasse på skon). Givarna börjar och slutar här, och rörelserna till-skon och hem går mellan det och vilan.
+ * Ankaret vid skon (A2.3, rörelseschemats "Redo vid skon": vänstern vid skons mynning, högern redo) för dockan, ur filmen:
+ * stilens giv till mitten lagd med vilan som ankare, i en ruta när vänsterhanden är vid skon. Kroppen, vänsterhanden,
+ * huvudet och blicken är dealerns egna i den rutan (framåtlutad, huvudet böjt mot bordet, ögonen där han ser; han ser inte
+ * på skon), högerhanden där givens är när den först är filmens. Givarna börjar och slutar här, och rörelserna till-skon och
+ * hem går mellan det och vilan.
  */
 export function ankaretVidSkon(doll: Doll, stil: 'kameran' | 'bordet', a1: Ankare): Ankare {
-  const lyftFil = path.join(lyftDir, MITTEN[stil]), lyft = las<Lyft>(lyftFil), stilFil = stilFor(lyft), fr = dollFrame(TABLE_LENS, doll), zA = fr.shoulders[0][2];
+  const lyftFil = path.join(lyftDir, MITTEN[stil]), fr = dollFrame(TABLE_LENS, doll), zA = fr.shoulders[0][2], lyft = franSkon(las<Lyft>(lyftFil), zA), stilFil = stilFor(lyft);
   // (rutan: vänstern vid skon och båda händerna i lyftet, så att kroppen är dealerns hållning och inte vilans)
   const ut0 = bygg({doll, stil, stilFil, lyft, ank: a1, minen: minen(last(lyft, zA), stilFil), dir: lyftDir}), ut = ut0, B0 = ut0.bryggor, ti0 = ut0.tider!;
   const t = Math.min(ti0.pull, Math.max(ti0.arrive, B0.R.t1, B0.L.t1, 10)), f = ut.frames[t], S = ut.kropp[t].S, h = ut.kropp[t].h, kant = kantFor(doll), bal0 = {R: S[0], L: S[1], hip: fr.hip};
@@ -991,14 +1010,14 @@ export function ankaretVidSkon(doll: Doll, stil: 'kameran' | 'bordet', a1: Ankar
   // (högern redo framför dealern: där givens högerhand är när den först är filmens, och väntar på kortet)
   const fR = ut.frames[ut.bryggor.R.t1].R, hR = hand(fR.p, 1, fR.w), hL = hand(f.L.p, -1, f.L.w);
   const eR = armbageSvang(S[0], hR.w, armbageVinkel(S[0], hR, fR.e, doll, kant, bal0), doll), eL = armbageSvang(S[1], hL.w, armbageVinkel(S[1], hL, f.L.e, doll, kant, bal0), doll);
-  // (huvudets hållning: dealerns eget huvud, utan ögonen, i givens första ruta, där han ser upp över bordet (domaren
-  // 2026-11-27); ögonen dit han ser där: in i kameran om lyftets blick säger kameran i de första nio rutorna, annars på skon)
-  const V = ut.L.huvudV[0].map(r1) as Vec3, k = kortISkon(), iKameran = lyft.frames.slice(0, 9).filter(x => x.blick === 'kameran').length > 4;
+  // (huvudets hållning och blicken: dealerns egna i samma ruta, när vänstern är vid skon (domaren 2026-11-27: ankaret ett
+  // ögonblick ur dealerns egen giv, inte uppe i kameran): huvudets vinklar (lyftets huvud) och ögonen mot huvudet (ogon))
+  const V = ut.L.huvudV[t].map(r1) as Vec3, O = ut.L.ogon[t], k = kortISkon(), hvA = huvudMot(h, V);
   const frame: Frame = {card: {c: r4(k.c), l: r4(k.l), n: r4(k.n), id: 0}, R: {s: r4(S[0]), e: r4(eR), w: r4(hR.w), k: 1, p: punkter(hR).map(r4)}, L: {s: r4(S[1]), e: r4(eL), w: r4(hL.w), k: 1, p: punkter(hL).map(r4)},
-    h: r4(h), g: r4(iKameran ? KAMERA : k.c), hv: r4(huvudMot(h, V)), ...(V[2] ? {ht: V[2]} : {}), a: {}};
+    h: r4(h), g: r4(blickAv(h, hvA, O)), hv: r4(hvA), ...(V[2] ? {ht: V[2]} : {}), a: {}};
   // (lyftets axlar där ankaret är taget, så att en giv lägger dealerns hållning på samma sätt som från vilan)
   const axelRef = add(stilensMedel(stil, zA, fr.head[2], lyftDir).mitt, sub(mitt(S[0], S[1]), mitt(a1.frame.R.s, a1.frame.L.s)));
-  const about = `Redo vid skon (A2.3) för dockan ${doll.name} (stilen ${stil}): ankaret som dockans givar börjar och slutar i. Kroppen och vänsterhanden där dealerns giv till mitten (${rel(lyftFil)}) har dem i rutan ${t}, när vänsterhanden är vid skon och båda händerna är dealerns: framåtlutad, huvudet lätt böjt, vänstern vid skons mynning. Högerhanden i vilan (ankare-vila-${doll.name}.json). Huvudets hållning är dealerns eget huvud (utan ögonen) i givens första ruta: nick ${V[0]}°, vridning ${V[1]}°, tippning ${V[2]}° från kameran (huvudVinklar); ögonen ${iKameran ? 'in i kameran' : 'på skon'}, dit han ser där. Kortet i skons front.`;
+  const about = `Redo vid skon (A2.3) för dockan ${doll.name} (stilen ${stil}): ankaret som dockans givar börjar och slutar i. Kroppen och vänsterhanden där dealerns giv till mitten (${rel(lyftFil)}) har dem i rutan ${t}, när vänsterhanden är vid skon och båda händerna är dealerns: framåtlutad, huvudet lätt böjt, vänstern vid skons mynning. Högerhanden i vilan (ankare-vila-${doll.name}.json). Huvudet och blicken är dealerns egna i samma ruta: huvudet nick ${V[0]}°, vridning ${V[1]}°, tippning ${V[2]}° från kameran (huvudVinklar), ögonen ${r1(O[0])}° i höjd och ${r1(O[1])}° i sidled från huvudets håll. Kortet i skons front.`;
   return {namn: 'A2.3', about, doll: doll.name, style: stil, hip: a1.hip, frame, axelRef: r4(axelRef), huvudVinklar: V};
 }
 /** Ankarena för dockan `dockNamn` (eller dockan `annan` i hennes ställe, för den som prövar ett annat mått): vilan, och (lat) ankaret vid skon. */
@@ -1016,7 +1035,7 @@ export function pa(lyftFil: string, dockNamn?: string, annan?: Doll) {
   return bygg({doll, stil, stilFil, lyft, ank: lyft.leavesShoe !== undefined ? vidSkon() : a1, minen: minen(L, stilFil), dir: lyftDir});
 }
 function kor(lyftFil: string, dockNamn?: string) {
-  const lyft = las<Lyft>(lyftFil), namn = dockNamn ?? lyft.docka, {doll, stil, ank: a1, vidSkon, vantanFil} = ankaretFor(namn), ank = lyft.leavesShoe !== undefined ? vidSkon() : a1;
+  const lyft0 = las<Lyft>(lyftFil), namn = dockNamn ?? lyft0.docka, {doll, stil, ank: a1, vidSkon, vantanFil} = ankaretFor(namn), lyft = franSkon(lyft0, dollFrame(TABLE_LENS, doll).shoulders[0][2]), ank = lyft.leavesShoe !== undefined ? vidSkon() : a1;
   if (lyft.style !== stil) console.log(`  (lyftet är stilen ${lyft.style}, dockan ${namn} stilen ${stil})`);
   const stilFil = las<Stil>(path.join(CASINO, `live-bj/data/stil-${lyft.style}.json`)), L = last(lyft, dollFrame(TABLE_LENS, doll).shoulders[0][2]);
   const ut0 = bygg({doll, stil, stilFil, lyft, ank, minen: minen(L, stilFil), dir: lyftDir});
@@ -1029,7 +1048,7 @@ function kor(lyftFil: string, dockNamn?: string) {
     : `Dockan ${namn} väntar, lyftat ur livebordets film (${rel(lyftFil)}, filmens sekunder ${lyft.film_seconds.join('–')}; där har dealern vänsterhanden vid "${lyft.left_at}" och högerhanden vid "${lyft.right_at}"). Dockan är i sin vila (${rel(ankFil)}), vars handleder är väntans, med lyftets små rörelser av handlederna och axlarna (jämnade lugnt), och huvudet, blicken och minen som dealerns. Börjar och slutar i vilan.`;
   // (ankaret i början och slutet, med rörelseschemats namn (standarddocka/rorelsekatalog.json): en giv redo vid skon, A2.3; en väntan vilan, A1)
   const motion = {fps: FPS, frameCount: N, ankare: {borjan: ank.namn, slut: ank.namn}, ...(giv ? {leavesShoe: ti!.leaves, edge: [ut0.vand!.fran, ut0.vand!.till], folds: ut0.vand!.till, rests: ti!.ligger} : {}), hip: ank.hip, doll: namn, ...(giv ? {to: [ut0.plats], marke: {hander: 'tva', vands: 'pa-vagen', satts: 'plant'}} : {}), about,
-    made: {tool: 'dealer3d/tools/lyft-till-docka.ts', lift: rel(lyftFil), doll: namn, from: rel(ankFil), to: rel(ankFil), sources: {[rel(lyftFil)]: sha(lyftFil), [rel(vantanFil)]: sha(vantanFil), 'blackjack-dealer/src/table-live.ts': sha(path.join(ROOT, 'src/table-live.ts'))},
+    made: {tool: 'dealer3d/tools/lyft-till-docka.ts', lift: rel(lyftFil), liftFrom: lyft.fran, doll: namn, from: rel(ankFil), to: rel(ankFil), sources: {[rel(lyftFil)]: sha(lyftFil), [rel(vantanFil)]: sha(vantanFil), 'blackjack-dealer/src/table-live.ts': sha(path.join(ROOT, 'src/table-live.ts'))},
       times: ti, liftFrames: 'rörelsens ruta t är lyftets ruta t (efter lyftets sista ruta: dess sista)', faser: ut0.faser, egen: ut0.egen, hand: ut0.handen,
       filter: `handlederna, händernas vinkel, axlarna och huvudet: Butterworth 2:a ordningen framåt och bakåt (nollfas), ${LUGN.lag} Hz där handen är stilla och ${LUGN.hog} Hz där den rör sig (lugna)`, hands: ut0.hander, chosen: k},
     frames: ut0.frames};

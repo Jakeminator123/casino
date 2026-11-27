@@ -218,7 +218,7 @@ export function sattIhop(forsta: Motion, andra: Motion, plats: number): Foljd {
   const b0 = andra.frames[0], sista = forsta.frames.length - 1, fore = hopp(forsta.frames[sista], b0, forsta.hip, andra.hip), sammaDocka = !!forsta.doll && forsta.doll === andra.doll;
   const lagd = sammaDocka ? forsta.frames.map(kopia) : forsta.frames.map(f => {
     const limb = (s: 'R' | 'L'): Limb => { const d = sub(b0[s].s, f[s].s); return {s: [...b0[s].s], e: add(f[s].e, mul(d, 0.5)), w: [...f[s].w], k: f[s].k, p: f[s].p.map(p => [...p])}; };
-    return {card: JSON.parse(JSON.stringify(b0.card)), R: limb('R'), L: limb('L'), h: [...b0.h], g: [...f.g]} as Frame;
+    return {card: JSON.parse(JSON.stringify(b0.card)), R: limb('R'), L: limb('L'), h: [...b0.h], g: [...f.g], ...(f.hv ? {hv: add(f.hv, sub(b0.h, f.h))} : {}), ...(f.ht !== undefined ? {ht: f.ht} : {})} as Frame;
   });
   // Var händerna rör sig i den första delen: där jämnas resten ut. Rör de sig inte, de sista 0,4 s. (Inte för samma docka.)
   let fran = 0, till = 0;
@@ -503,7 +503,11 @@ export function rutaVid(f: Foljd, t: number): {frame: Frame; held: {R: number; L
   // Ansiktet, där rörelsen har ett (de lyfta rörelserna vid livebordet bär dealerns min i fältet a): varje form blandad
   // mellan de två rutorna. Grundrörelserna utan ansikte får inget, som förut.
   const ansikte = a.a || b.a ? Object.fromEntries([...new Set([...Object.keys(a.a ?? {}), ...Object.keys(b.a ?? {})])].map(n => [n, (a.a?.[n] ?? 0) + ((b.a?.[n] ?? 0) - (a.a?.[n] ?? 0)) * k])) : null;
-  return {frame: {card, R: limb('R'), L: limb('L'), h: mix(a.h, b.h, k), g: mix(a.g, b.g, k), ...(ansikte ? {a: ansikte} : {})}, held: {R: hi.R + (hj.R - hi.R) * k, L: hi.L + (hj.L - hi.L) * k},
+  // (huvudets eget mål och tippning, där rörelsen har dem (de lyfta rörelserna: hv och ht), blandade som blicken; en ruta
+  // utan hv har huvudet mot blicken. Utan dem siktar dockans huvud på blicken g och inte på dealerns huvud: så föll fjärde
+  // och femte försöket av lyftet 2026-11-27)
+  const huvud = a.hv || b.hv ? {hv: mix(a.hv ?? a.g, b.hv ?? b.g, k)} : {}, tipp = a.ht !== undefined || b.ht !== undefined ? {ht: (a.ht ?? 0) + ((b.ht ?? 0) - (a.ht ?? 0)) * k} : {};
+  return {frame: {card, R: limb('R'), L: limb('L'), h: mix(a.h, b.h, k), g: mix(a.g, b.g, k), ...huvud, ...tipp, ...(ansikte ? {a: ansikte} : {})}, held: {R: hi.R + (hj.R - hi.R) * k, L: hi.L + (hj.L - hi.L) * k},
     stilla: {R: si.R + (sj.R - si.R) * k, L: si.L + (sj.L - si.L) * k}};
 }
 
@@ -879,7 +883,7 @@ export function rutor(f: Foljd, sparad: Sparad, kamera: readonly number[] | null
   // ändringarna hållna inom kroppen, bordet och lederna, som i editorn.
   const antal = Math.round(T.langd * f.fps) + 1, ruta = (grundruta: number) => Math.round(T.ut(grundruta / f.fps) * f.fps);
   const frames = Array.from({length: antal}, (_, i) => { const x = stallning(f, T.grund(i / f.fps), sparad.andringar, kamera, sparad.liv, granser, T), limb = (l: Limb) => ({s: r4(l.s), e: r4(l.e), w: r4(l.w), k: l.k, p: l.p.map(r4)});
-    return {card: {c: r4(x.card.c), l: r4(x.card.l), n: r4(x.card.n)}, L: limb(x.L), R: limb(x.R), h: r4(x.h), g: r4(x.g)}; });
+    return {card: {c: r4(x.card.c), l: r4(x.card.l), n: r4(x.card.n)}, L: limb(x.L), R: limb(x.R), h: r4(x.h), g: r4(x.g), ...(x.hv ? {hv: r4(x.hv)} : {}), ...(x.ht !== undefined ? {ht: Math.round(x.ht * 10) / 10} : {})}; });
   return {about: `${sparad.namn}: ${sparad.grund.join(' och sedan ')} efter varandra (skarven utjämnad i standarddocka/editor/rorelse.ts), ${rattning}, blicken mot kameran ${kamera ? r4([...kamera]).join(', ') : '(rörelsens egen)'} utom när kortet är på väg, farten per del ${T.fart.join(', ')} gånger grundrörelsens, och ${sparad.andringar.length} ändringar från editorn i standarddocka. Samma fält som dealer3d/data.`,
     film: `a1-a23-p${f.plats}c1`, pose: 'A1', to: `P${f.plats}.C1`, fps: f.fps, frameCount: frames.length, leavesShoe: ruta(off + b.leavesShoe), edge: b.edge.map(n => ruta(off + n)), folds: ruta(off + b.folds), rests: ruta(off + b.rests),
     hip: r4(f.hip), doll: b.doll, grund: sparad.grund, fart: T.fart, liv: sparad.liv ?? null, blickMot: sparad.blickMot ?? null, andringar: sparad.andringar.length, made: sparad.sparad, frames};

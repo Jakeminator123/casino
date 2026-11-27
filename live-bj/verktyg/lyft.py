@@ -2,6 +2,7 @@
 # elbow, wrist and the hand's 21 points), the head, where he looks and the card, in metres of the lens world.
 #   python -I live-bj/verktyg/lyft.py giv live-bj/data live-bj/matt live-bj/data/lyft [--sam <sam.json>] [--fri]     the three deals of each style: the middle seat, far left, far right
 #   python -I live-bj/verktyg/lyft.py huvud live-bj/data live-bj/matt live-bj/data/lyft     the head's own turn (without the eyes) into the lifted pieces: fields huvud and hv
+#   python -I live-bj/verktyg/lyft.py dockhuvud <a film of our own doll through the live camera> <ut.json>     the doll's head as the face mesh sees it, the dealer's way (the one film this reads, and it is ours)
 #        (--fri holds no wrist to a known height, to see with kanda what the depth alone gives; written elsewhere, never to data/lyft)
 #   python -I live-bj/verktyg/lyft.py prov <our figure's film measured by mat.py --ensam> <the figure's own numbers per frame> [--sam <sam.json>] [--sam-ben] [--ut <json>]
 #   python -I live-bj/verktyg/lyft.py rita <a lifted deal> live-bj/data/uppsattning.json <ut.png>
@@ -381,6 +382,55 @@ def rita(lift_file, setup_file, out):
     print(out)
 
 
+def evened_angles(ang):
+    """Head angles per frame (nod, turn, tilt; NaN where no face) evened the way huvud evens the dealer's: gaps drawn
+    straight between their neighbours, a median over 9 frames, then a mean over 15."""
+    ang = np.array(ang, float)
+    k = np.arange(len(ang))
+    for j in range(3):
+        ok = ~np.isnan(ang[:, j])
+        ang[:, j] = np.interp(k, k[ok], ang[ok, j]) if ok.any() else 0.0
+        pad = np.pad(ang[:, j], 7, mode='edge')
+        med = np.array([np.median(pad[i + 3:i + 12]) for i in range(len(ang))])
+        ang[:, j] = np.convolve(np.pad(med, 7, mode='edge'), np.ones(15) / 15, mode='valid')
+    return ang
+
+
+def dockhuvud(film, out):
+    """The head of our doll in a film of it through the live camera, as the face mesh sees it: MediaPipe face_landmarker
+    and its facial transformation matrix decomposed into nod, turn and tilt (degrees), as verktyg/mat.py measures the
+    dealer, per frame raw and evened as huvud evens his. For lyft-kolla.ts --ansikte: what the face in the picture does,
+    beside the dealer's own head. The doll's head is looked for in the picture's upper middle, where the live camera has it."""
+    import cv2
+    import mediapipe as mp
+    from mediapipe.tasks.python import vision, BaseOptions
+    models = os.environ.get('DEALER_MODELS') or os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'blackjack-dealer', 'tools', 'python', 'models')
+    opt = vision.FaceLandmarkerOptions(base_options=BaseOptions(model_asset_path=os.path.join(models, 'face_landmarker.task')), running_mode=vision.RunningMode.IMAGE,
+                                       num_faces=1, output_facial_transformation_matrixes=True)
+    cap, raw = cv2.VideoCapture(film), []
+    with vision.FaceLandmarker.create_from_options(opt) as fm:
+        while True:
+            ok, pic = cap.read()
+            if not ok:
+                break
+            h, w = pic.shape[:2]
+            side = int(h * 0.45)
+            x0 = (w - side) // 2
+            crop = np.ascontiguousarray(cv2.cvtColor(pic[0:side, x0:x0 + side], cv2.COLOR_BGR2RGB))
+            r = fm.detect(mp.Image(image_format=mp.ImageFormat.SRGB, data=crop))
+            if r.face_landmarks:
+                m = np.array(r.facial_transformation_matrixes[0])[:3, :3]
+                raw.append([round(float(a), 2) for a in cv2.RQDecomp3x3(m / np.cbrt(abs(np.linalg.det(m)) or 1.0))[0]])
+            else:
+                raw.append(None)
+    found = sum(1 for x in raw if x)
+    ev = evened_angles([x if x else [np.nan] * 3 for x in raw]) if found else np.zeros((len(raw), 3))
+    with open(out, 'w', encoding='utf-8') as f:
+        json.dump({'about': dockhuvud.__doc__.split('\n')[0] + ' (verktyg/lyft.py dockhuvud). raw and evened: nod (down +), turn, tilt in degrees per frame, as the face mesh gives them (not from rest).',
+                   'film': os.path.basename(film), 'found': found, 'raw': raw, 'evened': [[round(float(v), 2) for v in a] for a in ev]}, f, separators=(',', ':'))
+    print(f'{out}: the face found in {found} of {len(raw)} frames')
+
+
 def huvud(data_dir, measures, lift_dir):
     """The head's own turn, without the eyes, into the lifted pieces already in lift_dir (nothing else in them changes): per
     frame 'huvud', the nod (down +), turn and tilt in degrees from the head's rest (the betting phases, where the dealer looks
@@ -399,14 +449,7 @@ def huvud(data_dir, measures, lift_dir):
         raw = next(r for r in files if r['frames'][0]['t'] - 1e-3 <= t0 and t1 <= r['frames'][-1]['t'] + 1e-3)
         ts = np.array([f['t'] for f in raw['frames']])
         near = [raw['frames'][int(np.argmin(np.abs(ts - fr['t'])))] for fr in lf['frames']]
-        ang = np.array([np.array(f['face']['turn'], float) - rest if f['face'] else [np.nan] * 3 for f in near])
-        k = np.arange(len(ang))
-        for j in range(3):
-            ok = ~np.isnan(ang[:, j])
-            ang[:, j] = np.interp(k, k[ok], ang[ok, j]) if ok.any() else 0.0
-            pad = np.pad(ang[:, j], 7, mode='edge')
-            med = np.array([np.median(pad[i + 3:i + 12]) for i in range(len(ang))])
-            ang[:, j] = np.convolve(np.pad(med, 7, mode='edge'), np.ones(15) / 15, mode='valid')
+        ang = evened_angles([np.array(f['face']['turn'], float) - rest if f['face'] else [np.nan] * 3 for f in near])
         for fr, (nod, turn, tilt) in zip(lf['frames'], ang):
             fr['huvud'] = [round(float(nod), 1), round(float(turn), 1), round(float(tilt), 1)]
             if fr['h'] is None:
@@ -425,6 +468,8 @@ def huvud(data_dir, measures, lift_dir):
 
 def main():
     option = lambda name: sys.argv[sys.argv.index(name) + 1] if name in sys.argv else None
+    if sys.argv[1] == 'dockhuvud':
+        return dockhuvud(sys.argv[2], sys.argv[3])
     if sys.argv[1] == 'huvud':
         return huvud(sys.argv[2], sys.argv[3], sys.argv[4])
     if sys.argv[1] == 'prov':
