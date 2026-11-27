@@ -180,10 +180,12 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   - Domaren Bra: `kartan-over-schemat-20261127` (Karta, Schemat, på datorn och på telefonen),
     `studion-i-roten-20261127`, `skon-med-liggande-kort-20261127`, `hela-filmen-indelad-20261127` och
     `ansikte-ur-framstalld-film-20261127`.
-  - Domaren Nja: `tomasz-med-dockans-hander-20261127` (den externa domaren sa Bra) och
-    `tomasz-dockan-pa-hans-matt-20261127` (den externa sa också Nja).
-  - Domaren Inte bra, arbetet pågår: `lyftet-troget-filmen-20261127` (Danilos giv till plats 4 ur filmen). Ingen film
-    beställs förrän domaren har godkänt given.
+  - Domaren Bra men den externa domaren Inte bra: `lyftet-troget-filmen-20261127` (Danilos giv till plats 4 ur
+    filmen, sjunde försöket: huvudet följer dealern; den externa, som inte ser det riktiga klippet, fällde att handen
+    "pekar" på kortet och att blicken inte är på skon) och `tomasz-med-dockans-hander-20261127` (andra vändan: huden ur
+    hans egen hand; den externa fällde den knutna handen och givhanden).
+  - Domaren Nja: `tomasz-dockan-pa-hans-matt-20261127` (den externa sa också Nja) och `studion-mindre-text-20261127`
+    (Avatarer var pratigast och är rättad efter domen; Granska, Prov och Biblioteket är inte gjorda).
   - Domaren Inte bra, ersatta av proven ovan: `danilo-frasse-i-editorn-20261127`, `danilo-frasse-rorelser-20261127`,
     `meshy-provet-20261127`, `tomasz-pa-danilos-grund-20261127`, `tomasz-ansikte-20261127` och
     `hander-hunyuan-mot-meshy-20261127`. De raderas på hans ord (Prov eller Biblioteket).
@@ -191,10 +193,12 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   - Dömda av honom: `livebordet-klonat-20261127` och `danilo-frasse-kroppar-20261127` Bra,
     `dealerns-handled-20261127` Inte bra, `runway-3d-20261127` ("meshy/vår docka bäst", händerna sämst hos oss) och
     `tomasz-gor-danilos-giv-20261127` Nej (kortet i Beslut).
-- **Korten i Beslut är alla besvarade** (`data/decisions.json`): given görs med bilder ur dockan i Kling 4 (sju bilder
-  var bäst; likheten med dockans film släpps inte helt, A och B var också bra), dockans miner mäts ur framställda
-  närbilder, och Tomasz från två kameror fick Nej. Kortet `atta-bilder-giv` pekar på ett prov som är arkiverat: han
-  säger om kortet ska bort.
+- **Ett kort väntar i Beslut:** `sju-bilder-vid-livebordet` (provet `sju-bilder-vid-livebordet-20261127`), den första
+  filmen vid livebordet: Tomasz ger ett kort till plats 4, gjord av sju bilder ur dockans lyfta giv i Kling 4 och lagd
+  på vårt eget bord (131 krediter). Hans svar på de äldre korten är utförda och korten stängda: given görs med bilder
+  ur dockan ("kling 4 med 7 bider vart nog bäst"; likheten med dockans film släpps inte helt, A och B var också bra),
+  och dockans miner mäts ur framställda närbilder ("Jäkligt bra!"). Tomasz från två kameror fick Nej; det kortet står
+  kvar tills flera kameror prövas igen.
 - **Blicken vid skon.** Hans dom 2026-11-26 säger att blicken i ankaret vid skon (A2.3) är på skon. Vid livebordet står
   skon 63° åt sidan från dealerns huvud, och ingen av de två riktiga dealrarna ser dit: de drar kortet utan att titta.
   Danilos och Frasses dockor följer de riktiga, och en giv börjar och slutar i samma bild med samma blick som förut.

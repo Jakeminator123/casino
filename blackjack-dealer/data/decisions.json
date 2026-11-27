@@ -3,64 +3,26 @@
   "about": "What waits for Jakob: one entry per question (kind beslut) or per thing only he can do (kind gora), shown as one card each in the studio's view Beslut (/studio/beslut/, lab only). The list's order is the order of urgency, the most urgent first. An entry: id, kind, question (at most 14 words), leads (one sentence: what his answer leads to), optionally proof (a folder under assets/proofs/) with file, page (an address in the lab, e.g. game.html?table=casino), link (an address outside, shown as text to open on his phone) and cost (free text), chips (two to four {value, label} for beslut, one to four for gora), asked (date), from (the lane that asks) and answer. An agent adds an entry with answer null, changes only its own entries, reads the file right before editing it and keeps the form JSON.stringify gives with two spaces; it closes an entry by taking it out once his answer is carried out, and the commit says what he answered. Only the page writes answer ({value, note, at}, tools/decision-store.ts); no agent sets, changes or clears an answer he has given. The strict reader is tools/decision-register.ts. The repo is public: no secret, personal detail or path of this machine.",
   "decisions": [
     {
-      "id": "atta-bilder-giv",
+      "id": "sju-bilder-vid-livebordet",
       "kind": "beslut",
-      "question": "Bilder i stället för dockans film: är den nya given bättre än A?",
-      "leads": "Är den bättre görs nästa giv med bilder ur dockan i stället för dockans film; annars stannar vi vid A.",
-      "proof": "atta-bilder-20261127",
-      "file": "10-dockan-a-och-de-nya-bredvid-varandra.mp4",
-      "chips": [
-        {
-          "value": "bilderna",
-          "label": "Bättre: gör med bilder"
-        },
-        {
-          "value": "a",
-          "label": "A är bättre"
-        },
-        {
-          "value": "ingen",
-          "label": "Ingen: se anteckningen"
-        }
-      ],
-      "asked": "2026-11-27",
-      "from": "standarddocka",
-      "cost": "en giv med sju bilder cirka 113 krediter (bilderna 56, filmen 57)",
-      "answer": {
-        "value": "bilderna",
-        "note": "kling 4 med 7 bider vart nog bäst. Med 3 bilder strulade vändningen och den innnan var fortfarande aning mekanisk. Dock fladdrar gult och rött som kortrygg. Är deta för vi har kortrygg som rött och gult blandat? Detta bör vara en bugg, elelr att vi inte enats om vilket kort som ska användas. Men för framtiden ska inte total video/docklikhet totalt släppas, för A och B var bra med (elelr 1 och 2, alts docka till exakt likhetsutförande)",
-        "at": "2026-11-27T04:19:30.062Z"
-      }
-    },
-    {
-      "id": "ansikte-ur-framstalld-film",
-      "kind": "beslut",
-      "question": "Dockans min ur en framställd närbild av Tomasz: ska uttrycken tas så här?",
-      "leads": "Ja: dockans uttryck mäts ur sådana filmer och spelas på dockan; nej: dockans ritade uttryck står kvar.",
-      "proof": "ansikte-ur-framstalld-film-20261127",
-      "file": "2-matningen-ritad-ovanpa.mp4",
+      "question": "Tomasz ger ett kort vid livebordet, gjord av sju bilder: ska filmerna göras så?",
+      "leads": "Ja: samma giv görs till fler platser och från spelarnas kameror; nej: det du antecknar rättas först.",
+      "proof": "sju-bilder-vid-livebordet-20261127",
+      "file": "01-tomasz-vid-livebordet.mp4",
       "chips": [
         {
           "value": "ja",
-          "label": "Ja, mät minerna så här"
+          "label": "Ja, gör filmerna så"
         },
         {
           "value": "nej",
-          "label": "Nej, behåll de ritade"
-        },
-        {
-          "value": "ingen",
-          "label": "Ingen: se anteckningen"
+          "label": "Nej, se anteckningen"
         }
       ],
       "asked": "2026-11-27",
-      "from": "standarddocka",
-      "cost": "provet 151 krediter; en ny närbild cirka 94 (10 s)",
-      "answer": {
-        "value": "ja",
-        "note": "Jäkligt bra!. Men jag kunde ungefär bara se hälften av barometrarna so mgick upp och ned.. Finns värden för de so inte gick upp/ned?",
-        "at": "2026-11-27T04:20:47.434Z"
-      }
+      "from": "blackjack-dealer",
+      "cost": "filmen 131 krediter; cirka 130 per giv och kamera",
+      "answer": null
     },
     {
       "id": "tomasz-gor-danilos-giv",
