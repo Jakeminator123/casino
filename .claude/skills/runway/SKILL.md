@@ -100,16 +100,18 @@ uppskalning): se `guides/models.md`.
 Det standarddockan behöver: dockan gör rörelsen i 3D, den filmas genom en kamera, och en filmmodell gör om filmen till
 en riktig person. Sätten som finns i dag, i den ordning de är värda att pröva:
 
-1. **Kling 4 med stillbilder ur dockans film**, och ingen referensfilm (det Jakob valde; det
-   `avatar-auto-pipeline/ny_dealer.py` förbereder): första bild, upp till åtta mellanbilder och sista bild, rutor ur
-   dockans rörelse valda vid rörelsens egna händelser och gjorda till personen av en bildmodell. Filmen följer vägen och
-   kortplatsen men gör takten själv; den läggs i dockans takt efteråt med `standarddocka/verktyg/i-dockans-takt.ts`
-   (åttonde, elfte och trettonde provet nedan).
-2. **Aleph 2 med styrbilder.** Dockans film in, och en eller flera rutor ur samma film omgjorda till personen som
-   styrbilder (första rutan, sista rutan, och vid behov ögonblicket kortet släpps). Följer dockans takt på rutan.
-   Styrbilderna vägleder; de lovar inte att fingrarna hamnar exakt.
-3. **Kling 4 med första och sista bild och dockans film som referensfilm.** Kopierar referensfilmens väg och takt
-   (`bestalla-film`, "Modellerna").
+1. **Kling 4 mellan två ankarbilder med dockans film av steget som referensfilm,** ett klipp per steg i
+   rörelseschemat (`avatar-auto-pipeline/ny_dealer.py --ankarklipp`): takten och rörelsen kommer ur dockan när filmen
+   görs (likhet 0,96–0,98, cirka 0,07 s efter), ansiktet och händerna ur ankarbilderna, och klippen går ihop i ankarna.
+   Det bästa sättet hittills; dockans fel blir filmens (trettonde provets fjärde omgång nedan).
+2. **Kling 4 med stillbilder ur dockans film**, och ingen referensfilm: första bild, upp till åtta mellanbilder och
+   sista bild, rutor ur dockans rörelse valda vid rörelsens egna händelser och gjorda till personen av en bildmodell.
+   Filmen följer vägen och kortplatsen men gör takten och händernas rörelse själv; lagd i dockans takt efteråt med
+   `standarddocka/verktyg/i-dockans-takt.ts` fick den Jakobs Inte bra ("Tempot är konstigt", "Fingrarna når inte
+   kortet"; åttonde, elfte och trettonde provet nedan).
+3. **Aleph 2 med styrbilder.** Dockans film in, och en eller flera rutor ur samma film omgjorda till personen som
+   styrbilder (första rutan, sista rutan, och vid behov ögonblicket kortet släpps). Följer dockans takt på rutan, men
+   tar också dockans yta: ansiktet gled och händerna blev plast (trettonde provet).
 4. **Kling 4 som redigerare** (`/v1/video_to_video`) med dockans film som källa och personens ankare som första bild.
 5. **Gemini Omni 1.2 Flash, `edit`:** under hälften av Alephs pris och bara för filmer under 10 s, men stoppad av
    innehållsgranskningen när foton av en person följde med (2026-11-26).
@@ -407,8 +409,34 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     Danilos takt och inga upprepade rutor, men domaren: Inte bra. Ansiktet går sönder (ett ögonlock sväller i ruta
     16–33) och blir yngre mot slutet trots tre styrbilder, vänsterhanden blir dockans (plastig), och spårkortets gula
     lämnar flagor vid fingrarna. Aleph tar takten och rörelsen ur dockan men också dess yta.
-  - **Nästa att pröva:** takten ur dockans film och ansiktet och händerna ur stillbilderna i samma anrop (Kling 4 med
-    stillbilderna och dockfilmen som referensfilm), och vårt kort lagt där filmens fingertoppar är, ruta för ruta.
+  - **Fjärde omgången, tre klipp mellan fyra ankarbilder** (`ny_dealer.py --ankarklipp`, provet
+    `kenji-tre-klipp-mellan-ankarbilder-20261127`, 238 krediter): takten ur dockans film och ansiktet och händerna ur
+    stillbilderna i samma anrop.
+    - **Ankarbilderna** (GPT Image 2.6 Sunburst, `2560:1440`, 10 + 3 × 8 krediter, alla fyra godkända på första
+      försöket): A2.3 ur dockans ruta 0 och personens tre bilder; A2.3 med kortet som en ändring av A2.3; A3P4C1 som
+      en ändring av den, med dockans ruta 43 som ställning; A2M som en ändring av A2.3, med ruta 29. Bakgrunden,
+      hyllan och relingen skiljer 2–9 av 255 mellan bilderna, den genomskinliga skon 15–28. Texten måste säga det
+      bilden visar: klippets text sa "long edge" där dockan ställer kortet på kortkant, och ankarbildens text sa inte
+      hur kortet hålls; båda kommer nu ur rörelsens tal. "A closed fist" gav en hårt knuten näve där dealerns är lös.
+    - **Klippen:** Kling 4, `/v1/image_to_video`, `promptImage` med `first` och `last` (ankarbilderna i 1728 × 972),
+      `referenceVideos` med dockans film av steget fylld till 3,0 s med stillhet i ankarna (30 + 30 + 30, 37 + 15 + 38
+      och 33 + 23 + 34 rutor), `duration: 3`, `ratio: "auto_1080p"`: 68 krediter per klipp. Ut kom 1920 × 1080, 24
+      bilder/s, 73 rutor, med ljud.
+    - **Kling följer referensfilmen:** rörelsens likhet 0,96–0,98 (rörelsen ruta för ruta i bordets del av bilden mot
+      referensfilmens) och 0,06–0,08 s senare, i alla tre klippen. Första och sista rutan är ankarbilderna, så
+      klippen går ihop. Ett steg klippt på referensfilmens egna tider tappar rörelsens slut: mät förskjutningen
+      (`ny_dealer.py --steg 7` gör det).
+    - **Bildtakten är 24 och går inte att välja.** Att lägga om till 30 genom att upprepa var femte ruta fällde
+      domaren ("ett jämnt hack sex gånger i sekunden"). Filmen sätts ihop av klippens egna rutor: 53 rutor för dockans
+      66, filmruta j är dockans ruta j × 1,25.
+    - **Dockans fel blir filmens, igen:** i dockan går kortet från stående i bytet till dolt under näven på två
+      rutor. Kling ritade då ett kort som står ensamt mellan händerna, bleknar och blir en mörk kant i näven. En
+      rörelse en kamera inte kan följa blir ingen film: bytet rättas i lyftet före nästa klipp.
+    - **Spårkortet i farten:** Klings gula kort var blekt av rörelseoskärpa (245, 214, 122 mot det skarpa 250, 215,
+      60) och låg en till två rutor efter dockans, 6 cm per ruta. Efterarbetet kände först inte igen det och ritade
+      vårt kort bredvid handen.
+    - **Domaren** (domarens ord, inte Jakobs): Inte bra på första versionen, för bytet, för vårt kort över fingrarna
+      och för hacket. Det som höll: samma man, lugnt huvud, vänsterhanden vid skon, och näven med tummen på kortet.
 - Fjortonde provet, 2026-11-27, **handbytet som egen ankarbild: A2.3 → A2M → A3P4C1 → A2.3 med kortet**, för hand i
   Runways app med en ny person ur ett foto som Jakob skickade. Fotot gick bara till bildmodellen i Runway, aldrig in i
   Git. Frasses ställning genom livebordets kamera; domarens ord, inte Jakobs.

@@ -93,7 +93,12 @@ async function* rutor(fil: string): AsyncGenerator<Buffer> {
 const ljus = (r: number, g: number, b: number) => 0.2126 * r + 0.7152 * g + 0.0722 * b;
 const LO = 0.12, HI = 0.5;
 /** Hur grön en bildpunkt är mot rutans rena gröna (0 inte alls, 1 helt): grönt över det största av rött och blått. */
-const gron = (r: number, g: number, b: number, ren: number) => { const s = (g - Math.max(r, b)) / ren; return s <= LO ? 0 : s >= HI ? 1 : (s - LO) / (HI - LO); };
+// Det gröna i djup skugga är lika grönt som det rena, bara mörkare: mätt mot det rena gröna i hela dess ljus räknades det
+// som halvt dealer och blev en mörk, trasig rand kring en hand i farten (domaren 2026-11-27). Grönheten mäts därför också mot
+// bildpunktens eget ljus (andelen grönt över rött och blått, mot samma andel i det rena gröna, GRON_ANDEL som mäts i varje
+// ruta), och den största av de två gäller. Skuggan läggs sedan på vårt bord som en kvot (S).
+let GRON_ANDEL = 0.55;
+const gron = (r: number, g: number, b: number, ren: number) => { const d = g - Math.max(r, b), s = Math.max(d / ren, g > 24 ? d / g / GRON_ANDEL : 0); return s <= LO ? 0 : s >= HI ? 1 : (s - LO) / (HI - LO); };
 
 // Livebordets kamera i arbetets bildpunkter (plattans storlek; bildpunkternas mitt räknas, som i table-live.ts).
 const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]], sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], mul = (a: Vec3, k: number): Vec3 => [a[0] * k, a[1] * k, a[2] * k];
@@ -137,7 +142,8 @@ for await (const f of rutor(falt)) {
 const valt = (slag: 'filt' | 'bakgrund') => { let i = -1; samst[slag].forEach((s, j) => { if (i < 0 || s > samst[slag][i]) i = j; }); if (i < 0 || !(samst[slag][i] > 30)) throw Error(`${falt}: hittar inget rent grönt ${slag === 'filt' ? 'på bordets filt' : 'i bakgrunden'} genom livebordets kamera. Är filmen inspelad i utseendet nyckel vid livebordet?`); return STALLEN[slag][i]; };
 const MATT_FILT = valt('filt'), MATT_BAK = valt('bakgrund');
 /** Rutans rena gröna: i bakgrunden (ru) och på filten (rn), och filtens ljus. */
-const renaGrona = (f: Buffer) => { const u = medel(f, MATT_BAK[0], MATT_BAK[1]), n = medel(f, MATT_FILT[0], MATT_FILT[1]); return {ru: u[1] - Math.max(u[0], u[2]), rn: n[1] - Math.max(n[0], n[2]), ln: ljus(n[0], n[1], n[2])}; };
+const renaGrona = (f: Buffer) => { const u = medel(f, MATT_BAK[0], MATT_BAK[1]), n = medel(f, MATT_FILT[0], MATT_FILT[1]), rn = n[1] - Math.max(n[0], n[2]);
+  GRON_ANDEL = Math.max(0.2, rn / Math.max(1, n[1])); return {ru: u[1] - Math.max(u[0], u[2]), rn, ln: ljus(n[0], n[1], n[2]), gu: u, gn: n}; };
 if (visa) console.log(`det gröna mäts på filten vid (${MATT_FILT.map(v => v + RUTA / 2).join(', ')}) och i bakgrunden vid (${MATT_BAK.map(v => v + RUTA / 2).join(', ')})`);
 
 // Andra varvet, på var fjärde bildpunkt: bordets rena gröna ljus per ställe (det ljusaste en helt grön bildpunkt där har
@@ -253,7 +259,7 @@ const fack = (r: number, g: number, b: number) => (r >> 4) << 8 | (g >> 4) << 4 
 // till dealern så mycket som den är hud: under 0,3 inte alls, över 0,8 helt. Förut avgjordes det med ja eller nej, och
 // fingrarna över vårt kort blev borta eller fick gula flagor (domaren 2026-11-27: kortet "ligger ovanpå fingrarna").
 type Ton = [number, number];
-const HUD = {ton: [55, 30] as Ton, farg: [213, 158, 128], ljus: 170, linje: 0.35};   // (linje: grönt mellan blått och rött, 0–1)
+const HUD = {ton: [55, 30] as Ton, farg: [213, 158, 128], ljus: 170};
 /** Det gula i ett område: medeltonen över de gula bildpunkterna (minst 30), eller null. */
 const gultI = (bild: Uint8Array | Uint8ClampedArray, med: (q: number) => boolean, b: Lada): Ton | null => { let u = 0, v = 0, n = 0;
   for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) { const q = y * W + x; if (!med(q)) continue; const o = q * 3, r = bild[o], g = bild[o + 1], bl = bild[o + 2]; if (gul(r, g, bl)) { u += r - g; v += g - bl; n++; } }
@@ -263,15 +269,15 @@ const gultI = (bild: Uint8Array | Uint8ClampedArray, med: (q: number) => boolean
 const hudDel = (r: number, g: number, b: number, Y: Ton) => { const u = r - g, v = g - b, det = HUD.ton[0] * Y[1] - Y[0] * HUD.ton[1]; if (r < g - 5 || Math.abs(det) < 200) return null;
   const s = Math.max(0, (Y[1] * u - Y[0] * v) / det), a = Math.max(0, (HUD.ton[0] * v - HUD.ton[1] * u) / det); if (s + a < 0.25) return null;
   return Math.max(0, Math.min(1, (s / (s + a) - 0.3) / 0.5)); };
-/** Bildpunkten o i D målad i dealerns hudfärg, med sitt eget ljus (det gula är då ute ur den). */
-const iHudfarg = (o: number) => { const k = ljus(D[o], D[o + 1], D[o + 2]) / HUD.ljus; for (let c = 0; c < 3; c++) D[o + c] = HUD.farg[c] * k; };
+/** Det gula som är kvar i en bildpunkt som delvis är hud tas ned: blått minst tre fjärdedelar av grönt (bildpunktens eget
+ * ljus och mönster står kvar; att måla den i hudens färg gav rosa och orange fläckar, domaren 2026-11-27). */
+const utanGult = (o: number) => { if (D[o + 2] < 0.75 * D[o + 1]) D[o + 2] = 0.75 * D[o + 1]; };
 if (P2 || rorelse) { const f = forstaBild!, {ru, rn} = renaGrona(f), gr = new Uint8Array(WH), sp = new Float32Array(WH), n = new Float64Array(4096), h = [0, 0, 0]; let alla = 0, hn = 0;
   for (let q = 0; q < WH; q++) { const o = q * 3, r = f[o], b = f[o + 2]; let g = f[o + 1]; gr[q] = gron(r, g, b, BORD[q] ? rn : ru) > 0 ? 1 : 0; if (g > Math.max(r, b)) g = Math.max(r, b); sp[q] = !gr[q] && sparFarg(r, g, b) ? 1 : 0; }
   lada(sp, 12);
   for (let y = 3; y < H - 3; y++) for (let x = 3; x < W - 3; x++) { const q = y * W + x; if (gr[q] || gr[q - 3] || gr[q + 3] || gr[q - 3 * W] || gr[q + 3 * W] || sp[q] > 0 || SKO[q]) continue;
     const o = q * 3, r = f[o], b = f[o + 2], g = Math.min(f[o + 1], Math.max(r, b)); n[fack(r, g, b)]++; alla++; if (hud(r, g, b)) { h[0] += r; h[1] += g; h[2] += b; hn++; } }
-  if (hn > 200) { HUD.farg = h.map(v => v / hn); HUD.ton = [HUD.farg[0] - HUD.farg[1], HUD.farg[1] - HUD.farg[2]]; HUD.ljus = ljus(HUD.farg[0], HUD.farg[1], HUD.farg[2]);
-    HUD.linje = Math.max(0, Math.min(1, (HUD.farg[1] - HUD.farg[2]) / Math.max(1, HUD.farg[0] - HUD.farg[2]))); }
+  if (hn > 200) { HUD.farg = h.map(v => v / hn); HUD.ton = [HUD.farg[0] - HUD.farg[1], HUD.farg[1] - HUD.farg[2]]; HUD.ljus = ljus(HUD.farg[0], HUD.farg[1], HUD.farg[2]); }
   const minst = Math.max(8, alla * 3e-4);
   for (let i = 0; i < 4096; i++) { if (n[i] < minst) continue; const r = i >> 8, g = (i >> 4) & 15, b = i & 15;
     for (const [dr, dg, db] of [[0, 0, 0], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) { const R = r + dr, G = g + dg, B = b + db; if (R >= 0 && R < 16 && G >= 0 && G < 16 && B >= 0 && B < 16) PERSON[R << 8 | G << 4 | B] = 1; } }
@@ -365,7 +371,7 @@ const sok = (f: Buffer, t0: number, forra: Lage | null) => {
   const {inne, ute} = rakna(basta); return {L: inne >= nF / 3 ? basta : null, nF, tackt: inne / nF, ute, b};
 };
 // Kortet ritat (CL linjärt ljus gånger täckning, CA täckning) och filmens kort som tas bort (BORT).
-const CL = new Float32Array(N), CA = new Float32Array(WH), BORT = new Float32Array(WH), HM = new Float32Array(WH), SAK = new Uint8Array(WH);
+const CL = new Float32Array(N), CA = new Float32Array(WH), BORT = new Float32Array(WH), HM = new Float32Array(WH), NK = new Float32Array(WH), SAK = new Uint8Array(WH);
 /** Ritar kortet k med vikten w in i CL och CA: 4 x 4 strålar per bildpunkt, runda hörn, inget inne i skon. */
 const rita = (k: Kort, w: number, l: Lada) => {
   const syns = dot(k.n, sub(RAM.position, k.c)) > 0, B = syns ? FRAM! : RYGG!, nS = syns ? k.n : mul(k.n, -1), vl = vinkelLjus(nS);
@@ -424,24 +430,32 @@ if (rorelse) { const lagen: Lage[] = [];
 const kod = spawn(FFMPEG, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', `${W}x${H}`, '-r', takt, '-i', '-', '-vf', 'scale=out_color_matrix=bt709:out_range=tv', ...KOD, mal], {stdio: ['pipe', 'ignore', 'inherit'], windowsHide: true});
 const klar = once(kod, 'close'), bild = Buffer.alloc(N); let antal = 0, nr = 0;
 for await (const f of hallen()) {
-  const {ru, rn, ln} = renaGrona(f);
+  const {ru, rn, ln, gu, gn} = renaGrona(f);
   for (let q = 0; q < WH; q++) { const o = q * 3; K[q] = gron(f[o], f[o + 1], f[o + 2], BORD[q] ? rn : ru); }
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const o = (y * W + x) * 3, q = y * W + x; let r = f[o], g = f[o + 1], b = f[o + 2], k = K[q];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const o = (y * W + x) * 3, q = y * W + x; let r: number = f[o], g: number = f[o + 1], b: number = f[o + 2], k = K[q];
     // Kanten mot det gröna: en kall bildpunkt (blåare än röd) bredvid helt grönt är skärmens grönt blandat i skjortan eller
     // kortets ram och lyser som en ljus turkos rand mot vårt mörka bord (Klings film 2026-11-27); den räknas till bordet.
     // Skärmens grönt har mer blått än rött, så en skjorta i vilken färg som helst blir kall där; hud och dockans vita blir
     // det inte förrän det gröna tar över, så fingrarna tunnas inte ut.
     if (k < 1 && b > r + 10 && Math.min(g, b) > 90 && x > 0 && y > 0 && x < W - 1 && y < H - 1 && (K[q - 1] >= 1 || K[q + 1] >= 1 || K[q - W] >= 1 || K[q + W] >= 1)) k = Math.max(k, 0.9);
-    A[q] = k;
     // Dealerns skugga på filten: där det gröna är mörkare än det rena gröna på stället (jämnas nedan).
     S[q] = k > 0 && SKIVA[q] && skugga > 0 ? 1 - skugga * (1 - Math.min(1, ljus(r, g, b) / (ln * rentVid(x, y)))) : 1;
-    // Dealern: det gröna som spiller över i kanten tas ned till det största av rött och blått. I hudens kant mot det gröna
-    // räcker inte det: rött och grönt blir då lika och kanten gulgrön (randen längs handen 2026-11-27). Där, i det varma som
-    // inte är kortets gula och ligger inom två bildpunkter från helt grönt, tas det gröna ned till hudens egen ton
-    // (grönt lika långt mellan blått och rött som i dealerns hud).
+    // Hud och skärmens gröna i samma bildpunkt: handens kant mot det gröna, och en hand som är suddig av farten. Grönheten
+    // ovan ser det gröna först när det är mer än en tredjedel, och kanten blev då en gulgrön eller mörk, trasig rand
+    // (domaren 2026-11-27). Bildpunktens ton (rött över grönt, grönt över blått) ses som hudens ton plus det grönas ton:
+    // det grönas del tas ur färgen, hur mörkt det gröna än är i handens skugga, och det som blir kvar är huden. Bildpunkten
+    // täcker så mycket som den huden lyser mot dealerns hud (fyra femtedelar av dess ljus räknas som helt täckt); resten är
+    // genomskinligt. Inte kortets gula, och inte en färg dealern själv har (ett varmt tyg ska inte bli genomskinligt).
+    if (k < 1 && r > b + 10) { const gk = Math.min(g, Math.max(r, b));
+      if (!gul(r, gk, b) && !PERSON[fack(r, gk, b)]) { const G = BORD[q] ? gn : gu, gu1 = G[0] - G[1], gv1 = G[1] - G[2], u = r - g, v = g - b, det = HUD.ton[0] * gv1 - gu1 * HUD.ton[1];
+        const hudA = det ? (gv1 * u - gu1 * v) / det : 0, gronA = det ? (HUD.ton[0] * v - HUD.ton[1] * u) / det : 0;
+        // (bara när det som blir kvar är hud: kortets gula blandat med det gröna har samma ton som hud plus grönt, och blev
+        // annars en orange krans kring kortet)
+        if (gronA > 0.04 && hudA > 0.1) { const r1 = Math.max(0, r - gronA * G[0]), g1 = Math.max(0, g - gronA * G[1]), b1 = Math.max(0, b - gronA * G[2]), tacker = Math.min(1, ljus(r1, g1, b1) / (0.8 * HUD.ljus));
+          if (tacker > 0.05 && hud(Math.min(255, r1 / tacker), Math.min(255, g1 / tacker), Math.min(255, b1 / tacker))) { k = Math.max(k, 1 - tacker); r = r1 / tacker; g = g1 / tacker; b = b1 / tacker; } } } }
+    A[q] = k;
+    // Dealern: det gröna som spiller över i kanten tas ned till det största av rött och blått.
     if (g > Math.max(r, b)) g = Math.max(r, b);
-    if (k < 1 && r > b + 10 && x > 1 && y > 1 && x < W - 2 && y < H - 2 && !gul(r, g, b)
-      && (K[q - 1] >= 1 || K[q + 1] >= 1 || K[q - W] >= 1 || K[q + W] >= 1 || K[q - 2] >= 1 || K[q + 2] >= 1 || K[q - 2 * W] >= 1 || K[q + 2 * W] >= 1)) g = Math.min(g, b + (r - b) * HUD.linje);
     D[o] = r; D[o + 1] = g; D[o + 2] = b; }
   if (skugga > 0) lada(S, 4);
   // (i skons område: bara handen och ärmen ur filmen: hud, och dealerns färger där filmen har ändrats sedan rutan med den
@@ -458,7 +472,7 @@ for await (const f of hallen()) {
     // (fingertopparna vid mynningen är blandade med kortlekens gula och är då varken hud eller dealerns färg: intill handen
     // hör en sådan bildpunkt till handen så mycket som den är hud, så att vårt kort ligger under fingrarna och inte över dem)
     if (DEKK_GULT) for (let q = 0; q < WH; q++) { if (!SKO[q] || M[q] >= 1 || A[q] >= 1 || M2[q] < 0.1) continue; const o = q * 3, del = hudDel(D[o], D[o + 1], D[o + 2], DEKK_GULT);
-      if (del) { M[q] = del; if (del < 1) iHudfarg(o); } }
+      if (del) { M[q] = del; if (del < 1) utanGult(o); } }
     lada(M, 1); }
   // Kortet: vårt ritat i rutans läge (med rörelseoskärpa över en halv ruta), och filmens borttaget med sin kant.
   let rl: Lada | null = null;
@@ -476,10 +490,16 @@ for await (const f of hallen()) {
     while (stack.length) { const q = stack.pop()!, x = q % W, y = q / W | 0; for (const [p, px, py] of [[q - 1, x - 1, y], [q + 1, x + 1, y], [q - W, x, y - 1], [q + W, x, y + 1]]) if (px >= b.x0 && px < b.x1 && py >= b.y0 && py < b.y1 && (SAK[p] === 1 || SAK[p] === 3)) { SAK[p] = SAK[p] === 1 ? 2 : 4; stack.push(p); } }
     HM.fill(0); for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) { const q = y * W + x; HM[q] = SAK[q] === 2 ? 1 : 0; } lada(HM, 2);
     const gult = gultI(D, q => SPAR[q] === 1, b);
+    // (nära kortet, NK: inom tolv bildpunkter från filmens kort eller vårt)
+    NK.fill(0); for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) { const q = y * W + x; NK[q] = SPAR[q] === 1 || CA[q] > 0 ? 1 : 0; } lada(NK, 12);
     for (let y = b.y0; y < b.y1; y++) for (let x = b.x0; x < b.x1; x++) { const q = y * W + x; if (SPAR[q] === 1) { BORT[q] = 1; continue; }
-      // (finger och filmens gula kort i samma bildpunkt, där den hänger ihop med dealern: kvar så mycket som den är hud)
-      if (gult && (SAK[q] === 2 || SAK[q] === 4)) { const o = q * 3, del = hudDel(D[o], D[o + 1], D[o + 2], gult);
-        if (del !== null && (del < 1 || SAK[q] === 4)) { BORT[q] = 1 - del; if (del > 0 && del < 1) iHudfarg(o); continue; } }
+      // (finger och filmens gula kort i samma bildpunkt, nära kortet och där den hänger ihop med dealern: kvar så mycket som
+      // den är hud. Bara nära kortet: längre bort är det gulvita något annat, som manschettknappen som annars skars bort)
+      if (gult && NK[q] > 0.001 && (SAK[q] === 2 || SAK[q] === 4)) { const o = q * 3, del = hudDel(D[o], D[o + 1], D[o + 2], gult);
+        if (del !== null && (del < 1 || SAK[q] === 4)) { BORT[q] = 1 - del; if (del > 0 && del < 1) utanGult(o); continue; } }
+      // (nära kortet är det som varken är dealerns färg eller hud filmens kort: spårkortets märke blandat i det gula blir
+      // orange och rött, och låg kvar som krokiga streck när kortet flög in i näven)
+      if (NK[q] > 0.001 && (SAK[q] === 3 || SAK[q] === 4)) { BORT[q] = 1; continue; }
       // (kortets kant: två bildpunkter runt det utom där det säkert är dealern, och fem där det gröna är inblandat (Kling ritar
       // kortet suddigt i det snabba); i vårt kort bara dealern; det som är dealerns färg men inte hänger ihop med dealern tas bort)
       const h = SAK[q] === 2; if ((CA[q] > 0 || SAK[q] === 1) && (!h || HM[q] < 0.5)) { BORT[q] = 1; continue; } if (h) continue; const R = A[q] > 0 ? 5 : 2; let nara = false;

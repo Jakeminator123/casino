@@ -310,11 +310,14 @@ def rutorna(rorelse, antal, kamera):
 def handens_form(P):
     """En hands form ur dess 21 punkter: hur många av de fyra fingrarna som är inböjda (toppen närmare knogen än 60 % av
     fingrets längd), i ord."""
-    inbojda = 0
-    for kn in (5, 9, 13, 17):
-        langd = sum(math.dist(P[kn + i], P[kn + i + 1]) for i in range(3))
-        inbojda += math.dist(P[kn], P[kn + 3]) < 0.6 * langd
-    return 'a closed fist, the fingers curled in' if inbojda >= 3 else 'half closed' if inbojda == 2 else 'open, the fingers straight'
+    kvoter = [math.dist(P[kn], P[kn + 3]) / sum(math.dist(P[kn + i], P[kn + i + 1]) for i in range(3)) for kn in (5, 9, 13, 17)]
+    inbojda = [k for k in kvoter if k < 0.6]
+    if len(inbojda) >= 3:
+        # (hur hårt: en knuten näve har toppen vid knogen, under 0,4 av fingrets längd; den riktiga dealerns hand på det lagda
+        # kortet är löst böjd, och "a closed fist" gav en hårt knuten näve i bilden, domaren 2026-11-27)
+        return ('a closed fist, the fingers curled in' if sum(inbojda) / len(inbojda) < 0.4 else
+                'loosely closed, the fingers curled under and relaxed, not clenched')
+    return 'half closed' if len(inbojda) == 2 else 'open, the fingers straight'
 
 
 def kortets_lage(ruta, kamera):
@@ -835,7 +838,7 @@ def steg_anrop_ankare():
                                                 f'green table with a padded green rail. Replace the mannequin with the real man shown in the second, third and fourth images: '
                                                 f'{utseende}, a calm, neutral expression. Keep everything else exactly as in the first image: the same camera, framing and '
                                                 'perspective, his head at the same height and the same size in the picture, and the same body pose, his head bowed toward '
-                                                f'the table exactly as the mannequin\'s and his eyes on the table, not on the camera. {a23["text"]} {a23["kortet"]} Both '
+                                                f'the table exactly as the mannequin\'s and his eyes on the card at the mouth of the shoe, not on the camera. {a23["text"]} {a23["kortet"]} Both '
                                                 'elbows are bent as the mannequin\'s, and every finger is in the same position as the mannequin\'s. The table stays plain, '
                                                 'even green with no print, and the background the same flat green. The clear plastic card shoe stays exactly as it is, with '
                                                 'the yellow deck and the front card showing its yellow back in its mouth, and the small clear plate on the felt in front of '
@@ -864,7 +867,7 @@ def steg_anrop_ankare():
                                 'promptText': (f'Edit the first image: a photograph of a casino dealer seated at a green-screen table, seen from the front and from well '
                                                f'above; one card lies face up at seat {a.plats}. The second image is a white 3D mannequin at the same table, seen from exactly '
                                                'the same camera at this very moment; it only shows the pose. Move only his arms, hands and head so that they match the '
-                                               'mannequin\'s, at the same places in the picture. ' + f'{a3["text"]} {a3["kortet"]} The card stays exactly as it is in the first '
+                                               'mannequin\'s, at the same places in the picture; his eyes are on the card he has laid. ' + f'{a3["text"]} {a3["kortet"]} The card stays exactly as it is in the first '
                                                'image, at the same pixels, the same place, size and angle: it does not move, slide or turn; only his hand moves to it. Take '
                                                f'nothing else from the second image: not its white skin, its bald head or its face. {rest}'),
                                 'referenceImages': [{'uri': fj(bild(a23k)), 'tag': 'edit'}, {'uri': fj(UT / a3['fil']), 'tag': 'pose'}]}}
@@ -876,7 +879,7 @@ def steg_anrop_ankare():
                                  'promptText': ('Edit the first image: a photograph of a casino dealer seated at a green-screen table, seen from the front and from well '
                                                 'above, ready at the card shoe; no card lies on the table. The second image is a white 3D mannequin at the same table, seen '
                                                 'from exactly the same camera at this very moment; it only shows the pose. Move only his arms, hands and head so that they '
-                                                f'match the mannequin\'s, at the same places in the picture. {a2m["text"]} The card in his hands is at the place, size and '
+                                                f'match the mannequin\'s, at the same places in the picture; his eyes are on the card in his hands. {a2m["text"]} The card in his hands is at the place, size and '
                                                 f'angle of the mannequin\'s card. {a2m["kortet"]} {kortets_utseende} Take nothing else from the second image: not its white '
                                                 f'skin, its bald head or its face. {rest}'),
                                  'referenceImages': [{'uri': fj(bild(a23)), 'tag': 'edit'}, {'uri': fj(UT / a2m['fil']), 'tag': 'pose'}]}}
@@ -904,7 +907,7 @@ def steg_anrop_ankare():
                                     'timing, moment by moment, and ends exactly as the last frame shows him. The reference video shows a white mannequin: take '
                                     'only its movement, its timing and where its hands and the card are from it, never its look; his face, hair, shirt and '
                                     f'hands come from the first and last frames. {s["gor"]} He holds still at the start and at the end as the reference video '
-                                    'does. His head stays bowed toward the table as in the frames; he does not look up at the camera. The card keeps its size '
+                                    'does. His head stays bowed toward the table as in the frames and his eyes follow the card; he does not look up at the camera. The card keeps its size '
                                     f'all the way; it is never lifted high in the air. {kortets_utseende} A yellow card shows in the mouth of the shoe all the '
                                     'time. The background and the table are plain, even green with no print. Natural hands with five fingers. No text, no music, '
                                     'no speech.'),
