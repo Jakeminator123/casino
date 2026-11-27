@@ -12,7 +12,7 @@
 // sekund frames[i].t (live-bj/verktyg/lyft.py). Vår vy finns för en giv när dess inspelning är nyare än lyftet och har
 // lika många rutor som rörelsen; en persons film när ett prov har dockfilmen av personens docka i samma giv (original/
 // dockfilm-lyft-<docka>-<giv>…mp4, eller i en omgång under original/), personens lyft är samma lyft från samma ruta, och
-// filmen har rörelsens rutor och storlek.
+// filmen har vår bilds storlek och rörelsens längd (i sin egen bildtakt: en film ur Kling 4 går i 24 bilder/s).
 //
 // Filmen och vägarna finns bara här: kopian på nätet har ingen server, dess bygge (tools/build-studio-snapshot.ts) tar inget
 // utanför blackjack-dealer/ och frågar aldrig efter de här vägarna, och studions sida får filmens adress ur svaret, inte ur
@@ -107,7 +107,9 @@ export function tiderFor(lyftetsTider: number[], fran: number, rutor: number): {
   return {tider: Array.from({length: rutor}, (_, k) => lyftetsTider[Math.min(fran + k, sista)]), lyftetTill: Math.min(rutor - 1, sista - fran)};
 }
 
-const passar = (p: Probe | null, rutor: number) => !!p && p.width === VAR_STORLEK.bredd && p.height === VAR_STORLEK.hojd && p.frames === rutor && Math.abs(p.fps - 30) < 0.01;
+/** En film är rörelsens när den har vår bild och är lika lång som rörelsen, inom två av dockans rutor. Bildtakten får vara
+ * filmens egen: sidan ställer vår film efter tiden, så en film i 24 bilder/s visar rätt ruta för dockans ruta k. */
+const passar = (p: Probe | null, rutor: number) => !!p && p.width === VAR_STORLEK.bredd && p.height === VAR_STORLEK.hojd && p.fps > 0 && Math.abs(p.frames / p.fps - rutor / 30) <= 2 / 30;
 
 /** Allt sidan behöver, läst ur filerna varje gång. */
 export async function spegling(options: Options = {}): Promise<Spegling> {

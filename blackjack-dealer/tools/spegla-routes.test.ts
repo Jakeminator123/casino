@@ -39,7 +39,7 @@ put('blackjack-dealer/assets/proofs/prov-b/01-kenji-tre-klipp.mp4', 'tre klipp')
 const PROBES: Record<string, Probe> = {
   'live-lyft-danilo-p4-hela-kameran-danilo.mp4': {width: 1728, height: 972, fps: 30, frames: 6},
   '03-dockfilmen-given.mp4': {width: 1728, height: 972, fps: 30, frames: 6},
-  '01-kenji-tre-klipp.mp4': {width: 1728, height: 972, fps: 30, frames: 6},
+  '01-kenji-tre-klipp.mp4': {width: 1728, height: 972, fps: 24, frames: 5},   // (filmens egen bildtakt, lika lång som rörelsen)
   '05-kenji-ger.mp4': {width: 1728, height: 972, fps: 30, frames: 6},
   '06-samma-i-halv-fart.mp4': {width: 1728, height: 972, fps: 30, frames: 12},
 };
@@ -115,7 +115,7 @@ test("our frame k is shown against the film's second the lift has for it, and on
   utimesSync(path.join(root, 'standarddocka/klipp/live-lyft-danilo-p4-hela-kameran-danilo.mp4'), T - 60, T - 60);
   assert.deepEqual((await list()).givar[0].var.map(v => v.id), ['prov-a/05-kenji-ger.mp4', 'prov-b/01-kenji-tre-klipp.mp4']);
   for (const [prov, fil] of [['prov-a', '05-kenji-ger.mp4'], ['prov-b', '01-kenji-tre-klipp.mp4']]) {
-    PROBES[fil] = {width: 1728, height: 972, fps: 30, frames: 7};
+    PROBES[fil] = {width: 1728, height: 972, fps: 30, frames: 12};   // (dubbelt så lång som rörelsen)
     utimesSync(path.join(root, `blackjack-dealer/assets/proofs/${prov}/${fil}`), T + 1, T + 1);
   }
   assert.deepEqual((await list()).givar, []);

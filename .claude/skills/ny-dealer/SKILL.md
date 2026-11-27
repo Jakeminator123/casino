@@ -63,14 +63,18 @@ A3PnC1 → A2.3 med kortet. Klippen möts i ankarbilderna.
    (`/v1/image_to_video`, `promptImage` med `first` och `last`, `referenceVideos` med stegets referensfilm, 3 s,
    `auto_1080p`). En ankarbild som redan är gjord för samma dockruta i en tidigare omgång tas därifrån. `kostnad.json`
    säger per klipp vilka rutor av det levererade klippet som är själva steget.
-7. **Efterarbetet** (`--steg 7`, gratis, när klippen ligger i `ut/klipp-<nr>.mp4`): steget klipps ut ur stillheten där
-   klippet gör rörelsen och läggs om till dockans 30 bilder/s. Filmmodellen gör rörelsen något senare än
-   referensfilmen (Kling 4 0,06–0,08 s, 2026-11-27), så skriptet mäter förskjutningen i varje klipp (rörelsen ruta för
-   ruta mot referensfilmens) och säger hur lik rörelsen är; under 0,4 ska klippet ses på innan det används. Stegen sätts
-   ihop i grönt med ankarrutan en gång där två möts (`efter/given-i-gront.mp4`, lika många rutor som dockans giv), och
-   dealern läggs på vårt bord, hela given som en tagning (`lagg-pa-bord.ts` med plattorna, en takt med varje stegs
-   första dockruta, och skon mätt i handbytets ruta, där ingen hand är vid den): `efter/given-pa-bordet.mp4`.
-   `--efter-prov` prövar det med referensfilmerna i klippens ställe.
+7. **Efterarbetet** (`--steg 7`, gratis, när klippen ligger i `ut/klipp-<nr>.mp4`): stegen tas ur klippens stillhet,
+   där klippet gör rörelsen. Filmmodellen gör den något senare än referensfilmen (Kling 4 0,06–0,08 s, 2026-11-27), så
+   skriptet mäter förskjutningen i varje klipp (rörelsen ruta för ruta mot referensfilmens) och säger hur lik rörelsen
+   är; under 0,4 ska klippet ses på innan det används.
+   - **Filmens rutor är klippens egna:** inga upprepas och inga räknas fram. Filmen går i klippens bildtakt (Kling 4:
+     24 bilder/s, 53 rutor för dockans 66), och filmruta j är dockans ruta j × 1,25. Att lägga om till 30 bilder/s
+     genom att upprepa var femte ruta fällde domaren som "ett jämnt hack sex gånger i sekunden". Säg alltid vilken
+     sorts ruta ett tal är; provens bilder märks med dockans ruta, som Spegla och domarna räknar i.
+   - Stegen sätts ihop i grönt (`efter/given-i-gront.mp4`), och dealern läggs på vårt bord, hela given som en tagning
+     (`lagg-pa-bord.ts` med plattorna, `efter/takt.json` som säger vilken dockruta varje filmruta är, och skon mätt i
+     handbytets ruta, där ingen hand är vid den): `efter/given-pa-bordet.mp4`.
+   - `--efter-prov` prövar det med referensfilmerna i klippens ställe.
 
 Utan `--prov` hamnar filmen, rutorna och anropen i `avatar-auto-pipeline/output/<person>/16-dockfilm/`, med
 `--prov <provmapp>` i `blackjack-dealer/assets/proofs/<provmapp>/original/`. `--utseende` är personens utseende i ord för

@@ -3526,7 +3526,7 @@
     {
      "nr": "7",
      "namn": "Efterarbetet (--ankarklipp)",
-     "gor": "När klippen är levererade: steget klipps ut ur stillheten där klippet gör rörelsen (hur mycket senare än dockan mäts i klippet) och läggs om till dockans takt, stegen sätts ihop till hela given, och dealern läggs på vårt bord med vår sko och vårt kort (lagg-pa-bord.ts).",
+     "gor": "När klippen är levererade: stegen tas ur stillheten där klippet gör rörelsen (hur mycket senare än dockan mäts i klippet) och sätts ihop till hela given av klippens egna rutor, i klippens bildtakt, och dealern läggs på vårt bord med vår sko och vårt kort (lagg-pa-bord.ts).",
      "delar": [
       "film"
      ],
