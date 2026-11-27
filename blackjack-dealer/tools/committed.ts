@@ -13,11 +13,12 @@ export function committedText(file: string, cwd = process.cwd()): string {
   try { return git(['show', `HEAD:./${file}`], cwd); } catch { return readFileSync(`${cwd}/${file}`, 'utf8'); }
 }
 
-/** The files of a folder that HEAD holds, as paths relative to `cwd`; an untracked file of his is not among them. */
+/** The files of a folder that HEAD holds, as paths relative to `cwd`; an untracked file of his is not among them. In a
+ * checkout HEAD is the answer also when it holds none (a folder whose files all left Git does not exist in a clean
+ * clone); only outside one is the disk read, and a folder that is not there holds nothing. */
 export function committedFiles(dir: string, cwd = process.cwd()): string[] {
   try {
-    const list = git(['ls-tree', '-r', '--name-only', 'HEAD', '--', `./${dir}`], cwd).split('\n').filter(Boolean);
-    if (list.length) return list;
+    return git(['ls-tree', '-r', '--name-only', 'HEAD', '--', `./${dir}`], cwd).split('\n').filter(Boolean);
   } catch { /* not a checkout */ }
-  return readdirSync(`${cwd}/${dir}`).map((name) => `${dir}/${name}`);
+  try { return readdirSync(`${cwd}/${dir}`).map((name) => `${dir}/${name}`); } catch { return []; }
 }
