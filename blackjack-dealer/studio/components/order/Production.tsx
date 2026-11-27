@@ -19,7 +19,8 @@ import { dealerHref } from "../../lib/dealer.ts";
 import { labUrl } from "../../lib/lab.ts";
 import { FOR_YOU } from "../../lib/verdict.ts";
 import { nodeCode } from "../../lib/names.ts";
-import { PRODUCTION_CHIP, aspectOf, getProduction, productionCount, shapeOf, type Production as List, type ProductionAnchor, type ProductionRow } from "../../lib/orders.ts";
+import { FILM } from "../../../src/plan-lens.ts";
+import { PRODUCTION_CHIP, aspectOf, getProduction, productionCount, type Production as List, type ProductionAnchor, type ProductionRow } from "../../lib/orders.ts";
 import { ANCHOR_NODE, type PlanAnswer } from "../../../src/order-model.ts";
 import { CARD_COLOUR } from "../../../src/placement-model.ts";
 import { firstTree, useTrees } from "../map/useTrees";
@@ -29,8 +30,8 @@ import { Badge, Skeleton, cn } from "../ui";
 /** The A3 candidates in Material that do not hold yet, where the production answer counts them (candidates); else 0. */
 const candidatesOf = (list: List): number => ("candidates" in list && typeof list.candidates === "number" ? list.candidates : 0);
 
-/** The shape of a dealer's pictures: her anchors' table and camera, the former standard's for every dealer today (src/uppsattning.ts, through shapeOf); the plan's card places are in its pixels. */
-const SHAPE = shapeOf(null);
+/** The shape of a dealer's pictures: the card plan's picture (src/plan-lens.ts FILM), whose pixels the plan's card places are in. */
+const SHAPE = FILM;
 const CARD_FILL = CARD_COLOUR;
 const ANCHOR_TONE = { gäller: "ok", kandidat: "wait", saknas: "bad" } as const;
 

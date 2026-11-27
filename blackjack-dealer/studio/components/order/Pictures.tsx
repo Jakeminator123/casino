@@ -17,7 +17,7 @@ import { CARD_COLOUR } from "../../../src/placement-model.ts";
 import { CardMark } from "../placement/CardMark";
 import { Badge, IconButton, cn } from "../ui";
 
-/** A picture's shape where nothing else says it: the former standard's, the data's default (src/uppsattning.ts, through shapeOf). */
+/** A picture's shape where nothing else says it: the standard's picture (src/standard.ts, through shapeOf). */
 const FORMER = shapeOf(null);
 
 /** What a frozen label may carry that is not his words: a file's name, a path or a script, a hash, a frame number, P5.C1. */
