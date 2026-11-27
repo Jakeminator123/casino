@@ -381,7 +381,7 @@ for await (const f of hallen()) {
   // Kortet: vårt ritat i rutans läge (med rörelseoskärpa över en halv ruta), och filmens borttaget med sin kant.
   let rl: Lada | null = null;
   if (rorelse) { CA.fill(0); CL.fill(0); BORT.fill(0);
-    const vid = (o: number) => horn(kortMellan(kort, nr + o)), fore = vid(-0.25), efter = vid(0.25), steg = Math.max(...fore.map((p, i) => Math.hypot(p[0] - efter[i][0], p[1] - efter[i][1]))), ns = Math.max(1, Math.min(9, Math.ceil(steg / 1.5)));
+    const vid = (o: number) => horn(kortMellan(kort, nr + o)), fore = vid(-0.25), efter = vid(0.25), steg = Math.max(...fore.map((p, i) => Math.hypot(p[0] - efter[i][0], p[1] - efter[i][1]))), ns = Math.max(1, Math.min(48, Math.ceil(steg / 1.5)));
     rl = ladaKring([...fore, ...efter, ...vid(0)], 2);
     for (let s = 0; s < ns; s++) rita(kortMellan(kort, nr + (ns > 1 ? -0.25 + 0.5 * s / (ns - 1) : 0)), 1 / ns, rl);
     // (filmens kort letas där vårt ligger och där sökningen letade, så att det tas bort också där vårt kort inte hamnade)

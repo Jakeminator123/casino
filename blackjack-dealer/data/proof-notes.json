@@ -169,6 +169,45 @@
       "choice": "inte-bra",
       "text": "",
       "at": "2026-11-27T14:06:12.487Z"
+    },
+    {
+      "id": 233,
+      "proof": "efter-nja-eget-kort-och-takt-20261127",
+      "file": "01-tomasz-eget-kort-dockans-takt.mp4",
+      "choice": null,
+      "text": "Bra. men jag fattar inte - är deras kort som genererdes borttaget och vi har skapat denna? Om så vad menar du med dockaans takt? Varför inte följa takten från och som den Danilo lelr Frasse hade. Men klippt är 3.5/5 elelr 4/ 5. Osäker på vart i nodträdet/vhur dena sammnalänkas med andra noder/träd/karrta osv, men kanske skulle elelr snackade vi om det svåra (osäekr på om det ens ska göas) att typ andra handen kanske tom startar med att dra ut nästa kort inann detta är framme). men också föroras han pyttelite efter \"M\". Är detta nu en mittpunktsvridning elelr?vädningen",
+      "at": "2026-11-27T16:22:01.851Z",
+      "answer": {
+        "text": "Ja: filmmodellens gula kort tas bort i varje ruta och vårt eget ritas där det låg. Dockans takt ÄR Danilos takt: dockan spelar hans giv ruta för ruta (2,2 s), filmmodellen gjorde 3 s i egen takt, och verktyget lägger tillbaka Danilos. I schemat är klippet given från A2.3 (handen vid skon) via handbytet A2M till plats 4 och tillbaka till A2.3, så det går att kedja med andra klipp. Att vänstern drar nästa kort innan det förra ligger är mätt hos båda dealrarna men inte gjort i dockan än. Vändningen här är den gamla; i Kenjis film 05 är den rättad: kortet tas under handen och vänds där.",
+        "at": "2026-11-27T16:32:37.706Z"
+      },
+      "read": "2026-11-27T16:32:37.706Z"
+    },
+    {
+      "id": 234,
+      "proof": "efter-nja-eget-kort-och-takt-20261127",
+      "file": "02-samma-i-halv-fart.mp4",
+      "choice": null,
+      "text": "Varöfr åker kortet upp nära bytet? Tror inte det har de dimentionersom på youtubevideon, för då hade nog det stämt då dessa är både större men också är de faktist på riktigt med att dde vrids up av/med hjälp av andra ahnden. Är inte denna thomas också kanske lite med fel typer av docka/avstånd/standarder i stort.. om inte . VET du det?",
+      "at": "2026-11-27T16:23:29.855Z",
+      "answer": {
+        "text": "Kortet åker upp för att den här filmen är gjord efter rörelsen som den var i förmiddags, där vi själva hade ställt kortet på kant i luften. Domaren fällde just det bredvid det riktiga klippet, och det är rättat i fyra vändor: se Kenjis film 05. Måtten är mätta i dag: dockans kort är 72 x 52 bildpunkter på mittplatsen mot Youtubefilmens 73 x 53, och kameran, bordet och skon är livebordets. Dockan är Danilos, och den förra standarden är helt borta ur koden. Det som ännu inte är som i filmen: vänsterhanden vid skon.",
+        "at": "2026-11-27T16:32:37.918Z"
+      },
+      "read": "2026-11-27T16:32:37.918Z"
+    },
+    {
+      "id": 235,
+      "proof": "kenji-ny-dealer-ur-bilder-20261127",
+      "file": "03-dockfilmen-given-till-plats-4.mp4",
+      "choice": null,
+      "text": "Kn vara bra..",
+      "at": "2026-11-27T16:24:27.577Z",
+      "answer": {
+        "text": "Den du såg var filmad före dagens rättningar. Filen är nu bytt mot dockfilmen efter den rättade rörelsen (kortet under handen, fingret följer kortet ned).",
+        "at": "2026-11-27T16:32:38.156Z"
+      },
+      "read": "2026-11-27T16:32:38.156Z"
     }
   ]
 }

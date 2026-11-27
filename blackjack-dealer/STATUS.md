@@ -52,7 +52,8 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
     den enligt den som gjorde utskärningen: ett litet rosa streck under pekfingret i ruta 8–9 och en svag skuggkant
     runt axlarna i ruta 30, båda ur hur filmmodellen ritade. Handen går hem tidigare än dockans.
 - **Efterarbetet är två verktyg** i `../standarddocka/verktyg/`: `i-dockans-takt.ts` parar varje stillbild med sin
-  filmruta och läser filmen i dockans takt (med val för rörelseoskärpa), och `lagg-pa-bord.ts` skär ut dealern, lägger
+  filmruta och läser filmen i Danilos takt med hela rutor (valet `--oskarpa`, som blandar filmrutor, gav dubbla
+  fingrar och en rand runt axlarna och används inte), och `lagg-pa-bord.ts` skär ut dealern, lägger
   honom på vårt bord med vår sko (`--egen-sko`) och ritar vårt eget kort ur dockans tal (`--docka`, `--takt`): mönstrad
   röd rygg, vit framsida, livevyns storlek, ut genom skons mynning. Dealerns färger mäts i filmen själv, så
   utskärningen gäller vilken skjorta som helst (den antog först en blå och tog bort bitar av Kenjis grå). Provet `efter-nja-eget-kort-och-takt-20261127`

@@ -240,6 +240,22 @@ rörelser och filmerna som görs av dem.
     svarade han Ja med orden "Ok, så om du menar att vi skapar större kort och möjligen annat, gör en video till!
     Sedan kanske vi kan döma efter det!" Kortet upplever han alltså som för litet; nästa film görs med det rättat,
     och den dömer han.
+- **Samma film med vårt eget kort och i Danilos takt: "Bra", 3,5 till 4 av 5** (2026-11-27, provet
+  `efter-nja-eget-kort-och-takt-20261127`). "Bra ... klippet är 3.5/5 eller 4/5." Det han frågade och såg:
+  - **Takten ska vara dealerns.** "Vad menar du med dockans takt? Varför inte följa takten från och som den Danilo
+    eller Frasse hade." Det är samma sak: dockan spelar Danilos giv ruta för ruta. Säg "Danilos takt", inte "dockans".
+  - **Kortet åker upp nära bytet.** "Varför åker kortet upp nära bytet? Tror inte det har de dimensioner som på
+    youtubevideon ... de vrids upp av/med hjälp av andra handen." Filmen var gjord efter rörelsen som den var på
+    förmiddagen, där kortet restes på kant i luften; det rättades samma dag (kortet under handen, se STATUS).
+  - **Han förloras "pyttelite" efter handbytet,** och han undrar om vändningen nu är en vridning kring kortets mitt.
+  - **Är dockan, avstånden och standarden rätt?** "Är inte denna Thomas också kanske lite med fel typer av
+    docka/avstånd/standarder i stort ... VET du det?" Det som ska kunna visas med tal: kortets storlek, kameran,
+    bordet och vilken docka som spelar.
+  - **Var i schemat klippet hör hemma** ska synas: "Osäker på var i nodträdet/hur denna sammanlänkas med andra
+    noder/träd/karta".
+  - **Vänstern som drar nästa kort innan det förra ligger** nämner han igen som "det svåra (osäker på om det ens ska
+    göras)".
+  - Om Kenjis dockfilm före dagens rättningar: "Kan vara bra..".
 - **Standarden är filmens, och bara den (2026-11-27, eftermiddag).** "Vi byter standard till att i princip enbart
   utgå från vy/vinkel/riktningar/storlekar och annat som fanns i videon (man ska sedan kunna spela vårt
   casino/blackjack i annan vinkel, men det kan ändras sedan när man väl har allt på plats vad det gäller den nya
