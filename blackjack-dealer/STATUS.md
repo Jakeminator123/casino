@@ -52,10 +52,31 @@ agenten: en man som de två dealrarna, och en skjorta som inte krockar med det g
 Fem arbeten går samtidigt; det som är klart står under Läget när det har tagits in:
 
 - **Förra standarden bort ur koden**, på grenen `forra-standarden-bort` i ett eget worktree bredvid repot.
-- **Ny dealer ur bilder:** Kenji mäts ur sina tre bilder, får en docka efter måtten, kommer in bland dockorna ur en
-  datafil (inget kodblock per person) och spelar Danilos giv; ett kommando för hela vägen.
-- **Givens rörelse efter hans Nja:** kortet landar där dealern lägger det, given delas vid handbytet, tummen och
-  vänsterhanden.
+- **Ny dealer ur bilder, gjort:** ett kommando, `python ny_dealer.py <person>` i `../avatar-auto-pipeline/`, mäter
+  personen ur bilderna (SAM 3D Body och MediaPipe: kroppens leder, handens 21 punkter, ansiktsnätet), skriver måtten
+  som en datafil (`personer/<person>.json`), bygger dockan på Danilos eller Frasses grund, lägger in den bland
+  dockorna ur datafilen (`dealer3d/src/persondockor.ts`, inget kodblock per person), löser de lyfta rörelserna för
+  den, filmar given och förbereder anropen. Kenji Nakamura är den första: hans kropp låg inom mätningens osäkerhet
+  från Danilos, så dockan är Danilos kropp med Kenjis huvud. Mot facit (Tomasz figur) träffar mätningen armarna inom
+  1 cm och axlar och bål inom 2,5 cm; handens längd mäts fel (5,7 cm) och tas inte in. Provet
+  `kenji-ny-dealer-ur-bilder-20261127`.
+- **Kenjis första två filmer** (187 krediter med de nio stillbilderna; originalen i provets `original/`), dömda av
+  domaren, inte av Jakob: Kling 4 ur nio stillbilder **Nja** (samma man hela vägen och bra händer, men kortet bärs
+  högt i luften, takten är Klings egen, 3,0 s mot dockans 2,2, och huvudet rycker i ruta 0–2); Aleph 2 över dockfilmen
+  **Inte bra** (kortet försvinner i bytet och ansiktet blir yngre mot slutet). Orsakerna i receptet: tre nästan
+  likadana stillbilder där dockan står still vid skon, och bilder efter landningen med kortet på lite olika ställen.
+  Verktyget väljer nu rutorna efter rörelsens egna händelser, och bilderna efter landningen görs ur sista bilden.
+- **Givens rörelse efter hans Nja, gjort:** kortet landar där den riktiga dealern lade det (0,6 mm och 0° från
+  målet) och rättas inte till på filten (förut vreds det 21° och gled 21 mm, det han såg); kortplatsen stämde och är
+  inte ändrad. Given är delad vid handbytet, ankaret A2M: `lyft-<docka>-till-bytet` för alla platser och
+  `lyft-<docka>-bytet-p4` till platsen och hem, identiska med hela given ruta för ruta. Tummen är lyftets egen.
+  Kortets storlek: dockans kort är livefilmens inom 1–2 bildpunkter; kortet i Kling-filmen han dömde var 4–9 %
+  mindre per kant, och rättas av att vi ritar kortet själva.
+- **Domaren om den rättade given** (bredvid det riktiga klippet; domarens ord): **Nja**, inte ännu bra nog att filma
+  en person efter. Kortet står med kanten mot kameran i handbytet och hänger sedan i ett hörn av fingertoppen; hos
+  dealern står det med ryggen mot kameran och bärs under handen. Pekfingret ligger i fel hörn och glider över kortet
+  innan det lyfter. Vänsterhanden står som en klo vid skon. Kortets vinkel och fingret rättas nu; nästa film
+  beställs först när det är gjort.
 - **Filmens efterarbete:** kortet ritas av oss, och takten blir ett verktyg (provet `efter-nja-eget-kort-och-takt-20261127`).
 - **Lagret är gjort:** de sex ersatta proven, figurerna som föll, den förra standardens 43 klipp och ett orderutkast
   som aldrig lades ligger i arkivet `casino-arkiv-paow-och-forra` bredvid repot (rader i dess förteckning), och
