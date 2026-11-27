@@ -32,10 +32,14 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - **Händerna som dealerns, pågår.** Det Jakob såg i speglingen: dealern håller kortet med tummen (dockan pekade med
   pekfingret, vår egen regel), och i bytet ligger högern kvar platt på filten medan vänstern skjuter kortet plant
   fram till dess fingertoppar och reser det på kant med tummen. Det är nu byggt i `dealer3d/tools/lyft-till-docka.ts`.
-  Domarens femte dom, i tre gångers förstoring ruta för ruta (domarens ord): Inte bra, nära Nja. Landningen och
-  tummen stämmer i läge; kvar är att högern ska vara sluten och stilla till ruta 29, att handen ska vara en riktig
-  näve med tummen 12–15 bildpunkter in på kortets hörn till ruta 58, att kortet ska vara dolt under näven i ruta
-  33–36, och att kortets väg ur skon ska gå jämnt och på dealerns höjd i bilden. Vänsterhanden vid skon är inte gjord.
+  Domaren dömer nu i tre gångers förstoring ruta för ruta, med lägen i bildpunkter (domarens ord). Sjätte domen,
+  efter sju vändor: Inte bra, men tre rättningar från att vara värd en film. Det som stämmer: högern platt, sluten
+  och stilla till bytet, tummen på kortets hörn inom 5 bildpunkter från dealerns, kortets väg ur skon jämn, kortet på
+  dealerns kort i fem av sex givar. Kvar: kortet försvinner i ruta 25–26 (nytt i sjunde vändan), kortet kommer fram
+  två rutor för tidigt (ruta 36 i stället för 38), och näven är en tass med hängande fingrar. I Danilos giv till
+  dagens plats 2 har lyftet tagit kortet som redan låg på platsen som mål i stället för kortet som läggs (110
+  bildpunkter fel). Dockans huvud är cirka 12 % smalare än dealerns och nickar mindre. Vänsterhanden vid skon är
+  inte gjord. Åttonde vändan pågår.
 - **Visningsfilmen** (för Jakobs chef): provet `visning-for-chefen-20261127` (67 s, den riktiga dealern syns bara som
   mätt streckfigur), och en version med Youtubefilmen som bara ligger på datorn
   (`../live-bj/rutor/visning/visning-med-youtubefilmen.mp4`). Inte dömd av någon domare.
