@@ -284,9 +284,9 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackja
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Dealer A, ser i kameran | Dealer B, ser på bordet | Slaget i mätningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Första kortet till en spelare (GIV-KORT-1) | A2.3 → A3PnC1 | vänstern drar, högern lägger (plats 6 och 7: vänstern ensam) | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | 16 st (16 rena), 1,87 s (1,4–2,15) | 25 st (24 rena), 1,53 s (1,31–2,42) | `card from the shoe to a seat` | ritad i samma fil som handen hem; rutan där kortet ligger delar dem. Version A finns till alla sju platser, version B till plats 1–5 (plats 6 och 7 ges med vänstern ensam och har bara A) |
-| Andra kortet och fler till en spelare (GIV-KORT-2) | A2.3 → A3PnCm | som första kortet | saknas | — | — (inga filer att leta efter) | 16 st (16 rena), 1,87 s (1,4–2,15) | 25 st (24 rena), 1,53 s (1,31–2,42) | `card from the shoe to a seat` | Jakobs önskan: upp till sju kort per plats |
-| Kort till dealern själv (GIV-EGET) | A2.3 → A3DCm | vänstern ensam, direkt ur skon, utan handbyte | saknas | — | — (inga filer att leta efter) | 42 st (36 rena), 1,2 s (0,77–2,06) | 47 st (45 rena), 1,03 s (0,83–2,05) | `card from the shoe, left hand alone` | så gör båda de mätta dealrarna; dockan har redan en vänsterhandsgiv (plats 6 och 7) att bygga på |
+| Första kortet till en spelare (GIV-KORT-1) | A2.3 → A3PnC1 | vänstern drar, högern lägger (plats 6 och 7: vänstern ensam) | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | 28 st (28 rena), 1,98 s (1,03–2,57) | 50 st (49 rena), 1,67 s (1,11–2,97) | `card from the shoe to a seat` | ritad i samma fil som handen hem; rutan där kortet ligger delar dem. Version A finns till alla sju platser, version B till plats 1–5 (plats 6 och 7 ges med vänstern ensam och har bara A) |
+| Andra kortet och fler till en spelare (GIV-KORT-2) | A2.3 → A3PnCm | som första kortet | saknas | — | — (inga filer att leta efter) | 28 st (28 rena), 1,98 s (1,03–2,57) | 50 st (49 rena), 1,67 s (1,11–2,97) | `card from the shoe to a seat` | Jakobs önskan: upp till sju kort per plats |
+| Kort till dealern själv (GIV-EGET) | A2.3 → A3DCm | vänstern ensam, direkt ur skon, utan handbyte | saknas | — | — (inga filer att leta efter) | — (inget sådant slag) | — (inget sådant slag) | `card from the shoe, left hand alone` | så gör båda de mätta dealrarna; dockan har redan en vänsterhandsgiv (plats 6 och 7) att bygga på |
 
 #### Handen hem (TILLBAKA): hemankare A3PnCm, efter att kortet har landat
 
@@ -322,6 +322,8 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackja
 
 Slag som de riktiga dealrarna gör men som katalogen inte har:
 
+- `card from the shoe, where to not seen`: Dealer A, ser i kameran 18 st (13 rena), 1,03 s (0,73–2,54); Dealer B, ser på bordet 6 st (5 rena), 1,53 s (0,62–2,65)
+- `card from the shoe to himself`: Dealer A, ser i kameran 12 st (11 rena), 2,22 s (1,12–2,93); Dealer B, ser på bordet 16 st (16 rena), 1,95 s (1,6–2,53)
 - `between a seat and his own cards`: Dealer A, ser i kameran 8 st (6 rena), 1,55 s (0,69–5,27); Dealer B, ser på bordet 17 st (13 rena), 1,4 s (0,67–2,66)
 - `other`: Dealer A, ser i kameran 2 st (2 rena), 0,73 s (0,65–0,81); Dealer B, ser på bordet — (inget sådant slag)
 - `the right hand out to the box side`: Dealer A, ser i kameran 2 st (0 rena), 1,62 s (1,44–1,79); Dealer B, ser på bordet 7 st (1 rena), 1,4 s (1,02–1,52)
