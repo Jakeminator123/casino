@@ -181,7 +181,7 @@ test("a step's shown return continues its shown deal, and both are the films the
   // A return starts on the frame after its deal's last, as a film cut in two does.
   const seam = (m: Made) => (m.id.endsWith("-back") ? { motion: { startsOn: { clip: m.id.replace(/-back$/, "-deal"), frame: m.frames[0] } } } : {});
   const bank = {
-    jobs: [], edits: [], derived: made.map(({ id, clip, frames, from, to }) => ({ id, clip, frames, from, to })),
+    jobs: [], edits: [], derived: made.map(({ id, clip, frames, from, to }) => ({ id, clip, frames, from, to, dealer: "paow" })),
     motions: Object.fromEntries(made.map((m) => [m.id, { ...review(m), ...seam(m) }])),
     media: Object.fromEntries(made.map((m) => [m.id, { video: `assets/motions/${m.clip}/source.mp4` }])),
   } as unknown as BankData;
@@ -229,7 +229,7 @@ test("a step's shown return continues its shown deal, and both are the films the
 // The game with one tree (?trad=<id>, src/game-page.ts; Jakob 2026-11-23): the contract, on made-up takes. Tree "t" stands on
 // A2.3 (READY-C), tree "c" on A2.1; Borta and an older A2.3 attempt are placed in no tree; "x-p1" is another dealer's.
 test("one tree in the game: without the word the bank is untouched; with it the tree's takes and the ownerless ones play, never another tree's", () => {
-  const take = (id: string, from: string, to: string, dealer?: string) => ({ id, clip: id, frames: [0, 40] as [number, number], from, to, ...(dealer ? { dealer } : {}) });
+  const take = (id: string, from: string, to: string, dealer = "paow") => ({ id, clip: id, frames: [0, 40] as [number, number], from, to, dealer });
   const derived = [
     take("t-in", "IDLE", "READY-C"), take("t-p1", "READY-C", "P1.C1"), take("t-p1-back", "P1.C1", "READY-C"),
     take("c-in", "IDLE", "READY"), take("c-p1", "READY", "P1.C1"), take("c-rest", "IDLE", "IDLE"), take("c-p6", "READY-B", "P6.C1"),
@@ -382,7 +382,7 @@ test("a tree's step is read over the tree's own bank: another tree's Primär on 
     { id: "t-in", from: "IDLE", to: "READY-C" }, { id: "t-p6", from: "READY-C", to: "P6.C1" }, { id: "t-p6-back", from: "P6.C1", to: "READY-C" }, { id: "t-out", from: "READY-C", to: "IDLE" },
   ];
   const bank = {
-    jobs: [], edits: [], derived: made.map(({ id, from, to }) => ({ id, clip: id, frames: [0, 40], from, to })),
+    jobs: [], edits: [], derived: made.map(({ id, from, to }) => ({ id, clip: id, frames: [0, 40], from, to, dealer: "paow" })),
     motions: Object.fromEntries(made.map((m) => [m.id, { review: { decision: "ACCEPTED", userAccepted: true, ...(m.main ? { acceptedAs: "MAIN" } : {}) } }])),
     media: Object.fromEntries(made.map((m) => [m.id, { video: `assets/motions/${m.id}/source.mp4` }])),
   } as unknown as BankData;

@@ -5,8 +5,9 @@
 //
 // The first half is the dummy's script and has no page in it (tools/game-view.test.ts runs it under Node).
 export type ChatLine = {who: 'dealer' | 'player' | 'other' | 'note'; name: string; text: string};
-// The dealer's name when the page gives none; the page gives the name of the dealer at the table, and a new one when she changes.
-export const DEALER_NAME = 'Paow';
+// The dealer's name when the page gives none (no dealer at the table); the page gives the name of the dealer at the table, and a
+// new one when she changes.
+export const DEALER_NAME = 'Dealern';
 // What the dealer says when the round enters a phase (the overlay's phases); a phase without a line is passed in silence.
 export const DEALER_LINES: Record<string, string[]> = {
   BETTING: ['Lägg era insatser.', 'Varsågoda, insatser.', 'Ny runda. Lägg era insatser.'],
@@ -46,7 +47,7 @@ export function mountChat(host: HTMLElement, options: {name?: string; answer?(ty
     add({who: 'player', name: 'Du', text}); const n = written++; window.setTimeout(() => add({who: 'dealer', name, text: options.answer?.(text, n) ?? replyTo(n)}), 1300); });
   // the keys the game listens to must not reach it while the player writes
   input.addEventListener('keydown', event => event.stopPropagation());
-  add({who: 'note', name: '', text: `Välkommen till bordet. ${name} är din dealer.`});
+  add({who: 'note', name: '', text: name === DEALER_NAME ? 'Välkommen till bordet.' : `Välkommen till bordet. ${name} är din dealer.`});
   const chatter = () => { timer = window.setTimeout(() => { add(otherLine(others++)); chatter(); }, 22000 + (others * 7919) % 15000); }; chatter();
   return {
     root,

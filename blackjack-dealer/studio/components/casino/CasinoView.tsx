@@ -23,22 +23,16 @@ import { isSnapshot } from "../../lib/mode.ts";
 import { SHIPPED } from "../../lib/scene-presets.ts";
 import { listPresets, type Preset } from "../scene-editor/presetApi.ts";
 import { Page, useSetup } from "../shell";
-import { Button, EmptyState, Select, Spinner, buttonClasses, useToast } from "../ui";
+import { Button, Select, Spinner, buttonClasses, useToast } from "../ui";
 
 const shipped = (): Preset[] => SHIPPED.map((p) => ({ ...p, shipped: true, revision: null }));
 /** The view's address with a new look, the address's ?dealer= kept as it stands. */
 const write = (search: string) => window.history.replaceState(null, "", `${window.location.pathname}${withDealer(search, new URLSearchParams(window.location.search).get(DEALER_PARAM))}`);
 
 export function CasinoView() {
-  const { status, dealer } = useBank();
-  // The standard doll is no dealer (lib/dealer.ts STANDARD_DOLL): the game plays a dealer's films, so none is started under its name.
-  if (status !== "loading" && isStandardDoll(dealer))
-    return (
-      <Page title="Casino">
-        <EmptyState title="Standarddockan spelar inget">Spelet spelar en dealers godkända filmer. Standarddockan är grunden för rörelserna och har inga filmer i spelet. Välj en dealer i menyn.</EmptyState>
-      </Page>
-    );
-  // The game is not started before it is known whose studio this is.
+  const { status } = useBank();
+  // The game is not started before it is known whose studio this is. Without a dealer (lib/dealer.ts STANDARD_DOLL) the game
+  // plays the table without one (src/game-page.ts).
   if (status === "loading")
     return (
       <Page title="Casino" full>
@@ -53,7 +47,7 @@ export function CasinoView() {
 function Casino() {
   const params = useSearchParams();
   const { dealer, dealers } = useBank();
-  const name = dealers.find((d) => d.id === dealer)?.name ?? dealer;
+  const name = isStandardDoll(dealer) ? null : (dealers.find((d) => d.id === dealer)?.name ?? dealer);
   // The address without the rail's word for the dealer, which is no look key.
   const query = withoutDealer(params.toString()).slice(1);
   const toast = useToast();
@@ -112,8 +106,12 @@ function Casino() {
       status={
         <>
           <span className={changed ? "text-brass-hi" : undefined}>{changed ? `${changed} reglage utöver förvalet` : "som förvalet"}</span>
-          <span>·</span>
-          <span>{name}</span>
+          {name ? (
+            <>
+              <span>·</span>
+              <span>{name}</span>
+            </>
+          ) : null}
           {trad ? (
             <>
               <span>·</span>

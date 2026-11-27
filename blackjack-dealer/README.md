@@ -130,8 +130,10 @@ vid förra standardens bord. Vyerna:
   godkända filmer vid livebordet visas bordet utan dealer. Uppsättningen och dess regler: `docs/SYSTEM.md`, Standarden.
 - I foten **Beslut** (det som väntar på Jakobs svar) och **Ordlista**.
   **Jämför** nås från en tagning. Det som hör ihop är en knapp, och Casino i menyn är samma spel som spelet (2026-11-17).
-- En vy för alla skärmar: en mobilvy härleds ur samma kort och lins. Paow står först; en pausad dealer visas bara när en
-  adress nämner den (Jakob 2026-11-18).
+- En vy för alla skärmar: en mobilvy härleds ur samma kort och lins. Dealerväxeln visar dealrarna i `data/dealers.json`,
+  den första som förval (ingen dealer är namngiven i koden, `studio/lib/dealer.ts`); utan dealer finns ingen växel, sidorna
+  har ett tomt läge med en rad och spelet visar bordet utan dealer. En pausad dealer visas bara när en adress nämner den
+  (Jakob 2026-11-18).
 
 Kopian på nätet (`dealer-lake.vercel.app`) har samma meny utan Lipsync och utan sparning, och i stället för Beslut
 Önskemål och boten.

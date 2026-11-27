@@ -10,6 +10,7 @@ import { Clock, Film, ImageIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useBank } from "../../lib/bank.ts";
+import { isStandardDoll } from "../../lib/dealer.ts";
 import { labUrl } from "../../lib/lab.ts";
 import { swedishMoment } from "../../lib/mode.ts";
 import { HANDOVER, aspectOf, costWords, orderLine, orderingState, picturesInOrder, sections, shapeOf, styleWords, whoseName, type Order, type OrderAnswer, type OrdersAnswer, type Picture } from "../../lib/orders.ts";
@@ -120,7 +121,7 @@ export function OrderList({ menu, all, onOpen }: { menu: ReactNode; all: OrdersA
           {ordering.words}
         </p>
         {all.problems.length ? <p className="text-sm text-[#ef8b8b]">{all.problems.join(" ")}</p> : null}
-        <Production key={dealer} dealer={dealer} dealerName={dealerName} plan={all.plan ?? null} onOpen={onOpen} />
+        {isStandardDoll(dealer) ? null : <Production key={dealer} dealer={dealer} dealerName={dealerName} plan={all.plan ?? null} onOpen={onOpen} />}
         {list.length ? (
           list.map((s) =>
             // What is placed and delivered is history: folded, so that what waits for a click stays on top.
@@ -141,9 +142,9 @@ export function OrderList({ menu, all, onOpen }: { menu: ReactNode; all: OrdersA
             ),
           )
         ) : (
-          <EmptyState title="Inga beställningar än">En film beställs i Inspelning, steg 3 Ny film: välj trädets steg, se hur det görs och spara utkastet under Skicka.</EmptyState>
+          <EmptyState title="Inga beställningar än." />
         )}
-        <p className="rounded-lg border border-line bg-surface px-4 py-3 text-sm text-ink">{HANDOVER}</p>
+        {list.length ? <p className="rounded-lg border border-line bg-surface px-4 py-3 text-sm text-ink">{HANDOVER}</p> : null}
       </div>
     </QueueFrame>
   );

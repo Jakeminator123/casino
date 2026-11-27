@@ -94,14 +94,14 @@ export function namedFiles(ledger: Ledger): Record<string, Named> {
  * is never brought into a bank until he is one. uppsattning: the set-up the call was made at ("live"); absent, the former
  * standard, as every call before the choice.
  */
-export type ImportInput = {ledgerPath: string; entry: string; id: string; step: string; target?: string | null; by: string; after?: string | null; flip?: string | null; shape?: Shape | null; pass?: boolean; files?: string | null; first?: string | null; word?: string | null; person?: string | null; uppsattning?: string | null; now?: () => Date};
+export type ImportInput = {ledgerPath: string; entry: string; id: string; step: string; target?: string | null; by: string; after?: string | null; flip?: string | null; shape?: Shape | null; pass?: boolean; files?: string | null; first?: string | null; word?: string | null; person?: string | null; dealer?: string | null; uppsattning?: string | null; now?: () => Date};
 export type ImportPlan = {order: Order; copies: [string, string, string][]; receipt: {requestedAt: string; taskId: string; creditsRemainingAfter: number | null; file: string; placedBy: string; fetched: string; after: string | null; via?: 'api' | 'mcp'}};
 
 /** A picture of Material named as an order's first picture (--first): the dealer's own, and the same bytes as the one that was sent. */
-async function materialPicture(root: string, id: string, sha256: string): Promise<{id: string; path: string; name: string; how?: string}> {
+async function materialPicture(root: string, dealer: string, id: string, sha256: string): Promise<{id: string; path: string; name: string; how?: string}> {
   const roles = JSON.parse(await readFile(path.join(root, 'data', 'media-roles.json'), 'utf8')) as {dealers: Record<string, {entries: {id: string; path?: string; name?: string}[]}>};
-  const found = roles.dealers.paow?.entries.find((e) => e.id === id);
-  if (!found?.path) throw new StoreError(404, `${id} är ingen bild för Paow i Material.`);
+  const found = roles.dealers[dealer]?.entries.find((e) => e.id === id);
+  if (!found?.path) throw new StoreError(404, `${id} är ingen bild för ${dealer} i Material.`);
   // The picture itself, or the picture it was made from: a still brought to the bank's frame names the still as delivered in its receipt (madeFrom).
   const file = path.join(root, ...found.path.split('/')), receipt = path.join(path.dirname(file), 'receipt.json');
   const madeFrom = existsSync(receipt) ? (JSON.parse(await readFile(receipt, 'utf8')) as {madeFrom?: {sha256?: string; how?: string}}).madeFrom : undefined;
@@ -134,6 +134,9 @@ export async function planImport(root: string, input: ImportInput): Promise<Impo
   const person = input.person ? {id: input.person, name: input.person[0].toUpperCase() + input.person.slice(1)} : null;
   if (person && !/^[a-z0-9]+$/.test(person.id)) throw new StoreError(400, 'Personen skrivs med små bokstäver och siffror (tomasz).');
   if (person && input.first) throw new StoreError(400, '--first är en bild i en dealers Material; ett prov för en person har ingen.');
+  // A film of a dealer names her (--dealer); no dealer is assumed.
+  const dealer = person ? null : input.dealer?.trim() || null;
+  if (!person && !(dealer && /^[a-z0-9]+$/.test(dealer))) throw new StoreError(400, 'Säg vems filmen är: --dealer <id> för en dealer, eller --person <id> för ett prov för en person.');
   const target = step.card ? (input.target ?? null) : null;
   if (step.card && !target) throw new StoreError(400, `${step.label}: säg kortets plats (--target).`);
   if (!input.by?.trim()) throw new StoreError(400, 'Säg vem som lade anropet (--by).');
@@ -160,7 +163,7 @@ export async function planImport(root: string, input: ImportInput): Promise<Impo
     const n = named[key];
     if (!n) throw new StoreError(404, `${entry.name}: ${key} saknas bland liggarens filer.`);
     await checked(n.file, n.sha256, rel(name));
-    const material = goesAs === 'startFrame' && input.first ? await materialPicture(root, input.first, n.sha256) : null;
+    const material = goesAs === 'startFrame' && input.first ? await materialPicture(root, dealer!, input.first, n.sha256) : null;
     pictures.push({name, label: `${goesAs === 'startFrame' ? 'Första' : 'Sista'} bild · ${material?.name ?? n.what ?? path.basename(n.file)}`.slice(0, 300), goesAs, path: rel(name), sha256: n.sha256, from: {...(material ? {entry: material.id} : {}), path: material?.path ?? shown(n.file), note: `ur liggaren ${path.basename(ledgerFile)} (${key}${n.assetId ? `, uppladdad som ${n.assetId}` : ''})${material?.how ? `; ${material.how}` : ''}`}, waits: null} as Order['pictures'][number]);
   }
   // Aleph 2's guidance pictures, each at its time in the film it made over.
@@ -208,9 +211,9 @@ export async function planImport(root: string, input: ImportInput): Promise<Impo
   const order = {
     schemaVersion: 1, id: input.id,
     title: (person ? `${person.name} · ${step.label}${target ? ` · ${seatWords(target)}` : ''} · ${model.label}, beställd utanför Beställ` : `${step.label}${target ? ` · ${seatWords(target)}` : ''} · beställd utanför Beställ (${entry.name})`).slice(0, 120),
-    summary: `Gör en film av ${person?.name ?? 'Paow'}: ${step.label.toLowerCase()}${target ? ` till ${seatWords(target)}` : ''}${shape === 'ROUND_TRIP' ? ', tur och retur' : ''}. Beställd utanför Beställ genom ${channel} och införd i efterhand ur liggaren.${person ? ` Ett prov: ${person.name} är inte dealer än.` : ''}`.slice(0, 320),
+    summary: `Gör en film av ${person?.name ?? dealer}: ${step.label.toLowerCase()}${target ? ` till ${seatWords(target)}` : ''}${shape === 'ROUND_TRIP' ? ', tur och retur' : ''}. Beställd utanför Beställ genom ${channel} och införd i efterhand ur liggaren.${person ? ` Ett prov: ${person.name} är inte dealer än.` : ''}`.slice(0, 320),
     // A person who is not a dealer yet: the order names him and no dealer (src/order-model.ts Order.person).
-    group: null, ...(person ? {person} : {dealer: 'paow'}), ...uppsattningField(setup), kind: 'FILM',
+    group: null, ...(person ? {person} : {dealer: dealer!}), ...uppsattningField(setup), kind: 'FILM',
     step: {key: step.key, label: step.label, edge, shape, cutInto, makes: null},
     // A person's film follows the film it was made over; the card plan's motion is the former standard's dealers'.
     motion: step.card && !person ? {grip: step.grip ?? 'PINCH', hand: 'LH', pass, turn: true, flipAxis: input.flip ?? 'FREE', target, side: 'FRONT'} : null,
@@ -266,11 +269,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const args = process.argv.slice(2), flag = (name: string) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };
   const [ledgerPath, entry] = args;
   try {
-    if (!ledgerPath || !entry || ledgerPath.startsWith('--') || entry.startsWith('--')) throw new StoreError(400, 'Använd: node tools/order-import.ts <liggare.json> <post> --id <order-id> --step <STEG> [--target P5.C1] --by "<vem>" [--shape ROUND_TRIP] [--no-pass] [--files <mapp>] [--after <after.mp4>] [--flip <vändning>] [--first <bild i Material>] [--word "<vems ord och när>"] [--uppsattning live] [--person <namn>] [--dry]');
+    if (!ledgerPath || !entry || ledgerPath.startsWith('--') || entry.startsWith('--')) throw new StoreError(400, 'Använd: node tools/order-import.ts <liggare.json> <post> --id <order-id> --step <STEG> [--target P5.C1] --by "<vem>" [--shape ROUND_TRIP] [--no-pass] [--files <mapp>] [--after <after.mp4>] [--flip <vändning>] [--first <bild i Material>] [--word "<vems ord och när>"] [--uppsattning live] (--dealer <id> | --person <namn>) [--dry]');
     const shape = flag('--shape') ?? null;
     if (shape !== null && shape !== 'ROUND_TRIP' && shape !== 'ONE_WAY') throw new StoreError(400, '--shape är ROUND_TRIP eller ONE_WAY.');
     const root = path.resolve(fileURLToPath(new URL('../', import.meta.url)));
-    const plan = await planImport(root, {ledgerPath, entry, id: flag('--id') ?? '', step: flag('--step') ?? '', target: flag('--target') ?? null, by: flag('--by') ?? '', after: flag('--after') ?? null, flip: flag('--flip') ?? null, shape, pass: args.includes('--no-pass') ? false : undefined, files: flag('--files') ?? null, first: flag('--first') ?? null, word: flag('--word') ?? null, person: flag('--person') ?? null, uppsattning: flag('--uppsattning') ?? null});
+    const plan = await planImport(root, {ledgerPath, entry, id: flag('--id') ?? '', step: flag('--step') ?? '', target: flag('--target') ?? null, by: flag('--by') ?? '', after: flag('--after') ?? null, flip: flag('--flip') ?? null, shape, pass: args.includes('--no-pass') ? false : undefined, files: flag('--files') ?? null, first: flag('--first') ?? null, word: flag('--word') ?? null, person: flag('--person') ?? null, dealer: flag('--dealer') ?? null, uppsattning: flag('--uppsattning') ?? null});
     if (!args.includes('--dry')) await writeImport(root, plan);
     console.log(JSON.stringify({written: !args.includes('--dry'), order: `data/orders/${plan.order.id}.json`, title: plan.order.title, files: plan.copies.map(([, to]) => path.relative(root, to).split(path.sep).join('/')), receipt: plan.receipt,
       next: [...(plan.receipt.after ? [] : [`node tools/film-after.ts ${plan.order.id} 1`]), `node tools/order-put.ts review ${plan.order.id} 1 --note "Oberoende granskare: …"`, ...(plan.order.person ? [] : [`node tools/order-bring.ts ${plan.order.id} 1`])]}, null, 2));

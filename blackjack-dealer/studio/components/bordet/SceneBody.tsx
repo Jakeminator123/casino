@@ -144,6 +144,8 @@ export function SceneBody({ kind, toolbar, roundText: cardRound }: { kind: Scene
   // What the stage plays: in the scene only a round whose every film is made at the menu's table (until the trees are read, which say
   // where each film is made, nothing); on their green (Råfilm) every film as it is. otherTable: why the scene shows no dealer.
   const otherTable = flat ? null : otherTableLine(dealerName, setup, parts.filter(playable).map((p) => datatsUppsattning(p.uppsattning)));
+  // No dealer, or one without a single film: the table alone, and one line that says so.
+  const noFilms = !!graph && !Object.keys(graph.takes).length;
   const refuse = !flat && (trees.state === "loading" || !!otherTable);
   const stageParts = useMemo(() => (refuse ? [] : parts), [refuse, parts]);
 
@@ -241,6 +243,10 @@ export function SceneBody({ kind, toolbar, roundText: cardRound }: { kind: Scene
             <Stage ref={stage} className="lg:min-h-0 lg:flex-1" pictureClassName="aspect-video max-lg:flex-none lg:aspect-auto" parts={stageParts} mode={mode} clock={clock} initial={editor.initial} onScene={editor.onScene} onSceneChange={editor.onSceneChange}>
               {editor.comparing && !flat ? (
                 <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-full border border-brass/50 bg-black/70 px-4 py-1.5 text-sm font-semibold text-brass-hi shadow-pop backdrop-blur-sm">Basgrund</div>
+              ) : noFilms ? (
+                <div role="status" data-no-films className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rounded-full border border-line-strong bg-surface/95 px-4 py-1.5 text-sm text-ink shadow-pop backdrop-blur-sm">
+                  Inga filmer än.
+                </div>
               ) : otherTable ? (
                 <div className="pointer-events-none absolute inset-x-0 top-2 flex justify-center px-2 lg:top-3 lg:px-3">
                   <div role="status" data-other-table className="pointer-events-auto flex max-w-xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded-lg border border-line-strong bg-surface/95 px-3 py-1.5 text-center text-xs leading-4 text-ink shadow-pop backdrop-blur-sm lg:gap-y-2 lg:rounded-xl lg:px-4 lg:py-2.5 lg:text-sm lg:leading-5">
@@ -261,6 +267,8 @@ export function SceneBody({ kind, toolbar, roundText: cardRound }: { kind: Scene
                 <Skeleton key={i} className="h-[78px] w-[244px] rounded-lg" />
               ))}
             </div>
+          ) : noFilms ? (
+            <p className="flex h-[92px] items-center px-5 text-sm text-faint">Inga filmer än.</p>
           ) : segments.length ? (
             <RoundStrip segments={segments} parts={parts} clock={clock} onCue={(step) => stage.current?.cue(step)} />
           ) : (

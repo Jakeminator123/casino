@@ -85,6 +85,8 @@ export function mountPanel(bar: HTMLElement, rooms: RoomChoice[], dealers: Deale
   change.type = 'button'; change.addEventListener('click', () => { const at = dealers.findIndex(d => d.id === state.dealer); on.dealer(dealers[(at + 1) % Math.max(1, dealers.length)]?.id ?? state.dealer); });
   dealerPage.append(dealerList, steps, change, changeNote);
   tablePanel.append(tabs, roomPage, dealerPage); tab('room');
+  // Without a dealer at the table there is no Dealer menu: no button, no tab, only Miljö.
+  if (!dealers.length) { dealerBtn.b.style.display = 'none'; tabs.style.display = 'none'; }
 
   // ── Musik: what plays now, the tracks, the level, and the two other sounds ──
   const nowEq = html('span', 'gp-pic eq big', EQ), nowName = el('b'), nowText = el('span', 'gp-label'), nowRow = el('div', 'gp-now'); nowText.append(el('small', '', 'Spelas nu'), nowName); nowRow.append(nowEq, nowText);

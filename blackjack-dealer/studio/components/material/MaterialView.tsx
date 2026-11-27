@@ -119,11 +119,11 @@ export function MaterialView() {
         </div>
       </Page>
     );
-  // The standard doll is no dealer and has no pictures here (lib/dealer.ts STANDARD_DOLL): the view says so, and never shows a dealer's pictures under its name.
-  if (isStandardDoll(studioDealer) && !(asked && answer?.dealers.some((d) => d.id === asked)))
+  // Without a dealer (lib/dealer.ts STANDARD_DOLL), or a register without one: one line, never a dealer's pictures under another name.
+  if ((isStandardDoll(studioDealer) && !(asked && answer?.dealers.some((d) => d.id === asked))) || (state.status !== "error" && answer && !dealer && !answer.problems.length))
     return (
       <Page title="Material">
-        <EmptyState title="Standarddockan har inga bilder">Material visar en dealers bilder: ankarna, keystones och landningarna hennes filmer görs från. Standarddockan är grunden för rörelserna och har inga bilder. Välj en dealer i menyn.</EmptyState>
+        <EmptyState title="Ingen dealer har bilder än." />
       </Page>
     );
   if (state.status === "error" || !answer || !dealer)

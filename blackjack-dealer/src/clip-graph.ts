@@ -6,7 +6,7 @@
 export type EdgeKind = 'DEAL' | 'RETURN' | 'ENTRY' | 'IDLE' | 'REVEAL' | 'ARRIVE' | 'LEAVE';
 export type Side = 'BACK' | 'FRONT';
 export type ImageRef = {frame?: {video: string; videoSha256: string; index: number}; file?: {path: string; sha256: string}; note?: string};
-// dealer: whose take it is (data/dealers.json); without it the take is the bank's first dealer's (DEALER, see dealersOf).
+// dealer: whose take it is (data/dealers.json); without it the take belongs to no named dealer (UNNAMED, see dealersOf).
 export type BankJob = {id: string; kind: string; target: string | null; from: string; to: string; model: string; duration: number; ratio: string; audio: boolean; promptText: string; first: ImageRef; last?: ImageRef; purpose: string; playbackSpeed?: number; dealer?: string}; // without last: a film ordered from its first image alone
 export type MotionRecord = {
   // audio: the film file has a sound track (tools/speech.ts writes it for every talk film it makes; no other film says it).
@@ -45,27 +45,28 @@ export type EditTake = {id: string; source?: {clip?: string; sha256?: string}; m
 export type BankData = {jobs?: BankJob[]; derived?: DerivedTake[]; edits?: EditTake[]; budget?: {maximumCredits?: number} | null; motions?: Record<string, MotionRecord>; receipts?: Record<string, Receipt>; media?: Record<string, Media>; revisions?: Record<string, string>};
 
 // ── Dealers ─────────────────────────────────────────────────────────────────
-// The bank holds the takes of several dealers; a graph is always one dealer's. DEALER is the bank's first dealer: whose a take
-// without a dealer field is, and the one a visitor meets when nothing chooses for them (no word in the address, nothing
-// remembered in the browser). Paow (Jakob 2026-11-23).
-export const DEALER = 'paow';
+// The bank holds the takes of several dealers; a graph is always one dealer's. No dealer is named in the code: a take says whose
+// it is, and one that says nobody's (a made-up bank, an old record) is UNNAMED's, a dealer no register lists.
+export const UNNAMED = 'namnlos';
 const dealerWord = (value: unknown): string | null => typeof value === 'string' && /^[a-z0-9]+$/.test(value) ? value : null;
 // Whose each take is, by id. Its own dealer field first; without one, a derived take is the dealer's whose film it is cut from (or
-// corrects), an edit the dealer's whose clip it corrects, and anything left is the first dealer's.
+// corrects), an edit the dealer's whose clip it corrects, and anything left is UNNAMED's.
 export function dealersOf(data: Pick<BankData, 'jobs' | 'derived' | 'edits'> | null | undefined): Record<string, string> {
   const list = <T extends {id: string}>(v: T[] | undefined): T[] => (Array.isArray(v) ? v : []).filter(x => !!x && typeof x.id === 'string'), out: Record<string, string> = {}, film = new Map<string, string>();
   const jobs = list(data?.jobs), derived = list(data?.derived), edits = list(data?.edits);
   // The dealer of each film: its job's, or that of a derived take that is its whole own clip and names one.
-  for (const j of jobs) if (!film.has(j.id)) film.set(j.id, dealerWord(j.dealer) ?? DEALER);
+  for (const j of jobs) if (!film.has(j.id)) film.set(j.id, dealerWord(j.dealer) ?? UNNAMED);
   for (const d of derived) if (d.id === d.clip && dealerWord(d.dealer) && !film.has(d.id)) film.set(d.id, dealerWord(d.dealer)!);
   const corrects = new Map<string, string>();
   for (const j of jobs) out[j.id] ??= film.get(j.id)!;
   for (const d of derived) { const own = dealerWord(d.dealer) ?? film.get(String(d.clip)); if (own) out[d.id] ??= own; else if (typeof d.editOf === 'string') corrects.set(d.id, d.editOf); }
-  for (const [id, of] of corrects) out[id] ??= out[of] ?? DEALER; // a corrected copy without a dealer of its own is the dealer's whose take it corrects
-  for (const d of derived) out[d.id] ??= DEALER;
-  for (const x of edits) out[x.id] ??= dealerWord(x.dealer) ?? film.get(String(x.source?.clip)) ?? DEALER;
+  for (const [id, of] of corrects) out[id] ??= out[of] ?? UNNAMED; // a corrected copy without a dealer of its own is the dealer's whose take it corrects
+  for (const d of derived) out[d.id] ??= UNNAMED;
+  for (const x of edits) out[x.id] ??= dealerWord(x.dealer) ?? film.get(String(x.source?.clip)) ?? UNNAMED;
   return out;
 }
+/** The bank's first dealer: whose its first take is (jobs, derived takes, edits in that order), or null for a bank without takes. */
+export const firstDealer = (data: Pick<BankData, 'jobs' | 'derived' | 'edits'> | null | undefined): string | null => Object.values(dealersOf(data))[0] ?? null;
 
 export const SEATS = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7'];
 // Same 16 placement keys as src/placement-model.ts; D.C3 is the optional third dealer card.
@@ -301,8 +302,9 @@ export function buildGraph(data: BankData, options: {mode?: FilmMode; holeCardDo
   const edges: Edge[] = bankEdges().map(e => blank(e, false)), experiments: Edge[] = [];
   const edge: Record<string, Edge> = Object.fromEntries(edges.map(e => [e.id, e]));
   const takes: Record<string, Take> = {}, unplaced: {id: string; reason: string}[] = [], segments = new Map<string, {clip: string; start: number; end: number}>();
-  // One dealer's takes only, before anything else: another dealer's films never take part in this one's choices.
-  const dealer = dealerWord(options.dealer) ?? DEALER, owner = dealersOf(data), mine = (item: {id?: unknown} | null | undefined) => (owner[String(item?.id)] ?? DEALER) === dealer;
+  // One dealer's takes only, before anything else: another dealer's films never take part in this one's choices. Without a
+  // dealer asked for, the bank's first (firstDealer).
+  const owner = dealersOf(data), dealer = dealerWord(options.dealer) ?? Object.values(owner)[0] ?? UNNAMED, mine = (item: {id?: unknown} | null | undefined) => (owner[String(item?.id)] ?? UNNAMED) === dealer;
   const list = <T extends {id?: unknown}>(v: T[] | undefined): T[] => (Array.isArray(v) ? v : []).filter(mine);
   const image = (v: unknown): v is ImageRef => !!v && typeof v === 'object' && (typeof (v as ImageRef).file?.path === 'string' || typeof (v as ImageRef).frame?.video === 'string');
   const editOf = new Map<string, string>();

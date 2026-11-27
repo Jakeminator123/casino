@@ -6,10 +6,7 @@
 // adress nämner den"): an address names it (?dealer=<id>, or one of its takes), or an earlier click on it is remembered,
 // and then the address carries its word (lib/bank.ts). It then says so quietly: a small pause sign, the words in the
 // tooltip. A click chooses the dealer for every view (lib/bank.ts setDealer: the address and the memory follow).
-// Above the word Dealer stands the standard doll (lib/dealer.ts STANDARD_DOLL; Jakob 2026-11-26: "en ingång typ som är
-// 'standarddocka: man/kvinna'"), the man and the woman that own every motion, chosen the same way: it is no dealer, so it
-// stands apart from them, and Paow is seen to be a dealer and not the standard. Its heading is Docka: the menu's Standard is the
-// choice of table and camera under the dealers (SetupSwitch, Jakob 2026-11-27).
+// Without a dealer the switch is not there at all: the dolls are no dealers, and which doll is chosen in Dockan.
 import { useBank } from "../../lib/bank.ts";
 import { isSnapshot } from "../../lib/mode.ts";
 import { cn } from "../ui/cn";
@@ -29,32 +26,13 @@ const LABEL = "text-center text-[9.5px] font-semibold uppercase leading-3 tracki
 export function DealerSwitch() {
   const { dealer, dealers, setDealer } = useBank();
   const who = isSnapshot ? "Jakob" : "dig";
-  const doll = dealers.find((d) => d.doll) ?? null;
+  const shown = dealers.filter((d) => !d.doll && (!d.paused || d.id === dealer));
+  if (!shown.length) return null;
   return (
     // Narrow: the buttons under each other, as wide as the menu. Wide (rail:): the word on its own line and the buttons in a row.
     <div role="group" aria-label="Dealer: vems studio" className="mx-2 mt-2.5 flex shrink-0 flex-col gap-1.5 rail:mx-3 rail:flex-row rail:flex-wrap rail:px-2">
-      {doll ? (
-        <>
-          <span className={LABEL}>Docka</span>
-          <Tooltip content={<span className="flex max-w-64 flex-col gap-0.5"><span>Standarddockan: mannen och kvinnan som alla rörelser görs för.</span><span className="text-dim">Ingen dealer: inga filmer beställs för den. Dockan finns i Dockan och i Filmverkstaden, Inspelning.</span></span>} side="right">
-            <button
-              type="button"
-              aria-pressed={doll.id === dealer}
-              aria-label="Standarddockan"
-              onClick={() => setDealer(doll.id)}
-              className={cn(
-                "relative flex h-7 w-full items-center justify-center gap-1 rounded-md px-1 text-[11.5px] font-medium leading-4 ring-1 ring-inset transition-colors duration-150 focus-visible:outline-offset-0",
-                "rail:h-8 rail:w-auto rail:min-w-16 rail:gap-1.5 rail:px-3 rail:text-sm rail:leading-5",
-                doll.id === dealer ? "bg-raised text-ink ring-brass/55" : "text-dim ring-line hover:bg-raised/60 hover:text-ink",
-              )}
-            >
-              <span className="truncate">{doll.name}</span>
-            </button>
-          </Tooltip>
-        </>
-      ) : null}
-      <span className={cn(LABEL, doll && "mt-1")}>Dealer</span>
-      {dealers.filter((d) => !d.doll && (!d.paused || d.id === dealer)).map((d) => {
+      <span className={LABEL}>Dealer</span>
+      {shown.map((d) => {
         const on = d.id === dealer;
         const tip = (
           <span className="flex max-w-64 flex-col gap-0.5">

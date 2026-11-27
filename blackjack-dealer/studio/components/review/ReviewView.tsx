@@ -175,6 +175,14 @@ export function ReviewView() {
       </GranskaFrame>
     );
 
+  // No film of this dealer at all (or no dealer): one line, nothing to step through.
+  if (!Object.keys(graph.takes).length)
+    return (
+      <GranskaFrame part="filmer">
+        <EmptyState title="Inga filmer än." className="h-full" />
+      </GranskaFrame>
+    );
+
   if (view === "alla")
     return (
       <GranskaFrame part="filmer" status={status_} actions={tabs}>

@@ -12,7 +12,7 @@ import {HOLE_CARD, buildGraph, formatSequence, roundSequence} from '../src/clip-
 import {cardOptions, createFilm} from '../src/game-film.ts';
 import {cardFace, cardRecord} from '../src/card-overlay.ts';
 import {createRng} from '../game/rng.ts';
-import {tableView, tableCards, cardFaces, shownBy, lineOf, handKey, mayAsk, shownFor, collector, stageOf, DEALER_KEY, type Ask, type PageState, type Shown} from '../src/game-view.ts';
+import {tableView, tableCards, cardFaces, shownBy, lineOf, roundLine, handKey, mayAsk, shownFor, collector, stageOf, DEALER_KEY, type Ask, type PageState, type Shown} from '../src/game-view.ts';
 import {handValue, type Card} from '../game/round.ts';
 
 // A stacked lab shoe: the cards in draw order from draw 2 (draw 1 is the burn card). One seat plays, seat 4:
@@ -68,6 +68,20 @@ test('a hit, the dealer\'s turn and the result: the view shows the engine\'s out
   const done = tableView(hit, page({stage: 'SETTLED', balance: paid.balance, settled: settle as never, line: lineOf(hit.events)}));
   assert.deepEqual([done.phase, done.seats[3].hands[0].outcome, done.seats[3].hands[0].net, done.dealer!.total, done.balance], ['SETTLED', 'win', 10, 17, 1010]);
   assert.equal(cardRecords(tableCards(hit), cardFaces(hit)).find(x => x.shoeDraw === 3)!.r, '10', 'the turned card is open after the step');
+});
+
+test('a soft hand shows its pair while it can still be played and the total that counts once it is played out; the status line says the whole round', () => {
+  const s = session('A♠ 10♣ 8♥ 7♦ 5♦'), dealt = run(s, {op: 'start', bets: [{seat: 4, main: 10}]});
+  const turn = tableView(dealt, page()).seats[3].hands[0];
+  assert.deepEqual([turn.total, turn.soft], [19, true], 'A 8 in play: 9/19');
+  const stood = run(s, {op: 'act', seat: 4, handIndex: 0, action: 'stand', roundId: dealt.view.roundId, turnSeq: dealt.view.turnSeq}), settle = stood.events.find(e => e.type === 'settle');
+  const done = tableView(stood, page({stage: 'SETTLED', settled: settle as never}));
+  assert.deepEqual([done.seats[3].hands[0].total, done.seats[3].hands[0].soft], [19, false], 'A 8 stood: 19');
+  assert.equal(done.message, 'Du vinner · +10 · dealern 17');
+  // two hands, one won and one lost: the line says both, not the last thing said
+  const mixed = {dealerTotal: 19, dealerBlackjack: false, hands: [{seat: 2, handIndex: 0, stake: 10, returned: 20, outcome: 'win' as const}, {seat: 5, handIndex: 1, stake: 10, returned: 0, outcome: 'lose' as const}]};
+  assert.equal(roundLine(mixed), '1 vinner, 1 förlorar · ±0 · dealern 19');
+  assert.equal(tableView(stood, page({stage: 'SETTLED', settled: mixed, line: 'Du vinner'})).message, '1 vinner, 1 förlorar · ±0 · dealern 19');
 });
 
 test('a natural is marked by the engine, not by the overlay', () => {

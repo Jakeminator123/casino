@@ -2,17 +2,13 @@
 // dealer's, the one chosen in the rail (Jakob 2026-11-13: "but where can I review everything?"). The choice is in the address
 // (?dealer=<id>, the word the view Material uses) and remembered in this browser (a paused dealer only from a click on the
 // switch: keepsChoice); the address wins when it names a dealer, then a take the address names (a link to another dealer's
-// take opens that dealer's studio), then the remembered choice, then the bank's dealer (DEALER in src/clip-graph.ts).
-// The bank's dealer's addresses carry no word; every other dealer's do. Names and the pause are data/dealers.json's.
+// take opens that dealer's studio), then the remembered choice, then the first dealer of data/dealers.json who is not paused,
+// else the bank's first, else no dealer (the standard doll's entry: the studio without a dealer). No dealer is named in the
+// code. The default's addresses carry no word; every other dealer's do. Names and the pause are data/dealers.json's.
 // Pure: no DOM, no network. The provider is lib/bank.ts.
-import { DEALER, buildGraph, resolveRound, type BankData, type Graph, type Step } from "../../src/clip-graph.ts";
+import { buildGraph, resolveRound, type BankData, type Graph, type Step } from "../../src/clip-graph.ts";
 import { awaitingJakob } from "./verdict.ts";
 
-/**
- * The dealer a visitor meets when nothing chooses (no word in the address, no take named, nothing remembered): the bank's
- * dealer, whose every take without a dealer of its own is, first in the switch.
- */
-export const DEFAULT_DEALER = DEALER;
 /** The address's word for the dealer, shared with the view Material. */
 export const DEALER_PARAM = "dealer";
 /** The address's words that name a take: Granska's, Karta's and Scen's tagning, Jämför's a and b. */
@@ -25,11 +21,10 @@ export const TAKE_PARAMS = ["tagning", "a", "b"] as const;
 export const DEALER_MEMORY = "studio.dealer.3";
 
 /**
- * The standard doll's entry in the switch (Jakob 2026-11-26: "en ingång typ som är 'standarddocka: man/kvinna' [som kan]
- * väljas för att börja skapa sina klipp"; that Paow's doll is the standard "är ju väl fel"). It stands beside the dealers
- * and is none of them: the man and the woman of dealer3d/src/doll.ts that own every motion, chosen in Bordet's
- * Inspelning, with no films, trees, pictures or voice of their own, and nothing ordered for them. It is the studio's, not
- * data/dealers.json's (the dealers films are ordered for, each with her anchors), and not in the online copy (no doll lab).
+ * The studio without a dealer: the dolls' own motions (dealer3d/src/doll.ts), with no films, trees, pictures or voice of their
+ * own, and nothing ordered for them. It is what every view shows when no dealer is chosen or there is none (Karta opens the
+ * schema, Material and Casino say there is no dealer). It is the studio's, not data/dealers.json's (the dealers films are
+ * ordered for, each with her anchors), and not in the online copy (no doll lab). Which doll is chosen in Dockan, not here.
  */
 export const STANDARD_DOLL = "standarddocka";
 export const STANDARD_DOLL_NAME = "Standarddockan";
@@ -43,11 +38,22 @@ export const dealerId = (value: unknown): string | null => (typeof value === "st
 export const nameOf = (id: string): string => (isStandardDoll(id) ? STANDARD_DOLL_NAME : id.charAt(0).toUpperCase() + id.slice(1));
 
 // ── Who there is ────────────────────────────────────────────────────────────
-/** The dealers the bank holds takes of: the bank's dealer first (with or without takes), then the others in the order their first take comes. */
+/** The dealers the bank holds takes of, in the order their first take comes. */
 export function bankDealers(owners: Readonly<Record<string, string>>): string[] {
-  const out = [DEALER];
+  const out: string[] = [];
   for (const id of Object.values(owners)) if (dealerId(id) && !out.includes(id)) out.push(id);
   return out;
+}
+
+/**
+ * The dealer a visitor meets when nothing chooses (no word in the address, no take named, nothing remembered): the first
+ * dealer of data/dealers.json who is not paused, else the bank's first dealer, else none (STANDARD_DOLL, the studio without a
+ * dealer). `known` limits it to the dealers there are (null while the bank is read).
+ */
+export function defaultDealer(register: DealerRegister | null, bank: readonly string[], known: readonly string[] | null = null): string {
+  const there = (id: string) => !known || known.includes(id);
+  const listed = Object.entries(register ?? {}).find(([id, note]) => !note.paused && there(id))?.[0];
+  return listed ?? bank.find((id) => there(id) && !register?.[id]?.paused) ?? STANDARD_DOLL;
 }
 
 export type DealerNote = { name: string; paused: string | null };
@@ -102,18 +108,17 @@ export type Chosen = { id: string; from: "address" | "take" | "memory" | "defaul
 
 /**
  * The dealer every view shows: the address's own word, else the dealer of a take the address names, else the remembered
- * choice, else the bank's dealer (DEFAULT_DEALER). A word counts only for a dealer there is (known: the bank's and the
- * register's); while the bank is read (known null) any well-formed word is taken as it stands. owners: whose each take is
- * (dealersOf).
+ * choice, else `fallback` (defaultDealer). A word counts only for a dealer there is (known: the bank's and the register's);
+ * while the bank is read (known null) any well-formed word is taken as it stands. owners: whose each take is (dealersOf).
  */
-export function chooseDealer(input: { address: DealerAddress | null; remembered: string | null; known: readonly string[] | null; owners: Readonly<Record<string, string>> }): Chosen {
+export function chooseDealer(input: { address: DealerAddress | null; remembered: string | null; known: readonly string[] | null; owners: Readonly<Record<string, string>>; fallback: string }): Chosen {
   const ok = (id: string | null | undefined): id is string => !!dealerId(id) && (!input.known || input.known.includes(id!));
   const asked = input.address?.dealer;
   if (ok(asked)) return { id: asked, from: "address" };
   const owner = input.address?.takes.map((t) => input.owners[t]).find(ok);
   if (owner) return { id: owner, from: "take" };
   if (ok(input.remembered)) return { id: input.remembered, from: "memory" };
-  return { id: DEFAULT_DEALER, from: "default" };
+  return { id: input.fallback, from: "default" };
 }
 
 /**
@@ -155,21 +160,21 @@ export function withDealer(search: string, dealer: string | null): string {
 /** The same query without the dealer's word: for a view that writes its whole address and compares it with what it wrote. */
 export const withoutDealer = (search: string): string => withDealer(search, null);
 
-/** An address of the studio ("/karta/", "/granska/?vy=alla") that keeps the dealer: the bank's dealer's addresses carry no word. */
+/** An address of the studio ("/karta/", "/granska/?vy=alla") that keeps the dealer: the studio without a dealer carries no word. */
 export function dealerHref(href: string, dealer: string): string {
-  if (dealer === DEFAULT_DEALER) return href;
+  if (isStandardDoll(dealer)) return href;
   const at = href.indexOf("?");
   const path = at < 0 ? href : href.slice(0, at);
   return `${path}${withDealer(at < 0 ? "" : href.slice(at), dealer)}`;
 }
 
 /**
- * The word the address should carry for `dealer`, or null for none: the bank's dealer needs none (every address without one
- * is that dealer's when nothing else is remembered), except where the address names a take of another dealer's (it would
- * then decide).
+ * The word the address should carry for `dealer`, or null for none: the default (`fallback`, defaultDealer) needs none (every
+ * address without one is that dealer's when nothing else is remembered), except where the address names a take of another
+ * dealer's (it would then decide).
  */
-export function addressWord(dealer: string, address: DealerAddress, owners: Readonly<Record<string, string>>): string | null {
-  if (dealer !== DEFAULT_DEALER) return dealer;
+export function addressWord(dealer: string, address: DealerAddress, owners: Readonly<Record<string, string>>, fallback: string): string | null {
+  if (dealer !== fallback) return dealer;
   return address.takes.some((t) => owners[t] && owners[t] !== dealer) ? dealer : null;
 }
 

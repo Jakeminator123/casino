@@ -3,7 +3,7 @@
 // and the one write (studio/lib/decide.ts, also Granska's). Run: node --test "studio/tests/primaries.test.ts"
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { DEALER, buildGraph, type BankData, type BankJob, type ImageRef, type MotionRecord } from "../../src/clip-graph.ts";
+import { buildGraph, type BankData, type BankJob, type ImageRef, type MotionRecord } from "../../src/clip-graph.ts";
 import type { Decision } from "../lib/api.ts";
 import { decide, type Trees } from "../lib/decide.ts";
 import { gameGraph, makePrimary, stepFilms, withPrimary } from "../lib/primaries.ts";
@@ -48,9 +48,9 @@ const data = bank([
   // P7: an exit played backwards (a stopgap) beside a judged exit: the game leaves the stopgap out, and so does the page.
   ["paow-ready-idle-exit-01", "READY", "IDLE", "RETURN", jakob()],
   ["paow-ready-idle-exit-reversed-01", "READY", "IDLE", "RETURN", jakob(), {}, undefined, { stopgap: true }],
-]);
+], "paow");
 const graph = buildGraph(data);
-const game = gameGraph(data, DEALER);
+const game = gameGraph(data, "paow");
 const step = (edge: string) => stepFilms(data, graph, game, edge)!;
 const ids = (films: { take: { id: string } }[]) => films.map((f) => f.take.id);
 

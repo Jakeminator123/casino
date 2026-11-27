@@ -261,7 +261,7 @@ export function BordetView() {
   const dealerName = dealers.find((x) => x.id === dealer)?.name ?? dealer;
   const madeAnswer = guideRow && made[guideRow.key] ? (orders?.orders.find((a) => a.order.id === made[guideRow.key]) ?? null) : null;
   // (the standard doll is no dealer: nothing is ordered for it; a dealer's films are ordered in her own studio, lib/dealer.ts STANDARD_DOLL)
-  const blocked = !ordersRead ? "Läser beställningarna …" : !orders ? "Beställningarna kunde inte läsas från servern." : isStandardDoll(dealer) ? "Standarddockan är ingen dealer: inga filmer beställs för den. Välj en dealer i menyn för att beställa hennes filmer." : paused ? `${dealerName} är pausad: inget nytt beställs.` : !orderable ? `Filmer till ${dealerName} kan inte beställas härifrån.` : draft.dirty ? "Spara kortplanen först: utkastet ritar kortet där den sparade planen lägger det." : guideRow && made[guideRow.key] && !madeAnswer ? "Utkastet är sparat: läser Kön …" : null;
+  const blocked = !ordersRead ? "Läser beställningarna …" : !orders ? "Beställningarna kunde inte läsas från servern." : isStandardDoll(dealer) ? "Ingen dealer: inget beställs härifrån." : paused ? `${dealerName} är pausad: inget nytt beställs.` : !orderable ? `Filmer till ${dealerName} kan inte beställas härifrån.` : draft.dirty ? "Spara kortplanen först: utkastet ritar kortet där den sparade planen lägger det." : guideRow && made[guideRow.key] && !madeAnswer ? "Utkastet är sparat: läser Kön …" : null;
   // The dealers the guide can order for: those not paused.
   const orderDealers = orders?.dealers ? orders.dealers.filter((x) => !x.paused) : dealers;
 
@@ -339,10 +339,10 @@ export function BordetView() {
     />
   ) : null;
   const gaps = view ? view.steps.filter((s) => s.state === "saknas").length : 0;
-  const guideSummary = isStandardDoll(dealer) ? "inga filmer beställs för standarddockan" : item ? item.name : view ? `${view.tree.name} · ${gaps ? `${gaps} saknas` : "inget saknas"}` : null;
+  const guideSummary = isStandardDoll(dealer) ? "ingen dealer" : item ? item.name : view ? `${view.tree.name} · ${gaps ? `${gaps} saknas` : "inget saknas"}` : null;
   // (the standard doll gets no guide: nothing is ordered for it, and it has no tree)
   const newFilm = (go: (card: Place) => void) => isStandardDoll(dealer) ? (
-    <p data-new-film className="px-4 pb-4 text-sm leading-5 text-dim">{blocked ?? "Standarddockan är ingen dealer: inga filmer beställs för den."}</p>
+    <p data-new-film className="px-4 pb-4 text-sm leading-5 text-dim">{blocked ?? "Ingen dealer: inget beställs härifrån."}</p>
   ) : (
     <NewFilm
       dealer={dealer}

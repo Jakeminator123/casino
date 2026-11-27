@@ -95,10 +95,10 @@ const live: Uppsattning = {
   insatser: () => LIVE.betMarks.map((at, i) => ({seat: i + 1, at})),
   sko: liveShoePose(LIVE.shoe),
   bord: {halfWidth: LIVE.felt.widthAtEdge / 2, depth: LIVE.felt.depth, rail: LIVE.rail.width, form: 'halvcirkel'},
-  // The film's own frame on a computer (exactly the cloned view); on a phone held upright seats 2–6 across the picture's width
-  // (about 14 degrees to each side) with the dealer's head and the cards in it. First values of the game's own, until Jakob saves
-  // his in Scen (data/play-view-live.json).
-  spelvy: {dator: {zoom: 1, pitch: 0, yaw: 0}, mobil: {zoom: 2.3, pitch: -2, yaw: 0}}, spelvyFil: 'data/play-view-live.json',
+  // The film's own frame on a computer (exactly the cloned view); on a phone held upright seats 2–6 whole across the picture's
+  // width, rings and cards (they reach 421 px from the picture's middle, so the zoom is at most 2,05; 1,95 leaves a margin), with
+  // the dealer's head and the cards in it. First values of the game's own, until Jakob saves his in Scen (data/play-view-live.json).
+  spelvy: {dator: {zoom: 1, pitch: 0, yaw: 0}, mobil: {zoom: 1.95, pitch: -2, yaw: 0}}, spelvyFil: 'data/play-view-live.json',
   bricka: LIVE.tray !== null,
   dockor: [LIVE.dealer.styles.kameran.name, LIVE.dealer.styles.bordet.name],
 };

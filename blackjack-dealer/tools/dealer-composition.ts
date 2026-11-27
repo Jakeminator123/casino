@@ -165,7 +165,9 @@ export async function serveCompositions(req: IncomingMessage, res: ServerRespons
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const dealer = process.argv[2] ?? 'paow', answer = await compositionAnswer(dealer);
+  const dealer = process.argv[2];
+  if (!dealer) throw Error('Använd: node tools/dealer-composition.ts <dealer>');
+  const answer = await compositionAnswer(dealer);
   const HOW: Record<string, string> = {eget: 'eget', aterbruk: 'återbruk', lanat: 'lånat', saknas: 'saknas'};
   for (const c of [...answer.compositions, ...answer.trees.map(t => ({def: {id: t.tree, name: `${t.name} (ensamt)`}, trees: [t], steps: [], count: {have: t.have, own: t.have, total: 36}, joins: [], home: null, looks: [], problems: []} as unknown as CompositionView))]) {
     console.log(`\n${c.def.name} [${c.def.id}]: spelbart ${compositionWord(c.count)}, varav egna ${c.count.own}${handsNote(c) ? ` · ${HANDS_WORD}` : ''}${tempoValue(c.def.tempo) !== null ? ` · fart ${tempoWord(tempoValue(c.def.tempo)!)}` : ''}`);

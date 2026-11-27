@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {ADRESSORD, DATATS_FORVAL, NAMN, UPPSATTNING, UPPSATTNINGAR, VALETS_FORVAL, datatsUppsattning, dockansUppsattning, filmenPassar, lasUppsattning, uppsattningAv, valdUppsattning} from '../src/uppsattning.ts';
+import {ADRESSORD, BET, DATATS_FORVAL, NAMN, UPPSATTNING, UPPSATTNINGAR, VALETS_FORVAL, datatsUppsattning, dockansUppsattning, filmenPassar, lasUppsattning, uppsattningAv, valdUppsattning} from '../src/uppsattning.ts';
 import {LIVE, LIVE_CAMERA, liveSee} from '../src/table-live.ts';
 import {FILM, TABLE_LENS, cardCorners} from '../src/table-lens.ts';
 import {FRAMING_LIMITS, PLAY_VIEW} from '../src/play-view.ts';
@@ -31,7 +31,7 @@ test('the choice\'s default is the live table, the data\'s the former standard, 
   assert.equal(datatsUppsattning(undefined), 'forra'); assert.equal(datatsUppsattning('live'), 'live');
   assert.equal(valdUppsattning(null), 'live'); assert.equal(valdUppsattning(null, 'man'), 'forra'); assert.equal(valdUppsattning(null, 'kvinna'), 'forra');
   assert.equal(valdUppsattning(null, 'danilo'), 'live'); assert.equal(valdUppsattning('forra', 'danilo'), 'forra'); assert.equal(valdUppsattning('standard'), 'forra');
-  assert.equal(dockansUppsattning('frasse'), 'live'); assert.equal(dockansUppsattning('paow'), null);
+  assert.equal(dockansUppsattning('frasse'), 'live'); assert.equal(dockansUppsattning('vera'), null);
   // the names Jakob sees (Jakob 2026-11-27, "Namnbyte - ja"): the menu's Standard with Live and Förra, the wholes Livestandarden and Förra standarden
   assert.equal(NAMN, 'Standard');
   assert.deepEqual(UPPSATTNINGAR.map(id => [UPPSATTNING[id].namn, UPPSATTNING[id].kort]).sort(), [['Förra standarden', 'Förra'], ['Livestandarden', 'Live']]);
@@ -48,13 +48,13 @@ test('the scene takes a film only under its own set-up: another chain is refused
   const queue = {play(parts: Part[], options?: PlayOptions) { calls.push({how: 'play', parts, options}); }, load(parts: Part[]) { calls.push({how: 'load', parts}); return Promise.resolve(); }};
   let under: UppsattningId = 'live';
   const scene = guardFilms(queue, () => under, s => said.push(s));
-  // Paow's films say no set-up (the former standard's): under the live table nothing of them is played or fetched, and why is said
+  // Films that say no set-up are the former standard's: under the live table nothing of them is played or fetched, and why is said
   scene.play([{path: 'deal.mp4'}, {path: 'back.mp4'}], {cut: true, onError: e => errors.push(e.message)});
   await assert.rejects(scene.load([{path: 'deal.mp4'}]), /gjord vid Förra standarden och visas inte vid Livestandarden/);
   assert.deepEqual(calls, []); assert.deepEqual(said, ['forra', 'forra']); assert.deepEqual(errors, ['Filmen är gjord vid Förra standarden och visas inte vid Livestandarden.']);
   // one film of another set-up in a chain turns the whole chain away
   scene.play([{path: 'live.mp4', uppsattning: 'live'}, {path: 'deal.mp4'}]); assert.deepEqual(calls, []);
-  // a live film under the live table goes through, and under the former standard her films go through untouched, options and all
+  // a live film under the live table goes through, and under the former standard its films go through untouched, options and all
   scene.play([{path: 'live.mp4', uppsattning: 'live'}]); assert.equal(said.at(-1), null);
   under = 'forra';
   const parts: Part[] = [{path: 'deal.mp4', start: 3, end: 40}], options: PlayOptions = {cut: true};
@@ -149,18 +149,28 @@ test('under the live table the card places, bet rings and the game\'s lying card
   assert.deepEqual(createLayout(plan, {uppsattning: 'forra'}).quad(slot('P', 4, 0)), createLayout(plan).quad(slot('P', 4, 0)));
 });
 
+test('on a phone held upright the live table shows seats 2–6 whole: their rings and cards inside the picture\'s width', () => {
+  // Standing, the film's width is the picture's at zoom 1 (src/scene3d-geometry.ts viewFovDeg), so the zoom shows the middle 1/zoom of it.
+  const live = UPPSATTNING.live, half = live.bild.width / 2 / live.spelvy.mobil.zoom, mid = (live.bild.width - 1) / 2;
+  for (const seat of [2, 3, 4, 5, 6]) {
+    const ring = LIVE.betMarks[seat - 1], edges = [ring[0] - BET.radius, ring[0] + BET.radius].map(x => liveSee([x, 0, ring[2]])!.x);
+    const cards = ['C1', 'C2'].flatMap(c => LIVE.cards[`P${seat}.${c}`] ? cardCorners(LIVE.cards[`P${seat}.${c}`].at, 0).map(p => liveSee(p)!.x) : []);
+    for (const x of [...edges, ...cards]) assert.ok(Math.abs(x - mid) < half, `plats ${seat}: ${x.toFixed(0)} px, synligt ${(mid - half).toFixed(0)}–${(mid + half).toFixed(0)}`);
+  }
+});
+
 test('the game plays a tree only under its own set-up: without a word the live table when a played tree has it, else the former', () => {
   const tree = (id: string, uppsattning?: 'live'): TreeDef => ({id, name: id, state: 'spelas', root: 'IDLE', anchors: [{entry: `${id}-a1`}], ...(uppsattning ? {uppsattning} : {})});
   const takes = [{id: 'f1', tree: 'forra-tree'}, {id: 'l1', tree: 'live-tree'}, {id: 'borta', tree: null}];
   // today: no tree says a set-up, and the cut is the former standard's as it always was (it says nothing of set-ups)
-  const today = playedCut('paow', [tree('forra-tree')], takes.slice(0, 1).concat(takes[2]), () => 'READY');
+  const today = playedCut('vera', [tree('forra-tree')], takes.slice(0, 1).concat(takes[2]), () => 'READY');
   assert.equal(today.uppsattning, undefined); assert.deepEqual(today.drop, []);
   const both = [tree('forra-tree'), tree('live-tree', 'live')];
-  const auto = playedCut('paow', both, takes, () => 'READY');
+  const auto = playedCut('vera', both, takes, () => 'READY');
   assert.equal(auto.uppsattning, 'live'); assert.deepEqual(auto.played, ['live-tree']); assert.deepEqual(auto.drop.sort(), ['borta', 'f1']);
-  const former = playedCut('paow', both, takes, () => 'READY', 'forra');
+  const former = playedCut('vera', both, takes, () => 'READY', 'forra');
   assert.equal(former.uppsattning, 'forra'); assert.deepEqual(former.played, ['forra-tree']); assert.deepEqual(former.drop, ['l1']);
-  const none = playedCut('paow', [tree('forra-tree')], takes, () => 'READY', 'live');
+  const none = playedCut('vera', [tree('forra-tree')], takes, () => 'READY', 'live');
   assert.equal(none.uppsattning, 'live'); assert.deepEqual(none.played, []); assert.deepEqual(none.setups, ['forra']); assert.deepEqual(none.drop.sort(), ['borta', 'f1', 'l1']);
 });
 

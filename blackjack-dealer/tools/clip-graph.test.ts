@@ -234,14 +234,16 @@ test('a one-way deal whose last picture is a round trip\'s cut frame (endsOn) is
 test('the real bank: every take placed in its dealer\'s graph on the edge it names, and a whole round always gets a take or a named gap', async () => {
   const file = JSON.parse(await readFile('data/clip-jobs.json', 'utf8')), motions: Record<string, MotionRecord> = {};
   for (const [id, post] of motionRegister(process.cwd()).posts()) motions[id] = post as MotionRecord;
-  const owner = graph.dealersOf(file), mine = <T extends {id: string}>(list?: T[]) => (list ?? []).filter(x => owner[x.id] === graph.DEALER);
+  // Every dealer the bank holds takes of (none, while no dealer has films: then only the empty graph's shape is checked).
+  const owner = graph.dealersOf(file);
   for (const dealer of new Set(Object.values(owner))) assert.deepEqual(graph.buildGraph({jobs: file.jobs, derived: file.derived, edits: file.edits, motions}, {dealer}).unplaced, [], dealer);
-  const g = graph.buildGraph({jobs: file.jobs, derived: file.derived, edits: file.edits, budget: file.budget, motions}), f = g.summary.films;
+  for (const dealer of [...new Set(Object.values(owner)), null]) {
+  const mine = <T extends {id: string}>(list?: T[]) => (list ?? []).filter(x => dealer !== null && owner[x.id] === dealer);
+  const g = graph.buildGraph({jobs: file.jobs, derived: file.derived, edits: file.edits, budget: file.budget, motions}, dealer === null ? {dealer: 'ingen'} : {dealer}), f = g.summary.films;
   const all = [...mine<BankJob>(file.jobs), ...mine<BankJob>(file.derived)];
-  assert.ok(all.length > 0, 'the bank has takes of the first dealer');
   assert.equal(Object.keys(g.takes).length, all.length + mine(file.edits).length);
   // The numbers move as films arrive; what holds is how they add up.
-  assert.deepEqual([g.summary.total, g.edges.length, f.mode, f.total, f.done + f.missing, f.candidates + f.flaws], [54, 58, 'SEAT', 33, f.total, f.done]);
+  assert.deepEqual([g.edges.length, f.mode, f.done + f.missing, f.candidates + f.flaws], [58, 'SEAT', f.total, f.done]);
   for (const job of all) {
     const take = g.takes[job.id], ref = graph.parseEdge(`${job.from}>${job.to}`), edge = g.edge[take.edge];
     assert.ok(edge.takes.includes(take), job.id);
@@ -256,6 +258,7 @@ test('the real bank: every take placed in its dealer\'s graph on the edge it nam
   for (const s of graph.resolveRound(g, graph.roundSequence({seats: graph.SEATS, reveal: true, thirdDealerCard: true}))) {
     assert.ok(s.take || s.gap, s.id); assert.ok(s.why in graph.WHY_LABEL, s.id); assert.equal(s.why === 'GAP', !s.take, s.id);
     if (s.edge?.shares) { assert.equal(s.film?.id, s.edge.shares, s.id); if (s.take) assert.ok(s.film!.takes.includes(s.take), s.id); }
+  }
   }
 });
 
@@ -481,8 +484,9 @@ function twoDealers(): BankData {
   return data;
 }
 
-test('two dealers share the job file but never a graph; a take without a dealer field is the first dealer\'s', () => {
-  const data = twoDealers(), owner = graph.dealersOf(data), first = graph.DEALER;
+test('two dealers share the job file but never a graph; a take without a dealer field is no named dealer\'s, and the bank\'s first', () => {
+  const data = twoDealers(), owner = graph.dealersOf(data), first = graph.UNNAMED;
+  assert.equal(graph.firstDealer(data), first); assert.equal(graph.firstDealer({jobs: [], derived: [], edits: []}), null);
   assert.deepEqual([owner['paow-p4-c1-plan-deal-02'], owner['ada-p4-c1-plan-deal-01'], owner['ada-p4-c1-plan-deal-01-cut'], owner['ada-p1-c1-plan-deal-01-edit-01']], [first, SECOND, SECOND, SECOND]);
   const mine = graph.buildGraph(data), ada = graph.buildGraph(data, {dealer: SECOND});
   assert.deepEqual([mine.unplaced, ada.unplaced], [[], []]);

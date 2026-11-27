@@ -285,8 +285,6 @@ export function orderLine(order: Pick<Order, "step" | "motion" | "reference">): 
  * film, while the game played it from 2.2 (the rescue lane Kedjan, finding 1).
  */
 export const dealAnchor = (dealer: string, card: string): Exclude<Anchor, "1"> => (["2.1", "2.2", "2.3"] as const).find((a) => ANCHOR_NODE[a] === dealPose(dealer, card)) ?? "2.1";
-/** The dealer Ny beställning opens on when the address names none. */
-export const SHEET_DEALER = "paow";
 
 /**
  * What /bordet/?lage=bestall&ko=1&ny=1&dealer=paow&steg=GIV-2.2&plats=P4.C1 asks for (plats=alla: the first card to every player;
@@ -306,7 +304,7 @@ export function presetOf(params: { get(name: string): string | null }): Preset |
   const all = plats === "ALLA";
   const target = plats && orderableCard(plats) ? plats : null;
   let step = asked && stepOf(asked) && !stepOf(asked)!.off ? (asked as StepKey) : null;
-  if (!step && (target || all)) step = `GIV-${dealAnchor(dealer ?? SHEET_DEALER, target ?? "P1.C1")}`;
+  if (!step && (target || all)) step = `GIV-${dealAnchor(dealer ?? "", target ?? "P1.C1")}`;
   return { dealer, step, target, all, model: modell && Object.hasOwn(MODELS, modell) ? modell : null };
 }
 /**

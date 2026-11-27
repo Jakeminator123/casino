@@ -101,7 +101,7 @@ const sided = (steer: Steer, id: string): Steer => { const {side: _side, ...rest
 const baseSteer = (id: string): Steer => sided({...NO_STEER}, id);
 // (`wanted`: a card asked for that no deal goes to from the entry; the picture keeps the card it shows, and says why)
 // (the doll begins as the standard doll, the woman where she is measured; the address may name another, below)
-const state = {doll: SEAT_DOLLS[0] ?? 'paow', entry: 'A2.3' as Entry, shown: {kind: 'deal'} as Shown, place: 'P4.C1', wanted: null as string | null, steer: {...NO_STEER} as Steer, knobs: knobsOf(), landing: {id: LANDING_DEFAULT} as Landing, turn: TURN_DEFAULT as TurnId, touched: false, playing: false, speed: 1, loop: false, joints: false, view: (new URLSearchParams(location.search).get('scen') === 'gammal' ? 'film' : 'spel') as ViewName, t: 0};
+const state = {doll: SEAT_DOLLS[0] ?? 'man', entry: 'A2.3' as Entry, shown: {kind: 'deal'} as Shown, place: 'P4.C1', wanted: null as string | null, steer: {...NO_STEER} as Steer, knobs: knobsOf(), landing: {id: LANDING_DEFAULT} as Landing, turn: TURN_DEFAULT as TurnId, touched: false, playing: false, speed: 1, loop: false, joints: false, view: (new URLSearchParams(location.search).get('scen') === 'gammal' ? 'film' : 'spel') as ViewName, t: 0};
 // The standard doll's own motions (Jakob 2026-11-26: drawn for its own body, not Paow's; dealer3d/tools/ren-givar.ts and
 // docka-standard.ts write them): its rest A1, its pose A2.3 and its deals from A2.3, each a file of dealer3d/data/ found
 // by its name when the doll is chosen. They are played as they are drawn: nothing here lays or steers them, and nothing of

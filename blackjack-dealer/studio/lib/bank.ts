@@ -4,7 +4,7 @@
 // while the tab is visible, and builds each dealer's graph with the lab's own buildGraph only when the
 // answer changed. When nothing changed, the same objects are kept, so a view that reads useBank() does not render again every 4 s.
 // graph is the chosen dealer's (lib/dealer.ts: the address's ?dealer=, a take the address names, the remembered choice, else
-// the bank's dealer), so every view that reads it shows that dealer's takes; the rail's switch (setDealer) changes it for all of them.
+// the register's first dealer, else none), so every view that reads it shows that dealer's takes; the rail's switch (setDealer) changes it for all of them.
 // The online copy (lib/mode.ts) never changes: there the bank is read once, and the graph carries no cost.
 import { Suspense, createContext, createElement, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
@@ -17,6 +17,7 @@ import {
   bankDealers,
   chooseDealer,
   dealerEntries,
+  defaultDealer,
   dealerGraphs,
   dealerId,
   keepsChoice,
@@ -165,7 +166,9 @@ export function BankProvider({ children, every = 4000 }: { children: ReactNode; 
   const ids = useMemo(() => bankDealers(data.owners), [data.owners]);
   // (the standard doll's entry is known beside the dealers, in the local studio only: lib/dealer.ts STANDARD_DOLL)
   const known = useMemo(() => (loaded ? [...new Set([...ids, ...Object.keys(register ?? {}), ...(isSnapshot ? [] : [STANDARD_DOLL])])] : null), [loaded, ids, register]);
-  const chosen = chooseDealer({ address, remembered: seen?.memory ?? null, known, owners: data.owners });
+  // Without a choice: the register's first dealer who is not paused, else the bank's first, else no dealer (lib/dealer.ts).
+  const fallback = defaultDealer(register, ids, known);
+  const chosen = chooseDealer({ address, remembered: seen?.memory ?? null, known, owners: data.owners, fallback });
   const dealer = chosen.id;
   // A dealer the register knows and the bank has no take of yet still has a graph: every film missing.
   const graph = useMemo(() => (settled && data.bank ? (data.graphs[dealer] ?? build(data.bank, dealer)) : null), [settled, data.bank, data.graphs, dealer]);
@@ -186,27 +189,27 @@ export function BankProvider({ children, every = 4000 }: { children: ReactNode; 
   const fixed = useRef(new Map<string, number>());
   useEffect(() => {
     if (!settled || !loaded || !address) return;
-    const word = addressWord(dealer, address, data.owners);
+    const word = addressWord(dealer, address, data.owners, fallback);
     if ((address.dealer ?? null) === word || (!word && address.dealer === dealer)) return;
     const key = window.location.pathname + withoutDealer(window.location.search);
     const times = fixed.current.get(key) ?? 0;
     if (times >= 2) return;
     fixed.current.set(key, times + 1);
     window.history.replaceState(null, "", `${window.location.pathname}${withDealer(window.location.search, word)}`);
-  }, [settled, loaded, address, dealer, data.owners]);
+  }, [settled, loaded, address, dealer, data.owners, fallback]);
 
   const owners = data.owners;
   const setDealer = useCallback(
     (id: string) => {
       if (!dealerId(id)) return;
       const here = readDealerAddress(new URLSearchParams(window.location.search));
-      const word = addressWord(id, here, owners);
+      const word = addressWord(id, here, owners, fallback);
       // null, never history.state: Next then updates useSearchParams.
       window.history.replaceState(null, "", `${window.location.pathname}${withDealer(window.location.search, word)}`);
       remember(id);
       setSeen({ address: { ...here, dealer: word }, memory: id });
     },
-    [owners],
+    [owners, fallback],
   );
 
   const status: BankStatus = data.status === "ready" && !settled ? "loading" : data.status;

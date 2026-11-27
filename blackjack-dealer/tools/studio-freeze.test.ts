@@ -111,7 +111,7 @@ test('scrub drops forbidden keys anywhere and findLeaks finds what is left', () 
 function fixture(): BankData & Record<string, any> {
   const landing = 'D:/exempel/anchors/p4-landing.png', ready = {file: {path: 'assets/anchors/ready.png', sha256: 'b'.repeat(64)}};
   const job = (id: string, kind: string, from: string, to: string, first: object, last: object, purpose: string) =>
-    ({id, kind, target: 'P4.C1', from, to, model: 'wan3', duration: 3, ratio: 'auto_1080p', audio: false, promptText: 'Locked camera.', first, last, purpose});
+    ({id, kind, target: 'P4.C1', from, to, model: 'wan3', duration: 3, ratio: 'auto_1080p', audio: false, promptText: 'Locked camera.', first, last, purpose, dealer: 'paow'});
   return {
     schemaVersion: 1, readable: true, budget: {maximumCredits: 5000},
     jobs: [job('paow-p4-c1-deal-01', 'DEAL', 'READY', 'P4.C1', ready, {file: {path: landing}}, 'The deal to seat 4. Ordered after two probes (35 + 40 app credits).'),

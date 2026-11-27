@@ -52,16 +52,33 @@ export function shownBy(event: SeatSignalEvent): {key: string; total: number; so
 }
 
 const LINE: Record<string, string> = {dealerbust: 'Dealern spricker', dealerblackjack: 'Dealern har <b>blackjack</b>', blackjack: '<b>Blackjack!</b>', win: 'Du vinner', push: 'Lika', lose: 'Dealern vinner'};
-/** The last thing the dealer would say in a step, as the status line; null when the step says nothing worth showing. */
+/** The last thing the dealer would say in a step (what the chat says); null when the step says nothing worth showing. */
 export const lineOf = (events: SeatSignalEvent[]): string | null => { const said = events.filter(e => e.type === 'speak').map(e => LINE[(e as {line: string}).line]).filter(Boolean); return said[said.length - 1] ?? null; };
+/**
+ * The settled round's outcome over every hand with a stake, as the status line says it: one word when they all ended alike, else
+ * how many won, pushed and lost; then what the round came to, and the dealer's hand. Read from the engine's settle (its stakes
+ * and returns), never from the last line said, which speaks of one step (a hand that won beside one that lost said "Du vinner").
+ */
+export function roundLine(settled: Settled): string | null {
+  const hands = (settled?.hands ?? []).filter(h => h.stake > 0); if (!settled || !hands.length) return null;
+  const won = hands.filter(h => h.returned > h.stake).length, push = hands.filter(h => h.returned === h.stake).length, lost = hands.length - won - push;
+  const net = hands.reduce((a, h) => a + h.returned - h.stake, 0);
+  const words = won === hands.length ? (hands.some(h => h.outcome === 'blackjack') ? '<b>Blackjack!</b>' : 'Du vinner') : push === hands.length ? 'Lika' : lost === hands.length ? 'Dealern vinner'
+    : [won ? `${won} vinner` : '', push ? `${push} lika` : '', lost ? `${lost} förlorar` : ''].filter(Boolean).join(', ');
+  const dealer = settled.dealerBlackjack ? 'dealern har <b>blackjack</b>' : settled.dealerTotal > 21 ? 'dealern spricker' : `dealern ${settled.dealerTotal}`;
+  return `${words} · ${net > 0 ? '+' : net < 0 ? '−' : '±'}${Math.abs(net)} · ${dealer}`;
+}
 
 export function tableView(snapshot: Snapshot, page: PageState): TableView {
   const round = snapshot.view.round, betting = page.stage === 'BETTING', staked = betting ? betTotal(page.bets) : sum((round?.hands ?? []).map(h => h.stake + h.insured));
   const phase: Phase = betting ? 'BETTING' : page.busy ? (page.dealerPlays ? 'DEALER' : 'DEALING') : page.stage === 'SETTLED' ? 'SETTLED' : round?.phase === 'insurance' ? 'INSURANCE' : round?.phase === 'decisions' ? 'TURN' : 'DEALING';
-  const hand = (key: string, engine: {total: number; soft: boolean; natural: boolean; busted: boolean} | null, active: boolean, result: {outcome: Outcome; net: number} | null): HandView => {
+  // A hand is played out once its turn has passed (the engine plays the hands in their order, round.active the one in play), it
+  // stands on 21, or the dealer plays: then its total is the one that counts, never the soft pair (9/19 for a soft 19 that stood).
+  const over = page.stage === 'SETTLED' || round?.phase === 'dealer' || round?.phase === 'settled';
+  const hand = (key: string, engine: {total: number; soft: boolean; natural: boolean; busted: boolean} | null, active: boolean, result: {outcome: Outcome; net: number} | null, done = over): HandView => {
     // While the film plays, a hand shows what its landed cards came to; afterwards the engine's own figures.
     const now = page.busy ? page.shown[key] ?? null : engine ?? page.shown[key] ?? null;
-    return {key, total: now ? now.total : null, soft: !!now?.soft, state: !now ? null : now.natural ? 'BLACKJACK' : !page.busy && engine?.busted ? 'BUST' : null, active, outcome: result?.outcome ?? null, net: result?.net ?? null};
+    return {key, total: now ? now.total : null, soft: !!now?.soft && !done && now.total < 21, state: !now ? null : now.natural ? 'BLACKJACK' : !page.busy && engine?.busted ? 'BUST' : null, active, outcome: result?.outcome ?? null, net: result?.net ?? null};
   };
   const seats: SeatView[] = [];
   for (let seat = 1; seat <= 7; seat++) {
@@ -70,12 +87,13 @@ export function tableView(snapshot: Snapshot, page: PageState): TableView {
     const laid = page.bets[seat] ?? [], had = sum(laid), chips = betting || amount === had ? [...laid] : amount > had && had > 0 ? [...laid, ...chipsFor(amount - had, CHIP_VALUES)] : chipsFor(amount, CHIP_VALUES);
     seats.push({seat, amount, chips, turn: phase === 'TURN' && round?.activeSeat === seat,
       hands: betting ? [] : own.map(h => { const paid = page.settled?.hands.find(s => s.seat === seat && s.handIndex === h.handIndex);
-        return hand(handKey(seat, h.hand), {total: h.total, soft: h.soft, natural: h.natural === true, busted: h.busted}, phase === 'TURN' && round!.active === h.handIndex, paid && page.stage === 'SETTLED' && !page.busy ? {outcome: paid.outcome, net: paid.returned - paid.stake} : null); })});
+        return hand(handKey(seat, h.hand), {total: h.total, soft: h.soft, natural: h.natural === true, busted: h.busted}, phase === 'TURN' && round!.active === h.handIndex, paid && page.stage === 'SETTLED' && !page.busy ? {outcome: paid.outcome, net: paid.returned - paid.stake} : null,
+          over || (round?.phase === 'decisions' && h.handIndex < round.active)); })});
   }
   const dealer = betting || !round ? null : hand(DEALER_KEY, {total: round.dealerTotal, soft: round.dealerSoft, natural: page.settled?.dealerBlackjack === true, busted: false}, false, null);
   const affordable = (bets: Record<number, number[]>) => betTotal(bets) > 0 && betTotal(bets) <= page.balance && Object.values(bets).every(chips => !sum(chips) || (sum(chips) >= snapshot.limits.min && sum(chips) <= snapshot.limits.max));
   const message = page.error ?? (phase === 'BETTING' ? `Tryck på en ring eller dra en marker dit · ${snapshot.limits.min}–${snapshot.limits.max} per plats` : phase === 'TURN' ? `Din tur · <b>plats ${round!.activeSeat}</b>` : phase === 'INSURANCE' ? 'Dealern visar <b>ess</b>'
-    : phase === 'SETTLED' ? `${page.line ?? 'Rundan är klar'}${page.settled && !page.settled.dealerBlackjack ? ` · dealern ${page.settled.dealerTotal}` : ''}` : '');
+    : phase === 'SETTLED' ? roundLine(page.settled) ?? page.line ?? 'Rundan är klar' : '');
   // While the deal is sent and its answer awaited (betting, busy) the chips stay as they were sent: Ångra and Rensa wait too.
   return {phase, balance: page.balance, staked, seats, dealer, chipValues: CHIP_VALUES, chip: page.chip, canDeal: betting && !page.busy && affordable(page.bets), canUndo: betting && !page.busy && betTotal(page.bets) > 0,
     canRebet: betting && !page.busy && !!page.last && betTotal(page.bets) === 0 && affordable(page.last), actions: phase === 'TURN' ? [...snapshot.legalActions] as Action[] : [], message};

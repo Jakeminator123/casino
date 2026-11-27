@@ -12,7 +12,7 @@
 // The one exception is a talk film, a rest take on request, which is played only when the dealer says its line (src/speech-lines.ts).
 // ?trad=<id> (Karta's Prova i Casino) narrows them to one tree's films (below, treeCut); ?komposition=<id> plays several trees
 // put together (below, composition).
-import {DEALER, buildGraph, effectOf, type Graph} from './clip-graph.ts';
+import {buildGraph, effectOf, type Graph} from './clip-graph.ts';
 import {createScene, DEFAULTS, type SceneState} from './scene3d-view.ts';
 import {readRegister} from './scene3d-room.ts';
 import {cameraFromContract, filmPixel, filmToScene, sceneToSpot, solveCamera, spotToScene, viewUnder, type FilmCamera} from './scene3d-geometry.ts';
@@ -70,11 +70,14 @@ const table = /^[a-z0-9-]{1,40}$/.test(query.get('table') ?? '') ? `?table=${que
 // taking the lab tab by itself. The game's own words: src/game-own.ts OWN_WORDS.
 const forval = query.get('forval');
 const lookAsked = [...query.keys()].some(word => !OWN_WORDS.includes(word) && !['kort', 'cardBack', 'cardFace'].includes(word)); // kort, cardBack, cardFace: how the card in her hand is shown (below), not a look
-// The dealers the game offers, each with her own films. ?dealer=paow (the studio's word, which the Casino view passes on) or the
-// choice remembered from the console's Dealer menu; without either the first dealer (DEALER in src/clip-graph.ts: Paow).
-const DEALERS = [{id: 'paow', label: 'Paow', note: 'Ny dealer, inte alla filmer än', thumb: 'assets/anchors/paow-vila-tatuerad/anchor.png'}];
+// The dealers the game offers, each with her own films: data/dealers.json's who are not paused (no dealer is named in the code).
+// ?dealer=<id> (the studio's word, which the Casino view passes on) or the choice remembered from the console's Dealer menu;
+// without either the first of them; with none, or a word that names no dealer of the register (the studio without a dealer), the
+// table stands without a dealer ('').
+const dealerRegister = await fetch('data/dealers.json').then(res => res.ok ? res.json() : null, () => null).catch(() => null) as {dealers?: {id?: unknown; name?: unknown; paused?: unknown}[]} | null;
+const DEALERS = (Array.isArray(dealerRegister?.dealers) ? dealerRegister.dealers : []).flatMap(d => typeof d?.id === 'string' && /^[a-z0-9]+$/.test(d.id) && !d.paused ? [{id: d.id, label: typeof d.name === 'string' && d.name.trim() ? d.name.trim() : d.id, note: '', thumb: ''}] : []);
 const dealerMemory = (() => { try { return localStorage.getItem('dealer.dealer'); } catch { return null; } })();
-let dealer = DEALERS.find(d => d.id === query.get('dealer'))?.id ?? DEALERS.find(d => d.id === dealerMemory)?.id ?? DEALER;
+let dealer = query.has('dealer') ? DEALERS.find(d => d.id === query.get('dealer'))?.id ?? '' : DEALERS.find(d => d.id === dealerMemory)?.id ?? DEALERS[0]?.id ?? '';
 const nameOf = (id: string) => DEALERS.find(d => d.id === id)?.label ?? id;
 // One tree (?trad=<id>, Karta's Prova i Casino; Jakob 2026-11-23): her films cut to that tree's (src/dealer-trees.ts cutBank,
 // from GET /api/trees?dealer=<id>&trad=<id>, tools/dealer-tree.ts treeCut). The tree's anchor at the shoe is played as the shoe,
@@ -91,7 +94,7 @@ const treeWord = query.get('trad');
 // else the former standard: GET /api/trees playedCut). A film is never shown under another set-up's camera: a set-up without films
 // of its own shows its table, shoe and cards without a dealer, and the page says so in its line.
 const setupWord = lasUppsattning(query.get('uppsattning'));
-const treeRead = Promise.all([fetch(`api/trees?dealer=${encodeURIComponent(dealer)}&${treeWord === null ? `spel=1${setupWord ? `&uppsattning=${setupWord}` : ''}` : `trad=${encodeURIComponent(treeWord)}`}`).then(async res => ({status: res.status, answer: await res.json().catch(() => null)}), () => null),
+const treeRead = !dealer ? Promise.resolve([null, null] as const) : Promise.all([fetch(`api/trees?dealer=${encodeURIComponent(dealer)}&${treeWord === null ? `spel=1${setupWord ? `&uppsattning=${setupWord}` : ''}` : `trad=${encodeURIComponent(treeWord)}`}`).then(async res => ({status: res.status, answer: await res.json().catch(() => null)}), () => null),
   import('./dealer-trees.ts').catch(() => null)]);
 // Several trees put together (?komposition=<id>, Karta's Komposition; Jakob 2026-11-23): each tree plays its own films from its
 // own anchors, a share says how often each is chosen, and where two trees meet a bridge is played (src/composition.ts, from
@@ -99,7 +102,7 @@ const treeRead = Promise.all([fetch(`api/trees?dealer=${encodeURIComponent(deale
 // there, ?trad= goes first, and a composition that cannot be read, or whose trees have different hands (Jakob 2026-11-23: such
 // trees are not put together), is said on the page while the game plays as without the word.
 const compositionWord = treeWord === null ? query.get('komposition') : null;
-const compositionRead = compositionWord === null ? null : Promise.all([fetch(`api/compositions?dealer=${encodeURIComponent(dealer)}&komposition=${encodeURIComponent(compositionWord)}`).then(async res => ({status: res.status, answer: await res.json().catch(() => null)}), () => null),
+const compositionRead = compositionWord === null || !dealer ? null : Promise.all([fetch(`api/compositions?dealer=${encodeURIComponent(dealer)}&komposition=${encodeURIComponent(compositionWord)}`).then(async res => ({status: res.status, answer: await res.json().catch(() => null)}), () => null),
   import('./composition.ts').catch(() => null)]);
 
 const [contract, placements, bank, first, register, lookCode, presetAnswer, treeAnswer, compositionAnswer, playViewAnswer, livePlayViewAnswer] = await Promise.all([read('data/scene-contract.json', 'Scenkontraktet'), read('api/placements', 'Kortplanen'), read('api/clip-bank', 'Klippbanken'), read(`api/game${table}`, 'Spelet'), read('data/scene-rooms.json', 'Rumsregistret'),
@@ -111,10 +114,14 @@ const [contract, placements, bank, first, register, lookCode, presetAnswer, tree
   fetch('api/play-view?uppsattning=live').then(res => res.ok ? res.json() : null, () => null)]);
 // The set-up (setupWord above): the word's, else the one the films were cut for; and whether its films may play (filmsFit).
 const cutSaid = lasUppsattning((treeAnswer[0]?.answer as {uppsattning?: unknown} | null)?.uppsattning), cutSetups = (treeAnswer[0]?.answer as {setups?: unknown} | null)?.setups;
-const filmedUnder: UppsattningId = cutSaid ?? DATATS_FORVAL, setup: UppsattningId = setupWord ?? filmedUnder;
-const filmsFit = filmedUnder === setup && (setup === DATATS_FORVAL || Array.isArray(cutSetups) && cutSetups.includes(setup) || treeWord !== null);
-const setupLine = !filmsFit ? `Ingen film är godkänd för ${UPPSATTNING[setup].namn.toLowerCase()} än: bordet visas utan dealer.`
+// Without a dealer the table is the choice's default (src/uppsattning.ts VALETS_FORVAL), and nothing of a dealer is shown.
+const filmedUnder: UppsattningId = cutSaid ?? (dealer ? DATATS_FORVAL : VALETS_FORVAL), setup: UppsattningId = setupWord ?? filmedUnder;
+const filmsFit = !!dealer && filmedUnder === setup && (setup === DATATS_FORVAL || Array.isArray(cutSetups) && cutSetups.includes(setup) || treeWord !== null);
+const setupLine = !dealer ? 'Ingen dealer har filmer än.' : !filmsFit ? `Ingen film är godkänd för ${UPPSATTNING[setup].namn.toLowerCase()} än: bordet visas utan dealer.`
   : setupWord === null && treeWord === null && setup !== VALETS_FORVAL ? `${UPPSATTNING[VALETS_FORVAL].namn} har inga godkända filmer än: spelet visar ${UPPSATTNING[setup].namn.toLowerCase()}.` : null;
+// The dealer at the table: none where her films may not play (another table's, or no dealer at all); then there is no Dealer
+// menu and the chat names nobody.
+const seated = filmsFit ? dealer : '';
 const liveView = UPPSATTNING.live.spelvy, liveSaved = (livePlayViewAnswer as {uppsattning?: unknown; view?: {dator?: unknown; mobil?: unknown}} | null)?.uppsattning === 'live' ? (livePlayViewAnswer as {view?: {dator?: unknown; mobil?: unknown}}).view : null;
 playView = setup === 'live' ? {schemaVersion: 1, dator: readFraming(liveSaved?.dator, liveView.dator), mobil: readFraming(liveSaved?.mobil, liveView.mobil), updatedAt: ''} : readPlayView(playViewAnswer);
 const registered = readRegister(register).rooms, roomIds = lookCode ? [...lookCode.BUILT_ROOMS, ...registered.map(r => r.id)] : [];
@@ -160,7 +167,7 @@ const sceneRooms = registered.filter(r => panoramas.includes(r) || effectRooms.h
 // text, as before). ?tal=av, the look key, keeps her silent and the module is never asked.
 type Spoken = {key: string; clip: string; text: string};
 type SpeechLines = {PHASE_LINE?: Record<string, string>; spokenFilm(takes: unknown[], dealer: string, keyOrPhase: string, options?: {voice?: string}): Spoken | null; chatReply(takes: unknown[], dealer: string, written: string, count?: number, options?: {voice?: string}): Spoken | null};
-const talking = talkOn((asked as {tal?: unknown}).tal ?? query.get('tal')), VOICE = {voice: 'Paow'}; // her own voice (data/speech.json), Jakob 2026-11-13
+const talking = !!seated && talkOn((asked as {tal?: unknown}).tal ?? query.get('tal')), VOICE = {voice: nameOf(seated)}; // her own voice, by her name (data/speech.json), Jakob 2026-11-13
 let lines: SpeechLines | null = null;
 if (talking) void import('./speech-lines.ts').then(m => { lines = m as unknown as SpeechLines; }).catch(() => {});
 const restTakes = () => film.graph.edge['IDLE>IDLE']?.takes ?? [];
@@ -392,7 +399,7 @@ let sound: Sound | null = null, soundAsked: Promise<void> | null = null;
 const heard = {table: false, ambience: false, track: null as string | null, music: 0.6}, panOf = (seat: number) => (seat - 4) / 3 * 0.8;
 const loadSound = () => soundAsked ??= import('./sound.ts').then((m: {createSound(): Sound; MUSIC?: {id: string; label: string; note: string}[]}) => { sound = m.createSound(); sound.set({music: heard.music}); panel.set({tracks: m.MUSIC ?? []}); }).catch(() => {});
 const withSound = (act: (s: Sound) => void) => void loadSound().then(() => { if (sound) { sound.unlock(); act(sound); } });
-const panel = mountPanel(overlay.root.querySelector<HTMLElement>('.go-bar')!, ROOMS, DEALERS, {
+const panel = mountPanel(overlay.root.querySelector<HTMLElement>('.go-bar')!, ROOMS, seated ? DEALERS : [], {
   open() { void loadSound(); },
   room(id) {
     const next = ROOMS.find(r => r.id === id); if (!next || id === room || page.busy || page.stage === 'ROUND') return;
@@ -463,7 +470,7 @@ type Chat = {phase(phase: string, said?: string | null): void; say(text: string)
 let chat: Chat | null = null, chatPhase = '', chatLine: string | null = null;
 // What she answers a player is the speech's ready answer when it has one (its film plays as she answers), else the dummy's own.
 const answer = (typed: string, n: number) => { const talk = talking && lines ? lines.chatReply(restTakes(), dealer, typed, n, VOICE) : null; if (!talk || !film.talkPart(talk.clip)) return null; film.say(talk.clip); return talk.text; };
-if (query.get('chatt') !== '0') void import('./game-chat.ts').then(m => { chat = m.mountChat(stage, {name: nameOf(dealer), answer}); render(); }).catch(() => {});
+if (query.get('chatt') !== '0') void import('./game-chat.ts').then(m => { chat = m.mountChat(stage, {...(seated ? {name: nameOf(seated)} : {}), answer}); render(); }).catch(() => {});
 // The lines of this step that her speech says (their own words replace the chat's for the phase and for how the round ended), and
 // the gaps the film met (for the console and the proof recorder).
 const spoken = new Set<string>(), gaps: string[] = [];
