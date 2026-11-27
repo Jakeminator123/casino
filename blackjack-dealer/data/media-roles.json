@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "about": "Vad som är vad per dealer: varje bild, ruta ur en film eller grupp av filer får en roll i Jakobs kedja (ingångsbild, keystone, ankare 1, 2.1, 2.2, landning, film, referens, prov, övrigt). Studions vy Material läser registret genom GET /api/media (tools/media-roles.ts), som lägger till om filen finns, dess storlek och vilka filmer i banken som börjar eller slutar på den. Bankens filmer listas inte här: de räknas ur data/clip-jobs.json. Filmer utanför banken har rollen film och ligger i assets/films/<dealer>/ eller i det prov där de granskades, med receipt.json bredvid (importen 2026-11-12). Fylld 2026-11-12 ur D:/dealer-scratch/tmp/huvudagent/original/RAPPORT.md, D:/dealer-scratch/tmp/paow/LASMIG.md och filerna själva.",
+  "about": "Vad som är vad per dealer: varje bild, ruta ur en film eller grupp av filer får en roll i Jakobs kedja (ingångsbild, keystone, ankare 1, 2.1, 2.2, landning, film, referens, prov, övrigt). Studions vy Material läser registret genom GET /api/media (tools/media-roles.ts), som lägger till om filen finns, dess storlek och vilka filmer i banken som börjar eller slutar på den. Bankens filmer listas inte här: de räknas ur data/clip-jobs.json. Filmer utanför banken har rollen film och ligger i assets/films/<dealer>/ eller i det prov där de granskades, med receipt.json bredvid (importen 2026-11-12). Fylld 2026-11-12 ur huvudagentens RAPPORT.md och Paow-sessionens LASMIG.md (arbetsfiler utanför repot) och filerna själva.",
   "dealers": {
     "paow": {
       "name": "Paow",
@@ -21,7 +21,7 @@
           "path": "assets/proofs/paow-profilbild-och-keystone/9-jakobs-bild-vid.png",
           "note": "En av Jakobs två bilder av henne: linne, blond page, tatueringar. Allt annat om Paow är gjort ur dessa.",
           "source": {
-            "from": "Jakob (D:/dealer-scratch/tmp/paow/jakob/paow-jakob-1-vid.png, samma fil)",
+            "from": "Jakob (hans egen bild paow-jakob-1-vid.png, samma fil)",
             "when": "2026-11-11"
           }
         },
@@ -32,7 +32,7 @@
           "path": "assets/proofs/paow-profilbild-och-keystone/8-jakobs-bild-nara.png",
           "note": "Jakobs närbild. Ansiktslikheten i allt senare material mäts mot den.",
           "source": {
-            "from": "Jakob (D:/dealer-scratch/tmp/paow/jakob/paow-jakob-2-nara.png, samma fil)",
+            "from": "Jakob (hans egen bild paow-jakob-2-nara.png, samma fil)",
             "when": "2026-11-11"
           }
         },

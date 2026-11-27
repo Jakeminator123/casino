@@ -24,8 +24,8 @@ test("the register: his choice or text per place, nothing private, one note per 
   bad(note({ choice: "kanske" }), /choice/);
   bad(note({ choice: null, text: "  " }), /varken val eller text/);
   bad(note({ file: "../x.mp4" }), /file/);
-  bad(note({ text: "se C:\\Users\\jakem\\film.mp4" }), /sökväg/);
-  bad(note({ text: "jakob@example.com" }), /e-post/);
+  bad(note({ text: "se C:\\Users\\someone\\film.mp4" }), /sökväg/);
+  bad(note({ text: "someone@example.com" }), /e-post/);
   bad(note({ extra: 1 }), /okända fält/);
   bad(note({ answer: { text: "", at: T2 } }), /tom/);
   assert.throws(() => readNotes(register([note(), note({ id: 2 })])), /två poster/);
@@ -37,7 +37,7 @@ test("his word from the page: a choice, a text, or both empty to take it away", 
   assert.deepEqual(validateChange({ proof: "x", file: null, choice: null }), { choice: null, text: "" });
   assert.throws(() => validateChange({ proof: "x", file: null, choice: "ja" }), /Valet/);
   assert.throws(() => validateChange({ proof: "x", file: null, choice: null, text: "x".repeat(1001) }), /högst/);
-  assert.throws(() => validateChange({ proof: "x", file: null, choice: null, text: "D:/dealer-scratch/tmp" }), /sökväg/);
+  assert.throws(() => validateChange({ proof: "x", file: null, choice: null, text: "D:/exempel/tmp" }), /sökväg/);
   assert.throws(() => validateChange({ proof: "x", file: null, by: "huvudagent" }), /bara innehålla/);
   assert.equal(cleanText("a\r\nb"), "a\nb");
 });

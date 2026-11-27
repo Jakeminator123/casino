@@ -1,4 +1,5 @@
-// Skyddar: publiceringsskyddet – kontrollen före push stoppar nycklar, .env-filer, media och stora filer.
+// Skyddar: publiceringsskyddet – kontrollen före push stoppar nycklar, .env-filer, media, stora filer och sökvägar till en
+// viss dator.
 // The push check (.githooks/check.ts): what stops, what goes through, and which commits a push brings.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -6,7 +7,7 @@ import {spawnSync} from 'node:child_process';
 import {mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {changes, inspectBlob, outgoing, scan, testRuns} from './check.ts';
+import {changes, inspectBlob, machinePaths, outgoing, scan, testRuns} from './check.ts';
 
 // Each fake key is put together here, so that this file never looks like one to the check.
 const KEYS = [
@@ -40,6 +41,50 @@ test('an example with empty values, ordinary code, a small icon and the check it
   assert.deepEqual(red('studio/app/icon.svg', '<svg xmlns="http://www.w3.org/2000/svg"/>'), []);
   for (const file of ['check.ts', 'check.test.ts', 'pre-push']) assert.deepEqual(red(`.githooks/${file}`, readFileSync(new URL(file, import.meta.url))), [], file);
   assert.deepEqual(inspectBlob('tools/x.bin', Buffer.from([1, 0, 2])).map(f => f.level), ['WARN'], 'unknown binary content is only a warning');
+});
+
+// Each real-looking path is put together here as well (a user kalle, a folder jobb, a server nas: no example names), so
+// that this file never holds one.
+const PATHS = [
+  'C:' + '/Users/' + 'kalle/x.png',
+  'D:' + '\\' + 'jobb\\film.mp4',
+  'c:' + '\\\\' + 'jobb\\\\x',
+  'file:///' + 'E:' + '/jobb/x.json',
+  '/c/' + 'Users/kalle/dev',
+  '/d/' + 'jobb/tmp',
+  '/mnt/d/' + 'jobb/x',
+  '/Users/' + 'kalle/Desktop',
+  '/home/' + 'kalle/x',
+  '\\\\' + 'nas\\media\\x.mp4',
+  '\\\\\\\\' + 'nas\\\\media',
+  '\\\\?\\' + 'D:' + '\\jobb',
+  '\\\\wsl$\\Ubuntu\\home\\' + 'kalle',
+  'C:\\Users\\' + 'Anna Bergström\\x',
+  'C:/Users/' + 'Someone2/x',
+];
+
+test('a path of one computer stops in every form, and the finding names the line, not the path', () => {
+  for (const p of PATHS) {
+    const found = red('docs/x.md', `En rad.\nSe ${p} här.\n`);
+    assert.equal(found.length, 1, p);
+    assert.ok(found[0].message.includes('rad 2') && !found[0].message.includes(p) && found[0].message.includes('someone'), p);
+  }
+  assert.equal(red('data/x.json', `{"from": "${'C:' + '\\\\Users\\\\' + 'kalle'}\\\\x.png"}`).length, 1, 'a path in JSON, its backslashes doubled');
+  assert.equal(red('src/x.ts', `const a = '${'D:' + '\\\\\\\\' + 'jobb'}';`).length, 1, 'a string in code with four backslashes');
+  assert.deepEqual(machinePaths(`a\nb ${PATHS[0]}\nc\n${PATHS[4]} och ${PATHS[7]}`), [2, 4]);
+});
+
+test('the made-up names of the tests, Windows\' own folders, a variable and what only looks like a path go through', () => {
+  for (const fine of [
+    'C:/Users/someone/dev', 'D:/x/y', 'C:/x.png', 'D:/exempel/tmp', 'C:\\Users\\Anna Berg\\Desktop', '/c/Users/x/y', '/Users/someone/y',
+    '\\\\wsl$\\Ubuntu\\home\\x', '\\\\?\\c:\\x', '\\\\exempel\\media', 'c:\\\\Users\\\\someone\\\\x',
+    'C:/Windows/Fonts/segoeui.ttf', 'C:\\Program Files\\Blender Foundation\\', 'C:/Program Files (x86)/x', 'C:/ProgramData/x',
+    '%USERPROFILE%\\AppData\\Local', '$HOME/.config/x', '~/.claude/x', 'C:\\Users\\…', '/c/Users, /d/…',
+    'https://example.com/a/b', 'git@github.com:x/y.git', 'kl. 21:40', 'assets/x/y.png', '../a/b', 'blackjack-dealer\\assets\\x', '/studio/karta/',
+    '/^(\\d{4})T\\d\\d:\\d\\d$/', 'new RegExp(`const\\\\s+\\\\{[\\\\s\\\\S]*?\\\\}`)', "new RegExp('\\\\bword\\\\b')", 'e?s=i:/höjd/i.test(a)', 'new URL(e,"x:/")',
+  ]) assert.deepEqual(red('docs/x.md', `Se ${fine} här.\n`), [], fine);
+  assert.deepEqual(red('data/notes.json', '{"text": "Film B:' + '\\nbra, A:' + '\\tx"}'), [], 'in JSON a lone backslash is an escape, not a path');
+  assert.deepEqual(red('assets/x.png', 'C:' + '/Users/' + 'kalle'), red('assets/x.png', 'x'), 'media is judged as media only');
 });
 
 test('a push brings the commits the remotes lack: for a new branch only its own, read from Git and not from the working tree', t => {

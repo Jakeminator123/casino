@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "about": "Photographed material maps for the 3D scene. The files are media and lie outside Git under assets/scene/materials/; this file names each by its SHA-256 and says where it came from. They were copied on 2026-11-11 from Jakob's room study of 2026-11-07 (C:/Users/jakem/Desktop/wow/rumsstudie-3d-2026-11-07/tools/room-study/assets, its own register: material-sources.json), which fetched them from Poly Haven and stored them as WebP.",
+  "about": "Photographed material maps for the 3D scene. The files are media and lie outside Git under assets/scene/materials/; this file names each by its SHA-256 and says where it came from. They were copied on 2026-11-11 from Jakob's room study of 2026-11-07 (rumsstudie-3d-2026-11-07, its folder tools/room-study/assets, its own register: material-sources.json), which fetched them from Poly Haven and stored them as WebP.",
   "licence": "CC0 (Poly Haven)",
   "maps": [
     {
@@ -49,7 +49,7 @@
   "bord02": {
     "about": "The photographed surfaces of table BORD-02, the second table model of the 3D scene (src/scene3d-bord02.ts; state keys tableModel, modelCloth, modelWood and modelRail; a lab trial of 2026-11-20, off from the start). Jakob delivered the table of his project Ultimate Reality that day (2026-11-20: \"kunna i höger panel ändra till detta bord\", and its materials \"som förval eller val\" here): its seven Poly Haven scans as 2048 px JPGs (Texturer/, with a register of its own, Texturer/materialregister.json, which names every original by SHA-256), the table's source (Källor/), from which its form is built here, and pictures of it (Referensbilder/). The 48 MB model file and the card shoe were not taken. Each original was checked against the delivery's register and stored as WebP with sharp 0.35.5: resized to `width`, quality 84 (relief 90), smartSubsample. The relief and roughness of brown_leather and denim_fabric are the 1 k maps under \"maps\" above, which were here already.",
     "licence": "CC0 (Poly Haven)",
-    "delivery": "C:/Users/jakem/Desktop/material",
+    "delivery": "Jakob's folder material (Texturer/, Källor/, Referensbilder/), outside the repo",
     "revision": "Ultimate Reality 9dba0e7f8c490829036af957058e27efba3b1add",
     "maps": [
       {

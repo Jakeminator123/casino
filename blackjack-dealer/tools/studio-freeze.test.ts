@@ -15,7 +15,7 @@ const played = (round: Segment[]) => round.map(s => ({id: s.id, take: s.take?.id
 
 test('the frozen Material view only names published stills and explicitly selected proof files', () => {
   const first = 'assets/motions/paow-a/first.webp', last = 'assets/motions/paow-a/last.webp';
-  const video = 'assets/motions/paow-a/source.mp4', local = 'D:/private/unreleased.png';
+  const video = 'assets/motions/paow-a/source.mp4', local = 'D:/exempel/unreleased.png';
   const proofVideo = 'assets/proofs/paow-prov/compare.mp4', omitted = 'assets/proofs/paow-prov/hidden.png';
   const privateProof = 'assets/proofs/private-other/available.png', shared = 'assets/proofs/common/table.png';
   const cut = (id: string, dealer = 'paow') => ({id, from: 'IDLE', to: 'READY', clip: id, frames: [0, 12] as [number, number], dealer});
@@ -91,9 +91,9 @@ test('costs, blocked names and machine paths leave the texts; his stamp stays', 
   assert.equal(redactText('Jakob 2026-11-11: Det kan gå tillbaka till Astrid.', rules), 'Jakob 2026-11-11: …');
   assert.equal(redactText('Low-resolution probe (784×522, 6 s, 30 credits). Seen by the agent.', rules), 'Low-resolution probe. Seen by the agent.');
   assert.equal(redactText('Kostnad: cirka 590 krediter (skattat). Film 1 duger.', rules), 'Film 1 duger.');
-  assert.equal(redactText('Se C:\\Users\\jakem\\x.png och /Users/someone/y.png', rules), 'Se … och …');
+  assert.equal(redactText('Se C:\\Users\\someone\\x.png och /Users/someone/y.png', rules), 'Se … och …');
   assert.deepEqual(findTextLeaks('new URL(e,"x:/") https://example.com/a', rules), [], 'a URL is no path of this machine');
-  for (const real of ['root=D:/x/y', '"C:\\\\Users\\\\jakem"', 'e?s=i:/höjd/i.test(a):"D:/dealer-scratch/tmp"', 'file:///C:/Users/jakem/x'])
+  for (const real of ['root=D:/x/y', '"C:\\\\Users\\\\someone"', 'e?s=i:/höjd/i.test(a):"D:/exempel/tmp"', 'file:///C:/Users/someone/x'])
     assert.deepEqual(findTextLeaks(real, rules), ['lokal sökväg'], real);
 });
 
@@ -101,7 +101,7 @@ test('scrub drops forbidden keys anywhere and findLeaks finds what is left', () 
   const dirty = {a: {estimatedCredits: 60, b: [{budget: {maximumCredits: 1}, ok: 'Ada'}]}, requestedAt: 'x', note: 'It cost 60 credits.'};
   assert.deepEqual(scrub(dirty, rules), {a: {b: [{ok: 'Ada'}]}, note: '…'});
   assert.deepEqual(findLeaks(scrub(dirty, rules), rules), []);
-  const leaks = findLeaks({x: [{taskId: 'abc'}], y: 'D:/a/b', z: 'Kevin', w: '$5'}, rules);
+  const leaks = findLeaks({x: [{taskId: 'abc'}], y: 'D:/x/b', z: 'Kevin', w: '$5'}, rules);
   assert.equal(leaks.length, 4);
 });
 
@@ -109,7 +109,7 @@ test('scrub drops forbidden keys anywhere and findLeaks finds what is left', () 
 // A deal and a return that starts from the deal's landing picture, which lies at a path of this machine: the frozen bank
 // must hide the path and still let the return follow the deal (returnFits compares the two paths).
 function fixture(): BankData & Record<string, any> {
-  const landing = 'D:/private/anchors/p4-landing.png', ready = {file: {path: 'assets/anchors/ready.png', sha256: 'b'.repeat(64)}};
+  const landing = 'D:/exempel/anchors/p4-landing.png', ready = {file: {path: 'assets/anchors/ready.png', sha256: 'b'.repeat(64)}};
   const job = (id: string, kind: string, from: string, to: string, first: object, last: object, purpose: string) =>
     ({id, kind, target: 'P4.C1', from, to, model: 'wan3', duration: 3, ratio: 'auto_1080p', audio: false, promptText: 'Locked camera.', first, last, purpose});
   return {

@@ -4584,12 +4584,6 @@
     "path": "assets/scene-work/shadow-matte/pamela-p4-c1-plan-deal-02/matte-%04d.png",
     "format": "1764 x 1174 8-bit grey + alpha PNG, lossless. Grey = darkness x 255. Alpha 255 = measured table pixel, 0 = excluded: dealer, shoe, cards, a 2 px band around them, and everything above image row 833.",
     "use": "newTable * (1 - grey / 255) in display values, then the keyed dealer on top. Inside the excluded band the grey carries the nearest measured value for 3 px so that ignoring alpha leaves no light halo; further in it is 0.",
-    "previews": [
-      "D:/dealer-scratch/review/scen/shadow-matte-pamela-p4-c1-plan-deal-02-f40-104.mp4",
-      "D:/dealer-scratch/review/scen/shadow-side-by-side-pamela-p4-c1-plan-deal-02.mp4",
-      "D:/dealer-scratch/review/scen/shadow-contact-sheet.png",
-      "D:/dealer-scratch/review/scen/shadow-on-new-table.png"
-    ],
     "method": "Green channel against the frame's own lit level; 3 x 3 mean among table pixels; values below about 0.02 fade to 0 as compression noise. Static darkening by body, resting hand and shoe is kept, since it is darker than the lit table too.",
     "quality": {
       "noiseRmsBeforeGate": 0.0091,

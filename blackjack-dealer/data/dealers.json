@@ -6,7 +6,7 @@
       "id": "paow",
       "name": "Paow",
       "look": "a young, slim, petite woman with a platinum-blonde chin-length bob, warm-coloured tattoos on her throat and upper chest and a small white flower pendant, in a black tailored blazer over a cream V-neck top",
-      "lookSource": "Jakob 2026-11-12: the younger, slimmer look in the black jacket (\"jag vill ha de yngre och nättare bilderna\"); the words of the b24 order text (D:/dealer-scratch/tmp/paow/order/p-b24-ankare1.txt) and LASMIG.md",
+      "lookSource": "Jakob 2026-11-12: the younger, slimmer look in the black jacket (\"jag vill ha de yngre och nättare bilderna\"); the words of the b24 order text (the Paow session's p-b24-ankare1.txt) and LASMIG.md",
       "films": { "prefix": "paow-" },
       "shoe": "2.1",
       "paused": null

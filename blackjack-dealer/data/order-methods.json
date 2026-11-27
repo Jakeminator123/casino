@@ -205,8 +205,8 @@
       "extra": null,
       "evidence": {
         "orders": [
-          "giv-experiment (provordrar i D:/dealer-scratch/tmp/giv-experiment/)",
-          "giv2-c-docka-p4 (provorder i D:/dealer-scratch/tmp/giv-experiment-2/)"
+          "giv-experiment (provordrar i arbetsmappen giv-experiment, utanför repot)",
+          "giv2-c-docka-p4 (provorder i arbetsmappen giv-experiment-2, utanför repot)"
         ],
         "reviewer": [
           "givprov 1, Kling 4 med pamela-p4-c1-plan-deal-02 som referensfilm, P4, bara dit: A t1 4/5, A t2 4/5, C t1 4/5, C t2 3/5 (kortet vrider sig på bordet utan fingrar); vänt genom kantläget 4 av 4, lagt 0–2 px från sista bilden",
@@ -226,7 +226,7 @@
         ],
         "note": "Bara dit: sista bilden är bankens snittruta, sista rutan i given i en egen tur och retur till platsen vars retur Jakob har godkänt rakt (cutFrameOf i src/order-model.ts), och returen är bankens; den nya given bär endsOn. Texten är den som skickades i givprov 1 (text C). Förlagan är i första hand dockans renderade film till platsen (läst ur en verklig giv; finns för P3, P4 och P5), annars en rakt godkänd giv dit. Referensfilmen väljs efter vad den visar: kontrollen (src/deal-check.ts checkReference) körs på referensen också, och en film där kortet står på kant vid skon eller är större än ett verkligt kort i handen erbjuds inte först. Provat bara på P4. Varje levererad tagning kontrolleras innan en granskare ser den (dealCheck i after.json)."
       },
-      "setBy": "huvudagenten, ur givprov 1 och 2 (D:/dealer-scratch/tmp/giv-experiment/ och giv-experiment-2/, Prov giv-experiment och giv-forlagefilm-2) och Jakobs svar i Beslut; sekunderna och fälten resolution, template och lastPicture: huvudagentens underagent (rak linje), på Jakobs ord 2026-11-18 om för många val; ur handboken §5 och de tidigare raderna",
+      "setBy": "huvudagenten, ur givprov 1 och 2 (arbetsmapparna giv-experiment och giv-experiment-2 utanför repot, Prov giv-experiment och giv-forlagefilm-2) och Jakobs svar i Beslut; sekunderna och fälten resolution, template och lastPicture: huvudagentens underagent (rak linje), på Jakobs ord 2026-11-18 om för många val; ur handboken §5 och de tidigare raderna",
       "setAt": "2026-11-18"
     },
     {
@@ -248,7 +248,7 @@
       "extra": null,
       "evidence": {
         "orders": [
-          "giv2-b-nyp-p1 (provorder i D:/dealer-scratch/tmp/giv-experiment-2/)",
+          "giv2-b-nyp-p1 (provorder i arbetsmappen giv-experiment-2, utanför repot)",
           "paow-giv-2-1-p1-04",
           "paow-giv-2-1-p1-05",
           "paow-giv-2-1-p1-06",
@@ -275,7 +275,7 @@
         ],
         "note": "Förlagan är bara dockans film till platsen: Pamelas nyp till P1 föll som referens (givprov 2B), så en rakt godkänd giv ur banken tas inte här. Ytterplatserna P1, P2, P6, P7: finns ingen dockfilm till platsen beställs given utan referensfilm (ett val i beställningen, aldrig ett villkor); 3D-banans dockfilmer till P1, P6 och P7 är inte färdiga än. Pamelas nyp till P1 faller i kontrollen av referenser (kortet på kant före vändningen; Jakob: otydlig, för litet kort, vitt runt det blåa), och Pamelas P7 är en variant med en mellanlandning. Sista bilden och kontrollen som mittplatserna. Tills en ren referens finns spelas de givar som finns (p1-06 Primär, p7-04)."
       },
-      "setBy": "huvudagenten, ur givprov 1 och 2 (D:/dealer-scratch/tmp/giv-experiment/ och giv-experiment-2/, Prov giv-experiment och giv-forlagefilm-2) och Jakobs svar i Beslut; sekunderna och fälten resolution, template och lastPicture: huvudagentens underagent (rak linje), på Jakobs ord 2026-11-18 om för många val; ur handboken §5 och de tidigare raderna",
+      "setBy": "huvudagenten, ur givprov 1 och 2 (arbetsmapparna giv-experiment och giv-experiment-2 utanför repot, Prov giv-experiment och giv-forlagefilm-2) och Jakobs svar i Beslut; sekunderna och fälten resolution, template och lastPicture: huvudagentens underagent (rak linje), på Jakobs ord 2026-11-18 om för många val; ur handboken §5 och de tidigare raderna",
       "setAt": "2026-11-18"
     },
     {
@@ -338,7 +338,7 @@
       "extra": null,
       "evidence": {
         "orders": [
-          "giv2-a-slap-p4 (provorder i D:/dealer-scratch/tmp/giv-experiment-2/)",
+          "giv2-a-slap-p4 (provorder i arbetsmappen giv-experiment-2, utanför repot)",
           "paow-giv-2-2-p4-01",
           "paow-giv-2-2-p6-02"
         ],
@@ -362,7 +362,7 @@
         ],
         "note": "Släpet bara dit: referensen Pamelas släp till platsen (till P4 från posen DRAWN, kortet just utdraget, som referenceCandidates räknar som ett släp till platsen), sista bilden snittrutan ur Paows egen släp-tur-och-retur (P4: ruta 126, skons tryckta kort ersatt med ankare 1:s). Provat bara på P4; andra platser saknar antingen en snittruta från 2.2 (alla utom P4) eller en ren referens (P3, P6, P7, dealern)."
       },
-      "setBy": "huvudagenten, ur givprov 1 och 2 (D:/dealer-scratch/tmp/giv-experiment/ och giv-experiment-2/, Prov giv-experiment och giv-forlagefilm-2) och Jakobs svar i Beslut; sekunderna och fälten resolution, template och lastPicture: huvudagentens underagent (rak linje), på Jakobs ord 2026-11-18 om för många val; ur handboken §5 och de tidigare raderna",
+      "setBy": "huvudagenten, ur givprov 1 och 2 (arbetsmapparna giv-experiment och giv-experiment-2 utanför repot, Prov giv-experiment och giv-forlagefilm-2) och Jakobs svar i Beslut; sekunderna och fälten resolution, template och lastPicture: huvudagentens underagent (rak linje), på Jakobs ord 2026-11-18 om för många val; ur handboken §5 och de tidigare raderna",
       "setAt": "2026-11-18"
     },
     {

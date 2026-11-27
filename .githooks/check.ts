@@ -1,11 +1,13 @@
 // The push check of the whole casino repo: .githooks/pre-push runs it on every git push, "npm run check" in a project runs
 // it on origin/main..HEAD. Every file the outgoing commits add or change is read as Git stores it (not as the working tree
-// has it), and an environment file, media, a file over 5 MB or what looks like a key stops the push. Then each top folder
+// has it), and an environment file, media, a file over 5 MB, what looks like a key or a path of one computer (a disk, a
+// user's folder, a server) stops the push. Then each top folder
 // the commits touch runs its own "npm test" in the working tree as it is, and a change in .githooks/ runs its tests. Only
 // file names are printed, never a value that matched. Tested in .githooks/check.test.ts.
 //
 //   node .githooks/check.ts                     the commits of origin/main..HEAD
 //   node .githooks/check.ts --range <a>..<b>    another range; a single commit means all of its history
+//   node .githooks/check.ts --alla              every file Git has or git add would take, as the working tree holds it (no tests)
 //   node .githooks/check.ts --install           core.hooksPath = .githooks, so that git push starts the hook
 //   node .githooks/check.ts --pre-push          the hook: Git's lines on stdin (<local ref> <local sha> <remote ref> <remote sha>)
 import {spawnSync} from 'node:child_process';
@@ -62,6 +64,51 @@ const filled = (text: string) => text.split(/\r?\n/).some(line => {
   return !!assignment && !/^\s*(?:""|'')?\s*(?:#.*)?$/.test(assignment[1]);
 });
 
+// ── Paths of one computer ───────────────────────────────────────────────────
+// The repo is cloned to any folder on any computer (AGENTS.md, "Ingen viss dator"), so no text names a disk, a user's
+// folder or a server: a drive (C:/, D:\, c:\\ as a string in code writes it, file:///E:/), the drive of Git Bash or WSL
+// (/c/…, /mnt/d/…), a user's folder on a Mac or in Linux (/Users/…, /home/…) and a share (\\server\…). A variable
+// (%USERPROFILE%, $HOME, ~/) names no computer and goes through. Let through by name, in every file: Windows' own folders,
+// the same on every Windows (C:/Windows, C:/Program Files, C:/ProgramData), and the made-up names the tests' examples use
+// as the user or the first folder (EXAMPLE_NAMES); every other name stops, whosever it is.
+const NAME = String.raw`[\p{L}\p{N}_.~$%-]`;
+const pathStarts = (sep: string) => new RegExp([
+  // A drive. A backslash before the letter is a pattern's (\d:\d), save in a long path (\\?\C:\); and "i:/x/i.test(" in
+  // minified code is a pattern too.
+  String.raw`(?:(?<![\p{L}\p{N}_\\])|(?<=\?\\{1,2}))[A-Za-z]:(?:${sep}|\/(?!(?:[^\/\\\s"'\x60]|\\.)*\/[dgimsuvy]*\.(?:test|exec)\())(?=${NAME})`,
+  String.raw`(?<![\p{L}\p{N}_.~\/:-])\/(?:mnt\/)?[A-Za-z]\/(?=${NAME})`,
+  String.raw`(?<![\p{L}\p{N}_.~:-])\/(?:Users|home)\/(?=${NAME})`,
+  // A share, as written (\\server\…) or as a string in code or JSON writes it (\\\\server\\…); a pattern's \\s\\S or
+  // \\bword\\b is neither.
+  String.raw`(?<!\\)(?:\\\\(?=[\p{L}\p{N}][\p{L}\p{N}._$-]+\\(?!\\)${NAME})|\\\\\\\\(?=[\p{L}\p{N}][\p{L}\p{N}._$-]+\\\\(?!\\)${NAME}))`,
+].join('|'), 'gu');
+// In JSON a lone backslash is always an escape (a note's "Film B:" at the end of a line is followed by the line break's
+// backslash and n), and a path's backslash stands doubled there.
+const MACHINE_PATH = pathStarts(String.raw`\\+`), MACHINE_PATH_JSON = pathStarts(String.raw`(?:\\\\)+`);
+// The made-up names of the tests' examples, the only user or first folder a path may name (the finding's words say them).
+const EXAMPLE_NAMES = ['someone', 'x', 'exempel', 'Anna Berg'];
+const EXAMPLE = new RegExp(String.raw`^(?:${EXAMPLE_NAMES.join('|')})(?![\p{L}\p{N}_-])`, 'u');
+const WINDOWS_OWN = /^C:(?:\\+|\/+)(?:Windows|Program Files(?: \(x86\))?|ProgramData)(?![\p{L}\p{N}_-])/iu;
+const USERS = new RegExp(String.raw`^(?:Users|home|Documents and Settings)(?:\\+|\/+|(?!${NAME}))`, 'iu');
+const NAMED = new RegExp(`^${NAME}`, 'u');
+/** The lines (1 and up) where a text names a disk, a user's folder or a server of one computer; json: the text is JSON. */
+export function machinePaths(text: string, json = false): number[] {
+  const out = new Set<number>();
+  for (const m of text.matchAll(json ? MACHINE_PATH_JSON : MACHINE_PATH)) {
+    const at = m.index!;
+    if (WINDOWS_OWN.test(text.slice(at, at + 40))) continue;
+    // WSL's share of a Linux (\\wsl$\Ubuntu\…) is a root of its own, like a drive. Under the users' folder the user is the
+    // name that counts (the folder itself names nobody), else the first folder or the server of a share.
+    let rest = text.slice(at + m[0].length);
+    const wsl = /^wsl(?:\$|\.localhost)\\+[^\\\s]+\\+/i.exec(rest);
+    if (wsl) rest = rest.slice(wsl[0].length);
+    const users = USERS.exec(rest), name = users ? rest.slice(users[0].length) : rest;
+    if (!NAMED.test(name) || EXAMPLE.test(name)) continue;
+    out.add(text.slice(0, at).split('\n').length);
+  }
+  return [...out];
+}
+
 /** What stops (RED) or is worth a look (WARN) in one file; tools/knowledge.ts runs the bot's knowledge through it too. */
 export function inspectBlob(name: string, bytes: Buffer): Finding[] {
   const out: Finding[] = [], add = (level: Finding['level'], message: string) => out.push({level, path: name, message});
@@ -74,7 +121,9 @@ export function inspectBlob(name: string, bytes: Buffer): Finding[] {
   if (bytes.length > LIMIT) add('RED', 'Filen är större än 5 MB.');
   const secret = SECRETS.find(([, pattern]) => pattern.test(text));
   if (secret) add('RED', `Ser ut som en hemlighet (${secret[0]}); utred utan att skriva ut värdet.`);
-  if (!out.length && !icon && bytes.subarray(0, 8000).includes(0)) add('WARN', 'Binärt innehåll; hör filen hemma i Git?');
+  const binary = bytes.subarray(0, 8000).includes(0), places = MEDIA.test(base) || binary ? [] : machinePaths(text, /\.jsonl?$/i.test(base));
+  if (places.length) add('RED', `En sökväg till en viss dator (en disk, en användares mapp eller en server) på rad ${places.slice(0, 8).join(', ')}${places.length > 8 ? ` och ${places.length - 8} till` : ''}: repot ska gå att klona till valfri mapp på valfri dator. Skriv bara filens namn, eller sökvägen inom repot, och vad den var (till exempel "hans egen bild x.png"). Ett påhittat exempel i ett test använder användaren someone eller x, mappen exempel eller namnet Anna Berg.`);
+  if (!out.length && !icon && binary) add('WARN', 'Binärt innehåll; hör filen hemma i Git?');
   return out;
 }
 
@@ -150,6 +199,21 @@ function main(argv: string[]): number {
     git(ROOT, ['config', '--local', 'core.hooksPath', '.githooks']);
     console.log(`core.hooksPath är .githooks (förut ${before || 'inget'}): git push kör nu .githooks/pre-push för hela repot.`);
     return 0;
+  }
+  if (argv.includes('--alla')) {
+    // Every file Git has, and every new one that git add would take (not ignored), as the working tree holds it now (a file
+    // deleted there is skipped): a sweep of the whole repo, after a new rule here or before a commit. Only what stops is
+    // looked at; no tests.
+    const names = [...new Set(git(ROOT, ['ls-files', '-z', '--cached', '--others', '--exclude-standard']).toString('utf8').split('\0').filter(Boolean))];
+    const findings = names.flatMap(name => {
+      let bytes: Buffer;
+      try { bytes = readFileSync(path.join(ROOT, name)); } catch { return []; }
+      return inspectBlob(name, bytes.length > LIMIT ? bytes.subarray(0, 0) : bytes).concat(bytes.length > LIMIT ? [{level: 'RED', path: name, message: 'Filen är större än 5 MB.'}] : []);
+    }).filter(f => f.level === 'RED');
+    console.log(`Kontrollen av alla ${names.length} filer som Git har eller som git add skulle ta med, som de ligger i arbetsträdet nu.`);
+    for (const f of findings) console.log(`[RÖD] ${f.path}: ${f.message}`);
+    console.log(findings.length ? `Rött: ${findings.length} fynd. Rätta orsaken i filerna ovan.` : 'Grönt: inget stoppar.');
+    return findings.length ? 1 : 0;
   }
   let commits: string[], what: string;
   if (argv.includes('--pre-push')) [commits, what] = [outgoing(ROOT, readFileSync(0, 'utf8')), 'pushen'];

@@ -30,8 +30,11 @@ här är ordningen.
 5. **Commit:** stagea egna filer med namn (aldrig `git add -A` när andra arbetar), ett kort meddelande om vad och
    varför.
 6. **Push:** `npm run check` och sedan `git push`. Kontrollen (`npm run hooks:install` en gång per utcheckning)
-   stoppar hemligheter, `.env`-filer, media och filer över 5 MB i de utgående commitarna och kör `npm test` i de
-   projekt som ändrats. Läs fjärrens SHA efteråt (`git rev-parse origin/main`).
+   stoppar hemligheter, `.env`-filer, media, filer över 5 MB och sökvägar till en viss dator (en disk, en användares
+   mapp, en server) i varje blob de utgående commitarna har, och kör `npm test` i de projekt som ändrats. En rättelse i
+   en senare commit räcker inte: en commit som aldrig har pushats görs om lokalt. `node ../.githooks/check.ts --alla`
+   prövar hela trädet som det ligger, nya filer också, före en commit. Läs fjärrens SHA efteråt
+   (`git rev-parse origin/main`).
 7. Ingen force-push, ingen `--no-verify`. "Try running Pull first" i Cursor betyder att kontrollen före push blev röd:
    läs varför i stället för att dra.
 

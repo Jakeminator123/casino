@@ -16,9 +16,9 @@
       "licence": "No third-party licence: made in Jakob's own session",
       "page": null,
       "source": {
-        "file": "C:/Users/jakem/.codex/generated_images/01a1b3e8-dd54-7201-bb99-f0fc6e46fb59/exec-c12600f4-3a29-4385-b5d5-b3cd439eabab.png",
+        "file": "exec-c12600f4-3a29-4385-b5d5-b3cd439eabab.png, the generated picture as his Codex session saved it (outside the repo)",
         "size": [1774, 887],
-        "prompt": "C:/Users/jakem/Desktop/wow/rumsstudie-3d-2026-11-07/.cache/room-study/las-vegas/provenance.json",
+        "prompt": "his room study rumsstudie-3d-2026-11-07 (outside the repo): .cache/room-study/las-vegas/provenance.json",
         "made": "The room study's JPEG of the generated PNG (sharp), copied unchanged; the same picture is in Jakeminator123/scoutgaming (commit 929868053)."
       },
       "blur": 5,
@@ -47,9 +47,9 @@
       "licence": "No third-party licence: made in Jakob's own session",
       "page": null,
       "source": {
-        "file": "C:/Users/jakem/.codex/generated_images/01a1b3e8-cd10-7af0-ada6-c228a039a5f3/exec-fbd4cb54-c5ec-4d05-868f-f05c87a0dac9.png",
+        "file": "exec-fbd4cb54-c5ec-4d05-868f-f05c87a0dac9.png, the generated picture as his Codex session saved it (outside the repo)",
         "size": [1774, 887],
-        "prompt": "C:/Users/jakem/Desktop/wow/rumsstudie-3d-2026-11-07/.cache/room-study/los-angeles/provenance.json",
+        "prompt": "his room study rumsstudie-3d-2026-11-07 (outside the repo): .cache/room-study/los-angeles/provenance.json",
         "made": "The room study's JPEG of the generated PNG (ffmpeg, q=2), copied unchanged."
       },
       "blur": 6,
@@ -542,10 +542,10 @@
         "model": "nano-banana-pro, imageSize 4K, ratio 21:9 (Runway MCP)",
         "task": "c0d1ba34-bf80-4d17-a844-345a37c3075f",
         "film": "assets/scene/source/monaco-salong-a-liv-2-480p.mp4",
-        "filmModel": "wan3, 480p: seven takes of 10 s (Runway MCP), each starting and ending on a still (the room's still, or the last frame of the take in which a guest walks to the far wall), joined 2026-11-14 by dealer-f6 into one loop of 3653 frames (121.8 s) with D:/dealer-scratch/tmp/levande-objekt/rumsliv/foga.mjs: two frames left out at each end of a take, 15 frames faded over at each join, every frame levelled to the first take on the ceiling; laid through the still's lens with life.mjs there (three quarters of the box, crf 26). The order of the takes, what each shows and what it cost are in assets/scene/source/monaco-lasmig.md",
+        "filmModel": "wan3, 480p: seven takes of 10 s (Runway MCP), each starting and ending on a still (the room's still, or the last frame of the take in which a guest walks to the far wall), joined 2026-11-14 by dealer-f6 into one loop of 3653 frames (121.8 s) with its script foga.mjs (in its own work folder, outside the repo): two frames left out at each end of a take, 15 frames faded over at each join, every frame levelled to the first take on the ceiling; laid through the still's lens with life.mjs there (three quarters of the box, crf 26). The order of the takes, what each shows and what it cost are in assets/scene/source/monaco-lasmig.md",
         "filmTasks": ["7a38d46f-252f-418f-8964-a4499e714957", "68423456-22a3-414d-9c51-57e11ce5e2cc", "2fc1270f-89c4-4f6e-a70b-02ac98b08af2", "d55f883e-b8b5-49de-9bca-a88dadd341cf", "e34cbcd8-5b94-4d77-853f-553798d24309", "fe4159ca-58ef-4eef-99fe-958e61f254d4", "b698105d-6e02-422b-96e0-4d48e19febe3"],
         "filmAsMade": "assets/scene/source/monaco-liv-2/",
-        "made": "Made 2026-11-13 by dealer-f6 (D:/dealer-scratch/tmp/levande-objekt/rum2/pano.mjs): the still as a level flat picture seen through a lens of 110° × 62.4°, horizon at its middle, laid on the sphere with its middle behind the dealer; the rest of the sphere filled from the still's own edges, mirrored across its side edges and across its top and bottom edge (the first 14°, then held), blurred more with the distance from the still (a Gaussian whose sigma is 0.08 of the distance, both in picture pixels) and darkened by up to 55 % at 110° from it; saved with sharp as JPEG quality 90 (mozjpeg)."
+        "made": "Made 2026-11-13 by dealer-f6 (its script pano.mjs, in its own work folder outside the repo): the still as a level flat picture seen through a lens of 110° × 62.4°, horizon at its middle, laid on the sphere with its middle behind the dealer; the rest of the sphere filled from the still's own edges, mirrored across its side edges and across its top and bottom edge (the first 14°, then held), blurred more with the distance from the still (a Gaussian whose sigma is 0.08 of the distance, both in picture pixels) and darkened by up to 55 % at 110° from it; saved with sharp as JPEG quality 90 (mozjpeg)."
       },
       "blur": 6,
       "exposure": 0.5,
@@ -585,7 +585,7 @@
         "filmModel": "wan3, 480p, 10 s, start and end frame the still (Runway MCP); made a seamless loop of 281 frames by the same session",
         "filmTask": "3942ab58-94e8-4545-8a7e-f51b0efee078",
         "filmAsMade": "assets/scene/source/monaco-salong-c-natt-film-480p.mp4",
-        "made": "Made 2026-11-13 by dealer-f6 (D:/dealer-scratch/tmp/levande-objekt/rum2/pano.mjs): the still as a level flat picture seen through a lens of 110° × 62.4°, horizon at its middle, laid on the sphere with its middle behind the dealer; the rest of the sphere filled from the still's own edges, mirrored across its side edges and across its top and bottom edge (the first 14°, then held), blurred more with the distance from the still (a Gaussian whose sigma is 0.08 of the distance, both in picture pixels) and darkened by up to 55 % at 110° from it; saved with sharp as JPEG quality 90 (mozjpeg). The still was generated with the still of the room monaco as its reference."
+        "made": "Made 2026-11-13 by dealer-f6 (its script pano.mjs, in its own work folder outside the repo): the still as a level flat picture seen through a lens of 110° × 62.4°, horizon at its middle, laid on the sphere with its middle behind the dealer; the rest of the sphere filled from the still's own edges, mirrored across its side edges and across its top and bottom edge (the first 14°, then held), blurred more with the distance from the still (a Gaussian whose sigma is 0.08 of the distance, both in picture pixels) and darkened by up to 55 % at 110° from it; saved with sharp as JPEG quality 90 (mozjpeg). The still was generated with the still of the room monaco as its reference."
       },
       "blur": 6,
       "exposure": 0.45,
@@ -625,7 +625,7 @@
         "filmModel": "wan3, 480p, 10 s, start and end frame the still (Runway MCP); made a seamless loop of 281 frames by the same session",
         "filmTask": "574bd386-914b-4fa4-9686-dd6143742718",
         "filmAsMade": "assets/scene/source/spelhalan-a-film-480p.mp4",
-        "made": "Made 2026-11-13 by dealer-f6 (D:/dealer-scratch/tmp/levande-objekt/rum2/pano.mjs): the still as a level flat picture seen through a lens of 110° × 62.4°, horizon at its middle, laid on the sphere with its middle behind the dealer; the rest of the sphere filled from the still's own edges, mirrored across its side edges and across its top and bottom edge (the first 14°, then held), blurred more with the distance from the still (a Gaussian whose sigma is 0.08 of the distance, both in picture pixels) and darkened by up to 55 % at 110° from it; saved with sharp as JPEG quality 90 (mozjpeg)."
+        "made": "Made 2026-11-13 by dealer-f6 (its script pano.mjs, in its own work folder outside the repo): the still as a level flat picture seen through a lens of 110° × 62.4°, horizon at its middle, laid on the sphere with its middle behind the dealer; the rest of the sphere filled from the still's own edges, mirrored across its side edges and across its top and bottom edge (the first 14°, then held), blurred more with the distance from the still (a Gaussian whose sigma is 0.08 of the distance, both in picture pixels) and darkened by up to 55 % at 110° from it; saved with sharp as JPEG quality 90 (mozjpeg)."
       },
       "blur": 6,
       "exposure": 0.8,
@@ -665,7 +665,7 @@
         "filmModel": "wan3, 480p, 10 s, start and end frame the still (Runway MCP); made a seamless loop of 281 frames by the same session",
         "filmTask": "574bd386-914b-4fa4-9686-dd6143742718",
         "filmAsMade": "assets/scene/source/spelhalan-a-film-480p.mp4",
-        "made": "Made 2026-11-13 by dealer-f6 (D:/dealer-scratch/tmp/levande-objekt/rum2/pano.mjs): the still as a level flat picture seen through a lens of 110° × 62.4°, horizon at its middle, laid on the sphere with its middle behind the dealer; the rest of the sphere filled from the still's own edges, mirrored across its side edges and across its top and bottom edge (the first 14°, then held), blurred more with the distance from the still (a Gaussian whose sigma is 0.08 of the distance, both in picture pixels) and darkened by up to 55 % at 110° from it; saved with sharp as JPEG quality 90 (mozjpeg). It is the grey copy of spelhalan-a-farg-4k.png that the same session made (BT.709 luma weights on the 8-bit sRGB values, rounded; its LASMIG.md). The still was generated with the still of the room spelhalan as its reference."
+        "made": "Made 2026-11-13 by dealer-f6 (its script pano.mjs, in its own work folder outside the repo): the still as a level flat picture seen through a lens of 110° × 62.4°, horizon at its middle, laid on the sphere with its middle behind the dealer; the rest of the sphere filled from the still's own edges, mirrored across its side edges and across its top and bottom edge (the first 14°, then held), blurred more with the distance from the still (a Gaussian whose sigma is 0.08 of the distance, both in picture pixels) and darkened by up to 55 % at 110° from it; saved with sharp as JPEG quality 90 (mozjpeg). It is the grey copy of spelhalan-a-farg-4k.png that the same session made (BT.709 luma weights on the 8-bit sRGB values, rounded; its LASMIG.md). The still was generated with the still of the room spelhalan as its reference."
       },
       "blur": 6,
       "exposure": 0.8,

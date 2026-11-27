@@ -15,7 +15,7 @@ const release = {blocked: {folders: ['trailer*'], names: ['Göran', 'Astrid', 'K
 const DOC = [
   '# Dealer — överlämning',
   '',
-  'Ada är dealern. Arbetet ligger i C:/Users/someone/dev/dealer och skisserna i D:/dealer-scratch/tmp/paow/LASMIG.md.',
+  'Ada är dealern. Arbetet ligger i C:/Users/someone/dev/dealer och skisserna i D:/exempel/tmp/paow/LASMIG.md.',
   '',
   '## Läget i banken (räknat 2026-11-12)',
   '',
@@ -57,7 +57,7 @@ test('the cleaning keeps the facts and removes costs, blocked names, trailers, p
   const {sections, removed} = cleanDoc({kalla: 'HANDOFF', id: 'handoff', text: DOC, dropHeadings: /^Före avslut av en session$/, prio: prioFrom(['Läget i banken'], 0)}, release);
   const all = sections.map(s => `${s.titel}\n${s.text}`).join('\n');
   for (const kept of ['Ada är dealern.', '33 huvudfilmer.', 'Tjugo är godkända rakt av.', 'Svaren är korta.', 'Ada är kvar.', 'Studion visar filmerna.', '| P1 | Godkänd |', 'nodkartan (/studio/karta/?kant=READY%3EP4.C1) visar linjerna']) assert.ok(all.includes(kept), `kept: ${kept}`);
-  for (const gone of ['someone', 'dealer-scratch', 'Krediter', 'intecknat', 'saldo', '18 173', '0,2 kr', 'kostar', 'Göran', 'Reklamfilm', 'ordet" står', 'Lösenord', 'prj_', 'store_', '67037521', 'OPENAI_API_KEY', 'vercel.app', 'scoutgaming', '127.0.0.1', 'Kevin', 'credits', 'node tools/secret.ts', 'Astrid', 'spärrad person', 'Rutiner för agenter']) assert.ok(!all.includes(gone), `gone: ${gone}`);
+  for (const gone of ['someone', 'exempel', 'Krediter', 'intecknat', 'saldo', '18 173', '0,2 kr', 'kostar', 'Göran', 'Reklamfilm', 'ordet" står', 'Lösenord', 'prj_', 'store_', '67037521', 'OPENAI_API_KEY', 'vercel.app', 'scoutgaming', '127.0.0.1', 'Kevin', 'credits', 'node tools/secret.ts', 'Astrid', 'spärrad person', 'Rutiner för agenter']) assert.ok(!all.includes(gone), `gone: ${gone}`);
   assert.ok(all.includes(`${LOCAL}`), 'a path becomes the local token');
   assert.equal(sections[0].titel, 'HANDOFF › Inledning');
   assert.ok(sections.some(s => s.titel === 'HANDOFF › Läget i banken (räknat 2026-11-12)' && s.prio === 0), 'a heading with a note keeps its core priority');
@@ -66,19 +66,19 @@ test('the cleaning keeps the facts and removes costs, blocked names, trailers, p
 
 test('every form of a path of this machine becomes the token, and the words around it stay', () => {
   const cases: [string, string][] = [
-    ['Säkerhetskopian ligger i `D:/dealer-archive/V2-backup-studio/` nu.', 'Säkerhetskopian ligger i `‹lokal mapp›` nu.'],
-    ['Repot ligger på C:\\Users\\jakem\\dev\\super-feature-sg\\dealer.', 'Repot ligger på ‹lokal mapp›.'],
-    ['Arkivet: D:\\dealer-archive\\snyggare-dealer och c:\\\\Users\\\\jakem\\\\x.', 'Arkivet: ‹lokal mapp› och ‹lokal mapp›.'],
-    ['Se [arkivet](D:/dealer-archive/V2-backup-studio/README.md) först.', 'Se arkivet först.'],
-    ['Se [kvittot](file:///C:/Users/jakem/evidence/x.json) och <file:///D:/dealer-archive/x> också.', 'Se kvittot och ‹lokal mapp› också.'],
-    ['I Git Bash: /c/Users/jakem/dev/dealer och /d/dealer-scratch/tmp.', 'I Git Bash: ‹lokal mapp› och ‹lokal mapp›.'],
-    ['Node skriver \\\\?\\c:\\Users\\jakem\\dev\\studio\\package.json.', 'Node skriver ‹lokal mapp›.'],
-    ['En delning \\\\nas\\media\\film.mp4 och \\\\wsl$\\Ubuntu\\home\\x i dag.', 'En delning ‹lokal mapp› och ‹lokal mapp› i dag.'],
+    ['Säkerhetskopian ligger i `D:/exempel/kopia/` nu.', 'Säkerhetskopian ligger i `‹lokal mapp›` nu.'],
+    ['Repot ligger på C:\\Users\\someone\\dev\\projekt\\dealer.', 'Repot ligger på ‹lokal mapp›.'],
+    ['Arkivet: D:\\exempel\\arkiv och c:\\\\Users\\\\someone\\\\x.', 'Arkivet: ‹lokal mapp› och ‹lokal mapp›.'],
+    ['Se [arkivet](D:/exempel/kopia/README.md) först.', 'Se arkivet först.'],
+    ['Se [kvittot](file:///C:/Users/someone/evidence/x.json) och <file:///D:/exempel/x> också.', 'Se kvittot och ‹lokal mapp› också.'],
+    ['I Git Bash: /c/Users/someone/dev/dealer och /d/exempel/tmp.', 'I Git Bash: ‹lokal mapp› och ‹lokal mapp›.'],
+    ['Node skriver \\\\?\\c:\\Users\\someone\\dev\\studio\\package.json.', 'Node skriver ‹lokal mapp›.'],
+    ['En delning \\\\exempel\\media\\film.mp4 och \\\\wsl$\\Ubuntu\\home\\x i dag.', 'En delning ‹lokal mapp› och ‹lokal mapp› i dag.'],
     ['Minnet ligger i ~/.claude/projects/x/memory.', 'Minnet ligger i ‹lokal mapp›.'],
-    ['Mappen C:\\Users\\Jakob Eberg\\Desktop\\x syns.', 'Mappen ‹lokal mapp› syns.'],
+    ['Mappen C:\\Users\\Anna Berg\\Desktop\\x syns.', 'Mappen ‹lokal mapp› syns.'],
     ['Slasket i %USERPROFILE%\\AppData\\Local\\Temp och $HOME/.config/x går.', 'Slasket i ‹lokal mapp› och ‹lokal mapp› går.'],
-    ['**D:/dealer-scratch/tmp/huvudagent** är slask.', '**‹lokal mapp›** är slask.'],
-    ['| Arkiv | `D:\\dealer-archive\\snyggare-dealer` |', '| Arkiv | `‹lokal mapp›` |'],
+    ['**D:/exempel/tmp/agent** är slask.', '**‹lokal mapp›** är slask.'],
+    ['| Arkiv | `D:\\exempel\\arkiv` |', '| Arkiv | `‹lokal mapp›` |'],
   ];
   for (const [given, wanted] of cases) {
     const removed: Removed = {};
@@ -90,9 +90,9 @@ test('every form of a path of this machine becomes the token, and the words arou
   const plain = 'Se /studio/karta/ och A/B, kl. 21:40 och 1/2 i Spela.';
   assert.equal(cleanLine(plain, release, {}), plain);
   // A heading that names a path keeps its section, with the token in its title.
-  const {sections} = cleanDoc({kalla: 'DRIFT', id: 'drift', text: '# D\n\n## Kopian på D:/dealer-archive/V2-backup-studio/\n\nSäkerhetskopian görs före varje flytt av gamla labbets flikar.'}, release);
+  const {sections} = cleanDoc({kalla: 'DRIFT', id: 'drift', text: '# D\n\n## Kopian på D:/exempel/kopia/\n\nSäkerhetskopian görs före varje flytt av gamla labbets flikar.'}, release);
   assert.equal(sections.at(-1)!.titel, `DRIFT › Kopian på ${LOCAL}`);
-  for (const leak of ['/c/Users/x/y', 'C:\\Users\\x', '\\\\?\\c:\\x', '~/.claude/x', '`D:/dealer-archive/V2-backup-studio/`']) assert.ok(hasLocalPath(leak), leak);
+  for (const leak of ['/c/Users/x/y', 'C:\\Users\\x', '\\\\?\\c:\\x', '~/.claude/x', '`D:/exempel/kopia/`']) assert.ok(hasLocalPath(leak), leak);
 });
 
 test('the snapshot\'s check reads the knowledge decoded: "mål:" at the end of a line is no drive, a real path is found', () => {
@@ -103,7 +103,7 @@ test('the snapshot\'s check reads the knowledge decoded: "mål:" at the end of a
   assert.deepEqual(knowledgeLeaks(fine, release, textLeaks), []);
   assert.ok(knowledgeLeaks(k('Ligger i C:\\Users\\x\\y.'), release, textLeaks).some(f => f.includes('lokal sökväg')));
   assert.ok(findTextLeaks(JSON.stringify(k('Ligger i C:\\Users\\x\\y.')), release).length, 'read as JSON text, a backslash path is found too: the rule takes the doubled backslash of a string in code');
-  assert.ok(knowledgeLeaks({...fine, kallor: ['D:/dealer-archive/x']}, release, textLeaks).length, 'the sources are checked too');
+  assert.ok(knowledgeLeaks({...fine, kallor: ['D:/exempel/x']}, release, textLeaks).length, 'the sources are checked too');
 });
 
 test('a balance and a cost go with their sentence; a parenthesis that breaks a rule goes and its sentence stays', () => {
@@ -166,7 +166,7 @@ test('proofs: blocked and trailer proofs are left out whole; the list says what 
 test('the last scan finds what the cleaning would have removed, and a token pattern', () => {
   const k = (text: string, id = 'handoff/x'): Knowledge => ({schemaVersion: 1, byggd: '', kallor: [], karna: [{id, titel: 'T', text}], avsnitt: []});
   assert.deepEqual(scanLeaks(k('Ada delar ut kort.'), release), []);
-  for (const leak of ['Det kostade 40 credits.', 'Kevin sade nej.', 'Ligger i D:/dealer-scratch/tmp.', 'ID 12345678 i Runway.', 'Sätt BLOB_READ_WRITE_TOKEN.', 'Lösenordet är x.', 'Se https://vercel.com/x.', 'Trailern.'])
+  for (const leak of ['Det kostade 40 credits.', 'Kevin sade nej.', 'Ligger i D:/exempel/tmp.', 'ID 12345678 i Runway.', 'Sätt BLOB_READ_WRITE_TOKEN.', 'Lösenordet är x.', 'Se https://vercel.com/x.', 'Trailern.'])
     assert.ok(scanLeaks(k(leak), release).length, leak);
   const token = 'sk-' + 'Q'.repeat(40);
   assert.ok(scanLeaks(k(`nyckel ${token}`), release).some(f => f.includes('hemlighet')));

@@ -42,7 +42,7 @@ test('the texts are short and plain, and nothing private goes into the public re
   assert.ok(one({leads: 'Ja gör det. Nej låter bli.'}).some(p => p.includes('en enda mening')));
   assert.deepEqual(one({leads: 'Ja gör det t.ex. i morgon, se /trailer?diagnos=1.'}), []);
   assert.ok(one({question: ' Ska vi?'}).length && one({leads: 'Ja\ngör det.'}).length && one({from: ''}).length);
-  for (const secret of ['Se D:/dealer-scratch/tmp/x.', 'Se C:\\Users\\x.', 'Skriv till a.b@example.com.', 'Se /Users/x/y.']) assert.ok(one({leads: secret}).some(p => p.includes('publika repot')), secret);
+  for (const secret of ['Se D:/exempel/tmp/x.', 'Se C:\\Users\\x.', 'Skriv till a.b@example.com.', 'Se /Users/x/y.']) assert.ok(one({leads: secret}).some(p => p.includes('publika repot')), secret);
   assert.ok(one({cost: 'x'.repeat(101)}).some(p => p.includes('högst 100 tecken')));
 });
 

@@ -38,12 +38,12 @@ const URL_ANY = /\bhttps?:\/\/[^\s)`>\]]+|\bgit@[\w.-]+:/g;
 
 // ── Paths of this machine, in every form the documents write them ──────────
 // The start of a path: a drive (C:/, D:\, c:\\, also after a non-ASCII letter's word boundary), a share or a long path
-// (\\server\share, \\?\C:\, \\wsl$\…), a Git Bash drive (/c/Users, /d/dealer-scratch), a home or system folder (/Users/,
+// (\\server\…, \\?\C:\, \\wsl$\…), a Git Bash drive (/c/…, /d/…), a home or system folder (/Users/,
 // /home/, /tmp/, ~/, ~\), and a folder named by a variable (%USERPROFILE%\, $HOME/, $env:TEMP\). PRIVATE_PATH of
 // tools/studio-freeze.ts (the copy's own check) is tested beside these, so nothing it finds is ever let through here.
 const PATH_START = String.raw`(?:(?<![\p{L}\p{N}_])[A-Za-z]:[\\/]+(?=[\p{L}\p{N}_.~$%-])|\\\\[?.]\\|\\\\[\p{L}\p{N}][\p{L}\p{N}._$-]*\\(?=[\p{L}\p{N}._$-])|(?<![\p{L}\p{N}_.~/-])\/[A-Za-z]\/(?=[\p{L}\p{N}_.-])|(?<![\p{L}\p{N}_.])\/(?:Users|home|mnt|tmp|var|private|root|opt)\/|(?<![\p{L}\p{N}_.~])~[\\/](?=[\p{L}\p{N}_.-])|%[A-Za-z_]+%[\\/]|\$(?:HOME|TEMP|TMP|USERPROFILE|env:[A-Za-z_]+)[\\/])`;
 // The rest of a path: up to a space, a quote, a bracket, a back-tick, a pipe or an emphasis mark; across a space only when
-// the next word is itself a piece of a path (C:\Users\Jakob Eberg\Desktop).
+// the next word is itself a piece of a path (C:\Users\Anna Berg\Desktop).
 const PATH_CHAR = String.raw`[^\s"'()<>,;|\x60*\[\]{}]`;
 const LOCAL_PATH = new RegExp(String.raw`${PATH_START}${PATH_CHAR}*(?: (?=${PATH_CHAR}*[\\/])${PATH_CHAR}+)*`, 'gu');
 /** A path of this machine in a text, in any of the forms above or as the copy's own check sees one. */
@@ -360,7 +360,8 @@ export function scanLeaks(knowledge: Knowledge, release: Blocked): string[] {
  * The snapshot build's own check of the knowledge it ships (tools/build-studio-snapshot.ts, bot-knowledge.js): the last
  * scan, and every string of it (ids, sources and dates too) through the copy's text check (findTextLeaks). The strings are
  * checked as the bot reads them, decoded: in the module's JSON a line break is the two characters "\n", so "mål:" at the
- * end of a line reads as the drive path "l:\n…", and a real C:\Users\… hides behind its doubled backslash. Each finding
+ * end of a line reads as a drive path (the l, the colon and the backslash of the break), and a real C:\Users\… hides
+ * behind its doubled backslash. Each finding
  * says where it is.
  */
 export function knowledgeLeaks(knowledge: Knowledge, release: Blocked, textLeaks: (text: string) => string[]): string[] {
