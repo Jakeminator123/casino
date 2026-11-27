@@ -18,6 +18,12 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   `dealer3d/tools/lyft-till-docka.ts` (ur `../live-bj/data/lyft/`) till `dealer3d/data/lyft-<docka>-*.json`: givar från
   ankaret vid skon (A2.3) och tillbaka dit, vägarna till skon och hem, och två väntor. `dealer3d/tools/lyft-kolla.ts`
   spärrar ryck och fel.
+- **Dockans kropp är inte dealerns** (`../avatar-auto-pipeline/scen/bygg_docka.py`, `MATT`). Av dealerns egna mått
+  bär Danilos och Frasses dockor två: axelledernas avstånd och huvudets höjd (skattad). Armarnas längd och tjocklek,
+  händerna, bålen, halsen och benen är en medelmans (samma kropp som den förra standarddockans man), och midjan och
+  höften är en gissning (Danilo 3–4 % smalare). Det är därför dockan ser ut som den gamla och känns klumpig (Jakob
+  2026-11-27: "varför skapas våra avatarer utifrån en standard som inte är just det som ska följa alla mått från
+  Danilo och Frasse"). Rörelsen är dealerns; kroppen ska bli det.
 - **Given efter hans Nja** (Danilos giv till dagens plats 4):
   - Kortet landar där den riktiga dealern lade det (0,2 mm och 0° från målet) och rättas inte till på filten. Förut
     vreds det 21° och gled 21 mm under fingret; det var det han såg. Kortplatsen stämde med filmen och är inte ändrad.
@@ -136,8 +142,17 @@ I den här ordningen om han inte säger annat.
    labbsidan `pages/scene3d.html` och grönskärmsresterna i `src/film-after.ts`. Död kod i editorn: RUNDA och sparandet
    i `editor.ts`, GIVAR och `grundFor` i `rorelse.ts`, `kropp.ts`. I `../avatar-auto-pipeline/scen/bygg_docka.py`:
    kvinnan och `--kon bada` bort, och sitsen tagen per docka ur `standard.yaml` (kräver en Blender-körning för att se).
-5. **Platserna numreras om** i ett steg: plats 1 närmast skon (`../AGENTS.md`). I dag räknas de från bildens vänster
-   överallt i kod, data och studion.
+5. **Namnen och platserna rättas i ett steg** (Jakob 2026-11-27: "återigen en ihopblandning av saker ... namn,
+   vänster och höger, standarddocka, livevy"). Det som förväxlas i dag:
+   - Platserna räknas från bildens vänster överallt i kod, data och studion; plats 1 ska vara närmast skon
+     (`../AGENTS.md`).
+   - Lyftfilernas `hoger`, `vanster` och `mitten` (`../live-bj/data/lyft/kameran-hoger-plats-7.json`) är bildens
+     sidor, inte dealerns: "hoger" är platsen vid dealerns vänster, närmast skon.
+   - Stilarna heter `kameran` (Danilo) och `bordet` (Frasse), samma ord som kameran och bordet: i
+     `../live-bj/data/`, `dealer3d/src/doll.ts` och `ny_dealer.py --stil`. De ska heta som dealrarna.
+   - Mappen `../standarddocka/` och modellernas förled `standarddocka_` gäller Danilo, Frasse och personerna; ingen
+     standarddocka finns kvar.
+   - "Livebordet" sägs både om bordet i Youtubefilmen och om vår kopia av det, och "dockans takt" om Danilos takt.
 6. **Studion:** Granska, Prov, editorns egen text på Dockan och Biblioteket är inte genomgångna.
 7. **Fler givar, kameror och personer:** de andra platserna, spelarnas kameror, Frasse (hans huvud är inte kalibrerat
    mot ansiktsnätet), väntornas blick, och nästa person genom `ny_dealer.py`. Alla sju kameror görs först när en film

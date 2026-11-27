@@ -277,6 +277,13 @@ rörelser och filmerna som görs av dem.
   Hur som helst, om jag tittar på vyn ... så verkar det inte se ut såsom på youtubevideon." Måtten är filmens (dockan
   lagd över en ruta ur filmen ligger på dealern, skon och bordets kant); utseendet är vårt eget och neutralt, och
   det är det han ser skilja.
+- **Han ska kunna spegla själv, och namnen ska inte gå att förväxla** (2026-11-27, kväll). "Hur hittar jag studion
+  för 'liveboardet'? Förväxling finns nog i namn här.. Jag vill kunna banne mig spegla vår
+  vy/bord/dealer/kort/kameravinkel etc mot youtubeklippet varifrån det kommer!" Och: "jag känner verkligen att
+  återigen en ihopblandning av saker skett - namn, vänster och höger, standarddocka, livevy och eller annat... Eller
+  varför skapas våra avatarer utifrån en standard som inte är just det som ska följa alla mått från Danilo och
+  Frasse så att säga?" Studion ska ha en sida där vår bild ligger över filmens, och dockans kropp ska vara
+  dealerns, inte en medelmans med två mått ändrade.
 - **Den tjocka dockan** (2026-11-27): "Om vi använder just den där 'tjocka dockan' som jag inte tror är den samma som
   är den 'nya standarddockan' kanske det blir fel av bara farten då den känns riktigt klumpig. Är den ens med
   skelett/leder/MediaPipe:ad och annat? Eller är det bara den idiotiska förra 'standarddockan'?" Den är Danilos och
