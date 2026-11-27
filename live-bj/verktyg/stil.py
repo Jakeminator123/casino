@@ -119,6 +119,7 @@ def main():
         st.eye = np.stack([gx, gy], axis=1)
         st.signs = np.array([sign_at(spans, t) for t in st.t])
         st.eyes_px = np.array([np.mean([e['face']['points'][k] for k in ('eyeR_out', 'eyeR_in', 'eyeL_in', 'eyeL_out')], axis=0) if e['face'] else [np.nan, np.nan] for e in raw['frames']])
+        st.face_px = np.array([math.dist(e['face']['points']['chin'], e['face']['points']['brow']) if e['face'] else np.nan for e in raw['frames']])   # chin to the forehead's top, in pixels
         stretches.append(st)
     where = lambda t: next((st for st in stretches if st.t[0] - 1e-6 <= t <= st.t[-1] + 1e-6), None)
     index = lambda st, t: int(np.clip(np.searchsorted(st.t, t - 1e-6), 0, len(st.t) - 1))
@@ -329,6 +330,27 @@ def main():
                     ey.append(cam.wall(st.eyes_px[calm], scene['table']['dealerEdgeM'] + behind)[:, 1])
             posture['shoulders_over_felt_m' + label] = round(float(np.nanmedian(np.concatenate(sh))), 3)
             posture['eyes_over_felt_m' + label] = round(float(np.nanmedian(np.concatenate(ey))), 3)
+        # The face's shapes, for the ones our own figure has: how far each one swings through the film, and how much it
+        # flutters from frame to frame while the head is level and still. A shape that swings little more than it
+        # flutters carries nothing on a face this small.
+        from lyft import face_shapes
+        tall, shapes = [], {}
+        for st in stretches:
+            own = mine(st)
+            level = own & (np.abs(st.head[:, 0] - rest_head[0]) < 5) & (np.abs(st.head[:, 1] - rest_head[1]) < 8)
+            tall.append(st.face_px[own])
+            for s in face_shapes():
+                v = st.blend(s)
+                step = np.abs(np.diff(v))
+                shapes.setdefault(s, ([], []))
+                shapes[s][0].append(v[own])
+                shapes[s][1].append(step[level[1:] & level[:-1]])
+        face = {}
+        for s, (values, steps) in shapes.items():
+            v, flutter = np.concatenate(values), float(np.nanmedian(np.concatenate(steps)))
+            swing = float(np.nanpercentile(v, 95) - np.nanpercentile(v, 5))
+            face[s] = {'swing': round(swing, 3), 'flutter': round(flutter, 4), 'usual': round(float(np.nanmedian(v)), 3),
+                       'verdict': 'carries' if swing >= 0.15 and swing >= 12 * flutter else 'weak' if swing >= 0.05 and swing >= 6 * flutter else 'flutter'}
         reach = d['reach']['L'].get('1.4 to 9') or d['reach']['L'].get('0.9 to 1.4')
         width_m = float(np.nanmedian(np.concatenate([np.linalg.norm(st.sh_l - st.sh_r, axis=1)[mine(st)] for st in stretches])))
         px_m = width_m / unit
@@ -380,6 +402,11 @@ def main():
             'blinks': {'how': 'The lids\' gap against the eye\'s width; closed up to 0.4 s is a blink. None is counted with the head bowed more than 12 degrees. Checked by eye on a sheet: most are true blinks.',
                        'a_minute': d['blinks']['a_minute'], 'seconds': d['blinks']['seconds'], 'between_s': d['blinks']['between'], 'double_share': d['blinks']['double_share'],
                        'within_0.3_s_of_a_move_starting_share': d['blinks']['at_a_move_share'], 'left_to_shoe_starting_with_a_blink_share': shoe['to_shoe']['blink_at_start_share']},
+            'face': {'how': 'The expression, not the face\'s form: MediaPipe\'s scores, 0 to 1, for the shapes our own figure has (ARKit\'s names; left and right are the dealer\'s own). The face is small in the picture '
+                            '(height_px, chin to the forehead\'s top; an eye is about 24 pixels wide). swing is how far a shape goes through the film (the 95th hundredth minus the 5th), flutter how much it changes from one frame to the next '
+                            'while the head is level and still, usual its median. carries: it swings at least 0.15 and twelve times its flutter; weak: at least 0.05 and six times; flutter: neither, leave it at rest. '
+                            'eyeBlink also rises when he looks down, as the lids then lower; eyeSquint is high all through and is this face\'s resting look more than an expression.',
+                     'height_px': round(float(np.nanmedian(np.concatenate(tall))), 1), 'shapes': face},
             'rest': {'how': 'Both hands still for two seconds or more, whatever the game shows; the spread about the mean of each two seconds (rms, millimetres). slow is the same after a half-second mean, which takes away the measuring\'s own flutter '
                             '(about 0.5 pixel, 0.6 mm): trust slow. breath is the period of a regular rise and fall of the shoulders where one stands out, else nothing.',
                      **{k: stats(v, 2) for k, v in rest.items()}},

@@ -900,6 +900,192 @@
   "within_0.3_s_of_a_move_starting_share": 0.103,
   "left_to_shoe_starting_with_a_blink_share": 0.014
  },
+ "face": {
+  "how": "The expression, not the face's form: MediaPipe's scores, 0 to 1, for the shapes our own figure has (ARKit's names; left and right are the dealer's own). The face is small in the picture (height_px, chin to the forehead's top; an eye is about 24 pixels wide). swing is how far a shape goes through the film (the 95th hundredth minus the 5th), flutter how much it changes from one frame to the next while the head is level and still, usual its median. carries: it swings at least 0.15 and twelve times its flutter; weak: at least 0.05 and six times; flutter: neither, leave it at rest. eyeBlink also rises when he looks down, as the lids then lower; eyeSquint is high all through and is this face's resting look more than an expression.",
+  "height_px": 133.1,
+  "shapes": {
+   "eyeBlinkLeft": {
+    "swing": 0.665,
+    "flutter": 0.012,
+    "usual": 0.515,
+    "verdict": "carries"
+   },
+   "eyeBlinkRight": {
+    "swing": 0.662,
+    "flutter": 0.012,
+    "usual": 0.514,
+    "verdict": "carries"
+   },
+   "eyeWideLeft": {
+    "swing": 0.006,
+    "flutter": 0.0,
+    "usual": 0.001,
+    "verdict": "flutter"
+   },
+   "eyeWideRight": {
+    "swing": 0.005,
+    "flutter": 0.0,
+    "usual": 0.0,
+    "verdict": "flutter"
+   },
+   "eyeSquintLeft": {
+    "swing": 0.37,
+    "flutter": 0.013,
+    "usual": 0.451,
+    "verdict": "carries"
+   },
+   "eyeSquintRight": {
+    "swing": 0.302,
+    "flutter": 0.013,
+    "usual": 0.376,
+    "verdict": "carries"
+   },
+   "browDownLeft": {
+    "swing": 0.281,
+    "flutter": 0.015,
+    "usual": 0.139,
+    "verdict": "carries"
+   },
+   "browDownRight": {
+    "swing": 0.262,
+    "flutter": 0.015,
+    "usual": 0.147,
+    "verdict": "carries"
+   },
+   "browInnerUp": {
+    "swing": 0.023,
+    "flutter": 0.001,
+    "usual": 0.006,
+    "verdict": "flutter"
+   },
+   "browOuterUpLeft": {
+    "swing": 0.096,
+    "flutter": 0.001,
+    "usual": 0.011,
+    "verdict": "weak"
+   },
+   "browOuterUpRight": {
+    "swing": 0.04,
+    "flutter": 0.001,
+    "usual": 0.01,
+    "verdict": "flutter"
+   },
+   "jawOpen": {
+    "swing": 0.062,
+    "flutter": 0.001,
+    "usual": 0.003,
+    "verdict": "weak"
+   },
+   "mouthSmileLeft": {
+    "swing": 0.11,
+    "flutter": 0.003,
+    "usual": 0.01,
+    "verdict": "weak"
+   },
+   "mouthSmileRight": {
+    "swing": 0.125,
+    "flutter": 0.003,
+    "usual": 0.011,
+    "verdict": "weak"
+   },
+   "mouthFrownLeft": {
+    "swing": 0.001,
+    "flutter": 0.0,
+    "usual": 0.0,
+    "verdict": "flutter"
+   },
+   "mouthFrownRight": {
+    "swing": 0.002,
+    "flutter": 0.0,
+    "usual": 0.0,
+    "verdict": "flutter"
+   },
+   "mouthPucker": {
+    "swing": 0.387,
+    "flutter": 0.002,
+    "usual": 0.01,
+    "verdict": "carries"
+   },
+   "mouthFunnel": {
+    "swing": 0.039,
+    "flutter": 0.001,
+    "usual": 0.002,
+    "verdict": "flutter"
+   },
+   "mouthPressLeft": {
+    "swing": 0.183,
+    "flutter": 0.008,
+    "usual": 0.065,
+    "verdict": "carries"
+   },
+   "mouthPressRight": {
+    "swing": 0.142,
+    "flutter": 0.006,
+    "usual": 0.067,
+    "verdict": "weak"
+   },
+   "mouthUpperUpLeft": {
+    "swing": 0.08,
+    "flutter": 0.001,
+    "usual": 0.002,
+    "verdict": "weak"
+   },
+   "mouthUpperUpRight": {
+    "swing": 0.101,
+    "flutter": 0.001,
+    "usual": 0.002,
+    "verdict": "weak"
+   },
+   "mouthLowerDownLeft": {
+    "swing": 0.021,
+    "flutter": 0.0,
+    "usual": 0.0,
+    "verdict": "flutter"
+   },
+   "mouthLowerDownRight": {
+    "swing": 0.024,
+    "flutter": 0.0,
+    "usual": 0.0,
+    "verdict": "flutter"
+   },
+   "mouthStretchLeft": {
+    "swing": 0.007,
+    "flutter": 0.0,
+    "usual": 0.0,
+    "verdict": "flutter"
+   },
+   "mouthStretchRight": {
+    "swing": 0.019,
+    "flutter": 0.0,
+    "usual": 0.001,
+    "verdict": "flutter"
+   },
+   "mouthDimpleLeft": {
+    "swing": 0.163,
+    "flutter": 0.008,
+    "usual": 0.041,
+    "verdict": "carries"
+   },
+   "mouthDimpleRight": {
+    "swing": 0.126,
+    "flutter": 0.005,
+    "usual": 0.027,
+    "verdict": "weak"
+   },
+   "noseSneerLeft": {
+    "swing": 0.0,
+    "flutter": 0.0,
+    "usual": 0.0,
+    "verdict": "flutter"
+   },
+   "noseSneerRight": {
+    "swing": 0.0,
+    "flutter": 0.0,
+    "usual": 0.0,
+    "verdict": "flutter"
+   }
+  }
+ },
  "rest": {
   "how": "Both hands still for two seconds or more, whatever the game shows; the spread about the mean of each two seconds (rms, millimetres). slow is the same after a half-second mean, which takes away the measuring's own flutter (about 0.5 pixel, 0.6 mm): trust slow. breath is the period of a regular rise and fall of the shoulders where one stands out, else nothing.",
   "nose_mm": {

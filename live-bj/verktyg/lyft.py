@@ -155,6 +155,31 @@ def to_lens(p):
     return None if p is None else [round(float(p[0]), 4), round(float(p[2]), 4), round(-float(p[1]), 4)]
 
 
+def face_shapes():
+    """The face shapes our own figure has, by ARKit's names: read from the script that builds the figure, not written here."""
+    import re
+    text = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'avatar-auto-pipeline', 'scen', 'bygg_docka.py'), encoding='utf-8').read()
+    block = text[text.index('ARKIT_KARTA = ['):]
+    return re.findall(r"^    \('([A-Za-z]+)',", block[:block.index('\n]')], flags=re.M)
+
+
+def faces(raw, a, b, shapes):
+    """Per frame the face's shapes as MediaPipe scores them, 0 to 1, for the shapes our figure has; null where the face
+    was not found. Evened over three frames, a tenth of a second, to take the flutter off; not the blinks, which are no
+    longer than that themselves."""
+    frames = raw['frames'][a:b + 1]
+    table = np.array([[f['face']['blend'].get(s, np.nan) if f['face'] else np.nan for s in shapes] for f in frames], float)
+    even = smooth(table, 3)
+    for j, s in enumerate(shapes):
+        if s.startswith('eyeBlink'):
+            even[:, j] = table[:, j]
+    return [None if np.isnan(table[k]).all() else {s: round(float(even[k, j]), 3) for j, s in enumerate(shapes) if not np.isnan(even[k, j])} for k in range(len(frames))]
+
+
+FACE_NOTE = ('a is the face per frame: the shapes our own figure has, by ARKit\'s names, as MediaPipe\'s Face Landmarker scores them, 0 to 1 (null where the face was not found); evened over a tenth of a second, the blinks left as they are. '
+             'Left and right are the dealer\'s own. It is the expression that is carried, not the face\'s form. data/stil-*.json, face, says which shapes carry something on a face this small and which are flutter.')
+
+
 def prov(folder, truth_file):
     """Our own figure's film lifted like a live deal, against the figure's true numbers."""
     from docka import play_lens
@@ -241,9 +266,34 @@ def main():
         raw = json.load(open(name, encoding='utf-8'))
         cards[raw['from']] = raw
     os.makedirs(out_dir, exist_ok=True)
+    shapes = face_shapes()
     for dealer, style in NAMES.items():
         behind = setup['dealer'][style]['trunk']['behind_edge_estimated'] or setup['dealer'][style]['trunk']['behind_edge_assumed']
         rest_head = pattern['dealers'][dealer]['rest']['head']
+        # Two waits: both hands lying on the felt, four to seven seconds, the longest first. The wrists are held to the felt.
+        waits = sorted((p for p in pieces['styles'][style]['pieces'] if p['kind'] == 'waiting' and p['clean'] and 4 <= p['seconds'] <= 7 and p['left_at'] not in (None, 'lifted') and p['right_at'] not in (None, 'lifted')),
+                       key=lambda p: -p['seconds'])[:2]
+        for number, piece in enumerate(waits, 1):
+            raw = next(r for (a, b), r in files.items() if a - 1e-6 <= piece['from'] and piece['to_t'] <= b + 1e-6)
+            t = np.array([f['t'] for f in raw['frames']])
+            a, b = int(np.searchsorted(t, piece['from'])), min(int(np.searchsorted(t, piece['to_t'])), len(t) - 1)
+            if any(f['pose'] is None for f in raw['frames'][a:b + 1]):
+                continue
+            on_felt = {k: 0.04 for k in range(b - a + 1)}
+            got = lift(cam, raw, a, b, edge + behind, UPPER, FORE, edge, rest_head, {'L': on_felt, 'R': on_felt})
+            expression = faces(raw, a, b, shapes)
+            frames = [{'t': round(float(t[a + k]), 3), 'R': {j: to_lens(g['R'][j]) for j in 'sew'} | {'p': [to_lens(q) for q in g['R']['p']] if g['R']['p'] is not None else None},
+                       'L': {j: to_lens(g['L'][j]) for j in 'sew'} | {'p': [to_lens(q) for q in g['L']['p']] if g['L']['p'] is not None else None},
+                       'h': to_lens(g['h']), 'g': to_lens(g['g']), 'a': expression[k], 'card': None} for k, g in enumerate(got)]
+            shoulders = np.mean([[f['R']['s'], f['L']['s']] for f in frames], axis=(0, 1))
+            result = {'about': f'A wait by a real dealer of the style {style} (both hands lying still on the felt), lifted out of the live table\'s film by verktyg/lyft.py into the lens world of data/uppsattning.json. '
+                               'The same fields as the lifted deals, without a card. Both wrists are held 0.04 m over the felt. ' + FACE_NOTE,
+                      'style': style, 'docka': DOLLS[style], 'kind': 'waiting', 'left_at': piece['left_at'], 'right_at': piece['right_at'], 'film_seconds': [frames[0]['t'], frames[-1]['t']], 'fps': raw['fps'], 'frameCount': len(frames),
+                      'hip': [round(float(shoulders[0]), 4), round(float(shoulders[1]) - 0.47, 4), round(float(shoulders[2]), 4)], 'hip_note': 'assumed: 0.47 m under the shoulders\' middle; the hips are hidden behind the table', 'frames': frames}
+            name = os.path.join(out_dir, f'{style}-vantan-{number}.json')
+            with open(name, 'w', encoding='utf-8') as f:
+                json.dump(result, f, separators=(',', ':'))
+            print(f"{name}: {len(frames)} frames, {frames[0]['t']:.2f}-{frames[-1]['t']:.2f} s, left at {piece['left_at']}, right at {piece['right_at']}, face found in {sum(1 for f in frames if f['a'])}")
         deals = [p for p in pieces['styles'][style]['pieces'] if p['kind'] == 'card from the shoe' and p['clean'] and p['card'] and p['hands'] == 'left pulls, right lays' and p['parts']['to_shoe_s']]
         seats = sorted({int(p['to'].split()[1]) for p in deals if p['to'].startswith('seat')})
         if not seats:
@@ -274,6 +324,7 @@ def main():
             out_k, rest_k = at(piece['card']['out_of_the_mouth']), at(piece['card']['lies_still'])
             held = {'L': {k: HAND_AT_SHOE for k in range(max(out_k - 3, 0), out_k + 1)}, 'R': {k: HAND_AT_CARD for k in range(max(rest_k - 1, 0), min(rest_k + 3, b - a + 1))}}
             got = lift(cam, raw, a, b, edge + behind, UPPER, FORE, edge, rest_head, held)
+            expression = faces(raw, a, b, shapes)
             track = cards.get(raw['from'])
             shown = {}
             if track:   # the card where the card's own track saw it lying or moving on the felt
@@ -296,7 +347,7 @@ def main():
                     card = {'c': to_lens(np.mean([grip[4], grip[8]], axis=0)) if grip is not None else to_lens(g[holder]['w']), 'l': None, 'n': None, 'seen': False}
                 frames.append({'t': when, 'R': {j: to_lens(g['R'][j]) for j in 'sew'} | {'p': [to_lens(q) for q in g['R']['p']] if g['R']['p'] is not None else None},
                                'L': {j: to_lens(g['L'][j]) for j in 'sew'} | {'p': [to_lens(q) for q in g['L']['p']] if g['L']['p'] is not None else None},
-                               'h': to_lens(g['h']), 'g': to_lens(g['g']), 'card': card})
+                               'h': to_lens(g['h']), 'g': to_lens(g['g']), 'a': expression[k], 'card': card})
             index = lambda second: int(np.argmin([abs(f['t'] - second) for f in frames]))
             shoulders = np.mean([[f['R']['s'], f['L']['s']] for f in frames], axis=(0, 1))
             result = {'about': f'A deal by a real dealer of the style {style}, lifted out of the live table\'s film by verktyg/lyft.py into the lens world of data/uppsattning.json (metres: x to the picture\'s right, y up with the felt at 0, '
@@ -304,7 +355,7 @@ def main():
                                '(null where the hand was not found), h the head\'s middle, g the point he looks at (null where the face was not found), card with its middle c, its long side l and its normal n. '
                                'The card is seen only where it lies on the felt (seen true); before that c is the grip of the hand taken to hold it and l and n are null. '
                                f'One camera gives no depth: the shoulders are put {behind} m behind the felt\'s edge (estimated), the arms are held to an upper arm of {UPPER} m and a forearm of {FORE} m (assumed), and the hip is assumed. '
-                               'verktyg/lyft.py prov says how far such a lift lies from the truth on our own figure\'s film.',
+                               'verktyg/lyft.py prov says how far such a lift lies from the truth on our own figure\'s film. ' + FACE_NOTE,
                       'style': style, 'docka': DOLLS[style], 'to': f'seat {seat}', 'seat_note': 'seats are 1 to 7 from the picture\'s left, the dealer\'s right', 'film_seconds': [frames[0]['t'], frames[-1]['t']], 'fps': raw['fps'], 'frameCount': len(frames),
                       'leavesShoe': index(piece['card']['out_of_the_mouth']), 'rests': index(piece['card']['lies_still']), 'hands': piece['hands'],
                       'hip': [round(float(shoulders[0]), 4), round(float(shoulders[1]) - 0.47, 4), round(float(shoulders[2]), 4)], 'hip_note': 'assumed: 0.47 m under the shoulders\' middle; the hips are hidden behind the table',
