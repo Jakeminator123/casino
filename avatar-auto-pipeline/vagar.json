@@ -108,6 +108,14 @@
    "sa": "Standarddockans 30 ansiktsformer fördes över till Tomasz Meshy-huvud (steg 09, gratis): han blinkar, sänker locken, flyttar blicken, ler, lyfter och sänker brynen och öppnar munnen, och likheten i vila står kvar. Ögonen är en glob per öga på nya ögonleder med hans egen målade iris, och munnen är uppskuren med en mörk munhåla. Inga tänder, och käkleden rör hakan svagt.",
    "jakobs_ord": null
   },
+  "tomasz-pa-danilos-grund-20261127": {
+   "namn": "Tomasz på Danilos docka: hans yta på Danilos skelett",
+   "slag": "prov",
+   "datum": "2026-11-27",
+   "var": ["../blackjack-dealer/assets/proofs/tomasz-pa-danilos-grund-20261127/", "assets/docka/standarddocka_tomasz_danilo.glb"],
+   "sa": "Tomasz med ansiktet (steg 09) sattes på Danilos skelett med steg 11 (gratis): lederna är Danilos (högst 0,001 mm ifrån), axlarna 357 mm isär i stället för 312, armarna och benen Danilos längder, fingrarna Danilos knogar och längder men hans egen krökning i vila. I editorn spelade han Danilos giv till plats 4 med fingrarna, handlederna, armbågarna och axlarna 0 mm från rörelsens punkter, som Danilos egen docka (gårdagens Tomasz, skalad: fingrarna 40 mm, armbågarna 11–25, axlarna 17). Ansiktet och huvudet är oförändrade; handflatan blev bredare (Danilos knogar sitter 69 mm isär, hans 51) och huden på handryggen sträcktes upp till 60 %; ärmens manschett är lika skrynklig som förut. Samma steg på Hunyuan-kroppen (med steg 09 först) sträckte hela handen, eftersom dess hand är 16 cm lång mot Danilos 19: Meshy-Tomasz blev bäst.",
+   "jakobs_ord": null
+  },
   "givar-sju-platser-20261126": {
    "namn": "Standarddockans giv till alla sju platser",
    "slag": "prov",
@@ -412,6 +420,18 @@
      "tid": {"sekunder": 18, "text": "cirka 20 sekunder, fingrarna och steg 5:s fingerprov med"},
      "provet": {"id": "hander-hunyuan-mot-meshy-20261127", "sa": "Hunyuan-kroppen på Tomasz-dockans skelett: armbågen flyttades 2–3 cm och handleden 3–4 cm till kroppens egen arm, och dockan spelade vilan och given i editorn."},
      "belagt": {"kraver": "prov", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "korning", "status": "prov"}
+    },
+    {
+     "id": "pa-dockans-grund",
+     "namn": "Personens yta formas om till en grunddockas skelett (Danilo eller Frasse), led för led",
+     "status": "provat",
+     "kraver": ["en färdig dealer med vårt skelett och våra bennamn (steg 6, 9 eller 10)", "grunddockan vars rörelser han ska spela: standarddocka_danilo.glb eller _frasse.glb (81 ben)"],
+     "ger": ["grunddockans skelett: samma leder, armar, axlar, ben och fingerlängder, så att dockans lyfta rörelser spelas utan skalning", "hans huvud, hud, kläder, ansiktsformer, ögon och käke, och hans egna vikter", "hans fingrars egen krökning i vila", "hans kropp i dockans proportioner: för Tomasz bredare axlar och höfter, längre ben och en bredare handflata", "inget betalt"],
+     "gors_av": {"steg": null, "skript": ["steg/11-pa-dockans-grund/pa_grund.py"], "text": "steg 11: armarna, benen och fingrarna vrids och sträcks ben för ben till dockans leder, bålen och handflatan formas mjukt genom lederna, huvudet flyttas utan att formas om, och ytan binds till dockans armatur med sina egna vikter"},
+     "kostnad": {"krediter": 0, "hos": null, "text": "gratis"},
+     "tid": {"sekunder": 70, "text": "cirka en minut"},
+     "provet": {"id": "tomasz-pa-danilos-grund-20261127", "sa": "Tomasz på Danilos skelett spelade Danilos giv till plats 4 med lederna 0 mm från rörelsens punkter, som Danilos egen docka; handflatan blev bredare och handryggen sträcktes."},
+     "belagt": {"kraver": "kod", "ger": "prov", "gors_av": "kod", "kostnad": "kod", "tid": "korning", "status": "prov"}
     }
    ]
   },
@@ -1085,6 +1105,18 @@
    "varfor": "Annars fungerar inga rörelser: varje rörelse är skriven för de bennamnen.",
    "belagt": {"villkor": "kod", "prova": "kod", "i_dag": "korning", "varfor": "kod"},
    "kalla": "AGENTS.md (Skelettet är ett); ../blackjack-dealer/dealer3d/src/figure-model.ts"
+  },
+  {
+   "id": "dealern-byggs-pa-dockan-han-ska-spela",
+   "typ": "villkor",
+   "princip": true,
+   "om": ["*"],
+   "villkor": "En dealer byggs på den docka vars rörelser han ska spela: hans yta på dockans skelett (steg 11), inte dockans rörelser skalade till hans egen kropp.",
+   "prova": "I editorn (?docka=danilo&modell=<namn>; verktyg/titta.ts skriver lage.json) står hans leder 0 mm från rörelsens punkter: fingrarFranPunkternaMm, handledFranPunktenMm, armbageFranPunktenMm och axelFranPunktenMm.",
+   "i_dag": "Version 1 och steg 10 ger dealern sitt eget skelett, och editorn skalar honom efter armens längd: gårdagens Tomasz missade rörelsens punkter med 40 mm i fingrarna, 11–25 mm i armbågarna och 17 mm i axlarna. Steg 11 (prov, körs för hand) satte honom på Danilos skelett: 0 mm.",
+   "varfor": "Rörelserna är lyfta ur filmen och lösta för just dockans ben; en annan kropp som skalas efter armen får andra axlar, armbågar och fingrar, och greppet om kortet flyttar sig.",
+   "belagt": {"villkor": "jakob", "prova": "prov", "i_dag": "prov", "varfor": "bedomning"},
+   "kalla": "Jakob 2026-11-27: \"Rörelsemönster och allt ska ju komma från Danilo och Frasse. Men också den docka som är skapad utifrån dem och som vi arbetat med hela tiden är grunden för den docka av Tomasz som ska göras\""
   },
   {
    "id": "hander-behalls-nar-fingrarna-ar-atskilda",

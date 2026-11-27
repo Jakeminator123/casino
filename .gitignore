@@ -67,12 +67,14 @@ next-env.d.ts
 !/inbox/inbox.ts
 
 # avatar-auto-pipeline: the photos it is given, what it makes (output/, and qc/ with the check images and inspection
-# dumps, read by path: qc/inspektion/<modell>.json), the portable Blender (tools/) and agents' note files (_*.txt)
+# dumps, read by path: qc/inspektion/<modell>.json), the portable Blender (tools/), agents' note files (_*.txt) and the
+# report a build step writes beside a built doll (assets/docka/<modell>.json; the dolls themselves are media)
 /avatar-auto-pipeline/input/
 /avatar-auto-pipeline/output/
 /avatar-auto-pipeline/tools/
 /avatar-auto-pipeline/**/qc/
 /avatar-auto-pipeline/**/_*.txt
+/avatar-auto-pipeline/assets/docka/*.json
 
 # blackjack-dealer: media (its role is in data/media-roles.json), renders, run data, the models of tools/python/ (its
 # README says how to make them), the studio's build, and the online copy's requests that tools/onskemal.ts fetches

@@ -38,6 +38,7 @@ avatar-auto-pipeline/
   starta_avatar.ps1, auto_avatar.py   styr stegen
   steg/01-referenser … 08-film       ett skript per steg; 09-ansikte ger en färdig dealer ett rörligt ansikte (prov)
   steg/10-kropp-i-ett-stycke/        en kropp ur Runway med egna händer blir en docka, gratis (prov, körs för hand)
+  steg/11-pa-dockans-grund/          en färdig dealer sätts på Danilos eller Frasses skelett, led för led (prov)
   metod/                     grundfunktioner för mesh och GLB
   input/<namn>/              dina foton
   output/<namn>/             allt som en körning skapar
@@ -160,5 +161,15 @@ blender -b --python-exit-code 1 --python steg/10-kropp-i-ett-stycke/prova_hander
 
 `<arb>` är en arbetsmapp i slasken (`../slask/avatar-auto-pipeline/<uppgift>/`); `rigga.py` skriver också steg 5:s
 fingerprov (`hudvikter.json`) bredvid riggen.
+
+En dealer på en grunddockas skelett (steg 11, på prov sedan 2026-11-27, gratis och lokalt): en dealer byggs på den docka
+vars rörelser han ska spela. Hans yta (huvud, hud, kläder, ansiktsformer) formas om så att den sitter på Danilos eller
+Frasses skelett, och skelettet byts mot dockans: samma leder, armar, axlar och fingerlängder. Då spelar han dockans lyfta
+rörelser som de är, och editorn skalar honom inte. Hans fingrar behåller sin egen krökning i vila; huvudet flyttas utan
+att formas om. Hur det görs står i skriptets huvud; rapporten (`<ut>.json`) säger hur mycket ytan sträcktes, per kroppsdel:
+
+```text
+blender -b --python-exit-code 1 --python steg/11-pa-dockans-grund/pa_grund.py -- assets/docka/standarddocka_tomasz_ansikte.glb assets/docka/standarddocka_danilo.glb assets/docka/standarddocka_tomasz_danilo.glb
+```
 
 Om något avbryts kan du fortsätta utan att betala om: `--from-step 5` eller `--only-step 7`. Hoppa över filmen med `--no-video`. Betalda jobb sparar ett kvitto i stegmappen: `referenser.json`, `korning.json` och `riggjobb.json`. En omstart använder samma kvitto. Radera dem inte.

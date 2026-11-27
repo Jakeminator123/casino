@@ -59,6 +59,7 @@ Skripten i `steg/` bygger en **specifik dealer från fotografier** via Meshy, in
 | 08 | `steg/08-film/` | Animera dealern i en filmscen (`animera_dealer.py`). Ny standardscen ska användas i stället för ad hoc-bord. |
 | 09 | `steg/09-ansikte/` | Prov, körs för hand: en färdig dealer får standarddockans 30 ansiktsformer på sitt eget huvud, ögonleder med en glob per öga och käkleden (`ansikte.py`); munnen skärs upp. |
 | 10 | `steg/10-kropp-i-ett-stycke/` | Prov, körs för hand: en kropp ur Runway (Hunyuan 3D 3.1 Pro) med hand och arm i ett stycke blir en docka utan påsatta händer. Meshy-huvudet sys på och händerna märks som Handpar (`montera_huvud.py`), skelett och vikter lånas av en färdig docka, armbågen och handleden läggs i kroppens egen arm och fingrarna sätts med steg 5:s `fit_fingers` i handens egen ram (`rigga.py`, `fingrar_handflata.py`: handflatan pekar framåt i Hunyuans A-pose). `prova_hander.py` knyter handen och nyper på vilken dealer som helst. |
+| 11 | `steg/11-pa-dockans-grund/` | Prov, körs för hand: en färdig dealer sätts på en grunddockas skelett (Danilo eller Frasse), led för led, så att han spelar dockans rörelser utan skalning (`pa_grund.py`). Armar, ben och fingrar vrids och sträcks ben för ben till dockans leder och längder, bålen och handflatan formas mjukt genom lederna, huvudet flyttas utan att formas om, och ytan binds till dockans armatur med sina egna vikter; fingrarna behåller sin egen krökning i vila. |
 
 Körning via `auto_avatar.py` / `STARTA avatar.cmd`. Nycklar i `.env`. Betalda steg sparar kvitton i stegmappen.
 
