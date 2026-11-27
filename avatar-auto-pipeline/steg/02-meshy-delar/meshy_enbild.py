@@ -207,6 +207,14 @@ def download(url, stem, model=False, *, armature=False):
             time.sleep(2**attempt)
 
 
+# Meshy names its preview pictures after where the camera stands, seen by the one who looks at the model: "front" is the
+# side the reference picture shows, "back" the opposite side, "left" and "right" the PICTURE's left and right of that
+# front (not the person's own). For the hand that misleads (Jakob 2026-11-27): the reference shows the back of a right
+# hand, so Meshy's "front" is the back of the hand and its "back" the palm. The files are therefore named for what they
+# are; the receipt keeps Meshy's own word as its key (preview_front and so on) and says where each file lies.
+VIEW_FILES = {"front": "visad-sida", "back": "motsatt-sida", "left": "fran-bildens-vanster", "right": "fran-bildens-hoger", "alpha": "alpha"}
+
+
 def outputs(data):
     yield "model", Path("modell"), data.get("model_urls", {}).get("glb")
     views = dict(data.get("thumbnail_urls") or {})
@@ -214,7 +222,7 @@ def outputs(data):
     views["alpha"] = data.get("alpha_thumbnail_url")
     for name in ("front", "right", "back", "left", "alpha"):
         if views.get(name):
-            yield f"preview_{name}", Path("meshy-vyer", name), views[name]
+            yield f"preview_{name}", Path("meshy-vyer", VIEW_FILES[name]), views[name]
     for index, layer in enumerate(data.get("texture_urls") or []):
         for name in ("base_color", "metallic", "roughness", "normal", "emission"):
             if layer.get(name):

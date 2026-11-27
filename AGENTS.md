@@ -58,6 +58,11 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
 - **Inget gammalt lagras** (Jakob 2026-11-27: "så inte skit lagras"). Ett verktyg lägger aldrig undan en äldre version,
   en kopia eller en lista över det som är borta i en mapp som Git har: historien står i Git. Ett register pekar bara
   på det som finns; tas en fil bort tas raden om den bort i samma steg.
+- **Höger och vänster är dealerns egna** (Jakob 2026-11-27: "det är viktigt vad som är vad"). I kod, data, filnamn
+  och dokument betyder höger och vänster (R och L, Right och Left i skelettet) alltid dealerns egen höger och vänster;
+  dealerns höger är till vänster i bilden. Det som räknas från den som tittar skrivs ut: "i bilden", "bildens vänster".
+  Platserna 1–7 räknas från bildens vänster, alltså från dealerns höger. En fil som visar en sida heter efter vad den
+  visar (handrygg, handflata), inte efter ett verktygs egna ord som front och back.
 - **Ingen viss dator.** Repot ska gå att klona till valfri mapp: ingen kod eller text pekar på en användare eller en
   disk. Media följer inte med Git, så det som bara finns på en dator får inte vara något koden kräver.
 

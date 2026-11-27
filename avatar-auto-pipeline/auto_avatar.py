@@ -557,7 +557,13 @@ def pipeline(photos, name, out, outfit=None, video=True, seconds=6.0, samples=48
             for r in jobs
         }
         previews = []
-        front_imgs = [d / r / "meshy-vyer" / "front.png" for r in ("huvud", "kropp", "hand")]
+        def visad_sida(r):
+            # Bilden av sidan som referensbilden visar, där delens kvitto säger att den ligger (äldre körningar: front.png).
+            try:
+                return d / r / json.loads((d / r / "korning.json").read_text(encoding="utf-8"))["assets"]["preview_front"]["file"]
+            except (OSError, KeyError, ValueError):
+                return d / r / "meshy-vyer" / "front.png"
+        front_imgs = [visad_sida(r) for r in ("huvud", "kropp", "hand")]
         if all(p.is_file() for p in front_imgs):
             ov = d / "meshy-delar-oversikt.png"
             sheet(front_imgs, ["Huvud (Meshy)", "Kropp A-pose (Meshy)", "Högerhand (Meshy)"], 3, ov,
