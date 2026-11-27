@@ -71,9 +71,14 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   röd rygg, vit framsida, livevyns storlek, ut genom skons mynning. Dealerns färger mäts i filmen själv, så
   utskärningen gäller vilken skjorta som helst (den antog först en blå och tog bort bitar av Kenjis grå). Provet `efter-nja-eget-kort-och-takt-20261127`
   visar det på filmen av Tomasz som han dömde.
-- **En giv mellan fasta bilder, för hand i Runways app** (en annan session, tolfte provet i skillen `runway`): Tomasz i
-  Frasses ställning med tre ankarbilder och två klipp mellan dem. Skarvarna håller; givklippet föll hos domaren (kortet
-  vändes inte av handen). 49 krediter av appens. Filmerna finns bara bland Runways tillgångar.
+- **En giv mellan fasta bilder, för hand i Runways app** (en annan session, tolfte och fjortonde provet i skillen
+  `runway`). Filmerna finns bara bland Runways tillgångar.
+  - Tolfte provet: Tomasz i Frasses ställning, med tre ankarbilder och två klipp mellan dem. Skarvarna håller, men
+    kortet vändes inte av handen.
+  - Fjortonde provet: en ny person ur ett foto som Jakob skickade, med handbytet A2M som egen bild:
+    A2.3 → A2M → A3P4C1 → A2.3. Nu rullade handen kortet genom kanten, och det var samma kort hela vägen.
+  - Samma giv gick att göra från dagens plats 5 med Kling 4 och livefilmen som referensfilm.
+  - Domaren fällde båda: kortet stod stilla före vändningen, vänsterhanden låg kvar på filten, och ett klipp blev i 480p.
 - **Studion** (`http://127.0.0.1:4319/studio/`): Start, Avatarer, Dockan (editorn i `../standarddocka/`), Karta med
   Schemat, Beställ (`/bestall/`), Granska med Prov, Casino, Mått, Biblioteket och Beslut.
 - **Spelet** ritar vid livebordet bordet, skon och korten men ingen dealer, eftersom ingen film är godkänd där.
@@ -102,10 +107,17 @@ I den här ordningen om han inte säger annat.
    försök gjorde de andra givarna sämre och togs bort), tummens form när fingret ligger på kortet, pekfingret som går
    genom kortet i två rutor under handen, och högerhanden som går fram och tillbaka före bytet där dealerns ligger
    kvar och väntar. Bytet till de andra platserna saknas: de behöver sina lyft lagda från samma ankare A2M.
-3. **Kedjan av ankarbilder genom en hel runda** (tolfte provet i skillen `runway`): givarna mellan fasta bilder i
-   rundans ordning (`rundaAv`, platserna 7 till 1 i dagens numrering) och spelets klippgraf (`src/clip-graph.ts`).
-   För första kortet till sju platser behövs 15 bilder per person och kamera och 14 klipp. Nästa prov där är en giv
-   med handbytet (A2M) som en egen bild.
+3. **Kedjan av ankarbilder genom en hel runda** (tolfte och fjortonde provet i skillen `runway`): givarna går mellan
+   fasta bilder i rundans ordning (`rundaAv`, platserna 7 till 1 i dagens numrering) och spelets klippgraf
+   (`src/clip-graph.ts`). Handbytet som egen bild är prövat och får handen att vända kortet.
+   - Nästa: slå ihop det med vägen här. Varje steg i schemat (A2.3 → A2M, A2M → A3PnC1, A3PnC1 → A2.3) blir ett klipp
+     i Kling 4, med ankarbilderna som första och sista bild och dockans film av samma steg som referensfilm, genom
+     livebordets kamera i nyckelfärgerna. Då kommer takten och rörelsen från dockan, och klippen går ihop i
+     ankarna.
+   - Ankarbilderna görs som ändringar av A2.3: kortplatsen målas in före ändringen, och A2.3 med kortet klistras
+     in.
+   - Samma referensfilm, med ankarbilder från spelarnas kameror, ger samma rörelse från alla sju platserna. Klipp inte
+     i referensfilmen, och gör alla klipp i samma upplösning.
 4. **Det sista av den äldre dealern bort:** kortplanens värld, hennes beställningsväg och träd, bankens register,
    labbsidan `pages/scene3d.html` och grönskärmsresterna i `src/film-after.ts`. Död kod i editorn: RUNDA och sparandet
    i `editor.ts`, GIVAR och `grundFor` i `rorelse.ts`, `kropp.ts`. I `../avatar-auto-pipeline/scen/bygg_docka.py`:
