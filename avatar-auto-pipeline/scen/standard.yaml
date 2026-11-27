@@ -371,3 +371,84 @@ kameror:  # alla perspektivkameror: sensor 36 mm horisontellt, upplösning 1764 
 rackviddstest:  # punkter dockans händer ska nå (handled ovanför punkten)
   mal: ["sko.fonsterkort_mitt", "platser.D.C1", "platser.P1.C1", "platser.P7.C1"]
   handled_over_kort: 0.02  # källa: blackjack-dealer/dealer3d/src/world.ts (ASSUMED) knuckleLift
+
+livebord:  # ett riktigt livebord mätt på film (live-bj, 2026-11-27, preliminärt): en andra uppsättning bredvid standarden, som inget ovan beror på. källa: blackjack-dealer/src/table-live.ts (LIVE); byggs med scen/bygg_bord.py --live
+  # Samma axlar som ovan, men origo är golvet rakt under livebordets dealerkant: X = x, Y = -(z - (-1.5375)), Z = y + filt_z i livebordets linsvärld.
+  # mätt = mätt på filmen; skattat = mätt men svagt; slutlett = härlett ur andra mått, inte sett; antaget = vårt, tills det mäts.
+  filt_z: 0.9500  # slutlett, inte mätt (golvet syns aldrig): ur dealrarnas ögon när de står, ±0.1 m; blackjack-dealer/src/table-live.ts LIVE.floor
+  dealerkant_lins_z: -1.5375  # mätt: dealerkantens z i livebordets linsvärld (LIVE.edge)
+  utseende: bord  # antaget: vårt standardbords filt, sarg, rulle, ben, färger och kortplatsramar (bord, kort och bet_ringar ovan); bara måtten är livebordets
+  kamera:  # mätt ur 29 kort på filten (0,54 bildpunkter per hörn); ärlig osäkerhet 5 % på brännvidden, 2-3 cm på höjden, 0,3 grader på lutningen. källa: LIVE.camera, liveFrame()
+    focal_px: 1290.3
+    bild_px: [1728, 972]
+    mitt_px: [863.5, 485.5]  # där den optiska axeln möter bilden
+    pitch_grader: 18.130  # nedåt
+    rull_grader: -0.160  # en vågrät linje på filten faller åt höger i bilden
+    hojd_over_filt: 0.6175
+    sensor_mm: 36.0  # som lins.sensor_mm, sensor_fit HORIZONTAL
+    brannvidd_mm: 26.8812  # härlett: focal_px / bild_bredd * sensor_mm
+    pos: [0.0000, -1.5375, 1.5675]
+    fram: [0.000000, 0.950353, -0.311174]  # kamerans riktning
+    hoger: [0.999996, 0.000869, 0.002654]  # bildens höger (med rullningen)
+    upp: [-0.002793, 0.311173, 0.950349]  # bildens upp (med rullningen)
+  filt:  # mätt: en halvcirkel med rak kant mot dealern (bågen en cirkel inom 1,8 mm över 1234 punkter). källa: LIVE.felt
+    mitt: [0.0020, 0.0156]  # bågens mitt, 1.56 cm bakom kanten
+    radie: 0.7295
+    halv_bredd_vid_kanten: 0.7293  # härlett
+    djup: 0.714
+    rulle_utanfor: 0.1  # antaget (vår, bord.vadderad_kant.bredd): rullen ligger utanför bågen, så att filten som syns är den mätta
+  sko:  # källa: LIVE.shoe, liveShoePose(), liveShoeCard()
+    fot_fram: [0.4521, -0.1531, 0.9500]  # mätt: fotens främre hörn mot spelarna (hörnen lästa för ögat, 1-2 cm)
+    fot_horn: [[0.4270, -0.0533, 0.9500], [0.4521, -0.1531, 0.9500], [0.7162, -0.0798, 0.9500]]  # mätt: främre vid dealern, främre mot spelarna, bakre mot spelarna
+    yaw_bakat: 15.512  # härlett ur foten: bakänden vriden mot dealern
+    langd: 0.274  # mätt (foten)
+    bredd: 0.103  # mätt (foten)
+    hojd_bak: 0.117  # mätt ur bilden
+    hojd_fram: 0.108  # skattat: frontplattans topp om plattan stod lodrätt; byts med lutningen
+    platta_lutning_grader: 51.60  # antaget (vår, sko.platta_lutning_grader)
+    fonster_lyft: 0.022  # antaget (vår, sko.fonster_lyft)
+    fonsterkort_mitt: [0.4732, -0.0938, 0.9973]  # nästa kort, på den lutande fronten som i vår sko men med långsidan tvärs skon som det som syns i mynningen; läget är antaget och stämmer inte med mynning_sedd (LIVE.shoe, liveShoeCard)
+    fonsterkort_langsida: [-0.2674, 0.9636, 0.0000]  # kortets långsida, tvärs skon
+    fonsterkort_kortsida: [0.5985, 0.1661, 0.7837]  # kortets kortsida, uppför fronten
+    mynning_sedd: [[0.3652, -0.0915, 0.9500], [0.4017, -0.0757, 0.9500], [0.4311, -0.1701, 0.9500], [0.3977, -0.1786, 0.9500]]  # mätt: det som syns av nästa kort i mynningen, lagt på filten (4 x 10 cm)
+  kassering:  # mätt: en klar låda vid dealerns högra hörn, öppen upptill. källa: LIVE.box, liveBox()
+    fot_mitt: [-0.6115, -0.0351, 0.9500]
+    yaw: 2.143
+    yttermatt: [0.076, 0.093, 0.1575]  # foten mätt; höjden mätt ur bilden (0,156-0,159)
+    vaggtjocklek: 0.004  # antaget (vår, kassering.vaggtjocklek)
+  skarkort: {mitt: [-0.5737, -0.1333, 0.9500], storlek: [0.0479, 0.0863]}  # mätt, men ligger bara ute ibland: byggs inte
+  markerbricka: ingen  # mätt: det finns ingen (markerna är spelets grafik); bygg_bord.py --live --med-bricka lägger vår (markerbricka ovan) vid kanten, märkt som vårt tillägg
+  insatsmarken:  # mätt: mitten av spelets platsknappar, plats 1 till vänster i bilden (dealerns höger). källa: LIVE.betMarks
+    P1: [-0.4967, -0.4040, 0.9500]
+    P2: [-0.3347, -0.5397, 0.9500]
+    P3: [-0.1711, -0.6096, 0.9500]
+    P4: [0.0004, -0.6301, 0.9500]
+    P5: [0.1730, -0.6080, 0.9500]
+    P6: [0.3363, -0.5362, 0.9500]
+    P7: [0.4991, -0.3983, 0.9500]
+  platser:  # mätt: där korten först låg stilla, kortets mitt; yaw_kort = långsidans vridning i grader moturs uppifrån (0 = rakt mot spelaren). källa: LIVE.cards
+    # vinkel: mätt där landningarna är eniga om den, annars spegelbilden av samma kort på den speglade platsen (LIVE.cards[id].turnFrom)
+    D.C1: {pos: [-0.0272, -0.1774, 0.9500], yaw_kort: 4.80, landningar: 18, vinkel: "mätt"}
+    D.C2: {pos: [0.0243, -0.1928, 0.9500], yaw_kort: -2.30, landningar: 18, vinkel: "mätt"}
+    D.C3: {pos: [-0.0269, -0.1808, 0.9500], yaw_kort: 3.50, landningar: 11, vinkel: "mätt"}
+    P1.C1: {pos: [-0.4206, -0.3190, 0.9500], yaw_kort: -51.30, landningar: 6, vinkel: "spegel av P7.C1"}
+    P1.C2: {pos: [-0.3732, -0.3218, 0.9500], yaw_kort: -44.00, landningar: 5, vinkel: "mätt"}
+    P1.C3: {pos: [-0.3701, -0.3210, 0.9500], yaw_kort: -55.10, landningar: 3, vinkel: "spegel av P7.C3"}
+    P2.C1: {pos: [-0.2964, -0.4103, 0.9500], yaw_kort: -30.00, landningar: 3, vinkel: "spegel av P6.C1"}
+    P2.C2: {pos: [-0.2987, -0.4204, 0.9500], yaw_kort: -30.10, landningar: 2, vinkel: "spegel av P6.C2"}
+    P3.C1: {pos: [-0.0938, -0.4401, 0.9500], yaw_kort: -13.90, landningar: 3, vinkel: "spegel av P5.C1"}
+    P4.C1: {pos: [0.0155, -0.5124, 0.9500], yaw_kort: -2.30, landningar: 11, vinkel: "mätt"}
+    P4.C2: {pos: [0.0440, -0.4727, 0.9500], yaw_kort: -1.00, landningar: 9, vinkel: "mätt"}
+    P5.C1: {pos: [0.1575, -0.4973, 0.9500], yaw_kort: 13.90, landningar: 6, vinkel: "mätt"}
+    P5.C2: {pos: [0.1804, -0.4536, 0.9500], yaw_kort: 12.40, landningar: 4, vinkel: "mätt"}
+    P6.C1: {pos: [0.2922, -0.4331, 0.9500], yaw_kort: 30.00, landningar: 14, vinkel: "mätt"}
+    P6.C2: {pos: [0.2974, -0.3866, 0.9500], yaw_kort: 30.10, landningar: 11, vinkel: "mätt"}
+    P6.C3: {pos: [0.2949, -0.3773, 0.9500], yaw_kort: 30.00, landningar: 3, vinkel: "som P6.C1"}
+    P7.C1: {pos: [0.4265, -0.3069, 0.9500], yaw_kort: 51.30, landningar: 14, vinkel: "mätt"}
+    P7.C2: {pos: [0.4156, -0.2613, 0.9500], yaw_kort: 44.00, landningar: 11, vinkel: "spegel av P1.C2"}
+    P7.C3: {pos: [0.4612, -0.2636, 0.9500], yaw_kort: 55.10, landningar: 5, vinkel: "mätt"}
+  dealer:  # mätt: han sitter, på en hög stol. Djupet är antaget (0.2 m bakom kanten); armarna går inte att mäta (dockans egna används). källa: LIVE.dealer
+    bakom_kant: 0.2  # antaget
+    kameran: {axlar_mitt: [0.0330, 0.2005, 1.2680], axelbredd: 0.357, ogon_over_filt: 0.509, bakom_kant_skattat: 0.065}
+    bordet: {axlar_mitt: [0.0460, 0.2005, 1.2600], axelbredd: 0.348, ogon_over_filt: 0.514, bakom_kant_skattat: 0.158}
+  golv: {filt_over_golv: 0.95, plus_minus: 0.1, sits_over_golv: 0.67}  # slutlett, inte mätt

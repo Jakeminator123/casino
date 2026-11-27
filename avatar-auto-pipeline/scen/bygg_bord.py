@@ -4,6 +4,7 @@ Kör:  blender -b --python-exit-code 1 --python scen/bygg_bord.py
       blender -b --python-exit-code 1 --python scen/bygg_bord.py -- --modell bord-02
       blender -b --python-exit-code 1 --python scen/bygg_bord.py -- --kant-bak 0.15
       blender -b --python-exit-code 1 --python scen/bygg_bord.py -- --docka
+      blender -b --python-exit-code 1 --python scen/bygg_bord.py -- --live [--med-bricka]
 Ut:   assets/bord/standardbord.blend och assets/bord/standardbord.glb
       (bord-02 skriver assets/bord/bord_02.blend/.glb så standardfilen inte skrivs över)
 Allt mått kommer ur standard.yaml – ändra där, inte här.
@@ -13,6 +14,13 @@ BORD-02 är ett behållet labbalternativ via --modell bord-02.
 --docka bygger standarddockans bord, det hans och hennes egna rörelser visas vid (Jakob 2026-11-26: halvmånen, skon
 längre ut): kanten, filtens djup och skons flytt ur standard.yaml (dockans_bord, ur spelets DOLL_TABLE), utan egna tal.
 Det är --kant-bak, --djup, --sko-ut och --sko-fram nedan med de talen, och skriver standardbord_nara23.blend/.glb.
+
+--live bygger vår klon av ett riktigt livebord, mätt på film (Jakob 2026-11-27: "klona allt som finns på videon
+först"): filten, skon, lådan för använda kort, insatsmärkena och kortplatserna där livebordet har dem, ur standard.yaml
+livebord (ur spelets LIVE i ../blackjack-dealer/src/table-live.ts), med vårt utseende (filt, sarg, rulle, ben och färger
+som standardbordet). Filten är deras halvcirkel och rullen ligger utanför den; livebordet har ingen markerbricka.
+Origo ligger på golvet under livebordets dealerkant. Skriver standardbord_live.blend/.glb. Med --med-bricka läggs vår
+markerbricka (markerbricka i standard.yaml) in vid dealerkanten som ett tillägg, i standardbord_live_bricka.blend/.glb.
 
 --kant-bak D (meter, standardbordet) är samma bord med kanten på ett annat ställe (../standarddocka): dealerkanten D m närmare dealern
 (Y = +D), med raka sidor bakåt från spelarbågen och markerbrickan flyttad med kanten. Skon, korten, kortplatserna,
@@ -110,6 +118,16 @@ if DOCKA:
         raise SystemExit('--docka tar inga andra val: måtten står i standard.yaml (dockans_bord)')
     _d = STD['dockans_bord']
     KANT_BAK, DJUP, SKO_UT, SKO_FRAM = _d['kant_bak'], _d['djup'], _d['sko_ut'], _d['sko_fram']
+LIVE = '--live' in sys.argv  # vår klon av livebordet: måtten ur standard.yaml livebord, inga egna
+MED_BRICKA = '--med-bricka' in sys.argv  # vår markerbricka i klonen, ett tillägg (livebordet har ingen)
+if MED_BRICKA and not LIVE:
+    raise SystemExit('--med-bricka gäller bara --live')
+if LIVE:
+    if MODELL != 'standard' or DOCKA or KANT_BAK is not None or DJUP is not None or SKO_UT is not None or SKO_FRAM is not None or NAMN:
+        raise SystemExit('--live tar inga andra val än --med-bricka: måtten står i standard.yaml (livebord)')
+    if 'livebord' not in STD:
+        raise SystemExit('standard.yaml saknar livebord: kör python scen/gen_standard.py')
+LV = STD['livebord'] if LIVE else None
 NARA = KANT_BAK is not None  # standarddockans bord: kanten närmare och kanten/brickan rättade
 NYA = not DOCKA and (DJUP is not None or SKO_UT is not None or SKO_FRAM is not None)
 if NARA and MODELL != 'standard':
@@ -128,7 +146,7 @@ if MODELL == 'bord-02':
 ASSETS = ROOT / 'assets' / 'bord'
 TEX = ASSETS / 'texturer'
 KORT = ASSETS / 'kort'
-FZ = STD['filt_z']
+FZ = LV['filt_z'] if LIVE else STD['filt_z']
 B = STD['bord']
 if DJUP is not None:  # bågen (outline, rail) läser fram_s; halva bredden är densamma
     B['fram_s'] = DJUP; B['djup'] = DJUP
@@ -137,6 +155,8 @@ if NARA:
     print('bygg_bord kant-bak=%.3f (dealerkanten vid Y = +%.3f)' % (KANT_BAK, KANT_BAK))
 if SKO_UT is not None or SKO_FRAM is not None:
     print('bygg_bord sko-ut=%.3f sko-fram=%.3f (skon och kasseringslådan speglad)' % (SKO_UT or 0.0, SKO_FRAM or 0.0))
+if LIVE:
+    print('bygg_bord live: filtens radie %.4f, djup %.3f%s' % (LV['filt']['radie'], LV['filt']['djup'], ', med vår markerbricka' if MED_BRICKA else ''))
 
 
 # ---------------------------------------------------------------- kontur (samma som bord02Outline)
@@ -331,6 +351,54 @@ def rail_nara(col, mat, pos_nrm, half, P):
     for f in bm.faces:
         for lp in f.loops:
             co = lp.vert.co; lp[lay].uv = (math.atan2(-co.y, co.x) * aa, (co.z - FZ) * 4)
+    ob = obj_from_bm('bord_vaddering', bm, col, mat)
+    for p in ob.data.polygons:
+        p.use_smooth = True
+    return ob
+
+
+def _live_bage(r):
+    """Livebordets båge (--live) med radie r kring standard.yaml livebord.filt.mitt: vinklarna där den möter dealerkanten
+    (Y = 0) på höger och vänster sida, i samma varv som outline() (höger, spelarkanten, vänster)."""
+    cx, cy = LV['filt']['mitt']; R = LV['filt']['radie']
+    a = math.asin(max(-1.0, min(1.0, cy / R)))  # bågen möter kanten strax bakom sin vidaste punkt
+    return cx, cy, -a, -math.pi + a
+
+
+def outline_live(grow=0.0, notch=None):
+    """Livebordets filt (--live): en cirkelbåge med den mätta radien (plus `grow`, för sargen under rullen) och den raka
+    dealerkanten vid Y = 0, eventuellt med brickans urtag. Samma form och varv som outline() ger."""
+    n = B['kontur_bagsteg']; cx, cy, t0, t1 = _live_bage(LV['filt']['radie']); r = LV['filt']['radie'] + grow
+    pts = [(cx + r * math.cos(t0 + (t1 - t0) * i / n), cy + r * math.sin(t0 + (t1 - t0) * i / n)) for i in range(n + 1)]
+    pts[0] = (pts[0][0], 0.0); pts[-1] = (pts[-1][0], 0.0)  # ändarna exakt i kanten
+    if notch:
+        x0, x1, s1 = notch['x0'], notch['x1'], notch['s1']
+        pts += [(x0, 0.0), (x0, -s1), (x1, -s1), (x1, 0.0)]
+    return pts, n
+
+
+def rail_live(col, mat):
+    """Rullen för --live: vår rulles sektion (bord.vadderad_kant) längs livebordets båge, utanför filten (dess insida i
+    den mätta radien), från dealerkanten till dealerkanten."""
+    rl = B['vadderad_kant']; n = B['kontur_bagsteg']; half = LV['filt']['rulle_utanfor'] / 2; P = 24
+    cx, cy, t0, t1 = _live_bage(LV['filt']['radie']); R = LV['filt']['radie'] + half
+    bm = bmesh.new(); rings = []
+    for i in range(n + 1):
+        t = t0 + (t1 - t0) * i / n; nx, ny = math.cos(t), math.sin(t); ccx, ccy = cx + R * nx, cy + R * ny
+        ring = []
+        for j in range(P):
+            a = 2 * math.pi * j / P; r_out = half * math.cos(a); zz = FZ + rl['mitt_over_filt'] + rl['halv_hojd'] * math.sin(a)
+            ring.append(bm.verts.new((ccx + nx * r_out, ccy + ny * r_out, zz)))
+        rings.append(ring)
+    for i in range(n):
+        for j in range(P):
+            bm.faces.new((rings[i][j], rings[i][(j+1) % P], rings[i+1][(j+1) % P], rings[i+1][j]))
+    bm.faces.new(rings[0]); bm.faces.new(list(reversed(rings[-1])))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    lay = bm.loops.layers.uv.verify()
+    for f in bm.faces:
+        for lp in f.loops:
+            co = lp.vert.co; lp[lay].uv = (math.atan2(-co.y, co.x) * R, (co.z - FZ) * 4)
     ob = obj_from_bm('bord_vaddering', bm, col, mat)
     for p in ob.data.polygons:
         p.use_smooth = True
@@ -535,13 +603,16 @@ def main():
     nt = m_card.node_tree; ti = tex_node(nt, KORT/'kortatlas.png'); ti.interpolation = 'Cubic'
     nt.links.new(ti.outputs[0], nt.nodes['Principled BSDF'].inputs['Base Color'])
 
-    tr = STD['markerbricka']
+    tr = STD['markerbricka'] if not LIVE or MED_BRICKA else None  # livebordet har ingen bricka; --med-bricka lägger vår
     if NARA:  # brickan följer dealerkanten bakåt: dess bakvägg står i den nya kanten
         tr = dict(tr, s0=tr['s0'] - KANT_BAK, s1=tr['s1'] - KANT_BAK, urtag=dict(tr['urtag'], s1=tr['urtag']['s1'] - KANT_BAK))
-    pts, narc = outline(notch=tr['urtag'])
+    urtag = tr['urtag'] if tr else None
+    pts, narc = outline_live(notch=urtag) if LIVE else outline(notch=urtag)
     felt = felt_sheet('bord_filt', pts, FZ, c_bord, m_felt)
     sg = B['sarg']
-    if NARA:
+    if LIVE:  # sargen når ut under rullen, som ligger utanför filten
+        prism('bord_sarg', outline_live(LV['filt']['rulle_utanfor'], notch=urtag)[0], FZ + sg['underkant'], FZ + sg['underlagg'], c_bord, m_wood)
+    elif NARA:
         # sargen hel under brickan (brickan i en ficka, inte i en öppen skåra genom hela sargen) och upp mot filten,
         # så att ingen springa syns under mässingslisten längs dealerkanten
         ficka = FZ - bricka_nara(tr, c_bricka, m_tray, m_brass) - 0.001
@@ -556,42 +627,51 @@ def main():
     else:
         prism('bord_sarg', pts, FZ + sg['underkant'], FZ + sg['underlagg'], c_bord, m_wood)
     band('bord_massingslinje', outline()[0] if NARA else pts, FZ + sg['massingslinje'][0], FZ + sg['massingslinje'][1], 0.0008, c_bord, m_brass)
-    rail(c_bord, m_leather)
+    rail_live(c_bord, m_leather) if LIVE else rail(c_bord, m_leather)
     lg = B['ben']; legh = FZ + sg['underkant'] - lg['platta_hojd']
     for sx in (-1, 1):
         cylinder(f'bord_ben_{"v" if sx < 0 else "h"}', (sx * lg['x'], -lg['s'], lg['platta_hojd'] + legh / 2), lg['radie_fot'], lg['radie_topp'], legh, c_bord, m_wood)
         cylinder(f'bord_benplatta_{"v" if sx < 0 else "h"}', (sx * lg['x'], -lg['s'], lg['platta_hojd'] / 2), lg['platta_radie'], lg['platta_radie'], lg['platta_hojd'], c_bord, m_brass)
 
-    # ---- markerbricka: låda nedsänkt i urtaget, chips på kant i rader längs Y
-    x0, x1, s0, s1, dep = tr['x0'], tr['x1'], tr['s0'], tr['s1'], tr['djup']; wall = 0.004
-    if not NARA:  # med --kant-bak byggs brickan av bricka_nara() ovan
-        box('bricka_botten', (x1 - x0, s1 - s0, 0.004), ((x0 + x1) / 2, -(s0 + s1) / 2, FZ - dep), c_bricka, m_tray)
-        for nm, sz, lc in (('bricka_vagg_v', (wall, s1 - s0, dep), (x0 + wall/2, -(s0+s1)/2, FZ - dep/2)),
-                           ('bricka_vagg_h', (wall, s1 - s0, dep), (x1 - wall/2, -(s0+s1)/2, FZ - dep/2)),
-                           ('bricka_vagg_fram', (x1 - x0, wall, dep), ((x0+x1)/2, -s1 + wall/2, FZ - dep/2)),
-                           ('bricka_vagg_bak', (x1 - x0, wall, dep), ((x0+x1)/2, -s0 - wall/2, FZ - dep/2))):
-            box(nm, sz, lc, c_bricka, m_tray)
-        rim = tr.get('kant_bredd', 0.007)
-        box('bricka_ram_v', (rim, s1 - s0 + rim, 0.0028), (x0 - rim/2 + 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
-        box('bricka_ram_h', (rim, s1 - s0 + rim, 0.0028), (x1 + rim/2 - 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
-        box('bricka_ram_fram', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s1 - rim/2 + 0.001, FZ + 0.0009), c_bricka, m_brass)
-        box('bricka_ram_bak', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s0 - rim/2, FZ + 0.0009), c_bricka, m_brass)
-    chipcol = {5: (0.55, 0.03, 0.03, 1), 25: (0.02, 0.32, 0.08, 1), 100: (0.02, 0.02, 0.02, 1), 500: (0.3, 0.05, 0.42, 1), 1000: (0.85, 0.55, 0.05, 1)}
-    rows = tr['rad_valorer']; pitch = (x1 - x0 - 2 * wall) / len(rows); cr, chh = tr['chip_radie'], tr['chip_hojd']
-    nchips = 20; L = nchips * chh
-    for i, v in enumerate(rows):
-        x = x0 + wall + pitch * (i + 0.5); s_end = s1 - wall - 0.002
-        m = pbr(f'chip_{v}', chipcol[v], rough=0.4)
-        cylinder(f'bricka_rad_{i+1:02d}_{v}', (x, -(s_end - L / 2), FZ - 0.002 - cr), cr, cr, L, c_bricka, m, seg=32, axis='Y')
+    # ---- markerbricka: låda nedsänkt i urtaget, chips på kant i rader längs Y (livebordet: ingen, utom med --med-bricka)
+    if tr is not None:
+        x0, x1, s0, s1, dep = tr['x0'], tr['x1'], tr['s0'], tr['s1'], tr['djup']; wall = 0.004
+        if not NARA:  # med --kant-bak byggs brickan av bricka_nara() ovan
+            box('bricka_botten', (x1 - x0, s1 - s0, 0.004), ((x0 + x1) / 2, -(s0 + s1) / 2, FZ - dep), c_bricka, m_tray)
+            for nm, sz, lc in (('bricka_vagg_v', (wall, s1 - s0, dep), (x0 + wall/2, -(s0+s1)/2, FZ - dep/2)),
+                               ('bricka_vagg_h', (wall, s1 - s0, dep), (x1 - wall/2, -(s0+s1)/2, FZ - dep/2)),
+                               ('bricka_vagg_fram', (x1 - x0, wall, dep), ((x0+x1)/2, -s1 + wall/2, FZ - dep/2)),
+                               ('bricka_vagg_bak', (x1 - x0, wall, dep), ((x0+x1)/2, -s0 - wall/2, FZ - dep/2))):
+                box(nm, sz, lc, c_bricka, m_tray)
+            rim = tr.get('kant_bredd', 0.007)
+            box('bricka_ram_v', (rim, s1 - s0 + rim, 0.0028), (x0 - rim/2 + 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
+            box('bricka_ram_h', (rim, s1 - s0 + rim, 0.0028), (x1 + rim/2 - 0.001, -(s0 + s1 + rim)/2, FZ + 0.0009), c_bricka, m_brass)
+            box('bricka_ram_fram', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s1 - rim/2 + 0.001, FZ + 0.0009), c_bricka, m_brass)
+            box('bricka_ram_bak', (x1 - x0 + 2*rim, rim, 0.0028), ((x0+x1)/2, -s0 - rim/2, FZ + 0.0009), c_bricka, m_brass)
+        chipcol = {5: (0.55, 0.03, 0.03, 1), 25: (0.02, 0.32, 0.08, 1), 100: (0.02, 0.02, 0.02, 1), 500: (0.3, 0.05, 0.42, 1), 1000: (0.85, 0.55, 0.05, 1)}
+        rows = tr['rad_valorer']; pitch = (x1 - x0 - 2 * wall) / len(rows); cr, chh = tr['chip_radie'], tr['chip_hojd']
+        nchips = 20; L = nchips * chh
+        for i, v in enumerate(rows):
+            x = x0 + wall + pitch * (i + 0.5); s_end = s1 - wall - 0.002
+            m = pbr(f'chip_{v}', chipcol[v], rough=0.4)
+            cylinder(f'bricka_rad_{i+1:02d}_{v}', (x, -(s_end - L / 2), FZ - 0.002 - cr), cr, cr, L, c_bricka, m, seg=32, axis='Y')
 
     # ---- markeringar: guldram runt varje kortplats. Spelet lägger korten rakt (yaw 0). På standarddockans bord
     # (--docka, standard.yaml dockans_bord.kort_mot_spelaren; Jakob 2026-11-26: "fyrkanter som pekar mot respektive
     # stol", på prov) ligger spelarnas platser vända mot sin spelare: ramen och exempelkortet vrids kring platsens mitt
     # så att långsidan följer riktning_mot_dealer, linjen från dealern genom platsen; dealerns egna ligger rakt.
+    # Livebordet (--live): ramarna där korten landar (livebord.platser), vridna som de låg (yaw_kort); det tredje kortet,
+    # som landar ovanpå de två första, får ingen egen ram.
     K = STD['kort']; mg, lw = K['markering']['marginal'], K['markering']['linjebredd']
+    PL = LV['platser'] if LIVE else STD['platser']
     vanda = DOCKA and STD['dockans_bord'].get('kort_mot_spelaren')
-    vridning = lambda pid: math.radians(STD['platser'][pid]['riktning_mot_dealer'] - 90.0) if vanda and pid.startswith('P') else 0.0
-    for pid, p in STD['platser'].items():
+    if LIVE:
+        vridning = lambda pid: math.radians(PL[pid]['yaw_kort'])
+    else:
+        vridning = lambda pid: math.radians(STD['platser'][pid]['riktning_mot_dealer'] - 90.0) if vanda and pid.startswith('P') else 0.0
+    for pid, p in PL.items():
+        if LIVE and pid.endswith('.C3'):
+            continue
         cx, cy = p['pos'][0], p['pos'][1]; hw, hl = K['bredd']/2 + mg, K['langd']/2 + mg; vr = vridning(pid)
         vrid = lambda q: (cx + (q[0]-cx)*math.cos(vr) - (q[1]-cy)*math.sin(vr), cy + (q[0]-cx)*math.sin(vr) + (q[1]-cy)*math.cos(vr))
         bm = bmesh.new()
@@ -605,9 +685,9 @@ def main():
             if f.normal.z < 0:
                 f.normal_flip()
         ob = obj_from_bm('markering_' + pid, bm, c_mark, m_gold); ob['plats'] = pid
-    if 'bet_ringar' in STD:
+    if 'bet_ringar' in STD:  # livebordet: våra ringar där dess insatsmärken är
         br = STD['bet_ringar']; rr, blw = br['radie'], br['linjebredd']
-        for bid, bp in br['platser'].items():
+        for bid, bp in (LV['insatsmarken'] if LIVE else br['platser']).items():
             bx, by = bp[0], bp[1]; bm = bmesh.new(); seg = 48
             vo = [bm.verts.new((bx + (rr + blw/2)*math.cos(2*math.pi*i/seg), by + (rr + blw/2)*math.sin(2*math.pi*i/seg), FZ + 0.0002)) for i in range(seg)]
             vi = [bm.verts.new((bx + (rr - blw/2)*math.cos(2*math.pi*i/seg), by + (rr - blw/2)*math.sin(2*math.pi*i/seg), FZ + 0.0002)) for i in range(seg)]
@@ -634,7 +714,7 @@ def main():
     meb = card_mesh('kort_baksida', back_cell, back_cell); meb.materials.append(m_card); meb.materials.append(m_edge)
 
     # ---- sko: kilen ur standard.yaml med en riktig dealerskos frontplatta framför korten (sko_front ovan)
-    sk = STD['sko']; front = Vector(sk['fot_fram']); yawb = math.radians(sk['yaw_bakat'])
+    sk = LV['sko'] if LIVE else STD['sko']; front = Vector(sk['fot_fram']); yawb = math.radians(sk['yaw_bakat'])
     ax = Vector((math.cos(yawb), math.sin(yawb), 0)); side = Vector((-ax.y, ax.x, 0))
     # --sko-ut längs skons längd och --sko-fram vinkelrätt mot spelarna (-side: side pekar mot den bortre väggen, mot
     # dealern): allt som hör till skon flyttas lika långt. Kroppen och frontplattan byggs där standard.yaml har dem och
@@ -668,7 +748,12 @@ def main():
     # den heter inte kort_*, eftersom editorn (standarddocka/editor/scen.ts) döljer bordets lösa kort med det namnet,
     # och då syntes buntens vita kant i stället för skons rygg.
     mes = card_mesh('sko_kortrygg', back_cell, back_cell); mes.materials.append(m_card); mes.materials.append(m_edge)
-    up = Vector(sk['fonsterkort_upp']).normalized(); ac = Vector(sk['fonsterkort_tvars']).normalized(); nrm = ac.cross(up)
+    # kortets långsida (meshens Y) uppför plattan och kortsidan (X) tvärs skon; i livebordets sko tvärtom (livebord.sko)
+    if LIVE:
+        up = Vector(sk['fonsterkort_langsida']).normalized(); ac = Vector(sk['fonsterkort_kortsida']).normalized()
+    else:
+        up = Vector(sk['fonsterkort_upp']).normalized(); ac = Vector(sk['fonsterkort_tvars']).normalized()
+    nrm = ac.cross(up)
     if nrm.dot(ax) > 0:  # normalen ska peka ut ur skon (framåt), med bevarad högerhandad matris (det=+1)
         ac = -ac; nrm = -nrm
     rot = Matrix((ac, up, nrm)).transposed().to_4x4()
@@ -687,7 +772,7 @@ def main():
     bunt['kort'] = ncards
 
     # ---- kassering
-    ks = STD['kassering']; w, d, h = ks['yttermatt']; t = ks['vaggtjocklek']; fm = Vector(ks['fot_mitt']); yk = math.radians(ks['yaw'])
+    ks = LV['kassering'] if LIVE else STD['kassering']; w, d, h = ks['yttermatt']; t = ks['vaggtjocklek']; fm = Vector(ks['fot_mitt']); yk = math.radians(ks['yaw'])
     fm = fm + Vector((-sko_flytt.x, sko_flytt.y, 0))  # speglad mot skon: lika långt utåt på dealerns högra sida
     kparts = [('botten', (w, d, t), (0, 0, t/2)), ('vagg_v', (t, d, h), (-w/2 + t/2, 0, h/2)), ('vagg_h', (t, d, h), (w/2 - t/2, 0, h/2)),
               ('vagg_fram', (w, t, h), (0, -d/2 + t/2, h/2)), ('vagg_bak', (w, t, h), (0, d/2 - t/2, h/2))]
@@ -698,10 +783,10 @@ def main():
     # ---- exempelgiv: ett kort per C1 och dealerns två (länkade kopior = instanser)
     demo = {'P1.C1': 'HA', 'P2.C1': 'S10', 'P3.C1': 'D7', 'P4.C1': 'CK', 'P5.C1': 'H5', 'P6.C1': 'SQ', 'P7.C1': 'D9', 'D.C1': 'C8'}
     for pid, card in demo.items():
-        p = STD['platser'][pid]; ob = bpy.data.objects.new('giv_' + pid, meshes[card]); c_giv.objects.link(ob)
+        p = PL[pid]; ob = bpy.data.objects.new('giv_' + pid, meshes[card]); c_giv.objects.link(ob)
         ob.location = (p['pos'][0], p['pos'][1], FZ + 0.0002); ob['plats'] = pid; ob.rotation_euler = (0, 0, vridning(pid))
     ob = bpy.data.objects.new('giv_D.C2', meb); c_giv.objects.link(ob)
-    p = STD['platser']['D.C2']; ob.location = (p['pos'][0], p['pos'][1], FZ + 0.0002 + K['tjocklek']); ob.rotation_euler = (0, math.pi, 0)
+    p = PL['D.C2']; ob.location = (p['pos'][0], p['pos'][1], FZ + 0.0002 + K['tjocklek']); ob.rotation_euler = (0, math.pi, vridning('D.C2') if LIVE else 0)
 
     # ---- origo-markör och anteckning
     em = bpy.data.objects.new('ORIGO_golv_under_dealerkant', None); top.objects.link(em); em.empty_display_type = 'ARROWS'; em.empty_display_size = 0.2
@@ -714,11 +799,17 @@ def main():
         em['sko_ut'] = SKO_UT  # skon och kasseringslådan så långt utåt längs sina längder från standard.yaml:s plats
     if SKO_FRAM is not None:
         em['sko_fram'] = SKO_FRAM  # och så långt vinkelrätt ut mot spelarna
+    if LIVE:
+        em['livebord'] = 'standard.yaml livebord'  # origo på golvet under livebordets dealerkant, i dess egen linsvärld
+        if MED_BRICKA:
+            em['med_bricka'] = 'vår markerbricka, ett tillägg: livebordet har ingen'
 
     ASSETS.mkdir(parents=True, exist_ok=True)
     # Ett annat avstånd än 0,15 m får sitt eget namn (standardbord_nara23), så att bordet de äldre rörelserna visas vid står kvar.
     nara_namn = 'standardbord_nara' if not NARA or abs(KANT_BAK - 0.15) < 1e-9 else 'standardbord_nara%d' % round(KANT_BAK * 100)
     namn = 'bord_02' if MODELL == 'bord-02' else ('standardbord_' + NAMN if NAMN else (nara_namn if NARA else 'standardbord'))
+    if LIVE:
+        namn = 'standardbord_live_bricka' if MED_BRICKA else 'standardbord_live'
     bpy.ops.file.make_paths_relative() if bpy.data.filepath else None
     bpy.ops.wm.save_as_mainfile(filepath=str(ASSETS / (namn + '.blend')), relative_remap=True)
     bpy.ops.file.make_paths_relative(); bpy.ops.wm.save_mainfile()
@@ -735,7 +826,7 @@ def main():
         raise SystemExit('kunde inte byta in %s (filen är upptagen); den nya ligger i %s' % (glb, ny))
     print('BYGGT', ASSETS / namn, 'modell', MODELL, *(['kant-bak', KANT_BAK] if NARA else []),
           *(['djup', DJUP] if DJUP is not None else []), *(['sko-ut', SKO_UT] if SKO_UT is not None else []),
-          *(['sko-fram', SKO_FRAM] if SKO_FRAM is not None else []))
+          *(['sko-fram', SKO_FRAM] if SKO_FRAM is not None else []), *(['live'] if LIVE else []), *(['med-bricka'] if MED_BRICKA else []))
 
 
 main()

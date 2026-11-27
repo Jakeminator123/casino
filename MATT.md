@@ -73,6 +73,33 @@ De sju platsernas kameror är spelets vy flyttad till varje plats: lika hög och
 |  | spelets kamera över golvet | 1,53 m (1,5 m med 3D-scenens golv) | syns inte i bilden, inte mätt | — | `table-lens.ts PLAY_LENS.height, TABLE_BASE.floor` |  |
 |  | inspelningens kamera över golvet | 2,06 m | syns inte i bilden, inte mätt | — | `table-lens.ts TABLE_LENS.height, TABLE_BASE.floor` |  |
 
+**Vår klon av livebordet (i koden).** Livebordet som en andra uppsättning bredvid standarden (`blackjack-dealer/src/table-live.ts LIVE`), i livebordets egen linsvärld (kameran rakt över origo), kopierad ur mätningen (`live-bj/data/uppsattning.json`) och byggd i Blender med `bygg_bord.py --live`. Skillnaden är klonen minus mätningen och ska vara noll; det som inte är mätt är vårt eget mått, märkt antaget.
+
+| Sak | Mått | Klonen (i koden) | Mätt på film | Skillnad | Hur säkert | Källa |
+| --- | --- | --- | --- | --- | --- | --- |
+| Kameran | höjd över filten | 0,6175 m | 0,6175 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE_CAMERA` |
+|  | lutning nedåt; rullning | 18,13°; −0,16° | 18,13°; −0,16° | ±0° | mätt | `table-live.ts LIVE_CAMERA` |
+|  | brännvidd och bild | 1290,3 bildpunkter, 1728 × 972 bildpunkter (1,78 : 1) | 1290,3 bildpunkter, 1728 × 972 bildpunkter (1,78 : 1) | ±0 (±0 %) | mätt | `table-live.ts LIVE_CAMERA` |
+| Filten | djup; bredd vid kanten mot dealern | 0,714 m; 1,459 m | 0,714 m; 1,459 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE.felt` |
+|  | bågens radie; mitten bakom kanten | 0,7295 m; 1,56 cm | 0,7295 m; 1,56 cm | ±0 m (±0 %) | mätt | `table-live.ts LIVE.felt` |
+|  | kanten mot dealern från kamerans fot | 1,5375 m | 1,5375 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE.edge` |
+| Rullen | bredd utanför filten | 10 cm | — (bara i bildpunkter) | — | antaget (vår) | `table-live.ts LIVE.rail` |
+| Skon | fotens längd × bredd | 0,274 m × 0,103 m | 0,274 m × 0,103 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE.shoe` |
+|  | fotens tre hörn: största avstånd |  |  | 0 mm | mätt | `table-live.ts LIVE.shoe.foot` |
+|  | höjd bak; frontens topp | 0,117 m; 0,108 m (skattat: om fronten stod lodrätt) | 0,117 m; 0,108 m om lodrät | ±0 m (±0 %) | mätt; skattat | `table-live.ts LIVE.shoe` |
+|  | frontens lutning; kortets underkant över filten | 51,6°; 22 mm | — (inte mätt) | — | antaget (vårt) | `table-live.ts LIVE.shoe` |
+|  | nästa kort: mitten (klonen) mot mitten av det som syns i mynningen (mätt, lagt på filten) | 0,473 m åt sidan, 0,094 m från kanten, 4,7 cm över filten | 0,399 m åt sidan, 0,129 m från kanten | 0,082 m isär | det som syns mätt; kortets läge antaget | `table-live.ts liveShoeCard, LIVE.shoe.seen` |
+| Lådan för använda kort | fotens mått; höjden | 0,076 m × 0,093 m; 0,1575 m | 0,076 m × 0,093 m; 0,159 m och 0,156 m | ±0 m (±0 %) | mätt | `table-live.ts LIVE.box` |
+|  | mitten åt sidan; från kanten | −0,611 m; 0,035 m |  | hörnen 0 mm | mätt | `table-live.ts liveBox` |
+| Markerbrickan |  | ingen (vår kan läggas till i Blender som ett tillägg: bygg_bord.py --live --med-bricka) | ingen | — | mätt | `table-live.ts LIVE.tray` |
+| Insatsmärkena | sju, största avstånd | plats 4 0,63 m från kanten |  | 0 mm | mätt | `table-live.ts LIVE.betMarks` |
+| Kortplatserna | 19 st, största avstånd | dealerns kort 1 0,177 m och plats 4 kort 1 0,512 m från kanten | 19 st | 0 mm | mätt | `table-live.ts LIVE.cards` |
+|  | långsidans vridning | 12 mätta, 7 ur den speglade platsen (landningarna var inte eniga) |  |  | mätt; spegelbild | `table-live.ts LIVE.cards[id].turnFrom` |
+| Dealern (sitter) | Dealer A, ser i kameran: axlarnas mitt över filten; axelbredd; ögonen | 0,318 m; 0,357 m; 0,509 m | 0,318 m; 0,357 m; 0,509 m | ±0 m (±0 %) | mätt (på ett plan antaget bakom kanten) | `table-live.ts LIVE.dealer.styles.kameran` |
+|  | Dealer B, ser på bordet: axlarnas mitt över filten; axelbredd; ögonen | 0,31 m; 0,348 m; 0,514 m | 0,31 m; 0,348 m; 0,514 m | ±0 m (±0 %) | mätt (på ett plan antaget bakom kanten) | `table-live.ts LIVE.dealer.styles.bordet` |
+|  | bålen bakom kanten | 0,2 m (antaget); skattat 0,065 m och 0,158 m |  |  | antaget | `table-live.ts LIVE.dealer.behindEdge` |
+| Golvet | filten över golvet; sitsen | 0,95 m (±0,1); 0,67 m | 0,95 m; 0,67 m | ±0 m (±0 %) | slutlett | `table-live.ts LIVE.floor` |
+
 ## 3. Var korten hamnar
 
 Kortplatserna i Jakobs kortplan (`placements/default.json`), kortets mitt. P är spelarnas platser och C kortets nummer, D dealerns egna. Läget räknas ur planens bildpunkter genom inspelningens kamera (`world.ts spots`) och står i linsvärlden, i meter: x åt sidan (plus åt dealerns vänster), z i djupled (kameran står i z = 0 och ser mot minus, mot dealern; filten är y = 0). Dockornas bord har samma kortplatser som filmernas, bara vridna mot spelaren (`doll.ts dollCardYaw`, `table-lens.ts DOLL_TABLE.cardsFrom`), och kanten 0,23 m längre bort. Vridningen är kortets långsida från rakt fram, plus åt dealerns vänster.
@@ -333,9 +360,9 @@ Slag som de riktiga dealrarna gör men som katalogen inte har:
 - Skons lutning: skon står plant på filten; bara frontplattan lutar (51,6°, `table-lens.ts SHOE.plateLean`). Korten i skon har ingen egen lutning: de ligger mot plattan och lutar som den.
 - Kortets vändning i handbytet har inget eget tal i koden: koreo-giv.ts säger "cirka 90 grader" i en kommentar, och Jakob sa "cirka 100 grader".
 - Handledens gräns 36 grader i DOMAR.md är ett resultat på de vända platserna, inte ett tal i koden; koden håller handen inom RAK och RAK_H (koreo-giv.ts, ovan).
-- Livebordets sko: frontplattans lutning, skons höjd och mynningens vinkel (plattan står upp från filten och är bara mätt i bildpunkter). Livebordets markerbricka, insatsringar, kortrutor och deras vridning, och sargen, är inte mätta; platsmärkena är spelets ritade märken i bilden.
-- Livebordets dealrar: var de sitter (hur långt bakom kanten), axlarnas höjd över filten och armarnas längd är inte mätta. Mätningen räknar med att axlarna står 0,2 m bakom kanten; det är ett antagande i stil-filernas text, inget mått.
-- Livebordet: inga höjder från golvet (filten, bordet, stolen, dealern, kameran). Golvet syns inte i bilden, så det är inte mätt.
+- Livebordets sko: frontens lutning är inte mätt (klonen har vår, `table-live.ts LIVE.shoe.plateLean`), och var nästa kort ligger på den är därför antaget. Sargen (rullen) är bara mätt i bildpunkter. Livebordet har ingen markerbricka; platsmärkena är spelets ritade knappar i bilden.
+- Livebordets dealrar: hur långt bakom kanten de sitter är antaget (0,2 m; skattat 0,07–0,16 m), och armarnas längd går inte att mäta (dockans egna används).
+- Livebordet: golvet syns inte i bilden; filtens och sitsens höjd över golvet är slutledda ur dealrarnas ögon när de står, inte mätta.
 - Mannens och kvinnans ögon har ingen höjd i koden: ögonen är ben i modellerna (eyeL, eyeR i .glb-filerna), och närmast i koden är huvudets mitt. Blenders kamera dealer_ogon i standard.yaml är antagen, för den vita dockan.
 - Stolens höjd: dockans rum sätter stolen under hennes lår när bilden ritas (standard-room.ts seatStool), så den har inget fast tal; det enda talet är standard.yaml:s antagna sits för den vita dockan. Golvet står olika: 0,95 m under filten i standarden (table-lens.ts TABLE_BASE.floor, dockans rum och Blender) och 0,92 m i 3D-scenens rum och sal (scene3d-room.ts och scene3d-hall.ts FLOOR).
 - Antaget, inte mätt (`avatar-auto-pipeline/scen/standard.yaml`, skrivet av gen_standard.py): stolen, lådan för använda kort, kortbunten i skon, kortplatsernas ram, spelarnas platser och Blenders extra kameror (dealerns ögon, händerna, hela bordet, uppifrån).
@@ -366,6 +393,8 @@ Det verktyget läste. "kod" är importerat som programmet självt använder det;
 | `standarddocka/editor/scen.ts` | text (sidokameran: filen importerar three.js) | ja |
 | `avatar-auto-pipeline/scen/bygg_bord.py` | text (SKO_FRONT och skons väggar: står bara där) | ja |
 | `blackjack-dealer/src/scene3d-room.ts, scene3d-hall.ts` | text (FLOOR: exporteras inte) | ja |
+| `blackjack-dealer/src/table-live.ts` | kod | ja |
+| `live-bj/data/uppsattning.json` | data | ja |
 | `blackjack-dealer/dealer3d/data/giv-fran-2-3-p4c1-ren-a-man.json` | data | ja |
 | `blackjack-dealer/dealer3d/data/till-ankare-2-3-man.json` | data | ja |
 | `blackjack-dealer/dealer3d/data/giv-fran-2-3-p4c1-ren-a-kvinna.json` | data | ja |

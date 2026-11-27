@@ -54,5 +54,12 @@ const bord = {
   CHIP_RADIUS: chips.CHIP_RADIUS ?? chips.failed, CHIP_HEIGHT: chips.CHIP_HEIGHT, BET: geometry.BET,
 };
 
-writeFileSync(out, JSON.stringify({spelet, bord}, null, 1));
+// The live table's set-up beside the standard (src/table-live.ts, measured on film): scen/standard.yaml livebord, built
+// by scen/bygg_bord.py --live. Its own lens world: the live camera straight over the origin.
+const liveFile = await load('src/table-live.ts');
+const live = {
+  LIVE: liveFile.LIVE, frame: liveFile.liveFrame(), shoePose: liveFile.liveShoePose(), shoeCard: liveFile.liveShoeCard(), box: liveFile.liveBox(),
+};
+
+writeFileSync(out, JSON.stringify({spelet, bord, live}, null, 1));
 console.log(`Spelets mått lästa: ${Object.keys(spelet.targets).length} kortplatser, linsen ${lens.height.toFixed(4)} m över filten.`);

@@ -360,5 +360,79 @@ w('rackviddstest:  # punkter dockans händer ska nå (handled ovanför punkten)'
 w('  mal: ["sko.fonsterkort_mitt", "platser.D.C1", "platser.P1.C1", "platser.P7.C1"]')
 w(f'  handled_over_kort: {d["ASSUMED"]["knuckleLift"]}  # källa: {src["assumed"]} knuckleLift')
 
+# ---------------- LIVEBORDET (en andra uppsättning bredvid standarden; inget ovan beror på den)
+lv = dump.get('live')
+if lv:
+    LV, LF = lv['LIVE'], lv['frame']
+    LZ = LV['floor']['feltOverFloor']; ZL = LV['edge'][2]
+    def BL(p):  # livebordets linsvärld (kameran rakt över origo) -> Blender, origo på golvet under livebordets dealerkant
+        x, y, z = p; return [x, -(z - ZL), y + LZ]
+    ls = 'blackjack-dealer/src/table-live.ts'
+    cam, fe, sh, bx = LV['camera'], LV['felt'], LV['shoe'], LV['box']
+    w('')
+    w(f'livebord:  # ett riktigt livebord mätt på film (live-bj, 2026-11-27, preliminärt): en andra uppsättning bredvid standarden, som inget ovan beror på. källa: {ls} (LIVE); byggs med scen/bygg_bord.py --live')
+    w(f'  # Samma axlar som ovan, men origo är golvet rakt under livebordets dealerkant: X = x, Y = -(z - ({ZL})), Z = y + filt_z i livebordets linsvärld.')
+    w('  # mätt = mätt på filmen; skattat = mätt men svagt; slutlett = härlett ur andra mått, inte sett; antaget = vårt, tills det mäts.')
+    w(f'  filt_z: {LZ:.4f}  # slutlett, inte mätt (golvet syns aldrig): ur dealrarnas ögon när de står, ±{LV["floor"]["giveOrTake"]} m; {ls} LIVE.floor')
+    w(f'  dealerkant_lins_z: {ZL}  # mätt: dealerkantens z i livebordets linsvärld (LIVE.edge)')
+    w('  utseende: bord  # antaget: vårt standardbords filt, sarg, rulle, ben, färger och kortplatsramar (bord, kort och bet_ringar ovan); bara måtten är livebordets')
+    w('  kamera:  # mätt ur 29 kort på filten (0,54 bildpunkter per hörn); ärlig osäkerhet 5 % på brännvidden, 2-3 cm på höjden, 0,3 grader på lutningen. källa: LIVE.camera, liveFrame()')
+    w(f'    focal_px: {cam["focalPx"]}')
+    w(f'    bild_px: [{cam["film"]["width"]}, {cam["film"]["height"]}]')
+    w(f'    mitt_px: [{cam["centre"]["x"]}, {cam["centre"]["y"]}]  # där den optiska axeln möter bilden')
+    w(f'    pitch_grader: {deg(cam["pitch"]):.3f}  # nedåt')
+    w(f'    rull_grader: {deg(cam["roll"]):.3f}  # en vågrät linje på filten faller åt höger i bilden')
+    w(f'    hojd_over_filt: {cam["height"]}')
+    w(f'    sensor_mm: {sens}  # som lins.sensor_mm, sensor_fit HORIZONTAL')
+    w(f'    brannvidd_mm: {cam["focalPx"] / cam["film"]["width"] * sens:.4f}  # härlett: focal_px / bild_bredd * sensor_mm')
+    w(f'    pos: {fmt(BL(LF["position"]))}')
+    w(f'    fram: {fmt(Bdir(LF["forward"]), 6)}  # kamerans riktning')
+    w(f'    hoger: {fmt(Bdir(LF["right"]), 6)}  # bildens höger (med rullningen)')
+    w(f'    upp: {fmt(Bdir(LF["up"]), 6)}  # bildens upp (med rullningen)')
+    fc = BL(fe['centre'])
+    w('  filt:  # mätt: en halvcirkel med rak kant mot dealern (bågen en cirkel inom 1,8 mm över 1234 punkter). källa: LIVE.felt')
+    w(f'    mitt: [{fc[0]:.4f}, {fc[1]:.4f}]  # bågens mitt, {fc[1] * 100:.2f} cm bakom kanten')
+    w(f'    radie: {fe["radius"]}')
+    w(f'    halv_bredd_vid_kanten: {math.sqrt(fe["radius"] ** 2 - fc[1] ** 2):.4f}  # härlett')
+    w(f'    djup: {fe["depth"]}')
+    w(f'    rulle_utanfor: {LV["rail"]["width"]}  # antaget (vår, bord.vadderad_kant.bredd): rullen ligger utanför bågen, så att filten som syns är den mätta')
+    sp = lv['shoePose']; ft = sh['foot']; dirL = Bdir(sp['back']); yawL = deg(math.atan2(dirL[1], dirL[0])); sc = lv['shoeCard']
+    w('  sko:  # källa: LIVE.shoe, liveShoePose(), liveShoeCard()')
+    w(f'    fot_fram: {fmt(BL(ft["towardPlayers"]))}  # mätt: fotens främre hörn mot spelarna (hörnen lästa för ögat, 1-2 cm)')
+    w(f'    fot_horn: [{fmt(BL(ft["byDealer"]))}, {fmt(BL(ft["towardPlayers"]))}, {fmt(BL(ft["back"]))}]  # mätt: främre vid dealern, främre mot spelarna, bakre mot spelarna')
+    w(f'    yaw_bakat: {yawL:.3f}  # härlett ur foten: bakänden vriden mot dealern')
+    w(f'    langd: {sh["length"]}  # mätt (foten)')
+    w(f'    bredd: {sh["width"]}  # mätt (foten)')
+    w(f'    hojd_bak: {sh["backHeight"]}  # mätt ur bilden')
+    w(f'    hojd_fram: {sh["frontHeight"]}  # skattat: frontplattans topp om plattan stod lodrätt; byts med lutningen')
+    w(f'    platta_lutning_grader: {deg(sh["plateLean"]):.2f}  # antaget (vår, sko.platta_lutning_grader)')
+    w(f'    fonster_lyft: {sh["windowLift"]}  # antaget (vår, sko.fonster_lyft)')
+    w(f'    fonsterkort_mitt: {fmt(BL(sc["centre"]))}  # nästa kort, på den lutande fronten som i vår sko men med långsidan tvärs skon som det som syns i mynningen; läget är antaget och stämmer inte med mynning_sedd (LIVE.shoe, liveShoeCard)')
+    w(f'    fonsterkort_langsida: {fmt(Bdir(sc["long"]))}  # kortets långsida, tvärs skon')
+    w(f'    fonsterkort_kortsida: {fmt(Bdir(sc["short"]))}  # kortets kortsida, uppför fronten')
+    w(f'    mynning_sedd: [{", ".join(fmt(BL(p)) for p in sh["seen"])}]  # mätt: det som syns av nästa kort i mynningen, lagt på filten (4 x 10 cm)')
+    bc = lv['box']
+    w('  kassering:  # mätt: en klar låda vid dealerns högra hörn, öppen upptill. källa: LIVE.box, liveBox()')
+    w(f'    fot_mitt: {fmt(BL(bc["centre"]))}')
+    w(f'    yaw: {deg(bc["turn"]):.3f}')
+    w(f'    yttermatt: [{bx["width"]}, {bx["depth"]}, {bx["height"]:.4f}]  # foten mätt; höjden mätt ur bilden (0,156-0,159)')
+    w('    vaggtjocklek: 0.004  # antaget (vår, kassering.vaggtjocklek)')
+    w(f'  skarkort: {{mitt: {fmt(BL(LV["cutCard"]["middle"]))}, storlek: {fmt(LV["cutCard"]["size"])}}}  # mätt, men ligger bara ute ibland: byggs inte')
+    w('  markerbricka: ingen  # mätt: det finns ingen (markerna är spelets grafik); bygg_bord.py --live --med-bricka lägger vår (markerbricka ovan) vid kanten, märkt som vårt tillägg')
+    w('  insatsmarken:  # mätt: mitten av spelets platsknappar, plats 1 till vänster i bilden (dealerns höger). källa: LIVE.betMarks')
+    for i, p in enumerate(LV['betMarks']):
+        w(f'    P{i + 1}: {fmt(BL(p))}')
+    w('  platser:  # mätt: där korten först låg stilla, kortets mitt; yaw_kort = långsidans vridning i grader moturs uppifrån (0 = rakt mot spelaren). källa: LIVE.cards')
+    w('    # vinkel: mätt där landningarna är eniga om den, annars spegelbilden av samma kort på den speglade platsen (LIVE.cards[id].turnFrom)')
+    for pid, c in LV['cards'].items():
+        t = c['turn'] - 180 if c['turn'] > 90 else c['turn']
+        w(f'    {pid}: {{pos: {fmt(BL(c["at"]))}, yaw_kort: {t:.2f}, landningar: {c["landings"]}, vinkel: "{c["turnFrom"]}"}}')
+    dl = LV['dealer']
+    w(f'  dealer:  # mätt: han sitter, på en hög stol. Djupet är antaget ({dl["behindEdge"]} m bakom kanten); armarna går inte att mäta (dockans egna används). källa: LIVE.dealer')
+    w(f'    bakom_kant: {dl["behindEdge"]}  # antaget')
+    for nm, st in dl['styles'].items():
+        w(f'    {nm}: {{axlar_mitt: {fmt(BL(st["shouldersMiddle"]))}, axelbredd: {st["shoulderWidth"]}, ogon_over_filt: {st["eyesOverFelt"]}, bakom_kant_skattat: {st["behindEdgeEstimated"]}}}')
+    w(f'  golv: {{filt_over_golv: {LZ}, plus_minus: {LV["floor"]["giveOrTake"]}, sits_over_golv: {LV["floor"]["seatOverFloor"]}}}  # slutlett, inte mätt')
+
 (ROOT / 'scen' / 'standard.yaml').write_text('\n'.join(L) + '\n', encoding='utf-8')
 print(f'scen/standard.yaml skriven: {len(L)} rader.')

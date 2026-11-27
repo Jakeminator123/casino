@@ -274,6 +274,48 @@ r('', 'spelets kamera över golvet', `${m(GOLV + PLAY_LENS.height, 2)}${olikaGol
 r('', 'inspelningens kamera över golvet', m(GOLV + TABLE_LENS.height, 2), INTE, '—', k('table-lens.ts', 'TABLE_LENS.height, TABLE_BASE.floor'));
 ut.push(tabell(['Sak', 'Mått', 'Vårt (standarden)', LIVE, 'Skillnad', 'Källa', 'Jakobs dom'], bord));
 
+// Vår klon av livebordet: uppsättningen i koden (table-live.ts LIVE) bredvid mätningen den är kopierad ur
+// (live-bj/data/uppsattning.json). Skillnaden ska vara noll; står där något annat har mätningen ändrats sedan koden skrevs.
+const liveKod = await kod('blackjack-dealer/src/table-live.ts'), U = data('live-bj/data/uppsattning.json');
+if (liveKod?.LIVE) {
+  const L = liveKod.LIVE, rk: string[][] = [], q = (sak: string, matt: string, klon: string, matt2: string, skill: string, hur: string, kalla: string) => rk.push([sak, matt, klon, matt2, skill, hur, kalla]);
+  const HUR: Record<string, string> = {measured: 'mätt', estimated: 'skattat', inferred: 'slutlett', assumed: 'antaget'};
+  const hur = (o: any) => HUR[/^\w+/.exec(typeof o?.how === 'string' ? o.how : '')?.[0] ?? ''] ?? '—';
+  const storst = (a: number[][] | undefined, b: number[][] | undefined) => a && b && a.length === b.length ? Math.max(...a.map((p, i) => Math.hypot(p[0] - b[i][0], p[2] - b[i][2]))) : undefined;
+  const uc = U?.camera, uf = U?.felt, us = U?.shoe, ub = U?.box_for_used_cards, ud = U?.dealer, lk = (n: string) => k('table-live.ts', n);
+  const kantZ = -L.edge[2], franK = (p: number[]) => p[2] - L.edge[2];
+  q('Kameran', 'höjd över filten', m(L.camera.height, 4), visa(uc?.position?.[1], x => m(x, 4)), skillnad(L.camera.height, uc?.position?.[1], m), hur(uc), lk('LIVE_CAMERA'));
+  q('', 'lutning nedåt; rullning', `${gr(L.camera.pitch * DEG, 2)}; ${gr(L.camera.roll * DEG, 2)}`, ok(uc?.tilt_down_degrees) ? `${gr(uc.tilt_down_degrees, 2)}; ${gr(uc.roll_degrees, 2)}` : '—', skillnad(L.camera.pitch * DEG, uc?.tilt_down_degrees, gr, false), hur(uc), lk('LIVE_CAMERA'));
+  q('', 'brännvidd och bild', `${tal(L.camera.focalPx, 1)} bildpunkter, ${form(L.camera.film.width, L.camera.film.height)}`, ok(uc?.focal_px) ? `${tal(uc.focal_px, 1)} bildpunkter, ${form(uc.picture[0], uc.picture[1])}` : '—', skillnad(L.camera.focalPx, uc?.focal_px, x => tal(x, 1)), hur(uc), lk('LIVE_CAMERA'));
+  q('Filten', 'djup; bredd vid kanten mot dealern', `${m(L.felt.depth)}; ${m(L.felt.widthAtEdge)}`, ok(uf?.depth) ? `${m(uf.depth)}; ${m(uf.width_at_dealers_edge)}` : '—', skillnad(L.felt.depth, uf?.depth, m), hur(uf), lk('LIVE.felt'));
+  q('', 'bågens radie; mitten bakom kanten', `${m(L.felt.radius, 4)}; ${cm(L.felt.edgeZ - L.felt.centre[2], 2)}`, ok(uf?.arc_radius) ? `${m(uf.arc_radius, 4)}; ${cm(uf.dealers_edge_z - uf.arc_centre[2], 2)}` : '—', skillnad(L.felt.radius, uf?.arc_radius, m), hur(uf), lk('LIVE.felt'));
+  q('', 'kanten mot dealern från kamerans fot', m(kantZ, 4), visa(uf?.dealers_edge_z, x => m(-x, 4)), skillnad(kantZ, ok(uf?.dealers_edge_z) ? -uf.dealers_edge_z : undefined, m), hur(uf), lk('LIVE.edge'));
+  q('Rullen', 'bredd utanför filten', cm(L.rail.width), '— (bara i bildpunkter)', '—', 'antaget (vår)', lk('LIVE.rail'));
+  const fot = [L.shoe.foot.byDealer, L.shoe.foot.towardPlayers, L.shoe.foot.back], kortet = liveKod.liveShoeCard(L.shoe), sedd = L.shoe.seenMiddle;
+  q('Skon', 'fotens längd × bredd', `${m(L.shoe.length)} × ${m(L.shoe.width)}`, ok(us?.foot_length) ? `${m(us.foot_length)} × ${m(us.foot_width)}` : '—', skillnad(L.shoe.length, us?.foot_length, m), hur(us), lk('LIVE.shoe'));
+  q('', 'fotens tre hörn: största avstånd', '', '', visa(storst(fot, us?.foot), mm), hur(us), lk('LIVE.shoe.foot'));
+  q('', 'höjd bak; frontens topp', `${m(L.shoe.backHeight)}; ${m(L.shoe.frontHeight)} (skattat: om fronten stod lodrätt)`, ok(us?.back_height) ? `${m(us.back_height)}; ${m(us.front_plate_top_if_upright)} om lodrät` : '—', skillnad(L.shoe.backHeight, us?.back_height, m), 'mätt; skattat', lk('LIVE.shoe'));
+  q('', 'frontens lutning; kortets underkant över filten', `${gr(L.shoe.plateLean * DEG)}; ${mm(L.shoe.windowLift, 0)}`, '— (inte mätt)', '—', 'antaget (vårt)', lk('LIVE.shoe'));
+  q('', 'nästa kort: mitten (klonen) mot mitten av det som syns i mynningen (mätt, lagt på filten)', `${m(kortet.centre[0])} åt sidan, ${m(franK(kortet.centre))} från kanten, ${cm(kortet.centre[1])} över filten`, `${m(sedd[0])} åt sidan, ${m(franK(sedd))} från kanten`, `${m(Math.hypot(kortet.centre[0] - sedd[0], kortet.centre[2] - sedd[2]))} isär`, 'det som syns mätt; kortets läge antaget', lk('liveShoeCard, LIVE.shoe.seen'));
+  const lada = liveKod.liveBox(L.box);
+  q('Lådan för använda kort', 'fotens mått; höjden', `${m(L.box.width)} × ${m(L.box.depth)}; ${m(L.box.height, 4)}`, ok(ub?.foot_width) ? `${m(ub.foot_width)} × ${m(ub.foot_depth)}; ${ub.height.map((x: number) => m(x)).join(' och ')}` : '—', skillnad(L.box.width, ub?.foot_width, m), hur(ub), lk('LIVE.box'));
+  q('', 'mitten åt sidan; från kanten', `${m(lada.centre[0])}; ${m(franK(lada.centre))}`, '', visa(storst(L.box.foot, ub?.foot), x => `hörnen ${mm(x)}`), hur(ub), lk('liveBox'));
+  q('Markerbrickan', '', 'ingen (vår kan läggas till i Blender som ett tillägg: bygg_bord.py --live --med-bricka)', U?.chip_tray ? 'ingen' : '—', '—', hur(U?.chip_tray), lk('LIVE.tray'));
+  q('Insatsmärkena', 'sju, största avstånd', `plats 4 ${m(franK(L.betMarks[3]))} från kanten`, '', visa(storst(L.betMarks, U?.bet_marks?.seats), mm), hur(U?.bet_marks), lk('LIVE.betMarks'));
+  const ids = Object.keys(L.cards), uk = (id: string) => { const [p, c] = id.split('.'); return U?.card_places?.[p === 'D' ? 'himself' : `seat ${p.slice(1)}`]?.[`card_${c.slice(1)}`]; };
+  const kortAvst = ids.map(id => { const x = uk(id); return x ? Math.hypot(L.cards[id].at[0] - x.middle[0], L.cards[id].at[2] - x.middle[2]) : NaN; });
+  q('Kortplatserna', `${ids.length} st, största avstånd`, `dealerns kort 1 ${m(franK(L.cards['D.C1'].at))} och plats 4 kort 1 ${m(franK(L.cards['P4.C1'].at))} från kanten`, `${ids.filter(id => uk(id)).length} st`, kortAvst.every(Number.isFinite) ? mm(Math.max(...kortAvst)) : '—', hur(U?.card_places), lk('LIVE.cards'));
+  q('', 'långsidans vridning', `${ids.filter(id => L.cards[id].turnFrom === 'mätt').length} mätta, ${ids.filter(id => L.cards[id].turnFrom !== 'mätt').length} ur den speglade platsen (landningarna var inte eniga)`, '', '', 'mätt; spegelbild', lk('LIVE.cards[id].turnFrom'));
+  for (const [nm, st] of Object.entries(L.dealer.styles) as [string, any][]) {
+    const ut2 = ud?.[nm]?.trunk;
+    q(nm === 'kameran' ? 'Dealern (sitter)' : '', `${nm === 'kameran' ? LIVE_A : LIVE_B}: axlarnas mitt över filten; axelbredd; ögonen`, `${m(st.shouldersMiddle[1])}; ${m(st.shoulderWidth)}; ${m(st.eyesOverFelt)}`, ok(ut2?.shoulder_width) ? `${m(ut2.shoulders_middle[1])}; ${m(ut2.shoulder_width)}; ${m(ut2.eyes_over_felt)}` : '—', skillnad(st.shoulderWidth, ut2?.shoulder_width, m), 'mätt (på ett plan antaget bakom kanten)', lk(`LIVE.dealer.styles.${nm}`));
+  }
+  q('', 'bålen bakom kanten', `${m(L.dealer.behindEdge)} (antaget); skattat ${Object.values(L.dealer.styles).map((st: any) => m(st.behindEdgeEstimated)).join(' och ')}`, '', '', 'antaget', lk('LIVE.dealer.behindEdge'));
+  q('Golvet', 'filten över golvet; sitsen', `${m(L.floor.feltOverFloor, 2)} (±${tal(L.floor.giveOrTake, 2)}); ${m(L.floor.seatOverFloor, 2)}`, ok(U?.floor?.felt_over_floor) ? `${m(U.floor.felt_over_floor, 2)}; ${m(U.floor.seat_over_floor, 2)}` : '—', skillnad(L.floor.feltOverFloor, U?.floor?.felt_over_floor, m), hur(U?.floor), lk('LIVE.floor'));
+  ut.push('', `**Vår klon av livebordet (i koden).** Livebordet som en andra uppsättning bredvid standarden (${k('blackjack-dealer/src/table-live.ts', 'LIVE')}), i livebordets egen linsvärld (kameran rakt över origo), kopierad ur mätningen (${k('live-bj/data/uppsattning.json')}) och byggd i Blender med ${k('bygg_bord.py', '--live')}. Skillnaden är klonen minus mätningen och ska vara noll; det som inte är mätt är vårt eget mått, märkt antaget.`, '',
+    tabell(['Sak', 'Mått', 'Klonen (i koden)', 'Mätt på film', 'Skillnad', 'Hur säkert', 'Källa'], rk));
+} else saknas.push('Vår klon av livebordet: `blackjack-dealer/src/table-live.ts` gick inte att läsa.');
+
 // ==== 3. Var korten hamnar ==========================================================================================
 // En rad per kortplats i Jakobs kortplan: läget på filten, vridningen, och bildpunkten genom spelets vy och genom
 // inspelningens kamera, räknade ur kamerorna i koden (see och filmEye i table-lens.ts), så att de följer med när en vy ändras.
@@ -577,9 +619,9 @@ saknas.unshift(
   `Skons lutning: skon står plant på filten; bara frontplattan lutar (${gr(SHOE.plateLean * DEG)}, \`table-lens.ts SHOE.plateLean\`). Korten i skon har ingen egen lutning: de ligger mot plattan och lutar som den.`,
   'Kortets vändning i handbytet har inget eget tal i koden: koreo-giv.ts säger "cirka 90 grader" i en kommentar, och Jakob sa "cirka 100 grader".',
   'Handledens gräns 36 grader i DOMAR.md är ett resultat på de vända platserna, inte ett tal i koden; koden håller handen inom RAK och RAK_H (koreo-giv.ts, ovan).',
-  'Livebordets sko: frontplattans lutning, skons höjd och mynningens vinkel (plattan står upp från filten och är bara mätt i bildpunkter). Livebordets markerbricka, insatsringar, kortrutor och deras vridning, och sargen, är inte mätta; platsmärkena är spelets ritade märken i bilden.',
-  'Livebordets dealrar: var de sitter (hur långt bakom kanten), axlarnas höjd över filten och armarnas längd är inte mätta. Mätningen räknar med att axlarna står 0,2 m bakom kanten; det är ett antagande i stil-filernas text, inget mått.',
-  'Livebordet: inga höjder från golvet (filten, bordet, stolen, dealern, kameran). Golvet syns inte i bilden, så det är inte mätt.',
+  'Livebordets sko: frontens lutning är inte mätt (klonen har vår, `table-live.ts LIVE.shoe.plateLean`), och var nästa kort ligger på den är därför antaget. Sargen (rullen) är bara mätt i bildpunkter. Livebordet har ingen markerbricka; platsmärkena är spelets ritade knappar i bilden.',
+  'Livebordets dealrar: hur långt bakom kanten de sitter är antaget (0,2 m; skattat 0,07–0,16 m), och armarnas längd går inte att mäta (dockans egna används).',
+  'Livebordet: golvet syns inte i bilden; filtens och sitsens höjd över golvet är slutledda ur dealrarnas ögon när de står, inte mätta.',
   'Mannens och kvinnans ögon har ingen höjd i koden: ögonen är ben i modellerna (eyeL, eyeR i .glb-filerna), och närmast i koden är huvudets mitt. Blenders kamera dealer_ogon i standard.yaml är antagen, för den vita dockan.',
   `Stolens höjd: dockans rum sätter stolen under hennes lår när bilden ritas (standard-room.ts seatStool), så den har inget fast tal; det enda talet är standard.yaml:s antagna sits för den vita dockan.${olikaGolv.length ? ` Golvet står olika: ${m(GOLV, 2)} under filten i standarden (table-lens.ts TABLE_BASE.floor, dockans rum och Blender) och ${[...new Set(olikaGolv.map(y => m(y.golv, 2)))].join(' / ')} i 3D-scenens rum och sal (scene3d-room.ts och scene3d-hall.ts FLOOR).` : ''}`,
   'Antaget, inte mätt (`avatar-auto-pipeline/scen/standard.yaml`, skrivet av gen_standard.py): stolen, lådan för använda kort, kortbunten i skon, kortplatsernas ram, spelarnas platser och Blenders extra kameror (dealerns ögon, händerna, hela bordet, uppifrån).',
