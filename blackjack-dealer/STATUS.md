@@ -18,6 +18,27 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   `dealer3d/tools/lyft-till-docka.ts` (ur `../live-bj/data/lyft/`) till `dealer3d/data/lyft-<docka>-*.json`: givar från
   ankaret vid skon (A2.3) och tillbaka dit, vägarna till skon och hem, och två väntor. `dealer3d/tools/lyft-kolla.ts`
   spärrar ryck och fel.
+- **Spegla i studion** (`/studio/spegla/`, i menyn efter Mått och som knapp i Dockan): Youtubefilmens bordsbild och
+  vår vy ligger på varandra ruta för ruta, med ett drag mellan dem, en delad bild och ett läge bredvid. Filmen
+  strömmas ur `../live-bj/` av den lokala servern och kopieras aldrig; `tools/spegla-routes.test.ts` håller den borta
+  från kopian på nätet. Dockans ruta paras med filmens tid ur lyftets egna data. Det är så en rörelse, ett bord och
+  en kamera prövas mot källan (Jakob 2026-11-27: "Jag vill kunna spegla vår vy/bord/dealer/kort/kameravinkel mot
+  youtubeklippet"). Förstoringar bredvid varandra ligger i `../live-bj/rutor/jamfor/` (bara på datorn).
+- **Bordet och rummet som filmens:** relingen är mätt ur filmen (`../live-bj/verktyg/reling.py`): 6,5 cm bred, inte
+  de antagna 10, och rullen går också längs dealerns kant, med en hylla bakom vid hans högra sida. Vår reling ligger
+  på filmens inom 4 bildpunkter. Spelets 3D-kant, editorns armregel och spärr läser samma tal (`LIVE.rail`). Linjen
+  bakom dealern var kanten på editorns golv och är borta. Plattorna för efterarbetet ligger i
+  `../standarddocka/klipp/platta-bord-ensamt.png` och `platta-bord-med-sko.png`.
+- **Händerna som dealerns, pågår.** Det Jakob såg i speglingen: dealern håller kortet med tummen (dockan pekade med
+  pekfingret, vår egen regel), och i bytet ligger högern kvar platt på filten medan vänstern skjuter kortet plant
+  fram till dess fingertoppar och reser det på kant med tummen. Det är nu byggt i `dealer3d/tools/lyft-till-docka.ts`.
+  Domarens femte dom, i tre gångers förstoring ruta för ruta (domarens ord): Inte bra, nära Nja. Landningen och
+  tummen stämmer i läge; kvar är att högern ska vara sluten och stilla till ruta 29, att handen ska vara en riktig
+  näve med tummen 12–15 bildpunkter in på kortets hörn till ruta 58, att kortet ska vara dolt under näven i ruta
+  33–36, och att kortets väg ur skon ska gå jämnt och på dealerns höjd i bilden. Vänsterhanden vid skon är inte gjord.
+- **Visningsfilmen** (för Jakobs chef): provet `visning-for-chefen-20261127` (67 s, den riktiga dealern syns bara som
+  mätt streckfigur), och en version med Youtubefilmen som bara ligger på datorn
+  (`../live-bj/rutor/visning/visning-med-youtubefilmen.mp4`). Inte dömd av någon domare.
 - **Dockans kropp är inte dealerns** (`../avatar-auto-pipeline/scen/bygg_docka.py`, `MATT`). Av dealerns egna mått
   bär Danilos och Frasses dockor två: axelledernas avstånd och huvudets höjd (skattad). Armarnas längd och tjocklek,
   händerna, bålen, halsen och benen är en medelmans (samma kropp som den förra standarddockans man), och midjan och
@@ -111,14 +132,12 @@ I den här ordningen om han inte säger annat.
      kostar cirka 200 krediter.
    - Före beställningen, gratis, eftersom Kling med referensfilm kopierar dockans fel (Jakobs Nej i Beslut
      2026-11-27: "Fingrarna når inte kortet heller.. Fel kameravinkel mm"):
-     - **Händerna som dealerns.** Den riktiga dealern lägger hela högerhanden platt på kortet; dockan pekar med ett
-       finger i kortets hörn, vilket är vårt eget påhitt i lyftet ("den pekande högerhanden"). Hans vänsterhand
-       ligger platt på skons kort; dockans svävar som en klo. Händerna i ankarna (A2.3, A2M, A3P4C1) ska läsas om ur
-       filmen i större utsnitt än de 40–55 bildpunkter MediaPipe fick.
-     - **Bilden bakom dealern.** Kameran är filmens (Kenji lagd halvt om halvt över en ruta ur filmen ligger på
-       dealern, skon, kortet och bordets kant: `../live-bj/rutor/jamfor/youtube-och-kenji-halvt-om-halvt.png`, bara på
-       datorn), men vår platta har en slät grå vägg med en linje i axelhöjd, som läses som en annan kameravinkel.
-       Plattan ska se ut som ett rum sett uppifrån, och filten kan få filmens ton.
+     - **Händerna som dealerns,** tills domaren säger ja i förstoringen och Jakob har sett dockan i Spegla (se
+       Läget: vad som är byggt och vad domarens femte dom vill ha rättat). Arbetssättet som fungerar: lägg dockan
+       bredvid filmen i tre gångers förstoring för varje ruta, rätta regeln bakom det som skiljer, och låt en domare
+       som inte har gjort ändringen mäta lägena i bildpunkter. Dockans händer byggdes först av egna regler ovanpå
+       MediaPipes fingrar på en hand som är 40–55 bildpunkter, och det var där det gick fel.
+     - **Bilden bakom dealern och relingen** är rättade (se Läget). Filten kan få filmens ton senare.
      - **Dockans kropp.** Lederna är dealerns, men bålens och armarnas volym är kroppsgeneratorns egen, så dockan är
      tjockare än Danilo (Jakob: "den tjocka dockan ... känns riktigt klumpig"); volymen ska komma ur filmen eller
      personens bilder (SAM 3D Body ger kroppsformen).
