@@ -126,7 +126,13 @@ export function kolla(fil: string) {
     landning = {franMaletMm: r1(dM * 1000), vinkelMotMalet: r1(mellan(vinkelAv(k.l), mal.vinkel)), franPlatsenMm: r1(fran(p.at) * 1000), vinkelMotPlatsen: r1(mellan(vinkelAv(k.l), p.turn)), plant: Math.abs(k.n[1]) > Math.cos(1 * Math.PI / 180), framsidanUpp: k.n[1] > 0,
       rorSigMm: Math.round(Math.max(...f.slice(m.rests, n - 1).map(x => length(sub(x.card.c, k.c)))) * 10000) / 10, vridsPaFiltenGrader: r1(vrids), glider: r1(glider * 1000)};
     if (dM > 0.003 || landning.vinkelMotMalet > 2 || !landning.plant || !landning.framsidanUpp || landning.rorSigMm > 1) not('kortet landar inte rätt', dM, `${landning.franMaletMm} mm och ${landning.vinkelMotMalet}° från målet`, m.rests);
-    if (vrids > 1 || glider > 0.0015) not('kortet läggs till rätta på filten', Math.max(vrids, glider * 1000), `vrids ${landning.vridsPaFiltenGrader}° och glider ${landning.glider} mm under pekfingret medan det ligger, rutorna ${t0}–${m.rests}`, t0); }
+    if (vrids > 1 || glider > 0.0015) not('kortet läggs till rätta på filten', Math.max(vrids, glider * 1000), `vrids ${landning.vridsPaFiltenGrader}° och glider ${landning.glider} mm under pekfingret medan det ligger, rutorna ${t0}–${m.rests}`, t0);
+    // (domaren 2026-11-27: kortet föll de sista 30 mm med fingret ovanför och gled sedan bakåt av sig självt): från tre rutor
+    // innan kortet ligger plant till att det ligger rör det sig bara med pekfingret på sig, toppens mitt högst 12 mm från
+    // kortets ovansida och inom 5 mm från dess kanter
+    for (let t = Math.max((m.leavesShoe ?? 0) + 1, t0 - 3); t <= m.rests; t++) { const k = f[t].card, steg = length(sub(k.c, f[t - 1].card.c)); if (steg <= 0.001) continue;
+      const d = sub(f[t].R.p[8], k.c), a = cross(k.n, k.l), over = Math.abs(dot(d, k.n)) - CARD.thickness / 2, inom = Math.abs(dot(d, k.l)) < CARD.height / 2 + 0.005 && Math.abs(dot(d, a)) < CARD.width / 2 + 0.005;
+      if (!inom || over > 0.012) not('kortet rör sig utan fingret', steg, `${mm(steg)} mm på en ruta med pekfingertoppen ${mm(over)} mm från kortet${inom ? '' : ', utanför det'}`, t); } }
 
   // ---- mot lyftet
   // (två gånger: över hela stycket, och över rörelsen själv, där ankarets början och slut inte räknas: för en giv från att

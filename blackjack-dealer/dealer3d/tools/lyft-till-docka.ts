@@ -700,7 +700,10 @@ export function bygg(b: Bygg) {
     const malL = malKort.l;
     lagBar = () => { const tM = punkter(lyftHand('R', t.meet))[8], bort = flat(sub(tM, [0, LIVE_CAMERA.height, 0])), sida = unit(cross(UP, bort));
       const beta = Math.acos(clamp((tM[1] - BALL(8) - LUFT) / HK, Math.cos(rad(40)), 1)), A: Ram = {l: turned([0, -1, 0], sida, beta), n: turned(bort, sida, beta)};
-      const V: Ram = {l: unit(flat(sub(L.R.w[t.meet], tM))), n: UP}, S: Ram = {l: malL, n: UP};
+      // (under handen pekar kortet mot handleden, men högst 45 grader från sin vinkel på platsen, så att det kommer fram snett
+      // och rätas ut lugnt som dealerns, förlagans ruta 57–62)
+      const mot = unit(flat(sub(L.R.w[t.meet], tM))), sl = dot(malL, mot) >= 0 ? malL : mul(malL, -1), fi = vinkel(sl, mot), upp = Math.sign(cross(sl, mot)[1]) || 1;
+      const V: Ram = {l: unit(turned(sl, UP, upp * Math.min(fi, rad(45)))), n: UP}, S: Ram = {l: malL, n: UP};
       // (bakåt in under handen: den kortaste vridningen från A till V, kring axeln tvärs handen)
       const t2 = t.plan - 4, t1 = Math.max(t.meet + 1, Math.min(t.meet + 6, t2));
       const pose = (tipp: Vec3, x: number): Kort => {
@@ -711,10 +714,12 @@ export function bygg(b: Bygg) {
         // (fram ur handen: läget rakt, långsidan mot slutets (ett kort är lika åt båda hållen), framsidan upp)
         const k = smooth((x - t2) / (t.plan - t2)), a = kortIHogern(tipp, V, V, 0, 1, 0), b = kortIHogern(tipp, S, S, 0, 1), la = dot(a.l, b.l) < 0 ? mul(a.l, -1) : a.l;
         return {c: lerp(a.c, b.c, k), l: unit(lerp(la, b.l, k)), n: UP}; };
-      // (pekfingertoppens höjd som kortet kräver; efter bytet sjunker den högst SJUNK per ruta, så att handen inte rycker ned
-      // när kortet viks in under den, utan bär det lite högre en stund)
+      // (pekfingertoppens höjd som kortet kräver; medan kortet viks in under handen sjunker den högst SJUNK per ruta, så att
+      // handen inte rycker ned, och medan kortet ligger under handen går den mjukt till det kortet kräver: när kortet kommer
+      // fram och landar ligger fingret på det, domaren 2026-11-27)
       const raa = Array.from({length: n + 1}, (_, x) => -kortLagst(pose([0, 0, 0], x)) + lyftVid(t, x)), hojd = raa.slice();
       for (let x = t.meet + 1; x <= n; x++) hojd[x] = Math.max(raa[x], hojd[x - 1] - SJUNK);
+      for (let x = t1 + 1; x <= n; x++) hojd[x] = raa[x] + (hojd[x] - raa[x]) * (1 - smooth((x - t1) / Math.max(1, t2 - t1)));
       bar = {pose, hojd: (x: number) => hojd[clamp(Math.round(x), 0, n)]}; };
     const B = bryggor;
     faser.L = [{fran: 0, till: B.L.t0, vad: 'vilan', kalla: 'ankaret'}, {fran: B.L.t0, till: B.L.t1, vad: nara ? 'ur vilan in i lyftet' : 'ur vilan till skon', kalla: 'brygga'},
