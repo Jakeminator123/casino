@@ -13,7 +13,7 @@
 // ett steg 15 mm längre än rutorna bredvid, farten som byter 25 mm per ruta mer än bredvid; huvudet 5 och 15 mm; blicken
 // 5 grader); första och sista rutan mer än 0,5 mm från ankaret; kortet landat mer än 3 mm eller 2° från sitt mål (där den
 // riktiga dealerns kort låg, made.chosen.landning), inte plant, inte med framsidan upp, eller rörligt efteråt; kortet som
-// vrids eller glider under pekfingret medan det ligger på filten (läggs till rätta). Fingrar i varandra räknas men spärrar inte (som mat.ts).
+// vrids eller glider under tummen medan det ligger på filten (läggs till rätta). Fingrar i varandra räknas men spärrar inte (som mat.ts).
 // HANDEN MOT LYFTET (spärr): varje handled ruta för ruta mot lyftets, jämnat som verktyget jämnar det (lyft-till-docka.ts
 // lugna): i de rutor där handen är lyftets (made.hand l) får den inte stå mer än 1 mm därifrån, och där en kontakt har
 // rättat den (k) högst KONTAKT (2 cm). Bryggorna och vilan (b, v) räknas inte, men står i talen. En rörelse utan made.hand
@@ -112,27 +112,31 @@ export function kolla(fil: string) {
   // landningen (Jakob 2026-11-27: kortet "ska inte automatiskt läggas i rätt vinkel bara för det inte kom exakt rätt"):
   // kortet ska landa där rörelsens mål är (made.chosen.landning.malet: där den riktiga dealerns kort låg; en äldre rörelse
   // utan det: kortplatsen), inom 3 mm och 2°, plant med framsidan upp och stilla efteråt; och från att det ligger plant på
-  // filten tills det ligger får det inte vridas eller glida under pekfingret: det rör sig bara med fingret (spärr över
+  // filten tills det ligger får det inte vridas eller glida under tummen: det rör sig bara med handen (spärr över
   // 1° eller 1,5 mm). Avståndet till kortplatsen (LIVE.cards) står bredvid.
   let landning: {franMaletMm: number; vinkelMotMalet: number; franPlatsenMm: number; vinkelMotPlatsen: number; plant: boolean; framsidanUpp: boolean; rorSigMm: number; vridsPaFiltenGrader: number; glider: number} | null = null;
   if (m.rests !== undefined && m.to) { const k = f[m.rests].card, p = LIVE.cards[m.to[0]], mal = (m.made as {chosen?: {landning?: {malet?: {c: Vec3; vinkel: number}}}}).chosen?.landning?.malet ?? {c: p.at, vinkel: p.turn};
     const vinkelAv = (l: Vec3) => { let a = Math.atan2(l[0], l[2]) * 180 / Math.PI; while (a < 0) a += 180; while (a >= 180) a -= 180; return a; }, mellan = (a: number, b: number) => { const d = Math.abs(a - b) % 180; return Math.min(d, 180 - d); };
     const fran = (c: Vec3) => Math.hypot(k.c[0] - c[0], k.c[2] - c[2]), dM = fran(mal.c), r1 = (x: number) => Math.round(x * 10) / 10;
-    // (från rutan kortet först ligger plant på filten till rutan det ligger: dess vinkel och pekfingertoppens ställe på det)
+    // (från rutan kortet först ligger plant på filten till rutan det ligger: dess vinkel och den hållande fingertoppens ställe
+    // på det; den hållande är högerns fingertopp närmast kortets ovansida i den första rutan, tummen hos dealern)
+    const TOPPAR_R = [4, 8, 12, 16, 20], overKortet = (x: Frame, k: number) => { const d = sub(x.R.p[k], x.card.c), a = cross(x.card.n, x.card.l);
+      return {over: Math.abs(dot(d, x.card.n)) - CARD.thickness / 2, inom: Math.abs(dot(d, x.card.l)) < CARD.height / 2 + 0.005 && Math.abs(dot(d, a)) < CARD.width / 2 + 0.005}; };
     const plant = (x: Frame) => Math.abs(x.card.n[1]) > Math.cos(1 * Math.PI / 180) && x.card.c[1] < 0.001;
     let t0 = m.rests; while (t0 > (m.leavesShoe ?? 0) + 1 && plant(f[t0 - 1])) t0--;
-    const paKortet = (x: Frame) => { const d = sub(x.R.p[8], x.card.c), a = cross(x.card.n, x.card.l); return [dot(d, x.card.l), dot(d, a)]; }, p0 = paKortet(f[t0]);
+    const haller = TOPPAR_R.map(k => ({k, ...overKortet(f[t0], k)})).filter(x => x.inom).sort((p, q) => p.over - q.over)[0]?.k ?? 8;
+    const paKortet = (x: Frame) => { const d = sub(x.R.p[haller], x.card.c), a = cross(x.card.n, x.card.l); return [dot(d, x.card.l), dot(d, a)]; }, p0 = paKortet(f[t0]);
     const vrids = Math.max(0, ...f.slice(t0, m.rests + 1).map(x => mellan(vinkelAv(x.card.l), vinkelAv(f[t0].card.l)))), glider = Math.max(0, ...f.slice(t0, m.rests + 1).map(x => { const q = paKortet(x); return Math.hypot(q[0] - p0[0], q[1] - p0[1]); }));
     landning = {franMaletMm: r1(dM * 1000), vinkelMotMalet: r1(mellan(vinkelAv(k.l), mal.vinkel)), franPlatsenMm: r1(fran(p.at) * 1000), vinkelMotPlatsen: r1(mellan(vinkelAv(k.l), p.turn)), plant: Math.abs(k.n[1]) > Math.cos(1 * Math.PI / 180), framsidanUpp: k.n[1] > 0,
       rorSigMm: Math.round(Math.max(...f.slice(m.rests, n - 1).map(x => length(sub(x.card.c, k.c)))) * 10000) / 10, vridsPaFiltenGrader: r1(vrids), glider: r1(glider * 1000)};
     if (dM > 0.003 || landning.vinkelMotMalet > 2 || !landning.plant || !landning.framsidanUpp || landning.rorSigMm > 1) not('kortet landar inte rätt', dM, `${landning.franMaletMm} mm och ${landning.vinkelMotMalet}° från målet`, m.rests);
-    if (vrids > 1 || glider > 0.0015) not('kortet läggs till rätta på filten', Math.max(vrids, glider * 1000), `vrids ${landning.vridsPaFiltenGrader}° och glider ${landning.glider} mm under pekfingret medan det ligger, rutorna ${t0}–${m.rests}`, t0);
+    if (vrids > 1 || glider > 0.0015) not('kortet läggs till rätta på filten', Math.max(vrids, glider * 1000), `vrids ${landning.vridsPaFiltenGrader}° och glider ${landning.glider} mm under tummen medan det ligger, rutorna ${t0}–${m.rests}`, t0);
     // (domaren 2026-11-27: kortet föll de sista 30 mm med fingret ovanför och gled sedan bakåt av sig självt): från tre rutor
-    // innan kortet ligger plant till att det ligger rör det sig bara med pekfingret på sig, toppens mitt högst 12 mm från
+    // innan kortet ligger plant till att det ligger rör det sig bara med en fingertopp på sig (tummen), toppens mitt högst 12 mm från
     // kortets ovansida och inom 5 mm från dess kanter
     for (let t = Math.max((m.leavesShoe ?? 0) + 1, t0 - 3); t <= m.rests; t++) { const k = f[t].card, steg = length(sub(k.c, f[t - 1].card.c)); if (steg <= 0.001) continue;
-      const d = sub(f[t].R.p[8], k.c), a = cross(k.n, k.l), over = Math.abs(dot(d, k.n)) - CARD.thickness / 2, inom = Math.abs(dot(d, k.l)) < CARD.height / 2 + 0.005 && Math.abs(dot(d, a)) < CARD.width / 2 + 0.005;
-      if (!inom || over > 0.012) not('kortet rör sig utan fingret', steg, `${mm(steg)} mm på en ruta med pekfingertoppen ${mm(over)} mm från kortet${inom ? '' : ', utanför det'}`, t); } }
+      const nara = TOPPAR_R.map(j => overKortet(f[t], j)).filter(x => x.inom).sort((p, q) => p.over - q.over)[0];
+      if (!nara || nara.over > 0.012) not('kortet rör sig utan fingret', steg, `${mm(steg)} mm på en ruta med närmaste fingertopp ${nara ? `${mm(nara.over)} mm från kortet` : 'utanför det'}`, t); } }
 
   // ---- mot lyftet
   // (två gånger: över hela stycket, och över rörelsen själv, där ankarets början och slut inte räknas: för en giv från att
@@ -280,7 +284,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   else for (const r of ut) {
     console.log(`${r.fil}: ${r.rutor} rutor (${r.sekunder} s; lyftet ${r.lyftetsSekunder} s) ${r.sparrar.length ? `SPÄRR: ${r.sparrar.map(x => `${x.vad} (${x.rutor} rutor, värst ${x.varst} i ruta ${x.vid})`).join('; ')}` : 'grön'}`);
     const iv = r.fynd.filter(x => /fingrar i varandra/.test(x.vad)); if (iv.length) console.log(`  märkt, ingen spärr: ${iv.map(x => `${x.vad} ${x.rutor} rutor`).join('; ')}`);
-    if (r.landning) console.log(`  landningen: ${r.landning.franMaletMm} mm och ${r.landning.vinkelMotMalet}° från målet (där den riktiga dealerns kort låg), ${r.landning.franPlatsenMm} mm och ${r.landning.vinkelMotPlatsen}° från kortplatsen, ${r.landning.plant ? 'plant' : 'inte plant'}, framsidan ${r.landning.framsidanUpp ? 'upp' : 'NED'}, på filten vriden ${r.landning.vridsPaFiltenGrader}° och glidit ${r.landning.glider} mm under fingret, rör sig ${r.landning.rorSigMm} mm efteråt`);
+    if (r.landning) console.log(`  landningen: ${r.landning.franMaletMm} mm och ${r.landning.vinkelMotMalet}° från målet (där den riktiga dealerns kort låg), ${r.landning.franPlatsenMm} mm och ${r.landning.vinkelMotPlatsen}° från kortplatsen, ${r.landning.plant ? 'plant' : 'inte plant'}, framsidan ${r.landning.framsidanUpp ? 'upp' : 'NED'}, på filten vriden ${r.landning.vridsPaFiltenGrader}° och glidit ${r.landning.glider} mm under tummen, rör sig ${r.landning.rorSigMm} mm efteråt`);
     type Sam = {rutor: number; median: number; p95: number; mest: number} | null;
     const sam = (x: Sam) => x ? `${x.rutor} rutor median ${x.median}, 95 % ${x.p95}, mest ${x.mest}` : '–';
     console.log(`  ändpunkten flyttad ${(r.handMotLyftet as {andpunktFlyttadMm: number}).andpunktFlyttadMm} mm tvärs synlinjen (högerns väg böjd så att kortet landar där den riktiga dealerns låg)`);

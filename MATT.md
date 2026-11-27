@@ -111,12 +111,12 @@ Dockornas rörelser, lyfta ur livebordets film och lagda på dockans kropp (`bla
 | lyft-danilo-vantan-1 | — | 140 rutor = 4,67 s | — | — | — |
 | lyft-danilo-vantan-2 | — | 123 rutor = 4,1 s | — | — | — |
 | lyft-frasse-bytet-p4 | P4.C1 | 63 rutor = 2,1 s | 0 s | 1,4 s | 0,67 s |
-| lyft-frasse-hem | — | 48 rutor = 1,6 s | — | — | — |
+| lyft-frasse-hem | — | 46 rutor = 1,53 s | — | — | — |
 | lyft-frasse-p1 | P1.C2 | 74 rutor = 2,47 s | 0,37 s | 0,73 s | 1,33 s |
 | lyft-frasse-p4 | P4.C1 | 83 rutor = 2,77 s | 0,5 s | 1,57 s | 0,67 s |
-| lyft-frasse-p7 | P7.C1 | 53 rutor = 1,77 s | 0,4 s | 0,73 s | 0,6 s |
+| lyft-frasse-p7 | P7.C1 | 52 rutor = 1,73 s | 0,4 s | 0,73 s | 0,57 s |
 | lyft-frasse-till-bytet | — | 21 rutor = 0,7 s | 0,5 s | — | — |
-| lyft-frasse-till-skon | — | 28 rutor = 0,93 s | — | — | — |
+| lyft-frasse-till-skon | — | 26 rutor = 0,87 s | — | — | — |
 | lyft-frasse-vantan-1 | — | 177 rutor = 5,9 s | — | — | — |
 | lyft-frasse-vantan-2 | — | 177 rutor = 5,9 s | — | — | — |
 | lyft-kenji-bytet-p4 | P4.C1 | 37 rutor = 1,23 s | 0 s | 0,47 s | 0,73 s |
@@ -180,7 +180,7 @@ Var en hand är när ett klipp börjar och slutar. Bredvid: hur många gånger o
 | A1S | Vila under insatserna | H1S + V1 | högern utsträckt mot lådan, vänstern framför kroppen (Frasse: mot skon), blicken mot kameran | förslag | filmens vanligaste stillhet mellan rundorna; svepet över bordet börjar här när given börjar |
 | A1V | Väntan medan spelarna väljer | H1 + V1S | högern framför kroppen, vänstern mot skon | förslag | filmens vanligaste stillhet mitt i rundan, hos båda dealrarna |
 | A2.3 | Redo vid skon | H1 + V2.3 | vänstern vid skons mynning, högern redo framför dealern, blicken på skon | finns | Danilos och Frasses är tagna ur filmen: kroppen, vänstern, huvudet och blicken där dealern har dem när vänstern är vid skon i en giv till plats 4 (dealern ser där inte på skon: huvudet böjt mot bordet, vridet några grader mot skon). Givarna börjar och slutar här |
-| A2M | Handbytet | H2M + V1S | båda händerna vid kortet mitt framför dealern, vänstern håller det och högern tar det | finns | Danilos och Frasses är tagna ur filmen: rutan där kortet byter hand i given till plats 4, oförändrad (kortet på kant mellan händerna, vänstern i dess ena ände och högerns pekfinger på dess övre kant; kroppen, huvudet och blicken som dealerns). Skon till bytet slutar och bytet till platsen börjar här, samma ställning vart kortet än ska (Jakob 2026-11-27: en universell överlämning). Vänstern är här på väg tillbaka mot skon, inte i vila. Skarven när korten ges i följd: i filmen nästan stannar kortets hand här (6–8 % av toppfarten), och högern går oftast direkt från ett kort till nästa i stället för hem (av de kort hos en spelare som följs av ett nytt kort: Frasse 54 av 56, Danilo 18 av 26). Då behövs två klipp per kort (HEM-TILL-BYTET och GIV-FRAN-BYTET) i stället för ett för varje par av platser |
+| A2M | Handbytet | H2M + V1S | båda händerna vid kortet mitt framför dealern, vänstern håller det och högern tar det | finns | Danilos och Frasses är tagna ur filmen: rutan där kortet byter hand i given till plats 4, oförändrad (kortet på kant mellan händerna, vänstern på dess övre kortsida och högerns tumme nära dess nedre; kroppen, huvudet och blicken som dealerns). Skon till bytet slutar och bytet till platsen börjar här, samma ställning vart kortet än ska (Jakob 2026-11-27: en universell överlämning). Vänstern är här på väg tillbaka mot skon, inte i vila. Skarven när korten ges i följd: i filmen nästan stannar kortets hand här (6–8 % av toppfarten), och högern går oftast direkt från ett kort till nästa i stället för hem (av de kort hos en spelare som följs av ett nytt kort: Frasse 54 av 56, Danilo 18 av 26). Då behövs två klipp per kort (HEM-TILL-BYTET och GIV-FRAN-BYTET) i stället för ett för varje par av platser |
 | A3PnCm | Kortet har landat hos en spelare | H3Pn + V2.3 | plats n (1–7), kort m; handen ligger kvar vid kortet | finns | Danilo och Frasse har ett lyft kort 2 till var sin plats (GIV-KORT-2). I filmen är vänstern oftast redan på väg med nästa kort i detta ögonblick |
 | A3DCm | Kortet har landat hos dealern | H3D + V2.3 | dealerns egna kortplats, kort m | saknas | finns bara för den äldre dockan |
 
