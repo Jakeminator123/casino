@@ -293,17 +293,17 @@ Var en hand är när ett klipp börjar och slutar. Bredvid: hur många gånger o
 
 | Läge | Hand | Namn | Var | I ankarena | Status | Danilo (dealer A) | Frasse (dealer B) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| H1 | höger | Vila framför | högern vilar på filten framför kroppen, vid eller bredvid de egna korten | A1, A1V, A2.3 | finns | 51 stopp, 120 s | 35 stopp, 148 s |
+| H1 | höger | Vila framför | högern vilar på filten framför kroppen, vid eller bredvid de egna korten | A1, A1V, A2.3 | finns | 36 stopp, 114 s | 28 stopp, 144 s |
 | H1S | höger | Vila åt sidan | högern utsträckt åt sidan på filten, mot lådan för använda kort: så vilar båda dealrarna medan insatserna läggs | A1S | saknas | 5 stopp, 40 s | 11 stopp, 74 s |
-| H2M | höger | Vid mötet | högern framme vid kortet i vänsterns hand, mitt framför dealern och en bit åt skon | A2M | förslag | 4 stopp, 14 s | 4 stopp, 1 s |
+| H2M | höger | Vid mötet | högern framme vid kortet i vänsterns hand, mitt framför dealern och en bit åt skon | A2M | förslag | 3 stopp, 13 s | 3 stopp, 1 s |
 | H3Pn | höger | Vid kortet på plats n | högern kvar vid kortet den just lagt på plats n (1–7) | A3PnCm | finns | 12 stopp, 12 s | 17 stopp, 5 s |
-| H3D | höger | Vid dealerns egna kort | högern vid kortet den just lagt på dealerns egen plats, eller vilar där medan spelarna väljer | A3DCm | saknas | 20 stopp, 32 s | 34 stopp, 33 s |
-| H4 | höger | Vid lådan | högern lyft vid lådan för använda kort, med korten | — | saknas | 6 stopp, 7 s | 2 stopp, 1 s |
-| V1 | vänster | Vila framför | vänstern vilar på filten framför kroppen | A1, A1S | finns | 59 stopp, 116 s | 22 stopp, 14 s |
-| V1S | vänster | Vila mot skon | vänstern vilar mellan kroppen och skon, där den också lämnar kortet i handbytet: så väntar båda dealrarna medan spelarna väljer | A1V, A2M | saknas | 15 stopp, 43 s | 50 stopp, 197 s |
-| V2.3 | vänster | Vid skon | vänstern vid skons front, redo att ta kortet | A2.3, A3PnCm, A3DCm | finns | 60 stopp, 73 s | 43 stopp, 65 s |
-| V3D | vänster | Vid dealerns egna kort | vänstern vid kortet den lagt på dealerns egen plats, när den ger det ensam | — | saknas | 13 stopp, 15 s | 9 stopp, 8 s |
-| V3Pn | vänster | Vid kortet på plats n | vänstern vid kortet på en plats nära skon (6 och 7), när den ger ensam (dockans vänsterhandsgiv till plats 6 och 7 slutar här) | — | finns | 7 stopp, 11 s | 5 stopp, 8 s |
+| H3D | höger | Vid dealerns egna kort | högern vid kortet den just lagt på dealerns egen plats, eller vilar där medan spelarna väljer | A3DCm | saknas | 19 stopp, 26 s | 30 stopp, 31 s |
+| H4 | höger | Vid lådan | högern lyft vid lådan för använda kort, med korten | — | saknas | 3 stopp, 2 s | 2 stopp, 1 s |
+| V1 | vänster | Vila framför | vänstern vilar på filten framför kroppen | A1, A1S | finns | 48 stopp, 118 s | 22 stopp, 14 s |
+| V1S | vänster | Vila mot skon | vänstern vilar mellan kroppen och skon, där den också lämnar kortet i handbytet: så väntar båda dealrarna medan spelarna väljer | A1V, A2M | saknas | 12 stopp, 43 s | 39 stopp, 199 s |
+| V2.3 | vänster | Vid skon | vänstern vid skons front, redo att ta kortet | A2.3, A3PnCm, A3DCm | finns | 57 stopp, 74 s | 43 stopp, 67 s |
+| V3D | vänster | Vid dealerns egna kort | vänstern vid kortet den lagt på dealerns egen plats, när den ger det ensam | — | saknas | 14 stopp, 15 s | 10 stopp, 9 s |
+| V3Pn | vänster | Vid kortet på plats n | vänstern vid kortet på en plats nära skon (6 och 7), när den ger ensam (dockans vänsterhandsgiv till plats 6 och 7 slutar här) | — | finns | 6 stopp, 6 s | 5 stopp, 8 s |
 
 ### Ankarena
 
@@ -313,7 +313,7 @@ Var en hand är när ett klipp börjar och slutar. Bredvid: hur många gånger o
 | A1S | Vila under insatserna | H1S + V1 | högern utsträckt mot lådan, vänstern framför kroppen (Frasse: mot skon), blicken mot kameran | förslag | filmens vanligaste stillhet mellan rundorna; svepet över bordet börjar här när given börjar |
 | A1V | Väntan medan spelarna väljer | H1 + V1S | högern framför kroppen, vänstern mot skon | förslag | filmens vanligaste stillhet mitt i rundan, hos båda dealrarna |
 | A2.3 | Redo vid skon | H1 + V2.3 | vänstern vid skons mynning, högern redo framför dealern, blicken på skon | finns |  |
-| A2M | Handbytet | H2M + V1S | båda händerna vid kortet mitt framför dealern, vänstern håller det och högern tar det | förslag | skarven när korten ges i följd: i filmen nästan stannar kortets hand här (6–8 % av toppfarten), och högern går direkt från ett kort till nästa i stället för hem. Då behövs två klipp per kort (HEM-TILL-BYTET och GIV-FRAN-BYTET) i stället för ett för varje par av platser |
+| A2M | Handbytet | H2M + V1S | båda händerna vid kortet mitt framför dealern, vänstern håller det och högern tar det | förslag | skarven när korten ges i följd: i filmen nästan stannar kortets hand här (6–8 % av toppfarten), och högern går oftast direkt från ett kort till nästa i stället för hem (Frasse nästan alltid, Danilo i ungefär tre fall av fyra). Då behövs två klipp per kort (HEM-TILL-BYTET och GIV-FRAN-BYTET) i stället för ett för varje par av platser |
 | A3PnCm | Kortet har landat hos en spelare | H3Pn + V2.3 | plats n (1–7), kort m; handen ligger kvar vid kortet | finns | standarddockorna har kort 1 till varje plats; kort 2 och uppåt saknas. I filmen är vänstern oftast redan på väg med nästa kort i detta ögonblick |
 | A3DCm | Kortet har landat hos dealern | H3D + V2.3 | dealerns egna kortplats, kort m | saknas | finns bara för den äldre dockan |
 | A2.1 | Nyp i skons fönster | — | ena handen nyper kortet i skons fönster | finns | den äldre dockans (Paow); tas bort med henne |
@@ -323,14 +323,14 @@ Båda händerna stilla samtidigt hos de riktiga dealrarna, de åtta vanligaste p
 
 | Höger + vänster | Ankare | Danilo (dealer A) | Frasse (dealer B) |
 | --- | --- | --- | --- |
-| H1 + V1S | A1V | 6 gånger, 28,1 s | 24 gånger, 67 s |
-| H1 + V2.3 | A2.3 | 16 gånger, 25,3 s | 10 gånger, 51,7 s |
+| H1 + V1S | A1V | 6 gånger, 28,7 s | 19 gånger, 64 s |
+| H1 + V2.3 | A2.3 | 13 gånger, 24,3 s | 10 gånger, 52,1 s |
 | H1S + V1S | — | — | 10 gånger, 74 s |
-| H1 + V1 | A1 | 19 gånger, 39,6 s | 2 gånger, 0,8 s |
+| H1 + V1 | A1 | 14 gånger, 37,8 s | 2 gånger, 0,8 s |
 | H2 + V2.3 | — | 11 gånger, 25,2 s | — |
 | H1S + V1 | A1S | 6 gånger, 25,1 s | — |
-| H3D + V1 | — | 6 gånger, 4,9 s | 13 gånger, 10,2 s |
-| H3D + V3D | — | 11 gånger, 12,1 s | 2 gånger, 2,5 s |
+| H3D + V1 | — | 5 gånger, 3,3 s | 12 gånger, 9,9 s |
+| H1 + V3Pn | — | 4 gånger, 4,4 s | 4 gånger, 7,1 s |
 
 ### Rörelserna, stadium för stadium
 
@@ -340,40 +340,41 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackja
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Grundklippet i vila (VILA-GRUND) | A1 → A1 | stilla, med andning och blinkningar | delvis | — | — (inga filer att leta efter) | höger 53 st, 1,4 s (0,63–5,99); vänster 78 st, 1,48 s (0,66–5,16) | höger 58 st, 2,23 s (0,67–9,8); vänster 65 st, 2,17 s (0,63–7,02) | `VILA` | ställningen finns; andning, små egna rörelser och blinkning finns som ett val som är avstängt |
-| Korta varianter i vila (VILA-VARIANT) | A1 → A1 | en liten rörelse och tillbaka: rätta till händerna, en hand mot skon och åter, en blick mot en spelare | saknas | — | — (inga filer att leta efter) | höger 13 st, 5,33 s (1,3–11,49); vänster 9 st, 3,63 s (2,36–8,39) | höger 4 st, 5,87 s (2,86–10,51); vänster 9 st, 1,93 s (1,5–12,18) | `VANTA` | i filmen väntar händerna med små egna rörelser under 5 cm |
+| Grundklippet i vila (VILA-GRUND) | A1 → A1 | stilla, med andning och blinkningar | delvis | — | — (inga filer att leta efter) | höger 43 st, 1,57 s (0,64–7,13); vänster 60 st, 1,27 s (0,63–5,28) | höger 49 st, 2,23 s (0,69–9,94); vänster 48 st, 2,15 s (0,62–6,76) | `VILA` | ställningen finns; andning, små egna rörelser och blinkning finns som ett val som är avstängt |
+| Korta varianter i vila (VILA-VARIANT) | A1 → A1 | en liten rörelse och tillbaka: rätta till händerna, en hand mot skon och åter, en blick mot en spelare | saknas | — | — (inga filer att leta efter) | höger 13 st, 5,33 s (1,3–11,83); vänster 22 st, 3,3 s (1,68–6,99) | höger 6 st, 6,55 s (3,18–13,98); vänster 21 st, 3,5 s (1,5–13,03) | `VANTA` | i filmen väntar händerna med små egna rörelser under 5 cm |
 
 #### Insatserna läggs (INSATSER): hemankare A1S, från att rundan är uppgjord tills given börjar
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Vila medan insatserna läggs (INSATS-VILA) | A1S → A1S | högern utsträckt mot lådan, stilla; blicken i kameran | saknas | — | — (inga filer att leta efter) | höger 53 st, 1,4 s (0,63–5,99); vänster 78 st, 1,48 s (0,66–5,16) | höger 58 st, 2,23 s (0,67–9,8); vänster 65 st, 2,17 s (0,63–7,02) | `VILA` |  |
-| Svepa bordet (SVEP) | A1S → A2.3 | högern sveper lågt från sidan tvärs över platserna och fram till mötet, där den tar första kortet; vänstern går till skon | saknas | — | — (inga filer att leta efter) | höger 2 st, 1,12 s (1,02–1,21) | höger 1 st, 4,37 s (4,37–4,37) | `SVEP` | Jakobs: så börjar given hos den riktiga dealern. I filmen ofta i samma rörelse som första kortet (fältet med_svep på givet) |
+| Vila medan insatserna läggs (INSATS-VILA) | A1S → A1S | högern utsträckt mot lådan, stilla; blicken i kameran | saknas | — | — (inga filer att leta efter) | höger 43 st, 1,57 s (0,64–7,13); vänster 60 st, 1,27 s (0,63–5,28) | höger 49 st, 2,23 s (0,69–9,94); vänster 48 st, 2,15 s (0,62–6,76) | `VILA` |  |
+| Byta viloställe (BYT-VILA) | A1S → A1 | en hand flyttar från en vila till en annan, till exempel högern från sidan till framför kroppen när given börjar, eller vänstern mellan kroppen och skon | saknas | — | — (inga filer att leta efter) | höger 3 st, 0,3 s (0,27–0,38); vänster 5 st, 0,37 s (0,2–1,22) | höger 3 st, 0,47 s (0,28–0,79); vänster 13 st, 0,5 s (0,29–0,99) | `BYT-VILA` |  |
+| Svepa bordet (SVEP) | A1S → A2.3 | högern sveper lågt från sidan tvärs över platserna och fram till mötet, där den tar första kortet; vänstern går till skon | saknas | — | — (inga filer att leta efter) | höger 2 st, 1,12 s (1,02–1,21) | — (inte i filmen) | `SVEP` | Jakobs: så börjar given hos den riktiga dealern. I filmen ofta i samma rörelse som första kortet (fältet med_svep på givet) |
 
 #### Redo vid skon (REDO): hemankare A2.3, medan korten delas ut, mellan två kort
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Från vilan till skon (TILL-SKON) | A1 → A2.3 | båda | finns | `till-ankare-2-3-<docka>`: mannen och kvinnan 1 av 1 (2 av 2 filer som väntas) | ja | vänster 46 st, 0,63 s (0,3–0,97) | vänster 53 st, 0,57 s (0,34–0,92) | `TILL-SKON` |  |
+| Från vilan till skon (TILL-SKON) | A1 → A2.3 | båda | finns | `till-ankare-2-3-<docka>`: mannen och kvinnan 1 av 1 (2 av 2 filer som väntas) | ja | vänster 41 st, 0,63 s (0,4–0,97) | vänster 44 st, 0,58 s (0,38–0,98) | `TILL-SKON` |  |
 | Grundklippet vid skon (REDO-GRUND) | A2.3 → A2.3 | stilla och redo, varken spänd eller slapp | delvis | — | — (inga filer att leta efter) | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | finns som stillhet mellan givarna i rundan, inte som eget klipp |
-| Från skon tillbaka till vilan (TILL-VILAN) | A2.3 → A1 | båda | saknas | — | — (inga filer att leta efter) | höger 43 st, 0,6 s (0,17–1,03); vänster 50 st, 0,33 s (0,17–0,74) | höger 36 st, 0,37 s (0,2–1,32); vänster 34 st, 0,32 s (0,17–0,56) | `HEM` | takten är bestämd (0,8 s) |
+| Från skon tillbaka till vilan (TILL-VILAN) | A2.3 → A1 | båda | saknas | — | — (inga filer att leta efter) | höger 18 st, 0,57 s (0,26–0,87); vänster 22 st, 0,5 s (0,2–0,83) | höger 26 st, 0,37 s (0,22–1,48); vänster 13 st, 0,33 s (0,23–0,49) | `HEM` | takten är bestämd (0,8 s) |
 
 #### Ett kort ut (GIV): hemankare A2.3, ett kort går från skon till en spelare eller till dealern
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Första kortet till en spelare (GIV-KORT-1) | A2.3 → A3PnC1 | vänstern drar, högern lägger (plats 6 och 7: vänstern ensam) | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | höger 30 st, 0,8 s (0,53–1,15); vänster 3 st, 0,23 s (0,23–0,34) | höger 60 st, 0,98 s (0,8–2,04); vänster 3 st, 0,23 s (0,13–0,34) | `GIV` | ritad i samma fil som handen hem; rutan där kortet ligger delar dem. Version A finns till alla sju platser, version B till plats 1–5 (plats 6 och 7 ges med vänstern ensam och har bara A). I filmen ges också plats 6 och 7 oftast med handbyte |
-| Andra kortet och fler till en spelare (GIV-KORT-2) | A2.3 → A3PnCm | som första kortet | saknas | — | — (inga filer att leta efter) | höger 30 st, 0,8 s (0,53–1,15); vänster 3 st, 0,23 s (0,23–0,34) | höger 60 st, 0,98 s (0,8–2,04); vänster 3 st, 0,23 s (0,13–0,34) | `GIV` | Jakobs önskan: upp till sju kort per plats |
-| Kort till dealern själv (GIV-EGET) | A2.3 → A3DCm | vänstern drar, högern lägger på dealerns plats; ibland vänstern ensam | saknas | — | — (inga filer att leta efter) | höger 14 st, 0,77 s (0,38–0,86); vänster 4 st, 0,67 s (0,61–0,72) | höger 21 st, 0,73 s (0,43–1,33); vänster 4 st, 0,53 s (0,5–0,57) | `GIV-EGET` | i filmen läggs dealerns kort oftast av högern efter ett handbyte, som en spelares; vänstern ensam är det ovanliga |
-| Kortet från handbytet till platsen (GIV-FRAN-BYTET) | A2M → A3PnCm | högern för kortet till platsen; vänstern går tillbaka till skon och tar nästa | förslag | — | — (inga filer att leta efter) | höger 30 st, 0,8 s (0,53–1,15); vänster 3 st, 0,23 s (0,23–0,34) | höger 60 st, 0,98 s (0,8–2,04); vänster 3 st, 0,23 s (0,13–0,34) | `GIV` | andra halvan av en giv i följd |
+| Första kortet till en spelare (GIV-KORT-1) | A2.3 → A3PnC1 | vänstern drar, högern lägger (plats 6 och 7: vänstern ensam) | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | ritad i samma fil som handen hem; rutan där kortet ligger delar dem. Version A finns till alla sju platser, version B till plats 1–5 (plats 6 och 7 ges med vänstern ensam och har bara A). I filmen ges också plats 6 och 7 oftast med handbyte |
+| Andra kortet och fler till en spelare (GIV-KORT-2) | A2.3 → A3PnCm | som första kortet | saknas | — | — (inga filer att leta efter) | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | Jakobs önskan: upp till sju kort per plats |
+| Kort till dealern själv (GIV-EGET) | A2.3 → A3DCm | vänstern drar, högern lägger på dealerns plats; ibland vänstern ensam | saknas | — | — (inga filer att leta efter) | höger 14 st, 0,77 s (0,38–0,86); vänster 4 st, 0,67 s (0,61–0,72) | höger 21 st, 0,73 s (0,43–1,47); vänster 4 st, 0,53 s (0,5–0,57) | `GIV-EGET` | i filmen läggs dealerns kort oftast av högern efter ett handbyte, som en spelares; vänstern ensam är det ovanliga |
+| Kortet från handbytet till platsen (GIV-FRAN-BYTET) | A2M → A3PnCm | högern för kortet till platsen; vänstern går tillbaka till skon och tar nästa | förslag | — | — (inga filer att leta efter) | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | andra halvan av en giv i följd |
 
 #### Handen hem (TILLBAKA): hemankare A3PnCm, efter att kortet har landat
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Handen hem till skon (HEM-TILL-SKON) | A3PnCm → A2.3 | handen som lade kortet | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | andra halvan av givens fil. I filmen går högern sällan hem mellan två kort; se HEM-TILL-BYTET |
-| Högern från platsen tillbaka till nästa kort (HEM-TILL-BYTET) | A3PnCm → A2M | högern går från kortet direkt till mötet, medan vänstern redan drar nästa kort ur skon | förslag | — | — (inga filer att leta efter) | höger 30 st, 0,8 s (0,53–1,15); vänster 3 st, 0,23 s (0,23–0,34) | höger 60 st, 0,98 s (0,8–2,04); vänster 3 st, 0,23 s (0,13–0,34) | `GIV` | så ger båda dealrarna i följd: händerna i otakt. Ersätter att båda händerna går hem mellan korten |
-| Handen hem direkt till vilan (HEM-TILL-VILAN) | A3PnCm → A1 | båda | saknas | — | — (inga filer att leta efter) | höger 43 st, 0,6 s (0,17–1,03); vänster 50 st, 0,33 s (0,17–0,74) | höger 36 st, 0,37 s (0,2–1,32); vänster 34 st, 0,32 s (0,17–0,56) | `HEM` | efter rundans sista kort; vänstern går ofta hem samtidigt |
+| Handen hem till skon (HEM-TILL-SKON) | A3PnCm → A2.3 | handen som lade kortet | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | andra halvan av givens fil. I filmen går högern hem mellan två kort i ungefär vart fjärde fall hos Danilo och nästan aldrig hos Frasse; se HEM-TILL-BYTET |
+| Högern från platsen tillbaka till nästa kort (HEM-TILL-BYTET) | A3PnCm → A2M | högern går från kortet direkt till mötet, medan vänstern redan drar nästa kort ur skon | förslag | — | — (inga filer att leta efter) | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | så ger Frasse nästan alltid och Danilo oftast, med händerna i otakt; Danilo går hem oftare, och det hör till hans stil. Ersätter att båda händerna alltid går hem mellan korten |
+| Handen hem direkt till vilan (HEM-TILL-VILAN) | A3PnCm → A1 | båda | saknas | — | — (inga filer att leta efter) | höger 18 st, 0,57 s (0,26–0,87); vänster 22 st, 0,5 s (0,2–0,83) | höger 26 st, 0,37 s (0,22–1,48); vänster 13 st, 0,33 s (0,23–0,49) | `HEM` | efter rundans sista kort; vänstern går ofta hem samtidigt |
 | Rätta till ett kort (RATTA) | A3PnCm → A3PnCm | en liten rörelse vid kortet som ligger | saknas | — | — (inga filer att leta efter) | — (inte i filmen) | höger 2 st, 0,28 s (0,27–0,3) | `RATTA` |  |
 
 #### Dealerns egna kort (DEALERNS TUR): hemankare A1, när spelarna är klara: dealern drar sina kort
@@ -386,7 +387,7 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackja
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Peka på spelaren som ska agera (PEKA) | A1V → A1V (över plats n) | snabbt, med hela handen öppen mot platsen och tillbaka | saknas | — | — (inga filer att leta efter) | höger 2 st, 0,95 s (0,72–1,18) | höger 2 st, 2,62 s (2,44–2,79); vänster 2 st, 0,27 s (0,27–0,27) | `PEKA` | Jakobs önskan. Nästan inte i filmen: där visar spelets skylt vems tur det är, och dealern ser i kameran. Ritas med högerns väg mot platsen ur givet som förlaga |
+| Peka på spelaren som ska agera (PEKA) | A1V → A1V (över plats n) | snabbt, med hela handen öppen mot platsen och tillbaka | saknas | — | — (inga filer att leta efter) | höger 1 st, 1,23 s (1,23–1,23) | — (inte i filmen) | `PEKA` | Jakobs önskan. Nästan inte i filmen: där visar spelets skylt vems tur det är, och dealern ser i kameran. Ritas med högerns väg mot platsen ur givet som förlaga |
 
 #### Rundan görs upp (AVSLUT): hemankare A1, marker betalas ut och tas in, korten samlas in
 
@@ -394,7 +395,7 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackja
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Betala ut marker till en spelare (MARKER-UT) | A1 → A1 (över plats n) | en hand från brickan till platsen och tillbaka | saknas | — | — (inga filer att leta efter) | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | inte mätt: livebordet har inga marker (de är spelets grafik), så rörelsen får ritas efter vårt eget bord |
 | Ta in marker från en spelare (MARKER-IN) | A1 → A1 (över plats n) | en hand ut till platsen och tillbaka till brickan | saknas | — | — (inga filer att leta efter) | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | inte mätt: livebordet har inga marker (de är spelets grafik), så rörelsen får ritas efter vårt eget bord |
-| Korten in i lådan (KORT-IN) | A1 → A1S | högern samlar korten från platserna och de egna (vänstern hjälper), lyfter dem till lådans öppning och lägger dem där, och vilar sedan åt sidan | saknas | — | — (inga filer att leta efter) | höger 14 st, 1,85 s (0,71–4,96); vänster 8 st, 2,98 s (1,06–4,77) | höger 13 st, 4,87 s (0,4–7,53); vänster 10 st, 2,9 s (0,32–4,05) | `KORT-IN` | en enda rörelse i filmen: insamlingen och lådan hör ihop |
+| Korten in i lådan (KORT-IN) | A1 → A1S | högern samlar korten från platserna och de egna (vänstern hjälper), lyfter dem till lådans öppning och lägger dem där, och vilar sedan åt sidan | saknas | — | — (inga filer att leta efter) | höger 11 st, 4,47 s (1,8–8,43); vänster 6 st, 4,37 s (1,97–7,03) | höger 12 st, 5,73 s (0,65–9,13); vänster 10 st, 2,62 s (0,32–3,81) | `KORT-IN` | en enda rörelse i filmen: insamlingen och lådan hör ihop |
 
 **Rörelser som delar filer.**
 
@@ -414,11 +415,11 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackja
 | Kategori | Namn | Vad | Danilo (dealer A) | Frasse (dealer B) |
 | --- | --- | --- | --- | --- |
 | SKON | Sköta skon | båda händerna vid skon: fylla på eller byta kortlek | höger 10 st, 1,02 s (0,26–4,95); vänster 16 st, 0,82 s (0,18–2,18) | — (inte i filmen) |
-| ANNAT | Annat | en rörelse som inte passar någon av rörelserna ovan, till exempel att ta upp skärkortet eller flytta något på bordet | höger 6 st, 0,75 s (0,47–1,37); vänster 1 st, 1,7 s (1,7–1,7) | höger 4 st, 0,47 s (0,28–1,02); vänster 3 st, 0,53 s (0,51–0,56) |
+| ANNAT | Annat | en rörelse som inte passar någon av rörelserna ovan: handen upp till ansiktet eller kroppen, en hand som går ut från vilan och tillbaka utan att göra något med korten, skärkortet | höger 11 st, 0,93 s (0,53–4,1); vänster 12 st, 0,45 s (0,24–0,79) | höger 4 st, 1,35 s (0,74–5,69); vänster 6 st, 0,48 s (0,38–0,7) |
 
 Kategorier i indelningen som katalogen inte har en rörelse för:
 
-- `DRA`: Danilo (dealer A) vänster 63 st, 0,7 s (0,34–0,99); Frasse (dealer B) vänster 99 st, 0,83 s (0,4–0,97)
+- `DRA`: Danilo (dealer A) vänster 65 st, 0,67 s (0,35–0,97); Frasse (dealer B) vänster 99 st, 0,83 s (0,4–0,97)
 
 ## 7. Det som inte har något mått i kod än
 

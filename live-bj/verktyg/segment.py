@@ -36,8 +36,8 @@ HEAD_TURN, HEAD_NOD = 12.0, 12.0   # degrees from the resting head: turned towar
 # The hand's states. A state is where a hand is, not a whole picture: an anchor (A1, A2.3, A3PnCm) is one state per
 # hand. The numbers follow the anchors': 1 rest, 2 the shoe, 3 a card on the table, 4 the box for used cards.
 STATES = {
-    'H': {'framfor': 'H1', 'sidan': 'H1S', 'motskon': 'H2M', 'skon': 'H2', 'plats': 'H3P{n}', 'egna': 'H3D', 'ladan': 'H4'},
-    'V': {'framfor': 'V1', 'sidan': 'V1', 'motskon': 'V1S', 'skon': 'V2.3', 'plats': 'V3P{n}', 'egna': 'V3D', 'ladan': 'V4'},
+    'H': {'framfor': 'H1', 'sidan': 'H1S', 'motskon': 'H2M', 'skon': 'H2', 'plats': 'H3P{n}', 'egna': 'H3D', 'ladan': 'H4', 'kroppen': 'H0'},
+    'V': {'framfor': 'V1', 'sidan': 'V1', 'motskon': 'V1S', 'skon': 'V2.3', 'plats': 'V3P{n}', 'egna': 'V3D', 'ladan': 'V4', 'kroppen': 'V0'},
 }
 STATE_WORDS = {
     'H1': 'högern vilar framför kroppen, vid eller bredvid de egna korten (som i A1 och A2.3)',
@@ -53,21 +53,27 @@ STATE_WORDS = {
     'V3Pn': 'vänstern vid kortet på plats n (platserna närmast skon, när vänstern ger ensam)',
     'V3D': 'vänstern vid dealerns egna kort (som i A3DCm)',
     'V4': 'vänstern vid lådan för använda kort',
+    'H0': 'högern uppe vid kroppen eller ansiktet (härmas inte)',
+    'V0': 'vänstern uppe vid kroppen eller ansiktet (härmas inte)',
 }
 REST_STATES = {'H1', 'H1S', 'V1', 'V1S'}
+RESTING_AT_CARDS = {'H3D', 'V3D'}   # where a hand also rests a while: at his own cards
+WAIT_STATES = REST_STATES | RESTING_AT_CARDS | {'V2.3'}   # where a hand waits (the left also at the shoe, ready)
+WITHIN_REST = 0.15                   # metres: a move that stays this near where it began, where the hand waits, is a small move in the wait (half again at the shoe, where the lifted hand is drawn out on the felt)
 
 CATEGORIES = {   # id: (hands, words)
     'GIV': ('HV', 'kortet till en spelare: handen lägger kortet på plats n (kort m); högern tar det ur vänsterns hand vid mötet, eller vänstern ger ensam'),
     'GIV-EGET': ('HV', 'kortet till dealern själv: handen lägger kortet på dealerns egen plats'),
     'DRA': ('V', 'vänstern tar kortet ur skon och drar det till mötet, där högern tar över; slutar där vänstern stannar igen'),
     'TILL-SKON': ('V', 'vänstern till skon utan kort'),
-    'HEM': ('HV', 'handen tillbaka till ett viloläge, utan kort'),
+    'HEM': ('HV', 'handen tillbaka till sitt viloläge från ett annat ställe (ett kort, skon, lådan), utan kort'),
+    'BYT-VILA': ('HV', 'handen flyttar från ett viloläge till ett annat, till exempel från sidan till framför kroppen'),
     'PEKA': ('HV', 'handen ut till en plats och åter utan att lägga eller ta ett kort: visar mot spelaren som ska agera, eller rör vid hans kort'),
     'SVEP': ('HV', 'handen sveper över bordet, tvärs över platserna, utan kort'),
     'KORT-IN': ('HV', 'korten samlas in från platserna och de egna och läggs i lådan för använda kort (slasken)'),
     'RATTA': ('HV', 'en liten rörelse vid ett kort som redan ligger: rättar till det'),
     'SKON': ('HV', 'sköter skon: fyller på eller byter kort, med båda händerna vid skon; ska inte härmas i en runda'),
-    'ANNAT': ('HV', 'det som inte passar något annat: ska inte härmas'),
+    'ANNAT': ('HV', 'det som inte passar något annat, och handen uppe vid kroppen eller ansiktet: ska inte härmas'),
     'VILA': ('HV', 'handen stilla i ett läge minst 0,6 s'),
     'VANTA': ('HV', 'handen i ett läge minst 0,6 s, med små egna rörelser (under 5 cm)'),
     'STOPP': ('HV', 'ett kort stopp i arbetet, 0,2–0,6 s: greppet vid skon, handen kvar vid kortet'),
@@ -79,7 +85,7 @@ HEAD_CATEGORIES = {
     'MOT-LADAN': 'huvudet vridet mot lådan och platserna 1–3 (åt dealerns höger)',
     'OKANT': 'ansiktet hittades inte',
 }
-MOVES = ['GIV', 'GIV-EGET', 'DRA', 'TILL-SKON', 'HEM', 'PEKA', 'SVEP', 'KORT-IN', 'RATTA', 'SKON', 'ANNAT']
+MOVES = ['GIV', 'GIV-EGET', 'DRA', 'TILL-SKON', 'HEM', 'BYT-VILA', 'PEKA', 'SVEP', 'KORT-IN', 'RATTA', 'SKON', 'ANNAT']
 HOLDS = ['VILA', 'VANTA', 'STOPP']
 
 
@@ -110,10 +116,11 @@ class Table:
             near = [(n, float(np.linalg.norm(p - c))) for n, c in lying if n != 'D' and np.linalg.norm(p - c) < CARD_R]
             if near:
                 return 'plats', min(near, key=lambda q: q[1])[0]
-        high = y > 1.9   # lifted high, at his face or chest: off the table whatever side
-        if not high and (np.linalg.norm(p - self.shoe) < 0.16 or (x > 0.40 and y > 1.40)):
+        if y > 1.9 or y < 0.7:   # lifted high, to his face or chest: laid on the felt it lands far behind him (or, over the camera, in front of the felt)
+            return 'kroppen', None
+        if np.linalg.norm(p - self.shoe) < 0.16 or (x > 0.40 and y > 1.40):
             return 'skon', None
-        if not high and (np.linalg.norm(p - self.box) < 0.14 or (x < -0.48 and y > 1.42)):
+        if np.linalg.norm(p - self.box) < 0.14 or (x < -0.48 and y > 1.42):
             return 'ladan', None
         if y > self.edge + EDGE_PAD:
             return 'framfor', None
@@ -352,6 +359,8 @@ def main_dela(data_dir, measures):
                     p, q = cuts[i], cuts[i + 1]
                     if p['hold']:
                         kind = 'VILA' if (p['b'] - p['a']) / fps >= REST and p['small'] == 0 else 'VANTA' if (p['b'] - p['a']) / fps >= REST else 'STOPP'
+                        if p['state'] in ('H0', 'V0'):   # the hand still at his face or chest: not to be copied
+                            kind = 'ANNAT'
                         piece = base(p['a'], p['b'] - 1, kind)
                         piece.update({'fran_lage': p['state'], 'till_lage': p['state'], 'sma_rorelser': p['small'], 'punkt': p['point']})
                         ev = next((e[1] for e in p['events'] if e[0] == 'lagt'), None)
@@ -399,13 +408,26 @@ def main_dela(data_dir, measures):
                     elif s == 'H' and end_state.startswith('H3P') and any(0.3 <= float(t[b]) - g <= 2.0 for g in v_grips) and sign_at(spans, float(t[b])) in DEALING:
                         kind = 'GIV'
                         extra = {'plats': int(end_state[3:]), 'kort': None, 'kortet_sett': False}
+                    elif (s == 'H' and reach < 1.25 and start_state in REST_STATES | RESTING_AT_CARDS and any(-0.5 <= float(t[a]) - g <= 2.0 for g in v_grips)
+                          and sign_at(spans, float(t[b])) in DEALING):
+                        # out over the seats and back, just after the left hand was at the shoe: a card laid where it was not seen
+                        far = path[ok][int(np.argmin(path[ok][:, 1]))]
+                        kind = 'GIV'
+                        extra = {'plats': min(table.seats, key=lambda n: float(np.linalg.norm(far - table.seats[n]))), 'kort': None, 'kortet_sett': False}
                     elif (s == 'V' and grip_start is not None and visited[1:] and sign_at(spans, float(t[b])) in DEALING and q.get('point')
                           and np.linalg.norm(np.array(q['point']) - table.own) < 0.16):
                         kind = 'GIV-EGET'
                         extra = {'plats': 'D', 'kort': None, 'kortet_sett': False}
-                    elif s == 'V' and q.get('state') == 'V2.3':
+                    elif s == 'V' and grip_start is not None and end_state.startswith('V3P') and sign_at(spans, float(t[b])) in DEALING:
+                        kind = 'GIV'   # from the shoe straight to a seat beside it, the left hand alone, the card not seen
+                        extra = {'plats': int(end_state[3:]), 'kort': None, 'kortet_sett': False}
+                    elif sum(1 for r in regs if r[0] == 'kroppen') >= 3 or 'H0' in (start_state, end_state) or 'V0' in (start_state, end_state):
+                        kind = 'ANNAT'   # up to his face or chest
+                        extra = {'vid_kroppen': True}
+                    elif s == 'V' and end_state == 'V2.3' and start_state != 'V2.3':
                         kind = 'TILL-SKON'
-                    elif lateral >= 0.40 and len(set(seat_frames)) >= 2 and start_state[1:3] != '3P' and end_state[1:3] != '3P':
+                    elif (lateral >= 0.40 and len(set(seat_frames)) >= 2 and start_state[1:3] != '3P' and end_state[1:3] != '3P' and float(t[b] - t[a]) <= 2.0
+                          and sign_at(spans, float(t[a])) not in ('take a seat', None)):
                         kind = 'SVEP'
                     elif top_seat is not None and start_state != f'{s}3P{top_seat}':
                         kind = 'PEKA'
@@ -413,8 +435,13 @@ def main_dela(data_dir, measures):
                     elif net < 0.10 and start_state[1:3] in ('3P', '3D') and end_state == start_state:
                         kind = 'RATTA'
                         extra = {'plats': int(start_state[3:]) if start_state[1:3] == '3P' else 'D'}
-                    elif q.get('state') in REST_STATES or (q['hold'] and (q['b'] - q['a']) / fps >= REST):
+                    elif (start_state in WAIT_STATES and end_state == start_state and ok.any()
+                          and float(np.nanmax(np.linalg.norm(path[ok] - path[ok][0], axis=1))) < (WITHIN_REST * 1.5 if start_state == 'V2.3' else WITHIN_REST)):
+                        kind = 'INOM-VILA'   # a small move where the hand waits: becomes part of the wait around it (tidy)
+                    elif start_state not in REST_STATES and (end_state in REST_STATES or (end_state in RESTING_AT_CARDS and q['hold'] and (q['b'] - q['a']) / fps >= REST)):
                         kind = 'HEM'
+                    elif start_state in REST_STATES and (end_state in REST_STATES or end_state in RESTING_AT_CARDS) and end_state != start_state:
+                        kind = 'BYT-VILA'
                     else:
                         kind = 'ANNAT'
                     if s == 'H' and kind in ('GIV', 'GIV-EGET'):
@@ -466,15 +493,59 @@ def main_dela(data_dir, measures):
 
 
 def tidy(ps):
-    """KORT-IN: what lies between two pieces of the collection, a few seconds apart, is the collection too. PEKA out, a
-    short stop at the seat and the way back are one gesture. Then the pieces of one gesture become one piece."""
+    """Make each piece what its name says. KORT-IN: what lies between two pieces of the collection, six seconds apart or less, is
+    the collection too. A small move in a rest is part of the wait (VANTA) around it, not a way home. The right hand's
+    setting off from its rest and a short stop before it takes the card belong to the deal (GIV). PEKA out, a short stop
+    at the seat and the way back are one gesture, and a longer one is not a pointing. Then the pieces of one gesture
+    become one piece."""
     ps = sorted(ps, key=lambda p: p['fran_s'])
     idx_in = [i for i, p in enumerate(ps) if p['kat'] == 'KORT-IN']
     for i, j in zip(idx_in, idx_in[1:]):
-        if ps[j]['fran_s'] - ps[i]['till_s'] < 3.0 and ps[i]['_tr'] == ps[j]['_tr']:
+        if ps[j]['fran_s'] - ps[i]['till_s'] < 6.0 and ps[i]['_tr'] == ps[j]['_tr']:
             for k in range(i + 1, j):
                 if ps[k]['kat'] not in ('GIV', 'GIV-EGET', 'DRA'):
                     ps[k]['kat'] = 'KORT-IN'
+    near = lambda p, q: p['_tr'] == q['_tr'] and q['fran_s'] - p['till_s'] < 0.05
+    # The setting off: a move out of the rest (and a short stop) right before the deal is the deal's beginning.
+    out = []
+    for p in ps:
+        if p['kat'] in ('GIV', 'GIV-EGET') and out:
+            lead = []
+            if out[-1]['kat'] in HOLDS and out[-1]['sek'] < 1.5 and len(out) > 1 and near(out[-1], p) and out[-2]['kat'] in ('INOM-VILA', 'BYT-VILA', 'ANNAT') and not out[-2].get('vid_kroppen') and near(out[-2], out[-1]):
+                lead = out[-2:]
+            elif out[-1]['kat'] in ('INOM-VILA', 'BYT-VILA') and near(out[-1], p):
+                lead = out[-1:]
+            if lead:
+                first = lead[0]
+                w = sum(x['sek'] for x in lead) + p['sek']
+                p['syns'] = round((sum(x['syns'] * x['sek'] for x in lead) + p['syns'] * p['sek']) / max(w, 1e-6), 2)
+                p.update({'fran_s': first['fran_s'], 'fran_ruta': first['fran_ruta'], 'sek': round(p['till_s'] - first['fran_s'], 3), 'fran_lage': first.get('fran_lage'), '_a': first['_a'],
+                          'vag': ((first.get('vag') or []) + (p.get('vag') or []))[:8]})
+                if any(x.get('kant') for x in lead):
+                    p['kant'] = True
+                del out[-len(lead):]
+        out.append(p)
+    ps = out
+    # A small move in a rest, and the stops on either side of it in the same place, are one wait.
+    for p in ps:
+        if p['kat'] == 'INOM-VILA':
+            p.update({'kat': 'VANTA', 'sma_rorelser': 1, '_inom': True, 'till_lage': p.get('fran_lage')})
+            p.pop('vag', None)
+    out = []
+    for p in ps:
+        q = out[-1] if out else None
+        if (q is not None and q['kat'] in HOLDS and p['kat'] in HOLDS and (q.get('_inom') or p.get('_inom')) and near(q, p) and q.get('fran_lage') == p.get('fran_lage')
+                and 'plats' not in q and 'plats' not in p):
+            sek = round(p['till_s'] - q['fran_s'], 3)
+            keep = q if q['sek'] >= p['sek'] else p
+            q.update({'till_s': p['till_s'], 'till_ruta': p['till_ruta'], 'sek': sek, '_b': p['_b'], 'kat': 'VANTA' if sek >= REST else 'STOPP', '_inom': True,
+                      'sma_rorelser': (q.get('sma_rorelser') or 0) + (p.get('sma_rorelser') or 0) + (0 if p.get('_inom') or q.get('_inom') else 1),
+                      'syns': round((q['syns'] * q['sek'] + p['syns'] * p['sek']) / max(q['sek'] + p['sek'], 1e-6), 2), 'punkt': keep.get('punkt')})
+            if p.get('kant'):
+                q['kant'] = True
+            continue
+        out.append(p)
+    ps = out
     # PEKA out, a short stop at the seat and the way back are one gesture: out and back.
     for i in range(len(ps) - 2):
         p, hold, back = ps[i], ps[i + 1], ps[i + 2]
@@ -491,16 +562,23 @@ def tidy(ps):
             q.pop('sma_rorelser', None)
             q.pop('punkt', None)
             continue
-        if out and p['kat'] == out[-1]['kat'] and p['kat'] in ('KORT-IN', 'SKON') and p['_tr'] == out[-1]['_tr'] and p['fran_s'] - out[-1]['till_s'] < 0.1:
+        if out and p['kat'] == out[-1]['kat'] and p['kat'] in ('KORT-IN', 'SKON', 'ANNAT') and p['_tr'] == out[-1]['_tr'] and p['fran_s'] - out[-1]['till_s'] < 0.1:
             q = out[-1]
             w = q['sek'] + p['sek']
             q.update({'till_s': p['till_s'], 'till_ruta': p['till_ruta'], 'sek': round(p['till_s'] - q['fran_s'], 3), 'till_lage': p.get('till_lage'), '_b': p['_b'],
                       'syns': round((q['syns'] * q['sek'] + p['syns'] * p['sek']) / max(w, 1e-6), 2), 'vag': (q.get('vag') or []) + [v for v in (p.get('vag') or []) if not q.get('vag') or v != q['vag'][-1]]})
             q['vag'] = q['vag'][:10]
+            q.pop('sma_rorelser', None)
+            q.pop('punkt', None)
             if p.get('kant'):
                 q['kant'] = True
             continue
         out.append(p)
+    for p in out:   # a pointing that lasts is something else
+        if p['kat'] == 'PEKA' and p['sek'] > 2.5:
+            p['kat'] = 'ANNAT'
+            p.pop('plats', None)
+            p.pop('vid_beslut', None)
     return out
 
 
@@ -534,7 +612,7 @@ def summarize(result, d, lifted, data_dir):
         for s in 'HV':
             c = collections.Counter()
             for p in pieces[s]:
-                if p['kat'] in MOVES and p.get('fran_lage') and p.get('till_lage') and not p.get('kant'):
+                if p['kat'] in MOVES and p['kat'] not in ('ANNAT', 'SKON') and p.get('fran_lage') and p.get('till_lage') and not p.get('kant'):
                     c[(gen(p['fran_lage']), gen(p['till_lage']))] += 1
             trans[s] = {f'{a} -> {b}': n for (a, b), n in c.most_common()}
         # The categories: how often, how long.
@@ -588,7 +666,7 @@ def summarize(result, d, lifted, data_dir):
         drawn = drawn_numbers(pieces, r['tracks'], table, trunk.get('behind_edge_estimated') or trunk.get('behind_edge_assumed') or 0.2, lift_heights(data_dir, style))
         for s in ('H', 'V', 'huvud'):
             for p in pieces[s]:
-                for k in ('_a', '_b', '_tr'):
+                for k in ('_a', '_b', '_tr', '_inom'):
                     p.pop(k, None)
                 p['saker'] = 'kant' if p.get('kant') else 'hog' if p['syns'] >= 0.8 else 'mellan' if p['syns'] >= 0.5 else 'lag'
         out['dealrar'][dealer] = {'stil': style, 'docka': DOLLS[style], 'sekunder': d['pattern']['dealers'][dealer]['seconds'], 'kategorier': cats, 'lagen': state_table, 'bada_stilla': pair_table, 'bada_stilla_basta': best_waits, 'overgangar': trans,

@@ -195,55 +195,72 @@ var sitt spår, eftersom händerna i filmen har var sin tidslinje. Varje stycke 
 i sekunden) och sekunder, en kategori ur rörelseschemat (`../standarddocka/rorelsekatalog.json`), plats och kort där
 det går att säga (P1–P7 från bildens vänster, D dealern själv, C1, C2 …), handens läge där det börjar och slutar, och
 hur säker indelningen är (`syns`: andelen rutor där handen hittades; `saker`: hog, mellan, lag, eller kant där stycket
-börjar eller slutar vid ett partis kant). 85–90 % av styckena är säkra.
+börjar eller slutar vid ett partis kant). 84–90 % av styckena är säkra.
 
 **Så delas det.** Ett spår delas där handen står still minst 0,2 s, där vänstern griper i skon och där ett kort kommer
 till ro under handen (kortets eget spår i `givar.json`; den hand som är närmast kortet då lade det). Mellan två sådana
-ställen är det en rörelse, och ett stopp är VILA (minst 0,6 s), VANTA (med små egna rörelser under 5 cm) eller STOPP
-(kortare, en del av arbetet). Rörelsens kategori kommer ur vad som händer: kortet som läggs (GIV, GIV-EGET), kortet
-som lämnar skon (DRA), korten som tas bort (KORT-IN), vart handen går (TILL-SKON, HEM, PEKA, SVEP, RATTA) och högern
-vid skon (SKON). Det som inte passar är ANNAT. Kortens nummer räknas per plats i rundan, bara bland kort som landar
-medan spelet ger.
+ställen är det en rörelse, och ett stopp är VILA (minst 0,6 s), VANTA (med små egna rörelser) eller STOPP (kortare, en
+del av arbetet). Rörelsens kategori kommer ur vad som händer: kortet som läggs (GIV, GIV-EGET), kortet som lämnar skon
+(DRA), korten som tas bort (KORT-IN) och högern vid skon (SKON); annars ur var den börjar och slutar, så att varje
+stycke börjar och slutar där namnet säger:
+
+- **HEM** börjar någon annanstans än i handens vila (vid ett kort, vid skon, vid lådan) och slutar i den. Från en vila
+  till en annan är **BYT-VILA**. En rörelse som stannar inom 15 cm från där den började, där handen väntar (vilan, de
+  egna korten, vänstern vid skon), hör till väntan runt den: **VANTA**.
+- **TILL-SKON** slutar vid skon och börjar någon annanstans. **SVEP** går tvärs över minst två platser på högst 2 s,
+  utan att börja eller sluta vid ett kort. **PEKA** går till en plats utan att lägga eller ta ett kort, och tillbaka
+  på högst 2,5 s. **KORT-IN** är allt från första kortet som tas in till lådan, med stopp under 6 s emellan.
+- En hand uppe vid ansiktet eller bröstet (som lagd på filten hamnar långt bakom bordet) är **ANNAT**, liksom en hand
+  som går ut från vilan och tillbaka utan att göra något med korten.
+- Högerns väg ut från vilan, och ett stopp under 1,5 s innan den tar kortet, hör till **GIV**.
+
+Kortens nummer räknas per plats i rundan, bara bland kort som landar medan spelet ger.
 
 | Kategori | Hand | Danilo (`kameran`) | Frasse (`bordet`) |
 | --- | --- | --- | --- |
-| GIV: kortet till en spelare | höger | 30 st, 0,80 s (0,53–1,15) | 60 st, 0,98 s (0,80–2,04) |
-| GIV | vänster ensam | 3 st, 0,23 s | 3 st, 0,23 s |
-| GIV-EGET: kortet till dealern själv | höger, efter handbyte | 14 st, 0,77 s (0,38–0,86) | 21 st, 0,73 s (0,43–1,33) |
-| GIV-EGET | vänster ensam | 4 st, 0,67 s | 4 st, 0,53 s |
-| DRA: vänstern drar kortet till handbytet | vänster | 63 st, 0,70 s (0,34–0,99) | 99 st, 0,83 s (0,40–0,97) |
-| TILL-SKON | vänster | 46 st, 0,63 s | 53 st, 0,57 s |
-| HEM | höger / vänster | 43 / 50 st, 0,60 / 0,33 s | 36 / 34 st, 0,37 / 0,32 s |
-| KORT-IN: korten in i lådan | höger | 14 st, 1,85 s (0,71–4,96) | 13 st, 4,87 s (0,40–7,53) |
-| SVEP: över bordet innan given | höger | 2 egna, och i inget av givarna | 1 egen, och 5 som går rakt in i första givet |
-| PEKA: handen mot en plats utan kort | höger | 2 st | 2 st |
+| GIV: kortet till en spelare | höger | 33 st, 0,87 s (0,61–2,03) | 61 st, 1,00 s (0,80–2,07) |
+| GIV | vänster ensam | 3 st | 5 st |
+| GIV-EGET: kortet till dealern själv | höger, efter handbyte | 14 st, 0,77 s (0,38–0,86) | 21 st, 0,73 s (0,43–1,47) |
+| GIV-EGET | vänster ensam | 4 st | 4 st |
+| DRA: vänstern drar kortet till handbytet | vänster | 65 st, 0,67 s (0,35–0,97) | 99 st, 0,83 s (0,40–0,97) |
+| TILL-SKON | vänster | 41 st, 0,63 s | 44 st, 0,58 s |
+| HEM | höger / vänster | 18 / 22 st, 0,57 / 0,50 s | 26 / 13 st, 0,37 / 0,33 s |
+| BYT-VILA | höger / vänster | 3 / 5 st | 3 / 13 st |
+| KORT-IN: korten in i lådan | höger / vänster | 11 / 6 st, 4,5 / 4,4 s | 12 / 10 st, 5,7 / 2,6 s |
+| SVEP: över bordet innan given | höger | 2 egna | 5 som går rakt in i första kortet |
+| PEKA: handen mot en plats utan kort | höger | 1 st | – |
 | RATTA: rätta till ett kort | höger | – | 2 st |
-| SKON: sköter skon (härmas inte) | båda | 26 st | – |
-| ANNAT (härmas inte) | båda | 7 st | 7 st |
-| VILA / VANTA | höger | 53 / 13 st, 1,4 / 5,3 s | 58 / 4 st, 2,2 / 5,9 s |
+| SKON: sköter skon (härmas inte) | höger / vänster | 10 / 16 st | – |
+| ANNAT (härmas inte) | höger / vänster | 11 / 12 st | 4 / 6 st |
+| VILA / VANTA | höger | 43 / 13 st, 1,6 / 5,3 s | 49 / 6 st, 2,2 / 6,6 s |
+| VILA / VANTA | vänster | 60 / 22 st, 1,3 / 3,3 s | 48 / 21 st, 2,2 / 3,5 s |
 
 Sett i bild (`rutor/segment/blad-*.jpg`): svepet går lågt från vilan vid lådan tvärs över platserna till mötet när
 given börjar (136,9 och 430,4 s); korten in samlas med båda händerna och läggs i lådan med högern (164–169 s); ANNAT är
-till exempel handen till örat (114,6 och 116,4 s); SKON är påfyllningen av skon (262–285 s). Dealerns eget kort ges
+till exempel handen till örat (114,6–118,7 s); SKON är påfyllningen av skon (262–285 s). Dealerns eget kort ges
 oftast som en spelares, med handbyte och högern som lägger (sett vid 140,5 och 750,3 s). Att peka på spelaren som ska
 välja finns nästan inte: då står spelets skylt i bild, och dealern ser i kameran (40–46 % av tiden) med händerna i vila.
+Av högerns KORT-IN når 7 av 11 (Danilo) och 7 av 12 (Frasse) lådan i mätningen; resten slutar vid kanten av ett mätt
+parti eller där handen inte syns.
 
 **Lägena per hand.** Ett ankare är ett läge för varje hand (A1 = H1 + V1, A2.3 = H1 + V2.3, A3PnCm = H3Pn + V2.3);
 lägena och vad de betyder står i rörelseschemat. `lagen` ger per dealer var varje läge ligger på filtens plan, hur
 många stopp och hur många sekunder; `bada_stilla` vilka par av lägen händerna står i samtidigt (kandidaterna till
-ankare: hos båda dealrarna är H1 + V1S, högern framför kroppen och vänstern mot skon, den vanligaste väntan mitt i
-rundan, och H1S + V1 eller V1S, högern utsträckt mot lådan, vilan under insatserna); `overgangar` hur många rörelser
-som går från ett läge till ett annat, per hand.
+ankare: hos båda dealrarna är H1 + V1S, högern framför kroppen och vänstern mot skon, en vanlig väntan mitt i rundan,
+och H1S + V1 eller V1S, högern utsträckt mot lådan, vilan under insatserna); `overgangar` hur många rörelser som går
+från ett läge till ett annat, per hand.
 
-**Händerna i otakt.** Efter ett kort på en plats går högern nästan aldrig hem: den går direkt till nästa kort (Danilo
-17 av 30 givar, Frasse 53 av 60), och i ögonblicket den lägger kortet drar vänstern redan nästa ur skon (18 av 30 och
-35 av 60) eller står vid skon med det (5 och 18). Vänsterns nästa grepp kommer 0,0 s (Danilo) och 0,1 s (Frasse) efter
-att kortet ligger, i median. Där högern går hem tar vänstern nästa kort 0,4 s innan den är hemma. `otakt` har talen.
+**Händerna i otakt, och de två dealrarnas stil.** De två skiljer sig här, och det hör till deras stil. Frasse går
+nästan aldrig hem mellan korten: efter 54 av de 56 kort på en plats som följs av ett nytt går högern direkt till nästa.
+Danilo gör det oftast men inte alltid: 18 av 25, och 7 gånger går han hem först (5 av dem tar vänstern nästa kort innan
+högern är hemma). I ögonblicket högern lägger ett kort drar vänstern redan nästa ur skon (Danilo 18 av 33, Frasse 35
+av 61) eller står vid skon med det (5 och 18). Vänsterns nästa grepp kommer 0,0 s (Danilo) och 0,1 s (Frasse) efter att
+kortet ligger, i median. `otakt` har talen.
 
 **Talen för den ritade given** (`for_ritade_rorelser`): delarna av ett kort med handbyte, median och 10–90 %, där
 båda händerna syns, per dealer och plats för plats. Vänstern lämnar skon och händerna möts efter 0,33 / 0,27 s,
-greppen är närmare än 13 cm i 0,1 s, kortet ligger 0,57 / 0,63 s efter mötet, hela givet tar 0,90 / 0,87 s. Mötet
-ligger 0,11 / 0,14 m åt dealerns vänster och 0,17 / 0,11 m fram från bordskanten. Blicken följer kortet till platsen
+greppen är närmare än 13 cm i 0,1 s, kortet ligger 0,58 / 0,63 s efter mötet, hela kortet tar 0,90 / 0,87 s. Mötet
+ligger 0,11 / 0,14 m åt dealerns vänster och 0,16 / 0,11 m fram från bordskanten. Blicken följer kortet till platsen
 (mot skon för P5–P7, mot lådan för P1–P2, ned för P4 och dealern). Höjderna kommer bara ur de lyfta givarna
 (`lyft/`, SAM:s djup): handlederna 4–10 cm över filten vid bytet, högerns handled som högst 6–7 cm på väg till
 platsen. Jämfört med den ritade given (`../blackjack-dealer/dealer3d/src/koreo-giv.ts`, KOREO) är kortet inte rest på
