@@ -1,0 +1,1085 @@
+{
+ "about": "The live table's set-up in the lens world, written by verktyg/uppsattning.py: metres, x to the picture's right (the dealer's left), y up with the felt at 0, z toward the player, the camera straight over the origin. Each group's how begins with measured, estimated, inferred or assumed. What is cloned is the measures and the movement; the room's look, the table's print and the people are not.",
+ "camera": {
+  "how": "measured from 29 single cards lying on the felt (0.54 pixel a corner), checked by the felt's round edge falling on a circle within 1.8 mm. The honest uncertainty: focal length and field of view 5 %, height 2 to 3 cm, tilt 0.3 degrees.",
+  "position": [
+   0.0,
+   0.6175,
+   0.0
+  ],
+  "tilt_down_degrees": 18.13,
+  "roll_degrees": -0.16,
+  "roll_note": "a level line across the felt falls toward the right in the picture by this much",
+  "picture": [
+   1728,
+   972
+  ],
+  "focal_px": 1290.3,
+  "middle_px": [
+   863.5,
+   485.5
+  ],
+  "field_of_view_degrees": {
+   "horizontal": 67.6,
+   "vertical": 41.3
+  }
+ },
+ "felt": {
+  "how": "measured. A half circle with a straight edge toward the dealer.",
+  "dealers_edge_z": -1.5375,
+  "front_z": -0.824,
+  "width_at_dealers_edge": 1.459,
+  "depth": 0.714,
+  "arc_centre": [
+   0.002,
+   0.0,
+   -1.5531
+  ],
+  "arc_radius": 0.7295,
+  "outline": [
+   [
+    0.3204,
+    0.0,
+    -1.5468
+   ],
+   [
+    0.7162,
+    0.0,
+    -1.4577
+   ],
+   [
+    0.7173,
+    0.0,
+    -1.4546
+   ],
+   [
+    0.7213,
+    0.0,
+    -1.4332
+   ],
+   [
+    0.7212,
+    0.0,
+    -1.4302
+   ],
+   [
+    0.715,
+    0.0,
+    -1.3948
+   ],
+   [
+    0.7041,
+    0.0,
+    -1.3499
+   ],
+   [
+    0.6954,
+    0.0,
+    -1.3231
+   ],
+   [
+    0.6881,
+    0.0,
+    -1.3023
+   ],
+   [
+    0.6834,
+    0.0,
+    -1.2896
+   ],
+   [
+    0.6654,
+    0.0,
+    -1.2455
+   ],
+   [
+    0.6589,
+    0.0,
+    -1.2314
+   ],
+   [
+    0.6474,
+    0.0,
+    -1.2085
+   ],
+   [
+    0.6352,
+    0.0,
+    -1.1863
+   ],
+   [
+    0.6302,
+    0.0,
+    -1.1776
+   ],
+   [
+    0.6204,
+    0.0,
+    -1.1626
+   ],
+   [
+    0.5967,
+    0.0,
+    -1.1276
+   ],
+   [
+    0.5893,
+    0.0,
+    -1.1176
+   ],
+   [
+    0.5757,
+    0.0,
+    -1.1001
+   ],
+   [
+    0.5695,
+    0.0,
+    -1.0924
+   ],
+   [
+    0.5537,
+    0.0,
+    -1.0736
+   ],
+   [
+    0.5282,
+    0.0,
+    -1.0465
+   ],
+   [
+    0.4953,
+    0.0,
+    -1.0154
+   ],
+   [
+    0.4897,
+    0.0,
+    -1.0103
+   ],
+   [
+    0.4817,
+    0.0,
+    -1.0037
+   ],
+   [
+    0.4459,
+    0.0,
+    -0.9746
+   ],
+   [
+    0.419,
+    0.0,
+    -0.9529
+   ],
+   [
+    0.3837,
+    0.0,
+    -0.9291
+   ],
+   [
+    0.3583,
+    0.0,
+    -0.9147
+   ],
+   [
+    0.3504,
+    0.0,
+    -0.9104
+   ],
+   [
+    0.3093,
+    0.0,
+    -0.8896
+   ],
+   [
+    0.2938,
+    0.0,
+    -0.8828
+   ],
+   [
+    0.2687,
+    0.0,
+    -0.8721
+   ],
+   [
+    0.2652,
+    0.0,
+    -0.8708
+   ],
+   [
+    0.2471,
+    0.0,
+    -0.8643
+   ],
+   [
+    0.2285,
+    0.0,
+    -0.8578
+   ],
+   [
+    0.2118,
+    0.0,
+    -0.8526
+   ],
+   [
+    0.1987,
+    0.0,
+    -0.8488
+   ],
+   [
+    0.1882,
+    0.0,
+    -0.8463
+   ],
+   [
+    0.135,
+    0.0,
+    -0.8349
+   ],
+   [
+    0.1209,
+    0.0,
+    -0.8324
+   ],
+   [
+    0.0978,
+    0.0,
+    -0.8299
+   ],
+   [
+    0.0658,
+    0.0,
+    -0.8274
+   ],
+   [
+    -0.0525,
+    0.0,
+    -0.8269
+   ],
+   [
+    -0.0985,
+    0.0,
+    -0.8315
+   ],
+   [
+    -0.107,
+    0.0,
+    -0.8327
+   ],
+   [
+    -0.1225,
+    0.0,
+    -0.835
+   ],
+   [
+    -0.1922,
+    0.0,
+    -0.8483
+   ],
+   [
+    -0.2053,
+    0.0,
+    -0.852
+   ],
+   [
+    -0.2505,
+    0.0,
+    -0.8659
+   ],
+   [
+    -0.3003,
+    0.0,
+    -0.8868
+   ],
+   [
+    -0.344,
+    0.0,
+    -0.9085
+   ],
+   [
+    -0.349,
+    0.0,
+    -0.9113
+   ],
+   [
+    -0.394,
+    0.0,
+    -0.937
+   ],
+   [
+    -0.4243,
+    0.0,
+    -0.9579
+   ],
+   [
+    -0.4386,
+    0.0,
+    -0.9686
+   ],
+   [
+    -0.4423,
+    0.0,
+    -0.9717
+   ],
+   [
+    -0.4802,
+    0.0,
+    -1.0037
+   ],
+   [
+    -0.5315,
+    0.0,
+    -1.0533
+   ],
+   [
+    -0.5416,
+    0.0,
+    -1.0641
+   ],
+   [
+    -0.5581,
+    0.0,
+    -1.0825
+   ],
+   [
+    -0.5785,
+    0.0,
+    -1.1072
+   ],
+   [
+    -0.583,
+    0.0,
+    -1.113
+   ],
+   [
+    -0.5903,
+    0.0,
+    -1.1229
+   ],
+   [
+    -0.61,
+    0.0,
+    -1.1513
+   ],
+   [
+    -0.6197,
+    0.0,
+    -1.166
+   ],
+   [
+    -0.6275,
+    0.0,
+    -1.1788
+   ],
+   [
+    -0.6365,
+    0.0,
+    -1.1941
+   ],
+   [
+    -0.6553,
+    0.0,
+    -1.2351
+   ],
+   [
+    -0.6797,
+    0.0,
+    -1.291
+   ],
+   [
+    -0.6845,
+    0.0,
+    -1.3038
+   ],
+   [
+    -0.7062,
+    0.0,
+    -1.3823
+   ],
+   [
+    -0.7077,
+    0.0,
+    -1.3909
+   ],
+   [
+    -0.7043,
+    0.0,
+    -1.4263
+   ],
+   [
+    -0.5511,
+    0.0,
+    -1.5369
+   ],
+   [
+    0.314,
+    0.0,
+    -1.5468
+   ]
+  ],
+  "rail": "the padded rail round the felt is raised over it and is measured in pixels only (data/scen.json, railOutlinePx)"
+ },
+ "floor": {
+  "how": "inferred, not measured: the floor is never in the picture. When the dealers stand at the table their eyes are 0.63 to 0.69 m over the felt, 0.15 m more than seated; with a grown man's eye height (1.63 m, give or take 0.07) the felt is about 0.95 m over the floor and the seat about 0.67 m.",
+  "felt_over_floor": 0.95,
+  "give_or_take": 0.1,
+  "seat_over_floor": 0.67,
+  "the_dealer": "sits, on a high chair"
+ },
+ "shoe": {
+  "how": "measured where it stands on the felt (corners read by eye, 1 to 2 cm); its back's height measured from the picture; the front plate's lean not measured.",
+  "foot": [
+   [
+    0.427,
+    0.0,
+    -1.4842
+   ],
+   [
+    0.4521,
+    0.0,
+    -1.3844
+   ],
+   [
+    0.7162,
+    0.0,
+    -1.4577
+   ]
+  ],
+  "foot_note": "front corner by the dealer, front corner toward the players, back corner",
+  "foot_length": 0.274,
+  "foot_width": 0.103,
+  "back_height": 0.117,
+  "front_plate_top_if_upright": 0.108,
+  "card_when_drawn": {
+   "how": "measured as seen, laid on the felt: the part of the next card that shows in the mouth, back up. It is 4 by 10 cm there, less than a card, and the fingers that take it are lifted (dealer, left_hand_at_the_shoe), so the card lies on the shoe's sloping front and not flat on the felt.",
+   "corners": [
+    [
+     0.3652,
+     0.0,
+     -1.446
+    ],
+    [
+     0.4017,
+     0.0,
+     -1.4618
+    ],
+    [
+     0.4311,
+     0.0,
+     -1.3674
+    ],
+    [
+     0.3977,
+     0.0,
+     -1.3589
+    ]
+   ],
+   "middle": [
+    0.3989,
+    0.0,
+    -1.4085
+   ],
+   "long_side_degrees": 17.3,
+   "long_side_note": "the long side's direction on the felt, from the z axis toward the x axis"
+  }
+ },
+ "box_for_used_cards": {
+  "how": "measured where it stands (a clear box at the dealer's right corner); its height from the picture, two corners.",
+  "foot": [
+   [
+    -0.6481,
+    0.0,
+    -1.4543
+   ],
+   [
+    -0.5725,
+    0.0,
+    -1.458
+   ],
+   [
+    -0.5749,
+    0.0,
+    -1.5506
+   ]
+  ],
+  "foot_width": 0.076,
+  "foot_depth": 0.093,
+  "height": [
+   0.159,
+   0.156
+  ],
+  "opening": "open at the top; the right hand is lifted to it with the cards"
+ },
+ "cut_card": {
+  "how": "measured in the 8 keyframes where it lies out, before the box.",
+  "middle": [
+   -0.5737,
+   0.0,
+   -1.4042
+  ],
+  "size_mm": [
+   47.9,
+   86.3
+  ]
+ },
+ "chip_tray": {
+  "how": "measured: there is none. The chips are the game's graphics."
+ },
+ "bet_marks": {
+  "how": "measured: the middle of the game's seat buttons, seat 1 at the picture's left (the dealer's right).",
+  "seats": [
+   [
+    -0.4967,
+    0.0,
+    -1.1335
+   ],
+   [
+    -0.3347,
+    0.0,
+    -0.9978
+   ],
+   [
+    -0.1711,
+    0.0,
+    -0.9279
+   ],
+   [
+    0.0004,
+    0.0,
+    -0.9074
+   ],
+   [
+    0.173,
+    0.0,
+    -0.9295
+   ],
+   [
+    0.3363,
+    0.0,
+    -1.0013
+   ],
+   [
+    0.4991,
+    0.0,
+    -1.1392
+   ]
+  ]
+ },
+ "card_places": {
+  "how": "measured: where each card first lay still (data/givar.json), counted per place from the first card of a round. long_side_degrees is the long side's lie on the felt as verktyg/kort.py gives it (turnM), 0 to 180; long_side_agreement says how well the landings agree on it (1: all the same, under 0.5: do not use it, as where cards overlap in a row). Places with fewer than two landings of an order are left out. Seat 1 is at the picture's left.",
+  "himself": {
+   "card_1": {
+    "landings": 18,
+    "middle": [
+     -0.0272,
+     0.0,
+     -1.3601
+    ],
+    "spread": [
+     0.042,
+     0.054
+    ],
+    "long_side_degrees": 4.8,
+    "long_side_agreement": 0.73,
+    "face_down_share": 0.0
+   },
+   "card_2": {
+    "landings": 18,
+    "middle": [
+     0.0243,
+     0.0,
+     -1.3447
+    ],
+    "spread": [
+     0.091,
+     0.066
+    ],
+    "long_side_degrees": 177.7,
+    "long_side_agreement": 0.56,
+    "face_down_share": 0.06
+   },
+   "card_3": {
+    "landings": 11,
+    "middle": [
+     -0.0269,
+     0.0,
+     -1.3567
+    ],
+    "spread": [
+     0.104,
+     0.055
+    ],
+    "long_side_degrees": 3.5,
+    "long_side_agreement": 0.54,
+    "face_down_share": 0.09
+   }
+  },
+  "seat 1": {
+   "card_1": {
+    "landings": 6,
+    "middle": [
+     -0.4206,
+     0.0,
+     -1.2185
+    ],
+    "spread": [
+     0.01,
+     0.107
+    ],
+    "long_side_degrees": 136.7,
+    "long_side_agreement": 0.45,
+    "face_down_share": 0.0
+   },
+   "card_2": {
+    "landings": 5,
+    "middle": [
+     -0.3732,
+     0.0,
+     -1.2157
+    ],
+    "spread": [
+     0.029,
+     0.003
+    ],
+    "long_side_degrees": 136.0,
+    "long_side_agreement": 0.59,
+    "face_down_share": 0.0
+   },
+   "card_3": {
+    "landings": 3,
+    "middle": [
+     -0.3701,
+     0.0,
+     -1.2165
+    ],
+    "spread": [
+     0.023,
+     0.011
+    ],
+    "long_side_degrees": 117.1,
+    "long_side_agreement": 0.39,
+    "face_down_share": 0.0
+   }
+  },
+  "seat 2": {
+   "card_1": {
+    "landings": 3,
+    "middle": [
+     -0.2964,
+     0.0,
+     -1.1272
+    ],
+    "spread": [
+     0.043,
+     0.021
+    ],
+    "long_side_degrees": 58.5,
+    "long_side_agreement": 0.33,
+    "face_down_share": 0.0
+   },
+   "card_2": {
+    "landings": 2,
+    "middle": [
+     -0.2987,
+     0.0,
+     -1.1171
+    ],
+    "spread": [
+     0.001,
+     0.009
+    ],
+    "long_side_degrees": 101.8,
+    "long_side_agreement": 0.15,
+    "face_down_share": 0.0
+   }
+  },
+  "seat 3": {
+   "card_1": {
+    "landings": 3,
+    "middle": [
+     -0.0938,
+     0.0,
+     -1.0974
+    ],
+    "spread": [
+     0.035,
+     0.054
+    ],
+    "long_side_degrees": 74.6,
+    "long_side_agreement": 0.32,
+    "face_down_share": 0.33
+   }
+  },
+  "seat 4": {
+   "card_1": {
+    "landings": 11,
+    "middle": [
+     0.0155,
+     0.0,
+     -1.0251
+    ],
+    "spread": [
+     0.009,
+     0.026
+    ],
+    "long_side_degrees": 177.7,
+    "long_side_agreement": 0.99,
+    "face_down_share": 0.0
+   },
+   "card_2": {
+    "landings": 9,
+    "middle": [
+     0.044,
+     0.0,
+     -1.0648
+    ],
+    "spread": [
+     0.008,
+     0.012
+    ],
+    "long_side_degrees": 179.0,
+    "long_side_agreement": 0.75,
+    "face_down_share": 0.0
+   }
+  },
+  "seat 5": {
+   "card_1": {
+    "landings": 6,
+    "middle": [
+     0.1575,
+     0.0,
+     -1.0402
+    ],
+    "spread": [
+     0.031,
+     0.037
+    ],
+    "long_side_degrees": 13.9,
+    "long_side_agreement": 0.66,
+    "face_down_share": 0.0
+   },
+   "card_2": {
+    "landings": 4,
+    "middle": [
+     0.1804,
+     0.0,
+     -1.0839
+    ],
+    "spread": [
+     0.006,
+     0.01
+    ],
+    "long_side_degrees": 12.4,
+    "long_side_agreement": 0.51,
+    "face_down_share": 0.0
+   }
+  },
+  "seat 6": {
+   "card_1": {
+    "landings": 14,
+    "middle": [
+     0.2922,
+     0.0,
+     -1.1044
+    ],
+    "spread": [
+     0.006,
+     0.025
+    ],
+    "long_side_degrees": 30.0,
+    "long_side_agreement": 0.85,
+    "face_down_share": 0.0
+   },
+   "card_2": {
+    "landings": 11,
+    "middle": [
+     0.2974,
+     0.0,
+     -1.1509
+    ],
+    "spread": [
+     0.004,
+     0.008
+    ],
+    "long_side_degrees": 30.1,
+    "long_side_agreement": 0.66,
+    "face_down_share": 0.0
+   },
+   "card_3": {
+    "landings": 3,
+    "middle": [
+     0.2949,
+     0.0,
+     -1.1602
+    ],
+    "spread": [
+     0.048,
+     0.015
+    ],
+    "long_side_degrees": 24.2,
+    "long_side_agreement": 0.29,
+    "face_down_share": 0.0
+   }
+  },
+  "seat 7": {
+   "card_1": {
+    "landings": 14,
+    "middle": [
+     0.4265,
+     0.0,
+     -1.2306
+    ],
+    "spread": [
+     0.021,
+     0.066
+    ],
+    "long_side_degrees": 51.3,
+    "long_side_agreement": 0.95,
+    "face_down_share": 0.0
+   },
+   "card_2": {
+    "landings": 11,
+    "middle": [
+     0.4156,
+     0.0,
+     -1.2762
+    ],
+    "spread": [
+     0.018,
+     0.025
+    ],
+    "long_side_degrees": 52.5,
+    "long_side_agreement": 0.46,
+    "face_down_share": 0.0
+   },
+   "card_3": {
+    "landings": 5,
+    "middle": [
+     0.4612,
+     0.0,
+     -1.2739
+    ],
+    "spread": [
+     0.043,
+     0.039
+    ],
+    "long_side_degrees": 55.1,
+    "long_side_agreement": 0.6,
+    "face_down_share": 0.0
+   }
+  }
+ },
+ "dealer": {
+  "kameran": {
+   "sits": true,
+   "trunk": {
+    "how": "the heights and the width are measured through the camera with the trunk taken 0.2 m behind the felt's edge (assumed); behind_edge_estimated is an estimate of that distance from the frames where a hand lies still on the felt: the wrist's place is then known, and MediaPipe's own metres of the body give the step from the wrist to the shoulder. Its depth is the weakest part of it: read it as give or take 0.1 m.",
+    "shoulders_middle": [
+     0.033,
+     0.318,
+     -1.738
+    ],
+    "shoulder_width": 0.357,
+    "eyes_over_felt": 0.509,
+    "behind_edge_assumed": 0.2,
+    "behind_edge_estimated": 0.065,
+    "shoulder_height_by_that_estimate": 0.351
+   },
+   "arm": {
+    "how": "estimated, and likely too short: MediaPipe's own metres of the body, brought to this dealer's shoulder width; the median over the frames with a hand at rest. At rest the arms point toward the camera, and what points in depth comes out short. Read them as at least this long; a grown man's are about 0.30 and 0.26.",
+    "upper_arm": 0.266,
+    "forearm": 0.219
+   },
+   "hands_at_rest": {
+    "how": "measured: the point between the thumb's tip and the index finger's, laid on the felt, in the waits (both hands still 1.5 s or more), the four commonest by time. A hand called lifted is off the felt and has no place here. The first is this style's rest.",
+    "places": [
+     {
+      "times": 4,
+      "seconds_in_all": 18.1,
+      "left_called": "seat 6",
+      "right_called": "lifted",
+      "left_grip": [
+       0.224,
+       0.0,
+       -1.2423
+      ],
+      "right_grip": null
+     },
+     {
+      "times": 4,
+      "seconds_in_all": 17.1,
+      "left_called": "shoe",
+      "right_called": "lifted",
+      "left_grip": [
+       0.3207,
+       0.0,
+       -1.3086
+      ],
+      "right_grip": null
+     },
+     {
+      "times": 3,
+      "seconds_in_all": 14.6,
+      "left_called": "own cards",
+      "right_called": "seat 1",
+      "left_grip": [
+       -0.0805,
+       0.0,
+       -1.4619
+      ],
+      "right_grip": [
+       -0.531,
+       0.0,
+       -1.2734
+      ]
+     },
+     {
+      "times": 3,
+      "seconds_in_all": 9.8,
+      "left_called": "own cards",
+      "right_called": "box",
+      "left_grip": [
+       -0.0473,
+       0.0,
+       -1.4688
+      ],
+      "right_grip": [
+       -0.5336,
+       0.0,
+       -1.3121
+      ]
+     }
+    ]
+   },
+   "left_hand_at_the_shoe": {
+    "how": "measured where it is seen, inferred how high: the same point at the end of the left hand's reach to the shoe, where the finger takes the card. Laid on the felt it falls behind the mouth, so the fingertips are lifted there: height_if_over_the_mouth is how high they are if they are over the mouth's middle. The card is then taken on the shoe's sloping front, not flat on the felt.",
+    "reaches": 58,
+    "grip_laid_on_the_felt": [
+     0.4683,
+     0.0,
+     -1.5765
+    ],
+    "spread": [
+     0.075,
+     0.071
+    ],
+    "height_if_over_the_mouth": 0.068,
+    "grip_over_the_mouth": [
+     0.3989,
+     0.068,
+     -1.4085
+    ]
+   }
+  },
+  "bordet": {
+   "sits": true,
+   "trunk": {
+    "how": "the heights and the width are measured through the camera with the trunk taken 0.2 m behind the felt's edge (assumed); behind_edge_estimated is an estimate of that distance from the frames where a hand lies still on the felt: the wrist's place is then known, and MediaPipe's own metres of the body give the step from the wrist to the shoulder. Its depth is the weakest part of it: read it as give or take 0.1 m.",
+    "shoulders_middle": [
+     0.046,
+     0.31,
+     -1.738
+    ],
+    "shoulder_width": 0.348,
+    "eyes_over_felt": 0.514,
+    "behind_edge_assumed": 0.2,
+    "behind_edge_estimated": 0.158,
+    "shoulder_height_by_that_estimate": 0.328
+   },
+   "arm": {
+    "how": "estimated, and likely too short: MediaPipe's own metres of the body, brought to this dealer's shoulder width; the median over the frames with a hand at rest. At rest the arms point toward the camera, and what points in depth comes out short. Read them as at least this long; a grown man's are about 0.30 and 0.26.",
+    "upper_arm": 0.228,
+    "forearm": 0.195
+   },
+   "hands_at_rest": {
+    "how": "measured: the point between the thumb's tip and the index finger's, laid on the felt, in the waits (both hands still 1.5 s or more), the four commonest by time. A hand called lifted is off the felt and has no place here. The first is this style's rest.",
+    "places": [
+     {
+      "times": 7,
+      "seconds_in_all": 61.3,
+      "left_called": "toward the shoe",
+      "right_called": "box",
+      "left_grip": [
+       0.1815,
+       0.0,
+       -1.4294
+      ],
+      "right_grip": [
+       -0.4809,
+       0.0,
+       -1.3536
+      ]
+     },
+     {
+      "times": 9,
+      "seconds_in_all": 37.6,
+      "left_called": "shoe",
+      "right_called": "own cards",
+      "left_grip": [
+       0.3399,
+       0.0,
+       -1.3561
+      ],
+      "right_grip": [
+       -0.1312,
+       0.0,
+       -1.3596
+      ]
+     },
+     {
+      "times": 6,
+      "seconds_in_all": 27.6,
+      "left_called": "seat 7",
+      "right_called": "own cards",
+      "left_grip": [
+       0.2647,
+       0.0,
+       -1.2652
+      ],
+      "right_grip": [
+       -0.1327,
+       0.0,
+       -1.3596
+      ]
+     },
+     {
+      "times": 4,
+      "seconds_in_all": 10.8,
+      "left_called": "toward the shoe",
+      "right_called": "own cards",
+      "left_grip": [
+       0.1647,
+       0.0,
+       -1.3902
+      ],
+      "right_grip": [
+       -0.1472,
+       0.0,
+       -1.3561
+      ]
+     }
+    ]
+   },
+   "left_hand_at_the_shoe": {
+    "how": "measured where it is seen, inferred how high: the same point at the end of the left hand's reach to the shoe, where the finger takes the card. Laid on the felt it falls behind the mouth, so the fingertips are lifted there: height_if_over_the_mouth is how high they are if they are over the mouth's middle. The card is then taken on the shoe's sloping front, not flat on the felt.",
+    "reaches": 71,
+    "grip_laid_on_the_felt": [
+     0.4482,
+     0.0,
+     -1.5481
+    ],
+    "spread": [
+     0.044,
+     0.074
+    ],
+    "height_if_over_the_mouth": 0.057,
+    "grip_over_the_mouth": [
+     0.3989,
+     0.057,
+     -1.4085
+    ]
+   }
+  }
+ }
+}
