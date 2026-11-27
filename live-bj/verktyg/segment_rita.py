@@ -230,58 +230,49 @@ def one_round(seg, phases, path, rounds=(('A', 136.5, 150.5), ('B', 744.5, 758.5
 
 
 def out_of_step(seg, path):
-    """The hands out of step, the two dealers each on their own."""
-    fig, axes = plt.subplots(2, 2, figsize=(16, 7.2))
+    """The hands out of step, the two dealers each on their own, counted over the cards that are followed by a new one."""
+    fig, axes = plt.subplots(2, 2, figsize=(16, 6.6))
     first = [('kedja', 'högern går direkt till nästa kort', '#257de0'), ('otakt', 'högern går hem, men vänstern tar nästa kort innan den är framme', '#f47230'),
-             ('i takt', 'högern går hem och vänstern väntar', '#f2a600'), ('sista', 'rundans sista kort', '#d9d9d9')]
+             ('i takt', 'högern går hem och vänstern väntar', '#f2a600')]
     second = [('på väg (DRA)', 'drar redan nästa kort ur skon', '#f47230'), ('V2.3', 'står vid skon med nästa kort', '#ffb38a'), ('vilar', 'vilar', '#d9d9d9'), ('annat', 'gör något annat', '#9e9e9e')]
     grips = []
-    for col, dl in enumerate(('A', 'B')):
-        o = seg['dealrar'][dl]['otakt']
-        after = o['efter_ett_kort_till_en_plats']
-        vals = [sum(v for k, v in after.items() if k.startswith(key)) for key, _, _ in first]
-        ax = axes[0][col]
+
+    def bars(ax, vals, kinds, title):
         total = sum(vals)
-        ax.barh(range(len(vals)), vals, color=[c for _, _, c in first], height=0.6)
+        ax.barh(range(len(vals)), vals, color=[c for _, _, c in kinds], height=0.6)
         for i, v in enumerate(vals):
             ax.text(v + total * 0.01, i, f'{v} av {total}', va='center', fontsize=10)
         ax.set_yticks(range(len(vals)))
-        ax.set_yticklabels([w for _, w, _ in first], fontsize=10)
+        ax.set_yticklabels([w for _, w, _ in kinds], fontsize=10)
         ax.invert_yaxis()
         ax.set_xlim(0, total * 1.25)
         ax.set_xticks([])
         for side in ('top', 'right', 'bottom'):
             ax.spines[side].set_visible(False)
-        ax.set_title(f'{DOLL[dl]}: efter ett kort till en spelare', loc='left', fontsize=12)
+        ax.set_title(title, loc='left', fontsize=12)
+    for col, dl in enumerate(('A', 'B')):
+        o = seg['dealrar'][dl]['otakt']
+        after = o['efter_ett_kort_till_en_plats']
+        bars(axes[0][col], [sum(v for k, v in after.items() if k.startswith(key)) for key, _, _ in first], first, f'{DOLL[dl]}: vad högern gör efter kortet')
         at = o['vanstern_nar_hogern_lagger']
         vals2 = [at.get('på väg (DRA)', 0), at.get('V2.3', 0), sum(v for k, v in at.items() if k in ('V1', 'V1S')), sum(v for k, v in at.items() if k not in ('på väg (DRA)', 'V2.3', 'V1', 'V1S'))]
-        ax = axes[1][col]
-        total2 = sum(vals2)
-        ax.barh(range(len(vals2)), vals2, color=[c for _, _, c in second], height=0.6)
-        for i, v in enumerate(vals2):
-            ax.text(v + total2 * 0.01, i, f'{v} av {total2}', va='center', fontsize=10)
-        ax.set_yticks(range(len(vals2)))
-        ax.set_yticklabels([w for _, w, _ in second], fontsize=10)
-        ax.invert_yaxis()
-        ax.set_xlim(0, total2 * 1.25)
-        ax.set_xticks([])
-        for side in ('top', 'right', 'bottom'):
-            ax.spines[side].set_visible(False)
+        bars(axes[1][col], vals2, second, f'{DOLL[dl]}: var vänstern är när högern lägger kortet')
         g = seg['dealrar'][dl]['for_ritade_rorelser']['giv_med_handbyte'].get('vansterns_nasta_grepp_efter_kortet_ligger_s') or {}
-        ax.set_title(f"{DOLL[dl]}: vänstern när högern lägger kortet", loc='left', fontsize=12)
         grips.append(f"{DOLL[dl]} {sv(g.get('median'), 1)} s")
-    fig.suptitle('Händerna har var sin tidslinje: Frasse nästan alltid, Danilo oftast', x=0.01, ha='left', fontsize=15, y=1.02)
-    fig.tight_layout(rect=(0, 0.08, 1, 1))
-    caption(fig, 'Överst: vad högern gör efter att den lagt ett kort hos en spelare. Underst: var vänstern är i samma ögonblick; dess nästa grepp i skon kommer, '
-            f'räknat från att kortet ligger: {" och ".join(grips)}. Varför det spelar roll: Frasse går direkt vidare nästan varje gång, Danilo oftast men går hem '
-            'oftare, och det hör till deras stil. Ett klipp som tvingar båda händerna hem efter varje kort ser därför stelt ut för båda.', y=0.06, width=180)
+    fig.suptitle('Händerna har var sin tidslinje: Frasse nästan alltid, Danilo oftast', x=0.01, ha='left', fontsize=15, y=1.03)
+    fig.text(0.01, 0.955, 'Räknat över de kort som högern lägger hos en spelare och som följs av ett nytt kort (rundans sista kort är inte med).', fontsize=10.5, color=INK, ha='left', va='bottom')
+    fig.tight_layout(rect=(0, 0.08, 1, 0.94))
+    caption(fig, 'Överst: vad högern gör efter att den lagt kortet. Underst: var vänstern är i samma ögonblick; dess nästa grepp i skon kommer, räknat från att kortet '
+            f'ligger: {" och ".join(grips)}. Varför det spelar roll: Frasse går direkt vidare nästan varje gång, Danilo oftast men går hem oftare, och det hör till '
+            'deras stil. Ett klipp som tvingar båda händerna hem efter varje kort ser därför stelt ut för båda.', y=0.06, width=180)
     fig.savefig(path, dpi=100, bbox_inches='tight')
     plt.close(fig)
 
 
 def states_map(seg, scene, path):
-    """Where each hand stands still, from above, on our drawing of the live table (numbers only)."""
-    fig, axes = plt.subplots(1, 2, figsize=(17, 7.6))
+    """Where each hand stands still, drawn as the camera sees the table: the dealer at the top, the players at the bottom,
+    seat 1 to the picture's left and the shoe to its right (numbers only, on our own drawing of the live table)."""
+    fig, axes = plt.subplots(1, 2, figsize=(17, 7.8))
     outline = np.array(scene['table']['feltOutlineM'])
     short = {'H1': 'högern vilar', 'H1S': 'högern vid sidan', 'H2M': 'högern vid mötet', 'H2': 'högern vid skon', 'H3D': 'högern vid egna kort', 'H4': 'högern vid lådan',
              'V1': 'vänstern vilar', 'V1S': 'vänstern mot skon', 'V2.3': 'vänstern vid skon', 'V3D': 'vänstern vid egna kort', 'V4': 'vänstern vid lådan'}
@@ -291,34 +282,43 @@ def states_map(seg, scene, path):
         for name, key in (('skon', 'sko'), ('lådan', 'slaskbox')):
             foot = np.array(scene['things'][key]['footMetres'])
             ax.fill(foot[:, 0], foot[:, 1], color='#d9d9d9', zorder=1)
-            ax.text(foot[:, 0].mean(), foot[:, 1].mean() + 0.06, name, ha='center', va='center', fontsize=9, color=INK2)
+            ax.text(foot[:, 0].mean(), foot[:, 1].mean() - 0.09, name, ha='center', va='center', fontsize=9, color=INK2)
         for n, (x, y) in enumerate(scene['seatsUiM'], 1):
-            ax.text(x, y - 0.03, f'plats {n}', ha='center', fontsize=9, color=INK2)
+            ax.text(x, y - 0.04, f'plats {n}', ha='center', va='center', fontsize=9, color=INK2)
         ax.plot(*scene['places']['dealer']['m'], marker='s', color='#bdbdbd', ms=8)
-        ax.axhline(scene['table']['dealerEdgeM'], color='#c8c8c8', lw=1, ls='--')
-        ax.text(0.8, scene['table']['dealerEdgeM'] + 0.015, 'bordskanten, dealern sitter här', ha='right', va='top', fontsize=8.5, color=INK2)
-        for name, st in dd['lagen'].items():
+        edge = scene['table']['dealerEdgeM']
+        ax.axhline(edge, color='#c8c8c8', lw=1, ls='--')
+        ax.text(-0.3, edge + 0.015, 'bordskanten; dealern sitter bakom den', ha='center', va='bottom', fontsize=8.5, color=INK2)
+        placed = []   # labels pushed apart where they would lie on each other
+        spots = sorted(((name, st) for name, st in dd['lagen'].items() if 0.75 <= st['mitt_m'][1] <= 1.95 and st['sekunder'] >= 1.5), key=lambda kv: -kv[1]['sekunder'])
+        for name, st in spots:
             x, y = st['mitt_m']
-            if y > 1.95 or y < 0.75 or st['sekunder'] < 1.5:
-                continue
             col = '#257de0' if name.startswith('H') else '#f47230'
             ax.scatter([x], [y], s=40 + 8 * st['sekunder'], color=col, alpha=0.35, edgecolor=col, zorder=3)
             label = short.get(name) or (f"{'högern' if name[0] == 'H' else 'vänstern'} vid plats {name[3:]}" if name[1:3] == '3P' else name)
-            ax.text(x, y, label, ha='center', va='center', fontsize=8, color=INK, zorder=4)
+            ly, step = y, 0
+            while any(abs(ly - py) < 0.035 and abs(x - px) < 0.3 for px, py in placed):
+                step += 1
+                ly = y + (0.04 * ((step + 1) // 2)) * (1 if step % 2 else -1)
+            placed.append((x, ly))
+            if ly != y:
+                ax.plot([x, x], [y, ly], color='#9e9e9e', lw=0.6, zorder=3)
+            ax.text(x, ly, label, ha='center', va='center', fontsize=8, color=INK, zorder=4, bbox=dict(boxstyle='round,pad=0.15', fc='white', ec='none', alpha=0.7))
         ax.set_xlim(-0.8, 0.85)
-        ax.set_ylim(1.85, 0.75)
+        ax.set_ylim(0.75, 1.85)   # the camera's view: near the camera (the players) at the bottom, the dealer at the top
         ax.set_aspect('equal')
         ax.set_xticks([])
         ax.set_yticks([])
         for side in ('top', 'right', 'left', 'bottom'):
             ax.spines[side].set_visible(False)
         ax.set_title(f'{DOLL[dl]}: där händerna står stilla', loc='left', fontsize=12)
-    fig.legend(handles=[Patch(color='#257de0', alpha=0.5, label='högra handen'), Patch(color='#f47230', alpha=0.5, label='vänstra handen')], loc='upper center', ncol=2, frameon=False, fontsize=10)
-    fig.suptitle('Var händerna stannar, sett uppifrån (spelarna överst, dealern nederst)', x=0.01, ha='left', fontsize=15, y=1.03)
-    fig.tight_layout(rect=(0, 0.07, 1, 0.97))
-    caption(fig, 'Varje ring är ett ställe där en hand brukar stå stilla; ju större ring, desto längre tid står den där. Varför det spelar roll: de här ställena är dockans '
-            'utgångslägen, där ett klipp kan börja och sluta. En hand som är lyft, vid skon eller vid lådan, ritas lite längre bort än den är. Kort tid (under 1,5 s) är inte ritat.',
-            y=0.06, width=180)
+    fig.suptitle('Var händerna stannar, sett från spelarnas sida, som i filmen (dealern överst, plats 1 till vänster, skon till höger)', x=0.01, ha='left', fontsize=14, y=1.0)
+    fig.tight_layout(rect=(0, 0.11, 1, 0.96))
+    fig.legend(handles=[Patch(color='#257de0', alpha=0.5, label='dealerns högra hand'), Patch(color='#f47230', alpha=0.5, label='dealerns vänstra hand')], loc='lower center',
+               ncol=2, frameon=False, fontsize=10, bbox_to_anchor=(0.5, 0.075))
+    caption(fig, 'Varje ring är ett ställe där en hand brukar stå stilla; ju större ring, desto längre tid står den där. Dealerns högra hand är till vänster i bilden, '
+            'eftersom han sitter vänd mot oss. Varför det spelar roll: de här ställena är dockans utgångslägen, där ett klipp kan börja och sluta. En hand som är lyft, '
+            'vid skon eller vid lådan, ritas lite närmare dealern än den är. Kort tid (under 1,5 s) är inte ritad.', y=0.06, width=180)
     fig.savefig(path, dpi=100, bbox_inches='tight')
     plt.close(fig)
 

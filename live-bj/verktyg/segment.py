@@ -59,6 +59,7 @@ STATE_WORDS = {
 REST_STATES = {'H1', 'H1S', 'V1', 'V1S'}
 RESTING_AT_CARDS = {'H3D', 'V3D'}   # where a hand also rests a while: at his own cards
 WAIT_STATES = REST_STATES | RESTING_AT_CARDS | {'V2.3'}   # where a hand waits (the left also at the shoe, ready)
+BODY_FRAMES = 8                      # measured frames (a quarter second) the found hand must be up at his body before a move counts as going there
 WITHIN_REST = 0.15                   # metres: a move that stays this near where it began, where the hand waits, is a small move in the wait (half again at the shoe, where the lifted hand is drawn out on the felt)
 
 CATEGORIES = {   # id: (hands, words)
@@ -421,7 +422,8 @@ def main_dela(data_dir, measures):
                     elif s == 'V' and grip_start is not None and end_state.startswith('V3P') and sign_at(spans, float(t[b])) in DEALING:
                         kind = 'GIV'   # from the shoe straight to a seat beside it, the left hand alone, the card not seen
                         extra = {'plats': int(end_state[3:]), 'kort': None, 'kortet_sett': False}
-                    elif sum(1 for r in regs if r[0] == 'kroppen') >= 3 or 'H0' in (start_state, end_state) or 'V0' in (start_state, end_state):
+                    elif (sum(1 for k in range(a, b + 1) if regions[k][0] == 'kroppen' and h['found'][k]) >= BODY_FRAMES
+                          or 'H0' in (start_state, end_state) or 'V0' in (start_state, end_state)):
                         kind = 'ANNAT'   # up to his face or chest
                         extra = {'vid_kroppen': True}
                     elif s == 'V' and end_state == 'V2.3' and start_state != 'V2.3':
@@ -438,8 +440,8 @@ def main_dela(data_dir, measures):
                     elif (start_state in WAIT_STATES and end_state == start_state and ok.any()
                           and float(np.nanmax(np.linalg.norm(path[ok] - path[ok][0], axis=1))) < (WITHIN_REST * 1.5 if start_state == 'V2.3' else WITHIN_REST)):
                         kind = 'INOM-VILA'   # a small move where the hand waits: becomes part of the wait around it (tidy)
-                    elif start_state not in REST_STATES and (end_state in REST_STATES or (end_state in RESTING_AT_CARDS and q['hold'] and (q['b'] - q['a']) / fps >= REST)):
-                        kind = 'HEM'
+                    elif start_state not in REST_STATES and end_state != start_state and (end_state in REST_STATES or end_state in RESTING_AT_CARDS):
+                        kind = 'HEM'   # from somewhere else to where the hand rests; out and back to the same place is not a way home
                     elif start_state in REST_STATES and (end_state in REST_STATES or end_state in RESTING_AT_CARDS) and end_state != start_state:
                         kind = 'BYT-VILA'
                     else:
@@ -870,6 +872,7 @@ def out_of_step(pieces):
     res = collections.Counter()
     leads, at_lay = [], collections.Counter()
     examples = []
+    last = 0
     for i, p in enumerate(H):
         if p['kat'] != 'GIV':
             continue
@@ -879,11 +882,12 @@ def out_of_step(pieces):
         this_out = p.get('kortet_ut_s') or p['till_s'] - 1.0
         pull = next((q for q in V if q['_tr'] == p['_tr'] and q['kat'] in ('DRA', 'GIV', 'GIV-EGET') and q['fran_s'] > this_out + 0.3 and q['fran_s'] < p['till_s'] + 3.0), None)
         lv = next((q for q in V if q['_tr'] == p['_tr'] and q['fran_s'] <= p['till_s'] <= q['till_s']), None)
+        if not (chain is not None and (home is None or chain['fran_s'] < home['fran_s'])) and (home is None or pull is None):
+            last += 1   # the round's last card: no new card follows, so it is left out of the counting
+            continue
         at_lay[gen(lv['fran_lage']) if lv and lv['kat'] in HOLDS else f"på väg ({lv['kat']})" if lv else 'okänt'] += 1
         if chain is not None and (home is None or chain['fran_s'] < home['fran_s']):
             res['kedja: högern går direkt till nästa kort utan att gå hem'] += 1
-        elif home is None or pull is None:
-            res['sista kortet: inget nytt kort inom 3 s'] += 1
         elif pull['fran_s'] < home['till_s']:
             res['otakt: vänstern tar nästa kort innan högern är hemma'] += 1
             leads.append(home['till_s'] - pull['fran_s'])
@@ -894,7 +898,8 @@ def out_of_step(pieces):
     # Every way home of the right hand: does the left move meanwhile?
     homes = [p for p in H if p['kat'] == 'HEM']
     moving = sum(1 for p in homes if any(q['_tr'] == p['_tr'] and q['kat'] in MOVES and q['fran_s'] < p['till_s'] and q['till_s'] > p['fran_s'] for q in V))
-    return {'efter_ett_kort_till_en_plats': dict(res), 'vanstern_fore_hogern_hemma_s': stats(leads), 'vanstern_nar_hogern_lagger': dict(at_lay.most_common()),
+    return {'bas': 'korten som högern lägger hos en spelare och som följs av ett nytt kort (inom 3 s); rundans sista kort är inte räknade', 'antal': sum(res.values()),
+            'sista_kortet_inte_raknade': last, 'efter_ett_kort_till_en_plats': dict(res), 'vanstern_fore_hogern_hemma_s': stats(leads), 'vanstern_nar_hogern_lagger': dict(at_lay.most_common()),
             'hogern_hem_medan_vanstern_ror_sig': {'hem': len(homes), 'vanstern_ror_sig_samtidigt': moving}, 'exempel': examples}
 
 

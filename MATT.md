@@ -313,7 +313,7 @@ Var en hand är när ett klipp börjar och slutar. Bredvid: hur många gånger o
 | A1S | Vila under insatserna | H1S + V1 | högern utsträckt mot lådan, vänstern framför kroppen (Frasse: mot skon), blicken mot kameran | förslag | filmens vanligaste stillhet mellan rundorna; svepet över bordet börjar här när given börjar |
 | A1V | Väntan medan spelarna väljer | H1 + V1S | högern framför kroppen, vänstern mot skon | förslag | filmens vanligaste stillhet mitt i rundan, hos båda dealrarna |
 | A2.3 | Redo vid skon | H1 + V2.3 | vänstern vid skons mynning, högern redo framför dealern, blicken på skon | finns |  |
-| A2M | Handbytet | H2M + V1S | båda händerna vid kortet mitt framför dealern, vänstern håller det och högern tar det | förslag | skarven när korten ges i följd: i filmen nästan stannar kortets hand här (6–8 % av toppfarten), och högern går oftast direkt från ett kort till nästa i stället för hem (Frasse nästan alltid, Danilo i ungefär tre fall av fyra). Då behövs två klipp per kort (HEM-TILL-BYTET och GIV-FRAN-BYTET) i stället för ett för varje par av platser |
+| A2M | Handbytet | H2M + V1S | båda händerna vid kortet mitt framför dealern, vänstern håller det och högern tar det | förslag | skarven när korten ges i följd: i filmen nästan stannar kortets hand här (6–8 % av toppfarten), och högern går oftast direkt från ett kort till nästa i stället för hem (av de kort hos en spelare som följs av ett nytt kort: Frasse 54 av 56, Danilo 18 av 26). Då behövs två klipp per kort (HEM-TILL-BYTET och GIV-FRAN-BYTET) i stället för ett för varje par av platser |
 | A3PnCm | Kortet har landat hos en spelare | H3Pn + V2.3 | plats n (1–7), kort m; handen ligger kvar vid kortet | finns | standarddockorna har kort 1 till varje plats; kort 2 och uppåt saknas. I filmen är vänstern oftast redan på väg med nästa kort i detta ögonblick |
 | A3DCm | Kortet har landat hos dealern | H3D + V2.3 | dealerns egna kortplats, kort m | saknas | finns bara för den äldre dockan |
 | A2.1 | Nyp i skons fönster | — | ena handen nyper kortet i skons fönster | finns | den äldre dockans (Paow); tas bort med henne |
@@ -355,9 +355,9 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackja
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Från vilan till skon (TILL-SKON) | A1 → A2.3 | båda | finns | `till-ankare-2-3-<docka>`: mannen och kvinnan 1 av 1 (2 av 2 filer som väntas) | ja | vänster 41 st, 0,63 s (0,4–0,97) | vänster 44 st, 0,58 s (0,38–0,98) | `TILL-SKON` |  |
+| Från vilan till skon (TILL-SKON) | A1 → A2.3 | båda | finns | `till-ankare-2-3-<docka>`: mannen och kvinnan 1 av 1 (2 av 2 filer som väntas) | ja | vänster 41 st, 0,63 s (0,4–0,97) | vänster 45 st, 0,57 s (0,38–0,97) | `TILL-SKON` |  |
 | Grundklippet vid skon (REDO-GRUND) | A2.3 → A2.3 | stilla och redo, varken spänd eller slapp | delvis | — | — (inga filer att leta efter) | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | finns som stillhet mellan givarna i rundan, inte som eget klipp |
-| Från skon tillbaka till vilan (TILL-VILAN) | A2.3 → A1 | båda | saknas | — | — (inga filer att leta efter) | höger 18 st, 0,57 s (0,26–0,87); vänster 22 st, 0,5 s (0,2–0,83) | höger 26 st, 0,37 s (0,22–1,48); vänster 13 st, 0,33 s (0,23–0,49) | `HEM` | takten är bestämd (0,8 s) |
+| Från skon tillbaka till vilan (TILL-VILAN) | A2.3 → A1 | båda | saknas | — | — (inga filer att leta efter) | höger 19 st, 0,57 s (0,27–0,88); vänster 22 st, 0,5 s (0,2–0,83) | höger 25 st, 0,37 s (0,21–1,49); vänster 13 st, 0,33 s (0,23–0,49) | `HEM` | takten är bestämd (0,8 s) |
 
 #### Ett kort ut (GIV): hemankare A2.3, ett kort går från skon till en spelare eller till dealern
 
@@ -372,9 +372,9 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackja
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Handen hem till skon (HEM-TILL-SKON) | A3PnCm → A2.3 | handen som lade kortet | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | andra halvan av givens fil. I filmen går högern hem mellan två kort i ungefär vart fjärde fall hos Danilo och nästan aldrig hos Frasse; se HEM-TILL-BYTET |
-| Högern från platsen tillbaka till nästa kort (HEM-TILL-BYTET) | A3PnCm → A2M | högern går från kortet direkt till mötet, medan vänstern redan drar nästa kort ur skon | förslag | — | — (inga filer att leta efter) | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | så ger Frasse nästan alltid och Danilo oftast, med händerna i otakt; Danilo går hem oftare, och det hör till hans stil. Ersätter att båda händerna alltid går hem mellan korten |
-| Handen hem direkt till vilan (HEM-TILL-VILAN) | A3PnCm → A1 | båda | saknas | — | — (inga filer att leta efter) | höger 18 st, 0,57 s (0,26–0,87); vänster 22 st, 0,5 s (0,2–0,83) | höger 26 st, 0,37 s (0,22–1,48); vänster 13 st, 0,33 s (0,23–0,49) | `HEM` | efter rundans sista kort; vänstern går ofta hem samtidigt |
+| Handen hem till skon (HEM-TILL-SKON) | A3PnCm → A2.3 | handen som lade kortet | finns | `giv-fran-2-3-p<n>c1-ren-<a\|b>-<docka>`: mannen och kvinnan A: plats 1–7, B: plats 1–5 (24 av 24 filer som väntas) | ja | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | andra halvan av givens fil. I filmen går högern hem mellan två kort hos Danilo i 8 av 26 och hos Frasse i 2 av 56 (av de kort hos en spelare som följs av ett nytt kort); se HEM-TILL-BYTET |
+| Högern från platsen tillbaka till nästa kort (HEM-TILL-BYTET) | A3PnCm → A2M | högern går från kortet direkt till mötet, medan vänstern redan drar nästa kort ur skon | förslag | — | — (inga filer att leta efter) | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | så ger Frasse nästan alltid och Danilo oftast, med händerna i otakt (av de kort hos en spelare som följs av ett nytt kort: Frasse 54 av 56, Danilo 18 av 26); Danilo går hem oftare, och det hör till hans stil. Ersätter att båda händerna alltid går hem mellan korten |
+| Handen hem direkt till vilan (HEM-TILL-VILAN) | A3PnCm → A1 | båda | saknas | — | — (inga filer att leta efter) | höger 19 st, 0,57 s (0,27–0,88); vänster 22 st, 0,5 s (0,2–0,83) | höger 25 st, 0,37 s (0,21–1,49); vänster 13 st, 0,33 s (0,23–0,49) | `HEM` | efter rundans sista kort; vänstern går ofta hem samtidigt |
 | Rätta till ett kort (RATTA) | A3PnCm → A3PnCm | en liten rörelse vid kortet som ligger | saknas | — | — (inga filer att leta efter) | — (inte i filmen) | höger 2 st, 0,28 s (0,27–0,3) | `RATTA` |  |
 
 #### Dealerns egna kort (DEALERNS TUR): hemankare A1, när spelarna är klara: dealern drar sina kort
@@ -415,7 +415,7 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens filer i `blackja
 | Kategori | Namn | Vad | Danilo (dealer A) | Frasse (dealer B) |
 | --- | --- | --- | --- | --- |
 | SKON | Sköta skon | båda händerna vid skon: fylla på eller byta kortlek | höger 10 st, 1,02 s (0,26–4,95); vänster 16 st, 0,82 s (0,18–2,18) | — (inte i filmen) |
-| ANNAT | Annat | en rörelse som inte passar någon av rörelserna ovan: handen upp till ansiktet eller kroppen, en hand som går ut från vilan och tillbaka utan att göra något med korten, skärkortet | höger 11 st, 0,93 s (0,53–4,1); vänster 12 st, 0,45 s (0,24–0,79) | höger 4 st, 1,35 s (0,74–5,69); vänster 6 st, 0,48 s (0,38–0,7) |
+| ANNAT | Annat | en rörelse som inte passar någon av rörelserna ovan: handen upp till ansiktet eller kroppen, en hand som går ut från vilan och tillbaka utan att göra något med korten, skärkortet | höger 10 st, 0,9 s (0,52–4,18); vänster 12 st, 0,45 s (0,24–0,79) | höger 5 st, 1,23 s (0,79–5,09); vänster 5 st, 0,5 s (0,38–0,71) |
 
 Kategorier i indelningen som katalogen inte har en rörelse för:
 

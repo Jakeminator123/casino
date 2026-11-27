@@ -100,15 +100,15 @@
    "sekunder": 404.2,
    "kategorier": {
     "ANNAT höger": {
-     "antal": 11,
+     "antal": 10,
      "sekunder": {
-      "n": 11,
-      "median": 0.93,
-      "p10": 0.53,
-      "p90": 4.1
+      "n": 10,
+      "median": 0.9,
+      "p10": 0.52,
+      "p90": 4.18
      },
-     "summa_s": 16.5,
-     "syns_median": 0.79
+     "summa_s": 15.7,
+     "syns_median": 0.93
     },
     "BYT-VILA höger": {
      "antal": 3,
@@ -168,14 +168,14 @@
      }
     },
     "HEM höger": {
-     "antal": 18,
+     "antal": 19,
      "sekunder": {
-      "n": 18,
+      "n": 19,
       "median": 0.57,
-      "p10": 0.26,
-      "p90": 0.87
+      "p10": 0.27,
+      "p90": 0.88
      },
-     "summa_s": 12.5,
+     "summa_s": 13.3,
      "syns_median": 1.0
     },
     "KORT-IN höger": {
@@ -784,11 +784,11 @@
    "overgangar": {
     "H": {
      "H1 -> H3Pn": 12,
-     "H3Pn -> H3D": 11,
+     "H3Pn -> H3D": 12,
      "H3Pn -> H3Pn": 9,
      "H3D -> H1": 8,
-     "H3D -> H3D": 7,
-     "H3Pn -> H1": 6,
+     "H3Pn -> H1": 7,
+     "H3D -> H3D": 6,
      "H1 -> H1": 5,
      "H3D -> H3Pn": 5,
      "H1 -> H3D": 5,
@@ -822,11 +822,13 @@
     }
    },
    "otakt": {
+    "bas": "korten som högern lägger hos en spelare och som följs av ett nytt kort (inom 3 s); rundans sista kort är inte räknade",
+    "antal": 26,
+    "sista_kortet_inte_raknade": 7,
     "efter_ett_kort_till_en_plats": {
      "kedja: högern går direkt till nästa kort utan att gå hem": 18,
      "otakt: vänstern tar nästa kort innan högern är hemma": 5,
-     "sista kortet: inget nytt kort inom 3 s": 8,
-     "i takt: vänstern väntar tills högern är hemma": 2
+     "i takt: vänstern väntar tills högern är hemma": 3
     },
     "vanstern_fore_hogern_hemma_s": {
      "n": 5,
@@ -835,17 +837,16 @@
      "p90": 8.21
     },
     "vanstern_nar_hogern_lagger": {
-     "på väg (DRA)": 18,
+     "på väg (DRA)": 17,
      "V2.3": 5,
-     "V1": 4,
-     "V1S": 2,
-     "på väg (TILL-SKON)": 2,
      "på väg (GIV-EGET)": 1,
-     "på väg (ANNAT)": 1
+     "V1": 1,
+     "V1S": 1,
+     "på väg (TILL-SKON)": 1
     },
     "hogern_hem_medan_vanstern_ror_sig": {
-     "hem": 18,
-     "vanstern_ror_sig_samtidigt": 16
+     "hem": 19,
+     "vanstern_ror_sig_samtidigt": 17
     },
     "exempel": [
      {
@@ -947,9 +948,9 @@
       "p90": 0.83
      },
      "hem_s": {
-      "n": 11,
+      "n": 13,
       "median": 0.67,
-      "p10": 0.3,
+      "p10": 0.34,
       "p90": 0.87
      },
      "vanstern_tillbaka_efter_bytet_s": {
@@ -1014,9 +1015,9 @@
        "KAMERAN": 0.06
       },
       "hem": {
-       "BORDET": 0.64,
-       "MOT-SKON": 0.23,
-       "KAMERAN": 0.11,
+       "BORDET": 0.6,
+       "MOT-SKON": 0.25,
+       "KAMERAN": 0.14,
        "MOT-LADAN": 0.01
       }
      },
@@ -1037,7 +1038,7 @@
        "hela_s": 0.87,
        "skon_till_bytet_s": 0.4,
        "bytet_till_platsen_s": 0.48,
-       "hem_s": 0.53,
+       "hem_s": 0.6,
        "bytet_sidled_m": 0.08,
        "bytet_fran_kanten_m": 0.16,
        "vansterns_nasta_grepp_efter_kortet_ligger_s": 0.6,
@@ -1059,7 +1060,7 @@
        "hela_s": 1.03,
        "skon_till_bytet_s": 0.27,
        "bytet_till_platsen_s": 0.73,
-       "hem_s": 0.57,
+       "hem_s": 0.62,
        "bytet_sidled_m": 0.19,
        "bytet_fran_kanten_m": 0.17,
        "vansterns_nasta_grepp_efter_kortet_ligger_s": -0.1,
@@ -1276,31 +1277,6 @@
      "brygga_efter_s": 0.0
     },
     {
-     "id": "A-V-26",
-     "kat": "DRA",
-     "hand": "vänster",
-     "plats": null,
-     "kort": null,
-     "fran_s": 90.7,
-     "till_s": 91.233,
-     "fran_ruta": 5442,
-     "till_ruta": 5474,
-     "sek": 0.533,
-     "fran_lage": "V2.3",
-     "till_lage": "V1",
-     "syns": 1.0,
-     "poang": 1.5,
-     "andra_handen": [
-      "VILA",
-      "HEM"
-     ],
-     "redan_lyft": [],
-     "brygga_fore_m": 0.078,
-     "brygga_fore_s": 0.2,
-     "brygga_efter_m": 0.145,
-     "brygga_efter_s": 0.29
-    },
-    {
      "id": "A-V-85",
      "kat": "DRA",
      "hand": "vänster",
@@ -1323,6 +1299,32 @@
      "brygga_fore_s": 0.26,
      "brygga_efter_m": 0.077,
      "brygga_efter_s": 0.2
+    },
+    {
+     "id": "A-V-90",
+     "kat": "DRA",
+     "hand": "vänster",
+     "plats": null,
+     "kort": null,
+     "fran_s": 178.417,
+     "till_s": 179.15,
+     "fran_ruta": 10705,
+     "till_ruta": 10749,
+     "sek": 0.733,
+     "fran_lage": "V2.3",
+     "till_lage": "V3D",
+     "syns": 1.0,
+     "poang": 1.5,
+     "andra_handen": [
+      "STOPP",
+      "GIV-EGET",
+      "VILA"
+     ],
+     "redan_lyft": [],
+     "brygga_fore_m": 0.09,
+     "brygga_fore_s": 0.2,
+     "brygga_efter_m": 0.028,
+     "brygga_efter_s": 0.0
     },
     {
      "id": "A-H-152",
@@ -1823,31 +1825,32 @@
      "vanstern_drar": null
     },
     {
-     "id": "A-H-128",
+     "id": "A-H-159",
      "kat": "GIV",
      "hand": "höger",
      "plats": 6,
      "kort": null,
-     "fran_s": 290.65,
-     "till_s": 291.983,
-     "fran_ruta": 17439,
-     "till_ruta": 17519,
-     "sek": 1.333,
-     "fran_lage": "H3P7",
+     "fran_s": 380.917,
+     "till_s": 381.683,
+     "fran_ruta": 22855,
+     "till_ruta": 22901,
+     "sek": 0.766,
+     "fran_lage": "H1",
      "till_lage": "H3P6",
-     "syns": 1.0,
-     "poang": 1.0,
+     "syns": 0.92,
+     "poang": 1.17,
      "andra_handen": [
-      "STOPP",
       "DRA",
-      "DRA"
+      "VILA"
      ],
      "redan_lyft": [],
-     "klipp_fran_s": 290.65,
-     "klipp_till_s": 291.983,
-     "klipp_fran_ruta": 17439,
-     "klipp_till_ruta": 17519,
-     "vanstern_drar": "A-V-185"
+     "brygga_fore_m": 0.003,
+     "brygga_fore_s": 0.0,
+     "klipp_fran_s": 380.483,
+     "klipp_till_s": 381.683,
+     "klipp_fran_ruta": 22829,
+     "klipp_till_ruta": 22901,
+     "vanstern_drar": "A-V-251"
     },
     {
      "id": "A-H-148",
@@ -2813,6 +2816,19 @@
      "vanta_i": "H1"
     },
     {
+     "id": "A-H-24",
+     "kat": "ANNAT",
+     "hand": "höger",
+     "fran_s": 90.767,
+     "till_s": 91.567,
+     "vanta_i": "H3D",
+     "nasta": "A-H-26",
+     "nasta_kat": "HEM",
+     "nasta_s": 92.367,
+     "vantan_s": 1.6,
+     "samma_start": true
+    },
+    {
      "id": "A-H-28",
      "kat": "ANNAT",
      "hand": "höger",
@@ -2858,21 +2874,6 @@
      "nasta_s": 200.883,
      "vantan_s": 12.73,
      "samma_start": false
-    },
-    {
-     "id": "A-H-87",
-     "kat": "ANNAT",
-     "hand": "höger",
-     "fran_s": 203.617,
-     "till_s": 204.55,
-     "vanta_i": "H3P4",
-     "nasta": "A-H-89",
-     "nasta_kat": "GIV-EGET",
-     "nasta_s": 204.717,
-     "vantan_s": 1.1,
-     "samma_start": false,
-     "brygga_m": 0.278,
-     "brygga_s": 0.56
     },
     {
      "id": "A-H-100",
@@ -3038,21 +3039,6 @@
      "nasta_s": 312.517,
      "vantan_s": 8.23,
      "samma_start": true
-    },
-    {
-     "id": "A-H-160",
-     "kat": "ANNAT",
-     "hand": "höger",
-     "fran_s": 381.683,
-     "till_s": 382.35,
-     "vanta_i": "H3P6",
-     "nasta": "A-H-162",
-     "nasta_kat": "GIV",
-     "nasta_s": 386.717,
-     "vantan_s": 5.03,
-     "samma_start": false,
-     "brygga_m": 0.387,
-     "brygga_s": 0.77
     },
     {
      "id": "A-H-168",
@@ -3418,15 +3404,15 @@
    "sekunder": 446.5,
    "kategorier": {
     "ANNAT höger": {
-     "antal": 4,
+     "antal": 5,
      "sekunder": {
-      "n": 4,
-      "median": 1.35,
-      "p10": 0.74,
-      "p90": 5.69
+      "n": 5,
+      "median": 1.23,
+      "p10": 0.79,
+      "p90": 5.09
      },
-     "summa_s": 10.7,
-     "syns_median": 0.96
+     "summa_s": 11.9,
+     "syns_median": 0.97
     },
     "BYT-VILA höger": {
      "antal": 3,
@@ -3488,14 +3474,14 @@
      }
     },
     "HEM höger": {
-     "antal": 26,
+     "antal": 25,
      "sekunder": {
-      "n": 26,
+      "n": 25,
       "median": 0.37,
-      "p10": 0.22,
-      "p90": 1.48
+      "p10": 0.21,
+      "p90": 1.49
      },
-     "summa_s": 16.7,
+     "summa_s": 15.5,
      "syns_median": 1.0
     },
     "KORT-IN höger": {
@@ -3557,15 +3543,15 @@
      "syns_median": 1.0
     },
     "ANNAT vänster": {
-     "antal": 6,
+     "antal": 5,
      "sekunder": {
-      "n": 6,
-      "median": 0.48,
+      "n": 5,
+      "median": 0.5,
       "p10": 0.38,
-      "p90": 0.7
+      "p90": 0.71
      },
-     "summa_s": 3.1,
-     "syns_median": 0.98
+     "summa_s": 2.7,
+     "syns_median": 0.96
     },
     "BYT-VILA vänster": {
      "antal": 13,
@@ -3660,14 +3646,14 @@
      "syns_median": 1.0
     },
     "TILL-SKON vänster": {
-     "antal": 44,
+     "antal": 45,
      "sekunder": {
-      "n": 44,
-      "median": 0.58,
+      "n": 45,
+      "median": 0.57,
       "p10": 0.38,
-      "p90": 0.98
+      "p90": 0.97
      },
-     "summa_s": 28.9,
+     "summa_s": 29.4,
      "syns_median": 1.0
     },
     "VANTA vänster": {
@@ -4043,8 +4029,8 @@
      "H1 -> H3Pn": 8,
      "H3D -> H3Pn": 7,
      "H3Pn -> H1": 6,
-     "H3D -> H3D": 5,
      "H1S -> H3Pn": 5,
+     "H3D -> H3D": 4,
      "H1 -> H1S": 3,
      "H3D -> H1S": 2,
      "H2M -> H1": 2,
@@ -4061,7 +4047,7 @@
     },
     "V": {
      "V2.3 -> V2.3": 72,
-     "V1S -> V2.3": 22,
+     "V1S -> V2.3": 23,
      "V2.3 -> V1S": 21,
      "V2.3 -> V1": 21,
      "V1 -> V2.3": 14,
@@ -4079,10 +4065,12 @@
     }
    },
    "otakt": {
+    "bas": "korten som högern lägger hos en spelare och som följs av ett nytt kort (inom 3 s); rundans sista kort är inte räknade",
+    "antal": 56,
+    "sista_kortet_inte_raknade": 5,
     "efter_ett_kort_till_en_plats": {
      "kedja: högern går direkt till nästa kort utan att gå hem": 54,
      "otakt: vänstern tar nästa kort innan högern är hemma": 1,
-     "sista kortet: inget nytt kort inom 3 s": 5,
      "i takt: vänstern väntar tills högern är hemma": 1
     },
     "vanstern_fore_hogern_hemma_s": {
@@ -4094,14 +4082,13 @@
     "vanstern_nar_hogern_lagger": {
      "på väg (DRA)": 35,
      "V2.3": 18,
-     "V1S": 5,
      "på väg (TILL-SKON)": 1,
      "V3Pn": 1,
-     "på väg (BYT-VILA)": 1
+     "V1S": 1
     },
     "hogern_hem_medan_vanstern_ror_sig": {
-     "hem": 26,
-     "vanstern_ror_sig_samtidigt": 16
+     "hem": 25,
+     "vanstern_ror_sig_samtidigt": 15
     },
     "exempel": [
      {
@@ -4134,10 +4121,10 @@
     "giv_med_handbyte": {
      "antal": 81,
      "till_skon_s": {
-      "n": 17,
-      "median": 0.53,
-      "p10": 0.45,
-      "p90": 0.75
+      "n": 18,
+      "median": 0.52,
+      "p10": 0.46,
+      "p90": 0.74
      },
      "greppet_s": {
       "n": 81,
@@ -6330,6 +6317,31 @@
      "brygga_efter_s": 0.2
     },
     {
+     "id": "B-V-6",
+     "kat": "TILL-SKON",
+     "hand": "vänster",
+     "plats": null,
+     "kort": null,
+     "fran_s": 511.083,
+     "till_s": 511.55,
+     "fran_ruta": 30665,
+     "till_ruta": 30693,
+     "sek": 0.467,
+     "fran_lage": "V1S",
+     "till_lage": "V2.3",
+     "syns": 1.0,
+     "poang": 1.5,
+     "andra_handen": [
+      "KORT-IN",
+      "STOPP"
+     ],
+     "redan_lyft": [],
+     "brygga_fore_m": 0.01,
+     "brygga_fore_s": 0.0,
+     "brygga_efter_m": 0.206,
+     "brygga_efter_s": 0.41
+    },
+    {
      "id": "B-V-23",
      "kat": "TILL-SKON",
      "hand": "vänster",
@@ -6354,32 +6366,6 @@
      "brygga_fore_s": 0.0,
      "brygga_efter_m": 0.011,
      "brygga_efter_s": 0.0
-    },
-    {
-     "id": "B-V-49",
-     "kat": "TILL-SKON",
-     "hand": "vänster",
-     "plats": null,
-     "kort": null,
-     "fran_s": 576.55,
-     "till_s": 577.283,
-     "fran_ruta": 34593,
-     "till_ruta": 34637,
-     "sek": 0.733,
-     "fran_lage": "V1",
-     "till_lage": "V2.3",
-     "syns": 1.0,
-     "poang": 1.5,
-     "andra_handen": [
-      "VILA",
-      "HEM",
-      "VILA"
-     ],
-     "redan_lyft": [],
-     "brygga_fore_m": 0.047,
-     "brygga_fore_s": 0.2,
-     "brygga_efter_m": 0.01,
-     "brygga_efter_s": 0.0
     }
    ],
    "ersattningar": [
@@ -6397,6 +6383,19 @@
      "samma_start": false,
      "brygga_m": 0.339,
      "brygga_s": 0.68
+    },
+    {
+     "id": "B-H-184",
+     "kat": "ANNAT",
+     "hand": "höger",
+     "fran_s": 921.95,
+     "till_s": 923.117,
+     "vanta_i": "H3D",
+     "nasta": "B-H-186",
+     "nasta_kat": "HEM",
+     "nasta_s": 923.85,
+     "vantan_s": 1.9,
+     "samma_start": true
     },
     {
      "id": "B-H-190",
@@ -6440,21 +6439,6 @@
      "samma_start": false,
      "brygga_m": 0.339,
      "brygga_s": 0.68
-    },
-    {
-     "id": "B-V-6",
-     "kat": "ANNAT",
-     "hand": "vänster",
-     "fran_s": 511.083,
-     "till_s": 511.55,
-     "vanta_i": "V1S",
-     "nasta": "B-V-8",
-     "nasta_kat": "DRA",
-     "nasta_s": 512.117,
-     "vantan_s": 1.03,
-     "samma_start": false,
-     "brygga_m": 0.177,
-     "brygga_s": 0.35
     },
     {
      "id": "B-V-93",
@@ -7392,7 +7376,7 @@
     {"hand":"H","kat":"STOPP","fran_s":87.5,"till_s":87.8,"fran_ruta":5250,"till_ruta":5268,"sek":0.3,"syns":1.0,"fran_lage":"H1","till_lage":"H1","sma_rorelser":0,"punkt":[-0.092,1.496],"id":"A-H-21","saker":"hog"},
     {"hand":"H","kat":"BYT-VILA","fran_s":87.8,"till_s":88.1,"fran_ruta":5268,"till_ruta":5286,"sek":0.3,"syns":1.0,"fran_lage":"H1","till_lage":"H3D","vag":["egna"],"id":"A-H-22","saker":"hog"},
     {"hand":"H","kat":"VILA","fran_s":88.1,"till_s":90.767,"fran_ruta":5286,"till_ruta":5446,"sek":2.667,"syns":1.0,"fran_lage":"H3D","till_lage":"H3D","sma_rorelser":0,"punkt":[-0.043,1.35],"id":"A-H-23","saker":"hog"},
-    {"hand":"H","kat":"HEM","fran_s":90.767,"till_s":91.567,"fran_ruta":5446,"till_ruta":5494,"sek":0.8,"syns":0.92,"fran_lage":"H3D","till_lage":"H3D","vag":["egna","framfor","egna","framfor"],"id":"A-H-24","saker":"hog"},
+    {"hand":"H","kat":"ANNAT","fran_s":90.767,"till_s":91.567,"fran_ruta":5446,"till_ruta":5494,"sek":0.8,"syns":0.92,"fran_lage":"H3D","till_lage":"H3D","vag":["egna","framfor","egna","framfor"],"id":"A-H-24","saker":"hog"},
     {"hand":"H","kat":"VILA","fran_s":91.567,"till_s":92.367,"fran_ruta":5494,"till_ruta":5542,"sek":0.8,"syns":1.0,"fran_lage":"H3D","till_lage":"H3D","sma_rorelser":0,"punkt":[-0.094,1.396],"id":"A-H-25","saker":"hog"},
     {"hand":"H","kat":"HEM","fran_s":92.367,"till_s":92.533,"fran_ruta":5542,"till_ruta":5552,"sek":0.166,"syns":1.0,"fran_lage":"H3D","till_lage":"H1","vag":["framfor"],"id":"A-H-26","saker":"hog"},
     {"hand":"H","kat":"VILA","fran_s":92.533,"till_s":93.2,"fran_ruta":5552,"till_ruta":5592,"sek":0.667,"syns":1.0,"fran_lage":"H1","till_lage":"H1","sma_rorelser":0,"punkt":[-0.039,1.642],"id":"A-H-27","saker":"hog"},
@@ -7455,7 +7439,7 @@
     {"hand":"H","kat":"VILA","fran_s":201.317,"till_s":202.117,"fran_ruta":12079,"till_ruta":12127,"sek":0.8,"syns":1.0,"fran_lage":"H1","till_lage":"H1","sma_rorelser":0,"punkt":[0.051,1.512],"id":"A-H-84","saker":"hog"},
     {"hand":"H","kat":"GIV","fran_s":202.117,"till_s":203.017,"fran_ruta":12127,"till_ruta":12181,"sek":0.9,"syns":0.97,"fran_lage":"H1","till_lage":"H3P4","vag":["framfor","framfor","egna","framfor"],"plats":4,"kort":3,"kort_saker":false,"kortet_ligger_s":203.617,"kortet_ut_s":202.183,"id":"A-H-85","saker":"hog"},
     {"hand":"H","kat":"VILA","fran_s":203.017,"till_s":203.617,"fran_ruta":12181,"till_ruta":12217,"sek":0.6,"syns":1.0,"fran_lage":"H3P4","till_lage":"H3P4","sma_rorelser":0,"punkt":[-0.007,1.156],"plats":4,"kort":3,"id":"A-H-86","saker":"hog"},
-    {"hand":"H","kat":"ANNAT","fran_s":203.617,"till_s":204.55,"fran_ruta":12217,"till_ruta":12273,"sek":0.933,"syns":0.66,"fran_lage":"H3P4","till_lage":"H3D","vag":["plats 4","framfor","egna","framfor","kroppen","framfor"],"vid_kroppen":true,"id":"A-H-87","saker":"mellan"},
+    {"hand":"H","kat":"HEM","fran_s":203.617,"till_s":204.55,"fran_ruta":12217,"till_ruta":12273,"sek":0.933,"syns":0.66,"fran_lage":"H3P4","till_lage":"H3D","vag":["plats 4","framfor","egna","framfor","kroppen","framfor"],"id":"A-H-87","saker":"mellan"},
     {"hand":"H","kat":"STOPP","fran_s":204.55,"till_s":204.717,"fran_ruta":12273,"till_ruta":12283,"sek":0.167,"syns":1.0,"fran_lage":"H3D","till_lage":"H3D","sma_rorelser":0,"punkt":[-0.07,1.424],"id":"A-H-88","saker":"hog"},
     {"hand":"H","kat":"GIV-EGET","fran_s":204.717,"till_s":204.95,"fran_ruta":12283,"till_ruta":12297,"sek":0.233,"syns":1.0,"fran_lage":"H3D","till_lage":"H3D","vag":["egna"],"plats":"D","kort":2,"kort_saker":false,"kortet_ligger_s":206.25,"kortet_ut_s":204.817,"id":"A-H-89","saker":"hog"},
     {"hand":"H","kat":"VILA","fran_s":204.95,"till_s":207.383,"fran_ruta":12297,"till_ruta":12443,"sek":2.433,"syns":1.0,"fran_lage":"H3D","till_lage":"H3D","sma_rorelser":0,"punkt":[-0.043,1.369],"plats":"D","kort":2,"id":"A-H-90","saker":"hog"},
@@ -7528,7 +7512,7 @@
     {"hand":"H","kat":"HEM","fran_s":365.983,"till_s":366.783,"fran_ruta":21959,"till_ruta":22007,"sek":0.8,"syns":0.68,"fran_lage":"H3P7","till_lage":"H1","vag":["skon","motskon","egna","framfor","motskon","framfor"],"id":"A-H-157","saker":"mellan"},
     {"hand":"H","kat":"VILA","fran_s":366.783,"till_s":380.917,"fran_ruta":22007,"till_ruta":22855,"sek":14.134,"syns":1.0,"fran_lage":"H1","till_lage":"H1","sma_rorelser":0,"punkt":[0.156,1.583],"id":"A-H-158","saker":"hog"},
     {"hand":"H","kat":"GIV","fran_s":380.917,"till_s":381.683,"fran_ruta":22855,"till_ruta":22901,"sek":0.766,"syns":0.92,"fran_lage":"H1","till_lage":"H3P6","vag":["motskon","plats 6"],"plats":6,"kort":null,"kort_saker":false,"kortet_ligger_s":381.75,"kortet_ut_s":380.617,"id":"A-H-159","saker":"hog"},
-    {"hand":"H","kat":"ANNAT","fran_s":381.683,"till_s":382.35,"fran_ruta":22901,"till_ruta":22941,"sek":0.667,"syns":0.52,"fran_lage":"H3P6","till_lage":"H1","vag":["plats 6","motskon","skon","framfor","kroppen","framfor","motskon"],"vid_kroppen":true,"id":"A-H-160","saker":"mellan"},
+    {"hand":"H","kat":"HEM","fran_s":381.683,"till_s":382.35,"fran_ruta":22901,"till_ruta":22941,"sek":0.667,"syns":0.52,"fran_lage":"H3P6","till_lage":"H1","vag":["plats 6","motskon","skon","framfor","kroppen","framfor","motskon"],"id":"A-H-160","saker":"mellan"},
     {"hand":"H","kat":"VILA","fran_s":382.35,"till_s":386.717,"fran_ruta":22941,"till_ruta":23203,"sek":4.367,"syns":1.0,"fran_lage":"H1","till_lage":"H1","sma_rorelser":0,"punkt":[0.172,1.637],"id":"A-H-161","saker":"hog"},
     {"hand":"H","kat":"GIV","fran_s":386.717,"till_s":389.65,"fran_ruta":23203,"till_ruta":23379,"sek":2.933,"syns":0.91,"fran_lage":"H1","till_lage":"H3P2","vag":["framfor","framfor","motskon","framfor","egna","framfor"],"plats":2,"kort":null,"kort_saker":false,"kortet_ligger_s":389.817,"kortet_ut_s":388.617,"id":"A-H-162","saker":"hog"},
     {"hand":"H","kat":"VANTA","fran_s":389.65,"till_s":396.217,"fran_ruta":23379,"till_ruta":23773,"sek":6.567,"syns":1.0,"fran_lage":"H3P2","till_lage":"H3P2","sma_rorelser":1,"punkt":[-0.213,1.245],"plats":2,"kort":null,"id":"A-H-163","saker":"hog"},
@@ -7804,7 +7788,7 @@
     {"hand":"V","kat":"DRA","fran_s":352.05,"till_s":353.517,"fran_ruta":21123,"till_ruta":21211,"sek":1.467,"syns":1.0,"fran_lage":"V2.3","till_lage":"V2.3","vag":["skon","motskon","framfor","motskon","framfor","motskon","skon"],"kortet_ut_s":352.217,"id":"A-V-230","saker":"hog"},
     {"hand":"V","kat":"DRA","fran_s":353.517,"till_s":354.383,"fran_ruta":21211,"till_ruta":21263,"sek":0.866,"syns":0.96,"fran_lage":"V2.3","till_lage":"V2.3","vag":["skon","motskon","framfor","motskon","framfor","motskon","skon"],"kortet_sett":false,"id":"A-V-231","saker":"hog"},
     {"hand":"V","kat":"ANNAT","fran_s":354.383,"till_s":354.983,"fran_ruta":21263,"till_ruta":21299,"sek":0.6,"syns":1.0,"fran_lage":"V2.3","till_lage":null,"vag":["skon","motskon","framfor"],"kant":true,"id":"A-V-232","saker":"kant"},
-    {"hand":"V","kat":"ANNAT","fran_s":359.25,"till_s":359.75,"fran_ruta":21555,"till_ruta":21585,"sek":0.5,"syns":0.94,"fran_lage":null,"till_lage":"V2.3","vag":["kroppen","framfor","motskon","skon"],"vid_kroppen":true,"kant":true,"id":"A-V-233","saker":"kant"},
+    {"hand":"V","kat":"TILL-SKON","fran_s":359.25,"till_s":359.75,"fran_ruta":21555,"till_ruta":21585,"sek":0.5,"syns":0.94,"fran_lage":null,"till_lage":"V2.3","vag":["kroppen","framfor","motskon","skon"],"kant":true,"id":"A-V-233","saker":"kant"},
     {"hand":"V","kat":"HEM","fran_s":359.75,"till_s":359.917,"fran_ruta":21585,"till_ruta":21595,"sek":0.167,"syns":1.0,"fran_lage":"V2.3","till_lage":"V1S","vag":["skon","motskon"],"id":"A-V-234","saker":"hog"},
     {"hand":"V","kat":"VILA","fran_s":359.917,"till_s":364.183,"fran_ruta":21595,"till_ruta":21851,"sek":4.266,"syns":1.0,"fran_lage":"V1S","till_lage":"V1S","sma_rorelser":0,"punkt":[0.294,1.306],"id":"A-V-235","saker":"hog"},
     {"hand":"V","kat":"TILL-SKON","fran_s":364.183,"till_s":364.617,"fran_ruta":21851,"till_ruta":21877,"sek":0.434,"syns":1.0,"fran_lage":"V1S","till_lage":"V2.3","vag":["motskon","skon"],"id":"A-V-236","saker":"hog"},
@@ -8266,7 +8250,7 @@
     {"hand":"H","kat":"VILA","fran_s":918.517,"till_s":919.317,"fran_ruta":55111,"till_ruta":55159,"sek":0.8,"syns":1.0,"fran_lage":"H1","till_lage":"H1","sma_rorelser":0,"punkt":[-0.139,1.35],"id":"B-H-181","saker":"hog"},
     {"hand":"H","kat":"KORT-IN","fran_s":919.317,"till_s":919.717,"fran_ruta":55159,"till_ruta":55183,"sek":0.4,"syns":1.0,"fran_lage":"H1","till_lage":"H3D","vag":["framfor","egna"],"id":"B-H-182","saker":"hog"},
     {"hand":"H","kat":"VILA","fran_s":919.717,"till_s":921.95,"fran_ruta":55183,"till_ruta":55317,"sek":2.233,"syns":1.0,"fran_lage":"H3D","till_lage":"H3D","sma_rorelser":0,"punkt":[-0.013,1.406],"id":"B-H-183","saker":"hog"},
-    {"hand":"H","kat":"HEM","fran_s":921.95,"till_s":923.117,"fran_ruta":55317,"till_ruta":55387,"sek":1.167,"syns":0.97,"fran_lage":"H3D","till_lage":"H3D","vag":["framfor","motskon","framfor","egna","framfor"],"id":"B-H-184","saker":"hog"},
+    {"hand":"H","kat":"ANNAT","fran_s":921.95,"till_s":923.117,"fran_ruta":55317,"till_ruta":55387,"sek":1.167,"syns":0.97,"fran_lage":"H3D","till_lage":"H3D","vag":["framfor","motskon","framfor","egna","framfor"],"id":"B-H-184","saker":"hog"},
     {"hand":"H","kat":"VILA","fran_s":923.117,"till_s":923.85,"fran_ruta":55387,"till_ruta":55431,"sek":0.733,"syns":1.0,"fran_lage":"H3D","till_lage":"H3D","sma_rorelser":0,"punkt":[-0.082,1.421],"id":"B-H-185","saker":"hog"},
     {"hand":"H","kat":"HEM","fran_s":923.85,"till_s":924.217,"fran_ruta":55431,"till_ruta":55453,"sek":0.367,"syns":1.0,"fran_lage":"H3D","till_lage":"H1","vag":["framfor"],"id":"B-H-186","saker":"hog"},
     {"hand":"H","kat":"VILA","fran_s":924.217,"till_s":927.717,"fran_ruta":55453,"till_ruta":55663,"sek":3.5,"syns":1.0,"fran_lage":"H1","till_lage":"H1","sma_rorelser":0,"punkt":[-0.155,1.346],"id":"B-H-187","saker":"hog"},
@@ -8318,7 +8302,7 @@
     {"hand":"V","kat":"VANTA","fran_s":501.383,"till_s":502.883,"fran_ruta":30083,"till_ruta":30173,"sek":1.5,"syns":0.67,"fran_lage":"V1S","till_lage":"V1S","sma_rorelser":1,"punkt":[0.152,1.421],"id":"B-V-3","saker":"mellan"},
     {"hand":"V","kat":"KORT-IN","fran_s":502.883,"till_s":506.617,"fran_ruta":30173,"till_ruta":30397,"sek":3.734,"syns":1.0,"fran_lage":"V1S","till_lage":"V1S","vag":["motskon","framfor","egna","framfor","motskon","skon","motskon","framfor","motskon"],"id":"B-V-4","saker":"hog"},
     {"hand":"V","kat":"VILA","fran_s":506.617,"till_s":511.083,"fran_ruta":30397,"till_ruta":30665,"sek":4.466,"syns":1.0,"fran_lage":"V1S","till_lage":"V1S","sma_rorelser":0,"punkt":[0.188,1.428],"id":"B-V-5","saker":"hog"},
-    {"hand":"V","kat":"ANNAT","fran_s":511.083,"till_s":511.55,"fran_ruta":30665,"till_ruta":30693,"sek":0.467,"syns":1.0,"fran_lage":"V1S","till_lage":"V2.3","vag":["motskon","framfor","kroppen","skon"],"vid_kroppen":true,"id":"B-V-6","saker":"hog"},
+    {"hand":"V","kat":"TILL-SKON","fran_s":511.083,"till_s":511.55,"fran_ruta":30665,"till_ruta":30693,"sek":0.467,"syns":1.0,"fran_lage":"V1S","till_lage":"V2.3","vag":["motskon","framfor","kroppen","skon"],"id":"B-V-6","saker":"hog"},
     {"hand":"V","kat":"VILA","fran_s":511.55,"till_s":512.117,"fran_ruta":30693,"till_ruta":30727,"sek":0.567,"syns":1.0,"fran_lage":"V2.3","till_lage":"V2.3","sma_rorelser":0,"punkt":[0.441,1.53],"id":"B-V-7","saker":"hog"},
     {"hand":"V","kat":"DRA","fran_s":512.117,"till_s":513.05,"fran_ruta":30727,"till_ruta":30783,"sek":0.933,"syns":0.9,"fran_lage":"V2.3","till_lage":"V2.3","vag":["skon","motskon","framfor","motskon","framfor","skon"],"kortet_ut_s":512.217,"id":"B-V-8","saker":"hog"},
     {"hand":"V","kat":"STOPP","fran_s":513.05,"till_s":513.383,"fran_ruta":30783,"till_ruta":30803,"sek":0.333,"syns":1.0,"fran_lage":"V2.3","till_lage":"V2.3","sma_rorelser":0,"punkt":[0.537,1.682],"id":"B-V-9","saker":"hog"},
