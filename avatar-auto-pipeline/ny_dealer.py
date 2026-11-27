@@ -24,8 +24,10 @@ den som får betala (blackjack-dealer/tools/runway-api.ts place).
              bilder som förlaga och dockans rutor som ställning; efter att kortet ligger som ändringar av sista bilden) och
              filmen A, Kling 4 med första bild, mellanbilderna och sista bild; med --aleph också B, Aleph 2 över dockfilmen
              med startbilden som styrbild; med vad var och en kostar
---omgang lägger en ny omgång av filmen, rutorna och anropen i en egen undermapp, bredvid den förra, och tar start- och
-sista bilden ur den förra omgången när dockans första och sista ruta är desamma (kostnad.json säger vad jämförelsen fann).
+--omgang lägger en ny omgång av filmen, rutorna och anropen i en egen undermapp, bredvid de förra, och tar startbilden
+och sista bilden, var för sig, ur den senaste förra omgången när dockans första eller sista ruta är densamma där (kostnad.json
+säger vad jämförelsen fann). En ruta där kortet i handen står med kanten mot kameran tas inte: den flyttas till den
+närmaste där kortets yta syns (rutorna).
 Utan --steg körs alla; --steg 3-6 börjar om efter dockan, --steg 5 filmar om. SAM 3D Body körs bara om dess svar saknas i
 output/<person>/15-matt-ur-bilder/ (radera det där för att läsa om bilderna). --lage säger bara vad som finns och vad
 som saknas.
@@ -74,10 +76,15 @@ NAMN = a.namn or (person or {}).get('docka', {}).get('namn') or re.split(r'[^a-z
 STIL = a.stil or (person or {}).get('docka', {}).get('stil') or 'kameran'
 MODELL = ROT / 'assets' / 'docka' / f'standarddocka_{NAMN}.glb'
 GIV = f'lyft-{NAMN}-p{a.plats}'
-FORRA = (BJ / 'assets' / 'proofs' / a.prov / 'original') if a.prov else (ROT / 'output' / a.person / '16-dockfilm')
+BAS = (BJ / 'assets' / 'proofs' / a.prov / 'original') if a.prov else (ROT / 'output' / a.person / '16-dockfilm')
 if a.omgang and not re.fullmatch(r'[a-z0-9-]+', a.omgang):
     sys.exit('--omgang tar små bokstäver, siffror och bindestreck, till exempel v2')
-UT = FORRA / a.omgang if a.omgang else FORRA   # (en ny omgång skriver aldrig över den förra, som ligger i FORRA)
+UT = BAS / a.omgang if a.omgang else BAS   # (en ny omgång skriver aldrig över en förra: den första ligger i BAS, de andra bredvid)
+# Förra omgången: den senaste som finns före den här (den första i BAS, v2, v3 … i undermappar), den som start- och sista
+# bilden kan tas ur.
+_omg = [BAS, *(d for d in BAS.iterdir() if d.is_dir() and d != UT)] if a.omgang and BAS.is_dir() else []
+_omg = [d for d in _omg if (d / 'dockans-rutor.json').exists()]
+FORRA = max(_omg, key=lambda d: (d / 'dockans-rutor.json').stat().st_mtime) if _omg else BAS
 OMG = f'{a.omgang}-' if a.omgang else ''       # i anropens namn: liggaren tar ett namn en enda gång, så varje omgång har egna
 ARB = ROT / 'output' / a.person / '15-matt-ur-bilder'
 rel = lambda p: os.path.relpath(p, CASINO).replace('\\', '/')
@@ -230,7 +237,19 @@ def skillnad(f1, f2):
     return max(sum((x - y) ** 2 for x, y in zip(p, q)) ** 0.5 for p, q in zip(stallning(f1), stallning(f2)))
 
 
-def rutorna(rorelse, antal):
+def kanten_mot(kort, kamera):
+    """Hur mycket av kortets yta kameran ser: framsidans normal mot riktningen till kameran (0: kortet står med kanten mot
+    kameran och syns bara som ett streck; positivt framsidan, negativt ryggen)."""
+    c, nn = kort['c'], kort['n']
+    mot = [kamera[i] - c[i] for i in range(3)]
+    return sum(nn[i] * mot[i] for i in range(3)) / math.sqrt(sum(x * x for x in mot))
+
+
+KANT = 0.2    # under det står kortet med kanten mot kameran: ett streck under handen, som en bildmodell inte ser som ett kort
+SYNS = 0.3    # så mycket av ytan ska synas i rutan som tas i stället
+
+
+def rutorna(rorelse, antal, kamera):
     """Rutorna efter RÖRELSENS EGNA HÄNDELSER (made.times), inte jämnt i tiden (den första filmen av Kenjis giv, domarens
     Nja 2026-11-27: tre nästan likadana bilder vid skon, där dockan står still, fick Kling 4 att hitta på ett tidigt drag och
     bära kortet lodrätt högt i luften): första och sista rutan, och emellan kortet halvvägs ur skon, kortet på filten på väg
@@ -244,6 +263,14 @@ def rutorna(rorelse, antal):
     mitt = lambda x, y: (T[x] + T[y]) // 2
     handelser = [mitt('pull', 'leaves'), mitt('leaves', 'meet'), T['meet'], T['vandFran'], T['framsidan'] - 1, mitt('plan', 'ligger'),
                  T['ligger'] + 1, T['vila'] + 2]
+    # Ett kort i handen som står med kanten mot kameran syns bara som ett streck (Kenjis tredje omgång: ruta 33, mitt i
+    # vändningen under handen): rutan flyttas till den närmaste inom två rutor där kortets yta syns, och där flera är lika
+    # nära den där mest syns; finns ingen står rutan kvar, och texten säger att kortet är dolt (kortets_lage).
+    for i, k in enumerate(handelser):
+        if T['leaves'] <= k < T['plan'] and abs(kanten_mot(F[k]['card'], kamera)) < KANT:
+            nara = [j for j in range(k - 2, k + 3) if 0 < j < n - 1 and abs(kanten_mot(F[j]['card'], kamera)) >= SYNS]
+            if nara:
+                handelser[i] = min(nara, key=lambda j: (abs(j - k), -abs(kanten_mot(F[j]['card'], kamera))))
     valda = [0]
     for k in sorted(set(handelser)):
         if 0 < k < n - 1 and skillnad(F[valda[-1]], F[k]) > STILLA:
@@ -268,9 +295,8 @@ def kortets_lage(ruta, kamera):
     hojder = [c[1] + s * H / 2 * l[1] + u * B / 2 * w[1] for s in (-1, 1) for u in (-1, 1)]
     lag, hog = max(0.0, min(hojder)), max(hojder)
     lutar = round(math.degrees(math.acos(min(1.0, abs(nn[1])))))
-    mot = sub(kamera, c)
-    sett = dot(nn, mot) / math.sqrt(dot(mot, mot))
-    sida = ('seen almost edge-on from the camera, a thin sliver' if abs(sett) < 0.15 else
+    sett = kanten_mot(kort, kamera)
+    sida = ('almost hidden: its edge is toward the camera, so only a thin line of it shows under the palm' if abs(sett) < KANT else
             'its white face toward the camera' if sett > 0 else 'its yellow back toward the camera')
     # pekfingrets topp på kortet, sett i bilden: dess läge mot kortets mitt i sidled (x) och djupled (z), i andelar av
     # kortets halva utsträckning åt det hållet
@@ -301,10 +327,13 @@ def kortets_lage(ruta, kamera):
             + (f'; {pa}' if pa else '') + '. It is carried low, close to the felt, never lifted high in the air.'), hog
 
 
-def fas(t, T, plats, sist=False):
+def fas(t, T, plats, sist=False, kort=None):
     """Vad dockan gör i ruta t, ur rörelsens egna tider (made.times), i ord för bildmodellen (kortets höjd och lutning står
-    för sig, kortets_lage). sist: givens sista ruta, redo vid skon igen."""
+    för sig, kortets_lage). sist: givens sista ruta, redo vid skon igen. kort: rutans kort, så att vändningen sägs ur hur
+    kortet ligger och inte bara ur tiderna (vänds kortet under handen kan framsidan vara uppe före lyftets framsidan)."""
     p = f'seat {plats}'
+    if kort and t < T['plan'] and t >= T['vandFran'] and kort['n'][1] > 0.7:
+        return f'The right hand, low over the felt, lays the card down toward {p}, face up; the left hand rests at the shoe.'
     if sist:
         return f'Ready at the shoe again: the dealt card lies face up at {p}, the right hand has come home and rests flat on the felt, and the left hand rests at the mouth of the shoe on the next card.'
     if t < T['pull']:
@@ -343,9 +372,9 @@ def steg_film():
                                 '-of', 'csv=p=0', str(dockfilm)], capture_output=True, text=True, check=True).stdout.strip())
     if antal != n:
         print(f'OBS: filmen har {antal} rutor, rörelsen {n}: rutorna tas ur filmen', flush=True)
-    valda = rutorna(rorelse, antal)
     kamera = json.loads(subprocess.run(['node', '--input-type=module', '-e', "import {liveFrame} from './src/table-live.ts'; process.stdout.write(JSON.stringify(liveFrame().position))"],
                                        cwd=BJ, capture_output=True, text=True, check=True).stdout)
+    valda = rutorna(rorelse, antal, kamera)
     for f in UT.glob('docka-ruta-*.png'):   # (en omkörning av samma omgång: inga rutor från förra körningen står kvar)
         f.unlink()
     bilder = []
@@ -357,7 +386,7 @@ def steg_film():
         if t < T['leaves']:   # (kortet i skon: dess lutning är skons)
             kort = ('The front card sits in the mouth of the shoe, back up.' if t < T['pull'] else
                     'The front card slides out of the mouth of the shoe under the fingertips, back up, along the felt.')
-        bilder.append({'fil': ut.name, 'ruta': k, 'text': fas(t, T, a.plats, k == valda[-1]), 'kortet': kort, 'kortets_hogsta_horn_m': round(hog, 4)})
+        bilder.append({'fil': ut.name, 'ruta': k, 'text': fas(t, T, a.plats, k == valda[-1], rorelse['frames'][t]['card']), 'kortet': kort, 'kortets_hogsta_horn_m': round(hog, 4)})
     (UT / 'dockans-rutor.json').write_text(json.dumps({
         'om': f'Rutor ur {NAMN}s giv till dagens plats {a.plats} (blackjack-dealer/dealer3d/data/{GIV}.json, {n} rutor, {n / FPS:.1f} s vid {FPS} rutor/s), '
               f'genom livebordets kamera i editorns nyckelutseende (grön bakgrund, grönt bord utan tryck, gul kortrygg; kortets framsida vit), '
@@ -419,9 +448,13 @@ def steg_anrop():
     forsta, sista, mellan = bilder[0], bilder[-1], bilder[1:-1]
     # En ny omgång (--omgang) tar start- och sista bilden ur den förra om dockans första och sista ruta är desamma inom
     # någon bildpunkt: då är de redan gjorda och betalda.
-    ater = bool(a.omgang) and all([samma_ruta(forsta, 0), samma_ruta(sista, -1)]) and all((FORRA / 'ut' / f).exists() for f in ('start.png', 'sista.png', 'k-start.png', 'k-sista.png'))
-    bas = FORRA / 'ut' if ater else UT / 'ut'
-    ut_bas = lambda namn: f'$file:{fran_bj(bas / namn)}'
+    # Var för sig: är bara sista rutan ny (kortet har landat på ett nytt ställe) görs bara sista bilden om, som en ändring av
+    # förra omgångens startbild.
+    finns = lambda *f: all((FORRA / 'ut' / x).exists() for x in f)
+    ater_start = bool(a.omgang) and samma_ruta(forsta, 0) and finns('start.png', 'k-start.png')
+    ater_sista = bool(a.omgang) and samma_ruta(sista, -1) and finns('sista.png', 'k-sista.png')
+    bas = {'start': FORRA / 'ut' if ater_start else UT / 'ut', 'sista': FORRA / 'ut' if ater_sista else UT / 'ut'}
+    ut_bas = lambda namn: f'$file:{fran_bj(bas["sista" if "sista" in namn else "start"] / namn)}'
     gemensamt = ('Everything else stays exactly as in the first image: his face, hair and shirt, the dark red chair back, the clear card shoe at the same '
                  'place, size and angle with the yellow deck in it, the small clear plate in front of the shoe, the flat green background and the plain '
                  'green table with no print and no texture; only soft natural shadows of his arms and hands on the table. The same framing and camera; a photograph.')
@@ -458,9 +491,11 @@ def steg_anrop():
                                               'showing its yellow back, the small clear plate, the dark red chair back, the flat green background and the plain green table all stay '
                                               'exactly as in the first image, at the same pixels. No other card appears, and there is only a thin soft shadow under the card\'s edge. '
                                               'The same framing and camera; a photograph.'),
-                               'referenceImages': [{'uri': ut('start.png'), 'tag': 'edit'}, {'uri': fil(sista), 'tag': 'pose'}]}}
-    if ater:   # (gjorda i förra omgången: inga nya anrop)
-        del anrop['start'], anrop['sista']
+                               'referenceImages': [{'uri': ut_bas('start.png'), 'tag': 'edit'}, {'uri': fil(sista), 'tag': 'pose'}]}}
+    if ater_start:   # (gjorda i förra omgången: inga nya anrop)
+        del anrop['start']
+    if ater_sista:
+        del anrop['sista']
     for b in mellan:
         grund = 'sista.png' if kort_ligger(b) else 'start.png'
         lage = ('His left hand (on the right of the picture) is at the mouth of a clear card shoe with its fingertips on the front card, and his right hand (on the '
@@ -515,30 +550,32 @@ def steg_anrop():
                                 'green with no print; the card shoe, the yellow deck and the clear plate stay as they are. The card\'s back is solid yellow with a thin cyan '
                                 'border, its face plain white with a thin cyan border and a small magenta mark; it is not a printed playing card. Natural skin and natural '
                                 'hands with five fingers; a photograph.'),
-                 'keyframes': [{'uri': ut('start.png'), 'seconds': 0}]},
+                 'keyframes': [{'uri': ut_bas('start.png'), 'seconds': 0}]},
         'kostnad': f'28 krediter per hel sekund av infilmen ({sek:.2f} s), minst 56; ordermodellen räknar uppåt ({max(56, 28 * -(-int(sek * 100) // 100))})'}
     for f in A.glob('*.json'):   # (en omkörning: inget anrop från förra körningen av samma omgång står kvar)
         f.unlink()
     for namn, kropp in anrop.items():
         (A / f'{namn}.json').write_text(json.dumps(kropp, ensure_ascii=False, indent=2), encoding='utf-8')
-    bildkostnad = (0 if ater else KOSTNAD['start'] + KOSTNAD['andring']) + KOSTNAD['andring'] * len(mellan)
+    bildkostnad = (0 if ater_start else KOSTNAD['start']) + (0 if ater_sista else KOSTNAD['andring']) + KOSTNAD['andring'] * len(mellan)
     summa = {'stillbilder': bildkostnad, 'A_kling4': KOSTNAD['kling4_3s_1080p'], 'A_alla': bildkostnad + KOSTNAD['kling4_3s_1080p'],
-             **({'B_aleph2': aleph, 'B_alla': (0 if ater else KOSTNAD['start']) + aleph, 'bada': bildkostnad + KOSTNAD['kling4_3s_1080p'] + aleph} if a.aleph else {})}
+             **({'B_aleph2': aleph, 'B_alla': (0 if ater_start else KOSTNAD['start']) + aleph, 'bada': bildkostnad + KOSTNAD['kling4_3s_1080p'] + aleph} if a.aleph else {})}
     jamfort = {k: v for k, v in JAMFORT.items()}
+    tagna = [n for n, j in (('start', ater_start), ('sista', ater_sista)) if j]
     (A / 'kostnad.json').write_text(json.dumps({'krediter': summa, 'om': (f'Runways krediter (0,01 dollar styck). Stillbilderna: '
-                                               + (f'start och sista ur förra omgången ({rel(FORRA / "ut")}: dockans första och sista ruta är desamma), ' if ater else
-                                                  f'start {KOSTNAD["start"]}, sista {KOSTNAD["andring"]}, ')
+                                               + (f'{" och ".join(tagna)} ur förra omgången ({rel(FORRA / "ut")}: dockans ruta är densamma), ' if tagna else '')
+                                               + ('' if ater_start else f'start {KOSTNAD["start"]}, ') + ('' if ater_sista else f'sista {KOSTNAD["andring"]}, ')
                                                + f'{len(mellan)} mellanbilder {KOSTNAD["andring"]} styck. Kling 4 3 s 1080p {KOSTNAD["kling4_3s_1080p"]} (rabatt till 2026-11-30, sedan '
                                                f'{KOSTNAD["kling4_3s_1080p_efter_rabatten"]}).' + (f' Aleph 2 {aleph}; B behöver bara startbilden.' if a.aleph else '')),
-                                               'forra_omgangen': jamfort or None,
-                                               'ordning': [*([] if ater else ['start', 'sista']), *[f'mellan-{b["ruta"]:02d}' for b in mellan], 'film-a-kling4', *(['film-b-aleph2'] if a.aleph else [])],
+                                               'forra_omgangen': ({'mapp': rel(FORRA), **jamfort} if jamfort else None),
+                                               'ordning': [*([] if ater_start else ['start']), *([] if ater_sista else ['sista']), *[f'mellan-{b["ruta"]:02d}' for b in mellan],
+                                                           'film-a-kling4', *(['film-b-aleph2'] if a.aleph else [])],
                                                'lagg': f'node tools/runway-api.ts place <anrop.json> från blackjack-dealer/ (inom fullmakten i data/order-policy.json), i ordningen ovan: '
                                                        f'varje bild sparas i {rel(UT / "ut")}/ med det namn nästa anrop väntar sig (start.png, sista.png, mellan-NN.png), och för film A '
-                                                       f'skalade till 1728 x 972 som k-NN.png' + (f' (k-start.png och k-sista.png finns i {rel(FORRA / "ut")}/)' if ater else ', k-start.png och k-sista.png')
-                                                       + ' (som elfte provet)'},
+                                                       f'skalade till 1728 x 972 som k-NN.png, k-start.png och k-sista.png'
+                                                       + (f' ({", ".join(f"{n}.png och k-{n}.png" for n in tagna)} finns redan i {rel(FORRA / "ut")}/)' if tagna else '') + ' (som elfte provet)'},
                                               ensure_ascii=False, indent=1), encoding='utf-8')
     print(f'anropen i {rel(A)}: stillbilderna {bildkostnad}, A Kling 4 {KOSTNAD["kling4_3s_1080p"]}, A med bilderna {summa["A_alla"]} krediter'
-          + (f'; B Aleph 2 {aleph}, båda {summa["bada"]}' if a.aleph else '') + (f'; start och sista ur förra omgången' if ater else ''), flush=True)
+          + (f'; B Aleph 2 {aleph}, båda {summa["bada"]}' if a.aleph else '') + (f'; {" och ".join(tagna)} ur förra omgången' if tagna else ''), flush=True)
     for vad, j in JAMFORT.items():
         print(f'  {vad}: {j}', flush=True)
 
