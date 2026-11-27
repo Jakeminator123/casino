@@ -19,5 +19,6 @@
     "avatar-auto-pipeline/tools": true,
     "avatar-auto-pipeline/output": true,
     "slask/*/*": true
-  }
+  },
+  "tailwindCSS.lint.suggestCanonicalClasses": "ignore"
 }
