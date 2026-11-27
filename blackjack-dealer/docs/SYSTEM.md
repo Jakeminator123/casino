@@ -65,8 +65,8 @@ Förra standarden har tre lager (Jakob 2026-11-25: "grunden måste vara densamma
   alltid har samma mått.
 - **Spelvyn** är hur spelet ramar in bilden för spelaren: en inramning för dator och en för mobil (zoom, lutning och
   vridning från filmkamerans egen plats, så att filmen förblir exakt). Den sparas en gång, av Jakob i Scen ("Spara som
-  spelvy"), och gäller alla utseenden: `data/play-view.json`, `src/play-view.ts`, `tools/play-view-store.ts`,
-  `/api/play-view`. Utan fil gäller `PLAY_VIEW` där.
+  spelvy"), och gäller alla utseenden: `data/play-view-live.json` (`src/standard.ts` spelvyFil), `src/play-view.ts`,
+  `tools/play-view-store.ts`, `/api/play-view`. Utan fil gäller `STANDARD.spelvy`.
 - **Utseendet** läggs ovanpå i Scen när färdigt material sätts ihop, och sparas som ett förval
   (`data/scene-presets/`; Casino spelar förvalet `casino`): rum, bordsmodell, duk och filtfärg, bordets storlek, hur
   korten ritas, markerlåda och sko som modell, kamerans flytt och linsen (nyckeln `lins`: Standard eller Bred lins). Ett

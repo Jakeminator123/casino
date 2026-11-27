@@ -2,34 +2,5 @@
   "schemaVersion": 1,
   "about": "Vad som är vad per dealer: varje bild, ruta ur en film eller grupp av filer får en roll i Jakobs kedja (ingångsbild, keystone, ankare 1, 2.1, 2.2, landning, film, referens, prov, övrigt). Studions vy Material läser registret genom GET /api/media (tools/media-roles.ts), som lägger till om filen finns, dess storlek och vilka filmer i banken som börjar eller slutar på den. Bankens filmer listas inte här: de räknas ur data/clip-jobs.json. Filmer utanför banken har rollen film och ligger i assets/films/<dealer>/ eller i det prov där de granskades, med receipt.json bredvid (importen 2026-11-12). Fylld 2026-11-12 ur huvudagentens RAPPORT.md och Paow-sessionens LASMIG.md (arbetsfiler utanför repot) och filerna själva.",
   "dealers": {},
-  "measures": [
-    {
-      "id": "lins",
-      "name": "Bordets lins",
-      "decides": "Kameran som korten ritas med i kortplanen och i en beställnings sista bild: mätt på dealerns egen film, ett riktigt kort på 63 × 88 mm får sin storlek och form av var det ligger. Uppmätt 2026-11-17.",
-      "file": "src/table-lens.ts",
-      "link": "/bordet/"
-    },
-    {
-      "id": "plan",
-      "name": "Jakobs kortplan",
-      "decides": "Var korten ligger på bordet och åt vilket håll, plats för plats. Storleken följer av linsen. Hans egen, sparas i Bordets Kortplan.",
-      "file": "placements/default.json",
-      "link": "/bordet/"
-    },
-    {
-      "id": "scen",
-      "name": "Scenkontraktet",
-      "decides": "3D-scenens kamera och bord: bordskanten på rad 831,5 och homografin som spelets ritade kort ännu ställs med. En annan kamera än linsen; de ska bli en.",
-      "file": "data/scene-contract.json",
-      "link": "/bordet/?lage=scen"
-    },
-    {
-      "id": "standard",
-      "name": "Dealerstandarden",
-      "decides": "Hur en dealer sitter i bankens bild: händerna, knogbredden, grönt, ingen skugga ovanför kanten, skon per läge. Gäller alla dealers.",
-      "file": "data/dealer-standard.json",
-      "link": null
-    }
-  ]
+  "measures": []
 }
