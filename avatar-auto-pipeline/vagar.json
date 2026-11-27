@@ -3410,6 +3410,16 @@
       "flagga": "--aleph",
       "gor": "förbered också film B, Aleph 2 över dockfilmen",
       "i_guiden": true
+     },
+     {
+      "flagga": "--ankarklipp",
+      "gor": "given som tre klipp mellan schemats ankare (A2.3, A2M, A3PnC1, A2.3 med kortet): Kling 4 med ankarbilderna som första och sista bild och dockans film av steget som referensfilm; steg 7 är efterarbetet",
+      "i_guiden": true
+     },
+     {
+      "flagga": "--efter-prov",
+      "gor": "steg 7 med referensfilmerna i klippens ställe: efterarbetet prövat utan något betalt",
+      "i_guiden": false
      }
     ]
    },
@@ -3503,11 +3513,24 @@
     {
      "nr": "6",
      "namn": "Anropen",
-     "gor": "Stillbilderna (GPT Image 2.6) och två filmer att jämföra (Kling 4 med bilderna, Aleph 2 över dockfilmen), färdiga men inte lagda, med kostnaden.",
+     "gor": "Stillbilderna (GPT Image 2.6) och filmen (Kling 4 med bilderna; Aleph 2 över dockfilmen med --aleph), färdiga men inte lagda, med kostnaden. Med --ankarklipp: fyra ankarbilder och tre klipp i Kling 4 med dockans film av varje steg som referensfilm.",
      "delar": [
       "film"
      ],
      "kommando": "python ny_dealer.py <person> --steg 6",
+     "skript": [],
+     "hjalp": [],
+     "betalt": null,
+     "tid_s": null
+    },
+    {
+     "nr": "7",
+     "namn": "Efterarbetet (--ankarklipp)",
+     "gor": "När klippen är levererade: steget klipps ut ur stillheten och läggs om till dockans takt, dealern läggs på vårt bord (lagg-pa-bord.ts) och klippen sätts ihop till hela given.",
+     "delar": [
+      "film"
+     ],
+     "kommando": "python ny_dealer.py <person> --ankarklipp --steg 7",
      "skript": [],
      "hjalp": [],
      "betalt": null,

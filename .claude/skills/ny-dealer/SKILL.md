@@ -45,6 +45,28 @@ nästa betalda steg kostar.
    som ändringar av den, och efter landningen som ändringar av sista bilden) och film A, Kling 4 med första bild,
    mellanbilderna och sista bild. Med `--aleph` också film B, Aleph 2 över dockfilmen med startbilden som styrbild.
 
+### Given som tre klipp mellan ankare (`--ankarklipp`)
+
+Nästa sätt efter Jakobs Inte bra på Kenjis filmer ("Tempot är konstigt", "Fingrarna når inte kortet"): takten och
+rörelsen ur dockan redan när filmen görs, ansiktet och händerna ur bilderna. Given går mellan rörelseschemats ankare:
+A2.3 → A2M (handbytet, `made.times.meet`), A2M → A3PnC1 (kortet har landat och handen ligger kvar, `made.times.ligger`),
+A3PnC1 → A2.3 med kortet. Klippen möts i ankarbilderna.
+
+5. **Ankarrutorna och referensfilmerna:** givens dockfilm, de fyra ankarrutorna med text ur rörelsens tal (kortets sida
+   mot kameran, höjd, lutning, vilken hand som håller det och om den är en näve med tummen på kortet), och dockans film
+   av varje steg (`ref-<nr>-<steg>.mp4`), fylld till 3 s med stillhet i ankarna före och efter (Kling 4 tar en
+   referensfilm på 3–31 s, 24–60 bilder/s, minst 700 bildpunkter per sida).
+6. **Anropen:** ankarbilderna en gång per person och kamera (A2.3 ur dockans ruta och personens bilder; A2.3 med kortet
+   som en ändring av A2.3 där dockans kort ligger; A3PnC1 som en ändring av A2.3 med kortet, så att kortet är samma
+   bildpunkter och kortplatsen syns i bilden som ändras; A2M som en ändring av A2.3), och tre klipp i Kling 4
+   (`/v1/image_to_video`, `promptImage` med `first` och `last`, `referenceVideos` med stegets referensfilm, 3 s,
+   `auto_1080p`). En ankarbild som redan är gjord för samma dockruta i en tidigare omgång tas därifrån. `kostnad.json`
+   säger per klipp vilka rutor av det levererade klippet som är själva steget.
+7. **Efterarbetet** (`--steg 7`, gratis, när klippen ligger i `ut/klipp-<nr>.mp4`): steget klipps ut ur stillheten efter
+   klippets egen längd och bildtakt och läggs om till dockans 30 bilder/s, dealern läggs på vårt bord
+   (`lagg-pa-bord.ts` med plattorna och en takt med stegets dockrutor), och klippen sätts ihop med ankarrutan en gång där
+   två möts. `--efter-prov` prövar det med referensfilmerna i klippens ställe.
+
 Utan `--prov` hamnar filmen, rutorna och anropen i `avatar-auto-pipeline/output/<person>/16-dockfilm/`, med
 `--prov <provmapp>` i `blackjack-dealer/assets/proofs/<provmapp>/original/`. `--utseende` är personens utseende i ord för
 bildmodellen och står sedan kvar i personfilen.
@@ -73,8 +95,10 @@ bildmodellen och står sedan kvar i personfilen.
 ## En ny omgång
 
 `--omgang v2` lägger filmen, rutorna och anropen i en egen undermapp bredvid den förra, som aldrig skrivs över, och
-anropen får omgångens namn. Är dockans första och sista ruta desamma som i den förra omgången tas start- och sista bilden
-därifrån och betalas inte igen; `kostnad.json` säger vad jämförelsen fann. Dockans fel blir filmens: ett fel i rörelsen
+anropen får omgångens namn. Är en bild redan gjord för samma dockruta i en tidigare omgång (bild mot bild, färre än
+0,05 % av bildpunkterna skiljer) tas den därifrån och betalas inte igen, var för sig; `kostnad.json` säger vad jämförelsen
+fann. En ruta där kortet i handen står med kanten mot kameran tas inte som stillbild (den närmaste där kortets yta syns tas
+i stället). Dockans fel blir filmens: ett fel i rörelsen
 rättas i lyftet (`lyft-till-docka.ts`), och sedan görs en ny omgång med `--steg 4-6 --omgang <nästa>`.
 
 ## Provet och domen

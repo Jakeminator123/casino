@@ -206,6 +206,12 @@ själv); 3 dockan mätt på sin modell och skriven i `../blackjack-dealer/dealer
 rutorna ur den vid rörelsens egna händelser (aldrig två där dockan står stilla i samma ställning), med kortets höjd,
 lutning och fingrets läge på det ur rörelsens tal; 6 anropen hos Runway (stillbilderna och Kling 4; Aleph 2 med `--aleph`),
 färdiga men inte lagda, med kostnaden (`anrop/kostnad.json`). `--omgang v2` lägger en ny omgång bredvid den förra.
+`--ankarklipp` gör i stället given som tre klipp mellan rörelseschemats ankare (A2.3 till A2M, A2M till A3PnC1, A3PnC1
+till A2.3 med kortet): steg 5 ger ankarrutorna och dockans film av varje steg som referensfilm (fylld till 3 s med
+stillhet i ankarna), steg 6 de fyra ankarbilderna (en gång per person och kamera) och tre anrop till Kling 4 med
+ankarbilderna som första och sista bild och referensfilmen, och steg 7, när klippen är levererade, klipper ut steget ur
+stillheten, lägger dealern på vårt bord (`../standarddocka/verktyg/lagg-pa-bord.ts`) och sätter ihop given
+(`--efter-prov` prövar steg 7 med referensfilmerna i klippens ställe).
 Skalan är SAM:s egen kroppsform: en framställd bild har inget av känd storlek. Felet mot ett facit (Tomasz bilder mot hans
 mätta figur: armarna inom 1 cm, huvudet inom 0,5, axlarna 2,2 och bålen 2,4) är en undre gräns för osäkerheten
 (`steg/15-matt-ur-bilder/personmatt.py`). Handen tas inte in: SAM:s hand är 5 cm kortare än dockans mätt på samma sätt.

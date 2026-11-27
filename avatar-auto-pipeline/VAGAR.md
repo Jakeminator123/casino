@@ -496,7 +496,8 @@ Steg för steg:
 | 3 I systemet | Dockan mätt på sin modell och skriven i blackjack-dealer/dealer3d/src/persondockor.ts: med i LIVE_DOLLS, editorn och verktygen. `python ny_dealer.py <person> --steg 3` |  | gratis |  | inte mätt |
 | 4 Rörelserna | De lyfta rörelserna i stilen lagda på dockan (lyft-till-docka.ts --docka) och kontrollen (lyft-kolla.ts). `python ny_dealer.py <person> --steg 4` |  | gratis |  | inte mätt |
 | 5 Dockfilmen | Givens dockfilm genom livebordets kamera i nyckelutseendet, och var åttonde ruta och första och sista ur den. `python ny_dealer.py <person> --steg 5` |  | gratis |  | inte mätt |
-| 6 Anropen | Stillbilderna (GPT Image 2.6) och två filmer att jämföra (Kling 4 med bilderna, Aleph 2 över dockfilmen), färdiga men inte lagda, med kostnaden. `python ny_dealer.py <person> --steg 6` |  | gratis |  | inte mätt |
+| 6 Anropen | Stillbilderna (GPT Image 2.6) och filmen (Kling 4 med bilderna; Aleph 2 över dockfilmen med --aleph), färdiga men inte lagda, med kostnaden. Med --ankarklipp: fyra ankarbilder och tre klipp i Kling 4 med dockans film av varje steg som referensfilm. `python ny_dealer.py <person> --steg 6` |  | gratis |  | inte mätt |
+| 7 Efterarbetet (--ankarklipp) | När klippen är levererade: steget klipps ut ur stillheten och läggs om till dockans takt, dealern läggs på vårt bord (lagg-pa-bord.ts) och klippen sätts ihop till hela given. `python ny_dealer.py <person> --ankarklipp --steg 7` |  | gratis |  | inte mätt |
 
 Flaggorna:
 
@@ -511,6 +512,8 @@ Flaggorna:
 | `--lage` | säger bara vad som finns och vad som saknas |  | ja |
 | `--omgang` | en ny omgång av filmen, rutorna och anropen i en egen undermapp bredvid den förra; start- och sista bilden ur den förra när dockans rutor är desamma |  | ja |
 | `--aleph` | förbered också film B, Aleph 2 över dockfilmen |  | ja |
+| `--ankarklipp` | given som tre klipp mellan schemats ankare (A2.3, A2M, A3PnC1, A2.3 med kortet): Kling 4 med ankarbilderna som första och sista bild och dockans film av steget som referensfilm; steg 7 är efterarbetet |  | ja |
+| `--efter-prov` | steg 7 med referensfilmerna i klippens ställe: efterarbetet prövat utan något betalt |  | nej |
 
 ### Runways kropp på vår dockas skelett (gratisprov)
 
