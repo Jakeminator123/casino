@@ -3,6 +3,8 @@
 Jakobs repo för en blackjackdealer: filmad, och ritad i 3D. Publikt på `github.com/Jakeminator123/casino`. Jakob äger
 allt här och är inte programmerare: svara på svenska, slutsatsen först, och förklara val i vanliga ord.
 
+Vad projektet är till för, kedjan från bild till film och varför varje mapp finns står i `PROJEKTET.md`: läs den först.
+
 Den här filen gäller i hela repot och i alla verktyg (Cursor, Claude Code, Codex; `CLAUDE.md` importerar den bara).
 Varje projektmapp har en kort `AGENTS.md` med det som bara gäller där; den går före vid konflikt. Ett anrop direkt mot
 en modells API läser ingenting själv: skicka med den här filen och projektets.

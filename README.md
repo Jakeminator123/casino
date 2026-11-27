@@ -1,7 +1,7 @@
 # casino
 
 En blackjackdealer till Jakobs blackjackspel: filmad, och ritad i 3D. Repot är publikt; media, 3D-modeller och nycklar
-följer inte med Git.
+följer inte med Git. Idén, kedjan och varför varje mapp finns står i [`PROJEKTET.md`](PROJEKTET.md).
 
 | Mapp | Vad det är | Starta |
 | --- | --- | --- |
