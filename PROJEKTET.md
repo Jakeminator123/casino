@@ -170,6 +170,14 @@ en verkstad i taget när inget annat arbete pågår i den.
   helt enkelt inte medan de gav kort.
 - **En färdig figur som formas om till en annan dockas skelett får sträckta, trasiga händer** (Jakob: "skitdåligt").
   Skelettet stämde på 0 mm; ögat fällde den ändå.
+- **Ett utseende målat på en annan mans docka blir inte personen** (`meshy-provet-20261127`, domarens dom, inte
+  Jakobs: Inte bra). Meshy målade Tomasz hud, hår och skjorta på Danilos docka med skelett, fingrar och ansiktsformer
+  orörda, men formen är kvar: ett smalt, yngre ansikte med hans färger, och en skjorta som sitter som hud. Likheten
+  sitter i formen: först huvudets form, sedan kroppens mått, sist kläderna som egna delar. En kropp i ett stycke ur
+  flera vyer hos Meshy fick ihopvuxna fingrar och utsmetat ansikte, och läggs ned.
+- **En större person löses med kroppens mått, inte med en annan mans kropp.** Rörelsen är var händerna, fingrarna och
+  blicken är i rummet; armarna räknas om för personens egna axlar och armlängder, och sitsen väljs så att han når utan
+  att luta sig. En docka med Tomasz mått byggs som Danilos byggdes ur en mätt dealer.
 - **Av 3D-figurerna är Meshy-vägen bäst på likhet,** men händerna är dess svaga del: en hand som sätts på i
   efterhand får handledens led inne i ärmen, och rättningen ovanpå det dömde Jakob Inte bra ("om vi har leder innan i
   dockan, varför lägga på ett lager till"). En kropp i ett stycke med egna händer böjs rätt vid handleden men har
