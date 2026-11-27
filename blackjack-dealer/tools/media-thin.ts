@@ -388,6 +388,8 @@ export async function makePlan(repo = ROOT, now = Date.now()): Promise<{plan: Pl
     const dir = `assets/proofs/${name}`, all = [...files.values()].filter(f => f.path.startsWith(`${dir}/`) && !planned.has(f.path)); if (!all.length) continue;
     const recent = notes.filter(n => n.proof === name && n.at && now - Date.parse(n.at) < NOTE_DAYS * DAY);
     if (recent.length) { skip('prov-utan-kort', 'hans anteckning de senaste 14 dygnen', name, all.reduce((n, x) => n + x.bytes, 0)); continue; }
+    // A proof's originals (assets/proofs/<id>/original/: the paid films and models it shows, moved out of the slask) go only on his word.
+    if (all.some(f => f.path.startsWith(`${dir}/original/`))) { skip('prov-utan-kort', 'betalda original, bara på hans ord', name, all.reduce((n, x) => n + x.bytes, 0)); continue; }
     take('prov-utan-kort', {id: dir, reason: 'inget kort, ingen ny anteckning, inget dokument nämner det', marker: dir, files: all.map(x => ({...x, action: 'flytta'}))}, foreign(dir, from => from === 'data/proof-notes.json'));
   }
 
@@ -592,8 +594,8 @@ export function archivePath(file: string, unit: string, alone: boolean): string 
  * checkout, which is then the copy that is kept: copied, compared by SHA-256, only then removed; the emptied folders go.
  * Refused even on his word: noir, V6, originals and references and anything outside assets/ (KEPT_ON_WORD), and a unit that a
  * register still names (WORD_POINTERS, a draft order): the pointer goes first, so that nothing points at a file that is gone.
- * hard: his click in the studio (Biblioteket, Prov; tools/lager-remove.ts, Jakob 2026-11-27: "hårt radera ... direkt faktiskt
- * raderar saker på riktigt"): the files are deleted from the disk, no trash and no copy; the receipt says what went. dry: only
+ * hard: a removal through tools/lager-remove.ts (his click in the studio, or an agent's --ja; Jakob 2026-11-27: "hårt radera ... direkt faktiskt
+ * raderar saker på riktigt"): the files are deleted from the disk, no trash and no copy; the receipt says what went and, in why, who. dry: only
  * what would go and what is refused, nothing touched and no receipt. only: of a unit's files only those it matches go (an
  * order's films and pictures, its receipts stay).
  */
@@ -633,8 +635,8 @@ export async function removeOnWord(targets: readonly string[], o: {repo: string;
     const where = kept(unit) ?? filesOf(unit).map(kept).find(Boolean); if (where) return `skyddad också på hans ord: ${where}`;
     const pointer = named(unit, ids); return pointer ? `${pointer} pekar fortfarande på den: ta bort pekaren först` : null;
   };
-  const receipt = path.join(o.receiptDir, `${new Date(now).toISOString().replace(/[:.]/g, '-')}-${o.hard ? 'raderat-pa-hans-klick' : 'pa-hans-ord'}.json`);
-  const result: WordReceipt = {tool: o.hard ? 'tools/lager-remove.ts (hans klick i studion)' : 'tools/media-thin.ts --ta-bort', started: new Date(now).toISOString(), why: o.why.trim(), to: to.replace(/\\/g, '/'), archive: !!o.archive, units: [], posts: [], verdicts: 0, jobs: 0, done: [], refused: [], error: null};
+  const receipt = path.join(o.receiptDir, `${new Date(now).toISOString().replace(/[:.]/g, '-')}-${o.hard ? 'raderat' : 'pa-hans-ord'}.json`);
+  const result: WordReceipt = {tool: o.hard ? 'tools/lager-remove.ts' : 'tools/media-thin.ts --ta-bort', started: new Date(now).toISOString(), why: o.why.trim(), to: to.replace(/\\/g, '/'), archive: !!o.archive, units: [], posts: [], verdicts: 0, jobs: 0, done: [], refused: [], error: null};
   const save = () => saveReceipt(receipt, result);
   const going: string[] = [];
   for (const [film, f] of films) {

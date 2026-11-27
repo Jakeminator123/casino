@@ -231,7 +231,7 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     the air"** och en mellanbild där handen som drog kortet redan vilar på skon höll den handen stilla på skon hela
     vägen; samma ord fick honom att skjuta kortet längs filten med ryggen upp i stället för att bära det i luften.
 - Sjunde provet, 2026-11-27, tider i texten och en docka som liknar personen (agentens läsning; Jakobs dom står i provet
-  `kling-tider-20261127`, filmerna i `slask/standarddocka/granska/kling-tider-20261127/`). **Kling 4,
+  `kling-tider-20261127`, filmerna i `blackjack-dealer/assets/proofs/kling-tider-20261127/original/`). **Kling 4,
   `/v1/image_to_video`:** första bild Tomasz vid skon i grönt, sista bild samma bild med dockans kort inlagt på plats 4,
   och dockans giv till plats 4 i nya takten som referensfilm (61 rutor med 0,5 s frusen stillhet före och efter, 3,0 s);
   3 s i `auto_1080p`, 68 krediter per film. Ut kom 1764 x 1176 i 24 bilder/s, med ljud.
@@ -250,7 +250,7 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     kom 1108 x 832 i 30 bilder/s). Följer dockans väg men 2–5 rutor före och reser kortet åt rätt håll; det gröna blev
     mörkt och grått, och kortets framsida fick ett tryck mitt på.
 - Åttonde provet, 2026-11-27, stillbilder ur dockan i stället för dockans film (Jakobs idé; agentens läsning, hans dom
-  står i provet `atta-bilder-20261127`, filmerna och bilderna i `slask/blackjack-dealer/granska/atta-bilder-20261127/`).
+  står i provet `atta-bilder-20261127`, filmerna och bilderna i `blackjack-dealer/assets/proofs/atta-bilder-20261127/original/`).
   **Kling 4, `/v1/image_to_video`, utan referensfilm:** sjunde provets första och sista bild och, som `"middle"`, dockans
   ruta 8, 16 … 56 av 61 i given till plats 4 gjorda till Tomasz; A:s text, med meningen om filmen utbytt mot "the middle
   frames show the movement on the way, in order". 3 s i `auto_1080p`, 57 krediter. Ut kom 1764 x 1176 i 24 bilder/s.
@@ -282,7 +282,7 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     kort över grön filt. Händerna är skarpa med fem fingrar; kortets märken blandar rött och svart, och kortet läggs från
     en lös kortlek, inte en sko.
 - Tionde provet, 2026-11-27, samma giv från två kameror (agentens läsning; Jakobs dom står i provet
-  `tomasz-gor-danilos-giv-20261127`, filmerna i `slask/blackjack-dealer/granska/tomasz-gor-danilos-giv-20261127/`).
+  `tomasz-gor-danilos-giv-20261127`, filmerna i `blackjack-dealer/assets/proofs/tomasz-gor-danilos-giv-20261127/original/`).
   Danilos lyfta giv till plats 4 vid det klonade livebordet (dockan, 109 rutor, 3,6 s, 1728 x 972) inspelad genom
   livebordets kamera och från plats 7, och var och en gjord till Tomasz med **Aleph 2** och en styrbild vid sekund 0,
   receptet från första provet: 84 krediter per film. Ut kom 1920 x 1080, 109 rutor i 30 bilder/s.

@@ -57,6 +57,14 @@ export function standing(id: string, cards: readonly { proof?: string; answer: u
   return "utan";
 }
 
+/**
+ * Whether he has said his word on a thing (a proof, or its originals that bear its name): the one answer that Prov, Start,
+ * Biblioteket and the question before a removal read (standing over his notes, data/proof-notes.json, and the cards,
+ * data/decisions.json). A verdict, a note or an answered card is his word; an unanswered card or nothing is not.
+ */
+export const hisWord = (id: string, cards: readonly { proof?: string; answer: unknown }[], notes: readonly { proof?: string }[]): Standing =>
+  standing(id, cards, notes.filter((n) => n.proof === id).length);
+
 /** The line over the proofs: how many, how many without his verdict, how many asked in Beslut, how many the judge failed (and where the two judges disagree), and their room. */
 export function proofsLine(stands: readonly Standing[], bytes: number, judge: { falld: number; oense: number } = { falld: 0, oense: 0 }): string {
   const utan = stands.filter((s) => s === "utan").length, vantar = stands.filter((s) => s === "vantar").length;
@@ -74,11 +82,16 @@ export function telling(p: Pick<Proof, "id" | "description">, rest: string, shar
   return first ? (first.length > 110 ? `${first.slice(0, 108)}…` : first) : p.id;
 }
 
-/** The room a proof takes: its films and pictures together, in bytes. */
-export const proofBytes = (p: Pick<Proof, "files">): number => p.files.reduce((s, f) => s + (f.bytes || 0), 0);
+/** The room a proof takes on the disk: its whole folder (the server's bytes, originals and text with it), else its films and pictures. */
+export const proofBytes = (p: Pick<Proof, "files"> & { bytes?: number | null }): number => (typeof p.bytes === "number" ? p.bytes : p.files.reduce((s, f) => s + (f.bytes || 0), 0));
 
-/** Bytes in plain words: "412 MB", "1,3 GB". */
+/**
+ * Bytes in plain words, the one way the studio and the storage map (../../../lager.ts) say a size: "84 kB", "412 MB",
+ * "1,3 GB", counted in 1 024 as the computer's own folders do.
+ */
 export function sizeWord(bytes: number): string {
-  const mb = bytes / 1048576;
+  if (!(bytes > 0)) return "0 kB";
+  const kb = bytes / 1024, mb = kb / 1024;
+  if (mb < 1) return `${Math.max(1, Math.round(kb))} kB`;
   return mb >= 1024 ? `${(mb / 1024).toLocaleString("sv-SE", { maximumFractionDigits: 1 })} GB` : `${mb.toLocaleString("sv-SE", { maximumFractionDigits: mb < 10 ? 1 : 0 })} MB`;
 }

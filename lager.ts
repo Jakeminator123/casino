@@ -6,29 +6,34 @@
 //   node lager.ts           översikten: storlek per ställe och slag, vad inget pekar på, och vad registren pekar på som saknas
 //   node lager.ts --json    samma som data, på en rad
 // Inget här skriver eller raderar. Storleken mäts ställe för ställe och enhet för enhet, en mapp i taget, aldrig hela trädet
-// på en gång. Alla sökvägar räknas från repots rot (casino/): inga sökvägar till en viss dator.
+// på en gång; servern låter en egen process räkna (lager-routes.ts), så att den själv aldrig står still. Alla sökvägar
+// räknas från repots rot (casino/): inga sökvägar till en viss dator.
 // En ny mapp som .gitignore håller tillbaka som media eller producerat ska stå här (testet i
 // blackjack-dealer/tools/lager.test.ts håller det), eller i UTANFOR med skälet.
+// Det Git har är aldrig en enhet och aldrig en del av en: en fil som Git har räknas inte in och tas aldrig bort, också där
+// den ligger i en mapp med media (bordets LICENSER.md, källistorna kallor.json, Meshys logg).
+import {execFileSync} from 'node:child_process';
 import {existsSync, lstatSync, readFileSync, readdirSync, type Stats} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
+import {hisWord, sizeWord, type Standing} from './blackjack-dealer/studio/lib/proof-areas.ts';
 
 export const CASINO = path.dirname(fileURLToPath(import.meta.url));
 
 // ---- slagen ---------------------------------------------------------------------------------------------------
 export const SLAG = {
-  personer: {ord: 'Personers bilder', rad: 'Bilder av personerna som blir dealrar, och ditt foto som förlaga.'},
-  figurer: {ord: '3D-figurer', rad: 'Dockorna och personernas figurer på vårt skelett, och körningarna som gör dem.'},
-  foremal: {ord: 'Bord och föremål', rad: 'Borden, stolen, skon, lådan och 3D-scenens rum.'},
-  rorelser: {ord: 'Rörelser som data', rad: 'Rörelserna som tal, ruta för ruta. Git har dem.'},
-  dockfilmer: {ord: 'Dockfilmer', rad: 'Dockan filmad i 3D: editorns inspelningar och filmerna som följer med beställningarna.'},
-  bestallt: {ord: 'Beställda filmer och bilder', rad: 'Filmerna i spelets bank, ankarna, beställningarna hos Runway och det som kom tillbaka.'},
-  prov: {ord: 'Prov', rad: 'Proven i Granska.'},
-  vantar: {ord: 'Väntar på din dom', rad: 'Original och arbetsmappar som väntar på din dom.'},
-  matdata: {ord: 'Mätdata', rad: 'Mätningen av livebordet och kortspåren i filmerna.'},
-  paket: {ord: 'Köpt paket', rad: 'Animationspaketet som är köpt, uppackat.'},
-  tillfalligt: {ord: 'Tillfälligt', rad: 'Pågående arbete, kontrollbilder och papperskorgen.'},
-  program: {ord: 'Program och byggen', rad: 'Studion byggd, verktygens modeller och register. Raderas inte här.'},
+  personer: {ord: 'Personers bilder'},
+  figurer: {ord: '3D-figurer'},
+  foremal: {ord: 'Bord och föremål'},
+  rorelser: {ord: 'Rörelser som data'},
+  dockfilmer: {ord: 'Dockfilmer'},
+  bestallt: {ord: 'Beställda filmer och bilder'},
+  prov: {ord: 'Prov'},
+  vantar: {ord: 'Väntar på din dom'},
+  matdata: {ord: 'Mätdata'},
+  paket: {ord: 'Köpt paket'},
+  tillfalligt: {ord: 'Tillfälligt'},
+  program: {ord: 'Program och byggen'},
 } as const;
 export type Slag = keyof typeof SLAG;
 export const SLAG_ORDNING = Object.keys(SLAG) as Slag[];
@@ -107,7 +112,10 @@ export const PLATSER: readonly Plats[] = [
   {id: 'personer', listas: 'Avatarer visar den', mapp: `${AP}/input`, namn: 'Bilderna av personerna', slag: 'personer', projekt: AP, git: false, ignore: `/${AP}/input/`, register: [`${AP}/vagar.json`], lasare: ['studion', 'verktyg'], gratis: false, delning: 'barn', visas: 'aldrig', radera: 'ja'},
   {id: 'korningar', listas: 'Avatarer visar den', mapp: `${AP}/output`, namn: 'Körningarna: en persons figur steg för steg', slag: 'figurer', projekt: AP, git: false, ignore: `/${AP}/output/`, register: [`${AP}/vagar.json`], lasare: ['studion', 'verktyg'], gratis: false, betald: true, delning: 'barnbarn', visas: 'media', radera: 'ja'},
   {id: 'dockor', mapp: `${AP}/assets/docka`, namn: 'Dockorna och personernas figurer', slag: 'figurer', projekt: AP, git: false, ignore: `/${AP}/assets/docka/*.json`, register: [`${BJ}/dealer3d/src/doll.ts`, `${AP}/vagar.json`], lasare: ['dockan', 'studion'], gratis: false, delning: 'barn', stam: true, visas: 'media', radera: 'ja'},
-  {id: 'bord', mapp: `${AP}/assets/bord`, namn: 'Borden, med kortens och filtens bilder', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [`${BJ}/dealer3d/page/server.ts`, `${SD}/editor/server.ts`], lasare: ['dockan', 'studion'], gratis: true, hur: 'byggs om av bordets skript', delning: 'barn', stam: true, visas: 'media', radera: 'ja'},
+  {id: 'bord', mapp: `${AP}/assets/bord`, namn: 'Borden', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [`${BJ}/dealer3d/page/server.ts`, `${SD}/editor/server.ts`], lasare: ['dockan', 'studion'], gratis: true, hur: 'byggs om av bordets skript', delning: 'barn', stam: true, utom: ['kort', 'texturer'], visas: 'media', radera: 'ja'},
+  // Indata till bordets bygge (avatar-auto-pipeline/scen/bygg_bord.py läser mapparna): inte gjort av bygget, så inte gratis att göra om.
+  {id: 'kortens-bilder', mapp: `${AP}/assets/bord/kort`, namn: 'Kortens bilder till bordets bygge', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [`${AP}/assets/bord/kort/kallor.json`], lasare: ['verktyg'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Indata till bordets bygge: skriptet läser den.'},
+  {id: 'bordets-texturer', mapp: `${AP}/assets/bord/texturer`, namn: 'Filtens, trämassans och läderkantens texturer till bordets bygge', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [`${AP}/assets/bord/texturer/kallor.json`], lasare: ['verktyg'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Indata till bordets bygge: skriptet läser den.'},
   {id: 'stol', mapp: `${AP}/assets/stol`, namn: 'Dealerns stol', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [`${BJ}/dealer3d/page/server.ts`], lasare: ['dockan', 'studion'], gratis: true, hur: 'byggs om av stolens skript', delning: 'barn', stam: true, visas: 'media', radera: 'ja'},
   {id: 'meshy', mapp: `${AP}/assets/meshy`, namn: 'Stolen som Meshy gjorde', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [], lasare: ['ingen'], gratis: false, betald: true, delning: 'barn', stam: true, visas: 'media', radera: 'ja'},
   {id: 'kontrollbilder', mapp: `${AP}/qc`, namn: 'Kontrollbilderna från Blender-skripten', slag: 'tillfalligt', projekt: AP, git: false, ignore: `/${AP}/**/qc/`, register: [], lasare: ['verktyg'], gratis: true, hur: 'skripten gör dem igen vid nästa bygge', delning: 'barn', visas: 'media', radera: 'ja'},
@@ -163,12 +171,13 @@ export type Anvandning = {ord: string; antal: number; fil: string; kod: boolean;
 // ---- mätningen -------------------------------------------------------------------------------------------------
 export type Matt = {bytes: number; files: number; newest: number};
 const slash = (p: string) => p.replace(/\\/g, '/');
-/** En mapps storlek, filer och senaste ändring: mappen och det under den, en mapp i taget, utan att följa länkar. */
-export function mat(abs: string, utom: readonly string[] = []): Matt {
+/** En mapps storlek, filer och senaste ändring: mappen och det under den, en mapp i taget, utan att följa länkar. skip: en fil
+ *  som inte räknas (en fil som Git har). */
+export function mat(abs: string, utom: readonly string[] = [], skip: (abs: string) => boolean = () => false): Matt {
   const m: Matt = {bytes: 0, files: 0, newest: 0};
   let st: Stats; try { st = lstatSync(abs); } catch { return m; }
   if (st.isSymbolicLink()) return m;
-  if (st.isFile()) return {bytes: st.size, files: 1, newest: st.mtimeMs};
+  if (st.isFile()) return skip(abs) ? m : {bytes: st.size, files: 1, newest: st.mtimeMs};
   const stack = [abs];
   while (stack.length) {
     const dir = stack.pop()!;
@@ -178,10 +187,26 @@ export function mat(abs: string, utom: readonly string[] = []): Matt {
       const p = path.join(dir, e.name);
       if (e.isSymbolicLink()) continue;
       if (e.isDirectory()) stack.push(p);
-      else if (e.isFile()) { try { const s = lstatSync(p); m.bytes += s.size; m.files++; m.newest = Math.max(m.newest, s.mtimeMs); } catch { /* borta medan den mättes */ } }
+      else if (e.isFile() && !skip(p)) { try { const s = lstatSync(p); m.bytes += s.size; m.files++; m.newest = Math.max(m.newest, s.mtimeMs); } catch { /* borta medan den mättes */ } }
     }
   }
   return m;
+}
+
+/** Filerna som Git har under mapparna, från repots rot. Utan Git (en kopia utan .git) en tom mängd. */
+const gitMinne = new Map<string, {at: number; har: Set<string>}>();
+export function gitHar(casino: string, mappar: readonly string[]): Set<string> {
+  if (!mappar.length) return new Set();
+  // Utan .git ovanför finns inget att fråga om (en kopia, ett test): ingen process startas.
+  let d = path.resolve(casino); while (!existsSync(path.join(d, '.git'))) { const upp = path.dirname(d); if (upp === d) return new Set(); d = upp; }
+  const nyckel = `${casino}|${mappar.join('|')}`, minns = gitMinne.get(nyckel);
+  if (minns && Date.now() - minns.at < 5000) return minns.har;
+  try {
+    const out = execFileSync('git', ['ls-files', '-z', '--', ...mappar], {cwd: casino, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true, maxBuffer: 64 * 1024 * 1024});
+    const har = new Set(out.split('\0').filter(Boolean).map(slash));
+    gitMinne.set(nyckel, {at: Date.now(), har});
+    return har;
+  } catch { return new Set(); }
 }
 
 /** Mapparna ett ställe står för: sig själv, eller varje mapp som `*` står för. */
@@ -213,16 +238,29 @@ export type Enhet = {
   bild: string | null;
   /** Var den används, ur PEKARE (och för spelets bank media-audit:s skäl). */
   anvands: Anvandning[];
+  /** Går att göra om gratis: stället säger det, eller enheten själv (en standarddocka byggs av sitt skript). Det enda svaret. */
+  gratis: boolean;
+  /** Ett prov eller dess original: om han har sagt sitt (proof-areas.ts hisWord: "domt", "vantar" på ett kort, "utan"). */
+  dom?: Standing;
+  /** Original som väntar men inget prov med samma namn visar dem i Granska. */
+  utanProv?: boolean;
+  /** Filer i enhetens mapp som Git har: de räknas inte och tas aldrig bort. */
+  git?: number;
   /** Spelets bank (media-audit.ts): användningen, skälen, hans dom. */
   bank?: {use: string; why: string[]; what: string; judged: string | null};
 };
 
 const MEDIA = /\.(?:png|jpe?g|webp|mp4|glb)$/i, BILD = /\.(?:png|jpe?g|webp)$/i;
+const stor = (s: string) => s ? s[0].toUpperCase() + s.slice(1) : s;
 /** Vad en enhet heter, ur namnet på disken: utan ändelse, med mellanslag. */
 export function namnAv(namn: string): string {
   const s = namn.replace(/\.[a-z0-9]{2,5}$/i, '').replace(/^standarddocka_/, 'docka ').replace(/^standardbord/, 'bord').replace(/[-_]+/g, ' ').trim();
-  return s ? s[0].toUpperCase() + s.slice(1) : namn;
+  return s ? stor(s) : namn;
 }
+/** En persons namn: stor bokstav i varje del ("Amara Okonkwo"). */
+export const personNamn = (mapp: string) => mapp.split(/[-_]+/).filter(Boolean).map(stor).join(' ');
+/** Standarddockorna byggs av sitt skript ur koden (avatar-auto-pipeline/scen/bygg_docka.py): de går att göra om gratis. */
+const STANDARDDOCKA = /^standarddocka_(?:man|kvinna|danilo|frasse)(?:_ogon)?$/;
 /** En fil att visa för en enhet: en bild före en film före en modell, högst två nivåer ner. */
 function bildI(casino: string, rel: string): string | null {
   const abs = path.join(casino, rel);
@@ -241,16 +279,18 @@ function bildI(casino: string, rel: string): string | null {
 
 type Rad = {rel: string; filer: string[]; namn: string};
 /** Posterna ett ställe delas i: varje post i mappen (filer med samma stam ihop), eller en nivå ner. */
-function poster(casino: string, p: Plats, mapp: string): Rad[] {
-  const lista = (rel: string) => { try { return readdirSync(path.join(casino, rel), {withFileTypes: true}).filter(e => !e.isSymbolicLink()); } catch { return []; } };
+function poster(casino: string, p: Plats, mapp: string, git: ReadonlySet<string> = new Set()): Rad[] {
+  // En fil som Git har är aldrig en enhet (bordets LICENSER.md, Meshys logg).
+  const lista = (rel: string) => { try { return readdirSync(path.join(casino, rel), {withFileTypes: true}).filter(e => !e.isSymbolicLink() && !(e.isFile() && git.has(`${rel}/${e.name}`))); } catch { return []; } };
   const utom = new Set(p.utom ?? []);
+  const namn = (e: {name: string; isDirectory(): boolean}) => p.id === 'personer' ? (e.isDirectory() ? personNamn(e.name) : `Bild utan person: ${namnAv(e.name).toLowerCase()}`) : p.id === 'papperskorgen' ? `Dagen ${e.name}` : namnAv(e.name);
   const barn = (rel: string, topp: boolean): Rad[] => {
     const ut: Rad[] = [], stammar = new Map<string, string[]>();
     for (const e of lista(rel)) {
       if (topp && utom.has(e.name)) continue;
       const r = `${rel}/${e.name}`;
       if (e.isFile() && p.stam) { const s = e.name.split('.')[0]; stammar.set(s, [...(stammar.get(s) ?? []), r]); }
-      else ut.push({rel: r, filer: [], namn: namnAv(e.name)});
+      else ut.push({rel: r, filer: [], namn: namn(e)});
     }
     for (const [s, filer] of stammar) ut.push(filer.length === 1 ? {rel: filer[0], filer: [], namn: namnAv(s)} : {rel: `${rel}/${s}`, filer: filer.sort(), namn: namnAv(s)});
     return ut;
@@ -270,8 +310,9 @@ export function pekarTexter(casino: string): {fil: string; text: string; def: (t
   return ut;
 }
 const avgransad = (namn: string) => new RegExp(`(?<![A-Za-z0-9_-])${namn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![A-Za-z0-9_-])`);
-/** Ett namn som är så eget att en träff är en pekare: med bindestreck, understreck eller siffra, eller långt (inte "status"). */
-const eget = (namn: string) => /[-_0-9]/.test(namn) ? namn.length >= 5 : namn.length >= 9;
+/** Ett namn som är så eget att en träff är en pekare: med bokstäver, och med bindestreck, understreck eller siffra, eller
+ *  långt (inte "status", och inte ett datum som papperskorgens "2026-11-26"). */
+const eget = (namn: string) => /[a-zåäö]{2}/i.test(namn) && (/[-_0-9]/.test(namn) ? namn.length >= 5 : namn.length >= 9);
 /** Namnen en enhet nämns med: sitt eget, och en docka också utan "standarddocka_" (editorn öppnar ?modell=tomasz_handled). */
 export function namnFor(id: string): string[] {
   const namn = id.split('/').at(-1)!.replace(/\.[a-z0-9]{2,5}$/i, '');
@@ -301,12 +342,15 @@ export async function banken(casino: string): Promise<BankItem[]> {
 }
 
 export type PlatsMatt = Plats & Matt & {mappar: string[]; enheter: Enhet[]; okand?: boolean};
+/** Det studion vet om ett prov: titel, område, hans ord (hisWord) och domarens dom (proof.json domare, aldrig hans). */
+export type ProvInfo = {titel: string | null; omrade: string | null; dom: Standing; bra: number; inteBra: number; obesvarat: boolean; domare: string | null; extern: string | null; oenig: boolean};
 export type Karta = {
   gjord: string;
   platser: PlatsMatt[];
-  perSlag: {slag: Slag; ord: string; rad: string; bytes: number; files: number; platser: number}[];
+  perSlag: {slag: Slag; ord: string; bytes: number; files: number; platser: number}[];
   totalt: {bytes: number; files: number; utanPekare: number; utanPekareBytes: number; vantar: number; vantarBytes: number; tillfalligtBytes: number};
   saknas: {register: string; sokvag: string}[];
+  prov: Record<string, ProvInfo>;
 };
 
 /** Okända mappar under rötterna: visas ändå, så att inget kan komma till utan att synas. */
@@ -320,28 +364,67 @@ export function okanda(casino: string): Plats[] {
 const BANK_SORT: Record<string, string> = {motions: 'Film', anchors: 'Ankare', orders: 'Beställning', films: 'Film', tracking: 'Kortspår', scene: 'Scenen', props: 'Föremål', references: 'Dockans film'};
 const bankNamn = (rel: string) => { const delar = rel.split('/'), sort = BANK_SORT[delar[1]]; const namn = namnAv(delar.at(-1)!); return sort && delar[1] !== 'proofs' ? `${sort}: ${namn.toLowerCase()}` : namn; };
 
-/** Ett ställe mätt, med sina enheter (texter och bank: det som redan är läst, så att kartan läser dem en gång). */
-export function platsMatt(casino: string, p: Plats, ctx: {texter: ReturnType<typeof pekarTexter>; bank: BankItem[]; enheter?: boolean}): PlatsMatt {
+/** Hans ord om proven: korten i Beslut och anteckningarna i Prov, som hisWord läser dem. */
+export type HansOrd = {cards: {proof?: string; answer: unknown}[]; notes: {proof?: string; choice?: string | null}[]};
+export function hansOrd(casino: string): HansOrd {
+  const json = (rel: string) => { try { return JSON.parse(readFileSync(path.join(casino, rel), 'utf8')); } catch { return null; } };
+  return {cards: json(`${BJ}/data/decisions.json`)?.decisions ?? [], notes: json(`${BJ}/data/proof-notes.json`)?.notes ?? []};
+}
+/** Proven: titeln, området, hans ord och domarens dom, ur varje proof.json. */
+export function provInfo(casino: string, ord: HansOrd = hansOrd(casino)): Map<string, ProvInfo> {
+  const ut = new Map<string, ProvInfo>(), mapp = path.join(casino, BJ, 'assets/proofs');
+  let list: string[] = []; try { list = readdirSync(mapp, {withFileTypes: true}).filter(d => d.isDirectory()).map(d => d.name); } catch { /* inga prov */ }
+  for (const id of list) {
+    let p: {title?: unknown; area?: unknown; domare?: {dom?: unknown; extern?: {dom?: unknown} | null; oenig?: unknown}} | null = null;
+    try { p = JSON.parse(readFileSync(path.join(mapp, id, 'proof.json'), 'utf8')); } catch { /* utan beskrivning */ }
+    const mine = ord.notes.filter(n => n.proof === id);
+    ut.set(id, {titel: typeof p?.title === 'string' ? p.title : null, omrade: typeof p?.area === 'string' ? p.area : null, dom: hisWord(id, ord.cards, ord.notes),
+      bra: mine.filter(n => n.choice === 'bra').length, inteBra: mine.filter(n => n.choice === 'inte-bra').length, obesvarat: ord.cards.some(c => c.proof === id && !c.answer),
+      domare: typeof p?.domare?.dom === 'string' ? p.domare.dom : null, extern: typeof p?.domare?.extern?.dom === 'string' ? p.domare.extern.dom : null, oenig: p?.domare?.oenig === true});
+  }
+  return ut;
+}
+
+/** Det ett ställe behöver av det som redan är läst, så att kartan läser varje sak en gång. */
+export type Las = {texter: ReturnType<typeof pekarTexter>; bank: BankItem[]; git: ReadonlySet<string>; ord: HansOrd; prov: Map<string, ProvInfo>; enheter?: boolean};
+/** Allt ett ställe behöver, läst för just det (verktyget som raderar läser bara stället det frågas om). */
+export async function lasFor(casino: string, p: Plats): Promise<Las> {
+  const ord = hansOrd(casino);
+  return {texter: pekarTexter(casino), bank: p.banken ? await banken(casino) : [], git: gitHar(casino, mapparAv(casino, p)), ord, prov: provInfo(casino, ord)};
+}
+
+/** Ett ställe mätt, med sina enheter. */
+export function platsMatt(casino: string, p: Plats, ctx: Las): PlatsMatt {
   const mappar = mapparAv(casino, p);
   // Ett ställe vars mapp ett annat ställe står i (slask/* och slask/*/granska): det inre räknas bara där det står.
   const inre = PLATSER.filter(q => q !== p && q.mapp.startsWith(p.mapp + '/')).map(q => q.mapp.split('/').at(-1)!);
   const utom = [...(p.utom ?? []), ...inre.filter(n => n !== '*')];
+  const rel = (abs: string) => slash(path.relative(casino, abs));
+  const avGit = p.git ? () => false : (abs: string) => ctx.git.has(rel(abs));
   let m: Matt = {bytes: 0, files: 0, newest: 0};
   const enheter: Enhet[] = [];
+  const domOf = (namn: string) => ({dom: hisWord(namn, ctx.ord.cards, ctx.ord.notes), ...(ctx.prov.has(namn) ? {} : {utanProv: true})});
   if (p.banken && ctx.enheter !== false) {
     const top = p.mapp.slice(BJ.length + 1);
     for (const i of ctx.bank.filter(i => i.path === top || i.path.startsWith(top + '/'))) {
-      const id = `${BJ}/${i.path}`;
-      enheter.push({id, plats: p.id, namn: bankNamn(i.path), bytes: i.bytes, files: i.files, andrad: i.changed, filer: [], bild: p.visas === 'media' ? bildI(casino, id) : null, anvands: anvandningAv(id, ctx.texter), bank: {use: i.use, why: i.why, what: i.what, judged: i.judged ?? null}});
+      const id = `${BJ}/${i.path}`, namn = i.path.split('/').at(-1)!, prov = p.id === 'prov' ? ctx.prov.get(namn) : undefined;
+      enheter.push({id, plats: p.id, namn: prov?.titel ?? bankNamn(i.path), bytes: i.bytes, files: i.files, andrad: i.changed, filer: [], bild: p.visas === 'media' ? bildI(casino, id) : null,
+        anvands: anvandningAv(id, ctx.texter), gratis: p.gratis, ...(p.id === 'prov' ? {dom: hisWord(namn, ctx.ord.cards, ctx.ord.notes)} : {}), bank: {use: i.use, why: i.why, what: i.what, judged: i.judged ?? null}});
     }
   } else if (ctx.enheter !== false && p.delning !== 'ingen') {
-    for (const mapp of mappar) for (const r of poster(casino, p, mapp)) {
-      const mm = r.filer.length ? r.filer.map(f => mat(path.join(casino, f))).reduce((a, b) => ({bytes: a.bytes + b.bytes, files: a.files + b.files, newest: Math.max(a.newest, b.newest)}), {bytes: 0, files: 0, newest: 0}) : mat(path.join(casino, r.rel));
-      const namn = p.mapp.includes('*') ? `${namnAv(r.rel.split('/')[1])}: ${r.namn}` : r.namn;
-      enheter.push({id: r.rel, plats: p.id, namn, bytes: mm.bytes, files: mm.files, andrad: mm.newest ? new Date(mm.newest).toISOString() : '', filer: r.filer, bild: p.visas === 'media' ? (r.filer.length ? r.filer.find(f => BILD.test(f)) ?? r.filer.find(f => MEDIA.test(f)) ?? null : bildI(casino, r.rel)) : null, anvands: [...(p.listas ? [{ord: 'Avatarer', antal: 1, fil: '', kod: false, text: p.listas}] : []), ...anvandningAv(r.rel, ctx.texter)]});
+    for (const mapp of mappar) for (const r of poster(casino, p, mapp, ctx.git)) {
+      const mm = r.filer.length ? r.filer.map(f => mat(path.join(casino, f))).reduce((a, b) => ({bytes: a.bytes + b.bytes, files: a.files + b.files, newest: Math.max(a.newest, b.newest)}), {bytes: 0, files: 0, newest: 0}) : mat(path.join(casino, r.rel), [], avGit);
+      const git = r.filer.length ? 0 : [...ctx.git].filter(g => g.startsWith(`${r.rel}/`)).length;
+      if (git && !mm.files) continue; // bara det Git har: ingen enhet
+      const sista = r.rel.split('/').at(-1)!, stam = sista.split('.')[0];
+      const namn = p.mapp.includes('*') ? `${personNamn(r.rel.split('/')[1])}: ${r.namn}` : r.namn;
+      enheter.push({id: r.rel, plats: p.id, namn, bytes: mm.bytes, files: mm.files, andrad: mm.newest ? new Date(mm.newest).toISOString() : '', filer: r.filer,
+        bild: p.visas === 'media' ? (r.filer.length ? r.filer.find(f => BILD.test(f)) ?? r.filer.find(f => MEDIA.test(f)) ?? null : bildI(casino, r.rel)) : null,
+        anvands: [...(p.listas ? [{ord: 'Avatarer', antal: 1, fil: '', kod: false, text: p.listas}] : []), ...anvandningAv(r.rel, ctx.texter)],
+        gratis: p.gratis || (p.id === 'dockor' && STANDARDDOCKA.test(stam)), ...(p.vantar ? domOf(sista) : {}), ...(git ? {git} : {})});
     }
   }
-  for (const mapp of mappar) { const x = mat(path.join(casino, mapp), utom); m = {bytes: m.bytes + x.bytes, files: m.files + x.files, newest: Math.max(m.newest, x.newest)}; }
+  for (const mapp of mappar) { const x = mat(path.join(casino, mapp), utom, avGit); m = {bytes: m.bytes + x.bytes, files: m.files + x.files, newest: Math.max(m.newest, x.newest)}; }
   return {...p, ...m, mappar, enheter: enheter.sort((a, b) => b.bytes - a.bytes), ...(p.id.startsWith('okand-') ? {okand: true} : {})};
 }
 
@@ -380,21 +463,24 @@ export function visasInte(rel: string, platser: readonly Plats[] = PLATSER): str
 /** Hela kartan: varje ställe mätt, med sina enheter (enheter: false mäter bara ställena). */
 export async function karta(casino = CASINO, o: {enheter?: boolean} = {}): Promise<Karta> {
   const medEnheter = o.enheter !== false;
-  const texter = medEnheter ? pekarTexter(casino) : [];
-  const bank = medEnheter ? await banken(casino) : [];
-  const platser = [...PLATSER, ...okanda(casino)].map(p => platsMatt(casino, p, {texter, bank, enheter: medEnheter}));
+  const alla0 = [...PLATSER, ...okanda(casino)];
+  const ord = hansOrd(casino), prov = provInfo(casino, ord);
+  const ctx: Las = {texter: medEnheter ? pekarTexter(casino) : [], bank: medEnheter ? await banken(casino) : [], git: gitHar(casino, alla0.flatMap(p => mapparAv(casino, p))), ord, prov, enheter: medEnheter};
+  const platser = alla0.map(p => platsMatt(casino, p, ctx));
   const perSlag = SLAG_ORDNING.map(slag => { const ps = platser.filter(p => p.slag === slag); return {slag, ...SLAG[slag], bytes: ps.reduce((s, p) => s + p.bytes, 0), files: ps.reduce((s, p) => s + p.files, 0), platser: ps.length}; }).filter(s => s.platser);
   const alla = platser.flatMap(p => p.enheter.map(e => ({e, p})));
   // Det som inget pekar på: ingen fil i PEKARE nämner det, och i spelets bank är det okänt för registren. Det tillfälliga
   // (slasken, kontrollbilderna, papperskorgen) har ingen pekare av sin natur och räknas för sig.
   const fri = alla.filter(({e, p}) => !p.git && p.slag !== 'tillfalligt' && !e.anvands.length && (!e.bank || e.bank.use === 'okänd') && p.radera === 'ja');
-  const vant = platser.filter(p => p.vantar);
+  // Det som väntar på hans dom: ett prov, eller original med ett provs namn, som han inte har sagt sitt om (hisWord).
+  const vant = alla.filter(({e}) => e.dom !== undefined && e.dom !== 'domt');
   return {
     gjord: new Date().toISOString(),
     platser,
     perSlag,
-    totalt: {bytes: platser.reduce((s, p) => s + p.bytes, 0), files: platser.reduce((s, p) => s + p.files, 0), utanPekare: fri.length, utanPekareBytes: fri.reduce((s, {e}) => s + e.bytes, 0), vantar: vant.reduce((s, p) => s + p.enheter.length, 0), vantarBytes: vant.reduce((s, p) => s + p.bytes, 0), tillfalligtBytes: platser.filter(p => p.slag === 'tillfalligt').reduce((s, p) => s + p.bytes, 0)},
+    totalt: {bytes: platser.reduce((s, p) => s + p.bytes, 0), files: platser.reduce((s, p) => s + p.files, 0), utanPekare: fri.length, utanPekareBytes: fri.reduce((s, {e}) => s + e.bytes, 0), vantar: vant.length, vantarBytes: vant.reduce((s, {e}) => s + e.bytes, 0), tillfalligtBytes: platser.filter(p => p.slag === 'tillfalligt').reduce((s, p) => s + p.bytes, 0)},
     saknas: medEnheter ? saknas(casino) : [],
+    prov: Object.fromEntries(prov),
   };
 }
 
@@ -411,7 +497,8 @@ export const REGISTER: readonly {fil: string; bas: string; bara?: string}[] = [
   {fil: `${BJ}/data/lipsync.json`, bas: BJ},
   {fil: `${AP}/vagar.json`, bas: AP, bara: 'var'},
 ];
-const PEKAR = /(?:\.\.\/[a-z-]+\/)?(?:assets|output|input|klipp)\/[A-Za-z0-9_.\-/]+\.[A-Za-z0-9]{2,5}(?![A-Za-z0-9_/-])/g;
+// En pekare börjar där sökvägen börjar: inte inuti en längre ("runs/…/scene-assets/x.png", "tools/room-study/assets/…").
+const PEKAR = /(?<![A-Za-z0-9_.\/-])(?:\.\.\/[a-z-]+\/)?(?:assets|output|input|klipp)\/[A-Za-z0-9_.\-/]+\.[A-Za-z0-9]{2,5}(?![A-Za-z0-9_/-])/g;
 /** Filerna ett register pekar på som inte finns här. I vagar.json räknas bara listorna `var` (resten är beskrivning). */
 export function saknas(casino: string): {register: string; sokvag: string}[] {
   const ut: {register: string; sokvag: string}[] = [], sett = new Set<string>();
@@ -429,7 +516,8 @@ export function saknas(casino: string): {register: string; sokvag: string}[] {
 }
 
 // ---- utskriften ------------------------------------------------------------------------------------------------
-export const storlek = (bytes: number) => (bytes >= 1e9 ? `${(bytes / 1e9).toFixed(2)} GB` : bytes >= 1e6 ? `${(bytes / 1e6).toFixed(1)} MB` : `${Math.ceil(bytes / 1e3)} kB`).replace('.', ',');
+/** En storlek i ord: samma funktion som studion (studio/lib/proof-areas.ts sizeWord), så att Prov och Biblioteket säger samma tal. */
+export const storlek = sizeWord;
 function oversikt(k: Karta): string {
   const rader = [`Lagringen i repot: ${storlek(k.totalt.bytes)} i ${k.totalt.files.toLocaleString('sv-SE')} filer på ${k.platser.length} ställen.`,
     `Inget pekar på ${k.totalt.utanPekare} enheter (${storlek(k.totalt.utanPekareBytes)}); ${k.totalt.vantar} väntar på Jakobs dom (${storlek(k.totalt.vantarBytes)}); tillfälligt ${storlek(k.totalt.tillfalligtBytes)}.`, ''];

@@ -17,7 +17,7 @@ import { RaderaFraga } from "../bibliotek/RaderaFraga";
 import { countLine, coverOf, matchProof, proofDay, proofHref, proofTitle, sortProofs, verdictTally } from "../../lib/proofs.ts";
 import { PROOF_VERDICT_LABEL, splitLabel, type ProofVerdict } from "../../lib/verdict.ts";
 import { notesOn, type ShownNote } from "../../lib/proof-notes.ts";
-import { byArea, domOf, domTone, externOf, oense, proofBytes, proofsLine, sizeWord, standing, STANDING_WORD, telling, type Standing } from "../../lib/proof-areas.ts";
+import { byArea, domOf, domTone, externOf, oense, proofBytes, proofsLine, sizeWord, hisWord, STANDING_WORD, telling, type Standing } from "../../lib/proof-areas.ts";
 import { isSnapshot } from "../../lib/mode.ts";
 import { Badge, EmptyState, IconButton, TextField, cn } from "../ui";
 import { ProofStill } from "./ProofStill";
@@ -104,7 +104,8 @@ export function ProofGrid({ proofs, named, notes, cards, onRemoved }: { proofs: 
   const [asking, setAsking] = useState<Proof | null>(null);
   const sorted = useMemo(() => sortProofs(proofs), [proofs]);
   const shown = useMemo(() => sorted.filter((p) => matchProof(p, query)), [sorted, query]);
-  const standOf = (p: Proof) => standing(p.id, cards, notesOn(notes, p.id));
+  // His word on a proof: the one answer (hisWord), as Biblioteket, Start and the question before a removal read it.
+  const standOf = (p: Proof) => hisWord(p.id, cards, notes);
   // A title more than one proof has ("Standarddockan" five times): those cards get a second line that tells them apart.
   const titles = useMemo(() => { const n = new Map<string, number>(); for (const p of proofs) { const t = splitLabel(proofTitle(p)).name; n.set(t, (n.get(t) ?? 0) + 1); } return n; }, [proofs]);
   const room = proofs.reduce((s, p) => s + proofBytes(p), 0);

@@ -23,14 +23,19 @@ en skill i `../.claude/skills/`: `ny-dealer`, `bestalla-film`, `granska-film`, `
   eller en YouTube-referens mäts bara och går aldrig in i Git, `assets/` eller ett prov. Signerade adresser från
   Runway skrivs aldrig i repot.
 - **Gallringen** (`node tools/media-thin.ts`, som servern kör när den startar) tar aldrig det spelet spelar, det som
-  har en roll, original, referenser, det som väntar i Granska eller Beslut, eller något yngre än tre dygn. Den raderar
-  utan hans klick, så det den tar går till papperskorgen `.runtime/papperskorg/` och ligger där i 14 dygn; likaså
-  `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>"`.
-- **Hans klick raderar på riktigt** (Jakob 2026-11-27: "direkt faktiskt raderar saker på riktigt"): Radera i Biblioteket
-  och i Prov tar saken från disken utan papperskorg (`tools/lager-remove.ts`, vägen `/api/lager/radera`). Frågan före
-  säger följden; det spelet spelar, det som har en roll, det betalda och det som väntar på hans dom kräver hans andra
-  klick. Aldrig erbjudet: det Git har, hans domar och anteckningar, Beslut, kortplanen, hans sparade val, liggarna och
-  livebordets film. Ett kort i Beslut, ett träd i Karta, en munlapp eller en beställning som pågår vägrar raderingen.
+  har en roll, original, referenser, det som väntar i Granska eller Beslut, ett provs original, eller något yngre än tre
+  dygn. Den raderar utan hans klick, så det den tar går till papperskorgen `.runtime/papperskorg/` och ligger där i 14
+  dygn.
+- **Radera på riktigt, ett verktyg** (Jakob 2026-11-27: "direkt faktiskt raderar saker på riktigt"): `tools/lager-remove.ts`
+  tar en sak ur kartan (`../lager.ts`) från disken utan papperskorg, och kvittot i `.runtime/cleanup/` säger vem som
+  raderade. Hans klick i Biblioteket och i Prov går dit (vägen `/api/lager/radera`); en agent kör
+  `node tools/lager-remove.ts <sak>` för frågan och lägger till `--ja --vem <namn>` för raderingen, bara på hans ord eller
+  ett uppdrag som säger det. Frågan säger följden; det spelet spelar, det som har en roll, det betalda och det som väntar
+  på hans dom kräver hans andra klick. Aldrig erbjudet: det Git har (också inne i en mapp med media), hans domar och
+  anteckningar, Beslut, kortplanen, hans sparade val, liggarna, indata till ett bygge och livebordets film. Ett obesvarat
+  kort i Beslut, ett träd i Karta, en munlapp, en beställning som pågår eller ett lås vägrar raderingen. Att flytta ut
+  något ur repot till ett arkiv på hans ord är något annat: `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>"
+  --arkiv <mapp utanför repot>`.
 
 ## Riktningen
 

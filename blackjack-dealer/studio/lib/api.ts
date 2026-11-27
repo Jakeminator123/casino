@@ -40,6 +40,8 @@ export type Proof = {
   description: string | null;
   labels: Record<string, string> | null;
   verdicts: Record<string, string> | null;
+  /** The whole folder's room on the disk, as the storage map counts it (tools/preview.ts folderBytes); absent from an older server. */
+  bytes?: number | null;
   /** The independent judge's verdict in his place (proof.json domare, the skill doma): never his; his own replaces it. */
   domare?: Domare | null;
   /** The files the proof names as takes (produced films or pictures that may be used); the rest is underlag. */

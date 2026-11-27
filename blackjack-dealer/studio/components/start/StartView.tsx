@@ -19,6 +19,9 @@ import { isSnapshot } from "../../lib/mode.ts";
 import { awaitingJakob } from "../../lib/verdict.ts";
 import { workshopStates, type WorkshopId, type WorkshopState } from "../../lib/workshops.ts";
 import { START_CHAIN, START_SIDE, START_TILES, type Tile } from "../../lib/start.ts";
+import { getProofs } from "../../lib/api.ts";
+import { getProofNotes } from "../../lib/proof-notes.ts";
+import { hisWord } from "../../lib/proof-areas.ts";
 
 const ICONS: Record<Tile["icon"], LucideIcon> = { users: Users, doll: PersonStanding, film: Clapperboard, review: ScanEye, map: Workflow, images: Images, game: Spade, ruler: Ruler, live: Scale, pack: Package, lips: Speech, sound: Music, decisions: ListChecks, library: Archive };
 
@@ -64,6 +67,15 @@ export function StartView() {
   }, []);
   const waiting = useMemo(() => (graph ? awaitingJakob(graph).length : 0), [graph]);
   const cards = decisions.answer ? waitingCount(decisions.answer.decisions) : 0;
+  // The proofs he has not said his word on (hisWord, the one answer Prov and Biblioteket read too).
+  const [proofsRead, setProofsRead] = useState<{ ids: string[]; notes: { proof?: string }[] } | null>(null);
+  useEffect(() => {
+    if (isSnapshot) return;
+    let live = true;
+    Promise.all([getProofs(), getProofNotes()]).then(([p, n]) => { if (live) setProofsRead({ ids: p.proofs.map((x) => x.id), notes: n.notes }); }, () => {});
+    return () => { live = false; };
+  }, []);
+  const proofsWaiting = proofsRead ? proofsRead.ids.filter((id) => hisWord(id, decisions.answer?.decisions ?? [], proofsRead.notes) !== "domt").length : 0;
   const counts: Record<string, number> = { "/granska/": waiting, "/beslut/": cards };
   const workshopOf = (id?: WorkshopId) => (id ? workshops.find((w) => w.id === id) : undefined);
   const shown = (t: { localOnly?: boolean }) => !(isSnapshot && t.localOnly);
@@ -78,12 +90,13 @@ export function StartView() {
           </p>
         </section>
 
-        {!isSnapshot && (waiting > 0 || cards > 0) ? (
+        {!isSnapshot && (waiting > 0 || cards > 0 || proofsWaiting > 0) ? (
           <section className="flex flex-col gap-3">
             <h2 className="text-sm font-semibold uppercase tracking-widest text-faint">Väntar på dig</h2>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {waiting > 0 ? <TileCard tile={{ name: "Granska", href: "/granska/", icon: "review", line: waiting === 1 ? "En film väntar på din dom." : `${waiting} filmer väntar på din dom.` }} dealer={dealer} count={waiting} /> : null}
               {cards > 0 ? <TileCard tile={{ name: "Beslut", href: "/beslut/", icon: "decisions", line: cards === 1 ? "Ett kort väntar på ditt svar." : `${cards} kort väntar på ditt svar.` }} dealer={dealer} count={cards} /> : null}
+              {proofsWaiting > 0 ? <TileCard tile={{ name: "Prov", href: "/granska/?vy=prov", icon: "review", line: proofsWaiting === 1 ? "Ett prov utan din dom." : `${proofsWaiting} prov utan din dom.` }} dealer={dealer} count={proofsWaiting} /> : null}
             </div>
           </section>
         ) : null}

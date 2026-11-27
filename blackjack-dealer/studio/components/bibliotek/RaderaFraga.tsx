@@ -43,7 +43,7 @@ export function RaderaFraga({ id, onClose, onDone }: { id: string | null; onClos
       open={!!id}
       onOpenChange={(open) => { if (!open && !busy) onClose(); }}
       title={fraga ? `Radera ${fraga.namn}?` : "Radera?"}
-      description={fraga ? `${fraga.platsNamn} · ${fraga.files} ${fraga.files === 1 ? "fil" : "filer"}, ${storlek(fraga.bytes)}` : undefined}
+      description={fraga && fraga.files ? `${fraga.files} ${fraga.files === 1 ? "fil" : "filer"} · ${storlek(fraga.bytes)}` : undefined}
       width={500}
       footer={
         <>
@@ -61,7 +61,7 @@ export function RaderaFraga({ id, onClose, onDone }: { id: string | null; onClos
             </ul>
           ) : null}
           {fraga.rattas.length ? <p className="text-dim">I samma steg: {fraga.rattas.join(" ")}</p> : null}
-          {kan ? <p className="text-dim">{fraga.niva === "skyddad" ? "Det raderas från datorn, utan papperskorg. Det kräver ett andra klick." : "Det raderas från datorn, utan papperskorg."}</p> : null}
+          {kan ? <p className="text-dim">Raderas från datorn, utan papperskorg.</p> : null}
         </div>
       )}
     </Dialog>

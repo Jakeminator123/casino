@@ -132,6 +132,8 @@ if(has('--restart')){
  const patchFile=async(file:string)=>{const m=patchMedia.exec(file);if(!m)return false;try{return await realpath(file)===path.join(await realpath('assets/speech'),m[1],'patches',m[2],m[3]);}catch{return false;}};
  // A proof's takes (proof.json takes): the files it names as produced films or pictures that may be used; the rest is underlag.
  const proofTakes=(value:unknown)=>Array.isArray(value)?value.filter((name):name is string=>typeof name==='string'&&/^[a-z0-9][a-z0-9._-]*\.(?:mp4|png|jpg)$/.test(name)):null;
+ // A folder's whole room on the disk (its originals and text with it), as the storage map counts it (../lager.ts), so that Prov and Biblioteket say the same size.
+ const folderBytes=async(dir:string)=>{let n=0;for(const e of await readdir(dir,{withFileTypes:true,recursive:true}).catch(()=>[]))if(e.isFile())n+=(await stat(path.join(e.parentPath,e.name)).catch(()=>null))?.size??0;return n;};
  const proofs=async()=>{
   const list:unknown[]=[];
   for(const dir of await readdir('assets/proofs',{withFileTypes:true}).catch(()=>[])){
@@ -139,7 +141,7 @@ if(has('--restart')){
    const base=`assets/proofs/${dir.name}`,info=await readJson(`${base}/proof.json`),files:unknown[]=[];let changed=0;
    for(const entry of await readdir(base,{withFileTypes:true}).catch(()=>[])){const file=`${base}/${entry.name}`;if(entry.isFile()&&/\.(?:mp4|png|jpg)$/.test(entry.name)&&await proofPath(file)){const s=await stat(file);changed=Math.max(changed,s.mtimeMs);files.push({name:entry.name,path:file,kind:entry.name.endsWith('.mp4')?'video':'image',bytes:s.size});}}
    // area: the part of the work the proof belongs to (studio/lib/proof-areas.ts), by which Prov groups them. domare: the independent judge's verdict (skill doma), never his.
-   list.push({id:dir.name,area:typeof info?.area==='string'&&clipId.test(info.area)?info.area:null,title:typeof info?.title==='string'?info.title:null,description:typeof info?.description==='string'?info.description:null,labels:info?.labels&&typeof info.labels==='object'?info.labels:null,verdicts:info?.verdicts&&typeof info.verdicts==='object'?info.verdicts:null,domare:info?.domare&&typeof info.domare==='object'&&!Array.isArray(info.domare)?info.domare:null,takes:proofTakes(info?.takes),updatedAt:Math.round(changed)||null,chapters:Array.isArray(info?.chapters)?info.chapters:null,fps:Number(info?.film?.fps)||30,files});
+   list.push({id:dir.name,bytes:await folderBytes(base),area:typeof info?.area==='string'&&clipId.test(info.area)?info.area:null,title:typeof info?.title==='string'?info.title:null,description:typeof info?.description==='string'?info.description:null,labels:info?.labels&&typeof info.labels==='object'?info.labels:null,verdicts:info?.verdicts&&typeof info.verdicts==='object'?info.verdicts:null,domare:info?.domare&&typeof info.domare==='object'&&!Array.isArray(info.domare)?info.domare:null,takes:proofTakes(info?.takes),updatedAt:Math.round(changed)||null,chapters:Array.isArray(info?.chapters)?info.chapters:null,fps:Number(info?.film?.fps)||30,files});
   }
   return {schemaVersion:1,proofs:list};
  };

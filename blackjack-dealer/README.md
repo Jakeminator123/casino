@@ -45,8 +45,9 @@ Alla `npm`- och `node`-kommandon körs från den här mappen. Node 24.22.3 (Volt
 | `npm run hooks:install`, `npm run check` | installerar kontrollen före push för hela casino-repot; kör den på de commits som ska ut |
 | `npm run verify` | jämför registrerade filer med sin hash i `data/manifest.json` (kräver media) |
 | `npm run stada` | raderar projektets del av slasken som inte har ändrats på tre timmar, utom `granska/` (`-- --torr` listar bara); `node ../slask/slask.ts` visar hela slasken |
-| `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (servern utför den säkra nivån själv när den startar, till papperskorgen); översikt över lagringen. På Jakobs ord: `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>" [--arkiv <mapp>]` |
-| `node ../lager.ts` | kartan över allt som lagras i hela casino-repot: storlek per ställe och slag, vad inget pekar på och vad registren pekar på som saknas (`--json` som data). Radering på riktigt, med frågan och spärrarna: `tools/lager-remove.ts`, från Biblioteket |
+| `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (servern utför den säkra nivån själv när den startar, till papperskorgen); översikt över lagringen. Ut ur repot till ett arkiv på Jakobs ord: `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>" --arkiv <mapp>` |
+| `node ../lager.ts` | kartan över allt som lagras i hela casino-repot: storlek per ställe och slag, vad inget pekar på, vad som väntar på hans dom och vad registren pekar på som saknas (`--json` som data) |
+| `node tools/lager-remove.ts <sak> [--ja --vem <namn>]` | frågan före en radering (vad som raderas och följden); `--ja` raderar från disken, utan papperskorg, och kvittot säger vem. Samma verktyg och spärrar som Radera i Biblioteket och Prov |
 
 Serverns adresser står i `tools/lab-routes.ts`, och vägarna till resten av casino-repot i `tools/casino-routes.ts`
 (verkstädernas servrar, måtten ur `../matt.ts --json`, avatarernas vägar); utan media på datorn visar studion och

@@ -25,7 +25,8 @@ studions sida Mått visar samma tal, lästa ur koden varje gång (`node matt.ts 
 
 Allt som lagras utanför Git (filmer, figurer, bilder, prov, det som väntar på dom) står i kartan [`lager.ts`](lager.ts):
 `node lager.ts` visar hur mycket som ligger var och vad registren pekar på som saknas. Studions sida **Biblioteket**
-(`/studio/bibliotek/`) visar samma karta per slag, med var varje sak används, och raderar på riktigt på ett klick.
+(`/studio/bibliotek/`) visar samma karta per slag och raderar på riktigt; en agent raderar med samma verktyg,
+`node blackjack-dealer/tools/lager-remove.ts <sak> --ja --vem <namn>`.
 
 Node 24 och, för Blender-skripten, Python med miljön i `avatar-auto-pipeline/.venv/`. Reglerna för den som arbetar här,
 människa eller agent, står i [`AGENTS.md`](AGENTS.md).
