@@ -51,7 +51,12 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   plant. Tolfte vändan byggde spärren (den slog till i alla givar) och lät kortet bäras i högerhandens eget grepp:
   det går jämnt in i handen över ruta 30–35, och vilan i ruta 0 är en platt hand. Tionde domen: **Nja**, "ett steg
   kvar": bytet och fällningen kan en kamera nu följa, men kortet hoppar 51 mm när det läggs under tummen (ruta
-  39→40), och kortets vita framsida syns under fingrarna i ruta 34–39 där dealerns är dolt. Trettonde vändan pågår.
+  39→40), och kortets vita framsida syns under fingrarna i ruta 34–39 där dealerns är dolt. Trettonde vändan tog
+  bort hoppet (tummen tar kortet i ruta 38, 9–15 mm per ruta) och tätade två hål i spärren. Elfte domen: **Nja, bra
+  nog för en film** för given till dagens plats 4: inget kort står ensamt, hoppar eller försvinner, och kortet
+  sitter i handen från bytet till landningen. Filmen gjordes (femte omgången, nedan). Kvar enligt båda domarna:
+  kortet bärs under fingrarna på lillfingersidan och kommer fram vid tummen, där dealerns ligger vid tummen hela
+  vägen; givarna till dagens plats 7 reser kortet som ett stort kort framför näven. Fjortonde vändan pågår.
   Dockans huvud är cirka 12 % smalare än dealerns och nickar mindre.
 - **Visningsfilmen** (för Jakobs chef): provet `visning-for-chefen-20261127` (67 s, den riktiga dealern syns bara som
   mätt streckfigur), och en version med Youtubefilmen som bara ligger på datorn
@@ -129,6 +134,24 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
     - **Kvar, och bara rättbart i rörelsen och med nya klipp:** bytet (Kling ritade ett kort som står ensamt och
       flyger in i näven, som dockan), handen som öppnar sig på en ruta på väg hem, en hårt knuten näve på det lagda
       kortet (dockans fingrar var knutna), och blicken som inte går till skon.
+  - **Femte omgången, röd kortrygg och rättat handbyte** (306 krediter: 238 och en omtagning av första klippet på
+    68; provet `kenji-rod-rygg-tre-klipp-20261127`, i Spegla "Kenji 5"). Gjord när rörelsedomaren efter trettonde
+    vändan sa att en film har ett skäl.
+    - **Domaren: Nja, klart bättre än den förra** (domarens ord, inte Jakobs). Kortet är ett och samma riktiga kort
+      med röd rygg och vit kant, under fingrarna ur skon och i en hand genom hela bytet: vänstern reser det,
+      högerns fingertoppar tar det nedifrån och högern bär det under handflatan, "det han själv såg hos den riktiga
+      dealern". Samma man hela filmen, lugnt huvud, tummen på kortets hörn, handen öppnar sig över tre rutor, takten
+      Danilos 2,2 s utan hack.
+    - **Kvar i filmen (kräver rättad rörelse och ett nytt klipp):** kortet syns aldrig vändas. Det ligger under
+      nävens fingrar i ruta 34–35, syns inte i 36 och dyker upp under tummen på nävens andra sida i 38. Näven på
+      kortet är hårt knuten, och blicken går inte till skon. Fjortonde vändan på rörelsen pågår (kortet bärs vid
+      tummen hela vägen, som dealerns).
+    - **Kvar i efterarbetet (gratis, pågår):** hack och en mörk fläck vid tummen på det lagda kortet (tummens
+      skugga på filmens kort behölls som en grå fläck, och vårt kort passades inte in mot tumsidan), skuggkopior av
+      framsidan i rutan där kortet stannar, och prickar i handens kant när handen lyfts.
+    - **Lärdomen om texten:** första klippets text beskrev också kortets framsida, som aldrig syns där, och Kling
+      ritade den som ett stort vitt kort på filten genom hela klippet. Verktyget säger nu bara det som syns i varje
+      klipp, och mäter hur lik klippets rörelse är dockans (0,73 mot 0,96 avslöjade det påhittade kortet).
 - **Efterarbetet är två verktyg** i `../standarddocka/verktyg/`: `i-dockans-takt.ts` parar varje stillbild med sin
   filmruta och läser filmen i Danilos takt med hela rutor (för filmer gjorda mellan stillbilder utan referensfilm;
   valet `--oskarpa`, som blandar filmrutor, gav dubbla fingrar och en rand runt axlarna och används inte), och
@@ -152,9 +175,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - **Lagret:** de sex ersatta proven, figurerna som föll, den förra standardens klipp och ett orderutkast som aldrig
   lades ligger i arkivet bredvid repot, och kortspelspaketet i `kortspelspaket-arkiv` bredvid repot. Inget är raderat.
   Repot gick från 3,2 till 1,9 GB.
-- **Pengar** (2026-11-27 kl. 21.40): Runway 4 397 krediter kvar. Av hans budget på 3 000 för eftermiddagen ("Var
-  resonable, men ja - du får 3000 ...") är 749 använda, alla på Kenjis fyra omgångar (187, 139, 129 + 56 och 238).
-  Meshy 363, orört. Den externa domaren (OpenAI) har ett tak på 5 USD per tolv timmar i verktyget.
+- **Pengar** (2026-11-27 kl. 23.50): Runway 4 091 krediter kvar. Av hans budget på 3 000 för arbetet ("Var
+  resonable, men ja - du får 3000 ...") är 1 055 använda, alla på Kenjis fem omgångar (187, 139, 129 + 56, 238 och
+  238 + 68). Fullmaktens tak för agenter den 27 november (2 500 per dygn) är så gott som fyllt (2 478). Meshy 363,
+  orört. Den externa domaren (OpenAI) har ett tak på 5 USD per tolv timmar i verktyget.
 
 ## Nästa steg
 
@@ -212,12 +236,15 @@ I den här ordningen om han inte säger annat.
 
 ## Väntar på Jakob
 
-- **Kenjis filmer:** provet `kenji-ny-dealer-ur-bilder-20261127` (de tre första omgångerna; hans dom Inte bra, kortet
-  `kenji-ger-ett-kort` i Beslut besvarat nej) och provet `kenji-tre-klipp-mellan-ankarbilder-20261127` (fjärde
-  omgången, det nya sättet). Den nya filmen har domaren fällt och den går tillbaka, så den väntar inte på hans dom;
-  den visar var sättet står, och syns bredvid källfilmen i Spegla som "Kenji 01". Provet
-  `efter-nja-eget-kort-och-takt-20261127` (filmen av Tomasz som han dömde, med vårt eget kort och i dockans takt) är
-  inte dömt av någon domare.
+- **Kenjis filmer.** I Spegla heter de "Kenji 1" till "Kenji 5", den äldsta först.
+  - `kenji-ny-dealer-ur-bilder-20261127` (de tre första omgångerna, Kenji 1–3): hans dom Inte bra, kortet
+    `kenji-ger-ett-kort` i Beslut besvarat nej.
+  - `kenji-tre-klipp-mellan-ankarbilder-20261127` (fjärde omgången, Kenji 4): fälld av domaren fyra gånger och
+    ersatt av den femte. Den väntar inte på hans dom; den kan flyttas till arkivet på hans ord.
+  - `kenji-rod-rygg-tre-klipp-20261127` (femte omgången, Kenji 5): domarens Nja. Det är den han ska se, och den han
+    dömer när efterarbetets småfel vid tummen är rättade och vändningen har fått sitt nya klipp.
+  - `efter-nja-eget-kort-och-takt-20261127` (filmen av Tomasz som han dömde, med vårt eget kort och i dockans takt)
+    är inte dömt av någon domare.
 - **Meshy och RunPod.** På frågan om andra betalda tjänster kryssade han OpenAI, Meshy, RunPod och "inga av dem".
   OpenAI används för den externa domaren; Meshy och RunPod används inte förrän han har sagt vilket som gäller. Han
   frågade samma dag om tunga jobb kan köras på hans RunPod: det går för vårt eget material

@@ -1098,8 +1098,9 @@ def steg_efter(prov=False):
                        'gron': gron.name})
         print(f'klipp {s["nr"]}: {m["f"]:.2f} bilder/s, {m["D"]:.2f} s; rörelsen {m["senare"]:+.3f} s mot dockans (likhet {m["likt"]:.2f}); '
               f'klippets rutor {rutor[0]}–{rutor[-1]}, {L} rutor för dockans {s["dockrutor"][0]}–{s["dockrutor"][1]}', flush=True)
-        if L != len(rutor) or len(set(rutor)) != len(rutor) or m['likt'] < 0.4:
-            print(f'  OBS klipp {s["nr"]}: ' + ('klippets rörelse liknar inte referensfilmens: se på klippet innan filmen visas' if m['likt'] < 0.4 else
+        # (rörelsens likhet: åtta klipp som höll hade 0,96–0,98; klippet där Kling ritade ett extra kort på filten hade 0,73)
+        if L != len(rutor) or len(set(rutor)) != len(rutor) or m['likt'] < 0.85:
+            print(f'  OBS klipp {s["nr"]}: ' + ('klippets rörelse liknar inte referensfilmens (något rör sig i bilden som inte rör sig hos dockan): se på klippet innan filmen visas' if m['likt'] < 0.85 else
                                                f'{L} rutor ur klippet, väntade {len(rutor)} olika (klippet är för kort för steget)'), flush=True)
     # Hela given i grönt: stegen efter varandra.
     gron_hela = E / 'given-i-gront.mp4'
@@ -1150,9 +1151,17 @@ def lage():
     k = UT / 'anrop' / 'kostnad.json'
     if k.exists():
         s = json.loads(k.read_text(encoding='utf-8'))['krediter']
-        # (ett anrop som säger var dess resultat sparas, "ut", är lagt och hämtat när filen finns där)
-        anrop = [json.loads(f.read_text(encoding='utf-8')) for f in sorted((UT / 'anrop').glob('*.json')) if f.name != 'kostnad.json']
-        med_ut = [x for x in anrop if x.get('ut')]
+        # (ett anrop som säger var dess resultat sparas, "ut", är lagt och hämtat när filen finns där; av ett klipps tagningar
+        # räknas bara den senaste, eftersom en underkänd tagning är ersatt och dess fil borttagen)
+        senaste = {}
+        for f in sorted((UT / 'anrop').glob('*.json')):
+            if f.name == 'kostnad.json':
+                continue
+            m_ = re.fullmatch(r'(klipp-\d+)(?:-t(\d+))?\.json', f.name)
+            nyckel, tagning = (m_.group(1), int(m_.group(2) or 1)) if m_ else (f.name, 1)
+            if nyckel not in senaste or tagning > senaste[nyckel][0]:
+                senaste[nyckel] = (tagning, json.loads(f.read_text(encoding='utf-8')))
+        med_ut = [x for _, x in senaste.values() if x.get('ut')]
         kvar = [x for x in med_ut if not (CASINO / x['ut']).exists()]
         print(f'  de betalda stegen: stillbilderna {s["stillbilder"]} krediter, sedan film A (Kling 4) {s["A_kling4"]}, med bilderna {s["A_alla"]} krediter '
               f'({s["A_alla"] / 100:.2f} dollar)' + (f'; eller B (Aleph 2) {s["B_aleph2"]}, båda {s["bada"]}' if 'B_aleph2' in s else '')

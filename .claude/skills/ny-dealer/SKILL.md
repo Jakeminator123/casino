@@ -67,7 +67,8 @@ A3PnC1 → A2.3 med kortet. Klippen möts i ankarbilderna.
 7. **Efterarbetet** (`--steg 7`, gratis, när klippen ligger i `ut/klipp-<nr>.mp4`): stegen tas ur klippens stillhet,
    där klippet gör rörelsen. Filmmodellen gör den något senare än referensfilmen (Kling 4 0,06–0,08 s, 2026-11-27), så
    skriptet mäter förskjutningen i varje klipp (rörelsen ruta för ruta mot referensfilmens) och säger hur lik rörelsen
-   är; under 0,4 ska klippet ses på innan det används.
+   är; under 0,85 varnar det, och klippet ska ses på innan det används (klippen som höll hade 0,96–0,98, och klippet
+   där Kling ritade ett extra kort på filten 0,73).
    - **Filmens rutor är klippens egna:** inga upprepas och inga räknas fram. Filmen går i klippens bildtakt (Kling 4:
      24 bilder/s, 53 rutor för dockans 66), och filmruta j är dockans ruta j × 1,25. Att lägga om till 30 bilder/s
      genom att upprepa var femte ruta fällde domaren som "ett jämnt hack sex gånger i sekunden". Säg alltid vilken
@@ -85,9 +86,10 @@ att filmmodellen ritar ryggen själv, och efterarbetet ritar bara framsidan, som
 
 **En ny tagning av ett klipp, `--om-klipp 1`** (med `--steg 6`): när ett levererat klipp inte håller skrivs bara det
 klippets anrop om, som `anrop/klipp-<nr>-t<n>.json` med eget namn i liggaren och egen fil (`ut/klipp-<nr>-t<n>.mp4`).
-Ankarbilderna och de andra klippen rörs inte, och steg 7 tar den senaste tagningen av varje klipp. Se på varje
-levererat klipp innan efterarbetet: steg 7 säger hur lik klippets rörelse är dockans, och ett tal långt under de andra
-(0,73 mot 0,96–0,97) var ett påhittat föremål i bilden.
+Ankarbilderna och de andra klippen rörs inte, och steg 7 tar den senaste tagningen av varje klipp. Den underkända
+tagningens fil tas bort av den som gjorde den (liggaren har kvar vad den kostade). Se på varje levererat klipp innan
+efterarbetet: steg 7 säger hur lik klippets rörelse är dockans, och ett tal långt under de andra (0,73 mot 0,96–0,97)
+var ett påhittat föremål i bilden.
 
 **Texten säger bara det som syns.** Klippets och ankarbildens text beskriver bara de sidor av kortet som kameran ser
 där (ur omgångens rörelse), och säger att kortet som ges är det enda utanför skon. En beskrivning av framsidan i ett
