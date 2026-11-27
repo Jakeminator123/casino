@@ -11,7 +11,9 @@ och på samma sätt män med mätta mått: två dealrar i en film (MATT danilo o
 halsen och huvudet) och en person efter sin egen figur och sina bilder (MATT tomasz_matt: axlarna, bröstet, midjan,
 höften, halsen och huvudets höjd, bredd och käke), med --kon <nyckeln i MATT>:
   - standarddocka_danilo.blend / .glb, standarddocka_frasse.blend / .glb, standarddocka_tomasz_matt.blend / .glb
-En ny person är en ny nyckel i MATT (grund, passa, kalla); de mått som går att passa står i PASS_TGT.
+och en person mätt ur sina egna bilder (steg 15, personer/<person>.json), byggd på Danilos eller Frasses docka, med
+--kon <dockans namn i filen> (Kenji: --kon kenji -> standarddocka_kenji.blend / .glb).
+En ny person är en ny fil i personer/ (eller en nyckel i MATT: grund, passa, kalla); de mått som går att passa står i PASS_TGT.
 Med --namn N skrivs standarddocka_<docka>_N.blend/.glb och docka-rapport-<docka>_N.json i stället, så att de modeller som
 används inte skrivs över medan en ny prövas. En docka per körning av bygg_en: allt från den förra (också dess vila
 sitt_vila) tas bort först, så att varje fil bara har sin egen.
@@ -180,6 +182,26 @@ PASS_TGT = {  # måttet -> MPFB-targets (utan -incr/-decr), höger och vänster 
     'kak_b': ['cheek/r-cheek-volume', 'cheek/l-cheek-volume'],
     'haka_b': ['chin/chin-bones'],
 }
+
+
+# En person ur sina egna bilder (steg 15, personer/<person>.json; Jakob 2026-11-27: "ett generiskt sätt att få en pipeline
+# för en helt och hållet ny dealer"): en nyckel i MATT per fil, dockans namn ur filen (docka.namn). Personen byggs på dockan
+# vars rörelser den spelar (docka.grund: Danilo för stilen kameran, Frasse för bordet): grundens mått, utom de som
+# mätningen skiljer från grundens mer än sin osäkerhet (docka.passa, skrivna av steg 15, inte för hand). Ingen rad här per
+# person: en ny person är en ny fil.
+def _personer():
+    for f in sorted((ROOT / 'personer').glob('*.json')):
+        d = json.loads(f.read_text(encoding='utf-8'))['docka']
+        g = MATT[d['grund']]
+        if d['namn'] in MATT and MATT[d['namn']].get('person') != f.name:
+            raise SystemExit(f'personer/{f.name}: dockan {d["namn"]} finns redan i MATT')
+        MATT[d['namn']] = {'grund': g.get('grund', d['grund']), 'langd': g['langd'], 'passa': {**g['passa'], **d['passa']}, 'person': f.name,
+                           **({'som_grund': g['som_grund']} if 'som_grund' in g else {}),
+                           'kalla': f'personer/{f.name} (steg 15, mätt ur bilderna): {", ".join(f"{k} {v}" for k, v in d["passa"].items()) or "inget skiljer"}; '
+                                    f'resten {d["grund"]}s ({g["kalla"]})'}
+
+
+_personer()
 # Vridbenen: två per underarm, barn till underarmens ben och liggande längs det, vid en tredjedel och två tredjedelar av
 # dess längd. Underarmens vikt delas mellan ForeArm, ForeArmTwist1 och ForeArmTwist2 efter hörnets läge längs underarmen
 # (u = 0 vid armbågen, 1 vid handleden): bara ForeArm vid armbågen, lika mycket ForeArm och Twist1 vid u = 0,25, bara

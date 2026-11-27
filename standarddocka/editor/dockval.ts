@@ -3,6 +3,10 @@
 // tekniskt fel). Ren kod: läser bara blackjack-dealer/src/uppsattning.ts (standarderna, deras namn, dockor och kortplatser),
 // så att reglerna prövas utan webbläsare (blackjack-dealer/tools/editor-dockval.test.ts).
 import {UPPSATTNING, dockansUppsattning, lasUppsattning, valdUppsattning, type Underlag, type Uppsattning, type UppsattningId} from '../../blackjack-dealer/src/uppsattning.ts';
+import {PERSONDOCKOR} from '../../blackjack-dealer/dealer3d/src/persondockor.ts';
+
+/** Dockorna vid en standard: dess egna (uppsattning.ts dockor), och vid livebordet också en persons docka ur sina bilder (dealer3d/src/persondockor.ts, avatar-auto-pipeline steg 15). */
+export const dockorna = (u: UppsattningId): readonly string[] => u === 'live' ? [...UPPSATTNING[u].dockor, ...Object.keys(PERSONDOCKOR)] : UPPSATTNING[u].dockor;
 
 /** En docka i hans ord: namnet, och hon eller han (han, honom, hans i hennes eller hans form). */
 export type Dockord = {namn: string; han: string; honom: string; hans: string};
@@ -23,7 +27,7 @@ export type Dockval = {uppsattning: UppsattningId; docka: string; rad: string};
  * svenska vad som visas i stället ('' när allt passar).
  */
 export function dockval(uppsattningOrd: string | null | undefined, dockaSkriven: string | null | undefined): Dockval {
-  const dockaOrd = dockaSkriven?.toLowerCase(), uppsattning = valdUppsattning(uppsattningOrd, dockaOrd), {namn, dockor} = UPPSATTNING[uppsattning], forval = dockor[0], rader: string[] = [];
+  const dockaOrd = dockaSkriven?.toLowerCase(), uppsattning = valdUppsattning(uppsattningOrd, dockaOrd), {namn} = UPPSATTNING[uppsattning], dockor = dockorna(uppsattning), forval = dockor[0], rader: string[] = [];
   if (uppsattningOrd && !lasUppsattning(uppsattningOrd)) rader.push(`Det finns ingen standard som heter ${citat(uppsattningOrd)}. Här visas ${namn}.`);
   if (!dockaOrd || dockor.includes(dockaOrd)) return {uppsattning, docka: dockaOrd || forval, rad: rader.join(' ')};
   const hemma = dockansUppsattning(dockaOrd);
