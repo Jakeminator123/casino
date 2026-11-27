@@ -105,12 +105,13 @@ vid förra standardens bord. Vyerna:
   visar sina filmer som spelet spelar dem i just det trädet (Primär, sekundära, Gör primär), och talet ligger på A1. Alla träd
   (`?trad=alla`) är nätet: A1, grenarna till ankarna vid skon (i dag A2.1 och A2.3) och stegen under dem, med sök, "bara där de skiljer sig" och
   Sätt ihop till en komposition. Koden: `studio/components/map/`, träden ur `GET /api/trees` (`tools/dealer-tree.ts`).
-  Växeln överst byter till **Schemat** (`?vy=schema`; standarddockan öppnar där): rörelseschemat ur
-  `../standarddocka/rorelsekatalog.json` som en bild, ankarena i rundans ordning och rörelserna som pilar med status i
-  linjen, stadierna som knappar, en vald docka (Danilo, Frasse, mannen, kvinnan, och Paow med filmerna i trädet) med vad
-  hon har per rörelse och kortplats (lyft, ritad, inspelat klipp, film), rundan som en väg, bryggorna och det som inte
-  härmas, och där katalogen och filerna inte säger samma sak. Koden: `studio/components/schemat/`, `studio/lib/schemat.ts`,
-  ur `GET /api/schema` (`tools/schema-routes.ts`), som läser katalogen, `../live-bj/data/segment.json` och filerna varje gång.
+  Växeln överst byter till **Schemat** (`?vy=schema`; standarddockan öppnar där): för en docka vid standardens bord
+  (Danilo, Frasse) en runda som en väg med det som saknas i rött och Spela i Dockan, kortplatserna med vad hon har (lyft,
+  ritad, inspelat klipp, film), och rörelseschemat ur `../standarddocka/rorelsekatalog.json` som en bild: ankarena i rundans
+  ordning, hennes rörelser som pilar och resten bakom Visa det som saknas, stadierna som en rad över. Koden:
+  `studio/components/schemat/`, `studio/lib/schemat.ts`, ur `GET /api/schema` (`tools/schema-routes.ts`), som läser
+  katalogen, `../live-bj/data/segment.json` och filerna varje gång; `node tools/schema-routes.ts` skriver ut där katalogen
+  och filerna inte säger samma sak.
 - **Granska**: Filmer (Jakobs domar) och Prov (provmapparna under `assets/proofs/`, `?prov=<mapp>`). Ett prov visar den
   oberoende domarens dom skild från hans egen (`domare` i `proof.json`, `studio/components/proofs/DomarePanel.tsx`): dess
   bricka, skälen, det den skulle rätta och den externa rösten; där de två är oense märks provet och står först i sitt

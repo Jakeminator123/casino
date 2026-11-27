@@ -1,35 +1,30 @@
 // Karta, Schemat (studions sida /studio/karta/?vy=schema, studio/components/schemat/): rörelseschemat ur
-// ../standarddocka/rorelsekatalog.json, med det som finns för varje docka. Vägen i tools/preview.ts:
-//   GET /api/schema   ankarena, stadierna och rörelserna; för varje docka (Danilo, Frasse, mannen, kvinnan, och den äldre
-//                     dealern som har filmer i ett träd) bordets kortplatser och det som finns per rörelse och plats: lyft ur
-//                     livefilmen, ritad, inspelat i dockans editor, en film (beställd, eller i trädet), med sidan där det
-//                     öppnas; hur ofta varje rörelse finns i livefilmen (../live-bj/data/segment.json); rundan som en väg;
-//                     och det katalogen säger som inte stämmer med filerna.
-// Läser varje gång: katalogen, segment.json, dockans rörelser (dealer3d/data/), editorns klipp (../standarddocka/klipp/, bara
-// namnen och rundans klipplista), beställningarna (data/orders/), kortplanen (placements/default.json, bara läst) och träden
-// (tools/dealer-tree.ts treeAnswer). Lagrar ingenting och skriver ingenting. De rena reglerna (vilket ankare ett id menar,
-// vilken rörelse ett steg är, orden) står i studio/lib/schemat.ts. Provet: tools/schema-routes.test.ts.
+// ../standarddocka/rorelsekatalog.json, med det som finns för standardens dockor (src/uppsattning.ts: dockorna vid
+// standardens bord, i dag Danilo och Frasse). Vägen i tools/preview.ts:
+//   GET /api/schema   ankarena, stadierna och rörelserna; för varje docka bordets kortplatser och det som finns per rörelse och
+//                     plats (lyft, ritad, inspelat i dockans editor, beställd film) med sidan i Dockan där det öppnas; hur ofta
+//                     varje rörelse finns i livefilmen (../live-bj/data/segment.json); rundan som en väg med Dockans adress för
+//                     hela rundan; och det katalogen säger som inte stämmer med filerna (fel, avvikelser: för agenterna, inte
+//                     för sidan).
+//   node tools/schema-routes.ts   skriver ut felen och avvikelserna.
+// Läser varje gång: katalogen, segment.json, dockans rörelser (dealer3d/data/, bara huvudet före rutorna), editorns klipp
+// (../standarddocka/klipp/, bara namnen), beställningarna (data/orders/) och kortplanen (placements/default.json, bara läst).
+// Lagrar ingenting och skriver ingenting. De rena reglerna (vilket ankare ett id menar, vilken rörelse ett steg är, orden) står
+// i studio/lib/schemat.ts. Provet: tools/schema-routes.test.ts.
 //
-// Vilken rörelse en fil är:
-//   - en fil som en rörelses mönster i katalogen (fältet filer, till exempel giv-fran-2-3-p<n>c1-ren-<a|b>-<docka>) nämner är
-//     den rörelsen, för dockan i namnet och platsen i namnet (p4c1: plats 4, kort 1); ritad, eller lyft om den heter lyft-;
-//   - ett lyft (lyft-<docka>-*.json) som katalogen inte nämner läses: ett lyft med ett kort (fältet to, P4.C1) är kortets giv i
-//     livefilmens kategori (GIV till en spelare, GIV-EGET till dealern), och den rörelse i katalogen med den kategorin vars till
-//     kortet är (A3P4C1: GIV-KORT-1); ett lyft utan kort är en väntan (kategorin VANTA). Ett lyft går från vilan till vilan;
-//   - ett inspelat klipp är den rörelse det är inspelat av: ett lyft (live-lyft-<lyftet>-…, live-sekvens-<delarna>-…), en
-//     plats med dockans egna grundrörelser (a1-a23-p<n>c1-<del>-…-<docka>, editor/rorelse.ts grundFor), en grundrörelse på prov
-//     (prov-<grundrörelsen>-…) eller hela rundan (runda-c1-…-<docka>, med klipplistan runda-c1-<docka>.json);
-//   - en beställning vars förlaga är en dockas film (reference.doll) är steget den beställer (step.edge, A2.3 → A3P4C1);
-//   - ett steg med film i den äldre dealerns träd är den rörelse vars från och till steget är.
+// Vilken rörelse en fil är: den katalogen säger. Fältet lyfta på en rörelse eller ett ankare namnger filerna (lyft-danilo-p4),
+// fältet filer är ett mönster (giv-fran-2-3-p<n>c1-ren-<a|b>-<docka>); platsen är filens kort (to: P4.C1), annars namnets
+// (p4c1). Ett inspelat klipp är den rörelse det är inspelat av (live-lyft-<lyftet>-…, live-sekvens-<delarna>-…). En
+// beställning vars förlaga är en dockas film (reference.doll) är steget den beställer (step.edge, A2.3 → A3P4C1).
 import {open, readFile, readdir} from 'node:fs/promises';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import path from 'node:path';
-import {grundFor, vilanFor, type Standarddocka} from '../../standarddocka/editor/rorelse.ts';
+import {fileURLToPath} from 'node:url';
 import {nodeCode} from '../src/dealer-trees.ts';
-import {ADRESSORD, UPPSATTNING, UPPSATTNINGAR, datatsUppsattning, dockansUppsattning, type UppsattningId} from '../src/uppsattning.ts';
+import {ADRESSORD, UPPSATTNING, VALETS_FORVAL, dockansUppsattning, type UppsattningId} from '../src/uppsattning.ts';
 import {
   ankareFor, dockNamn, kodAv, kortplatsOrd, platsAv, platsOchKort, rorelseFor, rundansVag,
-  type Ankare, type Avvikelse, type Docka, type FilmRad, type FilmTal, type Katalog, type KatalogRorelse, type Post, type Schema, type Slag,
+  type Ankare, type Avvikelse, type Docka, type FilmRad, type FilmTal, type Katalog, type Post, type Schema, type Slag,
 } from '../studio/lib/schemat.ts';
 
 const CASINO = path.resolve(import.meta.dirname, '../..');
@@ -40,8 +35,6 @@ export const KALLOR = {
   klipp: 'standarddocka/klipp',
   orders: 'blackjack-dealer/data/orders',
   plan: 'blackjack-dealer/placements/default.json',
-  trad: 'blackjack-dealer/data/dealer-trees.json',
-  dealers: 'blackjack-dealer/data/dealers.json',
 } as const;
 
 type Json = Record<string, unknown>;
@@ -50,7 +43,7 @@ const lista = async (casino: string, rel: string): Promise<string[]> => (await r
 const tal = (x: unknown): number | null => (typeof x === 'number' && Number.isFinite(x) ? x : null);
 /**
  * En rörelses huvud utan rutorna: fälten före "frames" (doll, to, made), läst ur filens början. En rörelse är hundratals kB
- * rutor, och schemat behöver bara huvudet; går början inte att läsa så läses hela filen.
+ * rutor, och schemat behöver bara huvudet; går början inte att läsa så läses hela filen. null: filen finns inte.
  */
 async function huvud<T = Json>(casino: string, rel: string): Promise<T | null> {
   let fh: Awaited<ReturnType<typeof open>> | null = null;
@@ -123,99 +116,73 @@ const platsIFil = (namn: string): string | null => {
   const p = /(?:^|-)p(\d+)c(\d+)(?:-|$)/.exec(namn); if (p) return `P${p[1]}.C${p[2]}`;
   const d = /(?:^|-)d-?c(\d+)(?:-|$)/.exec(namn); return d ? `D.C${d[1]}` : null;
 };
-/** Sidan Dockan för en grundrörelse: dockans bord, dockan, platsen, och grundrörelsen när den inte är platsens egen. */
-function dockanFor(docka: string, fil: string, plats: string | null): string {
-  const u = dockansUppsattning(docka) ?? 'live', q = new URLSearchParams({[ADRESSORD]: u, docka});
-  const nr = plats ? platsOchKort(plats)?.plats : null, n = nr && /^\d+$/.test(nr) ? Number(nr) : null;
-  if (u === 'forra') {
-    const d = docka as Standarddocka;
-    if (fil.startsWith('till-ankare-')) { if (vilanFor(d) !== fil) q.set('vilan', fil); }
-    else if (n) { q.set('plats', String(n)); if (grundFor(d, n).giv !== fil) q.set('giv', fil); }
-    else q.set('giv', fil);
-  } else {
-    if (n) q.set('plats', String(n));
-    if (!(n && fil === `lyft-${docka}-p${n}`)) q.set('giv', fil);
-  }
+/** Sidan Dockan för en rörelse: dockans bord, dockan, platsen, och rörelsen när den inte är platsens egen (lyft-<docka>-p<n>). */
+export function dockanFor(docka: string, fil: string, plats: string | null): string {
+  const q = new URLSearchParams({[ADRESSORD]: dockansUppsattning(docka) ?? VALETS_FORVAL, docka});
+  const nr = plats ? platsOchKort(plats)?.plats : null;
+  if (nr && /^\d+$/.test(nr)) q.set('plats', nr);
+  if (fil !== `lyft-${docka}-p${nr}`) q.set('giv', fil);
   return `/dockan/?${q}`;
 }
 
-type Fil = {namn: string; docka: string; rorelser: string[]; plats: string | null; slag: Slag; text: string; oppna: string; helaVagen?: boolean};
+type Fil = {namn: string; docka: string; rorelser: string[]; plats: string | null; slag: Slag; text: string};
 
-/** Det som finns för varje docka i dockans rörelser, klipp och beställningar, och filerna ingen rörelse är. */
-async function dockornasFiler(casino: string, kat: Katalog, dockor: readonly string[]): Promise<{poster: Post[]; utanfor: Avvikelse[]; fel: string[]}> {
-  const poster: Post[] = [], utanfor: Avvikelse[] = [], fel: string[] = [];
-  const data = (await lista(casino, KALLOR.data)).filter(n => n.endsWith('.json'));
-  const filer = new Map<string, Fil[]>();
-  const lagg = (f: Fil) => filer.set(f.namn, [...(filer.get(f.namn) ?? []), f]);
-  // Katalogens mönster.
-  for (const r of kat.rorelser.filter(r => r.filer)) {
-    const re = filerRe(r.filer!, dockor);
-    const traffar = data.filter(n => re.test(n));
-    if (!traffar.length) fel.push(`Mönstret för ${r.namn} (${r.id}) passar ingen fil.`);
-    for (const n of traffar) {
-      const namn = n.replace(/\.json$/, ''), m = re.exec(n)!.groups ?? {}, docka = m.docka, plats = platsIFil(namn);
-      if (!docka) continue;
-      const lyft = namn.startsWith('lyft-'), version = m.val && m.val.length === 1 ? `, version ${m.val.toUpperCase()}` : '';
-      const redan = filer.get(namn)?.find(f => f.docka === docka);
-      if (redan) { redan.rorelser.push(r.id); continue; }
-      lagg({namn, docka, rorelser: [r.id], plats, slag: lyft ? 'lyft' : 'ritad', text: `${lyft ? 'lyft ur filmen' : 'ritad'}${plats ? `, ${kortplatsOrd(plats)}` : ''}${version}`, oppna: dockanFor(docka, namn, plats)});
+/** Det som finns för varje docka: katalogens filer, editorns klipp av dem och beställningarna; och filerna katalogen inte nämner. */
+async function dockornasFiler(casino: string, kat: Katalog, dockor: readonly string[]): Promise<{poster: Post[]; ankaren: Schema['ankaren']; utanfor: Avvikelse[]; fel: string[]}> {
+  const poster: Post[] = [], utanfor: Avvikelse[] = [], fel: string[] = [], ankaren: Schema['ankaren'] = [];
+  const data = new Set((await lista(casino, KALLOR.data)).filter(n => n.endsWith('.json')));
+  const filer = new Map<string, Fil>();
+  type Huvud = {to?: unknown; doll?: unknown};
+  const huvuden = new Map<string, Huvud | null>();
+  const las = async (namn: string) => { if (!huvuden.has(namn)) huvuden.set(namn, await huvud<Huvud>(casino, `${KALLOR.data}/${namn}.json`)); return huvuden.get(namn) ?? null; };
+  const dockaAv = (namn: string, h: Huvud | null) => (typeof h?.doll === 'string' ? h.doll : /^[a-z]+-([a-z]+)-/.exec(namn)?.[1] ?? '');
+  const kortAv = (namn: string, h: Huvud | null) => (Array.isArray(h?.to) && typeof h.to[0] === 'string' ? h.to[0] : platsIFil(namn));
+  const lagg = async (namn: string, rorelse: string, slag: Slag, text: (plats: string | null) => string) => {
+    const redan = filer.get(namn);
+    if (redan) { if (!redan.rorelser.includes(rorelse)) redan.rorelser.push(rorelse); return; }
+    const h = await las(namn), docka = dockaAv(namn, h);
+    if (!dockor.includes(docka)) return;
+    const plats = kortAv(namn, h);
+    filer.set(namn, {namn, docka, rorelser: [rorelse], plats, slag, text: text(plats)});
+  };
+  // Katalogens namn på lyften (fältet lyfta) och mönster för det ritade (fältet filer).
+  for (const r of kat.rorelser) {
+    for (const namn of r.lyfta ?? []) {
+      if (!data.has(`${namn}.json`)) { fel.push(`${r.namn} nämner ${namn}, som inte finns bland dockans rörelser.`); continue; }
+      await lagg(namn, r.id, 'lyft', plats => `lyft${plats ? `, ${kortplatsOrd(plats)}` : ''}`);
+    }
+    if (r.filer) {
+      const re = filerRe(r.filer, dockor);
+      for (const n of [...data].filter(n => re.test(n))) {
+        const val = re.exec(n)?.groups?.val;
+        await lagg(n.replace(/\.json$/, ''), r.id, 'ritad', plats => `ritad${plats ? `, ${kortplatsOrd(plats)}` : ''}${val && val.length === 1 ? `, version ${val.toUpperCase()}` : ''}`);
+      }
     }
   }
-  // Lyften som katalogen inte nämner: kortet i filen säger vilken giv.
-  const lyften = data.filter(n => { const m = /^lyft-([a-z]+)-/.exec(n); return m && dockor.includes(m[1]) && !filer.has(n.replace(/\.json$/, '')); });
-  const huvuden = new Map(await Promise.all(lyften.map(async n => [n, await huvud<{to?: unknown; doll?: unknown}>(casino, `${KALLOR.data}/${n}`)] as const)));
-  for (const n of lyften) {
-    const namn = n.replace(/\.json$/, ''), m = /^lyft-([a-z]+)-(.+)$/.exec(namn)!;
-    const d = huvuden.get(n);
-    const docka = typeof d?.doll === 'string' && dockor.includes(d.doll) ? d.doll : m[1];
-    const kort = Array.isArray(d?.to) && typeof d.to[0] === 'string' ? d.to[0] : null, kod = kort ? kodAv(kort) : null;
-    const kategori = kort ? (kort.startsWith('D.') ? 'GIV-EGET' : 'GIV') : 'VANTA';
-    const r = kod ? rorelseFor(null, kod, kat.rorelser, kategori) : kat.rorelser.find(x => x.segment === kategori) ?? null;
-    if (!r) { utanfor.push({slag: 'fil-utanfor', fil: `${KALLOR.data}/${n}`, text: `Ett lyft som ingen rörelse i schemat är (kategorin ${kategori}).`}); continue; }
-    const forsok = kort && namn !== `lyft-${docka}-p${platsOchKort(kort)?.plats}` ? ' (ett försök till)' : '';
-    const vantan = /vantan-(\d+)/.exec(namn);
-    // Börjar och slutar lyftet i dockans vila (made.from och made.to), är vägen till skon och hem med i samma klipp.
-    const made = (d as {made?: {from?: unknown; to?: unknown}} | null)?.made, vila = (x: unknown) => typeof x === 'string' && /ankare-vila-/.test(x);
-    const hela = vila(made?.from) && vila(made?.to), fran = hela ? ', från vilan till vilan' : '';
-    lagg({namn, docka, rorelser: [r.id], plats: kort, slag: 'lyft', text: kort ? `lyft ur filmen${fran}${forsok}` : `lyft ur filmen: väntan${vantan ? ` ${vantan[1]}` : ''}${fran}`, oppna: dockanFor(docka, namn, kort), ...(hela ? {helaVagen: true} : {})});
+  for (const f of filer.values()) for (const r of f.rorelser) poster.push({docka: f.docka, rorelse: r, slag: f.slag, plats: f.plats, text: f.text, fil: `${KALLOR.data}/${f.namn}.json`, oppna: dockanFor(f.docka, f.namn, f.plats), oppnaOrd: 'Öppna i Dockan'});
+  // Dockans ställning på ett ankare.
+  for (const a of kat.ankare) for (const namn of a.lyfta ?? []) {
+    if (!data.has(`${namn}.json`)) { fel.push(`Ankaret ${a.namn} nämner ${namn}, som inte finns bland dockans rörelser.`); continue; }
+    const docka = dockaAv(namn, await las(namn));
+    if (dockor.includes(docka)) ankaren.push({docka, ankare: a.id, fil: `${KALLOR.data}/${namn}.json`});
   }
-  for (const list of filer.values()) for (const f of list) for (const r of f.rorelser) poster.push({docka: f.docka, rorelse: r, slag: f.slag, plats: f.plats, text: f.text, fil: `${KALLOR.data}/${f.namn}.json`, oppna: f.oppna, oppnaOrd: 'Öppna i Dockan', ...(f.helaVagen ? {helaVagen: true} : {})});
-  // Filerna ingen rörelse är (ankarnas ställningar är inga rörelser).
-  for (const n of data) {
-    const namn = n.replace(/\.json$/, '');
-    if (filer.has(namn) || namn.startsWith('ankare-') || utanfor.some(u => u.fil === `${KALLOR.data}/${n}`)) continue;
-    utanfor.push({slag: 'fil-utanfor', fil: `${KALLOR.data}/${n}`, text: /-paow$/.test(namn) ? 'Den äldre dockans (Paow), inte i schemat.' : 'En rörelse som katalogen inte nämner.'});
-  }
+  // Filerna katalogen inte nämner (ett mönster nämner sina filer för vilken docka som helst).
+  const namnda = new Set([...filer.keys(), ...kat.ankare.flatMap(a => a.lyfta ?? [])]), alla = kat.rorelser.flatMap(r => (r.filer ? [filerRe(r.filer, ['[a-z]+'])] : []));
+  for (const n of data) if (!namnda.has(n.replace(/\.json$/, '')) && !alla.some(re => re.test(n))) utanfor.push({slag: 'fil-utanfor', fil: `${KALLOR.data}/${n}`, text: 'En fil som katalogen inte nämner.'});
 
-  // Editorns klipp: den rörelse varje klipp är inspelat av.
-  const klipp = (await lista(casino, KALLOR.klipp)).filter(n => n.endsWith('.mp4'));
-  const lyft = [...filer.values()].flat().filter(f => f.namn.startsWith('lyft-')).sort((a, b) => b.namn.length - a.namn.length);
-  const allaFiler = [...filer.values()].flat().sort((a, b) => b.namn.length - a.namn.length);
-  const rundor = new Map<string, string[]>();
-  const sista = (namn: string) => namn.replace(/\.mp4$/, '').replace(/(?:-(?:nyckel|liv))+$/, '').split('-').at(-1) ?? '';
-  const klippAv = new Map<string, {f: Fil; klipp: string[]}>();
-  const av = (f: Fil, k: string) => { const key = `${f.namn}|${f.docka}`; const e = klippAv.get(key) ?? {f, klipp: []}; e.klipp.push(k); klippAv.set(key, e); };
-  for (const k of klipp) {
+  // Editorns klipp: den rörelse varje klipp är inspelat av (lyften, längsta namnet först).
+  const lyften = [...filer.values()].filter(f => f.namn.startsWith('lyft-')).sort((a, b) => b.namn.length - a.namn.length);
+  const klippAv = new Map<string, string[]>();
+  const av = (f: Fil, k: string) => klippAv.set(f.namn, [...(klippAv.get(f.namn) ?? []), k]);
+  for (const k of (await lista(casino, KALLOR.klipp)).filter(n => n.endsWith('.mp4'))) {
     const bas = k.replace(/\.mp4$/, '');
-    if (bas.startsWith('live-lyft-')) { const f = lyft.find(l => `lyft-${bas.slice('live-lyft-'.length)}`.startsWith(`${l.namn}-`)); if (f) av(f, k); continue; }
-    if (bas.startsWith('live-sekvens-')) { const docka = sista(k); for (const f of lyft.filter(l => l.docka === docka)) { const del = f.namn.slice(`lyft-${docka}-`.length); if (bas.includes(`-${del}-`)) av(f, k); } continue; }
-    const plats = /^a1-a23-p(\d+)c1-(.+)$/.exec(bas);
-    if (plats) {
-      const docka = sista(k); if (docka !== 'man' && docka !== 'kvinna') continue;
-      const g = grundFor(docka, Number(plats[1])), del = plats[2];
-      const namn = [...(del.startsWith('given') || del.startsWith('hela') ? [g.giv] : []), ...(del.startsWith('vilan') || del.startsWith('hela') ? [g.vila] : [])];
-      for (const nm of namn) for (const f of filer.get(nm) ?? []) if (f.docka === docka) av(f, k);
-      continue;
-    }
-    if (bas.startsWith('prov-')) { for (const f of allaFiler) if (bas.startsWith(`prov-${f.namn}-`) || bas.includes(`-${f.namn}-`)) av(f, k); continue; }
-    if (bas.startsWith('runda-')) {
-      const docka = sista(k); if (!dockor.includes(docka)) continue;
-      if (!rundor.has(docka)) rundor.set(docka, ((await lasJson<{klipp?: {grund?: unknown}[]}>(casino, `${KALLOR.klipp}/runda-c1-${docka}.json`))?.klipp ?? []).flatMap(x => (typeof x.grund === 'string' ? [x.grund] : [])));
-      for (const nm of rundor.get(docka)!) for (const f of filer.get(nm) ?? []) if (f.docka === docka) av(f, k);
+    if (bas.startsWith('live-lyft-')) { const f = lyften.find(l => `lyft-${bas.slice('live-lyft-'.length)}`.startsWith(`${l.namn}-`)); if (f) av(f, k); }
+    else if (bas.startsWith('live-sekvens-')) {
+      const docka = bas.replace(/(?:-(?:nyckel|liv))+$/, '').split('-').at(-1) ?? '';
+      for (const f of lyften.filter(l => l.docka === docka)) if (bas.includes(`-${f.namn.slice(`lyft-${docka}-`.length)}-`)) av(f, k);
     }
   }
-  for (const {f, klipp: ks} of klippAv.values()) for (const r of f.rorelser)
-    poster.push({docka: f.docka, rorelse: r, slag: 'klipp', plats: f.plats, text: `inspelat i dockans editor${f.plats ? `, ${kortplatsOrd(f.plats)}` : ''} (${ks.length} klipp)`, fil: `${KALLOR.klipp}/${ks[0]}`, oppna: f.oppna, oppnaOrd: 'Öppna i Dockan', ...(f.helaVagen ? {helaVagen: true} : {})});
+  for (const [namn, ks] of klippAv) { const f = filer.get(namn)!; for (const r of f.rorelser) poster.push({docka: f.docka, rorelse: r, slag: 'klipp', plats: f.plats, text: `${ks.length} klipp`, fil: `${KALLOR.klipp}/${ks[0]}`, oppna: dockanFor(f.docka, f.namn, f.plats), oppnaOrd: 'Öppna i Dockan'}); }
 
   // Beställningarna med en dockas film som förlaga.
   type Order = {status?: unknown; step?: {edge?: unknown}; reference?: {doll?: unknown}};
@@ -224,32 +191,14 @@ async function dockornasFiler(casino: string, kat: Katalog, dockor: readonly str
     const docka = o?.reference?.doll, edge = o?.step?.edge;
     if (typeof docka !== 'string' || !dockor.includes(docka) || typeof edge !== 'string' || !edge.includes('>')) continue;
     const [a, b] = edge.split('>').map(x => nodeCode(x)), r = rorelseFor(a, b, kat.rorelser);
-    if (!r) continue;
-    poster.push({docka, rorelse: r.id, slag: 'film', plats: platsAv(b) ?? platsAv(a), text: `beställd film${typeof o?.status === 'string' ? ` (${o.status.toLowerCase()})` : ''}`, fil: `${KALLOR.orders}/${n}`, oppna: null, oppnaOrd: null});
+    if (r) poster.push({docka, rorelse: r.id, slag: 'film', plats: platsAv(b) ?? platsAv(a), text: `beställd film${typeof o?.status === 'string' ? `, ${o.status.toLowerCase()}` : ''}`, fil: `${KALLOR.orders}/${n}`, oppna: null, oppnaOrd: null});
   }
-  return {poster, utanfor, fel};
-}
-
-// ── Den äldre dealerns träd ─────────────────────────────────────────────────
-type TradSvar = {trees: {tree: {id: string; name: string; state?: string; uppsattning?: unknown}; steps: {id: string; from: string; to: string; edge: string; state: string; ids: string[]}[]}[]};
-/** Stegen med film i en dealers träd som rörelser i schemat, och stegen som ingen rörelse är. */
-async function tradensFilmer(dealer: string, kat: Katalog, svar?: TradSvar): Promise<{poster: Post[]; utanfor: Schema['utanforSchemat']; uppsattning: UppsattningId}> {
-  const answer = svar ?? (await (await import('./dealer-tree.ts')).treeAnswer(dealer)) as unknown as TradSvar;
-  const poster: Post[] = [], utanfor: Schema['utanforSchemat'] = [];
-  for (const v of answer.trees) for (const s of v.steps.filter(x => x.state === 'finns')) {
-    const a = nodeCode(s.from), b = nodeCode(s.to), r = rorelseFor(a, b, kat.rorelser), n = s.ids.length;
-    if (!r) { utanfor.push({docka: dealer, fran: a, till: b, filmer: n, trad: v.tree.name}); continue; }
-    const q = new URLSearchParams({dealer, vy: 'trad', trad: v.tree.id, steg: s.id, kant: s.edge});
-    poster.push({docka: dealer, rorelse: r.id, slag: 'film', plats: platsAv(b) ?? platsAv(a), text: `${n === 1 ? 'film' : `${n} filmer`} i trädet ${v.tree.name}${v.tree.state ? ` (${v.tree.state})` : ''}`, fil: null, oppna: `/karta/?${q}`, oppnaOrd: 'Öppna i Karta'});
-  }
-  return {poster, utanfor, uppsattning: datatsUppsattning(answer.trees[0]?.tree.uppsattning)};
+  return {poster, ankaren, utanfor, fel};
 }
 
 // ── Schemat ─────────────────────────────────────────────────────────────────
-export type Val = {casino?: string; trad?: boolean | Record<string, TradSvar>};
-/** Schemat som studion ritar det, läst nu. trad: false läser inga träd (ett prov utan registren), ett objekt ger dem färdiga. */
-export async function schema(val: Val = {}): Promise<Schema> {
-  const casino = val.casino ?? CASINO;
+/** Schemat som studion ritar det, läst nu ur katalogen och filerna under casino (förval: repots rot). */
+export async function schema(casino = CASINO): Promise<Schema> {
   const kat = await lasJson<Katalog>(casino, KALLOR.katalog);
   if (!kat) throw Error('Rörelseschemat kunde inte läsas.');
   const seg = await lasJson<Segment>(casino, KALLOR.segment);
@@ -263,62 +212,58 @@ export async function schema(val: Val = {}): Promise<Schema> {
   for (const r of kat.rorelser) if (!kat.stadier.some(s => s.id === r.stadium)) fel.push(`${r.namn} (${r.id}) hör till stadiet ${r.stadium}, som inte finns.`);
   const rorelser = kat.rorelser.map(r => ({...r, franAnkare: ankareFor(r.fran, ankare), tillAnkare: ankareFor(r.till, ankare), kategori: (r.segment && seg?.kategorier?.[r.segment]?.vad) || null}));
 
-  // Dockorna och deras bords kortplatser (källan: src/uppsattning.ts), och den äldre dealern med filmer i ett träd.
+  // Dockorna: de vid standardens bord, med bordets kortplatser (källan: src/uppsattning.ts).
   const plan = await lasJson(casino, KALLOR.plan);
   const platserAv = (u: UppsattningId): Docka['platser'] => {
     try { return UPPSATTNING[u].kortplatser({plan: plan as never}).flatMap(p => { const pk = platsOchKort(p.id); return pk ? [{id: p.id, ...pk, x: p.at[0], z: p.at[2], vinkel: p.heading}] : []; }); }
     catch { fel.push(`${UPPSATTNING[u].namn}: kortplatserna kunde inte läsas.`); return []; }
   };
-  const dockor: Docka[] = UPPSATTNINGAR.flatMap(u => UPPSATTNING[u].dockor.map(id => ({id, namn: dockNamn(id), slag: 'docka' as const, uppsattning: u, bord: UPPSATTNING[u].namn, platser: platserAv(u)})));
-  const ids = dockor.map(d => d.id);
-  // Träden läses medan filerna läses.
-  const traden = async () => {
-    if (val.trad === false) return [];
-    const reg = await lasJson<{dealers?: Record<string, unknown>}>(casino, KALLOR.trad);
-    const namn = new Map(((await lasJson<{dealers?: {id: string; name?: string}[]}>(casino, KALLOR.dealers))?.dealers ?? []).map(d => [d.id, d.name ?? d.id]));
-    return Promise.all(Object.keys(reg?.dealers ?? {}).map(async dealer => {
-      try { return {dealer, namn: namn.get(dealer) ?? dockNamn(dealer), t: await tradensFilmer(dealer, kat, typeof val.trad === 'object' ? val.trad[dealer] : undefined)}; }
-      catch (e) { return {dealer, namn: namn.get(dealer) ?? dockNamn(dealer), fel: (e as Error).message}; }
-    }));
-  };
-  const [{poster, utanfor, fel: filfel}, trad] = await Promise.all([dockornasFiler(casino, kat, ids), traden()]);
+  const u = VALETS_FORVAL;
+  const dockor: Docka[] = UPPSATTNING[u].dockor.map(id => ({id, namn: dockNamn(id), uppsattning: u, bord: UPPSATTNING[u].namn, platser: platserAv(u)}));
+  const {poster, ankaren, utanfor, fel: filfel} = await dockornasFiler(casino, kat, dockor.map(d => d.id));
   fel.push(...filfel);
 
-  const utanforSchemat: Schema['utanforSchemat'] = [];
-  for (const x of trad) {
-    if ('fel' in x) { fel.push(`Träden för ${x.namn} kunde inte läsas: ${x.fel}`); continue; }
-    const t = x.t!;
-    if (!t.poster.length && !t.utanfor.length) continue;
-    dockor.push({id: x.dealer, namn: x.namn, slag: 'dealer', uppsattning: t.uppsattning, bord: UPPSATTNING[t.uppsattning].namn, platser: platserAv(t.uppsattning)});
-    poster.push(...t.poster); utanforSchemat.push(...t.utanfor);
-  }
-
-  // Livefilmens tal för varje segment som schemat nämner.
-  const segment = new Set([...kat.rorelser, ...kat.bryggor, ...kat.harmas_inte].flatMap(x => (x.segment ? [x.segment] : [])));
+  // Livefilmens tal för varje rörelses segment.
+  const segment = new Set(kat.rorelser.flatMap(x => (x.segment ? [x.segment] : [])));
   const filmen = Object.fromEntries([...segment].map(s => [s, filmTal(seg, s)]));
 
-  // Rundan som en väg ur katalogens ord.
+  // Rundan som en väg ur katalogens ord, och för varje docka Dockans adress som spelar hela rundan (?sekvens= med dockans lyft).
   const vag = rundansVag(kat.begrepp?.schemat);
-  const runda = vag.length > 1 ? {text: vag.join(' - '), steg: vag.map(kod => ({kod, ankare: ankareFor(kod, ankare)})), rorelser: vag.slice(1).map((b, i) => rorelseFor(vag[i], b, kat.rorelser)?.id ?? null)} : null;
-  if (runda) runda.rorelser.forEach((r, i) => { if (!r) fel.push(`Rundan: ingen rörelse går från ${vag[i]} till ${vag[i + 1]}.`); });
+  let runda: Schema['runda'] = null;
+  if (vag.length > 1) {
+    const steg = vag.slice(1).map((b, i) => ({a: vag[i], b, r: rorelseFor(vag[i], b, kat.rorelser)}));
+    for (const s of steg) if (!s.r) fel.push(`Rundan: ingen rörelse går från ${s.a} till ${s.b}.`);
+    const sekvens = Object.fromEntries(dockor.map(d => {
+      const delar: string[] = [];
+      for (const s of steg) {
+        const plats = platsAv(s.b) ?? platsAv(s.a);
+        const p = poster.find(x => x.docka === d.id && x.slag === 'lyft' && x.rorelse === s.r?.id && (!plats || x.plats === plats));
+        const namn = p?.fil ? path.basename(p.fil, '.json') : null;
+        if (!namn?.startsWith(`lyft-${d.id}-`)) return [d.id, null];
+        const del = namn.slice(`lyft-${d.id}-`.length);
+        if (delar.at(-1) !== del) delar.push(del);
+      }
+      return [d.id, `/dockan/?${new URLSearchParams({[ADRESSORD]: d.uppsattning, docka: d.id, sekvens: delar.join(',')})}`];
+    }));
+    runda = {text: vag.join(' - '), steg: vag.map(kod => ({kod, ankare: ankareFor(kod, ankare)})), rorelser: steg.map(s => s.r?.id ?? null), sekvens};
+  }
 
   // Det katalogen säger som inte stämmer med filerna.
   const avvikelser: Avvikelse[] = [];
-  const finnsFor = (r: KatalogRorelse) => poster.filter(p => p.rorelse === r.id);
   for (const r of kat.rorelser) {
-    const ps = finnsFor(r);
+    const ps = poster.filter(p => p.rorelse === r.id);
     if (r.status === 'finns' && !ps.length) avvikelser.push({slag: 'finns-utan-filer', rorelse: r.id, text: `${r.namn} (${r.id}) står som finns, men ingen docka har den.`});
     if ((r.status === 'saknas' || r.status === 'förslag') && ps.length) {
-      const vem = [...new Set(ps.map(p => p.docka))].map(d => `${dockor.find(x => x.id === d)?.namn ?? d} (${[...new Set(ps.filter(p => p.docka === d).map(p => p.slag))].join(', ')})`);
+      const vem = [...new Set(ps.map(p => p.docka))].map(d => `${dockNamn(d)} (${[...new Set(ps.filter(p => p.docka === d).map(p => p.slag))].join(', ')})`);
       avvikelser.push({slag: 'filer-men-saknas', rorelse: r.id, text: `${r.namn} (${r.id}) står som ${r.status}, men finns för ${vem.join(', ')}.`});
     }
   }
   avvikelser.push(...utanfor);
 
   return {
-    gjord: new Date().toISOString(), om: kat.om, begrepp: kat.begrepp ?? {}, ankare, lagen: kat.lagen ?? [],
+    gjord: new Date().toISOString(), begrepp: kat.begrepp ?? {}, ankare, lagen: kat.lagen ?? [],
     stadier: kat.stadier.map(s => ({...s, rorelser: kat.rorelser.filter(r => r.stadium === s.id).map(r => r.id)})),
-    rorelser, bryggor: kat.bryggor ?? [], harmasInte: kat.harmas_inte ?? [], dockor, poster, filmen, utanforSchemat, runda, fel, avvikelser,
+    rorelser, dockor, poster, ankaren, filmen, runda, fel, avvikelser,
   };
 }
 
@@ -330,4 +275,13 @@ export async function handleSchema(req: IncomingMessage, res: ServerResponse, ur
   if (req.method !== 'GET') { res.writeHead(405).end(); return true; }
   try { json(res, 200, await schema()); } catch (error) { json(res, 500, {error: (error as Error).message}); }
   return true;
+}
+
+// node tools/schema-routes.ts: felen och det katalogen säger som inte stämmer med filerna, för agenterna.
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const s = await schema();
+  console.log(s.fel.length ? `Fel (${s.fel.length}):\n${s.fel.map(f => `  ${f}`).join('\n')}` : 'Inga fel.');
+  const said = s.avvikelser.filter(a => a.slag !== 'fil-utanfor'), files = s.avvikelser.filter(a => a.slag === 'fil-utanfor');
+  if (said.length) console.log(`Katalogen mot filerna (${said.length}):\n${said.map(a => `  ${a.text}`).join('\n')}`);
+  if (files.length) console.log(`Filer i ${KALLOR.data} som katalogen inte nämner (${files.length}):\n${files.map(a => `  ${path.basename(a.fil!)}`).join('\n')}`);
 }
