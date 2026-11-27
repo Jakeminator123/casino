@@ -216,3 +216,7 @@ rörelser och filmerna som görs av dem.
   ett lager till. Vinkeln här är lite fel på hur armen går från tröjan också."
 - **En domare när han är borta.** "Sätt en extern bild- och videogranskare som får agera domare i stället för mig när
   jag är borta, så att [en figur med trasiga händer] kan ses att det är skitdåligt." Hur det går till: skillen `doma`.
+- **Tummen när pekfingret ligger på kortet.** Om dockans högerhand på kortet vid plats 4 i Danilos lyfta giv
+  (2026-11-27, sjunde försöket): "Något är nog med tummen, annars ser ju iaf detta bra ut." I den ställningen ligger
+  tummen tryckt längs de böjda fingrarna och flyter ihop med dem. Han frågade samtidigt om "den pluffsiga dockan" ska
+  användas trots allt: den är förlaga för ställningen, och utseendet kommer ur bilderna av personen.

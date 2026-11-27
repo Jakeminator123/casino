@@ -302,6 +302,24 @@ Vad som måste finnas före en körning, vilket sätt det än är:
     skjorta, klocka) i stället för den neutrala dockan, samma styrbild och samma text blev det nästan samma film (0,99
     mellan dem, kortet inom 0,6 bildpunkter). Ansiktet höll sig en aning närmare honom mot slutet, men figurens klocka
     följde med och det lagda kortet fick ett tryck; skjortan kom ur styrbilden. Den neutrala dockan räcker som förlaga.
+- Elfte provet, 2026-11-27, den första filmen vid livebordet av sju stillbilder (agentens läsning; Jakobs dom står i
+  provet `sju-bilder-vid-livebordet-20261127`, originalen och anropen i provets `original/`). Åttonde provets sätt på
+  Danilos lyfta giv till plats 4 (66 rutor, 2,2 s) i nyckelfärgerna genom livebordets kamera: **Kling 4,
+  `/v1/image_to_video`**, första bild, sju mellanbilder (`"middle"`: dockans ruta 18, 24, 27, 33, 38, 45 och 55) och
+  sista bild, 3 s i `auto_1080p`, 57 krediter. Bilderna gick in i 1728 x 972; ut kom 1920 x 1080 i 24 bilder/s, 73 rutor.
+  - **Bilderna:** GPT Image 2.6 Sunburst i `2560:1440` (exakt 16:9, vilket `1920:1088` inte är), skalade till
+    1728 x 972 före filmen. Startbilden av dockans första ruta och personens tre bilder: 10 krediter. Sista bilden och
+    mellanbilderna som ändringar av startbilden (de där kortet redan ligger som ändringar av sista bilden), med dockans
+    ruta som förlaga för ställningen: 8 krediter styck. Alla nio höll på första försöket: samma man, och en naturlig
+    hand också där dockans hand är stel.
+  - **Filmen går genom bilderna,** och det är samma man hela vägen, med huvudet böjt som i bilderna. Takten är Klings
+    egen: 3 s mot dockans 2,2, så pekfingret ligger kvar på kortet längre än hos dealern. `setpts` till dockans längd
+    rättar det mesta.
+  - **En enda ruta hoppade:** i ruta 46 blev hela mannen större, och i ruta 47 gick han tillbaka. Det syns i hel fart.
+    Rutan hålls med rutan före (`standarddocka/verktyg/lagg-pa-bord.ts --hall 46`); FFmpegs scene-mått pekar ut den.
+  - **Efterarbetet behövde trimmas för Kling:** spårkortets turkosa ram och magenta märke kommer mjukare än ur en
+    dockfilm, och filmens sko gick inte att färga om rent. Skon och kortleken läggs i stället in som våra egna under
+    handen (`--egen-sko` med en platta av bordet med sko).
 - Det finns ingen Kling 4 Pro (2026-11-26): fyran är Kling 4.0 och den billigare Kling 4.0 Flash (720p). Pro är namn
   på äldre led, Kling 3.0 Pro och Kling O3 Pro.
 - Inte prövat hos oss: Kling 4 med styrbilden som första bild och filmen som lös förlaga

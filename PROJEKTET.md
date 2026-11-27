@@ -191,10 +191,12 @@ en verkstad i taget när inget annat arbete pågår i den.
 
 ## Det som är öppet och avgörs av prov
 
-- **Gör dockan det den riktiga dealern gör?** Danilo och Frasse spelar de lyfta rörelserna med kropp vid det klonade
-  bordet, men verktyget som lade lyftet på dockan blandade in den gamla given. Det skrivs om så att händerna följer
-  filmen, och skon mäts om (korten ligger). Först när en oberoende domare har godkänt dockans giv bredvid det riktiga
-  klippet görs nya filmer.
+- **Gör dockan det den riktiga dealern gör?** För Danilos giv till plats 4: ja, enligt domaren som jämför med det
+  riktiga klippet (sjunde försöket 2026-11-27: huvudet, blicken, bytet med kortet på kant och hur kortet läggs följer
+  dealern). Den externa domaren, som bara ser dockan, fäller att handen "pekar" på kortet och att blicken inte är på
+  skon. Den första filmen av den given är gjord med sju stillbilder i Kling 4 (`sju-bilder-vid-livebordet-20261127`,
+  Jakobs dom väntar). Kvar i rörelsen: vänstern vid skon, tummen när pekfingret ligger på kortet, de andra platserna,
+  och Frasse, vars huvud inte är kalibrerat mot ansiktsnätet än.
 - **Håller sju filmer av samma rörelse ihop?** Två kameror gav samma man i samma ögonblick. Alla sju görs först när
   rörelsen är rätt och en film från en kamera har fått Jakobs ja.
 - **Händerna har var sin tid.** I filmen börjar vänsterhanden ofta nästa kort medan högern går hem. Hela filmen är
