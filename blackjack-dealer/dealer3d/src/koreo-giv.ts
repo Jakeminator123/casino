@@ -96,7 +96,7 @@ export const KOREO = {
 const KOREO_B = {lyft: 0.075};
 /**
  * Version N, "naturlig": ett prov bredvid A (2026-11-27), inte standarden. A och B står kvar tills Jakob har sett det.
- * Mätt mot paketets inspelade giv (kortspelspaket/) och två riktiga dealrar i film (live-bj/data/stil-*.json): dockans
+ * Mätt mot ett köpt pakets inspelade giv och två riktiga dealrar i film (live-bj/data/stil-*.json): dockans
  * högerhand hade samma medelfart som deras men nästan stannade sex gånger på vägen, huvudet satt fast på kortet, bålen
  * rörde sig bara när armen inte nådde och handen som inte ger stod som en staty. N har A:s lägen i nyckelrutorna (nypet 16,
  * kortet ligger 36, hemma 60), A:s grepp, A:s kort och A:s nedsättning (rutorna 28–32); det som skiljer är hur kroppen

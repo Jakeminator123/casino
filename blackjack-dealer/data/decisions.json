@@ -22,7 +22,11 @@
       "asked": "2026-11-27",
       "from": "blackjack-dealer",
       "cost": "filmen 131 krediter; cirka 130 per giv och kamera",
-      "answer": null
+      "answer": {
+        "value": "ja",
+        "note": "Ok, så om du menar att vi dkapar större korrt och möjligen annat, gör en video till! Sedan kanske vi kan dmma efter det!",
+        "at": "2026-11-27T14:08:34.515Z"
+      }
     },
     {
       "id": "tomasz-gor-danilos-giv",
