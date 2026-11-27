@@ -7,16 +7,18 @@ Bygger två grunddockor med 100 % identiskt skelett/bennamn så alla rörelser k
 kön och längd (MATT nedan: längderna, armarnas tjocklek, händerna och fötterna mot ANSUR II):
   - standarddocka_kvinna.blend / .glb (1,65 m)
   - standarddocka_man.blend / .glb (1,75 m)
-och på samma sätt två män med mått mätta på dealrar i en film (MATT danilo och frasse: mannens kropp med de mätta
-axlarna, halsen och huvudet), med --kon danilo eller frasse:
-  - standarddocka_danilo.blend / .glb, standarddocka_frasse.blend / .glb
+och på samma sätt män med mätta mått: två dealrar i en film (MATT danilo och frasse: mannens kropp med de mätta axlarna,
+halsen och huvudet) och en person efter sin egen figur och sina bilder (MATT tomasz_matt: axlarna, bröstet, midjan,
+höften, halsen och huvudets höjd, bredd och käke), med --kon <nyckeln i MATT>:
+  - standarddocka_danilo.blend / .glb, standarddocka_frasse.blend / .glb, standarddocka_tomasz_matt.blend / .glb
+En ny person är en ny nyckel i MATT (grund, passa, kalla); de mått som går att passa står i PASS_TGT.
 Med --namn N skrivs standarddocka_<docka>_N.blend/.glb och docka-rapport-<docka>_N.json i stället, så att de modeller som
 används inte skrivs över medan en ny prövas. En docka per körning av bygg_en: allt från den förra (också dess vila
 sitt_vila) tas bort först, så att varje fil bara har sin egen.
 
 Kräver MPFB2 som Blender-tillägg i användarprofilen (bl_ext.user_default.mpfb).
 Kör (utan --factory-startup, annars laddas inte tillägget):
-    blender -b --python-exit-code 1 --python scen/bygg_docka.py [-- --kon kvinna|man|bada|danilo|frasse] [--namn N]
+    blender -b --python-exit-code 1 --python scen/bygg_docka.py [-- --kon kvinna|man|bada|danilo|frasse|tomasz_matt] [--namn N]
 """
 import argparse, gzip, json, math, os, re, sys, time
 from pathlib import Path
@@ -131,6 +133,24 @@ MATT['danilo'] = {'grund': 'man', 'langd': None, 'passa': {**_MANNENS, 'sw': 0.3
 MATT['frasse'] = {'grund': 'man', 'langd': None, 'passa': {**_MANNENS, 'sw': 0.348, 'haka': None, 'huvud_h': 0.210, 'huvud_b': None},
                   'kalla': 'filmen (live-bj, dealer.bordet.body): axellederna 0,348 m isär, hakan till hjässan 0,210 m (skattad); '
                            'halsen mannens (filmens är hållning); midja och höft dolda: mannens; resten mannens'}
+# En person efter sina mått (Tomasz, Jakob 2026-11-27: "Danilo har ju alla rörelser och fysik vi vill ha, men Tomasz är ju
+# mycket större"): mannens kropp med det som skiljer personen från honom mer än mätningens osäkerhet. Tomasz är framställd;
+# han är mätt på sin egen figur ur Meshy (assets/docka/standarddocka_tomasz.glb, 1,80 m med skor och hår) och sina bilder
+# (output/tomasz/01-referenser/), med samma mätning på mannen bredvid; hur varje tal är mätt och hur osäkert det är står i
+# provet tomasz-dockan-pa-hans-matt-20261127. Längden är ett antagande (en framställd bild har inget av känd storlek):
+# figurens, ungefär 1,76 m utan skor och hår. Han är bredare: axellederna, bröstet, midjan och höften (huden genom skjortan
+# och byxorna, med kläderna avdragna, gissat 4,5, 7,5 och 8 cm i omkrets), halsen och huvudet (höjden och bredden med
+# håret avdraget, gissat 1,2 cm överst; käken). Armarna, händerna och bålens och halsens längd mättes inom en till två
+# centimeter från mannens, lika med osäkerheten i Meshys leder genom ärmarna, så de är mannens. Huvudets djup följer
+# höjden (huvud_h tar båda). Filen heter standarddocka_tomasz_matt, så att hans Meshy-figur (standarddocka_tomasz) står kvar.
+MATT['tomasz_matt'] = {'grund': 'man', 'langd': None,
+                       'passa': {**_MANNENS, 'sw': 0.39, 'haka': None, 'huvud_h': 0.241, 'huvud_b': 0.160, 'kak_b': 0.141,
+                                 'haka_b': 0.1195, 'hals_omkr': 0.398, 'brost_omkr': 1.019, 'midja_omkr': 0.930, 'hoft_omkr': 1.060},
+                       'kalla': 'hans Meshy-figur (1,80 m med skor och hår, antaget) och bilderna, mätta bredvid mannen: axellederna 0,39 m '
+                                'isär (huden över axlarna +2 %, bröstet under armhålan +9 % mot mannens), bröst/midja/höft 1,019/0,930/1,060 m '
+                                '(skjortan och byxorna avdragna, gissat), halsen 0,398 m (som käken mot mannens), hakan till hjässan 0,241 m '
+                                'och huvudets bredd 0,160 m (håret avdraget, gissat), käken 0,141 m (huden); armar, händer, ben, bålens '
+                                'och halsens längd mannens (inom Meshy-ledernas osäkerhet)'}
 PASS_TGT = {  # måttet -> MPFB-targets (utan -incr/-decr), höger och vänster med samma vikt
     'hand': ['hands/r-hand-scale', 'hands/l-hand-scale'],
     'fot': ['feet/r-foot-scale-depth', 'feet/l-foot-scale-depth'],
@@ -153,6 +173,12 @@ PASS_TGT = {  # måttet -> MPFB-targets (utan -incr/-decr), höger och vänster 
     'huvud_h': ['head/head-scale-vert', 'head/head-scale-depth'],
     'midja_omkr': ['torso/measure-waist-circ'],
     'hoft_omkr': ['torso/measure-hips-circ'],
+    # en person efter mått: bröstets omkrets, halsens omkrets, ansiktets bredd vid käken (kinderna) och underkäkens bredd
+    # närmare hakan (käkbenen; hakans egen bredd, chin-width, flyttar inte måttet)
+    'brost_omkr': ['torso/measure-bust-circ'],
+    'hals_omkr': ['neck/measure-neck-circ'],
+    'kak_b': ['cheek/r-cheek-volume', 'cheek/l-cheek-volume'],
+    'haka_b': ['chin/chin-bones'],
 }
 # Vridbenen: två per underarm, barn till underarmens ben och liggande längs det, vid en tredjedel och två tredjedelar av
 # dess längd. Underarmens vikt delas mellan ForeArm, ForeArmTwist1 och ForeArmTwist2 efter hörnets läge längs underarmen
@@ -280,10 +306,15 @@ def _omkrets(co, kanter, a, b, t, radie=0.075):
     return _hull_omkrets(np.c_[(pts - p) @ u, (pts - p) @ w])
 
 
+def _vagrat_snitt(co, kanter, z):
+    """Punkterna där huden skär det vågräta planet på höjden z."""
+    sa, sb = co[kanter[:, 0], 2] - z, co[kanter[:, 1], 2] - z; m = sa * sb < 0
+    f = sa[m] / (sa[m] - sb[m]); return co[kanter[m, 0]] + f[:, None] * (co[kanter[m, 1]] - co[kanter[m, 0]])
+
+
 def _vagrat_omkrets(co, kanter, z, bredd=0.25):
     """Hudens omkrets i det vågräta planet på höjden z (bålen: inom `bredd` från mittlinjen, armarna utanför)."""
-    sa, sb = co[kanter[:, 0], 2] - z, co[kanter[:, 1], 2] - z; m = sa * sb < 0
-    f = sa[m] / (sa[m] - sb[m]); pts = co[kanter[m, 0]] + f[:, None] * (co[kanter[m, 1]] - co[kanter[m, 0]])
+    pts = _vagrat_snitt(co, kanter, z)
     return _hull_omkrets(pts[np.abs(pts[:, 0]) < bredd][:, :2])
 
 
@@ -567,6 +598,14 @@ def bygg_en(kon: str, suffix: str = ''):
         axl = (rs + ls)[2] / 2
         mitt = kropp[(np.abs(kropp[:, 0]) < 0.003) & (kropp[:, 1] < eye[1] + 0.02) & (kropp[:, 2] > eye[2] - 0.16) & (kropp[:, 2] < eye[2] - 0.07)]
         m['haka'] = mitt[:, 2].min() - axl; m['ogon'] = eye[2] - axl; m['huvud_h'] = kropp[:, 2].max() - mitt[:, 2].min()
+        # bröstet 0,14 m under axellederna (bålen; armarna utanför), halsen där den är smalast mellan 3 cm över axellederna
+        # och 1 cm under hakan, och käkens bredd 45 % av vägen från hakan till ögonen, framför öronen (6 cm bakom ögonen)
+        hk = mitt[:, 2].min()
+        m['brost_omkr'] = _vagrat_omkrets(co, kanter, axl - 0.14, bredd=0.21)
+        m['hals_omkr'] = min(_vagrat_omkrets(co, kanter, z, bredd=0.09) for z in np.arange(axl + 0.03, hk - 0.01, 0.004))
+        for k, andel in (('kak_b', 0.45), ('haka_b', 0.30)):  # käken och, närmare hakan, underkäkens bredd
+            p = _vagrat_snitt(co, kanter, hk + andel * (eye[2] - hk)); p = p[(p[:, 1] < eye[1] + 0.06) & (np.abs(p[:, 0]) < 0.12)]
+            m[k] = p[:, 0].max() - p[:, 0].min()
         # midjan (där bålen är smalast) och höften (4 cm under höftlederna, över sätet) som ett måttband i vågräta snitt,
         # armarna utanför (längre ned växer måttbandet kring båda låren, som går isär)
         m['midja_omkr'] = min(_vagrat_omkrets(co, kanter, z) for z in np.arange(hip[2] + 0.10, hip[2] + 0.255, 0.01))
@@ -599,6 +638,10 @@ def bygg_en(kon: str, suffix: str = ''):
                 sk.value = 0.0
     # (riktningen ur målet och grundens kropp skalad till grundens längd; den egna längden kommer av passningen)
     riktning = {k: 'incr' if (PASS[k] - grund_m[k]) * eff[(k, 'incr')][k] >= 0 else 'decr' for k in nycklar}
+    for k in nycklar:  # ett mått som dess egna targets inte flyttar går inte att passa (Newtons metod blir singulär)
+        if abs(eff[(k, 'incr')][k]) < 2e-4 and abs(eff[(k, 'decr')][k]) < 2e-4:
+            raise SystemExit(f'{k}: {PASS_TGT[k]} flyttar inte måttet (incr {eff[(k, "incr")][k] * 1000:.2f} mm, '
+                             f'decr {eff[(k, "decr")][k] * 1000:.2f} mm)')
 
     def satt(w):
         for k in nycklar:
@@ -1015,8 +1058,8 @@ def bygg_en(kon: str, suffix: str = ''):
 
 
 ap = argparse.ArgumentParser()
-ap.add_argument('--kon', choices=['kvinna', 'man', 'bada', 'danilo', 'frasse'], default='bada',
-                help='dockan; bada: kvinnan och mannen (Danilo och Frasse byggs var för sig)')
+ap.add_argument('--kon', choices=[*MATT, 'bada'], default='bada',
+                help='dockan (en nyckel i MATT); bada: kvinnan och mannen (de mätta byggs var för sig)')
 ap.add_argument('--namn', default='', help='skriver standarddocka_<docka>_<namn>.blend/.glb (och rapporten med samma namn) i stället '
                                           'för de modeller som används; små bokstäver, siffror och understreck')
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])

@@ -258,6 +258,15 @@ en sittande dealer genom en kamera som ser 18 grader nedåt, med händerna på b
 hals. Midjan och höften syntes inte: mannens, Danilos 4 och 3 % smalare (`torso/measure-waist-circ`, `measure-hips-circ`).
 Längden följer av delarna (1,747 / 1,729 m), och måtten passas i meter med mannens skala.
 
+**Tomasz** (`standarddocka_tomasz_matt`, `--kon tomasz_matt`) är en framställd person byggd på samma sätt efter sina egna
+mått, mätta på hans figur ur Version 1 och hans bilder bredvid mannen (`verktyg/mat_figur.py`), med kläder och hår
+avdragna: axellederna 0,39 m isär, bröstet, midjan, höften och halsen större (`torso/measure-bust-circ`,
+`measure-waist-circ`, `measure-hips-circ`, `neck/measure-neck-circ`), huvudet 0,241 m högt och 0,160 m brett, och käken
+bredare (`cheek/*-cheek-volume`, `chin/chin-bones`). Armarna, händerna och bålens och halsens längd är mannens: de mättes
+inom en till två centimeter från hans, lika mycket som Meshys leder genom ärmarna är osäkra. Längden (1,760 m) följer av
+delarna; figurens storlek är ett antagande (1,80 m med skor och hår). Midjan nådde 0,858 av 0,930 m (målet fullt ut).
+`standarddocka_tomasz_matt_form` är samma docka med huvudet i hans ansiktes form (steg 13, prov).
+
 Kläder finns inte på grunddockan (naken mesh för QC). Se avsnitt 10.
 
 ---

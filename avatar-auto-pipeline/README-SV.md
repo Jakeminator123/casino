@@ -22,10 +22,10 @@ avatar-auto-pipeline/
     standard.yaml            alla mått, skrivna ur spelets kod (ändras aldrig för hand)
     gen_standard.py          skriver standard.yaml; las_spelet.ts läser spelets kod åt den
     bygg_bord.py             bordet, korten, skon och markerlådan ur måtten
-    bygg_docka.py            standarddockorna (kvinna och man) med MPFB
+    bygg_docka.py            standarddockorna (kvinna och man) och dockorna med mätta mått (Danilo, Frasse, Tomasz) med MPFB
     bygg_stol.py             stolen, skalad till måtten; meshy_stol.py beställer råfilen (betalt)
     qc_render.py             kontrollbilder genom de fasta kamerorna
-  verktyg/                   bryggan mot blackjack-dealers docka, inspektion och kontrollbilder
+  verktyg/                   bryggan mot blackjack-dealers docka, inspektion, kontrollbilder och mätning av en figur (mat_figur.py)
   rorelser/katalog.yaml      rörelsekatalogen: vad som ska finnas och hur långt det har kommit
   gemensamt/                 delad kod: standard.py läser standard.yaml, riggverktyg.py räknar om mellan spelet och
                              Blender, sokvagar.py hittar projektet och slasken; standardmatt.py (kroppens andelar)
@@ -40,6 +40,8 @@ avatar-auto-pipeline/
   steg/10-kropp-i-ett-stycke/        en kropp ur Runway med egna händer blir en docka, gratis (prov, körs för hand)
   steg/11-pa-dockans-grund/          en färdig dealer sätts på Danilos eller Frasses skelett, led för led (prov)
   steg/12-ny-yta/                    vår egen docka får en persons utseende som ny yta hos Meshy (prov, betalt)
+  steg/13-form-ur-figur/             dockans eget huvud i personens form, ur hans figur, gratis (prov)
+  steg/14-dockans-hander/            en färdig dealer får dockans händer insatta i sin ärm, gratis (prov)
   metod/                     grundfunktioner för mesh och GLB
   input/<namn>/              dina foton
   output/<namn>/             allt som en körning skapar
@@ -61,7 +63,7 @@ blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- 
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --kant-bak 0.15    standardbordet med dealerkanten 15 cm närmare dealern och brickan nedsänkt i bordet (egna filer, standardbord_nara.*; bordet de äldre rörelserna visas vid i ../standarddocka)
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --docka            standarddockans bord (standardbord_nara23.*), det dockornas egna rörelser visas vid: en halvmåne (0,95 m djup), kanten 23 cm närmare dockan och skon 8 cm längre ut och 3 cm längre fram; talen står i spelets kod (DOLL_TABLE i ../blackjack-dealer/src/table-lens.ts) och kommer hit genom standard.yaml (dockans_bord). Spelarnas kortplatser ligger där vända mot sin spelare (dockans_bord.kort_mot_spelaren: ramen och exempelkortet längs platsens riktning_mot_dealer; dealerns egna rakt). Andra former prövas med --djup, --sko-ut, --sko-fram och --namn (står i skriptets huvud). Med --kant-bak och --docka är sargen urtagen underifrån där dealern sitter, så att bordet där bara tar 5 cm under filten och låren går fria (KNAN i skriptet)
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --live             vår klon av ett riktigt livebord mätt på film (standardbord_live.*): deras filt (halvcirkel, radie 0,73 m), sko, låda, insatsmärken och kortplatser i vårt utseende, utan markerbricka; talen står i spelets kod (LIVE i ../blackjack-dealer/src/table-live.ts) och kommer hit genom standard.yaml (livebord). -- --live --med-bricka lägger till vår markerbricka vid kanten (standardbord_live_bricka.*)
-blender -b --python-exit-code 1 --python scen/bygg_docka.py                                        dockorna (MPFB, därför utan --factory-startup) med människans mått; -- --kon man|kvinna bygger en, -- --namn N skriver standarddocka_<kön>_N.* i stället för de modeller som används
+blender -b --python-exit-code 1 --python scen/bygg_docka.py                                        dockorna (MPFB, därför utan --factory-startup) med människans mått; -- --kon <nyckel i MATT> bygger en (man, kvinna, danilo, frasse, tomasz_matt), -- --namn N skriver standarddocka_<kön>_N.* i stället för de modeller som används
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_stol.py                       stolen
 ```
 
@@ -187,5 +189,32 @@ blender -b --factory-startup --python-exit-code 1 --python steg/12-ny-yta/yta.py
 ```
 
 Provet med Tomasz på Danilos docka är `assets/docka/standarddocka_danilo_tomasz_yta.glb` (meshy-provet-20261127).
+
+En docka efter en persons mått (2026-11-27, gratis och lokalt): personens figur ur Version 1 och mannen mäts på samma
+sätt (lederna, huden i snitt, handen och huvudet), och det som skiljer dem mer än mätningens osäkerhet skrivs av i `MATT`
+i `scen/bygg_docka.py`, med kläder och hår avdragna (Tomasz: `MATT['tomasz_matt']`). Ögonens mitt för en figur utan
+ögonleder står i steg 09:s rapport (`<ut>.json`, `ogon.*.mitt`). Sedan dockans eget huvud i hans ansiktes form (steg 13,
+på prov): punkterna i tre vyer, en mjuk passning och en försiktig dragning mot hans yta, med ansiktsformerna, lederna och
+ytkartan kvar; hur och varför står i skriptets huvud. Steg 13 renderar och tar låset `../slask/blackjack-dealer/gpu-och-headless.lock` först:
+
+```text
+blender -b --factory-startup --python verktyg/mat_figur.py -- <ut.json> tomasz=assets/docka/standarddocka_tomasz.glb man=assets/docka/standarddocka_man.glb --ogon tomasz=<höger x,y,z>,<vänster x,y,z>
+blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon tomasz_matt
+blender -b --python-exit-code 1 --python steg/13-form-ur-figur/form.py -- assets/docka/standarddocka_tomasz_matt.blend assets/docka/standarddocka_tomasz.glb assets/docka/standarddocka_tomasz_matt_form.glb
+```
+
+Provet är `tomasz-dockan-pa-hans-matt-20261127`; hans yta på huvudet i hans form ligger i provets `original/`.
+
+Dockans händer i personens ärm (steg 14, på prov sedan 2026-11-27, gratis och lokalt): en färdig dealer behåller sin
+kropp, sitt huvud och sina kläder men får dockans händer, med deras egna fingerleder och vikter, insatta i skjortans
+manschett som en hand i en ärm. Hans egen hand och kroppens hud ur manschetten tas bort med ett rakt snitt där tyget
+slutar, handleden flyttas till ärmens mitt, ärmen trycks ihop längs underarmen tills manschetten slutar strax innanför
+leden, och dockans hand sätts in med en bit underarm inne i ärmen, skalad till hans hand och med en jämn hudton ur den.
+Hur det görs och varför står i skriptets huvud; rapporten (`<ut>.json`) säger snittet, flytten och kontrollen (handleden
+böjd och vriden, hörn genom tyget, manschettens töjning):
+
+```text
+blender -b --factory-startup --python-exit-code 1 --python steg/14-dockans-hander/dockans_hander.py -- assets/docka/standarddocka_tomasz.glb assets/docka/standarddocka_danilo.glb assets/docka/standarddocka_tomasz_dockhander.glb
+```
 
 Om något avbryts kan du fortsätta utan att betala om: `--from-step 5` eller `--only-step 7`. Hoppa över filmen med `--no-video`. Betalda jobb sparar ett kvitto i stegmappen: `referenser.json`, `korning.json` och `riggjobb.json`. En omstart använder samma kvitto. Radera dem inte.

@@ -855,7 +855,8 @@ def skriv(d: dict, delar: dict, regler: dict) -> str:
                f"- Varför: {b(r['varfor'], bl['varfor'])}", f"- Källa: {r['kalla']}", ""]
 
     ut += ["## Proven och körningarna", "", tabell(["Prov", "Slag", "Datum", "Vad det sa", "Jakobs ord", "Var"], [
-        [f"`{pid}` {p['namn']}", "körning" if p["slag"] == "korning" else "prov", p["datum"], p["sa"], p["jakobs_ord"] or "inte dömt",
+        [f"`{pid}` {p['namn']}", "körning" if p["slag"] == "korning" else "prov", p["datum"], p["sa"],
+         p["jakobs_ord"] or (f"inte dömt av honom; domaren: {p['domarens_ord']}" if p.get("domarens_ord") else "inte dömt"),
          ", ".join(f"`{x.replace('../', '')}`" for x in p["var"])]
         for pid, p in d["prov"].items()]), "", "## Priserna", "",
         "Ett pris gäller bara de inställningar som står bredvid; ändras inställningen i koden blir `--kolla` röd.", "",
