@@ -44,7 +44,7 @@ function Frame({ id }: { id: WorkshopId }) {
     <Page
       title={words.title}
       full
-      status={state ? <span>{words.running} går{state.ours ? ", startad av studion" : ""}{words.readsSetup ? ` · ${choiceName(setup)}` : ""}</span> : error ? <span className="text-[#ef8b8b]">svarar inte</span> : <span>startar …</span>}
+      status={state ? <span>går{words.readsSetup ? ` · ${choiceName(setup)}` : ""}</span> : error ? <span className="text-[#ef8b8b]">svarar inte</span> : <span>startar …</span>}
       actions={
         <>
           <Button size="sm" variant="quiet" onClick={again} title="Läs om sidan" icon={<RotateCw />}>

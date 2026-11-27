@@ -59,10 +59,9 @@ function WayList({ ways, chosen, onChoose }: { ways: Way[]; chosen: string; onCh
                 chosen === w.id ? "border-brass/60 bg-raised shadow-[0_0_0_1px_rgb(217_185_106/0.45)]" : "border-line bg-surface hover:border-line-strong hover:bg-raised/50",
               )}
             >
-              <span className="text-sm font-semibold text-ink">{w.id === "version-1" ? "Version 1 (den som körs i dag)" : w.namn}</span>
+              <span className="text-sm font-semibold text-ink">{w.id === "version-1" ? "Version 1" : w.namn}</span>
               <span className="flex flex-wrap items-center gap-1.5 text-xs text-dim">
                 <Badge tone={STATUS_TONE[w.status]}>{STATUS_WORD[w.status]}</Badge>
-                {plainWords(w.kostnad?.text) || "kostnaden står inte"}
               </span>
             </button>
           ))}
@@ -98,12 +97,16 @@ function WayDetail({ way, parts, person }: { way: Way; parts: Part[]; person: Pe
           <Badge tone={STATUS_TONE[way.status]}>{STATUS_WORD[way.status]}</Badge>
           {way.kan_koras ? <Badge tone="ok">går att köra</Badge> : <Badge>körs inte som en helhet</Badge>}
         </div>
-        <p className="max-w-[100ch] text-sm leading-6 text-soft">{plainWords(way.beskrivning)}</p>
-        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-          <span><span className="text-dim">Kostar: </span><span className="text-ink">{plainWords(way.kostnad?.text) || "—"}</span></span>
-          {way.tid?.text ? <span><span className="text-dim">Tar: </span><span className="text-ink">{plainWords(way.tid.text)}</span></span> : null}
-        </div>
-        {way.provet?.sa ? <p className="max-w-[100ch] text-sm leading-6 text-dim"><span className="text-soft">Prövat: </span>{plainWords(way.provet.sa)}</p> : null}
+        {/* What the way is, costs, takes and showed when tried: opened on a click, not on the page. */}
+        <details className="group max-w-[100ch] text-sm">
+          <summary className="cursor-pointer text-xs text-dim hover:text-ink">Mer om vägen</summary>
+          <div className="mt-2 flex flex-col gap-1.5 leading-6 text-soft">
+            <p>{plainWords(way.beskrivning)}</p>
+            <p><span className="text-dim">Kostar: </span>{plainWords(way.kostnad?.text) || "—"}</p>
+            {way.tid?.text ? <p><span className="text-dim">Tar: </span>{plainWords(way.tid.text)}</p> : null}
+            {way.provet?.sa ? <p><span className="text-dim">Prövat: </span>{plainWords(way.provet.sa)}</p> : null}
+          </div>
+        </details>
       </div>
 
       {way.steg.length ? (
@@ -112,22 +115,25 @@ function WayDetail({ way, parts, person }: { way: Way; parts: Part[]; person: Pe
             const disk = s.mapp && person ? person.steps[s.mapp] : undefined;
             const done = !!disk && disk.files > 0;
             return (
-              <li key={String(s.nr)} className="flex gap-3 rounded-lg border border-line bg-surface p-3 shadow-inset">
-                <span className={cn("grid size-8 shrink-0 place-items-center rounded-full text-sm font-semibold tabular-nums", done ? "bg-godkand/20 text-godkand" : "bg-raised text-brass")}>{done ? <Check className="size-4" /> : s.nr}</span>
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <div className="flex flex-wrap items-baseline gap-x-3">
-                    <span className="text-sm font-semibold text-ink">{s.namn}</span>
+              <li key={String(s.nr)} className="rounded-lg border border-line bg-surface shadow-inset">
+                {/* The step in one row: its name, its cost and whether it is done for the person; what it does opens on a click. */}
+                <details>
+                  <summary className="flex cursor-pointer list-none items-center gap-3 p-3">
+                    <span className={cn("grid size-8 shrink-0 place-items-center rounded-full text-sm font-semibold tabular-nums", done ? "bg-godkand/20 text-godkand" : "bg-raised text-brass")}>{done ? <Check className="size-4" /> : s.nr}</span>
+                    <span className="min-w-0 flex-1 text-sm font-semibold text-ink">{s.namn}</span>
                     <span className={cn("text-xs", s.betalt ? "text-anmarkning" : "text-dim")}>{costWord(s.betalt)}</span>
+                    {s.mapp && person ? (
+                      <span className={cn("flex items-center gap-1 text-xs", done ? "text-godkand" : "text-faint")} title={done ? `${disk!.files} ${disk!.files === 1 ? "fil" : "filer"}` : undefined}>
+                        {done ? <Check className="size-3.5" /> : <Circle className="size-3" />}
+                        {personName(person.name)}
+                      </span>
+                    ) : null}
+                  </summary>
+                  <div className="flex flex-col gap-1 px-3 pb-3 pl-14">
+                    <p className="text-sm leading-5 text-soft">{plainWords(s.gor)}</p>
+                    {s.delar?.length ? <p className="text-xs text-faint">Bygger: {s.delar.map((d) => parts.find((p) => p.id === d)?.namn ?? d).join(", ")}</p> : null}
                   </div>
-                  <p className="text-sm leading-5 text-soft">{plainWords(s.gor)}</p>
-                  {s.delar?.length ? <p className="text-xs text-faint">Bygger: {s.delar.map((d) => parts.find((p) => p.id === d)?.namn ?? d).join(", ")}</p> : null}
-                  {s.mapp && person ? (
-                    <p className={cn("flex items-center gap-1.5 text-xs", done ? "text-godkand" : "text-faint")}>
-                      {done ? <Check className="size-3.5" /> : <Circle className="size-3" />}
-                      {done ? `Gjort för ${personName(person.name)}: ${disk!.files} ${disk!.files === 1 ? "fil" : "filer"}` : `Inte gjort för ${personName(person.name)}`}
-                    </p>
-                  ) : null}
-                </div>
+                </details>
               </li>
             );
           })}
@@ -154,7 +160,12 @@ function WayDetail({ way, parts, person }: { way: Way; parts: Part[]; person: Pe
             </tbody>
           </table>
         </div>
-        {way.varfor_last ? <p className="max-w-[100ch] text-xs leading-5 text-dim"><span className="text-soft">Varför delarna är låsta: </span>{plainWords(way.varfor_last)}</p> : null}
+        {way.varfor_last ? (
+          <details className="max-w-[100ch] text-xs">
+            <summary className="cursor-pointer text-dim hover:text-ink">Varför delarna är låsta</summary>
+            <p className="mt-1 leading-5 text-dim">{plainWords(way.varfor_last)}</p>
+          </details>
+        ) : null}
       </div>
     </div>
   );
@@ -282,7 +293,7 @@ function Avatars() {
   return (
     <Page
       title="Avatarer"
-      status={data ? <span>{people} personer · Version 1 körs i dag · inget här startar en körning</span> : <span>läser vägarna …</span>}
+      status={data ? <span>{people} personer</span> : <span>läser vägarna …</span>}
       actions={
         <>
           <SegmentedControl size="sm" label="Avatarernas delar" value={tab} onChange={(t) => router.replace(t === "vagar" ? "/avatarer/" : `/avatarer/?del=${t}`)} options={TABS} />

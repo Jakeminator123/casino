@@ -63,7 +63,7 @@ function Edit({ answer, onSaved }: { answer: OrderAnswer; onSaved: (a: OrderAnsw
         <span className="text-sm text-dim">Tagningar</span>
         <SegmentedControl label="Tagningar" size="sm" value={order.takes} disabled={busy} onChange={(n) => void save({ takes: n })} options={Array.from({ length: TAKES_MAX }, (_, i) => ({ value: i + 1, label: String(i + 1) }))} />
       </div>
-      <TextArea label="Eget tillägg (engelska, före förbuden)" value={extra} maxLength={600} counter rows={2} onChange={(e) => setExtra(e.target.value)} />
+      <TextArea label="Eget tillägg (på engelska)" value={extra} maxLength={600} counter rows={2} onChange={(e) => setExtra(e.target.value)} />
       <div className="flex justify-end">
         <Button size="sm" loading={busy} disabled={extra === (order.prompt.extra ?? "")} onClick={() => void save({ extra: extra.trim() || null })}>
           Spara tillägget
@@ -174,7 +174,6 @@ export function SendScreen({ menu, answer, all, onBack, onOpen, onSaved }: { men
             <span className="text-sm text-dim">{stepLabel}</span>
           </p>
           <p className="flex flex-wrap items-center gap-2 text-sm text-dim">
-            <Badge tone="neutral" size="md">Text: {styleWords(order)}</Badge>
             {choices ? (
               <>
                 <Badge tone="variant" size="md">{choices.hand}</Badge>
