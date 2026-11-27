@@ -23,6 +23,8 @@
 //                         läggs på; stannar med ett fel om lagret har fel eller hör till en äldre rörelse
 //              [--kulor]  visa handtagen     [--panel]  hela fönstret med panelen     [--storlek 1600x1000]     [--port 4321]
 //              [--utseende nyckel]  rena färger på bakgrund, bord och kort (editor/scen.ts), för film där dealern ska skiljas ut
+//              [--rygg rod]         med --utseende nyckel: kortets rygg röd med vit kant i stället för spårkortets gula, så att
+//                                   filmmodellen ritar ryggen själv och efterarbetet bara framsidan
 //              [--docka danilo|frasse|<en persons docka, dealer3d/src/persondockor.ts>]  livebordet genom sin egen kamera
 //                         (spel är livebordets, 1728 x 972, och inspelningen görs i den storleken), med Danilo (förval) eller
 //                         Frasse. Platsen väljer dockans lyfta giv dit (lyft-<docka>-p<plats>),
@@ -117,7 +119,7 @@ try {
   const cdp = (method: string, params: object = {}) => new Promise<any>((ok, fel) => { const id = ++nr; väntar.set(id, {ok, fel}); ws!.send(JSON.stringify({id, method, params})); });
   const kör = async (kod: string) => { const r = await cdp('Runtime.evaluate', {expression: kod, awaitPromise: true, returnByValue: true}); if (r.exceptionDetails) throw Error(`${kod.slice(0, 90)}: ${r.exceptionDetails.exception?.description ?? r.exceptionDetails.text}`); return r.result.value; };
   await cdp('Page.enable'); await cdp('Runtime.enable');
-  await cdp('Page.navigate', {url: `http://127.0.0.1:${PORT}/standarddocka/editor/?plats=${plats}&kamera=${kameror[0]}${flag('--kulor') ? '' : '&kulor=0'}${arg('--utseende') === 'nyckel' ? '&utseende=nyckel' : ''}&docka=${docka}${sekvens ? `&sekvens=${sekvens}` : ''}${arg('--giv') ? `&giv=${arg('--giv')}` : ''}${arg('--vilan') ? `&vilan=${arg('--vilan')}` : ''}${arg('--bord') ? `&bord=${arg('--bord')}` : ''}${arg('--modell') ? `&modell=${arg('--modell')}` : ''}${flag('--utan-vridben') ? '&vridben=0' : ''}${runda ? `&runda=1${spelaIn === 'runda' || flag('--stillhet') ? '&stillhet=1' : ''}${rundliv ? `&liv=${rundliv}&fro=${Number(arg('--fro', '1'))}` : ''}` : ''}`});
+  await cdp('Page.navigate', {url: `http://127.0.0.1:${PORT}/standarddocka/editor/?plats=${plats}&kamera=${kameror[0]}${flag('--kulor') ? '' : '&kulor=0'}${arg('--utseende') === 'nyckel' ? `&utseende=nyckel${arg('--rygg') === 'rod' ? '&rygg=rod' : ''}` : ''}&docka=${docka}${sekvens ? `&sekvens=${sekvens}` : ''}${arg('--giv') ? `&giv=${arg('--giv')}` : ''}${arg('--vilan') ? `&vilan=${arg('--vilan')}` : ''}${arg('--bord') ? `&bord=${arg('--bord')}` : ''}${arg('--modell') ? `&modell=${arg('--modell')}` : ''}${flag('--utan-vridben') ? '&vridben=0' : ''}${runda ? `&runda=1${spelaIn === 'runda' || flag('--stillhet') ? '&stillhet=1' : ''}${rundliv ? `&liv=${rundliv}&fro=${Number(arg('--fro', '1'))}` : ''}` : ''}`});
   for (let i = 0; ; i++) { await sleep(500); if (await kör('!!(window.editor && window.editor.ready)').catch(() => false)) break; if (i > 240) throw Error(`Editorn blev inte klar: ${await kör('document.querySelector("#fel").textContent').catch(() => '?')}`); }
   // Spara först, ur filen som den står: farten, de små rörelserna och ändringarna nedan sparas aldrig.
   if (flag('--spara')) console.log(`Sparat: ${JSON.stringify(await kör('window.editor.save()'))}`);

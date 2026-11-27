@@ -514,6 +514,7 @@ Flaggorna:
 | `--aleph` | förbered också film B, Aleph 2 över dockfilmen |  | ja |
 | `--ankarklipp` | given som tre klipp mellan schemats ankare (A2.3, A2M, A3PnC1, A2.3 med kortet): Kling 4 med ankarbilderna som första och sista bild och dockans film av steget som referensfilm; steg 7 är efterarbetet |  | ja |
 | `--efter-prov` | steg 7 med referensfilmerna i klippens ställe: efterarbetet prövat utan något betalt |  | nej |
+| `--rygg` | med --ankarklipp: kortets rygg i dockans film och i ankarbilderna. rod: kortets riktiga röda med vit kant, som filmmodellen ritar själv, och efterarbetet ritar bara framsidan; spar (förval): spårkortets gula, som efterarbetet byter mot vår rygg |  | nej |
 
 ### Runways kropp på vår dockas skelett (gratisprov)
 

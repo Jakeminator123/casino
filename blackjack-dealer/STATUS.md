@@ -36,10 +36,15 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   efter åtta vändor: **Nja, nära Bra**, och en film av en person efter rörelsen "har nu ett skäl". Det som stämmer:
   högern platt, sluten och stilla till bytet, kortet finns i varje ruta och är dolt i näven, tummen ligger kvar på
   kortets hörn tills handen går hem, kortets väg ur skon är jämn, och given till dagens plats 2 lägger rätt kort.
-  Filmen som sedan gjordes (Kenjis fjärde omgång, nedan) visade vad som är kvar i rörelsen: i bytet går kortet från
-  stående till dolt på två rutor utan att en hand syns ta det, handen öppnar sig för fort på väg hem, och blicken går
-  inte till skon. Nionde vändan pågår (bytet som en kamera kan följa). Dockans huvud är cirka 12 % smalare än
-  dealerns och nickar mindre.
+  Filmen som sedan gjordes (Kenjis fjärde omgång, nedan) visade vad som är kvar i rörelsen: i bytet gick kortet från
+  stående till dolt på två rutor utan att en hand syntes ta det. Nionde vändan lät högern ta kortet in under handen
+  och tummen vända det, med en lösare hand på det lagda kortet. Åttonde domen på den: **Nja**, och en ny film har
+  "inte ännu" ett skäl. Tagningen (ruta 26–31) kan en kamera följa och landningen ligger inom 10 bildpunkter, men
+  kortet försvinner in i näven på en ruta (31→32; dealerns syns lutande i handen till ruta 33), det står som ett blad
+  på 100 bildpunkter över handen i vändningen (36–38; dealerns är en strimma på 30), handen öppnar sig på väg hem där
+  dealern håller en lös näve till ruta 65, och kortet står rakt upp i bytet där dealerns lutar. Frasses giv till
+  plats 4 har samma fel i ruta 22. Tionde vändan pågår. Dockans huvud är cirka 12 % smalare än dealerns och nickar
+  mindre.
 - **Visningsfilmen** (för Jakobs chef): provet `visning-for-chefen-20261127` (67 s, den riktiga dealern syns bara som
   mätt streckfigur), och en version med Youtubefilmen som bara ligger på datorn
   (`../live-bj/rutor/visning/visning-med-youtubefilmen.mp4`). Inte dömd av någon domare.

@@ -82,7 +82,7 @@ export function kameraVy(k: Exclude<Kamera, 'fri'>): {pos: V3; mot: V3; fov: num
 export type Utseende = 'vanligt' | 'nyckel';
 /** Det som går att dölja i bilden: bordet, stolen och kortplatsernas markeringar från panelen, och dockan, kortet och skon från ett verktyg. */
 export type Synligt = 'bord' | 'stol' | 'platser' | 'docka' | 'kort' | 'sko';
-export const NYCKEL = {bakgrund: 0x00b140, bord: 0x00b140, kortrygg: 0xffd400, ram: 0x00c8ff, marke: 0xff2fd0};
+export const NYCKEL = {bakgrund: 0x00b140, bord: 0x00b140, kortrygg: 0xffd400, ram: 0x00c8ff, marke: 0xff2fd0, rodRygg: 0xb8333b};
 
 export type Scen = {
   renderer: T.WebGLRenderer; scene: T.Scene; camera: T.PerspectiveCamera; figure: Figure; card: T.Object3D;
@@ -174,7 +174,13 @@ export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: F
 
   // Spårkortets två sidor (utseendet 'nyckel'), ritade: ram, fält och märken.
   const hex = (n: number) => '#' + n.toString(16).padStart(6, '0');
+  // Med ?rygg=rod är ryggen kortets riktiga: röd med vit kant och utan märken (NYCKEL.rodRygg). Då ritar filmmodellen
+  // själv kortets rygg, också i farten, och efterarbetet ritar bara framsidan, som bär valören (domaren 2026-11-27: det gula
+  // spårkortet gick inte att byta ut rent där hand och kort är utsmetade av farten). Framsidan är spårkortets i båda.
+  const rodRygg = nyckel && prov('rygg') === 'rod';
   const sparsida = (rygg: boolean) => { const c = document.createElement('canvas'); c.width = 252; c.height = 352; const g = c.getContext('2d')!;
+    if (rygg && rodRygg) { g.fillStyle = '#ffffff'; g.fillRect(0, 0, 252, 352); g.fillStyle = hex(NYCKEL.rodRygg); g.fillRect(16, 16, 220, 320);
+      const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 8; return new T.MeshStandardMaterial({map: t, roughness: 0.9}); }
     g.fillStyle = hex(NYCKEL.ram); g.fillRect(0, 0, 252, 352); g.fillStyle = rygg ? hex(NYCKEL.kortrygg) : '#ffffff'; g.fillRect(20, 20, 212, 312);
     g.fillStyle = hex(NYCKEL.marke); const prick = (x: number, y: number, r: number) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); };
     if (rygg) { prick(126, 176, 34); prick(126, 70, 16); } else prick(54, 54, 20);
@@ -188,7 +194,7 @@ export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: F
   // (millimeter), bordets kant mot dealern och skivans överkant.
   let bordRot: T.Object3D | null = null; const markeringar: T.Object3D[] = [];
   const bordUrl = prov('bord') ? `/avatar-auto-pipeline/assets/bord/standardbord_${prov('bord')}.glb` : MODELLER.bord;
-  const bord = loadTable(bordUrl, scene, {key: nyckel ? {table: NYCKEL.bord, cardBack: NYCKEL.kortrygg} : undefined, progress: share => laddar(`bordet ${Math.round(share * 100)} %`)}).then(b => {
+  const bord = loadTable(bordUrl, scene, {key: nyckel ? {table: NYCKEL.bord, cardBack: rodRygg ? NYCKEL.rodRygg : NYCKEL.kortrygg} : undefined, progress: share => laddar(`bordet ${Math.round(share * 100)} %`)}).then(b => {
     // Bordets kort ligger i modellen med bildens överkant mot dealern (Blenders +Y), alltså åt -z här; vänt ett halvt varv
     // i sitt plan står överkanten åt kortets långsida (+z, rörelsens `l`). Då ligger kortet som rörelsen lägger det
     // (långsidan mot dealern) som Blenders kort på platsen.

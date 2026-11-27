@@ -3420,6 +3420,11 @@
       "flagga": "--efter-prov",
       "gor": "steg 7 med referensfilmerna i klippens ställe: efterarbetet prövat utan något betalt",
       "i_guiden": false
+     },
+     {
+      "flagga": "--rygg",
+      "gor": "med --ankarklipp: kortets rygg i dockans film och i ankarbilderna. rod: kortets riktiga röda med vit kant, som filmmodellen ritar själv, och efterarbetet ritar bara framsidan; spar (förval): spårkortets gula, som efterarbetet byter mot vår rygg",
+      "i_guiden": false
      }
     ]
    },

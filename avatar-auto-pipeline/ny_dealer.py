@@ -4,7 +4,7 @@ Gratis och här på datorn; inga betalda anrop. De betalda stegen skrivs som fä
 den som får betala (blackjack-dealer/tools/runway-api.ts place).
 
     python ny_dealer.py <person> [--stil kameran|bordet] [--namn <docka>] [--utseende "<text på engelska>"]
-                        [--plats 4] [--prov <provmapp>] [--omgang <v2>] [--aleph] [--ankarklipp [--efter-prov]] [--steg 1-7] [--lage]
+                        [--plats 4] [--prov <provmapp>] [--omgang <v2>] [--aleph] [--ankarklipp [--rygg rod] [--efter-prov]] [--steg 1-7] [--lage]
 
 <person> är mappen i input/ med bilderna (1-portratt, 2-helfigur, 3-halvfigur). Stegen, i ordning:
   1 matt     personens mått ur bilderna: SAM 3D Body och MediaPipe (steg/15-matt-ur-bilder/matt_ur_bilder.py) ->
@@ -33,6 +33,10 @@ den som får betala (blackjack-dealer/tools/runway-api.ts place).
              senare än dockan), hela given ihopsatt av klippens egna rutor i klippens bildtakt (inga upprepade), och dealern
              på vårt bord med vår sko och vårt kort
              (--efter-prov: referensfilmerna i klippens ställe, för att pröva efterarbetet utan något betalt)
+--rygg rod (med --ankarklipp) ger kortet dess riktiga röda rygg med vit kant i dockans film och i ankarbilderna, så att
+filmmodellen ritar ryggen själv, också i farten; efterarbetet ritar då bara framsidan (lagg-pa-bord.ts --rygg-ur-filmen).
+Förvalet spar är spårkortets gula rygg, som efterarbetet byter mot vår: det gick inte rent där hand och kort är utsmetade
+av farten (Kenjis fjärde omgång, dömd fyra gånger 2026-11-27).
 --omgang lägger en ny omgång av filmen, rutorna och anropen i en egen undermapp, bredvid de förra, och tar startbilden
 och sista bilden, var för sig, ur den senaste förra omgången när dockans första eller sista ruta är densamma där (kostnad.json
 säger vad jämförelsen fann). En ruta där kortet i handen står med kanten mot kameran tas inte: den flyttas till den
@@ -70,6 +74,7 @@ ap.add_argument('--prov', default=None)
 ap.add_argument('--omgang', default=None, help='en ny omgång av filmen och anropen i en egen undermapp (till exempel v2), bredvid den förra')
 ap.add_argument('--aleph', action='store_true', help='förbered också film B, Aleph 2 över dockfilmen')
 ap.add_argument('--ankarklipp', action='store_true', help='given som tre klipp mellan schemats ankare, med dockans film av varje steg som referensfilm (steg 5-7)')
+ap.add_argument('--rygg', choices=['spar', 'rod'], default='spar', help='med --ankarklipp: kortets rygg i dockans film och i ankarbilderna. spar: spårkortets gula, som efterarbetet byter mot vår rygg. rod: kortets riktiga röda med vit kant, som filmmodellen ritar själv; efterarbetet ritar då bara framsidan')
 ap.add_argument('--efter-prov', action='store_true', help='steg 7 med referensfilmerna i klippens ställe: efterarbetet prövat utan något betalt')
 ap.add_argument('--steg', default='1-6')
 ap.add_argument('--lage', action='store_true')
@@ -98,6 +103,7 @@ _omg = [d for d in _omg if (d / 'dockans-rutor.json').exists()]
 FORRA = max(_omg, key=lambda d: (d / 'dockans-rutor.json').stat().st_mtime) if _omg else BAS
 OMG = f'{a.omgang}-' if a.omgang else ''       # i anropens namn: liggaren tar ett namn en enda gång, så varje omgång har egna
 ARB = ROT / 'output' / a.person / '15-matt-ur-bilder'
+RYGGORD = 'red' if a.rygg == 'rod' else 'yellow'   # kortryggens färg i ord för bildmodellen (steg 5; steg 6 läser omgångens val)
 rel = lambda p: os.path.relpath(p, CASINO).replace('\\', '/')
 fran_bj = lambda p: os.path.relpath(p, BJ).replace('\\', '/')
 
@@ -273,7 +279,7 @@ def kortets_sida(kort, kamera):
     """Vilken sida av kortet kameran ser, i ord."""
     sett = kanten_mot(kort, kamera)
     return ('almost hidden: its edge is toward the camera, so only a thin line of it shows under the palm' if abs(sett) < KANT else
-            'its white face toward the camera' if sett > 0 else 'its yellow back toward the camera')
+            'its white face toward the camera' if sett > 0 else f'its {RYGGORD} back toward the camera')
 
 
 def rutorna(rorelse, antal, kamera):
@@ -443,7 +449,7 @@ def filma_given():
     kamerans plats i linsvärlden (för vilken sida av kortet den ser)."""
     rorelse = json.loads((BJ / 'dealer3d' / 'data' / f'{GIV}.json').read_text(encoding='utf-8'))
     r = kor(['node', 'standarddocka/verktyg/titta.ts', '--docka', NAMN, '--plats', a.plats, '--spela-in', 'hela',
-             '--kamera', 'spel', '--utseende', 'nyckel'], fanga=True)
+             '--kamera', 'spel', '--utseende', 'nyckel', *(['--rygg', 'rod'] if a.rygg == 'rod' else [])], fanga=True)
     klipp = re.findall(r'(standarddocka/klipp/[^\s]+?\.mp4)', r.stdout.replace('\\', '/'))
     if r.returncode or not klipp:
         sys.exit('steg 5: editorn filmade inte')
@@ -769,7 +775,7 @@ def steg_film_ankare():
               f'rörelseschemats ankare, genom livebordets kamera i editorns nyckelutseende, ur dockfilmen {dockfilm.name} (avatar-auto-pipeline/ny_dealer.py '
               f'--ankarklipp). bilder: ankarrutorna, med texten om vad dockan gör och var kortet är ur rörelsens egna tal; steg: varje klipps '
               f'referensfilm, dockrutorna i steget och hur många stilla rutor som ligger före och efter (stillheten klipps bort efteråt).',
-        'giv': GIV, 'rutor': antal, 'fps': FPS, 'tider': T, 'kortrygg': {'nyckel': 'gul', 'vanlig': 'röd'}, 'bilder': bilder, 'steg': steg},
+        'giv': GIV, 'rutor': antal, 'fps': FPS, 'tider': T, 'rygg': a.rygg, 'kortrygg': {'nyckel': 'röd' if a.rygg == 'rod' else 'gul', 'vanlig': 'röd'}, 'bilder': bilder, 'steg': steg},
         ensure_ascii=False, indent=1), encoding='utf-8')
     print(f'dockfilmen {rel(dockfilm)} ({antal} rutor); ankarna {", ".join(f"{b["ankare"]} ruta {b["ruta"]}" for b in ank)}; referensfilmerna '
           + ', '.join(f'{s["ref"]} (steget {s["rutor_i_steget"]} rutor, stilla {s["stilla_fore"]}+{s["stilla_efter"]})' for s in steg), flush=True)
@@ -810,6 +816,8 @@ def steg_anrop_ankare():
     if R.get('lage') != 'ankarklipp':
         sys.exit('steg 6 --ankarklipp: omgångens rutor är inte gjorda med --ankarklipp (kör --steg 5 --ankarklipp först)')
     n, ank, steg = R['rutor'], R['bilder'], R['steg']
+    rod = R.get('rygg') == 'rod'            # (omgångens val när den filmades, inte kommandots nu)
+    ryggord = 'red' if rod else 'yellow'
     utseende = p.get('utseende') or 'the same face, age, hair and clothes as in those images'
     A = UT / 'anrop'
     A.mkdir(parents=True, exist_ok=True)
@@ -823,10 +831,12 @@ def steg_anrop_ankare():
     vad = (f'En ny dealer ur bilder: {NAMN.capitalize()} (input/{p["person"]}), hans docka byggd på {p["docka"]["grund"].capitalize()}s '
            f'(avatar-auto-pipeline/ny_dealer.py --ankarklipp), gör given till dagens plats {a.plats} ({GIV}) vid livebordet i nyckelfärgerna, som tre klipp mellan ankarbilder.')
     rest = ('Everything else stays exactly as in the first image: his face, hair and shirt, the dark red chair back, the clear card shoe at the same place, '
-            'size and angle with the yellow deck in it, the small clear plate in front of the shoe, the flat green background and the plain green table '
+            f'size and angle with the {ryggord} deck in it, the small clear plate in front of the shoe, the flat green background and the plain green table '
             'with no print and no texture; only soft natural shadows of his arms and hands on the table. The same framing and camera; a photograph.')
-    kortets_utseende = ('Its back is solid yellow with a thin cyan border and a small magenta mark, and its face is plain white with a thin cyan border '
-                        'and a small magenta mark.')
+    kortets_utseende = (('Its back is plain deep red with a white border all around, like the back of a real playing card but with no pattern, and its face is '
+                         'plain white with a thin cyan border and a small magenta mark in one corner.') if rod else
+                        ('Its back is solid yellow with a thin cyan border and a small magenta mark, and its face is plain white with a thin cyan border '
+                         'and a small magenta mark.'))
     anrop = {}
     if not gjord[a23['ankare']]:
         anrop['a23'] = {'name': f'{NAMN}-ny-dealer-{OMG}a23', 'what': f'{vad} Ankarbilden A2.3 (redo vid skon): dockans ruta {a23["ruta"]} omgjord till personen ur hans tre bilder.',
@@ -841,7 +851,7 @@ def steg_anrop_ankare():
                                                 f'the table exactly as the mannequin\'s and his eyes on the card at the mouth of the shoe, not on the camera. {a23["text"]} {a23["kortet"]} Both '
                                                 'elbows are bent as the mannequin\'s, and every finger is in the same position as the mannequin\'s. The table stays plain, '
                                                 'even green with no print, and the background the same flat green. The clear plastic card shoe stays exactly as it is, with '
-                                                'the yellow deck and the front card showing its yellow back in its mouth, and the small clear plate on the felt in front of '
+                                                f'the {ryggord} deck and the front card showing its {ryggord} back in its mouth, and the small clear plate on the felt in front of '
                                                 'it. The dark red chair back behind him stays. A photorealistic photograph of the man: natural skin, natural hands with five '
                                                 'fingers, no ring, no watch, soft even light from above. Do not add, remove or move any object, and no card lies on the felt.'),
                                  'referenceImages': [{'uri': fj(UT / a23['fil']), 'tag': 'scene'}, {'uri': in_('portratt'), 'tag': 'face'},
@@ -908,7 +918,7 @@ def steg_anrop_ankare():
                                     'only its movement, its timing and where its hands and the card are from it, never its look; his face, hair, shirt and '
                                     f'hands come from the first and last frames. {s["gor"]} He holds still at the start and at the end as the reference video '
                                     'does. His head stays bowed toward the table as in the frames and his eyes follow the card; he does not look up at the camera. The card keeps its size '
-                                    f'all the way; it is never lifted high in the air. {kortets_utseende} A yellow card shows in the mouth of the shoe all the '
+                                    f'all the way; it is never lifted high in the air. {kortets_utseende} A {ryggord} card shows in the mouth of the shoe all the '
                                     'time. The background and the table are plain, even green with no print. Natural hands with five fingers. No text, no music, '
                                     'no speech.'),
                      'duration': KLIPP_S, 'ratio': 'auto_1080p'},
@@ -1058,7 +1068,7 @@ def steg_efter(prov=False):
     # (rörelsen omgången är filmad efter, rorelse.json; en omgång från före 2026-11-27 kväll har ingen egen och tar lyftet)
     rorelse = UT / 'rorelse.json' if (UT / 'rorelse.json').exists() else BJ / 'dealer3d' / 'data' / f'{GIV}.json'
     r = kor(['node', 'standarddocka/verktyg/lagg-pa-bord.ts', rel(gron_hela), '--platta', rel(platta), '--egen-sko', rel(sko), '--sko-ruta', skoruta,
-             '--docka', rel(rorelse), '--takt', rel(takt), '--ut', rel(bord)], fanga=True)
+             '--docka', rel(rorelse), '--takt', rel(takt), *(['--rygg-ur-filmen'] if R.get('rygg') == 'rod' else []), '--ut', rel(bord)], fanga=True)
     fel = None if r.returncode == 0 and bord.exists() else (r.stdout.strip().splitlines() or ['föll'])[-1][:300]
     given = gron_hela if fel else bord
     (E / 'efter.json').write_text(json.dumps({'om': 'Efterarbetet (ny_dealer.py --ankarklipp --steg 7)' + (': PROV med referensfilmerna i klippens ställe' if prov else ''),

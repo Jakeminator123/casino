@@ -76,6 +76,12 @@ A3PnC1 → A2.3 med kortet. Klippen möts i ankarbilderna.
      handbytets ruta, där ingen hand är vid den): `efter/given-pa-bordet.mp4`.
    - `--efter-prov` prövar det med referensfilmerna i klippens ställe.
 
+**Kortets rygg, `--rygg rod`:** med förvalet (`spar`) har kortet spårkortets gula rygg i dockans film och i
+ankarbilderna, och efterarbetet byter den mot vår. Det gick inte rent där hand och kort är utsmetade av farten, ur skon
+till bytet (Kenjis fjärde omgång, dömd fyra gånger). Med `--rygg rod` är ryggen kortets riktiga röda med vit kant, så
+att filmmodellen ritar ryggen själv, och efterarbetet ritar bara framsidan, som bär valören (`lagg-pa-bord.ts
+--rygg-ur-filmen`). Valet görs i steg 5 och står i omgångens `dockans-rutor.json`; steg 6 och 7 läser det där.
+
 Utan `--prov` hamnar filmen, rutorna och anropen i `avatar-auto-pipeline/output/<person>/16-dockfilm/`, med
 `--prov <provmapp>` i `blackjack-dealer/assets/proofs/<provmapp>/original/`. `--utseende` är personens utseende i ord för
 bildmodellen och står sedan kvar i personfilen.
