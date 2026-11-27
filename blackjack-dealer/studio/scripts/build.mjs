@@ -6,7 +6,7 @@
 // online copy (lib/mode.ts), exported to ../.runtime/studio-snapshot/out (next.config.ts) for tools/build-studio-snapshot.ts.
 // The mode is set here and nowhere else: a plain build always clears it, so a stray variable never turns the lab into a copy.
 import {randomUUID} from 'node:crypto';
-import {lstatSync, mkdirSync, readdirSync, rmdirSync, unlinkSync, writeFileSync} from 'node:fs';
+import {lstatSync, mkdirSync, readdirSync, rmdirSync, rmSync, unlinkSync, writeFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -60,6 +60,10 @@ else delete process.env.NEXT_PUBLIC_DEALER_MODE;
 // reads that variable for nothing else (next/dist/server/config-shared.js).
 process.env.CIRCLE_NODE_TOTAL = '5';
 if (snapshot) console.log('Bygger kopian för nätet (NEXT_PUBLIC_DEALER_MODE=snapshot).');
+// The route types Next generated last time name every page that existed then: after a page is removed they point at a file
+// that is gone and fail the type check ("Cannot find module '../../../app/<sida>/page.js'"). They are written again by this
+// build, so the old ones are cleared first.
+for (const stale of ['.next/dev/types', '.next/types']) rmSync(resolve(stale), {recursive: true, force: true});
 // Run Next in this process so a launcher cannot die while its child still owns the build output.
 process.argv = [process.execPath, next, 'build'];
 await import(pathToFileURL(next).href);
