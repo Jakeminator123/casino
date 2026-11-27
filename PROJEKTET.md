@@ -55,14 +55,17 @@ av Tomasz görs för Tomasz.
 
 | Steg | Vad som händer | Var |
 | --- | --- | --- |
-| 1. Personen | Några bilder av en person. De tio som ligger i `avatar-auto-pipeline/input/` är framställda, inga riktiga människor. | `avatar-auto-pipeline/` |
-| 2. Rörelsen | Dockan spelar en rörelse vid bordet. Rörelsen är ritad av kod, eller lyft ur en film av en riktig dealer. | `blackjack-dealer/dealer3d/`, `live-bj/` |
-| 3. Inspelningen | Dockan filmas i 3D-miljön genom spelets kamera, en gång per spelarplats (sju kameror). | `standarddocka/` |
-| 4. Personens bilder vid bordet | Rutor ur dockans film görs om till personen av en bildmodell: där klippet börjar och där det slutar. | `blackjack-dealer/` |
-| 5. Filmen | En filmmodell gör om dockans film till en film av personen. Det betalda steget. | `blackjack-dealer/` |
-| 6. Granskningen | Jakob dömer filmen. Det han godkänner får en roll; resten raderas. | studion i `blackjack-dealer/` |
-| 7. Utskärningen | Personen skärs ut ur filmen mot ren färg. | `standarddocka/`, `blackjack-dealer/` |
-| 8. Spelet | Den utskurna filmen läggs vid bordet i en miljö, och spelets kort ritas ovanpå filmens kort. | `blackjack-dealer/` |
+| 1. Personen | Tre bilder av en person (porträtt, helfigur, halvfigur). De som ligger i `avatar-auto-pipeline/input/` är framställda, inga riktiga människor. | `avatar-auto-pipeline/` |
+| 2. Personens docka | Personen mäts ur bilderna (kroppens leder, handens och ansiktets punkter) och får en docka efter måtten, byggd på Danilos eller Frasses. | `avatar-auto-pipeline/` |
+| 3. Rörelsen | Dockan spelar rörelserna som är lyfta ur filmen av de riktiga dealrarna, räknade om för personens egna axlar och armar. | `blackjack-dealer/dealer3d/`, `live-bj/` |
+| 4. Inspelningen | Dockan filmas vid livebordet genom livebordets kamera, i rena färger som går att skära ut; senare en gång per spelarplats. | `standarddocka/` |
+| 5. Personens bilder vid bordet | Rutor ur dockans film, valda där något händer i rörelsen, görs om till personen av en bildmodell. Betalt. | `avatar-auto-pipeline/`, `blackjack-dealer/` |
+| 6. Filmen | En filmmodell gör filmen mellan bilderna. Betalt. | `blackjack-dealer/` |
+| 7. Efterarbetet | Filmen får dockans takt, personen skärs ut och läggs på vårt bord med vår sko, och kortet ritas av oss ur dockans tal. | `standarddocka/` |
+| 8. Domen | En oberoende domare dömer först, sedan Jakob. Det han godkänner får en roll; resten raderas. | studion i `blackjack-dealer/` |
+| 9. Spelet | De godkända klippen spelas vid bordet i spelet. | `blackjack-dealer/` |
+
+Steg 2 till 5 och anropen för steg 6 körs med ett kommando, `python ny_dealer.py <person>` i `avatar-auto-pipeline/`.
 
 ## Varför varje mapp finns
 
@@ -87,9 +90,9 @@ av Tomasz görs för Tomasz.
 - **Livestandarden är den enda standarden** (Jakob 2026-11-27: "jag skulle vilja helt övergå till det som är klonat
   totalt", "det är nu vi ska sätta en standard på riktigt"): livebordets kamera, bord, sko, kort och kortplatser, som
   de är mätta ur filmen (`blackjack-dealer/src/table-live.ts`), gäller för all inspelning, beställning och visning,
-  också i spelet. Den förra standarden och den äldre dealern Paow tas ur projektet: hennes material arkiveras utanför
-  repot ("vi arkiverar till skrivbordet"), och de ritade givarnas kod behålls och riktas mot livebordet. Beslutat
-  2026-11-27; tills det är gjort finns den förra standarden kvar som ett val i menyn.
+  också i spelet. Den förra standarden, mannen och kvinnan med de ritade givarna och den äldre dealern Paow är borta
+  ur koden sedan 2026-11-27 ("Förra standarden helt"), och deras material ligger i arkivet bredvid repot ("vi
+  arkiverar till skrivbordet"). Spelet kan senare få en annan vy ovanpå; måtten ändras inte av den.
 - **Platser och riktningar har en standard** (Jakob 2026-11-27): plats 0 är dealern, plats 1 den närmast skon vid hans
   vänster, sedan runt till plats 7. Höger och vänster är dealerns egna. Regeln står i `AGENTS.md`.
 - **En persons figur byggs på den docka vars rörelser den ska spela** (Jakob 2026-11-27): rörelserna kommer från
@@ -105,7 +108,6 @@ ihop eller övertas av andra?"). Den säger riktningen; det som är gjort står 
 
 | I dag | Dit vi går |
 | --- | --- |
-| Två standarder för bord och kamera, valda i menyn | En: Livestandarden. Inget val. |
 | Platserna räknade från bildens vänster | Plats 0 är dealern, plats 1 närmast skon; riktningar från dealerns kropp. |
 | En äldre dealer med egna filmer, träd, register och beställningssätt | Arkiverad utanför repot. Personerna framåt är de framställda (Tomasz och de andra). |
 | Tre ställen där något väntar på hans dom (Granska, Beslut, mappar i slasken) | Ett: provet, med sina original i samma mapp. Biblioteket, Granska och Beslut läser samma svar på frågan om han har sagt sitt. |
@@ -132,9 +134,10 @@ en verkstad i taget när inget annat arbete pågår i den.
 
 **Ordningen.**
 
-1. Den äldre dealern arkiveras och den förra standarden tas bort; verktygen som bara fanns för dem går med.
+1. Det sista av den äldre dealerns flöde tas bort: kortplanens värld (`src/plan-lens.ts`, kortplanen), hennes
+   beställningsväg och träd, och bankens register. Den förra standarden själv är borta (2026-11-27).
 2. Platserna numreras om i det som är kvar, i ett steg.
-3. Studion görs om för en standard: färre sidor och mindre text.
+3. Studion: sidorna för den förra standarden är borta; kvar är att gå igenom Granska, Prov, Dockan och Biblioteket.
 4. Det som är dubbelt slås ihop enligt tabellen.
 5. Mapparna ordnas efter verkstäderna.
 
