@@ -29,6 +29,12 @@
 // dealer's own anchor and goes out with it alone (2026-11-23); the words about a pose picture (@pose), which the stills
 // stored before were sent with, stay for those. Tests: tools/order-routes.test.ts.
 import type { FlipAxis, Grip, StepKey, TextStyle } from './order-model.ts';
+import { UPPSATTNING } from './uppsattning.ts';
+
+/** The picture the place words are measured in: the former standard's (1764 × 1174), where the bank's films and the card plan are. */
+const PLACE_FRAME = UPPSATTNING.forra.bild;
+/** A point of another picture in the place words' pixels (the same point where `bild` is the former standard's). */
+const inPlaceFrame = (place: { x: number; y: number }, bild: { width: number; height: number }) => ({ x: place.x * (PLACE_FRAME.width / bild.width), y: place.y * (PLACE_FRAME.height / bild.height) });
 
 /**
  * The formula's version. 4: the short and minimal texts (Utförlig is always named @3, the long text's own version).
@@ -151,7 +157,7 @@ export type PromptInput = {
   model: string;
   /** For a deal: the grip, the hand that takes the card and whether it is handed over, the turn, and the side it lands with. */
   motion?: DealMotion | null;
-  /** Where the card lands in the picture (bank pixels, 1764 × 1174). */
+  /** Where the card lands in the picture, in the pixels of the former standard's picture (PLACE_FRAME, where the plan's cards are). */
   place?: { x: number; y: number } | null;
   /** Jakob's own addition, put before the bans. */
   extra?: string | null;
@@ -472,8 +478,12 @@ export function bansFor(m: Pick<DealMotion, 'hand' | 'pass' | 'side' | 'flipAxis
 export const BANS_STILL =
   "Nothing of this happens: the fingers rest on the shoe instead of on the card, a second card appears, a finger passes through the card, the card has another size or shape than the card in the shoe's window, a hand floats in the air without holding anything, a second shoe appears, the framing changes.";
 
-/** Where the card lies in the picture, in words a model can find (bank pixels, 1764 × 1174). */
-export function placeWords(place: { x: number; y: number }): string {
+/**
+ * Where the card lies in the picture, in words a model can find. The bounds are pixels of the former standard's picture
+ * (PLACE_FRAME); a point of another picture (`bild`) is brought there first, so that the words go by the share of the picture.
+ */
+export function placeWords(at: { x: number; y: number }, bild: { width: number; height: number } = PLACE_FRAME): string {
+  const place = inPlaceFrame(at, bild);
   const near = place.y < 960 ? 'close to her body, ' : '';
   const x = place.x;
   const across = x < 450 ? 'far to the left of the picture' : x < 800 ? 'to the left of the middle of the picture' : x > 1310 ? 'far to the right of the picture' : x > 960 ? 'to the right of the middle of the picture' : 'in the middle of the picture';
@@ -485,8 +495,8 @@ export function placeWords(place: { x: number; y: number }): string {
  * ("to its place" alone, template 4) WAN 3 laid the card in front of her at five of six other seats than the middle ones
  * and let the last frame's card appear by itself (rounds 3 and 3b, 2026-11-13).
  */
-export function whereShort(place: { x: number; y: number }): string {
-  const x = place.x;
+export function whereShort(at: { x: number; y: number }, bild: { width: number; height: number } = PLACE_FRAME): string {
+  const place = inPlaceFrame(at, bild), x = place.x;
   const across =
     x < 340 ? 'at the far left of the picture'
     : x < 540 ? 'well to the left of the middle of the picture'
@@ -496,6 +506,18 @@ export function whereShort(place: { x: number; y: number }): string {
     : x <= 1390 ? 'well to the right of the middle of the picture, in front of the shoe'
     : 'at the far right of the picture, in front of the shoe';
   return (place.y < 960 ? 'close in front of her, ' : '') + across + ', where the last frame shows it';
+}
+
+/** The most a text may be for a model that makes a film over another (Aleph 2: 1 000 characters, the skill runway). */
+export const PERSON_TEXT_LIMIT = 1000;
+/**
+ * The text of a person's film made over a doll's film at the live table (tools/order-store.ts personDraft): the tenth trial's
+ * (2026-11-27, Aleph 2 with the guidance picture at second 0, both cameras), word for word, with his look in the words
+ * registered with his guidance picture (data/rendered-references.json styrbilder, "the real man shown in the guidance image,
+ * with the same face, hair and light blue shirt"). The card is the live table's: red back, plain white face.
+ */
+export function personPrompt(look: string): string {
+  return `Replace the white mannequin with ${look.trim()} throughout the whole video. Photorealistic face, skin and hands. Keep his movement, the direction of his head and eyes, the position of both hands and every finger, the timing, the table, the clear plastic box, the card shoe, the chair, the background, the camera and the framing exactly as in the input video. Keep the playing card exactly as in the input video: how it is drawn from the shoe, passed between his hands, carried, turned and laid down. The card has a red back and a plain white face with no print: it leaves the shoe with the red back up, is turned over in his hand and lies on the felt with the plain white face up, where the input video lays it. Do not add any card.`;
 }
 
 /** What the dealer's standard says about the body, for a still made as an edit of @anchor. */

@@ -1,5 +1,50 @@
 {
   "about": "Rendered reference films: the 3D lane's dummy (dealer3d/) performing one step as the bank's camera sees it, its hands read off an approved deal of a real dealer. A recipe whose reference rule is renderad or renderad-eller-samma-plats (data/order-methods.json) takes the film for its step and seat from here before any take of the bank (src/order-model.ts referenceCandidates, src/order-methods.ts referenceByRule), and tools/order-store.ts copies it into the order's folder with its hash. One entry per film: id; edge (the step it shows in the graph's notation: READY>P4.C1 a pinch deal to seat 4, READY-B>P4.C1 a drag, READY-C>P4.C1 a deal with two hands, IDLE>READY-C the entry to anchor 2.3); path, always assets/references/docka/<id>/source.mp4 (media, outside Git); sha256 of that file; seconds; fromDeal (the take its hands are read off); lays (the hand that lays the card, absent: the left); check (the film's own reference check, src/deal-check.ts checkReference: pass, clean, codes). A film is listed only when its file lies there and it ends as the seat's last picture does (the hand's side and the fingers on the card; ../.claude/skills/bestalla-film/SKILL.md). The 3D lane makes the films in a working folder of the scratch (../slask/blackjack-dealer/<task>/, or where DEALER_SLASK points); a film is copied here with its hash checked and a receipt.json beside it, and a film made again gets a new letter, never the same id. Of two films of the same edge the one listed later is offered first: a film made again is listed after the one it replaces. A film that deals no card (an entry to an anchor) has no check and no laying hand.",
   "schemaVersion": 1,
-  "films": []
+  "films": [
+    {
+      "id": "docka-danilo-giv-p4-kameran",
+      "edge": "READY-C>P4.C1",
+      "path": "assets/references/docka/docka-danilo-giv-p4-kameran/source.mp4",
+      "sha256": "cd238589fce5811e51568114b9c8fcc949dc21500320c0884d06e5421914518a",
+      "seconds": 3.633,
+      "lays": "RH",
+      "check": null,
+      "doll": "danilo",
+      "uppsattning": "live",
+      "camera": "kameran",
+      "styrbilder": {
+        "tomasz": {
+          "path": "assets/references/docka/docka-danilo-giv-p4-kameran/styrbild-tomasz.png",
+          "sha256": "3b12f1b58f3710d794ec1b2a2030ac04fc5722a749a1d6f0f42e0aed35d82c11",
+          "width": 1728,
+          "height": 972,
+          "look": "the real man shown in the guidance image, with the same face, hair and light blue shirt",
+          "from": "Filmens första ruta gjord till Tomasz av GPT Image 2.6 med hans tre bilder (API-liggaren, tomasz-gor-danilos-giv-styrbild-kameran-20261127, 10 krediter), nedskalad till 1728 × 972; styrbilden i tionde provet"
+        }
+      }
+    },
+    {
+      "id": "docka-danilo-giv-p4-plats-7",
+      "edge": "READY-C>P4.C1",
+      "path": "assets/references/docka/docka-danilo-giv-p4-plats-7/source.mp4",
+      "sha256": "68751967773294662f7902267170c771ee5cc29cd585a1d55c100b19df38d4f5",
+      "seconds": 3.633,
+      "lays": "RH",
+      "check": null,
+      "doll": "danilo",
+      "uppsattning": "live",
+      "camera": "plats-7",
+      "styrbilder": {
+        "tomasz": {
+          "path": "assets/references/docka/docka-danilo-giv-p4-plats-7/styrbild-tomasz.png",
+          "sha256": "af3b43179383f7c8a54e580ed2f91903572da31793229e671c076e7121ae688c",
+          "width": 1728,
+          "height": 972,
+          "look": "the real man shown in the guidance image, with the same face, hair and light blue shirt",
+          "from": "Filmens första ruta gjord till Tomasz av GPT Image 2.6 med styrbilden för livebordets kamera, bladet med fem vinklar och porträttet (API-liggaren, tomasz-gor-danilos-giv-styrbild-plats-7-20261127, 10 krediter), nedskalad till 1728 × 972; styrbilden för plats 7 i tionde provet"
+        }
+      }
+    }
+  ]
 }

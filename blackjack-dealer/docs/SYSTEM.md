@@ -8,9 +8,10 @@ rubriken du behöver.
 | Vad | Värde | Källa |
 | --- | --- | --- |
 | Bankens ruta (film och ankare) | 1764 × 1174 | `FILM` i `src/table-lens.ts` (Standarden nedan); `readRgb` i `tools/order-images.ts` vägrar annan storlek |
+| Uppsättningens ruta | förra standarden 1764 × 1174, livebordet 1728 × 972; en beställning, en dockfilm och en films post säger sin uppsättning, och utan fältet gäller den förra | `bild` i `src/uppsattning.ts`; `uppsattningOf`, `pictureOf` i `src/order-model.ts` |
 | Kortplanens ruta | 1762 × 1174; film-x = plan-x × 1763/1761 | `VIEWS.native` i `src/placement-model.ts`; `planPixel` i `src/table-lens.ts` (`planToFilm` i `src/card-plan.ts` ger samma) |
 | Bildfrekvens | WAN 3 30/s, Kling 24/s; banken behåller varje films takt | `source.fps`, `fpsOf` i `src/game-film.ts` |
-| Bordskanten | rad 831,5; dealerkantens mitt (881,5; 831,5); kroppen slutar på rad 825–831 | `data/scene-contract.json`; `edgeCheck` i `src/film-after.ts` |
+| Bordskanten | rad 831,5; dealerkantens mitt (881,5; 831,5); kroppen slutar på rad 825–831. Livebordets rad är där dess kamera ser dealerkantens mitt | `data/scene-contract.json`; `edgeCheck` i `src/film-after.ts`; `dealerEdgeRow` i `tools/order-images.ts` |
 | Grönt | ingen fast färg: nyckeln läser varje rutas hörn | shadern i `src/scene3d-film.ts` |
 | Order-id, klipp-id | `<dealer>-<steg>-<plats>-<nn>`; klipp `<order-id>-<tagning>` | `nextId` i `tools/order-store.ts`; `clipIdOf` i `tools/register-order.ts` |
 
@@ -270,6 +271,27 @@ GRANSKAD → INFÖRD; OSÄKER läggs aldrig om). Förvalen kommer ur stegets end
 återges med sin egen version). En godkänd order ändras aldrig (`approval.orderSha256`). Bilder och kvitton:
 `assets/orders/<id>/`; priser och tak: `data/order-policy.json`.
 
+**Uppsättningen** (`src/uppsattning.ts`; Jakob 2026-11-27: livebordet är den nya standarden, den förra står kvar som val).
+En order, en dockfilm i `data/rendered-references.json` och en films post i `data/motions.jsonl` bär fältet `uppsattning`
+bara när det inte är den förra (`uppsattningField`); utan fält gäller den förra, så inget som fanns skrivs om och en
+order vid den förra är tecken för tecken vad den var. En ny order görs vid uppsättningen för det den är gjord av: en
+dealers order vid hennes ankares (`uppsattning` i `data/dealers.json`, utan fält den förra; Paows), ett prov över en
+dockfilm vid filmens. Ett annat ord (`uppsattning` i beställningen) vägras. Bildens mått, kantraden och formen tas ur
+uppsättningen: orderns bilder (`pictureOf`), efterarbetet (`tools/film-after.ts` skalar till uppsättningens ruta och mäter
+det gröna, kanten och given bara vid den förra, som har den gröna duken) och orden om var kortet ligger
+(`placeWords` i `src/order-prompts.ts`, i den förras bildpunkter). Referensfilmer erbjuds bara ur orderns uppsättning
+(`referenceCandidates`); den som inte säger någon får den förras.
+
+**Ett prov för en person som inte är dealer än** (huvudagenten på Jakobs principbeslut 2026-11-27: en person blir dealer
+först när Jakob har dömt hans filmer, genom skillen `ny-dealer`): `node tools/order-new.ts --person tomasz GIV-2.3 P4.C1
+--reference <dockfilm>`. Ordern har ingen `dealer` utan `person` (id och namn), referensfilmen är dockans film som görs
+om (med `doll`), och styrbilden är personens bild av filmens första ruta, registrerad med filmen (`styrbilder` i
+`data/rendered-references.json`, `tools/doll-reference-put.ts --person`), som `keyframe` vid sekund 0. Modellen gör om
+filmen (`edits` i `MODELS`: Aleph 2, `/v1/video_to_video`), utan första och sista bild, längd eller upplösning; priset är
+28 krediter per påbörjad sekund av dockans film, uppåt räknat (`priceOf`). Texten är tionde provets med hans utseende i
+registrets ord (`personPrompt`). Bara titel och tagningar ändras i utkastet. `tools/register-order.ts` för inte in en sådan
+film i någon bank; tagningen hämtas, efterarbetas och granskas som andra.
+
 ## Dockan
 
 Dockan i `dealer3d/` är en vit docka i bordets verkliga geometri vars filmer styr beställningarnas rörelse; vit med flit
@@ -301,7 +323,9 @@ Dockan i `dealer3d/` är en vit docka i bordets verkliga geometri vars filmer st
   (`pinch-deal.ts`, `CLEAR.shoe`). Kortet hålls ute ur skon också mellan två rutor, så som sidan ritar det där
   (kvartsrutorna i en film med 24 rutor/s).
 - Rutor räknas från 0, ark och filnamn från 1. En dockfilm förs in i `data/rendered-references.json` av huvudagenten,
-  med nytt id varje gång. Mappen läser `placements/default.json` men skriver den aldrig.
+  med nytt id varje gång (`tools/doll-reference-put.ts`: en körning av `render-reference.ts` eller ett klipp ur editorns
+  `../standarddocka/klipp/`, läst där det ligger, med `--uppsattning` och `--kamera`). Mappen läser
+  `placements/default.json` men skriver den aldrig.
 
 ## Tal och munlappar
 

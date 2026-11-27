@@ -21,6 +21,11 @@
 // recipe's rule chooses it, and where the rule finds none the draft is made without one (its notes say what was not there);
 // --reference <id> names one, --no-reference takes none. --docka <namn>: the reference film is that dealer's own doll's
 // film for the edge (data/rendered-references.json, an entry with "doll"), which is never the default. --dry shows the draft (model, length, price, pictures, reference film, text) without writing it.
+//   node tools/order-new.ts --person tomasz GIV-2.3 P4.C1 --reference docka-danilo-giv-p4-kameran [--dry]
+// --person: a trial for a person who is not a dealer yet, at the set-up of the doll's film it is made over (the live table):
+// no dealer, his guidance picture registered with that film (tools/doll-reference-put.ts --person) at second 0, Aleph 2, the
+// tenth trial's text with his look (tools/order-store.ts personDraft). --docka <doll> picks the doll's film that has his
+// picture, and asks for --reference where two cameras have one. It goes into no bank until he is a dealer.
 // It makes a draft only: approving is tools/order-approve.ts, placing tools/order-put.ts. Nothing here pays or approves.
 // Tests: tools/order-routes.test.ts (the template per order, his notation, the tree).
 import { existsSync, readFileSync } from 'node:fs';
@@ -28,12 +33,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { StoreError } from './placement-store.ts';
 import { orderStore, type NewOrder, type StoreOptions } from './order-store.ts';
-import { STEPS, edgeOf, stepOfEdge, type Order, type RenderedReference, type StepKey } from '../src/order-model.ts';
+import { STEPS, edgeOf, personOf, pictureOf, stepOfEdge, uppsattningOf, type Order, type RenderedReference, type StepKey } from '../src/order-model.ts';
+import { UPPSATTNING } from '../src/uppsattning.ts';
 import { parseJakob } from '../studio/lib/names.ts';
 
-const VALUED = ['--mall', '--takes', '--title', '--extra', '--extra-efter', '--reference', '--end', '--base', '--continues', '--trad', '--docka', '--sekunder'];
+const VALUED = ['--mall', '--takes', '--title', '--extra', '--extra-efter', '--reference', '--end', '--base', '--continues', '--trad', '--docka', '--sekunder', '--person'];
 const ALONE = ['--no-reference', '--no-end', '--tur-retur', '--dry'];
-const USE = 'Använd: node tools/order-new.ts <dealer> <steg> [<plats>] (eller <dealer> "A2.3 - A3P4C2") [--mall 12|13|14|15|16] [--takes <n>] [--title "<namn>"] [--extra "<tillägg>"] [--extra-efter "<mening>"] [--reference <id> | --no-reference] [--end <A3-kandidat> | --no-end] [--tur-retur] [--sekunder <n>] [--base <post>] [--continues <order>] [--trad <träd>] [--docka <namn>] [--dry]';
+const USE = 'Använd: node tools/order-new.ts <dealer> <steg> [<plats>] (eller <dealer> "A2.3 - A3P4C2") [--mall 12|13|14|15|16] [--takes <n>] [--title "<namn>"] [--extra "<tillägg>"] [--extra-efter "<mening>"] [--reference <id> | --no-reference] [--end <A3-kandidat> | --no-end] [--tur-retur] [--sekunder <n>] [--base <post>] [--continues <order>] [--trad <träd>] [--docka <namn>] [--dry], eller för en person som inte är dealer än: node tools/order-new.ts --person <namn> <steg> [<plats>] (--docka <docka> | --reference <dockans film>) [--takes <n>] [--title "<namn>"] [--dry]';
 
 /** His notation ("A2.3 - A3P4C2", "A2.3 → A1"): the step and the card of the one film it names. */
 export function stepOfNotation(text: string): { step: StepKey; target: string | null } {
@@ -55,8 +61,10 @@ export function newOrderOf(args: readonly string[]): { input: NewOrder; dry: boo
     else if (a.startsWith('--')) throw new StoreError(400, `Okänd flagga ${a}. ${USE}`);
     else plain.push(a);
   }
-  const [dealer, ...said] = plain;
-  if (!dealer || !said.length) throw new StoreError(400, USE);
+  // A person who is not a dealer yet names no dealer: the words are the step and the card.
+  const person = flags.get('--person') ?? null;
+  const [dealer, ...said] = person ? ['', ...plain] : plain;
+  if ((!person && !dealer) || !said.length) throw new StoreError(400, USE);
   const keyed = STEPS.some((s) => s.key === said[0]);
   if (keyed && said.length > 2) throw new StoreError(400, USE);
   // In the step form the seat may be written as the plan writes it (P4.C2) or in his notation (A3P4C2, P4C2): the store takes the plan's.
@@ -67,7 +75,7 @@ export function newOrderOf(args: readonly string[]): { input: NewOrder; dry: boo
   if (flags.has('--docka') && (flags.has('--reference') || alone.has('--no-reference'))) throw new StoreError(400, '--docka väljer referensfilmen; ta bort --reference eller --no-reference.');
   const number = (name: string) => { const v = flags.get(name); if (v === undefined) return undefined; const n = Number(v); if (!Number.isInteger(n)) throw new StoreError(400, `${name} ska vara ett heltal.`); return n; };
   const input: NewOrder = {
-    dealer, step, target,
+    dealer, ...(person ? { person } : {}), step, target,
     template: number('--mall'), takes: number('--takes'), title: flags.get('--title'), extra: flags.get('--extra'), extraAfter: flags.get('--extra-efter'),
     reference: alone.has('--no-reference') ? null : flags.get('--reference'), end: alone.has('--no-end') ? null : flags.get('--end'), base: flags.get('--base'), continues: flags.get('--continues'),
     shape: alone.has('--tur-retur') ? 'ROUND_TRIP' : undefined, duration: number('--sekunder'),
@@ -102,16 +110,27 @@ export function treesOf(root: string, order: Pick<Order, 'dealer' | 'step' | 'pi
  * The film of a dealer's own doll for the order's edge (data/rendered-references.json, an entry with "doll"): the one listed
  * last where there are several (a film made again is listed after the one it replaces). Never the default; only --docka.
  */
-export function dollFilm(root: string, doll: string, input: Pick<NewOrder, 'step' | 'target'>): RenderedReference {
-  const file = path.join(root, 'data', 'rendered-references.json');
-  const films = existsSync(file) ? ((JSON.parse(readFileSync(file, 'utf8')) as { films?: RenderedReference[] }).films ?? []) : [];
+export function dollFilm(root: string, doll: string, input: Pick<NewOrder, 'step' | 'target' | 'person'>): RenderedReference {
+  const films = renderedFilms(root);
   const def = STEPS.find((s) => s.key === input.step);
   const edge = def ? edgeOf(def, input.target ?? null) : null;
   const own = films.filter((f) => f.doll === doll);
+  // A person's trial takes the doll's film that has a guidance picture for him; of two (two cameras) the order names one.
+  if (input.person) {
+    const his = own.filter((f) => f.edge === edge && f.styrbilder?.[input.person!]);
+    if (his.length > 1) throw new StoreError(400, `Dockan ${doll} har ${his.length} filmer för ${edge} med en styrbild för ${input.person}: välj en med --reference (${his.map((f) => `${f.id}${f.camera ? `, ${f.camera}` : ''}`).join('; ')}).`);
+    if (!his.length) throw new StoreError(400, `Dockan ${doll} har ingen film för ${edge ?? input.step} med en styrbild för ${input.person} i data/rendered-references.json (node tools/doll-reference-put.ts --id <film> --person ${input.person} --styrbild <bild> --utseende "<orden>").`);
+    return his[0];
+  }
   const film = own.filter((f) => f.edge === edge).at(-1);
   if (!film) throw new StoreError(400, `Dockan ${doll} har ingen film för ${edge ?? input.step} i data/rendered-references.json${own.length ? ` (den har ${own.map((f) => f.edge).join(', ')})` : ''}.`);
   return film;
 }
+/** The register of the dolls' films (data/rendered-references.json), as it stands. */
+const renderedFilms = (root: string): RenderedReference[] => {
+  const file = path.join(root, 'data', 'rendered-references.json');
+  return existsSync(file) ? ((JSON.parse(readFileSync(file, 'utf8')) as { films?: RenderedReference[] }).films ?? []) : [];
+};
 
 /** Makes (or with --dry shows) one draft in the repo at `root`; returns what the command prints. */
 export async function newCommand(root: string, args: readonly string[], options: StoreOptions = {}): Promise<Record<string, unknown>> {
@@ -123,12 +142,16 @@ export async function newCommand(root: string, args: readonly string[], options:
   treesOf(root, shown, tree); // a picture outside the named tree stops the draft before anything is written
   const order = dry ? shown : (await store.create(input)).order;
   const trees = treesOf(root, order, null);
+  // A person's trial: who, the set-up with its picture and the camera his doll's film is taken through.
+  const person = personOf(order), clip = order.reference.status === 'FINNS' ? order.reference.clips[0] : null;
+  const film = person && clip ? renderedFilms(root).find((f) => f.id === clip) ?? null : null;
   return {
     ok: true, id: dry ? null : order.id, dry, title: order.title, status: order.status, step: order.step.key, edge: order.step.edge,
+    ...(person ? { person: person.name, uppsattning: UPPSATTNING[uppsattningOf(order)].namn, picture: `${pictureOf(order).width} × ${pictureOf(order).height}`, camera: film?.camera ?? null } : {}),
     model: order.generation.model, seconds: order.generation.params.duration ?? null, resolution: order.generation.params.resolution ?? null,
     template: order.prompt.template, style: order.prompt.style, words: order.prompt.text.split(/\s+/).length, text: order.prompt.text,
-    pictures: order.pictures.map((p, i) => ({ goesAs: p.goesAs, label: p.label, entry: trees[i].entry, trees: trees[i].trees, path: p.path ?? null })),
-    reference: order.reference, doll: dolls ? `dockan ${doll}s film ${dolls.id} (${dolls.edge}) går med som referensfilm` : null, takes: order.takes, cost: { total: order.cost.total, worstTotal: order.cost.worstTotal }, notes: order.notes,
+    pictures: order.pictures.map((p, i) => ({ goesAs: p.goesAs, label: p.label, entry: trees[i].entry, trees: trees[i].trees, path: p.path ?? null, ...(person ? { size: `${p.width} × ${p.height}`, ...(p.seconds !== undefined ? { seconds: p.seconds } : {}) } : {}) })),
+    reference: order.reference, doll: dolls ? `dockan ${doll}s film ${dolls.id} (${dolls.edge}) går med som referensfilm` : null, takes: order.takes, cost: { total: order.cost.total, worstTotal: order.cost.worstTotal, ...(person ? { basis: order.cost.basis } : {}) }, notes: order.notes,
   };
 }
 

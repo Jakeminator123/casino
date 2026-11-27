@@ -29,7 +29,9 @@ export async function orderTake(root: string, id: string, take: number): Promise
   const file = path.join(root, 'data', 'orders', `${id}.json`);
   if (!existsSync(file)) throw new OrderError(`Beställningen ${id} finns inte (data/orders/${id}.json).`);
   const order = await json(file) as OrderLike;
-  if (order.id !== id || typeof order.dealer !== 'string' || !/^[a-z0-9]+$/.test(order.dealer)) throw new OrderError(`${id}: beställningen saknar id eller dealer.`);
+  // A trial for a person who is not a dealer yet names him instead of a dealer (src/order-model.ts Order.person).
+  const person = (order as {person?: {id?: unknown} | null}).person;
+  if (order.id !== id || (person ? order.dealer !== undefined || typeof person.id !== 'string' : typeof order.dealer !== 'string' || !/^[a-z0-9]+$/.test(order.dealer))) throw new OrderError(`${id}: beställningen saknar id eller dealer.`);
   if (!Number.isInteger(take) || take < 1 || take > Number(order.takes)) throw new OrderError(`${id} har tagning 1–${order.takes}, inte ${take}.`);
   const folder = path.join(root, 'assets', 'orders', id), receiptFile = path.join(folder, 'receipt.json');
   const receipt = existsSync(receiptFile) ? await json(receiptFile) : null, entry = (receipt?.takes ?? []).find((t: ReceiptTake) => t?.take === take) ?? null;

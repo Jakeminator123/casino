@@ -19,12 +19,19 @@
 // single-precision sums and the final truncation to bytes. Compared against tonight's after.mp4 files with tools/film-after.ts
 // --compare (2026-11-13): WAN 3 and the 4K film byte-identical; Kling 4 about ten values a frame one level apart before encoding.
 
+import {UPPSATTNING} from './uppsattning.ts';
+
 /** Three values per pixel; in a frame and in the tone they are B, G, R (OpenCV's order). */
 export type Triple = [number, number, number];
 export type RGB = Triple;
 
 // ── The bank's frame and the treatments ─────────────────────────────────────
-export const BANK = {width: 1764, height: 1174};
+/**
+ * The bank's frame: the former standard's picture (src/uppsattning.ts). The green, the corners, the shoe's window and the
+ * person's part of the picture below are measured in it; a film of another set-up is brought to that set-up's picture
+ * (tools/film-after.ts) and gets none of the green screen's measures, since its table has no green screen.
+ */
+export const BANK = UPPSATTNING.forra.bild;
 /** Left of the shoe: only the dealer (the tone lock and the end check measure her, not the shoe or the card in it). */
 export const PERSON_RIGHT = 1150;
 /** The corner the green level is read in, as the scripts print it: x 0..95, y 0..95. */
@@ -40,6 +47,8 @@ export const TREATMENTS: Record<string, Treatment> = {
   'wan3': {model: 'wan3', cutTail: 2, lock: true, why: 'WAN 3: de två sista rutorna mörknar och klipps; hela filmen är cirka fyra nivåer mörk och lyfts till första bilden'},
   'kling-4': {model: 'kling-4', cutTail: 0, lock: false, why: 'Kling 4: 1764 × 1172 skalas till 1764 × 1174, ljudet tas bort, inga rutor klipps'},
   'kling-3-4k': {model: 'kling-3-4k', cutTail: 0, lock: true, why: 'Kling 3.0 4K: skalas ner till bankens ram, inga rutor klipps, personen lyfts till första bilden'},
+  // The tenth trial (2026-11-27): as many frames as the doll's film, in its rate; the live table's 1728 × 972 came out as 1920 × 1080.
+  'aleph-2': {model: 'aleph-2', cutTail: 0, lock: false, why: 'Aleph 2: lika många rutor som dockans film och i dess takt; skalas till uppsättningens ruta (livebordets 1920 × 1080 till 1728 × 972), ljudet tas bort, inga rutor klipps'},
 };
 
 // ── OpenCV's arithmetic ─────────────────────────────────────────────────────
@@ -344,13 +353,16 @@ export const median = (v: ArrayLike<number>) => { const s = Float64Array.from(v)
 
 /** kantkoll.py: the table's back edge on an anchor or a frame (ground standard, row 831.5). */
 export type EdgeCheck = {green: RGB; darkGreenPixelsAboveEdge: number; blobs: {box: number[]; pixels: number; deepest: number}[]; bodyEnds: {columns: number; min: number; median: number; max: number} | null; betweenHands: {min: number; median: number; max: number} | null};
-export const EDGE = {row: 832, darkBy: 10, bodyRows: [825, 831] as const};
+/** The rows the edge check reads, from the dealer edge's row in the picture (the former standard's: the contract's 831.5, data/scene-contract.json): the first whole row below it, and the seven above that where her body ends. */
+export const edgeRows = (edgeRow: number) => ({row: Math.ceil(edgeRow), darkBy: 10, bodyRows: [Math.ceil(edgeRow) - 7, Math.ceil(edgeRow) - 1] as const});
+export const EDGE = edgeRows(831.5);
+const EDGE_DEFAULT = EDGE;
 /**
  * Above the edge the green is even: no green pixel 10 levels or more darker than the background further than 2 px from the person
  * or the shoe (a shadow under an elbow or beside the shoe would be such pixels); and where the body ends (per column under the
  * torso, the last row that is not green, where she is unbroken for 150 rows above it). A BGR picture of the bank's size.
  */
-export function edgeCheck(im: Uint8Array, w: number, h: number): EdgeCheck {
+export function edgeCheck(im: Uint8Array, w: number, h: number, EDGE: {row: number; darkBy: number} = EDGE_DEFAULT): EdgeCheck {
   const n = w * h, solid = new Uint8Array(n);
   for (let p = 0; p < n; p++) { const i = p * 3; solid[p] = im[i + 1] - Math.max(im[i], im[i + 2]) < 15 ? 1 : 0; }
   const ch: number[][] = [[], [], []];

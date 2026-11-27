@@ -114,14 +114,15 @@ Kopian på nätet (`dealer-lake.vercel.app`) har samma meny utan Lipsync och uta
 - `data/motions.jsonl`: filmregistret, en post per film och tagning med Jakobs dom; läses och skrivs genom
   `tools/register-store.ts`, med en SQLite-kopia under `.runtime/register/` (`node tools/register.ts get <id>`).
 - `data/clip-jobs.json`: klippbankens ankare, jobb och härledda tagningar.
-- `data/orders/<id>.json`: beställningarna; `data/order-methods.json` receptet per steg; `data/order-policy.json` taken,
-  fullmakten och priserna.
+- `data/orders/<id>.json`: beställningarna, var och en gjord för en uppsättning (fältet `uppsattning`, utan fält den förra
+  standarden); `data/order-methods.json` receptet per steg; `data/order-policy.json` taken, fullmakten och priserna.
 - `data/dealers.json` och `data/media-roles.json`: vilka dealers som finns och vilka bilder som gäller.
 - `data/dealer-trees.json`, `data/dealer-compositions.json`: träden och kompositionerna i Karta.
 - `data/decisions.json`: korten i Beslut; bara sidan skriver hans svar (`tools/decision-store.ts`).
 - `data/proof-notes.json`: hans ord om proven; `node tools/proof-notes.ts` visar det olästa, `--answer <nr> "<text>"`
   svarar och `--read <nr>` markerar läst.
-- `data/rendered-references.json`: dockans filmer; `data/speech.json`, `data/speech-patches.json` och `data/lipsync.json`:
+- `data/rendered-references.json`: dockans filmer, med uppsättning, kamera och en styrbild per person
+  (`tools/doll-reference-put.ts`); `data/speech.json`, `data/speech-patches.json` och `data/lipsync.json`:
   talet.
 - `data/manifest.json`: filernas ursprung och SHA-256.
 - `data/scene-presets/<namn>.json`: utseendena (förvalen) i Scen; Casino spelar `casino`. `data/play-view.json`:

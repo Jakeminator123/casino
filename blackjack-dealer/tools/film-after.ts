@@ -4,7 +4,7 @@
 // Reads data/orders/<id>.json (the model, first.png and the anchor it was copied from, last.png, the motion's target) and the
 // delivery assets/orders/<id>/take-<n>/source.mp4, which is only read. A deal ordered without a last picture (order-new.ts
 // --no-end, a seat's first landing) is checked against the card plan's card instead (dealCheckOf). Writes beside it, never over anything:
-//   after.mp4   the bank's frame (1764 × 1174) at the delivery's own rate, no sound; H.264 CRF 12, preset slow, 4:2:0, encoded by
+//   after.mp4   the set-up's frame (the bank's 1764 × 1174) at the delivery's own rate, no sound; H.264 CRF 12, preset slow, 4:2:0, encoded by
 //               FFmpeg from BGR frames exactly as the script did, so the same frames give the same file
 //   after.json  the receipt: the treatment and why, every flag, the frames cut, the scaling, the tone lock's gain and lift, the
 //               pictures with their SHA-256, the original's SHA-256 before and after (unchanged), and every measure: the green
@@ -16,6 +16,10 @@
 // comes from the anchor first.png was copied from (its from.path), as every after-work tonight used it. A delivery that is not
 // the first picture's shape (width/height within 1 %) is refused: fitting it to the bank's frame is the main agent's and Jakob's.
 // The delivery's colour tags are ignored on decoding, as OpenCV did (a Kling 4 film is tagged BT.709 and was read as BT.601).
+// The frame is the order's set-up's picture (src/order-model.ts pictureOf): the bank's 1764 × 1174 at the former standard,
+// 1728 × 972 at the live table. Only the former's table has the green screen, so a film of another set-up (Aleph 2 over the
+// doll's film at the live table: 1920 × 1080 in, scaled to 1728 × 972, its guidance picture at second 0 as its first picture)
+// gets no levelling, no kantkoll, no landing against the card plan and no dealCheck, and its receipt says so (notMeasured).
 // Flags, the cases the scripts had:
 //   --keep-tail | --cut <n>   keep every frame | cut the n last frames (default by the model: WAN 3 cuts 2)
 //   --lock | --no-lock        lift the person to first.png's levels, or not (default by the model)
@@ -37,9 +41,11 @@ import path from 'node:path';
 import sharp from 'sharp';
 import {probe, sha256File, type Probe} from './film-fix.ts';
 import {orderTake, OrderError} from './order-collect.ts';
-import {BANK, TREATMENTS, resizeCubic, smoothGreen, toneLock, levelFrame, NO_TONE, cornerMean, endCheck, stillAnchorTail, edgeCheck, filmMeasure, seam, round, cardBlobs, type Tone, type PlanTarget} from '../src/film-after.ts';
+import {TREATMENTS, resizeCubic, smoothGreen, toneLock, levelFrame, NO_TONE, cornerMean, endCheck, stillAnchorTail, edgeCheck, edgeRows, filmMeasure, seam, round, cardBlobs, type Tone, type PlanTarget} from '../src/film-after.ts';
 import {checkDeal, type DealCheck, type FrameCard} from '../src/deal-check.ts';
-import {planQuad, readPlan, type Pt} from './order-images.ts';
+import {dealerEdgeRow, planQuad, readPlan, type Pt} from './order-images.ts';
+import {uppsattningOf} from '../src/order-model.ts';
+import {UPPSATTNING} from '../src/uppsattning.ts';
 import {RIM_WAYS, rimOffFilm, type RimWay} from './card-rim.ts';
 import type {PlacementPlan} from '../src/placement-model.ts';
 
@@ -135,8 +141,13 @@ export async function afterWork(id: string, take: number, options: Options = {},
   if (!treatment) throw new Refused(`${id}: modellen ${model || '(ingen)'} har inget efterarbete här; det finns för ${Object.keys(TREATMENTS).join(', ')}.`);
   const takeDir = path.join(folder, `take-${take}`), source = path.join(takeDir, 'source.mp4');
   if (!existsSync(source)) throw new Refused(`Leveransen saknas: ${posix(source)}.`);
-  const pics = (order as {pictures?: {name: string; path: string | null; from?: {path?: string}}[]}).pictures ?? [];
-  const firstEntry = pics.find(p => p.name === 'first.png'), firstFile = path.join(folder, 'first.png'), lastFile = path.join(folder, 'last.png');
+  const pics = (order as {pictures?: {name: string; path: string | null; goesAs?: string; seconds?: number; from?: {path?: string}}[]}).pictures ?? [];
+  // The set-up's picture is the frame the film is brought to. Only the former standard's table has the green screen the
+  // levelling, the edge check and the deal's card check read; a film of another set-up is scaled to its picture and no more.
+  const setup = uppsattningOf(order as {uppsattning?: unknown}), frame = UPPSATTNING[setup].bild, green = setup === 'forra', whose = green ? 'bankens' : `${UPPSATTNING[setup].namn.toLowerCase()}s`;
+  if (!green && options.rim) throw new Refused(`--rim målar kortets kant i förra standardens ruta; ${id} är gjord vid ${UPPSATTNING[setup].namn.toLowerCase()}.`);
+  // A film made over another (Aleph 2) has no first picture: its guidance picture at second 0 is the picture it starts on.
+  const firstEntry = pics.find(p => p.name === 'first.png') ?? pics.find(p => p.goesAs === 'keyframe' && p.seconds === 0), firstFile = path.join(folder, firstEntry?.name ?? 'first.png'), lastFile = path.join(folder, 'last.png');
   if (!existsSync(firstFile)) throw new Refused(`${id}: first.png saknas (${posix(firstFile)}); utan den finns varken grönt eller ton att gå efter.`);
   // A first picture cut out of a film (a return that continues a give) names that film as its source: the picture as sent is then the anchor.
   const anchorFile = options.anchor ? path.resolve(options.anchor) : firstEntry?.from?.path && /\.(png|jpe?g|webp)$/i.test(firstEntry.from.path) && existsSync(path.join(root, firstEntry.from.path)) ? path.join(root, firstEntry.from.path) : firstFile;
@@ -146,17 +157,17 @@ export async function afterWork(id: string, take: number, options: Options = {},
 
   const facts: Probe = probe(source), anchor = await readPicture(anchorFile), first = await readPicture(firstFile), last = existsSync(lastFile) ? await readPicture(lastFile) : null;
   const W = anchor.width, H = anchor.height;
-  if (W !== BANK.width || H !== BANK.height) throw new Refused(`Ankaret ${posix(anchorFile)} är ${W} × ${H}, inte bankens ${BANK.width} × ${BANK.height}.`);
-  if (first.width !== W || first.height !== H || (last && (last.width !== W || last.height !== H))) throw new Refused('first.png och last.png ska ha bankens storlek.');
-  if (!sameShape(facts.width, facts.height, W, H)) throw new Refused(`Leveransen är ${facts.width} × ${facts.height} (bredd/höjd ${round(facts.width / facts.height, 3)}), inte första bildens form ${round(W / H, 3)}: stanna och rapportera; passningen till bankens ram är huvudagentens och Jakobs.`);
+  if (W !== frame.width || H !== frame.height) throw new Refused(`Ankaret ${posix(anchorFile)} är ${W} × ${H}, inte ${whose} ${frame.width} × ${frame.height}.`);
+  if (first.width !== W || first.height !== H || (last && (last.width !== W || last.height !== H))) throw new Refused(`first.png och last.png ska ha ${whose} storlek.`);
+  if (!sameShape(facts.width, facts.height, W, H)) throw new Refused(`Leveransen är ${facts.width} × ${facts.height} (bredd/höjd ${round(facts.width / facts.height, 3)}), inte första bildens form ${round(W / H, 3)}: stanna och rapportera; passningen till ${green ? 'bankens ram' : `${whose} ruta`} är huvudagentens och Jakobs.`);
   const cut = options.cut ?? treatment.cutTail, lock = options.lock ?? treatment.lock, fps = rateText(options.fps ?? facts.fps), rate = (([n, d]) => n / (d || 1))(fps.split('/').map(Number));
   const scaled = facts.width !== W || facts.height !== H, seats = options.seats ?? (typeof (order.motion as {target?: unknown} | null)?.target === 'string' ? [String((order.motion as {target: string}).target)] : []);
   const other = options.compare ? path.resolve(options.compare) : null;
-  if (other) { if (!existsSync(other)) throw new Refused(`${posix(other)} finns inte.`); const o = probe(other); if (o.width !== W || o.height !== H) throw new Refused(`${posix(other)} är ${o.width} × ${o.height}; jämförelsen kräver bankens ram.`); }
+  if (other) { if (!existsSync(other)) throw new Refused(`${posix(other)} finns inte.`); const o = probe(other); if (o.width !== W || o.height !== H) throw new Refused(`${posix(other)} är ${o.width} × ${o.height}; jämförelsen kräver ${green ? 'bankens ram' : `${whose} ruta`}.`); }
   const sourceSha = await sha256File(source);
 
   await mkdir(outDir, {recursive: true});
-  const gt = smoothGreen(anchor.data, W, H), started = Date.now();
+  const gt = green ? smoothGreen(anchor.data, W, H) : null, started = Date.now(), edge = edgeRows(await dealerEdgeRow(root, setup));
   let tone: Tone | null = null, index = 0, written = 0, firstLevels: [number[], number[]] | null = null, lastLevels: [number[], number[]] | null = null;
   const queue: Uint8Array[] = [], sourceEnd = last ? endCheck(last.data, W, H) : null, enc = encoder(part, W, H, fps), rim = options.rim ? rimOffFilm(anchor.data, options.rim) : null;
   let whole = false, encoded = false;
@@ -170,7 +181,7 @@ export async function afterWork(id: string, take: number, options: Options = {},
       sourceEnd?.add(frame);
       queue.push(frame);
       if (queue.length > cut) {
-        const f = queue.shift()!, o = levelFrame(f, gt, W, H, tone ?? NO_TONE), levels: [number[], number[]] = [cornerMean(f, W, H), cornerMean(o, W, H)];
+        const f = queue.shift()!, o = gt ? levelFrame(f, gt, W, H, tone ?? NO_TONE) : f, levels: [number[], number[]] = [cornerMean(f, W, H), cornerMean(o, W, H)];
         if (!firstLevels) firstLevels = levels; lastLevels = levels;
         rim?.add(o);
         await enc.write(o); written++;
@@ -203,7 +214,7 @@ export async function afterWork(id: string, take: number, options: Options = {},
   const t = tone ?? {...NO_TONE, pixels: 0}, rgb = (v: number[]) => [v[2], v[1], v[0]];
   const record = {schemaVersion: 1, tool: 'tools/film-after.ts', createdAt: new Date().toISOString(), seconds: round((Date.now() - started) / 1000, 1),
     order: id, take, model, treatment: {...treatment, cutTail: cut, lock, fps, flags: options, scaledFrom: scaled ? [facts.width, facts.height] : null,
-      scaling: scaled ? 'varje ruta skalad rakt till bankens ram, bikubiskt (OpenCV INTER_CUBIC), som efterarbete.py' : null, soundDropped: facts.audio,
+      scaling: scaled ? `varje ruta skalad rakt till ${green ? 'bankens ram' : `${whose} ruta`}, bikubiskt (OpenCV INTER_CUBIC), som efterarbete.py` : null, soundDropped: facts.audio,
       colourTagsIgnored: Object.keys(facts.colour).length ? facts.colour : null, port: 'efterarbete.py, slutkoll.py, kantkoll.py och filmmatt.py:s pixeldel (src/film-after.ts)'},
     pictures: {anchor: {path: posix(anchorFile), sha256: anchor.sha256, why: 'det gröna som varje ruta förs till'}, first: {path: posix(firstFile), sha256: first.sha256, why: lock ? 'tonlåsets referens' : 'startskarven'},
       ...(last ? {last: {path: posix(lastFile), sha256: last.sha256, why: 'slutkoll och slutskarven'}} : {})},
@@ -215,12 +226,14 @@ export async function afterWork(id: string, take: number, options: Options = {},
     efterarbete: {frames: written, gainBGR: t.gain.map(v => round(v, 3)), liftBGR: t.lift.map(v => round(v, 2)), greenBefore: {first: firstLevels?.[0], last: lastLevels?.[0]}, greenAfter: {first: firstLevels?.[1], last: lastLevels?.[1]}},
     slutkoll: {source: sourceEnd?.result() ?? null, after: endAfter?.result() ?? null},
     stillAnchorTail: tail?.result() ?? null,
-    kantkoll: {firstFrame: f0 ? edgeCheck(f0, W, H) : null, lastFrame: fl ? edgeCheck(fl, W, H) : null},
-    filmmatt: {...measure.result(seats, plan), startSeam: f0 ? seam(f0, first.data) : null, endSeam: fl && last ? seam(fl, last.data) : null},
+    kantkoll: green ? {firstFrame: f0 ? edgeCheck(f0, W, H, edge) : null, lastFrame: fl ? edgeCheck(fl, W, H, edge) : null} : null,
+    filmmatt: {...measure.result(green ? seats : [], plan), startSeam: f0 ? seam(f0, first.data) : null, endSeam: fl && last ? seam(fl, last.data) : null},
     ...(rim ? {cardRim: rim.result()} : {}),
     ...(comparison ? {comparison} : {}),
     // The automatic check of a deal (src/deal-check.ts): a take that fails it goes to no reviewer; remarks go with it.
-    ...(isDeal(order) ? {dealCheck: dealCheckOf(order, measure.dealFrames(), last, rate, last ? null : await planCardFor(root, order))} : {}),
+    ...(green && isDeal(order) ? {dealCheck: dealCheckOf(order, measure.dealFrames(), last, rate, last ? null : await planCardFor(root, order))} : {}),
+    // Another set-up's film: what was not measured and why, so that no one reads a missing check as a passed one.
+    ...(green ? {} : {uppsattning: setup, notMeasured: `${UPPSATTNING[setup].namn} har ingen grön duk och inga gula och blå kort: varken det gröna, kantkollen, landningen mot kortplanen eller kontrollen av given mäts här. Filmen skalades till ${frame.width} × ${frame.height} och granskas ruta för ruta med ögat.`}),
     review: 'Efterarbetet ersätter ingen granskning: varje ruta granskas i full upplösning (../.claude/skills/granska-film/SKILL.md).'};
   if (record.output.frames !== written) throw Error(`after.mp4 har ${record.output.frames} rutor, ${written} skrevs.`);
   return record;
@@ -313,7 +326,7 @@ if (import.meta.main) {
     const {record, film, receipt} = await afterWork(id, Number(takeText), readFlags(rest));
     const r = record as Record<string, any>;
     console.log(JSON.stringify({film: posix(film), receipt: posix(receipt), model: r.model, frames: r.output.frames, size: [r.output.width, r.output.height], fps: r.output.fps, cutTail: r.treatment.cutTail, lock: r.treatment.lock,
-      efterarbete: r.efterarbete, slutkoll: r.slutkoll.after, kantkollLast: r.kantkoll.lastFrame && {dark: r.kantkoll.lastFrame.darkGreenPixelsAboveEdge, bodyEnds: r.kantkoll.lastFrame.bodyEnds},
+      efterarbete: r.efterarbete, slutkoll: r.slutkoll.after, kantkollLast: r.kantkoll?.lastFrame && {dark: r.kantkoll.lastFrame.darkGreenPixelsAboveEdge, bodyEnds: r.kantkoll.lastFrame.bodyEnds}, ...(r.notMeasured ? {notMeasured: r.notMeasured} : {}),
       filmmatt: {frozenFrames: r.filmmatt.frozenFrames, green: r.filmmatt.green, landing: r.filmmatt.landing, startSeam: r.filmmatt.startSeam, endSeam: r.filmmatt.endSeam},
       cardRim: r.cardRim && {way: r.cardRim.way, framesChanged: r.cardRim.framesChanged, firstFrame: r.cardRim.firstFrame, lastFrame: r.cardRim.lastFrame, pixelsPainted: r.cardRim.pixelsPainted, softEdge: r.cardRim.softEdge, herEdge: r.cardRim.herEdge, held: r.cardRim.held},
       comparison: r.comparison && {identicalFile: r.comparison.identicalFile, frames: r.comparison.frames, identicalFrames: r.comparison.identicalFrames, meanAbs: r.comparison.meanAbs, maxAbs: r.comparison.maxAbs, differingShare: r.comparison.differingShare},
