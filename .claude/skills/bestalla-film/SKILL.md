@@ -57,7 +57,7 @@ och priserna i `blackjack-dealer/data/order-policy.json`. Upprepa dem inte; änd
    `status … HÄMTAD`. Originalet `take-<n>/source.*` ändras aldrig.
 5. **Efterarbeta:** `node tools/film-after.ts <id> <n>` (modellen väljer behandlingen; annan form än första bilden
    vägras; vid livebordet skalas filmen till 1728 × 972, och det gröna, kanten och given mäts inte utan granskas med
-   ögat). Stillbild: stegen i `blackjack-dealer/tools/python/README.md` och `blackjack-dealer/tools/still-after.ts`.
+   ögat). En stillbild efterarbetas inte av något verktyg i dag (den äldre dealerns väg är arkiverad).
 6. **Mät:** kortets storlek inom ±10 % från skon till bordet, landat inom 5 px från planen, vilken hand som lade det,
    `node tools/flip-axis.ts <klipp>` och `dealCheck` i `after.json`. Det som ligger utanför märks, döljs aldrig.
 7. **Granska** (skillen `granska-film`) och för in: `node tools/order-bring.ts <id> <n>` till bankens inkorg och Material;
@@ -95,9 +95,8 @@ det vi beställer med och vad proven har visat.
   för referensfilmen bestämmer takten. Skriv därför utan tider när en referensfilm finns.
 - **Andra stolar** (2026-11-18, 2026-11-24): kameran på samma höjd och lutning, bara flyttad. Kling 4 som redigerare
   (`/v1/video_to_video`) med dockans film från stolens öga och stolens ankare som första bild fick hans "Bra".
-- **Vila:** WAN 3, 4 s, A1 först och sist och en liten handling i tillägget. En ny uppsättning får vilor lokalt ur den
-  gamlas (`blackjack-dealer/tools/python/hands-from-anchor.py`); korta vilor klipps ur en film där hon återvänder till
-  A1 ("gillar dessa korta klipp!", `tools/register-derived.ts --frames`).
+- **Vila:** WAN 3, 4 s, A1 först och sist och en liten handling i tillägget; korta vilor klipps ur en film där hon
+  återvänder till A1 ("gillar dessa korta klipp!").
 - **Föll, gör inte om:** hela rundan i en tagning (0 av 7, cirka 3 500 krediter); Kling 3.0 4K (ingen skärpevinst);
   Kling 3.0 Motion Control (ingen sista bild); en mellanbild som referensbild i Kling 4 (MCP:s `generate_video` har
   inga mellanbilder; API:ts `"middle"` håller, skillen `runway`, åttonde provet); Aleph som rättare; en stängd giv till en

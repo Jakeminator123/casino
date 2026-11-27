@@ -9,8 +9,7 @@
 //   after.json  the receipt: the treatment and why, every flag, the frames cut, the scaling, the tone lock's gain and lift, the
 //               pictures with their SHA-256, the original's SHA-256 before and after (unchanged), and every measure: the green
 //               before and after, slutkoll (on the delivery and on after.mp4), kantkoll on the first and last frame, filmmatt's
-//               pixel half; --compare adds the frame-by-frame comparison with another film; --rim adds cardRim (the way, the
-//               frames changed, the pixels painted and those held still, per frame too)
+//               pixel half; --compare adds the frame-by-frame comparison with another film
 // The treatment follows the model (TREATMENTS in src/film-after.ts): WAN 3 cuts its two dark last frames and lifts the person to
 // first.png; Kling 4 keeps every frame and is scaled from 1172 to 1174 rows; Kling 3.0 4K is scaled down and lifted. The green
 // comes from the anchor first.png was copied from (its from.path), as every after-work tonight used it. A delivery that is not
@@ -26,10 +25,6 @@
 //   --fps <rate>              the rate written (default: the delivery's own, e.g. 24 for Kling)
 //   --anchor <png>            the picture whose green is wanted (default: the anchor first.png comes from)
 //   --seats <P1.C1,…>         the targets filmmatt measures the landing at (default: the order's motion.target)
-//   --rim <felt|card>         the pale rim the model draws round the dealt card outside the shoe painted over, frame by frame,
-//                             after the levelling (tools/card-rim.ts): as felt (the card becomes as small as its colour), or
-//                             in the card's own colour (the card keeps its outer size and her fingers stay on it). Off unless
-//                             asked for: Jakob has said yes to neither at game size
 //   --out <dir>               write after.mp4 and after.json into that folder instead (a trial; nothing beside the original)
 //   --compare <film>          compare after.mp4 frame by frame with another film (tonight's Python after.mp4)
 // Exit code 2 and the reason in Swedish when the run is refused; nothing is then written.
@@ -46,7 +41,6 @@ import {checkDeal, type DealCheck, type FrameCard} from '../src/deal-check.ts';
 import {dealerEdgeRow, planQuad, readPlan, type Pt} from './order-images.ts';
 import {uppsattningOf} from '../src/order-model.ts';
 import {UPPSATTNING} from '../src/uppsattning.ts';
-import {RIM_WAYS, rimOffFilm, type RimWay} from './card-rim.ts';
 import type {PlacementPlan} from '../src/placement-model.ts';
 
 const ROOT = process.cwd();
@@ -109,7 +103,7 @@ export function rateText(fps: string): string { const [n, d] = fps.split('/').ma
 /** Whether a delivery has the first picture's shape (width/height within SHAPE_TOLERANCE): Kling 4's 1764 × 1172 does, 16:9 does not. */
 export function sameShape(w: number, h: number, pw: number, ph: number): boolean { return Math.abs(w / h - pw / ph) / (pw / ph) <= SHAPE_TOLERANCE; }
 
-export type Options = {cut?: number; lock?: boolean; fps?: string; anchor?: string; seats?: string[]; rim?: RimWay; out?: string; compare?: string};
+export type Options = {cut?: number; lock?: boolean; fps?: string; anchor?: string; seats?: string[]; out?: string; compare?: string};
 /** Reads the flags; unknown flags are refused, so that a typo is not ignored. */
 export function readFlags(args: string[]): Options {
   const o: Options = {};
@@ -122,7 +116,6 @@ export function readFlags(args: string[]): Options {
     else if (a === '--fps') { o.fps = value(); if (!/^\d+(\/\d+)?$/.test(o.fps)) throw new Refused('--fps är ett tal eller ett bråk (24, 30, 30000/1001).'); }
     else if (a === '--anchor') o.anchor = value();
     else if (a === '--seats') o.seats = value().split(',').filter(Boolean);
-    else if (a === '--rim') { const way = value(); if (!RIM_WAYS.includes(way as RimWay)) throw new Refused('--rim är felt (kanten målas som filt) eller card (kanten målas i kortets egen färg).'); o.rim = way as RimWay; }
     else if (a === '--out') o.out = value();
     else if (a === '--compare') o.compare = value();
     else throw new Refused(`Okänd flagga ${a}.`);
@@ -136,7 +129,7 @@ export type FilmComparison = {other: string; otherSha256: string; identicalFile:
 /** The whole run for one take. Nothing is written beside the original unless every step holds; after.mp4 is written under a temporary name first. */
 export async function afterWork(id: string, take: number, options: Options = {}, root = ROOT): Promise<{record: Record<string, unknown>; film: string; receipt: string}> {
   const {order, folder} = await orderTake(root, id, take);
-  if (order.kind !== 'FILM') throw new Refused(`${id} är en ${order.kind}, ingen film: stillbilder efterarbetas med tools/still-after.ts.`);
+  if (order.kind !== 'FILM') throw new Refused(`${id} är en ${order.kind}, ingen film: efterarbetet gäller filmer.`);
   const model = String(order.generation?.model ?? ''), treatment = TREATMENTS[model];
   if (!treatment) throw new Refused(`${id}: modellen ${model || '(ingen)'} har inget efterarbete här; det finns för ${Object.keys(TREATMENTS).join(', ')}.`);
   const takeDir = path.join(folder, `take-${take}`), source = path.join(takeDir, 'source.mp4');
@@ -145,7 +138,6 @@ export async function afterWork(id: string, take: number, options: Options = {},
   // The set-up's picture is the frame the film is brought to. Only the former standard's table has the green screen the
   // levelling, the edge check and the deal's card check read; a film of another set-up is scaled to its picture and no more.
   const setup = uppsattningOf(order as {uppsattning?: unknown}), frame = UPPSATTNING[setup].bild, green = setup === 'forra', whose = green ? 'bankens' : `${UPPSATTNING[setup].namn.toLowerCase()}s`;
-  if (!green && options.rim) throw new Refused(`--rim målar kortets kant i förra standardens ruta; ${id} är gjord vid ${UPPSATTNING[setup].namn.toLowerCase()}.`);
   // A film made over another (Aleph 2) has no first picture: its guidance picture at second 0 is the picture it starts on.
   const firstEntry = pics.find(p => p.name === 'first.png') ?? pics.find(p => p.goesAs === 'keyframe' && p.seconds === 0), firstFile = path.join(folder, firstEntry?.name ?? 'first.png'), lastFile = path.join(folder, 'last.png');
   if (!existsSync(firstFile)) throw new Refused(`${id}: first.png saknas (${posix(firstFile)}); utan den finns varken grönt eller ton att gå efter.`);
@@ -169,7 +161,7 @@ export async function afterWork(id: string, take: number, options: Options = {},
   await mkdir(outDir, {recursive: true});
   const gt = green ? smoothGreen(anchor.data, W, H) : null, started = Date.now(), edge = edgeRows(await dealerEdgeRow(root, setup));
   let tone: Tone | null = null, index = 0, written = 0, firstLevels: [number[], number[]] | null = null, lastLevels: [number[], number[]] | null = null;
-  const queue: Uint8Array[] = [], sourceEnd = last ? endCheck(last.data, W, H) : null, enc = encoder(part, W, H, fps), rim = options.rim ? rimOffFilm(anchor.data, options.rim) : null;
+  const queue: Uint8Array[] = [], sourceEnd = last ? endCheck(last.data, W, H) : null, enc = encoder(part, W, H, fps);
   let whole = false, encoded = false;
   try {
     for await (const raw of decode(source, facts.width, facts.height)) {
@@ -183,7 +175,6 @@ export async function afterWork(id: string, take: number, options: Options = {},
       if (queue.length > cut) {
         const f = queue.shift()!, o = gt ? levelFrame(f, gt, W, H, tone ?? NO_TONE) : f, levels: [number[], number[]] = [cornerMean(f, W, H), cornerMean(o, W, H)];
         if (!firstLevels) firstLevels = levels; lastLevels = levels;
-        rim?.add(o);
         await enc.write(o); written++;
       }
     }
@@ -228,7 +219,6 @@ export async function afterWork(id: string, take: number, options: Options = {},
     stillAnchorTail: tail?.result() ?? null,
     kantkoll: green ? {firstFrame: f0 ? edgeCheck(f0, W, H, edge) : null, lastFrame: fl ? edgeCheck(fl, W, H, edge) : null} : null,
     filmmatt: {...measure.result(green ? seats : [], plan), startSeam: f0 ? seam(f0, first.data) : null, endSeam: fl && last ? seam(fl, last.data) : null},
-    ...(rim ? {cardRim: rim.result()} : {}),
     ...(comparison ? {comparison} : {}),
     // The automatic check of a deal (src/deal-check.ts): a take that fails it goes to no reviewer; remarks go with it.
     ...(green && isDeal(order) ? {dealCheck: dealCheckOf(order, measure.dealFrames(), last, rate, last ? null : await planCardFor(root, order))} : {}),
@@ -321,14 +311,13 @@ function comparer(other: string) {
 
 if (import.meta.main) {
   const [id, takeText, ...rest] = process.argv.slice(2);
-  if (!id || !takeText) { console.error('Användning: node tools/film-after.ts <beställnings-id> <tagning> [--keep-tail|--cut n] [--lock|--no-lock] [--fps r] [--anchor png] [--seats P1.C1] [--rim felt|card] [--out mapp] [--compare film]'); process.exit(1); }
+  if (!id || !takeText) { console.error('Användning: node tools/film-after.ts <beställnings-id> <tagning> [--keep-tail|--cut n] [--lock|--no-lock] [--fps r] [--anchor png] [--seats P1.C1] [--out mapp] [--compare film]'); process.exit(1); }
   try {
     const {record, film, receipt} = await afterWork(id, Number(takeText), readFlags(rest));
     const r = record as Record<string, any>;
     console.log(JSON.stringify({film: posix(film), receipt: posix(receipt), model: r.model, frames: r.output.frames, size: [r.output.width, r.output.height], fps: r.output.fps, cutTail: r.treatment.cutTail, lock: r.treatment.lock,
       efterarbete: r.efterarbete, slutkoll: r.slutkoll.after, kantkollLast: r.kantkoll?.lastFrame && {dark: r.kantkoll.lastFrame.darkGreenPixelsAboveEdge, bodyEnds: r.kantkoll.lastFrame.bodyEnds}, ...(r.notMeasured ? {notMeasured: r.notMeasured} : {}),
       filmmatt: {frozenFrames: r.filmmatt.frozenFrames, green: r.filmmatt.green, landing: r.filmmatt.landing, startSeam: r.filmmatt.startSeam, endSeam: r.filmmatt.endSeam},
-      cardRim: r.cardRim && {way: r.cardRim.way, framesChanged: r.cardRim.framesChanged, firstFrame: r.cardRim.firstFrame, lastFrame: r.cardRim.lastFrame, pixelsPainted: r.cardRim.pixelsPainted, softEdge: r.cardRim.softEdge, herEdge: r.cardRim.herEdge, held: r.cardRim.held},
       comparison: r.comparison && {identicalFile: r.comparison.identicalFile, frames: r.comparison.frames, identicalFrames: r.comparison.identicalFrames, meanAbs: r.comparison.meanAbs, maxAbs: r.comparison.maxAbs, differingShare: r.comparison.differingShare},
       dealCheck: r.dealCheck && {pass: r.dealCheck.pass, cardFrom: r.dealCheck.cardFrom, fails: r.dealCheck.fails, remarks: r.dealCheck.remarks}}, null, 2));
     if (!rest.includes('--out')) console.log(`Nästa: node tools/order-put.ts status ${id} ${takeText} EFTERARBETAD --file ${posix(film)} --note "tools/film-after.ts (${r.model}): ..."`);

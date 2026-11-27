@@ -38,13 +38,34 @@
 // there too), both SHA-256 compared, only then removed; a hard link is made under
 // a temporary name and renamed over the copy after both SHA-256 agree. Every step goes into a receipt in .runtime/cleanup/ as it
 // happens; a run that removes nothing writes none. Bytes are honest: a file with several hard links frees its bytes only when its last name goes.
-import {copyFileSync, existsSync, linkSync, lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, rmdirSync, statSync, unlinkSync, writeFileSync, constants} from 'node:fs';
+import {copyFileSync, createReadStream, existsSync, linkSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, rmdirSync, statSync, unlinkSync, writeFileSync, constants} from 'node:fs';
+import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {checkedPath, hash} from './media-dedupe.ts';
 import {MOTIONS_TEXT, filmFiles, filmOf, motionRegister, type Removal} from './register-store.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+// A path inside the root, through no link and not led out of it: what every step below checks before it touches a file.
+function within(root: string, file: string): boolean {
+  const relative = path.relative(path.resolve(root), path.resolve(file));
+  return !!relative && relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
+}
+function checkedPath(root: string, file: string): string {
+  if (!within(root, file)) throw new Error(`Utanför vald rot: ${file}`);
+  for (let p = path.resolve(file); ; p = path.dirname(p)) {
+    if (lstatSync(p).isSymbolicLink()) throw new Error(`Länk vägras: ${p}`);
+    if (p === path.parse(p).root) break;
+  }
+  if (!within(realpathSync(root), realpathSync(file))) throw new Error(`Omdirigerad sökväg: ${file}`);
+  return file;
+}
+async function hash(file: string): Promise<string> {
+  const digest = createHash('sha256');
+  for await (const chunk of createReadStream(file)) digest.update(chunk);
+  return digest.digest('hex');
+}
+
 export const DAY = 86_400_000, MIN_AGE_DAYS = 3, NOTE_DAYS = 14, TRASH_DAYS = 14, PLAN_HOURS = 24;
 export const TRASH = '.runtime/papperskorg'; // relative to the checkout
 export const MARKER = 'RADERAD.txt';

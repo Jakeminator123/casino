@@ -208,8 +208,8 @@ export function audit(repo: string): {items: Item[]; judged: Map<string, string>
   for (const f of readdirSync(path.join(repo, 'data/orders')).filter(f => f.endsWith('.json'))) claims.push({path: `assets/orders/${f.slice(0, -5)}`, use: 'visas', why: `data/orders/${f}`});
   // The scene: rooms, materials, props.
   for (const f of ['data/scene-rooms.json', 'data/scene-materials.json', 'data/props.json', 'data/scene-contract.json']) for (const p of pathsIn(read(f))) claims.push({path: p, use: 'visas', why: f});
-  // Speech working folders: what data/speech.json and data/lipsync.json name.
-  for (const f of ['data/speech.json', 'data/lipsync.json']) for (const p of pathsIn(read(f))) claims.push({path: p, use: 'visas', why: f});
+  // Speech working folders: what data/speech.json names.
+  for (const f of ['data/speech.json']) for (const p of pathsIn(read(f))) claims.push({path: p, use: 'visas', why: f});
   for (const u of units.filter(u => /^assets\/speech\/[^/]+\/[^/]+$/.test(u.path) && !u.path.endsWith('/patches'))) {
     const id = u.path.split('/').at(-1)!, take = id.startsWith('bank-') ? id.slice(5) : id;
     claims.push({path: u.path, use: playedClips.has(take) ? 'visas' : 'bara registrerad', why: playedClips.has(take) ? `talfilmen ${take} spelas` : `talets arbetsmapp för ${take}, som inte spelas`});

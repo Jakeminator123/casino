@@ -200,17 +200,3 @@ export function judgedBank(bank: BankData): BankData {
   return {...bank, jobs: kept.jobs.filter(gives), derived: kept.derived.filter(gives), edits: kept.edits};
 }
 
-// ── What she says ───────────────────────────────────────────────────────────
-// The engine's speak signals (game/presentation.ts) in a step come before its first card (goodluck, double) or after its last
-// (insurance, the outcome). A talk film is played at rest, so it is played before the chain of cards or after it, never inside.
-export type SpeakSignal = {type: 'speak'; line: string};
-export function speakMoments(signals: FilmSignal[]): {before: string[]; after: string[]} {
-  const moves = signals.map((s, i) => s.type === 'deal' || s.type === 'reveal' ? i : -1).filter(i => i >= 0), first = moves[0] ?? Infinity;
-  const lines = signals.flatMap((s, i) => s.type === 'speak' && typeof (s as SpeakSignal).line === 'string' ? [{line: (s as SpeakSignal).line, i}] : []);
-  return {before: lines.filter(l => l.i < first).map(l => l.line), after: lines.filter(l => l.i > first).map(l => l.line)};
-}
-
-// ── The switch for her lines ────────────────────────────────────────────────
-// Which talk film says a line is src/speech-lines.ts's (spokenFilm, chatReply); the page asks it. The look key tal (src/game-look.ts):
-// 'av' keeps her silent, and the module is never asked; anything else ('repliker', the default) lets the films play.
-export const talkOn = (word: unknown) => word !== 'av';

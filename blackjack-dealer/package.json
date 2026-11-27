@@ -18,7 +18,6 @@
     "status": "node --disable-warning=ExperimentalWarning tools/preview.ts --status",
     "stop": "node --disable-warning=ExperimentalWarning tools/preview.ts --stop",
     "stada": "node tools/scratch-clean.ts",
-    "media:status": "node tools/media-status.ts",
     "gallra": "node tools/media-thin.ts"
   },
   "dependencies": {

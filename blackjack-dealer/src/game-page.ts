@@ -9,7 +9,6 @@
 // scene keys in the address (src/game-look.ts); without them the page is as before.
 //
 // The game plays only takes with a verdict (judgedBank in src/game-director.ts): Jakob's, or a provisional one given in his place.
-// The one exception is a talk film, a rest take on request, which is played only when the dealer says its line (src/speech-lines.ts).
 // ?trad=<id> (Karta's Prova i Casino) narrows them to one tree's films (below, treeCut); ?komposition=<id> plays several trees
 // put together (below, composition).
 import {buildGraph, effectOf, type Graph} from './clip-graph.ts';
@@ -21,14 +20,12 @@ import {LINS, type Lins} from './card-plan.ts';
 import {MOBILE_BELOW, PLAY_VIEW, readFraming, readPlayView, type PlayView} from './play-view.ts';
 import {DATATS_FORVAL, UPPSATTNING, VALETS_FORVAL, lasUppsattning, type UppsattningId} from './uppsattning.ts';
 import {GAME_OWN, OWN_WORDS} from './game-own.ts';
-import {cardRecords, judgedBank, speakMoments, talkOn} from './game-director.ts';
-import {cardsChoice, cardWords, createFilm, type FilmPlayers, type Said} from './game-film.ts';
+import {cardRecords, judgedBank} from './game-director.ts';
+import {cardsChoice, cardWords, createFilm, type FilmPlayers} from './game-film.ts';
 import {chipsFor, mountOverlay, type Action, type Anchors} from './game-overlay.ts';
 import {mountPanel} from './game-panel.ts';
-import {exitView, type ExitView} from './scene3d-exit.ts';
 import {tableView, tableCards, cardFaces, shownBy, shownFor, lineOf, betTotal, handKey, mayAsk, collector, stageOf, CHIP_VALUES, DEALER_KEY, type PageState, type Settled} from './game-view.ts';
 import type {Snapshot} from '../game/session.ts';
-import type {MouthPatch, PatchRegister} from './speech-patch.ts';
 
 const THEMES = ['noir', 'scout', 'smaragd', 'bordeaux', 'midnatt']; // the console's themes, Scout's own (game.css)
 const $ = (id: string) => document.getElementById(id)!, stage = $('stage'), picture = $('picture'), canvas = $('view') as HTMLCanvasElement, failBox = $('fail');
@@ -40,27 +37,16 @@ const query = new URLSearchParams(location.search);
 // zoomed in on seats 2–6, each ring whole inside the picture's width, her head and those rings inside a picture as short as
 // 1.33 times its width, and it turns toward the seat in play. Where the console stands follows the stage's shape (placeConsole
 // marks the stage, game.css lays it out): standing, under the picture; lying on a stage lower than sideBelow (a phone on its
-// side), at the picture's right; else over the picture's lower edge. The film before the game (src/game-intro.ts) ends in these framings, so the
-// two change together.
+// side), at the picture's right; else over the picture's lower edge.
 const FRAMING = {sideBelow: 540, turnShare: 0.6, turnLimit: 40};
-// The play view as the page knows it (src/play-view.ts): the game's own until the saved one has been read, which is after the
-// film before the game has been laid.
+// The play view as the page knows it (src/play-view.ts): the game's own until the saved one has been read.
 let playView: PlayView = PLAY_VIEW;
 function placeConsole() {
   const box = stage.getBoundingClientRect(), standing = box.width / Math.max(1, box.height) < MOBILE_BELOW;
   stage.classList.toggle('tall', standing); stage.classList.toggle('side', !standing && box.height < FRAMING.sideBelow); // the picture box follows at once (game.css)
   return standing;
 }
-placeConsole(); // before the film before the game is laid, so that it is laid in the picture the game will have
-// A film before the game (src/game-intro.ts): ?intro=noir-3 lays the short noir trailer over the stage, with Spela and Hoppa över,
-// and fades into the game when it ends (Jakob 2026-11-13: "så att man övergår till henne i URL:en på vercel. kanske genom en ny
-// knapp"). It is laid before anything is read, so that it covers the first picture, and the game is built under it. The film's last
-// frame is the game's own picture in the room Monaco with life in the room, so the address asks for room=monaco and roomLife=1 too.
-// Until it is over she says nothing and the chat is still (introOn, in render): the press on Spela is also what lets her be heard.
-const INTROS: Record<string, {film: string; poster: string}> = {'noir-3': {film: 'assets/films/intro/noir-3/film-2.mp4', poster: 'assets/films/intro/noir-3/poster.jpg'}};
-const introAsked = INTROS[query.get('intro') ?? ''] as {film: string; poster: string} | undefined;
-let introOn = !!introAsked, introOver = () => { introOn = false; }, introLead = () => {};
-if (introAsked) void import('./game-intro.ts').then(m => m.createIntro(stage, canvas, {...introAsked, view: () => playView, onLead: () => introLead()})).catch(() => null).then(() => introOver());
+placeConsole();
 stage.dataset.theme = THEMES.includes(query.get('tema') ?? '') ? query.get('tema')! : 'noir';
 // The server keeps one session per table name; a second tab or a test opens game.html?table=<name> and plays its own.
 const table = /^[a-z0-9-]{1,40}$/.test(query.get('table') ?? '') ? `?table=${query.get('table')}` : '';
@@ -163,22 +149,11 @@ const graph = graphOf(dealer);
 // to the scene and left out of the Miljö menu.
 const effectRooms = new Set(Object.values(judged.motions ?? {}).map(m => effectOf(m)?.room).filter((id): id is string => !!id));
 const sceneRooms = registered.filter(r => panoramas.includes(r) || effectRooms.has(r.id));
-// What she says: the talk film of a line, from src/speech-lines.ts (read once, beside the page; without it she says everything as
-// text, as before). ?tal=av, the look key, keeps her silent and the module is never asked.
-type Spoken = {key: string; clip: string; text: string};
-type SpeechLines = {PHASE_LINE?: Record<string, string>; spokenFilm(takes: unknown[], dealer: string, keyOrPhase: string, options?: {voice?: string}): Spoken | null; chatReply(takes: unknown[], dealer: string, written: string, count?: number, options?: {voice?: string}): Spoken | null};
-const talking = !!seated && talkOn((asked as {tal?: unknown}).tal ?? query.get('tal')), VOICE = {voice: nameOf(seated)}; // her own voice, by her name (data/speech.json), Jakob 2026-11-13
-let lines: SpeechLines | null = null;
-if (talking) void import('./speech-lines.ts').then(m => { lines = m as unknown as SpeechLines; }).catch(() => {});
-const restTakes = () => film.graph.edge['IDLE>IDLE']?.takes ?? [];
-/** Her talk film for a line's key or a phase, or null: no film (the chat shows the text it always did), or her lines are off. */
-const spokenOf = (keyOrPhase: string): Spoken | null => talking && lines ? lines.spokenFilm(restTakes(), dealer, keyOrPhase, VOICE) : null;
-
 // ── the picture: the 3D scene, seen a little from above so that all seven bet rings and the bar have room ──
 // The scene fills the picture box (#picture). On a larger screen that is the whole stage and the console lies over its lower edge;
 // on a phone it is the part of the stage the console leaves free (frame, below), so that nothing of the console covers the table.
 const scene = createScene(canvas, picture, {contract, plan, urls: {plate: 'assets/scene/room.png', panorama: 'assets/scene/panorama-vegas.jpg', la: 'assets/scene/panorama-la.jpg', skog: 'assets/scene/panorama-skog.jpg'}, rooms: sceneRooms, onChange: () => {}, onMissingRoom: () => {}, uppsattning: setup});
-// The framings (FRAMING) stand at the top, where the stage is told its shape before the film before the game is laid.
+// The framings (FRAMING) stand at the top, where the stage is told its shape.
 // The lying framing is the play view's Dator, or the look's own where it names one (lookState lays the play view under the
 // look); yaw, dy and dz are where the view comes to rest. Standing is always the play view's Mobil.
 const lying = {pitch: asked.pitch ?? playView.dator.pitch, zoom: asked.zoom ?? playView.dator.zoom}, home = {yaw: asked.yaw ?? playView.dator.yaw, dy: asked.dy ?? 0, dz: asked.dz ?? 0};
@@ -215,18 +190,6 @@ scene.set({cards: cardsNow.cards}); // over the look: see cardsNow
 const pageNote = [filmsFit ? treeCut.line : null, composition.line, setupLine, lookNote].filter(Boolean).join(' · ');
 if (pageNote) { const note = Object.assign(document.createElement('p'), {textContent: pageNote}); note.setAttribute('role', 'status');
   note.style.cssText = 'position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:30;margin:0;max-width:min(92%,680px);padding:6px 14px;border:1px solid rgba(226,191,109,.32);border-radius:999px;background:rgba(8,7,6,.84);color:#f6eedc;font-size:13px;pointer-events:none'; stage.append(note); }
-// Under a film before the game the room's own film waits (roomLife off until the lead, roomLifeBack): it was read and played for
-// the whole of that film without being seen, the heaviest thing on a phone beside the dealer's film, and begun at the lead the
-// room starts from its beginning, where its people sit as in the film's last picture.
-const lifeAsked = introOn && scene.state.roomLife === true; if (lifeAsked) scene.set({roomLife: false});
-let lifeBack = !lifeAsked; const roomLifeBack = () => { if (lifeBack) return; lifeBack = true; scene.set({roomLife: true}); scene.restartRoomLife(); };
-// Her own slow sway (dealerLife) is none under a film before the game, and comes in over SWAY_IN_MS once the game has taken over
-// (swayIn, and the frame loop below). The sway is counted on the scene's clock, so with it the game had her where the film had not
-// left her, differently at every visit: 5 px to the side of the film's last picture at computer size in one measured visit and 0
-// in another (her face; 2026-11-14). The film's last picture is the game's picture without the sway.
-const SWAY_IN_MS = 4000, swayAsked = introOn ? scene.state.dealerLife : 0; let swayFrom: number | null = null;
-if (swayAsked > 0) scene.set({dealerLife: 0});
-const swayIn = () => { if (swayAsked > 0 && swayFrom === null && scene.state.dealerLife === 0) swayFrom = performance.now(); };
 scene.rebuild(); scene.start();
 new ResizeObserver(frame).observe(stage); frame();
 // Her films say the set-up they are made under, the cut's (a composition's are the former standard's), and the scene shows them only
@@ -244,7 +207,6 @@ if (composition.cut && compositionCode && homeTree) { const cut = composition.cu
   film.tempo = {round: () => scene.state.filmTempo, tree: id => cut && code && cut.trees.some(t => t.tree === id && t.tempo !== undefined) ? code.tempoOf(cut, id, scene.state.filmTempo) : null}; }
 // A bounded local A/B trial for silent card moves; speech and idle keep their own timing.
 if (query.has('dealTempo')) film.dealTempo = Number(query.get('dealTempo'));
-film.calm = introOn; // under the film before the game she only rests calmly: the film ends with her at rest
 // How the card in her hand is shown (src/game-film.ts Carry) is a word in the address only, for the lab and for recordings:
 // kort=hand (the drawn card in her hand, overriding the scene switch), kort=liggande (the film's own card in her hand, the
 // drawn card once it lies), kort=matt (the film's card recoloured in her hand).
@@ -252,25 +214,6 @@ film.carry = cardsNow.carry;
 // The film card's own colours recoloured (src/game-film.ts CardWords), a lab trial for recordings and Jakob's own eye: cardBack=dark,
 // cardFace=paper. Without them the game is as before.
 film.words = cardWords(query);
-// Her lines over the films that play (src/scene3d-mouth.ts, src/speech-patch.ts): the mouth patches of data/speech-patches.json in her
-// voice and the game's language, each record checked against the register's sha256 and its film against the bank's file, and read
-// ahead by the scene. A step lays a line over the first of its films that has its patch (src/game-film.ts); without the register, or
-// with her lines off, she speaks as before.
-type Mouth = {patch: MouthPatch; base: string};
-const mouths: Mouth[] = [], mouthLayer = (scene as unknown as {mouth?: {preload(parts: Mouth[]): void; state(part: Mouth): string}}).mouth ?? null;
-const sha256 = async (data: ArrayBuffer) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', data))].map(b => b.toString(16).padStart(2, '0')).join('');
-const lineKey = (keyOrPhase: string) => lines?.PHASE_LINE?.[keyOrPhase] ?? keyOrPhase.toLowerCase();
-const mouthFor = (keyOrPhase: string) => mouths.find(m => m.patch.dealer === dealer && m.patch.line.key === lineKey(keyOrPhase)) ?? null;
-if (talking && mouthLayer) void fetch('data/speech-patches.json').then(res => res.ok ? res.json() : null).then(async (register: PatchRegister | null) => {
-  for (const entry of register?.patches ?? []) { if (entry.voice !== VOICE.voice || entry.language !== 'sv') continue;
-    const res = await fetch(entry.path).catch(() => null), data = res?.ok ? await res.arrayBuffer() : null; if (!data || await sha256(data) !== entry.sha256) continue;
-    const patch = JSON.parse(new TextDecoder().decode(data)) as MouthPatch;
-    const files = Object.values((bank.motions ?? {}) as Record<string, {source?: {path?: string; sha256?: string}} | null>); // a take cut out of a film names the film's file
-    if (!files.some(m => m?.source?.path === patch.film.path && m.source.sha256 === patch.film.sha256)) continue; // made over another file than the bank's
-    mouths.push({patch, base: entry.path.replace(/patch\.json$/, '')}); }
-  mouthLayer.preload(mouths);
-}).catch(() => {});
-film.mouths = () => mouths.filter(m => m.patch.dealer === dealer && mouthLayer?.state(m) === 'ready');
 
 // ── state ──
 let snapshot: Snapshot = first, paid: Snapshot | null = null; // snapshot: the round on the table. paid: the engine's state after that round was collected.
@@ -279,9 +222,7 @@ const page: PageState = {stage: 'BETTING', busy: false, dealerPlays: false, bets
 // film, the hole card closed until the engine turns it, and the controls are those of the phase the engine is in (stageOf, mayAsk).
 page.stage = stageOf(snapshot);
 if (page.stage !== 'BETTING') { const table = tableCards(snapshot); film.set({table, records: cardRecords(table, cardFaces(snapshot)), lying: [...table.hands.flatMap(h => h.cards), ...table.dealer]}); }
-// Under a film before the game her rest stands on its first picture from the start (hold): that picture is the one the film ends
-// in, and standing, her film is not played under a film that covers it (on a phone three films ran at once, two of them unseen).
-else film.rest(introOn ? {hold: true} : {});
+else film.rest();
 
 // ── commands to the engine ──
 async function send(command: Record<string, unknown>): Promise<Snapshot | null> {
@@ -302,23 +243,13 @@ async function present(next: Snapshot, dealerPlays: boolean) {
   if (page.stage === 'BETTING') { page.balance -= betTotal(page.bets); page.stage = 'ROUND'; }
   page.shown = shownFor(page.shown, snapshot, next); // a total stays with its own hand through a split (src/game-view.ts)
   snapshot = next; page.busy = true; page.dealerPlays = dealerPlays;
-  // Her lines in this step (the engine's speak signals): each with its talk film when there is one, written in the chat as she begins it.
-  spoken.clear();
-  // A line with neither a talk film nor a mouth patch is the chat's own; with a patch and no film it is written as the patch says it.
-  const moments = speakMoments(next.events), saying = (key: string, beat?: Said['beat']): Said[] => { const talk = spokenOf(key), part = talk && film.talkPart(talk.clip), over = mouthFor(key); if (!(talk && part) && !over) return [];
-    const text = talk && part ? talk.text : over!.patch.line.text; spoken.add(key); return [{key: lineKey(key), part: talk && part ? part : null, begin: () => chat?.say(text), ...(beat ? {beat} : {})}]; };
-  // The engine says 'double' after the card it deals (game/presentation.ts), but the line belongs to the step's beginning, where the
-  // other product says it (600 ms into the reach for the shoe), so it goes with the lines before the chain. When the dealer plays her
-  // hand she says so ("Dealern spelar.": the phase DEALER, which the engine gives no line of its own): last, with the hole card's turn.
-  const early = moments.after.filter(key => key === 'double'), later = moments.after.filter(key => key !== 'double');
-  const said = {before: [...[...moments.before, ...early].flatMap(key => saying(key)), ...(dealerPlays ? saying('DEALER', 'REVEAL') : [])], after: later.flatMap(key => saying(key))};
   render();
   const result = await film.play(next.events, {table, records: cardRecords(table, cardFaces(next))}, beat => {
     if (beat.kind !== 'DEAL' && beat.kind !== 'REVEAL' && beat.kind !== 'PLACE') return;
     const event = next.events.find(e => (e.type === 'deal' || e.type === 'reveal') && e.shoeDraw === beat.own!.shoeDraw), shown = event && shownBy(event);
     if (shown) { page.shown[shown.key] = shown; render(); }
     if (heard.table && beat.own) sound?.card(beat.kind === 'REVEAL' ? 'turn' : 'land', {pan: beat.own.slot.owner === 'P' ? panOf(beat.own.slot.seat) : 0});
-  }, said);
+  });
   gaps.push(...result.gaps); gaps.splice(0, Math.max(0, gaps.length - 40));
   page.busy = false; page.balance = next.balance; page.line = lineOf(next.events) ?? page.line;
   if (settle || next.view.round?.phase === 'settled') {
@@ -409,23 +340,12 @@ const panel = mountPanel(overlay.root.querySelector<HTMLElement>('.go-bar')!, RO
     else scene.set({roomShift: GAME_OWN.roomShift, room: id, blur: next.blur} as never); // the background shimmers and changes under the shimmer
     if (heard.ambience) sound?.ambience(soundOf(id)); panel.set({room: id});
   },
-  // She leaves, the table stands empty, the dealer chosen comes in (the same one again when she is chosen). Only the bank's judged
-  // films play (src/game-film.ts swap): a dealer without one for leaving or coming is cut out or in, and the gap is kept with the others.
-  async dealer(id) {
-    const next = DEALERS.find(d => d.id === id) ?? DEALERS.find(d => d.id === dealer)!;
-    if (page.busy || page.stage === 'ROUND') return;
-    page.busy = true; page.error = 'Dealern byts …'; comeHome = false; panel.set({changing: true}); render(); chat?.say('Tack för mig. Lycka till vid bordet!');
-    // The table stands empty for a moment. An entrance that shows her whole body is watched from where the camera stands, backed
-    // away (its film begins with the empty table); before one that begins at the table the camera comes home.
-    const away = (arrive: {frame?: unknown}[]) => new Promise<void>(resolve => { const whole = arrive.some(p => (p.frame as {layer?: string} | null | undefined)?.layer === 'BEHIND_TABLE');
-      if (!whole) { comeHome = true; shot = null; } setTimeout(resolve, whole ? 700 : 1500); });
-    const changed = next.id !== dealer, change = await film.swap(away, changed ? graphOf(next.id) : null), played = change.played;
-    gaps.push(...change.gaps); gaps.splice(0, Math.max(0, gaps.length - 40));
-    shot = null;
-    if (changed && played) { dealer = next.id; chat?.dealer(next.label); panel.set({dealer});
-      try { localStorage.setItem('dealer.dealer', dealer); } catch { /* a private window keeps nothing */ }
-      const address = new URL(location.href); address.searchParams.set('dealer', dealer); history.replaceState(null, '', address); }
-    page.busy = false; page.error = played ? null : 'Det finns ingen film för dealerbytet än.'; panel.set({changing: false}); if (played) chat?.say('Hej! Nu är det jag som delar ut.'); render();
+  // Another dealer between rounds: the game opens again with her word (her films, her trees); no film of anyone leaving is played.
+  dealer(id) {
+    const next = DEALERS.find(d => d.id === id);
+    if (!next || next.id === dealer || page.busy || page.stage === 'ROUND') return;
+    try { localStorage.setItem('dealer.dealer', next.id); } catch { /* a private window keeps nothing */ }
+    const address = new URL(location.href); address.searchParams.set('dealer', next.id); location.replace(address);
   },
   music(track) { heard.track = track; panel.set({track}); withSound(s => s.music?.(track)); },
   level(music) { heard.music = music; panel.set({music}); sound?.set({music}); },
@@ -468,21 +388,12 @@ void import('./game3d-chips.ts').then(m => { const made = m.createChips(scene); 
 // The table chat as a dummy (src/game-chat.ts; game.html?chatt=0 leaves it out). The dealer's lines follow the round's phases and how it ended.
 type Chat = {phase(phase: string, said?: string | null): void; say(text: string): void; dealer(name: string): void};
 let chat: Chat | null = null, chatPhase = '', chatLine: string | null = null;
-// What she answers a player is the speech's ready answer when it has one (its film plays as she answers), else the dummy's own.
-const answer = (typed: string, n: number) => { const talk = talking && lines ? lines.chatReply(restTakes(), dealer, typed, n, VOICE) : null; if (!talk || !film.talkPart(talk.clip)) return null; film.say(talk.clip); return talk.text; };
-if (query.get('chatt') !== '0') void import('./game-chat.ts').then(m => { chat = m.mountChat(stage, {...(seated ? {name: nameOf(seated)} : {}), answer}); render(); }).catch(() => {});
-// The lines of this step that her speech says (their own words replace the chat's for the phase and for how the round ended), and
-// the gaps the film met (for the console and the proof recorder).
-const spoken = new Set<string>(), gaps: string[] = [];
-/** The chat's line for a phase she has entered: her talk film's words when she has one (and the film for a new round), else the dummy's. */
-function phaseLine(phase: string): string | null | undefined {
-  const talk = spokenOf(phase); if (!talk || !film.talkPart(talk.clip)) return undefined;
-  if (phase !== 'BETTING') return null; // said as its film plays, with the engine's own signal for it (present)
-  return film.say(talk.clip, () => chat?.say(talk.text)) ? null : talk.text; // a new round: she says it now, or the chat does when a step is playing
-}
+if (query.get('chatt') !== '0') void import('./game-chat.ts').then(m => { chat = m.mountChat(stage, seated ? {name: nameOf(seated)} : {}); render(); }).catch(() => {});
+// The gaps the film met (for the console and the proof recorder).
+const gaps: string[] = [];
 const render = () => { const view = tableView(snapshot, page);
   panel.set({canChange: !page.busy && page.stage !== 'ROUND'});
-  if (chat && !introOn) { if (view.phase !== chatPhase) { chatPhase = view.phase; chat.phase(view.phase, phaseLine(view.phase)); } if (page.line !== chatLine) { chatLine = page.line; if (page.line && view.phase === 'SETTLED' && !settledSpoken()) chat.say(page.line.replace(/<[^>]+>/g, '')); } } chips?.set(Object.fromEntries(view.seats.map(s => [s.seat, taken.has(s.seat) ? [] : s.chips])), seconds()); if (view.phase === 'TURN' || view.phase === 'BETTING') { if (view.phase === 'TURN') byHand = false; aimAt(view.phase === 'TURN' ? snapshot.view.round?.activeSeat ?? null : null); } overlay.render(view); };
+  if (chat) { if (view.phase !== chatPhase) { chatPhase = view.phase; chat.phase(view.phase); } if (page.line !== chatLine) { chatLine = page.line; if (page.line && view.phase === 'SETTLED') chat.say(page.line.replace(/<[^>]+>/g, '')); } } chips?.set(Object.fromEntries(view.seats.map(s => [s.seat, taken.has(s.seat) ? [] : s.chips])), seconds()); if (view.phase === 'TURN' || view.phase === 'BETTING') { if (view.phase === 'TURN') byHand = false; aimAt(view.phase === 'TURN' ? snapshot.view.round?.activeSeat ?? null : null); } overlay.render(view); };
 
 // ── where things are in the picture ──
 // A film pixel on the felt as the scene's own table point (dealer metres: x across, s from the dealer's edge).
@@ -517,48 +428,28 @@ function aimAt(seat: number | null) {
   aimed = Math.max(-FRAMING.turnLimit, Math.min(FRAMING.turnLimit, turn));
 }
 // A sideways drag on the picture turns the view by hand (standing: to reach the outer seats; lying: to look around); a double click turns it back.
-// shot: the view while a whole-body film is on (the dealer leaving): the camera backs away as she rises (src/scene3d-exit.ts).
-// Without it the view eases to the seat in play, to its own tilt and zoom, and the camera to its own place.
-let turning: {x: number; yaw: number} | null = null, byHand = false, shot: ExitView | null = null, comeHome = false; // comeHome: she has gone, the camera returns though her film's last frame is still up
+// The view eases to the seat in play, to its own tilt and zoom, and the camera to its own place.
+let turning: {x: number; yaw: number} | null = null, byHand = false;
 const framing = () => tall ? upright : lying;
 canvas.addEventListener('pointerdown', e => { turning = {x: e.clientX, yaw: scene.state.yaw}; canvas.setPointerCapture(e.pointerId); });
 canvas.addEventListener('pointermove', e => { if (!turning) return; const dx = e.clientX - turning.x; if (Math.abs(dx) > 4) byHand = true; if (byHand) scene.state.yaw = Math.max(-FRAMING.turnLimit, Math.min(FRAMING.turnLimit, turning.yaw + dx * 45 / canvas.clientHeight / Math.max(1, scene.state.zoom))); });
 for (const type of ['pointerup', 'pointercancel']) canvas.addEventListener(type, () => { turning = null; });
 canvas.addEventListener('dblclick', () => { byHand = false; });
 scene.onFrame(() => {
-  if (swayFrom !== null) { const t = Math.min(1, (performance.now() - swayFrom) / SWAY_IN_MS); scene.state.dealerLife = swayAsked * t * t * (3 - 2 * t); if (t >= 1) swayFrom = null; }
   chips?.update(seconds());
-  const whole = scene.players.part?.frame as {layer?: string; rise?: [number, number]; behindUntil?: number} | null | undefined;
-  if (whole?.layer === 'BEHIND_TABLE' && !comeHome) shot = exitView(scene.players.frame(), scene.status().camera, framing(), whole.rise, whole.behindUntil !== undefined);
-  if (shot) for (const key of ['yaw', 'pitch', 'zoom', 'dy', 'dz'] as const) scene.state[key] += (shot[key] - scene.state[key]) * 0.12;
-  else { if (!turning && !byHand && Math.abs(scene.state.yaw - aimed) > 0.02) scene.state.yaw += (aimed - scene.state.yaw) * 0.08;
-    if (!fixed || tall) for (const key of ['pitch', 'zoom'] as const) { const left = framing()[key] - scene.state[key]; if (left) scene.state[key] = Math.abs(left) < 0.002 ? framing()[key] : scene.state[key] + left * 0.08; }
-    for (const key of ['dy', 'dz'] as const) if (scene.state[key] !== home[key]) scene.state[key] = Math.abs(scene.state[key] - home[key]) < 0.002 ? home[key] : home[key] + (scene.state[key] - home[key]) * 0.9; }
+  if (!turning && !byHand && Math.abs(scene.state.yaw - aimed) > 0.02) scene.state.yaw += (aimed - scene.state.yaw) * 0.08;
+  if (!fixed || tall) for (const key of ['pitch', 'zoom'] as const) { const left = framing()[key] - scene.state[key]; if (left) scene.state[key] = Math.abs(left) < 0.002 ? framing()[key] : scene.state[key] + left * 0.08; }
+  for (const key of ['dy', 'dz'] as const) if (scene.state[key] !== home[key]) scene.state[key] = Math.abs(scene.state[key] - home[key]) < 0.002 ? home[key] : home[key] + (scene.state[key] - home[key]) * 0.9;
   const host = stage.getBoundingClientRect(), box = scene.canvas.getBoundingClientRect();
   overlay.place({left: box.left - host.left, top: box.top - host.top, width: box.width, height: box.height}, anchors());
 });
 render();
-// The film before the game is over: her gestures may come again, and after a beat (INTRO_BEAT_MS, so that she does not begin to speak in
-// the frame the film is gone) she says her opening line; a rest that was held for the film's end and has no line after it runs on.
-const INTRO_BEAT_MS = 400;
-introOver = () => { film.calm = false; roomLifeBack(); setTimeout(() => { introOn = false; render(); film.release(); swayIn(); }, INTRO_BEAT_MS); };
-// The film ends in her rest pose, held for its last 0.75 s. A little before its end (the module's onLead), while the film still
-// covers the stage, her rest is started over with a cut from its first frame, which is that pose (every rest film begins on the
-// same frame): the cut is not seen, and the fade goes from her to her. Queued instead, the rest that played went on with her head
-// turned and her face showed twice in the fade (measured by the trailer session on the wired page). The rest is held on that
-// frame until she speaks: running, it had lifted her face 13 px by the end of the fade (30 px on a standing phone, where it
-// showed as a double face) and her head hopped 8 px as the talk film, which begins in the same pose, took over. A rest that has
-// stood held since the page opened (above) is that picture already, and is left as it is.
-introLead = () => { roomLifeBack(); if (introOn && page.stage === 'BETTING' && !page.busy && !film.held) film.rest({cut: true, hold: true}); };
-if (!introOn) film.calm = false; // it was over before the page was built (skipped at once)
 
-// How the round ended is said by her speech when it has the line (the settle's speak signal); then the status line is not said again.
-function settledSpoken() { return ['blackjack', 'dealerblackjack', 'dealerbust', 'win', 'push', 'lose'].some(key => spoken.has(key)); }
-Object.assign(window, {game: {scene, film, page, state: () => snapshot, dealer: () => dealer, gaps, controls, mouths, uppsattning: setup, layout}}); // for the proof recorder and the console; not an interface
+Object.assign(window, {game: {scene, film, page, state: () => snapshot, dealer: () => dealer, gaps, controls, uppsattning: setup, layout}}); // for the proof recorder and the console; not an interface
 // ?diagnos=1: what this browser does with the game, as text on the picture (src/game-diagnosis.ts), for a fault that shows on one
 // phone and in no recording. Read only when the address has the word.
 if (query.get('diagnos') === '1') void import('./game-diagnosis.ts').then(m => m.createDiagnosis(stage, canvas, () => { const q = scene.players.diagnosis();
-  return [`film före spelet ${introOn ? 'på' : 'av'} · ${page.stage}${page.busy ? ' upptagen' : ''} · hållen vila ${film.held ? 'ja' : 'nej'} · luckor ${gaps.length}`,
+  return [`${page.stage}${page.busy ? ' upptagen' : ''} · hållen vila ${film.held ? 'ja' : 'nej'} · luckor ${gaps.length}`,
     `kö: ${q.paused ? 'står' : 'går'} · sträng ${q.strict ? 'JA' : 'nej'} · nekade ${q.stuck} · element ${q.pool}`, `på skärmen: ${q.onScreen ?? 'INGEN FILM'}`, ...(q.awaited ? [`väntad: ${q.awaited}`] : []),
     ...q.elements, ...q.events.slice(-10)]; }, {
   playback: () => { const video = scene.players.current?.video; return video ? {clip: scene.players.path, frame: scene.players.frame(), rate: video.playbackRate, paused: scene.players.paused} : null; },

@@ -154,9 +154,9 @@ under `src/` skrivs först in i `SCRIPTS` i `tools/lab-routes.ts`, sedan omstart
 
 ### Sko och markerbricka som GLB
 
-Jakobs modeller ligger som original under `assets/props/source/`, namngivna med SHA-256 i `data/props.json`.
-`node tools/prop-glb.ts <id>` gör dem scenfärdiga: en vanlig GLB utan Draco, meshopt eller KTX2, Y upp, mynning eller
-långsida mot +Z, PBR, storlek i meter och origo under föremålet, i `assets/props/<id>.glb` med kvitto.
+Jakobs modeller ligger som original under `assets/props/source/`, namngivna med SHA-256 i `data/props.json`. De gjordes
+scenfärdiga en gång (verktyget `tools/prop-glb.ts` står i Git-historien): en vanlig GLB utan Draco, meshopt eller KTX2,
+Y upp, mynning eller långsida mot +Z, PBR, storlek i meter och origo under föremålet, i `assets/props/<id>.glb` med kvitto.
 `src/game3d-props.ts` läser den och lägger den med `scene.addProp`. Skon visas inte i spelet än: filmens sko ligger kvar
 tills dess pixlar kan maskas bort.
 
@@ -173,7 +173,7 @@ och kopian kör motorn i sidan (`cloud/studio/game-local.ts`). Hålkortets valö
 - **Spelets bank** (`judgedBank` i `src/game-director.ts`): bara tagningar med dom, utan `review.labOnly` och inte
   arkiverade. Utan `?trad=` spelas bara träd med läget `spelas`. Saknas en film: retur till vila via `READY>IDLE`,
   kortet med filmen i `STAND_IN_FILM`, en plats från ett annat ankare vid skon enligt `SEAT_HUB` när de fyra filmerna dit
-  finns; luckorna står i `window.game.gaps`, också dealerbytet utan film (hon går och kommer). Efter
+  finns; luckorna står i `window.game.gaps`. Byts dealern mellan rundorna öppnas spelet igen med hennes ord. Efter
   en giv väljs en retur med handen som lade kortet (`motion.releaseHand`). Dealerns första kort (D.C1) ligger stängt
   och D.C2 öppet (Jakob 2026-11-24).
 - **Dela ut går före väntande vilor** (Jakob 2026-11-23): vilan som visas spelas klart och ingången är nästa film
@@ -367,16 +367,13 @@ Dockan i `dealer3d/` är en vit docka i bordets verkliga geometri vars filmer st
   `../standarddocka/klipp/`, läst där det ligger, med `--uppsattning` och `--kamera`). Mappen läser
   `placements/default.json` men skriver den aldrig.
 
-## Tal och munlappar
+## Tal
 
-En talfilm är en vilotagning på begäran (`motion.idle.onRequest`) med ett block `speech`; `src/speech-lines.ts` väljer den
-för en replik. En munlapp (`MouthPatch` i `src/speech-patch.ts`) är en film och en replik som läggs på filmen medan den
-spelas (`src/scene3d-mouth.ts`); spelet hittar lapparna i `data/speech-patches.json`, som bara `node tools/speech-patch.ts
-register` skriver. Talverktyget (`tools/speech.ts`, register `data/speech.json`) tar bara filmer i 24 rutor/s; färgen
-räknas som Chrome läser filmerna (BT.709). Den neutrala munnen är standard för Paows repliker (Jakob 2026-11-21).
-Scoutgamings renderer har ett avsiktligt lås som vi inte går förbi; munnen i realtid görs av en egen körare ur öppen
-källkod (2026-11-17), aldrig med en köpt läppmodell (2026-11-24).
-Fakta per dealer står i `data/lipsync.json` (studions Lipsync); köraren i `tools/python/mouth-runner`.
+Spelet har inget tal: det dealern säger står i chatten (`src/game-chat.ts`), och varje film spelas utan ljud. Talfilmerna,
+munlapparna, läppsynken och Lipsync-sidan gjordes för den äldre dealern och togs bort med henne 2026-11-27 (koden ligger i
+arkivet utanför repot, och i Git-historien). Det som gäller om ett tal görs igen: Scoutgamings renderer har ett avsiktligt
+lås som vi inte går förbi; munnen i realtid görs av en egen körare ur öppen källkod (2026-11-17), aldrig med en köpt
+läppmodell (2026-11-24). Kvar till dess att Karta inte läser dem: `src/speech-lines.ts` och `data/speech.json`.
 
 ## Ordlista och gräns mot Scout
 

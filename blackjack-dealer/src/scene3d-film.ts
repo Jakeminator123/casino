@@ -9,7 +9,6 @@ import {FILM_CARD_GLSL, MATTE_GLSL} from './scene3d-matte.ts';
 import type {FilmEffect} from './clip-graph.ts';
 import type {CardTrack} from './card-overlay.ts';
 import type {GameCardOptions} from './game-film.ts';
-import {MOUTH_GLSL, mouthUniforms, putMouth, type MouthPart, type MouthShown} from './scene3d-mouth.ts';
 import type {UppsattningId} from './uppsattning.ts';
 
 const VERTEX = `varying vec4 vFilm; varying vec3 vWorld; uniform mat4 filmVP;
@@ -262,7 +261,6 @@ ${LIFE_GLSL}
 ${MATTE_GLSL}
 ${FILM_CARD_GLSL}
 ${ABOVE_GLSL}
-${MOUTH_GLSL}
 float screenAt(vec2 uv, vec3 key, float dk){ vec3 c = texture2D(map, uv).rgb; return clamp(((c.g - max(c.r, c.b)) / dk - lo) / (hi - lo), 0., 1.); }
 void main(){
   if (vFilm.w <= 0.) discard;
@@ -275,8 +273,7 @@ void main(){
   if (uv.x < .001 || uv.x > .999 || uv.y < .001 || uv.y > .999) discard;
   // A box of the film that the page draws an object of its own for (the shoe): film pixels, y down. Off while x1 < x0.
   if (hide.z > hide.x) { vec2 hp = vec2(uv.x, 1. - uv.y) * FILM_PX; if (hp.x > hide.x && hp.x < hide.z && hp.y > hide.y && hp.y < hide.w) discard; }
-  // a spoken line's mouth (src/scene3d-mouth.ts) goes into the film's colour before the key and everything after it reads it
-  vec3 c = mouthOver(uv, texture2D(map, uv).rgb), key = texture2D(map, refUv).rgb;
+  vec3 c = texture2D(map, uv).rgb, key = texture2D(map, refUv).rgb;
   // the film card's yellow back as the dark back and its blue face as paper in its own pixels ("pålägg", lab trials: scene3d-matte.ts
   // DARK_BACK, PAPER_FACE), before the key, so that the screen's share of a blurred card is keyed as before; the card key and the matte
   // read the film's own colour (raw)
@@ -405,10 +402,9 @@ export function createFilmLayers(filmVP: T.Matrix4, light: Record<string, {value
     matteBack: {value: new T.Vector3()}, mattePaper: {value: new T.Vector3(1, 1, 1)}, matteToPrint: {value: new T.Matrix3()}, matteSeatOn: {value: 0}, matteSeatQ: {value: quad()}, matteSeat: {value: new T.Vector3()},
     matteCover: {value: null as T.Texture | null}, matteShade: {value: null as T.Texture | null}, mattePrint: {value: null as T.Texture | null}};
   const back = {backOn: {value: 0}, faceOn: {value: 0}, faceAir: {value: 0}, backUnder: {value: 0}, backLying: {value: 0.835}, faceLying: {value: 0.44}, backZone: {value: quad()}, backSeat: {value: quad()}, backShoe: {value: new T.Vector4(0, 0, -1, -1)}, backFieldLit: {value: new T.Vector3()}, faceFieldLit: {value: new T.Vector3()}};
-  const mouth = mouthUniforms(); // a spoken line's mouth over the film (src/scene3d-mouth.ts)
   const material = (refUv: T.Vector2) => new T.ShaderMaterial({vertexShader: VERTEX, fragmentShader: FRAGMENT, transparent: true, depthWrite: false, side: T.DoubleSide,
     blending: T.CustomBlending, blendSrc: T.OneFactor, blendDst: T.OneMinusSrcAlphaFactor, blendSrcAlpha: T.OneFactor, blendDstAlpha: T.OneMinusSrcAlphaFactor,
-    uniforms: {...light, ...card, ...matte, ...back, ...mouth, ...frame, ...picture, ...room, ...side, ...even, ...life, wrap: {value: 0}, hide, map, filmVP: {value: filmVP}, refUv: {value: refUv}, lo: {value: 0.12}, hi: {value: 0.9}, shadow: {value: 1}, above: {value: 1}, erode: {value: 0.6}, edgeClean: {value: 0}, grade, texel}});
+    uniforms: {...light, ...card, ...matte, ...back, ...frame, ...picture, ...room, ...side, ...even, ...life, wrap: {value: 0}, hide, map, filmVP: {value: filmVP}, refUv: {value: refUv}, lo: {value: 0.12}, hi: {value: 0.9}, shadow: {value: 1}, above: {value: 1}, erode: {value: 0.6}, edgeClean: {value: 0}, grade, texel}});
   const texel = {value: new T.Vector2(1.4 / FILM.width, 1.4 / FILM.height)};
   // The screen reference is read in a corner that stays empty: top left for the backdrop, bottom left for the table.
   const bodyMat = material(new T.Vector2(0.02, 0.97)), tableMat = material(new T.Vector2(0.02, 0.03));
@@ -465,8 +461,6 @@ export function createFilmLayers(filmVP: T.Matrix4, light: Record<string, {value
     // A box of the film that is left undrawn (film pixels, y down: x0, y0, x1, y1), for a page that has an object of its own where
     // the film has one; null draws the whole film. Nothing in the game uses it yet: a hand that reaches into the box is cut too.
     setHide(box: number[] | null) { if (box) hide.value.set(box[0], box[1], box[2], box[3]); else hide.value.set(0, 0, -1, -1); },
-    // A spoken line's mouth on the frame being drawn (src/scene3d-mouth.ts), or null: the film as it is.
-    setMouth(shown: MouthShown | null) { putMouth(mouth, shown); },
     // The room as the scene has just drawn it (before its tone curve; `exposure` is what that pass multiplies it by) and how much
     // of it is laid round the dealer's outline, 0 = none. Only the upright layer takes it: behind the hands lies the felt, not the room.
     setWrap(texture: T.Texture | null, width: number, height: number, exposure: number, amount: number) { room.roomMap.value = texture; room.roomSize.value.set(width, height); room.roomExposure.value = exposure; bodyMat.uniforms.wrap.value = texture ? amount : 0; },
@@ -504,15 +498,11 @@ export function createFilmLayers(filmVP: T.Matrix4, light: Record<string, {value
 // Optional per part: `rate` playback speed, `track` the card track of this piece (the scene then uses it while the
 // piece is on screen; null = no card), `cards` extra options for the rendered cards (lying cards, a value per card).
 // `frame`: a film with a frame of its own (see FilmFrame). `fps`: the film's own frames per second when it is not 30; start,
-// end and every frame number of the part are counted in the film's own frames. `sound`: the film has a sound track that is to be
-// heard (a spoken line, tools/speech.ts); every other film is muted. A browser lets a page sound only after the visitor has
-// touched it, so before that a spoken line plays muted like the rest instead of not playing at all. `model`: the generator that
+// end and every frame number of the part are counted in the film's own frames. Every film is muted. `model`: the generator that
 // made the film (its record's source.model), for the key filmEven; a part without it is drawn as it is. `rest`: a rest film, which
-// keeps its speed under the key filmTempo, as a spoken line does. `mouth`: a spoken line laid on the part from a mouth patch
-// (src/scene3d-mouth.ts); the part plays at its own speed, neither tempo nor hurry changes it, so that mouth and sound stay with it.
-// `uppsattning`: the table and camera the film is made under (src/uppsattning.ts; without it the former standard's, as every film
+// keeps its speed under the key filmTempo. `uppsattning`: the table and camera the film is made under (src/uppsattning.ts; without it the former standard's, as every film
 // made before the choice): the scene shows a part only under its own (src/scene3d-view.ts guardFilms).
-export type Part = {path: string; start?: number; end?: number | null; rate?: number; absoluteRate?: boolean; track?: CardTrack | null; cards?: GameCardOptions | null; frame?: FilmFrame | null; fps?: number; sound?: boolean; model?: string; rest?: boolean; effect?: PartEffect | null; mouth?: MouthPart | null; uppsattning?: UppsattningId};
+export type Part = {path: string; start?: number; end?: number | null; rate?: number; absoluteRate?: boolean; track?: CardTrack | null; cards?: GameCardOptions | null; frame?: FilmFrame | null; fps?: number; model?: string; rest?: boolean; effect?: PartEffect | null; uppsattning?: UppsattningId};
 // A film's effect on the scene (a record's motion.effect, carried on the part). room-flash, lightning: for `seconds` of the film's
 // own time from `at` the room is another (`room`, an id of the register), and with `mono` the whole picture is black and white,
 // table, cards and dealer too. A white flash takes the picture there and a softer one takes it back (roomFlashAt).
@@ -543,18 +533,17 @@ const FPS = 30;
  */
 export const frameAtTime = (seconds: number, fps = FPS): number => Math.floor(seconds * fps + 1e-3);
 /** The round's global tempo can multiply a part's rate, unless the part asks for an absolute rate. */
-export function partPlaybackRate(part: Pick<Part, 'rate' | 'absoluteRate' | 'sound' | 'rest' | 'mouth'>, queued: boolean, tempo: number): number {
-  if (part.mouth || !queued) return 1;
-  return (part.rate ?? 1) * (part.sound === true || part.rest === true || part.absoluteRate === true ? 1 : tempo);
+export function partPlaybackRate(part: Pick<Part, 'rate' | 'absoluteRate' | 'rest'>, queued: boolean, tempo: number): number {
+  if (!queued) return 1;
+  return (part.rate ?? 1) * (part.rest === true || part.absoluteRate === true ? 1 : tempo);
 }
 
 // One or more parts played as a chain, each on its own video element so the next one is decoded before it is shown.
-// hooks.refused: a film with sound was refused its start by the browser and now plays muted (enter); the page can say the line
-// another way (src/scene3d-voice.ts). Called with the part and its video element, once per refused start.
+// hooks.refused: a film was refused its start by the browser; called with the part and its video element, once per refused start.
 export function createPlayers(onShow: (texture: T.Texture, path: string) => void, onChange: () => void, hooks: {refused?: (part: Part, video: HTMLVideoElement) => void} = {}) {
   let players: Player[] = [], current = 0, paused = false, gone = false, tempo = 1;
   // The speed a part plays at: in the queue its own rate times the tempo (key filmTempo). The tempo is for the films of a round:
-  // a spoken line does not take it (its sound is in the film), nor does a rest film (hurried, her breathing and blinking look
+  // a rest film does not take it (hurried, her breathing and blinking look
   // wound forward), and a chain from load(), a take played by itself to be looked at, is never hurried. Card tracks and the end of
   // a part are counted in the film's own frames, so they follow.
   const speedOf = (part: Part, queued: boolean) => partPlaybackRate(part, queued, tempo);
@@ -598,7 +587,7 @@ export function createPlayers(onShow: (texture: T.Texture, path: string) => void
   const moveTo = (video: HTMLVideoElement, seconds: number) => { presented.delete(video); video.currentTime = seconds; };
   const shownAt = (video: HTMLVideoElement) => { const at = presented.get(video); return at !== undefined && !video.seeking && Math.abs(at - video.currentTime) < 0.25 ? at : video.currentTime; };
   const make = (part: Part): Player => {
-    const video = document.createElement('video'); video.muted = !(part.sound === true && globalThis.navigator?.userActivation?.hasBeenActive === true); video.playsInline = true; video.preload = 'auto'; video.src = part.path;
+    const video = document.createElement('video'); video.muted = true; video.playsInline = true; video.preload = 'auto'; video.src = part.path;
     const texture = new T.VideoTexture(video); texture.colorSpace = T.NoColorSpace; texture.minFilter = texture.magFilter = T.LinearFilter; texture.generateMipmaps = false;
     if (typeof video.requestVideoFrameCallback === 'function') { const note = (_now: number, frame: {mediaTime: number}) => { presented.set(video, frame.mediaTime); frameCall(video, note); }; frameCall(video, note); }
     return {part, path: part.path, start: part.start ?? 0, end: part.end ?? null, fps: part.fps ?? FPS, video, texture};
@@ -727,10 +716,7 @@ export function createPlayers(onShow: (texture: T.Texture, path: string) => void
     // A frame request that has waited long on a paused video is no longer polled by the browser, and the first frame after
     // play() then arrives a quarter of a second late with the frames in between dropped. A fresh request sets that right.
     if (typeof v.requestVideoFrameCallback === 'function') frameCall(v, () => {});
-    // A pooled element is made for its path alone (media), so whether it is heard is decided here, each time a part starts:
-    // a spoken line (part.sound) once the page has been touched, everything else muted. Without this line a talk film in
-    // a chain was always muted: she moved her mouth in the game and said nothing.
-    v.muted = !(part.sound === true && globalThis.navigator?.userActivation?.hasBeenActive === true);
+    v.muted = true; // every film is muted (the game's sounds are its own, src/sound.ts)
     v.playbackRate = speedOf(part, true);
     let run = false;
     // A film that may not be heard is still shown: a browser that refuses to start a film with sound (one that wants a touch of
@@ -796,7 +782,7 @@ export function createPlayers(onShow: (texture: T.Texture, path: string) => void
       return {paused, strict, stuck: stuck.size, pool: pool.length, onScreen: on ? state(on) : null, awaited: awaited ? state(awaited) : null, elements: pool.map(m => `${m === shown ? '>' : m.busy ? '+' : ' '}${state(m.video)}`), events: [...events]}; },
     // Speed of the part on screen, from now until it ends: a gesture hurried along because a deal is waiting.
     // Never slower than the part already plays (the tempo).
-    hurry(rate: number) { const p = players[current]; if (p && !p.part.mouth && p.part.sound !== true) p.video.playbackRate = Math.max(rate, speedOf(p.part, !!chain)); }, // a spoken line is never hurried: its voice is in the film
+    hurry(rate: number) { const p = players[current]; if (p) p.video.playbackRate = Math.max(rate, speedOf(p.part, !!chain)); },
     // The tempo of a round's films (key filmTempo; 1 = as filmed), from now on and for the part on screen.
     tempo(value: number) { const next = Number.isFinite(value) ? Math.min(4, Math.max(0.25, value)) : 1; if (next === tempo) return; tempo = next; for (const p of players) p.video.playbackRate = speedOf(p.part, !!chain); },
     // Fetches clips the game may ask for next, so the change does not wait for the network. The pool holds ${POOL} elements; one it

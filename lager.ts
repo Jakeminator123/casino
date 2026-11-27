@@ -494,7 +494,6 @@ export const REGISTER: readonly {fil: string; bas: string; bara?: string}[] = [
   {fil: `${BJ}/data/speech-patches.json`, bas: BJ},
   {fil: `${BJ}/data/scene-rooms.json`, bas: BJ},
   {fil: `${BJ}/data/props.json`, bas: BJ},
-  {fil: `${BJ}/data/lipsync.json`, bas: BJ},
   {fil: `${AP}/vagar.json`, bas: AP, bara: 'var'},
 ];
 // En pekare börjar där sökvägen börjar: inte inuti en längre ("runs/…/scene-assets/x.png", "tools/room-study/assets/…").

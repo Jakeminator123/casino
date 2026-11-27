@@ -9,7 +9,6 @@ import {reviewStore} from './review-store.ts';
 import {motionRegister} from './register-store.ts';
 import {decisionStore,ANSWER_BYTES} from './decision-store.ts';
 import {proofNotesStore,NOTE_BYTES} from './proof-notes-store.ts';
-import {lipsyncAnswer} from './lipsync-store.ts';
 import {scenePresetStore} from './scene-preset-store.ts';
 import {PLAY_VIEW_BYTES, playViewStore} from './play-view-store.ts';
 import {lasUppsattning} from '../src/uppsattning.ts';
@@ -127,9 +126,6 @@ if(has('--restart')){
  const sceneFile=async(file:string)=>{const m=sceneMedia.exec(file);if(!m)return false;try{return await realpath(file)===path.join(await realpath('assets/scene'),m[1],m[2]);}catch{return false;}};
  const proofFile=/^assets\/proofs\/((?:[a-z0-9][a-z0-9._-]*\/)+[a-z0-9][a-z0-9._-]*\.(?:mp4|png|jpg|json))$/;
  const proofPath=async(file:string)=>{const m=proofFile.exec(file);if(!m)return false;try{return await realpath(file)===path.join(await realpath('assets/proofs'),...m[1].split('/'));}catch{return false;}};
- // Mouth patches (src/speech-patch.ts): assets/speech/<dealer>/patches/<id>/ with patch.json, mouth.webp or mouth.png and line.wav, and only where the file really lies there.
- const patchMedia=/^assets\/speech\/([a-z0-9]+(?:-[a-z0-9]+)*)\/patches\/([a-z0-9]+(?:-[a-z0-9]+)*)\/(patch\.json|mouth\.webp|mouth\.png|line\.wav)$/;
- const patchFile=async(file:string)=>{const m=patchMedia.exec(file);if(!m)return false;try{return await realpath(file)===path.join(await realpath('assets/speech'),m[1],'patches',m[2],m[3]);}catch{return false;}};
  // A proof's takes (proof.json takes): the files it names as produced films or pictures that may be used; the rest is underlag.
  const proofTakes=(value:unknown)=>Array.isArray(value)?value.filter((name):name is string=>typeof name==='string'&&/^[a-z0-9][a-z0-9._-]*\.(?:mp4|png|jpg)$/.test(name)):null;
  // A folder's whole room on the disk (its originals and text with it), as the storage map counts it (../lager.ts), so that Prov and Biblioteket say the same size.
@@ -346,13 +342,6 @@ if(has('--restart')){
      res.end(JSON.stringify(await decisions.save(id,body,typeof req.headers['if-match']==='string'?req.headers['if-match']:undefined)));
     }catch(error){res.writeHead(error instanceof StoreError?error.status:400).end(JSON.stringify({error:(error as Error).message}));}return;
    }
-   // The lip-sync facts (data/lipsync.json, tools/lipsync-store.ts) for the studio's view Lipsync, with a still per proof.
-   // Read-only: GET only; the speech lane writes the register, nothing on a page does.
-   if(url.pathname==='/api/lipsync'){
-    res.setHeader('Content-Type','application/json; charset=utf-8');
-    if(req.method!=='GET'){res.writeHead(405).end();return;}
-    try{res.end(JSON.stringify(await lipsyncAnswer(process.cwd())));}catch(error){res.writeHead(error instanceof StoreError?error.status:500).end(JSON.stringify({error:(error as Error).message}));}return;
-   }
    // What is what per dealer, for the studio's view Material (data/media-roles.json, tools/media-roles.ts). Any page reads
    // it. A picture is added from this lab only: the PNG or JPEG itself as the body (at most UPLOAD_LIMIT, 40 MB), dealer,
    // role and names in headers; it gets its own new folder with a receipt and a role in the register, never over another.
@@ -392,7 +381,7 @@ if(has('--restart')){
     const name=decodeURIComponent(url.pathname.slice(1)),page=pages[`/${name}`];
     file=page??name;
     // media.servable: a picture or film data/media-roles.json names (keystones, anchors and frames of the view Material), inside the repo and no link out of it.
-    if(!page&&!allowed.has(file)&&!await clipFile(file)&&!await trackFile(file)&&!await proofPath(file)&&!await patchFile(file)&&!await sceneFile(file)&&!await propFile(file)&&!await media.servable(file)){res.writeHead(404).end();return;}
+    if(!page&&!allowed.has(file)&&!await clipFile(file)&&!await trackFile(file)&&!await proofPath(file)&&!await sceneFile(file)&&!await propFile(file)&&!await media.servable(file)){res.writeHead(404).end();return;}
     type=types[file.slice(file.lastIndexOf('.'))]??'application/octet-stream';
    }
    const size=await stat(file).then(s=>s.isFile()?s.size:-1,()=>-1);

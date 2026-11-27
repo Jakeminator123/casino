@@ -16,9 +16,6 @@ import {createTable, lightFromAbove, sized, tableUnder, type TableBase, type Tab
 import {createRailExtras} from './scene3d-rail.ts';
 import type {createBord02, Bord02Cloth, Bord02Rail, Bord02Wood} from './scene3d-bord02.ts';
 import {createSmoke} from './scene3d-smoke.ts';
-import {createMouthLayer} from './scene3d-mouth.ts';
-import {createPageAudio} from './page-audio.ts';
-import {createVoice} from './scene3d-voice.ts';
 
 export type SceneState = {
   room: RoomId; blur: number; depthBlur: boolean; dofRange: number; exposure: number; panoramaTurn: number;
@@ -204,15 +201,11 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
   const light = createFanLight(), film = createFilmLayers(filmVP, light.uniforms), table = createTable(light.hook), tray = createChipTray(light.hook), rail = createRailExtras(light.hook), smoke = createSmoke(), rooms = createRooms(bg, data.urls, data.onMissingRoom, data.rooms);
   const sun = new T.DirectionalLight(0xfff1dd, 1.6); sun.position.set(-1.5, 3, 2.5);
   fg.add(film.body, film.table, table.group, tray.group, rail.group, smoke.group, new T.AmbientLight(0xffe6cc, 1.1), sun, ...rooms.front);
-  // Her voice through the page's own audio: one context, woken in a touch (src/page-audio.ts), for the mouth layer's lines and
-  // for a talk film that a phone's browser will not start with sound (src/scene3d-voice.ts; the queue says so through refused).
-  const sound = createPageAudio({playback: true}), voice = createVoice(sound);
   // The film queue behind the scene's door (guardFilms): only films of the set-up it stands under (setup, below). refused: the set-up of
   // the film it last turned away, or of the film on screen when the scene was moved to another set-up (setUppsattning); null when none.
   let refused: UppsattningId | null = null;
-  const players = guardFilms(createPlayers(texture => film.setTexture(texture), data.onChange, {refused: (part, video) => voice.refused(part, video)}), () => setup,
+  const players = guardFilms(createPlayers(texture => film.setTexture(texture), data.onChange), () => setup,
     turnedAway => { if (turnedAway === refused) return; refused = turnedAway; data.onChange(); });
-  const mouth = createMouthLayer(shown => film.setMouth(shown), {audio: sound}); // a spoken line's mouth on the part on screen (src/scene3d-mouth.ts)
   let camera: FilmCamera = cameraFromContract(data.contract), pitch = 0, edgeZ = -1, guides: T.Group | null = null, track: CardTrack | null = null;
   // The set-up (SceneData uppsattning, setUppsattning): under the live table its own camera, table, card places, bet marks and no tray.
   let setup: UppsattningId = data.uppsattning ?? DATATS_FORVAL;
@@ -483,7 +476,6 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
     const here: Look = struck ? {...lookNow(), room: struck} : state;
     roomLight(shift?.from && change < 0.5 ? shift.from : state); // the table changes its light when the rooms have half changed
     if (part && part.track !== undefined) track = part.track; // a part that names its track brings it along
-    mouth.update(part, playing?.video ?? null, players.frame()); // a part that says a line: the cell of the frame shown, as the cards have it
     film.setFrame(frameAt(part?.frame ?? null, players.frame())); // and so does a part whose film has a frame of its own
     // A film with a frame of its own has no shoe and no card places in its picture: the rendered cards (the one seated in the shoe window among them) stay out of it.
     evenFilm(playing?.video ?? null, part, seconds); film.setLife(state.dealerLife, seconds);
@@ -590,7 +582,7 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
   // registers no observers or listeners of its own (the pages do). Afterwards every call is a no-op, dispose() too.
   function takeDown() {
     if (gone) return; gone = true; running = false; shift = null;
-    mouth.dispose(); voice.dispose(); players.dispose(); sound.dispose(); rooms.dispose(); smoke.dispose(); bord02?.dispose();
+    players.dispose(); rooms.dispose(); smoke.dispose(); bord02?.dispose();
     for (const prop of props.splice(0)) fg.remove(prop.group); frameCalls.clear();
     for (const layer of Object.values(cardLayers)) layer.off?.(); cardLayer = null;
     const freed = new Set<{dispose(): void}>(), textures = (value: unknown): void => { if (value instanceof T.Texture) freed.add(value as T.Texture); else if (Array.isArray(value)) value.forEach(textures); };
@@ -607,7 +599,7 @@ export function createScene(canvas: HTMLCanvasElement, host: HTMLElement, data: 
   }
 
   return {
-    state, players, mouth, voice, render, rebuild, apply, resize,
+    state, players, render, rebuild, apply, resize,
     start() { if (!running && !gone) { running = true; requestAnimationFrame(loop); } }, stop() { running = false; },
     dispose: takeDown,
     home() { if (gone) return; Object.assign(state, {yaw: 0, pitch: 0, zoom: 1, dx: 0, dy: 0, dz: 0, sway: false}); apply(); },

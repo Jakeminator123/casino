@@ -101,8 +101,8 @@ test('the lens the game plays: the address\'s, else the look\'s, else Standard; 
   assert.equal(played('forval=casino&geometri=kontrakt&lins=standard', bred), 'standard', 'the key goes before the older word');
   assert.deepEqual(readLook(params('geometri=kontrakt')).ignored, []); assert.deepEqual(readLook(params('geometri=annat')).ignored, []);
   assert.deepEqual(readLook(params('lins=vid')).ignored, ['lins']);
-  // the film before the game (cloud/studio/gate.ts TRAILER_HOME) names neither a look nor a lens: Standard, as before
-  assert.equal(played('intro=noir-3&room=monaco&roomLife=1&table=casino&dealer=paow', null), 'standard');
+  // the game's own words name neither a look nor a lens: Standard, as before
+  assert.equal(played('room=monaco&roomLife=1&table=casino&dealer=vera', null), 'standard');
 });
 
 test('the look over the game: a preset is a whole look, keys alone lie over the game\'s own', () => {

@@ -41,7 +41,7 @@ Rutor räknas från 0. Gult är kortets rygg, blått framsidan.
 - **Full upplösning:** lägg ut rutorna med ffmpeg (PNG, eller JPEG `-q:v 2`); varje påstående om kortet, fingrarna,
   vändningen och de första och sista 15 rutorna bygger på dem. Skript i filer, aldrig `node -e`; högst två ffmpeg.
 - **Mått:** `node tools/track-card.ts <klipp>` (när tagningen är införd), `node tools/flip-axis.ts <klipp>`, efterarbetets
-  `after.json`; händer och kropp per ruta med `blackjack-dealer/tools/python/filmmatt.py`.
+  `after.json`; skakighet, ryck, ansikte och händer per ruta med domarens underlag (`node tools/domare-underlag.ts`).
 
 ## Rapporten
 

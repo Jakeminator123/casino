@@ -23,7 +23,7 @@ här är ordningen.
    följs (rotens `AGENTS.md`, "Arbetssätt"): skyddar testet något som ska bestå rättas orsaken och skyddet sänks
    aldrig; annars är det ett gammalt test som tas bort i samma ändring och nämns i svaret.
 3. **Städa:** ta bort det ändringen gjorde överflödigt (kod som inget anropar, ersatta filer, döda sökvägar) och egna
-   mappar i slasken. Efter mediearbete: `npm run gallra` och `npm run media:status`.
+   mappar i slasken. Efter mediearbete: `npm run gallra` och `node ../lager.ts`.
 4. **Dokumentera, nerifrån och upp:** kommentaren i koden, `blackjack-dealer/README.md` om en mapp eller ett kommando
    ändrats, `blackjack-dealer/docs/SYSTEM.md` om ett kontrakt ändrats, `blackjack-dealer/AGENTS.md` om hans ord ändrat
    en regel, och `blackjack-dealer/STATUS.md`, där det inaktuella ersätts.

@@ -357,7 +357,7 @@ mot MediaPipes 1; från 5 och uppåt börjar SAM:s egna fel synas, så den är 5
 som den hyrda maskinen inom 2–5 mm. Modellen körs i float32 här; i bfloat16, som den själv väljer, tog en ruta 11
 minuter. Att bara läsa kroppen utan händernas egen avkodare (`--sort body`) gick inte fortare och flyttade lederna 2–3
 cm, så hela läsningen används. Uppsättningen ligger utanför repot i `../sam-3d-body/` (koden, modellen 2,8 GB och
-Python-miljön, 4,1 GB i allt), där `../blackjack-dealer/dealer3d/tools/docka-sam.py` också letar.
+Python-miljön, 4,1 GB i allt).
 
 **Livebordet** (2026-11-27, här på processorn). 259 nyckelrutor togs ut ur de tio lyfta styckena: givarna var femte
 lyftruta, väntan var tionde och tätare kring kortets ögonblick. Läsningen stoppades kl. 06.46, när datorn behövdes av

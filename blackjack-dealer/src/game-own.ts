@@ -10,4 +10,4 @@ export const GAME_OWN = {format: 'fill', room: 'panorama', tray: true, cards: tr
 /** The address's words that are the game's and never a key of the look; the Casino writes some of them into its frame
  *  (studio/lib/casino.ts gameSrc). trad: the one tree the game plays, komposition: the trees put together, uppsattning: the
  *  table and camera it shows (live or forra, src/uppsattning.ts; src/game-page.ts). */
-export const OWN_WORDS: readonly string[] = ['table', 'tema', 'bricka', 'chatt', 'robot', 'inbaddad', 'dealer', 'intro', 'diagnos', 'dealTempo', 'trad', 'komposition', 'uppsattning'];
+export const OWN_WORDS: readonly string[] = ['table', 'tema', 'bricka', 'chatt', 'robot', 'inbaddad', 'dealer', 'diagnos', 'dealTempo', 'trad', 'komposition', 'uppsattning'];

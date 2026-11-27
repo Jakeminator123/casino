@@ -55,12 +55,9 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   högre och smalare än
   hennes) och att dockan inte läser ett korts riktning ur planen. Dockans bord ritar markerlådan som en mörk försänkning
   med standardens mått.
-- **Spelet** spelar trädet Tatuerad med nödlösningar där film saknas (`STAND_IN_FILM`). Realtidsmunnen
-  (storlek F) har hans ja men når 12–13 rutor/s på hans RTX 3060 mot 24. Den neutrala munnen gäller alla Paows repliker,
-  men talfilmerna finns inte här: de 25 tatuerade fanns bara på den stationära och togs ur registren 2026-11-26 (hans
-  dömda blackjack med den gamla munnen låg i trädet Casino och finns i arkivet). Dealerbytet har ingen film sedan
-  helfigursfilmerna med de otatuerade händerna togs bort (2026-11-26): spelet hoppar över det och säger att filmen
-  saknas. Inga munlappar: alla fyra låg på Casinos filmer. Trailern är pausad (2026-11-17).
+- **Spelet** har ingen dealer (2026-11-27): bordet vid livestandarden med raden "Ingen dealer har filmer än.", ingen meny
+  Dealer. Talet, munnen, Lipsync-sidan, filmen före spelet (trailern) och dealerbytets filmer togs bort med den äldre
+  dealern; chatten säger replikerna som text. Byts dealern mellan rundorna öppnas spelet igen med hennes ord.
 - **3D-dockan:** en dockfilm görs i ett steg (`node tools/doll-order.ts paow P5.C1`, alltid från A2.3; nypet med
   `--fran a2-1`); givarna från A2.3 följer dockan svep24d, given från A2.1 `dealer3d/src/pinch-deal.ts`. Jakob
   2026-11-23: "Jag gillar verkligen docklabbet!" Dockan är kod (cylindrar och kulor ur mått, inget skelett) och
@@ -235,11 +232,6 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - Korten under Bred lins (steg 9 D2): ska de ritas som filmens egna (dealerns kort 75 × 57 px i stället för 61 × 35)?
   Han svarar när han har sett en före- och efterbild, gjord som D1:s: headless Chrome mot Casino på dator och mobil, med
   spelets moduler ur två kopior (före och efter) i slaskens `granska/`, mätt som `tools/scene-measure.ts` mäter.
-- Två frågor om det som städades 2026-11-25: om
-  egna returfilmer, landningsbilderna (A3) och A2.2 ska bort också ur beställningsmodellen (`tools/landing-make.ts` och
-  stegen RETUR och 2.2 lever kvar där för de sparade beställningarnas skull); och om 3D-banans äldre verktyg som kräver
-  SAM-uppsättningen på den stationära ska vara kvar (`dealer3d/tools/docka-sam.py`, `docka-mat.ts`, `docka-jamfor.ts`,
-  `lift.ts`, `deal-film.ts`, `pose-film.ts`, `doll-pose.ts`, `docka-hand.ts`).
 - Trädet Tatuerad har ingen egen film för A2.3 → A3P4C2: de godkända tagningarna dit (`…-p4-c2-stol-…`) är stolarnas
   och spelas inte rakt, så Inspelning och Scen visar den spelet spelar. Han väljer om de ska in.
 - Hans dom på `paow-giv-2-3-d-03-01` och `paow-halkort-05-01` (filmerna finns här), och andelarna för skjut och nyp i

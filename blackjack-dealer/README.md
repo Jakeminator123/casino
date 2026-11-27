@@ -45,7 +45,7 @@ Alla `npm`- och `node`-kommandon körs från den här mappen. Node 24.22.3 (Volt
 | `npm run hooks:install`, `npm run check` | installerar kontrollen före push för hela casino-repot; kör den på de commits som ska ut |
 | `npm run verify` | jämför registrerade filer med sin hash i `data/manifest.json` (kräver media) |
 | `npm run stada` | raderar projektets del av slasken som inte har ändrats på tre timmar, utom `granska/` (`-- --torr` listar bara); `node ../slask/slask.ts` visar hela slasken |
-| `npm run gallra`, `npm run media:status` | plan för vad i `assets/` som raderas (servern utför den säkra nivån själv när den startar, till papperskorgen); översikt över lagringen. Ut ur repot till ett arkiv på Jakobs ord: `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>" --arkiv <mapp>` |
+| `npm run gallra` | plan för vad i `assets/` som raderas (servern utför den säkra nivån själv när den startar, till papperskorgen). Ut ur repot till ett arkiv på Jakobs ord: `node tools/media-thin.ts --ta-bort <id> --varfor "<hans ord>" --arkiv <mapp>` |
 | `node ../lager.ts` | kartan över allt som lagras i hela casino-repot: storlek per ställe och slag, vad inget pekar på, vad som väntar på hans dom och vad registren pekar på som saknas (`--json` som data) |
 | `node tools/lager-remove.ts <sak> [--ja --vem <namn>]` | frågan före en radering (vad som raderas och följden); `--ja` raderar från disken, utan papperskorg, och kvittot säger vem. Samma verktyg och spärrar som Radera i Biblioteket och Prov |
 
@@ -81,7 +81,7 @@ egen form (bildens mått, annars orderns uppsättnings, `shapeOf` i `studio/lib/
 vid förra standardens bord. Vyerna:
 
 - **Start** (`/studio/`, `studio/components/start/`, innehållet i `studio/lib/start.ts`): det som väntar på hans dom,
-  kedjan med verkstaden för varje steg, en ruta per verkstad och det som ligger vid sidan (Kortpaketet, Lipsync, Ljud).
+  kedjan med verkstaden för varje steg, en ruta per verkstad och det som ligger vid sidan (Kortpaketet, Ljud).
   En gammal Scen-adress (`/?runda=…`) leder fortfarande till Filmverkstadens Scen.
 - **Avatarer** (`/studio/avatarer/`, `studio/components/avatars/`): en guide över `../avatar-auto-pipeline/vagar.json`
   (`studio/lib/avatars.ts`, genom `GET /api/vagar`). Vägarna med Version 1 för sig och stegen med kostnad och vad som
@@ -122,8 +122,7 @@ vid förra standardens bord. Vyerna:
   används och hans ord; livebordets film och bilder bara som storlek. Kartan, frågan och raderingen körs i en egen
   process, så att servern aldrig står still; en radering tar saken ur den senaste kartan i stället för att räkna om.
   Radera tar den från disken (`tools/lager-remove.ts`); `?slag=`, `?enhet=` och `?fraga=` i adressen väljer.
-- **Material** (vilka bilder som gäller), **Casino** (spelet med vald look), och från Start **Lipsync** (hur munnen
-  görs, skrivskyddad) och Ljud.
+- **Material** (vilka bilder som gäller), **Casino** (spelet med vald look), och från Start Ljud.
 - **Spelet vid livebordet** (`/game.html?uppsattning=live`; utan ord livebordet när ett träd gjort vid det spelas, annars
   förra standarden med en rad som säger det, `src/game-page.ts`): livebordets kamera, bord, sko, låda, kortplatser och
   ringar, och spelets kort på de mätta platserna (`src/game-table.ts` liveLayout, `src/game3d-props.ts` liveProps). Utan
@@ -135,7 +134,7 @@ vid förra standardens bord. Vyerna:
   har ett tomt läge med en rad och spelet visar bordet utan dealer. En pausad dealer visas bara när en adress nämner den
   (Jakob 2026-11-18).
 
-Kopian på nätet (`dealer-lake.vercel.app`) har samma meny utan Lipsync och utan sparning, och i stället för Beslut
+Kopian på nätet (`dealer-lake.vercel.app`) har samma meny utan sparning, och i stället för Beslut
 Önskemål och boten.
 
 ## Var fakta ligger
@@ -151,8 +150,8 @@ Kopian på nätet (`dealer-lake.vercel.app`) har samma meny utan Lipsync och uta
 - `data/proof-notes.json`: hans ord om proven; `node tools/proof-notes.ts` visar det olästa, `--answer <nr> "<text>"`
   svarar och `--read <nr>` markerar läst.
 - `data/rendered-references.json`: dockans filmer, med uppsättning, kamera och en styrbild per person
-  (`tools/doll-reference-put.ts`); `data/speech.json`, `data/speech-patches.json` och `data/lipsync.json`:
-  talet.
+  (`tools/doll-reference-put.ts`). `data/speech.json` (replikerna, som Kartas talblad läser) och den tomma
+  `data/speech-patches.json` står kvar tills Karta och gallringen inte läser dem.
 - `data/manifest.json`: filernas ursprung och SHA-256.
 - `data/scene-presets/<namn>.json`: utseendena (förvalen) i Scen; Casino spelar `casino`. `data/play-view.json`:
   spelvyn, inramningen för dator och mobil som gäller alla utseenden; bara Scen skriver den (`tools/play-view-store.ts`).

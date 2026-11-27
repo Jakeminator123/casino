@@ -6,7 +6,7 @@ import type { WorkshopId } from "./workshops.ts";
 export type Tile = {
   name: string;
   href: string;
-  icon: "users" | "doll" | "film" | "review" | "map" | "images" | "game" | "ruler" | "live" | "pack" | "lips" | "sound" | "decisions" | "library";
+  icon: "users" | "doll" | "film" | "review" | "map" | "images" | "game" | "ruler" | "live" | "pack" | "sound" | "decisions" | "library";
   /** What it is for, in one line. */
   line: string;
   /** Where in the chain it belongs ("Steg 2–3"). */
@@ -50,6 +50,5 @@ export const START_TILES: readonly Tile[] = [
 
 export const START_SIDE: readonly Tile[] = [
   { name: "Kortpaketet", href: "/kortpaketet/", icon: "pack", workshop: "kortpaketet", localOnly: true, line: "Ett köpt paket med inspelade rörelser och dess visare. Ligger vid sidan: inte grunden för dockans rörelser." },
-  { name: "Lipsync", href: "/lipsync/", icon: "lips", localOnly: true, line: "Hur munnen görs efter rösten, per dealer: grundbilderna, inställningarna och proven." },
   { name: "Ljud", href: "/sound.html", icon: "sound", localOnly: true, line: "Spelets ljud: marker, kort, rummet och musiken." },
 ];

@@ -9,8 +9,8 @@
 // table (components/shell/Glossary.tsx) and the bot reads it through
 // lib/guide.ts, so no text here may carry a machine path, a local address or a name the copy blocks. Data and one search, no DOM.
 
-export type WordGroup = "Ankare och platser" | "Steg och filmer" | "Kortet" | "Bilder" | "Efter filmen" | "Tal och läppar" | "Omdömen" | "Studion och vyerna";
-export const WORD_GROUPS: readonly WordGroup[] = ["Ankare och platser", "Steg och filmer", "Kortet", "Bilder", "Efter filmen", "Tal och läppar", "Omdömen", "Studion och vyerna"];
+export type WordGroup = "Ankare och platser" | "Steg och filmer" | "Kortet" | "Bilder" | "Efter filmen" | "Omdömen" | "Studion och vyerna";
+export const WORD_GROUPS: readonly WordGroup[] = ["Ankare och platser", "Steg och filmer", "Kortet", "Bilder", "Efter filmen", "Omdömen", "Studion och vyerna"];
 
 export type Word = {
   /** The one word a person sees in the studio. */
@@ -113,13 +113,6 @@ export const WORDS: readonly Word[] = [
   { grupp: "Efter filmen", ord: "Underlägg", betyder: "Filmens eget kort färgas om bredvid det ritade kortet (baksidan mörk, framsidan papper), så att inget gult eller blått syns. På från början.", sager: [], aven: ["UNDER"] },
   { grupp: "Efter filmen", ord: "Pålägg", betyder: "Filmens eget kort färgat om i filmens bildpunkter, utan ritat kort: gult blir mörk baksida, blått blir papper. Ett prov i studion, inte i spelet.", sager: [], aven: ["cardBack=dark", "cardFace=paper"] },
   { grupp: "Efter filmen", ord: "Kortets utseende", betyder: "Det ritade kortets tryck (valör och färg), böjning och glans: i Efterarbete under Kort och marker.", sager: ["tryck"], aven: ["kortmaterial", "böjning", "glans"] },
-  // ── Speech and lips ──
-  { grupp: "Tal och läppar", ord: "Lipsync", betyder: "Munnen ritad efter rösten. Vyn Lipsync samlar grundbilderna, kedjan med format och skalor, inställningarna, var det körs och proven.", sager: ["lipsynk", "läppsynk"], aven: ["MuseTalk"] },
-  { grupp: "Tal och läppar", ord: "Grundbild", betyder: "Det läppsynkmodellen utgår från för hennes mun: vilofilmens rutor, eller den film en munlapp läggs på. Under Grundbilder i Lipsync.", sager: ["baslinje", "baseline"], aven: ["baseImages"] },
-  { grupp: "Tal och läppar", ord: "Replik", betyder: "En fast mening hon säger, i ett språk och en röst: de tio en runda behöver och chattens femton svar.", sager: [], aven: ["line", "SpeakLine"] },
-  { grupp: "Tal och läppar", ord: "Talfilm", betyder: "En vilofilm med ljud där munnen är ritad efter rösten; spelas när repliken sägs.", sager: ["replikklipp"], aven: ["onRequest"] },
-  { grupp: "Tal och läppar", ord: "Munlapp", betyder: "Munnen för en replik, gjord i förväg över exakt den film den sägs i och lagd på filmen när den spelas, så att hon kan tala under en giv.", sager: [], aven: ["munlagret", "patch"] },
-  { grupp: "Tal och läppar", ord: "Realtidslipsynk", betyder: "Målet för läpparna: munnen ritad direkt efter vilket ljud som helst medan spelet går, på Jakobs egen RunPod.", sager: ["realtidstala"], aven: ["strömmande läppsynk"] },
   // ── Verdicts ──
   { grupp: "Omdömen", ord: "Primär ★", betyder: "Tagningen som spelas först i sitt steg. Bara Jakob väljer den.", sager: ["primär tagning"], aven: ["MAIN", "acceptedAs MAIN", "explicitMain"] },
   { grupp: "Omdömen", ord: "Godkänd ✓", betyder: "Godkänd rakt av: kan spelas, och bara sådana tagningar blir underlag till nya filmer.", sager: [], aven: ["ACCEPTED", "rakt godkänd", "userAccepted"] },
@@ -145,10 +138,10 @@ export const WORDS: readonly Word[] = [
   { grupp: "Studion och vyerna", ord: "Kortpaketet", betyder: "Ett köpt paket med inspelade rörelser, och visaren för det. Ligger vid sidan: inte grunden för dockans rörelser. Nås från startsidan.", sager: ["animationspaketet"], aven: ["kortspelspaket", "Card Games Animation Pack"] },
   { grupp: "Studion och vyerna", ord: "Ramen", betyder: "Det som omger bilden i varje vy: menyn, rubrikraden, panelerna och knapparna. En snyggare studio är en snyggare ram; bildytan i mitten har sin egen kod.", sager: [], aven: ["skalet", "shell"] },
   { grupp: "Studion och vyerna", ord: "Menyn", betyder: "Spalten till vänster: dealern, vyerna i kedjans ordning (Start, Avatarer, Dockan, Filmverkstaden, Granska, Karta, Material, Casino, Mått), Beslut och Ordlista, och längst ner om servern svarar.", sager: [], aven: ["rail", "sidomenyn"] },
-  { grupp: "Studion och vyerna", ord: "Vy", betyder: "En sida i menyn: Start, Avatarer, Dockan, Filmverkstaden, Granska, Karta, Material, Casino, Mått och Beslut. Lipsync, Ljud och Kortpaketet nås från startsidan.", sager: [], aven: ["view"] },
+  { grupp: "Studion och vyerna", ord: "Vy", betyder: "En sida i menyn: Start, Avatarer, Dockan, Filmverkstaden, Granska, Karta, Material, Casino, Mått och Beslut. Ljud och Kortpaketet nås från startsidan.", sager: [], aven: ["view"] },
   { grupp: "Studion och vyerna", ord: "Bildytan", betyder: "Det i mitten av en vy, alltid ett av fyra: filmspelaren (en film som den är), scenen (filmen vid bordet i rummet, i 3D), dockan (den vita figuren som visar rörelsen) eller spelet (blackjack).", sager: [], aven: ["stage"] },
   { grupp: "Studion och vyerna", ord: "Servern", betyder: "Programmet i bakgrunden som STARTA studion startar: det lämnar ut studion, startar dockans editor och kortpaketets visare när deras vy öppnas, sparar det du ändrar och läser banken. Pricken längst ner i menyn visar om den svarar.", sager: [], aven: ["labbservern", "preview"] },
-  { grupp: "Studion och vyerna", ord: "Vid sidan", betyder: "Det som ligger bredvid arbetet, längst ner på startsidan: Kortpaketet, Lipsync och Ljud (marker, kort, rum och musik, en egen sida med eget utseende).", sager: ["sidorna bredvid"], aven: ["Ljud"] },
+  { grupp: "Studion och vyerna", ord: "Vid sidan", betyder: "Det som ligger bredvid arbetet, längst ner på startsidan: Kortpaketet och Ljud (marker, kort, rum och musik, en egen sida med eget utseende).", sager: ["sidorna bredvid"], aven: ["Ljud"] },
   { grupp: "Studion och vyerna", ord: "Avatarer", betyder: "Vyn med vägarna från bilder av en person till en docka på vårt skelett, steg för steg: Version 1 (den som körs i dag) skild från de prövade och tänkta, vad varje steg kostar och vad som finns för varje person; delarna med sina alternativ; och föremålen vid bordet (bordet, skon, stolen, korten, markerlådan) i 3D. Inget där startar en körning.", sager: ["avatarerna", "guiden", "wizard"], aven: ["avatar-auto-pipeline", "vägarna", "Modeller (3D-modellerna, förut en egen sida)"] },
   { grupp: "Studion och vyerna", ord: "Föremål och material", betyder: "Avatarers del med det som står vid bordet: bordet, skon, stolen, korten och markerlådan, och de färdiga modellerna att vrida i 3D. De hör till scenen, inte till dockan.", sager: ["föremålen", "stolen"], aven: ["props"] },
   { grupp: "Studion och vyerna", ord: "3D-sidan", betyder: "Utvecklarens sida för 3D-scenen med alla reglage; Scen i studion visar samma scen, och inspelarna använder sidan. Den har ingen knapp i menyn.", sager: [], aven: ["scene3d.html", "3D-labbet"] },
@@ -189,8 +182,8 @@ export const WORDS: readonly Word[] = [
 const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 /**
- * The words a search finds, best first: the entry one of whose names is exactly what was typed ("lipsynk" is Lipsync, not
- * Realtidslipsynk), then the words holding the search as typed, with its å, ä and ö, and last those found only with the marks
+ * The words a search finds, best first: the entry one of whose names is exactly what was typed ("kort" is Kort, not
+ * Kortplan), then the words holding the search as typed, with its å, ä and ö, and last those found only with the marks
  * left out ("platt" finds "plätt"; "kön" finds Kön, then Bordet and the other words that say Kön, and only then Skon and
  * Efterbehandling's "konstruktion"). Within each: the word itself, then one of Jakob's own other words, then a name in code
  * and documents, then the meaning. Case does not count; an empty search gives all.

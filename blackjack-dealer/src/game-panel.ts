@@ -10,26 +10,24 @@ export type RoomChoice = {id: string; label: string; note: string; thumb: string
 export type DealerChoice = {id: string; label: string; note: string; thumb: string};
 export type TrackChoice = {id: string; label: string; note: string};
 export type PanelState = {
-  room: string; dealer: string; canChange: boolean; changing: boolean; // canChange: between rounds, when room and dealer may be changed
+  room: string; dealer: string; canChange: boolean; // canChange: between rounds, when room and dealer may be changed
   tracks: TrackChoice[]; track: string | null; music: number; table: boolean; ambience: boolean; // music: its level 0-1; table: chips and cards are heard; ambience: the room is heard
   cards: boolean; // the drawn cards are on (the scene's key cards); off: the film's own coloured cards show
 };
 export type PanelHandlers = {room(id: string): void; dealer(id: string): void; music(track: string | null): void; level(music: number): void; table(on: boolean): void; ambience(on: boolean): void; cards?(on: boolean): void; open?(): void};
-type Change = Pick<PanelState, 'canChange' | 'changing'>;
+type Change = Pick<PanelState, 'canChange'>;
 
 /** Which room card is marked, and whether a card can be pressed: the room showing is marked and cannot be chosen again; nothing can be chosen during a round or a change. */
-export function roomCards(rooms: RoomChoice[], state: Pick<PanelState, 'room' | 'canChange' | 'changing'>): {id: string; chosen: boolean; disabled: boolean}[] {
-  return rooms.map(r => ({id: r.id, chosen: r.id === state.room, disabled: r.id === state.room || !state.canChange || state.changing}));
+export function roomCards(rooms: RoomChoice[], state: Pick<PanelState, 'room' | 'canChange'>): {id: string; chosen: boolean; disabled: boolean}[] {
+  return rooms.map(r => ({id: r.id, chosen: r.id === state.room, disabled: r.id === state.room || !state.canChange}));
 }
 /** What stands under the rooms. */
 export function roomNote(state: Change): string {
-  return state.changing ? 'Dealern byts …' : state.canChange ? 'Ett skimmer går över hela bakgrunden när rummet byts.' : 'Miljön kan bytas mellan rundorna.';
+  return state.canChange ? 'Ett skimmer går över hela bakgrunden när rummet byts.' : 'Miljön kan bytas mellan rundorna.';
 }
-/** What stands under the dealers. `count`: how many dealers there are to choose between; with one, she is the one who comes back. */
-export function dealerNote(state: Change, count = 2): string {
-  return state.changing ? 'Dealern byts …' : !state.canChange ? 'Dealern kan bytas mellan rundorna.'
-    : count < 2 ? 'Hon reser sig och går, bordet står tomt en stund, och en dealer kommer in och sätter sig. Än finns bara en dealer, så det är hon som kommer tillbaka.'
-    : 'Hon reser sig och går, bordet står tomt en stund, och nästa dealer kommer in och sätter sig.';
+/** What stands under the dealers: nothing between rounds, else that she is changed between them. */
+export function dealerNote(state: Change): string {
+  return !state.canChange ? 'Dealern kan bytas mellan rundorna.' : '';
 }
 /** What the Musik button says: the track that plays, else that sounds are on, else that it is quiet. */
 export function musicLabel(state: Pick<PanelState, 'tracks' | 'track' | 'table' | 'ambience'>): string {
@@ -42,7 +40,6 @@ const ICON = {
   play: svg('<path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="none"/>'),
   quiet: svg('<path d="M4 9.5v5h3.5L12 18V6L7.5 9.5z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>'),
   speaker: svg('<path d="M4 9.5v5h3.5L12 18V6L7.5 9.5z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>'),
-  swap: svg('<path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/>'),
   chevron: svg('<path d="M7 14.5l5-5 5 5"/>', 14),
   menu: svg('<path d="M4 7h16M4 12h16M4 17h16"/>', 20),
 };
@@ -61,7 +58,7 @@ export function mountPanel(bar: HTMLElement, rooms: RoomChoice[], dealers: Deale
   const tablePanel = el('section', 'gp-panel gp-table'), musicPanel = el('section', 'gp-panel gp-music'); tablePanel.hidden = musicPanel.hidden = true;
   tablePanel.setAttribute('role', 'dialog'); tablePanel.setAttribute('aria-label', 'Miljö och dealer'); musicPanel.setAttribute('role', 'dialog'); musicPanel.setAttribute('aria-label', 'Musik och ljud');
   panels.append(tablePanel, musicPanel); bar.prepend(menu); bar.append(panels);
-  let state: PanelState = {room: '', dealer: '', canChange: true, changing: false, tracks: [], track: null, music: 0.6, table: false, ambience: false, cards: true};
+  let state: PanelState = {room: '', dealer: '', canChange: true, tracks: [], track: null, music: 0.6, table: false, ambience: false, cards: true};
 
   // ── Miljö and Dealer: one panel, two tabs ──
   const tabs = el('div', 'gp-tabs'), roomTab = el('button', 'gp-tab', 'Miljö'), dealerTab = el('button', 'gp-tab', 'Dealer'), roomPage = el('div', 'gp-page'), dealerPage = el('div', 'gp-page');
@@ -75,15 +72,12 @@ export function mountPanel(bar: HTMLElement, rooms: RoomChoice[], dealers: Deale
     card.addEventListener('click', () => on.room(room.id)); roomGrid.append(card); roomNodes.set(room.id, card); }
   roomPage.append(roomGrid, roomHint);
 
-  // Dealers: the one at the table is marked; another is pressed to send her in. The button changes to the next in the list
-  // (with one dealer: she leaves and comes back).
-  const dealerList = el('div', 'gp-dealers'), dealerNodes = new Map<string, HTMLButtonElement>(), change = html('button', 'gp-change', `${ICON.swap}<span>Byt dealer</span>`), changeNote = el('p', 'gp-note');
+  // Dealers: the one at the table is marked; another is pressed to play with her (between rounds).
+  const dealerList = el('div', 'gp-dealers'), dealerNodes = new Map<string, HTMLButtonElement>(), changeNote = el('p', 'gp-note');
   for (const dealer of dealers) { const card = el('button', 'gp-dealer'), face = el('span', 'gp-face'), text = el('span', 'gp-who'); card.type = 'button'; picture(face, dealer.thumb);
     text.append(el('b', '', dealer.label), el('small', '', dealer.note)); card.append(face, text, el('span', 'gp-seat', 'Vid bordet'));
     card.addEventListener('click', () => on.dealer(dealer.id)); dealerList.append(card); dealerNodes.set(dealer.id, card); }
-  const steps = el('ol', 'gp-steps'); for (const step of ['Hon reser sig och går', 'Bordet står tomt', 'En dealer kommer in']) steps.append(el('li', '', step));
-  change.type = 'button'; change.addEventListener('click', () => { const at = dealers.findIndex(d => d.id === state.dealer); on.dealer(dealers[(at + 1) % Math.max(1, dealers.length)]?.id ?? state.dealer); });
-  dealerPage.append(dealerList, steps, change, changeNote);
+  dealerPage.append(dealerList, changeNote);
   tablePanel.append(tabs, roomPage, dealerPage); tab('room');
   // Without a dealer at the table there is no Dealer menu: no button, no tab, only Miljö.
   if (!dealers.length) { dealerBtn.b.style.display = 'none'; tabs.style.display = 'none'; }
@@ -135,12 +129,12 @@ export function mountPanel(bar: HTMLElement, rooms: RoomChoice[], dealers: Deale
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && (open || listed)) { const from = open && more.offsetParent === null ? openers[open] : more; show(null); from.focus(); } });
 
   function paint() {
-    const room = rooms.find(r => r.id === state.room), dealer = dealers.find(d => d.id === state.dealer), locked = !state.canChange || state.changing;
+    const room = rooms.find(r => r.id === state.room), dealer = dealers.find(d => d.id === state.dealer), locked = !state.canChange;
     picture(roomBtn.pic, room?.thumb); roomBtn.now.textContent = room?.label ?? '–'; picture(dealerBtn.pic, dealer?.thumb); dealerBtn.now.textContent = dealer?.label ?? '–';
     for (const card of roomCards(rooms, state)) { const node = roomNodes.get(card.id)!; node.classList.toggle('chosen', card.chosen); node.disabled = card.disabled; node.setAttribute('aria-pressed', String(card.chosen)); }
     roomHint.textContent = roomNote(state);
     for (const [id, node] of dealerNodes) { node.classList.toggle('chosen', id === state.dealer); node.disabled = id === state.dealer || locked; }
-    change.disabled = locked; change.classList.toggle('busy', state.changing); steps.classList.toggle('busy', state.changing); changeNote.textContent = dealerNote(state, dealers.length);
+    changeNote.textContent = dealerNote(state);
     tracks(); for (const b of trackList.children) (b as HTMLElement).setAttribute('aria-pressed', String(((b as HTMLElement).dataset.track || null) === state.track));
     const playing = state.tracks.some(t => t.id === state.track), name = musicLabel(state);
     musicBtn.now.textContent = name; musicBtn.b.classList.toggle('playing', playing); nowRow.classList.toggle('playing', playing); nowName.textContent = playing ? name : 'Ingen musik';
