@@ -2779,6 +2779,11 @@
       "flagga": "--namn",
       "gor": "skriver standarddocka_<namn>_<N>.* (en provmodell) i stället för de modeller som används",
       "i_guiden": true
+     },
+     {
+      "flagga": "--matt",
+      "gor": "en fil med provmått som läggs över dockans egna (../live-bj/data/kroppar.json: dealerns kropp ur filmen); bara med --namn",
+      "i_guiden": true
      }
     ]
    },

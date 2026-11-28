@@ -169,6 +169,7 @@ PASS_TGT = {  # måttet -> MPFB-targets (utan -incr/-decr), höger och vänster 
     # huvud_b; höjden skalas kring ögonen, så hakan flyttas också), midjan och höften med MPFB:s måttband
     'haka': ['neck/measure-neck-height'],
     'huvud_h': ['head/head-scale-vert', 'head/head-scale-depth'],
+    'huvud_d': ['head/head-scale-depth'],  # huvudets djup för sig (en provdocka efter filmens kropp, --matt), med huvud_h
     'midja_omkr': ['torso/measure-waist-circ'],
     'hoft_omkr': ['torso/measure-hips-circ'],
     # en person efter mått: bröstets omkrets, halsens omkrets, ansiktets bredd vid käken (kinderna) och underkäkens bredd
@@ -237,6 +238,9 @@ ANSIKTE = {
     'bryn': {'ut': (-1.2, 0.5, 1.65), 'hojd': (1.15, 1.4, 1.15), 'tjock': (0.45, 0.33, 0.12), 'over_huden': 0.0006, 'delar': 20},
 }
 TANDER = ('helper-upper-teeth', 'helper-lower-teeth')  # MPFB:s hjälpgrupper som står kvar efter MASK
+# Hur långt passningen får dra ett MPFB-reglage: dess eget fulla utslag (1). En provdocka med provmått (--matt) får gå
+# till dubbla, eftersom en dealers mått ur filmen kan ligga utanför reglaget (axlarna smalare än MPFB:s minsta, 0,3485 m).
+VIKT_MAX = 1.0
 
 
 def las_target(path: Path):
@@ -610,6 +614,7 @@ def bygg_en(kon: str, suffix: str = ''):
         m['ua_omkr'] = _omkrets(co, kanter, rs, re_, 0.5)
         eye = (c('joint-r-eye') + c('joint-l-eye')) / 2; huv = kropp[kropp[:, 2] > eye[2] + 0.01]
         m['huvud_b'] = max(float(b[:, 0].max() - b[:, 0].min()) for b in (huv[np.abs(huv[:, 2] - z) < 0.004] for z in np.arange(eye[2] + 0.01, kropp[:, 2].max() - 0.02, 0.004)) if len(b))
+        m['huvud_d'] = float(np.ptp(huv[np.linalg.norm(huv - eye, axis=1) < 0.2][:, 1]))  # pannan till nacken över ögonen
         # hakan: hudens lägsta punkt på mittlinjen under munnen, högst 2 cm bakom ögonens mitt (längre bak går hakans
         # undersida över i halsen); över axelledernas linje, och till hjässan
         axl = (rs + ls)[2] / 2
@@ -652,7 +657,7 @@ def bygg_en(kon: str, suffix: str = ''):
                    for i, t in enumerate(PASS_TGT[k])]
             m = matt(); eff[(k, d)] = {j: m[j] - m0[j] for j in nycklar + ['H']}
             for sk in sks:
-                sk.value = 0.0
+                sk.value = 0.0; sk.slider_max = VIKT_MAX
     # (riktningen ur målet och grundens kropp skalad till grundens längd; den egna längden kommer av passningen)
     riktning = {k: 'incr' if (PASS[k] - grund_m[k]) * eff[(k, 'incr')][k] >= 0 else 'decr' for k in nycklar}
     for k in nycklar:  # ett mått som dess egna targets inte flyttar går inte att passa (Newtons metod blir singulär)
@@ -693,7 +698,7 @@ def bygg_en(kon: str, suffix: str = ''):
             nw = w[k] + float(dw[i])
             if nw < -0.02:  # åt andra hållet: decr i stället för incr, eller tvärtom
                 riktning[k] = 'decr' if riktning[k] == 'incr' else 'incr'; nw = -nw; vand = True
-            w[k] = min(1.0, max(0.0, nw))
+            w[k] = min(VIKT_MAX, max(0.0, nw))
         if vand:
             J = jacobi()
     satt(w); m1 = matt()
@@ -1078,9 +1083,19 @@ ap = argparse.ArgumentParser()
 ap.add_argument('--kon', choices=[*MATT], help='dockan (en nyckel i MATT eller en person i personer/); utan den byggs inget')
 ap.add_argument('--namn', default='', help='skriver standarddocka_<docka>_<namn>.blend/.glb (och rapporten med samma namn) i stället '
                                           'för de modeller som används; små bokstäver, siffror och understreck')
+ap.add_argument('--matt', default='', help='en fil med provmått som läggs över dockans egna (JSON {"dockor": {"<docka>": {"passa": {...}, "kalla": "..."}}}, '
+                                          'som ../live-bj/data/kroppar.json); bara med --namn, så att modellen som används står kvar')
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 if args.namn and not re.fullmatch(r'[a-z0-9_]+', args.namn):
     raise SystemExit('--namn tar små bokstäver, siffror och understreck, till exempel naturlig')
+if args.matt:  # en provdocka: måtten i filen ersätter dockans (och hennes andelar av grunden för samma mått), resten är dockans
+    if not (args.kon and args.namn):
+        raise SystemExit('--matt bygger en provmodell: ge dockan (--kon) och provets namn (--namn)')
+    prov = json.loads(Path(args.matt).read_text(encoding='utf-8'))['dockor'][args.kon]
+    VIKT_MAX = 2.0
+    MATT[args.kon] = {**MATT[args.kon], 'passa': {**MATT[args.kon]['passa'], **prov['passa']},
+                      'som_grund': {k: v for k, v in MATT[args.kon].get('som_grund', {}).items() if k not in prov['passa']},
+                      'kalla': f'{Path(args.matt).name}: {prov.get("kalla", "")}; resten som {args.kon} ({MATT[args.kon]["kalla"]})'}
 if args.kon:
     bygg_en(args.kon, args.namn)
 else:

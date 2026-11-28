@@ -21,7 +21,9 @@ figure's film on a hired machine at RunPod (sam_runpod.ts hires it and sends thi
       Reads every picture of the list with the body model and writes <ut-mapp>/sam.json: per picture its time, box,
       the 70 key points in the camera's frame and in the picture, and the seconds it took. On the processor when there
       is no NVIDIA card, at low priority and with --tradar threads (a quarter of the logical processors unless said),
-      picking up where it stopped if it is run again. --sort body leaves the hands' own decoder out.
+      picking up where it stopped if it is run again. --sort body leaves the hands' own decoder out. --yta <mapp> also
+      writes <mapp>/<picture>.npz: the body's surface as read (the camera's frame) and standing in the body model's rest
+      pose, with its 70 key points (for kroppen.py: the body's widths, rounds and the head without a pose).
   PY live-bj/verktyg/sam_runpod.py spara <sam.json> <ut.json>
       The answer kept as numbers only (the joints, no pixels, no picture), small enough for data/sam-prov/.
   PY live-bj/verktyg/sam_runpod.py jamfor <sam.json> <the figure's own numbers> <mätt-mapp> <ut.json>
@@ -259,7 +261,21 @@ def serve():
 
 # ── Reading the pictures (on the hired machine, or here on the processor) ──────
 
-def las(out, listing, threads=None, kind='full'):
+def neutral_body(model, person):
+    """The body SAM read, standing in its body model's rest pose (no pose, the hands' mean) at SAM's own size: the
+    surface's corners and the 70 key points in metres, in the body model's own frame (y up, z forward)."""
+    import numpy as np
+    import torch
+    given = lambda v, n: torch.as_tensor(np.asarray(v, np.float32).reshape(1, n))
+    zero = lambda n: torch.zeros(1, n)
+    with torch.no_grad():
+        corners, points = model.head_pose.mhr_forward(global_trans=zero(3), global_rot=zero(3), body_pose_params=zero(133), hand_pose_params=zero(108),
+                                                      scale_params=given(person['scale_params'], 28), shape_params=given(person['shape_params'], 45),
+                                                      expr_params=zero(72), return_keypoints=True)
+    return corners[0].numpy(), points[0, :70].numpy()
+
+
+def las(out, listing, threads=None, kind='full', surface=None):
     import time
     began = time.time()
     sam = os.path.abspath(os.environ.get('SAM_3D_BODY') or os.path.join(CASINO, '..', 'sam-3d-body'))
@@ -331,6 +347,11 @@ def las(out, listing, threads=None, kind='full'):
         back = np.stack([cam['focalPx'] * keypoints[:, 0] / keypoints[:, 2] + cam['cx'], cam['focalPx'] * keypoints[:, 1] / keypoints[:, 2] + cam['cy']], axis=-1)
         done.append({'picture': entry['picture'], 't': entry['t'], 'box': entry['box'], 'seconds': round(time.time() - tic, 2), 'camT': np.round(shift, 5).tolist(),
                      'keypoints': np.round(keypoints, 5).tolist(), 'pixels': np.round(seen, 2).tolist(), 'reprojectionMaxPx': round(float(np.abs(back - seen).max()), 3)})
+        if surface:   # the body's surface as read and standing in the rest pose (kroppen.py measures it); numbers, no picture
+            os.makedirs(surface, exist_ok=True)
+            standing, standing_points = neutral_body(model, p)
+            np.savez_compressed(os.path.join(surface, f"{os.path.splitext(entry['picture'])[0]}.npz"), read=(np.asarray(p['pred_vertices'], np.float64) + shift).astype(np.float32),
+                                standing=standing.astype(np.float32), standing_points=standing_points.astype(np.float32), faces=np.asarray(p['faces'] if 'faces' in p else model.head_pose.faces.cpu().numpy(), np.int32))
         save()
         print(f"READ {entry['picture']} {done[-1]['seconds']:.2f}s ({len(done)}/{len(plan['pictures'])})", flush=True)
     save()
@@ -716,7 +737,7 @@ def main():
     if plain[0] == 'installera':
         return installera(plain[1])
     if plain[0] == 'las':
-        return las(plain[1], plain[2], option('--tradar'), option('--sort', 'full'))
+        return las(plain[1], plain[2], option('--tradar'), option('--sort', 'full'), option('--yta'))
     if plain[0] == 'rutor':
         return rutor(*plain[1:6], times=option('--tider'), every=int(option('--var', '5')), dense=int(option('--tatt', '0')), like=option('--som'), wait_factor=int(option('--vantan-gles', '1')))
     if plain[0] == 'jamfor':

@@ -362,6 +362,7 @@ Flaggorna:
 | --- | --- | --- | --- |
 | `--kon` | danilo eller frasse |  | ja |
 | `--namn` | skriver standarddocka_<namn>_<N>.* (en provmodell) i stället för de modeller som används |  | ja |
+| `--matt` | en fil med provmått som läggs över dockans egna (../live-bj/data/kroppar.json: dealerns kropp ur filmen); bara med --namn |  | ja |
 
 ### Docka efter en persons mått (Tomasz)
 

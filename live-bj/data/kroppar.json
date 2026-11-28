@@ -1,0 +1,1221 @@
+{
+ "about": "The two dealers' bodies out of the live table's film (live-bj/verktyg/kroppen.py matt), numbers only. Metres. For each dealer: idag is today's figure (bygg_docka.py's own measure of it), filmen the dealer, hur how it is measured and osaker the uncertainty (±). passa is what bygg_docka.py --matt builds a trial figure with. Left and right are the dealer's own.",
+ "metod": "- Scale: SAM's body is moved along the camera's lines of sight (all of it scaled about the camera, so the picture\n    stays the same) until the wrists lie 0.04 m over the felt, as the lifted waits hold them. The felt is known from the\n    camera (data/scen.json); SAM's own distance is not used.\n  - Every measure on SAM's body standing in its rest pose (so the seated posture is out): the shoulder joints apart,\n    the arm's parts, the hand and the fingers from its joints; the rounds, the head and the neck on its surface,\n    measured the way bygg_docka.py measures our figure (the trunk's rounds round the middle line only).\n  - Calibrated on our own figures: SAM reads Danilo's and Frasse's figures in the same waits through the same camera,\n    where the truth is bygg_docka.py's own measure; per measure the factor truth / SAM over all those frames (for the\n    chin and the eyes over the shoulders a step) is put on the dealer's mean. What SAM gets wrong the same way on both\n    falls out; what it gets wrong on clothes does not. osaker is the spread between the dealer's frames and of the\n    factor, together. SAM reads nearly the same shape on both dealers: what parts them is mostly the size.\n  - The outline: the dealer's against our figure's in the same frame and pose (MediaPipe's person mask), in pixels at\n    the same heights: how much wider or narrower he looks, clothes included.",
+ "givarnas_sam": {
+  "danilo": {
+   "rutor": 69,
+   "sw": 0.3754,
+   "ua": 0.2864,
+   "fa": 0.2597,
+   "hand": 0.1354,
+   "ua_med_rattelsen": 0.2904,
+   "fa_med_rattelsen": 0.2787,
+   "avstand_till_halsen_m": 1.6923
+  },
+  "frasse": {
+   "rutor": 1,
+   "sw": 0.3658,
+   "ua": 0.2863,
+   "fa": 0.2649,
+   "hand": 0.1669,
+   "ua_med_rattelsen": 0.2903,
+   "fa_med_rattelsen": 0.2839,
+   "avstand_till_halsen_m": 1.8815
+  }
+ },
+ "dockor": {
+  "danilo": {
+   "passa": {
+    "sw": 0.3369,
+    "ua": 0.2763,
+    "fa": 0.2683,
+    "hand": 0.1916,
+    "haka": 0.1276,
+    "huvud_h": 0.2194,
+    "huvud_b": 0.1394,
+    "huvud_d": 0.1954,
+    "hals_omkr": 0.3771,
+    "brost_omkr": 0.8843,
+    "midja_omkr": 0.7035,
+    "ua_omkr": 0.3145,
+    "fa_omkr": 0.2808,
+    "handled_omkr": 0.174
+   },
+   "kalla": "live-bj/data/kroppar.json (kroppen.py matt): SAM 3D Body på 4 rutor i väntorna, skalad mot filten och räknad mot samma läsning av dockan i samma väntor; sw, ua, fa, hand, haka, huvud_h, huvud_b, huvud_d, hals_omkr, brost_omkr, midja_omkr, ua_omkr, fa_omkr, handled_omkr ur filmen; höften, benen och bålens längd dolda bakom bordet: dockans",
+   "rutor": [
+    {
+     "t": 196.25,
+     "skala": 0.9268,
+     "skala_per_handled": [
+      0.8935,
+      0.9601
+     ],
+     "sam_avstand_m": 1.859,
+     "axlarnas_djup_m": 1.7242,
+     "axlarna_bakom_kanten_m": 0.177,
+     "axlarna_over_filten_m": 0.313
+    },
+    {
+     "t": 198.683,
+     "skala": 0.9285,
+     "skala_per_handled": [
+      0.895,
+      0.9621
+     ],
+     "sam_avstand_m": 1.856,
+     "axlarnas_djup_m": 1.7257,
+     "axlarna_bakom_kanten_m": 0.178,
+     "axlarna_over_filten_m": 0.312
+    },
+    {
+     "t": 346.417,
+     "skala": 0.965,
+     "skala_per_handled": [
+      0.9877,
+      0.9424
+     ],
+     "sam_avstand_m": 1.768,
+     "axlarnas_djup_m": 1.7214,
+     "axlarna_bakom_kanten_m": 0.174,
+     "axlarna_over_filten_m": 0.315
+    },
+    {
+     "t": 349.017,
+     "skala": 0.9726,
+     "skala_per_handled": [
+      1.0043,
+      0.9409
+     ],
+     "sam_avstand_m": 1.759,
+     "axlarnas_djup_m": 1.7268,
+     "axlarna_bakom_kanten_m": 0.18,
+     "axlarna_over_filten_m": 0.314
+    }
+   ],
+   "dockans_rutor": [
+    {
+     "t": 196.25,
+     "skala": 0.9636,
+     "skala_per_handled": [
+      0.9286,
+      0.9986
+     ],
+     "sam_avstand_m": 1.872,
+     "axlarnas_djup_m": 1.792,
+     "axlarna_bakom_kanten_m": 0.253,
+     "axlarna_over_filten_m": 0.327
+    },
+    {
+     "t": 198.683,
+     "skala": 0.9695,
+     "skala_per_handled": [
+      0.9273,
+      1.0118
+     ],
+     "sam_avstand_m": 1.858,
+     "axlarnas_djup_m": 1.7908,
+     "axlarna_bakom_kanten_m": 0.252,
+     "axlarna_over_filten_m": 0.33
+    },
+    {
+     "t": 346.417,
+     "skala": 0.9862,
+     "skala_per_handled": [
+      0.9432,
+      1.0292
+     ],
+     "sam_avstand_m": 1.826,
+     "axlarnas_djup_m": 1.7897,
+     "axlarna_bakom_kanten_m": 0.251,
+     "axlarna_over_filten_m": 0.329
+    },
+    {
+     "t": 349.017,
+     "skala": 0.9964,
+     "skala_per_handled": [
+      0.962,
+      1.0307
+     ],
+     "sam_avstand_m": 1.797,
+     "axlarnas_djup_m": 1.7833,
+     "axlarna_bakom_kanten_m": 0.246,
+     "axlarna_over_filten_m": 0.334
+    }
+   ],
+   "matt": {
+    "sw": {
+     "idag": 0.357,
+     "filmen": 0.3369,
+     "osaker": 0.0081,
+     "sam_dealern": [
+      0.311,
+      0.3114,
+      0.3215,
+      0.3239
+     ],
+     "sam_dockan": [
+      0.3355,
+      0.3368,
+      0.3419,
+      0.3442
+     ],
+     "sam_fel_pa_dockan": -0.0174,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "ua": {
+     "idag": 0.279,
+     "filmen": 0.2763,
+     "osaker": 0.0077,
+     "sam_dealern": [
+      0.2653,
+      0.2655,
+      0.2719,
+      0.2733
+     ],
+     "sam_dockan": [
+      0.2748,
+      0.2758,
+      0.2804,
+      0.2807
+     ],
+     "sam_fel_pa_dockan": -0.0011,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "fa": {
+     "idag": 0.272,
+     "filmen": 0.2683,
+     "osaker": 0.0097,
+     "sam_dealern": [
+      0.2379,
+      0.2382,
+      0.249,
+      0.251
+     ],
+     "sam_dockan": [
+      0.2493,
+      0.2511,
+      0.2535,
+      0.2582
+     ],
+     "sam_fel_pa_dockan": -0.019,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "hand": {
+     "idag": 0.193,
+     "filmen": 0.1916,
+     "osaker": 0.0084,
+     "sam_dealern": [
+      0.1479,
+      0.1482,
+      0.159,
+      0.1586
+     ],
+     "sam_dockan": [
+      0.1554,
+      0.1551,
+      0.1596,
+      0.1618
+     ],
+     "sam_fel_pa_dockan": -0.035,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "huvud_h": {
+     "idag": 0.228,
+     "filmen": 0.2194,
+     "osaker": 0.0057,
+     "sam_dealern": [
+      0.2292,
+      0.2296,
+      0.2356,
+      0.2379
+     ],
+     "sam_dockan": [
+      0.2354,
+      0.2365,
+      0.2402,
+      0.241
+     ],
+     "sam_fel_pa_dockan": 0.0103,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "huvud_b": {
+     "idag": 0.1499,
+     "filmen": 0.1394,
+     "osaker": 0.0039,
+     "sam_dealern": [
+      0.1531,
+      0.1533,
+      0.1579,
+      0.1596
+     ],
+     "sam_dockan": [
+      0.163,
+      0.1637,
+      0.166,
+      0.1666
+     ],
+     "sam_fel_pa_dockan": 0.0149,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "huvud_d": {
+     "idag": 0.2033,
+     "filmen": 0.1954,
+     "osaker": 0.0043,
+     "sam_dealern": [
+      0.1843,
+      0.1846,
+      0.1896,
+      0.1914
+     ],
+     "sam_dockan": [
+      0.1946,
+      0.1954,
+      0.1982,
+      0.199
+     ],
+     "sam_fel_pa_dockan": -0.0065,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "hals_omkr": {
+     "idag": 0.3768,
+     "filmen": 0.3771,
+     "osaker": 0.0084,
+     "sam_dealern": [
+      0.5043,
+      0.5042,
+      0.5134,
+      0.5212
+     ],
+     "sam_dockan": [
+      0.5187,
+      0.5006,
+      0.5205,
+      0.521
+     ],
+     "sam_fel_pa_dockan": 0.1384,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "brost_omkr": {
+     "idag": 0.9114,
+     "filmen": 0.8843,
+     "osaker": 0.0248,
+     "sam_dealern": [
+      0.9679,
+      0.9663,
+      0.9702,
+      0.9813
+     ],
+     "sam_dockan": [
+      1.0069,
+      1.0137,
+      1.0435,
+      1.0425
+     ],
+     "sam_fel_pa_dockan": 0.1152,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "midja_omkr": {
+     "idag": 0.7211,
+     "filmen": 0.7035,
+     "osaker": 0.0315,
+     "sam_dealern": [
+      0.8651,
+      0.8626,
+      0.8519,
+      0.8625
+     ],
+     "sam_dockan": [
+      0.9056,
+      0.9112,
+      0.9391,
+      0.9313
+     ],
+     "sam_fel_pa_dockan": 0.2007,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "hoft_omkr": {
+     "idag": 0.9085,
+     "filmen": 0.9217,
+     "osaker": 0.0454,
+     "sam_dealern": [
+      1.0055,
+      1.0059,
+      1.0386,
+      1.0484
+     ],
+     "sam_dockan": [
+      1.0417,
+      1.047,
+      1.0685,
+      1.0687
+     ],
+     "sam_fel_pa_dockan": 0.148,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "ua_omkr": {
+     "idag": 0.32,
+     "filmen": 0.3145,
+     "osaker": 0.0076,
+     "sam_dealern": [
+      0.3151,
+      0.3146,
+      0.3158,
+      0.3194
+     ],
+     "sam_dockan": [
+      0.3243,
+      0.3261,
+      0.3333,
+      0.3318
+     ],
+     "sam_fel_pa_dockan": 0.0089,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "fa_omkr": {
+     "idag": 0.29,
+     "filmen": 0.2808,
+     "osaker": 0.0066,
+     "sam_dealern": [
+      0.2604,
+      0.2603,
+      0.2622,
+      0.2649
+     ],
+     "sam_dockan": [
+      0.2726,
+      0.2741,
+      0.279,
+      0.2793
+     ],
+     "sam_fel_pa_dockan": -0.0137,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "handled_omkr": {
+     "idag": 0.17,
+     "filmen": 0.174,
+     "osaker": 0.0073,
+     "sam_dealern": [
+      0.1556,
+      0.1559,
+      0.1651,
+      0.1648
+     ],
+     "sam_dockan": [
+      0.159,
+      0.1585,
+      0.1624,
+      0.1647
+     ],
+     "sam_fel_pa_dockan": -0.0089,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "ht": {
+     "idag": 0.483,
+     "filmen": 0.4441,
+     "osaker": 0.0131,
+     "sam_dealern": [
+      0.4779,
+      0.4786,
+      0.4921,
+      0.4968
+     ],
+     "sam_dockan": [
+      0.5356,
+      0.5369,
+      0.5432,
+      0.5466
+     ],
+     "sam_fel_pa_dockan": 0.0576,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "haka": {
+     "idag": 0.1328,
+     "filmen": 0.1276,
+     "osaker": 0.0024,
+     "sam_dealern": [
+      0.0801,
+      0.0802,
+      0.0821,
+      0.0825
+     ],
+     "sam_dockan": [
+      0.0877,
+      0.0883,
+      0.0881,
+      0.0897
+     ],
+     "sam_fel_pa_dockan": -0.0444,
+     "hur": "SAM on the dealer plus what SAM lacks on our figures"
+    },
+    "ogon": {
+     "idag": 0.2527,
+     "filmen": 0.2428,
+     "osaker": 0.0037,
+     "sam_dealern": [
+      0.1982,
+      0.1985,
+      0.2034,
+      0.205
+     ],
+     "sam_dockan": [
+      0.2093,
+      0.2104,
+      0.2123,
+      0.2141
+     ],
+     "sam_fel_pa_dockan": -0.0412,
+     "hur": "SAM on the dealer plus what SAM lacks on our figures"
+    },
+    "brost_b": {
+     "sam_dealern": 0.3343,
+     "sam_dockan": 0.3554,
+     "kvot": 0.9406
+    },
+    "brost_d": {
+     "sam_dealern": 0.2414,
+     "sam_dockan": 0.2493,
+     "kvot": 0.9682
+    },
+    "midja_b": {
+     "sam_dealern": 0.2969,
+     "sam_dockan": 0.3237,
+     "kvot": 0.9169
+    },
+    "midja_d": {
+     "sam_dealern": 0.2401,
+     "sam_dockan": 0.2486,
+     "kvot": 0.9656
+    },
+    "midja_under_axlarna": {
+     "sam_dealern": 0.2364,
+     "sam_dockan": 0.2906,
+     "kvot": 0.8134
+    },
+    "hoft_b": {
+     "sam_dealern": 0.3843,
+     "sam_dockan": 0.3978,
+     "kvot": 0.9661
+    },
+    "hoft_d": {
+     "sam_dealern": 0.2238,
+     "sam_dockan": 0.2267,
+     "kvot": 0.9871
+    },
+    "akromion_b": {
+     "sam_dealern": 0.3149,
+     "sam_dockan": 0.3314,
+     "kvot": 0.9504
+    },
+    "huvud_b_over_oronen": {
+     "sam_dealern": 0.1558,
+     "sam_dockan": 0.163,
+     "kvot": 0.9557
+    },
+    "hoft_h": {
+     "sam_dealern": 0.7972,
+     "sam_dockan": 0.8478,
+     "kvot": 0.9402
+    },
+    "H": {
+     "sam_dealern": 1.5978,
+     "sam_dockan": 1.7151,
+     "kvot": 0.9316
+    },
+    "fingrar": {
+     "thumb": {
+      "sam_dealern": 0.0869,
+      "sam_dockan": 0.0878
+     },
+     "index": {
+      "sam_dealern": 0.0789,
+      "sam_dockan": 0.0809
+     },
+     "middle": {
+      "sam_dealern": 0.0853,
+      "sam_dockan": 0.0872
+     },
+     "ring": {
+      "sam_dealern": 0.0812,
+      "sam_dockan": 0.0829
+     },
+     "pinky": {
+      "sam_dealern": 0.0643,
+      "sam_dockan": 0.0654
+     }
+    }
+   },
+   "kontur": {
+    "huvud_vid_ogonen": {
+     "dealern": 0.1925,
+     "dockan": 0.184,
+     "kvot": 1.0457
+    },
+    "huvud_over_ogonen": {
+     "dealern": 0.1791,
+     "dockan": 0.1608,
+     "kvot": 1.1136
+    },
+    "hals": {
+     "dealern": 0.1357,
+     "dockan": 0.1203,
+     "kvot": 1.1279
+    },
+    "axlar": {
+     "dealern": 0.5029,
+     "dockan": 0.4866,
+     "kvot": 1.0334
+    },
+    "brost_med_armarna": {
+     "dealern": 0.5714,
+     "dockan": 0.576,
+     "kvot": 0.9919
+    },
+    "over_bordskanten_med_armarna": {
+     "dealern": 0.6378,
+     "dockan": 0.6253,
+     "kvot": 1.0201
+    }
+   }
+  },
+  "frasse": {
+   "passa": {
+    "sw": 0.3224,
+    "ua": 0.2632,
+    "fa": 0.2531,
+    "hand": 0.182,
+    "haka": 0.1249,
+    "huvud_h": 0.2093,
+    "huvud_b": 0.133,
+    "huvud_d": 0.1866,
+    "hals_omkr": 0.3768,
+    "brost_omkr": 0.8638,
+    "midja_omkr": 0.6979,
+    "ua_omkr": 0.3111,
+    "fa_omkr": 0.2752,
+    "handled_omkr": 0.167
+   },
+   "kalla": "live-bj/data/kroppar.json (kroppen.py matt): SAM 3D Body på 4 rutor i väntorna, skalad mot filten och räknad mot samma läsning av dockan i samma väntor; sw, ua, fa, hand, haka, huvud_h, huvud_b, huvud_d, hals_omkr, brost_omkr, midja_omkr, ua_omkr, fa_omkr, handled_omkr ur filmen; höften, benen och bålens längd dolda bakom bordet: dockans",
+   "rutor": [
+    {
+     "t": 577.983,
+     "skala": 0.9103,
+     "skala_per_handled": [
+      0.9062,
+      0.9143
+     ],
+     "sam_avstand_m": 1.901,
+     "axlarnas_djup_m": 1.7462,
+     "axlarna_bakom_kanten_m": 0.199,
+     "axlarna_over_filten_m": 0.312
+    },
+    {
+     "t": 583.617,
+     "skala": 0.9073,
+     "skala_per_handled": [
+      0.903,
+      0.9115
+     ],
+     "sam_avstand_m": 1.919,
+     "axlarnas_djup_m": 1.7546,
+     "axlarna_bakom_kanten_m": 0.208,
+     "axlarna_over_filten_m": 0.311
+    },
+    {
+     "t": 698.1,
+     "skala": 0.8981,
+     "skala_per_handled": [
+      0.8976,
+      0.8987
+     ],
+     "sam_avstand_m": 1.922,
+     "axlarnas_djup_m": 1.7416,
+     "axlarna_bakom_kanten_m": 0.194,
+     "axlarna_over_filten_m": 0.31
+    },
+    {
+     "t": 703.2,
+     "skala": 0.8948,
+     "skala_per_handled": [
+      0.8952,
+      0.8945
+     ],
+     "sam_avstand_m": 1.939,
+     "axlarnas_djup_m": 1.7484,
+     "axlarna_bakom_kanten_m": 0.202,
+     "axlarna_over_filten_m": 0.312
+    }
+   ],
+   "dockans_rutor": [
+    {
+     "t": 577.983,
+     "skala": 0.9313,
+     "skala_per_handled": [
+      0.9249,
+      0.9377
+     ],
+     "sam_avstand_m": 1.884,
+     "axlarnas_djup_m": 1.7649,
+     "axlarna_bakom_kanten_m": 0.223,
+     "axlarna_over_filten_m": 0.324
+    },
+    {
+     "t": 583.617,
+     "skala": 0.9349,
+     "skala_per_handled": [
+      0.931,
+      0.9388
+     ],
+     "sam_avstand_m": 1.884,
+     "axlarnas_djup_m": 1.7712,
+     "axlarna_bakom_kanten_m": 0.229,
+     "axlarna_over_filten_m": 0.323
+    },
+    {
+     "t": 698.1,
+     "skala": 0.9304,
+     "skala_per_handled": [
+      0.9225,
+      0.9382
+     ],
+     "sam_avstand_m": 1.891,
+     "axlarnas_djup_m": 1.7679,
+     "axlarna_bakom_kanten_m": 0.227,
+     "axlarna_over_filten_m": 0.325
+    },
+    {
+     "t": 703.2,
+     "skala": 0.9352,
+     "skala_per_handled": [
+      0.935,
+      0.9354
+     ],
+     "sam_avstand_m": 1.887,
+     "axlarnas_djup_m": 1.7732,
+     "axlarna_bakom_kanten_m": 0.231,
+     "axlarna_over_filten_m": 0.323
+    }
+   ],
+   "matt": {
+    "sw": {
+     "idag": 0.3485,
+     "filmen": 0.3224,
+     "osaker": 0.0052,
+     "sam_dealern": [
+      0.3061,
+      0.3047,
+      0.3021,
+      0.3003
+     ],
+     "sam_dockan": [
+      0.3241,
+      0.325,
+      0.3239,
+      0.3248
+     ],
+     "sam_fel_pa_dockan": -0.0241,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "ua": {
+     "idag": 0.279,
+     "filmen": 0.2632,
+     "osaker": 0.007,
+     "sam_dealern": [
+      0.2594,
+      0.2577,
+      0.2552,
+      0.2528
+     ],
+     "sam_dockan": [
+      0.2653,
+      0.2662,
+      0.2652,
+      0.2661
+     ],
+     "sam_fel_pa_dockan": -0.0133,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "fa": {
+     "idag": 0.272,
+     "filmen": 0.2531,
+     "osaker": 0.0064,
+     "sam_dealern": [
+      0.232,
+      0.2313,
+      0.2291,
+      0.2283
+     ],
+     "sam_dockan": [
+      0.2412,
+      0.2425,
+      0.2415,
+      0.243
+     ],
+     "sam_fel_pa_dockan": -0.03,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "hand": {
+     "idag": 0.193,
+     "filmen": 0.182,
+     "osaker": 0.005,
+     "sam_dealern": [
+      0.1472,
+      0.1473,
+      0.144,
+      0.1444
+     ],
+     "sam_dockan": [
+      0.1519,
+      0.1507,
+      0.1509,
+      0.1515
+     ],
+     "sam_fel_pa_dockan": -0.0418,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "huvud_h": {
+     "idag": 0.21,
+     "filmen": 0.2093,
+     "osaker": 0.0041,
+     "sam_dealern": [
+      0.224,
+      0.2234,
+      0.2211,
+      0.2206
+     ],
+     "sam_dockan": [
+      0.2263,
+      0.227,
+      0.2266,
+      0.2272
+     ],
+     "sam_fel_pa_dockan": 0.0168,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "huvud_b": {
+     "idag": 0.1381,
+     "filmen": 0.133,
+     "osaker": 0.0026,
+     "sam_dealern": [
+      0.1499,
+      0.1495,
+      0.1478,
+      0.1477
+     ],
+     "sam_dockan": [
+      0.1567,
+      0.1573,
+      0.1571,
+      0.1575
+     ],
+     "sam_fel_pa_dockan": 0.0191,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "huvud_d": {
+     "idag": 0.1973,
+     "filmen": 0.1866,
+     "osaker": 0.0025,
+     "sam_dealern": [
+      0.1805,
+      0.1799,
+      0.1781,
+      0.1777
+     ],
+     "sam_dockan": [
+      0.1872,
+      0.1879,
+      0.1876,
+      0.1881
+     ],
+     "sam_fel_pa_dockan": -0.0096,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "hals_omkr": {
+     "idag": 0.3667,
+     "filmen": 0.3768,
+     "osaker": 0.0068,
+     "sam_dealern": [
+      0.5133,
+      0.5159,
+      0.5056,
+      0.5067
+     ],
+     "sam_dockan": [
+      0.491,
+      0.4926,
+      0.4923,
+      0.4927
+     ],
+     "sam_fel_pa_dockan": 0.1254,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "brost_omkr": {
+     "idag": 0.9083,
+     "filmen": 0.8638,
+     "osaker": 0.0248,
+     "sam_dealern": [
+      0.9523,
+      0.959,
+      0.9404,
+      0.9442
+     ],
+     "sam_dockan": [
+      0.9738,
+      0.9737,
+      0.9751,
+      0.9731
+     ],
+     "sam_fel_pa_dockan": 0.0656,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "midja_omkr": {
+     "idag": 0.7512,
+     "filmen": 0.6979,
+     "osaker": 0.0316,
+     "sam_dealern": [
+      0.8542,
+      0.8629,
+      0.8462,
+      0.8514
+     ],
+     "sam_dockan": [
+      0.8807,
+      0.8796,
+      0.8843,
+      0.8794
+     ],
+     "sam_fel_pa_dockan": 0.1298,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "hoft_omkr": {
+     "idag": 0.9369,
+     "filmen": 0.897,
+     "osaker": 0.0406,
+     "sam_dealern": [
+      1.0013,
+      1.0048,
+      0.9887,
+      0.9937
+     ],
+     "sam_dockan": [
+      0.9973,
+      0.9974,
+      0.9987,
+      0.9977
+     ],
+     "sam_fel_pa_dockan": 0.0609,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "ua_omkr": {
+     "idag": 0.32,
+     "filmen": 0.3111,
+     "osaker": 0.0078,
+     "sam_dealern": [
+      0.3133,
+      0.3158,
+      0.3099,
+      0.3122
+     ],
+     "sam_dockan": [
+      0.3148,
+      0.3147,
+      0.3155,
+      0.3146
+     ],
+     "sam_fel_pa_dockan": -0.0051,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "fa_omkr": {
+     "idag": 0.29,
+     "filmen": 0.2752,
+     "osaker": 0.0065,
+     "sam_dealern": [
+      0.2578,
+      0.2591,
+      0.2545,
+      0.2557
+     ],
+     "sam_dockan": [
+      0.2644,
+      0.2651,
+      0.2653,
+      0.2654
+     ],
+     "sam_fel_pa_dockan": -0.0249,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "handled_omkr": {
+     "idag": 0.17,
+     "filmen": 0.167,
+     "osaker": 0.0052,
+     "sam_dealern": [
+      0.1548,
+      0.1552,
+      0.1524,
+      0.1533
+     ],
+     "sam_dockan": [
+      0.1527,
+      0.1519,
+      0.1527,
+      0.1525
+     ],
+     "sam_fel_pa_dockan": -0.0175,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "ht": {
+     "idag": 0.483,
+     "filmen": 0.4267,
+     "osaker": 0.0101,
+     "sam_dealern": [
+      0.471,
+      0.4701,
+      0.4646,
+      0.4636
+     ],
+     "sam_dockan": [
+      0.516,
+      0.5177,
+      0.5188,
+      0.5188
+     ],
+     "sam_fel_pa_dockan": 0.0348,
+     "hur": "SAM on the dealer times (the truth / SAM) on our figures"
+    },
+    "haka": {
+     "idag": 0.1328,
+     "filmen": 0.1249,
+     "osaker": 0.0023,
+     "sam_dealern": [
+      0.0794,
+      0.079,
+      0.0781,
+      0.0776
+     ],
+     "sam_dockan": [
+      0.0843,
+      0.0845,
+      0.0841,
+      0.0847
+     ],
+     "sam_fel_pa_dockan": -0.0484,
+     "hur": "SAM on the dealer plus what SAM lacks on our figures"
+    },
+    "ogon": {
+     "idag": 0.2435,
+     "filmen": 0.2346,
+     "osaker": 0.0022,
+     "sam_dealern": [
+      0.1948,
+      0.1941,
+      0.1921,
+      0.1913
+     ],
+     "sam_dockan": [
+      0.2012,
+      0.2018,
+      0.2013,
+      0.2021
+     ],
+     "sam_fel_pa_dockan": -0.0419,
+     "hur": "SAM on the dealer plus what SAM lacks on our figures"
+    },
+    "brost_b": {
+     "sam_dealern": 0.3246,
+     "sam_dockan": 0.3393,
+     "kvot": 0.9566
+    },
+    "brost_d": {
+     "sam_dealern": 0.2382,
+     "sam_dockan": 0.2362,
+     "kvot": 1.0086
+    },
+    "midja_b": {
+     "sam_dealern": 0.2928,
+     "sam_dockan": 0.3068,
+     "kvot": 0.9544
+    },
+    "midja_d": {
+     "sam_dealern": 0.2398,
+     "sam_dockan": 0.2398,
+     "kvot": 0.9997
+    },
+    "midja_under_axlarna": {
+     "sam_dealern": 0.2173,
+     "sam_dockan": 0.2678,
+     "kvot": 0.8114
+    },
+    "hoft_b": {
+     "sam_dealern": 0.3716,
+     "sam_dockan": 0.3754,
+     "kvot": 0.9897
+    },
+    "hoft_d": {
+     "sam_dealern": 0.2208,
+     "sam_dockan": 0.2136,
+     "kvot": 1.0338
+    },
+    "akromion_b": {
+     "sam_dealern": 0.303,
+     "sam_dockan": 0.3182,
+     "kvot": 0.9522
+    },
+    "huvud_b_over_oronen": {
+     "sam_dealern": 0.1487,
+     "sam_dockan": 0.1554,
+     "kvot": 0.9568
+    },
+    "hoft_h": {
+     "sam_dealern": 0.7592,
+     "sam_dockan": 0.8147,
+     "kvot": 0.9319
+    },
+    "H": {
+     "sam_dealern": 1.5274,
+     "sam_dockan": 1.6437,
+     "kvot": 0.9292
+    },
+    "fingrar": {
+     "thumb": {
+      "sam_dealern": 0.0825,
+      "sam_dockan": 0.084
+     },
+     "index": {
+      "sam_dealern": 0.0751,
+      "sam_dockan": 0.0776
+     },
+     "middle": {
+      "sam_dealern": 0.0811,
+      "sam_dockan": 0.0836
+     },
+     "ring": {
+      "sam_dealern": 0.0772,
+      "sam_dockan": 0.0796
+     },
+     "pinky": {
+      "sam_dealern": 0.0612,
+      "sam_dockan": 0.0629
+     }
+    }
+   },
+   "kontur": {
+    "huvud_vid_ogonen": {
+     "dealern": 0.1917,
+     "dockan": 0.169,
+     "kvot": 1.134
+    },
+    "huvud_over_ogonen": {
+     "dealern": 0.1805,
+     "dockan": 0.1443,
+     "kvot": 1.2506
+    },
+    "hals": {
+     "dealern": 0.1402,
+     "dockan": 0.1135,
+     "kvot": 1.2355
+    },
+    "axlar": {
+     "dealern": 0.4907,
+     "dockan": 0.5101,
+     "kvot": 0.9619
+    },
+    "brost_med_armarna": {
+     "dealern": 0.6004,
+     "dockan": 0.6808,
+     "kvot": 0.8818
+    },
+    "over_bordskanten_med_armarna": {
+     "dealern": 0.6451,
+     "dockan": 0.7723,
+     "kvot": 0.8352
+    }
+   }
+  }
+ },
+ "kalibrering": {
+  "sw": {
+   "medel": 1.0628,
+   "spridning": 0.0139,
+   "slag": "faktor"
+  },
+  "ua": {
+   "medel": 1.0271,
+   "spridning": 0.0241,
+   "slag": "faktor"
+  },
+  "fa": {
+   "medel": 1.0995,
+   "spridning": 0.0264,
+   "slag": "faktor"
+  },
+  "hand": {
+   "medel": 1.2491,
+   "spridning": 0.0312,
+   "slag": "faktor"
+  },
+  "huvud_h": {
+   "medel": 0.9415,
+   "spridning": 0.0169,
+   "slag": "faktor"
+  },
+  "huvud_b": {
+   "medel": 0.8942,
+   "spridning": 0.0165,
+   "slag": "faktor"
+  },
+  "huvud_d": {
+   "medel": 1.0421,
+   "spridning": 0.0114,
+   "slag": "faktor"
+  },
+  "hals_omkr": {
+   "medel": 0.7383,
+   "spridning": 0.011,
+   "slag": "faktor"
+  },
+  "brost_omkr": {
+   "medel": 0.9103,
+   "spridning": 0.0245,
+   "slag": "faktor"
+  },
+  "midja_omkr": {
+   "medel": 0.8176,
+   "spridning": 0.0361,
+   "slag": "faktor"
+  },
+  "hoft_omkr": {
+   "medel": 0.8995,
+   "spridning": 0.0401,
+   "slag": "faktor"
+  },
+  "ua_omkr": {
+   "medel": 0.9946,
+   "spridning": 0.023,
+   "slag": "faktor"
+  },
+  "fa_omkr": {
+   "medel": 1.0719,
+   "spridning": 0.0234,
+   "slag": "faktor"
+  },
+  "handled_omkr": {
+   "medel": 1.0851,
+   "spridning": 0.0322,
+   "slag": "faktor"
+  },
+  "ht": {
+   "medel": 0.9132,
+   "spridning": 0.0203,
+   "slag": "faktor"
+  },
+  "haka": {
+   "medel": 0.0464,
+   "spridning": 0.0021,
+   "slag": "steg (m)"
+  },
+  "ogon": {
+   "medel": 0.0415,
+   "spridning": 0.0014,
+   "slag": "steg (m)"
+  }
+ }
+}
