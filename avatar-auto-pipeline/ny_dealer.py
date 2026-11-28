@@ -51,8 +51,13 @@ output/<person>/15-matt-ur-bilder/ (radera det där för att läsa om bilderna).
 som saknas.
 --prov lägger filmen, rutorna och anropen i blackjack-dealer/assets/proofs/<provmapp>/original/ i stället för
 output/<person>/16-dockfilm/, så att de visas för Jakob som ett prov.
---utseende är personens utseende i ord för bildmodellen (står sedan kvar i personfilen); utan det säger anropen bara
-"samma ansikte, hår och kläder som i bilderna".
+--utseende är personens utseende i ord för bildmodellen (sparas i personfilen vilket steg som än körs, och står kvar);
+utan det säger anropen bara "samma ansikte, hår och kläder som i bilderna". Det säger också vem personen är: börjar det
+med "a woman …" skrivs texterna till modellerna om henne, med "a man …" om honom, och utan det skrivs de utan kön
+(om_personen nedan; Amara var den första kvinnan, 2026-11-28). Kläder som har nyckelfärgens gröna går inte att skära
+ut: säg då andra kläder i --utseende ("… wearing … instead of the green top in the photos").
+Dockan heter efter personens förnamn; två personer med samma förnamn skiljs med --namn. Bara de platser som har en
+lyft giv i stilen går att filma (steg 5 säger vilka).
 """
 import argparse, json, math, os, re, shutil, subprocess, sys, time
 from pathlib import Path
@@ -166,6 +171,37 @@ def slapp_last(rad):
         pass
 
 
+# Orden om personen i texterna till modellerna. Texterna nedan är skrivna om en man (Kenji var den första); för en kvinna
+# byts orden, och när ingen har sagt vem bilderna visar skrivs de utan kön. Vem det är läses ur --utseende ("a woman …",
+# "a man …"), som står kvar i personfilen. Bilderna säger resten; texten ska bara inte säga emot dem.
+_ORD = {'kvinna': {'man': 'woman', 'he': 'she', 'him': 'her', 'his': 'her', 'himself': 'herself'},
+        'okand': {'man': 'person', 'he': 'the dealer', 'him': 'the dealer', 'his': "the dealer's", 'himself': 'the dealer'}}
+
+
+def vem(utseende):
+    """Vem texterna skrivs om: 'man', 'kvinna' eller 'okand', ur personens utseende i ord."""
+    m_ = re.search(r'\b(woman|man)\b', utseende or '', re.I)
+    return 'okand' if not m_ else 'kvinna' if m_.group(1).lower() == 'woman' else 'man'
+
+
+def om_personen(text, utseende):
+    """En text till en modell, med orden om personen bytta efter vem bilderna visar (_ORD)."""
+    ord_ = _ORD.get(vem(utseende))
+    if not ord_:
+        return text
+
+    def byt(m_):
+        w = ord_[m_.group(0).lower()]
+        return w[0].upper() + w[1:] if m_.group(0)[0].isupper() else w
+    return re.sub(r'\b(man|he|him|his|himself)\b', byt, text, flags=re.I)
+
+
+def skriv_anrop(fil, kropp, utseende):
+    """Skriver ett färdigt anrop, med textens ord om personen efter vem det är."""
+    kropp['body']['promptText'] = om_personen(kropp['body']['promptText'], utseende)
+    fil.write_text(json.dumps(kropp, ensure_ascii=False, indent=2), encoding='utf-8')
+
+
 # ------------------------------------------------------------------------------------------------ 1 matt
 
 def steg_matt():
@@ -182,7 +218,17 @@ def steg_matt():
 
 # ------------------------------------------------------------------------------------------------ 2 docka
 
+def namnet_ledigt():
+    """Stannar om dockans namn redan är en annan dockas: grunddockornas, eller en annan persons med samma förnamn."""
+    if NAMN in ('man', 'kvinna', 'bada', 'danilo', 'frasse'):
+        sys.exit(f'dockan kan inte heta {NAMN}: det är en grunddockas namn. Ge den ett eget med --namn')
+    annan = json.loads(las_persondockor().get(NAMN, '{}')).get('person')
+    if annan and annan != a.person:
+        sys.exit(f'dockan {NAMN} finns redan och hör till {annan}. Ge den här personens docka ett eget namn med --namn')
+
+
 def steg_docka():
+    namnet_ledigt()
     rad = ta_last(f'ny_dealer.py {a.person} (Blender, bygg_docka.py --kon {NAMN})')
     try:
         r = kor([blender(), '-b', '--python-exit-code', '1', '--python', ROT / 'scen' / 'bygg_docka.py', '--', '--kon', NAMN], cwd=ROT)
@@ -220,7 +266,8 @@ def steg_system():
     d = json.loads(js)
     p = json.loads(PFIL.read_text(encoding='utf-8'))
     pl = d['place']
-    post = {'person': a.person, 'stil': STIL, 'model': MODELL.name, 'shouldersApart': pl['shouldersApart'], 'head': pl['head'], 'headRadius': pl['headRadius'],
+    post = {'person': a.person, 'stil': STIL, 'model': MODELL.name, **({'kvinna': True} if vem(p.get('utseende')) == 'kvinna' else {}),
+            'shouldersApart': pl['shouldersApart'], 'head': pl['head'], 'headRadius': pl['headRadius'],
             'upperArm': d['upperArm'], 'forearm': d['forearm'], 'trunk': pl['trunk'], 'neck': pl['neck'], 'hand': d['hand'],
             'about': {'all': f'{NAMN.capitalize()}: en persons docka ur sina egna bilder (avatar-auto-pipeline/personer/{a.person}.json, steg 15), byggd på '
                              f'{p["docka"]["grund"].capitalize()}s docka (scen/bygg_docka.py --kon {NAMN}: {p["docka"]["grund"].capitalize()}s mått utom '
@@ -469,7 +516,12 @@ def klippets_fil(nr):
 def filma_given():
     """Givens rörelse filmad med editorn genom livebordets kamera i nyckelutseendet, flyttad till omgångens mapp; och
     kamerans plats i linsvärlden (för vilken sida av kortet den ser)."""
-    rorelse = json.loads((BJ / 'dealer3d' / 'data' / f'{GIV}.json').read_text(encoding='utf-8'))
+    giv = BJ / 'dealer3d' / 'data' / f'{GIV}.json'
+    if not giv.exists():   # (bara de platser som har en lyft giv i stilen går att filma)
+        finns = sorted(m_.group(1) for f in giv.parent.glob(f'lyft-{NAMN}-p*.json') if (m_ := re.fullmatch(r'lyft-.+-p(\d)\.json', f.name)))
+        sys.exit(f'steg 5: dockan {NAMN} har ingen lyft giv till dagens plats {a.plats}. Stilen {STIL} har givar till dagens plats '
+                 f'{", ".join(finns) or "ingen (kör steg 4 först)"}: välj en av dem med --plats')
+    rorelse = json.loads(giv.read_text(encoding='utf-8'))
     r = kor(['node', 'standarddocka/verktyg/titta.ts', '--docka', NAMN, '--plats', a.plats, '--spela-in', 'hela',
              '--kamera', 'spel', '--utseende', 'nyckel', *(['--rygg', 'rod'] if a.rygg == 'rod' else [])], fanga=True)
     klipp = re.findall(r'(standarddocka/klipp/[^\s]+?\.mp4)', r.stdout.replace('\\', '/'))
@@ -690,8 +742,8 @@ def steg_anrop():
     for f in A.glob('*.json'):   # (en omkörning: inget anrop från förra körningen av samma omgång står kvar)
         f.unlink()
     for namn, kropp in anrop.items():
-        (A / f'{namn}.json').write_text(json.dumps(kropp, ensure_ascii=False, indent=2), encoding='utf-8')
-    bildkostnad = (0 if ater_start else KOSTNAD['start']) + (0 if ater_sista else KOSTNAD['andring']) + KOSTNAD['andring'] * len(mellan)
+        skriv_anrop(A / f'{namn}.json', kropp, p.get('utseende'))
+    bildkostnad =(0 if ater_start else KOSTNAD['start']) + (0 if ater_sista else KOSTNAD['andring']) + KOSTNAD['andring'] * len(mellan)
     summa = {'stillbilder': bildkostnad, 'A_kling4': KOSTNAD['kling4_3s_1080p'], 'A_alla': bildkostnad + KOSTNAD['kling4_3s_1080p'],
              **({'B_aleph2': aleph, 'B_alla': (0 if ater_start else KOSTNAD['start']) + aleph, 'bada': bildkostnad + KOSTNAD['kling4_3s_1080p'] + aleph} if a.aleph else {})}
     jamfort = {k: v for k, v in JAMFORT.items()}
@@ -726,9 +778,12 @@ REF_MINST = 3.0   # s: Kling 4 tar en referensfilm på 3–31 s, 24–60 bilder/
 KLIPP_S = 3       # s: klippets längd, lika med referensfilmens, så att klippet följer den i tiden
 
 
-def kling_med_ref(s_ut, s_in, rabatt=True):
+def kling_med_ref(s_ut, s_in, rabatt=None):
     """Kling 4 i 1080p med en referensfilm (guides/pricing.md 2026-11-27): listpriset 14,1 krediter per sekund ut plus 14,1
-    per sekund av det längre av infilm och utfilm, avrundat uppåt; till och med 2026-11-30 UTC 20 % av, avrundat uppåt igen."""
+    per sekund av det längre av infilm och utfilm, avrundat uppåt; till och med 2026-11-30 UTC 20 % av, avrundat uppåt igen.
+    Utan val räknas rabatten bara medan den gäller, så att anropets pris stämmer också efter den."""
+    if rabatt is None:
+        rabatt = time.strftime('%Y-%m-%d', time.gmtime()) <= '2026-11-30'
     lista = math.ceil(14.1 * s_ut + 14.1 * max(s_in, s_ut) - 1e-9)
     return math.ceil(lista * 0.8 - 1e-9) if rabatt else lista
 
@@ -849,9 +904,9 @@ def steg_anrop_ankare():
     bild = lambda b: gjord[b['ankare']] or UT / 'ut' / b['ut']
     kbild = lambda b: bild(b).with_name(k_namn(bild(b).name))
     a23, a2m, a3, a23k = ank
-    vad = (f'En ny dealer ur bilder: {NAMN.capitalize()} (input/{p["person"]}), hans docka byggd på {p["docka"]["grund"].capitalize()}s '
+    vad = (f'En ny dealer ur bilder: {NAMN.capitalize()} (input/{p["person"]}), dockan byggd på {p["docka"]["grund"].capitalize()}s '
            f'(avatar-auto-pipeline/ny_dealer.py --ankarklipp), gör given till dagens plats {a.plats} ({GIV}) vid livebordet i nyckelfärgerna, som tre klipp mellan ankarbilder.')
-    rest = ('Everything else stays exactly as in the first image: his face, hair and shirt, the dark red chair back, the clear card shoe at the same place, '
+    rest = ('Everything else stays exactly as in the first image: his face, hair and clothes, the dark red chair back, the clear card shoe at the same place, '
             f'size and angle with the {ryggord} deck in it, the small clear plate in front of the shoe, the flat green background and the plain green table '
             'with no print and no texture; only soft natural shadows of his arms and hands on the table. The same framing and camera; a photograph.')
     # Kortets utseende i ord, bara för de sidor kameran ser i bilden eller klippet (ur omgångens rörelse). Kenjis femte
@@ -875,7 +930,7 @@ def steg_anrop_ankare():
     ett_kort = 'The card he deals is the only card outside the shoe: no other card, sheet or object ever appears on the table.'
     anrop = {}
     if not gjord[a23['ankare']]:
-        anrop['a23'] = {'name': f'{NAMN}-ny-dealer-{OMG}a23', 'what': f'{vad} Ankarbilden A2.3 (redo vid skon): dockans ruta {a23["ruta"]} omgjord till personen ur hans tre bilder.',
+        anrop['a23'] = {'name': f'{NAMN}-ny-dealer-{OMG}a23', 'what': f'{vad} Ankarbilden A2.3 (redo vid skon): dockans ruta {a23["ruta"]} omgjord till personen ur personens tre bilder.',
                         'endpoint': '/v1/text_to_image', 'expectCredits': KOSTNAD['start'], 'ut': rel(bild(a23)),
                         'body': {'model': 'gpt_image_2_6_sunburst', 'ratio': '2560:1440', 'quality': 'high',
                                  'promptText': ('The first image is a 3D render of a white, bald mannequin sitting as a blackjack dealer behind a half-round table, seen '
@@ -947,7 +1002,7 @@ def steg_anrop_ankare():
                      'referenceVideos': [{'uri': fj(UT / s['ref'])}],
                      'promptText': ('Locked camera, one continuous shot. The man in the first frame makes exactly the movement of the reference video, in its '
                                     'timing, moment by moment, and ends exactly as the last frame shows him. The reference video shows a white mannequin: take '
-                                    'only its movement, its timing and where its hands and the card are from it, never its look; his face, hair, shirt and '
+                                    'only its movement, its timing and where its hands and the card are from it, never its look; his face, hair, clothes and '
                                     f'hands come from the first and last frames. {s["gor"]} He holds still at the start and at the end as the reference video '
                                     'does. His head stays bowed toward the table as in the frames and his eyes follow the card; he does not look up at the camera. The card keeps its size '
                                     f'all the way; it is never lifted high in the air. {kortets_utseende(*s["dockrutor"])} {ett_kort} A {ryggord} card shows in '
@@ -965,7 +1020,7 @@ def steg_anrop_ankare():
             forra = max((int(m_.group(1) or 1) for f in A.glob(f'klipp-{nr}*.json') if (m_ := re.fullmatch(rf'klipp-{nr}(?:-t(\d+))?\.json', f.name))), default=0)
             kropp = klippanrop(s, forra + 1)
             fil = A / (f'klipp-{nr}-t{forra + 1}.json' if forra else f'klipp-{nr}.json')
-            fil.write_text(json.dumps(kropp, ensure_ascii=False, indent=2), encoding='utf-8')
+            skriv_anrop(fil, kropp, p.get('utseende'))
             print(f'klipp {nr}, tagning {forra + 1}: {rel(fil)}, {kropp["expectCredits"]} krediter; sparas som {kropp["ut"]}', flush=True)
         return
     for s in steg:
@@ -982,8 +1037,8 @@ def steg_anrop_ankare():
     for f in A.glob('*.json'):
         f.unlink()
     for namn, kropp in anrop.items():
-        (A / f'{namn}.json').write_text(json.dumps(kropp, ensure_ascii=False, indent=2), encoding='utf-8')
-    bilderna = sum(k['expectCredits'] for n_, k in anrop.items() if not n_.startswith('klipp'))
+        skriv_anrop(A / f'{namn}.json', kropp, p.get('utseende'))
+    bilderna =sum(k['expectCredits'] for n_, k in anrop.items() if not n_.startswith('klipp'))
     klippen = sum(k['expectCredits'] for n_, k in anrop.items() if n_.startswith('klipp'))
     summa = {'ankarbilder': bilderna, 'stillbilder': bilderna, 'klipp': klippen, 'A_kling4': klippen, 'A_alla': bilderna + klippen,
              'klipp_efter_rabatten': pris[1] * len(steg)}
@@ -1171,6 +1226,10 @@ def lage():
 
 
 if not a.lage:
+    if a.utseende and 1 not in KOR and PFIL.exists():   # (utseendet i ord sparas vilket steg som än körs; steg 1 sparar det själv)
+        _p = json.loads(PFIL.read_text(encoding='utf-8'))
+        _p['utseende'] = a.utseende
+        PFIL.write_text(json.dumps(_p, ensure_ascii=False, indent=1), encoding='utf-8')
     for nr in sorted(KOR):
         print(f'\n=== steg {nr}: {STEG[nr]} ===', flush=True)
         if nr == 7 and not a.ankarklipp:

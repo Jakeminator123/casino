@@ -2,7 +2,7 @@
 
 Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien står i Git.
 
-## Läget (2026-11-27, kväll)
+## Läget (2026-11-28)
 
 - **En standard: livebordet.** Kameran, bordet, skon, korten och kortplatserna är klonade ur filmen av ett riktigt
   livebord (`src/table-live.ts`, kortet i `src/space.ts`, det allt läser i `src/standard.ts`; måtten i `../MATT.md`).
@@ -12,7 +12,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   filmer står i `data/motions-removed.jsonl`.
 - **Kvar av det förra** (ett eget steg, se Nästa steg): kortplanens värld (`src/plan-lens.ts`, `card-plan.ts`,
   `placements/default.json`), den äldre dealerns beställningsväg och träd (`dealer-trees`, `order-images`) och bankens
-  register. Hans filer där är orörda.
+  register. Hans filer där är orörda. Allt det räknar i bankens bild, 1764 × 1174, och två ställen i spelet läser
+  den ännu: rummet bakom bordet ställs med kameran i `data/scene-contract.json`, och skons fönster som förval
+  (`SHOE_BOX` i `src/scene3d-matte.ts`) står i bankens bildpunkter. Det som filmar, efterarbetar och tar emot en ny
+  dealer läser bara livebordets mått (granskat 2026-11-28; `../avatar-auto-pipeline/scen/standard.yaml` stämde rad
+  för rad med koden).
 - **Dockorna är Danilo och Frasse** (byggda på de två riktiga dealrarna i filmen) och persondockor som byggs på dem
   (`dealer3d/src/doll.ts`, `dealer3d/src/persondockor.ts`). Rörelserna lyfts ur filmen med
   `dealer3d/tools/lyft-till-docka.ts` (ur `../live-bj/data/lyft/`) till `dealer3d/data/lyft-<docka>-*.json`: givar från
@@ -56,8 +60,13 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   nog för en film** för given till dagens plats 4: inget kort står ensamt, hoppar eller försvinner, och kortet
   sitter i handen från bytet till landningen. Filmen gjordes (femte omgången, nedan). Kvar enligt båda domarna:
   kortet bärs under fingrarna på lillfingersidan och kommer fram vid tummen, där dealerns ligger vid tummen hela
-  vägen; givarna till dagens plats 7 reser kortet som ett stort kort framför näven. Fjortonde vändan pågår.
-  Dockans huvud är cirka 12 % smalare än dealerns och nickar mindre.
+  vägen; givarna till dagens plats 7 reser kortet som ett stort kort framför näven. Fjortonde vändan lade kortet på
+  tumsidan från bytet till platsen (bara rutorna 32–39 ändrade) och tog bort resningen. Tolfte domen: **Nja**, ett
+  nytt klipp har ett skäl; kvar är att kortet syns stort bredvid näven i ruta 33–35 där dealerns nästan är dolt under
+  handen, och står som en kant på 100 bildpunkter genom tummen i ruta 36–37. En femtonde vända (kortet under
+  handflatan vid tummen) avbröts halvfärdig när datorn startade om hårt 2026-11-28 och togs bort på Jakobs ord:
+  fjortonde vändan är den som gäller, och ingen film är gjord efter den. Dockans huvud är cirka 12 % smalare än
+  dealerns och nickar mindre.
 - **Visningsfilmen** (för Jakobs chef): provet `visning-for-chefen-20261127` (67 s, den riktiga dealern syns bara som
   mätt streckfigur), och en version med Youtubefilmen som bara ligger på datorn
   (`../live-bj/rutor/visning/visning-med-youtubefilmen.mp4`). Inte dömd av någon domare.
@@ -66,7 +75,15 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   händerna, bålen, halsen och benen är en medelmans (samma kropp som den förra standarddockans man), och midjan och
   höften är en gissning (Danilo 3–4 % smalare). Det är därför dockan ser ut som den gamla och känns klumpig (Jakob
   2026-11-27: "varför skapas våra avatarer utifrån en standard som inte är just det som ska följa alla mått från
-  Danilo och Frasse"). Rörelsen är dealerns; kroppen ska bli det.
+  Danilo och Frasse"). Rörelsen är dealerns; kroppen ska bli det. Granskat 2026-11-28:
+  - Armarna är 0,279 och 0,272 m på båda dockorna. Filmen skattar Danilos till 0,266 och 0,219 och Frasses till
+    0,228 och 0,195 (genom en kamera, osäkert i djupled och därför inte intaget), och lyften räknar med SAM:s 0,289
+    och 0,279.
+  - Hur långt bakom bordskanten dealern sitter är antaget: 0,2 m för båda (`LIVE.dealer.behindEdge`). Skattningen ur
+    filmen är 0,065 m för Danilo och 0,158 för Frasse. Genom livebordets kamera hamnar axlarna på samma bildpunkter
+    vilket som gäller; från de andra platsernas kameror gör det skillnad, för Danilo upp till 13,5 cm.
+  - I Blender står dockans vila kvar på mannens gamla plats (`SITT` i `bygg_docka.py`: 0,38 m bakom kanten). Editorn
+    ställer dockan själv i varje ruta, så filmerna berörs inte, men dockans egen vila och räckviddsrapport stämmer inte.
 - **Given efter hans Nja** (Danilos giv till dagens plats 4):
   - Kortet landar där den riktiga dealern lade det (0,2 mm och 0° från målet) och rättas inte till på filten. Förut
     vreds det 21° och gled 21 mm under fingret; det var det han såg. Kortplatsen stämde med filmen och är inte ändrad.
@@ -91,6 +108,23 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
   egna händelser och förbereder anropen till Runway. Allt till och med anropen är gratis; huvudagenten lägger de
   betalda. Mot facit (Tomasz figur) träffar mätningen armarna inom 1 cm och axlar och bål inom 2,5 cm; handens längd
   mäts fel och tas inte in.
+- **Amara Okonkwo är den andra nya dealern, och den första kvinnan** (2026-11-28, provet `amara-ny-dealer-20261128`).
+  Stegen 1–5 gick utan handpåläggning på sex minuter: måtten, dockan, systemet, nio rörelser och dockfilmen. Dockan
+  spelar allt den kan i en tagning (väntan, till skon, givarna till dagens plats 7, 4 och 2, hem, väntan: 19 s),
+  filmad från de sju platserna. Kontrollen ger samma spärrar som för Danilo och Kenji, inga nya.
+  - **Det bandet inte anpassar:** hennes docka är Danilos kropp med 1,8 cm kortare underarm och smalare huvud. Av sex
+    mått som kan tas in tas bara de som skiljer mer än mätningens osäkerhet (0,6–2,4 cm). Kön, längd (hon mättes till
+    1,665 m, dockan står 1,747), händer, hals och kroppens volym tas aldrig ur bilderna, och sitsen är dealerns för
+    alla: en mindre person lutar sig i stället för att sitta närmare.
+  - **Rättat i `ny_dealer.py`:** texterna till bild- och filmmodellen sa "the man" och "his" om alla; de skrivs nu
+    efter vem `--utseende` säger att personen är, eller utan kön. `--utseende` sparas vilket steg som än körs, en
+    plats utan lyft giv ger ett svar som säger vilka som finns, två personer med samma förnamn krockar inte längre
+    tyst, och Kling 4 räknas utan rabatten när den har gått ut (2026-11-30).
+  - **Filmen av henne är förberedd men inte beställd** (238 krediter: fyra ankarbilder 34, tre klipp 204). Hennes
+    bilder visar en grön tröja, som inte går att skära ut ur det gröna; anropen klär henne därför i en dealers
+    uniform (vit skjorta, svart väst, fluga), som Malik bär i piloten från 2026-11-26
+    (`../avatar-auto-pipeline/input/malik-traore/malik-giv-alla.mp4`, gjord på den förra standarden). Det betalda
+    anropet stoppades av behörighetskontrollen i chatten och väntar på hans ord.
 - **Kenji Nakamura är den första nya dealern** (provet `kenji-ny-dealer-ur-bilder-20261127`). Hans kropp låg inom
   mätningens osäkerhet från Danilos, så dockan är Danilos kropp med Kenjis huvud.
   - Första omgången (187 krediter): Kling 4 ur nio stillbilder jämnt i tiden fick domarens **Nja** (samma man hela
@@ -144,8 +178,8 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
       Danilos 2,2 s utan hack.
     - **Kvar i filmen (kräver rättad rörelse och ett nytt klipp):** kortet syns aldrig vändas. Det ligger under
       nävens fingrar i ruta 34–35, syns inte i 36 och dyker upp under tummen på nävens andra sida i 38. Näven på
-      kortet är hårt knuten, och blicken går inte till skon. Fjortonde vändan på rörelsen pågår (kortet bärs vid
-      tummen hela vägen, som dealerns).
+      kortet är hårt knuten, och blicken går inte till skon. Fjortonde vändan på rörelsen är gjord sedan dess
+      (kortet bärs vid tummen hela vägen, som dealerns); inget klipp är beställt efter den.
     - **Den externa domaren (OpenAI): Inte bra,** så provet är märkt oenigt och Jakob behöver titta själv. Dess
       tyngsta skäl är samma som domarens: vändningen går inte att läsa som ett grepp (ryggen försvinner under
       fingrarna och framsidan kommer fram ute vid tummen). Det andra är tumtoppen, som blir gulgrön och utsmetad när
@@ -154,8 +188,8 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
     - **Rättat i efterarbetet efter domarens första dom (gratis):** hacket och den mörka fläcken vid tummen på det
       lagda kortet (den rosa tummen togs för kortets rygg, tummens skugga på filmens kort behölls som en grå fläck,
       och vårt kort passades inte in mot tumsidan), skuggkopiorna av framsidan där kortet stannar, prickarna i handens
-      kant när handen lyfts, och en svart kil i armhålan. Kvar, och på gång: den gulgröna tumtoppen i farten och
-      några småfel vid tummen.
+      kant när handen lyfts, och en svart kil i armhålan. Kvar: den gulgröna tumtoppen i farten och några småfel
+      vid tummen (ett påbörjat försök avbröts av omstarten 2026-11-28 och togs bort med femtonde vändan).
     - **Lärdomen om texten:** första klippets text beskrev också kortets framsida, som aldrig syns där, och Kling
       ritade den som ett stort vitt kort på filten genom hela klippet. Verktyget säger nu bara det som syns i varje
       klipp, och mäter hur lik klippets rörelse är dockans (0,73 mot 0,96 avslöjade det påhittade kortet).
@@ -182,10 +216,11 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - **Lagret:** de sex ersatta proven, figurerna som föll, den förra standardens klipp och ett orderutkast som aldrig
   lades ligger i arkivet bredvid repot, och kortspelspaketet i `kortspelspaket-arkiv` bredvid repot. Inget är raderat.
   Repot gick från 3,2 till 1,9 GB.
-- **Pengar** (2026-11-27 kl. 23.50): Runway 4 091 krediter kvar. Av hans budget på 3 000 för arbetet ("Var
-  resonable, men ja - du får 3000 ...") är 1 055 använda, alla på Kenjis fem omgångar (187, 139, 129 + 56, 238 och
-  238 + 68). Fullmaktens tak för agenter den 27 november (2 500 per dygn) är så gott som fyllt (2 478). Meshy 363,
-  orört. Den externa domaren (OpenAI) har ett tak på 5 USD per tolv timmar i verktyget.
+- **Pengar** (2026-11-28 kl. 16.48): Runway 4 091 krediter kvar; inget är använt den 28 november. Av hans budget
+  på 3 000 för arbetet ("Var resonable, men ja - du får 3000 ...") är 1 055 använda, alla på Kenjis fem omgångar
+  (187, 139, 129 + 56, 238 och 238 + 68). Meshy 363, orört. Den externa domaren (OpenAI) har ett tak på 5 USD per
+  tolv timmar i verktyget. Ett betalt anrop i en ny chatt går inte igenom förrän han har sagt ja i den chatten,
+  också inom fullmakten.
 
 ## Nästa steg
 
@@ -207,9 +242,12 @@ I den här ordningen om han inte säger annat.
    - **Vid nästa hela omgång:** ta bort det rosa märket ur spårkortets framsida (det hamnar under tummen och används
      inte), och ta då också bort det gula spårkortet och vägen utan referensfilm (stillbilder och Kling 4 utan
      referensfilm, Aleph 2), som gav hans Inte bra: en väg för varje sak.
-   - **Dockans kropp.** Lederna är dealerns, men bålens och armarnas volym är kroppsgeneratorns egen, så dockan är
-     tjockare än Danilo (Jakob: "den tjocka dockan ... känns riktigt klumpig"); volymen ska komma ur filmen eller
-     personens bilder (SAM 3D Body ger kroppsformen). Filten kan få filmens ton senare.
+   - **Dockans kropp.** Axlarnas bredd är dealerns, men armarnas längd, bålen och kroppens volym är
+     kroppsgeneratorns egna (se Läget), så dockan är tjockare än Danilo (Jakob: "den tjocka dockan ... känns riktigt
+     klumpig"). Måtten och volymen ska komma ur filmen eller personens bilder: SAM 3D Body ger kroppsformen och
+     djupet (Danilos lyft har SAM:s djup, Frasses bara MediaPipes). I samma steg avgörs hur långt bakom kanten
+     dealern sitter (antaget 0,2 m), dockans vila i Blender (`SITT`), och om en persons docka ska få personens kön,
+     längd och kroppsform. Filten kan få filmens ton senare.
    - Hans dom på de förra filmerna är Inte bra. Korten `kenji-ger-ett-kort` och `sju-bilder-vid-livebordet` ("gör
      en video till") står kvar i Beslut tills en film har gått igenom domaren.
 2. **Rörelsen:** vänsterhanden platt på skons kort (kräver att vänsterns handled vid skon mäts om i filmen; ett
@@ -240,9 +278,35 @@ I den här ordningen om han inte säger annat.
      standarddocka finns kvar.
    - "Livebordet" sägs både om bordet i Youtubefilmen och om vår kopia av det, och "dockans takt" om Danilos takt.
 6. **Studion:** Granska, Prov, editorns egen text på Dockan och Biblioteket är inte genomgångna.
-7. **Fler givar, kameror och personer:** de andra platserna, spelarnas kameror, Frasse (hans huvud är inte kalibrerat
-   mot ansiktsnätet), väntornas blick, och nästa person genom `ny_dealer.py`. Alla sju kameror görs först när en film
-   från en kamera har fått hans ja.
+7. **Fler givar, kameror och personer.** Ungefär en fjärdedel av en hel runda finns som rörelse i dag: väntan,
+   vägen till skon och hem, och tre givar per dealer (kort 1 till dagens plats 7 och 4, och kort 2 till dagens
+   plats 2 för Danilo och 1 för Frasse), med handbytet delat bara till plats 4. Inget efter spelarnas kort finns.
+   Filmen har mer än som är lyft (granskat 2026-11-28 ur `../live-bj/data/segment.json` och `rorelser.json`): 28
+   rena givar till spelare för Danilo och 49 för Frasse, dealerns egna kort 11 och 16 gånger, korten in i lådan 12
+   och 14, svepet 2 och 1. Det som krävs, i ordning:
+   - **Fler givar till spelarna.** `../live-bj/verktyg/lyft.py` väljer i dag tre givar per dealer (mitten, och
+     bildens båda sidor); urvalet vidgas till alla platser och kort 1 och 2. Filmens mätning finns redan i
+     `../live-bj/matt/`. Filnamnet `lyft-<docka>-p<plats>` bär inte kortets nummer, så kort 1 och 2 till samma plats
+     skriver över varandra: rättas med platsbytet (punkt 5). Varje plats behöver sin granskning: reglerna i
+     `lyft-till-docka.ts` är avstämda mot en enda förlaga, Danilos giv till plats 4, och de andra givarna bryter mot
+     spärrarna redan i dag.
+   - **Handbytet till alla platser** (`bytet-p<n>` klipps bara ur given till mitten), och klippet från kortet
+     direkt till nästa byte, som är det vanliga i filmen (Frasse 54 av 56 gånger).
+   - **Dealerns egna kort:** `lyft.py` lyfter bara till en spelarplats och `lyft-till-docka.ts` letar `seat (\d)`.
+     Kortplatserna D.C1–C3 finns.
+   - **Korten in i lådan:** en ruta bär i dag ett enda kort (`Frame.card`), så det kräver ett nytt format i lyftet,
+     editorn och scenen. Lådan är mätt.
+   - **Svepet, och väntan** under insatserna och medan spelarna väljer (ankarena A1S och A1V finns inte än).
+   - **En ordnare i spelets ordning** (kort 1 till alla, dealerns kort, kort 2 till alla, fler kort, korten in).
+     Editorns hela sekvens spelar i dag det som finns, närmast skon först: 19 s för Danilo och persondockorna, 21 s
+     för Frasse.
+   - **Ritas själva, eftersom filmen inte har dem:** vända hålkortet, marker, och peka (en gång i filmen).
+   - **Kamerorna:** plats 4 är livebordets och är mätt. De andra sex är räknade: samma kamera vriden kring
+     bordskantens mitt till platsens insatsruta. Editorn filmar en tagning genom alla sju (`titta.ts --sekvens 1
+     --kamera …`, gjort för Amara). Alla sju som film av en person görs först när en film från en kamera har fått
+     hans ja.
+   - **Frasse:** huvudet är inte kalibrerat mot ansiktsnätet, och stilen `bordet` är aldrig körd för en person.
+     Väntornas blick.
 
 ## Väntar på Jakob
 
@@ -285,6 +349,13 @@ I den här ordningen om han inte säger annat.
 
 - `lyft-kolla` är inte grön: fingrar i kortet och kortet utan stöd i några rutor, armen in i bålen, och huvudspärrar i
   Danilos giv till dagens plats 2 och Frasses till dagens plats 1.
+- En persons docka är alltid en mans kropp i grunddockans längd, också för en kvinna (se Läget, Amara).
+- `ny_dealer.py` filmar bara de platser som har en lyft giv (dagens 2, 4 och 7 i Danilos stil; 1, 4 och 7 i
+  Frasses), och texterna om vinkeln gäller bara livebordets kamera.
+- Spegla visar en inspelning av dockan bara när filen är nyare än rörelsens fil. Skrivs rörelsefilerna om med samma
+  innehåll (en återställning ur Git räcker) blir varje inspelning för gammal tills den görs om.
+- 7 av 19 kortplatser har inte sin mätta vridning, eftersom landningarna i filmen inte var eniga; de tar en speglad
+  plats vridning (`src/table-live.ts`).
 - Vänsterhanden står som en klo vid skon i lyften, och tummen är tunn och spetsig när fingret ligger på kortet.
 - Danilo och Frasse har olika kalibrering av huvudet: Danilo mot ansiktsnätets kurva, Frasse räknat från vilan.
 - En persons docka har grunddockans ansikte och händer; huvudet är inte kalibrerat mot ansiktsnätet per person.

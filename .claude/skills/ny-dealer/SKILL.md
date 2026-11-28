@@ -10,6 +10,8 @@ Läs skriptets huvud; mapparna och kommandona står i `avatar-auto-pipeline/READ
 casino-roten. Kenji Nakamura är den första personen (proven `kenji-ny-dealer-ur-bilder-20261127`, de tre första
 omgångerna; `kenji-tre-klipp-mellan-ankarbilder-20261127`, den fjärde, gjord med `--ankarklipp`; och
 `kenji-rod-rygg-tre-klipp-20261127`, den femte, med `--ankarklipp --rygg rod` efter att dockans handbyte hade rättats).
+Amara Okonkwo är den andra, och den första kvinnan (provet `amara-ny-dealer-20261128`: dockan i en tagning från sju
+kameror; hennes film är förberedd men inte beställd). Vad bandet anpassar och inte: `blackjack-dealer/STATUS.md`, Läget.
 
 ## Före
 
@@ -97,13 +99,23 @@ klipp där bara ryggen syns fick Kling 4 att rita ett stort vitt kort på filten
 
 Utan `--prov` hamnar filmen, rutorna och anropen i `avatar-auto-pipeline/output/<person>/16-dockfilm/`, med
 `--prov <provmapp>` i `blackjack-dealer/assets/proofs/<provmapp>/original/`. `--utseende` är personens utseende i ord för
-bildmodellen och står sedan kvar i personfilen.
+bildmodellen; det sparas i personfilen vilket steg som än körs och står kvar.
+
+- **Utseendet säger vem personen är.** Börjar det med "a woman …" skrivs texterna till modellerna om henne, med "a man
+  …" om honom, och utan `--utseende` skrivs de utan kön. Mallarna i skriptet är skrivna om en man och byts vid
+  utskriften (`om_personen`); läs det färdiga anropet innan det läggs.
+- **Kläder i nyckelfärgens gröna går inte att skära ut.** Säg då andra kläder i `--utseende` ("… wearing … instead of
+  the green top in the photos"). Amaras anrop klär henne i en dealers uniform (vit skjorta, svart väst, fluga); om
+  alla dealrar ska bära den är Jakobs att säga.
+- **Platsen:** bara de platser som har en lyft giv i stilen går att filma (dagens 2, 4 och 7 i Danilos stil; 1, 4 och 7
+  i Frasses); steg 5 säger vilka. Dockan heter efter förnamnet, och två personer med samma förnamn skiljs med `--namn`.
 
 ## Det betalda
 
 - **Bara huvudagenten lägger anropen,** inom fullmakten (`blackjack-dealer/AGENTS.md`, "Det som skyddar Jakob här"; taken i
   `blackjack-dealer/data/order-policy.json`). Större bara med Jakobs ja. En underagent förbereder och rapporterar
-  kostnaden.
+  kostnaden. I en chatt där han inte själv har sagt ja till att betala stoppar behörighetskontrollen anropet, också
+  inom fullmakten (2026-11-28): förbered anropen, säg kostnaden och vänta på hans ord.
 - Från `blackjack-dealer/`, i ordningen i `kostnad.json`: `node tools/runway-api.ts place <anrop.json>`, sedan
   `node tools/runway-api.ts collect <anropets namn> <fil>`. Varje bild sparas i omgångens `ut/` med det namn nästa anrop
   väntar sig (`start.png`, `sista.png`, `mellan-NN.png`), och för film A skalad till 1728 × 972 som `k-start.png`,

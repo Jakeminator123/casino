@@ -197,8 +197,15 @@ en verkstad i taget när inget annat arbete pågår i den.
   sitter i formen: först huvudets form, sedan kroppens mått, sist kläderna som egna delar. En kropp i ett stycke ur
   flera vyer hos Meshy fick ihopvuxna fingrar och utsmetat ansikte, och läggs ned.
 - **En större person löses med kroppens mått, inte med en annan mans kropp.** Rörelsen är var händerna, fingrarna och
-  blicken är i rummet; armarna räknas om för personens egna axlar och armlängder, och sitsen väljs så att han når utan
-  att luta sig. En docka med Tomasz mått byggs som Danilos byggdes ur en mätt dealer.
+  blicken är i rummet; armarna räknas om för personens egna axlar och armlängder. Sitsen är däremot dealerns för alla:
+  når armen inte skjuts axeln fram högst 9 cm och bålen lutas, så en mindre person lutar sig i stället för att sitta
+  närmare (granskat 2026-11-28). En docka med Tomasz mått byggs som Danilos byggdes ur en mätt dealer.
+- **Bandet går för en andra person, men dockorna blir nästan samma docka** (Amara, 2026-11-28, provet
+  `amara-ny-dealer-20261128`). Tre bilder in gav på sex minuter, utan handpåläggning, en docka i editorn som spelar
+  alla nio lyfta rörelser i en tagning från sju kameror, med samma spärrar som Danilo och inga nya. Men av hennes mått
+  togs två in (underarmen och huvudets bredd): kön, längd, händer och kroppsform tas aldrig ur bilderna, så en
+  kvinna på 1,67 m fick Danilos manskropp på 1,75. Personens utseende i filmen kommer ur bilderna, inte ur dockan;
+  om kroppens form behöver följa med avgörs av en film av henne.
 - **Av 3D-figurerna är Meshy-vägen bäst på likhet,** men händerna är dess svaga del: en hand som sätts på i
   efterhand får handledens led inne i ärmen, och rättningen ovanpå det dömde Jakob Inte bra ("om vi har leder innan i
   dockan, varför lägga på ett lager till"). En kropp i ett stycke med egna händer böjs rätt vid handleden men har

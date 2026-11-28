@@ -10,8 +10,9 @@ export const dockorna = (): readonly string[] => [...STANDARD.dockor, ...Object.
 
 /** En docka i hans ord: namnet, och han (han, honom, hans). */
 export type Dockord = {namn: string; han: string; honom: string; hans: string};
-/** En docka efter en riktig dealer (Danilo, Frasse) heter som han, med stor bokstav. */
-export const dockord = (docka: string): Dockord => ({namn: docka.charAt(0).toUpperCase() + docka.slice(1), han: 'han', honom: 'honom', hans: 'hans'});
+/** En docka heter som dealern eller personen, med stor bokstav; en kvinnas docka (persondockor.ts `kvinna`) är hon. */
+export const dockord = (docka: string): Dockord => { const hon = PERSONDOCKOR[docka]?.kvinna === true;
+  return {namn: docka.charAt(0).toUpperCase() + docka.slice(1), han: hon ? 'hon' : 'han', honom: hon ? 'henne' : 'honom', hans: hon ? 'hennes' : 'hans'}; };
 
 /** Ett ord ur adressen som det står i en rad han läser: kort och på en rad. */
 const citat = (ord: string) => `”${ord.replace(/\s+/g, ' ').slice(0, 40)}”`;
