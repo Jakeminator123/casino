@@ -223,6 +223,67 @@
       "choice": "inte-bra",
       "text": "",
       "at": "2026-11-27T16:47:17.952Z"
+    },
+    {
+      "id": 238,
+      "proof": "dockans-kropp-ur-filmen-20261128",
+      "file": "1-danilo-livebordet.png",
+      "choice": null,
+      "text": "Förstår inte. Danilo är ju grunden till ca 50% elelr mindre/mer som filmerna från youtube är tagna från. Jag vill i dessajämfrelser häe också se klipp från desa stälen i youtubefilmenrna",
+      "at": "2026-11-28T17:31:03.050Z",
+      "answer": {
+        "text": "Rätt: Danilo är den riktiga dealern i Youtubefilmen. Bilden jämför bara vår docka i dag med en provdocka vars kropp är mätt ur filmen, och rubrikerna rättas så att det syns. Du får också filmens egna rutor bredvid, i samma ögonblick; de läggs på datorn under live-bj/rutor/jamfor/kropp/, eftersom rutor ur filmen aldrig får in i ett prov.",
+        "at": "2026-11-28T17:32:08.932Z"
+      },
+      "read": "2026-11-28T17:32:08.932Z"
+    },
+    {
+      "id": 239,
+      "proof": "dockans-kropp-ur-filmen-20261128",
+      "file": "2-danilo-fran-sidan.png",
+      "choice": null,
+      "text": "\"Förstår inte. Danilo är ju grunden till ca 50% elelr mindre/mer som filmerna från youtube är tagna från. Jag vill i dessajämfrelser häe också se klipp från desa stälen i youtubefilmenrna\". Sade jag i den andra kommentatorsfältet för andra, emn också - jag tror de står upp i filmenra och inte sitter",
+      "at": "2026-11-28T17:31:44.148Z"
+    },
+    {
+      "id": 240,
+      "proof": "dockans-kropp-ur-filmen-20261128",
+      "file": "3-frasse-livebordet.png",
+      "choice": null,
+      "text": "aknske bra, osäker. Men tror so msagt frasse och youtubearna står upp ändå",
+      "at": "2026-11-28T17:33:09.928Z"
+    },
+    {
+      "id": 241,
+      "proof": "dockans-kropp-ur-filmen-20261128",
+      "file": "4-frasse-fran-sidan.png",
+      "choice": null,
+      "text": "aknske bra, osäker. Men tror so msagt frasse och youtubearna står upp ändå",
+      "at": "2026-11-28T17:33:14.112Z"
+    },
+    {
+      "id": 242,
+      "proof": "dockans-kropp-ur-filmen-20261128",
+      "file": "5-danilo-och-frasse.png",
+      "choice": null,
+      "text": "\"mitt i given\" här för frasse är ju när denen dealar till typ plats 3 eller 5 elelr vad det rä och inte \"A2m\"",
+      "at": "2026-11-28T17:36:00.157Z"
+    },
+    {
+      "id": 243,
+      "proof": "givar-till-alla-platser-20261128",
+      "file": "01-danilo-kort-1-till-alla-sju-platser.mp4",
+      "choice": null,
+      "text": "Som grund kan denan vara bra så ddenna verkar kombinera filmens material med det som ska in i mitt system. Oklart om plats 3 (skak anske avra 5) fpr just kort 1 dock. Bra är också att koten ser ut att vara av den rättanya storleken. Vändningarna kan vara bra, men känns som tummarna kanske ska involveras och inte lill och pekfinger (?)",
+      "at": "2026-11-28T17:38:57.312Z"
+    },
+    {
+      "id": 244,
+      "proof": "givar-till-alla-platser-20261128",
+      "file": "02-frasse-kort-1-till-alla-sju-platser.mp4",
+      "choice": null,
+      "text": "Ser bra ut! KOnstigt r bara at dockan ger som typ, men ångrar sig i given till seat 5 (kanske ska vara seat 3), för att sedan återgå till att sedan ge til plats 4. Saam sak för seat 3 (5) där lixom rörelsen flrst går till seat 5 för att återgå till seat 3, som dessutom ser ut att ha en kordinat som är ungefär där C2 för platsen ska vara",
+      "at": "2026-11-28T17:42:37.808Z"
     }
   ]
 }
