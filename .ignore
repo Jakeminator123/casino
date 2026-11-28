@@ -36,15 +36,21 @@ package-lock.json
 /blackjack-dealer/assets/tracking/
 /blackjack-dealer/assets/speech/
 /blackjack-dealer/dealer3d/data/
+# A proof's own machine data, each written as one long line (0.1 to 0.8 MB): the motion a dealer's film was made from
+# and the measurement per frame. The proof's description (proof.json) and its calls stay searchable.
+/blackjack-dealer/assets/**/rorelse.json
+/blackjack-dealer/assets/**/matning-per-ruta.json
 # The register of films and takes, one post per line (the working copy is a database under .runtime/). Read one post
 # with `node tools/register.ts get <id>`, find posts with `node tools/register.ts list <text>`.
 /blackjack-dealer/data/motions.jsonl
 /blackjack-dealer/data/motions-removed.jsonl
 
-# live-bj: the measured patterns of the two dealers as one long line (227 kB), and the whole film cut per hand (one
-# piece per line, 0.5 MB; read it by its path, or segment.py dela --visa <a> <b>); the small style files beside them
-# (live-bj/data/stil-*.json) stay searchable
+# live-bj: the measured patterns of the two dealers as one long line (227 kB), everything they do cut into pieces and
+# sorted into kinds, also one long line (125 kB), and the whole film cut per hand (one piece per line, 0.5 MB; read it
+# by its path, or segment.py dela --visa <a> <b>); the small style files beside them (live-bj/data/stil-*.json) stay
+# searchable
 /live-bj/data/monster.json
+/live-bj/data/rorelser.json
 /live-bj/data/segment.json
 # live-bj: the motions lifted out of the film (numbers per frame, up to 0.4 MB each) and the depth samples they rest on;
 # read by path, for example live-bj/data/lyft/kameran-mitten-plats-4.json
