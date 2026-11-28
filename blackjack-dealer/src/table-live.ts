@@ -188,6 +188,9 @@ export const LIVE: LiveSetup = {
     'P2.C1': card(-0.2964, -1.1272, 150.0, 'spegel av P6.C1', 3, [0.043, 0.021]),
     'P2.C2': card(-0.2987, -1.1171, 149.9, 'spegel av P6.C2', 2, [0.001, 0.009]),
     'P3.C1': card(-0.0938, -1.0974, 166.1, 'spegel av P5.C1', 3, [0.035, 0.054]),
+    // (härlett, inte mätt: filmen har färre än två kort 2 till plats 3, så platsen är P3.C1 med steget från P5.C1 till P5.C2
+    // speglat, och P5.C2:s läge speglat; som src/game-table.ts createLayout räknar en plats som mätningen saknar)
+    'P3.C2': card(-0.1167, -1.1411, 167.6, 'spegel av P5.C2, läget P3.C1 och steget från P5.C1 speglat', 0, [0, 0]),
     'P4.C1': card(0.0155, -1.0251, 177.7, 'mätt', 11, [0.009, 0.026]),
     'P4.C2': card(0.044, -1.0648, 179.0, 'mätt', 9, [0.008, 0.012]),
     'P5.C1': card(0.1575, -1.0402, 13.9, 'mätt', 6, [0.031, 0.037]),

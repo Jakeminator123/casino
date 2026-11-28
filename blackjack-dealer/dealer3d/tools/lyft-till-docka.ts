@@ -1,18 +1,21 @@
 // Ett lyft ur livebordets film (live-bj/data/lyft/) lagt på en docka vid livebordet (Danilo eller Frasse, dealer3d/src/doll.ts
 // LIVE_DOLLS) som en rörelse dockan kan spela, i dockans eget format (som dealer3d/data/giv-fran-2-3-p4c1-ren-a-man.json,
 // med minen i fältet a) och i livebordets linsvärld (src/table-live.ts):
-//   dealer3d/data/lyft-<docka>-p<plats>.json      en giv, från ankaret vid skon till ankaret vid skon (A2.3): kortet ur
-//                                                 skon, handbytet, kortet på platsen, högern hem och vänstern till skon
+//   dealer3d/data/lyft-<docka>-till-bytet.json    kortet ur skon till handbytet (A2.3 till A2M): samma för alla platser
+//   dealer3d/data/lyft-<docka>-bytet-p<n>.json    bytet till kortplatsen P<n>.C1 och hem (A2M till A2.3); -bytet-p<n>c2 till P<n>.C2
+//   dealer3d/data/lyft-<docka>-p<n>.json          hela given till P<n>.C1 (de två efter varandra, A2.3 till A2.3); -p<n>c2 till P<n>.C2
+//   dealer3d/data/ankare-byte-<docka>.json        handbytet (A2M)
 //   dealer3d/data/lyft-<docka>-vantan-<n>.json    en väntan i vilan (A1): händerna i vilan, huvudet, blicken och minen lever
 //   dealer3d/data/lyft-<docka>-till-skon.json     ur vilan till skon (A1 till A2.3), och lyft-<docka>-hem.json tillbaka: vårt eget
 //   dealer3d/data/ankare-vila-<docka>.json        vilan (A1), och ankare-skon-<docka>.json redo vid skon (A2.3, ur filmen)
 //   (rörelserna säger sina ankaren i fältet ankare; huvudets eget mål står i rutornas hv, ögonens i g)
 //
-//   node dealer3d/tools/lyft-till-docka.ts <lyftet.json> <docka>      (från blackjack-dealer/)
-//   node dealer3d/tools/lyft-till-docka.ts --alla                     alla lyften i live-bj/data/lyft/, var och en på sin docka, och vägarna till och från skon
-//                                                                     (och varje persons docka, src/persondockor.ts, med lyften i sin stil)
-//   node dealer3d/tools/lyft-till-docka.ts --docka <namn>             bara en persons docka: lyften i dess stil och vägarna till och från skon
-//        [--lyft <mapp>] [--ut <mapp>]                                lyften ur en annan mapp, rörelserna till en annan (för att pröva)
+//   node dealer3d/tools/lyft-till-docka.ts --alla                     Danilo och Frasse ur lyften i live-bj/data/lyft/ (väntorna, alla givarna, vägarna
+//                                                                     till och från skon), och varje persons docka (src/persondockor.ts) i sin stil
+//   node dealer3d/tools/lyft-till-docka.ts --docka <namn>             bara en persons docka
+//   node dealer3d/tools/lyft-till-docka.ts <väntan.json> <docka>      en väntan (från blackjack-dealer/)
+//        [--lyft <mapp>] [--ut <mapp>]                                lyften ur en annan mapp, rörelserna till en annan (för att pröva;
+//                                                                     LYFT_KALLOR=1 skriver där också varje källas hela giv, lyft-<docka>-kalla-<giv>)
 //
 // DET RÅA LYFTET ÄR SANNINGEN OM VAR HÄNDERNA ÄR (Jakob 2026-11-27, om vänsterhanden i bytet: "en kvarleva från gamla dockan
 // eller förra standarddockans rörelsemönster"). Inget här kommer ur standarddockans koreografi (koreo-giv.ts): inga egna
@@ -75,6 +78,8 @@ const FPS = 30, UP: Vec3 = [0, 1, 0], HK = CARD.height, WK = CARD.width, T = CAR
 export const KONTAKT = 0.02;
 /** Hur många rutor kroppen tar på sig att resa sig från skon till vilan, sedan händerna är hemma (domaren: minst en halv sekund; dealerns huvud är 6–7 cm lägre medan han ger). */
 const KROPP_HEM = 24;
+/** Hur många rutor kroppen minst tar på sig att resa sig ur givens lutning till ankaret vid skon, sedan högern har lämnat kortet. */
+const KROPP_GIV = 24;
 const SIDOR: [Sida, number][] = [['R', 1], ['L', -1]];
 const r4 = (v: Vec3): Vec3 => v.map(x => Math.round(x * 10000) / 10000) as Vec3;
 const lerp = (a: Vec3, b: Vec3, t: number): Vec3 => add(a, mul(sub(b, a), t));
@@ -161,8 +166,12 @@ const TUMRIKTNING: Vec3 = [0.12, 0.3, 0.95];
 const NAVE_RULL = 10;
 /** Hur långt axeln högst skjuts fram mot handen när armen annars inte når (meter, skulderbladet); resten tar bålens lutning. */
 const AXEL_FRAM = 0.09;
-/** Hur stor del av högerns brygga hem den håller sin näve innan den öppnar sig till ankarets platta hand (andel; dealern håller en lös knytnäve hela vägen hem, förlagans ruta 58–65). */
-const HEM_OPPNA = 0.6;
+/** Hur stor del av högerns brygga hem den håller sin näve innan den öppnar sig till ankarets platta hand (andel; dealern håller en lös knytnäve från kortet, förlagans ruta 58–65, och domaren 2026-11-28 såg näven bli platt hand på 2–3 rutor när andelen var 0,6). */
+const HEM_OPPNA = 0.25;
+/** Högerns väg hem till ankaret när den har lämnat kortet är vår egen (dealern i filmen tar oftast nästa kort): i lugn takt, toppfarten högst HEM_FART m/s och minst HEM_MIN rutor (Jakob 2026-11-27: handen tillbaka cirka 0,8 s; domaren 2026-11-28: hem på 0,15 s såg ut som ett ryck). */
+const HEM_FART = 0.6, HEM_MIN = 12;
+/** Vänstern tillbaka till skon efter bytet (vår egen väg, domaren 2026-11-28: den ska inte sväva framför bröstet), toppfarten högst VANSTER_FART m/s och minst VANSTER_MIN rutor. */
+const VANSTER_FART = 0.5, VANSTER_MIN = 12;
 /** Hur många rutor högern tar in kortet från bytet till under handflatan, jämnt (förlagans ruta 30–35: kortet glider in i näven). */
 const TA_IN = 6;
 /** Hur långt under handflatans mitt kortet bärs (meter, längs handflatans normal), dolt i den halvslutna näven. */
@@ -518,11 +527,14 @@ type Last = ReturnType<typeof last>;
 const axelMitt = (L: Last, t: number) => mitt(L.R.s[t], L.L.s[t]);
 
 /**
- * Stilens medel för axlarnas mitt och huvudet mot axlarna, över alla stilens lyft: rörelsen räknas mot dem. Huvudet ligger
- * på sin synlinje i dockans huvuds djup (`zHuvud`): där bilden har det, så att dealerns hållning följer med i rörelsen.
+ * Stilens medel för axlarnas mitt och huvudet mot axlarna, över stilens väntor och de tre givar som lyftes först (till mitten
+ * och till bildens två yttersta platser, `<stil>-mitten|vanster|hoger-plats-<n>`): rörelsen räknas mot dem. Givarna till de
+ * andra kortplatserna (`<stil>-plats-<n>-kort-<m>`) räknas inte, så att dealerns hållning i de givar han redan har sett
+ * inte flyttas av att fler lyft kommer till. Huvudet ligger på sin synlinje i dockans huvuds djup (`zHuvud`): där bilden
+ * har det, så att dealerns hållning följer med i rörelsen.
  */
 function stilensMedel(stil: string, zAxlar: number, zHuvud: number, dir = LYFT) {
-  const filer = readdirSync(dir).filter(f => f.startsWith(`${stil}-`) && f.endsWith('.json'));
+  const filer = readdirSync(dir).filter(f => new RegExp(`^${stil}-(mitten|vanster|hoger|vantan)-.*\\.json$`).test(f));
   const mitten: Vec3[] = [], huvud: Vec3[] = [], bredd: number[] = [];
   for (const fil of filer) { const ly = JSON.parse(readFileSync(path.join(dir, fil), 'utf8')) as Lyft;
     for (const f of ly.frames) { const R = tillDjup(f.R.s, zAxlar), L = tillDjup(f.L.s, zAxlar), m = mitt(R, L); mitten.push(m); bredd.push(Math.hypot(L[0] - R[0], L[1] - R[1])); if (f.h) huvud.push(sub(tillDjup(f.h, zHuvud), m)); } }
@@ -651,8 +663,14 @@ function blickMal(lyft: Lyft, N: number, n: number, ram: {vila: [number, number]
 
 /** Ett ankare (rörelseschemats namn, standarddocka/rorelsekatalog.json): vilan A1 eller redo vid skon A2.3; axelRef: lyftets axlars mitt där ankaret är taget (A2.3), annars stilens medel; huvudVinklar: huvudets nick, vridning och tippning i ankaret (grader från kameran, som huvudMot), annars noll. */
 export type Ankare = {namn: 'A1' | 'A2.3'; about: string; doll: string; style: string; hip: Vec3; frame: Frame; axelRef?: Vec3; huvudVinklar?: Vec3};
-/** sikte: hur mycket högerns mål på kortet flyttas (meter) för att kortet ska landa där målet är, när handens rättningar flyttade det (siktat nedan). */
-type Bygg = {doll: Doll; stil: 'kameran' | 'bordet'; stilFil: Stil; lyft: Lyft; ank: Ankare; minen: ReturnType<typeof minen>; dir?: string; sikte?: Vec3};
+/**
+ * sikte: hur mycket högerns mål på kortet flyttas (meter) för att kortet ska landa där målet är, när handens rättningar flyttade
+ * det (siktat nedan). mal: kortplatsen och kortet där handen ska lägga det (malet nedan); utan det kortplatsen närmast där
+ * lyftets kort lades, och kortet där den riktiga dealerns kort låg.
+ */
+type Bygg = {doll: Doll; stil: 'kameran' | 'bordet'; stilFil: Stil; lyft: Lyft; ank: Ankare; minen: ReturnType<typeof minen>; dir?: string; sikte?: Vec3; mal?: Mal};
+/** Var en giv lägger kortet: kortplatsen (LIVE.cards), kortet plant där, och om det är där den riktiga dealerns kort låg (lyftet) eller kortplatsen själv. */
+export type Mal = {plats: string; kort: Kort; kalla: 'lyftet' | 'platsen'};
 
 /**
  * Kroppen i varje ruta av rörelsen (N rutor, lyftets ruta li(t)): axlarna ur lyftet i dockans djup och bredd, och huvudet
@@ -715,27 +733,32 @@ export function bygg(b: Bygg) {
     bryggor.R.t1 = t1R; bryggor.R.t0 = Math.max(0, t1R - 2 * bryggTid(length(sub(L.R.w[t1R], ank.R.w)), vTopp('right_out', 1.0)));
     // hem: högern från rutan den lämnar kortet till vilan; klippet slutar när den är hemma. Vänstern följer lyftet så länge
     // och går hem i en kort brygga från där den då är (står den vid skon efter nästa kort är det märkt).
-    const t2R = t.vila, TRh = bryggTid(length(sub(L.R.w[t2R], ank.R.w)), vTopp('right_back', 1.1)), ER = t2R + TRh;
+    const t2R = t.vila, TRh = Math.max(HEM_MIN, bryggTid(length(sub(L.R.w[t2R], ank.R.w)), HEM_FART)), ER = t2R + TRh;
     bryggor.R.t2 = t2R; bryggor.R.t3 = ER;
     let t2L = Math.min(n - 1, ER - 8); for (; t2L > t.meet + 8; t2L--) if (t2L + bryggTid(length(sub(L.L.w[t2L], ank.L.w)), vTopp('left_to_shoe', 1.1)) <= ER) break;
     t2L = Math.max(t.meet + 8, Math.min(n - 1, t2L)); const TLh = bryggTid(length(sub(L.L.w[t2L], ank.L.w)), vTopp('left_to_shoe', 1.1));
     bryggor.L.t2 = t2L; bryggor.L.t3 = Math.max(ER, t2L + TLh);
     vidSkonHem = length(sub(L.L.w[t2L], kortISkon().c)) < 0.15;
     N = Math.max(bryggor.R.t3, bryggor.L.t3) + 1;
+    // (kroppen reser sig ur givens lutning på minst KROPP_GIV rutor sedan högern har lämnat kortet: när den fick bara bryggans
+    // rutor gick huvudet 19 mm per ruta i en giv där bålen lutade mer, mot dealerns 4)
+    N = Math.max(N, Math.min(bryggor.R.t2, bryggor.L.t2) + KROPP_GIV + 1);
     // (huvudet går tillbaka till ankarets först när kortet ligger, och inte fortare än dealern själv vrider sitt: räcker
     // given inte till det blir den så mycket längre, med händerna kvar i ankaret)
     huvudSlut = huvudetsSlut(L.huvudV, b.ank.huvudVinklar ?? [0, 0, 0], t.ligger, N, true); N = huvudSlut.N;
-    // platsen: den kortplats för lyftets plats som ligger närmast där lyftets kort lades
-    const seat = /seat (\d)/.exec(lyft.to ?? '')![1], landat = lyft.frames[t.rests].card?.c ?? L.R.grepp[t.rests];
-    plats = Object.keys(LIVE.cards).filter(id => id.startsWith(`P${seat}.`)).sort((x, y) => Math.hypot(LIVE.cards[x].at[0] - landat[0], LIVE.cards[x].at[2] - landat[2]) - Math.hypot(LIVE.cards[y].at[0] - landat[0], LIVE.cards[y].at[2] - landat[2]))[0];
-    // (kortets mål: där den riktiga dealerns kort låg i den här given, annars kortplatsen; handen för det dit, nedan)
-    const iFilmen = kortetIFilmen(lyft); malKort = iFilmen ?? kortPaPlats(plats); malKalla = iFilmen ? 'lyftet' : 'platsen';
+    // platsen: given till (b.mal), annars den kortplats för lyftets plats som ligger närmast där lyftets kort lades
+    if (b.mal) { plats = b.mal.plats; malKort = b.mal.kort; malKalla = b.mal.kalla; }
+    else { const seat = /seat (\d)/.exec(lyft.to ?? '')![1], landat = lyft.frames[t.rests].card?.c ?? L.R.grepp[t.rests];
+      plats = Object.keys(LIVE.cards).filter(id => id.startsWith(`P${seat}.`)).sort((x, y) => Math.hypot(LIVE.cards[x].at[0] - landat[0], LIVE.cards[x].at[2] - landat[2]) - Math.hypot(LIVE.cards[y].at[0] - landat[0], LIVE.cards[y].at[2] - landat[2]))[0];
+      // (kortets mål: där den riktiga dealerns kort låg i den här given, annars kortplatsen; handen för det dit, nedan)
+      const iFilmen = kortetIFilmen(lyft); malKort = iFilmen ?? kortPaPlats(plats); malKalla = iFilmen ? 'lyftet' : 'platsen'; }
+    const malKortet = malKort;
     // KORTET I HÖGERN (förlagans ruta 24–62 i förstoring, se ovan kortIHogern): i bytet står kortet på sin bortre kortsida med
     // framsidan mot dealern och tummen på framsidan nära den kortsidan (ramen A, ramen S vriden ett kvarts varv kring sin
     // tvärled); från bytet rullas det framåt, bort från dealern, och är plant på platsen (ramen S) när handen lägger det.
     // Handen står lågt hela vägen: kortet står upp ovanför tummen och hänger aldrig under handen. Görs när högerns hand är
     // satt, nedan.
-    const malL = malKort.l;
+    const malL = malKortet.l;
     lagBar = () => {
       // (rullningen börjar i bytet och går fortast i början, som dealerns kort som lutar redan i ruta 30–32, och stannar mjukt när det är plant)
       // (i bytet lutar kortet BYTE_LUT bakåt mot dealern från lodrätt och BYTE_SNETT åt dealerns vänster, bildens höger, som
@@ -1037,13 +1060,14 @@ export function bygg(b: Bygg) {
       ratta(s, x => [0, hoj[x], 0]);
     }
     // (fingret vilar: från rutan kortet ligger står tumtoppen still där på kortet, medan handleden går som i filmen i
-    // bilden; handen står längs synlinjen och vrids kring handleden så att den når toppen, också i rutan efter att handen
-    // börjat gå (dealerns tumme ligger kvar till ruta 58 och lyfter i 59). Sedan lyfter tummen LYFT_FINGER rakt upp (domaren 2026-11-27 såg det glida
+    // bilden; handen står längs synlinjen och vrids kring handleden så att den når toppen, till rutan handen börjar gå (dealerns
+    // tumme ligger kvar till ruta 58 och lyfter i 59; att lösa den också i rutan efter gav i andra givar ett hopp på 45–100 mm,
+    // 2026-11-28). Sedan lyfter tummen LYFT_FINGER rakt upp (domaren 2026-11-27 såg det glida
     // 4 cm längs kortets kant), och först därefter, på fem rutor medan handen går hem, tonas handens vridning bort.)
     const vilar = pekfingret(t.ligger);
     let sist = {l: 0, ax: [1, 0, 0] as Vec3, v: 0};
     for (let x = t.ligger + 1; x <= Math.min(N - 2, t.vila + 6); x++) { const h0 = hander.R[x], fri0 = punkter(h0)[TUMME];
-      if (x > t.vila + 1) { const f = 1 - smooth((x - t.vila - 1) / 5), h1 = flyttHand(h0, add(mul(syn('R', x), sist.l * f), [0, LYFT_FINGER * smooth((x - t.vila - 1) / 2), 0])); hander.R[x] = vridHand(h1, h1.w, sist.ax, sist.v * f); continue; }
+      if (x > t.vila) { const f = 1 - smooth((x - t.vila - 1) / 5), h1 = flyttHand(h0, add(mul(syn('R', x), sist.l * f), [0, LYFT_FINGER * smooth((x - t.vila - 1) / 2), 0])); hander.R[x] = vridHand(h1, h1.w, sist.ax, sist.v * f); continue; }
       const mal = vilar;
       const u = syn('R', x), r = length(sub(fri0, h0.w)), d = sub(mal, h0.w), bb = dot(u, d), disk = bb * bb - dot(d, d) + r * r;
       // (av de två lägena längs synlinjen det som ligger närmast förra rutans, så att handen aldrig byter läge på en ruta)
@@ -1133,7 +1157,7 @@ export function bygg(b: Bygg) {
     return best; });
   // (lutningen jämnad till en mjuk kurva, 1,5 Hz, och den släpper högst en halv grad per ruta när armen inte längre behöver
   // den: inga knyckar i huvud och axlar. Huvudet och axlarna följer mätningen; det armen ändå inte når tas av armen, nedan)
-  const W8 = 8, lutn0 = behov.map((_, t) => Math.max(0, ...behov.map((x, j) => x.lean * smooth(1 - Math.abs(t - j) / (W8 + 1))))), lutn = lagpass(lutn0.reduce<number[]>((y, x, t) => [...y, Math.max(x, t ? y[t - 1] - rad(0.5) : x)], []), 1.5).map((x, t) => Math.max(0, x) * smooth(Math.min(t, N - 1 - t) / F));
+  const W8 = 8, lutn0 = behov.map((_, t) => Math.max(0, ...behov.map((x, j) => x.lean * smooth(1 - Math.abs(t - j) / (W8 + 1))))), lutn = lagpass(lutn0.reduce<number[]>((y, x, t) => [...y, Math.max(x, t ? y[t - 1] - rad(0.5) : x)], []), 1.5).map((x, t) => Math.max(0, x) * Math.min(smooth(t / F), smooth((N - 1 - t) / (giv ? 2 * F : F))));
   const riktn0 = behov.map((_, t) => { let v: Vec3 = [0, 0, 0], tw = 0, sum = 0; behov.forEach((x, j) => { const w = x.lean * smooth(1 - Math.abs(t - j) / (W8 + 1)); if (w > 0) { v = add(v, mul(flat(sub(x.mot, hip)), w)); tw += (x.twist / (x.lean || 1)) * w; sum += w; } });
     return sum > 0 ? {mot: add(hip, unit(v)), kvot: tw / sum} : null; });
   // (där ingen ruta intill behöver luta men lutningen ännu tonas ut: åt samma håll som i den närmaste ruta som har ett håll,
@@ -1182,7 +1206,11 @@ export function bygg(b: Bygg) {
   for (const [s] of SIDOR) { const ra = hander[s].map((hand, t) => { const S = torsos[t].S, sh = S[s === 'R' ? 0 : 1], j = Math.min(t, n - 1), mal0 = lerp(f0[s].e, L[s].e[j], vikt[s][t]), vag = s === 'R' && giv ? pek.platt[j] * (1 - pek.krok[j]) * vikt[s][t] : 0;
     return armbageVinkel(sh, hand, vag > 0 ? lerp(mal0, add(hand.w, [-doll.forearm, 0, 0]), vag) : mal0, doll, kant, {R: S[0], L: S[1], hip}); });
     for (let t = 1; t < N; t++) { let d = ra[t] - ra[t - 1]; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; ra[t] = ra[t - 1] + d; }
-    vrid[s] = lagpass(ra, 2.5); }
+    vrid[s] = lagpass(ra, 2.5);
+    // (i en giv går armbågen på vägen hem mjukt till ankarets egen, inte till det närmaste av sökningens lägen: annars
+    // hoppade den 15–18 mm på sista rutan, där rörelsen är ankaret, domaren 2026-11-28)
+    if (giv) { const line = unit(sub(f0[s].w, f0[s].s)), lod = lodratt(line), sida = unit(tvars(sub(f0[s].e, f0[s].s), line)), thA = Math.atan2(dot(cross(line, lod), sida), dot(lod, sida));
+      for (let t = bryggor[s].t2 + 1; t < N; t++) { const v = vrid[s][t], a = thA + 2 * Math.PI * Math.round((v - thA) / (2 * Math.PI)); vrid[s][t] = v + (a - v) * (1 - vikt[s][t]); } } }
   /** Hur långt axeln skjuts fram mot handen i rutan (meter): det armen saknar för att nå, högst AXEL_FRAM, mjukt över rutorna intill. */
   const fram = {} as Record<Sida, number[]>;
   for (const [s] of SIDOR) { const saknas = hander[s].map((h, t) => t === 0 || t === N - 1 ? 0 : Math.min(AXEL_FRAM, Math.max(0, length(sub(h.w, torsos[t].S[s === 'R' ? 0 : 1])) - (doll.upperArm + doll.forearm - 0.003))));
@@ -1198,9 +1226,11 @@ export function bygg(b: Bygg) {
       { const d = sub(hand.w, sh), l = length(d); if (fram[s][t] > 0 && l > 1e-6) sh = add(sh, mul(unit(d), fram[s][t]));
         const d2 = sub(hand.w, sh), l2 = length(d2), nar = doll.upperArm + doll.forearm - 0.003; if (l2 > nar && !haller[s][t] && kalla[s][t] !== 'v') hand = flyttHand(hand, mul(unit(d2), nar - l2)); }
       let e = armbageSvang(sh, hand.w, vrid[s][t], doll);
-      // (en fri hand högst 48 grader från underarmen: vriden kring handleden mot underarmen, så att handleden står kvar; går den
+      // (en fri hand högst 48 grader från underarmen: vriden kring handleden mot underarmen, så att handleden står kvar, och
+      // högern som just har lämnat kortet mjukt in i det på sex rutor, inte på en: i givar där handen stod mer än 48 grader
+      // från underarmen på kortet hoppade den 45 mm i rutan efter, 2026-11-28; går den
       // då i filten eller kortet blir den som den var. En hand som håller kortet eller vilar i ankaret rörs inte)
-      if (!haller[s][t] && kalla[s][t] !== 'v') for (let gang = 0; gang < 3; gang++) { const fore = unit(sub(hand.w, e)), fram = unit(sub(punkter(hand)[9], hand.w)), x = vinkel(fram, fore) - rad(48); if (x <= 0) break;
+      if (!haller[s][t] && kalla[s][t] !== 'v') for (let gang = 0; gang < 3; gang++) { const fore = unit(sub(hand.w, e)), fram = unit(sub(punkter(hand)[9], hand.w)), x = (vinkel(fram, fore) - rad(48)) * (s === 'R' && ti && t > ti.vila ? smooth((t - ti.vila) / 6) : 1); if (x <= 0) break;
         const forra = hand; hand = vridHand(hand, hand.w, unit(cross(fram, fore)), x);
         if (overFilten(hand) < Math.min(0, overFilten(forra)) || (giv && t > (ti?.pull ?? 0) && iKortet(hand, kort, sign) > iKortet(forra, kort, sign))) { hand = forra; break; } e = armbageSvang(sh, hand.w, vrid[s][t], doll); }
       kvitto.handledMest[s] = Math.max(kvitto.handledMest[s], handled(e, hand));
@@ -1210,10 +1240,13 @@ export function bygg(b: Bygg) {
     const j = Math.min(t, n - 1), ton = smooth(Math.min(t, N - 1 - t) / F);
     const a = t === 0 || t === N - 1 ? {} : Object.fromEntries(b.minen.bar.map(nm => [nm, Math.round(clamp01(b.minen.spar[nm][j] * ton) * 1000) / 1000]));
     const kortet = {c: r4(kort.c), l: r4(unit(kort.l)), n: r4(unit(kort.n)), id: 0};
-    frames.push(t === 0 ? {...f0, card: {...f0.card}} : t === N - 1 ? {...f0, card: kortet} : {card: kortet, R: limbs.R, L: limbs.L, h: r4(h), g: r4(g), ...(hv ? {hv: r4(hv)} : {}), ...(ht ? {ht} : {}), a});
+    // (första och sista rutan är ankaret, också kortet: i en giv står nästa kort i skons mynning när handen är hemma, och det
+    // lagda kortet ligger kvar på platsen i spelarens bild, standarddocka/editor/rorelse.ts; domaren 2026-11-28 såg skons kort
+    // försvinna i skarven mellan två givar när sista rutan bar det lagda kortet)
+    frames.push(t === 0 || t === N - 1 ? {...f0, card: {...f0.card}} : {card: kortet, R: limbs.R, L: limbs.L, h: r4(h), g: r4(g), ...(hv ? {hv: r4(hv)} : {}), ...(ht ? {ht} : {}), a});
   }
-  // (kortets långsida åt samma håll i alla rutor)
-  for (let t = 1; t < N; t++) if (dot(frames[t].card.l, frames[t - 1].card.l) < 0) frames[t].card.l = frames[t].card.l.map(x => -x) as Vec3;
+  // (kortets långsida åt samma håll i alla rutor där det är samma kort)
+  for (let t = 1; t < N - 1; t++) if (dot(frames[t].card.l, frames[t - 1].card.l) < 0) frames[t].card.l = frames[t].card.l.map(x => -x) as Vec3;
   // (hur långt handlederna står från lyftet längs synlinjen, där handen är lyftets: djupet som förankrades)
   kvitto.andpunktMm = Math.round(length(andpunkt.v) * 1000);
   for (const [s] of SIDOR) { const v = frames.flatMap((f, t) => t < n && (kalla[s][t] === 'l' || kalla[s][t] === 'k' || kalla[s][t] === 'a') ? [Math.abs(dot(sub(f[s].w, L[s].w[t]), syn(s, t)))] : []).sort((a, b) => a - b); if (v.length) kvitto.langsSynlinjen[s] = {median: Math.round(v[v.length >> 1] * 1000), mest: Math.round(v[v.length - 1] * 1000)}; }
@@ -1232,6 +1265,152 @@ export function siktat(b: Bygg) {
   for (let varv = 0; varv < 4 && ut.kvitto.landning && ut.kvitto.landning.franMaletMm > 1; varv++) {
     const l = ut.kvitto.landning; b = {...b, sikte: add(b.sikte ?? [0, 0, 0], [l.malet.c[0] - l.lagt.c[0], 0, l.malet.c[2] - l.lagt.c[2]])}; ut = bygg(b); }
   return ut;
+}
+type Byggd = ReturnType<typeof bygg>;
+
+// ---- givarna till alla platser: skon till bytet, och bytet till varje kortplats -------------------------------------------
+// EN MODELL FÖR ALLA PLATSER (Jakob 2026-11-28: "utifrån det mönstret och system vi använder, kunna skapa delningssekvenser
+// till alla platser"): en giv är två klipp mellan ankarbilder. Skon till bytet (A2.3 till A2M) är stilens giv till mitten fram
+// till rutan där kortet byter hand, och är samma för alla platser. Bytet till platsen (A2M till A2.3) görs för varje kortplats
+// ur en giv i filmen: dealerns egen giv dit där filmen har en ren (vänstern drar, högern lägger), annars den giv vars
+// kortplats ligger närmast, riktad om (riktaOm). Högern, kortet och kroppen går från exakt A2M mjukt in i den givens egna
+// rörelse (franBytet), vänstern går lugnt tillbaka till skon och ligger där (A3PnCm: vänstern vid skon), och högern går hem.
+// Hela given är de två efter varandra, ruta för ruta.
+
+/** Kortplatserna en giv görs till: kort 1 och kort 2 på dagens plats 1–7 (LIVE.cards). */
+export const KORTPLATSER = [1, 2, 3, 4, 5, 6, 7].flatMap(p => [`P${p}.C1`, `P${p}.C2`]).filter(id => LIVE.cards[id]);
+/** Rörelsens namn för en kortplats: p<n> för kort 1, p<n>c2 för kort 2. */
+export const givNamn = (id: string) => { const [, p, c] = /^P(\d)\.C(\d)$/.exec(id)!; return c === '1' ? `p${p}` : `p${p}c${c}`; };
+/** Den riktiga dealerns kort ligger på kortplatsen när det är så här nära (meter och grader): då lägger handen det där han lade det (Jakob 2026-11-27: kortet läggs inte till rätta), annars på kortplatsen. */
+const PA_PLATSEN = {m: 0.01, grader: 5};
+/** Hur mycket kroppen, högern och kortet högst får glida per ruta från A2M:s ställning in i en annan givs rörelse (meter); bryggan är minst FRAN_BYTET_MIN rutor. */
+const FRAN_BYTET_STEG = 0.006, FRAN_BYTET_MIN = 6;
+const vinkelratt = (v: Vec3, u: Vec3): Vec3 => sub(v, mul(u, dot(v, u)));
+/** Åt vilket håll armbågen står från linjen axel–handled (enhetsvektor vinkelrätt mot den). */
+const armbagsSida = (l: Limb): Vec3 => { const u = unit(sub(l.w, l.s)), d = vinkelratt(sub(l.e, l.s), u); return length(d) > 1e-9 ? unit(d) : lodratt(u); };
+const handAv = (l: Limb, sign: number): Hand => { const a = axesOf(l.p, sign); return {a, w: l.w, S: local(l.p, a)}; };
+/** En arm med axeln `s`, handen `h` och armbågen åt `sida` (dockans ben). */
+const armAv = (s: Vec3, h: Hand, sida: Vec3, doll: Doll): Limb => ({s: r4(s), e: r4(arm(s, h.w, sida, doll).elbow), w: r4(h.w), k: 1, p: punkter(h).map(r4)});
+/** Armbågens vinkel kring linjen axel–handled, från rakt nedåt (som armbageSvang räknar den). */
+const armVinkel = (l: Limb): number => { const line = unit(sub(l.w, l.s)), lod = lodratt(line), sida = armbagsSida(l); return Math.atan2(dot(cross(line, lod), sida), dot(lod, sida)); };
+/** Vridningen som för handens axlar A till B (handens fram och handflata som en ram). */
+const handVridning = (A: Axes, B: Axes) => vridning({l: A.forward, n: A.palm}, {l: B.forward, n: B.palm});
+const vridAx = (A: Axes, ax: Vec3, v: number): Axes => { const f = unit(turned(A.forward, ax, v)), p = unit(turned(A.palm, ax, v)); return {forward: f, palm: p, across: cross(p, f)}; };
+
+/**
+ * VÄNSTERN IN I GIVEN UR ANKARET (domaren 2026-11-28: fingrarna ryckte på en ruta mellan givarna): från ankaret vid skon
+ * (ruta 0) till lyftets vänster i rutan `T1` en mjuk brygga, med lyftets fart där; armbågen åt ett håll mitt emellan. Ruta 0
+ * och rutorna från T1 rörs inte, och inte kroppen.
+ */
+function vanstersStart(frames: Frame[], T1: number, doll: Doll) {
+  const f0 = frames[0].L, f1 = frames[T1].L, A = handAv(f0, -1), B = handAv(f1, -1), v1 = mul(sub(frames[T1 + 1].L.w, frames[T1 - 1].L.w), 0.5), sA = armbagsSida(f0), sB = armbagsSida(f1);
+  for (let t = 1; t < T1; t++) { const m = mjuk(t / T1), h: Hand = {a: between(A.a, B.a, m), w: brygga(f0.w, [0, 0, 0], f1.w, v1, T1, t), S: formMellan(A.S, B.S, m)};
+    frames[t] = {...frames[t], L: armAv(frames[t].L.s, h, unit(lerp(sA, sB, m)), doll)}; }
+}
+
+/**
+ * BYTET TILL PLATSEN: från exakt A2M (`fA`, skon till bytets sista ruta; `fA0` rutan före) in i given `B` från dess byte, och
+ * hem till ankaret vid skon `a23`. Kroppen, högern och kortet följer B:s rörelse med A2M:s avvikelse från B:s byte tonad bort
+ * över de första rutorna (kortet i högerns grepp, så att det går med handen; bryggan är slut innan kortet ligger plant).
+ * Vänstern går från A2M lugnt tillbaka till skon, med sin fart i A2M, och ligger där i ankarets läge (domaren 2026-11-28:
+ * vänstern hängde i luften framför bröstet och hoppade sedan till skon). Sista rutan är ankaret, med nästa kort i skon.
+ */
+function franBytet(Af: Frame[], mA: number, B: Byggd, a23: Ankare, doll: Doll) {
+  const fA = Af[mA], fA0 = Af[mA - 1];
+  const ti = B.tider!, m = ti.meet, F = B.frames, n = F.length - m, fB0 = F[m], ank = a23.frame;
+  // (bryggan från A2M in i B: så lång att inget glider mer än FRAN_BYTET_STEG per ruta, och slut innan kortet ligger plant)
+  const d = Math.max(length(sub(fA.R.w, fB0.R.w)), length(sub(fA.card.c, fB0.card.c)), length(sub(fA.h, fB0.h)), length(sub(fA.R.s, fB0.R.s)), length(sub(fA.L.s, fB0.L.s)));
+  const K = d < 0.0005 ? 0 : Math.min(ti.plan - m - 1, Math.max(FRAN_BYTET_MIN, Math.ceil(1.875 * d / FRAN_BYTET_STEG)));
+  const hA = handAv(fA.R, 1), hB0 = handAv(fB0.R, 1), vr = handVridning(hB0.a, hA.a), dw = sub(fA.R.w, hB0.w);
+    // (armbågen: B:s vinkel kring linjen axel–handled, med A2M:s skillnad från B:s byte tonad bort; fingrarna: B:s leder, med
+  // A2M:s skillnad i varje led tonad bort, så att handen sluts i B:s takt)
+  const dth = (() => { let x = armVinkel(fA.R) - armVinkel(fB0.R); while (x > Math.PI) x -= 2 * Math.PI; while (x < -Math.PI) x += 2 * Math.PI; return x; })();
+  const sidaMed = (s: Vec3, w: Vec3, l: Limb, k: number): Vec3 => { const line = unit(sub(w, s)); return turned(lodratt(line), line, armVinkel(l) + dth * k); };
+  // (vänstern: från A2M med sin fart dit, till ankarets läge vid skon)
+  const lA = handAv(fA.L, -1), lK = handAv(ank.L, -1), vL = sub(fA.L.w, fA0.L.w), TL = Math.min(n - 2, Math.max(VANSTER_MIN, bryggTid(length(sub(lK.w, lA.w)), VANSTER_FART))), sLA = armbagsSida(fA.L), sLK = armbagsSida(ank.L);
+  // (huvudet och blicken tonas över hela klippet: den riktiga dealern håller huvudet olika i bytet till olika platser, upp till
+  // 15 cm åt sidan mot de yttre platserna, och huvudet får inte gå fortare än hans; armarna och axlarna på K rutor, så att
+  // armen når där B:s kropp når)
+  const KH = d < 0.0005 ? 0 : n - 1;
+  // (först händerna, kroppen och kortet ruta för ruta; sedan hur långt varje axel måste skjutas fram för att armen ska nå,
+  // mjukat över rutorna intill som i bygg, och armarna)
+  const nar = doll.upperArm + doll.forearm - 0.003;
+  const rutor = Array.from({length: n}, (_, i) => {
+    const fB = F[m + i], k = K ? 1 - mjuk(i / K) : 0, kh = KH ? 1 - mjuk(i / KH) : 0, of = (a: Vec3, b: Vec3, c: Vec3) => add(a, mul(sub(b, c), k)), ofH = (a: Vec3, b: Vec3, c: Vec3) => add(a, mul(sub(b, c), kh));
+    const S: [Vec3, Vec3] = [of(fB.R.s, fA.R.s, fB0.R.s), of(fB.L.s, fA.L.s, fB0.L.s)];
+    // (handens form och kortet i handen: de första rutorna A:s egna efter bytet (handen som tog kortet i A2M sluter sig och tar in
+    // det som där), mjukt till B:s på TA_IN rutor; handens läge och vridning B:s med A2M:s avvikelse tonad bort på K rutor)
+    const KG = Math.min(K, TA_IN), wg = KG ? mjuk(i / KG) : 1, fAi = Af[Math.min(Af.length - 1, mA + i)], hAi = handAv(fAi.R, 1);
+    const hB = handAv(fB.R, 1), hR: Hand = k ? {a: vridAx(hB.a, vr.ax, vr.v * k), w: add(hB.w, mul(dw, k)), S: wg < 1 ? formMellan(hAi.S, hB.S, wg) : hB.S} : hB;
+    // (kortet: i högerns grepp medan högern har det, annars som i B)
+    // (greppet går till B:s på TA_IN rutor, som kortet går in i handen, och kortet står aldrig under filten)
+    let card: Kort = fB.card;
+    if (k && i < ti.plan - m) { const g = wg < 1 ? mellan(iHanden(hAi, fAi.card), iHanden(hB, fB.card), wg) : iHanden(hB, fB.card); card = urHanden(hR, g);
+      const under = 0.0005 - kortLagst(card); if (under > 0) card = flyttKort(card, [0, under, 0]); }
+    const mv = mjuk(Math.min(1, i / TL)), hL: Hand = i >= TL ? lK : {a: between(lA.a, lK.a, mv), w: brygga(lA.w, vL, lK.w, [0, 0, 0], TL, i), S: formMellan(lA.S, lK.S, mv)};
+    const ht = (fB.ht ?? 0) + ((fA.ht ?? 0) - (fB0.ht ?? 0)) * kh;
+    return {fB, k, S, hR, hL, card, mv, h: ofH(fB.h, fA.h, fB0.h), g: ofH(fB.g, fA.g, fB0.g), hv: fB.hv ? ofH(fB.hv, fA.hv ?? fA.g, fB0.hv ?? fB0.g) : null, ht,
+      ut: {R: k ? Math.max(0, length(sub(hR.w, S[0])) - nar) : 0, L: Math.max(0, length(sub(hL.w, S[1])) - nar)}}; });
+  const fram = (s: Sida) => rutor.map((_, i) => i === 0 || i === n - 1 ? 0 : Math.min(AXEL_FRAM, Math.max(0, ...rutor.map((x, j) => x.ut[s] * smooth(1 - Math.abs(i - j) / 5)))));
+  const framR = fram('R'), framL = fram('L'), skjut = (s0: Vec3, w: Vec3, x: number) => x > 0 ? add(s0, mul(unit(sub(w, s0)), x)) : s0;
+  const ut: Frame[] = rutor.map((x, i) => {
+    if (i === 0) return {...fA, card: {...fA.card}};
+    if (i === n - 1) return {...ank, card: {...ank.card}};
+    const sR = skjut(x.S[0], x.hR.w, framR[i]), sL = skjut(x.S[1], x.hL.w, framL[i]);
+    const R = x.k ? armAv(sR, x.hR, sidaMed(sR, x.hR.w, x.fB.R, x.k), doll) : {...x.fB.R, s: r4(x.S[0])}, Lm = armAv(sL, x.hL, unit(lerp(sLA, sLK, x.mv)), doll);
+    return {card: {c: r4(x.card.c), l: r4(unit(x.card.l)), n: r4(unit(x.card.n)), id: 0}, R, L: Lm, h: r4(x.h), g: r4(x.g), ...(x.hv ? {hv: r4(x.hv)} : {}), ...(Math.round(x.ht * 10) ? {ht: r1(x.ht)} : {}), a: x.fB.a}; });
+  const hand = {R: rutor.map((_, i) => i === n - 1 ? 'v' : i < K ? 'b' : B.handen.R[m + i] ?? 'v').join(''), L: rutor.map((_, i) => i === n - 1 ? 'v' : i < TL ? 'b' : 'v').join('')};
+  for (let t = 1; t < n - 1; t++) if (dot(ut[t].card.l, ut[t - 1].card.l) < 0) ut[t].card.l = ut[t].card.l.map(x => -x) as Vec3;
+  const sk = (x: number) => x - m;
+  const faserR = [...(K ? [{fran: 0, till: K, vad: 'från handbytet (A2M) in i dealerns giv: kroppen, högern och kortet tonas från bytets ställning', kalla: 'brygga' as const}] : []),
+    ...B.faser.R.filter(x => x.till > m + K).map(x => ({...x, fran: Math.max(sk(x.fran), K), till: sk(x.till)}))];
+  const faserL: Fas[] = [{fran: 0, till: TL, vad: 'släpper kortet och går tillbaka till skon', kalla: 'brygga'}, {fran: TL, till: n - 1, vad: 'vid skon (A2.3) medan högern lägger kortet', kalla: 'ankaret'}];
+  const mmAv = (a: Vec3, b: Vec3) => Math.round(length(sub(a, b)) * 1000);
+  const delarMm = {hogerHandled: mmAv(fA.R.w, fB0.R.w), kortet: mmAv(fA.card.c, fB0.card.c), huvudet: mmAv(fA.h, fB0.h), hogerAxel: mmAv(fA.R.s, fB0.R.s), vansterAxel: mmAv(fA.L.s, fB0.L.s), handensVridningGrader: r1(grad(vr.v))};
+  return {frames: ut, K, TL, hand, faser: {R: faserR, L: faserL}, tider: {vandFran: sk(ti.vandFran), plan: sk(ti.plan), framsidan: sk(ti.framsidan), ligger: sk(ti.ligger), vila: sk(ti.vila)}, flyttMm: Math.round(d * 1000), delarMm};
+}
+
+/** Ett lyfts ruta vid den brutna rutan `u` (rakt emellan de två närmaste; det som saknas i någon av dem, och kortet, ur den närmaste). */
+function rutaVid(f: LyftRuta[], u: number): LyftRuta {
+  const i = clamp(Math.floor(u), 0, f.length - 1), j = Math.min(f.length - 1, i + 1), x = u - i;
+  if (x < 1e-6 || i === j) return f[i];
+  const a = f[i], b = f[j], nar = x < 0.5 ? a : b, v = (p?: Vec3 | null, q?: Vec3 | null) => p && q ? lerp(p, q, x) : nar === a ? p : q;
+  const limb = (A: LyftLimb, Bq: LyftLimb): LyftLimb => ({s: lerp(A.s, Bq.s, x), e: lerp(A.e, Bq.e, x), w: lerp(A.w, Bq.w, x), p: A.p && Bq.p ? A.p.map((p, k) => lerp(p, Bq.p![k], x)) : nar === a ? A.p : Bq.p});
+  return {...nar, t: a.t + (b.t - a.t) * x, R: limb(a.R, b.R), L: limb(a.L, b.L), h: v(a.h, b.h) ?? null, g: v(a.g, b.g) ?? null, hv: v(a.hv, b.hv) ?? null, huvud: v(a.huvud, b.huvud) ?? null, ansikte: v(a.ansikte, b.ansikte) ?? null,
+    a: a.a && b.a ? Object.fromEntries(Object.keys(a.a).map(k => [k, a.a![k] + ((b.a![k] ?? a.a![k]) - a.a![k]) * x])) : nar.a};
+}
+/** Långsidans riktning på filten som vinkel från z mot x (radianer), inom ett kvarts varv åt vardera hållet: ett kort är lika åt båda håll. */
+const kortRiktning = (l: Vec3) => { let a = Math.atan2(l[0], l[2]); if (Math.cos(a) < 0) a += a > 0 ? -Math.PI : Math.PI; return a; };
+const inomKvarts = (a: number) => { let x = a; while (x > Math.PI / 2) x -= Math.PI; while (x <= -Math.PI / 2) x += Math.PI; return x; };
+/** Hur en giv riktades om (made.kalla.riktadOm): från var den riktiga dealerns kort låg till kortplatsen. */
+export type RiktadOm = {till: string; franKort: Vec3; tillKort: Vec3; flyttMm: number; vridGrader: number; huvudGrader: number; tid: number; rutor: [number, number]};
+/**
+ * EN GIV RIKTAD OM TILL EN ANNAN KORTPLATS (Jakob 2026-11-28: givar till alla platser "utifrån det mönstret"): lyftet `lyft`
+ * (från skon, franSkon) med kortet där den riktiga dealerns låg (`fran`), gjort till en giv till kortplatsen `tillId`. Fram
+ * till bytet är det lyftet som det är. Från bytet: tiden från bytet till att kortet ligger följer vägens längd (från kortet i
+ * bytet till där det läggs, högst 35 % längre eller 25 % kortare), högerns hand vrids kring handleden lika mycket som kortets
+ * långsida skiljer mellan de två ställena (mjukt från bytet till att kortet ligger), och huvudet, blicken och ansiktet vrids
+ * mot den nya platsen lika mycket som hållet från huvudet dit skiljer. Själva vägen böjs till platsen av byggets ändpunkt
+ * (bygg: andpunkt, högerns väg böjd från bytet till där kortet ligger), som för varje giv. Kortet syns inte längre i lyftet:
+ * målet är kortplatsen.
+ */
+export function riktaOm(lyft: Lyft, fran: Kort, tillId: string, zA: number): Lyft & {riktadOm: RiktadOm} {
+  const L = last(lyft, zA), ti = tiderna(lyft, L), till = kortPaPlats(tillId), m = ti.meet, lig = ti.ligger, f = lyft.frames;
+  const g0 = L.R.grepp[m], vag = (c: Vec3) => Math.hypot(c[0] - g0[0], c[2] - g0[2]), r = clamp(vag(till.c) / Math.max(0.05, vag(fran.c)), 0.75, 1.35);
+  const nOld = lig - m, nNew = Math.max(4, Math.round(nOld * r)), N = f.length + nNew - nOld;
+  const kalla = (k: number) => k <= m ? k : k <= m + nNew ? m + (k - m) * nOld / nNew : lig + (k - m - nNew), tillNy = (x: number) => x <= m ? x : x <= lig ? Math.round(m + (x - m) * nNew / nOld) : x + nNew - nOld;
+  const vrid = inomKvarts(kortRiktning(till.l) - kortRiktning(fran.l)), h0 = L.h[m], hall = (c: Vec3) => Math.atan2(c[0] - h0[0], c[2] - h0[2]), huvud = hall(till.c) - hall(fran.c);
+  const ramp = (k: number) => mjuk((k - m) / nNew);
+  const frames = Array.from({length: N}, (_, k): LyftRuta => {
+    const x = rutaVid(f, kalla(k)), w = ramp(k); if (k <= m) return x;
+    const R: LyftLimb = {...x.R, p: x.R.p ? x.R.p.map(p => add(x.R.w, turned(sub(p, x.R.w), UP, vrid * w))) : null};
+    const kring = (p?: Vec3 | null) => p && x.h ? add(x.h, turned(sub(p, x.h), UP, huvud * w)) : p ?? null, grader = grad(huvud * w);
+    return {...x, R, g: kring(x.g), hv: kring(x.hv), huvud: x.huvud ? [x.huvud[0], x.huvud[1] + grader, x.huvud[2]] : x.huvud, ansikte: x.ansikte ? [x.ansikte[0], x.ansikte[1] + grader, x.ansikte[2]] : x.ansikte,
+      card: x.card ? {...x.card, seen: false} : x.card}; });
+  for (const x of frames) if (x.card) x.card = {...x.card, seen: false};
+  const seat = /^P(\d)\./.exec(tillId)![1];
+  return {...lyft, to: `seat ${seat}`, frames, frameCount: N, rests: lyft.rests === undefined ? undefined : tillNy(lyft.rests), film_seconds: [lyft.film_seconds[0], lyft.film_seconds[1]],
+    riktadOm: {till: tillId, franKort: r4(fran.c), tillKort: r4(till.c), flyttMm: Math.round(Math.hypot(till.c[0] - fran.c[0], till.c[2] - fran.c[2]) * 1000), vridGrader: r1(grad(vrid)), huvudGrader: r1(grad(huvud)), tid: Math.round(nNew / nOld * 100) / 100, rutor: [m, m + nNew]}};
 }
 
 // ---- körningen -----------------------------------------------------------------------------------------------------------
@@ -1289,52 +1468,130 @@ export function pa(lyftFil: string, dockNamn?: string, annan?: Doll) {
   const lyft = las<Lyft>(lyftFil), namn = dockNamn ?? lyft.docka, {doll, stil, ank: a1, vidSkon} = ankaretFor(namn, annan), stilFil = stilFor(lyft), L = last(lyft, dollFrame(doll).shoulders[0][2]);
   return siktat({doll, stil, stilFil, lyft, ank: lyft.leavesShoe !== undefined ? vidSkon() : a1, minen: minen(L, stilFil), dir: lyftDir});
 }
+/** En väntan (lyftet `lyftFil`) på dockan: från vilan till vilan, och vilan (A1) själv. */
 function kor(lyftFil: string, dockNamn?: string) {
-  const lyft0 = las<Lyft>(lyftFil), namn = dockNamn ?? lyft0.docka, {doll, stil, ank: a1, vidSkon, vantanFil} = ankaretFor(namn), lyft = franSkon(lyft0, dollFrame(doll).shoulders[0][2]), ank = lyft.leavesShoe !== undefined ? vidSkon() : a1;
+  const lyft = las<Lyft>(lyftFil), namn = dockNamn ?? lyft.docka, {doll, stil, ank, vantanFil} = ankaretFor(namn);
+  if (lyft.leavesShoe !== undefined) throw Error(`${rel(lyftFil)} är en giv: givarna görs alla på en gång (--alla eller --docka), korGivar.`);
   if (lyft.style !== stil) console.log(`  (lyftet är stilen ${lyft.style}, dockan ${namn} stilen ${stil})`);
   const stilFil = las<Stil>(path.join(CASINO, `live-bj/data/stil-${lyft.style}.json`)), L = last(lyft, dollFrame(doll).shoulders[0][2]);
   const ut0 = siktat({doll, stil, stilFil, lyft, ank, minen: minen(L, stilFil), dir: lyftDir});
-  const giv = lyft.leavesShoe !== undefined, nr = giv ? /seat (\d)/.exec(lyft.to!)![1] : /vantan-(\d)/.exec(lyftFil)![1];
-  const fil = path.join(utDir, giv ? `lyft-${namn}-p${nr}.json` : `lyft-${namn}-vantan-${nr}.json`), ankFil = path.join(utDir, ank.namn === "A2.3" ? `ankare-skon-${namn}.json` : `ankare-vila-${namn}.json`);
-  const ti = ut0.tider, k = ut0.kvitto, N = ut0.frames.length, B = ut0.bryggor;
-  const kontakter = Object.entries(k.kontakt).map(([vad, x]) => `${vad} ${x.langsMm} mm längs synlinjen och ${x.tvarsMm} tvärs${x.behovdesMm > x.tvarsMm + 1 ? ` (tvärs behövdes ${x.behovdesMm} mm, ${x.px} bildpunkter: ett fynd om lyftet eller bordet)` : ''}`).join(', ');
-  const about = giv
-    ? `Dockan ${namn} ger ett kort till ${ut0.plats}, lyftat ur livebordets film (${rel(lyftFil)}, filmens sekunder ${lyft.film_seconds.join('–')}) och lagt på dockans egen kropp av dealer3d/tools/lyft-till-docka.ts. Händerna är lyftets ruta för ruta (handlederna, vinkeln och fingrarna, jämnade lugnt i stillhet och lätt i rörelse) från ruta ${Math.min(B.L.t1, B.R.t1)} till ${Math.max(B.L.t2, B.R.t2)}; dessförinnan och därefter en mjuk brygga till och från ankaret vid skon (A2.3, ${rel(ankFil)}), där made.faser säger vilka rutor. Tiden är dealerns (vänsterhanden vid skon i ruta ${ti!.arrive}, draget ${ti!.pull}–${ti!.leaves}, bytet i ruta ${ti!.meet} där lyftets händer är som närmast, kortet rullat framåt under högerns tumme i ruta ${ti!.vandFran}–${ti!.plan} med framsidan uppe i ruta ${ti!.framsidan}, kortet ligger i ruta ${ti!.ligger} där lyftets högra handled stannar, och tummen vilar på det till ruta ${ti!.vila}). Kortet följer händerna: plant under vänsterns fingertoppar ur skon, mellan händernas grepp i bytet, sedan under högerns tumtopp: på kant med ryggen mot kameran, rullat framåt till framsidan upp och skjutet plant på filten av tummen, och det ligger där handen lägger det, i den vinkel det kom: ${k.landning ? `${k.landning.mal === 'lyftet' ? 'där den riktiga dealerns kort låg i filmen' : `på ${ut0.plats}`} inom ${k.landning.franMaletMm} mm och ${k.landning.vinkelMotMalet}°, ${k.landning.franPlatsenMm} mm och ${k.landning.vinkelMotPlatsen}° från kortplatsen ${ut0.plats} (handens mål flyttat ${k.landning.sikteMm} mm för att träffa)` : ''}. Djupet (längs synlinjen från livebordets kamera, det ett lyft ur en kamera inte vet) är förankrat där händerna rör kortet och följer lyftet däremellan; i filmens bild står händerna kvar. Kontakterna: ${kontakter}; handlederna flyttade längs synlinjen median ${k.langsSynlinjen.R.median}/${k.langsSynlinjen.L.median} mm, högst ${k.langsSynlinjen.R.mest}/${k.langsSynlinjen.L.mest} mm (höger/vänster); händerna ur filten flyttade längs synlinjen högst ${k.urFiltenLangs.R}/${k.urFiltenLangs.L} mm och höjda högst ${k.ur.R}/${k.ur.L} mm och ur kortet flyttade högst ${k.kortetUr.R}/${k.kortetUr.L} mm. Bålen lutar där armen inte når (högst ${k.lutGrader.toFixed(1)} grader).${ut0.vidSkonHem ? ' Lyftets vänsterhand är vid skon efter nästa kort när högern går hem: vänsterns väg hem är en brygga, märkt i made.faser, som kan bytas mot vänstern vid skon.' : ''}`
-    : `Dockan ${namn} väntar, lyftat ur livebordets film (${rel(lyftFil)}, filmens sekunder ${lyft.film_seconds.join('–')}; där har dealern vänsterhanden vid "${lyft.left_at}" och högerhanden vid "${lyft.right_at}"). Dockan är i sin vila (${rel(ankFil)}), vars handleder är väntans, med lyftets små rörelser av handlederna och axlarna (jämnade lugnt), och huvudet, blicken och minen som dealerns. Börjar och slutar i vilan.`;
-  // (ankaret i början och slutet, med rörelseschemats namn (standarddocka/rorelsekatalog.json): en giv redo vid skon, A2.3; en väntan vilan, A1)
-  const motion = {fps: FPS, frameCount: N, ankare: {borjan: ank.namn, slut: ank.namn}, ...(giv ? {leavesShoe: ti!.leaves, edge: [ut0.vand!.fran, ut0.vand!.till], folds: ut0.vand!.till, rests: ti!.ligger} : {}), hip: ank.hip, doll: namn, ...(giv ? {to: [ut0.plats], marke: {hander: 'tva', vands: 'pa-vagen', satts: 'plant'}} : {}), about,
-    made: {tool: 'dealer3d/tools/lyft-till-docka.ts', lift: rel(lyftFil), liftFrom: lyft.fran, doll: namn, from: rel(ankFil), to: rel(ankFil), sources: {[rel(lyftFil)]: sha(lyftFil), [rel(vantanFil)]: sha(vantanFil), 'blackjack-dealer/src/table-live.ts': sha(path.join(ROOT, 'src/table-live.ts'))},
-      times: ti, liftFrames: 'rörelsens ruta t är lyftets ruta t (efter lyftets sista ruta: dess sista)', faser: ut0.faser, egen: ut0.egen, hand: ut0.handen,
-      filter: `handlederna, händernas vinkel, axlarna och huvudet: Butterworth 2:a ordningen framåt och bakåt (nollfas), ${LUGN.lag} Hz där handen är stilla och ${LUGN.hog} Hz där den rör sig (lugna)`, hands: ut0.hander, chosen: k},
-    frames: ut0.frames};
-  skriv(fil, motion);
-  skriv(ankFil, {namn: ank.namn, about: ank.about, doll: namn, style: stil, hip: ank.hip, frame: ank.frame, ...(ank.axelRef ? {axelRef: ank.axelRef, huvudVinklar: ank.huvudVinklar} : {}), made: {tool: 'dealer3d/tools/lyft-till-docka.ts', ...(ank.namn === 'A2.3' ? {give: rel(path.join(lyftDir, MITTEN[stil]))} : {waiting: rel(vantanFil)}), sources: {[rel(vantanFil)]: sha(vantanFil), 'blackjack-dealer/src/table-live.ts': sha(path.join(ROOT, 'src/table-live.ts'))}}});
-  // HANDBYTET SOM ANKARE (A2M; Jakob 2026-11-27: "Försökte vi att skapa som en universell överlämning med detta parti när
-  // händerna möts?"): stilens giv till mitten delad i rutan där kortet byter hand (tiderna meet), utan att något i den
-  // ändras. Ankaret är givens ruta där: kortet på kant mellan händerna, vänstern på dess övre kortsida och högerns tumme nära
-  // dess nedre, kroppen, huvudet och blicken som dealerns i samma ruta. Skon till bytet (lyft-<docka>-till-bytet, A2.3 till
-  // A2M) är givens rutor fram till bytet och är samma vart kortet än ska; bytet till platsen och hem (lyft-<docka>-bytet-p<n>,
-  // A2M till A2.3) är resten. Spelade efter varandra med skarvrutan en gång (standarddocka/editor/rorelse.ts sekvens) är de
-  // given ruta för ruta, i samma takt; hela given står kvar som den är.
-  if (giv && path.basename(lyftFil) === MITTEN[stil]) {
-    const m = ti!.meet, bytFil = path.join(utDir, `ankare-byte-${namn}.json`), forsta = path.join(utDir, `lyft-${namn}-till-bytet.json`), andra = path.join(utDir, `lyft-${namn}-bytet-p${nr}.json`);
-    const del = (a: number, b: number) => ({faser: Object.fromEntries((['R', 'L'] as Sida[]).map(s => [s, ut0.faser[s].filter(x => x.till > a && x.fran < b).map(x => ({...x, fran: Math.max(x.fran, a) - a, till: Math.min(x.till, b) - a}))])),
-      egen: Object.fromEntries((['R', 'L'] as Sida[]).map(s => { const e = ut0.egen[s]; return [s, e && e[1] > a && e[0] < b ? [Math.max(e[0], a) - a, Math.min(e[1], b) - a] : null]; })),
-      hand: {R: ut0.handen.R.slice(a, b + 1), L: ut0.handen.L.slice(a, b + 1)}, frames: ut0.frames.slice(a, b + 1)});
-    const f1 = del(0, m), f2 = del(m, N - 1), made = (a: number, b: number, fran: string, till: string) => ({tool: 'dealer3d/tools/lyft-till-docka.ts', lift: rel(lyftFil), liftFrom: lyft.fran + a, doll: namn, from: fran, to: till, sources: motion.made.sources,
-      del: {av: rel(fil), rutor: [a, b]}, times: null, liftFrames: motion.made.liftFrames, filter: motion.made.filter, hands: ut0.hander});
-    const om = `Givens ruta ${m}, där kortet byter hand`;
-    skriv(bytFil, {namn: 'A2M', about: `Handbytet (A2M) för dockan ${namn} (stilen ${stil}): ankaret där skon till bytet slutar och bytet till platsen börjar. ${om} i ${rel(fil)}: kortet på kant mellan händerna, vänstern på dess övre kortsida och högerns tumme nära dess nedre; kroppen, huvudet och blicken som dealerns i samma ruta. Samma ställning vart kortet än ska.`,
-      doll: namn, style: stil, hip: ank.hip, frame: ut0.frames[m], made: {tool: 'dealer3d/tools/lyft-till-docka.ts', give: rel(fil), frame: m, sources: motion.made.sources}});
-    skriv(forsta, {fps: FPS, frameCount: m + 1, ankare: {borjan: 'A2.3', slut: 'A2M'}, leavesShoe: ti!.leaves, hip: ank.hip, doll: namn,
-      about: `Dockan ${namn} drar ett kort ur skon och för det till handbytet: från ankaret vid skon (A2.3, ${rel(ankFil)}) till handbytet (A2M, ${rel(bytFil)}). Givens rutor 0–${m} (${rel(fil)}), oförändrade: samma för alla platser. Nästa klipp är bytet till platsen (${rel(andra)} för ${ut0.plats}).`,
-      made: {...made(0, m, rel(ankFil), rel(bytFil)), faser: f1.faser, egen: f1.egen, hand: f1.hand}, frames: f1.frames});
-    skriv(andra, {fps: FPS, frameCount: N - m, ankare: {borjan: 'A2M', slut: 'A2.3'}, leavesShoe: 0, edge: [ut0.vand!.fran - m, ut0.vand!.till - m], folds: ut0.vand!.till - m, rests: ti!.ligger - m, hip: ank.hip, doll: namn, to: [ut0.plats], marke: {hander: 'tva', vands: 'pa-vagen', satts: 'plant'},
-      about: `Dockan ${namn} tar kortet i handbytet och lägger det på ${ut0.plats}, och högern går hem till skon: från handbytet (A2M, ${rel(bytFil)}) till ankaret vid skon (A2.3, ${rel(ankFil)}). Givens rutor ${m}–${N - 1} (${rel(fil)}), oförändrade; skon till bytet (${rel(forsta)}) går före.`,
-      made: {...made(m, N - 1, rel(bytFil), rel(ankFil)), faser: f2.faser, egen: f2.egen, hand: f2.hand, chosen: {landning: k.landning, andpunktMm: k.andpunktMm}}, frames: f2.frames});
-    console.log(`${path.basename(bytFil)}: givens ruta ${m}; ${path.basename(forsta)}: ${m + 1} rutor; ${path.basename(andra)}: ${N - m} rutor`);
+  const nr = /vantan-(\d)/.exec(lyftFil)![1], fil = path.join(utDir, `lyft-${namn}-vantan-${nr}.json`), ankFil = path.join(utDir, `ankare-vila-${namn}.json`), k = ut0.kvitto, N = ut0.frames.length;
+  const about = `Dockan ${namn} väntar, lyftat ur livebordets film (${rel(lyftFil)}, filmens sekunder ${lyft.film_seconds.join('–')}; där har dealern vänsterhanden vid "${lyft.left_at}" och högerhanden vid "${lyft.right_at}"). Dockan är i sin vila (${rel(ankFil)}), vars handleder är väntans, med lyftets små rörelser av handlederna och axlarna (jämnade lugnt), och huvudet, blicken och minen som dealerns. Börjar och slutar i vilan.`;
+  // (ankaret i början och slutet, med rörelseschemats namn (standarddocka/rorelsekatalog.json): en väntan vilan, A1)
+  skriv(fil, {fps: FPS, frameCount: N, ankare: {borjan: ank.namn, slut: ank.namn}, hip: ank.hip, doll: namn, about,
+    made: {tool: 'dealer3d/tools/lyft-till-docka.ts', lift: rel(lyftFil), liftFrom: 0, doll: namn, from: rel(ankFil), to: rel(ankFil), sources: {[rel(lyftFil)]: sha(lyftFil), [rel(vantanFil)]: sha(vantanFil), 'blackjack-dealer/src/table-live.ts': sha(path.join(ROOT, 'src/table-live.ts'))},
+      times: null, liftFrames: 'rörelsens ruta t är lyftets ruta t (efter lyftets sista ruta: dess sista)', faser: ut0.faser, egen: ut0.egen, hand: ut0.handen, filter: FILTER, hands: ut0.hander, chosen: k},
+    frames: ut0.frames});
+  skriv(ankFil, {namn: ank.namn, about: ank.about, doll: namn, style: stil, hip: ank.hip, frame: ank.frame, made: {tool: 'dealer3d/tools/lyft-till-docka.ts', waiting: rel(vantanFil), sources: {[rel(vantanFil)]: sha(vantanFil), 'blackjack-dealer/src/table-live.ts': sha(path.join(ROOT, 'src/table-live.ts'))}}});
+  console.log(`${path.basename(fil)}: ${N} rutor (lyftet ${lyft.frames.length}); ur filten ${k.ur.R}/${k.ur.L} mm, ur kortet ${k.kortetUr.R}/${k.kortetUr.L} mm, bålen högst ${k.lutGrader.toFixed(1)}°, handleden högst ${k.handledMest.R.toFixed(0)}/${k.handledMest.L.toFixed(0)}°, når inte ${k.nadde.R}/${k.nadde.L}; lyftets händer godkända ${Math.round(ut0.hander.R.godkand * 100)}/${Math.round(ut0.hander.L.godkand * 100)} %`);
+}
+const FILTER = `handlederna, händernas vinkel, axlarna och huvudet: Butterworth 2:a ordningen framåt och bakåt (nollfas), ${LUGN.lag} Hz där handen är stilla och ${LUGN.hog} Hz där den rör sig (lugna)`;
+
+/** En giv i filmen som en annan giv kan göras ur: lyftet från skon, var den riktiga dealerns kort låg, och den kortplats på hans plats (kort 1 eller 2) det låg närmast. */
+type Kallgiv = {fil: string; lyft: Lyft & {fran: number}; kort: Kort | null; egen: string | null; franEgenMm: number};
+const KORT_I = new Map<string, Kallgiv[]>();
+function givarnaI(stil: string, zA: number): Kallgiv[] {
+  const nyckel = `${lyftDir}|${stil}|${zA}`; if (KORT_I.has(nyckel)) return KORT_I.get(nyckel)!;
+  const ut = readdirSync(lyftDir).filter(f => f.startsWith(`${stil}-`) && f.endsWith('.json')).sort().flatMap(f => { const fil = path.join(lyftDir, f), lyft0 = las<Lyft>(fil); if (lyft0.leavesShoe === undefined) return [];
+    const lyft = franSkon(lyft0, zA), kort = kortetIFilmen(lyft), seat = /seat (\d)/.exec(lyft.to ?? '')?.[1];
+    const egna = KORTPLATSER.filter(id => id.startsWith(`P${seat}.`)).map(id => ({id, mm: kort ? Math.hypot(LIVE.cards[id].at[0] - kort.c[0], LIVE.cards[id].at[2] - kort.c[2]) * 1000 : Infinity})).sort((a, b) => a.mm - b.mm);
+    return [{fil, lyft, kort, egen: egna[0] && Number.isFinite(egna[0].mm) ? egna[0].id : null, franEgenMm: egna[0] ? Math.round(egna[0].mm) : NaN}]; });
+  KORT_I.set(nyckel, ut); return ut;
+}
+const mmMellan = (a: Vec3, b: Vec3) => Math.round(Math.hypot(a[0] - b[0], a[2] - b[2]) * 1000);
+/**
+ * Källan till given till kortplatsen `id`: dealerns egen giv dit (den giv vars kort låg närmast just den kortplatsen), annars
+ * den giv vars egen kortplats ligger närmast: avståndet mellan kortplatserna, plus hur långt den givens kort låg från sin
+ * egen kortplats (så att en giv som själv lade kortet rätt går före en lika nära som inte gjorde det).
+ */
+function kallorFor(kallor: Kallgiv[], id: string): {kalla: Kallgiv; egen: boolean}[] {
+  const at = LIVE.cards[id].at, med = kallor.filter(k => k.kort && k.egen);
+  const egna = med.filter(k => k.egen === id).sort((a, b) => mmMellan(a.kort!.c, at) - mmMellan(b.kort!.c, at));
+  const varde = (k: Kallgiv) => mmMellan(LIVE.cards[k.egen!].at, at) + k.franEgenMm, nara = med.filter(k => k.egen !== id).sort((a, b) => varde(a) - varde(b));
+  if (!med.length) throw Error(`Ingen giv i filmen att göra given till ${id} ur.`);
+  return [...egna.map(kalla => ({kalla, egen: true})), ...nara.map(kalla => ({kalla, egen: false}))];
+}
+/** Hur långt kortet som mest glider på en ruta på filten innan det ligger (meter): en giv där handen inte lägger kortet utan det glider dit (ett lyft med fel djup) är ingen källa. */
+const KORT_GLIDER = 0.03;
+const kortetGlider = (B: Byggd) => { const t = B.tider!; let mest = 0; for (let x = t.plan + 1; x <= t.ligger; x++) mest = Math.max(mest, Math.hypot(B.frames[x].card.c[0] - B.frames[x - 1].card.c[0], B.frames[x].card.c[2] - B.frames[x - 1].card.c[2])); return mest; };
+/** Var given lägger kortet: där den riktiga dealerns kort låg om det ligger på kortplatsen (PA_PLATSEN), annars kortplatsen. */
+function malFor(k: Kallgiv, id: string): Mal {
+  const p = LIVE.cards[id], kort = k.egen === id ? k.kort : null;
+  if (kort && Math.hypot(kort.c[0] - p.at[0], kort.c[2] - p.at[2]) <= PA_PLATSEN.m && vinkelMellan(kortVinkel(kort.l), p.turn) <= PA_PLATSEN.grader) return {plats: id, kort, kalla: 'lyftet'};
+  return {plats: id, kort: kortPaPlats(id), kalla: 'platsen'};
+}
+/** Ett lyft riktat om till kortplatsen `tillId` (riktaOm), för lyft-kolla.ts: lyftet ur filen, från skon (franSkon), med kortet där den riktiga dealerns låg. */
+export function riktatLyft(lyftFil: string, tillId: string, zA: number) {
+  const lyft = franSkon(las<Lyft>(lyftFil), zA), kort = kortetIFilmen(lyft); if (!kort) throw Error(`${rel(lyftFil)}: lyftet ser aldrig kortet ligga.`);
+  return riktaOm(lyft, kort, tillId, zA);
+}
+
+/** Tiderna i en del av en rörelse (rutorna a–b), och vilka faser och egna rutor som hör dit. */
+const delAv = (faser: Record<Sida, Fas[]>, egen: Record<Sida, [number, number] | null>, handen: {R: string; L: string}, frames: Frame[], a: number, b: number) => ({
+  faser: Object.fromEntries((['R', 'L'] as Sida[]).map(s => [s, faser[s].filter(x => x.till > a && x.fran < b).map(x => ({...x, fran: Math.max(x.fran, a) - a, till: Math.min(x.till, b) - a}))])) as Record<Sida, Fas[]>,
+  egen: Object.fromEntries((['R', 'L'] as Sida[]).map(s => { const e = egen[s]; return [s, e && e[1] > a && e[0] < b ? [Math.max(e[0], a) - a, Math.min(e[1], b) - a] : null]; })),
+  hand: {R: handen.R.slice(a, b + 1), L: handen.L.slice(a, b + 1)}, frames: frames.slice(a, b + 1)});
+
+/**
+ * Dockans alla givar (rörelseschemat: SKON-TILL-BYTET och GIV-FRAN-BYTET, och hela given): skon till bytet ur stilens giv till
+ * mitten, ankarena vid skon och i bytet, och för varje kortplats (KORTPLATSER) bytet till platsen och hela given.
+ */
+function korGivar(namn: string) {
+  const {doll, stil, vidSkon, vantanFil} = ankaretFor(namn), ank = vidSkon(), zA = dollFrame(doll).shoulders[0][2], stilFil = las<Stil>(path.join(CASINO, `live-bj/data/stil-${stil}.json`));
+  const ankFil = path.join(utDir, `ankare-skon-${namn}.json`), bytFil = path.join(utDir, `ankare-byte-${namn}.json`), forsta = path.join(utDir, `lyft-${namn}-till-bytet.json`), mittFil = path.join(lyftDir, MITTEN[stil]);
+  const tabell = path.join(ROOT, 'src/table-live.ts'), kallor = givarnaI(stil, zA), mitt = kallor.find(k => k.fil === mittFil)!;
+  const byggPa = (lyft: Lyft, mal: Mal) => siktat({doll, stil, stilFil, lyft, ank, minen: minen(last(lyft, zA), stilFil), dir: lyftDir, mal});
+  // SKON TILL BYTET: stilens giv till mitten fram till bytet, med vänsterns väg ur ankaret mjuk (vanstersStart)
+  const malA = malFor(mitt, mitt.egen!), A = byggPa(mitt.lyft, malA), tA = A.tider!, m = tA.meet, T1 = Math.max(2, Math.min(tA.pull - 3, Math.max(A.bryggor.L.t1, 10)));
+  vanstersStart(A.frames, T1, doll);
+  const handA = {R: A.handen.R, L: `v${'b'.repeat(T1 - 1)}${A.handen.L.slice(T1)}`};
+  const faserA = {R: A.faser.R, L: [{fran: 0, till: T1, vad: 'ur ankaret vid skon in i lyftet', kalla: 'brygga' as const}, ...A.faser.L.filter(x => x.till > T1).map(x => ({...x, fran: Math.max(x.fran, T1)}))]};
+  const f1 = delAv(faserA, A.egen, handA, A.frames, 0, m), fA = A.frames[m];
+  const kallaA = {[rel(mittFil)]: sha(mittFil), [rel(vantanFil)]: sha(vantanFil), 'blackjack-dealer/src/table-live.ts': sha(tabell)};
+  skriv(ankFil, {namn: ank.namn, about: ank.about, doll: namn, style: stil, hip: ank.hip, frame: ank.frame, axelRef: ank.axelRef, huvudVinklar: ank.huvudVinklar, made: {tool: 'dealer3d/tools/lyft-till-docka.ts', give: rel(mittFil), sources: {[rel(vantanFil)]: sha(vantanFil), 'blackjack-dealer/src/table-live.ts': sha(tabell)}}});
+  skriv(bytFil, {namn: 'A2M', about: `Handbytet (A2M) för dockan ${namn} (stilen ${stil}): ankaret där skon till bytet slutar och bytet till varje plats börjar. Givens ruta ${m} i ${rel(mittFil)} (${rel(forsta)}, sista rutan): kortet på kant mellan händerna, vänstern på dess övre kortsida och högerns tumme nära dess nedre; kroppen, huvudet och blicken som dealerns i samma ruta. Samma ställning vart kortet än ska.`,
+    doll: namn, style: stil, hip: ank.hip, frame: fA, made: {tool: 'dealer3d/tools/lyft-till-docka.ts', give: rel(mittFil), frame: m, sources: kallaA}});
+  skriv(forsta, {fps: FPS, frameCount: m + 1, ankare: {borjan: 'A2.3', slut: 'A2M'}, leavesShoe: tA.leaves, hip: ank.hip, doll: namn,
+    about: `Dockan ${namn} drar ett kort ur skon och för det till handbytet: från ankaret vid skon (A2.3, ${rel(ankFil)}) till handbytet (A2M, ${rel(bytFil)}). Stilens giv till mitten (${rel(mittFil)}, filmens sekunder ${mitt.lyft.film_seconds.join('–')}) fram till rutan där kortet byter hand, lyft ruta för ruta: samma för alla platser. Vänstern går ur ankaret in i lyftet på ${T1} rutor. Nästa klipp är bytet till platsen (lyft-${namn}-bytet-p<plats>).`,
+    made: {tool: 'dealer3d/tools/lyft-till-docka.ts', lift: rel(mittFil), liftFrom: mitt.lyft.fran, doll: namn, from: rel(ankFil), to: rel(bytFil), sources: kallaA, times: null, liftFrames: 'rörelsens ruta t är lyftets ruta liftFrom + t', faser: f1.faser, egen: f1.egen, hand: f1.hand, filter: FILTER, hands: A.hander}, frames: f1.frames});
+  console.log(`${path.basename(forsta)}: ${m + 1} rutor (bytet i givens ruta ${m}, vänstern in ur ankaret på ${T1} rutor); ${path.basename(bytFil)}`);
+  // BYTET TILL VARJE KORTPLATS, och hela given
+  for (const id of KORTPLATSER) {
+    // (källorna i ordning: dealerns egen giv dit, sedan den närmaste; en där kortet glider på filten i stället för att läggas väljs bort)
+    const bortvalda: {lyft: string; varfor: string}[] = [];
+    const valt = (() => { const lista = kallorFor(kallor, id); for (const [i, {kalla, egen}] of lista.entries()) { const mal = malFor(kalla, id), riktad = mal.kalla === 'platsen' ? riktaOm(kalla.lyft, kalla.kort!, id, zA) : null;
+      const B = kalla === mitt && mal.kalla === 'lyftet' && id === malA.plats ? A : byggPa(riktad ?? kalla.lyft, mal), glider = kortetGlider(B);
+      if (glider <= KORT_GLIDER || i === lista.length - 1) return {kalla, egen, mal, riktad, B};
+      bortvalda.push({lyft: rel(kalla.fil), varfor: `kortet glider ${Math.round(glider * 1000)} mm på en ruta på filten innan det ligger: handen lägger det inte (lyftets djup)`}); } throw Error('ingen källa'); })();
+    const {kalla, egen, mal, riktad, B} = valt, tB = B.tider!, H = franBytet(A.frames, m, B, ank, doll), n = H.frames.length, namnet = givNamn(id);
+    // (LYFT_KALLOR=1: källans hela giv som den byggs, för att pröva den för sig med lyft-kolla.ts; bara till en provmapp)
+    if (process.env.LYFT_KALLOR && utDir !== DATA) skriv(path.join(utDir, `lyft-${namn}-kalla-${namnet}.json`), {fps: FPS, frameCount: B.frames.length, ankare: {borjan: 'A2.3', slut: 'A2.3'}, leavesShoe: tB.leaves, rests: tB.ligger, hip: ank.hip, doll: namn, to: [id],
+      made: {lift: rel(kalla.fil), liftFrom: riktad ? 0 : kalla.lyft.fran, ...(riktad ? {riktadOm: {till: id}} : {}), from: rel(ankFil), to: rel(ankFil), times: tB, hand: B.handen, chosen: {landning: B.kvitto.landning, andpunktMm: B.kvitto.andpunktMm}}, frames: B.frames});
+    const andra = path.join(utDir, `lyft-${namn}-bytet-${namnet}.json`), hela = path.join(utDir, `lyft-${namn}-${namnet}.json`), k = B.kvitto, l = k.landning!;
+    const kallFil = rel(kalla.fil), fran = riktad ? tB.meet : kalla.lyft.fran + tB.meet;
+    const kallaFor = {slag: egen ? 'filmens egen giv till kortplatsen' : `riktad om från ${kalla.egen}`, lyft: kallFil, filmensSekunder: kalla.lyft.film_seconds, kortetIFilmen: kalla.kort ? {c: r4(kalla.kort.c), vinkel: r1(kortVinkel(kalla.kort.l)), kortplats: kalla.egen, franKortplatsenMm: kalla.franEgenMm} : null,
+      landningFlyttadMm: kalla.kort ? mmMellan(kalla.kort.c, mal.kort.c) : null, mal: mal.kalla === 'lyftet' ? 'där den riktiga dealerns kort låg (på kortplatsen)' : 'kortplatsen', ...(riktad ? {riktadOm: riktad.riktadOm} : {}),
+      franBytet: {rutor: H.K, flyttMm: H.flyttMm, delarMm: H.delarMm}, vanstern: {tillSkon: H.TL}, ...(bortvalda.length ? {bortvalda} : {})};
+    const sources = {[kallFil]: sha(kalla.fil), [rel(mittFil)]: sha(mittFil), [rel(vantanFil)]: sha(vantanFil), 'blackjack-dealer/src/table-live.ts': sha(tabell)};
+    const om = egen ? `dealerns egen giv dit i filmen (${kallFil}, filmens sekunder ${kalla.lyft.film_seconds.join('–')}; hans kort låg ${kalla.franEgenMm} mm från ${id})` : `dealerns giv till ${kalla.egen} i filmen (${kallFil}, filmens sekunder ${kalla.lyft.film_seconds.join('–')}), riktad om: kortet läggs ${riktad!.riktadOm.flyttMm} mm från där hans låg, handen vriden ${riktad!.riktadOm.vridGrader}° med kortets långsida, huvudet ${riktad!.riktadOm.huvudGrader}° mot platsen, och tiden från bytet till att kortet ligger ${riktad!.riktadOm.tid} gånger hans`;
+    const lagt = `Kortet ligger ${l.franPlatsenMm} mm och ${l.vinkelMotPlatsen}° från kortplatsen ${id}`;
+    skriv(andra, {fps: FPS, frameCount: n, ankare: {borjan: 'A2M', slut: 'A2.3'}, leavesShoe: 0, edge: [H.tider.vandFran, H.tider.plan], folds: H.tider.plan, rests: H.tider.ligger, hip: ank.hip, doll: namn, to: [id], marke: {hander: 'tva', vands: 'pa-vagen', satts: 'plant'},
+      about: `Dockan ${namn} tar kortet i handbytet och lägger det på ${id}, och går hem till skon: från handbytet (A2M, ${rel(bytFil)}) till ankaret vid skon (A2.3, ${rel(ankFil)}). Högern, kortet och kroppen är ${om}, från rutan där kortet byter hand${H.K ? `, med bytets ställning tonad in i hans på ${H.K} rutor` : ''}. Vänstern går tillbaka till skon på ${H.TL} rutor och ligger där. ${lagt}. Skon till bytet (${rel(forsta)}) går före.`,
+      made: {tool: 'dealer3d/tools/lyft-till-docka.ts', lift: kallFil, liftFrom: fran, ...(riktad ? {riktadOm: {till: id}} : {}), doll: namn, from: rel(bytFil), to: rel(ankFil), sources, kalla: kallaFor, times: null,
+        liftFrames: riktad ? 'rörelsens ruta t är det riktade lyftets ruta liftFrom + t (lyft-till-docka.ts riktatLyft)' : 'rörelsens ruta t är lyftets ruta liftFrom + t', faser: H.faser, egen: {R: [0, H.tider.vila], L: null}, hand: H.hand, filter: FILTER, hands: B.hander, chosen: {landning: l, andpunktMm: k.andpunktMm}},
+      frames: H.frames});
+    // hela given: skon till bytet och bytet till platsen efter varandra, bytets ruta en gång
+    const frames = [...A.frames.slice(0, m + 1), ...H.frames.slice(1)], N = frames.length, s = (x: number) => m + x;
+    const times = {n: N, resa: tA.resa, arrive: tA.arrive, pull: tA.pull, leaves: tA.leaves, narmast: tA.narmast, meet: m, vandFran: s(H.tider.vandFran), plan: s(H.tider.plan), framsidan: s(H.tider.framsidan), ligger: s(H.tider.ligger), rests: s(tB.rests - tB.meet), vila: s(H.tider.vila), avstandVidBytet: tA.avstandVidBytet};
+    const faser = {R: [...f1.faser.R, ...H.faser.R.map(x => ({...x, fran: s(x.fran), till: s(x.till)}))], L: [...f1.faser.L, ...H.faser.L.map(x => ({...x, fran: s(x.fran), till: s(x.till)}))]};
+    skriv(hela, {fps: FPS, frameCount: N, ankare: {borjan: 'A2.3', slut: 'A2.3'}, leavesShoe: tA.leaves, edge: [times.vandFran, times.plan], folds: times.plan, rests: times.ligger, hip: ank.hip, doll: namn, to: [id], marke: {hander: 'tva', vands: 'pa-vagen', satts: 'plant'},
+      about: `Dockan ${namn} ger ett kort till ${id}: skon till bytet (${rel(forsta)}, ruta 0–${m}) och bytet till platsen (${rel(andra)}, ruta ${m}–${N - 1}) efter varandra, ruta för ruta, från ankaret vid skon (A2.3, ${rel(ankFil)}) och tillbaka dit. Fram till bytet stilens giv till mitten lyft ur filmen (${rel(mittFil)}); därefter ${om}. ${lagt}. Vänstern går efter bytet tillbaka till skon och ligger där medan högern lägger kortet och går hem.`,
+      made: {tool: 'dealer3d/tools/lyft-till-docka.ts', lift: rel(mittFil), liftFrom: mitt.lyft.fran, doll: namn, from: rel(ankFil), to: rel(ankFil), sources, kalla: kallaFor,
+        delar: [{lift: rel(mittFil), liftFrom: mitt.lyft.fran, rutor: [0, m]}, {lift: kallFil, liftFrom: fran, ...(riktad ? {riktadOm: {till: id}} : {}), rutor: [m, N - 1]}],
+        times, liftFrames: 'delar: rörelsens rutor i varje del är dess lyfts ruta liftFrom och framåt', faser, egen: {R: [f1.egen.R?.[0] ?? 0, s(H.tider.vila)], L: f1.egen.L}, hand: {R: f1.hand.R + H.hand.R.slice(1), L: f1.hand.L + H.hand.L.slice(1)}, filter: FILTER, hands: B.hander, chosen: {...k, landning: l}},
+      frames});
+    console.log(`${path.basename(hela)}: ${N} rutor, ${id} ur ${path.basename(kalla.fil)} (${egen ? 'filmens egen' : `riktad om från ${kalla.egen}`}${riktad ? `, ${riktad.riktadOm.flyttMm} mm, vriden ${riktad.riktadOm.vridGrader}°, tiden ×${riktad.riktadOm.tid}` : ''}); bryggan från bytet ${H.K} rutor (${H.flyttMm} mm), vänstern till skon ${H.TL}; kortet ${l.franPlatsenMm} mm/${l.vinkelMotPlatsen}° från ${id}`);
   }
-  console.log(`${path.basename(fil)}: ${N} rutor (lyftet ${lyft.frames.length})${giv ? `, ${ut0.plats}, skon ${ti!.arrive}/${ti!.pull}/${ti!.leaves}, bytet ${ti!.meet} (${Math.round(ti!.avstandVidBytet * 1000)} mm), vänt ${ut0.vand?.fran}–${ut0.vand?.till} (framsidan ${ti!.framsidan}), ligger ${ti!.ligger}, fingret av ${ti!.vila}; bryggor V ${B.L.t0}–${B.L.t1}, ${B.L.t2}–${B.L.t3}, H ${B.R.t0}–${B.R.t1}, ${B.R.t2}–${B.R.t3}; ${kontakter}` : ''}; ur filten ${k.ur.R}/${k.ur.L} mm, ur kortet ${k.kortetUr.R}/${k.kortetUr.L} mm, bålen högst ${k.lutGrader.toFixed(1)}°, handleden högst ${k.handledMest.R.toFixed(0)}/${k.handledMest.L.toFixed(0)}°, når inte ${k.nadde.R}/${k.nadde.L}; lyftets händer godkända ${Math.round(ut0.hander.R.godkand * 100)}/${Math.round(ut0.hander.L.godkand * 100)} %`);
 }
 
 /**
@@ -1378,10 +1635,11 @@ function korOvergangar(namn: string) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2), val = (namn: string) => { const i = args.indexOf(namn); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
   const l = val('--lyft'), u = val('--ut'); if (l) lyftDir = path.resolve(l); if (u) { utDir = path.resolve(u); mkdirSync(utDir, {recursive: true}); }
-  if (args.includes('--alla')) { for (const f of LYFTEN()) kor(path.join(lyftDir, f)); for (const namn of new Set(LYFTEN().map(f => las<Lyft>(path.join(lyftDir, f)).docka))) korOvergangar(namn);
+  // (en docka: väntorna i hennes stil, alla givarna och vägarna till och från skon)
+  const dockan = (namn: string, stil: string) => { for (const f of LYFTEN()) { const x = las<Lyft>(path.join(lyftDir, f)); if (x.style === stil && x.leavesShoe === undefined) kor(path.join(lyftDir, f), namn); } korGivar(namn); korOvergangar(namn); };
+  if (args.includes('--alla')) { for (const [stil, d] of Object.entries(LIVE.dealer.styles)) dockan(d.name, stil);
     // en persons docka (src/persondockor.ts) spelar lyften i sin stil: Danilos för kameran, Frasses för bordet
-    for (const [namn, p] of Object.entries(PERSONDOCKOR)) { for (const f of LYFTEN()) if (las<Lyft>(path.join(lyftDir, f)).style === p.stil) kor(path.join(lyftDir, f), namn); korOvergangar(namn); } }
-  else if (args[0] === '--docka') { const namn = args[1], p = PERSONDOCKOR[namn]; if (!p) throw Error(`--docka tar en persons docka (src/persondockor.ts): ${Object.keys(PERSONDOCKOR).join(', ') || 'ingen finns'}.`);
-    for (const f of LYFTEN()) if (las<Lyft>(path.join(lyftDir, f)).style === p.stil) kor(path.join(lyftDir, f), namn); korOvergangar(namn); }
-  else { const [fil, docka] = args; if (!fil) throw Error('Användning: node dealer3d/tools/lyft-till-docka.ts <lyftet.json> <docka> | --alla [--lyft <mapp>] [--ut <mapp>]'); kor(path.resolve(fil), docka); }
+    for (const [namn, p] of Object.entries(PERSONDOCKOR)) dockan(namn, p.stil); }
+  else if (args[0] === '--docka') { const namn = args[1], p = PERSONDOCKOR[namn]; if (!p) throw Error(`--docka tar en persons docka (src/persondockor.ts): ${Object.keys(PERSONDOCKOR).join(', ') || 'ingen finns'}.`); dockan(namn, p.stil); }
+  else { const [fil, docka] = args; if (!fil) throw Error('Användning: node dealer3d/tools/lyft-till-docka.ts <väntan.json> <docka> | --alla | --docka <namn> [--lyft <mapp>] [--ut <mapp>]'); kor(path.resolve(fil), docka); }
 }

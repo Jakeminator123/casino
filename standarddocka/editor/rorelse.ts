@@ -279,8 +279,9 @@ function stillaAv(frames: Frame[]): {R: number; L: number}[] {
  * gör det vid ruta 21). Bildens överkant ritas åt långsidans håll (scen.ts).
  */
 function kortTeckenAv(frames: Frame[]): number[] {
-  const kortTecken = frames.map(() => 1);
-  for (let i = frames.length - 2; i >= 0; i--) kortTecken[i] = kortTecken[i + 1] * (dot(frames[i].card.l, frames[i + 1].card.l) < 0 ? -1 : 1);
+  // (ett kort som är ett annat, nästa kort i skon i en givs sista ruta, byter inte håll: kortet hoppar mer än 5 cm)
+  const kortTecken = frames.map(() => 1), samma = (a: Frame, b: Frame) => dist(a.card.c, b.card.c) < 0.05;
+  for (let i = frames.length - 2; i >= 0; i--) kortTecken[i] = kortTecken[i + 1] * (samma(frames[i], frames[i + 1]) && dot(frames[i].card.l, frames[i + 1].card.l) < 0 ? -1 : 1);
   return kortTecken;
 }
 /**
@@ -297,8 +298,10 @@ export function ensam(m: Motion, plats: number): Foljd {
   // En väntan har inget kort som lämnar skon: rutorna sätts bortom rörelsen, så att ingen hand håller kortet (greppVid).
   const lamnar = giv ? m.leavesShoe : n, ligger = giv ? m.rests : n, andra: Motion = {...m, leavesShoe: lamnar, rests: ligger, folds: Number.isInteger(m.folds) ? m.folds : ligger, edge: m.edge ?? []};
   const delar: Del[] = giv ? [{namn: 'Till skon', fran: 0, till: lamnar / fps}, {namn: `Kortet till plats ${plats}`, fran: lamnar / fps, till: ligger / fps}, {namn: 'Tillbaka till vilan', fran: ligger / fps, till: slut}] : [{namn: 'Väntan', fran: 0, till: slut}];
+  // (en giv slutar i ankaret vid skon med nästa kort i skon: kortet den lade ligger kvar på platsen från rutan det ligger, som i
+  // en sekvens)
   return {fps, frames, hip: [m.hip[0], m.hip[1], m.hip[2]], held: heldAv(frames, giv ? ligger : 0), stilla: stillaAv(frames), forsta: andra, andra, forskjutning: 0, plats, delar, spann: delar.map(d => ({...d})), kortTecken: kortTeckenAv(frames),
-    blick: {fran: 0, full: 0}, skarv: {fore: {}, efter: {}, jamnasUt: [0, 0]}};
+    blick: {fran: 0, full: 0}, skarv: {fore: {}, efter: {}, jamnasUt: [0, 0]}, ...(giv ? {sekvens: {borjar: [], lagda: [{ruta: ligger, kort: kopia(frames[ligger]).card}], skarvar: []}} : {})};
 }
 /**
  * Flera lyfta rörelser efter varandra i en tagning vid livebordet (en väntan, givar till några platser, en väntan). Var och
@@ -317,7 +320,8 @@ export function sekvens(rorelser: readonly (Namngiven & {plats: number | null})[
     const e = ensam(x.rorelse, x.plats ?? 0), off = k ? frames.length - 1 : 0, bort = k ? 1 : 0, giv = e.delar.length === 3, vantan = /vantan-(\d+)$/.exec(x.namn)?.[1];
     if (k) { const a = kropp(frames[off]), b = kropp(e.frames[0]); s.skarvar.push({fran: rorelser[k - 1].namn, till: x.namn, mm: Math.round(Math.max(...a.map((p, i) => dist(p, b[i]))) * 10000) / 10}); s.borjar.push(off + 1); }
     frames.push(...e.frames.slice(bort)); held.push(...e.held.slice(bort)); kortTecken.push(...e.kortTecken.slice(bort));
-    if (giv) s.lagda.push({ruta: off + x.rorelse.rests, kort: kopia(e.frames[e.frames.length - 1]).card});
+    // (det lagda kortet där det ligger, rests: i givens sista ruta står nästa kort i skon, som i ankaret)
+    if (giv) s.lagda.push({ruta: off + x.rorelse.rests, kort: kopia(e.frames[x.rorelse.rests]).card});
     delar.push({namn: giv ? `Kortet till plats ${x.plats}` : vantan ? `Väntan ${vantan}` : x.namn, fran: off / fps, till: (off + e.frames.length - 1) / fps});
   });
   const n = frames.length, andra: Motion = {...m0, frames, frameCount: n, leavesShoe: n, rests: n, folds: n, edge: []}, forstaGiv = rorelser.find(x => x.plats);

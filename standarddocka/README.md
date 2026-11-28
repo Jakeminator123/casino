@@ -47,5 +47,8 @@ standarddocka/
 - Editorn: `node standarddocka/editor/server.ts --oppna` (Jakob: `STARTA editorn.cmd`), sidan
   `http://127.0.0.1:4320/standarddocka/editor/?docka=danilo&plats=4`. Studions sida Dockan visar den.
 - Rörelserna görs om ur lyftet: `node dealer3d/tools/lyft-till-docka.ts --alla` och prövas med
-  `node dealer3d/tools/lyft-kolla.ts` (från `../blackjack-dealer/`).
+  `node dealer3d/tools/lyft-kolla.ts` (från `../blackjack-dealer/`). Varje docka har kort 1 och kort 2 till dagens plats
+  1–7 (`lyft-<docka>-p<n>` och `-p<n>c2`), som skon till bytet och bytet till platsen efter varandra; varifrån varje plats
+  är gjord står i `rorelsekatalog.json` (GIV-KORT-1 och GIV-KORT-2, `kallor`). Andra kortet spelas med
+  `?sekvens=p4,p4c2` eller `titta.ts --sekvens p4,p4c2`; hela sekvensen har kort 1 till alla sju platser.
 - Bilder att granska: `node standarddocka/verktyg/titta.ts --ut <mapp> --docka frasse --plats 4 --kamera spel,sida`.

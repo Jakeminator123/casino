@@ -66,6 +66,7 @@ Kortplatserna (`table-live.ts LIVE.cards`), kortets mitt. P är spelarnas platse
 | P2.C1 | −0,296 m | 0,41 m | 0,506 m | 150° (spegel av P6.C1) | 3 | 560,1; 725,8 | 0 mm |
 | P2.C2 | −0,299 m | 0,42 m | 0,516 m | 149,9° (spegel av P6.C2) | 2 | 555,4; 730,8 | 0 mm |
 | P3.C1 | −0,094 m | 0,44 m | 0,45 m | 166,1° (spegel av P5.C1) | 3 | 764,8; 741,6 | 0 mm |
+| P3.C2 | −0,117 m | 0,396 m | 0,413 m | 167,6° (spegel av P5.C2, läget P3.C1 och steget från P5.C1 speglat) | 0 | 744,9; 719,4 | — |
 | P4.C1 | 0,015 m | 0,512 m | 0,513 m | 177,7° (mätt) | 11 | 879,8; 781,9 | 0 mm |
 | P4.C2 | 0,044 m | 0,473 m | 0,475 m | 179° (mätt) | 9 | 909,9; 759,4 | 0 mm |
 | P5.C1 | 0,158 m | 0,497 m | 0,522 m | 13,9° (mätt) | 6 | 1034,8; 773,6 | 0 mm |
@@ -101,38 +102,134 @@ Dockornas rörelser, lyfta ur livebordets film och lagda på dockans kropp (`bla
 
 | Rörelsen | Till | Hela | Greppet vid skon | Kortet ut | Handen hem |
 | --- | --- | --- | --- | --- | --- |
-| lyft-amara-bytet-p4 | P4.C1 | 37 rutor = 1,23 s | 0 s | 0,47 s | 0,73 s |
+| lyft-amara-bytet-p1 | P1.C1 | 61 rutor = 2,03 s | 0 s | 0,57 s | 1,43 s |
+| lyft-amara-bytet-p1c2 | P1.C2 | 61 rutor = 2,03 s | 0 s | 0,57 s | 1,43 s |
+| lyft-amara-bytet-p2 | P2.C1 | 65 rutor = 2,17 s | 0 s | 0,63 s | 1,5 s |
+| lyft-amara-bytet-p2c2 | P2.C2 | 66 rutor = 2,2 s | 0 s | 0,63 s | 1,53 s |
+| lyft-amara-bytet-p3 | P3.C1 | 52 rutor = 1,73 s | 0 s | 0,43 s | 1,27 s |
+| lyft-amara-bytet-p3c2 | P3.C2 | 51 rutor = 1,7 s | 0 s | 0,4 s | 1,27 s |
+| lyft-amara-bytet-p4 | P4.C1 | 53 rutor = 1,77 s | 0 s | 0,47 s | 1,27 s |
+| lyft-amara-bytet-p4c2 | P4.C2 | 72 rutor = 2,4 s | 0 s | 1,47 s | 0,9 s |
+| lyft-amara-bytet-p5 | P5.C1 | 53 rutor = 1,77 s | 0 s | 0,47 s | 1,27 s |
+| lyft-amara-bytet-p5c2 | P5.C2 | 54 rutor = 1,8 s | 0 s | 0,83 s | 0,93 s |
+| lyft-amara-bytet-p6 | P6.C1 | 54 rutor = 1,8 s | 0 s | 0,83 s | 0,93 s |
+| lyft-amara-bytet-p6c2 | P6.C2 | 53 rutor = 1,77 s | 0 s | 0,9 s | 0,83 s |
+| lyft-amara-bytet-p7 | P7.C1 | 58 rutor = 1,93 s | 0 s | 0,53 s | 1,37 s |
+| lyft-amara-bytet-p7c2 | P7.C2 | 57 rutor = 1,9 s | 0 s | 0,53 s | 1,33 s |
 | lyft-amara-hem | — | 44 rutor = 1,47 s | — | — | — |
-| lyft-amara-p2 | P2.C2 | 106 rutor = 3,53 s | 1,13 s | 0,87 s | 1,5 s |
-| lyft-amara-p4 | P4.C1 | 66 rutor = 2,2 s | 0,73 s | 0,7 s | 0,73 s |
-| lyft-amara-p7 | P7.C1 | 76 rutor = 2,53 s | 0,8 s | 0,9 s | 0,8 s |
+| lyft-amara-p1 | P1.C1 | 90 rutor = 3 s | 0,73 s | 0,8 s | 1,43 s |
+| lyft-amara-p1c2 | P1.C2 | 90 rutor = 3 s | 0,73 s | 0,8 s | 1,43 s |
+| lyft-amara-p2 | P2.C1 | 94 rutor = 3,13 s | 0,73 s | 0,87 s | 1,5 s |
+| lyft-amara-p2c2 | P2.C2 | 95 rutor = 3,17 s | 0,73 s | 0,87 s | 1,53 s |
+| lyft-amara-p3 | P3.C1 | 81 rutor = 2,7 s | 0,73 s | 0,67 s | 1,27 s |
+| lyft-amara-p3c2 | P3.C2 | 80 rutor = 2,67 s | 0,73 s | 0,63 s | 1,27 s |
+| lyft-amara-p4 | P4.C1 | 82 rutor = 2,73 s | 0,73 s | 0,7 s | 1,27 s |
+| lyft-amara-p4c2 | P4.C2 | 101 rutor = 3,37 s | 0,73 s | 1,7 s | 0,9 s |
+| lyft-amara-p5 | P5.C1 | 82 rutor = 2,73 s | 0,73 s | 0,7 s | 1,27 s |
+| lyft-amara-p5c2 | P5.C2 | 83 rutor = 2,77 s | 0,73 s | 1,07 s | 0,93 s |
+| lyft-amara-p6 | P6.C1 | 83 rutor = 2,77 s | 0,73 s | 1,07 s | 0,93 s |
+| lyft-amara-p6c2 | P6.C2 | 82 rutor = 2,73 s | 0,73 s | 1,13 s | 0,83 s |
+| lyft-amara-p7 | P7.C1 | 87 rutor = 2,9 s | 0,73 s | 0,77 s | 1,37 s |
+| lyft-amara-p7c2 | P7.C2 | 86 rutor = 2,87 s | 0,73 s | 0,77 s | 1,33 s |
 | lyft-amara-till-bytet | — | 30 rutor = 1 s | 0,73 s | — | — |
 | lyft-amara-till-skon | — | 26 rutor = 0,87 s | — | — | — |
 | lyft-amara-vantan-1 | — | 140 rutor = 4,67 s | — | — | — |
 | lyft-amara-vantan-2 | — | 123 rutor = 4,1 s | — | — | — |
-| lyft-danilo-bytet-p4 | P4.C1 | 37 rutor = 1,23 s | 0 s | 0,47 s | 0,73 s |
+| lyft-danilo-bytet-p1 | P1.C1 | 61 rutor = 2,03 s | 0 s | 0,57 s | 1,43 s |
+| lyft-danilo-bytet-p1c2 | P1.C2 | 61 rutor = 2,03 s | 0 s | 0,57 s | 1,43 s |
+| lyft-danilo-bytet-p2 | P2.C1 | 65 rutor = 2,17 s | 0 s | 0,63 s | 1,5 s |
+| lyft-danilo-bytet-p2c2 | P2.C2 | 66 rutor = 2,2 s | 0 s | 0,63 s | 1,53 s |
+| lyft-danilo-bytet-p3 | P3.C1 | 52 rutor = 1,73 s | 0 s | 0,43 s | 1,27 s |
+| lyft-danilo-bytet-p3c2 | P3.C2 | 51 rutor = 1,7 s | 0 s | 0,4 s | 1,27 s |
+| lyft-danilo-bytet-p4 | P4.C1 | 53 rutor = 1,77 s | 0 s | 0,47 s | 1,27 s |
+| lyft-danilo-bytet-p4c2 | P4.C2 | 72 rutor = 2,4 s | 0 s | 1,47 s | 0,9 s |
+| lyft-danilo-bytet-p5 | P5.C1 | 53 rutor = 1,77 s | 0 s | 0,47 s | 1,27 s |
+| lyft-danilo-bytet-p5c2 | P5.C2 | 54 rutor = 1,8 s | 0 s | 0,83 s | 0,93 s |
+| lyft-danilo-bytet-p6 | P6.C1 | 54 rutor = 1,8 s | 0 s | 0,83 s | 0,93 s |
+| lyft-danilo-bytet-p6c2 | P6.C2 | 53 rutor = 1,77 s | 0 s | 0,9 s | 0,83 s |
+| lyft-danilo-bytet-p7 | P7.C1 | 58 rutor = 1,93 s | 0 s | 0,53 s | 1,37 s |
+| lyft-danilo-bytet-p7c2 | P7.C2 | 57 rutor = 1,9 s | 0 s | 0,53 s | 1,33 s |
 | lyft-danilo-hem | — | 44 rutor = 1,47 s | — | — | — |
-| lyft-danilo-p2 | P2.C2 | 106 rutor = 3,53 s | 1,13 s | 0,87 s | 1,5 s |
-| lyft-danilo-p4 | P4.C1 | 66 rutor = 2,2 s | 0,73 s | 0,7 s | 0,73 s |
-| lyft-danilo-p7 | P7.C1 | 76 rutor = 2,53 s | 0,8 s | 0,9 s | 0,8 s |
+| lyft-danilo-p1 | P1.C1 | 90 rutor = 3 s | 0,73 s | 0,8 s | 1,43 s |
+| lyft-danilo-p1c2 | P1.C2 | 90 rutor = 3 s | 0,73 s | 0,8 s | 1,43 s |
+| lyft-danilo-p2 | P2.C1 | 94 rutor = 3,13 s | 0,73 s | 0,87 s | 1,5 s |
+| lyft-danilo-p2c2 | P2.C2 | 95 rutor = 3,17 s | 0,73 s | 0,87 s | 1,53 s |
+| lyft-danilo-p3 | P3.C1 | 81 rutor = 2,7 s | 0,73 s | 0,67 s | 1,27 s |
+| lyft-danilo-p3c2 | P3.C2 | 80 rutor = 2,67 s | 0,73 s | 0,63 s | 1,27 s |
+| lyft-danilo-p4 | P4.C1 | 82 rutor = 2,73 s | 0,73 s | 0,7 s | 1,27 s |
+| lyft-danilo-p4c2 | P4.C2 | 101 rutor = 3,37 s | 0,73 s | 1,7 s | 0,9 s |
+| lyft-danilo-p5 | P5.C1 | 82 rutor = 2,73 s | 0,73 s | 0,7 s | 1,27 s |
+| lyft-danilo-p5c2 | P5.C2 | 83 rutor = 2,77 s | 0,73 s | 1,07 s | 0,93 s |
+| lyft-danilo-p6 | P6.C1 | 83 rutor = 2,77 s | 0,73 s | 1,07 s | 0,93 s |
+| lyft-danilo-p6c2 | P6.C2 | 82 rutor = 2,73 s | 0,73 s | 1,13 s | 0,83 s |
+| lyft-danilo-p7 | P7.C1 | 87 rutor = 2,9 s | 0,73 s | 0,77 s | 1,37 s |
+| lyft-danilo-p7c2 | P7.C2 | 86 rutor = 2,87 s | 0,73 s | 0,77 s | 1,33 s |
 | lyft-danilo-till-bytet | — | 30 rutor = 1 s | 0,73 s | — | — |
 | lyft-danilo-till-skon | — | 26 rutor = 0,87 s | — | — | — |
 | lyft-danilo-vantan-1 | — | 140 rutor = 4,67 s | — | — | — |
 | lyft-danilo-vantan-2 | — | 123 rutor = 4,1 s | — | — | — |
-| lyft-frasse-bytet-p4 | P4.C1 | 63 rutor = 2,1 s | 0 s | 1,4 s | 0,67 s |
+| lyft-frasse-bytet-p1 | P1.C1 | 60 rutor = 2 s | 0 s | 0,53 s | 1,43 s |
+| lyft-frasse-bytet-p1c2 | P1.C2 | 59 rutor = 1,97 s | 0 s | 0,53 s | 1,4 s |
+| lyft-frasse-bytet-p2 | P2.C1 | 57 rutor = 1,9 s | 0 s | 0,47 s | 1,4 s |
+| lyft-frasse-bytet-p2c2 | P2.C2 | 58 rutor = 1,93 s | 0 s | 0,5 s | 1,4 s |
+| lyft-frasse-bytet-p3 | P3.C1 | 72 rutor = 2,4 s | 0 s | 1,4 s | 0,97 s |
+| lyft-frasse-bytet-p3c2 | P3.C2 | 71 rutor = 2,37 s | 0 s | 1,37 s | 0,97 s |
+| lyft-frasse-bytet-p4 | P4.C1 | 72 rutor = 2,4 s | 0 s | 1,4 s | 0,97 s |
+| lyft-frasse-bytet-p4c2 | P4.C2 | 67 rutor = 2,23 s | 0 s | 1,23 s | 0,97 s |
+| lyft-frasse-bytet-p5 | P5.C1 | 73 rutor = 2,43 s | 0 s | 1,37 s | 1,03 s |
+| lyft-frasse-bytet-p5c2 | P5.C2 | 67 rutor = 2,23 s | 0 s | 1,17 s | 1,03 s |
+| lyft-frasse-bytet-p6 | P6.C1 | 46 rutor = 1,53 s | 0 s | 0,5 s | 1 s |
+| lyft-frasse-bytet-p6c2 | P6.C2 | 44 rutor = 1,47 s | 0 s | 0,47 s | 0,97 s |
+| lyft-frasse-bytet-p7 | P7.C1 | 44 rutor = 1,47 s | 0 s | 0,47 s | 0,97 s |
+| lyft-frasse-bytet-p7c2 | P7.C2 | 54 rutor = 1,8 s | 0 s | 0,9 s | 0,87 s |
 | lyft-frasse-hem | — | 46 rutor = 1,53 s | — | — | — |
-| lyft-frasse-p1 | P1.C2 | 74 rutor = 2,47 s | 0,37 s | 0,73 s | 1,33 s |
-| lyft-frasse-p4 | P4.C1 | 83 rutor = 2,77 s | 0,5 s | 1,57 s | 0,67 s |
-| lyft-frasse-p7 | P7.C1 | 52 rutor = 1,73 s | 0,4 s | 0,73 s | 0,57 s |
+| lyft-frasse-p1 | P1.C1 | 80 rutor = 2,67 s | 0,5 s | 0,7 s | 1,43 s |
+| lyft-frasse-p1c2 | P1.C2 | 79 rutor = 2,63 s | 0,5 s | 0,7 s | 1,4 s |
+| lyft-frasse-p2 | P2.C1 | 77 rutor = 2,57 s | 0,5 s | 0,63 s | 1,4 s |
+| lyft-frasse-p2c2 | P2.C2 | 78 rutor = 2,6 s | 0,5 s | 0,67 s | 1,4 s |
+| lyft-frasse-p3 | P3.C1 | 92 rutor = 3,07 s | 0,5 s | 1,57 s | 0,97 s |
+| lyft-frasse-p3c2 | P3.C2 | 91 rutor = 3,03 s | 0,5 s | 1,53 s | 0,97 s |
+| lyft-frasse-p4 | P4.C1 | 92 rutor = 3,07 s | 0,5 s | 1,57 s | 0,97 s |
+| lyft-frasse-p4c2 | P4.C2 | 87 rutor = 2,9 s | 0,5 s | 1,4 s | 0,97 s |
+| lyft-frasse-p5 | P5.C1 | 93 rutor = 3,1 s | 0,5 s | 1,53 s | 1,03 s |
+| lyft-frasse-p5c2 | P5.C2 | 87 rutor = 2,9 s | 0,5 s | 1,33 s | 1,03 s |
+| lyft-frasse-p6 | P6.C1 | 66 rutor = 2,2 s | 0,5 s | 0,67 s | 1 s |
+| lyft-frasse-p6c2 | P6.C2 | 64 rutor = 2,13 s | 0,5 s | 0,63 s | 0,97 s |
+| lyft-frasse-p7 | P7.C1 | 64 rutor = 2,13 s | 0,5 s | 0,63 s | 0,97 s |
+| lyft-frasse-p7c2 | P7.C2 | 74 rutor = 2,47 s | 0,5 s | 1,07 s | 0,87 s |
 | lyft-frasse-till-bytet | — | 21 rutor = 0,7 s | 0,5 s | — | — |
 | lyft-frasse-till-skon | — | 26 rutor = 0,87 s | — | — | — |
 | lyft-frasse-vantan-1 | — | 177 rutor = 5,9 s | — | — | — |
 | lyft-frasse-vantan-2 | — | 177 rutor = 5,9 s | — | — | — |
-| lyft-kenji-bytet-p4 | P4.C1 | 37 rutor = 1,23 s | 0 s | 0,47 s | 0,73 s |
+| lyft-kenji-bytet-p1 | P1.C1 | 61 rutor = 2,03 s | 0 s | 0,57 s | 1,43 s |
+| lyft-kenji-bytet-p1c2 | P1.C2 | 61 rutor = 2,03 s | 0 s | 0,57 s | 1,43 s |
+| lyft-kenji-bytet-p2 | P2.C1 | 65 rutor = 2,17 s | 0 s | 0,63 s | 1,5 s |
+| lyft-kenji-bytet-p2c2 | P2.C2 | 66 rutor = 2,2 s | 0 s | 0,63 s | 1,53 s |
+| lyft-kenji-bytet-p3 | P3.C1 | 52 rutor = 1,73 s | 0 s | 0,43 s | 1,27 s |
+| lyft-kenji-bytet-p3c2 | P3.C2 | 51 rutor = 1,7 s | 0 s | 0,4 s | 1,27 s |
+| lyft-kenji-bytet-p4 | P4.C1 | 53 rutor = 1,77 s | 0 s | 0,47 s | 1,27 s |
+| lyft-kenji-bytet-p4c2 | P4.C2 | 72 rutor = 2,4 s | 0 s | 1,47 s | 0,9 s |
+| lyft-kenji-bytet-p5 | P5.C1 | 53 rutor = 1,77 s | 0 s | 0,47 s | 1,27 s |
+| lyft-kenji-bytet-p5c2 | P5.C2 | 54 rutor = 1,8 s | 0 s | 0,83 s | 0,93 s |
+| lyft-kenji-bytet-p6 | P6.C1 | 54 rutor = 1,8 s | 0 s | 0,83 s | 0,93 s |
+| lyft-kenji-bytet-p6c2 | P6.C2 | 53 rutor = 1,77 s | 0 s | 0,9 s | 0,83 s |
+| lyft-kenji-bytet-p7 | P7.C1 | 58 rutor = 1,93 s | 0 s | 0,53 s | 1,37 s |
+| lyft-kenji-bytet-p7c2 | P7.C2 | 57 rutor = 1,9 s | 0 s | 0,53 s | 1,33 s |
 | lyft-kenji-hem | — | 44 rutor = 1,47 s | — | — | — |
-| lyft-kenji-p2 | P2.C2 | 106 rutor = 3,53 s | 1,13 s | 0,87 s | 1,5 s |
-| lyft-kenji-p4 | P4.C1 | 66 rutor = 2,2 s | 0,73 s | 0,7 s | 0,73 s |
-| lyft-kenji-p7 | P7.C1 | 76 rutor = 2,53 s | 0,8 s | 0,9 s | 0,8 s |
+| lyft-kenji-p1 | P1.C1 | 90 rutor = 3 s | 0,73 s | 0,8 s | 1,43 s |
+| lyft-kenji-p1c2 | P1.C2 | 90 rutor = 3 s | 0,73 s | 0,8 s | 1,43 s |
+| lyft-kenji-p2 | P2.C1 | 94 rutor = 3,13 s | 0,73 s | 0,87 s | 1,5 s |
+| lyft-kenji-p2c2 | P2.C2 | 95 rutor = 3,17 s | 0,73 s | 0,87 s | 1,53 s |
+| lyft-kenji-p3 | P3.C1 | 81 rutor = 2,7 s | 0,73 s | 0,67 s | 1,27 s |
+| lyft-kenji-p3c2 | P3.C2 | 80 rutor = 2,67 s | 0,73 s | 0,63 s | 1,27 s |
+| lyft-kenji-p4 | P4.C1 | 82 rutor = 2,73 s | 0,73 s | 0,7 s | 1,27 s |
+| lyft-kenji-p4c2 | P4.C2 | 101 rutor = 3,37 s | 0,73 s | 1,7 s | 0,9 s |
+| lyft-kenji-p5 | P5.C1 | 82 rutor = 2,73 s | 0,73 s | 0,7 s | 1,27 s |
+| lyft-kenji-p5c2 | P5.C2 | 83 rutor = 2,77 s | 0,73 s | 1,07 s | 0,93 s |
+| lyft-kenji-p6 | P6.C1 | 83 rutor = 2,77 s | 0,73 s | 1,07 s | 0,93 s |
+| lyft-kenji-p6c2 | P6.C2 | 82 rutor = 2,73 s | 0,73 s | 1,13 s | 0,83 s |
+| lyft-kenji-p7 | P7.C1 | 87 rutor = 2,9 s | 0,73 s | 0,77 s | 1,37 s |
+| lyft-kenji-p7c2 | P7.C2 | 86 rutor = 2,87 s | 0,73 s | 0,77 s | 1,33 s |
 | lyft-kenji-till-bytet | — | 30 rutor = 1 s | 0,73 s | — | — |
 | lyft-kenji-till-skon | — | 26 rutor = 0,87 s | — | — | — |
 | lyft-kenji-vantan-1 | — | 140 rutor = 4,67 s | — | — | — |
@@ -190,7 +287,7 @@ Var en hand är när ett klipp börjar och slutar. Bredvid: hur många gånger o
 | A1V | Väntan medan spelarna väljer | H1 + V1S | högern framför kroppen, vänstern mot skon | förslag | filmens vanligaste stillhet mitt i rundan, hos båda dealrarna |
 | A2.3 | Redo vid skon | H1 + V2.3 | vänstern vid skons mynning, högern redo framför dealern, blicken på skon | finns | Danilos och Frasses är tagna ur filmen: kroppen, vänstern, huvudet och blicken där dealern har dem när vänstern är vid skon i en giv till plats 4 (dealern ser där inte på skon: huvudet böjt mot bordet, vridet några grader mot skon). Givarna börjar och slutar här |
 | A2M | Handbytet | H2M + V1S | båda händerna vid kortet mitt framför dealern, vänstern håller det och högern tar det | finns | Danilos och Frasses är tagna ur filmen: rutan där kortet byter hand i given till plats 4, oförändrad (kortet på kant mellan händerna, vänstern på dess övre kortsida och högerns tumme nära dess nedre; kroppen, huvudet och blicken som dealerns). Skon till bytet slutar och bytet till platsen börjar här, samma ställning vart kortet än ska (Jakob 2026-11-27: en universell överlämning). Vänstern är här på väg tillbaka mot skon, inte i vila. Skarven när korten ges i följd: i filmen nästan stannar kortets hand här (6–8 % av toppfarten), och högern går oftast direkt från ett kort till nästa i stället för hem (av de kort hos en spelare som följs av ett nytt kort: Frasse 54 av 56, Danilo 18 av 26). Då behövs två klipp per kort (HEM-TILL-BYTET och GIV-FRAN-BYTET) i stället för ett för varje par av platser |
-| A3PnCm | Kortet har landat hos en spelare | H3Pn + V2.3 | plats n (1–7), kort m; handen ligger kvar vid kortet | finns | Danilo och Frasse har ett lyft kort 2 till var sin plats (GIV-KORT-2). I filmen är vänstern oftast redan på väg med nästa kort i detta ögonblick |
+| A3PnCm | Kortet har landat hos en spelare | H3Pn + V2.3 | plats n (1–7), kort m; handen ligger kvar vid kortet | finns | Varje docka har kort 1 och kort 2 till alla sju platser (GIV-KORT-1 och GIV-KORT-2): bytet till platsen går från A2M hit och hem till A2.3, och vänstern ligger vid skon (V2.3) medan högern lägger kortet. I filmen är vänstern oftast redan på väg med nästa kort i detta ögonblick |
 | A3DCm | Kortet har landat hos dealern | H3D + V2.3 | dealerns egna kortplats, kort m | saknas | finns bara för den äldre dockan |
 
 Båda händerna stilla samtidigt hos de riktiga dealrarna, de åtta vanligaste paren av lägen (en hel bild; de vanligaste är kandidaterna till ankare):
@@ -237,17 +334,17 @@ I den ordning katalogen har stadierna. "Filerna" är rörelsens lyft i `blackjac
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Första kortet till en spelare (GIV-KORT-1) | A2.3 → A3PnC1 | vänstern drar, högern lägger (plats 6 och 7: vänstern ensam) | finns | `lyft-danilo-p4`, `lyft-danilo-p7`, `lyft-frasse-p4`, `lyft-frasse-p7` | ja | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | lyft i samma fil som handen hem; rutan där kortet ligger delar dem. I filmen ges också plats 6 och 7 oftast med handbyte |
-| Andra kortet och fler till en spelare (GIV-KORT-2) | A2.3 → A3PnCm | som första kortet | delvis | `lyft-danilo-p2`, `lyft-frasse-p1` | ja | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | Jakobs önskan: upp till sju kort per plats. Danilo har kort 2 till dagens plats 2 och Frasse kort 2 till dagens plats 1, lyfta ur filmen |
+| Första kortet till en spelare (GIV-KORT-1) | A2.3 → A3PnC1 | vänstern drar, högern lägger | finns | `lyft-danilo-p1`, `lyft-danilo-p2`, `lyft-danilo-p3`, `lyft-danilo-p4`, `lyft-danilo-p5`, `lyft-danilo-p6`, `lyft-danilo-p7`, `lyft-frasse-p1`, `lyft-frasse-p2`, `lyft-frasse-p3`, `lyft-frasse-p4`, `lyft-frasse-p5`, `lyft-frasse-p6`, `lyft-frasse-p7` | ja | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | skon till bytet (SKON-TILL-BYTET) och bytet till platsen (GIV-FRAN-BYTET) efter varandra, ruta för ruta, i en fil; rutan där kortet ligger delar platsen och handen hem. Varje plats ur dealerns egen giv dit i filmen där den finns (vänstern drar, högern lägger), annars ur den giv vars kortplats ligger närmast, riktad om (kallor; dealer3d/tools/lyft-till-docka.ts riktaOm). Givar där vänstern ger ensam (de flesta nära skon) är inte lyfta |
+| Andra kortet och fler till en spelare (GIV-KORT-2) | A2.3 → A3PnCm | som första kortet | delvis | `lyft-danilo-p1c2`, `lyft-danilo-p2c2`, `lyft-danilo-p3c2`, `lyft-danilo-p4c2`, `lyft-danilo-p5c2`, `lyft-danilo-p6c2`, `lyft-danilo-p7c2`, `lyft-frasse-p1c2`, `lyft-frasse-p2c2`, `lyft-frasse-p3c2`, `lyft-frasse-p4c2`, `lyft-frasse-p5c2`, `lyft-frasse-p6c2`, `lyft-frasse-p7c2` | ja | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | Jakobs önskan: upp till sju kort per plats. Kort 2 finns till alla sju platser, lagt som kort 1 med samma modell och landat på P<n>.C2 (lyft-<docka>-p<n>c2); kort 3 och fler saknas. Filmens stycken säger inte vilket kort det är: kortplatsen kortet landade närmast avgör (live-bj/verktyg/lyft.py card_landed) |
 | Kort till dealern själv (GIV-EGET) | A2.3 → A3DCm | vänstern drar, högern lägger på dealerns plats; ibland vänstern ensam | saknas | — | — (inga lyft att leta efter) | höger 14 st, 0,77 s (0,38–0,86); vänster 4 st, 0,67 s (0,61–0,72) | höger 21 st, 0,73 s (0,43–1,47); vänster 4 st, 0,53 s (0,5–0,57) | `GIV-EGET` | i filmen läggs dealerns kort oftast av högern efter ett handbyte, som en spelares; vänstern ensam är det ovanliga |
-| Kortet ur skon till handbytet (SKON-TILL-BYTET) | A2.3 → A2M | vänstern drar kortet ur skon och för det på kant till mötet; högern går fram och tar det | finns | `lyft-danilo-till-bytet`, `lyft-frasse-till-bytet` | ja | vänster 65 st, 0,67 s (0,35–0,97) | vänster 99 st, 0,83 s (0,4–0,97) | `DRA` | första halvan av en giv, ett klipp för alla platser: givens rutor fram till bytet (lyft-<docka>-p4), oförändrade |
-| Kortet från handbytet till platsen, och handen hem (GIV-FRAN-BYTET) | A2M → A2.3 | högern för kortet till platsen och lägger det, och går hem; vänstern går tillbaka till skon | delvis | `lyft-danilo-bytet-p4`, `lyft-frasse-bytet-p4` | ja | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | andra halvan av en giv, en per plats: givens rutor från bytet (lyft-<docka>-p4), oförändrade, så att skon till bytet och detta efter varandra är hela given ruta för ruta. Finns till plats 4; de andra platserna saknas (de behöver sitt eget lyft, lagt från samma ankare) |
+| Kortet ur skon till handbytet (SKON-TILL-BYTET) | A2.3 → A2M | vänstern drar kortet ur skon och för det på kant till mötet; högern går fram och tar det | finns | `lyft-danilo-till-bytet`, `lyft-frasse-till-bytet` | ja | vänster 65 st, 0,67 s (0,35–0,97) | vänster 99 st, 0,83 s (0,4–0,97) | `DRA` | första halvan av varje giv, ett klipp för alla platser: stilens giv till mitten (live-bj/data/lyft/<stil>-mitten-plats-4) fram till rutan där kortet byter hand; vänstern går ur ankaret in i lyftet på tio rutor |
+| Kortet från handbytet till platsen, och handen hem (GIV-FRAN-BYTET) | A2M → A2.3 | högern för kortet till platsen och lägger det, och går hem; vänstern går lugnt tillbaka till skon och ligger där | finns | `lyft-danilo-bytet-p1`, `lyft-danilo-bytet-p1c2`, `lyft-danilo-bytet-p2`, `lyft-danilo-bytet-p2c2`, `lyft-danilo-bytet-p3`, `lyft-danilo-bytet-p3c2`, `lyft-danilo-bytet-p4`, `lyft-danilo-bytet-p4c2`, `lyft-danilo-bytet-p5`, `lyft-danilo-bytet-p5c2`, `lyft-danilo-bytet-p6`, `lyft-danilo-bytet-p6c2`, `lyft-danilo-bytet-p7`, `lyft-danilo-bytet-p7c2`, `lyft-frasse-bytet-p1`, `lyft-frasse-bytet-p1c2`, `lyft-frasse-bytet-p2`, `lyft-frasse-bytet-p2c2`, `lyft-frasse-bytet-p3`, `lyft-frasse-bytet-p3c2`, `lyft-frasse-bytet-p4`, `lyft-frasse-bytet-p4c2`, `lyft-frasse-bytet-p5`, `lyft-frasse-bytet-p5c2`, `lyft-frasse-bytet-p6`, `lyft-frasse-bytet-p6c2`, `lyft-frasse-bytet-p7`, `lyft-frasse-bytet-p7c2` | ja | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | andra halvan av en giv, en per kortplats (kort 1: bytet-p<n>, kort 2: bytet-p<n>c2): från exakt A2M går kroppen, högern och kortet mjukt in i dealerns giv till platsen (eller den närmaste platsens, riktad om) och följer den; kortet läggs på kortplatsen (där dealerns kort låg om det låg på kortplatsen, inom 10 mm och 5°); högern går hem i lugn takt och sista rutan är A2.3 med nästa kort i skon. Källan per plats står under GIV-KORT-1 och GIV-KORT-2 (kallor) |
 
 #### Handen hem (TILLBAKA): hemankare A3PnCm, efter att kortet har landat
 
 | Rörelse | Från → till | Händerna | Status | Filerna | Stämmer? | Danilo (dealer A) | Frasse (dealer B) | Kategorin i indelningen | Anteckning |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Handen hem till skon (HEM-TILL-SKON) | A3PnCm → A2.3 | handen som lade kortet | finns | `lyft-danilo-p2`, `lyft-danilo-p4`, `lyft-danilo-p7`, `lyft-frasse-p1`, `lyft-frasse-p4`, `lyft-frasse-p7` | ja | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | andra halvan av givens fil. I filmen går högern hem mellan två kort hos Danilo i 8 av 26 och hos Frasse i 2 av 56 (av de kort hos en spelare som följs av ett nytt kort); se HEM-TILL-BYTET |
+| Handen hem till skon (HEM-TILL-SKON) | A3PnCm → A2.3 | handen som lade kortet | finns | `lyft-danilo-p1`, `lyft-danilo-p1c2`, `lyft-danilo-p2`, `lyft-danilo-p2c2`, `lyft-danilo-p3`, `lyft-danilo-p3c2`, `lyft-danilo-p4`, `lyft-danilo-p4c2`, `lyft-danilo-p5`, `lyft-danilo-p5c2`, `lyft-danilo-p6`, `lyft-danilo-p6c2`, `lyft-danilo-p7`, `lyft-danilo-p7c2`, `lyft-frasse-p1`, `lyft-frasse-p1c2`, `lyft-frasse-p2`, `lyft-frasse-p2c2`, `lyft-frasse-p3`, `lyft-frasse-p3c2`, `lyft-frasse-p4`, `lyft-frasse-p4c2`, `lyft-frasse-p5`, `lyft-frasse-p5c2`, `lyft-frasse-p6`, `lyft-frasse-p6c2`, `lyft-frasse-p7`, `lyft-frasse-p7c2` | ja | — (ingen kategori i indelningen) | — (ingen kategori i indelningen) | — | andra halvan av givens fil. I filmen går högern hem mellan två kort hos Danilo i 8 av 26 och hos Frasse i 2 av 56 (av de kort hos en spelare som följs av ett nytt kort); se HEM-TILL-BYTET |
 | Högern från platsen tillbaka till nästa kort (HEM-TILL-BYTET) | A3PnCm → A2M | högern går från kortet direkt till mötet, medan vänstern redan drar nästa kort ur skon | förslag | — | — (inga lyft att leta efter) | höger 33 st, 0,87 s (0,61–2,03); vänster 3 st, 0,23 s (0,23–0,34) | höger 61 st, 1 s (0,8–2,07); vänster 5 st, 0,37 s (0,17–0,65) | `GIV` | så ger Frasse nästan alltid och Danilo oftast, med händerna i otakt (av de kort hos en spelare som följs av ett nytt kort: Frasse 54 av 56, Danilo 18 av 26); Danilo går hem oftare, och det hör till hans stil. Ersätter att båda händerna alltid går hem mellan korten |
 | Handen hem direkt till vilan (HEM-TILL-VILAN) | A3PnCm → A1 | båda | saknas | — | — (inga lyft att leta efter) | höger 19 st, 0,57 s (0,27–0,88); vänster 22 st, 0,5 s (0,2–0,83) | höger 25 st, 0,37 s (0,21–1,49); vänster 13 st, 0,33 s (0,23–0,49) | `HEM` | efter rundans sista kort; vänstern går ofta hem samtidigt |
 | Rätta till ett kort (RATTA) | A3PnCm → A3PnCm | en liten rörelse vid kortet som ligger | saknas | — | — (inga lyft att leta efter) | — (inte i filmen) | höger 2 st, 0,28 s (0,27–0,3) | `RATTA` |  |

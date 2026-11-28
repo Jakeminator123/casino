@@ -39,7 +39,8 @@ import {CARD, cross, dot, length, sub, unit, type Vec3} from '../../src/space.ts
 import {LIVE, LIVE_CAMERA, liveSee} from '../../src/table-live.ts';
 import {dollNamed} from '../src/doll.ts';
 import {handFaults, boneLengths} from '../src/hand-rule.ts';
-import {BALEN, DATA, KONTAKT, armIBalenAv, jamna, lugna, type Frame, type Kort, type Lyft} from './lyft-till-docka.ts';
+import {BALEN, DATA, KONTAKT, armIBalenAv, jamna, lugna, riktatLyft, type Frame, type Kort, type Lyft} from './lyft-till-docka.ts';
+import {dollFrame} from '../src/doll.ts';
 
 const ROOT = path.join(DATA, '../..'), CASINO = path.join(ROOT, '..');
 /** Hur många rutor efter bytet kortet får vara längre bort än handen medan det går in i den (rörelsedomaren 2026-11-27). */
@@ -58,7 +59,25 @@ const mot = (c: Kort, p: Vec3) => { const d = sub(p, c.c), u = dot(d, c.l), v = 
 const FINGRAR = [2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20];
 const HANDFLATA: [number, number, number][] = [[0, 0, 0.02], [0, 1, 0.012], [0, 5, 0.0078], [0, 9, 0.0078], [0, 13, 0.0078], [0, 17, 0.0078], [5, 9, 0.0078], [9, 13, 0.0078], [13, 17, 0.0078]];
 const TOPPAR = [4, 8, 12, 16, 20];
-type Motion = {doll: string; ankare?: {borjan: string; slut: string}; fps: number; frameCount: number; hip: Vec3; leavesShoe?: number; rests?: number; to?: string[]; frames: Frame[]; made: {lift: string; liftFrom?: number; from: string; to?: string; hand?: {R: string; L: string}; times?: {arrive: number; pull: number; leaves: number; meet: number; rests: number; vila: number} | null}};
+/** En del av en rörelse och lyftet den är gjord av (lyft-till-docka.ts): rörelsens rutor `rutor` är lyftets från `liftFrom`; med `riktadOm` lyftet riktat om till den kortplatsen (riktatLyft). */
+type Del = {lift: string; liftFrom?: number; riktadOm?: {till: string}; rutor?: [number, number]};
+type Motion = {doll: string; ankare?: {borjan: string; slut: string}; fps: number; frameCount: number; hip: Vec3; leavesShoe?: number; rests?: number; to?: string[]; frames: Frame[]; made: Del & {from: string; to?: string; delar?: Del[]; hand?: {R: string; L: string}; times?: {arrive: number; pull: number; leaves: number; meet: number; rests: number; vila: number} | null}};
+/** Lyftets rutor för en del, från dess första: ur filen, eller riktat om. */
+const delensLyft = (d: Del, doll: ReturnType<typeof dollNamed>): Lyft => { if (d.riktadOm) { const r = riktatLyft(path.join(CASINO, d.lift), d.riktadOm.till, dollFrame(doll).shoulders[0][2]); return {...r, frames: r.frames.slice(d.liftFrom ?? 0)}; }
+  const l = JSON.parse(readFileSync(path.join(CASINO, d.lift), 'utf8')) as Lyft; return {...l, frames: l.frames.slice(d.liftFrom ?? 0)}; };
+/**
+ * Lyftet rörelsen mäts mot, ruta för ruta: delarnas lyft efter varandra (delens första ruta är den förra delens sista, och
+ * räknas en gång), och var dels gräns, så att lyftet jämnas del för del (lugna) och inte över skarven mellan två lyft.
+ */
+function rorelsensLyft(m: Motion, doll: ReturnType<typeof dollNamed>) {
+  const delar = m.made.delar ?? [{...m.made}];
+  const frames: Lyft['frames'] = [], bitar: {lyft: Lyft; fran: number; antal: number}[] = []; let forsta: Lyft | null = null;
+  delar.forEach((d, i) => { const l = delensLyft(d, doll), fran = i ? 1 : 0, sist = i === delar.length - 1, antal = sist ? l.frames.length - fran : (d.rutor![1] - d.rutor![0] + 1 - fran); forsta ??= l;
+    bitar.push({lyft: l, fran, antal}); frames.push(...l.frames.slice(fran, fran + antal)); });
+  /** Handledens väg i lyftet jämnad som verktyget jämnar den (lugna), del för del över hela delens lyft. */
+  const jamnadW = (s: 'R' | 'L') => bitar.flatMap(b => lugna(b.lyft.frames.map(y => y[s].w)).slice(b.fran, b.fran + b.antal));
+  return {lyft: {...forsta!, frames}, jamnadW};
+}
 /** En arm i bålen i rutan `x` (meter; under 0 går den fritt): lyft-till-docka.ts armIBalenAv på rutans axlar och leder. */
 export const armIBalen = (x: Frame, hip: Vec3, s: 'R' | 'L', doll: ReturnType<typeof dollNamed>) => armIBalenAv(x.R.s, x.L.s, hip, x[s].s, x[s].e, x[s].w, doll);
 type Stil = {speed: Record<string, {speed_share_of_top: number[]; top_m_s: {best: {median: number}}}>; handover: {dip_share_of_top: {median: number}}};
@@ -77,14 +96,18 @@ const slutet = (f: number[], fran: number, till: number) => { let top = fran; fo
 export function kolla(fil: string) {
   const m = JSON.parse(readFileSync(fil, 'utf8')) as Motion, doll = dollNamed(m.doll), f = m.frames, n = f.length;
   const ankAv = (fil: string) => (JSON.parse(readFileSync(path.join(CASINO, fil), 'utf8')) as {frame: Frame}).frame, ank = ankAv(m.made.from), ankSlut = m.made.to ? ankAv(m.made.to) : ank;
-  const lyft0 = JSON.parse(readFileSync(path.join(CASINO, m.made.lift), 'utf8')) as Lyft, lyft: Lyft = {...lyft0, frames: lyft0.frames.slice(m.made.liftFrom ?? 0)}, ti = m.made.times ?? null;
+  const {lyft, jamnadW} = rorelsensLyft(m, doll), ti = m.made.times ?? null;
   // (ett fynd per slag: i hur många rutor, varje ruta en gång, och det värsta)
   const samla = new Map<string, {rutor: number; varst: number; text: string; vid: number; senast: number}>();
   const not = (vad: string, by: number, text: string, t: number) => { const s = samla.get(vad) ?? {rutor: 0, varst: -Infinity, text: '', vid: t, senast: NaN}; if (s.senast !== t) { s.rutor++; s.senast = t; } if (by > s.varst) { s.varst = by; s.text = text; s.vid = t; } samla.set(vad, s); };
   // ankaret
-  // (i sista rutan ligger kortet kvar där det lades: där jämförs bara kroppen, som mat.ts gör)
+  // (i sista rutan av en giv står nästa kort i skon, som i ankaret (lyft-till-docka.ts, domaren 2026-11-28): där jämförs kortet
+  // också, och steget dit är inte kortets rörelse; i en rörelse där sista rutan har det lagda kortet jämförs bara kroppen, som
+  // mat.ts gör)
+  const nastaKort = n > 1 && m.leavesShoe !== undefined && length(sub(f[n - 1].card.c, ankSlut.card.c)) < 0.0005;
   const skillnad = (a: Frame, b: Frame, medKort: boolean) => Math.max(length(sub(a.h, b.h)), medKort ? length(sub(a.card.c, b.card.c)) : 0, ...SIDOR.flatMap(([s]) => [length(sub(a[s].s, b[s].s)), length(sub(a[s].e, b[s].e)), length(sub(a[s].w, b[s].w)), ...a[s].p.map((p, k) => length(sub(p, b[s].p[k])))]));
-  for (const [vad, t] of [['första rutan är inte ankaret', 0], ['sista rutan är inte ankaret', n - 1]] as const) { const d = skillnad(f[t], t === 0 ? ank : ankSlut, t === 0); if (d > ANKARE) not(vad, d, `${mm1(d)} mm`, t); }
+  for (const [vad, t] of [['första rutan är inte ankaret', 0], ['sista rutan är inte ankaret', n - 1]] as const) { const d = skillnad(f[t], t === 0 ? ank : ankSlut, t === 0 || nastaKort); if (d > ANKARE) not(vad, d, `${mm1(d)} mm`, t); }
+  const kortVid = (t: number) => nastaKort && t === n - 1 ? f[n - 2].card : f[t].card;
   const benAnk = {R: boneLengths(ank.R.p), L: boneLengths(ank.L.p)}, rackvidd = doll.upperArm + doll.forearm - 0.002;
   const lamnar = m.leavesShoe ?? n, ligger = m.rests ?? n;
   const utanStod: number[] = [];
@@ -103,7 +126,7 @@ export function kolla(fil: string) {
     if (t > lamnar && t < ligger) { const sidor = [...FINGRAR.map(k => mot(x.card, x.R.p[k])), ...FINGRAR.map(k => mot(x.card, x.L.p[k]))].filter(w => w !== null) as number[];
       const hallet = sidor.some(w => w > 0) && sidor.some(w => w < 0), motFilten = lagst < 0.004 && sidor.length > 0, liggande = horn(x.card).every(p => p[1] < 0.004);
       if (!hallet && !motFilten && !liggande) { utanStod.push(t); not('kortet ute ur skon utan stöd', x.card.c[1], `${mm(x.card.c[1])} mm över filten`, t); } }
-    if (t > 0) { const y = f[t - 1].card, v = grader(dot(x.card.n, y.n)), l = grader(Math.abs(dot(x.card.l, y.l)));
+    if (t > 0) { const y = f[t - 1].card, c = kortVid(t), v = grader(dot(c.n, y.n)), l = grader(Math.abs(dot(c.l, y.l)));
       if (v > 40) not('kortet vänds mer än 40° på en ruta', v, `${Math.round(v)}°`, t); if (l > 40) not('kortet vrids mer än 40° på en ruta', l, `${Math.round(l)}°`, t); }
   });
   const hack = (vad: string, punkt: (x: Frame) => Vec3, steg = HACK.steg, ryck = HACK.ryck) => {
@@ -112,7 +135,7 @@ export function kolla(fil: string) {
     for (let i = 1; i <= n; i++) { const over = dv[i] - Math.max(dv[i - 1], dv[i + 1] ?? 0); if (over > ryck) not(`${vad} rycker`, over, `farten ändras ${mm(dv[i])} mm per ruta`, i - 1); }
   };
   for (const [s, namn] of [['R', 'höger'], ['L', 'vänster']] as const) { hack(`${namn} handled`, x => x[s].w); hack(`${namn} armbåge`, x => x[s].e); for (const k of TOPPAR) hack(`${namn} fingertopp ${k}`, x => x[s].p[k]); }
-  hack('kortet', x => x.card.c); hack('huvudet', x => x.h, HACK.huvudSteg, HACK.huvudRyck);
+  hack('kortet', x => kortVid(f.indexOf(x)).c); hack('huvudet', x => x.h, HACK.huvudSteg, HACK.huvudRyck);
   { const b = f.map((x, i) => { if (!i) return 0; const a = sub(x.g, x.h), c = sub(f[i - 1].g, f[i - 1].h); return grader(dot(unit(a), unit(c))); });
     for (let i = 1; i < n; i++) { const over = b[i] - Math.max(b[i - 1], b[i + 1] ?? 0); if (over > HACK.blick) not('blicken hoppar', over, `${Math.round(b[i])}° på en ruta`, i); } }
   // landningen (Jakob 2026-11-27: kortet "ska inte automatiskt läggas i rätt vinkel bara för det inte kom exakt rätt"):
@@ -183,7 +206,7 @@ export function kolla(fil: string) {
   const handMotLyftet: Record<string, unknown> = {andpunktFlyttadMm: mm(andpunkt)};
   for (const [s, namn] of [['R', 'höger'], ['L', 'vänster']] as const) {
     // (tvärs synlinjen från livebordets kamera: det filmens bild visar, och spärrar; längs den: djupet, som redovisas; och i bildpunkter)
-    const kod = m.made.hand?.[s] ?? 'l'.repeat(n), jamnad = lugna(L.map(y => y[s].w)), per: Record<string, number[]> = {}, ra: Record<string, number[]> = {}, langs: Record<string, number[]> = {}, px: Record<string, number[]> = {};
+    const kod = m.made.hand?.[s] ?? 'l'.repeat(n), jamnad = jamnadW(s), per: Record<string, number[]> = {}, ra: Record<string, number[]> = {}, langs: Record<string, number[]> = {}, px: Record<string, number[]> = {};
     for (let t = 0; t < Math.min(n, L.length); t++) { const k = kod[t] ?? 'l', u = unit(sub(jamnad[t], KAMERAN)), dv = sub(f[t][s].w, jamnad[t]), along = dot(dv, u), d = length(sub(dv, [u[0] * along, u[1] * along, u[2] * along]));
       const rv = sub(f[t][s].w, L[t][s].w), ur = unit(sub(L[t][s].w, KAMERAN)), ra0 = dot(rv, ur), r = length(sub(rv, [ur[0] * ra0, ur[1] * ra0, ur[2] * ra0])), P = liveSee(f[t][s].w), Q = liveSee(L[t][s].w);
       (per[k] ??= []).push(d); (ra[k] ??= []).push(r); (langs[k] ??= []).push(Math.abs(along)); if (P && Q) (px[k] ??= []).push(Math.hypot(P.x - Q.x, P.y - Q.y) / 1000);

@@ -1,6 +1,9 @@
 # Lifts a deal out of a film into the room, in the form our own figure's moves have: per frame both arms (shoulder,
 # elbow, wrist and the hand's 21 points), the head, where he looks and the card, in metres of the lens world.
-#   python -I live-bj/verktyg/lyft.py giv live-bj/data live-bj/matt live-bj/data/lyft [--sam <sam.json>] [--fri]     the three deals of each style: the middle seat, far left, far right
+#   python -I live-bj/verktyg/lyft.py giv live-bj/data live-bj/matt live-bj/data/lyft [--sam <sam.json>] [--fri]     the deals of each style where the left pulls and the right lays: first
+#        the middle seat, far left and far right (<style>-mitten|vanster|hoger-plats-<n>.json, left and right as the picture shows them), then one
+#        for each other card place (the first and second card of a seat) the film has a clean deal to (<style>-plats-<n>-kort-<m>.json); the field
+#        landed says where the card landed and which card place's it is
 #   python -I live-bj/verktyg/lyft.py huvud live-bj/data live-bj/matt live-bj/data/lyft     the head's own turn (without the eyes) into the lifted pieces: fields huvud and hv
 #   python -I live-bj/verktyg/lyft.py dockhuvud <a film of our own doll through the live camera> <ut.json>     the doll's head as the face mesh sees it, the dealer's way (the one film this reads, and it is ours)
 #        (--fri holds no wrist to a known height, to see with kanda what the depth alone gives; written elsewhere, never to data/lyft)
@@ -486,6 +489,7 @@ def main():
     data_dir, measures, out_dir = sys.argv[2], sys.argv[3], sys.argv[4]
     read = lambda name: json.load(open(os.path.join(data_dir, name), encoding='utf-8'))
     scene, pieces, pattern, setup = read('scen.json'), read('rorelser.json'), read('monster.json'), read('uppsattning.json')
+    cards_landed = read('givar.json')['cards']
     cam = Camera(scene['camera'])
     edge = scene['table']['dealerEdgeM']
     sam = sam_depth(option('--sam'), cam) if option('--sam') else None
@@ -549,22 +553,35 @@ def main():
         seats = sorted({int(p['to'].split()[1]) for p in deals if p['to'].startswith('seat')})
         if not seats:
             continue
-        wanted = {'mitten': min(seats, key=lambda s: abs(s - 4)), 'vanster': min(seats), 'hoger': max(seats)}   # as the picture shows them: left is the dealer's right
-        for label, seat in wanted.items():
-            group = [p for p in deals if p['to'] == f'seat {seat}']
-            typical = float(np.median([p['seconds'] for p in group]))
 
-            def apart(p):
-                """How far the right hand's grip is from the card when the card comes to rest: the deal where the hand really set it down."""
-                r = next(r for (a, b), r in files.items() if a - 1e-6 <= p['from'] and p['to_t'] <= b + 1e-6)
-                f = min(r['frames'], key=lambda f: abs(f['t'] - p['card']['lies_still']))
-                if 'R' not in f['hands']:
-                    return 9.0
-                grip = cam.plane(np.array([np.mean([f['hands']['R']['image'][4][:2], f['hands']['R']['image'][8][:2]], axis=0)]), 0.0)[0]
-                target = piece_target(setup, seat)
-                return float(np.hypot(grip[0] - target[0], -grip[1] - target[2]))
+        def apart(p, target):
+            """How far the right hand's grip is from the card place `target` when the card comes to rest: the deal where the hand really set it down."""
+            r = next(r for (a, b), r in files.items() if a - 1e-6 <= p['from'] and p['to_t'] <= b + 1e-6)
+            f = min(r['frames'], key=lambda f: abs(f['t'] - p['card']['lies_still']))
+            if 'R' not in f['hands']:
+                return 9.0
+            grip = cam.plane(np.array([np.mean([f['hands']['R']['image'][4][:2], f['hands']['R']['image'][8][:2]], axis=0)]), 0.0)[0]
+            return float(np.hypot(grip[0] - target[0], -grip[1] - target[2]))
+
+        def choose(group, target):
+            """The deal of the usual length (within 0.6 s of the group's median) where the hand really set the card down at `target`."""
+            typical = float(np.median([p['seconds'] for p in group]))
             usual = [p for p in group if abs(p['seconds'] - typical) < 0.6] or group
-            piece = min(usual, key=apart)
+            return min(usual, key=lambda p: apart(p, target))
+        # The three deals lifted first (the middle seat, and the picture's two outermost seats), then a deal for each card place
+        # the film has a clean deal to (CARD_PLACES: the first and second card of each seat), unless one of the three already
+        # is that card place's: the card is the one whose place it landed nearest (card_landed).
+        wanted = {'mitten': min(seats, key=lambda s: abs(s - 4)), 'vanster': min(seats), 'hoger': max(seats)}   # as the picture shows them: left is the dealer's right
+        chosen = [(f'{style}-{label}-plats-{seat}.json', seat, choose([p for p in deals if p['to'] == f'seat {seat}'], piece_target(setup, seat))) for label, seat in wanted.items()]
+        lifted = {card_landed(setup, cards_landed, p) for _, _, p in chosen} - {None}
+        by_place = {}
+        for p in deals:
+            got = card_landed(setup, cards_landed, p)
+            if got and got not in lifted:
+                by_place.setdefault(got, []).append(p)
+        for (seat, order), group in sorted(by_place.items()):
+            chosen.append((f'{style}-plats-{seat}-kort-{order}.json', seat, choose(group, setup['card_places'][f'seat {seat}'][f'card_{order}']['middle'])))
+        for name, seat, piece in chosen:
             raw = next(r for (a, b), r in files.items() if a - 1e-6 <= piece['from'] and piece['to_t'] <= b + 1e-6)
             t = np.array([f['t'] for f in raw['frames']])
             home = piece['parts']['right_home_s'] or 0.6
@@ -614,9 +631,10 @@ def main():
                                'verktyg/lyft.py prov says how far such a lift lies from the truth on our own figure\'s film. ' + GAZE_NOTE + ' ' + FACE_NOTE,
                       'style': style, 'docka': DOLLS[style], 'djup': DEPTH_SAM if use else DEPTH_MP, 'armar': armar, 'to': f'seat {seat}', 'seat_note': 'seats are 1 to 7 from the picture\'s left, the dealer\'s right', 'film_seconds': [frames[0]['t'], frames[-1]['t']], 'fps': raw['fps'], 'frameCount': len(frames),
                       'leavesShoe': index(piece['card']['out_of_the_mouth']), 'rests': index(piece['card']['lies_still']), 'hands': piece['hands'],
+                      'landed': landed_note(setup, cards_landed, piece),
                       'hip': [round(float(shoulders[0]), 4), round(float(shoulders[1]) - 0.47, 4), round(float(shoulders[2]), 4)], 'hip_note': 'assumed: 0.47 m under the shoulders\' middle; the hips are hidden behind the table',
                       'frames': frames}
-            name = os.path.join(out_dir, f'{style}-{label}-plats-{seat}.json')
+            name = os.path.join(out_dir, name)
             with open(name, 'w', encoding='utf-8') as f:
                 json.dump(result, f, separators=(',', ':'))
             wrists = np.array([f['R']['w'] for f in frames])
@@ -626,6 +644,39 @@ def main():
 
 def piece_target(setup, seat):
     return setup['card_places'][f'seat {seat}']['card_1']['middle']
+
+
+CARD_PLACES = (1, 2)   # the cards of a seat a deal is lifted to: the first and the second
+NEAR_PLACE = 0.06      # metres: a card that landed farther than this from every card place of its seat is no card place's
+
+
+def landed_at(cards_landed, piece):
+    """Where the card of a deal landed on the felt (data/givar.json: the last card that landed at the deal's seat within its
+    seconds), in the lens world; None where givar.json has none."""
+    seat = piece['to'].split()[1]
+    got = [c for c in cards_landed if piece['from'] - 0.05 <= c['landed'] <= piece['to_t'] + 0.05 and c['to']['place'] == 'seat' + seat]
+    return [got[-1]['to']['m'][0], 0.0, -got[-1]['to']['m'][1]] if got else None
+
+
+def card_landed(setup, cards_landed, piece):
+    """(seat, card) for the card place of the deal's seat (CARD_PLACES) its card landed nearest, within NEAR_PLACE; else None.
+    The film does not say which card of the seat a deal gives: where it landed does."""
+    at, seat = landed_at(cards_landed, piece), int(piece['to'].split()[1])
+    places = {k: setup['card_places'].get(f'seat {seat}', {}).get(f'card_{k}') for k in CARD_PLACES}
+    near = sorted((math.hypot(at[0] - v['middle'][0], at[2] - v['middle'][2]), k) for k, v in places.items() if v) if at else []
+    return (seat, near[0][1]) if near and near[0][0] <= NEAR_PLACE else None
+
+
+def landed_note(setup, cards_landed, piece):
+    """The field landed of a lifted deal: where its card landed, and how far that is from each card place of its seat."""
+    at, seat = landed_at(cards_landed, piece), piece['to'].split()[1]
+    if at is None:
+        return None
+    places = {k: v for k, v in setup['card_places'].get(f'seat {seat}', {}).items() if isinstance(v, dict)}
+    got = card_landed(setup, cards_landed, piece)
+    return {'at': [round(at[0], 4), 0.0, round(at[2], 4)], 'card': got[1] if got else None,
+            'from_places_m': {k: round(math.hypot(at[0] - v['middle'][0], at[2] - v['middle'][2]), 3) for k, v in sorted(places.items())},
+            'note': f'data/givar.json: where the card landed; card is the card place of the seat (1 or 2) it landed nearest, within {NEAR_PLACE} m, else null'}
 
 
 def sam_covers(sam, frames):

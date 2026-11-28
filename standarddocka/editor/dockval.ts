@@ -57,6 +57,6 @@ export function helaSekvensen(finns: ReadonlySet<string>, docka: string): string
   // (givarna går från ankaret vid skon till ankaret vid skon, A2.3: vägen dit ur vilan och hem dit är egna rörelser)
   return ['vantan-1', 'till-skon', ...fransSkon(lyftaPlatser(finns, docka)).map(p => `p${p}`), 'hem', 'vantan-2'].filter(x => finns.has(`lyft-${docka}-${x}`));
 }
-/** En rörelse i hans ord: en lyft giv är "given till plats N", en väntan "väntan N"; ett annat namn står som det är. */
+/** En rörelse i hans ord: en lyft giv är "given till plats N" (kort 2: lyft-<docka>-p<N>c2, "andra kortet till plats N"), en väntan "väntan N"; ett annat namn står som det är. */
 export const rorelsensOrd = (namn: string): string => { if (/^lyft-[a-z0-9]+-till-skon$/.test(namn)) return 'ur vilan till skon'; if (/^lyft-[a-z0-9]+-hem$/.test(namn)) return 'från skon hem till vilan';
-  const m = /^lyft-[a-z0-9]+-(?:p(\d+)|vantan-(\d+))$/.exec(namn); return !m ? namn : m[1] ? `given till plats ${m[1]}` : `väntan ${m[2]}`; };
+  const m = /^lyft-[a-z0-9]+-(?:p(\d+)(c2)?|vantan-(\d+))$/.exec(namn); return !m ? namn : m[1] ? `${m[2] ? 'andra kortet' : 'given'} till plats ${m[1]}` : `väntan ${m[3]}`; };

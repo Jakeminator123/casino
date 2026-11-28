@@ -22,7 +22,7 @@ test('a seat without a lifted deal shows the nearest one, and only says so when 
   assert.deepEqual(lyftPlats(finns, 'frasse', 2, true), {plats: 1, rad: 'Frasse har ingen giv till plats 2 lyft ur filmen än. Här visas given till plats 1.'});
   assert.deepEqual(lyftPlats(finns, 'frasse', 6, false), {plats: 7, rad: ''});
   assert.equal(lyftPlats(finns, 'nisse', 4, true), null);
-  assert.deepEqual([rorelsensOrd('lyft-danilo-p4'), rorelsensOrd('lyft-frasse-vantan-2'), rorelsensOrd('lyft-danilo-p4-troget3')], ['given till plats 4', 'väntan 2', 'lyft-danilo-p4-troget3']);
+  assert.deepEqual([rorelsensOrd('lyft-danilo-p4'), rorelsensOrd('lyft-danilo-p2c2'), rorelsensOrd('lyft-frasse-vantan-2'), rorelsensOrd('lyft-danilo-p4-troget3')], ['given till plats 4', 'andra kortet till plats 2', 'väntan 2', 'lyft-danilo-p4-troget3']);
 });
 
 test('the whole sequence deals nearest the shoe first, by where the places lie, as the dealer in the film does', () => {
@@ -35,4 +35,7 @@ test('the whole sequence deals nearest the shoe first, by where the places lie, 
   const finns = new Set(['lyft-danilo-p2', 'lyft-danilo-p4', 'lyft-danilo-p7', 'lyft-danilo-vantan-1', 'lyft-danilo-vantan-2']);
   assert.deepEqual(helaSekvensen(finns, 'danilo'), ['vantan-1', 'p7', 'p4', 'p2', 'vantan-2']);
   assert.deepEqual(helaSekvensen(new Set(['lyft-frasse-p1']), 'frasse'), ['p1']);
+  // the first card to all seven seats, with the way to the shoe and home; the second cards (p<n>c2) are not in it
+  const alla = new Set(['vantan-1', 'till-skon', 'hem', 'vantan-2', ...[1, 2, 3, 4, 5, 6, 7].flatMap(p => [`p${p}`, `p${p}c2`])].map(x => `lyft-danilo-${x}`));
+  assert.deepEqual(helaSekvensen(alla, 'danilo'), ['vantan-1', 'till-skon', ...order.map(p => `p${p}`), 'hem', 'vantan-2']);
 });
