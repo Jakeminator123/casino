@@ -21,6 +21,7 @@ import {readFileSync, readdirSync, statSync, existsSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildGraph, dealersOf, playable, type BankData, type Take} from '../src/clip-graph.ts';
+import {BUILT_ROOMS} from '../src/game-look.ts';
 import {MOTIONS_TEXT, motionRegister} from './register-store.ts';
 
 export type Use = 'spelas' | 'visas' | 'referens' | 'bara registrerad' | 'okänd';
@@ -225,12 +226,14 @@ export function audit(repo: string): {items: Item[]; judged: Map<string, string>
   // tools/preview.ts serves assets/scene/materials/ by pattern for the versions data/scene-materials.json lists).
   for (const [f, top] of [['data/props.json', 'assets/props/'], ['data/scene-materials.json', 'assets/scene/materials/'], ['data/scene-rooms.json', 'assets/scene/']] as const) {
     const text = read(f);
-    for (const u of units.filter(u => u.path.startsWith(top) && !u.path.includes('/source/'))) {
-      // the menu's pictures are thumbs/room-<room id>.jpg
-      const stem = u.path.split('/').at(-1)!.replace(/(-diffuse|-nor_gl|-rough|\.receipt)?\.[a-z0-9]+$/, '').replace(/^room-/, '');
+    for (const u of units.filter(u => u.path.startsWith(top) && !u.path.includes('/source/') && !u.path.startsWith('assets/scene/thumbs/'))) {
+      const stem = u.path.split('/').at(-1)!.replace(/(-diffuse|-nor_gl|-rough|\.receipt)?\.[a-z0-9]+$/, '');
       if (stem.length > 2 && new RegExp(`["/]${stem.replace(/[.-]/g, '\\$&')}["._/-]`).test(text)) claims.push({path: u.path, use: 'visas', why: `${f} nämner ${stem}`});
     }
   }
+  // The menus' pictures of the rooms: thumbs/room-<id>.jpg for every room of the register and every built room (src/game-page.ts
+  // builds the name from the id, so no text names the file).
+  for (const id of [...list(json('data/scene-rooms.json')?.rooms).map(r => r.id), ...BUILT_ROOMS]) claims.push({path: `assets/scene/thumbs/room-${id}.jpg`, use: 'visas', why: `rummet ${id} i menyn (src/game-page.ts room-<id>.jpg)`});
   // Sources named by file name: the Meshy models behind the props and the pictures behind the rooms.
   for (const [f, use] of [['data/props.json', 'referens'], ['data/scene-rooms.json', 'referens'], ['data/scene-materials.json', 'referens']] as const) {
     const text = read(f);

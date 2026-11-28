@@ -208,9 +208,9 @@
     ]
   },
   "generated": {
-    "about": "Materials made from generated pictures for the lab trial of 2026-11-13 (cloth \"runway\", surface \"natur\"). The pictures were ordered by LEVANDE-OBJEKTAGENTEN on Jakob's word that day (\"Kan du med hjälp av Runway skapa ett pokerbord utifrån det vi har nu, men göra det mer naturalistiskt?\") through Runway's MCP server, on his app account, with the image model Nano Banana Pro, about 20 credits a picture. The sources are kept as they came; tools/scene-material.ts makes each map from its source and writes a receipt beside it. They are not CC0: generated pictures, Jakob's by his Runway account.",
+    "about": "Materials made from generated pictures for the lab trial of 2026-11-13 (cloth \"runway\", surface \"natur\"). The pictures were ordered by LEVANDE-OBJEKTAGENTEN on Jakob's word that day (\"Kan du med hjälp av Runway skapa ett pokerbord utifrån det vi har nu, men göra det mer naturalistiskt?\") through Runway's MCP server, on his app account, with the image model Nano Banana Pro, about 20 credits a picture. The sources are not on this computer; each map was made from its source with tools/scene-material.ts, which was removed from the code in commit 8456295 (Git has it before that). They are not CC0: generated pictures, Jakob's by his Runway account.",
     "source": {
-      "directory": "assets/scene/source/runway"
+      "directory": "not on this computer: the pictures as Runway made them never came to this repo; each map names its source by file name, SHA-256 and Runway task id"
     },
     "maps": [
       {
