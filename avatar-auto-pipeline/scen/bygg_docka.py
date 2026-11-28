@@ -3,24 +3,25 @@ vridben i varje underarm), ARKit-kompatibla shape keys för ansiktsuttryck, ett 
 iris och pupill, ögonbryn, läppar och en mörk munhåla med tänder; ANSIKTE nedan), egna IK-kontroller, ledgränser och
 exportnamn som dealer3d kräver.
 
-Bygger två grunddockor med 100 % identiskt skelett/bennamn så alla rörelser kan återanvändas, med människans mått för
-kön och längd (MATT nedan: längderna, armarnas tjocklek, händerna och fötterna mot ANSUR II):
-  - standarddocka_kvinna.blend / .glb (1,65 m)
-  - standarddocka_man.blend / .glb (1,75 m)
-och på samma sätt män med mätta mått: två dealrar i en film (MATT danilo och frasse: mannens kropp med de mätta axlarna,
-halsen och huvudet) och en person efter sin egen figur och sina bilder (MATT tomasz_matt: axlarna, bröstet, midjan,
-höften, halsen och huvudets höjd, bredd och käke), med --kon <nyckeln i MATT>:
-  - standarddocka_danilo.blend / .glb, standarddocka_frasse.blend / .glb, standarddocka_tomasz_matt.blend / .glb
-och en person mätt ur sina egna bilder (steg 15, personer/<person>.json), byggd på Danilos eller Frasses docka, med
---kon <dockans namn i filen> (Kenji: --kon kenji -> standarddocka_kenji.blend / .glb).
+Bygger dockorna med 100 % identiskt skelett/bennamn så att alla rörelser kan återanvändas, alla på samma grund: mannen
+(MATT['man'] nedan: MPFB:s kropp för en man på 1,75 m, med armarna, händerna, fötterna, benen och bålen mot ANSUR II).
+Mannen är grunden, inte en docka: --kon man bygger honom (standarddocka_man.blend / .glb) bara som den figur verktyg/
+mat_figur.py mäter en person bredvid (underlaget Mått ur en figur i vagar.json). Med --kon <docka>:
+  - två dealrar i en film (MATT danilo och frasse: mannens kropp med de mätta axlarna, halsen och huvudet):
+    standarddocka_danilo.blend / .glb och standarddocka_frasse.blend / .glb;
+  - en person efter sin egen figur och sina bilder (MATT tomasz_matt: axlarna, bröstet, midjan, höften, halsen och
+    huvudets höjd, bredd och käke): standarddocka_tomasz_matt.blend / .glb;
+  - en person mätt ur sina egna bilder (steg 15, personer/<person>.json), byggd på Danilos eller Frasses docka, med
+    --kon <dockans namn i filen> (Kenji: --kon kenji -> standarddocka_kenji.blend / .glb).
 En ny person är en ny fil i personer/ (eller en nyckel i MATT: grund, passa, kalla); de mått som går att passa står i PASS_TGT.
+Utan --kon byggs inget: skriptet säger vilka dockor som finns.
 Med --namn N skrivs standarddocka_<docka>_N.blend/.glb och docka-rapport-<docka>_N.json i stället, så att de modeller som
 används inte skrivs över medan en ny prövas. En docka per körning av bygg_en: allt från den förra (också dess vila
 sitt_vila) tas bort först, så att varje fil bara har sin egen.
 
 Kräver MPFB2 som Blender-tillägg i användarprofilen (bl_ext.user_default.mpfb).
 Kör (utan --factory-startup, annars laddas inte tillägget):
-    blender -b --python-exit-code 1 --python scen/bygg_docka.py [-- --kon kvinna|man|bada|danilo|frasse|tomasz_matt] [--namn N]
+    blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon <docka> [--namn N]
 """
 import argparse, gzip, json, math, os, re, sys, time
 from pathlib import Path
@@ -83,21 +84,21 @@ ARKIT_KARTA = [
 ]
 
 
-# Människans mått för kön och längd. Kroppen är MPFB:s egen för könet och längden (makrot height letas fram, så att
-# MPFB:s egna proportioner för just den längden gäller). `passa` flyttar ett mått till människans medel, ANSUR II (US Army
-# 2012, de offentliga data) för personer av samma kön och längd ±2 cm, där MPFB:s eget avviker; alla tal är det färdiga
+# Grunden, en man med människans mått för sin längd. Kroppen är MPFB:s egen för en man och längden (makrot height letas
+# fram, så att MPFB:s egna proportioner för just den längden gäller). `passa` flyttar ett mått till människans medel, ANSUR
+# II (US Army 2012, de offentliga data) för män av samma längd ±2 cm, där MPFB:s eget avviker; alla tal är det färdiga
 # måttet efter skalningen till längden, och passas tillsammans (passa_matt nedan), eftersom de rör varandra.
 # - Leder: överarm = akromion-radiale - 0,0257 x längden (axelleden under akromion) - 0,010 (armbågsleden över radiale);
-#   underarm = radiale-stylion + 0,005; axelleder = biakromial bredd - dockans egen hud utanför leden (31 mm hos kvinnan).
-#   Hand och fot är hudens mått.
+#   underarm = radiale-stylion + 0,005. Hand och fot är hudens mått.
 # - Armarnas tjocklek: hudens omkrets i ett snitt vinkelrätt mot benet, som ett måttband (konvext hölje): underarmen där
 #   den är tjockast (en tiondel till tre tiondelar från armbågen), handleden (97 % av vägen till handleden) och överarmen
-#   på mitten, mot en avslappnad arm (ANSUR mäter underarmen spänd: 309 mm hos männen, 266 hos kvinnorna). MPFB:s egna
-#   armar var en femtedel för smala (underarmen 255 mot 290 mm hos mannen).
-# - Bara mannen: höftleden och knäleden över golvet (ANSUR trochanterion 896 [855-949], laterala epikondylen 489; MPFB:s
-#   egna ben var 3,5 cm för långa), bålen höftled-axelled (ANSUR akromion-trochanter 539 - akromion över axelleden 56) och
-#   huvudets bredd (ANSUR 155 [146-164]; hans var 147). Det benen lämnar går till bålen och halsen (hals None: resten, så
-#   att huvudet behåller MPFB:s egen storlek och längden står kvar; hans axelleder låg 18 mm högre än ANSUR:s).
+#   på mitten, mot en avslappnad arm (ANSUR mäter underarmen spänd: 309 mm). MPFB:s egna armar var en femtedel för smala
+#   (underarmen 255 mot 290 mm).
+# - Höftleden och knäleden över golvet (ANSUR trochanterion 896 [855-949], laterala epikondylen 489; MPFB:s egna ben var
+#   3,5 cm för långa), bålen höftled-axelled (ANSUR akromion-trochanter 539 - akromion över axelleden 56) och huvudets
+#   bredd (ANSUR 155 [146-164]; hans var 147). Det benen lämnar går till bålen och halsen (hals None: resten, så att
+#   huvudet behåller MPFB:s egen storlek och längden står kvar; hans axelleder låg 18 mm högre än ANSUR:s).
+# Varje docka nedan har en grund (`grund`); mannen är bara grunden.
 MATT = {
     'man': {'langd': 1.75, 'passa': {'ua': 0.279, 'fa': 0.272, 'hand': 0.193, 'fot': 0.271,
                                      'fa_omkr': 0.290, 'handled_omkr': 0.170, 'ua_omkr': 0.320,
@@ -106,11 +107,6 @@ MATT = {
                      'radiale-stylion 266,7, hand 192,9, fot 270,7, trochanterion 896,1, laterala epikondylen 489,1, '
                      'akromion-trochanter 538,7, huvudets bredd 154,5 mm; armarnas omkrets avslappnad 290/170/320 mm '
                      '(underarm/handled/överarm); MPFB:s egen axelbredd (hud 418 mot 415 mm) behålls'},
-    'kvinna': {'langd': 1.65, 'passa': {'ua': 0.263, 'fa': 0.249, 'sw': 0.337, 'hand': 0.1824, 'fot': 0.2488,
-                                        'fa_omkr': 0.255, 'handled_omkr': 0.150, 'ua_omkr': 0.285},
-               'kalla': 'längden: ANSUR II kvinnor medel 1,629 m, 10 cm under mannen; måtten: ANSUR II kvinnor 1,63-1,67 m (n 442): '
-                        'akromion-radiale 315,5, radiale-stylion 244,1, biakromial 368,0, hand 182,4, fot 248,8 mm; armarnas '
-                        'omkrets avslappnad 255/150/285 mm (underarm/handled/överarm); MPFB:s egen bål, ben och huvud behålls'},
 }
 # Danilo och Frasse (Jakob 2026-11-27): två dealrar ur en film, byggda som mannen med det som gick att mäta på dem genom
 # kameran (live-bj/data/uppsattning.json, dealer.kameran.body och dealer.bordet.body): axellederna isär (sw) och hakan till
@@ -211,11 +207,11 @@ VRID_NOD = (0.0, 0.5, 1.0)
 
 # Vilan i Blender (sitt_vila) står som dockan sitter i editorn och studion, så att samma scen inte ställs med två tal.
 # Standardramen: meter, Y bakåt från spelets dealerkant, Z upp; höjderna här över filten. Talen ska följa spelet:
-# - axellederna: `place` för MAN i blackjack-dealer/dealer3d/src/doll.ts (kind 'seat': shoulderHeight, behindEdge, x),
-#   rak bål under dem;
+# - axellederna: den förra standardens docka (MAN i blackjack-dealer/dealer3d/src/doll.ts, som inte finns kvar), rak bål
+#   under dem; varje docka vid livebordet sitter där doll.ts liveDoll ställer den (LIVE.dealer), och det är inte infört här än;
 # - låren: LAR i blackjack-dealer/dealer3d/src/sitter.ts (larRiktning), med rörelsens höft (hoft_under_filt) som där;
 #   smalbenen som figure-model.ts ställer dem;
-# - handlederna: vilan (ankare 1) som editorn spelar den för mannen, på filten framför markerbrickan.
+# - handlederna: vilan (ankare 1) som editorn spelade den för den dockan, på filten framför markerbrickan.
 SITT = {'axlar_over_filt': 0.31, 'axlar_bakom_kant': 0.38, 'x': -0.0159, 'hoft_under_filt': 0.162,
         'lar': {'ut': 0.12, 'fall': 0.08, 'fran': -0.19, 'brant': 6},
         'handled': {'Right': (-0.207, 0.0963, 0.0341), 'Left': (0.1793, 0.0948, 0.0294)}}
@@ -560,17 +556,16 @@ def bygg_en(kon: str, suffix: str = ''):
     _rensa()
     sc = bpy.context.scene
     col = coll('standarddocka')
-    grund = MATT[kon].get('grund', kon)  # kroppen dockan börjar som (Danilo och Frasse: mannens)
-    is_man = (grund == 'man')
+    grund = MATT[kon].get('grund', kon)  # kroppen dockan börjar som: mannens
     namn = f'{kon}_{suffix}' if suffix else kon
     LANGD = MATT[kon]['langd']  # None: längden följer av delarna (Danilo och Frasse)
 
     # ---------------------------------------------------------------- 1. kropp + måttpassning + skelett
     macro = TargetService.get_default_macro_info_dict()
     macro.update({
-        'gender': 1.0 if is_man else 0.0,
+        'gender': 1.0,
         'age': 0.5,
-        'muscle': 0.55 if is_man else 0.5,
+        'muscle': 0.55,
         'weight': 0.5,
         'proportions': 0.5,
         'height': 0.5,
@@ -715,7 +710,6 @@ def bygg_en(kon: str, suffix: str = ''):
         col.objects.link(o)
     body.name = 'docka_kropp'; rig.name = 'docka_rigg'; rig.data.name = 'docka_rigg'
     rig['standarddocka'] = True
-    rig['kon'] = 'man' if is_man else 'kvinna'
 
     # Spara MakeHuman-vertexindex före MASK så både ansiktsvikter och blendshapes träffar exakt rätt
     mh_attr = body.data.attributes.new('mh_idx', 'INT', 'POINT')
@@ -1079,13 +1073,16 @@ def bygg_en(kon: str, suffix: str = ''):
     print('BYGGT', blend_kon)
 
 
+DOCKOR = [k for k, m in MATT.items() if 'grund' in m]  # mannen är grunden, inte en docka
 ap = argparse.ArgumentParser()
-ap.add_argument('--kon', choices=[*MATT, 'bada'], default='bada',
-                help='dockan (en nyckel i MATT); bada: kvinnan och mannen (de mätta byggs var för sig)')
+ap.add_argument('--kon', choices=[*MATT], help='dockan (en nyckel i MATT eller en person i personer/); utan den byggs inget')
 ap.add_argument('--namn', default='', help='skriver standarddocka_<docka>_<namn>.blend/.glb (och rapporten med samma namn) i stället '
                                           'för de modeller som används; små bokstäver, siffror och understreck')
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 if args.namn and not re.fullmatch(r'[a-z0-9_]+', args.namn):
     raise SystemExit('--namn tar små bokstäver, siffror och understreck, till exempel naturlig')
-for kon in (['kvinna', 'man'] if args.kon == 'bada' else [args.kon]):
-    bygg_en(kon, args.namn)
+if args.kon:
+    bygg_en(args.kon, args.namn)
+else:
+    print(f'Dockorna: {", ".join(DOCKOR)}. Bygg en med -- --kon <docka> (och --namn N för en provmodell). '
+          f'Grunden, man, byggs med --kon man bara som jämförelse för verktyg/mat_figur.py.')

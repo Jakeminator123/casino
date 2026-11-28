@@ -23,6 +23,7 @@ import {readdir, readFile, realpath, stat} from 'node:fs/promises';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import path from 'node:path';
 import {pipeline} from 'node:stream';
+import {LIVE_CAMERA} from '../src/table-live.ts';
 
 const CASINO = path.resolve(import.meta.dirname, '../..');
 /** Den enda server vägarna svarar på: studions på den här datorn. */
@@ -36,7 +37,7 @@ export const KALLOR = {
   prov: 'blackjack-dealer/assets/proofs',
 } as const;
 /** Bildens storlek genom livebordets kamera (src/table-live.ts LIVE_CAMERA): inspelningarna och personernas filmer. */
-export const VAR_STORLEK = {bredd: 1728, hojd: 972} as const;
+export const VAR_STORLEK = {bredd: LIVE_CAMERA.film.width, hojd: LIVE_CAMERA.film.height} as const;
 
 export type Probe = {width: number; height: number; fps: number; frames: number};
 export type VarVy = {id: string; namn: string; url: string};

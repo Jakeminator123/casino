@@ -23,11 +23,10 @@ avatar-auto-pipeline/
     standard.yaml            alla mått, skrivna ur spelets kod (ändras aldrig för hand)
     gen_standard.py          skriver standard.yaml; las_spelet.ts läser spelets kod åt den
     bygg_bord.py             livebordet, korten, skon och lådan för använda kort ur måtten
-    bygg_docka.py            grunddockorna (kvinna och man) och på mannens grund dockorna med mätta mått (Danilo, Frasse, Tomasz, och personerna i personer/) med MPFB
+    bygg_docka.py            dockorna med MPFB, alla på mannens grund med sina mätta mått (Danilo, Frasse, Tomasz och personerna i personer/)
     bygg_stol.py             stolen, skalad till måtten; meshy_stol.py beställer råfilen (betalt)
     qc_render.py             kontrollbilder genom de fasta kamerorna
   verktyg/                   bryggan mot blackjack-dealers docka, inspektion, kontrollbilder och mätning av en figur (mat_figur.py)
-  rorelser/katalog.yaml      rörelsekatalogen: vad som ska finnas och hur långt det har kommit
   gemensamt/                 delad kod: standard.py läser standard.yaml, riggverktyg.py räknar om mellan spelet och
                              Blender, sokvagar.py hittar projektet och slasken; standardmatt.py (kroppens andelar)
                              och blenderstudio.py hör till vägen från foton
@@ -38,8 +37,6 @@ avatar-auto-pipeline/
   Auto avatar.cmd            dra foton till den här filen
   starta_avatar.ps1, auto_avatar.py   styr stegen
   steg/01-referenser … 08-film       ett skript per steg; 09-ansikte ger en färdig dealer ett rörligt ansikte (prov)
-  steg/10-kropp-i-ett-stycke/        en kropp ur Runway med egna händer blir en docka, gratis (prov, körs för hand)
-  steg/11-pa-dockans-grund/          en färdig dealer sätts på Danilos eller Frasses skelett, led för led (prov)
   steg/12-ny-yta/                    vår egen docka får en persons utseende som ny yta hos Meshy (prov, betalt)
   steg/13-form-ur-figur/             dockans eget huvud i personens form, ur hans figur, gratis (prov)
   steg/14-dockans-hander/            en färdig dealer får dockans händer insatta i sin ärm, gratis (prov)
@@ -64,7 +61,7 @@ dockorna och Node 24 för måtten. Allt körs från den här mappen.
 .\.venv\Scripts\python.exe scen/gen_standard.py                                                     måtten ur spelet
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py                       livebordet (standardbord_live.*): dess filt (halvcirkel, radie 0,73 m), rullen runt filten och hyllan bakom kanten, sko, låda, insatsmärken och kortplatser i vårt utseende, utan markerbricka; talen står i spelets kod (LIVE i ../blackjack-dealer/src/table-live.ts) och kommer hit genom standard.yaml
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py -- --med-bricka       samma bord med vår markerbricka vid kanten, ett tillägg (standardbord_live_bricka.*)
-blender -b --python-exit-code 1 --python scen/bygg_docka.py                                        dockorna (MPFB, därför utan --factory-startup) med människans mått, utan val kvinnan och mannen; -- --kon <docka> bygger en (man, kvinna, danilo, frasse, tomasz_matt, eller en person i personer/ som kenji), -- --namn N skriver standarddocka_<docka>_N.* i stället för de modeller som används
+blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon <docka>                       en docka (MPFB, därför utan --factory-startup): danilo, frasse, tomasz_matt eller en person i personer/ som kenji; utan --kon säger skriptet vilka dockor som finns; -- --namn N skriver standarddocka_<docka>_N.* i stället för de modeller som används; --kon man bygger grunden bara som jämförelse för verktyg/mat_figur.py
 blender -b --factory-startup --python-exit-code 1 --python scen/bygg_stol.py                       stolen
 ```
 
@@ -106,9 +103,9 @@ Rendera alltid i en egen Blender utan fönster (`-b`), aldrig i ett fönster som
 
 ## Rörelser
 
-`rorelser/katalog.yaml` är listan över rörelser som ska finnas (id, namn, längd, plats, status). En rörelse är en
-Action på dockans skelett, så samma rörelse fungerar på varje docka som delar skelettet. Rörelser förs mellan
-`blackjack-dealer`s docka och Blender med bryggan:
+Rörelseschemat (vilka rörelser som finns och vilka som saknas) står i `../standarddocka/rorelsekatalog.json`. En
+rörelse är en Action på dockans skelett, så samma rörelse fungerar på varje docka som delar skelettet. Rörelser förs
+mellan `blackjack-dealer`s docka och Blender med bryggan:
 
 ```text
 blender -b assets/docka/standarddocka_danilo.blend --python-exit-code 1 --python verktyg/dealer3d_till_blender.py -- --in <rörelse.json> [--namn NAMN] [--spara fil.blend] [--naturlig-hand]
@@ -149,31 +146,6 @@ i skriptets huvud. Kräver MediaPipe-miljön i `../blackjack-dealer/tools/python
 
 ```text
 blender -b --factory-startup --python-exit-code 1 --python steg/09-ansikte/ansikte.py -- assets/docka/standarddocka_tomasz.glb assets/docka/standarddocka_tomasz_ansikte.glb
-```
-
-En kropp i ett stycke ur Runway (steg 10, på prov sedan 2026-11-27, gratis och lokalt): Hunyuan-kroppen får personens
-Meshy-huvud och sina egna händer, lånar skelettet av en färdig dealer och exporteras med steg 6. Huvudet och skelettet
-kommer från en körning genom steg 1–6; kroppen beställs för hand hos Runway. Varje skripts huvud säger hur det gör:
-
-```text
-.venv\Scripts\python.exe -B steg/10-kropp-i-ett-stycke/montera_huvud.py kropp.glb output/<namn>/03-montering/delar/huvud.glb <arb>/med-huvud.glb --hudref output/<namn>/01-referenser/head-ref.png
-blender -b --python steg/03-montering/forenkla_4k.py -- <arb>/med-huvud.glb <arb>/latt.glb 180000
-blender -b --python-exit-code 1 --python steg/10-kropp-i-ett-stycke/rigga.py -- <arb>/latt.glb assets/docka/standarddocka_<namn>.glb <arb>/avatar-rigg.glb
-blender -b --python-exit-code 1 --python steg/06-dealer-export/exportera_dealer.py -- <arb>/avatar-rigg.glb assets/docka/standarddocka_<namn>_hunyuan.glb
-blender -b --python-exit-code 1 --python steg/10-kropp-i-ett-stycke/prova_hander.py -- assets/docka/standarddocka_<namn>_hunyuan.glb <arb>/prov.json
-```
-
-`<arb>` är en arbetsmapp i slasken (`../slask/avatar-auto-pipeline/<uppgift>/`); `rigga.py` skriver också steg 5:s
-fingerprov (`hudvikter.json`) bredvid riggen.
-
-En dealer på en grunddockas skelett (steg 11, på prov sedan 2026-11-27, gratis och lokalt): en dealer byggs på den docka
-vars rörelser han ska spela. Hans yta (huvud, hud, kläder, ansiktsformer) formas om så att den sitter på Danilos eller
-Frasses skelett, och skelettet byts mot dockans: samma leder, armar, axlar och fingerlängder. Då spelar han dockans lyfta
-rörelser som de är, och editorn skalar honom inte. Hans fingrar behåller sin egen krökning i vila; huvudet flyttas utan
-att formas om. Hur det görs står i skriptets huvud; rapporten (`<ut>.json`) säger hur mycket ytan sträcktes, per kroppsdel:
-
-```text
-blender -b --python-exit-code 1 --python steg/11-pa-dockans-grund/pa_grund.py -- assets/docka/standarddocka_tomasz_ansikte.glb assets/docka/standarddocka_danilo.glb assets/docka/standarddocka_tomasz_danilo.glb
 ```
 
 En ny yta på vår egen docka (steg 12, på prov sedan 2026-11-27, betalt: 10 Meshy-krediter): Meshy målar personens

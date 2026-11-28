@@ -28,7 +28,7 @@ Allt nytt (globerna, munhålan, insidorna) sitter i hans huvudmaterial, så att 
 förut (figure-model.ts tar fingrarna ur den sista, och dealer3d/tools/modell.ts läser den första).
 
     blender -b --python-exit-code 1 --python steg/09-ansikte/ansikte.py -- dealer.glb ut.glb
-        [--docka assets/docka/standarddocka_man_ogon.glb] [--ogon glob|yta] [--arbete <mapp>]
+        [--docka assets/docka/standarddocka_danilo.glb] [--ogon glob|yta] [--arbete <mapp>]
         [--mp-python <python med mediapipe>] [--mp-modell face_landmarker.task]
 Arbetsmappen (förval slask/avatar-auto-pipeline/ansikte-<namn>/) får bilderna, punkterna och rapporten ansikte.json;
 rapporten skrivs också bredvid ut-filen (<ut>.json). Punkterna där används igen när de är nyare än de två modellerna,
@@ -78,7 +78,7 @@ def las_args():
     a = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     ap = argparse.ArgumentParser()
     ap.add_argument('inn'); ap.add_argument('ut')
-    ap.add_argument('--docka', default=str(ROT / 'assets' / 'docka' / 'standarddocka_man_ogon.glb'))
+    ap.add_argument('--docka', default=str(ROT / 'assets' / 'docka' / 'standarddocka_danilo.glb'))
     ap.add_argument('--ogon', choices=['glob', 'yta'], default='glob')
     ap.add_argument('--arbete', default=None)
     py = MP / '.venv' / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')

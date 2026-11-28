@@ -1,6 +1,6 @@
 """QC-renderingar ur standardscenen. Öppnar bordet, lägger ev. till dockan, sätter ljus och renderar namngivna kameror.
 
-Kör:  blender -b --python-exit-code 1 --python scen/qc_render.py -- --kameror topp film spelare_1 hel --ut qc --tagg bord [--docka assets/docka/standarddocka_kvinna.blend] [--action NAMN --bildruta 30]
+Kör:  blender -b --python-exit-code 1 --python scen/qc_render.py -- --kameror topp film spelare_1 hel --ut qc --tagg bord [--docka assets/docka/standarddocka_danilo.blend] [--action NAMN --bildruta 30]
 """
 import argparse, math, sys
 from pathlib import Path
@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _bpy_hjalp import *  # noqa
 
 ap = argparse.ArgumentParser()
-ap.add_argument('--bord', default=str(ROOT / 'assets/bord/standardbord.blend'))
+ap.add_argument('--bord', default=str(ROOT / 'assets/bord/standardbord_live.blend'))
 ap.add_argument('--docka', default=None)
 ap.add_argument('--extra', nargs='*', default=[], help='fler .blend vars samlingar läggs till (t.ex. stolen)')
 ap.add_argument('--action', default=None)

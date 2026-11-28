@@ -66,7 +66,7 @@ def leder(arm):
 
 
 def handram(J, s):
-    """Handleden, framåt, handflatans normal (åt det håll handflatan vetter) och tummens sida, som prova_hander."""
+    """Handleden, framåt, handflatans normal (åt det håll handflatan vetter) och tummens sida."""
     w = J[s + 'Hand']; f = enhet(J[s + 'HandMiddle1'] - w)
     t = J[s + 'HandThumb2'] - w; t = enhet(t - (t @ f) * f)
     palm = np.cross(t, f) if s == 'Right' else np.cross(f, t)

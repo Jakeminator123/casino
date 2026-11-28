@@ -166,7 +166,7 @@ def stall_som_vyn(arm, vinkel):
         g = math.degrees(math.acos(float(np.clip(d0 @ d1, -1, 1))))
         if np.linalg.norm(ax) > 1e-6:
             vrid(arm, B[side + "Arm"], ax, g)
-        # handflatans normal (bort från handflatan, som prova_hander.handram) mot framåt (-Y), kring armens nya riktning
+        # handflatans normal (bort från handflatan) mot framåt (-Y), kring armens nya riktning
         w = varld(arm, B[side + "Hand"])
         f = varld(arm, B[side + "HandMiddle1"]) - w
         f /= np.linalg.norm(f)

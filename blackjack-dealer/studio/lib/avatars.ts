@@ -65,9 +65,8 @@ export const personName = (id: string) => id.charAt(0).toUpperCase() + id.slice(
 export function modelWord(m: Model): string {
   const base = m.name.replace(/\.glb$/, "");
   const known: Record<string, string> = {
-    standardbord: "Filmernas bord, spelets första", standardbord_nara: "Bordet i dockans rum (kanten 15 cm närmare)", standardbord_nara23: "Standarddockans bord (kanten 23 cm bakom spelets)",
-    standardbord_live: "Livebordet, vår klon", dealerstol: "Dealerns stol", standarddocka_man: "Standarddockan, mannen", standarddocka_kvinna: "Standarddockan, kvinnan",
-    standarddocka_man_ogon: "Mannen med ögon", standarddocka_kvinna_ogon: "Kvinnan med ögon", standarddocka_danilo: "Danilo (mätt på livebordet)", standarddocka_frasse: "Frasse (mätt på livebordet)",
+    standardbord_live: "Livebordet, vår klon", dealerstol: "Dealerns stol", standarddocka_man: "Mannen, dockornas grund",
+    standarddocka_danilo: "Danilo (mätt på livebordet)", standarddocka_frasse: "Frasse (mätt på livebordet)",
   };
   if (known[base]) return known[base];
   const who = /^standarddocka_([a-z]+)(?:_(.+))?$/.exec(base);

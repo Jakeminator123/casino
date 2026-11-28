@@ -16,8 +16,9 @@ PASSAS = ('sw', 'ua', 'fa', 'ht', 'huvud_h', 'huvud_b')
 # osäkerheten: ett mått som skiljer sig från grundens mindre än så tas inte ur bilderna. SAM ger axlarna nästan lika för
 # Kenji och Tomasz (0,373 och 0,368 m) fast Tomasz är den större: axelbredden är SAM:s minst säkra mått.
 KALIBRERING = {'facit': 'tomasz_matt', 'fel': {'sw': 0.022, 'ua': 0.008, 'fa': 0.006, 'ht': 0.024, 'huvud_h': 0.005, 'huvud_b': 0.005}}
-# Mannens huvud på hans egen modell (hjässan till hakan; blackjack-dealer/dealer3d/src/doll.ts MAN.place.headRadius x 2):
-# en grund med huvud_b None har mannens bredd i samma förhållande som höjden (bygg_docka.py bygg_en).
+# Mannens huvud på hans egen modell (hjässan till hakan, huden på Head, som blackjack-dealer/dealer3d/tools/docka-matt.ts mäter
+# den på assets/docka/standarddocka_man.glb, 2 x headRadius): en grund med huvud_b None har mannens bredd i samma förhållande som höjden
+# (bygg_docka.py bygg_en).
 MANNENS_HUVUD_H = 0.2262
 
 
@@ -42,5 +43,5 @@ def grundens_matt(grund: str) -> dict:
     if p.get('huvud_b') is None:
         p['huvud_b'] = man['huvud_b'] * p.get('huvud_h', MANNENS_HUVUD_H) / MANNENS_HUVUD_H
     p.setdefault('huvud_h', MANNENS_HUVUD_H)
-    p.setdefault('sw', 0.3753)   # mannens axelleder på hans modell (doll.ts MAN.place.shouldersApart; MPFB:s egna)
+    p.setdefault('sw', 0.3753)   # mannens axelleder på hans modell (docka-matt.ts på standarddocka_man.glb; MPFB:s egna)
     return {k: v for k, v in p.items() if isinstance(v, (int, float))}

@@ -29,7 +29,7 @@ hand i en skjortärm:
 6. Handens och fingrarnas ben byts mot dockans, flyttade på samma sätt (samma namn), och dockans vikter följer med
    hörnen: inget andra lager och ingen lagning ovanpå. Underarmarna får vridben med steg 6:s vridben.py innan handen
    kommer in med dockans egna, och manschettens kant stängs mot handleden med en stel ring (lapp).
-7. Exporten som steg 9 och 11, och kontrollen: handleden böjs 60 grader åt båda håll och vrids 80 grader åt båda håll
+7. Exporten som steg 9, och kontrollen: handleden böjs 60 grader åt båda håll och vrids 80 grader åt båda håll
    (new_docka.md 7.1b); för varje ställning räknas hörn som ligger inne i ärmen i vila och går ut genom tyget, och hur
    mycket manschettens kanter töjs.
 
@@ -38,7 +38,7 @@ hand i en skjortärm:
     blender -b --factory-startup --python-exit-code 1 --python steg/14-dockans-hander/dockans_hander.py -- \
         figur.glb docka.glb ut.glb [--hud <hud>] [--meshy-bild <png>] [--glapp 0.008] [--stump 0.035] [--skala <tal>]
 Figuren är en riggad dealer med Mixamo-ben och en påsatt hand (Version 1: assets/docka/standarddocka_<namn>.glb),
-dockan en grunddocka (assets/docka/standarddocka_man.glb, _danilo.glb). Rapporten blir <ut>.json. Med en hud bakas
+dockan en grunddocka (assets/docka/standarddocka_danilo.glb eller _frasse.glb). Rapporten blir <ut>.json. Med en hud bakas
 den i Cycles: kör under det delade låset, som allt som renderar.
 """
 import argparse, json, math, os, sys
@@ -164,7 +164,7 @@ def rot_kring(axel, vinkel):
 
 
 def handram(J, sida):
-    """Handleden, framåt (mot långfingrets knoge) och handflatans normal (åt det håll handflatan vetter), som prova_hander."""
+    """Handleden, framåt (mot långfingrets knoge) och handflatans normal (åt det håll handflatan vetter)."""
     w = J[sida + 'Hand']; f = enhet(J[sida + 'HandMiddle1'] - w)
     t = J[sida + 'HandThumb2'] - w; t = enhet(t - (t @ f) * f)
     palm = np.cross(t, f) if sida == 'Right' else np.cross(f, t)

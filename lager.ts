@@ -111,16 +111,15 @@ export const PLATSER: readonly Plats[] = [
   {id: 'personer', listas: 'Avatarer visar den', mapp: `${AP}/input`, namn: 'Bilderna av personerna', slag: 'personer', projekt: AP, git: false, ignore: `/${AP}/input/`, register: [`${AP}/vagar.json`], lasare: ['studion', 'verktyg'], gratis: false, delning: 'barn', visas: 'aldrig', radera: 'ja'},
   {id: 'korningar', listas: 'Avatarer visar den', mapp: `${AP}/output`, namn: 'Körningarna: en persons figur steg för steg', slag: 'figurer', projekt: AP, git: false, ignore: `/${AP}/output/`, register: [`${AP}/vagar.json`], lasare: ['studion', 'verktyg'], gratis: false, betald: true, delning: 'barnbarn', visas: 'media', radera: 'ja'},
   {id: 'dockor', mapp: `${AP}/assets/docka`, namn: 'Dockorna och personernas figurer', slag: 'figurer', projekt: AP, git: false, ignore: `/${AP}/assets/docka/*.json`, register: [`${BJ}/dealer3d/src/doll.ts`, `${AP}/vagar.json`], lasare: ['dockan', 'studion'], gratis: false, delning: 'barn', stam: true, visas: 'media', radera: 'ja'},
-  {id: 'bord', mapp: `${AP}/assets/bord`, namn: 'Borden', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [`${BJ}/dealer3d/page/server.ts`, `${SD}/editor/server.ts`], lasare: ['dockan', 'studion'], gratis: true, hur: 'byggs om av bordets skript', delning: 'barn', stam: true, utom: ['kort', 'texturer'], visas: 'media', radera: 'ja'},
+  {id: 'bord', mapp: `${AP}/assets/bord`, namn: 'Borden', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [`${BJ}/dealer3d/page/server.ts`, `${SD}/editor/server.ts`], lasare: ['dockan', 'studion'], gratis: false, hur: 'byggs om av bordets skript', delning: 'barn', stam: true, utom: ['kort', 'texturer'], visas: 'media', radera: 'ja'},
   // Indata till bordets bygge (avatar-auto-pipeline/scen/bygg_bord.py läser mapparna): inte gjort av bygget, så inte gratis att göra om.
   {id: 'kortens-bilder', mapp: `${AP}/assets/bord/kort`, namn: 'Kortens bilder till bordets bygge', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [`${AP}/assets/bord/kort/kallor.json`], lasare: ['verktyg'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Indata till bordets bygge: skriptet läser den.'},
   {id: 'bordets-texturer', mapp: `${AP}/assets/bord/texturer`, namn: 'Filtens, trämassans och läderkantens texturer till bordets bygge', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [`${AP}/assets/bord/texturer/kallor.json`], lasare: ['verktyg'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Indata till bordets bygge: skriptet läser den.'},
   {id: 'stol', mapp: `${AP}/assets/stol`, namn: 'Dealerns stol', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [`${BJ}/dealer3d/page/server.ts`], lasare: ['dockan', 'studion'], gratis: true, hur: 'byggs om av stolens skript', delning: 'barn', stam: true, visas: 'media', radera: 'ja'},
-  {id: 'meshy', mapp: `${AP}/assets/meshy`, namn: 'Stolen som Meshy gjorde', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [], lasare: ['ingen'], gratis: false, betald: true, delning: 'barn', stam: true, visas: 'media', radera: 'ja'},
+  {id: 'meshy', mapp: `${AP}/assets/meshy`, namn: 'Stolen som Meshy gjorde', slag: 'foremal', projekt: AP, git: false, ignore: null, register: [], lasare: ['verktyg'], gratis: false, betald: true, delning: 'barn', stam: true, visas: 'media', radera: 'aldrig', aldrig: 'Indata till stolens bygge (scen/bygg_stol.py läser den), och betald.'},
   {id: 'kontrollbilder', mapp: `${AP}/qc`, namn: 'Kontrollbilderna från Blender-skripten', slag: 'tillfalligt', projekt: AP, git: false, ignore: `/${AP}/**/qc/`, register: [], lasare: ['verktyg'], gratis: true, hur: 'skripten gör dem igen vid nästa bygge', delning: 'barn', visas: 'media', radera: 'ja'},
-  {id: 'aldre-rorelsekatalog', mapp: `${AP}/rorelser`, namn: 'En äldre rörelsekatalog, som ska föras in i rörelseschemat', slag: 'rorelser', projekt: AP, git: true, ignore: null, register: [], lasare: ['ingen'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: GIT},
-  // ── standarddocka: dockans editor ──
-  {id: 'inspelningar', mapp: `${SD}/klipp`, namn: 'Dockans inspelningar i editorn', slag: 'dockfilmer', projekt: SD, git: false, ignore: `/${SD}/**/klipp/`, register: [`${SD}/rorelsekatalog.json`], lasare: ['dockan', 'studion'], gratis: true, hur: 'editorn filmar rörelsen igen', delning: 'barn', stam: true, visas: 'media', radera: 'ja'},
+  // ── standarddocka: dockans editor. Inspelningarna heter efter lyftet de är gjorda av (lyftetFor nedan). ──
+  {id: 'inspelningar', mapp: `${SD}/klipp`, namn: 'Dockans inspelningar i editorn', slag: 'dockfilmer', projekt: SD, git: false, ignore: `/${SD}/**/klipp/`, register: [`${BJ}/dealer3d/data/lyft-*.json`], lasare: ['dockan', 'studion'], gratis: true, hur: 'editorn filmar rörelsen igen', delning: 'barn', stam: true, visas: 'media', radera: 'ja'},
   // ── live-bj: mätningen av livebordet. Film av riktiga dealrar: visas aldrig, bara storlek och antal. ──
   {id: 'livefilmen', mapp: `${LB}/video`, namn: 'Filmen från livebordet', slag: 'matdata', projekt: LB, git: false, ignore: `/${LB}/video/`, register: [], lasare: ['verktyg'], gratis: false, delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Film av riktiga dealrar: den mäts bara, och sköts i livebordets mätning.'},
   {id: 'liverutor', mapp: `${LB}/rutor`, namn: 'Rutorna ur livefilmen', slag: 'matdata', projekt: LB, git: false, ignore: `/${LB}/rutor/`, register: [], lasare: ['verktyg'], gratis: true, hur: 'skärs ur filmen igen', delning: 'ingen', visas: 'aldrig', radera: 'aldrig', aldrig: 'Bilder av riktiga dealrar: de sköts i livebordets mätning.'},
@@ -142,7 +141,8 @@ export const UTANFOR: readonly {ignore: string; varfor: string}[] = [
 const ROTTER = [`${BJ}/assets`, `${AP}/assets`];
 
 // ---- var en enhet används --------------------------------------------------------------------------------------
-/** Filerna som pekar på det som lagras, med vad de är. En `*` står för en post i mappen. Läses som text. */
+/** Filerna som pekar på det som lagras, med vad de är. En `*` står för en post i mappen. Läses som text; i koden (kod) utan
+ *  kommentarer, så att en kommentar som nämner en modell inte räknas som att koden läser den. */
 export const PEKARE: readonly {fil: string; ord: string; en: string; flera: string; kod?: boolean}[] = [
   {fil: `${BJ}/dealer3d/src/doll.ts`, ord: 'Dockornas mått i koden', en: 'Dockornas kod nämner den', flera: '', kod: true},
   {fil: `${BJ}/dealer3d/src/persondockor.ts`, ord: 'Persondockorna i koden', en: 'Persondockornas register nämner den', flera: '', kod: true},
@@ -150,6 +150,9 @@ export const PEKARE: readonly {fil: string; ord: string; en: string; flera: stri
 
   {fil: `${SD}/editor/server.ts`, ord: 'Dockans editor', en: 'Dockans editor laddar den', flera: '', kod: true},
   {fil: `${SD}/editor/scen.ts`, ord: 'Dockans editor', en: 'Dockans editor laddar den', flera: '', kod: true},
+  {fil: `${AP}/ny_dealer.py`, ord: 'En ny dealer ur bilder', en: 'En ny dealer ur bilder läser den', flera: '', kod: true},
+  {fil: `${AP}/scen/bygg_stol.py`, ord: 'Stolens bygge', en: 'Stolens bygge läser den', flera: '', kod: true},
+  {fil: `${AP}/steg/09-ansikte/ansikte.py`, ord: 'Ansiktssteget', en: 'Ansiktssteget lånar den', flera: '', kod: true},
   {fil: `${AP}/vagar.json`, ord: 'Avatarernas vägar', en: 'Avatarernas vägar pekar på den', flera: ''},
   {fil: `${SD}/rorelsekatalog.json`, ord: 'Rörelseschemat', en: 'Rörelseschemat nämner den', flera: ''},
   {fil: `${BJ}/data/rendered-references.json`, ord: 'Dockans filmer för beställningarna', en: 'Beställningarna tar den som dockans film', flera: ''},
@@ -255,8 +258,17 @@ export function namnAv(namn: string): string {
 }
 /** En persons namn: stor bokstav i varje del ("Amara Okonkwo"). */
 export const personNamn = (mapp: string) => mapp.split(/[-_]+/).filter(Boolean).map(stor).join(' ');
-/** Standarddockorna byggs av sitt skript ur koden (avatar-auto-pipeline/scen/bygg_docka.py): de går att göra om gratis. */
-const STANDARDDOCKA = /^standarddocka_(?:man|kvinna|danilo|frasse)(?:_ogon)?$/;
+/** Det som byggs av sitt skript ur koden går att göra om gratis: standarddockorna (avatar-auto-pipeline/scen/bygg_docka.py, och
+ *  mannen, grunden) och livebordet (scen/bygg_bord.py, också med markerbrickan). */
+const BYGGS: Record<string, RegExp> = {dockor: /^standarddocka_(?:man|danilo|frasse)$/, bord: /^standardbord_live(?:_bricka)?$/};
+/** Lyftet en inspelning i editorn är gjord av, ur namnet (live-lyft-<lyftet>-…, live-sekvens-…-<delen>-…-<docka>), som Spegla
+ *  (blackjack-dealer/tools/spegla-routes.ts) och Schemat (tools/schema-routes.ts) hittar den; lyften är dealer3d/data/lyft-*. */
+export function lyftetFor(namn: string, lyften: readonly string[]): string | null {
+  if (namn.startsWith('live-lyft-')) return [...lyften].sort((a, b) => b.length - a.length).find(l => `lyft-${namn.slice('live-lyft-'.length)}`.startsWith(`${l}-`)) ?? null;
+  if (!namn.startsWith('live-sekvens-')) return null;
+  const docka = namn.replace(/(?:-(?:nyckel|liv))+$/, '').split('-').at(-1) ?? '';
+  return lyften.find(l => l.startsWith(`lyft-${docka}-`) && namn.includes(`-${l.slice(`lyft-${docka}-`.length)}-`)) ?? null;
+}
 /** En fil att visa för en enhet: en bild före en film före en modell, högst två nivåer ner. */
 function bildI(casino: string, rel: string): string | null {
   const abs = path.join(casino, rel);
@@ -296,12 +308,14 @@ function poster(casino: string, p: Plats, mapp: string, git: ReadonlySet<string>
   return [];
 }
 
+/** Koden utan de rader som bara är kommentar (//, /*, * och i Python #). */
+const utanKommentarer = (fil: string, text: string) => text.split('\n').filter(l => { const s = l.trimStart(); return !(fil.endsWith('.py') ? s.startsWith('#') : /^(?:\/\/|\/\*|\*)/.test(s)); }).join('\n');
 /** Texterna i PEKARE, lästa en gång. */
 export function pekarTexter(casino: string): {fil: string; text: string; def: (typeof PEKARE)[number]}[] {
   const ut: {fil: string; text: string; def: (typeof PEKARE)[number]}[] = [];
   for (const def of PEKARE) {
     const filer = def.fil.includes('*') ? mapparAv(casino, {mapp: def.fil.replace(/\/[^/]*$/, '')}).flatMap(d => { const sista = def.fil.split('/').at(-1)!; if (sista === '*') { try { return readdirSync(path.join(casino, d)).filter(f => f.endsWith('.json')).map(f => `${d}/${f}`); } catch { return []; } } return [`${d}/${sista}`]; }) : [def.fil];
-    for (const fil of filer) { try { ut.push({fil, text: readFileSync(path.join(casino, fil), 'utf8'), def}); } catch { /* finns inte här */ } }
+    for (const fil of filer) { try { const text = readFileSync(path.join(casino, fil), 'utf8'); ut.push({fil, text: def.kod ? utanKommentarer(fil, text) : text, def}); } catch { /* finns inte här */ } }
   }
   return ut;
 }
@@ -408,6 +422,7 @@ export function platsMatt(casino: string, p: Plats, ctx: Las): PlatsMatt {
         anvands: anvandningAv(id, ctx.texter), gratis: p.gratis, ...(p.id === 'prov' ? {dom: hisWord(namn, ctx.ord.cards, ctx.ord.notes)} : {}), bank: {use: i.use, why: i.why, what: i.what, judged: i.judged ?? null}});
     }
   } else if (ctx.enheter !== false && p.delning !== 'ingen') {
+    const lyften = p.id === 'inspelningar' ? (() => { try { return readdirSync(path.join(casino, BJ, 'dealer3d/data')).filter(f => /^lyft-.*\.json$/.test(f)).map(f => f.slice(0, -5)); } catch { return []; } })() : null;
     for (const mapp of mappar) for (const r of poster(casino, p, mapp, ctx.git)) {
       const mm = r.filer.length ? r.filer.map(f => mat(path.join(casino, f))).reduce((a, b) => ({bytes: a.bytes + b.bytes, files: a.files + b.files, newest: Math.max(a.newest, b.newest)}), {bytes: 0, files: 0, newest: 0}) : mat(path.join(casino, r.rel), [], avGit);
       const git = r.filer.length ? 0 : [...ctx.git].filter(g => g.startsWith(`${r.rel}/`)).length;
@@ -416,8 +431,9 @@ export function platsMatt(casino: string, p: Plats, ctx: Las): PlatsMatt {
       const namn = p.mapp.includes('*') ? `${personNamn(r.rel.split('/')[1])}: ${r.namn}` : r.namn;
       enheter.push({id: r.rel, plats: p.id, namn, bytes: mm.bytes, files: mm.files, andrad: mm.newest ? new Date(mm.newest).toISOString() : '', filer: r.filer,
         bild: p.visas === 'media' ? (r.filer.length ? r.filer.find(f => BILD.test(f)) ?? r.filer.find(f => MEDIA.test(f)) ?? null : bildI(casino, r.rel)) : null,
-        anvands: [...(p.listas ? [{ord: 'Avatarer', antal: 1, fil: '', kod: false, text: p.listas}] : []), ...anvandningAv(r.rel, ctx.texter)],
-        gratis: p.gratis || (p.id === 'dockor' && STANDARDDOCKA.test(stam)), ...(p.vantar ? domOf(sista) : {}), ...(git ? {git} : {})});
+        anvands: [...(p.listas ? [{ord: 'Avatarer', antal: 1, fil: '', kod: false, text: p.listas}] : []), ...anvandningAv(r.rel, ctx.texter),
+          ...(lyften && [r.rel, ...r.filer].some(f => f.endsWith('.mp4')) && lyftetFor(stam, lyften) ? [{ord: 'Spegla och Schemat', antal: 1, fil: `${BJ}/tools/spegla-routes.ts`, kod: true, text: 'Spegla och Schemat visar den'}] : [])],
+        gratis: p.gratis || !!BYGGS[p.id]?.test(stam), ...(p.vantar ? domOf(sista) : {}), ...(git ? {git} : {})});
     }
   }
   for (const mapp of mappar) { const x = mat(path.join(casino, mapp), utom, avGit); m = {bytes: m.bytes + x.bytes, files: m.files + x.files, newest: Math.max(m.newest, x.newest)}; }

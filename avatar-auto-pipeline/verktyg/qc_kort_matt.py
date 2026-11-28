@@ -1,4 +1,5 @@
-"""Verifierar i Blender att alla kort och guldramar i standardbord.blend har exakt världsstorlek (63 x 88 mm / 71 x 96 mm).
+"""Verifierar i Blender att alla kort och guldramar i livebordet (standardbord_live.blend) har världsstorlek (kortet
+63 x 88 mm, CARD i blackjack-dealer/src/space.ts, och ramen 4 mm runt det; scen/standard.yaml kort).
 Steg 1 (Blender): blender -b --factory-startup --python-exit-code 1 --python verktyg/qc_kort_matt.py
 Steg 2 (Python+Pillow): python verktyg/qc_kort_matt.py qc/bord_topp.png qc/kort_topp_matt.png
 """
@@ -13,7 +14,7 @@ RAPPORT = slask('bygge') / 'kort-matt-rapport.json'
 if 'bpy' in sys.modules or any(a.endswith('blender.exe') or 'blender' in Path(a).name.lower() for a in sys.argv[:1]):
     import bpy
     from mathutils import Vector
-    bpy.ops.wm.open_mainfile(filepath=str(ROOT / 'assets' / 'bord' / 'standardbord.blend'), load_ui=False)
+    bpy.ops.wm.open_mainfile(filepath=str(ROOT / 'assets' / 'bord' / 'standardbord_live.blend'), load_ui=False)
     bpy.context.view_layer.update()
     cards, frames, shoe_cards = [], [], []
     for ob in sorted(bpy.data.objects, key=lambda o: o.name):
@@ -52,7 +53,7 @@ else:
         g.rectangle([x - 42, y + 32, x + 42, y + 60], fill=(255, 255, 255))
         g.text((x - 39, y + 34), lbl, fill=(0, 0, 0))
     g.rectangle([8, 8, 960, 56], fill=(255, 255, 255))
-    g.text((14, 12), f"Ortografiskt kortmatt-bevis (standardbord.blend): alla {len(cards)} giv-kort = 63.0 x 88.0 x 0.3 mm (scale 1.0), alla {len(rapport['markering_ramar'])} ramar = 71.0 x 96.0 mm", fill=(0, 0, 0))
-    g.text((14, 30), "Perspektivskillnad i filmvyn beror endast pa kamerans vinkel (25.1 deg) + tomma C2-ramar bredvid C1 - ingen 87%-skalning.", fill=(20, 90, 20))
+    giv = sorted({f"{c['dim_mm'][0]:.1f} x {c['dim_mm'][1]:.1f} x {c['dim_mm'][2]:.1f}" for c in cards})
+    g.text((14, 12), f"Ortografiskt kortmatt-bevis (standardbord_live.blend): {len(cards)} giv-kort, {', '.join(giv)} mm, och {len(rapport['markering_ramar'])} ramar", fill=(0, 0, 0))
     im.save(ut_png)
     print('ok', ut_png)

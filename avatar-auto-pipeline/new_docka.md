@@ -10,7 +10,7 @@ Reglerna står i `AGENTS.md`, mapparna och kommandona i `README-SV.md`. Måtten 
 
 Målet är en **riggad 3D-dealer** som kan återanvändas i projektet `blackjack-dealer`:
 
-1. Bygg en **neutral grunddocka** (kvinna och man, samma skelett) i en **standardscen** som följer spelets kamera, bord, kort och sko.
+1. Bygg **dockor med samma skelett på en neutral grund** (mannen) i en **standardscen** som följer spelets kamera, bord, kort och sko.
 2. Programmera ungefär **40 rörelser** (till exempel *giv till spelare 5*) som Blender-Actions på det skelettet.
 3. Rendera varje rörelse till ett trovärdigt klipp på **2–20 sekunder**, med kort, händer och sittplatser på rätt ställe.
 4. **Valfritt:** förädla klippet i en filmmodell (Runway Aleph, Luma, Kling Motion Control, Act-Two, Wan Animate) så att ljus, hud och bakgrund känns mer levande – men **rörelsen ska redan stämma i 3D**. Byt inte ut 3D-grunden mot en ren text-till-film-prompt; då försvinner precisionen vid bordet.
@@ -35,11 +35,11 @@ Det finns **två vägar** som möts i samma standardscen och samma skelett. Alla
 | --- | --- | --- |
 | A. Läs spelet | `scen/las_spelet.ts` läser spelets kod i `../blackjack-dealer`, och `scen/gen_standard.py` skriver `scen/standard.yaml` med källan på varje rad. Måttfilen ändras aldrig för hand. | `python scen/gen_standard.py` |
 | B. Bygg bordet | Procedurellt ur YAML: livebordet (filten en halvcirkel, rullen, sargen, benen), skon, lådan för använda kort, 52 kort, kortplatsernas markeringar och insatsringarna, utan markerbricka; `-- --med-bricka` lägger vår markerbricka vid kanten (`standardbord_live_bricka.*`). | `blender -b --factory-startup --python-exit-code 1 --python scen/bygg_bord.py` |
-| C. Bygg dockorna | MPFB 2.0.18: grunddockorna kvinna och man med identiskt skelett och människans mått, och på mannens grund dockorna med mätta mått (Danilo, Frasse, Tomasz och personerna i `personer/`; avsnitt 6). Utan `--kon` byggs kvinnan och mannen, `-- --kon <docka>` bygger en. Kräver MPFB, därför inte `--factory-startup`. `-- --namn N` skriver `standarddocka_<docka>_N.*` (prov) i stället för de modeller som används. | `blender -b --python-exit-code 1 --python scen/bygg_docka.py` |
+| C. Bygg dockorna | MPFB 2.0.18: dockorna med identiskt skelett, alla på mannens grund (människans mått för en man på 1,75 m) med sina mätta mått (Danilo, Frasse, Tomasz och personerna i `personer/`; avsnitt 6). `-- --kon <docka>` bygger en; utan `--kon` säger skriptet vilka dockor som finns. Kräver MPFB, därför inte `--factory-startup`. `-- --namn N` skriver `standarddocka_<docka>_N.*` (prov) i stället för de modeller som används. | `blender -b --python-exit-code 1 --python scen/bygg_docka.py -- --kon <docka>` |
 | D. Bygg stolen | Meshy-stol skalad till `stol.sits_z` / `sits_mitt`. | `blender -b --factory-startup --python-exit-code 1 --python scen/bygg_stol.py` |
 | E. Importera en rörelse | dealer3d-JSON → Blender-Action på en docka. | se avsnitt 8 |
 | F. QC | Rendera fasta kameror, måttöverlägg, kontroll mot spelets kortpixlar. | se avsnitt 9 |
-| G. Katalog + klipp | En rad i `rorelser/katalog.yaml` per rörelse (`id`, `namn`, `langd_s` 2–20, `seat`, `status`). En rörelse = en Action. Rendera 2–20 s. | headless `blender -b --python …` |
+| G. Rörelser och klipp | En rörelse står i rörelseschemat (`../standarddocka/rorelsekatalog.json`). En rörelse = en Action. Rendera 2–20 s. | headless `blender -b --python …` |
 | H. Valfri filmförädling | Runway Aleph / Luma / Kling / Act-Two, med 3D-klippet som rörelsestyrning. **Bara med Jakobs ja** (betalt). | – |
 
 ### 3.2 Gamla vägen: avatar-auto-pipeline steg 01–08 (från foton)
@@ -57,8 +57,6 @@ Skripten i `steg/` bygger en **specifik dealer från fotografier** via Meshy, in
 | 07 | `steg/07-qc/` | QC-översikt (helkropp, ansikte, handleder). |
 | 08 | `steg/08-film/` | Animera dealern i en filmscen (`animera_dealer.py`). Ny standardscen ska användas i stället för ad hoc-bord. |
 | 09 | `steg/09-ansikte/` | Prov, körs för hand: en färdig dealer får standarddockans 30 ansiktsformer på sitt eget huvud, ögonleder med en glob per öga och käkleden (`ansikte.py`); munnen skärs upp. |
-| 10 | `steg/10-kropp-i-ett-stycke/` | Prov, körs för hand: en kropp ur Runway (Hunyuan 3D 3.1 Pro) med hand och arm i ett stycke blir en docka utan påsatta händer. Meshy-huvudet sys på och händerna märks som Handpar (`montera_huvud.py`), skelett och vikter lånas av en färdig docka, armbågen och handleden läggs i kroppens egen arm och fingrarna sätts med steg 5:s `fit_fingers` i handens egen ram (`rigga.py`, `fingrar_handflata.py`: handflatan pekar framåt i Hunyuans A-pose). `prova_hander.py` knyter handen och nyper på vilken dealer som helst. |
-| 11 | `steg/11-pa-dockans-grund/` | Prov, körs för hand: en färdig dealer sätts på en grunddockas skelett (Danilo eller Frasse), led för led, så att han spelar dockans rörelser utan skalning (`pa_grund.py`). Armar, ben och fingrar vrids och sträcks ben för ben till dockans leder och längder, bålen och handflatan formas mjukt genom lederna, huvudet flyttas utan att formas om, och ytan binds till dockans armatur med sina egna vikter; fingrarna behåller sin egen krökning i vila. |
 
 Körning via `auto_avatar.py` / `STARTA avatar.cmd`. Nycklar i `.env`. Betalda steg sparar kvitton i stegmappen. Steg
 12–15 och `ny_dealer.py` (en ny dealer ur bilder, en rad) står i `README-SV.md`.
@@ -198,28 +196,28 @@ Stolen syns inte i filmen. `sits_z` 0,67 m (slutlett: `LIVE.floor.seatOverFloor`
 
 ## 6. Dockorna
 
-Två grunddockor med **100 % identiskt skelett och samma bennamn**, så att alla Actions kan återanvändas rakt av. Motor: **MPFB 2.0.18** (CC0-tillgångar) + Mixamo-inbyggt skelett, namn utan `mixamorig:`-prefix, `neck` med litet n.
+Dockorna har **100 % identiskt skelett och samma bennamn**, så att alla Actions kan återanvändas rakt av, och samma grund: mannen. Motor: **MPFB 2.0.18** (CC0-tillgångar) + Mixamo-inbyggt skelett, namn utan `mixamorig:`-prefix, `neck` med litet n.
 
-Måtten är en människas för kön och längd: MPFB:s egen kropp för könet och längden, och där den avviker flyttad till medlet i ANSUR II (US Army 2012, personer av samma kön och längd ±2 cm). Talen och källorna står i `MATT` i `scen/bygg_docka.py`; bygget skriver vad det blev i `docka-rapport-<namn>.json` (slasken, `bygge/`).
+Grundens mått är en människas för en man på 1,75 m: MPFB:s egen kropp för en man och längden, och där den avviker flyttad till medlet i ANSUR II (US Army 2012, män av samma längd ±2 cm). Talen och källorna står i `MATT` i `scen/bygg_docka.py`; bygget skriver vad det blev i `docka-rapport-<namn>.json` (slasken, `bygge/`).
 
-| | Kvinna | Man |
-| --- | --- | --- |
-| Fil | `assets/docka/standarddocka_kvinna.blend/.glb` | `assets/docka/standarddocka_man.blend/.glb` |
-| MPFB `gender` | 0,0 | 1,0 |
-| Stående längd | 1,65 m | 1,75 m |
-| Axelleder isär | 0,337 m (akromion 368 mm, ANSUR 368) | 0,375 m, MPFB:s egen (akromion 418 mm, ANSUR 415) |
-| Överarm / underarm (leder) | 0,263 / 0,249 m | 0,279 / 0,272 m |
-| Armarnas omkrets: underarm som tjockast / handled / överarm mitt | 255 / 150 / 285 mm | 290 / 170 / 320 mm |
-| Hand / fot | 182 / 249 mm | 193 / 271 mm |
-| Höftled → axelleder (lodrätt) | 0,463 m, MPFB:s egen | 0,483 m |
-| Höftled / knäled över golvet | 0,851 / 0,459 m, MPFB:s egna | 0,903 / 0,490 m |
-| Huvudets bredd | 142 mm, MPFB:s egen | 152 mm |
+| | Mannen (grunden) |
+| --- | --- |
+| Fil | `assets/docka/standarddocka_man.blend/.glb` (`--kon man`), bara som figuren `verktyg/mat_figur.py` mäter en person bredvid |
+| MPFB `gender` | 1,0 |
+| Stående längd | 1,75 m |
+| Axelleder isär | 0,375 m, MPFB:s egen (akromion 418 mm, ANSUR 415) |
+| Överarm / underarm (leder) | 0,279 / 0,272 m |
+| Armarnas omkrets: underarm som tjockast / handled / överarm mitt | 290 / 170 / 320 mm |
+| Hand / fot | 193 / 271 mm |
+| Höftled → axelleder (lodrätt) | 0,483 m |
+| Höftled / knäled över golvet | 0,903 / 0,490 m |
+| Huvudets bredd | 152 mm |
 
-Passningen sker med MPFB-targets, alla mått tillsammans (de rör varandra, och allt följer skalningen till längden): armarnas längd (`arms/measure-upperarm-length`, `measure-lowerarm-length`), armarnas tjocklek (underarmens tvärsnitt med `arms/*-lowerarm-scale-depth` och `-scale-vert`, handleden med `hands/measure-wrist-circ`, överarmen med `arms/measure-upperarm-circ`; `-scale-horiz` förlänger underarmen och används inte), händerna och fötterna, kvinnans axlar (`torso/measure-shoulder-dist`), och mannens ben (`legs/measure-upperleg-height`, `measure-lowerleg-height`), bål (`torso/measure-napetowaist-dist`), hals (`neck/measure-neck-height`, som tar det benen lämnar så att huvudet behåller sin storlek) och huvudets bredd (`head/head-scale-horiz`). Omkretsen mäts som ett måttband (konvext hölje) i ett snitt genom huden vinkelrätt mot benet.
+Passningen sker med MPFB-targets, alla mått tillsammans (de rör varandra, och allt följer skalningen till längden): armarnas längd (`arms/measure-upperarm-length`, `measure-lowerarm-length`), armarnas tjocklek (underarmens tvärsnitt med `arms/*-lowerarm-scale-depth` och `-scale-vert`, handleden med `hands/measure-wrist-circ`, överarmen med `arms/measure-upperarm-circ`; `-scale-horiz` förlänger underarmen och används inte), händerna och fötterna, benen (`legs/measure-upperleg-height`, `measure-lowerleg-height`), bål (`torso/measure-napetowaist-dist`), hals (`neck/measure-neck-height`, som tar det benen lämnar så att huvudet behåller sin storlek) och huvudets bredd (`head/head-scale-horiz`). Omkretsen mäts som ett måttband (konvext hölje) i ett snitt genom huden vinkelrätt mot benet.
 
 **Danilo och Frasse** (`standarddocka_danilo` och `standarddocka_frasse`, `--kon danilo|frasse`) är två män med mått mätta
 på dealrar i en film (`live-bj/data/uppsattning.json`, `dealer.kameran.body` och `dealer.bordet.body`), med samma skelett,
-ansiktsformer och ansikte (7.8) som standarddockorna. Bara måtten följer med, inget av personernas utseende. Kroppen börjar
+ansiktsformer och ansikte (7.8) som grunden. Bara måtten följer med, inget av personernas utseende. Kroppen börjar
 som mannens och får hans armar, händer, fötter, ben, bål och hals (därför samma rörelser), och det som mättes: axellederna
 isär 0,357 / 0,348 m (`torso/measure-shoulder-dist`) och hakan till hjässan 0,228 / 0,210 m, skattad (`head/head-scale-vert`
 och `-scale-depth` lika, bredden med `head/head-scale-horiz` i samma förhållande, så att ansiktet bara blir mindre). Halsen
@@ -247,26 +245,26 @@ Kläder finns inte på grunddockan (naken mesh för QC). Se avsnitt 10.
 
 ## 7. Skelett, leder, IK och ansikte
 
-**81 ben totalt**, varav **71 deformerande**: 77 som förut och två vridben i varje underarm (7.1b). Hierarki (föräldern inom parentes där det hjälper). Längder nedan är kvinnans / mannens, ur byggena.
+**81 ben totalt**, varav **71 deformerande**: 77 som förut och två vridben i varje underarm (7.1b). Hierarki (föräldern inom parentes där det hjälper). Längder nedan är mannens (grundens), ur bygget.
 
 ### 7.1 Kropp och ben (Mixamo-namn, utan prefix)
 
 | Ben | Förälder | Längd (m) | Roll |
 | --- | --- | --- | --- |
 | rot | – | – | Rot; IK-kontroller hänger här. Deformerar inte. |
-| Hips | rot | 0,124 / 0,090 | Höft / pelvis |
-| Spine, Spine1, Spine2 | Hips → … | 0,106 / 0,122 / 0,148 och 0,107 / 0,140 / 0,223 | Ryggrad till axelgördel |
-| neck | Spine2 | 0,064 / 0,062 | Nacke (`neck` med litet n, som dealer3d) |
-| Head | neck | 0,192 / 0,214 | Huvud |
-| Left-/RightShoulder | Spine2 | 0,123 / 0,130 och 0,142 / 0,137 | Nyckelben |
-| Left-/RightArm | Shoulder | 0,263 / 0,279 | Överarm |
-| Left-/RightForeArm | Arm | 0,249 / 0,272 | Underarm |
-| Left-/RightForeArmTwist1, Twist2 | ForeArm | 0,083 / 0,091 var | Vridben i underarmen (7.1b) |
-| Left-/RightHand | ForeArm | 0,079 / 0,083 | Handlov |
-| Left-/RightUpLeg | Hips | 0,395 / 0,417 | Lår |
-| Left-/RightLeg | UpLeg | 0,390 / 0,420 | Underben |
-| Left-/RightFoot | Leg | 0,153 / 0,157 | Fot |
-| Left-/RightToeBase | Foot | 0,056 / 0,058 | Tå |
+| Hips | rot | 0,090 | Höft / pelvis |
+| Spine, Spine1, Spine2 | Hips → … | 0,107 / 0,140 / 0,223 | Ryggrad till axelgördel |
+| neck | Spine2 | 0,062 | Nacke (`neck` med litet n, som dealer3d) |
+| Head | neck | 0,214 | Huvud |
+| Left-/RightShoulder | Spine2 | 0,142 / 0,137 | Nyckelben |
+| Left-/RightArm | Shoulder | 0,279 | Överarm |
+| Left-/RightForeArm | Arm | 0,272 | Underarm |
+| Left-/RightForeArmTwist1, Twist2 | ForeArm | 0,091 var | Vridben i underarmen (7.1b) |
+| Left-/RightHand | ForeArm | 0,083 | Handlov |
+| Left-/RightUpLeg | Hips | 0,417 | Lår |
+| Left-/RightLeg | UpLeg | 0,420 | Underben |
+| Left-/RightFoot | Leg | 0,157 | Fot |
+| Left-/RightToeBase | Foot | 0,058 | Tå |
 
 ### 7.1b Vridben i underarmen
 
@@ -282,13 +280,13 @@ En underarm som vrids mer än cirka 60 grader på `ForeArm` nyper huden vid armb
 
 Per hand, alla med förälder `*Hand` för länk 1 och sedan kedja 1→2→3:
 
-| Ben | Längd kvinna / man (m) |
+| Ben | Längd (m) |
 | --- | --- |
-| *HandThumb1 / 2 / 3 | 0,030 / 0,036 / 0,028 och 0,032 / 0,038 / 0,029 |
-| *HandIndex1 / 2 / 3 | 0,025 / 0,023 / 0,027 och 0,027 / 0,024 / 0,028 |
-| *HandMiddle1 / 2 / 3 | 0,033 / 0,027 / 0,027 och 0,035 / 0,029 / 0,028 |
-| *HandRing1 / 2 / 3 | 0,029 / 0,024 / 0,026 och 0,031 / 0,026 / 0,028 |
-| *HandPinky1 / 2 / 3 | 0,021 / 0,015 / 0,020 och 0,022 / 0,016 / 0,021 |
+| *HandThumb1 / 2 / 3 | 0,032 / 0,038 / 0,029 |
+| *HandIndex1 / 2 / 3 | 0,027 / 0,024 / 0,028 |
+| *HandMiddle1 / 2 / 3 | 0,035 / 0,029 / 0,028 |
+| *HandRing1 / 2 / 3 | 0,031 / 0,026 / 0,028 |
+| *HandPinky1 / 2 / 3 | 0,022 / 0,016 / 0,021 |
 
 ### 7.3 Ansiktsben under Head (16 st, inklusive headfront)
 
@@ -366,7 +364,7 @@ skelettet, bennamnen, ansiktsformerna och kroppens mått är desamma som utan de
   förblir en mesh med ett material, i glTF en enda primitiv med `COLOR_0` (three.js läser den som vertexfärg). Flera
   material hade blivit flera primitiver, och `dealer3d/tools/modell.ts` läser bara den första.
 - **Ögonen:** en glob per öga, vikt 1 på `eye.L`/`eye.R`, med mitten i benets huvud (MPFB:s ögonklot ligger 0,1–0,6 mm
-  därifrån) och dess radie (mannen 16,2 mm, kvinnan 15,3 mm). Irisen och pupillen är ringar kring polen rakt fram, dit
+  därifrån) och dess radie (mannen 16,2 mm). Irisen och pupillen är ringar kring polen rakt fram, dit
   `figure-model.ts` räknar att ögat ser i vila, så de följer benet när blicken vrids.
 - **Brynen:** en tunn yta 0,6 mm utanför huden över varje öga; varje hörn är bundet till huden under sig, med hudens
   vikter och ansiktsformer interpolerade, så brynet följer `browInnerUp`, `browOuterUp*` och `browDown*`.
@@ -447,7 +445,7 @@ Betalda Meshy-/Runway-steg bara med Jakobs ja.
 | --- | --- | --- |
 | Procedurellt bord, kort, sko, bricka, chips | Meshy eller färdiga modeller | Exakta mått och upprepbarhet. En millimeter fel på ett kort syns i filmlinsen. Meshy vinner när formen är organisk och måtten lösa – därför är **stolen** det enda Meshy-objektet. |
 | MPFB2 + Mixamo-ben | Rigify, eller Meshy-rig som grund | dealer3d och Mixamo-biblioteket förväntar `RightArm` / `RightForeArm` / `neck` / `Head`. Rigify har andra namn och skulle kräva en ständig omnamningsbrygga. MPFB ger mätbara proportioner och CC0-kropp. |
-| Två kön, ett skelett | En docka, eller unikt skelett per dealer | Actions återanvänds. Kön är mesh + mått, inte en ny rig. |
+| Ett skelett för alla dockor | Unikt skelett per dealer | Actions återanvänds. En dealer är mått och yta, inte en ny rig. |
 | Livebordet, mätt på film, som enda bord | Ett eget ritat bord | Rörelserna är lyfta ur filmen av samma bord: kameran, kortplatserna och skon måste vara filmens för att händerna ska hamna där kortet ligger. |
 | Rörelser lyfta ur film av riktiga dealrar | Ren text-till-rörelse, eller givar ritade med regler | Handen ska hamna där kortet ska ligga, och rörelsen ska vara en människas (`../live-bj/`, `lyft-till-docka.ts`). AI-motion (Meshy Text to Motion, Kimodo, …) är bra utkast för vila/andning, sällan tillräckligt för en giv. |
 | Mocap-rekommendation | – | Filma en giv med kroppen tydlig (Rokoko Vision, QuickMagic, DeepMotion, ev. Tencent FlowHMR lokalt). Retargeta till standarddockan. Räkna med extra arbete på händer och kortkontakt. Mixamo-biblioteket är bra för vila, inte för casino-givar. |
@@ -484,12 +482,12 @@ Provdealern Rosalina, gjord från foton (cirka 95 krediter), raderades 2026-11-2
 
 ## 14. Kända brister och nästa steg
 
-- Rörelsekatalogen är inte fylld med ~40 färdiga, godkända klipp. Nästa stora arbete efter standardscenen.
+- Rörelserna som saknas står i rörelseschemat (`../standarddocka/rorelsekatalog.json`).
 - Grunddockan saknar kläder (medvetet). Nästa steg: skjorta/väst/byxor som separata mesh på samma rig.
 - Vägen från foton (steg 01–08) är inte kopplad till standardscenen: steg 08 bygger sitt eget bord. Dealern från foton i dag är Tomasz (`output/tomasz/`, 2026-11-26, steg 1–7 utan film).
 - Texturerna, korten och kortatlasen i `assets/bord/` hämtades för hand; adresserna står i `kallor.json` men inget skript hämtar dem eller bygger atlasen. Stolens råfil är betald och finns bara på datorn där den beställdes. På en annan dator kan bordet och stolen därför inte byggas förrän filerna finns där.
 - Blenders vila `sitt_vila` (`SITT` i `bygg_docka.py`) står ännu med axlarna 0,38 m bakom kanten och handlederna framför en markerbricka, inte på Danilos plats i måttfilens `docka`-block (0,2 m). Se 5.9.
-- Knogarnas läge: i MPFB:s skelett sitter långfingrets knoge 107 mm från handleden hos mannen (100 hos kvinnan), mot en människas 86–95 mm; handflatan är lång och fingrarnas leder sitter för långt ut. Inte rättat.
+- Knogarnas läge: i MPFB:s skelett sitter långfingrets knoge 107 mm från handleden hos mannen, mot en människas 86–95 mm; handflatan är lång och fingrarnas leder sitter för långt ut. Inte rättat.
 - Sargen, benen, kläder, hyllans botten (i filtens nivå) och flera kameror (`dealer_ogon`, `hander`, `hel`, `topp`) är antagna; rullens höjd är bara svagt mätt (bredden säkert); golvets höjd och sitsen är slutledda, inte mätta.
 - 22 ARKit-nycklar saknas (avsnitt 7.7).
 - Skon är byggd efter måtten på livebordets klara sko, inte en fotograferad skormodell.

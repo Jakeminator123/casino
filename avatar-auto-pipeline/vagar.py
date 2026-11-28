@@ -609,9 +609,8 @@ def kolla_standarddockan(d: dict, delar: dict) -> None:
     if a and (a.get("ansiktsformer") != former or a.get("ansiktsben") != ben):
         fel.append(f"ansiktsrigg/mpfb-ansikte säger {a.get('ansiktsformer')} former och {a.get('ansiktsben')} ansiktsben; bygg_docka.py har {former} och {ben}.")
     s = delar["underlag"].get("standardmatt", {}).get("matt", {})
-    for kon in ("kvinna", "man"):
-        if s and s.get(f"langd_{kon}") != MATT_langd(matt, kon):
-            fel.append(f"underlag/standardmatt: {kon}nans längd är {MATT_langd(matt, kon)} i bygg_docka.py, {s.get(f'langd_{kon}')} i vagar.json.")
+    if s and s.get("langd_man") != MATT_langd(matt, "man"):
+        fel.append(f"underlag/standardmatt: mannens längd är {MATT_langd(matt, 'man')} i bygg_docka.py, {s.get('langd_man')} i vagar.json.")
     v = next((x for x in d["vagar"] if (x.get("korning") or {}).get("program") == "scen/bygg_docka.py"), None)
     if v:
         kod = flaggor_i(p)

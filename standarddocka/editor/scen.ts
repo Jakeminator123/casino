@@ -6,6 +6,7 @@ import {loadFigure, type Figure} from '../../blackjack-dealer/dealer3d/src/figur
 import {dollNamed} from '../../blackjack-dealer/dealer3d/src/doll.ts';
 import {LIVE, LIVE_CAMERA, liveFrame} from '../../blackjack-dealer/src/table-live.ts';
 import {STANDARD} from '../../blackjack-dealer/src/standard.ts';
+import {CARD} from '../../blackjack-dealer/src/space.ts';
 import {RUMMETS_Z, loadTable, roomLight, seatStool} from './rum.ts';
 import {cross, type Frame, type V3} from './rorelse.ts';
 import {dockorna} from './dockval.ts';
@@ -186,7 +187,7 @@ export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: F
     if (rygg) { prick(126, 176, 34); prick(126, 70, 16); } else prick(54, 54, 20);
     const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 8; return new T.MeshStandardMaterial({map: t, roughness: 0.9}); };
   const fram = nyckel ? sparsida(false) : new T.MeshStandardMaterial({color: 0xf4f2ec}), rygg = nyckel ? sparsida(true) : new T.MeshStandardMaterial({color: 0xb8333b});
-  const enkelt = new T.Mesh(new T.BoxGeometry(0.063, 0.0003, 0.088), [0, 0, fram, rygg, 0, 0].map(m => m || new T.MeshStandardMaterial({color: nyckel ? NYCKEL.ram : 0xe8e4dc})) as T.Material[]);
+  const enkelt = new T.Mesh(new T.BoxGeometry(CARD.width, CARD.thickness, CARD.height), [0, 0, fram, rygg, 0, 0].map(m => m || new T.MeshStandardMaterial({color: nyckel ? NYCKEL.ram : 0xe8e4dc})) as T.Material[]);
   enkelt.castShadow = true; card.add(enkelt);
 
   // Bordet, för sig: det tar en stund. Kortet som delas blir ett av bordets egna exempelkort (samma utseende som
