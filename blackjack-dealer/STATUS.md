@@ -215,7 +215,10 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 - **Spelet** ritar vid livebordet bordet, skon och korten men ingen dealer, eftersom ingen film är godkänd där.
 - **Lagret:** de sex ersatta proven, figurerna som föll, den förra standardens klipp och ett orderutkast som aldrig
   lades ligger i arkivet bredvid repot, och kortspelspaketet i `kortspelspaket-arkiv` bredvid repot. Inget är raderat.
-  Repot gick från 3,2 till 1,9 GB.
+  Repot gick från 3,2 till 1,9 GB. Städat 2026-11-28 (`node lager.ts`: "Allt registren pekar på finns här"): 32
+  gamla inspelningar av dockan och den förra standardens kvinna är raderade från disken (de gick att göra om
+  gratis; mannen och kvinnan togs bort på hans ord 2026-11-27), den förra standardens bord är flyttade till
+  arkivet, och Danilos och Frasses rörelser är inspelade på nytt, så att Spegla visar dockans vy igen.
 - **Pengar** (2026-11-28 kl. 16.48): Runway 4 091 krediter kvar; inget är använt den 28 november. Av hans budget
   på 3 000 för arbetet ("Var resonable, men ja - du får 3000 ...") är 1 055 använda, alla på Kenjis fem omgångar
   (187, 139, 129 + 56, 238 och 238 + 68). Meshy 363, orört. Den externa domaren (OpenAI) har ett tak på 5 USD per
@@ -225,6 +228,23 @@ Läget och nästa steg per bana. Ersätt det som inte längre gäller; historien
 ## Nästa steg
 
 I den här ordningen om han inte säger annat.
+
+**Han har sagt annat 2026-11-28:** "huvudsaken är ju att vi kan få in alla rörelser hämtade ur Youtubefilmerna. Men
+också utifrån det mönstret och system vi använder, kunna skapa delningssekvenser till alla platser. När vi har
+modellen för detta så kan vi skapa vilken dealer som helst", och "Försök inte rädda dealers som skapats ... målet är
+en generisk metod". Därför går punkt 7 först, i den här ordningen:
+
+- **Givarna till alla sju platser, kort 1 och kort 2 (pågår).** En modell som följer schemat: en gemensam första
+  halva (A2.3 till handbytet A2M, den avstämda), och en andra halva per plats och kort (A2M till kortplatsen och hem
+  till A2.3). Källan är filmens egen giv till platsen där dealern har en där högern lägger kortet (Danilo dagens
+  plats 2, 4, 6 och 7; Frasse 1, 4, 5, 6 och 7), annars den närmaste platsens giv riktad om. Varje rörelse säger
+  vilket. Domarens fynd i dagens givar rättas i modellen: vänstern tillbaka till skon efter bytet, och samma
+  fingrar och samma kort i skons mynning i varje skarv.
+- **Givarna där vänstern ger ensam.** Så ges de flesta korten nära skon, och alla dealerns egna (Danilo 12 gånger,
+  Frasse 16). Kräver sin egen ordning för kortet i vänsterhanden; ger dealerns egna kort.
+- **Sedan** korten in i lådan, svepet och väntorna, och en ordnare som spelar en runda i spelets ordning.
+- Punkt 1 görs inte för Kenjis skull: vändningen rättas i dockan som en del av modellen, och ett nytt klipp beställs
+  för den person som då är aktuell.
 
 1. **Vändningen i rörelsen, och sedan ett nytt klipp av Kenjis giv.** Sättet är funnet och prövat (Kenjis fjärde
    och femte omgång, se Läget): fyra ankarbilder med röd kortrygg och tre klipp i Kling 4 med dockans film av varje
@@ -265,7 +285,10 @@ I den här ordningen om han inte säger annat.
 4. **Det sista av den äldre dealern bort:** kortplanens värld, hennes beställningsväg och träd, bankens register,
    labbsidan `pages/scene3d.html` och grönskärmsresterna i `src/film-after.ts`. Död kod i editorn: RUNDA och sparandet
    i `editor.ts`, GIVAR och `grundFor` i `rorelse.ts`, `kropp.ts`. I `../avatar-auto-pipeline/scen/bygg_docka.py`:
-   kvinnan och `--kon bada` bort, och sitsen tagen per docka ur `standard.yaml` (kräver en Blender-körning för att se).
+   sitsen tagen per docka ur `standard.yaml` (`SITT`, kräver en Blender-körning för att se). Gjort 2026-11-28: kvinnan
+   och `--kon bada` är borta ur byggskriptet (Danilos bygge gav samma rapport före och efter), de fallna vägarna steg
+   10 och 11 och den äldre rörelsekatalogen i `../avatar-auto-pipeline/` likaså, och `titta.ts` har inte längre rundan
+   och den gamla kameran. Mannens modell står kvar som jämförelse för mätningen av en figur.
 5. **Namnen och platserna rättas i ett steg** (Jakob 2026-11-27: "återigen en ihopblandning av saker ... namn,
    vänster och höger, standarddocka, livevy"). Det som förväxlas i dag:
    - Platserna räknas från bildens vänster överallt i kod, data och studion; plats 1 ska vara närmast skon
@@ -310,6 +333,15 @@ I den här ordningen om han inte säger annat.
 
 ## Väntar på Jakob
 
+- **Amaras docka** (`amara-ny-dealer-20261128`): domarens dom är **Inte bra** (domarens ord, inte Jakobs; den externa
+  domaren kördes inte, eftersom provet visar en docka). Skälen gäller grundrörelserna, inte Amara: i given till
+  dagens plats 2 hänger vänsterhanden i luften framför bröstet i en sekund efter bytet (sekvensens ruta 350–380;
+  kortare i givarna till dagens plats 7 och 4), blicken går nedåt i andra väntan (465–555), och vänsterhandens
+  fingrar rycker på en ruta i skarvarna vid skon (239→240, 304→305, 409→410). Det som håller: kortet dras, reses,
+  tas och vänds av händerna i alla tre givar, och från de sex andra platsernas kameror syns inget fel som inte syns
+  genom livebordets. Jakob har sett provet ("Amara vart okej, men är inte den som var den bästa från gårdagen").
+  Hennes film (238 krediter) är förberedd och inte beställd; han har sagt att dealrar som redan är gjorda inte ska
+  räddas, så den beställs inte.
 - **Kenjis filmer.** I Spegla heter de "Kenji 1" till "Kenji 5", den äldsta först.
   - `kenji-ny-dealer-ur-bilder-20261127` (de tre första omgångerna, Kenji 1–3): hans dom Inte bra, kortet
     `kenji-ger-ett-kort` i Beslut besvarat nej.

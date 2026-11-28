@@ -81,19 +81,19 @@ Kortplatserna (`table-live.ts LIVE.cards`), kortets mitt. P är spelarnas platse
 
 Dockornas mått står i `blackjack-dealer/dealer3d/src/doll.ts`: Danilo och Frasse har kroppens mått och stil ur mätningen av de två dealrarna och vårt eget ansikte. De riktiga dealrarna är mätta i bilden, axlarna på ett plan antaget bakom kanten; armarnas längd går inte att mäta (dockans egna används).
 
-| Mått | Danilo | Frasse | Kenji | Danilo (dealer A, ser i kameran) | Frasse (dealer B, ser på bordet) | Källa |
-| --- | --- | --- | --- | --- | --- | --- |
-| överarm; underarm | 0,279 m; 0,272 m | 0,279 m; 0,272 m | 0,279 m; 0,272 m | — | — | `doll.ts upperArm, forearm` |
-| räckvidd innan bålen böjer sig | 0,536 m | 0,536 m | 0,536 m | — | — | `doll.ts reach` |
-| handens längd, handled till långfingrets topp | 0,189 m | 0,189 m | 0,189 m | — | — | `doll.ts hand.right[12]` |
-| axelbredd | 0,357 m | 0,348 m | 0,357 m | 0,357 m | 0,348 m | `doll.ts dollFrame`; `table-live.ts LIVE.dealer.styles.*.shoulderWidth` |
-| axlarnas mitt över filten | 0,318 m | 0,31 m | 0,318 m | 0,318 m | 0,31 m | `doll.ts place.shoulderHeight`; `table-live.ts LIVE.dealer.styles.*.shouldersMiddle` |
-| ögonen över filten | — (ben i modellen) | — (ben i modellen) | — (ben i modellen) | 0,509 m | 0,514 m | `table-live.ts LIVE.dealer.styles.*.eyesOverFelt` |
-| huvudets mitt över filten; radien | 0,55 m; 0,112 m | 0,535 m; 0,104 m | 0,556 m; 0,117 m | — | — | `doll.ts dollFrame.head, headRadius` |
-| axlarna bakom kanten | 0,2 m | 0,2 m | 0,2 m | 0,2 m (antaget; skattat 0,07 m) | 0,2 m (antaget; skattat 0,16 m) | `doll.ts place.behindEdge`; `table-live.ts LIVE.dealer.behindEdge` |
-| höften under filten | 0,115 m | 0,123 m | 0,115 m | — | — | `doll.ts hipBelowFelt` |
-| mest lutning framåt; mest vridning | 25°; 20° | 25°; 20° | 25°; 20° | — | — | `doll.ts mostLean, mostTwist` |
-| vänsterhandens grepp vid skon: höjd över filten | — | — | — | 4,8 cm | 3,7 cm | `table-live.ts LIVE.dealer.styles.*.leftAtShoe` |
+| Mått | Danilo | Frasse | Amara | Kenji | Danilo (dealer A, ser i kameran) | Frasse (dealer B, ser på bordet) | Källa |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| överarm; underarm | 0,279 m; 0,272 m | 0,279 m; 0,272 m | 0,279 m; 0,254 m | 0,279 m; 0,272 m | — | — | `doll.ts upperArm, forearm` |
+| räckvidd innan bålen böjer sig | 0,536 m | 0,536 m | 0,518 m | 0,536 m | — | — | `doll.ts reach` |
+| handens längd, handled till långfingrets topp | 0,189 m | 0,189 m | 0,189 m | 0,189 m | — | — | `doll.ts hand.right[12]` |
+| axelbredd | 0,357 m | 0,348 m | 0,357 m | 0,357 m | 0,357 m | 0,348 m | `doll.ts dollFrame`; `table-live.ts LIVE.dealer.styles.*.shoulderWidth` |
+| axlarnas mitt över filten | 0,318 m | 0,31 m | 0,318 m | 0,318 m | 0,318 m | 0,31 m | `doll.ts place.shoulderHeight`; `table-live.ts LIVE.dealer.styles.*.shouldersMiddle` |
+| ögonen över filten | — (ben i modellen) | — (ben i modellen) | — (ben i modellen) | — (ben i modellen) | 0,509 m | 0,514 m | `table-live.ts LIVE.dealer.styles.*.eyesOverFelt` |
+| huvudets mitt över filten; radien | 0,55 m; 0,112 m | 0,535 m; 0,104 m | 0,55 m; 0,112 m | 0,556 m; 0,117 m | — | — | `doll.ts dollFrame.head, headRadius` |
+| axlarna bakom kanten | 0,2 m | 0,2 m | 0,2 m | 0,2 m | 0,2 m (antaget; skattat 0,07 m) | 0,2 m (antaget; skattat 0,16 m) | `doll.ts place.behindEdge`; `table-live.ts LIVE.dealer.behindEdge` |
+| höften under filten | 0,115 m | 0,123 m | 0,115 m | 0,115 m | — | — | `doll.ts hipBelowFelt` |
+| mest lutning framåt; mest vridning | 25°; 20° | 25°; 20° | 25°; 20° | 25°; 20° | — | — | `doll.ts mostLean, mostTwist` |
+| vänsterhandens grepp vid skon: höjd över filten | — | — | — | — | 4,8 cm | 3,7 cm | `table-live.ts LIVE.dealer.styles.*.leftAtShoe` |
 
 ## 5. Rörelserna
 
@@ -101,6 +101,15 @@ Dockornas rörelser, lyfta ur livebordets film och lagda på dockans kropp (`bla
 
 | Rörelsen | Till | Hela | Greppet vid skon | Kortet ut | Handen hem |
 | --- | --- | --- | --- | --- | --- |
+| lyft-amara-bytet-p4 | P4.C1 | 37 rutor = 1,23 s | 0 s | 0,47 s | 0,73 s |
+| lyft-amara-hem | — | 44 rutor = 1,47 s | — | — | — |
+| lyft-amara-p2 | P2.C2 | 106 rutor = 3,53 s | 1,13 s | 0,87 s | 1,5 s |
+| lyft-amara-p4 | P4.C1 | 66 rutor = 2,2 s | 0,73 s | 0,7 s | 0,73 s |
+| lyft-amara-p7 | P7.C1 | 76 rutor = 2,53 s | 0,8 s | 0,9 s | 0,8 s |
+| lyft-amara-till-bytet | — | 30 rutor = 1 s | 0,73 s | — | — |
+| lyft-amara-till-skon | — | 26 rutor = 0,87 s | — | — | — |
+| lyft-amara-vantan-1 | — | 140 rutor = 4,67 s | — | — | — |
+| lyft-amara-vantan-2 | — | 123 rutor = 4,1 s | — | — | — |
 | lyft-danilo-bytet-p4 | P4.C1 | 37 rutor = 1,23 s | 0 s | 0,47 s | 0,73 s |
 | lyft-danilo-hem | — | 44 rutor = 1,47 s | — | — | — |
 | lyft-danilo-p2 | P2.C2 | 106 rutor = 3,53 s | 1,13 s | 0,87 s | 1,5 s |
