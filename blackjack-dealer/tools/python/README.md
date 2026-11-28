@@ -1,39 +1,28 @@
-# Python-skripten
+# Python-miljön
 
-Det som behöver MediaPipe eller OpenCV körs i Python, eftersom repots TypeScript inte har dem. Samma miljö mäter
-livebordet (`../live-bj/`). Slå upp ett avsnitt, läs inte hela.
+MediaPipe och OpenCV körs i Python. Miljön här används av domarens underlag (`domare.py`, genom
+`node tools/domare-underlag.ts`; användningen står överst i skriptet), av mätningen i `../live-bj/` och av
+personens bilder i `../avatar-auto-pipeline/`. Kör alltid med `-I` (isolerat läge).
 
-| Skript | Vad det gör | Används i |
-| --- | --- | --- |
-| `domare.py` | Domarens underlag för en film eller en stor bild: blad med var tredje ruta, och per figur (också i filmer lagda bredvid varandra) skakighet, ryck, ansiktets form över tiden, blicken och fingrarnas längd, med närbilder av ansiktet och händerna där något händer. Mäter med `live-bj/verktyg/mat.py --ensam`. Körs genom `node tools/domare-underlag.ts`. | Domaren (skillen doma) |
+## Sätta upp den
 
-Användning står överst i skriptet. Kör alltid med `-I` (isolerat läge), från projektets mapp.
-
-## Miljön
-
-Python 3.13 (miljön skripten kördes i hade 3.13.11). En gång per checkout:
+Python 3.13 (skripten kördes i 3.13.11). En gång per utcheckning, från `blackjack-dealer/`:
 
 ```
 py -3.13 -m venv tools/python/.venv
 tools/python/.venv/Scripts/python.exe -m pip install -r tools/python/requirements.txt
 ```
 
-`requirements.txt` är `pip freeze` ur den miljö skripten kördes i;
-skripten själva importerar bara `numpy`, `cv2` (OpenCV 5.0) och `mediapipe`. Samma versioner behövs för samma pixlar.
-`.venv/` och `models/` här är Git-ignorerade.
+`requirements.txt` är `pip freeze` ur miljön skripten kördes i: samma versioner ger samma bildpunkter. `.venv/` och
+`models/` är Git-ignorerade.
 
-## Modellerna
+## Modellfilerna
 
-Modellfilerna är för stora för Git (upp till 37 MB). Lägg dem i `tools/python/models/`, eller peka miljövariabeln
-`DEALER_MODELS` på en mapp som har dem. SHA-256 är de filer som användes; kontrollera en nedladdad fil mot dem.
+För stora för Git. Lägg dem i `tools/python/models/` eller i en mapp som miljövariabeln `DEALER_MODELS` pekar på, och
+kontrollera dem mot SHA-256 (adressernas `latest` kan ha flyttats).
 
-| Fil | Källa | SHA-256 |
+| Fil | Källa (MediaPipe) | SHA-256 |
 | --- | --- | --- |
-| `hand_landmarker.task` | MediaPipe, `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task` | `fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1` |
-| `face_landmarker.task` | MediaPipe, `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task` | `64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff` |
-| `pose_landmarker_heavy.task` | MediaPipe, `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task` | `64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b` |
-| `face_detection_yunet_2023mar.onnx` | OpenCV Zoo, `models/face_detection_yunet/` | `8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4` |
-| `face_recognition_sface_2021dec.onnx` | OpenCV Zoo, `models/face_recognition_sface/` | `0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79` |
-
-Adresserna ovan är MediaPipes och OpenCV Zoos publicerade; `latest` kan ha flyttats sedan dess, därför
-kontrollsummorna.
+| `hand_landmarker.task` | `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task` | `fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1` |
+| `face_landmarker.task` | `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task` | `64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff` |
+| `pose_landmarker_heavy.task` | `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task` | `64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b` |
