@@ -110,6 +110,8 @@ export type Scen = {
   kortet(): string;
   /** Korten som redan har lagts och ligger kvar på bordet (en sekvens vid livebordet, rorelse.ts sekvens): samma kort som delas, ett per läge. */
   lagda(kort: readonly Frame['card'][]): void;
+  /** Nästa kort i skons mynning (vid livebordet, när rörelsens eget kort har lämnat den): samma kort som delas, i det läge det står där; null döljer det. */
+  nasta(kort: Frame['card'] | null): void;
 };
 
 /** Vilken docka som visas: Danilo eller Frasse. Båda har samma skelett, och en rörelse är händernas, armarnas och blickens
@@ -123,7 +125,7 @@ export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: F
   const scene = new T.Scene(); roomLight(scene, renderer, nyckel ? {background: NYCKEL.bakgrund} : undefined);
   const camera = new T.PerspectiveCamera(30, 1.5, 0.05, 40);
 
-  // Kortet som delas: ett av bordets egna kort (samma utseende som Blenders); tills bordet har kommit ett enkelt kort.
+  // Kortet som delas, ritat här nedan (kortets sidor).
   const card = new T.Group(); card.matrixAutoUpdate = false; scene.add(card);
 
   // Dockan: Danilo, Frasse eller en persons docka.
@@ -158,13 +160,20 @@ export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: F
     const n = v(k.n).normalize(), l = v(k.l).normalize(), x = new T.Vector3().crossVectors(n, l);
     o.matrix.makeBasis(x, n, l).setPosition(v(k.c)); o.matrixWorldNeedsUpdate = true;
   }
-  // De lagda korten (lagda nedan): en grupp som läggs i scenen först när det finns något att lägga.
+  // De lagda korten (lagda nedan): en grupp som läggs i scenen först när det finns något att lägga; kloner av kortet som delas.
   let lagdaGrupp: T.Group | null = null;
   function lagda(kort: readonly Frame['card'][]) {
     if (!lagdaGrupp) { if (!kort.length) return; lagdaGrupp = new T.Group(); scene.add(lagdaGrupp); }
     const g = lagdaGrupp; while (g.children.length > kort.length) g.remove(g.children[g.children.length - 1]);
     while (g.children.length < kort.length) { const o = new T.Group(); o.matrixAutoUpdate = false; o.add(card.children[0].clone()); g.add(o); }
     kort.forEach((k, i) => kortLage(g.children[i], k)); g.visible = card.visible;
+  }
+  // Nästa kort i skon (nasta nedan): en klon av kortet som delas.
+  let nastaKort: T.Group | null = null;
+  function nasta(k: Frame['card'] | null) {
+    if (!k) { if (nastaKort) nastaKort.visible = false; return; }
+    if (!nastaKort) { nastaKort = new T.Group(); nastaKort.matrixAutoUpdate = false; nastaKort.add(card.children[0].clone()); scene.add(nastaKort); }
+    kortLage(nastaKort, k); nastaKort.visible = card.visible;
   }
 
   // Stolen under honom som han sitter i vilan (rörelsens första ruta), ställd efter rummets regel (rum.ts STOOL).
@@ -186,20 +195,39 @@ export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: F
     g.fillStyle = hex(NYCKEL.marke); const prick = (x: number, y: number, r: number) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); };
     if (rygg) { prick(126, 176, 34); prick(126, 70, 16); } else prick(54, 54, 20);
     const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 8; return new T.MeshStandardMaterial({map: t, roughness: 0.9}); };
-  const fram = nyckel ? sparsida(false) : new T.MeshStandardMaterial({color: 0xf4f2ec}), rygg = nyckel ? sparsida(true) : new T.MeshStandardMaterial({color: 0xb8333b});
-  const enkelt = new T.Mesh(new T.BoxGeometry(CARD.width, CARD.thickness, CARD.height), [0, 0, fram, rygg, 0, 0].map(m => m || new T.MeshStandardMaterial({color: nyckel ? NYCKEL.ram : 0xe8e4dc})) as T.Material[]);
-  enkelt.castShadow = true; card.add(enkelt);
+  // Kortet i det vanliga utseendet, ritat här: ryggen röd och mönstrad med vit kant, som kortet i skons mynning i filmen,
+  // framsidan vit med en tunn ram, och rundade hörn (Jakob 2026-11-28: "Youtubekorten ... inkluderar det omgärdande vita
+  // av kortet"). Bordets eget exempelkort prövades samma dag och syntes som två kort på platsen, så kortet ritas här och
+  // är ett enda. Med nyckelfärgerna står spårkortet kvar som det är, eftersom filmerna är gjorda efter det.
+  const vanligSida = (ryggen: boolean) => { const c = document.createElement('canvas'); c.width = 504; c.height = 704; const g = c.getContext('2d')!;
+    g.fillStyle = '#f7f5ef'; g.fillRect(0, 0, 504, 704);
+    if (ryggen) { g.fillStyle = '#b8333b'; g.fillRect(34, 34, 436, 636); g.save(); g.beginPath(); g.rect(34, 34, 436, 636); g.clip();
+      g.strokeStyle = 'rgba(255, 255, 255, 0.26)'; g.lineWidth = 3;
+      for (let d = -704; d < 504; d += 28) { g.beginPath(); g.moveTo(d, 34); g.lineTo(d + 636, 670); g.stroke(); g.beginPath(); g.moveTo(d + 636, 34); g.lineTo(d, 670); g.stroke(); }
+      g.restore(); }
+    else { g.strokeStyle = '#cfcabd'; g.lineWidth = 4; g.strokeRect(30, 30, 444, 644); }
+    const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 8; return new T.MeshStandardMaterial({map: t, roughness: 0.6}); };
+  /** Kortets yta med rundade hörn, i kortets eget plan (x tvärs, y längs långsidan), med bilden över hela ytan. */
+  const kortyta = () => { const w = CARD.width / 2, h = CARD.height / 2, r = 0.0032, s = new T.Shape();
+    s.moveTo(-w + r, -h); s.lineTo(w - r, -h); s.quadraticCurveTo(w, -h, w, -h + r); s.lineTo(w, h - r); s.quadraticCurveTo(w, h, w - r, h);
+    s.lineTo(-w + r, h); s.quadraticCurveTo(-w, h, -w, h - r); s.lineTo(-w, -h + r); s.quadraticCurveTo(-w, -h, -w + r, -h);
+    const g = new T.ShapeGeometry(s, 6), p = g.getAttribute('position'), uv = g.getAttribute('uv');
+    for (let i = 0; i < p.count; i++) uv.setXY(i, p.getX(i) / CARD.width + 0.5, p.getY(i) / CARD.height + 0.5);
+    return g; };
+  let enkelt: T.Object3D;
+  if (nyckel) { const sidor = new T.MeshStandardMaterial({color: NYCKEL.ram});
+    enkelt = new T.Mesh(new T.BoxGeometry(CARD.width, CARD.thickness, CARD.height), [sidor, sidor, sparsida(false), sparsida(true), sidor, sidor]); enkelt.castShadow = true; }
+  else { // (två ytor, en tjocklek isär: framsidan ut ur kortets y, ryggen åt andra hållet)
+    const fram = new T.Mesh(kortyta().rotateX(-Math.PI / 2), vanligSida(false)), rygg = new T.Mesh(kortyta().rotateX(Math.PI / 2), vanligSida(true));
+    fram.position.y = CARD.thickness / 2; rygg.position.y = -CARD.thickness / 2; fram.castShadow = true; rygg.castShadow = true;
+    enkelt = new T.Group(); enkelt.add(fram, rygg); }
+  card.add(enkelt);
 
-  // Bordet, för sig: det tar en stund. Kortet som delas blir ett av bordets egna exempelkort (samma utseende som
-  // Blenders), utom med nyckelfärgerna, där spårkortet står kvar. Måtten: livebordets kortplatser mot bordets tryckta
-  // (millimeter), bordets kant mot dealern och skivans överkant.
+  // Bordet, för sig: det tar en stund. Måtten: livebordets kortplatser mot bordets tryckta (millimeter), bordets kant mot
+  // dealern och skivans överkant.
   let bordRot: T.Object3D | null = null; const markeringar: T.Object3D[] = [];
   const bordUrl = prov('bord') ? `/avatar-auto-pipeline/assets/bord/standardbord_${prov('bord')}.glb` : MODELLER.bord;
   const bord = loadTable(bordUrl, scene, {key: nyckel ? {table: NYCKEL.bord, cardBack: rodRygg ? NYCKEL.rodRygg : NYCKEL.kortrygg} : undefined, progress: share => laddar(`bordet ${Math.round(share * 100)} %`)}).then(b => {
-    // Bordets kort ligger i modellen med bildens överkant mot dealern (Blenders +Y), alltså åt -z här; vänt ett halvt varv
-    // i sitt plan står överkanten åt kortets långsida (+z, rörelsens `l`). Då ligger kortet som rörelsen lägger det
-    // (långsidan mot dealern) som Blenders kort på platsen.
-    if (b.card && !nyckel) { b.card.rotation.y = Math.PI; card.remove(enkelt); card.add(b.card); }
     bordRot = b.root; markeringar.push(...b.marks);
     return {platser: b.places, maxMm: b.maxMm, kortP4Mm: b.cardP4Mm, kantZ: b.edgeZ, skivaY: b.topY};
   });
@@ -226,6 +254,5 @@ export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: F
   // Bilden tas i samma steg som den ritas: efter det får webbläsaren tömma ritytan.
   const bild = () => { renderer.render(scene, camera); return new Promise<Blob>((klar, fel) => canvas.toBlob(b => b ? klar(b) : fel(Error('Bilden kunde inte läsas ur ritytan.')), 'image/png')); };
   return {renderer, scene, camera, figure, card, bord, stol: {sank: satt.lowered, flytt: satt.moved as V3, sitsUppe: satt.seatModel, sitsNu: satt.seatNow, ryggstod: satt.backrest, knaveck: satt.knee, hoft: satt.hip as V3},
-    pose, bone, hud: hud!, synlig, lagda, render: () => renderer.render(scene, camera), setKamera, storlek, filmstorlek, bild, filmRam: ram, kortet: () => { if (card.children[0] !== enkelt) return 'bordets'; const ex = bordRot?.getObjectByName('giv_P4C1');
-      return nyckel ? 'enkelt (nyckelfärgerna)' : !bordRot ? 'enkelt (bordet har inte kommit)' : !ex ? 'enkelt (bordet har inget exempelkort giv_P4.C1)' : 'enkelt (exempelkortet giv_P4.C1 har ingen yta)'; }};
+    pose, bone, hud: hud!, synlig, lagda, nasta, render: () => renderer.render(scene, camera), setKamera, storlek, filmstorlek, bild, filmRam: ram, kortet: () => nyckel ? 'spårkortet (nyckelfärgerna)' : 'ritat (röd mönstrad rygg med vit kant)'};
 }

@@ -1240,13 +1240,12 @@ export function bygg(b: Bygg) {
     const j = Math.min(t, n - 1), ton = smooth(Math.min(t, N - 1 - t) / F);
     const a = t === 0 || t === N - 1 ? {} : Object.fromEntries(b.minen.bar.map(nm => [nm, Math.round(clamp01(b.minen.spar[nm][j] * ton) * 1000) / 1000]));
     const kortet = {c: r4(kort.c), l: r4(unit(kort.l)), n: r4(unit(kort.n)), id: 0};
-    // (första och sista rutan är ankaret, också kortet: i en giv står nästa kort i skons mynning när handen är hemma, och det
-    // lagda kortet ligger kvar på platsen i spelarens bild, standarddocka/editor/rorelse.ts; domaren 2026-11-28 såg skons kort
-    // försvinna i skarven mellan två givar när sista rutan bar det lagda kortet)
-    frames.push(t === 0 || t === N - 1 ? {...f0, card: {...f0.card}} : {card: kortet, R: limbs.R, L: limbs.L, h: r4(h), g: r4(g), ...(hv ? {hv: r4(hv)} : {}), ...(ht ? {ht} : {}), a});
+    // (första och sista rutan är ankaret; det givna kortet ligger kvar på sin kortplats till och med sista rutan, och nästa kort i
+    // skons mynning ritar editorn, standarddocka/editor/scen.ts nasta: ett kort i rörelsens data flyttas aldrig tillbaka till skon)
+    frames.push(t === 0 ? {...f0, card: {...f0.card}} : t === N - 1 ? {...f0, card: kortet} : {card: kortet, R: limbs.R, L: limbs.L, h: r4(h), g: r4(g), ...(hv ? {hv: r4(hv)} : {}), ...(ht ? {ht} : {}), a});
   }
-  // (kortets långsida åt samma håll i alla rutor där det är samma kort)
-  for (let t = 1; t < N - 1; t++) if (dot(frames[t].card.l, frames[t - 1].card.l) < 0) frames[t].card.l = frames[t].card.l.map(x => -x) as Vec3;
+  // (kortets långsida åt samma håll i alla rutor)
+  for (let t = 1; t < N; t++) if (dot(frames[t].card.l, frames[t - 1].card.l) < 0) frames[t].card.l = frames[t].card.l.map(x => -x) as Vec3;
   // (hur långt handlederna står från lyftet längs synlinjen, där handen är lyftets: djupet som förankrades)
   kvitto.andpunktMm = Math.round(length(andpunkt.v) * 1000);
   for (const [s] of SIDOR) { const v = frames.flatMap((f, t) => t < n && (kalla[s][t] === 'l' || kalla[s][t] === 'k' || kalla[s][t] === 'a') ? [Math.abs(dot(sub(f[s].w, L[s].w[t]), syn(s, t)))] : []).sort((a, b) => a - b); if (v.length) kvitto.langsSynlinjen[s] = {median: Math.round(v[v.length >> 1] * 1000), mest: Math.round(v[v.length - 1] * 1000)}; }
@@ -1313,7 +1312,7 @@ function vanstersStart(frames: Frame[], T1: number, doll: Doll) {
  * hem till ankaret vid skon `a23`. Kroppen, högern och kortet följer B:s rörelse med A2M:s avvikelse från B:s byte tonad bort
  * över de första rutorna (kortet i högerns grepp, så att det går med handen; bryggan är slut innan kortet ligger plant).
  * Vänstern går från A2M lugnt tillbaka till skon, med sin fart i A2M, och ligger där i ankarets läge (domaren 2026-11-28:
- * vänstern hängde i luften framför bröstet och hoppade sedan till skon). Sista rutan är ankaret, med nästa kort i skon.
+ * vänstern hängde i luften framför bröstet och hoppade sedan till skon). Sista rutan är ankaret, med det givna kortet kvar på platsen.
  */
 function franBytet(Af: Frame[], mA: number, B: Byggd, a23: Ankare, doll: Doll) {
   const fA = Af[mA], fA0 = Af[mA - 1];
@@ -1355,12 +1354,12 @@ function franBytet(Af: Frame[], mA: number, B: Byggd, a23: Ankare, doll: Doll) {
   const framR = fram('R'), framL = fram('L'), skjut = (s0: Vec3, w: Vec3, x: number) => x > 0 ? add(s0, mul(unit(sub(w, s0)), x)) : s0;
   const ut: Frame[] = rutor.map((x, i) => {
     if (i === 0) return {...fA, card: {...fA.card}};
-    if (i === n - 1) return {...ank, card: {...ank.card}};
+    if (i === n - 1) return {...ank, card: {c: r4(x.card.c), l: r4(unit(x.card.l)), n: r4(unit(x.card.n)), id: 0}};
     const sR = skjut(x.S[0], x.hR.w, framR[i]), sL = skjut(x.S[1], x.hL.w, framL[i]);
     const R = x.k ? armAv(sR, x.hR, sidaMed(sR, x.hR.w, x.fB.R, x.k), doll) : {...x.fB.R, s: r4(x.S[0])}, Lm = armAv(sL, x.hL, unit(lerp(sLA, sLK, x.mv)), doll);
     return {card: {c: r4(x.card.c), l: r4(unit(x.card.l)), n: r4(unit(x.card.n)), id: 0}, R, L: Lm, h: r4(x.h), g: r4(x.g), ...(x.hv ? {hv: r4(x.hv)} : {}), ...(Math.round(x.ht * 10) ? {ht: r1(x.ht)} : {}), a: x.fB.a}; });
   const hand = {R: rutor.map((_, i) => i === n - 1 ? 'v' : i < K ? 'b' : B.handen.R[m + i] ?? 'v').join(''), L: rutor.map((_, i) => i === n - 1 ? 'v' : i < TL ? 'b' : 'v').join('')};
-  for (let t = 1; t < n - 1; t++) if (dot(ut[t].card.l, ut[t - 1].card.l) < 0) ut[t].card.l = ut[t].card.l.map(x => -x) as Vec3;
+  for (let t = 1; t < n; t++) if (dot(ut[t].card.l, ut[t - 1].card.l) < 0) ut[t].card.l = ut[t].card.l.map(x => -x) as Vec3;
   const sk = (x: number) => x - m;
   const faserR = [...(K ? [{fran: 0, till: K, vad: 'från handbytet (A2M) in i dealerns giv: kroppen, högern och kortet tonas från bytets ställning', kalla: 'brygga' as const}] : []),
     ...B.faser.R.filter(x => x.till > m + K).map(x => ({...x, fran: Math.max(sk(x.fran), K), till: sk(x.till)}))];

@@ -43,12 +43,13 @@ const prov = (vad: 'giv' | 'vilan') => { const namn = query.get(vad); if (namn =
   if (!/^[a-z0-9][a-z0-9-]*$/.test(namn) || !FINNS.has(namn)) { provFel.push(`Det finns ingen grundrörelse som heter ${namn}: inget visas i stället för fel rörelse.`); return '-'; } return namn; };
 /**
  * Livebordet genom sin egen kamera, med Danilo eller Frasse (?docka=danilo|frasse, förval Danilo). Deras rörelser är lyfta ur
- * filmen av de riktiga dealrarna (dealer3d/data/lyft-<docka>-*.json) och går var och en från vilan till vilan: en spelas
+ * filmen av de riktiga dealrarna (dealer3d/data/lyft-<docka>-*.json) och går var och en från sitt ankare till sitt ankare (en
+ * väntan i vilan, A1; en giv från redo vid skon, A2.3, till A2.3; rörelseschemat): en spelas
  * som den är (rorelse.ts ensam), i sin egen takt, utan vilan till skon framför och utan det sparade lagret, som en
  * grundrörelse på prov. ?plats=<1–7> väljer given dit (lyft-<docka>-p<plats>; har dockan ingen dit, den närmaste hon eller
  * han har, med en rad), ?giv=<namn> vilken som helst av dem. Inget sparas här.
  */
-if (query.get('vilan')) inteSa.push(`Vid ${STANDARD.namn} går varje rörelse från vilan till vilan: en annan vila används inte här.`);
+if (query.get('vilan')) inteSa.push(`Vid ${STANDARD.namn} börjar och slutar varje rörelse i sitt eget ankare (vilan, eller redo vid skon): en annan vila används inte här.`);
 if (query.get('runda') === '1') inteSa.push('Hela rundan finns inte vid livebordet. Här visas en rörelse i taget.');
 const PROVGIV = prov('giv'), PROVVILA = null, PROV = true;
 /**
@@ -132,7 +133,7 @@ const RUNDGIVAR = RUNDA ? await Promise.all(RUNDANS_PLATSER.map(async plats => {
 const GRUND = RUNDA ? [EGEN.vila, ...RUNDGIVAR.map(g => g.namn)] : SEKVENSRORELSER ? SEKVENSRORELSER.map(x => x.namn) : LIVEGIV ? [LIVEGIV] :[PROVVILA ?? (PROVGIV ? vilanFor(andra.doll) : EGEN.vila), PROVGIV ?? EGEN.giv];
 const forsta = LIVEGIV ? andra : await hämta<Motion>(`/blackjack-dealer/dealer3d/data/${GRUND[0]}.json`);
 const FORVAL: Sparad = RUNDA ? {namn: 'Hela rundan: kort 1 till alla sju platserna', om: `A1 till A2.3 och sedan första kortet till plats ${RUNDANS_PLATSER.join(', ')}, i en tagning.`, grund: GRUND, andringar: []}
-  : LIVEGIV ? {namn: `${LIVEGIV} vid livebordet`, om: `${GRUND.join(', ')} från vilan till vilan, som ${GRUND.length > 1 ? 'de är, efter varandra' : 'den är'}.`, grund: GRUND, andringar: []}
+  : LIVEGIV ? {namn: `${LIVEGIV} vid livebordet`, om: `${GRUND.join(', ')} från ankare till ankare, som ${GRUND.length > 1 ? 'de är, efter varandra' : 'den är'}.`, grund: GRUND, andringar: []}
   : {namn: `Vilan, skon och given till plats ${PLATS} kort 1`, om: `A1 till A2.3 (${GRUND[0]}) och sedan given från A2.3 till plats ${PLATS} kort 1 och tillbaka (${GRUND[1]}). Ändringarna läggs ovanpå grundrörelserna.`, grund: GRUND, andringar: []};
 const foljd: Foljd = RUNDA ? rundaAv({namn: GRUND[0], rorelse: forsta}, RUNDGIVAR, STILLA) : SEKVENSRORELSER ? sekvens(SEKVENSRORELSER) : LIVEGIV ? ensam(andra, GIVPLATS ?? PLATS) : sattIhop(forsta, andra, PLATS);
 // Ett sparat lager gäller bara de grundrörelser det sparades på: ändringarnas tider och farten per del hör till dem. Hör
@@ -252,6 +253,9 @@ function visaUttryck() { const pa = new Set(hallna.filter(u => u.till === Infini
 function stall() { const grundtid = tak.grund(tid), r = stallningOchStopp(foljd, grundtid, sparad.andringar, blickKamera(), sparad.liv, granser, tak); nu = r.frame; stoppNu = r.stopp; const visad = medAnsiktet(nu); visatAnsikte = visad.a ?? null; scen.pose(visad, foljd.hip);
   // En sekvens: korten som redan har lagts ligger kvar på sina platser (rorelse.ts sekvens).
   if (foljd.sekvens) scen.lagda(foljd.sekvens.lagda.filter(x => grundtid * foljd.fps >= x.ruta - 1e-6).map(x => x.kort));
+  // Vid livebordet står nästa kort i skons mynning, som i ankaret vid skon (rörelsens första ruta), så snart rörelsens eget kort
+  // har lämnat den: genom hela given och sekvensens skarvar, så att skon ser likadan ut i varje skarv (domaren 2026-11-28).
+  if (LIVEGIV) { const sko = foljd.frames[0].card, c = nu.card.c; scen.nasta(Math.hypot(c[0] - sko.c[0], c[1] - sko.c[1], c[2] - sko.c[2]) > 0.002 ? sko : null); }
   visaStopp(); }
 /** En rad i bilden om vad som tog emot, i vanliga ord; borta när inget stoppas och under en inspelning. */
 function visaStopp() { const box = $('#stopp'), text = inspelning ? '' : [...new Set(stoppNu.map(s => s.text))].join(' '); box.textContent = text; box.style.display = text ? 'block' : 'none'; }
@@ -510,7 +514,7 @@ const OMFANG = (): {varde: string; text: string; namn: string}[] => { const d = 
   // Hela rundan: allt i en film (utan del i filmens namn), eller ett klipp för sig, med klippets namn (a23-p7c1-a23).
   if (foljd.runda) { const k = foljd.runda.klipp; return [{varde: `0-${sist}`, text: `Hela rundan (${l(0, sist)})`, namn: ''}, ...d.map((x, i) => ({varde: `${i}-${i}`, text: `Bara ${x.namn.toLowerCase()} (${l(i, i)})`, namn: k[i].namn.toLowerCase().replace(/\./g, '').replace(/>/g, '-')}))]; }
   return [{varde: `0-${sist}`, text: `Hela rörelsen (${l(0, sist)})`, namn: 'hela'}, ...(sist ? d.map((x, i) => ({varde: `${i}-${i}`, text: `Bara ${x.namn.toLowerCase()} (${l(i, i)})`, namn: slug(x.namn)})) : []),
-    ...(sist >= 2 ? [{varde: `1-${sist}`, text: `Given: kortet ut och handen tillbaka (${l(1, sist)})`, namn: 'given'}] : [])]; };
+    ...(sist >= 2 ? [{varde: `1-${sist}`, text: d[1].namn === 'Handbytet till platsen' ? `Från handbytet: kortet till platsen och handen hem (${l(1, sist)})` : `Given: kortet ut och handen tillbaka (${l(1, sist)})`, namn: 'given'}] : [])]; };
 /**
  * Delarna, i panelen och på tidslinjen, som de är med farten som gäller. I panelen en rad var: klick hoppar dit, och
  * längden går att skriva om (sekunder), vilket ändrar delens fart.

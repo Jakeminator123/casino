@@ -78,12 +78,11 @@ export function roomLight(scene: T.Scene, renderer: T.WebGLRenderer, key?: {back
 }
 
 /**
- * Bordet som det ligger i rummet. `card`: ett av bordets egna exempelkort (det på plats 4, framsidan upp, mitten i origo,
- * långsidan längs z); `marks`: kortplatserna tryckta på filten; `places`, `maxMm` och `cardP4Mm`: hur långt livebordets
+ * Bordet som det ligger i rummet. `marks`: kortplatserna tryckta på filten; `places`, `maxMm` och `cardP4Mm`: hur långt livebordets
  * kortplatser (LIVE.cards) ligger från bordets tryckta (deras mitt på filten, millimeter); `edgeZ` och `topY`: bordets kant
  * mot dealern och skivans överkant (filtens närmaste kant och dess höjd).
  */
-export type RoomTable = {root: T.Object3D; card: T.Object3D | null; marks: T.Object3D[]; places: {id: string; mm: number}[]; maxMm: number; cardP4Mm: number; edgeZ: number; topY: number};
+export type RoomTable = {root: T.Object3D; marks: T.Object3D[]; places: {id: string; mm: number}[]; maxMm: number; cardP4Mm: number; edgeZ: number; topY: number};
 /**
  * Läser Blenders livebord och lägger det i scenen. Dess exempelkort (en giv på platserna och en kortlek bredvid) döljs: bara
  * rörelsens kort ska synas; skon och dess kort står kvar. `key`: bordet i en färg och utan tryck, kasseringslådan borta,
@@ -92,18 +91,7 @@ export type RoomTable = {root: T.Object3D; card: T.Object3D | null; marks: T.Obj
 export async function loadTable(url: string, scene: T.Scene, options: {key?: {table: number; cardBack: number}; progress?: (share: number) => void} = {}): Promise<RoomTable> {
   const root = await load(url, options.progress), key = options.key; root.updateMatrixWorld(true);
   // (three.js tar bort punkten i nodernas namn: giv_P4.C1 och markering_P4.C1 i Blender är giv_P4C1 och markering_P4C1 här.)
-  // (ett kort med flera material, framsidan, ryggen och kanten, är i glTF en grupp med en mesh per material: alla delarna
-  // tas, flyttade tillsammans så att kortets mitt står i origo. Förut togs bara ett kort som var en enda mesh, så editorn
-  // ritade sitt enkla röda kort utan ryggens vita kant; Jakob 2026-11-28: "Korten som kommer ut från skon tror jag vår
-  // studio visar fel")
-  const example = root.getObjectByName('giv_P4C1'); let card: T.Object3D | null = null;
-  const parts: T.Mesh[] = []; example?.traverse(o => { if ((o as T.Mesh).isMesh) parts.push(o as T.Mesh); });
-  if (parts.length) { const gs = parts.map(m => m.geometry.clone().applyMatrix4(m.matrixWorld)), box = new T.Box3();
-    for (const g of gs) { g.computeBoundingBox(); box.union(g.boundingBox!); }
-    const c = box.getCenter(new T.Vector3()), s = box.getSize(new T.Vector3()), whole = new T.Group();
-    gs.forEach((g, i) => { g.translate(-c.x, -c.y, -c.z); if (s.x > s.z) g.rotateY(Math.PI / 2);
-      const m = parts[i].material, part = new T.Mesh(g, Array.isArray(m) ? m.map(x => x.clone()) : m.clone()); part.castShadow = true; part.receiveShadow = true; whole.add(part); });
-    card = whole; }
+  const example = root.getObjectByName('giv_P4C1');
   root.traverse(o => { if (/^(giv_|kort_)/.test(o.name)) o.visible = false; });
   if (key) { const green = new T.MeshStandardMaterial({color: key.table, roughness: 1, metalness: 0}), yellow = new T.MeshStandardMaterial({color: key.cardBack, roughness: 0.9});
     const of = (o: T.Object3D, name: RegExp) => name.test(o.name) || name.test(o.parent?.name ?? '');
@@ -114,7 +102,7 @@ export async function loadTable(url: string, scene: T.Scene, options: {key?: {ta
   const places = Object.entries(LIVE.cards).flatMap(([id, c]) => { const o = root.getObjectByName(`markering_${id.replace('.', '')}`); return o ? [{id, mm: mm(mitt(o), c.at)}] : []; });
   const felt = root.getObjectByName('bord_filt'), fb = felt ? new T.Box3().setFromObject(felt) : null, marks: T.Object3D[] = [];
   if (!key) root.traverse(o => { if (o.name.startsWith('markering_')) marks.push(o); });
-  return {root, card, marks, places, maxMm: places.length ? Math.max(...places.map(p => p.mm)) : NaN, cardP4Mm: example ? mm(mitt(example), LIVE.cards['P4.C1'].at) : NaN,
+  return {root, marks, places, maxMm: places.length ? Math.max(...places.map(p => p.mm)) : NaN, cardP4Mm: example ? mm(mitt(example), LIVE.cards['P4.C1'].at) : NaN,
     edgeZ: fb ? fb.min.z : LIVE.edge[2], topY: fb ? fb.max.y : 0};
 }
 

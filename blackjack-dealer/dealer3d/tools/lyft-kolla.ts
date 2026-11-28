@@ -101,13 +101,10 @@ export function kolla(fil: string) {
   const samla = new Map<string, {rutor: number; varst: number; text: string; vid: number; senast: number}>();
   const not = (vad: string, by: number, text: string, t: number) => { const s = samla.get(vad) ?? {rutor: 0, varst: -Infinity, text: '', vid: t, senast: NaN}; if (s.senast !== t) { s.rutor++; s.senast = t; } if (by > s.varst) { s.varst = by; s.text = text; s.vid = t; } samla.set(vad, s); };
   // ankaret
-  // (i sista rutan av en giv står nästa kort i skon, som i ankaret (lyft-till-docka.ts, domaren 2026-11-28): där jämförs kortet
-  // också, och steget dit är inte kortets rörelse; i en rörelse där sista rutan har det lagda kortet jämförs bara kroppen, som
-  // mat.ts gör)
-  const nastaKort = n > 1 && m.leavesShoe !== undefined && length(sub(f[n - 1].card.c, ankSlut.card.c)) < 0.0005;
+  // (skarven: första och sista rutan är ankaret i alla handens punkter, armarna och huvudet; kortet i första rutan är ankarets,
+  // och i en giv ligger det givna kortet kvar på sin kortplats i sista rutan (landningen nedan), som mat.ts gör)
   const skillnad = (a: Frame, b: Frame, medKort: boolean) => Math.max(length(sub(a.h, b.h)), medKort ? length(sub(a.card.c, b.card.c)) : 0, ...SIDOR.flatMap(([s]) => [length(sub(a[s].s, b[s].s)), length(sub(a[s].e, b[s].e)), length(sub(a[s].w, b[s].w)), ...a[s].p.map((p, k) => length(sub(p, b[s].p[k])))]));
-  for (const [vad, t] of [['första rutan är inte ankaret', 0], ['sista rutan är inte ankaret', n - 1]] as const) { const d = skillnad(f[t], t === 0 ? ank : ankSlut, t === 0 || nastaKort); if (d > ANKARE) not(vad, d, `${mm1(d)} mm`, t); }
-  const kortVid = (t: number) => nastaKort && t === n - 1 ? f[n - 2].card : f[t].card;
+  for (const [vad, t] of [['första rutan är inte ankaret', 0], ['sista rutan är inte ankaret', n - 1]] as const) { const d = skillnad(f[t], t === 0 ? ank : ankSlut, t === 0); if (d > ANKARE) not(vad, d, `${mm1(d)} mm`, t); }
   const benAnk = {R: boneLengths(ank.R.p), L: boneLengths(ank.L.p)}, rackvidd = doll.upperArm + doll.forearm - 0.002;
   const lamnar = m.leavesShoe ?? n, ligger = m.rests ?? n;
   const utanStod: number[] = [];
@@ -126,7 +123,7 @@ export function kolla(fil: string) {
     if (t > lamnar && t < ligger) { const sidor = [...FINGRAR.map(k => mot(x.card, x.R.p[k])), ...FINGRAR.map(k => mot(x.card, x.L.p[k]))].filter(w => w !== null) as number[];
       const hallet = sidor.some(w => w > 0) && sidor.some(w => w < 0), motFilten = lagst < 0.004 && sidor.length > 0, liggande = horn(x.card).every(p => p[1] < 0.004);
       if (!hallet && !motFilten && !liggande) { utanStod.push(t); not('kortet ute ur skon utan stöd', x.card.c[1], `${mm(x.card.c[1])} mm över filten`, t); } }
-    if (t > 0) { const y = f[t - 1].card, c = kortVid(t), v = grader(dot(c.n, y.n)), l = grader(Math.abs(dot(c.l, y.l)));
+    if (t > 0) { const y = f[t - 1].card, c = x.card, v = grader(dot(c.n, y.n)), l = grader(Math.abs(dot(c.l, y.l)));
       if (v > 40) not('kortet vänds mer än 40° på en ruta', v, `${Math.round(v)}°`, t); if (l > 40) not('kortet vrids mer än 40° på en ruta', l, `${Math.round(l)}°`, t); }
   });
   const hack = (vad: string, punkt: (x: Frame) => Vec3, steg = HACK.steg, ryck = HACK.ryck) => {
@@ -135,7 +132,7 @@ export function kolla(fil: string) {
     for (let i = 1; i <= n; i++) { const over = dv[i] - Math.max(dv[i - 1], dv[i + 1] ?? 0); if (over > ryck) not(`${vad} rycker`, over, `farten ändras ${mm(dv[i])} mm per ruta`, i - 1); }
   };
   for (const [s, namn] of [['R', 'höger'], ['L', 'vänster']] as const) { hack(`${namn} handled`, x => x[s].w); hack(`${namn} armbåge`, x => x[s].e); for (const k of TOPPAR) hack(`${namn} fingertopp ${k}`, x => x[s].p[k]); }
-  hack('kortet', x => kortVid(f.indexOf(x)).c); hack('huvudet', x => x.h, HACK.huvudSteg, HACK.huvudRyck);
+  hack('kortet', x => x.card.c); hack('huvudet', x => x.h, HACK.huvudSteg, HACK.huvudRyck);
   { const b = f.map((x, i) => { if (!i) return 0; const a = sub(x.g, x.h), c = sub(f[i - 1].g, f[i - 1].h); return grader(dot(unit(a), unit(c))); });
     for (let i = 1; i < n; i++) { const over = b[i] - Math.max(b[i - 1], b[i + 1] ?? 0); if (over > HACK.blick) not('blicken hoppar', over, `${Math.round(b[i])}° på en ruta`, i); } }
   // landningen (Jakob 2026-11-27: kortet "ska inte automatiskt läggas i rätt vinkel bara för det inte kom exakt rätt"):
@@ -157,7 +154,7 @@ export function kolla(fil: string) {
     const paKortet = (x: Frame) => { const d = sub(x.R.p[haller], x.card.c), a = cross(x.card.n, x.card.l); return [dot(d, x.card.l), dot(d, a)]; }, p0 = paKortet(f[t0]);
     const vrids = Math.max(0, ...f.slice(t0, m.rests + 1).map(x => mellan(vinkelAv(x.card.l), vinkelAv(f[t0].card.l)))), glider = Math.max(0, ...f.slice(t0, m.rests + 1).map(x => { const q = paKortet(x); return Math.hypot(q[0] - p0[0], q[1] - p0[1]); }));
     landning = {franMaletMm: r1(dM * 1000), vinkelMotMalet: r1(mellan(vinkelAv(k.l), mal.vinkel)), franPlatsenMm: r1(fran(p.at) * 1000), vinkelMotPlatsen: r1(mellan(vinkelAv(k.l), p.turn)), plant: Math.abs(k.n[1]) > Math.cos(1 * Math.PI / 180), framsidanUpp: k.n[1] > 0,
-      rorSigMm: Math.round(Math.max(...f.slice(m.rests, n - 1).map(x => length(sub(x.card.c, k.c)))) * 10000) / 10, vridsPaFiltenGrader: r1(vrids), glider: r1(glider * 1000)};
+      rorSigMm: Math.round(Math.max(...f.slice(m.rests).map(x => length(sub(x.card.c, k.c)))) * 10000) / 10, vridsPaFiltenGrader: r1(vrids), glider: r1(glider * 1000)};
     if (dM > 0.003 || landning.vinkelMotMalet > 2 || !landning.plant || !landning.framsidanUpp || landning.rorSigMm > 1) not('kortet landar inte rätt', dM, `${landning.franMaletMm} mm och ${landning.vinkelMotMalet}° från målet`, m.rests);
     if (vrids > 1 || glider > 0.0015) not('kortet läggs till rätta på filten', Math.max(vrids, glider * 1000), `vrids ${landning.vridsPaFiltenGrader}° och glider ${landning.glider} mm under tummen medan det ligger, rutorna ${t0}–${m.rests}`, t0);
     // (domaren 2026-11-27: kortet föll de sista 30 mm med fingret ovanför och gled sedan bakåt av sig självt): från rutan kortet
