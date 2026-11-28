@@ -310,3 +310,21 @@ rörelser och filmerna som görs av dem.
   nya avataren kan vara en blackjackdealer": ett generiskt sätt, där dealern "till allra största del är ett resultat
   av alla de rörelsesekvenser som vi nu har tagit in och försökt att anpassa efter vårt mönster", och där filmerna
   granskas av den externa domaren under arbetet.
+
+## Rörelserna först (2026-11-28)
+
+- **Alla rörelser ur filmen, och givar till alla platser.** "Huvudsaken är ju att vi kan få in alla rörelser hämtade
+  ur Youtubefilmerna. Men också utifrån det mönstret och system vi använder, kunna skapa delningssekvenser till alla
+  platser. När vi har modellen för detta så kan vi skapa vilken dealer som helst. Då kan vi också ändra vinkeln på
+  kameran när allt ska spelas in." Och: "får vi bara till alla sekvenser för dockan ... som finns i sekvensschemat
+  som vi kategoriserar alla rörelser så kan vi göra vilken dealer som helst."
+- **Dealrar som redan är gjorda räddas inte.** "Försök inte rädda dealers som skapats om det är lättare att jobba på
+  annat sätt såsom att skapa en ny eller liknande då målet är en generisk metod för att skapa nya och inte att få
+  till just dessa dealers. Dock är ju målet att få till en fungerande dealer som ska kunna spelas in på Runway med
+  filmerna."
+- **Amaras docka: "okej".** Om provet `amara-ny-dealer-20261128`: "Amara vart okej, men är inte den som var den bästa
+  från gårdagen." Den bästa är Kenji, som i visningsfilmen.
+- **Dockans kropp ska likna dealern i filmen.** Han räknar med "att vi ska göra om dockan som liknar youtubevideon",
+  och frågar: "Skiljer vi på Danilo och Frasse? De kroppar/dockor som syns och skapas här eller används. Är de
+  verkligen bra, eller ska det vara skelett eller andra typer av 3d-figurer istället?" Samma sak som han sa
+  2026-11-27 om den tjocka dockan: kroppen ska vara dealerns, inte en medelmans.
