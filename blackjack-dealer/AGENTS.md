@@ -10,7 +10,9 @@ standardens mått i [docs/SYSTEM.md](docs/SYSTEM.md), och arbetsmomenten som ski
 - **Fullmakten för filmbeställningar** (`data/order-policy.json`, Jakob 2026-11-25): en agent godkänner själv upp
   till 500 krediter per beställning och högst 2 500 per dygn; större frågar honom först. Taket 2 000 per order står
   mot misstag, och påfyllning gör bara han. Ett betalt anrop i en ny chatt går inte igenom förrän han har sagt ja i
-  den chatten, också inom fullmakten. Meshy och hans RunPod bara på hans eget ja.
+  den chatten, också inom fullmakten. Meshy bara på hans eget ja. RunPod: högst 50 USD per dygn (Jakob 2026-11-28:
+  "Vi kan ha tak på 50 USD för RunPod om dagen"); rutor ur filmen av livebordet skickas inte dit utan hans ord
+  (`../live-bj/README.md`).
 - **Deploy, uppladdning och databasändring** bara på hans uttryckliga ord, och ett ja gäller den gången. Nätdelen
   vilar sedan 2026-11-25.
 - **Domarna är hans.** Domar i Granska och valet av Primär sätts bara av honom, och en tagning han har dömt rörs inte.

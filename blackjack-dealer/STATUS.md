@@ -14,9 +14,13 @@ Läget och nästa steg. Ersätt det som inte längre gäller; historien står i 
   `placements/default.json`), den äldre dealerns beställningsväg och träd, och bankens register. Det räknar i bankens
   bild, 1764 × 1174, och två ställen i spelet läser den ännu: rummet bakom bordet (`data/scene-contract.json`) och
   skons fönster som förval (`SHOE_BOX` i `src/scene3d-matte.ts`). Hans filer där är orörda.
-- **Beslutat 2026-11-28: en grunddocka och en rörelsesamling** ("en enda grunddocka som skalar och bär alla rörelser,
-  som är plockad från olika dealers"). I dag är det inte så: Danilo och Frasse är två dockor med var sin uppsättning
-  rörelser (`dealer3d/src/doll.ts`), och persondockorna Kenji och Amara byggs på Danilos (`persondockor.ts`).
+- **Beslutat 2026-11-28: en grunddocka och en rörelsesamling** ("en enda grunddocka som ... bär alla rörelser,
+  som är plockad från olika dealers"), och den bär bara rörelserna: inget prov med dockan klädd som dealern. I dag är
+  det inte så: Danilo och Frasse är två dockor med var sin uppsättning rörelser (`dealer3d/src/doll.ts`), och
+  persondockorna Kenji och Amara byggs på Danilos (`persondockor.ts`). Alla dockor har samma skelett (52 ben i kropp och
+  händer, 16 i ansiktet, två vridben per underarm; 21 punkter per hand) och rörelsefiler av samma form. Arbetet pågår
+  i två steg: grunddockan (`grund`) läggs till bredvid de två med rörelser från båda dealrarna, sedan byts Karta,
+  `ny_dealer.py` och Spegla till den och Danilo och Frasse tas bort som dockor.
 - **Dockornas kroppar** är en medelmans med två av dealerns mått. Mätta ur filmen med SAM 3D Body
   (`../live-bj/data/kroppar.json`) är dealrarna några centimeter smalare än dockorna (axlarna 33,7 och 32,2 cm mot
   35,7 och 34,8; bröstet 88 och 86 mot 91), nära mätningens osäkerhet, och Danilo och Frasse skiljer sig ett par
@@ -35,14 +39,18 @@ Läget och nästa steg. Ersätt det som inte längre gäller; historien står i 
   platser, och Danilos takt till plats 4 är förlagans. Fäller: vänsterhanden hänger i luften efter bytet i varje giv
   (förlagan: lågt och rakt tillbaka till skon på sex rutor), höger axel går sönder mot dagens plats 2 och 1, Frasses
   givar till dagens plats 5, 4 och 3 tar en omväg, och i väntorna står händerna på fingertopparna och ansiktet
-  blundar och ler. Rättningen pågår, först det Jakob själv såg: ett kort som flög tillbaka till skon i sista rutan,
-  två kort på platsen, och delarnas namn i editorn (given går från A2.3 till A2.3, inte från och till vilan).
+  blundar och ler. Rättat samma kväll, inte omdömt: det Jakob själv såg (kortet som flög tillbaka till skon i sista
+  rutan, två kort på platsen, delarnas namn i editorn). Domarens fynd rättas när kortets och händernas väg är mätt ur
+  filmen: i dag är kortets väg i handen en modell skriven efter en enda giv, inte en mätning.
+- **Rörelseschemat** (`../standarddocka/rorelsekatalog.json`, studions Karta): 7 ankare, 8 stadier och 22 rörelser.
+  5 rörelser finns, 5 finns delvis, 11 saknas och 1 är ett förslag. Allt som finns för Danilo och Frasse står i Karta
+  (`node tools/schema-routes.ts`: inga fel); Kenjis och Amaras kopior står inte där.
 - **Saknas i samlingen:** givarna där vänstern ger ensam (de flesta nära skon och alla dealerns egna kort: Danilo 12
   gånger i filmen, Frasse 16), korten in i lådan, svepet, och väntan under insatserna och medan spelarna väljer.
   Filmen har inte att vända det dolda kortet eller markerna.
 - **Editorn** (`../standarddocka/editor/`, studions sida Dockan) spelar en rörelse eller hela sekvensen och filmar
-  genom sju kameror: plats 4 är livebordets och är mätt, de andra sex är räknade ur den. Den ritar bordets eget kort
-  (mönstrad rygg med vit kant). Ramarna på filten visar var dealrarna lade kort 1 och 2; de finns inte på filmens
+  genom sju kameror: plats 4 är livebordets och är mätt, de andra sex är räknade ur den. Den ritar kortet själv (röd
+  mönstrad rygg med vit kant, rundade hörn, i bordets mått). Ramarna på filten visar var dealrarna lade kort 1 och 2; de finns inte på filmens
   bord. Stolen syns bakom dockan, vilket filmens inte gör (dealrarna sitter på en hög stol). Jakob 2026-11-28 vill se
   handens leder, en zoom som inte blir vidvinkel, och kort som böjs.
 - **En ny dealer ur bilder:** `python ny_dealer.py <person>` i `../avatar-auto-pipeline/` (skillen `ny-dealer`). De
@@ -63,22 +71,28 @@ Läget och nästa steg. Ersätt det som inte längre gäller; historien står i 
   förra standardens kvinna är raderade, dess bord ligger i arkivet `casino-arkiv-paow-och-forra` bredvid repot.
 - **Pengar:** Runway 4 091 krediter; inget använt 2026-11-28. Av hans budget på 3 000 för arbetet är 1 055 använda
   (Kenji). Ett betalt anrop i en ny chatt går inte igenom förrän han har sagt ja i den chatten. Meshy 363, orört.
-  Den externa domaren (OpenAI) har ett tak på 5 USD per tolv timmar.
+  Den externa domaren (OpenAI) har ett tak på 5 USD per tolv timmar. RunPod: hans tak är 50 USD per dygn
+  (2026-11-28), inget använt.
 
 ## Nästa steg
 
 Jakob 2026-11-28: "huvudsaken är ju att vi kan få in alla rörelser hämtade ur Youtubefilmerna", och "Försök inte rädda
 dealers som skapats". I den här ordningen om han inte säger annat.
 
-1. **Domarens fynd i givarna rättas, och döms om:** vänstern lågt och rakt tillbaka till skon efter bytet, höger axel,
-   Frasses omväg, väntornas händer och ansikte, och kortet i bytet (reses lågt vid filten, som dealerns).
-2. **En grunddocka och en samling.** Gemensamma ankare (A1, A2.3, A2M), och varje rörelse från den dealer som gjorde
-   den bäst, med andra som varianter; en lucka hos den ene fylls med den andres riktiga rörelse. Sitsen ska följa
-   armlängden när dockan skalas.
-3. **Vänstern som ger ensam,** vilket ger dealerns egna kort (kräver sin egen ordning för kortet i vänsterhanden, och
+1. **Kortet och händerna spårade i filmen** (hans ord 2026-11-28: "hitta och spåra korten och händerna vid
+   rörelseövergångar såsom A2M samt där korten vrids och vänds och framförallt till platserna"): kortets läge också i
+   handen, fingrarnas kontakt och händelserna ruta för ruta i 60 rutor/s (`../live-bj/verktyg/spar.py`, talen i
+   `../live-bj/data/spar/`, bilderna han ser i `../live-bj/rutor/spar/`). Först två givar, sedan alla platser och
+   givarna med vänstern ensam. Pågår.
+2. **En grunddocka och en samling.** Gemensam vila (A1) och redo vid skon (A2.3), handbytet (A2M) per källa till en
+   början, och för varje kortplats en variant per dealer, märkt äkta eller omriktad; en lucka hos den ene fylls med den
+   andres riktiga rörelse (tillsammans har de äkta givar till alla platser utom dagens plats 3). Steg A pågår; steg B
+   byter Karta, `ny_dealer.py`, Spegla och dokumenten och tar bort Danilo och Frasse som dockor.
+3. **Domarens fynd i givarna rättas efter spårningen, och döms om:** vänstern lågt och rakt tillbaka till skon efter
+   bytet, höger axel, Frasses omväg, väntornas händer och ansikte, och kortet i bytet. Sedan **vänstern som ger ensam,** vilket ger dealerns egna kort (kräver sin egen ordning för kortet i vänsterhanden, och
    att `lyft.py` lyfter till dealerns plats). Sedan korten in i lådan (en ruta bär i dag ett enda kort), svepet,
    väntorna, och en ordnare som spelar en runda i spelets ordning.
-4. **Dockan:** det som syns (händerna, axelns yta; skjorta, väst och hår om han vill se det), dockans vila i Blender
+4. **Dockan:** det som syns (händerna, axelns yta), dockans vila i Blender
    (`SITT` i `../avatar-auto-pipeline/scen/bygg_docka.py` står på en äldre plats), och en persons kön, längd och form.
 5. **Editorn:** handens leder som visningsläge, zoomen, böjliga kort, ramarna och stolen som filmens.
 6. **En persons film med den nya samlingen,** först från en kamera tills han säger ja, sedan alla sju. Första halvan
@@ -89,12 +103,12 @@ dealers som skapats". I den här ordningen om han inte säger annat.
 ## Väntar på Jakob
 
 - **Prov från 2026-11-28:** `givar-till-alla-platser-20261128` (domaren: Inte bra), `dockans-kropp-ur-filmen-20261128`
-  (inte dömt; han vill se filmens rutor bredvid, som läggs i `../live-bj/rutor/jamfor/kropp/`), och
-  `amara-ny-dealer-20261128` (domaren: Inte bra; han: "okej, men inte den bästa").
-- **Frågor från 2026-11-28:** RunPod för SAM 3D på alla rutor (ett tak i kronor, och hans ord om att rutor ur filmen
-  får skickas till hans hyrda maskin); om dockan ska kläs som dealern på prov; om ramarna bara ska vara en hjälp i
-  editorn och stolen göras som filmens; och mer film (hjälper mest för det filmen saknar: det dolda kortet, markerna,
-  fler givar med vänstern).
+  (inte dömt; filmens rutor bredvid dockan, som han bad om, ligger i `../live-bj/rutor/jamfor/kropp/`: fyra bilder som
+  inte får in i provet), och `amara-ny-dealer-20261128` (domaren: Inte bra; han: "okej, men inte den bästa").
+- **Frågor från 2026-11-28:** om rutor ur filmen får skickas till hans hyrda maskin hos RunPod (taket har han satt;
+  i dag stannar filmens rutor på datorn och den hyrda maskinen tar bara vår egen dockfilm, `../live-bj/README.md`); om
+  ramarna bara ska vara en hjälp i editorn och stolen göras som filmens; och mer film (hjälper mest för det filmen
+  saknar: det dolda kortet, markerna, fler givar med vänstern).
 - **Kenjis filmer:** `kenji-rod-rygg-tre-klipp-20261127` (femte omgången, domarens Nja) är den han ska se;
   `kenji-tre-klipp-mellan-ankarbilder-20261127` är ersatt och kan flyttas till arkivet på hans ord.
 - **Prov från 2026-11-27 utan hans dom:** domaren Bra på `kartan-over-schemat-20261127`, `studion-i-roten-20261127`,
