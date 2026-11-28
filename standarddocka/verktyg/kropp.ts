@@ -1,10 +1,11 @@
 // Mäter hur dockans KROPP ritas genom en rörelse: det mat.ts inte ser. mat.ts mäter rörelsens punkter; här stegas
 // editorn 60 gånger per sekund och varje gång läses var modellens axlar, armbågar, handleder och fingrar hamnade mot
 // rörelsens punkter, och hur handleden och underarmen vreds (window.editor.state()). Ett hack är ett värde som byter
-// fart tvärt mellan två steg. Hittade 2026-11-26 att kvinnans överkropp vreds ett halvt varv i fyra rutor när kortet
-// lades på plats 5 (ryggens uträkning i dealer3d/src/figure-model.ts), som Jakob såg som att det "hackar till".
+// fart tvärt mellan två steg (som när en överkropp vreds ett halvt varv i fyra rutor när kortet lades på plats 5,
+// det Jakob såg som att det "hackar till"). Skrivet för den förra standarden: förvalet --docka man och --runda finns
+// inte längre i editorn eller titta.ts, så verktyget väntar på att skrivas om eller tas bort (blackjack-dealer/STATUS.md).
 //
-//   node standarddocka/verktyg/kropp.ts [--plats 4 | --alla | --runda] [--docka kvinna] [--port 4321]  (porten titta.ts tar)
+//   node standarddocka/verktyg/kropp.ts [--plats 4 | --alla] --docka danilo [--port 4321]  (porten titta.ts tar)
 //
 // SPÄRR (slutar rött): en axel, armbåge eller handled som på ett steg flyttar sig SPARR millimeter eller mer från
 // rörelsens punkt och inte fortsätter åt samma håll. Resten skrivs som värt att titta på: vinklarnas häftigaste byten

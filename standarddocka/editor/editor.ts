@@ -676,10 +676,9 @@ async function spelaIn(kameror: Kamera[], forst: number, sist: number, val: Insp
   const delnamn = OMFANG().find(o => o.varde === `${forst}-${sist}`)?.namn ?? `del-${forst + 1}-${sist + 1}`;
   const före = {tid, kamera, pos: camera.position.clone(), kvat: camera.quaternion.clone(), mot: orbit.target.clone()}, klara: Klipp[] = [], text = $('#laddar'), status = $('#inspela-status');
   const post = async <X>(url: string, body: BodyInit | null): Promise<X> => { const r = await fetch(url, {method: 'POST', body}); if (!r.ok) throw Error(`Inspelningen stannade: ${(await r.text()).slice(0, 300)}`); return r.json() as Promise<X>; };
-  // Klippets namn: rörelsen (på prov: grundrörelsernas namn), delen, kameran och dockan, så att mannens och kvinnans
-  // klipp inte skriver över varandra. Hela rundan heter runda-c1 och har ingen del i namnet; med rundans små egna
-  // rörelser på slutar namnet på -liv, så att tagningen med dem inte skriver över den utan.
-  // Vid livebordet live-<rörelsen>, så att inget av standardens klipp skrivs över.
+  // Klippets namn: rörelsen (på prov: grundrörelsernas namn), delen, kameran och dockan, så att två dockors klipp inte
+  // skriver över varandra. En lyft rörelse vid livebordet heter live-<rörelsen>. Rundan (RUNDA, kvar från den förra
+  // standarden och död sedan dess) hette runda-c1 utan del i namnet, och -liv med rundans små egna rörelser på.
   // (en annan kropp på prov, ?modell=, får sitt namn i klippet: live-<rörelsen>-modell-<namnet>)
   const modell = LIVEGIV && /^[a-z0-9_]+$/.test(query.get('modell') ?? '') ? `-modell-${query.get('modell')!.replace(/_/g, '-')}` : '';
   const rorelse = RUNDA ? (STILLA ? 'runda-c1' : 'runda-c1-flyt') : LIVEGIV ? `live-${LIVEGIV}${modell}` : PROV ? `prov-${PROVVILA ? `${PROVVILA}-` : ''}${GRUND[1]}` : `a1-a23-p${PLATS}c1`, livnamn = RUNDA && sparad.liv ? '-liv' : '';

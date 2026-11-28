@@ -190,7 +190,6 @@ export async function fraga(casino: string, id: string, now = Date.now()): Promi
     if (p.id === 'arbete' && minuter < 60) skydda(`En chatt kan arbeta i den just nu (ändrad för ${minuterOrd(minuter)} sedan).`);
     if (p.id === 'personer') skydda('Bilderna av en person går inte att göra om.');
     if (p.id === 'korningar') skydda('Körningen kan ha kostat (Meshy, Runway): den går inte att göra om gratis.');
-    if (p.id === 'meshy') skydda('Betald (Meshy), går inte att göra om.');
     if (p.id === 'papperskorgen') saga('Det som ligger i papperskorgen raderas för gott.');
     if (p.id.startsWith('okand-')) skydda('Kartan känner inte mappen: titta först.');
     const kod = [...new Set(e.anvands.filter(a => a.kod).map(a => a.ord))];

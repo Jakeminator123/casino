@@ -129,17 +129,16 @@ export function seamless(p: Picture, fade: number): Picture {
 
 // ---- the felt and the hide of a generated photograph ------------------------------------------------------------------------------
 // A lab trial of 2026-11-13 (Jakob: the table as it is, "men göra det mer naturalistiskt"). The scene's home view with a plain felt
-// was given to an image model, which made it a photograph of a wool felt and kept the camera. tools/scene-material.ts lays a band
+// was given to an image model, which made it a photograph of a wool felt and kept the camera. A tool, removed since, laid a band
 // of that picture's felt flat through the film camera (`x`, `s0`, `s1` as for V6's cloth; the band starts in front of the shoe and
-// the hands and is as wide as the frame is at its near end), divides out the light larger than `flat` metres (the lamp's pool, not
-// the nap's soft clouds, which are smaller) and scatters pieces of it into a larger tile that repeats; the tile is stored at the
+// the hands and is as wide as the frame is at its near end), divided out the light larger than `flat` metres (the lamp's pool, not
+// the nap's soft clouds, which are smaller) and scattered pieces of it into a larger tile that repeats; the tile is stored at the
 // print's own pixels per metre, so the page draws it as it is. Its colour is the picture's: lighter than the print's green and
 // more saturated.
 export const RUNWAY_CLOTH = {x: 0.35, s0: 0.19, s1: 0.4, flat: 0.12};
-// The cloths made that way, by the word the state key `cloth` holds: the tile, and the name the lab's menu shows. A new cloth is
-// a new picture, an entry for it under "generated" in data/scene-materials.json (which tools/scene-material.ts makes the tile
-// from) and a line here; the menus of the studio (studio/lib/scene-keys.ts) and the game's key catalogue (src/game-look.ts)
-// name the same words.
+// The cloths made that way, by the word the state key `cloth` holds: the tile, and the name the lab's menu shows. Each has an
+// entry under "generated" in data/scene-materials.json and a line here; the menus of the studio (studio/lib/scene-keys.ts) and
+// the game's key catalogue (src/game-look.ts) name the same words. A new cloth needs the tool that made the tile written anew.
 const MATERIALS = 'assets/scene/materials/';
 export const RUNWAY_CLOTHS = {
   'runway': {url: `${MATERIALS}runway_felt-diffuse.webp`, name: 'Runway-filten'},
@@ -149,7 +148,7 @@ export const RUNWAY_CLOTHS = {
 export type RunwayCloth = keyof typeof RUNWAY_CLOTHS;
 export const isRunwayCloth = (cloth: string | undefined): cloth is RunwayCloth => !!cloth && Object.hasOwn(RUNWAY_CLOTHS, cloth);
 // The surfaces "natur", by the word the state key `surface` holds: a hide and a finish for the rail's leather.
-// hide: a generated flat picture of leather, its light divided out and made to repeat (tools/scene-material.ts), laid `repeat`
+// hide: a generated flat picture of leather, its light divided out and made to repeat (by the same removed tool), laid `repeat`
 // times each way in the leather's tile, which goes once round the rail's roll (27 cm): the picture then shows about the 15 cm it
 // was ordered as, and its grain is about as fine as a real hide's. depth: how deep its grain is taken to be, millimetres from its
 // darkest crease to its lightest crown. grain: the size, in tile pixels, below which its brightness is read as relief.

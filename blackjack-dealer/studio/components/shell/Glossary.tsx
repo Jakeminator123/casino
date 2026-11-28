@@ -2,7 +2,7 @@
 
 // <Glossary open onOpenChange />: the menu's "Ordlista": the studio's one table of words (lib/words.ts) in a dialog,
 // searchable. The menu draws the row that opens it (Rail.tsx). Each word with what it means, the other words Jakob himself
-// uses for it ("Säger också": släpar, A3, tillbakagången …) and, quieter, the names it has in code and documents ("Kallas
+// uses for it ("Säger också": grunddockan, A3, tillbakagången …) and, quieter, the names it has in code and documents ("Kallas
 // också": IDLE, Keystone 1, kant …), so that whichever word he looks for, or an older name read somewhere, leads to the
 // word the studio uses. The search reads all three, the word itself first.
 import { Search } from "lucide-react";
@@ -25,7 +25,7 @@ export function Glossary({ open, onOpenChange }: { open: boolean; onOpenChange: 
             value={query}
             autoFocus
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Sök ett ord eller ett annat namn: släpar, A3, tillbakagången, IDLE …"
+            placeholder="Sök ett ord eller ett annat namn: grunddockan, A3, tillbakagången, IDLE …"
             aria-label="Sök i ordlistan"
             className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-faint"
           />

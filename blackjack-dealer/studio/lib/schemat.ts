@@ -132,8 +132,8 @@ export const SLAG_ORD: Record<Slag, { kort: string }> = {
   klipp: { kort: "klipp" },
   film: { kort: "film" },
 };
-/** En docka i hans ord: Mannen och Kvinnan, annars namnet med stor bokstav (Danilo, Frasse). */
-export const dockNamn = (id: string): string => ({ man: "Mannen", kvinna: "Kvinnan" } as Record<string, string>)[id] ?? (id ? id[0].toUpperCase() + id.slice(1) : id);
+/** En docka i hans ord: namnet med stor bokstav (danilo → Danilo, frasse → Frasse). */
+export const dockNamn = (id: string): string => (id ? id[0].toUpperCase() + id.slice(1) : id);
 /** En kortplats i hans ord: "plats 4, kort 1", "dealerns kort 2". */
 export function kortplatsOrd(id: string): string {
   const p = platsOchKort(id);

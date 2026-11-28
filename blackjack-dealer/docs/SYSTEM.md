@@ -91,8 +91,8 @@ under `src/` skrivs först in i `SCRIPTS` i `tools/lab-routes.ts`, sedan omstart
   (`cameraFromContract`, `data/scene-contract.json`). Filmens bildmått och rullning hör till kameran (`FilmCamera`
   `frame` och `roll`), också i shaderkoden (`FILM_PX` och `FRAME_FIX`).
 - **Föremålen:** skon, lådan och korten i dem ritas ur måtten (`liveProps` i `src/game3d-props.ts`) och läggs med
-  `scene.addProp`; inget läses ur en fil. Jakobs äldre modeller ligger som original under `assets/props/source/`,
-  namngivna med SHA-256 i `data/props.json`.
+  `scene.addProp`; inget läses ur en fil. Jakobs äldre modeller från Meshy står namngivna med SHA-256 i
+  `data/props.json`; originalen ligger inte i repot.
 
 ## Spelet
 

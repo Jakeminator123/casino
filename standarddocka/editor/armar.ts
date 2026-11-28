@@ -68,7 +68,7 @@ function vridenKringHoften(f: Frame, hip: number[], luta: number, vrida: number)
  * tomma skivor från närmaste skiva), och hur mycket den följer axlarna när ryggen böjs: huden i skivan ställd med
  * axlarna lutade och vridna kring höften (BOJ), mot där den skulle vara om den stod med höften och om den följde
  * axlarna. Huvudet: en kula kring huden på huvudets ben, med radien som medlet av dess tre halva mått. Armarna: modellens
- * axelleder, benlängderna och tjockleken längs överarmen och underarmen. Mannen och kvinnan mäts var för sig av samma kod.
+ * axelleder, benlängderna och tjockleken längs överarmen och underarmen. Varje docka mäts för sig av samma kod.
  */
 export function matKropp(k: Kropp, f: Frame, hip: number[]): Kroppsmatt {
   k.pose(f, hip); const m = k.hud; m.skeleton.update();
