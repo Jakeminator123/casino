@@ -83,7 +83,7 @@ export function roomLight(scene: T.Scene, renderer: T.WebGLRenderer, key?: {back
  * kortplatser (LIVE.cards) ligger från bordets tryckta (deras mitt på filten, millimeter); `edgeZ` och `topY`: bordets kant
  * mot dealern och skivans överkant (filtens närmaste kant och dess höjd).
  */
-export type RoomTable = {root: T.Object3D; card: T.Mesh | null; marks: T.Object3D[]; places: {id: string; mm: number}[]; maxMm: number; cardP4Mm: number; edgeZ: number; topY: number};
+export type RoomTable = {root: T.Object3D; card: T.Object3D | null; marks: T.Object3D[]; places: {id: string; mm: number}[]; maxMm: number; cardP4Mm: number; edgeZ: number; topY: number};
 /**
  * Läser Blenders livebord och lägger det i scenen. Dess exempelkort (en giv på platserna och en kortlek bredvid) döljs: bara
  * rörelsens kort ska synas; skon och dess kort står kvar. `key`: bordet i en färg och utan tryck, kasseringslådan borta,
@@ -92,10 +92,18 @@ export type RoomTable = {root: T.Object3D; card: T.Mesh | null; marks: T.Object3
 export async function loadTable(url: string, scene: T.Scene, options: {key?: {table: number; cardBack: number}; progress?: (share: number) => void} = {}): Promise<RoomTable> {
   const root = await load(url, options.progress), key = options.key; root.updateMatrixWorld(true);
   // (three.js tar bort punkten i nodernas namn: giv_P4.C1 och markering_P4.C1 i Blender är giv_P4C1 och markering_P4C1 här.)
-  const example = root.getObjectByName('giv_P4C1') as T.Mesh | undefined; let card: T.Mesh | null = null;
-  if (example?.isMesh) { const g = example.geometry.clone().applyMatrix4(example.matrixWorld); g.computeBoundingBox(); const b = g.boundingBox!, c = b.getCenter(new T.Vector3()), s = b.getSize(new T.Vector3()); g.translate(-c.x, -c.y, -c.z);
-    if (s.x > s.z) g.rotateY(Math.PI / 2);
-    card = new T.Mesh(g, Array.isArray(example.material) ? example.material.map(x => x.clone()) : example.material.clone()); card.castShadow = true; card.receiveShadow = true; }
+  // (ett kort med flera material, framsidan, ryggen och kanten, är i glTF en grupp med en mesh per material: alla delarna
+  // tas, flyttade tillsammans så att kortets mitt står i origo. Förut togs bara ett kort som var en enda mesh, så editorn
+  // ritade sitt enkla röda kort utan ryggens vita kant; Jakob 2026-11-28: "Korten som kommer ut från skon tror jag vår
+  // studio visar fel")
+  const example = root.getObjectByName('giv_P4C1'); let card: T.Object3D | null = null;
+  const parts: T.Mesh[] = []; example?.traverse(o => { if ((o as T.Mesh).isMesh) parts.push(o as T.Mesh); });
+  if (parts.length) { const gs = parts.map(m => m.geometry.clone().applyMatrix4(m.matrixWorld)), box = new T.Box3();
+    for (const g of gs) { g.computeBoundingBox(); box.union(g.boundingBox!); }
+    const c = box.getCenter(new T.Vector3()), s = box.getSize(new T.Vector3()), whole = new T.Group();
+    gs.forEach((g, i) => { g.translate(-c.x, -c.y, -c.z); if (s.x > s.z) g.rotateY(Math.PI / 2);
+      const m = parts[i].material, part = new T.Mesh(g, Array.isArray(m) ? m.map(x => x.clone()) : m.clone()); part.castShadow = true; part.receiveShadow = true; whole.add(part); });
+    card = whole; }
   root.traverse(o => { if (/^(giv_|kort_)/.test(o.name)) o.visible = false; });
   if (key) { const green = new T.MeshStandardMaterial({color: key.table, roughness: 1, metalness: 0}), yellow = new T.MeshStandardMaterial({color: key.cardBack, roughness: 0.9});
     const of = (o: T.Object3D, name: RegExp) => name.test(o.name) || name.test(o.parent?.name ?? '');

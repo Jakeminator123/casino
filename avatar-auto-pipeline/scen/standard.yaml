@@ -88,6 +88,7 @@ platser:  # mätt: där korten först låg stilla, kortets mitt; yaw_kort = lån
   P2.C1: {pos: [-0.2964, -0.4103, 0.9500], yaw_kort: -30.00, landningar: 3, vinkel: "spegel av P6.C1"}
   P2.C2: {pos: [-0.2987, -0.4204, 0.9500], yaw_kort: -30.10, landningar: 2, vinkel: "spegel av P6.C2"}
   P3.C1: {pos: [-0.0938, -0.4401, 0.9500], yaw_kort: -13.90, landningar: 3, vinkel: "spegel av P5.C1"}
+  P3.C2: {pos: [-0.1167, -0.3964, 0.9500], yaw_kort: -12.40, landningar: 0, vinkel: "spegel av P5.C2, läget P3.C1 och steget från P5.C1 speglat"}
   P4.C1: {pos: [0.0155, -0.5124, 0.9500], yaw_kort: -2.30, landningar: 11, vinkel: "mätt"}
   P4.C2: {pos: [0.0440, -0.4727, 0.9500], yaw_kort: -1.00, landningar: 9, vinkel: "mätt"}
   P5.C1: {pos: [0.1575, -0.4973, 0.9500], yaw_kort: 13.90, landningar: 6, vinkel: "mätt"}

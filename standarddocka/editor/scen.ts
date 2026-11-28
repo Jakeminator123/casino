@@ -199,7 +199,7 @@ export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: F
     // Bordets kort ligger i modellen med bildens överkant mot dealern (Blenders +Y), alltså åt -z här; vänt ett halvt varv
     // i sitt plan står överkanten åt kortets långsida (+z, rörelsens `l`). Då ligger kortet som rörelsen lägger det
     // (långsidan mot dealern) som Blenders kort på platsen.
-    if (b.card && !nyckel) { b.card.geometry.rotateY(Math.PI); card.remove(enkelt); card.add(b.card); }
+    if (b.card && !nyckel) { b.card.rotation.y = Math.PI; card.remove(enkelt); card.add(b.card); }
     bordRot = b.root; markeringar.push(...b.marks);
     return {platser: b.places, maxMm: b.maxMm, kortP4Mm: b.cardP4Mm, kantZ: b.edgeZ, skivaY: b.topY};
   });
@@ -227,5 +227,5 @@ export async function byggScen(canvas: HTMLCanvasElement, hip: number[], vila: F
   const bild = () => { renderer.render(scene, camera); return new Promise<Blob>((klar, fel) => canvas.toBlob(b => b ? klar(b) : fel(Error('Bilden kunde inte läsas ur ritytan.')), 'image/png')); };
   return {renderer, scene, camera, figure, card, bord, stol: {sank: satt.lowered, flytt: satt.moved as V3, sitsUppe: satt.seatModel, sitsNu: satt.seatNow, ryggstod: satt.backrest, knaveck: satt.knee, hoft: satt.hip as V3},
     pose, bone, hud: hud!, synlig, lagda, render: () => renderer.render(scene, camera), setKamera, storlek, filmstorlek, bild, filmRam: ram, kortet: () => { if (card.children[0] !== enkelt) return 'bordets'; const ex = bordRot?.getObjectByName('giv_P4C1');
-      return nyckel ? 'enkelt (nyckelfärgerna)' : !bordRot ? 'enkelt (bordet har inte kommit)' : !ex ? 'enkelt (bordet har inget exempelkort giv_P4.C1)' : `enkelt (exempelkortet är en ${ex.type} med ${ex.children.length} delar, inte en mesh)`; }};
+      return nyckel ? 'enkelt (nyckelfärgerna)' : !bordRot ? 'enkelt (bordet har inte kommit)' : !ex ? 'enkelt (bordet har inget exempelkort giv_P4.C1)' : 'enkelt (exempelkortet giv_P4.C1 har ingen yta)'; }};
 }
