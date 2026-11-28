@@ -3,27 +3,28 @@
 Jakobs repo för en blackjackdealer: filmad, och ritad i 3D. Publikt på `github.com/Jakeminator123/casino`. Jakob äger
 allt här och är inte programmerare: svara på svenska, slutsatsen först, och förklara val i vanliga ord.
 
-Vad projektet är till för, kedjan från bild till film och varför varje mapp finns står i `PROJEKTET.md`: läs den först.
-
-Den här filen gäller i hela repot och i alla verktyg (Cursor, Claude Code, Codex; `CLAUDE.md` importerar den bara).
-Varje projektmapp har en kort `AGENTS.md` med det som bara gäller där; den går före vid konflikt. Ett anrop direkt mot
-en modells API läser ingenting själv: skicka med den här filen och projektets.
+Läs `PROJEKTET.md` först: vad projektet är till för, kedjan från bild till film och varför varje mapp finns. Den här
+filen gäller i hela repot och i alla verktyg (Cursor, Claude Code, Codex; `CLAUDE.md` importerar den bara). Varje
+projektmapp har en kort `AGENTS.md` med det som bara gäller där; den går före vid konflikt. Ett anrop direkt mot en
+modells API läser ingenting själv: skicka med den här filen och projektets.
 
 ## Mapparna
 
 | Mapp | Vad det är | Läs |
 | --- | --- | --- |
-| `blackjack-dealer/` | Spelet, studion i webbläsaren och 3D-dockans rörelsekod (`dealer3d/`). Studion är ingången till hela repot (`STARTA studion.cmd` eller `node start.ts` i roten) och startar dockans editor själv. Här står måtten för kamera, bord, kort och kortplatser som allt annat läser. | `README.md`, `STATUS.md` |
-| `standarddocka/` | Editorn där dockorna (Danilo, Frasse och persondockorna) spelar sina lyfta rörelser vid livebordet och filmas, filmens efterarbete (dockans takt, utskärningen med vårt eget kort) och Jakobs domar. | `README.md`, `DOMAR.md` |
-| `avatar-auto-pipeline/` | Blender-skripten som bygger dockorna, livebordet och stolen, och vägen från bilder av en person till en ny dealer: `python ny_dealer.py <person>` mäter personen ur bilderna, bygger dockan, löser rörelserna och förbereder filmen. Python. | `README-SV.md` |
-| `live-bj/` | Mätning av en riktig dealers rörelser, blick och kameravinklar ur en blackjackfilm. Filmen och rutorna ur den går aldrig in i Git eller i ett prov; bara de små måttfilerna i `data/` och verktygen. De två mätta dealrarna har arbetsnamn (Jakob 2026-11-27): Danilo (den första, ung och smal; stilen `kameran`) och Frasse (den andra, med skägg; stilen `bordet`). Namnen är också namnen på två nya dockor hos oss, med kroppens mått, stil och rörelser ur mätningen och vårt eget ansikte. Mäter med Python-miljön i `blackjack-dealer/tools/python/`. | mappens README |
+| `blackjack-dealer/` | Spelet, studion i webbläsaren (ingången till hela repot), dockornas rörelsekod (`dealer3d/`) och måtten som allt annat läser. | `README.md`, `STATUS.md` |
+| `standarddocka/` | Editorn där dockorna (Danilo, Frasse och persondockorna) spelar sina lyfta rörelser vid livebordet och filmas, filmens efterarbete och Jakobs domar. | `README.md`, `DOMAR.md` |
+| `avatar-auto-pipeline/` | Blender-skripten som bygger dockorna, livebordet och stolen, och vägen från bilder av en person till en ny dealer (`python ny_dealer.py <person>`). Python. | `README-SV.md` |
+| `live-bj/` | Mätning av de riktiga dealrarnas rörelser, blick och kameravinklar ur en blackjackfilm. Filmen och rutorna ur den går aldrig in i Git eller i ett prov; bara måttfilerna i `data/` och verktygen. Mäter med Python-miljön i `blackjack-dealer/tools/python/`. | mappens README |
 | `slask/` | Tillfälligt arbete. Git har bara verktyget `slask.ts`. | nedan |
 | `inbox/` | Korta lappar mellan chattar som arbetar samtidigt. Git har bara verktyget `inbox.ts`. | nedan |
-| `.claude/skills/` | Ett arbetsmoment per mapp (beställa film, granska en rörelse, avsluta ett arbete). Läs den som gäller innan du börjar. | `SKILL.md` |
+| `.claude/skills/` | Ett arbetsmoment per skill (beställa film, granska en rörelse, avsluta ett arbete). Läs den som gäller innan du börjar. | `SKILL.md` |
 | `.githooks/` | Kontrollen före push. | nedan |
 
-Projekten lånar av varandra med relativa sökvägar (`../blackjack-dealer/...`) i stället för att kopiera. Kommer en mapp
-till eller försvinner ändras tabellen i samma steg.
+De två mätta dealrarna har arbetsnamn (Jakob 2026-11-27): Danilo (den första, ung och smal; stilen `kameran`) och
+Frasse (den andra, med skägg; stilen `bordet`). Samma namn bär våra två dockor med deras kroppsmått, stil och rörelser
+och vårt eget ansikte. Projekten lånar av varandra med relativa sökvägar (`../blackjack-dealer/...`) i stället för att
+kopiera. Kommer en mapp till eller försvinner ändras tabellen i samma steg.
 
 ## Det som skyddar Jakob
 
@@ -47,16 +48,17 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
 - **Rätta orsaken.** Ett fel rättas där det uppstår, inte med en lapp ovanpå, ett nytt förbud eller en ny spärr.
 - **Visa i stället för att fråga.** Det han ska ta ställning till visas i bild eller film.
 - **En oberoende domare när han är borta** (Jakob 2026-11-27: "sätt en extern bild- och videogranskare som får agera
-  domare i stället för mig när jag är borta"). Det som ska visas för honom som ett resultat (en film, en figur, en
-  rörelse, en bild) döms först av en granskare som inte har gjort det och som bara får resultatet och hans egna domar,
-  inte tillverkarens rapport. Domaren dömer som han: med ögat, strängt, och hellre Inte bra än kanske. Ett Inte bra går
-  tillbaka till den som gjorde det, och svaret till Jakob säger vad domaren sa. Domarens ord är märkt som inte hans, och
-  hans egen dom ersätter det. Hur det går till står i skillen `doma`.
-- **Git sköter agenten.** Jakob använder inte Git. Spara filerna, och när arbetet är kontrollerat: committa dina egna
-  filer med ett kort meddelande om vad och varför, och pusha till `main`. Ingen force-push och ingen `--no-verify`.
-- **Kontrollen före push** (`.githooks/pre-push`, installeras en gång per utcheckning med
-  `node .githooks/check.ts --install`) stoppar hemligheter, `.env`-filer, media, filer över 5 MB och sökvägar till en viss dator, och kör testerna i
-  de projekt som har ändrats. `node .githooks/check.ts` kör samma kontroll i förväg, och med `--alla` över varje fil Git har. Är den röd rättas orsaken.
+  domare i stället för mig när jag är borta"). Ett resultat som ska visas för honom (en film, en figur, en rörelse, en
+  bild) döms först av en granskare som inte har gjort det och bara får resultatet och hans egna domar, inte
+  tillverkarens rapport. Den dömer som han, med ögat och strängt, hellre Inte bra än kanske; ett Inte bra går tillbaka
+  till den som gjorde det. Svaret till Jakob säger vad domaren sa, märkt som inte hans ord, och hans egen dom ersätter
+  det. Hur: skillen `doma`.
+- **Git sköter agenten.** Jakob använder inte Git. När arbetet är kontrollerat: committa dina egna filer med ett kort
+  meddelande om vad och varför, och pusha till `main`. Ingen force-push och ingen `--no-verify`.
+- **Kontrollen före push** (`.githooks/pre-push`, installeras en gång per utcheckning med `node .githooks/check.ts
+  --install`) stoppar hemligheter, `.env`-filer, media, filer över 5 MB och sökvägar till en viss dator, och kör
+  testerna i de projekt som har ändrats. `node .githooks/check.ts` kör samma kontroll i förväg, med `--alla` över varje
+  fil Git har. Är den röd rättas orsaken.
 - **Tester** skrivs bara för det som ska bestå: publiceringsskyddet, spelets regler, hans domar, beställningarna och
   kontrakten. Ett rött test som inte skyddar något av det är ett gammalt test och tas bort; säg vilket i svaret.
 - **Städa i samma steg.** Ta bort det ändringen gjorde överflödigt (kod som inget anropar, ersatta filer, egna
@@ -64,9 +66,9 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
 - **Dokument.** En sak står på ett ställe och beskriver det som gäller nu; historien står i Git. Regler här och i
   projektets `AGENTS.md`, kartan och körningen i projektets README, läget i `STATUS.md` där det finns.
 - **Inget gammalt lagras** (Jakob 2026-11-27: "så inte skit lagras"). Ett verktyg lägger aldrig undan en äldre version,
-  en kopia eller en lista över det som är borta i en mapp som Git har: historien står i Git. Ett register pekar bara
-  på det som finns; tas en fil bort tas raden om den bort i samma steg. Undantaget är hans domar: domen om en film som
-  är borttagen står kvar i `blackjack-dealer/data/motions-removed.jsonl`, eftersom domarna är hans.
+  en kopia eller en lista över det som är borta i en mapp som Git har. Ett register pekar bara på det som finns; tas en
+  fil bort tas raden om den bort i samma steg. Undantaget är hans domar: domen om en borttagen film står kvar i
+  `blackjack-dealer/data/motions-removed.jsonl`.
 - **Riktningar räknas från dealerns kropp, inte från kameran** (Jakob 2026-11-27: "det är viktigt vad som är vad";
   "jag omnämner ofta höger och vänster utifrån dealerns egna kropp ... så att dealerns vänsterhand är närmast skon"). I
   kod, data, filnamn och dokument är höger och vänster (R och L, Right och Left i skelettet) alltid dealerns egna: skon
@@ -87,21 +89,21 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
 
 ## Måtten och rörelseschemat
 
-- Måtten har en källa: koden (kameran, bordet, skon och kortplatserna i `blackjack-dealer/src/table-live.ts`, kortet
+- Måtten har en källa, koden: kameran, bordet, skon och kortplatserna i `blackjack-dealer/src/table-live.ts`, kortet
   i `src/space.ts`, dockornas mått i `blackjack-dealer/dealer3d/src/doll.ts` och en persons i
-  `avatar-auto-pipeline/personer/<person>.json`, rörelsernas takt i lyftfilerna `dealer3d/data/lyft-*.json`). Ett
-  mått ändras där, aldrig i ett dokument.
-- Livestandarden är den enda standarden (Jakob 2026-11-27: "helt övergå till det som är klonat", "enbart utgå från
+  `avatar-auto-pipeline/personer/<person>.json`, rörelsernas takt i lyftfilerna `dealer3d/data/lyft-*.json`. Ett mått
+  ändras där, aldrig i ett dokument.
+- **Livestandarden är den enda standarden** (Jakob 2026-11-27: "helt övergå till det som är klonat", "enbart utgå från
   vy/vinkel/riktningar/storlekar och annat som fanns i videon"): kameran, bordet, skon, korten och kortplatserna som
-  de är mätta ur filmen av livebordet, och rörelserna lyfta ur samma film. Den förra standarden (det förra bordet och
-  kameran, mannen, kvinnan och de ritade givarna) är borta ur koden och arkiverad utanför repot. En annan vy för
-  spelet får läggas ovanpå senare; den ändrar aldrig måtten.
-- `MATT.md` i roten är en utskrift av alla mått, vinklar, kortplatser, höjder och takter på ett ställe, bredvid det som
-  är mätt på ett riktigt livebord (`live-bj/data/`). Läs den för att se ett mått. Den ändras aldrig för hand:
-  `node matt.ts` skriver den, och kontrollen före push skriver om den och säger till när den inte stämmer.
+  de är mätta ur filmen av livebordet, och rörelserna lyfta ur samma film. En annan vy för spelet får läggas ovanpå
+  senare; den ändrar aldrig måtten.
+- `MATT.md` i roten skriver ut alla mått, vinklar, kortplatser, höjder och takter bredvid det som är mätt på ett
+  riktigt livebord (`live-bj/data/`). Den ändras aldrig för hand: `node matt.ts` skriver den, och kontrollen före push
+  skriver om den och säger till när den inte stämmer.
 - Rörelseschemat står i `standarddocka/rorelsekatalog.json`: ankarena (en bild som klipp börjar och slutar i: A1,
-  A2.3, handbytet A2M, A3PnCm), stadierna (vad dealern gör: VILA, REDO, GIV, TILLBAKA …, vart och ett med hemankare, grundklipp och
-  varianter) och rörelserna (klippen), med vilka som finns och vilka som saknas. En ny rörelse skrivs in där.
+  A2.3, handbytet A2M, A3PnCm), stadierna (vad dealern gör: VILA, REDO, GIV, TILLBAKA …, vart och ett med hemankare,
+  grundklipp och varianter) och rörelserna (klippen), med vilka som finns och vilka som saknas. En ny rörelse skrivs in
+  där.
 
 ## Tillfälligt och producerat
 
@@ -109,21 +111,20 @@ Det här är de enda hårda reglerna. Allt annat i repot är arbetssätt och få
   du är klar. Det som har stått orört i tre timmar raderas av `node slask/slask.ts stada` (servern i `blackjack-dealer`
   kör den själv), så lägg aldrig något där som ska finnas kvar.
 - Det som produceras (filmer, bilder, modeller, renderingar) raderas som regel (Jakob 2026-11-25). Kvar blir bara det
-  som väntar på hans dom, i ett prov (`blackjack-dealer/assets/proofs/<namn>/`, med originalen i provets egen mapp
-  `original/`), och det han har godkänt eller som spelet använder, i projektets mediemapp. Underkänt, bortvalt och ersatt raderas genast av den som gjorde
-  det; inget läggs undan för säkerhets skull.
-- Var allt lagras står i kartan `lager.ts` i roten (som `matt.ts` för måtten): varje mapp med media eller producerat,
-  dess slag, projekt, register, läsare och om det går att göra om gratis. `node lager.ts` visar storlek per ställe och
-  slag och vad registren pekar på som saknas. En ny sådan mapp skrivs in där i samma steg (testet
-  `blackjack-dealer/tools/lager.test.ts` håller det mot `.gitignore`). Studions Biblioteket visar kartan, och hans klick
-  där och i Prov raderar från disken utan papperskorg (`blackjack-dealer/tools/lager-remove.ts`); det skyddade kräver
-  hans andra klick. En agent raderar med samma verktyg, inte för hand: `node blackjack-dealer/tools/lager-remove.ts <sak>`
-  visar frågan och följden, och `--ja --vem <namn>` raderar, bara på hans ord eller ett uppdrag som säger det. Kvittot
-  säger vem som raderade.
+  som väntar på hans dom, i ett prov (`blackjack-dealer/assets/proofs/<namn>/`, med originalen i provets mapp
+  `original/`), och det han har godkänt eller som spelet använder, i projektets mediemapp. Underkänt, bortvalt och
+  ersatt raderas genast av den som gjorde det; inget läggs undan för säkerhets skull.
+- Var allt lagras står i kartan `lager.ts` i roten: varje mapp med media eller producerat, dess slag, projekt, register,
+  läsare och om det går att göra om gratis. En ny sådan mapp skrivs in där i samma steg (testet
+  `blackjack-dealer/tools/lager.test.ts` håller kartan mot `.gitignore`).
+- **Radera med verktyget, inte för hand:** `node blackjack-dealer/tools/lager-remove.ts <sak>` visar frågan och
+  följden, och `--ja --vem <namn>` raderar från disken utan papperskorg, bara på hans ord eller ett uppdrag som säger
+  det. Kvittot säger vem som raderade. Hans klick i studions Biblioteket och Prov går samma väg, och det skyddade kräver
+  hans andra klick.
 
 ## Sökningen
 
-`.gitignore` och `.ignore` i roten är de enda ignore-filerna för sökningen. `.ignore` döljer för sökningen det Git har men ingen
+`.gitignore` och `.ignore` i roten är de enda ignore-filerna för sökningen. `.ignore` döljer det Git har men ingen
 sökning ska vada igenom (maskindata, rörelsernas rutor, filmregistret). En tom sökträff betyder därför inte att filen
 saknas: läs den med sin sökväg. En ny mapp med maskindata eller stora filer läggs in där i samma steg.
 

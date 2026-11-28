@@ -5,8 +5,8 @@ description: Använd i blackjack-dealer när ett arbete är färdigt och ska in 
 
 # Avsluta ett arbete
 
-Kommandon körs från `blackjack-dealer/`. Git-reglerna i stort står i `AGENTS.md` (casino-roten), "Arbetssätt";
-här är ordningen.
+Kommandon körs från `blackjack-dealer/`. Reglerna för Git, kontrollen, testerna, städningen och flera chattar står i
+rotens `AGENTS.md`; här är ordningen.
 
 ## En underagent eller en annan chatt
 
@@ -19,22 +19,20 @@ här är ordningen.
 ## Huvudagenten
 
 1. Vänta in eller stoppa egna underagenter. Bevara Jakobs plan, domar och orderutkast.
-2. **Kontrollera:** kör de berörda testfilerna (`node --test <fil>`). Rött stoppar, och granskas innan det
-   följs (rotens `AGENTS.md`, "Arbetssätt"): skyddar testet något som ska bestå rättas orsaken och skyddet sänks
-   aldrig; annars är det ett gammalt test som tas bort i samma ändring och nämns i svaret.
-3. **Städa:** ta bort det ändringen gjorde överflödigt (kod som inget anropar, ersatta filer, döda sökvägar) och egna
-   mappar i slasken. Efter mediearbete: `npm run gallra` och `node ../lager.ts`.
-4. **Dokumentera, nerifrån och upp:** kommentaren i koden, `blackjack-dealer/README.md` om en mapp eller ett kommando
-   ändrats, `blackjack-dealer/docs/SYSTEM.md` om ett kontrakt ändrats, `blackjack-dealer/AGENTS.md` om hans ord ändrat
-   en regel, och `blackjack-dealer/STATUS.md`, där det inaktuella ersätts.
+2. **Kontrollera:** kör de berörda testfilerna (`node --test <fil>`). Rött stoppar: skyddar testet något som ska bestå
+   rättas orsaken och skyddet sänks aldrig; annars är det ett gammalt test som tas bort i samma ändring och nämns i
+   svaret.
+3. **Städa:** ta bort det ändringen gjorde överflödigt och egna mappar i slasken. Efter mediearbete: `npm run gallra`
+   och `node ../lager.ts`.
+4. **Dokumentera, nerifrån och upp:** kommentaren i koden, `README.md` om en mapp eller ett kommando ändrats,
+   `docs/SYSTEM.md` om ett kontrakt ändrats, `AGENTS.md` om hans ord ändrat en regel, och `STATUS.md`, där det
+   inaktuella ersätts.
 5. **Commit:** stagea egna filer med namn (aldrig `git add -A` när andra arbetar), ett kort meddelande om vad och
    varför.
-6. **Push:** `npm run check` och sedan `git push`. Kontrollen (`npm run hooks:install` en gång per utcheckning)
-   stoppar hemligheter, `.env`-filer, media, filer över 5 MB och sökvägar till en viss dator (en disk, en användares
-   mapp, en server) i varje blob de utgående commitarna har, och kör `npm test` i de projekt som ändrats. En rättelse i
-   en senare commit räcker inte: en commit som aldrig har pushats görs om lokalt. `node ../.githooks/check.ts --alla`
-   prövar hela trädet som det ligger, nya filer också, före en commit. Läs fjärrens SHA efteråt
-   (`git rev-parse origin/main`).
+6. **Push:** `npm run check` och sedan `git push`. Kontrollen prövar varje blob de utgående commitarna har, så en
+   rättelse i en senare commit räcker inte: en commit som aldrig har pushats görs om lokalt.
+   `node ../.githooks/check.ts --alla` prövar hela trädet som det ligger, nya filer också, före en commit. Läs
+   fjärrens SHA efteråt (`git rev-parse origin/main`).
 7. Ingen force-push, ingen `--no-verify`. "Try running Pull first" i Cursor betyder att kontrollen före push blev röd:
    läs varför i stället för att dra.
 
