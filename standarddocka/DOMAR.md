@@ -327,4 +327,24 @@ rörelser och filmerna som görs av dem.
 - **Dockans kropp ska likna dealern i filmen.** Han räknar med "att vi ska göra om dockan som liknar youtubevideon",
   och frågar: "Skiljer vi på Danilo och Frasse? De kroppar/dockor som syns och skapas här eller används. Är de
   verkligen bra, eller ska det vara skelett eller andra typer av 3d-figurer istället?" Samma sak som han sa
-  2026-11-27 om den tjocka dockan: kroppen ska vara dealerns, inte en medelmans.
+  2026-11-27 om den tjocka dockan: kroppen ska vara dealerns, inte en medelmans. Senare samma kväll, med tre bilder ur
+  editorn: "våra dockor som ska anpassas utefter rörelserna ... är helt enkelt inte bra nog som du ser på bilderna."
+- **Vad standarddockan är för honom.** "En standarddocka i min mening är bara någonting som innehar alla rörelser, men
+  utifrån rätt bord, kort. Men också i den vinkel som finns på youtubevideorna." Danilo och Frasse "är de riktiga
+  personerna på och från youtubefilmerna. Med andra ord ska deras kroppar och annat stämma, givet att vi t.ex. kört
+  SAM 3D på dessa personer." En ny person får "en anpassad docka, men jag tror att händerna i stort sett ska vara
+  desamma", och "alla de rörelser som finns in och från youtube-modellen ... insegmenterade utifrån youtubefilmerna,
+  men inplacerade smart i vårat rörelseschema/noder/ankare".
+- **Kortet ur skon och kortplatsernas ramar.** "Korten som kommer ut från skon tror jag vår studio visar fel eller
+  gamla mått av. Youtubekorten är större och inkluderar det omgärdande vita av kortet, som också kan ha förblandats
+  med kortens kanter som syns längre upp i skon." Och: "vår studio/dockan har dels konstigt utplacerade kvadratiska
+  rektanglar för kortens positioner." Funnet samma kväll: editorn ritade ett enkelt rött kort utan vit kant, fast
+  bordets eget kort har mönstrad rygg med vit kant (rättat). Ramarna är inte tryckta på filmens bord: de visar var
+  dealrarna lade kort 1 och kort 2 på varje plats, och går att dölja i editorn.
+- **Står eller sitter dealrarna?** "På youtubefilmerna tror jag att de står och inte sitter. Jag tror inte stol finns."
+  Mätningen säger att de sitter på en hög stol (`live-bj/data/uppsattning.json`, `floor`: ögonen ligger 0,15 m lägre
+  än de stunder de står vid bordet), och vid grannborden i filmen syns stolsryggar bakom dealrarna. Filmens stol syns
+  däremot inte bakom dealern i bilden, vilket vår gör. Hans att avgöra.
+- **Mer film, en tanke.** "Om jag skulle kanske ordna mer videomaterial som finns, men där det kommer skilja aningen i
+  vinkel, vy, dealer och lite annat. Kan man ändå försöka att använda materialet? Jag tänker att om vi med 3 nya
+  filmer, men kanske 3 nya dealers kan ta rörelser till de andra platserna på bordet."
