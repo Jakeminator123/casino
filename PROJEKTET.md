@@ -79,7 +79,7 @@ Steg 2 till 5 och anropen för steg 6 körs med ett kommando, `python ny_dealer.
   rörelser hämtade ur Youtubefilmerna", och "kunna skapa delningssekvenser till alla platser. När vi har modellen för
   detta så kan vi skapa vilken dealer som helst"). Dealrar som redan är gjorda räddas inte; målet är en generisk metod.
   Orden står i `standarddocka/DOMAR.md`.
-- **En grunddocka och en rörelsesamling** (Jakob 2026-11-28: "en enda grunddocka som skalar och bär alla rörelser, som
+- **En grunddocka och en rörelsesamling** (Jakob 2026-11-28: "en enda grunddocka som ... bär alla rörelser, som
   är plockad från olika dealers"). Rörelserna får komma från olika dealrar, Danilo, Frasse och senare fler ur mer
   film. Det går för att en rörelse sparas som var händerna, fingrarna, huvudet och kortet är över bordet, inte som en
   viss kropps leder, och för att varje rörelse börjar och slutar i samma ankare. En persons docka är grunddockan

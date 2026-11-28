@@ -1,10 +1,8 @@
 # standarddocka
 
-Dockornas arbetsbänk vid livebordet: Danilo och Frasse (efter de två riktiga dealrarna i filmen av livebordet), deras
-rörelser lyfta ur filmen, editorn där de spelas och filmas, och rörelseschemat. Reglerna står i `AGENTS.md`, Jakobs domar i
-`DOMAR.md`. Måtten (kameran, bordet, skon, kortplatserna) står i `../blackjack-dealer/src/table-live.ts`, dockorna i
-`../blackjack-dealer/dealer3d/src/doll.ts` och deras rörelser i `../blackjack-dealer/dealer3d/data/lyft-<docka>-*.json`
-(gjorda av `../blackjack-dealer/dealer3d/tools/lyft-till-docka.ts` ur `../live-bj/data/lyft/`).
+Dockornas arbetsbänk vid livebordet: Danilo och Frasse (efter de två riktiga dealrarna i filmen av livebordet) och
+persondockorna, editorn där deras lyfta rörelser spelas och filmas, och rörelseschemat. Reglerna och var måtten, dockorna
+och rörelserna kommer ifrån står i `AGENTS.md`, Jakobs domar i `DOMAR.md`.
 
 ## Mappar
 
@@ -17,7 +15,7 @@ standarddocka/
   editor/              editorn i webbläsaren: Danilo eller Frasse vid livebordet genom dess kamera, en tidslinje att
                        spela, kameror (också från de sju platserna), uttrycken i ansiktet och inspelning av klipp
     server.ts          editorns egen server (bara den här datorn, port 4320): sidan, modellerna, rörelserna och listan
-                       över dem; gör film av inspelningens bilder (FFmpeg)
+                       över dem; gör film av inspelningens bilder (FFmpeg); three.js lånas ur ../blackjack-dealer/node_modules/
     editor.ts          sidan: tidslinjen, kamerorna, uttrycken, Spela in
     dockval.ts         vilken docka sidan visar ur adressen, platsen och hela sekvensen (närmast skon först); ren kod
                        (testet ../blackjack-dealer/tools/editor-dockval.test.ts)
@@ -29,10 +27,10 @@ standarddocka/
     armar.ts, kropp.ts regeln att underarmarna går över bordets kant, och spärren som håller en ställning inom vad en
                        kropp kan
   verktyg/             för agenter, utan fönster (skillen granska-rorelse)
-    titta.ts           stillbilder ur valda kameror vid valda tider, eller en inspelning; `--docka danilo|frasse`,
-                       `--plats`, `--giv`, `--sekvens`; kör editorn i ett headless Chrome under det delade låset
-    kropp.ts           hur dockans kropp ritas genom en rörelse (axlar, armbågar, handleder och fingrar mot rörelsens
-                       punkter), genom titta.ts
+    titta.ts           stillbilder ur valda kameror vid valda tider, eller en inspelning; `--docka <docka>`, `--plats`,
+                       `--giv`, `--sekvens`; kör editorn i ett headless Chrome under det delade låset
+    kropp.ts           modellens leder mot rörelsens punkter; skrivet för den förra standarden och går inte att köra
+                       förrän det är omskrivet
     lagg-pa-bord.ts    lägger en dealer filmad i utseendet nyckel på vårt eget bord: dealern och stolen klipps ut ur
                        den gröna filmen, `--egen-sko` lägger vår sko, och `--docka` tar bort spårkortet och ritar vårt
                        eget kort där filmens kort ligger, efter dockans tal
@@ -48,7 +46,8 @@ standarddocka/
   `http://127.0.0.1:4320/standarddocka/editor/?docka=danilo&plats=4`. Studions sida Dockan visar den.
 - Rörelserna görs om ur lyftet: `node dealer3d/tools/lyft-till-docka.ts --alla` och prövas med
   `node dealer3d/tools/lyft-kolla.ts` (från `../blackjack-dealer/`). Varje docka har kort 1 och kort 2 till dagens plats
-  1–7 (`lyft-<docka>-p<n>` och `-p<n>c2`), som skon till bytet och bytet till platsen efter varandra; varifrån varje plats
-  är gjord står i `rorelsekatalog.json` (GIV-KORT-1 och GIV-KORT-2, `kallor`). Andra kortet spelas med
-  `?sekvens=p4,p4c2` eller `titta.ts --sekvens p4,p4c2`; hela sekvensen har kort 1 till alla sju platser.
+  1–7 (`lyft-<docka>-p<n>` och `-p<n>c2`), som skon till bytet (`-till-bytet`) och bytet till platsen (`-bytet-p<n>`)
+  efter varandra; varifrån varje plats är gjord står i `rorelsekatalog.json` (GIV-KORT-1 och GIV-KORT-2, `kallor`).
+  Andra kortet spelas med `?sekvens=p4,p4c2` eller `titta.ts --sekvens p4,p4c2`; hela sekvensen har kort 1 till alla
+  sju platser.
 - Bilder att granska: `node standarddocka/verktyg/titta.ts --ut <mapp> --docka frasse --plats 4 --kamera spel,sida`.

@@ -1,350 +1,271 @@
-# Jakobs domar om standarddockan
+# Jakobs domar om dockorna
 
-Hans egna ord om bilderna, filmerna och rörelserna han har sett, med datum. De är måttet en bild eller en rörelse
-prövas mot innan den visas för honom, och de ändras bara av honom: en ny dom skrivs in här med datum och hans ord, och
-en dom han har ändrat sig om ersätts. Hur mappen är byggd och läget står i `README.md`.
+Hans egna ord om bilderna, filmerna och rörelserna han har sett, med datum, ordnade efter sak. De är måttet en rörelse,
+en bild eller en film prövas mot innan den visas för honom, och de ändras bara av honom: en ny dom skrivs in under sin
+sak med datum och hans ord, och en dom han har ändrat sig om ersätts av den nya. Domarna om det som är borta (den förra
+standardens bord och kamera, mannen och kvinnan, de ritade givarna) står i Git. Läget står i
+`../blackjack-dealer/STATUS.md`.
 
-- **Startläget är vilan (A1).** "Sitter inte i 'vila/A1' som jag trodde alla startpositioner skulle": varje bild och
-  varje rörelse börjar med båda händerna i vila på filten, inte med händerna i luften.
-- **Blenders bord gillar han, men det ska vara helt mot dealern.** "Bordet här gillar jag, men är i grunden fel som
-  standardbord då det har som ett bortfall runt magen, vilket kanske beror på att markerbrickan ska vara där, som då i
-  så fall nu skulle vara instoppat i bordet": ingen urgröpning mot magen, och markerbrickan nedsänkt inne i bordet.
-- **Markerbrickan följer bordet.** "Markerhållaren har inte förskjutits bak", "markerbrädan har inte gått bak som
-  bordet": när bordet kommer närmare dealern ligger brickan vid dealerns kant.
-- **Markerbrickan är bordets kant mot dealern.** Om den första arbetsvyn: "Chipbrickan ska också vara så långt in mot
-  dealern, i bordet, att det faktiskt också är det som är 'gränsen' och slutet på bordet som vetter mot dealerns
-  mage": ingen remsa filt mellan brickan och kanten; brickans dealersida är bordets kant där dealern sitter.
-- **Händerna vilar på filten, inte i den.** "Händerna går in lite i bordet": ingen del av en hand under filtens yta,
-  och det ska synas att handen ligger på bordet.
-- **Armarna går aldrig genom bordets kant.** "En 'karm' finns som gör att armen från dealern går igenom karmen ungefär
-  vid armbågen av framför allt dealerns egna högerarm och vänsterarm": underarmarna går över kanten.
-- **Högerhanden tar emot kortet med tummen, utan att handleden vrids i maxläge.** "Dealerns egna högerarm [är] för
-  vriden, med andra ord så ska standarden vara att dennes högerarm ska med hjälp av tummen ta emot kortet som sedan
-  skjuts och vänds över än att hela handleden ska vridas i maxläge som är onaturligt" (han såg det kring ruta 27 i
-  given till plats 4).
-- **Inga hack i rörelsen.** "Är som ett litet hack i filmen på 50/120, som försöker kompensera för att fingrarna inte
-  är på rätt sida": fingrarna ska vara på rätt sida av kortet från början, så att inget rättas till mitt i.
-- **En dockas arm får inte se konstig ut i en bild han ska döma** ("Paows arm är helt konstig" om en stillbild tagen
-  med den äldre, handritade given): visa dockan i vilan eller i den rörelse som faktiskt används.
-- **Kamerans vinkel.** Inspelningens kamera ser dealern uppifrån, och "vinkeln [är] inte naturlig utifrån att man
-  skulle spela i casinot. Dock om vi kan vinkla ned vyn till när man ska spela så går detta å andra sidan": vyn
-  spelaren får ska vara mer framifrån än inspelningens, och blicken mot kameran.
-- **Spelets vy är den lägre kameran (2026-11-26).** Om bilden genom den lägre kameran: "Jag tror jag gillar denna
-  kameravinkel som standard faktiskt! Men ska vi sätta denna standard måste vi se till att allt hänger med, så att vi
-  inte bara ändrar en kameravinkel här och sedan kommer det inte följa med i de led som har med .glb-/3d/andra mappars
-  standarder och/eller andra kameror som filmar från andra platser". Och att insatsringen på plats 4 inte ska brytas
-  av bilden. Talen står på ett ställe, `PLAY_LENS` i `../blackjack-dealer/src/table-lens.ts` (0,58 m över filten,
-  12 grader ned), och allt läser dem därifrån: editorn, de sju platsernas kameror (`seatView`), och Blenders standard
-  (`../avatar-auto-pipeline/scen/standard.yaml`, `spelvy` och kamerorna `spel` och `spel_plats_N`). En ny kamera läggs
-  aldrig in som egna tal i en mapp.
-- **I vilan ser han in i kameran (2026-11-26).** "A1 [ska] alltid ha avataren som tittar mot kameran … mot P4:as kamera
-  för tillfället."
-- **Vid skon ser han på skon (2026-11-26).** Om givarna till sju platser, som börjar och slutar vid skon: "Nja. Detta är
-  ju inte A1 som dessa startar på. Denna är ju A2.3, därför ska dockans blick riktas mot skon när den går från skon och
-  skjuter ut kortet, men också återvända till samma ställe med samma blick. En annan sak hade varit om han skulle
-  återvända till A1. I övrigt bra!" Blicken är alltså mot kameran bara i vilan (A1). I A2.3 är den på kortet i skons
-  mynning, under given på kortet, och tillbaka på skon när handen är det.
-- **Takten (2026-11-27).** "Jag vill ändra standarddockans tid för att ge kort. Att ge ett kort ska ta 1.2 sek och
-  återgången 0.8. Det bör passa bättre för övrigt." Alltså: från vilan till skon cirka 1 s, kortet ut (från skon till
-  att det ligger) 1,2 s, och handen tillbaka (till skon eller till vilan) 0,8 s. Det är rörelsens tid; stillastående i
-  ett ankare räknas inte in. Bakgrund: 2026-11-26 satte han "A1 - A2.3 ska ta 1 sekund ungefär", "respektive utgivning
-  är max 1 sekund och tillbakagången ... ca 0,6 sekunder", och gav A och B till plats 4 i den takten 5/5.
-- **Handen vid skon är redo medan den andra ger (2026-11-26).** "Dealerns hand som för ut kortet ur skon liksom lyfts upp
-  och spänns medan den andra [handen] faktiskt delar ut kortet", i alla givarna. Och: "dockan ska inte vara avspänd vid
-  skon i REDO/A2.3". Handen som tog kortet ur skon går alltså tillbaka till sin redo-ställning vid skon och håller den
-  lugnt medan den andra handen lägger kortet: varken lyft och spänd i luften, eller slapp.
-- **Vilan ska se avslappnad ut (2026-11-26).** "I A1/VILA-position ska han se mer avslappnad och naturlig ut med blicken
-  mot P4."
-- **Skons kort ska synas som kort (2026-11-26).** Kortens rygg får vara som den är, men "se bara till att det blir
-  supertydligt vad som på skon faktiskt är ett kort och inte", gärna med "ett litet skydd/hölje, så man måste verkligen
-  dra ut ett kort i taget": en riktig dealerskos frontplatta med en halvmåneformad öppning för fingret.
+## Målet
+
+- **Alla rörelser ur filmen, och givar till alla platser (2026-11-28).** "Huvudsaken är ju att vi kan få in alla
+  rörelser hämtade ur Youtubefilmerna. Men också utifrån det mönstret och system vi använder, kunna skapa
+  delningssekvenser till alla platser. När vi har modellen för detta så kan vi skapa vilken dealer som helst. Då kan vi
+  också ändra vinkeln på kameran när allt ska spelas in."
+- **Dealrar som redan är gjorda räddas inte (2026-11-28).** "Försök inte rädda dealers som skapats om det är lättare att
+  jobba på annat sätt såsom att skapa en ny eller liknande då målet är en generisk metod för att skapa nya och inte att
+  få till just dessa dealers. Dock är ju målet att få till en fungerande dealer som ska kunna spelas in på Runway med
+  filmerna."
+- **En ny dealer ur bilder (2026-11-27).** "Jag vill ha ett sätt där jag kan lägga in bilder och skapa skelett och även
+  datapunkter för hand och ansikte ... På bästa sätt vill jag få fram hela innanmätet av en ny dealer": ett generiskt
+  sätt, där dealern "till allra största del är ett resultat av alla de rörelsesekvenser som vi nu har tagit in", och
+  där filmerna granskas av den externa domaren under arbetet.
+- **Filmer med ett skäl (2026-11-27).** "försök ha en anledning med att skapa filmerna nu. Vi vill hitta 'the magic
+  sauce' för att sedan kunna massproducera, inte innan."
+
+## Standarden och bordet
+
+- **Livebordet är standarden, och bara det (2026-11-27).** "Det nya bordet, sko, alltihopa ska bli den nya standarden
+  överallt." "Vi byter standard till att i princip enbart utgå från vy/vinkel/riktningar/storlekar och annat som fanns i
+  videon (man ska sedan kunna spela vårt casino/blackjack i annan vinkel, men det kan ändras sedan när man väl har allt
+  på plats vad det gäller den nya standarden för det mesta)." Och: "Liveboardet i min värld är det som ursprungligen
+  filmades med alla vinklar, kort, sko, dealer och allt så som kom från live-bj." Måtten är filmens; utseendet runt
+  bordet (rummet, väggen bakom dealern) är vårt eget och neutralt. I casinot vill han ha en vy som går att ställa in,
+  "liknande som det var tidigare".
+- **Spegla mot filmen, och namn som inte förväxlas (2026-11-27).** "Jag vill kunna banne mig spegla vår
+  vy/bord/dealer/kort/kameravinkel etc mot youtubeklippet varifrån det kommer!" Och: "jag känner verkligen att återigen
+  en ihopblandning av saker skett - namn, vänster och höger, standarddocka, livevy och eller annat". Studion har en
+  sida där vår bild ligger över filmens.
+- **Studions dockvy är editorns (2026-11-26).** "Vi ska ha in vy/vinkel och allt det andra från 'standarddockan'-mappens
+  mini-blender": rätt vy och "allting som har med hur vi i framtiden ska försöka att skapa såna här klipp".
+- **Editorns bild ska gå att läsa (2026-11-28).** Om en bild ur editorn: "det är som två kort som syns ... mycket
+  förvirrande, jag ser inte leder för knogarna eller tumme eller andra fingrar ... Vyn känns typ som att det är en bred
+  lins/3d också vid zoomning. Korten ska ju också vara aningen elastiska för att efterlikna vissa smådelar".
+- **Vår markerbricka, när den läggs till, är bordets kant mot dealern (2026-11-26).** "Chipbrickan ska också vara så
+  långt in mot dealern, i bordet, att det faktiskt också är det som är 'gränsen' och slutet på bordet som vetter mot
+  dealerns mage": ingen remsa filt mellan brickan och kanten. Livebordet har ingen bricka.
+
+## Dockan och kroppen
+
+- **Vad standarddockan är (2026-11-28).** "En standarddocka i min mening är bara någonting som innehar alla rörelser, men
+  utifrån rätt bord, kort. Men också i den vinkel som finns på youtubevideorna." Danilo och Frasse "är de riktiga
+  personerna på och från youtubefilmerna. Med andra ord ska deras kroppar och annat stämma, givet att vi t.ex. kört SAM
+  3D på dessa personer." Det ersätter att mannen och kvinnan ägde alla rörelser (2026-11-26).
+- **En grunddocka och en rörelsesamling (2026-11-28).** "om vi har fler dealers så kommer ju väl de olika dealers ha
+  olika anatomier och så vidare. Därav dels min tanke med en enda grunddocka som skalar [skrivet 'sallar'; kan också
+  vara 'samlar'] och bär alla rörelser, som är plockad från olika dealers. Men då måste ju saker och ting kunna
+  'generaliseras'?" Det är alltså en grunddocka och en samling rörelser, som får komma från olika dealrar (Danilo,
+  Frasse och senare fler); varje rörelse börjar och slutar i samma ankare, och dockan skalas efter personen. Senare
+  samma dag: "Är också nu standarddockan en enda docka. Denna docka har en grunduppsättning med rörelser som alla av dem
+  finns i mitt system av och i 'Karta'?" Att Danilo och Frasse i dag är två dockor med var sin uppsättning är läget,
+  inte målet.
+- **Grunddockan bär bara rörelserna (2026-11-28).** På frågan om ett prov med dockan klädd som dealern: "grunddockan
+  ska bara inneha rörelserna som de skapade avatarerna ska kunna få." Inget sådant prov görs; utseendet hör till
+  personen.
+- **Samma uppbyggnad i dockan och i en persons docka (2026-11-28).** "Dockan och de skapade avatarerna - har de samma
+  typ av struktur? Alltså t.ex. de har lika många leder, lika många datapunkter, lika många - allt liksom?" Så är det
+  byggt: alla dockor görs av samma skript med samma skelett och samma namn på benen
+  (`../avatar-auto-pipeline/scen/bygg_docka.py`), varje hand har samma 21 punkter, och rörelsernas filer har samma
+  form. Det som skiljer är måtten och huden.
+- **Kroppen ska vara dealerns, inte en medelmans (2026-11-27 och 2026-11-28).** "varför skapas våra avatarer utifrån en
+  standard som inte är just det som ska följa alla mått från Danilo och Frasse så att säga?" Om den tjocka dockan:
+  "kanske det blir fel av bara farten då den känns riktigt klumpig". Och 2026-11-28: "Är de verkligen bra, eller ska det
+  vara skelett eller andra typer av 3d-figurer istället?", och med tre bilder ur editorn: "våra dockor som ska anpassas
+  utefter rörelserna ... är helt enkelt inte bra nog som du ser på bilderna." I dag har dockorna dealerns leder och
+  lyfta rörelser, men en medelmans kropp med två av dealerns mått. Funnet samma kväll: provdockor med kroppen mätt ur
+  filmen (provet `dockans-kropp-ur-filmen-20261128`, inte dömt av honom) skiljer bara några centimeter från dagens
+  dockor, och Danilo och Frasse ett par procent från varandra.
+- **En ny persons docka (2026-11-28).** En ny person får "en anpassad docka, men jag tror att händerna i stort sett ska
+  vara desamma", och "alla de rörelser som finns in och från youtube-modellen ... insegmenterade utifrån
+  youtubefilmerna, men inplacerade smart i vårat rörelseschema/noder/ankare".
+- **En persons docka byggs på dockan vars rörelser den spelar (2026-11-27).** "Den docka som är skapad utifrån [Danilo
+  och Frasse] och som vi arbetat med hela tiden [är] grunden för den docka av Tomasz som ska göras." Tomasz formad om
+  till Danilos skelett, med händer som sträcktes: "skitdåligt".
+- **Inget lager ovanpå lederna (2026-11-27).** Om rättningen ovanpå den påsatta handen, Inte bra: "Men om vi har leder
+  innan i dockan varför lägga på ett lager till. Vinkeln här är lite fel på hur armen går från tröjan också."
+- **Det en kropp inte kan ska inte gå (2026-11-26).** Om en armbåge dragen in i bålen: "Sånna här rörelser ska ju bara
+  inte gå", de "borde vara blockerade": ingen arm genom bålen eller bordet, ingen led bortom sitt läge.
+- **Ansiktet (2026-11-26, en önskan).** "Dock undrar jag om vi kanske ska lägga på det som kanske kan göra lite uttryck
+  ... som blinkningar och ansiktsgester": ett val, avstängt tills han har sett det, och noll i varje klipps början och
+  slut.
+
+## Rörelserna
+
+- **Rörelserna är de riktiga dealrarnas (2026-11-27).** Om vänsterhanden som lyftes framför bröstet vid handbytet:
+  "Detta är en rörelse som youtubedealern inte gör. Detta är definitivt en kvarleva från gamla dockan eller förra
+  standarddockans rörelsemönster och inte en kopia av det skelett/rigg/rörelser och annat som kommer från de nya
+  dealrarna." Händerna ska vara där filmens är.
+- **Allt börjar i ett ankare (2026-11-26).** "Rörelserna måste kunna läggas in i hela det system med A1 som allt börjar
+  på", och "Sitter inte i 'vila/A1' som jag trodde alla startpositioner skulle": varje rörelse går mellan två ankare
+  (vilan A1, handen vid skon A2.3, handbytet A2M) och börjar och slutar stilla i dem, aldrig med händerna i luften, så
+  att klippen kan läggas efter varandra.
 - **Varianter (2026-11-26).** "Det ultimata hade varit ett system där man har ca 5 unika givar till respektive plats",
   med egna små rörelser för huvud, kropp och andra armen.
-- **Allt börjar i A1.** "Rörelserna måste kunna läggas in i hela det system med A1 som allt börjar på": varje rörelse
-  går mellan två ankare (A1 vilan, A2.3 handen vid skon) och börjar och slutar stilla i dem, så att klippen kan läggas
-  efter varandra i spelets träd.
-- **Det en kropp inte kan ska inte gå (2026-11-26).** Om en armbåge dragen in i bålen i editorn: "Sånna här rörelser
-  ska ju bara inte gå", de "borde vara blockerade". Det han drar i hålls inom vad en kropp kan: ingen arm genom bålen
-  eller bordet, ingen led bortom sitt läge.
-- **Studions dockvy ska vara editorns (2026-11-26).** Om standarddockan i studions dockvy med det äldre bordet och den
-  äldre kameran: "Vi ska ha in vy/vinkel och allt det andra från 'standarddockan'-mappens mini-blender". Inte bara
-  kroppen ska in i studion, utan "rätt vy" och "allting som har med hur vi i framtiden ska försöka att skapa såna här
-  klipp".
-- **Mannen och kvinnan äger alla rörelser (2026-11-26).** "Jag skulle dock vilja, om det går, att vi har som en
-  grund-3D-mesh-avatar som är en man och en kvinna som i alla fall äger alla rörelser. Jag förstår att det är svårt
-  att anpassa unikt för respektive dealer som 'avatar-auto-pipeline' skapar, men fan, det ska kunna gå." Rörelserna
-  ritas för standarddockornas egna kroppar, och en dealer från pipelinen ska kunna göra dem: den byggs på samma
-  skelett, så att bara kroppens mått skiljer.
-- **Målet (2026-11-26).** "Skapa eller sätt in så man kan sätta in en av våra standarddockor i 'Bordet'. Alltså välja
-  en standarddealer som är en docka. Sedan ska den få bra rörelser enligt så som vi vill ha det." Och: "Sedan vill jag
-  se en manlig standarddocka på ett blackjackbord där allt faktiskt fungerar och där rörelserna är smidiga och
-  naturliga."
-- **Händer och kort hör ihop (2026-11-26).** "Se till att vi får till en väldigt bra och effektiv symmetri med händer
-  och kort." Om rutan där kortet läggs på plats 4 (handen knuten kring kortet, kortet på högkant): "vad gör dealern
-  ens? Förstår skripten att vi faktiskt byter hand?" Det ska synas vad varje hand gör: vänsterhanden drar kortet ur
-  skon, högerhanden tar det i ett öppet grepp, vänder det och lägger det, utan knuten hand och utan kort på högkant.
-- **Kortets vändning (2026-11-26).** Två gånger om givar han fick se: "kortet vänds åt fel håll". Hans beskrivning:
-  "Dealerns vänstra hand trycker ut kortet. Dealerns högra hand (vänster från kamera) tar emot det med sin tumme ned
-  och vänder över kortet cirka 100 grader i nyckelvridningsrotation medan armen förs mot P4C1 typ. Du kan också,
-  vilket vi kan prova, att skapa en annan version när kortet på smart/enkelt vis vänds över när kortet är väldigt
-  nära där det ska landa också som alternativ." Om var händerna möts: "Låt alla möten mellan handen som drar fram
-  kort och det som tar emot mötas mer i mitten av bordet kanske?" Så läses det, mätt på två lärofilmer av dealrar som
-  ger ur en sko: vänsterhanden drar ut kortet plant och reser det på högkant med framsidan mot dealern; högerhanden
-  kommer med handryggen upp och nyper kortets övre kant ovanifrån, fingertopparna på ryggen och tummen pekande nedåt
-  längs framsidan ("tumme ned" är alltså inte tummen under ett plant kort); den rullar kortet framåt, bort från
-  dealern, med en utåtvridning av underarmen på cirka 90–100 grader, så att framsidan är uppe före halva vägen;
-  sedan bärs kortet plant och lågt, sätts ned plant, skjuts någon centimeter på plats och släpps. Vänsterhanden
-  stannar vid skon. "Utan kort på högkant" ovan gäller ett kort som ställs eller blir stående vid platsen, inte
-  resningen i bytet. Alternativet: samma grepp, men rullningen sker först strax före platsen. Riktiga dealrar byter
-  hand vid skons mynning och ger på cirka en halv sekund; mötet mer mot mitten och takten är hans val.
+- **Märk det som skiljer (2026-11-26).** Om en giv med vänsterhanden ensam: "Vänsterhanden är fine, men det måste liksom
+  markeras så man vet att dessa skiljer sig från tvåhandsutdelningen bara." Om att kortet sätts ned kring sin långsida
+  eller plant: "senare kommer detta vara beroende på om spelaren på platsen eller spelaren på annan plats ska få kortet
+  visat för sig." En variant bär ett märke (`marke` i rörelsens fil).
+- **Upp till sju kort per plats (2026-11-26).** "upp till 7 kort för respektive spelare/seat så att säga", och "se till
+  att det inte glöms bort och att du lyckas med det logiska kring detta, hur dessa två kan faktiskt sys ihop inbördes
+  mellan givar till spelare."
+- **Händerna har var sin tid (2026-11-27).** "Om man kollar på videon så kan ibland dealerns vänsterhand börja ta ut kort
+  eller annat medan dennes högerhand återgår till vila", en "ny feature som gör att vi inte får så konstiga
+  vänsterhänder vid tillbakagång till just typ A2.n". Om vänstern som drar nästa kort innan det förra ligger: "det
+  svåra (osäker på om det ens ska göras)".
+- **Bryggor och nya rörelser (2026-11-27).** Rörelser som ska in: "ta in kort till slasken", "svepa bordet som riktiga
+  dealern gör i klippen" och att "snabbt, med hela handen kunna peka på den som ska agera". Och: "om andra oväntade
+  gester görs, så ska dockan inte behöva härma just den sekvensen just då, utan vänta in youtubedealerns nästa och mest
+  liknande start för t.ex. 'P4C2'-start eller 'VILA'"; bryggorna får göra klippen "aningen längre".
+- **Var klippet hör hemma ska synas (2026-11-27).** "Osäker på var i nodträdet/hur denna sammanlänkas med andra
+  noder/träd/karta".
+- **Spåra kort och händer i filmen (2026-11-28).** "Kan du sätta en agent på youtubefilmerna, denne ska försöka att
+  hitta och spåra korten och händerna vid rörelseövergångar såsom A2M samt där korten vrids och vänds och framförallt
+  till platserna. Sedan där kan vi se exakt vad som faktiskt sker med korten och händerna".
+
+## Händerna och handbytet
+
+- **Händerna vilar på filten, inte i den (2026-11-26).** "Händerna går in lite i bordet": ingen del av en hand under
+  filten, och det ska synas att handen ligger på bordet.
+- **Armarna går aldrig genom bordets kant (2026-11-26).** "En 'karm' finns som gör att armen från dealern går igenom
+  karmen ungefär vid armbågen av framför allt dealerns egna högerarm och vänsterarm": underarmarna går över kanten.
+- **Vilan är avslappnad (2026-11-26).** "I A1/VILA-position ska han se mer avslappnad och naturlig ut med blicken mot
+  P4." Om dockorna i vilan: "aningen för utsträckta armbågar kanske", och "så ska väl händerna mer vara i samma riktning
+  som underarmarna väl?": handen pekar som underarmen, inte vinklad i handleden.
+- **Handen vid skon är redo (2026-11-26).** "Dealerns hand som för ut kortet ur skon liksom lyfts upp och spänns medan
+  den andra [handen] faktiskt delar ut kortet", och "dockan ska inte vara avspänd vid skon i REDO/A2.3": handen som tog
+  kortet ur skon håller sin redo-ställning lugnt medan den andra lägger kortet, varken lyft och spänd eller slapp.
+- **Handen som bär kortet är inte spänd (2026-11-26).** "hennes högerhand ser spänd och stiff ut i mitten av videon".
+- **Det ska synas vad varje hand gör (2026-11-26).** "Se till att vi får till en väldigt bra och effektiv symmetri med
+  händer och kort." Om en ruta där handen var knuten kring kortet och kortet stod på högkant vid platsen: "vad gör
+  dealern ens? Förstår skripten att vi faktiskt byter hand?"
+- **Högern tar kortet med tummen, utan att handleden vrids i maxläge (2026-11-26).** "så ska standarden vara att dennes
+  högerarm ska med hjälp av tummen ta emot kortet som sedan skjuts och vänds över än att hela handleden ska vridas i
+  maxläge som är onaturligt".
+- **Kortets vändning (2026-11-26).** Två gånger: "kortet vänds åt fel håll". Hans beskrivning: "Dealerns vänstra hand
+  trycker ut kortet. Dealerns högra hand (vänster från kamera) tar emot det med sin tumme ned och vänder över kortet
+  cirka 100 grader i nyckelvridningsrotation medan armen förs mot P4C1 typ." Som alternativ en version där "kortet på
+  smart/enkelt vis vänds över när kortet är väldigt nära där det ska landa". Och: "Låt alla möten mellan handen som drar
+  fram kort och det som tar emot mötas mer i mitten av bordet kanske?" Hur filmens dealer gör står i nästa punkt, och
+  den gäller.
+- **Så gör dealern handbytet (2026-11-27).** "Jag ser att dealern i youtube har tummen som visas och vi har hans
+  pekfinger." "Nu ser jag det! Det är alltså youtubekillen som med sin vänstra hands tumme viker upp kortet så det böjs
+  lite grann. Där har vi det!" I filmen, ruta för ruta: högern ligger platt på filten vid kanten och väntar; vänstern
+  skjuter kortet plant fram till högerns fingertoppar och reser det på kant med tummen, så att det buktar en aning;
+  högern tar det nedifrån och bär det under handflatan. På platsen håller dealern kortet med tummen och handen platt och
+  lågt, inte med ett pekande finger, och vänsterhanden ligger på skons kort.
+- **Tummen (2026-11-27).** Om högern på kortet vid plats 4 i Danilos lyfta giv: "Något är nog med tummen, annars ser ju
+  iaf detta bra ut."
+
+## Kortet och skon
+
 - **Standardkortet är editorns (2026-11-26).** "Våra kort som används i 'standarddocka'-mappens editor är det som ska
   användas som standard, och finns låsningar och standarder som säger annat, stryk/radera/ändra det." Kortet är
-  bordets eget (Blenders kort, 63 x 88 mm), i editorn och i studions dockvy.
-- **Skon och korten flyttas inte in (2026-11-26).** "Tänk på att sko och korten måste inte skjutas in såsom t.ex.
-  bordet eller annat såsom markerbricka behöver": bordets kant och brickan kommer till dockan; skon, korten och
-  kortplatserna står kvar.
-- **Sitthöjden (2026-11-26).** Av fyra höjder i vilan dömde han axlarna 23 och 27 cm över filten Inte bra, 31 cm
-  "okej" i spelets vy och Bra från sidan, och 35 cm Bra från sidan men Inte bra i spelets vy (huvudet klipps):
-  dockan sitter med axlarna 31 cm över filten. Om 31 cm: "i denna position som ser 'okej' ut så ska väl händerna mer
-  vara i samma riktning som underarmarna väl?": i vilan pekar handen som underarmen, inte vinklad i handleden. Om
-  bilden uppifrån: "bordet ser lite för tillspetsat ut väl?"
-- **Bordet är en halvmåne och skon står längre ut (2026-11-26).** "Vad sägs om vi gör det mindre äggformat så att
-  toppen inte används lika mycket, utan att det blir mer som en halvmåne", och skon "aningen längre bort från dealern
-  så att dealern ... inte ska behöva sitta så otroligt ihopklämd till skon". Av tre bord dömde han det 1,15 m djupa
-  Inte bra ("okej vi fimpar dena då") och halvmånen Bra: bordet är 0,95 m djupt (en halvcirkel) och skon står 8,5 cm
-  längre ut åt dealerns vänster. Om samma bilder: "kortet från skon finns nu på 2 ställen": rörelsens kort ligger där
-  skon står, aldrig på skons förra plats. Talen står i `DOLL_TABLE` i `../blackjack-dealer/src/table-lens.ts`.
-- **Kortplatserna vända mot varje spelare (2026-11-26, en fråga, inte en dom än).** "Dessa markörer för korten, de ska
-  väl vridas så att respektive spelare, givet att man inte sitter just mittemot, ska kunna få korten mot sig? Osäker
-  på om detta förändrar någonting". På dockornas bord prövas platserna vridna mot sin spelare (plats 4 rakt, de yttre
-  mest), i bild uppifrån och från plats 1, innan givarna till de sex andra platserna ritas; given till plats 4 berörs
-  inte. Hans kortplan (`../blackjack-dealer/placements/default.json`) har vinkeln 0 på alla platser i filmernas ruta
-  och 21 grader på de yttre i mobilens; filmernas plan ändras inte av det här. Senare samma dag: "Om given skulle
-  göras så att kortet läggs i fyrkanter som pekar mot respektive stol. Skulle det då kanske göra att vissa givar
-  hamnar mer rätt?" Ja: prövat samma dag är dockornas bord byggt med spelarnas ramar vända mot sin spelare (långsidan
-  längs linjen från dealern genom platsen; plats 4 rakt, de yttersta 40 grader, dealerns egna rakt), och givarna
-  lägger kortet så. Handleden står då högst 36 grader från underarmen på varje plats (förut 60 och 69 på plats 6 och
-  7). Hans svar på provet `givar-sju-platser-20261126` samma dag gällde blicken vid skon och slutade "I övrigt bra!";
-  de vända platserna nämnde han inte för sig (agentens läsning: de står kvar). Hur de tas bort igen står i README,
-  Nästa steg.
-- **A och B (2026-11-26).** Om mannens giv till plats 4, version A (vänds på vägen) och B (vänds vid platsen):
-  "Superbra, 5/5 för båda faktiskt! Kanon skulle ju vara att ha båda uppsättningarna, men så de skulle kunna dela
-  till alla spelare och upp till 7 kort för respektive spelare/seat så att säga på ett eller annat sätt. Så gärna A
-  och B." Båda ritas till alla platser; fler kort per plats är nästa steg (README).
-- **Vänsterhandsgiven och märkningen (2026-11-26).** Om givarna till alla sju platser: "Vänsterhanden är fine, men det
-  måste liksom markeras så man vet att dessa skiljer sig från tvåhandsutdelningen bara." Om att kortet sätts ned kring
-  sin långsida i stället för plant: "långsida/plant, samma där – senare kommer detta vara beroende på om spelaren på
-  platsen eller spelaren på annan plats ska få kortet visat för sig." Varje giv bär därför ett märke (fältet `marke` i
-  rörelsens fil: vilken hand, hur kortet vänds, hur det sätts ned), och editorns statusrad säger det. Agentens läsning:
-  båda sätten att sätta ned kortet ska finnas som märkta varianter, och vilket som används väljs senare efter vem som
-  ska se kortet.
-- **Sju kort ur de två givarna (2026-11-26).** "Det där med att alla 7 kort kan ges utifrån dessa två utdelningar är
-  fantastiskt, men se till att det inte glöms bort och att du lyckas med det logiska kring detta, hur dessa två kan
-  faktiskt sys ihop inbördes mellan givar till spelare." Det är nästa steg och står överst i README, med logiken.
-- **Ansiktet (2026-11-26, en önskan).** "Dock undrar jag om vi kanske ska lägga på det som kanske kan göra lite
-  uttryck ... som blinkningar och ansiktsgester": dockorna har ansiktsformerna och ögonens leder. I hela rundan finns
-  de som ett val, avstängt tills han har sett det ("Små egna rörelser och blinkning": en andning, en liten
-  viktförskjutning, en blinkning, i några givar en blick upp mot spelaren med ett svagt leende), alltid noll i varje
-  klipps början och slut (README, Hela rundan).
-- **Inte trångt framför dealern (2026-11-26).** "Tänk på att du med fördel kan skjuta fram både sko/kort och dess
-  placeringar om du skjuter fram dealern. Annars kanske det liksom blir för trångt?" När dockan och bordet kommer
-  närmare varandra ska händerna i vilan, brickan, dealerns egna kort och skon fortfarande ha plats: ingen hand vilar
-  på en kortplats.
-- **Närmare bordet (2026-11-26).** Om dockan i vilan sedd uppifrån: "skulle man inte kunna skjuta in dockorna aningen
-  till mot bordet". Och om att inget känns bättre: rörelserna "känns inte så harmoniska", och "låsningar finns i
-  gamla sparade filer". Det gamla (Paows mått, det äldre bordets kant, lappar ovanpå) är orsaken; det rättas i
-  dockans egna mått och egna rörelser, inte med en lapp till.
-- **Mannen och kvinnan delar grund (2026-11-26).** "Kanske kan mannen och kvinnliga dockan i alla fall ha en någorlunda
-  grund så man inte behöver jobba dubbelt för grundposer": en ställning eller en rörelse görs en gång och gäller båda.
-  Om vilan: "mannen och kvinnan har aningen för utsträckta armbågar kanske".
-- **Handen som bär kortet får inte se spänd ut (2026-11-26).** Om kvinnan i given till plats 4: "hennes högerhand ser
-  spänd och stiff ut i mitten av videon".
-- **Skons frontplatta (2026-11-26).** "Bra, men inte helt. Jag vill att frontplattan ska ha en liten mynning längst
-  upp. Samt kanske inte området som omgärdar kanten på kortets rygg ska vara vitt. Kan misstas för kortets tunna sida,
-  eller ännu värre att det misstas för att det vita är något annat, såsom kanske karmen på skon."
-- **Dockans fel syns i filmen.** Om första filmen av dockan omgjord till en person: "det [är] mycket viktigt att dockan
-  vi använder är väldigt bra med sina givar, så ett litet typ hack som sker omkring ruta 50/51 faktiskt syns i denna
-  film". Filmmodellen följer dockan ruta för ruta och rättar ingenting: en rörelse filmas först när den är ren.
-- **Struket (2026-11-26).** Att luta bordet mot kameran: "Vi skiter i lutning av bordet".
+  bordets eget, i editorn och i studion.
+- **Kortet ur skon (2026-11-28).** "Korten som kommer ut från skon tror jag vår studio visar fel eller gamla mått av.
+  Youtubekorten är större och inkluderar det omgärdande vita av kortet, som också kan ha förblandats med kortens kanter
+  som syns längre upp i skon." Funnet samma kväll: editorn ritade ett rött kort utan vit kant, fast bordets kort har
+  mönstrad rygg med vit kant (rättat).
+- **En kortrygg per film (2026-11-27).** "Dock fladdrar gult och rött som kortrygg. Är detta för vi har kortrygg som rött
+  och gult blandat? Detta bör vara en bugg, eller att vi inte enats om vilket kort som ska användas." Kortryggen "ska i
+  och för sig vara mönstrat röd". Varje bild som styr en film visar samma rygg: röd i en film som visas som den är,
+  spårkortets gula (nyckelutseendet) bara i en inspelning som ska skäras ut.
+- **Inget överlägg på kortet (2026-11-27).** "Varför är det så att korten som dras ifrån den nya skon redan här har ett
+  rött överlägg?"
+- **Kortet läggs inte till rätta av sig självt (2026-11-27).** "Kortet läggs sedan ned, och ska inte automatiskt läggas
+  i rätt vinkel bara för det inte kom exakt rätt; försök i stället få kortet (med livevyns storlek av kortet) till
+  koordinater som kanske måste mätas på nytt."
+- **Kortet sitter i en hand hela vägen (2026-11-27).** Om Kenjis film: "det kan ändå inte flyga upp till högra". Om
+  filmen med eget kort: "Varför åker kortet upp nära bytet? Tror inte det har de dimensioner som på youtubevideon ...
+  de vrids upp av/med hjälp av andra handen."
+- **Kortet finns på ett ställe (2026-11-26).** "kortet från skon finns nu på 2 ställen": rörelsens kort ligger där skon
+  står, aldrig någon annanstans.
+- **Skons kort ligger, och syns som kort.** "Kortskon som används är också med stående kort och inte det som
+  youtubefilmen har, dvs liggandes." (2026-11-27) Och: "se bara till att det blir supertydligt vad som på skon faktiskt
+  är ett kort och inte" (2026-11-26).
+- **Kortplatsernas ramar (2026-11-28).** "vår studio/dockan har dels konstigt utplacerade kvadratiska rektanglar för
+  kortens positioner." Ramarna är inte tryckta på filmens bord: de visar var dealrarna lade kort 1 och kort 2, och går
+  att dölja i editorn.
 
-## Livebordet, Danilo och Frasse (2026-11-27)
+## Blicken
 
-Samma dygn som den klonade uppsättningen blev den nya standarden. Domarna gäller dockorna vid livebordet, deras lyfta
-rörelser och filmerna som görs av dem.
+- **I vilan in i kameran (2026-11-26).** "A1 [ska] alltid ha avataren som tittar mot kameran … mot P4:as kamera för
+  tillfället." Och 2026-11-27: "Känns som att han tittar uppåt, men uppåt och inte mot kameran, som om dockan delvis
+  utgår ifrån en gammal standarddocka som hade en annan vy som kamera."
+- **Vid skon på skon (2026-11-26).** "Detta är ju inte A1 som dessa startar på. Denna är ju A2.3, därför ska dockans
+  blick riktas mot skon när den går från skon och skjuter ut kortet, men också återvända till samma ställe med samma
+  blick. En annan sak hade varit om han skulle återvända till A1." Blicken är mot kameran bara i vilan; i A2.3 är den på
+  kortet i skons mynning, under given på kortet, och tillbaka på skon när handen är det.
 
-- **Den klonade uppsättningen är den nya standarden.** "Det nya bordet, sko, alltihopa ska bli den nya standarden
-  överallt." "Jag skulle vilja helt övergå till det som är klonat totalt." Den förra står kvar som ett val. I casinot
-  vill han dessutom ha en vy som går att ställa in, "liknande som det var tidigare".
-- **Rörelserna är de riktiga dealrarnas, inte den gamla dockans.** Om vänsterhanden som lyftes framför bröstet vid
-  handbytet, i dockan och i filmen av Tomasz: "Detta är en rörelse som youtubedealern inte gör. Detta är definitivt en
-  kvarleva från gamla dockan eller förra standarddockans rörelsemönster och inte en kopia av det skelett/rigg/rörelser
-  och annat som kommer från de nya dealrarna." Händerna ska vara där filmens är; inget i en lyft rörelse får komma ur
-  de ritade givarna.
-- **Inga småryck, värst i huvudet.** Om filmerna av Tomasz som gör Danilos giv: "han var liksom lite skakig på grund
-  av, jag vet inte, att för små mikrorörelser kommer med?" Och senare samma dag: "Små olika typer av 'ryck' som vi fick
-  när vår docka nitiskt följde livedealern förut och som gjorde att det såg dåligt ut", "få bort de allra värsta
-  smårycken som fanns i till exempel huvud var det framförallt. Men jag vet att det har skett kring handen också",
-  "fått det väldigt ofta när videomodeller följt 3d-gubbar". Dockan följer dealerns rörelse, inte mätningens brus
-  ruta för ruta: huvud och axlar är lika stilla som hans, handens fart är en jämn kurva, och blicken hålls på ett mål
-  och vrids mjukt till nästa.
-- **En kortrygg per film.** Om given gjord med bilder ur dockan (kortet `atta-bilder-giv`, svaret "Bättre: gör med
-  bilder"): "Dock fladdrar gult och rött som kortrygg. Är detta för vi har kortrygg som rött och gult blandat? Detta
-  bör vara en bugg, eller att vi inte enats om vilket kort som ska användas." Det finns två ryggar i dag: den röda i
-  det vanliga utseendet, som på livebordet, och den gula i nyckelutseendet (spårkortet, `NYCKEL` i `editor/scen.ts`).
-  Varje bild som styr en och samma film ska visa samma rygg: röd i en film som ska visas som den är, gul bara i en
-  inspelning som ska skäras ut.
-- **Tomasz från två kameror: Nej.** Kortet "Tomasz gör Danilos giv från två kameror: är det samma man?" fick svaret
-  Nej (2026-11-27). Det han hade sagt om filmerna står i punkterna här: utseendet glömdes, småryck, blicken uppåt,
-  skons stående kort och vänsterhanden som dealern inte gör. Inga fler platser filmas förrän det är rättat.
-- **Blicken mot kameran, inte uppåt.** "Känns som att han tittar uppåt, men uppåt och inte mot kameran, som om dockan
-  delvis utgår ifrån en gammal standarddocka som hade en annan vy som kamera."
-- **Skons kort ligger.** "Kortskon som används är också med stående kort och inte det som youtubefilmen har, dvs
-  liggandes."
-- **Personens utseende får inte glömmas.** Om samma filmer: "allteftersom glömdes utseendet på Tomasz". Han tror att
-  personens egen riggade figur som förlaga hjälper filmmodellen att hålla det.
-- **Händerna har var sin tid.** "Om man kollar på videon så kan ibland dealerns vänsterhand börja ta ut kort eller annat
-  medan dennes högerhand återgår till vila. Det skulle kunna bli någon form av ny feature som gör att vi inte får så
-  konstiga vänsterhänder vid tillbakagång till just typ A2.n."
-- **Bryggor och nya rörelser.** Rörelser som ska in: "ta in kort till slasken", "svepa bordet som riktiga dealern gör i
-  klippen" och att "snabbt, med hela handen kunna peka på den som ska agera". Och: "om andra oväntade gester görs, så
-  ska dockan inte behöva härma just den sekvensen just då, utan vänta in youtubedealerns nästa och mest liknande start
-  för t.ex. 'P4C2'-start eller 'VILA'"; bryggorna får göra klippen "aningen längre".
-- **En persons figur byggs på den docka vars rörelser den ska spela.** "Den docka som är skapad utifrån [Danilo och
-  Frasse] och som vi arbetat med hela tiden [är] grunden för den docka av Tomasz som ska göras." Men Tomasz formad om
-  till Danilos skelett, med händer som sträcktes, dömde han "skitdåligt".
-- **Handleden.** Om rättningen ovanpå den påsatta handen: Inte bra. "Men om vi har leder innan i dockan varför lägga på
-  ett lager till. Vinkeln här är lite fel på hur armen går från tröjan också."
-- **En domare när han är borta.** "Sätt en extern bild- och videogranskare som får agera domare i stället för mig när
-  jag är borta, så att [en figur med trasiga händer] kan ses att det är skitdåligt." Hur det går till: skillen `doma`.
-- **Tummen när pekfingret ligger på kortet.** Om dockans högerhand på kortet vid plats 4 i Danilos lyfta giv
-  (2026-11-27, sjunde försöket): "Något är nog med tummen, annars ser ju iaf detta bra ut." I den ställningen ligger
-  tummen tryckt längs de böjda fingrarna och flyter ihop med dem. Han frågade samtidigt om "den pluffsiga dockan" ska
-  användas trots allt: den är förlaga för ställningen, och utseendet kommer ur bilderna av personen.
-- **Den första filmen vid livebordet: Nja** (2026-11-27, provet `sju-bilder-vid-livebordet-20261127`: Tomasz ger ett
-  kort till plats 4, Kling 4 med sju stillbilder). "Ser på den där filmen och tycker nja också." Det han sa ska rättas:
-  - **Vändningen ska gå fort.** "Varför saktas det in så mycket när kortet ska vändas? Just vändningen ska gå, eller
-    skulle jag vilja testa, snabbt", gärna med lite oskärpa, "men för den delen ska inte något bli slarvigt".
-  - **Inget överlägg på kortet.** "Varför är det så att korten som dras ifrån den nya skon redan här har ett rött
-    överlägg?" Kortryggen "ska i och för sig vara mönstrat röd". Han frågade också varför korten är gula i den gröna
-    filmen (det är spårkortet i nyckelutseendet).
-  - **Filmen ska inte gå i en annan takt än dockan** utan skäl: "om det nu är så att vi av någon schematisk anledning
-    ska köra vår video snabbare än den docka som finns (varför?), så vet jag inte vad det tjänar till".
-  - **Handen ska möta kortet som i originalklippet.** "Möter inte dealerns högra hand kortet ... så skyfflas ju kortet
-    upp, och det är ju fantastiskt."
-  - **Kortet ska inte läggas till rätta av sig självt.** "Kortet läggs sedan ned, och ska inte automatiskt läggas i
-    rätt vinkel bara för det inte kom exakt rätt; försök i stället få kortet (med livevyns storlek av kortet) till
-    koordinater som kanske måste mätas på nytt."
-  - **En överlämning för alla platser.** "Försökte vi att skapa som en universell överlämning med detta parti när
-    händerna möts?" Inte prövat; handbytet står som förslag till ankare i rörelseschemat.
-  - **På sidan, samma eftermiddag:** filmen (01) och jämförelsen med dockan (08) märkte han Inte bra, och i Beslut
-    svarade han Ja med orden "Ok, så om du menar att vi skapar större kort och möjligen annat, gör en video till!
-    Sedan kanske vi kan döma efter det!" Kortet upplever han alltså som för litet; nästa film görs med det rättat,
-    och den dömer han.
-- **Samma film med vårt eget kort och i Danilos takt: "Bra", 3,5 till 4 av 5** (2026-11-27, provet
-  `efter-nja-eget-kort-och-takt-20261127`). "Bra ... klippet är 3.5/5 eller 4/5." Det han frågade och såg:
-  - **Takten ska vara dealerns.** "Vad menar du med dockans takt? Varför inte följa takten från och som den Danilo
-    eller Frasse hade." Det är samma sak: dockan spelar Danilos giv ruta för ruta. Säg "Danilos takt", inte "dockans".
-  - **Kortet åker upp nära bytet.** "Varför åker kortet upp nära bytet? Tror inte det har de dimensioner som på
-    youtubevideon ... de vrids upp av/med hjälp av andra handen." Filmen var gjord efter rörelsen som den var på
-    förmiddagen, där kortet restes på kant i luften; det rättades samma dag (kortet under handen, se STATUS).
-  - **Han förloras "pyttelite" efter handbytet,** och han undrar om vändningen nu är en vridning kring kortets mitt.
-  - **Är dockan, avstånden och standarden rätt?** "Är inte denna Thomas också kanske lite med fel typer av
-    docka/avstånd/standarder i stort ... VET du det?" Det som ska kunna visas med tal: kortets storlek, kameran,
-    bordet och vilken docka som spelar.
-  - **Var i schemat klippet hör hemma** ska synas: "Osäker på var i nodträdet/hur denna sammanlänkas med andra
-    noder/träd/karta".
-  - **Vänstern som drar nästa kort innan det förra ligger** nämner han igen som "det svåra (osäker på om det ens ska
-    göras)".
-  - Om Kenjis dockfilm före dagens rättningar: "Kan vara bra..".
-- **Kenjis film mellan stillbilder: tempot och kortets kontakt** (2026-11-27, provet
-  `kenji-ny-dealer-ur-bilder-20261127`, film 05 och arbetsfilen före den). Om en arbetsfil där utskärningen tog
-  bort bitar av skjortan: den "ser bra ut fast man ser liksom att någon typ av överläggningsgrej ligger vid händerna".
-  Om filmen: "Tempot är konstigt också." Och om händerna och kortet: "Är kanske också inte bordet lite lågt eller
-  händerna för typ korta i förhållande för att få kortkontakt. I och för sig kanske denna Kenji och de andra
-  dealrarna är tänkta att börja vika upp kortet med start från sin egen vänsterhand, men det kan ändå inte flyga upp
-  till högra." Kortet ska alltså sitta i en hand hela vägen, och takten ska vara dealerns utan att kännas påtvingad.
-  **Hans dom i Prov samma kväll: Inte bra** på hela provet, på filmen (06, halv fart av 05) och på dockfilmen (03,
-  den rättade rörelsen, som han först skrev "Kan vara bra.." om). Domaren hade dömt dockans rörelse Bra och filmen
-  Nja; hans dom ersätter dem. Filmerna 11 (Aleph 2) och 15 (utan hack) lades i provet efter hans dom.
-  **I Beslut kl. 18.32: Nej.** "Nej men livebordet. Vad är det ens? Fingrarna når inte kortet heller.. Fel
-  kameravinkel mm". Lagd halvt om halvt över en ruta ur filmen ligger Kenji, skon, kortet och bordets kant där
-  dealern, hans sko, hans kort och hans bord ligger, så kameran är filmens. Det han ser som fel vinkel är vårt
-  eget utseende: en slät grå vägg med en linje i axelhöjd bakom dealern, där filmen har ett rum sett uppifrån. Och
-  fingrarna: den riktiga dealern lägger hela handen platt på kortet, medan dockan pekar med ett finger i kortets
-  hörn (vårt eget påhitt i lyftet), och hans vänsterhand ligger på skons kort där dockans svävar som en klo.
-- **Livebordet är det som filmades** (2026-11-27): "Liveboardet i min värld är det som ursprungligen filmades med alla
-  vinklar, kort, sko, dealer och allt så som kom från live-bj. Alla mått ska finnas där och är tagna därifrån väl?
-  Hur som helst, om jag tittar på vyn ... så verkar det inte se ut såsom på youtubevideon." Måtten är filmens (dockan
-  lagd över en ruta ur filmen ligger på dealern, skon och bordets kant); utseendet är vårt eget och neutralt, och
-  det är det han ser skilja.
-- **Han ska kunna spegla själv, och namnen ska inte gå att förväxla** (2026-11-27, kväll). "Hur hittar jag studion
-  för 'liveboardet'? Förväxling finns nog i namn här.. Jag vill kunna banne mig spegla vår
-  vy/bord/dealer/kort/kameravinkel etc mot youtubeklippet varifrån det kommer!" Och: "jag känner verkligen att
-  återigen en ihopblandning av saker skett - namn, vänster och höger, standarddocka, livevy och eller annat... Eller
-  varför skapas våra avatarer utifrån en standard som inte är just det som ska följa alla mått från Danilo och
-  Frasse så att säga?" Studion ska ha en sida där vår bild ligger över filmens, och dockans kropp ska vara
-  dealerns, inte en medelmans med två mått ändrade.
-- **Så gör dealern handbytet** (2026-11-27, kväll, sett i speglingen mot filmen). "Jag ser att dealern i youtube har
-  tummen som visas och vi har hans pekfinger." Och: "Nu ser jag det! Det är alltså youtubekillen som med sin vänstra
-  hands tumme viker upp kortet så det böjs lite grann. Där har vi det!" I förstoring, ruta för ruta: högerhanden
-  ligger kvar platt på filten vid kanten och väntar; vänstern skjuter kortet plant fram till högerns fingertoppar och
-  reser det sedan på kant med tummen, så att det buktar en aning; högern tar det nedifrån och bär det under
-  handflatan. När kortet ligger på platsen håller dealern det med tummen, med handen lågt, inte med ett pekande
-  finger. Han frågade också om relingen ("möjligen lite annat avstånd på just den reling ... har vi verkligen
-  klonat även det?"): den var antagen och är nu mätt ur filmen. Och om filmerna: "försök ha en anledning med att
-  skapa filmerna nu. Vi vill hitta 'the magic sauce' för att sedan kunna massproducera, inte innan."
-- **Den tjocka dockan** (2026-11-27): "Om vi använder just den där 'tjocka dockan' som jag inte tror är den samma som
-  är den 'nya standarddockan' kanske det blir fel av bara farten då den känns riktigt klumpig. Är den ens med
-  skelett/leder/MediaPipe:ad och annat? Eller är det bara den idiotiska förra 'standarddockan'?" Den är Danilos och
-  Kenjis docka med dealerns leder och de lyfta rörelserna, men kroppens volym är kroppsgeneratorns egen: den ska bli
-  dealerns eller personens.
-- **Standarden är filmens, och bara den (2026-11-27, eftermiddag).** "Vi byter standard till att i princip enbart
-  utgå från vy/vinkel/riktningar/storlekar och annat som fanns i videon (man ska sedan kunna spela vårt
-  casino/blackjack i annan vinkel, men det kan ändras sedan när man väl har allt på plats vad det gäller den nya
-  standarden för det mesta)." Och om dockorna: "Danilo och den andra ... är de dealers som vi försökt att ansamla de
-  riktiga rörelserna ifrån." Den förra standarden, mannen och kvinnan och de ritade givarna tas bort helt på hans ord
-  samma dag.
-- **En ny dealer ur bilder (2026-11-27, eftermiddag).** "Jag vill ha ett sätt där jag kan lägga in bilder och skapa
-  skelett och även datapunkter för hand och ansikte ... leder ... SAM 3D ... På bästa sätt vill jag få fram hela
-  innanmätet av en ny dealer. Och en sån ny dealer ska bli riggad med ett set av väldigt bra rörelser som gör att den
-  nya avataren kan vara en blackjackdealer": ett generiskt sätt, där dealern "till allra största del är ett resultat
-  av alla de rörelsesekvenser som vi nu har tagit in och försökt att anpassa efter vårt mönster", och där filmerna
-  granskas av den externa domaren under arbetet.
+## Takten och smårycken
 
-## Rörelserna först (2026-11-28)
+- **Takten (2026-11-27).** "Att ge ett kort ska ta 1.2 sek och återgången 0.8." Från vilan till skon cirka 1 s ("A1 -
+  A2.3 ska ta 1 sekund ungefär", 2026-11-26). Det är rörelsens tid; stillastående i ett ankare räknas inte. Det ersatte
+  2026-11-26:s högst 1 s ut och 0,6 s tillbaka.
+- **Takten är dealerns (2026-11-27).** "Vad menar du med dockans takt? Varför inte följa takten från och som den Danilo
+  eller Frasse hade." En lyft giv spelas i dealerns takt ruta för ruta: säg "Danilos takt", inte "dockans".
+- **Filmen går i dockans takt (2026-11-27).** "om det nu är så att vi av någon schematisk anledning ska köra vår video
+  snabbare än den docka som finns (varför?), så vet jag inte vad det tjänar till". Om Kenjis film: "Tempot är konstigt
+  också."
+- **Vändningen går fort (2026-11-27).** "Varför saktas det in så mycket när kortet ska vändas? Just vändningen ska gå,
+  eller skulle jag vilja testa, snabbt", gärna med lite oskärpa, "men för den delen ska inte något bli slarvigt".
+- **Inga småryck, värst i huvudet (2026-11-27).** "han var liksom lite skakig på grund av, jag vet inte, att för små
+  mikrorörelser kommer med?" Och: "få bort de allra värsta smårycken som fanns i till exempel huvud var det
+  framförallt. Men jag vet att det har skett kring handen också". Dockan följer dealerns rörelse, inte mätningens brus:
+  huvud och axlar är lika stilla som hans, handens fart är en jämn kurva, och blicken hålls på ett mål och vrids mjukt
+  till nästa.
+- **Inga hack (2026-11-26).** "Är som ett litet hack i filmen på 50/120, som försöker kompensera för att fingrarna inte
+  är på rätt sida": fingrarna är på rätt sida av kortet från början, så att inget rättas till mitt i.
+- **Dockans fel syns i filmen (2026-11-26).** "det [är] mycket viktigt att dockan vi använder är väldigt bra med sina
+  givar, så ett litet typ hack som sker omkring ruta 50/51 faktiskt syns i denna film". Filmmodellen följer dockan ruta
+  för ruta och rättar ingenting: en rörelse filmas först när den är ren.
 
-- **Alla rörelser ur filmen, och givar till alla platser.** "Huvudsaken är ju att vi kan få in alla rörelser hämtade
-  ur Youtubefilmerna. Men också utifrån det mönstret och system vi använder, kunna skapa delningssekvenser till alla
-  platser. När vi har modellen för detta så kan vi skapa vilken dealer som helst. Då kan vi också ändra vinkeln på
-  kameran när allt ska spelas in." Och: "får vi bara till alla sekvenser för dockan ... som finns i sekvensschemat
-  som vi kategoriserar alla rörelser så kan vi göra vilken dealer som helst."
-- **Dealrar som redan är gjorda räddas inte.** "Försök inte rädda dealers som skapats om det är lättare att jobba på
-  annat sätt såsom att skapa en ny eller liknande då målet är en generisk metod för att skapa nya och inte att få
-  till just dessa dealers. Dock är ju målet att få till en fungerande dealer som ska kunna spelas in på Runway med
-  filmerna."
-- **Amaras docka: "okej".** Om provet `amara-ny-dealer-20261128`: "Amara vart okej, men är inte den som var den bästa
-  från gårdagen." Den bästa är Kenji, som i visningsfilmen.
-- **Dockans kropp ska likna dealern i filmen.** Han räknar med "att vi ska göra om dockan som liknar youtubevideon",
-  och frågar: "Skiljer vi på Danilo och Frasse? De kroppar/dockor som syns och skapas här eller används. Är de
-  verkligen bra, eller ska det vara skelett eller andra typer av 3d-figurer istället?" Samma sak som han sa
-  2026-11-27 om den tjocka dockan: kroppen ska vara dealerns, inte en medelmans. Senare samma kväll, med tre bilder ur
-  editorn: "våra dockor som ska anpassas utefter rörelserna ... är helt enkelt inte bra nog som du ser på bilderna."
-- **Vad standarddockan är för honom.** "En standarddocka i min mening är bara någonting som innehar alla rörelser, men
-  utifrån rätt bord, kort. Men också i den vinkel som finns på youtubevideorna." Danilo och Frasse "är de riktiga
-  personerna på och från youtubefilmerna. Med andra ord ska deras kroppar och annat stämma, givet att vi t.ex. kört
-  SAM 3D på dessa personer." En ny person får "en anpassad docka, men jag tror att händerna i stort sett ska vara
-  desamma", och "alla de rörelser som finns in och från youtube-modellen ... insegmenterade utifrån youtubefilmerna,
-  men inplacerade smart i vårat rörelseschema/noder/ankare".
-- **Kortet ur skon och kortplatsernas ramar.** "Korten som kommer ut från skon tror jag vår studio visar fel eller
-  gamla mått av. Youtubekorten är större och inkluderar det omgärdande vita av kortet, som också kan ha förblandats
-  med kortens kanter som syns längre upp i skon." Och: "vår studio/dockan har dels konstigt utplacerade kvadratiska
-  rektanglar för kortens positioner." Funnet samma kväll: editorn ritade ett enkelt rött kort utan vit kant, fast
-  bordets eget kort har mönstrad rygg med vit kant (rättat). Ramarna är inte tryckta på filmens bord: de visar var
-  dealrarna lade kort 1 och kort 2 på varje plats, och går att dölja i editorn.
-- **Står eller sitter dealrarna?** "På youtubefilmerna tror jag att de står och inte sitter. Jag tror inte stol finns."
-  Mätningen säger att de sitter på en hög stol (`live-bj/data/uppsattning.json`, `floor`: ögonen ligger 0,15 m lägre
-  än de stunder de står vid bordet), och vid grannborden i filmen syns stolsryggar bakom dealrarna. Filmens stol syns
-  däremot inte bakom dealern i bilden, vilket vår gör. Hans att avgöra.
-- **Mer film, en tanke.** "Om jag skulle kanske ordna mer videomaterial som finns, men där det kommer skilja aningen i
-  vinkel, vy, dealer och lite annat. Kan man ändå försöka att använda materialet? Jag tänker att om vi med 3 nya
-  filmer, men kanske 3 nya dealers kan ta rörelser till de andra platserna på bordet."
+## Filmerna av personer
+
+- **Samma person hela filmen (2026-11-27).** "allteftersom glömdes utseendet på Tomasz". Han tror att personens egen
+  riggade figur som förlaga hjälper filmmodellen att hålla det.
+- **Docka, avstånd och standard ska kunna visas (2026-11-27).** "Är inte denna Thomas också kanske lite med fel typer av
+  docka/avstånd/standarder i stort ... VET du det?": kortets storlek, kameran, bordet och vilken docka som spelar ska
+  kunna visas med tal.
+
+## Hans domar på proven
+
+- **Beslut "Tomasz gör Danilos giv från två kameror: är det samma man?": Nej (2026-11-27).** Skälen är de ovan:
+  utseendet som glömdes, smårycken, blicken uppåt, skons stående kort och vänsterhanden framför bröstet.
+- **`sju-bilder-vid-livebordet-20261127`, Tomasz ger ett kort till plats 4: Nja (2026-11-27).** "Ser på den där filmen
+  och tycker nja också." Skälen: vändningen som saktades in, det röda överlägget, filmen i en annan takt än dockan och
+  kortet som lades till rätta (orden ovan). Om handen: "Möter inte dealerns högra hand kortet ... så skyfflas ju kortet
+  upp, och det är ju fantastiskt." Och: "Försökte vi att skapa som en universell överlämning med detta parti när händerna
+  möts?" Filmen (01) och jämförelsen med dockan (08) märkte han Inte bra, och i Beslut: "Ok, så om du menar att vi
+  skapar större kort och möjligen annat, gör en video till!": kortet var för litet.
+- **`efter-nja-eget-kort-och-takt-20261127`: Bra, 3,5 till 4 av 5 (2026-11-27).** "Bra ... klippet är 3.5/5 eller
+  4/5." Det han frågade står ovan (dealerns takt, kortet som åkte upp nära bytet, var klippet hör hemma, om dockan och
+  måtten är rätt). Dessutom förloras han "pyttelite" efter handbytet, och han undrar om vändningen är en vridning kring
+  kortets mitt.
+- **`kenji-ny-dealer-ur-bilder-20261127`: Inte bra (2026-11-27).** I Prov Inte bra på provet, filmen (06) och dockfilmen
+  (03), som han först skrev "Kan vara bra.." om; domaren hade dömt dockans rörelse Bra och filmen Nja. Om en arbetsfil:
+  den "ser bra ut fast man ser liksom att någon typ av överläggningsgrej ligger vid händerna". Om filmen: "Tempot är
+  konstigt också", och "Är kanske också inte bordet lite lågt eller händerna för typ korta i förhållande för att få
+  kortkontakt." I Beslut: "Nej men livebordet. Vad är det ens? Fingrarna når inte kortet heller.. Fel kameravinkel mm".
+  Funnet: kameran är filmens, och det han ser som fel vinkel är vårt utseende (en slät grå vägg bakom dealern); den
+  riktiga dealern lägger handen platt på kortet där dockan pekade med ett finger, och hans vänsterhand ligger på skons
+  kort där dockans svävade som en klo.
+- **`amara-ny-dealer-20261128`: okej (2026-11-28).** "Amara vart okej, men är inte den som var den bästa från
+  gårdagen." Den bästa är Kenji.
+
+## Domaren
+
+- **En domare när han är borta (2026-11-27).** "Sätt en extern bild- och videogranskare som får agera domare i stället
+  för mig när jag är borta, så att [en figur med trasiga händer] kan ses att det är skitdåligt." Hur det går till:
+  skillen `doma`.
+- **En bild han ska döma visar det som används (2026-11-26).** "Paows arm är helt konstig", om en stillbild med en äldre,
+  ritad giv: visa dockan i vilan eller i en rörelse som används.
+
+## Öppna frågor
+
+- **Står eller sitter dealrarna? (2026-11-28)** "På youtubefilmerna tror jag att de står och inte sitter. Jag tror inte
+  stol finns." Funnet: mätningen säger att de sitter på en hög stol (`../live-bj/data/uppsattning.json`, `floor`: ögonen
+  0,15 m lägre än när de står), och vid grannborden syns stolsryggar; filmens stol syns inte bakom dealern, vår gör.
+  Hans att avgöra.
+- **Mer film (2026-11-28).** "Om jag skulle kanske ordna mer videomaterial som finns, men där det kommer skilja aningen i
+  vinkel, vy, dealer och lite annat. Kan man ändå försöka att använda materialet?", med "3 nya dealers" som kan "ta
+  rörelser till de andra platserna på bordet".
